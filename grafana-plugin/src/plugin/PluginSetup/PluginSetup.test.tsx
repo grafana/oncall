@@ -70,20 +70,17 @@ describe('PluginSetup', () => {
 
   test('app is loading', async () => {
     const rootBaseStore = new RootBaseStore();
-    rootBaseStore.appLoading = true;
     await createComponentAndMakeAssertions(rootBaseStore);
   });
 
   test('there is an error message', async () => {
     const rootBaseStore = new RootBaseStore();
-    rootBaseStore.appLoading = false;
     rootBaseStore.initializationError = 'ohhhh noo';
     await createComponentAndMakeAssertions(rootBaseStore);
   });
 
   test('there is an error message - retry setup', async () => {
     const rootBaseStore = new RootBaseStore();
-    rootBaseStore.appLoading = false;
     rootBaseStore.initializationError = 'ohhhh noo';
 
     const mockedSetupPlugin = await createComponentAndMakeAssertions(rootBaseStore);
@@ -93,9 +90,15 @@ describe('PluginSetup', () => {
     expect(mockedSetupPlugin).toHaveBeenCalledTimes(2);
   });
 
+  test('currently undergoing maintenance', async () => {
+    const rootBaseStore = new RootBaseStore();
+    rootBaseStore.currentlyUndergoingMaintenance = true;
+    rootBaseStore.initializationError = 'there is some sort of maintenance';
+    await createComponentAndMakeAssertions(rootBaseStore);
+  });
+
   test('app successfully initialized', async () => {
     const rootBaseStore = new RootBaseStore();
-    rootBaseStore.appLoading = false;
     rootBaseStore.initializationError = null;
     await createComponentAndMakeAssertions(rootBaseStore);
   });
@@ -104,7 +107,6 @@ describe('PluginSetup', () => {
     runtime.config.featureToggles.topnav = isTopNavBar;
 
     const rootBaseStore = new RootBaseStore();
-    rootBaseStore.appLoading = true;
     await createComponentAndMakeAssertions(rootBaseStore);
   });
 });

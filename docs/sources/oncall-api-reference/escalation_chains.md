@@ -1,6 +1,4 @@
 ---
-aliases:
-  - /docs/oncall/latest/oncall-api-reference/escalation_chains/
 canonical: https://grafana.com/docs/oncall/latest/oncall-api-reference/escalation_chains/
 title: Escalation Chains HTTP API
 weight: 200
@@ -82,7 +80,10 @@ The above command returns JSON structured in the following way:
       "name": "default",
       "team_id": null
     }
-  ]
+  ],
+  "current_page_number": 1,
+  "page_size": 50,
+  "total_pages": 1
 }
 ```
 

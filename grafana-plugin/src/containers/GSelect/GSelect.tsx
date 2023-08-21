@@ -7,13 +7,15 @@ import { get, isNil } from 'lodash-es';
 import { observer } from 'mobx-react';
 
 import { useStore } from 'state/useStore';
+import { useDebouncedCallback } from 'utils/hooks';
 
-import styles from './GSelect.module.css';
+import styles from './GSelect.module.scss';
 
 const cx = cn.bind(styles);
 
 interface GSelectProps {
   placeholder: string;
+  isLoading?: boolean;
   value?: string | string[] | null;
   defaultValue?: string | string[] | null;
   onChange: (value: string, item: any) => void;
@@ -30,11 +32,13 @@ interface GSelectProps {
   showWarningIfEmptyValue?: boolean;
   showError?: boolean;
   nullItemName?: string;
-  fromOrganization?: boolean;
   filterOptions?: (id: any) => boolean;
   dropdownRender?: (menu: ReactElement) => ReactElement;
   getOptionLabel?: <T>(item: SelectableValue<T>) => React.ReactNode;
   getDescription?: (item: any) => React.ReactNode;
+  openMenuOnFocus?: boolean;
+  width?: number | 'auto';
+  icon?: string;
 }
 
 const GSelect = observer((props: GSelectProps) => {
@@ -42,6 +46,7 @@ const GSelect = observer((props: GSelectProps) => {
     autoFocus,
     showSearch = false,
     allowClear = false,
+    isLoading,
     defaultOpen,
     placeholder,
     className,
@@ -58,7 +63,8 @@ const GSelect = observer((props: GSelectProps) => {
     showWarningIfEmptyValue = false,
     getDescription,
     filterOptions,
-    fromOrganization,
+    width = null,
+    icon = null,
   } = props;
 
   const store = useStore();
@@ -84,26 +90,25 @@ const GSelect = observer((props: GSelectProps) => {
     [model, onChange]
   );
 
-  const loadOptions = (query: string) => {
-    return model.updateItems(query).then(() => {
+  const loadOptions = useDebouncedCallback((query: string, cb) => {
+    model.updateItems(query).then(() => {
       const searchResult = model.getSearchResult(query);
       let items = Array.isArray(searchResult.results) ? searchResult.results : searchResult;
-
       if (filterOptions) {
         items = items.filter((opt: any) => filterOptions(opt[valueField]));
       }
-
-      return items.map((item: any) => ({
+      const options = items.map((item: any) => ({
         value: item[valueField],
         label: get(item, displayField),
         imgUrl: item.avatar_url,
         description: getDescription && getDescription(item),
       }));
+      cb(options);
     });
-  };
+  }, 250);
 
   const values = isMulti
-    ? (value as string[])
+    ? (value ? (value as string[]) : [])
         .filter((id) => id in model.items)
         .map((id: string) => ({
           value: id,
@@ -113,7 +118,9 @@ const GSelect = observer((props: GSelectProps) => {
     : model.items[value as string]
     ? {
         value,
-        label: get(model.items[value as string], displayField),
+        label: get(model.items[value as string], displayField)
+          ? get(model.items[value as string], displayField)
+          : 'hidden',
         description: getDescription && getDescription(model.items[value as string]),
       }
     : value;
@@ -121,9 +128,9 @@ const GSelect = observer((props: GSelectProps) => {
   useEffect(() => {
     const values = isMulti ? value : [value];
 
-    (values as string[]).forEach((value: string) => {
+    (values ? (values as string[]) : []).forEach((value: string) => {
       if (!isNil(value) && !model.items[value] && model.updateItem) {
-        model.updateItem(value, fromOrganization);
+        model.updateItem(value, true);
       }
     });
   }, [value]);
@@ -132,7 +139,6 @@ const GSelect = observer((props: GSelectProps) => {
 
   return (
     <div className={cx('root', className)}>
-      {/*@ts-ignore*/}
       <Tag
         autoFocus={autoFocus}
         isSearchable={showSearch}
@@ -144,6 +150,7 @@ const GSelect = observer((props: GSelectProps) => {
         onChange={onChangeCallback}
         defaultOptions={!disabled}
         loadOptions={loadOptions}
+        isLoading={isLoading}
         // @ts-ignore
         value={values}
         defaultValue={defaultValue}
@@ -151,6 +158,8 @@ const GSelect = observer((props: GSelectProps) => {
         noOptionsMessage={`Not found`}
         getOptionLabel={getOptionLabel}
         invalid={showError || (showWarningIfEmptyValue && !value)}
+        width={width}
+        icon={icon}
       />
     </div>
   );

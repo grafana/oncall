@@ -2,7 +2,20 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
+  {{- if .Values.migrate.useHook }}
+  name: {{ printf "%s-migrate" (include "oncall.engine.fullname" .) }}
+  annotations:
+    "helm.sh/hook": pre-install,pre-upgrade
+    {{- with .Values.migrate.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- else }}
   name: {{ printf "%s-migrate-%s" (include "oncall.engine.fullname" .) (now | date "2006-01-02-15-04-05") }}
+  {{- with .Values.migrate.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- end }}
   labels:
     {{- include "oncall.engine.labels" . | nindent 4 }}
 spec:
@@ -29,6 +42,18 @@ spec:
       serviceAccountName: {{ include "oncall.serviceAccountName" . }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      {{- with .Values.migrate.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.migrate.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.migrate.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       containers:
       - name: {{ .Chart.Name }}-migrate
         securityContext:
@@ -56,6 +81,7 @@ spec:
         env:
           {{- include "snippet.oncall.env" . | nindent 12 }}
           {{- include "snippet.oncall.smtp.env" . | nindent 12 }}
+          {{- include "snippet.oncall.exporter.env" . | nindent 12 }}
           {{- if eq .Values.database.type "mysql" }}
           {{- include "snippet.mysql.env" . | nindent 12 }}
           {{- end }}
@@ -64,9 +90,10 @@ spec:
           {{- end }}
           {{- include "snippet.rabbitmq.env" . | nindent 12 }}
           {{- include "snippet.redis.env" . | nindent 12 }}
-          {{- if .Values.env }}
-            {{- toYaml .Values.env | nindent 12 }}
-          {{- end }}
+          {{- include "oncall.extraEnvs" . | nindent 12 }}
         resources:
           {{- toYaml .Values.engine.resources | nindent 12 }}
+      {{- with .Values.migrate.extraContainers }}
+      {{- tpl . $ | nindent 6 }}
+      {{- end }}
 {{- end }}

@@ -28,13 +28,14 @@ export interface Schedule {
   warnings: string[];
   user_group: UserGroup;
   send_empty_shifts_report: boolean;
-  team: GrafanaTeam | null;
+  team: GrafanaTeam['id'];
   on_call_now: User[];
   notify_oncall_shift_freq: number;
   mention_oncall_next: boolean;
   mention_oncall_start: boolean;
   notify_empty_oncall: number;
   number_of_escalation_chains: number;
+  enable_web_overrides: boolean;
 }
 
 export interface ScheduleEvent {
@@ -57,6 +58,7 @@ export interface CreateScheduleExportTokenResponse {
 
 export interface Shift {
   by_day: string[];
+  week_start: string;
   frequency: number | null;
   id: string;
   interval: number;
@@ -66,7 +68,7 @@ export interface Shift {
   schedule: Schedule['id'];
   shift_end: string;
   shift_start: string;
-  title: string;
+  name: string;
   type: number; // 2 - rotations, 3 - overrides
   until: string | null;
   updated_shift: null;
@@ -79,6 +81,11 @@ export interface Rotation {
 
 export type RotationType = 'final' | 'rotation' | 'override';
 
+export interface SwapRequest {
+  pk: ShiftSwap['id'];
+  user: Partial<User> & { display_name: string };
+}
+
 export interface Event {
   all_day: boolean;
   calendar_type: ScheduleType;
@@ -90,7 +97,12 @@ export interface Event {
   shift: { pk: Shift['id'] | null };
   source: string;
   start: string;
-  users: Array<{ display_name: User['username']; pk: User['pk'] }>;
+  users: Array<{
+    display_name: User['username'];
+    pk: User['pk'];
+    swap_request?: SwapRequest;
+  }>;
+  is_override: boolean;
 }
 
 export interface Events {
@@ -108,5 +120,33 @@ export interface Layer {
 export interface ShiftEvents {
   shiftId: string;
   events: Event[];
+  priority: number;
   isPreview?: boolean;
+}
+
+export interface ScheduleScoreQualityResponse {
+  total_score: number;
+  comments: Array<{ type: 'warning' | 'info'; text: string }>;
+  overloaded_users: Array<{ id: string; username: string; score: number }>;
+}
+
+export interface ShiftSwap {
+  id: string;
+  created_at: string;
+  updated_at: string;
+  schedule: Schedule['id'];
+  swap_start: string;
+  swap_end: string;
+  beneficiary: User['pk'];
+  status: 'open' | 'taken' | 'past_due';
+  benefactor: User['pk'];
+  description: string;
+}
+
+export enum ScheduleScoreQualityResult {
+  Bad = 'Bad',
+  Low = 'Low',
+  Medium = 'Medium',
+  Good = 'Good',
+  Great = 'Great',
 }

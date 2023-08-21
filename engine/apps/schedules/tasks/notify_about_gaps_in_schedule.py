@@ -1,11 +1,11 @@
+import datetime
+
 import pytz
 from celery.utils.log import get_task_logger
-from django.apps import apps
 from django.core.cache import cache
 from django.utils import timezone
 
-from apps.schedules.ical_utils import list_of_gaps_in_schedule
-from apps.slack.utils import format_datetime_to_slack, post_message_to_channel
+from apps.slack.utils import format_datetime_to_slack_with_time, post_message_to_channel
 from common.custom_celery_tasks import shared_dedicated_queue_retry_task
 
 task_logger = get_task_logger(__name__)
@@ -13,7 +13,7 @@ task_logger = get_task_logger(__name__)
 
 @shared_dedicated_queue_retry_task()
 def start_check_gaps_in_schedule():
-    OnCallSchedule = apps.get_model("schedules", "OnCallSchedule")
+    from apps.schedules.models import OnCallSchedule
 
     task_logger.info("Start start_check_gaps_in_schedule")
 
@@ -27,7 +27,7 @@ def start_check_gaps_in_schedule():
 
 @shared_dedicated_queue_retry_task()
 def check_gaps_in_schedule(schedule_pk):
-    OnCallSchedule = apps.get_model("schedules", "OnCallSchedule")
+    from apps.schedules.models import OnCallSchedule
 
     task_logger.info(f"Start check_gaps_in_schedule {schedule_pk}")
 
@@ -45,7 +45,7 @@ def check_gaps_in_schedule(schedule_pk):
 
 @shared_dedicated_queue_retry_task()
 def start_notify_about_gaps_in_schedule():
-    OnCallSchedule = apps.get_model("schedules", "OnCallSchedule")
+    from apps.schedules.models import OnCallSchedule
 
     task_logger.info("Start start_notify_about_gaps_in_schedule")
 
@@ -64,7 +64,7 @@ def start_notify_about_gaps_in_schedule():
 
 @shared_dedicated_queue_retry_task()
 def notify_about_gaps_in_schedule(schedule_pk):
-    OnCallSchedule = apps.get_model("schedules", "OnCallSchedule")
+    from apps.schedules.models import OnCallSchedule
 
     task_logger.info(f"Start notify_about_gaps_in_schedule {schedule_pk}")
 
@@ -80,20 +80,21 @@ def notify_about_gaps_in_schedule(schedule_pk):
         task_logger.info(f"Tried to notify_about_gaps_in_schedule for non-existing schedule {schedule_pk}")
         return
 
-    today = timezone.now().date()
-    gaps = list_of_gaps_in_schedule(schedule, today, today + timezone.timedelta(days=7))
-    schedule.gaps_report_sent_at = today
+    now = timezone.now()
+    events = schedule.final_events(now, now + datetime.timedelta(days=7))
+    gaps = [event for event in events if event["is_gap"] and not event["is_empty"]]
+    schedule.gaps_report_sent_at = now.date()
 
     if len(gaps) != 0:
         schedule.has_gaps = True
         text = f"There are time periods that are unassigned in *{schedule.name}* on-call schedule.\n"
         for idx, gap in enumerate(gaps):
-            if gap.start:
-                start_verbal = format_datetime_to_slack(int(gap.start.astimezone(pytz.UTC).timestamp()))
+            if gap["start"]:
+                start_verbal = format_datetime_to_slack_with_time(gap["start"].astimezone(pytz.UTC).timestamp())
             else:
                 start_verbal = "..."
-            if gap.end:
-                end_verbal = format_datetime_to_slack(int(gap.end.astimezone(pytz.UTC).timestamp()))
+            if gap["end"]:
+                end_verbal = format_datetime_to_slack_with_time(gap["end"].astimezone(pytz.UTC).timestamp())
             else:
                 end_verbal = "..."
             text += f"From {start_verbal} to {end_verbal} (your TZ)\n"

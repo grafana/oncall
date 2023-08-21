@@ -1,6 +1,5 @@
 import logging
 
-from django.apps import apps
 from django.conf import settings
 from rest_framework import status
 from rest_framework.request import Request
@@ -20,11 +19,14 @@ class PluginSyncView(GrafanaHeadersMixin, APIView):
     permission_classes = (PluginTokenVerified,)
 
     def post(self, request: Request) -> Response:
+        """Deprecated. May be used for the plugins with versions < 1.3.17"""
         stack_id = self.instance_context["stack_id"]
         org_id = self.instance_context["org_id"]
         is_installed = False
         allow_signup = True
+
         try:
+            # Check if organization is in OnCall database
             organization = Organization.objects.get(stack_id=stack_id, org_id=org_id)
             if organization.api_token_status == Organization.API_TOKEN_STATUS_OK:
                 is_installed = True
@@ -37,7 +39,8 @@ class PluginSyncView(GrafanaHeadersMixin, APIView):
                 organization.save(update_fields=["api_token_status"])
 
             if not organization:
-                DynamicSetting = apps.get_model("base", "DynamicSetting")
+                from apps.base.models import DynamicSetting
+
                 allow_signup = DynamicSetting.objects.get_or_create(
                     name="allow_plugin_organization_signup", defaults={"boolean_value": True}
                 )[0].boolean_value
@@ -56,6 +59,7 @@ class PluginSyncView(GrafanaHeadersMixin, APIView):
         )
 
     def get(self, _request: Request) -> Response:
+        """Deprecated. May be used for the plugins with versions < 1.3.17"""
         stack_id = self.instance_context["stack_id"]
         org_id = self.instance_context["org_id"]
         token_ok = False
@@ -75,5 +79,6 @@ class PluginSyncView(GrafanaHeadersMixin, APIView):
                 "token_ok": token_ok,
                 "license": settings.LICENSE,
                 "version": settings.VERSION,
+                "recaptcha_site_key": settings.RECAPTCHA_V3_SITE_KEY,
             },
         )

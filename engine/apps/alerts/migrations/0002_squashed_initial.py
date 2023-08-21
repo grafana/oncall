@@ -3,6 +3,7 @@
 from django.db import migrations, models
 import django.db.models.deletion
 import django.db.models.manager
+import django_migration_linter as linter
 
 
 class Migration(migrations.Migration):
@@ -18,6 +19,7 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        linter.IgnoreMigration(),
         migrations.AddField(
             model_name='userhasnotification',
             name='user',

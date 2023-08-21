@@ -3,7 +3,7 @@
 exports[`PluginConfigPage If onCallApiUrl is not set in the plugin's meta jsonData, and ONCALL_API_URL is passed in process.env, and there is an error calling selfHostedInstallPlugin, it sets an error message 1`] = `
 <div>
   <legend
-    class="css-xim8hk"
+    class="css-11wqcat"
   >
     Configure Grafana OnCall
   </legend>
@@ -19,23 +19,46 @@ exports[`PluginConfigPage If onCallApiUrl is not set in the plugin's meta jsonDa
       ohhh nooo an error msg from self hosted install plugin
     </span>
   </pre>
-  <button
-    class="css-mk7eo3-button"
-    type="button"
+  <div
+    class="css-ve64a7-horizontal-group"
+    style="width: 100%; height: 100%;"
   >
-    <span
-      class="css-1mhnkuh"
+    <div
+      class="css-cvef6c-layoutChildrenWrapper"
     >
-      Remove current configuration
-    </span>
-  </button>
+      <button
+        class="css-z53gi5-button"
+        type="button"
+      >
+        <span
+          class="css-1mhnkuh"
+        >
+          Retry Sync
+        </span>
+      </button>
+    </div>
+    <div
+      class="css-cvef6c-layoutChildrenWrapper"
+    >
+      <button
+        class="css-1ed0qk5-button"
+        type="button"
+      >
+        <span
+          class="css-1mhnkuh"
+        >
+          Remove current configuration
+        </span>
+      </button>
+    </div>
+  </div>
 </div>
 `;
 
-exports[`PluginConfigPage If onCallApiUrl is not set in the plugin's meta jsonData, or in process.env, checkIfPluginIsConnected is not called, and the configuration form is shown 1`] = `
+exports[`PluginConfigPage If onCallApiUrl is not set in the plugin's meta jsonData, or in process.env, updatePluginStatus is not called, and the configuration form is shown 1`] = `
 <div>
   <legend
-    class="css-xim8hk"
+    class="css-11wqcat"
   >
     Configure Grafana OnCall
   </legend>
@@ -111,7 +134,7 @@ exports[`PluginConfigPage If onCallApiUrl is not set in the plugin's meta jsonDa
             class="css-1w5c5dq-input-inputWrapper"
           >
             <input
-              class="css-1wdli31-input-input"
+              class="css-1mlczho-input-input"
               data-testid="onCallApiUrl"
               name="onCallApiUrl"
             />
@@ -120,7 +143,7 @@ exports[`PluginConfigPage If onCallApiUrl is not set in the plugin's meta jsonDa
       </div>
     </div>
     <button
-      class="css-1sara2j-button"
+      class="css-z53gi5-button"
       type="submit"
     >
       <span
@@ -133,10 +156,10 @@ exports[`PluginConfigPage If onCallApiUrl is not set in the plugin's meta jsonDa
 </div>
 `;
 
-exports[`PluginConfigPage If onCallApiUrl is set, and checkIfPluginIsConnected returns an error, it sets an error message 1`] = `
+exports[`PluginConfigPage If onCallApiUrl is set, and updatePluginStatus returns an error, it sets an error message 1`] = `
 <div>
   <legend
-    class="css-xim8hk"
+    class="css-11wqcat"
   >
     Configure Grafana OnCall
   </legend>
@@ -152,36 +175,49 @@ exports[`PluginConfigPage If onCallApiUrl is set, and checkIfPluginIsConnected r
       ohhh nooo a plugin connection error
     </span>
   </pre>
-  <button
-    class="css-mk7eo3-button"
-    type="button"
+  <div
+    class="css-ve64a7-horizontal-group"
+    style="width: 100%; height: 100%;"
   >
-    <span
-      class="css-1mhnkuh"
+    <div
+      class="css-cvef6c-layoutChildrenWrapper"
     >
-      Remove current configuration
-    </span>
-  </button>
+      <button
+        class="css-z53gi5-button"
+        type="button"
+      >
+        <span
+          class="css-1mhnkuh"
+        >
+          Retry Sync
+        </span>
+      </button>
+    </div>
+    <div
+      class="css-cvef6c-layoutChildrenWrapper"
+    >
+      <button
+        class="css-1ed0qk5-button"
+        type="button"
+      >
+        <span
+          class="css-1mhnkuh"
+        >
+          Remove current configuration
+        </span>
+      </button>
+    </div>
+  </div>
 </div>
 `;
 
 exports[`PluginConfigPage It doesn't make any network calls if the plugin configured query params are provided 1`] = `
 <div>
   <legend
-    class="css-xim8hk"
+    class="css-11wqcat"
   >
     Configure Grafana OnCall
   </legend>
-  <p>
-    Plugin is connected! Continue to Grafana OnCall by clicking the
-     
-    <img
-      alt="Grafana OnCall Logo"
-      src="[object Object]"
-      width="18"
-    />
-     icon over there 👈
-  </p>
   <pre
     data-testid="status-message-block"
   >
@@ -191,36 +227,50 @@ exports[`PluginConfigPage It doesn't make any network calls if the plugin config
       Connected to OnCall (v1.2.3, OpenSource)
     </span>
   </pre>
-  <button
-    class="css-mk7eo3-button"
-    type="button"
+  <div
+    class="css-ve64a7-horizontal-group"
+    style="width: 100%; height: 100%;"
   >
-    <span
-      class="css-1mhnkuh"
+    <div
+      class="css-cvef6c-layoutChildrenWrapper"
     >
-      Remove current configuration
-    </span>
-  </button>
+      <a
+        class="css-z53gi5-button"
+        href="/a/grafana-oncall-app/"
+        tabindex="0"
+      >
+        <span
+          class="css-1mhnkuh"
+        >
+          Open Grafana OnCall
+        </span>
+      </a>
+    </div>
+    <div
+      class="css-cvef6c-layoutChildrenWrapper"
+    >
+      <button
+        class="css-1ed0qk5-button"
+        type="button"
+      >
+        <span
+          class="css-1mhnkuh"
+        >
+          Remove current configuration
+        </span>
+      </button>
+    </div>
+  </div>
 </div>
 `;
 
-exports[`PluginConfigPage OnCallApiUrl is set, and syncDataWithOnCall does not return an error. It displays properly the plugin connected items based on the license - License: OpenSource 1`] = `
+exports[`PluginConfigPage OnCallApiUrl is set, and checkTokenAndIfPluginIsConnected does not return an error. It displays properly the plugin connected items based on the license - License: OpenSource 1`] = `
 <div>
   <legend
-    class="css-xim8hk"
+    class="css-11wqcat"
   >
     Configure Grafana OnCall
   </legend>
-  <p>
-    Plugin is connected! Continue to Grafana OnCall by clicking the
-     
-    <img
-      alt="Grafana OnCall Logo"
-      src="[object Object]"
-      width="18"
-    />
-     icon over there 👈
-  </p>
   <pre
     data-testid="status-message-block"
   >
@@ -230,36 +280,50 @@ exports[`PluginConfigPage OnCallApiUrl is set, and syncDataWithOnCall does not r
       Connected to OnCall (v1.2.3, OpenSource)
     </span>
   </pre>
-  <button
-    class="css-mk7eo3-button"
-    type="button"
+  <div
+    class="css-ve64a7-horizontal-group"
+    style="width: 100%; height: 100%;"
   >
-    <span
-      class="css-1mhnkuh"
+    <div
+      class="css-cvef6c-layoutChildrenWrapper"
     >
-      Remove current configuration
-    </span>
-  </button>
+      <a
+        class="css-z53gi5-button"
+        href="/a/grafana-oncall-app/"
+        tabindex="0"
+      >
+        <span
+          class="css-1mhnkuh"
+        >
+          Open Grafana OnCall
+        </span>
+      </a>
+    </div>
+    <div
+      class="css-cvef6c-layoutChildrenWrapper"
+    >
+      <button
+        class="css-1ed0qk5-button"
+        type="button"
+      >
+        <span
+          class="css-1mhnkuh"
+        >
+          Remove current configuration
+        </span>
+      </button>
+    </div>
+  </div>
 </div>
 `;
 
-exports[`PluginConfigPage OnCallApiUrl is set, and syncDataWithOnCall does not return an error. It displays properly the plugin connected items based on the license - License: some-other-license 1`] = `
+exports[`PluginConfigPage OnCallApiUrl is set, and checkTokenAndIfPluginIsConnected does not return an error. It displays properly the plugin connected items based on the license - License: some-other-license 1`] = `
 <div>
   <legend
-    class="css-xim8hk"
+    class="css-11wqcat"
   >
     Configure Grafana OnCall
   </legend>
-  <p>
-    Plugin is connected! Continue to Grafana OnCall by clicking the
-     
-    <img
-      alt="Grafana OnCall Logo"
-      src="[object Object]"
-      width="18"
-    />
-     icon over there 👈
-  </p>
   <pre
     data-testid="status-message-block"
   >
@@ -270,23 +334,47 @@ exports[`PluginConfigPage OnCallApiUrl is set, and syncDataWithOnCall does not r
     </span>
   </pre>
   <div
-    class="css-jt4xma-Label"
+    class="css-1j7sh2x-vertical-group"
+    style="width: 100%; height: 100%;"
   >
-    <label>
+    <div
+      class="css-bxa289-layoutChildrenWrapper"
+    >
       <div
-        class="css-xhqy0o"
+        class="css-jt4xma-Label"
       >
-        This is a cloud managed configuration.
+        <label>
+          <div
+            class="css-xhqy0o"
+          >
+            This is a cloud managed configuration.
+          </div>
+        </label>
       </div>
-    </label>
+    </div>
+    <div
+      class="css-bxa289-layoutChildrenWrapper"
+    >
+      <a
+        class="css-z53gi5-button"
+        href="/a/grafana-oncall-app/"
+        tabindex="0"
+      >
+        <span
+          class="css-1mhnkuh"
+        >
+          Open Grafana OnCall
+        </span>
+      </a>
+    </div>
   </div>
 </div>
 `;
 
-exports[`PluginConfigPage OnCallApiUrl is set, and syncDataWithOnCall returns an error 1`] = `
+exports[`PluginConfigPage OnCallApiUrl is set, and checkTokenAndIfPluginIsConnected returns an error 1`] = `
 <div>
   <legend
-    class="css-xim8hk"
+    class="css-11wqcat"
   >
     Configure Grafana OnCall
   </legend>
@@ -302,23 +390,46 @@ exports[`PluginConfigPage OnCallApiUrl is set, and syncDataWithOnCall returns an
       ohhh noooo a sync issue
     </span>
   </pre>
-  <button
-    class="css-1sara2j-button"
-    type="button"
+  <div
+    class="css-ve64a7-horizontal-group"
+    style="width: 100%; height: 100%;"
   >
-    <span
-      class="css-1mhnkuh"
+    <div
+      class="css-cvef6c-layoutChildrenWrapper"
     >
-      Retry Sync
-    </span>
-  </button>
+      <button
+        class="css-z53gi5-button"
+        type="button"
+      >
+        <span
+          class="css-1mhnkuh"
+        >
+          Retry Sync
+        </span>
+      </button>
+    </div>
+    <div
+      class="css-cvef6c-layoutChildrenWrapper"
+    >
+      <button
+        class="css-1ed0qk5-button"
+        type="button"
+      >
+        <span
+          class="css-1mhnkuh"
+        >
+          Remove current configuration
+        </span>
+      </button>
+    </div>
+  </div>
 </div>
 `;
 
 exports[`PluginConfigPage Plugin reset: successful - false 1`] = `
 <div>
   <legend
-    class="css-xim8hk"
+    class="css-11wqcat"
   >
     Configure Grafana OnCall
   </legend>
@@ -334,23 +445,46 @@ exports[`PluginConfigPage Plugin reset: successful - false 1`] = `
       There was an error resetting your plugin, try again.
     </span>
   </pre>
-  <button
-    class="css-mk7eo3-button"
-    type="button"
+  <div
+    class="css-ve64a7-horizontal-group"
+    style="width: 100%; height: 100%;"
   >
-    <span
-      class="css-1mhnkuh"
+    <div
+      class="css-cvef6c-layoutChildrenWrapper"
     >
-      Remove current configuration
-    </span>
-  </button>
+      <button
+        class="css-z53gi5-button"
+        type="button"
+      >
+        <span
+          class="css-1mhnkuh"
+        >
+          Retry Sync
+        </span>
+      </button>
+    </div>
+    <div
+      class="css-cvef6c-layoutChildrenWrapper"
+    >
+      <button
+        class="css-1ed0qk5-button"
+        type="button"
+      >
+        <span
+          class="css-1mhnkuh"
+        >
+          Remove current configuration
+        </span>
+      </button>
+    </div>
+  </div>
 </div>
 `;
 
 exports[`PluginConfigPage Plugin reset: successful - true 1`] = `
 <div>
   <legend
-    class="css-xim8hk"
+    class="css-11wqcat"
   >
     Configure Grafana OnCall
   </legend>
@@ -426,7 +560,7 @@ exports[`PluginConfigPage Plugin reset: successful - true 1`] = `
             class="css-1w5c5dq-input-inputWrapper"
           >
             <input
-              class="css-1wdli31-input-input"
+              class="css-1mlczho-input-input"
               data-testid="onCallApiUrl"
               name="onCallApiUrl"
             />
@@ -435,7 +569,7 @@ exports[`PluginConfigPage Plugin reset: successful - true 1`] = `
       </div>
     </div>
     <button
-      class="css-1sara2j-button"
+      class="css-z53gi5-button"
       type="submit"
     >
       <span

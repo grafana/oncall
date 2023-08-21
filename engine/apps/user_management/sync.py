@@ -6,12 +6,13 @@ from django.utils import timezone
 
 from apps.grafana_plugin.helpers.client import GcomAPIClient, GrafanaAPIClient
 from apps.user_management.models import Organization, Team, User
+from apps.user_management.signals import org_sync_signal
 
 logger = get_task_logger(__name__)
 logger.setLevel(logging.DEBUG)
 
 
-def sync_organization(organization):
+def sync_organization(organization: Organization) -> None:
     grafana_api_client = GrafanaAPIClient(api_url=organization.grafana_url, api_token=organization.api_token)
 
     # NOTE: checking whether or not RBAC is enabled depends on whether we are dealing with an open-source or cloud
@@ -31,7 +32,7 @@ def sync_organization(organization):
     _sync_instance_info(organization)
 
     _, check_token_call_status = grafana_api_client.check_token()
-    if check_token_call_status["status_code"] == 200:
+    if check_token_call_status["connected"]:
         organization.api_token_status = Organization.API_TOKEN_STATUS_OK
         sync_users_and_teams(grafana_api_client, organization)
         organization.last_time_synced = timezone.now()
@@ -41,6 +42,7 @@ def sync_organization(organization):
 
     organization.save(
         update_fields=[
+            "cluster_slug",
             "stack_slug",
             "org_slug",
             "org_title",
@@ -54,8 +56,10 @@ def sync_organization(organization):
         ]
     )
 
+    org_sync_signal.send(sender=None, organization=organization)
 
-def _sync_instance_info(organization):
+
+def _sync_instance_info(organization: Organization) -> None:
     if organization.gcom_token:
         gcom_client = GcomAPIClient(organization.gcom_token)
         instance_info = gcom_client.get_instance_info(organization.stack_id)
@@ -68,16 +72,17 @@ def _sync_instance_info(organization):
         organization.org_title = instance_info["orgName"]
         organization.region_slug = instance_info["regionSlug"]
         organization.grafana_url = instance_info["url"]
+        organization.cluster_slug = instance_info["clusterSlug"]
         organization.gcom_token_org_last_time_synced = timezone.now()
 
 
-def sync_users_and_teams(client: GrafanaAPIClient, organization):
+def sync_users_and_teams(client: GrafanaAPIClient, organization: Organization) -> None:
     sync_users(client, organization)
     sync_teams(client, organization)
     sync_team_members(client, organization)
 
 
-def sync_users(client: GrafanaAPIClient, organization, **kwargs):
+def sync_users(client: GrafanaAPIClient, organization: Organization, **kwargs) -> None:
     api_users = client.get_users(organization.is_rbac_permissions_enabled, **kwargs)
     # check if api_users are shaped correctly. e.g. for paused instance, the response is not a list.
     if not api_users or not isinstance(api_users, (tuple, list)):
@@ -85,7 +90,7 @@ def sync_users(client: GrafanaAPIClient, organization, **kwargs):
     User.objects.sync_for_organization(organization=organization, api_users=api_users)
 
 
-def sync_teams(client: GrafanaAPIClient, organization, **kwargs):
+def sync_teams(client: GrafanaAPIClient, organization: Organization, **kwargs) -> None:
     api_teams_result, _ = client.get_teams(**kwargs)
     if not api_teams_result:
         return
@@ -93,7 +98,7 @@ def sync_teams(client: GrafanaAPIClient, organization, **kwargs):
     Team.objects.sync_for_organization(organization=organization, api_teams=api_teams)
 
 
-def sync_team_members(client: GrafanaAPIClient, organization):
+def sync_team_members(client: GrafanaAPIClient, organization: Organization) -> None:
     for team in organization.teams.all():
         members, _ = client.get_team_members(team.team_id)
         if not members:
@@ -101,7 +106,7 @@ def sync_team_members(client: GrafanaAPIClient, organization):
         User.objects.sync_for_team(team=team, api_members=members)
 
 
-def sync_users_for_teams(client: GrafanaAPIClient, organization, **kwargs):
+def sync_users_for_teams(client: GrafanaAPIClient, organization: Organization, **kwargs) -> None:
     api_teams_result, _ = client.get_teams(**kwargs)
     if not api_teams_result:
         return
@@ -109,7 +114,7 @@ def sync_users_for_teams(client: GrafanaAPIClient, organization, **kwargs):
     Team.objects.sync_for_organization(organization=organization, api_teams=api_teams)
 
 
-def check_grafana_incident_is_enabled(client):
+def check_grafana_incident_is_enabled(client: GrafanaAPIClient) -> bool:
     GRAFANA_INCIDENT_PLUGIN = "grafana-incident-app"
     grafana_incident_settings, _ = client.get_grafana_plugin_settings(GRAFANA_INCIDENT_PLUGIN)
     is_grafana_incident_enabled = False
@@ -118,15 +123,18 @@ def check_grafana_incident_is_enabled(client):
     return is_grafana_incident_enabled
 
 
-def delete_organization_if_needed(organization):
+def delete_organization_if_needed(organization: Organization) -> bool:
     # Organization has a manually set API token, it will not be found within GCOM
     # and would need to be deleted manually.
-    if organization.gcom_token is None:
-        logger.info(f"Organization {organization.pk} has no gcom_token. Probably it's needed to delete org manually.")
+    from apps.auth_token.models import PluginAuthToken
+
+    manually_provisioned_token = PluginAuthToken.objects.filter(organization_id=organization.pk).first()
+    if manually_provisioned_token:
+        logger.info(f"Organization {organization.pk} has PluginAuthToken. Probably it's needed to delete org manually.")
         return False
 
     # Use common token as organization.gcom_token could be already revoked
-    client = GcomAPIClient(settings.GRAFANA_COM_API_TOKEN)
+    client = GcomAPIClient(settings.GRAFANA_COM_ADMIN_API_TOKEN)
     is_stack_deleted = client.is_stack_deleted(organization.stack_id)
     if not is_stack_deleted:
         return False
@@ -135,7 +143,7 @@ def delete_organization_if_needed(organization):
     return True
 
 
-def cleanup_organization(organization_pk):
+def cleanup_organization(organization_pk: int) -> None:
     logger.info(f"Start cleanup Organization {organization_pk}")
     try:
         organization = Organization.objects.get(pk=organization_pk)

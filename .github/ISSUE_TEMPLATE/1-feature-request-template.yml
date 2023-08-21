@@ -1,0 +1,51 @@
+name: Feature Request
+description: Request a new feature in Grafana OnCall!
+labels:
+  - feature request
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Hi 👋, thanks for taking the time to request a new feature!
+
+        Please try to give your feature request a good title. Try using a brief description of what you'd like to see.
+        Like this:
+        - `Add the ability to easily swap an OnCall shift with one of my teammates` or
+        - `Within Slack, push a button and magically fix my alert`
+  - type: markdown
+    attributes:
+      value: >
+        **HINT:** Have you tried
+        [searching](https://github.com/grafana/oncall/issues?q=is%3Aopen+is%3Aissue+label%3A%22feature+request%22) for
+        similar feature requests? Duplicate requests are common.
+  - type: textarea
+    id: feature-describe
+    attributes:
+      label: What would you like to see!
+      description: Describe what pain-point(s) this new feature would solve. How would you envision it working?
+    validations:
+      required: true
+  - type: dropdown
+    id: product-area
+    attributes:
+      label: Product Area
+      description: Which Grafana OnCall product area(s) best relate to the issue you're facing?
+      multiple: true
+      options:
+        - Alert Flow & Configuration
+        - Auth
+        - Chatops
+        - Helm
+        - Mobile App
+        - Schedules
+        - Terraform
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: extra
+    attributes:
+      label: Anything else to add?
+      description: Add any extra information here
+    validations:
+      required: false

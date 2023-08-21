@@ -7,31 +7,37 @@ from django.utils import timezone
 from apps.base.models import UserNotificationPolicy
 from apps.schedules.models import CustomOnCallShift, OnCallScheduleWeb
 from apps.slack.scenarios.paging import (
-    DEFAULT_POLICY,
-    DIRECT_PAGING_ESCALATION_SELECT_ID,
+    DIRECT_PAGING_ADDITIONAL_RESPONDERS_INPUT_ID,
     DIRECT_PAGING_MESSAGE_INPUT_ID,
     DIRECT_PAGING_ORG_SELECT_ID,
     DIRECT_PAGING_SCHEDULE_SELECT_ID,
     DIRECT_PAGING_TEAM_SELECT_ID,
     DIRECT_PAGING_TITLE_INPUT_ID,
     DIRECT_PAGING_USER_SELECT_ID,
-    IMPORTANT_POLICY,
-    REMOVE_ACTION,
-    SCHEDULES_DATA_KEY,
-    USERS_DATA_KEY,
+    DataKey,
     FinishDirectPaging,
-    OnPagingEscalationChange,
+    OnPagingCheckAdditionalResponders,
     OnPagingItemActionChange,
     OnPagingOrgChange,
     OnPagingScheduleChange,
     OnPagingTeamChange,
     OnPagingUserChange,
+    Policy,
     StartDirectPaging,
+    _get_organization_select,
 )
+from apps.user_management.models import Organization
 
 
 def make_slack_payload(
-    organization, user=None, schedule=None, escalation=None, current_users=None, current_schedules=None, actions=None
+    organization,
+    team=None,
+    user=None,
+    schedule=None,
+    additional_responders=False,
+    current_users=None,
+    current_schedules=None,
+    actions=None,
 ):
     payload = {
         "channel_id": "123",
@@ -43,8 +49,8 @@ def make_slack_payload(
                     "input_id_prefix": "",
                     "channel_id": "123",
                     "submit_routing_uid": "FinishStepUID",
-                    USERS_DATA_KEY: current_users or {},
-                    SCHEDULES_DATA_KEY: current_schedules or {},
+                    DataKey.USERS: current_users or {},
+                    DataKey.SCHEDULES: current_schedules or {},
                 }
             ),
             "state": {
@@ -52,10 +58,12 @@ def make_slack_payload(
                     DIRECT_PAGING_ORG_SELECT_ID: {
                         OnPagingOrgChange.routing_uid(): {"selected_option": {"value": organization.pk}}
                     },
-                    DIRECT_PAGING_TEAM_SELECT_ID: {OnPagingTeamChange.routing_uid(): {"selected_option": {"value": 0}}},
-                    DIRECT_PAGING_ESCALATION_SELECT_ID: {
-                        OnPagingEscalationChange.routing_uid(): {
-                            "selected_option": {"value": escalation.pk} if escalation else None
+                    DIRECT_PAGING_TEAM_SELECT_ID: {
+                        OnPagingTeamChange.routing_uid(): {"selected_option": {"value": team.pk if team else None}}
+                    },
+                    DIRECT_PAGING_ADDITIONAL_RESPONDERS_INPUT_ID: {
+                        OnPagingCheckAdditionalResponders.routing_uid(): {
+                            "selected_options": ["something"] if additional_responders else []
                         }
                     },
                     DIRECT_PAGING_USER_SELECT_ID: {
@@ -90,8 +98,8 @@ def test_initial_state(
 
     assert mock_slack_api_call.call_args.args == ("views.open",)
     metadata = json.loads(mock_slack_api_call.call_args.kwargs["view"]["private_metadata"])
-    assert metadata[USERS_DATA_KEY] == {}
-    assert metadata[SCHEDULES_DATA_KEY] == {}
+    assert metadata[DataKey.USERS] == {}
+    assert metadata[DataKey.SCHEDULES] == {}
 
 
 @pytest.mark.django_db
@@ -135,7 +143,64 @@ def test_add_user_no_warning(
 
     assert mock_slack_api_call.call_args.args == ("views.update",)
     metadata = json.loads(mock_slack_api_call.call_args.kwargs["view"]["private_metadata"])
-    assert metadata[USERS_DATA_KEY] == {str(user.pk): DEFAULT_POLICY}
+    assert metadata[DataKey.USERS] == {str(user.pk): Policy.DEFAULT}
+
+
+@pytest.mark.django_db
+def test_add_user_maximum_exceeded(
+    make_organization_and_user_with_slack_identities, make_schedule, make_on_call_shift, make_user_notification_policy
+):
+    organization, user, slack_team_identity, slack_user_identity = make_organization_and_user_with_slack_identities()
+    # set up schedule: user is on call
+    schedule = make_schedule(
+        organization,
+        schedule_class=OnCallScheduleWeb,
+        team=None,
+    )
+    now = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    start_date = now - timezone.timedelta(days=7)
+    data = {
+        "start": start_date,
+        "rotation_start": start_date,
+        "duration": timezone.timedelta(hours=23, minutes=59, seconds=59),
+        "priority_level": 1,
+        "frequency": CustomOnCallShift.FREQUENCY_DAILY,
+        "schedule": schedule,
+    }
+    on_call_shift = make_on_call_shift(
+        organization=organization, shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT, **data
+    )
+    on_call_shift.add_rolling_users([[user]])
+    schedule.refresh_ical_file()
+    # setup notification policy
+    make_user_notification_policy(
+        user=user,
+        step=UserNotificationPolicy.Step.NOTIFY,
+        notify_by=UserNotificationPolicy.NotificationChannel.SMS,
+    )
+
+    payload = make_slack_payload(organization=organization, user=user)
+
+    step = OnPagingUserChange(slack_team_identity)
+    with patch("apps.slack.scenarios.paging.PRIVATE_METADATA_MAX_LENGTH", 100):
+        with patch.object(step._slack_client, "api_call") as mock_slack_api_call:
+            step.process_scenario(slack_user_identity, slack_team_identity, payload)
+
+    assert mock_slack_api_call.call_args.args == ("views.update",)
+    view_data = mock_slack_api_call.call_args.kwargs["view"]
+    metadata = json.loads(view_data["private_metadata"])
+    # metadata unchanged, ignoring the prefix
+    original_metadata = json.loads(payload["view"]["private_metadata"])
+    metadata.pop("input_id_prefix")
+    original_metadata.pop("input_id_prefix")
+    assert metadata == original_metadata
+    # error message is displayed
+    error_block = {
+        "type": "section",
+        "block_id": "error_message",
+        "text": {"type": "mrkdwn", "text": ":warning: Cannot add user, maximum responders exceeded"},
+    }
+    assert error_block in view_data["blocks"]
 
 
 @pytest.mark.django_db
@@ -155,7 +220,7 @@ def test_add_user_raise_warning(make_organization_and_user_with_slack_identities
     )
     assert f"*{user.username}* is not on-call" in text_from_blocks
     metadata = json.loads(mock_slack_api_call.call_args.kwargs["view"]["private_metadata"])
-    assert metadata[USERS_DATA_KEY] == {}
+    assert metadata[DataKey.USERS] == {}
 
 
 @pytest.mark.django_db
@@ -163,7 +228,7 @@ def test_change_user_policy(make_organization_and_user_with_slack_identities):
     organization, user, slack_team_identity, slack_user_identity = make_organization_and_user_with_slack_identities()
     payload = make_slack_payload(
         organization=organization,
-        actions=[{"selected_option": {"value": f"{IMPORTANT_POLICY}|{USERS_DATA_KEY}|{user.pk}"}}],
+        actions=[{"selected_option": {"value": f"{Policy.IMPORTANT}|{DataKey.USERS}|{user.pk}"}}],
     )
 
     step = OnPagingItemActionChange(slack_team_identity)
@@ -172,7 +237,7 @@ def test_change_user_policy(make_organization_and_user_with_slack_identities):
 
     assert mock_slack_api_call.call_args.args == ("views.update",)
     metadata = json.loads(mock_slack_api_call.call_args.kwargs["view"]["private_metadata"])
-    assert metadata[USERS_DATA_KEY] == {str(user.pk): IMPORTANT_POLICY}
+    assert metadata[DataKey.USERS] == {str(user.pk): Policy.IMPORTANT}
 
 
 @pytest.mark.django_db
@@ -180,7 +245,7 @@ def test_remove_user(make_organization_and_user_with_slack_identities):
     organization, user, slack_team_identity, slack_user_identity = make_organization_and_user_with_slack_identities()
     payload = make_slack_payload(
         organization=organization,
-        actions=[{"selected_option": {"value": f"{REMOVE_ACTION}|{USERS_DATA_KEY}|{user.pk}"}}],
+        actions=[{"selected_option": {"value": f"{Policy.REMOVE_ACTION}|{DataKey.USERS}|{user.pk}"}}],
     )
 
     step = OnPagingItemActionChange(slack_team_identity)
@@ -189,7 +254,7 @@ def test_remove_user(make_organization_and_user_with_slack_identities):
 
     assert mock_slack_api_call.call_args.args == ("views.update",)
     metadata = json.loads(mock_slack_api_call.call_args.kwargs["view"]["private_metadata"])
-    assert metadata[USERS_DATA_KEY] == {}
+    assert metadata[DataKey.USERS] == {}
 
 
 @pytest.mark.django_db
@@ -206,15 +271,36 @@ def test_trigger_paging_no_responders(make_organization_and_user_with_slack_iden
 
 
 @pytest.mark.django_db
-def test_trigger_paging(make_organization_and_user_with_slack_identities, make_escalation_chain, make_schedule):
+def test_trigger_paging(make_organization_and_user_with_slack_identities, make_team, make_schedule):
     organization, user, slack_team_identity, slack_user_identity = make_organization_and_user_with_slack_identities()
-    schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb, team=None)
-    escalation = make_escalation_chain(organization)
+    team = make_team(organization)
     payload = make_slack_payload(
         organization=organization,
-        escalation=escalation,
-        current_users={str(user.pk): IMPORTANT_POLICY},
-        current_schedules={str(schedule.pk): DEFAULT_POLICY},
+        team=team,
+        additional_responders=False,
+    )
+
+    step = FinishDirectPaging(slack_team_identity)
+    with patch("apps.slack.scenarios.paging.direct_paging") as mock_direct_paging:
+        with patch.object(step._slack_client, "api_call"):
+            step.process_scenario(slack_user_identity, slack_team_identity, payload)
+
+    assert mock_direct_paging.called_with(organization, team, user, "The Title", "The Message", [], [], None)
+
+
+@pytest.mark.django_db
+def test_trigger_paging_additional_responders(
+    make_organization_and_user_with_slack_identities, make_team, make_schedule
+):
+    organization, user, slack_team_identity, slack_user_identity = make_organization_and_user_with_slack_identities()
+    team = make_team(organization)
+    schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb, team=None)
+    payload = make_slack_payload(
+        organization=organization,
+        team=team,
+        additional_responders=True,
+        current_users={str(user.pk): Policy.IMPORTANT},
+        current_schedules={str(schedule.pk): Policy.DEFAULT},
     )
 
     step = FinishDirectPaging(slack_team_identity)
@@ -223,7 +309,7 @@ def test_trigger_paging(make_organization_and_user_with_slack_identities, make_e
             step.process_scenario(slack_user_identity, slack_team_identity, payload)
 
     assert mock_direct_paging.called_with(
-        organization, None, user, "The Title", "The Message", [(user, True)], [(schedule, False)], escalation
+        organization, team, user, "The Title", "The Message", [(user, True)], [(schedule, False)], None
     )
 
 
@@ -234,7 +320,7 @@ def test_add_schedule(make_organization_and_user_with_slack_identities, make_sch
     payload = make_slack_payload(
         organization=organization,
         schedule=schedule,
-        current_users={str(user.pk): IMPORTANT_POLICY},
+        current_users={str(user.pk): Policy.IMPORTANT},
     )
 
     step = OnPagingScheduleChange(slack_team_identity)
@@ -243,8 +329,40 @@ def test_add_schedule(make_organization_and_user_with_slack_identities, make_sch
 
     assert mock_slack_api_call.call_args.args == ("views.update",)
     metadata = json.loads(mock_slack_api_call.call_args.kwargs["view"]["private_metadata"])
-    assert metadata[SCHEDULES_DATA_KEY] == {str(schedule.pk): DEFAULT_POLICY}
-    assert metadata[USERS_DATA_KEY] == {str(user.pk): IMPORTANT_POLICY}
+    assert metadata[DataKey.SCHEDULES] == {str(schedule.pk): Policy.DEFAULT}
+    assert metadata[DataKey.USERS] == {str(user.pk): Policy.IMPORTANT}
+
+
+@pytest.mark.django_db
+def test_add_schedule_responders_exceeded(make_organization_and_user_with_slack_identities, make_schedule):
+    organization, user, slack_team_identity, slack_user_identity = make_organization_and_user_with_slack_identities()
+    schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb, team=None)
+    payload = make_slack_payload(
+        organization=organization,
+        schedule=schedule,
+        current_users={str(user.pk): Policy.IMPORTANT},
+    )
+
+    step = OnPagingScheduleChange(slack_team_identity)
+    with patch("apps.slack.scenarios.paging.PRIVATE_METADATA_MAX_LENGTH", 100):
+        with patch.object(step._slack_client, "api_call") as mock_slack_api_call:
+            step.process_scenario(slack_user_identity, slack_team_identity, payload)
+
+    assert mock_slack_api_call.call_args.args == ("views.update",)
+    view_data = mock_slack_api_call.call_args.kwargs["view"]
+    metadata = json.loads(view_data["private_metadata"])
+    # metadata unchanged, ignoring the prefix
+    original_metadata = json.loads(payload["view"]["private_metadata"])
+    metadata.pop("input_id_prefix")
+    original_metadata.pop("input_id_prefix")
+    assert metadata == original_metadata
+    # error message is displayed
+    error_block = {
+        "type": "section",
+        "block_id": "error_message",
+        "text": {"type": "mrkdwn", "text": ":warning: Cannot add schedule, maximum responders exceeded"},
+    }
+    assert error_block in view_data["blocks"]
 
 
 @pytest.mark.django_db
@@ -253,8 +371,8 @@ def test_change_schedule_policy(make_organization_and_user_with_slack_identities
     schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb, team=None)
     payload = make_slack_payload(
         organization=organization,
-        current_users={str(user.pk): DEFAULT_POLICY},
-        actions=[{"selected_option": {"value": f"{IMPORTANT_POLICY}|{SCHEDULES_DATA_KEY}|{schedule.pk}"}}],
+        current_users={str(user.pk): Policy.DEFAULT},
+        actions=[{"selected_option": {"value": f"{Policy.IMPORTANT}|{DataKey.SCHEDULES}|{schedule.pk}"}}],
     )
 
     step = OnPagingItemActionChange(slack_team_identity)
@@ -263,8 +381,8 @@ def test_change_schedule_policy(make_organization_and_user_with_slack_identities
 
     assert mock_slack_api_call.call_args.args == ("views.update",)
     metadata = json.loads(mock_slack_api_call.call_args.kwargs["view"]["private_metadata"])
-    assert metadata[SCHEDULES_DATA_KEY] == {str(schedule.pk): IMPORTANT_POLICY}
-    assert metadata[USERS_DATA_KEY] == {str(user.pk): DEFAULT_POLICY}
+    assert metadata[DataKey.SCHEDULES] == {str(schedule.pk): Policy.IMPORTANT}
+    assert metadata[DataKey.USERS] == {str(user.pk): Policy.DEFAULT}
 
 
 @pytest.mark.django_db
@@ -273,8 +391,8 @@ def test_remove_schedule(make_organization_and_user_with_slack_identities, make_
     schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb, team=None)
     payload = make_slack_payload(
         organization=organization,
-        current_users={str(user.pk): DEFAULT_POLICY},
-        actions=[{"selected_option": {"value": f"{REMOVE_ACTION}|{SCHEDULES_DATA_KEY}|{schedule.pk}"}}],
+        current_users={str(user.pk): Policy.DEFAULT},
+        actions=[{"selected_option": {"value": f"{Policy.REMOVE_ACTION}|{DataKey.SCHEDULES}|{schedule.pk}"}}],
     )
 
     step = OnPagingItemActionChange(slack_team_identity)
@@ -283,5 +401,15 @@ def test_remove_schedule(make_organization_and_user_with_slack_identities, make_
 
     assert mock_slack_api_call.call_args.args == ("views.update",)
     metadata = json.loads(mock_slack_api_call.call_args.kwargs["view"]["private_metadata"])
-    assert metadata[SCHEDULES_DATA_KEY] == {}
-    assert metadata[USERS_DATA_KEY] == {str(user.pk): DEFAULT_POLICY}
+    assert metadata[DataKey.SCHEDULES] == {}
+    assert metadata[DataKey.USERS] == {str(user.pk): Policy.DEFAULT}
+
+
+@pytest.mark.django_db
+def test_get_organization_select(make_organization):
+    organization = make_organization(org_title="Organization", stack_slug="stack_slug")
+    select = _get_organization_select(Organization.objects.filter(pk=organization.pk), organization, "test")
+
+    assert len(select["element"]["options"]) == 1
+    assert select["element"]["options"][0]["value"] == str(organization.pk)
+    assert select["element"]["options"][0]["text"]["text"] == "Organization (stack_slug)"

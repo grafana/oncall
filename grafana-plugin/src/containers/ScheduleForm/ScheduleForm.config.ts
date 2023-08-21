@@ -3,18 +3,6 @@ import { PRIVATE_CHANNEL_NAME } from 'models/slack_channel/slack_channel.config'
 
 const commonFields: FormItem[] = [
   {
-    name: 'team',
-    label: 'Assign to team',
-    type: FormItemType.GSelect,
-    extra: {
-      modelName: 'grafanaTeamStore',
-      displayField: 'name',
-      valueField: 'id',
-      showSearch: true,
-      allowClear: true,
-    },
-  },
-  {
     name: 'slack_channel_id',
     label: 'Slack channel',
     type: FormItemType.GSelect,
@@ -89,7 +77,7 @@ const commonFields: FormItem[] = [
     },
     description: 'Specify how to notify a team member when their shift is the next one scheduled',
   },
-];
+].map((field) => ({ ...field, collapsed: true }));
 
 export const iCalForm: { name: string; fields: FormItem[] } = {
   name: 'Schedule',
@@ -100,25 +88,33 @@ export const iCalForm: { name: string; fields: FormItem[] } = {
       validation: { required: true },
     },
     {
+      name: 'team',
+      label: 'Assign to team',
+      description:
+        'Assigning to the teams allows you to filter Schedules and configure their visibility. Go to OnCall -> Settings -> Team and Access Settings for more details',
+      type: FormItemType.GSelect,
+      extra: {
+        modelName: 'grafanaTeamStore',
+        displayField: 'name',
+        valueField: 'id',
+        showSearch: true,
+        allowClear: true,
+      },
+    },
+    {
       name: 'ical_url_primary',
       label: 'Primary schedule iCal URL',
       type: FormItemType.TextArea,
       validation: { required: true },
-      description:
-        'You can use the primary scheduling calendar as a base schedule with restricted  \n' +
-        'access. The iCal URL for your primary calendar can be found in the calendar \n' +
-        'integration settings of your calendar service.',
+      extra: { rows: 2 },
     },
     {
       name: 'ical_url_overrides',
       label: 'Overrides schedule iCal URL ',
       type: FormItemType.TextArea,
-      description:
-        'You can use an override calendar to share with your team members. Users can add \n' +
-        'events to this calendar, and they will override existing events in the primary \n' +
-        'calendar. The iCal URL for your override calendar can be found in the calendar \n' +
-        'integration settings of your calendar service.',
+      extra: { rows: 2 },
     },
+
     ...commonFields,
   ],
 };
@@ -132,15 +128,34 @@ export const calendarForm: { name: string; fields: FormItem[] } = {
       validation: { required: true },
     },
     {
+      name: 'team',
+      label: 'Assign to team',
+      description:
+        'Assigning to the teams allows you to filter Schedules and configure their visibility. Go to OnCall -> Settings -> Team and Access Settings for more details',
+      type: FormItemType.GSelect,
+      extra: {
+        modelName: 'grafanaTeamStore',
+        displayField: 'name',
+        valueField: 'id',
+        showSearch: true,
+        allowClear: true,
+      },
+    },
+    {
+      name: 'enable_web_overrides',
+      label: 'Enable web interface overrides ',
+      type: FormItemType.Switch,
+      description:
+        'Allow overrides to be created using the web UI. \n' +
+        'NOTE: when enabled, iCal URL overrides will be ignored.',
+    },
+    {
       name: 'ical_url_overrides',
       label: 'Overrides schedule iCal URL ',
       type: FormItemType.TextArea,
-      description:
-        'You can use an override calendar to share with your team members. Users can add \n' +
-        'events to this calendar, and they will override existing events in the primary \n' +
-        'calendar. The iCal URL for your override calendar can be found in the calendar \n' +
-        'integration settings of your calendar service.',
+      extra: { rows: 2 },
     },
+
     ...commonFields,
   ],
 };
@@ -152,6 +167,20 @@ export const apiForm: { name: string; fields: FormItem[] } = {
       name: 'name',
       type: FormItemType.Input,
       validation: { required: true },
+    },
+    {
+      name: 'team',
+      label: 'Assign to team',
+      description:
+        'Assigning to the teams allows you to filter Schedules and configure their visibility. Go to OnCall -> Settings -> Team and Access Settings for more details',
+      type: FormItemType.GSelect,
+      extra: {
+        modelName: 'grafanaTeamStore',
+        displayField: 'name',
+        valueField: 'id',
+        showSearch: true,
+        allowClear: true,
+      },
     },
     ...commonFields,
   ],

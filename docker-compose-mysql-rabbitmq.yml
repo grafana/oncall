@@ -28,8 +28,7 @@ services:
     restart: always
     ports:
       - "8080:8080"
-    command: >
-      sh -c "uwsgi --ini uwsgi.ini"
+    command: sh -c "uwsgi --ini uwsgi.ini"
     environment: *oncall-environment
     depends_on:
       mysql:
@@ -67,9 +66,10 @@ services:
         condition: service_healthy
 
   mysql:
-    image: mysql:5.7
-    platform: linux/x86_64
-    command: --default-authentication-plugin=mysql_native_password --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    image: mysql:8.0.32
+    command: >-
+      --default-authentication-plugin=mysql_native_password
+      --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
     restart: always
     expose:
       - 3306
@@ -81,7 +81,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 500m
+          memory: 1000m
           cpus: "0.5"
     healthcheck:
       test: "mysql -uroot -p$MYSQL_PASSWORD oncall_hobby -e 'select 1'"
@@ -100,7 +100,7 @@ services:
           cpus: "0.1"
 
   rabbitmq:
-    image: "rabbitmq:3.7.15-management"
+    image: "rabbitmq:3.12.0-management"
     restart: always
     hostname: rabbitmq
     volumes:
@@ -121,9 +121,10 @@ services:
       retries: 3
 
   mysql_to_create_grafana_db:
-    image: mysql:5.7
-    platform: linux/x86_64
-    command: bash -c "mysql -h ${MYSQL_HOST:-mysql} -uroot -p${MYSQL_PASSWORD:?err} -e 'CREATE DATABASE IF NOT EXISTS grafana CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;'"
+    image: mysql:8.0.32
+    command: >-
+      bash -c "mysql -h ${MYSQL_HOST:-mysql} -uroot -p${MYSQL_PASSWORD:?err}
+      -e 'CREATE DATABASE IF NOT EXISTS grafana CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;'"
     depends_on:
       mysql:
         condition: service_healthy
@@ -131,7 +132,7 @@ services:
       - with_grafana
 
   grafana:
-    image: "grafana/grafana:9.0.0-beta3"
+    image: "grafana/${GRAFANA_IMAGE:-grafana:latest}"
     restart: always
     ports:
       - "3000:3000"

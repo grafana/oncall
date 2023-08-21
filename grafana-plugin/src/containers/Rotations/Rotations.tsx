@@ -7,20 +7,23 @@ import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
 
+import { ScheduleFiltersType } from 'components/ScheduleFilters/ScheduleFilters.types';
 import Text from 'components/Text/Text';
 import TimelineMarks from 'components/TimelineMarks/TimelineMarks';
 import Rotation from 'containers/Rotation/Rotation';
 import RotationForm from 'containers/RotationForm/RotationForm';
-import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
-import { getColor, getFromString } from 'models/schedule/schedule.helpers';
-import { Layer, Schedule, ScheduleType, Shift } from 'models/schedule/schedule.types';
+import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
+import { getColor, getLayersFromStore } from 'models/schedule/schedule.helpers';
+import { Layer, Schedule, ScheduleType, Shift, ShiftSwap, Event } from 'models/schedule/schedule.types';
 import { Timezone } from 'models/timezone/timezone.types';
+import { User } from 'models/user/user.types';
+import { getUTCString } from 'pages/schedule/Schedule.helpers';
 import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import { UserActions } from 'utils/authorization';
 
 import { DEFAULT_TRANSITION_TIMEOUT } from './Rotations.config';
-import { findColor } from './Rotations.helpers';
+import { findClosestUserEvent, findColor } from './Rotations.helpers';
 
 import styles from './Rotations.module.css';
 
@@ -33,22 +36,29 @@ interface RotationsProps extends WithStoreProps {
   scheduleId: Schedule['id'];
   onShowRotationForm: (shiftId: Shift['id'] | 'new') => void;
   onClick: (id: Shift['id'] | 'new') => void;
+  onShowOverrideForm: (shiftId: 'new', shiftStart: dayjs.Dayjs, shiftEnd: dayjs.Dayjs) => void;
+  onShowShiftSwapForm: (id: ShiftSwap['id'] | 'new', params?: Partial<ShiftSwap>) => void;
   onCreate: () => void;
   onUpdate: () => void;
   onDelete: () => void;
+  onShiftSwapRequest: (beneficiary: User['pk'], swap_start: string, swap_end: string) => void;
   disabled: boolean;
+  filters: ScheduleFiltersType;
+  onSlotClick?: (event: Event) => void;
 }
 
 interface RotationsState {
   layerPriority?: Layer['priority'];
-  shiftMomentToShowRotationForm?: dayjs.Dayjs;
+  shiftStartToShowRotationForm?: dayjs.Dayjs;
+  shiftEndToShowRotationForm?: dayjs.Dayjs;
 }
 
 @observer
 class Rotations extends Component<RotationsProps, RotationsState> {
   state: RotationsState = {
     layerPriority: undefined,
-    shiftMomentToShowRotationForm: undefined,
+    shiftStartToShowRotationForm: undefined,
+    shiftEndToShowRotationForm: undefined,
   };
 
   render() {
@@ -62,8 +72,14 @@ class Rotations extends Component<RotationsProps, RotationsState> {
       store,
       shiftIdToShowRotationForm,
       disabled,
+      filters,
+      onShowShiftSwapForm,
+      onSlotClick,
+      store: {
+        userStore: { currentUserPk },
+      },
     } = this.props;
-    const { layerPriority, shiftMomentToShowRotationForm } = this.state;
+    const { layerPriority, shiftStartToShowRotationForm, shiftEndToShowRotationForm } = this.state;
 
     const base = 7 * 24 * 60; // in minutes
     const diff = dayjs().tz(currentTimezone).diff(startMoment, 'minutes');
@@ -72,20 +88,16 @@ class Rotations extends Component<RotationsProps, RotationsState> {
 
     const currentTimeHidden = currentTimeX < 0 || currentTimeX > 1;
 
-    const layers = store.scheduleStore.rotationPreview
-      ? store.scheduleStore.rotationPreview
-      : (store.scheduleStore.events[scheduleId]?.['rotation']?.[getFromString(startMoment)] as Layer[]);
+    const layers = getLayersFromStore(store, scheduleId, startMoment);
 
     const options = layers
       ? layers.map((layer) => ({
-          label: `Layer ${layer.priority}`,
+          label: `Layer ${layer.priority} rotation`,
           value: layer.priority,
         }))
       : [];
 
     const nextPriority = layers && layers.length ? layers[layers.length - 1].priority + 1 : 1;
-
-    options.push({ label: 'New Layer', value: nextPriority });
 
     const schedule = store.scheduleStore.items[scheduleId];
 
@@ -102,31 +114,55 @@ class Rotations extends Component<RotationsProps, RotationsState> {
                   Rotations
                 </Text.Title>
               </div>
-              {disabled ? (
-                isTypeReadOnly ? (
-                  <Tooltip content="Ical and API/Terraform schedules are read-only" placement="top">
-                    <div>
+              <HorizontalGroup>
+                <Button
+                  variant="secondary"
+                  onClick={() => {
+                    const closestEvent = findClosestUserEvent(dayjs(), currentUserPk, layers);
+                    const swapStart = closestEvent
+                      ? dayjs(closestEvent.start)
+                      : dayjs().tz(currentTimezone).startOf('day').add(1, 'day');
+
+                    const swapEnd = closestEvent ? dayjs(closestEvent.end) : swapStart.add(1, 'day');
+
+                    onShowShiftSwapForm('new', {
+                      swap_start: getUTCString(swapStart),
+                      swap_end: getUTCString(swapEnd),
+                    });
+                  }}
+                >
+                  Request shift swap
+                </Button>
+                {disabled ? (
+                  isTypeReadOnly ? (
+                    <Tooltip content="Ical and API/Terraform rotations are read-only here" placement="top">
+                      <div>
+                        <Button variant="primary" icon="plus" disabled>
+                          Add rotation
+                        </Button>
+                      </div>
+                    </Tooltip>
+                  ) : (
+                    <WithPermissionControlTooltip userAction={UserActions.SchedulesWrite}>
                       <Button variant="primary" icon="plus" disabled>
                         Add rotation
                       </Button>
-                    </div>
-                  </Tooltip>
+                    </WithPermissionControlTooltip>
+                  )
+                ) : options.length > 0 ? (
+                  <ValuePicker
+                    label="Add rotation"
+                    options={options}
+                    onChange={this.handleAddRotation}
+                    variant="primary"
+                    size="md"
+                  />
                 ) : (
-                  <WithPermissionControl userAction={UserActions.SchedulesWrite}>
-                    <Button variant="primary" icon="plus" disabled>
-                      Add rotation
-                    </Button>
-                  </WithPermissionControl>
-                )
-              ) : (
-                <ValuePicker
-                  label="Add rotation"
-                  options={options}
-                  onChange={this.handleAddRotation}
-                  variant="primary"
-                  size="md"
-                />
-              )}
+                  <Button variant="primary" icon="plus" onClick={() => this.handleAddLayer(nextPriority, startMoment)}>
+                    Add rotation
+                  </Button>
+                )}
+              </HorizontalGroup>
             </HorizontalGroup>
           </div>
           <div className={cx('rotations-plus-title')}>
@@ -141,7 +177,7 @@ class Rotations extends Component<RotationsProps, RotationsState> {
                         </HorizontalGroup>
                       </div>
                       <div className={cx('rotations')}>
-                        <TimelineMarks startMoment={startMoment} />
+                        <TimelineMarks startMoment={startMoment} timezone={currentTimezone} />
                         {!currentTimeHidden && (
                           <div className={cx('current-time')} style={{ left: `${currentTimeX * 100}%` }} />
                         )}
@@ -154,9 +190,12 @@ class Rotations extends Component<RotationsProps, RotationsState> {
                             >
                               <Rotation
                                 scheduleId={scheduleId}
-                                onClick={(moment) => {
-                                  this.onRotationClick(shiftId, moment);
+                                onClick={(shiftStart, shiftEnd) => {
+                                  this.onRotationClick(shiftId, shiftStart, shiftEnd);
                                 }}
+                                handleAddOverride={this.handleShowOverrideForm}
+                                handleAddShiftSwap={onShowShiftSwapForm}
+                                onShiftSwapClick={onShowShiftSwapForm}
                                 color={getColor(layerIndex, rotationIndex)}
                                 events={events}
                                 layerIndex={layerIndex}
@@ -165,6 +204,8 @@ class Rotations extends Component<RotationsProps, RotationsState> {
                                 currentTimezone={currentTimezone}
                                 transparent={isPreview}
                                 tutorialParams={isPreview && store.scheduleStore.rotationFormLiveParams}
+                                filters={filters}
+                                onSlotClick={onSlotClick}
                               />
                             </CSSTransition>
                           ))}
@@ -184,12 +225,12 @@ class Rotations extends Component<RotationsProps, RotationsState> {
                   </div>
                   <div className={cx('header-plus-content')}>
                     <div className={cx('current-time')} style={{ left: `${currentTimeX * 100}%` }} />
-                    <TimelineMarks startMoment={startMoment} />
+                    <TimelineMarks startMoment={startMoment} timezone={currentTimezone} />
                     <div className={cx('rotations')}>
                       <Rotation
                         scheduleId={scheduleId}
-                        onClick={(moment) => {
-                          this.handleAddLayer(nextPriority, moment);
+                        onClick={(shiftStart, shiftEnd) => {
+                          this.handleAddLayer(nextPriority, shiftStart, shiftEnd);
                         }}
                         events={[]}
                         layerIndex={0}
@@ -212,7 +253,7 @@ class Rotations extends Component<RotationsProps, RotationsState> {
                   this.handleAddLayer(nextPriority, startMoment);
                 }}
               >
-                <Text type={disabled ? 'disabled' : 'primary'}>+ Add rotations layer</Text>
+                <Text type={disabled ? 'disabled' : 'primary'}>+ Add new layer with rotation</Text>
               </div>
             )}
           </div>
@@ -225,7 +266,8 @@ class Rotations extends Component<RotationsProps, RotationsState> {
             layerPriority={layerPriority}
             startMoment={startMoment}
             currentTimezone={currentTimezone}
-            shiftMoment={shiftMomentToShowRotationForm}
+            shiftStart={shiftStartToShowRotationForm}
+            shiftEnd={shiftEndToShowRotationForm}
             onHide={() => {
               this.hideRotationForm();
 
@@ -246,34 +288,38 @@ class Rotations extends Component<RotationsProps, RotationsState> {
 
               onDelete();
             }}
+            onShowRotationForm={this.onShowRotationForm}
           />
         )}
       </>
     );
   }
 
-  onRotationClick = (shiftId: Shift['id'], moment?: dayjs.Dayjs) => {
+  onRotationClick = (shiftId: Shift['id'], shiftStart: dayjs.Dayjs, shiftEnd: dayjs.Dayjs) => {
     const { disabled } = this.props;
 
     if (disabled) {
       return;
     }
 
-    this.setState({ shiftMomentToShowRotationForm: moment }, () => {
+    this.setState({ shiftStartToShowRotationForm: shiftStart, shiftEndToShowRotationForm: shiftEnd }, () => {
       this.onShowRotationForm(shiftId);
     });
   };
 
-  handleAddLayer = (layerPriority: number, moment?: dayjs.Dayjs) => {
+  handleAddLayer = (layerPriority: number, shiftStart?: dayjs.Dayjs, shiftEnd?: dayjs.Dayjs) => {
     const { disabled } = this.props;
 
     if (disabled) {
       return;
     }
 
-    this.setState({ layerPriority, shiftMomentToShowRotationForm: moment }, () => {
-      this.onShowRotationForm('new');
-    });
+    this.setState(
+      { layerPriority, shiftStartToShowRotationForm: shiftStart, shiftEndToShowRotationForm: shiftEnd },
+      () => {
+        this.onShowRotationForm('new');
+      }
+    );
   };
 
   handleAddRotation = (option: SelectableValue) => {
@@ -286,7 +332,7 @@ class Rotations extends Component<RotationsProps, RotationsState> {
     this.setState(
       {
         layerPriority: option.value,
-        shiftMomentToShowRotationForm: startMoment,
+        shiftStartToShowRotationForm: startMoment,
       },
       () => {
         this.onShowRotationForm('new');
@@ -298,7 +344,8 @@ class Rotations extends Component<RotationsProps, RotationsState> {
     this.setState(
       {
         layerPriority: undefined,
-        shiftMomentToShowRotationForm: undefined,
+        shiftStartToShowRotationForm: undefined,
+        shiftEndToShowRotationForm: undefined,
       },
       () => {
         this.onShowRotationForm(undefined);
@@ -310,6 +357,12 @@ class Rotations extends Component<RotationsProps, RotationsState> {
     const { onShowRotationForm } = this.props;
 
     onShowRotationForm(shiftId);
+  };
+
+  handleShowOverrideForm = (shiftStart: dayjs.Dayjs, shiftEnd: dayjs.Dayjs) => {
+    const { onShowOverrideForm } = this.props;
+
+    onShowOverrideForm('new', shiftStart, shiftEnd);
   };
 }
 

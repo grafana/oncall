@@ -8,10 +8,12 @@ import CopyToClipboard from 'react-copy-to-clipboard';
 import Block from 'components/GBlock/Block';
 import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
+import { WithPermissionControlDisplay } from 'containers/WithPermissionControl/WithPermissionControlDisplay';
 import { TelegramColorIcon } from 'icons';
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
 import { openNotification } from 'utils';
+import { UserActions } from 'utils/authorization';
 import { DOCS_TELEGRAM_SETUP } from 'utils/consts';
 
 import styles from './TelegramInfo.module.css';
@@ -22,12 +24,12 @@ interface TelegramInfoProps extends HTMLAttributes<HTMLElement> {}
 
 const TelegramInfo = observer((_props: TelegramInfoProps) => {
   const store = useStore();
-  const { userStore, teamStore } = store;
+  const { userStore, organizationStore } = store;
 
   const [verificationCode, setVerificationCode] = useState<string>();
   const [botLink, setBotLink] = useState<string>();
 
-  const telegramConfigured = teamStore.currentTeam?.env_status.telegram_configured;
+  const telegramConfigured = organizationStore.currentOrganization?.env_status.telegram_configured;
 
   useEffect(() => {
     userStore.sendTelegramConfirmationCode(userStore.currentUserPk).then((res) => {
@@ -37,7 +39,7 @@ const TelegramInfo = observer((_props: TelegramInfoProps) => {
   }, []);
 
   return (
-    <>
+    <WithPermissionControlDisplay userAction={UserActions.UserSettingsWrite}>
       {telegramConfigured || !store.hasFeature(AppFeature.LiveSettings) ? (
         <VerticalGroup>
           <Text.Title level={5}>Manual connection</Text.Title>
@@ -96,7 +98,7 @@ const TelegramInfo = observer((_props: TelegramInfoProps) => {
           )}
         </VerticalGroup>
       )}
-    </>
+    </WithPermissionControlDisplay>
   );
 });
 

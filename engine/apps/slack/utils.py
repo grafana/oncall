@@ -1,52 +1,67 @@
+import enum
+import typing
 from datetime import datetime
-from textwrap import wrap
 
 from apps.slack.slack_client import SlackClientWithErrorHandling
 from apps.slack.slack_client.exceptions import SlackAPIException
 
+if typing.TYPE_CHECKING:
+    from apps.user_management.models import Organization
 
-def create_message_blocks(text):
-    """This function checks text and return blocks
 
-    Maximum length for the text in section is 3000 characters and
-    we can include up to 50 blocks in each message.
-    https://api.slack.com/reference/block-kit/blocks#section
-
-    :param str text: Text for message blocks
-    :return list blocks: Blocks list
+class SlackDateFormat(enum.StrEnum):
+    """
+    https://api.slack.com/reference/surfaces/formatting#date-formatting
     """
 
-    if len(text) <= 3000:
-        blocks = [{"type": "section", "text": {"type": "mrkdwn", "text": text}}]
-    else:
-        splitted_text_list = text.split("```\n")
+    DATE_NUM = "date_num"
+    """
+    Displayed as `2014-02-18`. It will include leading zeros before the month and date and is
+    probably best for more technical integrations that require a developer-friendly date format.
+    """
 
-        if len(splitted_text_list) > 1:
-            splitted_text_list.pop()
+    DATE = "date"
+    """
+    Displayed as `February 18th, 2014`. The year will be omitted if the date is less than six months in the past or future.
+    """
 
-        blocks = []
+    DATE_SHORT = "date_short"
+    """
+    Displayed as `Feb 18, 2014`. The year will be omitted if the date is less than six months in the past or future.
+    """
 
-        for splitted_text in splitted_text_list:
+    DATE_LONG = "date_long"
+    """
+    Displayed as `Tuesday, February 18th, 2014`. The year will be omitted if the date is less than six months in the past or future.
+    """
 
-            if len(splitted_text) > 2996:
-                # too long text case
-                text_list = wrap(
-                    splitted_text, 2994, expand_tabs=False, replace_whitespace=False, break_long_words=False
-                )
+    DATE_PRETTY = "date_pretty"
+    """
+    Displays the same as `{date}` but uses "yesterday", "today", or "tomorrow" where appropriate.
+    """
 
-                blocks.append({"type": "section", "text": {"type": "mrkdwn", "text": f"{text_list[0]}```"}})
+    DATE_SHORT_PRETTY = "date_short_pretty"
+    """
+    Displays the same as `{date_short}` but uses "yesterday", "today", or "tomorrow" where appropriate.
+    """
 
-                for text_item in text_list[1:]:
-                    blocks.append(
-                        {"type": "section", "text": {"type": "mrkdwn", "text": f'```{text_item.strip("```")}```'}}
-                    )
-            else:
-                blocks.append({"type": "section", "text": {"type": "mrkdwn", "text": splitted_text + "```\n"}})
+    DATE_LONG_PRETTY = "date_long_pretty"
+    """
+    Displays the same as `{date_long}` but uses "yesterday", "today", or "tomorrow" where appropriate.
+    """
 
-    return blocks
+    TIME = "time"
+    """
+    Displayed as `6:39 AM` or `6:39 PM` in 12-hour format. If the client is set to show 24-hour format, it is displayed as `06:39` or `18:39`.
+    """
+
+    TIME_SECS = "time_secs"
+    """
+    Displayed as `6:39:45 AM` `6:39:42 PM` in 12-hour format. In 24-hour format it is displayed as `06:39:45` or `18:39:42`.
+    """
 
 
-def post_message_to_channel(organization, channel_id, text):
+def post_message_to_channel(organization: "Organization", channel_id: str, text: str) -> None:
     if organization.slack_team_identity:
         slack_client = SlackClientWithErrorHandling(organization.slack_team_identity.bot_access_token)
         try:
@@ -58,11 +73,31 @@ def post_message_to_channel(organization, channel_id, text):
                 raise e
 
 
-def format_datetime_to_slack(timestamp, format="date_short"):
+def _format_datetime_to_slack(timestamp: float, format: str) -> str:
     fallback = datetime.utcfromtimestamp(timestamp).strftime("%Y-%m-%d %H:%M (UTC)")
-    return f"<!date^{timestamp}^{{{format}}} {{time}}|{fallback}>"
+    return f"<!date^{int(timestamp)}^{format}|{fallback}>"
 
 
-def get_cache_key_update_incident_slack_message(alert_group_pk):
+def format_datetime_to_slack(timestamp: float, format: SlackDateFormat = SlackDateFormat.DATE_SHORT) -> str:
+    """
+    See the docs [here](https://api.slack.com/reference/surfaces/formatting#date-formatting) for
+    more information
+    """
+    return _format_datetime_to_slack(timestamp, f"{{{format}}}")
+
+
+def format_datetime_to_slack_with_time(timestamp: float, format: SlackDateFormat = SlackDateFormat.DATE_SHORT) -> str:
+    """
+    See the docs [here](https://api.slack.com/reference/surfaces/formatting#date-formatting) for
+    more information
+    """
+    return _format_datetime_to_slack(timestamp, f"{{{format}}} {{time}}")
+
+
+def get_cache_key_update_incident_slack_message(alert_group_pk: str) -> str:
     CACHE_KEY_PREFIX = "update_incident_slack_message"
     return f"{CACHE_KEY_PREFIX}_{alert_group_pk}"
+
+
+def get_populate_slack_channel_task_id_key(slack_team_identity_id: str) -> str:
+    return f"SLACK_CHANNELS_TASK_ID_TEAM_{slack_team_identity_id}"

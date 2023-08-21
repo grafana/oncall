@@ -1,16 +1,16 @@
 import React, { useEffect, useState } from 'react';
 
-import { Button, HorizontalGroup, VerticalGroup, LoadingPlaceholder } from '@grafana/ui';
+import { Button, VerticalGroup, LoadingPlaceholder } from '@grafana/ui';
 import { observer } from 'mobx-react';
 
 import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
+import { WithPermissionControlDisplay } from 'containers/WithPermissionControl/WithPermissionControlDisplay';
 import { User } from 'models/user/user.types';
-import { AppFeature } from 'state/features';
 import { WithStoreProps } from 'state/types';
 import { useStore } from 'state/useStore';
 import { withMobXProviderContext } from 'state/withStore';
-import { isUserActionAllowed, UserActions } from 'utils/authorization';
+import { UserActions } from 'utils/authorization';
 
 interface CloudPhoneSettingsProps extends WithStoreProps {
   userPk?: User['pk'];
@@ -22,6 +22,8 @@ const CloudPhoneSettings = observer((props: CloudPhoneSettingsProps) => {
   const [syncing, setSyncing] = useState<boolean>(false);
   const [userStatus, setUserStatus] = useState<number>(0);
   const [userLink, setUserLink] = useState<string>(null);
+
+  const email = store.userStore.items[userPk].email;
 
   useEffect(() => {
     getCloudUserInfo();
@@ -49,30 +51,22 @@ const CloudPhoneSettings = observer((props: CloudPhoneSettingsProps) => {
   const UserCloudStatus = () => {
     switch (userStatus) {
       case 0:
-        if (store.hasFeature(AppFeature.CloudNotifications)) {
-          return (
-            <VerticalGroup spacing="lg">
-              <Text>Your account successfully matched, but Cloud is not connected. </Text>
-              <PluginLink query={{ page: 'cloud' }}>
-                <Button variant="secondary" icon="external-link-alt">
-                  Open Grafana Cloud page
-                </Button>
-              </PluginLink>
-            </VerticalGroup>
-          );
-        }
         return (
           <VerticalGroup spacing="lg">
-            <Text>Grafana Cloud is not synced</Text>
+            <Text>Cloud notifications enabled, but Grafana Cloud instance is not connected.</Text>
+            <PluginLink query={{ page: 'cloud' }}>
+              <Button variant="secondary" icon="external-link-alt">
+                Open Grafana Cloud page
+              </Button>
+            </PluginLink>
           </VerticalGroup>
         );
       case 1:
         return (
           <VerticalGroup spacing="lg">
             <Text>
-              {
-                'We can’t find a matching account in the connected Grafana Cloud instance (matching happens by e-mail). '
-              }
+              We can’t find a matching account in the connected Grafana Cloud instance (matching by e-mail
+              {email && ': ' + email}).
             </Text>
             <Button variant="primary" onClick={() => handleLinkClick(userLink)}>
               Sign up in Grafana Cloud
@@ -105,9 +99,8 @@ const CloudPhoneSettings = observer((props: CloudPhoneSettingsProps) => {
         return (
           <VerticalGroup spacing="lg">
             <Text>
-              {
-                'We can’t find a matching account in the connected Grafana Cloud instance (matching happens by e-mail). '
-              }
+              We can’t find a matching account in the connected Grafana Cloud instance (matching by e-mail
+              {email && ': ' + email}).
             </Text>
             <Button variant="primary" onClick={() => handleLinkClick(userLink)}>
               Sign up in Grafana Cloud
@@ -118,30 +111,24 @@ const CloudPhoneSettings = observer((props: CloudPhoneSettingsProps) => {
   };
 
   return (
-    <>
-      {isUserActionAllowed(UserActions.OtherSettingsWrite) ? (
-        <VerticalGroup spacing="lg">
-          <HorizontalGroup justify="space-between">
-            <Text.Title level={3}>OnCall uses Grafana Cloud for SMS and phone call notifications</Text.Title>
-            {syncing ? (
-              <Button variant="secondary" icon="sync" disabled>
-                Updating...
-              </Button>
-            ) : (
-              <Button variant="secondary" icon="sync" onClick={syncUser} disabled={userStatus === 0}>
-                Update
-              </Button>
-            )}
-          </HorizontalGroup>
-          {!syncing ? <UserCloudStatus /> : <LoadingPlaceholder text="Loading..." />}
-        </VerticalGroup>
-      ) : (
-        <VerticalGroup spacing="lg">
-          <Text.Title level={3}>OnCall uses Grafana Cloud for SMS and phone call notifications</Text.Title>
-          <Text>You do not have permission to perform this action. Ask an admin to upgrade your permissions.</Text>
-        </VerticalGroup>
-      )}
-    </>
+    <WithPermissionControlDisplay
+      userAction={UserActions.UserSettingsWrite}
+      title="OnCall uses Grafana Cloud for SMS and phone call notifications"
+    >
+      <VerticalGroup spacing="lg">
+        <Text.Title level={3}>OnCall uses Grafana Cloud for SMS and phone call notifications</Text.Title>
+        {syncing ? (
+          <Button icon="sync" variant="secondary" disabled>
+            Updating...
+          </Button>
+        ) : (
+          <Button icon="sync" variant="secondary" onClick={syncUser} disabled={userStatus === 0}>
+            Reload from Cloud
+          </Button>
+        )}
+        {!syncing ? <UserCloudStatus /> : <LoadingPlaceholder text="Loading..." />}
+      </VerticalGroup>
+    </WithPermissionControlDisplay>
   );
 });
 

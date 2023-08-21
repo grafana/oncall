@@ -1,0 +1,131 @@
+/* -----
+ * Flex
+ */
+
+.u-flex {
+  display: flex;
+  flex-direction: row;
+}
+
+.u-align-items-center {
+  align-items: center;
+}
+
+.u-flex-center {
+  justify-content: center;
+  align-items: center;
+}
+
+.u-flex-space-between {
+  justify-content: space-between;
+}
+
+.u-flex-grow-1 {
+  flex-grow: 1;
+}
+
+.u-flex-gap-xs {
+  gap: 4px;
+}
+
+/* -----
+ * Margins/Paddings
+ */
+
+.u-margin-right-xs {
+  margin-right: 4px;
+}
+
+.u-padding-top-md {
+  padding-top: 12px;
+}
+
+.u-margin-bottom-none {
+  margin-bottom: 0;
+}
+
+.u-pull-right {
+  margin-left: auto;
+}
+
+.u-pull-left {
+  margin-right: auto;
+}
+
+/* -----
+ * Display
+ */
+
+.u-width-100 {
+  width: 100%;
+}
+
+.u-height-100 {
+  height: 100%;
+}
+
+.u-display-block {
+  display: block;
+}
+
+/* -----
+ * Other
+ */
+
+.back-arrow {
+  padding-top: 8px;
+}
+
+.link {
+  text-decoration: none !important;
+}
+
+.u-position-relative {
+  position: relative;
+}
+
+.u-overflow-x-auto {
+  overflow-x: auto;
+}
+
+.u-break-word {
+  word-break: break-word;
+}
+
+.u-opacity,
+.u-disabled {
+  opacity: var(--opacity);
+}
+
+.u-disabled {
+  cursor: not-allowed !important;
+  pointer-events: none;
+}
+
+.u-cursor-default {
+  cursor: default;
+}
+
+.thin-line-break {
+  width: 100%;
+  border-top: 1px solid var(--always-gray);
+  margin-top: 8px;
+  opacity: 15%;
+}
+
+.buttons {
+  padding-bottom: 24px;
+}
+
+/* -----
+ * Icons
+ */
+
+.icon-exclamation {
+  color: var(--error-text-color);
+}
+
+.loadingPlaceholder {
+  margin-bottom: 0;
+  margin-right: 4px;
+}

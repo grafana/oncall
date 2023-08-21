@@ -1,12 +1,11 @@
 import React, { FC, useCallback, useEffect, useState } from 'react';
 
-import { Button, Label, Legend, LoadingPlaceholder } from '@grafana/ui';
+import { Button, HorizontalGroup, Label, Legend, LinkButton, LoadingPlaceholder, VerticalGroup } from '@grafana/ui';
 import { useLocation } from 'react-router-dom';
 import { OnCallPluginConfigPageProps } from 'types';
 
-import logo from 'img/logo.svg';
 import PluginState, { PluginStatusResponseBase } from 'state/plugin';
-import { GRAFANA_LICENSE_OSS } from 'utils/consts';
+import { FALLBACK_LICENSE, GRAFANA_LICENSE_OSS } from 'utils/consts';
 
 import ConfigurationForm from './parts/ConfigurationForm';
 import RemoveCurrentConfigurationButton from './parts/RemoveCurrentConfigurationButton';
@@ -62,12 +61,17 @@ const PluginConfigPage: FC<OnCallPluginConfigPageProps> = ({
   const [pluginConnectionCheckError, setPluginConnectionCheckError] = useState<string>(null);
   const [pluginIsConnected, setPluginIsConnected] = useState<PluginStatusResponseBase>(
     pluginConfiguredRedirect
-      ? { version: pluginConfiguredVersionQueryParam, license: pluginConfiguredLicenseQueryParam }
+      ? {
+          version: pluginConfiguredVersionQueryParam,
+          license: pluginConfiguredLicenseQueryParam,
+          recaptcha_site_key: 'abc',
+          currently_undergoing_maintenance_message: 'false',
+        }
       : null
   );
 
-  const [syncingPlugin, setSyncingPlugin] = useState<boolean>(false);
-  const [syncError, setSyncError] = useState<string>(null);
+  const [updatingPluginStatus, setUpdatingPluginStatus] = useState<boolean>(false);
+  const [updatingPluginStatusError, setUpdatingPluginStatusError] = useState<string>(null);
 
   const [resettingPlugin, setResettingPlugin] = useState<boolean>(false);
   const [pluginResetError, setPluginResetError] = useState<string>(null);
@@ -75,31 +79,31 @@ const PluginConfigPage: FC<OnCallPluginConfigPageProps> = ({
   const pluginMetaOnCallApiUrl = jsonData?.onCallApiUrl;
   const processEnvOnCallApiUrl = process.env.ONCALL_API_URL; // don't destructure this, will break how webpack supplies this
   const onCallApiUrl = pluginMetaOnCallApiUrl || processEnvOnCallApiUrl;
-  const licenseType = pluginIsConnected?.license;
+  const licenseType = pluginIsConnected?.license || FALLBACK_LICENSE;
 
   const resetQueryParams = useCallback(() => removePluginConfiguredQueryParams(pluginIsEnabled), [pluginIsEnabled]);
 
-  const triggerDataSyncWithOnCall = useCallback(async () => {
-    setSyncingPlugin(true);
-    setSyncError(null);
+  const triggerUpdatePluginStatus = useCallback(async () => {
+    resetMessages();
+    setUpdatingPluginStatus(true);
 
-    const syncDataResponse = await PluginState.syncDataWithOnCall(onCallApiUrl);
+    const pluginConnectionStatus = await PluginState.checkTokenAndIfPluginIsConnected(onCallApiUrl);
 
-    if (typeof syncDataResponse === 'string') {
-      setSyncError(syncDataResponse);
+    if (typeof pluginConnectionStatus === 'string') {
+      setUpdatingPluginStatusError(pluginConnectionStatus);
     } else {
-      const { token_ok, ...versionLicenseInfo } = syncDataResponse;
+      const { token_ok, ...versionLicenseInfo } = pluginConnectionStatus;
       setPluginIsConnected(versionLicenseInfo);
       reloadPageWithPluginConfiguredQueryParams(versionLicenseInfo, pluginIsEnabled);
     }
 
-    setSyncingPlugin(false);
+    setUpdatingPluginStatus(false);
   }, [onCallApiUrl, pluginIsEnabled]);
 
   useEffect(resetQueryParams, [resetQueryParams]);
 
   useEffect(() => {
-    const configurePluginAndSyncData = async () => {
+    const configurePluginAndUpdatePluginStatus = async () => {
       /**
        * If the plugin has never been configured, onCallApiUrl will be undefined in the plugin's jsonData
        * In that case, check to see if ONCALL_API_URL has been supplied as an env var.
@@ -124,12 +128,12 @@ const PluginConfigPage: FC<OnCallPluginConfigPageProps> = ({
        * there's no reason to check if the plugin is connected, we know it can't be
        */
       if (onCallApiUrl) {
-        const pluginConnectionResponse = await PluginState.checkIfPluginIsConnected(onCallApiUrl);
+        const pluginConnectionResponse = await PluginState.updatePluginStatus(onCallApiUrl);
 
         if (typeof pluginConnectionResponse === 'string') {
           setPluginConnectionCheckError(pluginConnectionResponse);
         } else {
-          triggerDataSyncWithOnCall();
+          triggerUpdatePluginStatus();
         }
       }
       setCheckingIfPluginIsConnected(false);
@@ -140,39 +144,29 @@ const PluginConfigPage: FC<OnCallPluginConfigPageProps> = ({
      * plugin setup
      */
     if (!pluginConfiguredRedirect) {
-      configurePluginAndSyncData();
+      configurePluginAndUpdatePluginStatus();
     }
   }, [pluginMetaOnCallApiUrl, processEnvOnCallApiUrl, onCallApiUrl, pluginConfiguredRedirect]);
 
-  const resetState = useCallback(() => {
+  const resetMessages = useCallback(() => {
     setPluginResetError(null);
     setPluginConnectionCheckError(null);
     setPluginIsConnected(null);
-    setSyncError(null);
+    setUpdatingPluginStatusError(null);
+  }, []);
+
+  const resetState = useCallback(() => {
+    resetMessages();
     resetQueryParams();
   }, [resetQueryParams]);
 
-  /**
-   * NOTE: there is a possible edge case when resetting the plugin, that would lead to an error message being shown
-   * (which could be fixed by just reloading the page)
-   * This would happen if the user removes the plugin configuration, leaves the page, then comes back to the plugin
-   * configuration.
-   *
-   * This is because the props being passed into this component wouldn't reflect the actual plugin
-   * provisioning state. The props would still have onCallApiUrl set in the plugin jsonData, so when we make the API
-   * call to check the plugin state w/ OnCall API the plugin-proxy would return a 502 Bad Gateway because the actual
-   * provisioned plugin doesn't know about the onCallApiUrl.
-   *
-   * This could be fixed by instead of passing in the plugin provisioning information as props always fetching it
-   * when this component renders (via a useEffect). We probably don't need to worry about this because it should happen
-   * very rarely, if ever
-   */
   const triggerPluginReset = useCallback(async () => {
     setResettingPlugin(true);
     resetState();
 
     try {
       await PluginState.resetPlugin();
+      window.location.reload();
     } catch (e) {
       // this should rarely, if ever happen, but we should handle the case nevertheless
       setPluginResetError('There was an error resetting your plugin, try again.');
@@ -186,39 +180,57 @@ const PluginConfigPage: FC<OnCallPluginConfigPageProps> = ({
     [resettingPlugin, triggerPluginReset]
   );
 
+  const ReconfigurePluginButtons = () => (
+    <HorizontalGroup>
+      <Button variant="primary" onClick={triggerUpdatePluginStatus} size="md">
+        Retry Sync
+      </Button>
+      {licenseType === GRAFANA_LICENSE_OSS ? <RemoveConfigButton /> : null}
+    </HorizontalGroup>
+  );
+
   let content: React.ReactNode;
 
   if (checkingIfPluginIsConnected) {
     content = <LoadingPlaceholder text="Validating your plugin connection..." />;
-  } else if (syncingPlugin) {
+  } else if (updatingPluginStatus) {
     content = <LoadingPlaceholder text="Syncing data required for your plugin..." />;
   } else if (pluginConnectionCheckError || pluginResetError) {
     content = (
       <>
         <StatusMessageBlock text={pluginConnectionCheckError || pluginResetError} />
-        <RemoveConfigButton />
+        <ReconfigurePluginButtons />
       </>
     );
-  } else if (syncError) {
+  } else if (updatingPluginStatusError) {
     content = (
       <>
-        <StatusMessageBlock text={syncError} />
-        <Button variant="primary" onClick={triggerDataSyncWithOnCall} size="md">
-          Retry Sync
-        </Button>
+        <StatusMessageBlock text={updatingPluginStatusError} />
+        <ReconfigurePluginButtons />
       </>
     );
   } else if (!pluginIsConnected) {
     content = (
-      <ConfigurationForm onSuccessfulSetup={triggerDataSyncWithOnCall} defaultOnCallApiUrl={processEnvOnCallApiUrl} />
+      <ConfigurationForm onSuccessfulSetup={triggerUpdatePluginStatus} defaultOnCallApiUrl={processEnvOnCallApiUrl} />
     );
   } else {
     // plugin is fully connected and synced
+    const pluginLink = (
+      <LinkButton href={`/a/grafana-oncall-app/`} variant="primary">
+        Open Grafana OnCall
+      </LinkButton>
+    );
     content =
       licenseType === GRAFANA_LICENSE_OSS ? (
-        <RemoveConfigButton />
+        <HorizontalGroup>
+          {pluginLink}
+          <RemoveConfigButton />
+        </HorizontalGroup>
       ) : (
-        <Label>This is a cloud managed configuration.</Label>
+        <VerticalGroup>
+          <Label>This is a cloud managed configuration.</Label>
+          {pluginLink}
+        </VerticalGroup>
       );
   }
 
@@ -227,10 +239,6 @@ const PluginConfigPage: FC<OnCallPluginConfigPageProps> = ({
       <Legend>Configure Grafana OnCall</Legend>
       {pluginIsConnected ? (
         <>
-          <p>
-            Plugin is connected! Continue to Grafana OnCall by clicking the{' '}
-            <img alt="Grafana OnCall Logo" src={logo} width={18} /> icon over there 👈
-          </p>
           <StatusMessageBlock
             text={`Connected to OnCall (${pluginIsConnected.version}, ${pluginIsConnected.license})`}
           />

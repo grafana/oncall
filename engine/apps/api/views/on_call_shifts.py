@@ -1,3 +1,6 @@
+import datetime
+
+import pytz
 from django.db.models import Q
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status
@@ -10,13 +13,13 @@ from apps.api.permissions import RBACPermission
 from apps.api.serializers.on_call_shifts import OnCallShiftSerializer, OnCallShiftUpdateSerializer
 from apps.auth_token.auth import PluginAuthentication
 from apps.schedules.models import CustomOnCallShift
-from common.api_helpers.mixins import PublicPrimaryKeyMixin, UpdateSerializerMixin
+from common.api_helpers.mixins import PublicPrimaryKeyMixin, TeamFilteringMixin, UpdateSerializerMixin
 from common.api_helpers.paginators import FiftyPageSizePaginator
 from common.api_helpers.utils import get_date_range_from_request
 from common.insight_log import EntityEvent, write_resource_insight_log
 
 
-class OnCallShiftView(PublicPrimaryKeyMixin, UpdateSerializerMixin, ModelViewSet):
+class OnCallShiftView(TeamFilteringMixin, PublicPrimaryKeyMixin, UpdateSerializerMixin, ModelViewSet):
     authentication_classes = (PluginAuthentication,)
     permission_classes = (IsAuthenticated, RBACPermission)
 
@@ -42,7 +45,7 @@ class OnCallShiftView(PublicPrimaryKeyMixin, UpdateSerializerMixin, ModelViewSet
 
     filter_backends = [DjangoFilterBackend]
 
-    def get_queryset(self):
+    def get_queryset(self, ignore_filtering_by_available_teams=False):
         schedule_id = self.request.query_params.get("schedule_id", None)
         lookup_kwargs = Q()
         if schedule_id:
@@ -53,8 +56,10 @@ class OnCallShiftView(PublicPrimaryKeyMixin, UpdateSerializerMixin, ModelViewSet
         queryset = CustomOnCallShift.objects.filter(
             lookup_kwargs,
             organization=self.request.auth.organization,
-            team=self.request.user.current_team,
         )
+
+        if not ignore_filtering_by_available_teams:
+            queryset = queryset.filter(*self.available_teams_lookup_args).distinct()
 
         queryset = self.serializer_class.setup_eager_loading(queryset)
         return queryset.order_by("schedules")
@@ -69,7 +74,8 @@ class OnCallShiftView(PublicPrimaryKeyMixin, UpdateSerializerMixin, ModelViewSet
 
     def perform_update(self, serializer):
         prev_state = serializer.instance.insight_logs_serialized
-        serializer.save()
+        force_update = self.request.query_params.get("force", "") == "true"
+        serializer.save(force_update=force_update)
         new_state = serializer.instance.insight_logs_serialized
         write_resource_insight_log(
             instance=serializer.instance,
@@ -85,7 +91,8 @@ class OnCallShiftView(PublicPrimaryKeyMixin, UpdateSerializerMixin, ModelViewSet
             author=self.request.user,
             event=EntityEvent.DELETED,
         )
-        instance.delete()
+        force = self.request.query_params.get("force", "") == "true"
+        instance.delete(force=force)
 
     @action(detail=False, methods=["post"])
     def preview(self, request):
@@ -102,8 +109,13 @@ class OnCallShiftView(PublicPrimaryKeyMixin, UpdateSerializerMixin, ModelViewSet
         updated_shift_pk = self.request.data.get("shift_pk")
         shift = CustomOnCallShift(**validated_data)
         schedule = shift.schedule
+
+        pytz_tz = pytz.timezone(user_tz)
+        datetime_start = datetime.datetime.combine(starting_date, datetime.time.min, tzinfo=pytz_tz)
+        datetime_end = datetime_start + datetime.timedelta(days=days)
+
         shift_events, final_events = schedule.preview_shift(
-            shift, user_tz, starting_date, days, updated_shift_pk=updated_shift_pk
+            shift, datetime_start, datetime_end, updated_shift_pk=updated_shift_pk
         )
         data = {
             "rotation": shift_events,

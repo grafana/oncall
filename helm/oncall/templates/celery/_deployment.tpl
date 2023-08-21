@@ -34,6 +34,25 @@ spec:
         {{- if eq .Values.database.type "postgresql" }}
         {{- include "oncall.postgresql.wait-for-db" . | indent 8 }}
         {{- end }}
+      {{- with .Values.celery.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.celery.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.celery.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.celery.topologySpreadConstraints }}
+      topologySpreadConstraints:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.celery.priorityClassName }}
+      priorityClassName: {{ . }}
+      {{- end }}
       containers:
         - name: {{ .Chart.Name }}
           securityContext:
@@ -47,6 +66,7 @@ spec:
             {{- include "snippet.oncall.slack.env" . | nindent 12 }}
             {{- include "snippet.oncall.telegram.env" . | nindent 12 }}
             {{- include "snippet.oncall.smtp.env" . | nindent 12 }}
+            {{- include "snippet.oncall.exporter.env" . | nindent 12 }}
             {{- if eq .Values.database.type "mysql" }}
             {{- include "snippet.mysql.env" . | nindent 12 }}
             {{- end }}
@@ -55,17 +75,7 @@ spec:
             {{- end }}
             {{- include "snippet.rabbitmq.env" . | nindent 12 }}
             {{- include "snippet.redis.env" . | nindent 12 }}
-            {{- if .Values.env }}
-              {{- if (kindIs "map" .Values.env) }}
-                {{- range $key, $value := .Values.env }}
-            - name: {{ $key }}
-              value: {{ $value }}
-                {{- end -}}
-              {{/* support previous schema */}}
-              {{- else }}
-            {{- toYaml .Values.env | nindent 12 }}
-              {{- end }}
-            {{- end }}
+            {{- include "oncall.extraEnvs" . | nindent 12 }}
           {{- if .Values.celery.livenessProbe.enabled }}
           livenessProbe:
             exec:
@@ -80,4 +90,7 @@ spec:
           {{- end }}
           resources:
             {{- toYaml .Values.celery.resources | nindent 12 }}
+      {{- with .Values.celery.extraContainers }}
+        {{- tpl . $ | nindent 8 }}
+      {{- end }}
 {{- end}}

@@ -11,7 +11,6 @@ import Text from 'components/Text/Text';
 import WithConfirm from 'components/WithConfirm/WithConfirm';
 import { CrossCircleIcon, HeartIcon } from 'icons';
 import { Cloud } from 'models/cloud/cloud.types';
-import { AppFeature } from 'state/features';
 import { WithStoreProps } from 'state/types';
 import { useStore } from 'state/useStore';
 import { withMobXProviderContext } from 'state/withStore';
@@ -309,19 +308,17 @@ const CloudPage = observer((props: CloudPageProps) => {
           </VerticalGroup>
         )}
       </Block>
-      {store.hasFeature(AppFeature.MobileApp) && (
-        <Block bordered withBackground className={cx('info-block')}>
-          <VerticalGroup>
-            <Text.Title level={4}>
-              <Icon name="mobile-android" className={cx('block-icon')} size="lg" /> Mobile app push notifications
-            </Text.Title>
-            <Text type="secondary">
-              Connecting to Cloud OnCall enables sending push notifications on mobile devices using the Grafana OnCall
-              mobile app.
-            </Text>
-          </VerticalGroup>
-        </Block>
-      )}
+      <Block bordered withBackground className={cx('info-block')}>
+        <VerticalGroup>
+          <Text.Title level={4}>
+            <Icon name="mobile-android" className={cx('block-icon')} size="lg" /> Mobile app push notifications
+          </Text.Title>
+          <Text type="secondary">
+            Connecting to Cloud OnCall enables sending push notifications on mobile devices using the Grafana OnCall
+            mobile app.
+          </Text>
+        </VerticalGroup>
+      </Block>
     </VerticalGroup>
   );
 
@@ -334,7 +331,7 @@ const CloudPage = observer((props: CloudPageProps) => {
           </Text.Title>
           <Field
             label=""
-            description="Find it in you Cloud OnCall -> Settings page"
+            description="Find it on the Settings page of OnCall, within your Cloud Grafana instance"
             style={{ width: '100%' }}
             invalid={apiKeyError}
           >
@@ -354,8 +351,8 @@ const CloudPage = observer((props: CloudPageProps) => {
             Monitor instance with heartbeat
           </Text.Title>
           <Text type="secondary">
-            Once connected, current OnCall instance will send heartbeats every 3 minutes to the cloud Instance. If no
-            heartbeat will be received in 10 minutes, cloud instance will issue an alert.
+            Once connected, this OnCall instance will send heartbeats every 3 minutes to the Cloud Grafana instance. If
+            no heartbeats are received within 10 minutes, the Cloud Grafana instance will issue an alert.
           </Text>
         </VerticalGroup>
       </Block>
@@ -365,22 +362,22 @@ const CloudPage = observer((props: CloudPageProps) => {
             <Icon name="bell" className={cx('block-icon')} size="lg" /> SMS and phone call notifications
           </Text.Title>
 
-          <Text type="secondary">Users matched between OSS and Cloud OnCall currently unavailable.</Text>
+          <Text type="secondary">
+            Connecting to Cloud OnCall enables sending SMS and phone call notifications using Cloud Grafana OnCall.
+          </Text>
         </VerticalGroup>
       </Block>
-      {store.hasFeature(AppFeature.MobileApp) && (
-        <Block bordered withBackground className={cx('info-block')}>
-          <VerticalGroup>
-            <Text.Title level={4}>
-              <Icon name="mobile-android" className={cx('block-icon')} size="lg" /> Mobile app push notifications
-            </Text.Title>
-            <Text type="secondary">
-              Connecting to Cloud OnCall enables sending push notifications on mobile devices using the Grafana OnCall
-              mobile app.
-            </Text>
-          </VerticalGroup>
-        </Block>
-      )}
+      <Block bordered withBackground className={cx('info-block')}>
+        <VerticalGroup>
+          <Text.Title level={4}>
+            <Icon name="mobile-android" className={cx('block-icon')} size="lg" /> Mobile app push notifications
+          </Text.Title>
+          <Text type="secondary">
+            Connecting to Cloud Grafana OnCall enables sending push notifications on mobile devices using the Grafana
+            OnCall mobile app.
+          </Text>
+        </VerticalGroup>
+      </Block>
     </VerticalGroup>
   );
 

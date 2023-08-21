@@ -5,18 +5,20 @@ name: Build and Release
 
 steps:
   - name: Build Plugin
-    image: node:14.17.0-stretch
+    image: node:18.16.0-buster
     commands:
       - apt-get update
       - apt-get --assume-yes install jq
       - cd grafana-plugin/
-      - if [ -z "$DRONE_TAG" ]; then echo "No tag, not modifying version"; else jq '.version="${DRONE_TAG}"' package.json > package.new && mv package.new package.json && jq '.version' package.json; fi
+      # yamllint disable rule:line-length
+      - if [ -z "$DRONE_TAG" ]; then echo "No tag, not modifying version"; else jq ".version=\"${DRONE_TAG#v}\"" package.json > package.new && mv package.new package.json && jq '.version' package.json; fi
+      # yamllint enable rule:line-length
       - yarn --network-timeout 500000
       - yarn build
       - ls ./
 
   - name: Sign and Package Plugin
-    image: node:14.17.0-stretch
+    image: node:18.16.0-buster
     environment:
       GRAFANA_API_KEY:
         from_secret: gcom_plugin_publisher_api_key
@@ -32,20 +34,9 @@ steps:
       - yarn ci-package
       - cd ci/dist
       - zip -r grafana-oncall-app.zip ./grafana-oncall-app
+      # yamllint disable rule:line-length
       - if [ -z "$DRONE_TAG" ]; then echo "No tag, skipping archive"; else cp grafana-oncall-app.zip grafana-oncall-app-${DRONE_TAG}.zip; fi
-
-  - name: Publish Plugin to Github (release)
-    image: plugins/github-release
-    settings:
-      api_key:
-        from_secret: gh_token
-      files: grafana-plugin/ci/dist/grafana-oncall-app-${DRONE_TAG}.zip
-      title: ${DRONE_TAG}
-    depends_on:
-      - Sign and Package Plugin
-    when:
-      ref:
-        - refs/tags/v*.*.*
+      # yamllint enable rule:line-length
 
   - name: Publish Plugin to GCS (release)
     image: plugins/gcs
@@ -62,25 +53,26 @@ steps:
         - refs/tags/v*.*.*
 
   - name: Lint Backend
-    image: python:3.9
+    image: python:3.11.4
     environment:
       DJANGO_SETTINGS_MODULE: settings.ci-test
     commands:
-      - pip install $(grep "pre-commit" engine/requirements.txt)
+      - pip install $(grep "pre-commit" engine/requirements-dev.txt)
       - pre-commit run isort --all-files
       - pre-commit run black --all-files
       - pre-commit run flake8 --all-files
 
   - name: Unit Test Backend
-    image: python:3.9
+    image: python:3.11.4
     environment:
+      RABBITMQ_URI: amqp://rabbitmq:rabbitmq@rabbit_test:5672
       DJANGO_SETTINGS_MODULE: settings.ci-test
       SLACK_CLIENT_OAUTH_ID: 1
     commands:
-      - apt-get update && apt-get install -y netcat
+      - apt-get update && apt-get install -y netcat-traditional
       - cd engine/
-      - pip install -r requirements.txt
-      - ./wait_for_test_mysql_start.sh && pytest --ds=settings.ci-test
+      - pip install -r requirements.txt -r requirements-dev.txt
+      - ./wait_for_test_mysql_start.sh && pytest
     depends_on:
       - rabbit_test
 
@@ -92,7 +84,9 @@ steps:
       - chmod +x ./tools/image-tag.sh
       - echo $(./tools/image-tag.sh)
       - echo $(./tools/image-tag.sh) > .tags
+      # yamllint disable rule:line-length
       - if [ -z "$DRONE_TAG" ]; then echo "No tag, not modifying version"; else sed "0,/VERSION.*/ s/VERSION.*/VERSION = \"${DRONE_TAG}\"/g" engine/settings/base.py > engine/settings/base.temp && mv engine/settings/base.temp engine/settings/base.py; fi
+      # yamllint enable rule:line-length
       - cat engine/settings/base.py | grep VERSION | head -1
     when:
       ref:
@@ -102,7 +96,8 @@ steps:
   - name: Build and Push Engine Docker Image Backend to GCR
     image: plugins/docker
     environment:
-      # force docker to use buildkit feature, this will skip build stages that aren't required in the final image (ie. dev & dev-enterprise)
+      # force docker to use buildkit feature, this will skip build stages that aren't required in
+      # the final image (ie. dev & dev-enterprise)
       # https://github.com/docker/cli/issues/1134#issuecomment-406449342
       DOCKER_BUILDKIT: 1
     settings:
@@ -120,7 +115,8 @@ steps:
   - name: Build and Push Engine Docker Image Backend to Dockerhub
     image: plugins/docker
     environment:
-      # force docker to use buildkit feature, this will skip build stages that aren't required in the final image (ie. dev & dev-enterprise)
+      # force docker to use buildkit feature, this will skip build stages that aren't required in
+      # the final image (ie. dev & dev-enterprise)
       # https://github.com/docker/cli/issues/1134#issuecomment-406449342
       DOCKER_BUILDKIT: 1
     settings:
@@ -143,13 +139,13 @@ steps:
 # Services for Unit Test Backend
 services:
   - name: rabbit_test
-    image: rabbitmq:3.7.19
+    image: rabbitmq:3.12.0
     environment:
       RABBITMQ_DEFAULT_USER: rabbitmq
       RABBITMQ_DEFAULT_PASS: rabbitmq
 
   - name: mysql_test
-    image: mysql:5.7.25
+    image: mysql:8.0.32
     environment:
       MYSQL_DATABASE: oncall_local_dev
       MYSQL_ROOT_PASSWORD: local_dev_pwd
@@ -173,18 +169,20 @@ name: OSS plugin release
 
 steps:
   - name: build plugin
-    image: node:14.17.0-stretch
+    image: node:18.16.0-buster
     commands:
       - apt-get update
       - apt-get --assume-yes install jq
       - cd grafana-plugin/
-      - if [ -z "$DRONE_TAG" ]; then echo "No tag, not modifying version"; else jq '.version="${DRONE_TAG}"' package.json > package.new && mv package.new package.json && jq '.version' package.json; fi
+      # yamllint disable rule:line-length
+      - if [ -z "$DRONE_TAG" ]; then echo "No tag, not modifying version"; else jq ".version=\"${DRONE_TAG#v}\"" package.json > package.new && mv package.new package.json && jq '.version' package.json; fi
+      # yamllint enable rule:line-length
       - yarn --network-timeout 500000
       - yarn build
       - ls ./
 
   - name: sign and package plugin
-    image: node:14.17.0-stretch
+    image: node:18.16.0-buster
     environment:
       GRAFANA_API_KEY:
         from_secret: gcom_plugin_publisher_api_key
@@ -200,7 +198,9 @@ steps:
       - yarn ci-package
       - cd ci/dist
       - zip -r grafana-oncall-app.zip ./grafana-oncall-app
+      # yamllint disable rule:line-length
       - if [ -z "$DRONE_TAG" ]; then echo "No tag, skipping archive"; else cp grafana-oncall-app.zip grafana-oncall-app-${DRONE_TAG}.zip; fi
+      # yamllint enable rule:line-length
 
   - name: publish plugin to grafana.com (release)
     image: curlimages/curl:7.73.0
@@ -208,7 +208,9 @@ steps:
       GRAFANA_API_KEY:
         from_secret: gcom_plugin_publisher_api_key
     commands:
+      # yamllint disable rule:line-length
       - 'curl -f -s -H "Authorization: Bearer $${GRAFANA_API_KEY}" -d "download[any][url]=https://storage.googleapis.com/grafana-oncall-app/releases/grafana-oncall-app-${DRONE_TAG}.zip" -d "download[any][md5]=$$(curl -sL https://storage.googleapis.com/grafana-oncall-app/releases/grafana-oncall-app-${DRONE_TAG}.zip | md5sum | cut -d'' '' -f1)" -d url=https://github.com/grafana/oncall/grafana-plugin https://grafana.com/api/plugins'
+      # yamllint enable rule:line-length
     depends_on:
       - sign and package plugin
 
@@ -223,27 +225,29 @@ trigger:
 ---
 kind: pipeline
 type: docker
-name: OSS engine release (amd64)
-platform:
-  os: linux
-  arch: amd64
+name: OSS engine release
+
 steps:
   - name: set engine version
     image: alpine
     commands:
       - apk add --no-cache bash sed
-      - if [ -z "$DRONE_TAG" ]; then echo "No tag, not modifying version"; else sed "0,/VERSION.*/ s/VERSION.*/VERSION = \"${DRONE_TAG}\"/g" engine/settings/base.py > engine/settings/base.temp && mv engine/settings/base.temp engine/settings/base.py; fi
+      # yamllint disable rule:line-length
+      - if [ -z "$DRONE_TAG" ]; then echo "No tag, not modifying version"; else sed "0,/VERSION.*/ s/VERSION.*/VERSION = \"${DRONE_TAG#v}\"/g" engine/settings/base.py > engine/settings/base.temp && mv engine/settings/base.temp engine/settings/base.py; fi
+      # yamllint enable rule:line-length
       - cat engine/settings/base.py | grep VERSION | head -1
 
   - name: build and push docker image
-    image: plugins/docker
-    environment:
-      # force docker to use buildkit feature, this will skip build stages that aren't required in the final image (ie. dev & dev-enterprise)
-      # https://github.com/docker/cli/issues/1134#issuecomment-406449342
-      DOCKER_BUILDKIT: 1
+    image: thegeeklab/drone-docker-buildx:24.1.0
+    # From the docs (https://drone-plugin-index.geekdocs.de/plugins/drone-docker-buildx/) regarding privileged=true:
+    #
+    # Be aware that the this plugin requires privileged capabilities, otherwise the integrated
+    # Docker daemon is not able to start.
+    privileged: true
     settings:
       repo: grafana/oncall
-      tags: ${DRONE_TAG}-amd64-linux
+      tags: latest,${DRONE_TAG}
+      platforms: linux/arm64/v8,linux/amd64
       dockerfile: engine/Dockerfile
       target: prod
       context: engine/
@@ -253,90 +257,6 @@ steps:
         from_secret: docker_username
     depends_on:
       - set engine version
-
-trigger:
-  event:
-    - promote
-  target:
-    - oss
-  ref:
-    - refs/tags/v*.*.*
-
----
-kind: pipeline
-type: docker
-name: OSS engine release (arm64)
-platform:
-  os: linux
-  arch: arm64
-steps:
-  - name: set engine version
-    image: alpine
-    commands:
-      - apk add --no-cache bash sed
-      - if [ -z "$DRONE_TAG" ]; then echo "No tag, not modifying version"; else sed "0,/VERSION.*/ s/VERSION.*/VERSION = \"${DRONE_TAG}\"/g" engine/settings/base.py > engine/settings/base.temp && mv engine/settings/base.temp engine/settings/base.py; fi
-      - cat engine/settings/base.py | grep VERSION | head -1
-
-  - name: build and push docker image
-    image: plugins/docker
-    environment:
-      # force docker to use buildkit feature, this will skip build stages that aren't required in the final image (ie. dev & dev-enterprise)
-      # https://github.com/docker/cli/issues/1134#issuecomment-406449342
-      DOCKER_BUILDKIT: 1
-    settings:
-      repo: grafana/oncall
-      tags: ${DRONE_TAG}-arm64-linux
-      dockerfile: engine/Dockerfile
-      target: prod
-      context: engine/
-      password:
-        from_secret: docker_password
-      username:
-        from_secret: docker_username
-    depends_on:
-      - set engine version
-
-trigger:
-  event:
-    - promote
-  target:
-    - oss
-  ref:
-    - refs/tags/v*.*.*
-
----
-depends_on:
-  - OSS engine release (amd64)
-  - OSS engine release (arm64)
-kind: pipeline
-type: docker
-name: manifest
-steps:
-  - name: manifest tag
-    image: plugins/manifest
-    settings:
-      username:
-        from_secret: docker_username
-      password:
-        from_secret: docker_password
-      target: "grafana/oncall:${DRONE_TAG}"
-      template: "grafana/oncall:${DRONE_TAG}-ARCH-OS"
-      platforms:
-        - linux/amd64
-        - linux/arm64
-
-  - name: manifest latest
-    image: plugins/manifest
-    settings:
-      username:
-        from_secret: docker_username
-      password:
-        from_secret: docker_password
-      target: "grafana/oncall:latest"
-      template: "grafana/oncall:${DRONE_TAG}-ARCH-OS"
-      platforms:
-        - linux/amd64
-        - linux/arm64
 
 trigger:
   event:
@@ -363,18 +283,10 @@ get:
   name: .dockerconfigjson
 
 ---
-# Secret for GitHub
-get:
-  name: pat
-  path: infra/data/ci/github/grafanabot
-kind: secret
-name: gh_token
-
----
 # Slack webhook
 get:
   name: slack-plugin
-  path: secret/data/common/oncall/drone
+  path: infra/data/ci/oncall/drone
 kind: secret
 name: slack_webhook
 
@@ -382,15 +294,15 @@ name: slack_webhook
 # GCOM plugin publisher
 get:
   name: gcom-plugin-publisher
-  path: secret/data/common/oncall/drone
+  path: infra/data/ci/oncall/drone
 kind: secret
 name: gcom_plugin_publisher_api_key
 
 ---
 # GCS bucket
 get:
-  name: credentials.json
-  path: secret/data/common/oncall/gcs-oncall-drone-publisher
+  name: gcs-oncall-drone-publisher
+  path: infra/data/ci/oncall/drone
 kind: secret
 name: gcs_oncall_publisher_key
 
@@ -417,6 +329,6 @@ kind: secret
 name: drone_token
 ---
 kind: signature
-hmac: 662c2be2ccdd106ae4f23a557f981ef601d9693b0333e0bcda7189ddf16fb49a
+hmac: 8b387638ef35f86ed9f8c8c964726e0ae703beb7d0f18e053b5041ab8ee9bed2
 
 ...

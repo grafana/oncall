@@ -6,7 +6,7 @@ import cn from 'classnames/bind';
 import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
 import GSelect from 'containers/GSelect/GSelect';
-import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
+import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
 import { PRIVATE_CHANNEL_NAME } from 'models/slack_channel/slack_channel.config';
 import { getSlackChannelName } from 'models/slack_channel/slack_channel.helpers';
@@ -26,7 +26,10 @@ const SlackConnector = (props: SlackConnectorProps) => {
   const { channelFilterId } = props;
 
   const store = useStore();
-  const { teamStore, alertReceiveChannelStore } = store;
+  const {
+    organizationStore: { currentOrganization },
+    alertReceiveChannelStore,
+  } = store;
 
   const channelFilter = store.alertReceiveChannelStore.channelFilters[channelFilterId];
 
@@ -43,16 +46,16 @@ const SlackConnector = (props: SlackConnectorProps) => {
     <div className={cx('root')}>
       <HorizontalGroup wrap spacing="sm">
         <div className={cx('slack-channel-switch')}>
-          <WithPermissionControl userAction={UserActions.IntegrationsWrite}>
+          <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
             <InlineSwitch
               value={channelFilter.notify_in_slack}
               onChange={handleChannelFilterNotifyInSlackChange}
               transparent
             />
-          </WithPermissionControl>
+          </WithPermissionControlTooltip>
         </div>
-        Post to slack channel
-        <WithPermissionControl userAction={UserActions.IntegrationsWrite}>
+        Slack Channel
+        <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
           <GSelect
             showSearch
             allowClear
@@ -61,45 +64,44 @@ const SlackConnector = (props: SlackConnectorProps) => {
             displayField="display_name"
             valueField="id"
             placeholder="Select Slack Channel"
-            value={channelFilter.slack_channel?.id || teamStore.currentTeam?.slack_channel?.id}
+            value={channelFilter.slack_channel?.id || currentOrganization?.slack_channel?.id}
             onChange={handleSlackChannelChange}
             nullItemName={PRIVATE_CHANNEL_NAME}
           />
-        </WithPermissionControl>
+        </WithPermissionControlTooltip>
         <HorizontalGroup>
           {Boolean(
             channelFilter.slack_channel?.id &&
-              teamStore.currentTeam?.slack_channel?.id &&
-              channelFilter.slack_channel?.id !== teamStore.currentTeam?.slack_channel?.id
+              currentOrganization?.slack_channel?.id &&
+              channelFilter.slack_channel?.id !== currentOrganization?.slack_channel?.id
           ) ? (
             <Text type="secondary">
-              default slack channel is{' '}
-              <Text strong>#{getSlackChannelName(store.teamStore.currentTeam?.slack_channel)}</Text>{' '}
-              <WithPermissionControl userAction={UserActions.IntegrationsWrite}>
+              default slack channel is <Text strong>#{getSlackChannelName(currentOrganization?.slack_channel)}</Text>{' '}
+              <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
                 <Button
                   variant="primary"
                   size="sm"
                   fill="text"
                   onClick={() => {
                     handleSlackChannelChange(
-                      teamStore.currentTeam?.slack_channel?.id,
-                      teamStore.currentTeam?.slack_channel
+                      currentOrganization?.slack_channel?.id,
+                      currentOrganization?.slack_channel
                     );
                   }}
                 >
                   Use it here
                 </Button>
-              </WithPermissionControl>
+              </WithPermissionControlTooltip>
             </Text>
-          ) : teamStore.currentTeam?.slack_channel?.id ? (
+          ) : currentOrganization?.slack_channel?.id ? (
             <Text type="secondary">
               This is the default slack channel{' '}
               <PluginLink query={{ page: 'chat-ops' }} disabled={!isUserActionAllowed(UserActions.ChatOpsWrite)}>
-                <WithPermissionControl userAction={UserActions.ChatOpsUpdateSettings}>
+                <WithPermissionControlTooltip userAction={UserActions.ChatOpsUpdateSettings}>
                   <Button variant="primary" size="sm" fill="text">
                     Change in Slack settings
                   </Button>
-                </WithPermissionControl>
+                </WithPermissionControlTooltip>
               </PluginLink>
             </Text>
           ) : null}

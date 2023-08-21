@@ -1,0 +1,16 @@
+.assign-responders-button {
+  display: flex;
+}
+
+.info-block {
+  background: var(--secondary-background);
+  width: 100%;
+}
+
+.responders-list {
+  list-style-type: none;
+  margin-bottom: 20px;
+  width: 100%;
+  background: var(--background-secondary);
+  padding: 10px 12px;
+}

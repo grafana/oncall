@@ -1,3 +1,5 @@
+import typing
+
 import humanize
 from django.conf import settings
 from django.core.validators import MinLengthValidator
@@ -8,6 +10,9 @@ from rest_framework.fields import DateTimeField
 from apps.slack.slack_formatter import SlackFormatter
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
 from common.utils import clean_markup
+
+if typing.TYPE_CHECKING:
+    from apps.alerts.models import AlertGroup
 
 
 def generate_public_primary_key_for_alert_group_postmortem():
@@ -47,6 +52,9 @@ class ResolutionNoteSlackMessageQueryset(models.QuerySet):
 
 
 class ResolutionNoteSlackMessage(models.Model):
+    alert_group: "AlertGroup"
+    resolution_note: typing.Optional["ResolutionNote"]
+
     alert_group = models.ForeignKey(
         "alerts.AlertGroup",
         on_delete=models.CASCADE,
@@ -75,17 +83,17 @@ class ResolutionNoteSlackMessage(models.Model):
     class Meta:
         unique_together = ("thread_ts", "ts")
 
-    def get_resolution_note(self):
+    def get_resolution_note(self) -> typing.Optional["ResolutionNote"]:
         try:
             return self.resolution_note
         except ResolutionNoteSlackMessage.resolution_note.RelatedObjectDoesNotExist:
             return None
 
-    def delete(self):
+    def delete(self, *args, **kwargs) -> typing.Tuple[int, typing.Dict[str, int]]:
         resolution_note = self.get_resolution_note()
         if resolution_note:
             resolution_note.delete()
-        super().delete()
+        return super().delete(*args, **kwargs)
 
 
 class ResolutionNoteQueryset(models.QuerySet):
@@ -100,6 +108,8 @@ class ResolutionNoteQueryset(models.QuerySet):
 
 
 class ResolutionNote(models.Model):
+    alert_group: "AlertGroup"
+    resolution_note_slack_message: typing.Optional[ResolutionNoteSlackMessage]
 
     objects = ResolutionNoteQueryset.as_manager()
     objects_with_deleted = models.Manager()
@@ -186,7 +196,7 @@ class ResolutionNote(models.Model):
         But AlertGroupPostmortem has no author field. So this method was introduces as workaround.
         """
         if self.author is not None:
-            return self.author.get_user_verbal_for_team_for_slack(mention)
+            return self.author.get_username_with_slack_verbal(mention)
         else:
             return ""
 

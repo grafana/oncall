@@ -2,6 +2,10 @@
   width: 100%;
 }
 
+.message {
+  word-wrap: break-word;
+}
+
 .message ul {
   margin-left: 24px;
 }
@@ -12,4 +16,13 @@
 
 .message code {
   white-space: break-spaces;
+}
+
+.image-result img {
+  max-width: 100%;
+  max-height: 100%;
+}
+
+.display-linebreak {
+  white-space: pre-line;
 }

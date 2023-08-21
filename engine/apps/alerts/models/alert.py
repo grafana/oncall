@@ -1,20 +1,24 @@
 import hashlib
 import logging
+import typing
 from uuid import uuid4
 
-from django.apps import apps
 from django.conf import settings
 from django.core.validators import MinLengthValidator
 from django.db import models
 from django.db.models import JSONField
-from django.db.models.signals import post_save
 
+from apps.alerts import tasks
 from apps.alerts.constants import TASK_DELAY_SECONDS
 from apps.alerts.incident_appearance.templaters import TemplateLoader
-from apps.alerts.tasks import distribute_alert, send_alert_group_signal
 from common.jinja_templater import apply_jinja_template
 from common.jinja_templater.apply_jinja_template import JinjaTemplateError, JinjaTemplateWarning
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
+
+if typing.TYPE_CHECKING:
+    from django.db.models.manager import RelatedManager
+
+    from apps.alerts.models import AlertGroup
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -35,6 +39,9 @@ def generate_public_primary_key_for_alert():
 
 
 class Alert(models.Model):
+    group: typing.Optional["AlertGroup"]
+    resolved_alert_groups: "RelatedManager['AlertGroup']"
+
     public_primary_key = models.CharField(
         max_length=20,
         validators=[MinLengthValidator(settings.PUBLIC_PRIMARY_KEY_MIN_LENGTH + 1)],
@@ -82,18 +89,17 @@ class Alert(models.Model):
         channel_filter=None,
         force_route_id=None,
     ):
-        ChannelFilter = apps.get_model("alerts", "ChannelFilter")
-        AlertGroup = apps.get_model("alerts", "AlertGroup")
-        AlertReceiveChannel = apps.get_model("alerts", "AlertReceiveChannel")
-        AlertGroupLogRecord = apps.get_model("alerts", "AlertGroupLogRecord")
+        """
+        Creates an alert and a group if needed.
+        """
+        # This import is here to avoid circular imports
+        from apps.alerts.models import AlertGroup, AlertGroupLogRecord, AlertReceiveChannel, ChannelFilter
 
         group_data = Alert.render_group_data(alert_receive_channel, raw_request_data, is_demo)
         if channel_filter is None:
-            channel_filter = ChannelFilter.select_filter(
-                alert_receive_channel, raw_request_data, title, message, force_route_id
-            )
+            channel_filter = ChannelFilter.select_filter(alert_receive_channel, raw_request_data, force_route_id)
 
-        group, group_created = AlertGroup.all_objects.get_or_create_grouping(
+        group, group_created = AlertGroup.objects.get_or_create_grouping(
             channel=alert_receive_channel,
             channel_filter=channel_filter,
             group_data=group_data,
@@ -127,29 +133,39 @@ class Alert(models.Model):
 
         alert.save()
 
-        maintenance_uuid = None
-        if alert_receive_channel.organization.maintenance_mode == AlertReceiveChannel.MAINTENANCE:
-            maintenance_uuid = alert_receive_channel.organization.maintenance_uuid
+        # Store exact alert which resolved group.
+        if group.resolved_by == AlertGroup.SOURCE and group.resolved_by_alert is None:
+            group.resolved_by_alert = alert
+            group.save(update_fields=["resolved_by_alert"])
 
-        elif alert_receive_channel.maintenance_mode == AlertReceiveChannel.MAINTENANCE:
-            maintenance_uuid = alert_receive_channel.maintenance_uuid
+        if settings.DEBUG:
+            tasks.distribute_alert(alert.pk)
+        else:
+            tasks.distribute_alert.apply_async((alert.pk,), countdown=TASK_DELAY_SECONDS)
 
-        if maintenance_uuid is not None:
-            try:
-                maintenance_incident = AlertGroup.all_objects.get(maintenance_uuid=maintenance_uuid)
-                group.root_alert_group = maintenance_incident
-                group.save(update_fields=["root_alert_group"])
-                log_record_for_root_incident = maintenance_incident.log_records.create(
-                    type=AlertGroupLogRecord.TYPE_ATTACHED, dependent_alert_group=group, reason="Attach dropdown"
-                )
-                logger.debug(
-                    f"call send_alert_group_signal for alert_group {maintenance_incident.pk} (maintenance), "
-                    f"log record {log_record_for_root_incident.pk} with type "
-                    f"'{log_record_for_root_incident.get_type_display()}'"
-                )
-                send_alert_group_signal.apply_async((log_record_for_root_incident.pk,))
-            except AlertGroup.DoesNotExist:
-                pass
+        if group_created:
+            # all code below related to maintenance mode
+            maintenance_uuid = None
+
+            if alert_receive_channel.maintenance_mode == AlertReceiveChannel.MAINTENANCE:
+                maintenance_uuid = alert_receive_channel.maintenance_uuid
+
+            if maintenance_uuid is not None:
+                try:
+                    maintenance_incident = AlertGroup.objects.get(maintenance_uuid=maintenance_uuid)
+                    group.root_alert_group = maintenance_incident
+                    group.save(update_fields=["root_alert_group"])
+                    log_record_for_root_incident = maintenance_incident.log_records.create(
+                        type=AlertGroupLogRecord.TYPE_ATTACHED, dependent_alert_group=group, reason="Attach dropdown"
+                    )
+                    logger.debug(
+                        f"call send_alert_group_signal for alert_group {maintenance_incident.pk} (maintenance), "
+                        f"log record {log_record_for_root_incident.pk} with type "
+                        f"'{log_record_for_root_incident.get_type_display()}'"
+                    )
+                    tasks.send_alert_group_signal.apply_async((log_record_for_root_incident.pk,))
+                except AlertGroup.DoesNotExist:
+                    pass
 
         return alert
 
@@ -175,7 +191,7 @@ class Alert(models.Model):
 
     @classmethod
     def render_group_data(cls, alert_receive_channel, raw_request_data, is_demo=False):
-        AlertGroup = apps.get_model("alerts", "AlertGroup")
+        from apps.alerts.models import AlertGroup
 
         template_manager = TemplateLoader()
 
@@ -257,32 +273,3 @@ class Alert(models.Model):
             distinction = str(uuid4())
 
         return distinction
-
-
-def listen_for_alert_model_save(sender, instance, created, *args, **kwargs):
-    AlertGroup = apps.get_model("alerts", "AlertGroup")
-    """
-    Here we invoke AlertShootingStep by model saving action.
-    """
-    if created and instance.group.maintenance_uuid is None:
-        # RFCT - why additinal save ?
-        instance.save()
-
-        group = instance.group
-        # Store exact alert which resolved group.
-        if group.resolved_by == AlertGroup.SOURCE and group.resolved_by_alert is None:
-            group.resolved_by_alert = instance
-            group.save(update_fields=["resolved_by_alert"])
-
-        if settings.DEBUG:
-            distribute_alert(instance.pk)
-        else:
-            distribute_alert.apply_async((instance.pk,), countdown=TASK_DELAY_SECONDS)
-
-
-# Connect signal to  base Alert class
-post_save.connect(listen_for_alert_model_save, Alert)
-
-# And subscribe for events from child classes
-for subclass in Alert.__subclasses__():
-    post_save.connect(listen_for_alert_model_save, subclass)

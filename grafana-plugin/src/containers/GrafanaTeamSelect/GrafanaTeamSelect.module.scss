@@ -1,19 +1,12 @@
-.teamSelect {
-  width: 200px;
+.root {
+  width: 400px;
 }
 
 .teamSelectLabel {
   display: flex;
 }
 
-.teamSelectText,
 .teamSelectLink {
-  line-height: 1.25;
-  margin-bottom: 4px;
-}
-
-.teamSelectLink {
-  margin-left: auto;
   color: var(--primary-text-link);
 }
 

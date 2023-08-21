@@ -23,6 +23,10 @@
     color: var(--primary-text-link);
   }
 
+  &--danger {
+    color: var(--error-text-color);
+  }
+
   &--success {
     color: var(--green-5);
   }
@@ -41,6 +45,10 @@
 
   &--large {
     font-size: 20px;
+  }
+
+  &--clickable {
+    cursor: pointer;
   }
 }
 
@@ -63,10 +71,17 @@
 }
 
 .icon-button {
-  margin-left: 4px;
+  margin-left: 8px;
   display: none;
 }
 
 .root:hover .icon-button {
   display: inline-block;
+}
+
+.with-maxWidth {
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+  display: block;
 }

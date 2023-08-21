@@ -1,14 +1,12 @@
-import React from 'react';
+import React, { useCallback, useState } from 'react';
 
-import { Icon, Label, Tooltip } from '@grafana/ui';
+import { Button, HorizontalGroup, Icon, Label, Modal, Tooltip, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
-import ReactDOM from 'react-dom';
 
 import GSelect from 'containers/GSelect/GSelect';
-import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
+import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
-import { isTopNavbar } from 'plugin/GrafanaPluginRootPage.helpers';
 import { useStore } from 'state/useStore';
 import { UserActions } from 'utils/authorization';
 
@@ -17,70 +15,83 @@ import styles from './GrafanaTeamSelect.module.scss';
 const cx = cn.bind(styles);
 
 interface GrafanaTeamSelectProps {
-  currentPage: string;
+  onSelect: (id: GrafanaTeam['id']) => void;
+  onHide?: () => void;
+  withoutModal?: boolean;
+  defaultValue?: GrafanaTeam['id'];
 }
 
-const GrafanaTeamSelect = observer((props: GrafanaTeamSelectProps) => {
+const GrafanaTeamSelect = observer(({ onSelect, onHide, withoutModal, defaultValue }: GrafanaTeamSelectProps) => {
   const store = useStore();
 
-  const { currentPage } = props;
   const { userStore, grafanaTeamStore } = store;
-  const grafanaTeams = grafanaTeamStore.getSearchResult();
   const user = userStore.currentUser;
+
+  const [selectedTeam, setSelectedTeam] = useState<GrafanaTeam['id']>(defaultValue);
+
+  const grafanaTeams = grafanaTeamStore.getSearchResult();
+
+  const handleTeamSelect = useCallback(
+    (value) => {
+      setSelectedTeam(value);
+
+      if (withoutModal) {
+        onSelect(value);
+      }
+    },
+    [onSelect, withoutModal]
+  );
+
+  const handleConfirm = useCallback(() => {
+    onSelect(selectedTeam);
+  }, [onSelect, selectedTeam]);
 
   if (!grafanaTeams || !user) {
     return null;
   }
 
-  const onTeamChange = async (teamId: GrafanaTeam['id']) => {
-    await userStore.updateCurrentUser({ current_team: teamId });
+  const select = (
+    <GSelect
+      showSearch
+      modelName="grafanaTeamStore"
+      displayField="name"
+      valueField="id"
+      placeholder="Select team"
+      className={cx('select', 'control')}
+      value={selectedTeam}
+      onChange={handleTeamSelect}
+    />
+  );
 
-    const queryParams = new URLSearchParams();
-    queryParams.set('page', mapCurrentPage());
-    window.location.search = queryParams.toString();
+  if (withoutModal) {
+    return select;
+  }
 
-    function mapCurrentPage() {
-      if (currentPage === 'incident') {
-        return 'incidents';
-      }
-      return currentPage;
-    }
-  };
-
-  const content = (
-    <div className={cx('teamSelect')}>
-      <div className={cx('teamSelectLabel')}>
+  return (
+    <Modal onDismiss={onHide} closeOnEscape isOpen title="Select team" className={cx('root')}>
+      <VerticalGroup>
         <Label>
           <span className={cx('teamSelectText')}>
-            Select Team{''}
-            <Tooltip content="The objects on this page are filtered by team and you can only view the objects that belong to your team. Note that filtering within Grafana OnCall is meant for usability, not access management.">
+            Select team{''}
+            <Tooltip content="It will also update your default team">
               <Icon name="info-circle" size="md" className={cx('teamSelectInfo')}></Icon>
             </Tooltip>
           </span>
         </Label>
-        <WithPermissionControl userAction={UserActions.TeamsWrite}>
+        <div className={cx('teamSelect')}>{select}</div>
+        <WithPermissionControlTooltip userAction={UserActions.TeamsWrite}>
           <a href="/org/teams" className={cx('teamSelectLink')}>
             Edit teams
           </a>
-        </WithPermissionControl>
-      </div>
-      <GSelect
-        modelName="grafanaTeamStore"
-        displayField="name"
-        valueField="id"
-        placeholder="Select Team"
-        className={cx('select', 'control')}
-        value={user.current_team}
-        onChange={onTeamChange}
-      />
-    </div>
+        </WithPermissionControlTooltip>
+        <HorizontalGroup justify="flex-end">
+          <Button variant="primary" onClick={handleConfirm}>
+            Ok
+          </Button>
+        </HorizontalGroup>
+      </VerticalGroup>
+    </Modal>
   );
-
-  return document.getElementsByClassName('page-header__inner')[0]
-    ? ReactDOM.createPortal(content, document.getElementsByClassName('page-header__inner')[0])
-    : isTopNavbar()
-    ? content
-    : null;
 });
 
 export default GrafanaTeamSelect;

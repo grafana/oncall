@@ -11,9 +11,9 @@ service:
   port: 8080
   nodePort: 30001
 grafana:
-   service:
-     type: NodePort
-     nodePort: 30002
+  service:
+    type: NodePort
+    nodePort: 30002
 database:
   # can be either mysql or postgresql
   type: postgresql

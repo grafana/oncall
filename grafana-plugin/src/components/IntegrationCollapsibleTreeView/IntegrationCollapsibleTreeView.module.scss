@@ -1,0 +1,54 @@
+.integrationTree__container {
+  margin-left: 32px;
+  position: relative;
+
+  &:before {
+    content: '';
+    position: absolute;
+    height: calc(100% - 20px);
+    border: var(--border-weak);
+    margin-top: 20px;
+    margin-left: -20px;
+  }
+}
+
+.integrationTree__element {
+  margin-left: 6px;
+  visibility: hidden;
+  overflow-y: hidden;
+  height: 0;
+
+  &--visible {
+    visibility: visible;
+    height: auto;
+  }
+}
+
+.integrationTree__group {
+  position: relative;
+  margin-bottom: 12px;
+}
+
+.integrationTree__icon {
+  position: absolute;
+  top: 0px;
+  transform: translateY(50%);
+  left: -30px;
+  color: var(--always-gray);
+  width: 25px;
+  height: 32px;
+  text-align: center;
+  background-color: var(--primary-background) !important;
+  border: 1px solid var(--primary-background);
+  z-index: 100;
+  border-radius: 4px;
+  padding: 0px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  path {
+    // this will overwrite all icons below to be gray
+    fill: var(--always-gray);
+  }
+}

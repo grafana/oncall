@@ -45,8 +45,6 @@ helm install \
 
 Follow the `helm install` output to finish setting up Grafana OnCall backend and Grafana OnCall frontend plugin e.g.
 
-<!-- markdownlint-disable MD013 -->
-
 ```bash
 👋 Your Grafana OnCall instance has been successfully deployed
 
@@ -74,8 +72,6 @@ Follow the `helm install` output to finish setting up Grafana OnCall backend and
 🎉🎉🎉  Done! 🎉🎉🎉
 ```
 
-<!-- markdownlint-enable MD013 -->
-
 ## Configuration
 
 You can edit values.yml to make changes to the helm chart configuration and re-deploy the release with the following command:
@@ -88,6 +84,112 @@ helm upgrade \
     --set grafana."grafana\.ini".server.domain=example.com \
     release-oncall \
     grafana/oncall
+```
+
+### Passwords and external secrets
+
+As OnCall subcharts are Bitname charts, there is a common approach to secrets. Bundled charts allow specifying passwords
+in values.yaml explicitly or as K8s secret value. OnCall chart refers either to secret created in sub-chart or
+to specified external secret.
+Similarly, if component chart is disabled, the password(s) can be supplied in `external<Component>` value
+(e.g. externalMysql) explicitly or as K8s secret value. In the first case, the secret is created with the specified
+value. In the second case the external secret is used.
+
+- If `<subchart>.auth.existingSecret` is non-empty, then this secret is used. Secret keys are pre-defined by chart.
+- If subchart supports password files and `<subchart>.customPasswordFiles` dictionary is non-empty, then password files
+  are used. Dictionary keys are pre-defined per sub-chart. Password files are not supported by OnCall chart and should
+  not be used with bundled sub-charts.
+- Passwords are specified via `auth` section values, e.g. `auth.password`. K8s secret is created.
+  - If `<subchart>.auth.forcePassword` is `true`, then passwords MUST be specified. Otherwise, missing passwords
+  are generated.
+
+If external component is used instead of the bundled one:
+
+- If existingSecret within appropriate external component values is non-empty (e.g. `externalMysql.existingSecret`) then
+  it is used together with corresponding key names, e.g. `externalMysql.passwordKey`.
+- Otherwise, corresponding password values are used, e.g. `externalMysql.password`. K8s secret is created by OnCall chart.
+
+Below is the summary for the dependent charts.
+
+MySQL/MariaDB:
+
+```yaml
+database:
+  type: "mysql" # This is default
+mariaDB:
+  enabled: true # Default
+  auth:
+    existingSecret: ""
+    forcePassword: false
+    # Secret name: `<release>-mariadb`
+    rootPassword: "" # Secret key: mariadb-root-password
+    password: "" # Secret key: mariadb-password
+    replicationPassword: "" # Secret key: mariadb-replication-password
+externalMysql:
+  password: ""
+  existingSecret: ""
+  passwordKey: ""
+```
+
+Postgres:
+
+```yaml
+database:
+  type: postgresql
+mariadb:
+  enabled: false # Must be set to false for Postgres
+postgresql:
+  enabled: true # Must be set to true for bundled Postgres
+  auth:
+    existingSecret: ""
+    secretKeys:
+      adminPasswordKey: ""
+      userPasswordKey: "" # Not needed
+      replicationPasswordKey: "" # Not needed with disabled replication
+    # Secret name: `<release>-postgresql`
+    postgresPassword: "" # password for admin user postgres. As non-admin user is not created, only this one is relevant.
+    password: "" # Not needed
+    replicationPassword: "" # Not needed with disabled replication
+externalPostgresql:
+  user: ""
+  password: ""
+  existingSecret: ""
+  passwordKey: ""
+```
+
+Rabbitmq:
+
+```yaml
+rabbitmq:
+  enabled: true
+  auth:
+    existingPasswordSecret: "" # Must contain `rabbitmq-password` key
+    existingErlangSecret: "" # Must contain `rabbitmq-erlang-cookie` key
+    # Secret name: `<release>-rabbitmq`
+    password: ""
+    erlangCookie: ""
+externalRabbitmq:
+  user: ""
+  password: ""
+  existingSecret: ""
+  passwordKey: ""
+  usernameKey: ""
+```
+
+Redis:
+
+```yaml
+redis:
+  enabled: true
+  auth:
+    existingSecret: ""
+    existingSecretPasswordKey: ""
+    # Secret name: `<release>-redis`
+    password: ""
+externalRedis:
+  password: ""
+  existingSecret: ""
+  passwordKey: ""
 ```
 
 ### Set up Slack and Telegram
@@ -186,6 +288,9 @@ externalMysql:
   db_name:
   user:
   password:
+  existingSecret: ""
+  usernameKey: username
+  passwordKey: password
 ```
 
 ### Connect external PostgreSQL
@@ -205,7 +310,7 @@ database:
   type: postgresql
 
 # Make sure to create the database with the following parameters:
-# CREATE DATABASE oncall CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+# CREATE DATABASE oncall WITH ENCODING UTF8;
 externalPostgresql:
   host:
   port:
@@ -250,6 +355,8 @@ redis:
 externalRedis:
   host:
   password:
+  existingSecret: ""
+  passwordKey: password
 ```
 
 ## Update

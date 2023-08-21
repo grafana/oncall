@@ -1,26 +1,27 @@
 import math
 import time
-import typing
 
 from django.conf import settings
 from rest_framework import serializers
 
-from apps.api.permissions import DONT_USE_LEGACY_PERMISSION_MAPPING
 from apps.api.serializers.telegram import TelegramToUserConnectorSerializer
 from apps.base.messaging import get_messaging_backends
 from apps.base.models import UserNotificationPolicy
 from apps.base.utils import live_settings
 from apps.oss_installation.utils import cloud_user_identity_status
-from apps.twilioapp.utils import check_phone_number_is_valid
 from apps.user_management.models import User
 from apps.user_management.models.user import default_working_hours
-from common.api_helpers.custom_fields import TeamPrimaryKeyRelatedField
+from common.api_helpers.custom_fields import TeamPrimaryKeyRelatedField, TimeZoneField
 from common.api_helpers.mixins import EagerLoadingMixin
-from common.timezones import TimeZoneField
+from common.api_helpers.utils import check_phone_number_is_valid
 
 from .custom_serializers import DynamicFieldsModelSerializer
 from .organization import FastOrganizationSerializer
 from .slack_user_identity import SlackUserIdentitySerializer
+
+
+class UserPermissionSerializer(serializers.Serializer):
+    action = serializers.CharField(read_only=True)
 
 
 class UserSerializer(DynamicFieldsModelSerializer, EagerLoadingMixin):
@@ -37,7 +38,6 @@ class UserSerializer(DynamicFieldsModelSerializer, EagerLoadingMixin):
     timezone = TimeZoneField(allow_null=True, required=False)
     avatar = serializers.URLField(source="avatar_url", read_only=True)
     avatar_full = serializers.URLField(source="avatar_full_url", read_only=True)
-    permissions = serializers.SerializerMethodField()
     notification_chain_verbal = serializers.SerializerMethodField()
     cloud_connection_status = serializers.SerializerMethodField()
 
@@ -52,7 +52,7 @@ class UserSerializer(DynamicFieldsModelSerializer, EagerLoadingMixin):
             "email",
             "username",
             "name",
-            "role",  # LEGACY.. this should get removed eventually
+            "role",
             "avatar",
             "avatar_full",
             "timezone",
@@ -62,7 +62,6 @@ class UserSerializer(DynamicFieldsModelSerializer, EagerLoadingMixin):
             "slack_user_identity",
             "telegram_configuration",
             "messaging_backends",
-            "permissions",  # LEGACY.. this should get removed eventually
             "notification_chain_verbal",
             "cloud_connection_status",
             "hide_phone_number",
@@ -71,7 +70,7 @@ class UserSerializer(DynamicFieldsModelSerializer, EagerLoadingMixin):
             "email",
             "username",
             "name",
-            "role",  # LEGACY.. this should get removed eventually
+            "role",
             "verified_phone_number",
         ]
 
@@ -128,15 +127,12 @@ class UserSerializer(DynamicFieldsModelSerializer, EagerLoadingMixin):
             serialized_data[backend_id] = backend.serialize_user(obj)
         return serialized_data
 
-    def get_permissions(self, obj) -> typing.List[str]:
-        return DONT_USE_LEGACY_PERMISSION_MAPPING[obj.role]
-
     def get_notification_chain_verbal(self, obj):
         default, important = UserNotificationPolicy.get_short_verbals_for_user(user=obj)
         return {"default": " - ".join(default), "important": " - ".join(important)}
 
     def get_cloud_connection_status(self, obj):
-        if settings.OSS_INSTALLATION and live_settings.GRAFANA_CLOUD_NOTIFICATIONS_ENABLED:
+        if settings.IS_OPEN_SOURCE and live_settings.GRAFANA_CLOUD_NOTIFICATIONS_ENABLED:
             connector = self.context.get("connector", None)
             identities = self.context.get("cloud_identities", {})
             identity = identities.get(obj.email, None)
@@ -163,6 +159,17 @@ class UserSerializer(DynamicFieldsModelSerializer, EagerLoadingMixin):
         return f"{HIDE_SYMBOL * (len(number) - SHOW_LAST_SYMBOLS)}{number[-SHOW_LAST_SYMBOLS:]}"
 
 
+class CurrentUserSerializer(UserSerializer):
+    rbac_permissions = UserPermissionSerializer(read_only=True, many=True, source="permissions")
+
+    class Meta:
+        model = User
+        fields = UserSerializer.Meta.fields + [
+            "rbac_permissions",
+        ]
+        read_only_fields = UserSerializer.Meta.read_only_fields
+
+
 class UserHiddenFieldsSerializer(UserSerializer):
     fields_available_for_all_users = [
         "pk",
@@ -173,7 +180,6 @@ class UserHiddenFieldsSerializer(UserSerializer):
         "timezone",
         "working_hours",
         "notification_chain_verbal",
-        "permissions",
     ]
 
     def to_representation(self, instance):
@@ -183,6 +189,27 @@ class UserHiddenFieldsSerializer(UserSerializer):
                 if field not in self.fields_available_for_all_users:
                     ret[field] = "******"
             ret["hidden_fields"] = True
+        return ret
+
+
+class ScheduleUserSerializer(UserSerializer):
+    fields_to_keep = [
+        "pk",
+        "organization",
+        "email",
+        "username",
+        "name",
+        "avatar",
+        "avatar_full",
+        "timezone",
+        "working_hours",
+        "slack_user_identity",
+        "telegram_configuration",
+    ]
+
+    def to_representation(self, instance):
+        serialized = super(UserSerializer, self).to_representation(instance)
+        ret = {field: value for field, value in serialized.items() if field in self.fields_to_keep}
         return ret
 
 
@@ -211,4 +238,26 @@ class FilterUserSerializer(EagerLoadingMixin, serializers.ModelSerializer):
         read_only_fields = [
             "pk",
             "username",
+        ]
+
+
+class UserShortSerializer(serializers.ModelSerializer):
+    username = serializers.CharField()
+    pk = serializers.CharField(source="public_primary_key")
+    avatar = serializers.CharField(source="avatar_url")
+    avatar_full = serializers.CharField(source="avatar_full_url")
+
+    class Meta:
+        model = User
+        fields = [
+            "username",
+            "pk",
+            "avatar",
+            "avatar_full",
+        ]
+        read_only_fields = [
+            "username",
+            "pk",
+            "avatar",
+            "avatar_full",
         ]

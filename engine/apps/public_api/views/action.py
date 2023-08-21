@@ -32,7 +32,7 @@ class ActionView(RateLimitHeadersMixin, PublicPrimaryKeyMixin, UpdateSerializerM
         if action_name:
             queryset = queryset.filter(name=action_name)
 
-        return queryset
+        return queryset.order_by("id")
 
     def perform_create(self, serializer):
         serializer.save()

@@ -1,42 +1,47 @@
 import React from 'react';
 
-import { Card } from '@grafana/ui';
+import { Card, HorizontalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
+import { observer } from 'mobx-react';
 
 import gitHubStarSVG from 'assets/img/github_star.svg';
-import GrafanaTeamSelect from 'containers/GrafanaTeamSelect/GrafanaTeamSelect';
-import logo from 'img/logo.svg';
+import logo from 'assets/img/logo.svg';
+import Tag from 'components/Tag/Tag';
+import Alerts from 'containers/Alerts/Alerts';
+import IRMBanner from 'containers/IRMBanner/IRMBanner';
 import { isTopNavbar } from 'plugin/GrafanaPluginRootPage.helpers';
-import { APP_SUBTITLE, GRAFANA_LICENSE_OSS } from 'utils/consts';
+import { useStore } from 'state/useStore';
+import { APP_SUBTITLE } from 'utils/consts';
 
 import styles from './Header.module.scss';
 
 const cx = cn.bind(styles);
 
-export default function Header({ page, backendLicense }: { page: string; backendLicense: string }) {
-  return (
-    <div className={cx('root')}>
-      <div className={cx('page-header__inner', { 'header-topnavbar': isTopNavbar() })}>
-        <div className={cx('navbar-left')}>
-          <span className="page-header__logo">
-            <img className="page-header__img" src={logo} alt="Grafana OnCall" />
-          </span>
+const Header = observer(() => {
+  const store = useStore();
 
-          <div className="page-header__info-block">{renderHeading()}</div>
-        </div>
-        <div className={cx('navbar-right')}>
-          <GrafanaTeamSelect currentPage={page} />
+  return (
+    <>
+      <div className={cx('root')}>
+        <div className={cx('page-header__inner', { 'header-topnavbar': isTopNavbar() })}>
+          <div className={cx('navbar-left')}>
+            <span className="page-header__logo">
+              <img className="page-header__img" src={logo} alt="Grafana OnCall" />
+            </span>
+            <div className="page-header__info-block">{renderHeading()}</div>
+          </div>
         </div>
       </div>
-    </div>
+      <Banners />
+    </>
   );
 
   function renderHeading() {
-    if (backendLicense === GRAFANA_LICENSE_OSS) {
+    if (store.isOpenSource()) {
       return (
         <div className={cx('heading')}>
           <h1 className={cx('page-header__title')}>Grafana OnCall</h1>
-          <div className="u-flex u-align-items-center">
+          <div className={cx('navbar-heading-container')}>
             <div className={cx('page-header__sub-title')}>{APP_SUBTITLE}</div>
             <Card heading={undefined} className={cx('navbar-heading')}>
               <a
@@ -53,11 +58,27 @@ export default function Header({ page, backendLicense }: { page: string; backend
       );
     }
 
+    const { irmPlan } = store.alertGroupStore;
+
     return (
       <>
-        <h1 className={cx('page-header__title')}>Grafana OnCall</h1>
+        <HorizontalGroup>
+          <h1 className={cx('page-header__title')}>Grafana OnCall</h1>
+          {irmPlan?.limits && <Tag className={cx('irm-icon')}>{irmPlan.limits.isIrmPro ? 'IRM Pro' : 'IRM Lite'}</Tag>}
+        </HorizontalGroup>
         <div className={cx('page-header__sub-title')}>{APP_SUBTITLE}</div>
       </>
     );
   }
-}
+});
+
+const Banners: React.FC = () => {
+  return (
+    <div className={cx('banners')}>
+      <Alerts />
+      <IRMBanner />
+    </div>
+  );
+};
+
+export default Header;

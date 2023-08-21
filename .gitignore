@@ -3,6 +3,7 @@ venv
 .python-version
 
 .vscode
+*.http
 .idea
 .DS_Store
 .env

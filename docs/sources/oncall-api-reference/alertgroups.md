@@ -1,6 +1,4 @@
 ---
-aliases:
-  - /docs/oncall/latest/oncall-api-reference/alertgroups/
 canonical: https://grafana.com/docs/oncall/latest/oncall-api-reference/alertgroups/
 title: Alert groups HTTP API
 weight: 400
@@ -38,12 +36,16 @@ The above command returns JSON structured in the following way:
         "telegram": "https://t.me/c/5354/1234?thread=1234"
       }
     }
-  ]
+  ],
+  "current_page_number": 1,
+  "page_size": 50,
+  "total_pages": 1
 }
 ```
 
 These available filter parameters should be provided as `GET` arguments:
 
+- `id`
 - `route_id`
 - `integration_id`
 - `state`
@@ -64,13 +66,9 @@ curl "{{API_URL}}/api/v1/alert_groups/I68T24C13IFW1/" \
   }'
 ```
 
-<!-- markdownlint-disable MD013 -->
-
 | Parameter | Required | Description                                                                                                                                                                                                                                                                                                                                      |
 | --------- | :------: | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `mode`    |    No    | Default setting is `wipe`. `wipe` will remove the payload of all Grafana OnCall group alerts. This is useful if you sent sensitive data to OnCall. All metadata will remain. `DELETE` will trigger the removal of alert groups, alerts, and all related metadata. It will also remove alert group notifications in Slack and other destinations. |
-
-<!-- markdownlint-enable MD013 -->
 
 > **NOTE:** `DELETE` can take a few moments to delete alert groups because Grafana OnCall interacts with 3rd party APIs
 > such as Slack. Please check objects using `GET` to be sure the data is removed.

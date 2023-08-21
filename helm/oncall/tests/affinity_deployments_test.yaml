@@ -1,0 +1,69 @@
+suite: test image and imagePullPolicy for deployments
+templates:
+  - celery/deployment-celery.yaml
+  - engine/deployment.yaml
+  - engine/job-migrate.yaml
+release:
+  name: oncall
+tests:
+  - it: affinity={} -> should set afffinity null
+    asserts:
+      - notExists:
+          path: spec.template.spec.affinity
+
+  - it: affinity -> should use custom affinity
+    set:
+      migrate:
+        affinity:
+          podAntiAffinity:
+            preferredDuringSchedulingIgnoredDuringExecution:
+              - weight: 100
+                podAffinityTerm:
+                  labelSelector:
+                    matchExpressions:
+                      - key: app.kubernetes.io/name
+                        operator: In
+                        values:
+                          - grafana
+                      - key: app.kubernetes.io/instance
+                        operator: In
+                        values:
+                          - grafana
+                  topologyKey: "failure-domain.beta.kubernetes.io/zone"
+      engine:
+        affinity:
+          podAntiAffinity:
+            preferredDuringSchedulingIgnoredDuringExecution:
+              - weight: 100
+                podAffinityTerm:
+                  labelSelector:
+                    matchExpressions:
+                      - key: app.kubernetes.io/name
+                        operator: In
+                        values:
+                          - grafana
+                      - key: app.kubernetes.io/instance
+                        operator: In
+                        values:
+                          - grafana
+                  topologyKey: "failure-domain.beta.kubernetes.io/zone"
+      celery:
+        affinity:
+          podAntiAffinity:
+            preferredDuringSchedulingIgnoredDuringExecution:
+              - weight: 100
+                podAffinityTerm:
+                  labelSelector:
+                    matchExpressions:
+                      - key: app.kubernetes.io/name
+                        operator: In
+                        values:
+                          - grafana
+                      - key: app.kubernetes.io/instance
+                        operator: In
+                        values:
+                          - grafana
+                  topologyKey: "failure-domain.beta.kubernetes.io/zone"
+    asserts:
+      - matchSnapshot:
+          path: spec.template.spec.affinity

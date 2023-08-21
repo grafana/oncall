@@ -1,6 +1,4 @@
 ---
-aliases:
-  - /docs/oncall/latest/oncall-api-reference/on_call_shifts/
 canonical: https://grafana.com/docs/oncall/latest/oncall-api-reference/on_call_shifts/
 title: OnCall shifts HTTP API
 weight: 600
@@ -43,8 +41,6 @@ The above command returns JSON structured in the following way:
 }
 ```
 
-<!-- markdownlint-disable MD013 -->
-
 | Parameter                        | Unique |                    Required                    | Description                                                                                                                                                                                                                                                                                                                                                                                                        |
 | -------------------------------- | :----: | :--------------------------------------------: | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `name`                           |  Yes   |                      Yes                       | On-call shift name.                                                                                                                                                                                                                                                                                                                                                                                                |
@@ -55,7 +51,7 @@ The above command returns JSON structured in the following way:
 | `start`                          |   No   |                      Yes                       | Start time of the on-call shift. This parameter takes a date format as `yyyy-MM-dd'T'HH:mm:ss` (for example "2020-09-05T08:00:00").                                                                                                                                                                                                                                                                                |
 | `duration`                       |   No   |                      Yes                       | Duration of the event.                                                                                                                                                                                                                                                                                                                                                                                             |
 | `frequency`                      |   No   | If type = `recurrent_event` or `rolling_users` | One of: `hourly`, `daily`, `weekly`, `monthly`.                                                                                                                                                                                                                                                                                                                                                                    |
-| `interval`                       |   No   |                    Optional                    | This parameter takes a positive integer that represents the intervals that the recurrence rule repeats.                                                                                                                                                                                                                                                                                                            |
+| `interval`                       |   No   |                    Optional                    | This parameter takes a positive integer that represents the intervals that the recurrence rule repeats. If `frequency` is set, the default assumed value for this will be `1`.                                                                                                                                                                                                                                     |
 | `until`                          |   No   |                    Optional                    | When the recurrence rule ends (endless if None). This parameter takes a date format as `yyyy-MM-dd'T'HH:mm:ss` (for example "2020-09-05T08:00:00").                                                                                                                                                                                                                                                                |
 | `week_start`                     |   No   |                    Optional                    | Start day of the week in iCal format. One of: `SU` (Sunday), `MO` (Monday), `TU` (Tuesday), `WE` (Wednesday), `TH` (Thursday), `FR` (Friday), `SA` (Saturday). Default: `SU`.                                                                                                                                                                                                                                      |
 | `by_day`                         |   No   |                    Optional                    | List of days in iCal format. Valid values are: `SU`, `MO`, `TU`, `WE`, `TH`, `FR`, `SA`.                                                                                                                                                                                                                                                                                                                           |
@@ -64,8 +60,6 @@ The above command returns JSON structured in the following way:
 | `users`                          |   No   |                    Optional                    | List of on-call users.                                                                                                                                                                                                                                                                                                                                                                                             |
 | `rolling_users`                  |   No   |                    Optional                    | List of lists with on-call users (for `rolling_users` event type). Grafana OnCall will iterate over lists of users for every time frame specified in `frequency`. For example: there are two lists of users in `rolling_users` : [[Alex, Bob], [Alice]] and `frequency` = `daily` . This means that the first day Alex and Bob will be notified. The next day: Alice. The day after: Alex and Bob again and so on. |
 | `start_rotation_from_user_index` |   No   |                    Optional                    | Index of the list of users in `rolling_users`, from which on-call rotation starts. By default, the start index is `0`                                                                                                                                                                                                                                                                                              |
-
-<!-- markdownlint-enable MD013 -->
 
 Please see [RFC 5545](https://tools.ietf.org/html/rfc5545#section-3.3.10) for more information about recurrence rules.
 
@@ -147,7 +141,10 @@ The above command returns JSON structured in the following way:
       "by_monthday": null,
       "users": ["U4DNY931HHJS5"]
     }
-  ]
+  ],
+  "current_page_number": 1,
+  "page_size": 50,
+  "total_pages": 1
 }
 ```
 

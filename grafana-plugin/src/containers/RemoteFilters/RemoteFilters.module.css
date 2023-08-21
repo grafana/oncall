@@ -1,0 +1,29 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.filters {
+  display: flex;
+  gap: 10px;
+  padding: 10px;
+  border: var(--border);
+  border-radius: 2px;
+  flex-wrap: wrap;
+}
+
+.filter {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.root .filter-options {
+  width: 250px;
+}
+
+.root .filter-select {
+  min-width: 250px;
+  width: fit-content;
+}

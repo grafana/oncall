@@ -1,43 +1,48 @@
 import logging
+import typing
 
 from apps.slack.scenarios import scenario_step
+from apps.slack.types import EventPayload, EventType, PayloadType, ScenarioRoute
+
+if typing.TYPE_CHECKING:
+    from apps.slack.models import SlackTeamIdentity, SlackUserIdentity
 
 logger = logging.getLogger(__name__)
 
 
 class ImOpenStep(scenario_step.ScenarioStep):
-
-    tags = [
-        scenario_step.ScenarioStep.TAG_TRIGGERED_BY_SYSTEM,
-    ]
-
     """
     Empty step to handle event and avoid 500's. In case we need it in the future.
     """
 
-    def process_scenario(self, slack_user_identity, slack_team_identity, payload, action=None):
+    def process_scenario(
+        self,
+        slack_user_identity: "SlackUserIdentity",
+        slack_team_identity: "SlackTeamIdentity",
+        payload: EventPayload,
+    ) -> None:
         logger.info("InOpenStep, doing nothing.")
 
 
 class AppHomeOpenedStep(scenario_step.ScenarioStep):
-
-    tags = [
-        scenario_step.ScenarioStep.TAG_TRIGGERED_BY_SYSTEM,
-    ]
-
-    def process_scenario(self, slack_user_identity, slack_team_identity, payload, action=None):
+    def process_scenario(
+        self,
+        slack_user_identity: "SlackUserIdentity",
+        slack_team_identity: "SlackTeamIdentity",
+        payload: EventPayload,
+    ) -> None:
         pass
 
 
-STEPS_ROUTING = [
+STEPS_ROUTING: ScenarioRoute.RoutingSteps = [
     {
-        "payload_type": scenario_step.PAYLOAD_TYPE_EVENT_CALLBACK,
-        "event_type": scenario_step.EVENT_TYPE_IM_OPEN,
+        "payload_type": PayloadType.EVENT_CALLBACK,
+        "event_type": EventType.IM_OPEN,
         "step": ImOpenStep,
     },
     {
-        "payload_type": scenario_step.PAYLOAD_TYPE_EVENT_CALLBACK,
-        "event_type": scenario_step.EVENT_TYPE_APP_HOME_OPENED,
+        "payload_type": PayloadType.EVENT_CALLBACK,
+        "event_type": EventType.APP_HOME_OPENED,
         "step": AppHomeOpenedStep,
     },
 ]

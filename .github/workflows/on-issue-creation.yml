@@ -1,0 +1,86 @@
+name: On issue creation
+
+"on":
+  issues:
+    types:
+      - opened
+
+jobs:
+  add-to-project:
+    name: Add OSS issues to team's kanban board
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/add-to-project@v0.4.1
+        with:
+          project-url: https://github.com/orgs/grafana/projects/119
+          github-token: ${{ secrets.ADD_TO_PROJECT_PAT }}
+
+  add-latest-version-comment-to-feature-request-issues:
+    name: Add latest version comment to feature request issues
+    runs-on: ubuntu-latest
+    if: contains(github.event.issue.labels.*.name, 'feature request')
+    permissions:
+      issues: write
+    steps:
+      - uses: actions/checkout@v2
+      - name: Get latest version tag
+        id: get-latest-tag
+        uses: actions-ecosystem/action-get-latest-tag@v1
+        with:
+          semver_only: true
+      - name: Add latest version comment
+        # GitHub recommends pinning actions to a commit SHA.
+        # To get a newer version, you will need to update the SHA.
+        # You can also reference a tag or branch, but the action may change without warning.
+        uses: peter-evans/create-or-update-comment@5f728c3dae25f329afbe34ee4d08eef25569d79f
+        with:
+          issue-number: ${{ github.event.issue.number }}
+          body: >
+            The current version of Grafana OnCall, at the time this issue was opened,
+            is ${{ steps.get-latest-tag.outputs.tag }}. If your issue pertains to an older version of Grafana OnCall,
+            please be sure to list it in the PR description. Thank you :smile:!
+
+  map-selected-product-areas-to-labels-and-assignees:
+    name: Map selected product areas to labels and assignees
+    runs-on: ubuntu-latest
+    # try to avoid running this job for an issue that is created via a tasklist
+    # only run it for issues created via the bug or feature request issue templates
+    if: >
+      contains(github.event.issue.labels.*.name, 'bug') ||
+      contains(github.event.issue.labels.*.name, 'feature request')
+    permissions:
+      issues: write
+    steps:
+      - uses: actions/checkout@v2
+      - id: issue-form-values
+        uses: stefanbuck/github-issue-parser@v3
+
+      - run: echo $JSON_STRING
+        env:
+          JSON_STRING: ${{ steps.issue-form-values.outputs.jsonString }}
+
+      - name: Map mobile app product area to appropriate assignees
+        uses: actions-ecosystem/action-add-assignees@v1
+        if: contains(steps.issue-form-values.outputs.issueparser_product_area, 'Mobile App')
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          assignees: |
+            imtoori
+            dieterbe
+
+      - name: Map selected product area(s) to issue labels
+        uses: actions-ecosystem/action-add-labels@v1
+        # github actions have a weird ternary operator, see below for more details
+        # https://docs.github.com/en/actions/learn-github-actions/expressions#literals:~:text=GitHub%20offers%20ternary%20operator%20like%20behaviour%20that%20you%20can%20use%20in%20expressions
+        with:
+          # yamllint disable rule:line-length
+          labels: |
+            ${{ contains(steps.issue-form-values.outputs.issueparser_product_area, 'Alert Flow & Configuration') && 'part:alert flow & configuration' || '' }}
+            ${{ contains(steps.issue-form-values.outputs.issueparser_product_area, 'Auth') && 'part:auth/teams' || '' }}
+            ${{ contains(steps.issue-form-values.outputs.issueparser_product_area, 'Chatops') && 'part:chatops' || '' }}
+            ${{ contains(steps.issue-form-values.outputs.issueparser_product_area, 'Helm') && 'part:deployment/helm' || '' }}
+            ${{ contains(steps.issue-form-values.outputs.issueparser_product_area, 'Mobile App') && 'part:mobile' || '' }}
+            ${{ contains(steps.issue-form-values.outputs.issueparser_product_area, 'Schedules') && 'part:schedules' || '' }}
+            ${{ contains(steps.issue-form-values.outputs.issueparser_product_area, 'Terraform') && 'part:API/Terraform' || '' }}
+            ${{ contains(steps.issue-form-values.outputs.issueparser_product_area, 'Other') && 'no info or need to discuss' || '' }}
+          # yamllint enable rule:line-length

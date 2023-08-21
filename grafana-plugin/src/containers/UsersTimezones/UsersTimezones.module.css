@@ -4,6 +4,28 @@
   flex-direction: column;
   background: var(--background-secondary);
   border-radius: var(--border-radius);
+  position: relative;
+}
+
+.shades {
+  background: repeating-linear-gradient(
+    -45deg,
+    var(--background-canvas),
+    var(--background-canvas) 2px,
+    transparent 2px,
+    transparent 6px
+  );
+  height: 100%;
+  position: absolute;
+}
+
+.working-hours {
+  position: absolute;
+  height: 100%;
+}
+
+.content {
+  z-index: 1;
 }
 
 .header {
@@ -42,6 +64,15 @@
   position: relative;
   height: 76px;
   overflow: hidden;
+}
+
+.users-placeholder {
+  width: 100%;
+  text-align: center;
+}
+
+.icon {
+  color: var(--secondary-text-color);
 }
 
 .avatar-group {
@@ -84,29 +115,13 @@
   transition: opacity 0.5s ease;
 }
 
-.time-stripe {
+.time-marks-wrapper {
   position: relative;
-  height: 4px;
-
-  --color: rgba(61, 113, 217, 0.2);
-
-  background: repeating-linear-gradient(-45deg, var(--color), var(--color) 4px, transparent 4px, transparent 8px);
-}
-
-.current-user-stripe {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  height: 4px;
-  background: #3d71d9;
-  border-radius: 2px;
-  left: calc((9 / 24) * 100%);
-  right: calc((7 / 24) * 100%);
 }
 
 .time-marks {
   position: absolute;
-  top: -24px;
+  top: -20px;
   display: flex;
   font-weight: 400;
   line-height: 20px;

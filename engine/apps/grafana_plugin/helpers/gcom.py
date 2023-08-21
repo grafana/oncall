@@ -1,7 +1,6 @@
 import logging
 from typing import Optional, Tuple
 
-from django.apps import apps
 from django.conf import settings
 from django.utils import timezone
 
@@ -20,7 +19,7 @@ class GcomToken:
         self.organization = organization
 
 
-def check_gcom_permission(token_string: str, context) -> Optional["GcomToken"]:
+def check_gcom_permission(token_string: str, context) -> GcomToken:
     """
     Verify that request from plugin is valid. Check it and synchronize the organization details
     with gcom every GCOM_TOKEN_CHECK_PERIOD.
@@ -45,12 +44,14 @@ def check_gcom_permission(token_string: str, context) -> Optional["GcomToken"]:
         raise InvalidToken
 
     if not organization:
-        DynamicSetting = apps.get_model("base", "DynamicSetting")
+        from apps.base.models import DynamicSetting
+
         allow_signup = DynamicSetting.objects.get_or_create(
             name="allow_plugin_organization_signup", defaults={"boolean_value": True}
         )[0].boolean_value
         if allow_signup:
-            organization = Organization.objects.create(
+            # Get org from db or create a new one
+            organization, _ = Organization.objects.get_or_create(
                 stack_id=str(instance_info["id"]),
                 stack_slug=instance_info["slug"],
                 grafana_url=instance_info["url"],
@@ -58,8 +59,9 @@ def check_gcom_permission(token_string: str, context) -> Optional["GcomToken"]:
                 org_slug=instance_info["orgSlug"],
                 org_title=instance_info["orgName"],
                 region_slug=instance_info["regionSlug"],
+                cluster_slug=instance_info["clusterSlug"],
                 gcom_token=token_string,
-                gcom_token_org_last_time_synced=timezone.now(),
+                defaults={"gcom_token_org_last_time_synced": timezone.now()},
             )
     else:
         organization.stack_slug = instance_info["slug"]
@@ -67,6 +69,7 @@ def check_gcom_permission(token_string: str, context) -> Optional["GcomToken"]:
         organization.org_title = instance_info["orgName"]
         organization.region_slug = instance_info["regionSlug"]
         organization.grafana_url = instance_info["url"]
+        organization.cluster_slug = instance_info["clusterSlug"]
         organization.gcom_token = token_string
         organization.gcom_token_org_last_time_synced = timezone.now()
         organization.save(
@@ -78,13 +81,14 @@ def check_gcom_permission(token_string: str, context) -> Optional["GcomToken"]:
                 "grafana_url",
                 "gcom_token",
                 "gcom_token_org_last_time_synced",
+                "cluster_slug",
             ]
         )
     logger.debug(f"Finish authenticate by making request to gcom api for org={org_id}, stack_id={stack_id}")
     return GcomToken(organization)
 
 
-def check_token(token_string: str, context: dict):
+def check_token(token_string: str, context: dict) -> GcomToken | PluginAuthToken:
     token_parts = token_string.split(":")
     if len(token_parts) > 1 and token_parts[0] == "gcom":
         return check_gcom_permission(token_parts[1], context)
@@ -97,12 +101,13 @@ def get_instance_ids(query: str) -> Tuple[Optional[set], bool]:
         return None, False
 
     client = GcomAPIClient(settings.GRAFANA_COM_API_TOKEN)
-    instances, status = client.get_instances(query)
+    instance_pages = client.get_instances(query, GcomAPIClient.PAGE_SIZE)
 
-    if not instances:
+    if not instance_pages:
         return None, True
 
-    ids = set(i["id"] for i in instances["items"])
+    ids = set(i["id"] for page in instance_pages for i in page["items"])
+
     return ids, True
 
 

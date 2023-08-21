@@ -1,30 +1,56 @@
-.root {
-  display: block;
+.body {
+  margin: 15px -15px;
+  padding: 15px 0;
+  border-top: var(--border-medium);
+  border-bottom: var(--border-medium);
 }
 
-.draggable {
-  top: 0;
-
-  /* transition: transform 300ms ease; */
+.content {
+  padding: 0 15px;
 }
 
-.header {
-  width: 100%;
+.override-form-content {
+  padding: 15px 0;
+}
+
+.two-fields {
   display: flex;
-  justify-content: space-between;
+  gap: 8px;
+  align-items: flex-start;
+  width: 100%;
 }
 
-.control {
-  width: 195px;
+.two-fields > div {
+  width: 50%;
+}
+
+.inline-switch {
+  height: 18px;
+}
+
+.active-periods {
+  width: 100%;
+}
+
+.active-periods-content {
+  padding-top: 8px;
+}
+
+.time-unit {
+  width: 200px;
+}
+
+.user-item {
+  position: relative;
 }
 
 .user-title {
   padding: 6px 10px;
-  z-index: 1;
   color: #fff;
   width: 330px;
   overflow: hidden;
   white-space: nowrap;
+  position: relative;
 }
 
 .working-hours {
@@ -35,14 +61,14 @@
   pointer-events: none;
 }
 
-.inline-switch {
-  height: 18px;
-}
-
 .days {
   display: flex;
   gap: 14px;
   width: 100%;
+}
+
+.days_disabled {
+  pointer-events: none;
 }
 
 .day {
@@ -59,16 +85,15 @@
   background: #3d71d9;
 }
 
-.two-fields {
-  display: flex;
-  gap: 8px;
-  align-items: flex-start;
+.confirmation-modal {
+  width: 500px;
 }
 
-.two-fields > div {
-  width: 50%;
+.control--error {
+  border: 1px solid var(--error-text-color);
 }
 
-.content {
-  margin: 8px 0 16px 0;
+.updated-shift-info {
+  margin-bottom: 10px;
+  width: 100%;
 }

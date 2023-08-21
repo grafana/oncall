@@ -1,6 +1,7 @@
 import dayjs from 'dayjs';
 import { action, observable } from 'mobx';
 
+import { RemoteFiltersType } from 'containers/RemoteFilters/RemoteFilters.types';
 import BaseStore from 'models/base_store';
 import { EscalationChain } from 'models/escalation_chain/escalation_chain.types';
 import { makeRequest } from 'network';
@@ -24,11 +25,13 @@ import {
   Layer,
   ShiftEvents,
   RotationFormLiveParams,
+  ScheduleScoreQualityResponse,
+  ShiftSwap,
 } from './schedule.types';
 
 export class ScheduleStore extends BaseStore {
   @observable
-  searchResult: { results?: Array<Schedule['id']> } = {};
+  searchResult: { count?: number; results?: Array<Schedule['id']> } = {};
 
   @observable.shallow
   items: { [id: string]: Schedule } = {};
@@ -41,6 +44,9 @@ export class ScheduleStore extends BaseStore {
 
   @observable.shallow
   relatedUsers: { [id: string]: { [key: string]: Event } } = {};
+
+  @observable.shallow
+  shiftSwaps: { [id: string]: ShiftSwap } = {};
 
   @observable.shallow
   rotations: {
@@ -118,15 +124,24 @@ export class ScheduleStore extends BaseStore {
   }
 
   @action
-  async updateItems(f: any = { searchTerm: '', type: undefined }) {
-    // async updateItems(query = '') {
-    const filters = typeof f === 'string' ? { searchTerm: f } : f;
-    const { searchTerm: search, type } = filters;
-    const result = await makeRequest(this.path, { method: 'GET', params: { search: search, type } });
+  async updateItems(
+    f: RemoteFiltersType | string = { searchTerm: '', type: undefined, used: undefined },
+    page = 1,
+    shouldUpdateFn: () => boolean = undefined
+  ) {
+    const filters = typeof f === 'string' ? { search: f } : f;
+    const { count, results } = await makeRequest(this.path, {
+      method: 'GET',
+      params: { ...filters, page },
+    });
+
+    if (shouldUpdateFn && !shouldUpdateFn()) {
+      return;
+    }
 
     this.items = {
       ...this.items,
-      ...result.reduce(
+      ...results.reduce(
         (acc: { [key: number]: Schedule }, item: Schedule) => ({
           ...acc,
           [item.id]: item,
@@ -135,27 +150,49 @@ export class ScheduleStore extends BaseStore {
       ),
     };
     this.searchResult = {
-      ...this.searchResult,
-      results: result.map((item: Schedule) => item.id),
+      count,
+      results: results.map((item: Schedule) => item.id),
     };
   }
 
   async updateItem(id: Schedule['id'], fromOrganization = false) {
     if (id) {
-      const item = await this.getById(id, true, fromOrganization);
+      let schedule;
+      try {
+        schedule = await this.getById(id, true, fromOrganization);
+      } catch (error) {
+        if (error.response.data.error_code === 'wrong_team') {
+          schedule = {
+            id,
+            name: '🔒 Private schedule',
+            private: true,
+          };
+        }
+      }
 
-      this.items = {
-        ...this.items,
-        [item.id]: item,
-      };
+      if (schedule) {
+        this.items = {
+          ...this.items,
+          [id]: schedule,
+        };
+      }
+
+      return schedule;
     }
   }
 
   getSearchResult() {
-    if (!this.searchResult.results) {
+    if (!this.searchResult) {
       return undefined;
     }
-    return this.searchResult?.results?.map((scheduleId: Schedule['id']) => this.items[scheduleId]);
+    return {
+      count: this.searchResult.count,
+      results: this.searchResult.results?.map((scheduleId: Schedule['id']) => this.items[scheduleId]),
+    };
+  }
+
+  async getScoreQuality(scheduleId: Schedule['id']): Promise<ScheduleScoreQualityResponse> {
+    return await makeRequest(`/schedules/${scheduleId}/quality`, { method: 'GET' });
   }
 
   @action
@@ -191,7 +228,7 @@ export class ScheduleStore extends BaseStore {
     const response = await makeRequest(`/oncall_shifts/`, {
       data: { type, schedule: scheduleId, ...params },
       method: 'POST',
-    }).catch(this.onApiError);
+    });
 
     this.shifts = {
       ...this.shifts,
@@ -208,24 +245,30 @@ export class ScheduleStore extends BaseStore {
   async updateRotationPreview(
     scheduleId: Schedule['id'],
     shiftId: Shift['id'] | 'new',
-    fromString: string,
+    startMoment: dayjs.Dayjs,
     isOverride: boolean,
     params: Partial<Shift>
   ) {
     const type = isOverride ? 3 : 2;
 
+    const fromString = getFromString(startMoment);
+
+    const dayBefore = startMoment.subtract(1, 'day');
+
     const response = await makeRequest(`/oncall_shifts/preview/`, {
-      params: { date: fromString },
+      params: { date: getFromString(dayBefore), days: 8 },
       data: { type, schedule: scheduleId, shift_pk: shiftId === 'new' ? undefined : shiftId, ...params },
       method: 'POST',
-    }).catch(this.onApiError);
+    });
 
     if (isOverride) {
-      this.overridePreview = enrichOverrides(
+      const overridePreview = enrichOverrides(
         [...(this.events[scheduleId]?.['override']?.[fromString] as Array<{ shiftId: string; events: Event[] }>)],
         response.rotation,
         shiftId
       );
+
+      this.overridePreview = { ...this.overridePreview, [fromString]: overridePreview };
     } else {
       const layers = enrichLayers(
         [...(this.events[scheduleId]?.['rotation']?.[fromString] as Layer[])],
@@ -234,10 +277,10 @@ export class ScheduleStore extends BaseStore {
         params.priority_level
       );
 
-      this.rotationPreview = layers;
+      this.rotationPreview = { ...this.rotationPreview, [fromString]: layers };
     }
 
-    this.finalPreview = splitToShiftsAndFillGaps(response.final);
+    this.finalPreview = { ...this.finalPreview, [fromString]: splitToShiftsAndFillGaps(response.final) };
   }
 
   @action
@@ -250,9 +293,24 @@ export class ScheduleStore extends BaseStore {
 
   async updateRotation(shiftId: Shift['id'], params: Partial<Shift>) {
     const response = await makeRequest(`/oncall_shifts/${shiftId}`, {
+      params: { force: true },
       data: { ...params },
       method: 'PUT',
-    }).catch(this.onApiError);
+    });
+
+    this.shifts = {
+      ...this.shifts,
+      [response.id]: response,
+    };
+
+    return response;
+  }
+
+  async updateRotationAsNew(shiftId: Shift['id'], params: Partial<Shift>) {
+    const response = await makeRequest(`/oncall_shifts/${shiftId}`, {
+      data: { ...params },
+      method: 'PUT',
+    });
 
     this.shifts = {
       ...this.shifts,
@@ -320,9 +378,22 @@ export class ScheduleStore extends BaseStore {
     return response;
   }
 
-  async deleteOncallShift(shiftId: Shift['id']) {
+  @action
+  async saveOncallShift(shiftId: Shift['id'], data: Partial<Shift>) {
+    const response = await makeRequest(`/oncall_shifts/${shiftId}`, { method: 'PUT', data });
+
+    this.shifts = {
+      ...this.shifts,
+      [shiftId]: response,
+    };
+
+    return response;
+  }
+
+  async deleteOncallShift(shiftId: Shift['id'], force?: boolean) {
     return await makeRequest(`/oncall_shifts/${shiftId}`, {
       method: 'DELETE',
+      params: { force },
     }).catch(this.onApiError);
   }
 
@@ -364,5 +435,25 @@ export class ScheduleStore extends BaseStore {
     this.byDayOptions = await makeRequest(`/oncall_shifts/days_options/`, {
       method: 'GET',
     });
+  }
+
+  async createShiftSwap(params: Partial<ShiftSwap>) {
+    return await makeRequest(`/shift_swaps/`, { method: 'POST', data: params }).catch(this.onApiError);
+  }
+
+  async deleteShiftSwap(shiftSwapId: ShiftSwap['id']) {
+    return await makeRequest(`/shift_swaps/${shiftSwapId}`, { method: 'DELETE' }).catch(this.onApiError);
+  }
+
+  async takeShiftSwap(shiftSwapId: ShiftSwap['id']) {
+    return await makeRequest(`/shift_swaps/${shiftSwapId}/take`, { method: 'POST' }).catch(this.onApiError);
+  }
+
+  async loadShiftSwap(id: ShiftSwap['id']) {
+    const result = await makeRequest(`/shift_swaps/${id}`, {});
+
+    this.shiftSwaps = { ...this.shiftSwaps, [id]: result };
+
+    return result;
   }
 }

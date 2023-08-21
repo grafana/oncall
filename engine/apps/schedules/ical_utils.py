@@ -9,17 +9,23 @@ from typing import TYPE_CHECKING
 
 import pytz
 import requests
-from django.apps import apps
 from django.db.models import Q
 from django.utils import timezone
 from icalendar import Calendar
+from icalendar import Event as IcalEvent
 
 from apps.api.permissions import RBACPermission
 from apps.schedules.constants import (
+    CALENDAR_TYPE_FINAL,
     ICAL_ATTENDEE,
     ICAL_DATETIME_END,
     ICAL_DATETIME_START,
     ICAL_DESCRIPTION,
+    ICAL_LOCATION,
+    ICAL_RECURRENCE_ID,
+    ICAL_SEQUENCE,
+    ICAL_STATUS,
+    ICAL_STATUS_CANCELLED,
     ICAL_SUMMARY,
     ICAL_UID,
     RE_EVENT_UID_V1,
@@ -36,6 +42,7 @@ This module likely needs to refactored to be part of the OnCallSchedule module.
 """
 if TYPE_CHECKING:
     from apps.schedules.models import OnCallSchedule
+    from apps.schedules.models.on_call_schedule import OnCallScheduleQuerySet
     from apps.user_management.models import Organization, User
     from apps.user_management.models.user import UserQuerySet
 
@@ -43,14 +50,24 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 
+EmptyShift = namedtuple(
+    "EmptyShift",
+    ["start", "end", "summary", "description", "attendee", "all_day", "calendar_type", "calendar_tz", "shift_pk"],
+)
+EmptyShifts = typing.List[EmptyShift]
+
+DatetimeInterval = namedtuple("DatetimeInterval", ["start", "end"])
+DatetimeIntervals = typing.List[DatetimeInterval]
+
+IcalEvents = typing.List[IcalEvent]
+
+
 def users_in_ical(
     usernames_from_ical: typing.List[str],
-    organization: Organization,
-    include_viewers=False,
-    users_to_filter: typing.Optional[UserQuerySet] = None,
-) -> UserQuerySet:
+    organization: "Organization",
+) -> "UserQuerySet":
     """
-    This method returns a `UserQuerySet`, filtered by users whose username, or case-insensitive e-mail,
+    This method returns a sequence of `User` objects, filtered by users whose username, or case-insensitive e-mail,
     is present in `usernames_from_ical`. If `include_viewers` is set to `True`, users are further filtered down
     based on their granted permissions.
 
@@ -60,26 +77,15 @@ def users_in_ical(
         A list of usernames present in the ical feed
     organization : apps.user_management.models.organization.Organization
         The organization in question
-    include_viewers : bool
-        Whether or not the list should be further filtered to exclude users based on granted permissions
-    users_to_filter : typing.Optional[UserQuerySet]
-        Filter users without making SQL queries if users_to_filter arg is provided
-        users_to_filter is passed in `apps.schedules.ical_utils.get_oncall_users_for_multiple_schedules`
     """
     from apps.user_management.models import User
 
     emails_from_ical = [username.lower() for username in usernames_from_ical]
 
-    if users_to_filter is not None:
-        return list(
-            {user for user in users_to_filter if user.username in usernames_from_ical or user.email in emails_from_ical}
-        )
-
-    users_found_in_ical = organization.users
-    if not include_viewers:
-        users_found_in_ical = users_found_in_ical.filter(
-            **User.build_permissions_query(RBACPermission.Permissions.SCHEDULES_WRITE, organization)
-        )
+    # users_found_in_ical = organization.users
+    users_found_in_ical = organization.users.filter(
+        **User.build_permissions_query(RBACPermission.Permissions.SCHEDULES_WRITE, organization)
+    )
 
     users_found_in_ical = users_found_in_ical.filter(
         (Q(username__in=usernames_from_ical) | Q(email__lower__in=emails_from_ical))
@@ -89,20 +95,20 @@ def users_in_ical(
 
 
 @timed_lru_cache(timeout=100)
-def memoized_users_in_ical(usernames_from_ical: typing.List[str], organization: Organization) -> UserQuerySet:
+def memoized_users_in_ical(usernames_from_ical: typing.List[str], organization: "Organization") -> UserQuerySet:
     # using in-memory cache instead of redis to avoid pickling python objects
     return users_in_ical(usernames_from_ical, organization)
 
 
 # used for display schedule events on web
 def list_of_oncall_shifts_from_ical(
-    schedule,
-    date,
-    user_timezone="UTC",
-    with_empty_shifts=False,
-    with_gaps=False,
-    days=1,
-    filter_by=None,
+    schedule: "OnCallSchedule",
+    datetime_start: datetime.datetime,
+    datetime_end: datetime.datetime,
+    with_empty_shifts: bool = False,
+    with_gaps: bool = False,
+    filter_by: str | None = None,
+    from_cached_final: bool = False,
 ):
     """
     Parse the ical file and return list of events with users
@@ -119,24 +125,27 @@ def list_of_oncall_shifts_from_ical(
         }
     ]
     """
-    OnCallSchedule = apps.get_model("schedules", "OnCallSchedule")
+    from apps.schedules.models import OnCallSchedule
 
     # get list of iCalendars from current iCal files. If there is more than one calendar, primary calendar will always
     # be the first
-    calendars = schedule.get_icalendars()
+    calendars: typing.Tuple[typing.Optional[Calendar], ...]
 
-    # TODO: Review offset usage
-    user_timezone_offset = timezone.datetime.now().astimezone(pytz.timezone(user_timezone)).utcoffset()
-    datetime_min = timezone.datetime.combine(date, datetime.time.min) + timezone.timedelta(milliseconds=1)
-    datetime_start = (datetime_min - user_timezone_offset).astimezone(pytz.UTC)
-    datetime_end = datetime_start + timezone.timedelta(days=days - 1, hours=23, minutes=59, seconds=59)
+    if from_cached_final:
+        calendars = (Calendar.from_ical(schedule.cached_ical_final_schedule),)
+    else:
+        calendars = schedule.get_icalendars()
 
     result_datetime = []
     result_date = []
 
     for idx, calendar in enumerate(calendars):
         if calendar is not None:
-            if idx == 0:
+            calendar_type: str | int
+
+            if from_cached_final:
+                calendar_type = CALENDAR_TYPE_FINAL
+            elif idx == 0:
                 calendar_type = OnCallSchedule.PRIMARY
             else:
                 calendar_type = OnCallSchedule.OVERRIDES
@@ -167,20 +176,51 @@ def list_of_oncall_shifts_from_ical(
                     "shift_pk": None,
                 }
             )
-    result = sorted(result_datetime, key=lambda dt: dt["start"]) + result_date
+
+    def event_start_cmp_key(e):
+        pytz_tz = pytz.timezone("UTC")
+        return (
+            datetime.datetime.combine(e["start"], datetime.datetime.min.time(), tzinfo=pytz_tz)
+            if type(e["start"]) == datetime.date
+            else e["start"]
+        )
+
+    result = sorted(result_datetime + result_date, key=event_start_cmp_key)
     # if there is no events, return None
     return result or None
 
 
-def get_shifts_dict(calendar, calendar_type, schedule, datetime_start, datetime_end, with_empty_shifts=False):
+def get_shifts_dict(
+    calendar: Calendar,
+    calendar_type: str | int,
+    schedule: "OnCallSchedule",
+    datetime_start: datetime.datetime,
+    datetime_end: datetime.datetime,
+    with_empty_shifts: bool = False,
+):
     events = ical_events.get_events_from_ical_between(calendar, datetime_start, datetime_end)
     result_datetime = []
     result_date = []
     for event in events:
+        status = event.get(ICAL_STATUS)
+        if status == ICAL_STATUS_CANCELLED:
+            # ignore cancelled events
+            continue
+        sequence = event.get(ICAL_SEQUENCE)
+        recurrence_id = event.get(ICAL_RECURRENCE_ID)
+        if recurrence_id:
+            recurrence_id = recurrence_id.dt.isoformat()
         priority = parse_priority_from_string(event.get(ICAL_SUMMARY, "[L0]"))
-        pk, source = parse_event_uid(event.get(ICAL_UID))
+        pk, source = parse_event_uid(event.get(ICAL_UID), sequence=sequence, recurrence_id=recurrence_id)
         users = get_users_from_ical_event(event, schedule.organization)
         missing_users = get_missing_users_from_ical_event(event, schedule.organization)
+        event_calendar_type = calendar_type
+        if calendar_type == CALENDAR_TYPE_FINAL:
+            event_calendar_type = (
+                schedule.OVERRIDES
+                if event.get(ICAL_LOCATION, "") == schedule.CALENDAR_TYPE_VERBAL[schedule.OVERRIDES]
+                else schedule.PRIMARY
+            )
         # Define on-call shift out of ical event that has the actual user
         if len(users) > 0 or with_empty_shifts:
             if type(event[ICAL_DATETIME_START].dt) == datetime.date:
@@ -194,7 +234,7 @@ def get_shifts_dict(calendar, calendar_type, schedule, datetime_start, datetime_
                         "missing_users": missing_users,
                         "priority": priority,
                         "source": source,
-                        "calendar_type": calendar_type,
+                        "calendar_type": event_calendar_type,
                         "shift_pk": pk,
                     }
                 )
@@ -209,29 +249,22 @@ def get_shifts_dict(calendar, calendar_type, schedule, datetime_start, datetime_
                             "missing_users": missing_users,
                             "priority": priority,
                             "source": source,
-                            "calendar_type": calendar_type,
+                            "calendar_type": event_calendar_type,
                             "shift_pk": pk,
                         }
                     )
     return result_datetime, result_date
 
 
-EmptyShift = namedtuple(
-    "EmptyShift",
-    ["start", "end", "summary", "description", "attendee", "all_day", "calendar_type", "calendar_tz", "shift_pk"],
-)
-
-
-def list_of_empty_shifts_in_schedule(schedule, start_date, end_date):
-    """
-    Parse the ical file and return list of EmptyShift.
-    """
+def list_of_empty_shifts_in_schedule(
+    schedule: "OnCallSchedule", start_date: datetime.date, end_date: datetime.date
+) -> EmptyShifts:
     # Calculate lookup window in schedule's tz
     # If we can't get tz from ical use UTC
-    OnCallSchedule = apps.get_model("schedules", "OnCallSchedule")
+    from apps.schedules.models import OnCallSchedule
 
     calendars = schedule.get_icalendars()
-    empty_shifts = []
+    empty_shifts: EmptyShifts = []
     for idx, calendar in enumerate(calendars):
         if calendar is not None:
             if idx == 0:
@@ -241,12 +274,14 @@ def list_of_empty_shifts_in_schedule(schedule, start_date, end_date):
 
             calendar_tz = get_icalendar_tz_or_utc(calendar)
 
-            schedule_timezone_offset = timezone.datetime.now().astimezone(calendar_tz).utcoffset()
-            start_datetime = timezone.datetime.combine(start_date, datetime.time.min) + timezone.timedelta(
+            # utcoffset can technically return None, but we're confident it is a timedelta here
+            schedule_timezone_offset: datetime.timedelta = datetime.datetime.now().astimezone(calendar_tz).utcoffset()  # type: ignore[assignment]
+
+            start_datetime = datetime.datetime.combine(start_date, datetime.time.min) + datetime.timedelta(
                 milliseconds=1
             )
             start_datetime_with_offset = (start_datetime - schedule_timezone_offset).astimezone(pytz.UTC)
-            end_datetime = timezone.datetime.combine(end_date, datetime.time.max)
+            end_datetime = datetime.datetime.combine(end_date, datetime.time.max)
             end_datetime_with_offset = (end_datetime - schedule_timezone_offset).astimezone(pytz.UTC)
 
             events = ical_events.get_events_from_ical_between(
@@ -294,103 +329,56 @@ def list_of_empty_shifts_in_schedule(schedule, start_date, end_date):
 
 
 def list_users_to_notify_from_ical(
-    schedule, events_datetime=None, include_viewers=False, users_to_filter=None
-) -> UserQuerySet:
+    schedule: "OnCallSchedule",
+    events_datetime: typing.Optional[datetime.datetime] = None,
+) -> typing.Sequence["User"]:
     """
     Retrieve on-call users for the current time
     """
-    events_datetime = events_datetime if events_datetime else timezone.datetime.now(timezone.utc)
+    events_datetime = events_datetime if events_datetime else datetime.datetime.now(timezone.utc)
     return list_users_to_notify_from_ical_for_period(
         schedule,
         events_datetime,
         events_datetime,
-        include_viewers=include_viewers,
-        users_to_filter=users_to_filter,
     )
 
 
 def list_users_to_notify_from_ical_for_period(
-    schedule,
-    start_datetime,
-    end_datetime,
-    include_viewers=False,
-    users_to_filter=None,
+    schedule: "OnCallSchedule",
+    start_datetime: datetime.datetime,
+    end_datetime: datetime.datetime,
 ) -> UserQuerySet:
-    # get list of iCalendars from current iCal files. If there is more than one calendar, primary calendar will always
-    # be the first
-    calendars = schedule.get_icalendars()
-    # reverse calendars to make overrides calendar the first, if schedule is iCal
-    calendars = calendars[::-1]
-    users_found_in_ical = []
-    # at first check overrides calendar and return users from it if it exists and on-call users are found
-    for calendar in calendars:
-        if calendar is None:
-            continue
-        events = ical_events.get_events_from_ical_between(calendar, start_datetime, end_datetime)
-        parsed_ical_events = {}  # event info where key is event priority and value list of found usernames {0:["alex"]}
-        for event in events:
-            current_usernames, current_priority = get_usernames_from_ical_event(event)
-            parsed_ical_events.setdefault(current_priority, []).extend(current_usernames)
-        # find users by usernames. if users are not found for shift, get users from lower priority
-        for _, usernames in sorted(parsed_ical_events.items(), reverse=True):
-            users_found_in_ical = users_in_ical(
-                usernames, schedule.organization, include_viewers=include_viewers, users_to_filter=users_to_filter
-            )
-            if users_found_in_ical:
-                break
-        if users_found_in_ical:
-            # if users are found in the overrides calendar, there is no need to check primary calendar
-            break
+    users_found_in_ical: typing.Sequence["User"] = []
+    events = schedule.final_events(start_datetime, end_datetime)
+    usernames = []
+    for event in events:
+        usernames += [u["email"] for u in event.get("users", [])]
+
+    users_found_in_ical = users_in_ical(usernames, schedule.organization)
     return users_found_in_ical
 
 
 def get_oncall_users_for_multiple_schedules(
-    schedules, events_datetime=None
-) -> typing.Dict[OnCallSchedule, typing.List[User]]:
-    from apps.user_management.models import User
-
+    schedules: "OnCallScheduleQuerySet", events_datetime=None
+) -> typing.Dict["OnCallSchedule", UserQuerySet]:
     if events_datetime is None:
-        events_datetime = timezone.datetime.now(timezone.utc)
+        events_datetime = datetime.datetime.now(timezone.utc)
 
     # Exit early if there are no schedules
     if not schedules.exists():
         return {}
 
-    # Assume all schedules from the queryset belong to the same organization
-    organization = schedules[0].organization
-
-    # Gather usernames from all events from all schedules
-    usernames = set()
-    for schedule in schedules.all():
-        calendars = schedule.get_icalendars()
-        for calendar in calendars:
-            if calendar is None:
-                continue
-            events = ical_events.get_events_from_ical_between(calendar, events_datetime, events_datetime)
-            for event in events:
-                current_usernames, _ = get_usernames_from_ical_event(event)
-                usernames.update(current_usernames)
-
-    # Fetch relevant users from the db
-    emails = [username.lower() for username in usernames]
-    users = organization.users.filter(
-        Q(**User.build_permissions_query(RBACPermission.Permissions.SCHEDULES_WRITE, organization))
-        & (Q(username__in=usernames) | Q(email__lower__in=emails))
-    )
-
     # Get on-call users
     oncall_users = {}
     for schedule in schedules.all():
         # pass user list to list_users_to_notify_from_ical
-        schedule_oncall_users = list_users_to_notify_from_ical(
-            schedule, events_datetime=events_datetime, users_to_filter=users
-        )
+        schedule_oncall_users = list_users_to_notify_from_ical(schedule, events_datetime=events_datetime)
         oncall_users.update({schedule.pk: schedule_oncall_users})
 
     return oncall_users
 
 
-def parse_username_from_string(string):
+def parse_username_from_string(string: str) -> str:
     """
     Parse on-call shift user from the given string
     Example input:
@@ -401,7 +389,7 @@ def parse_username_from_string(string):
     return re.sub(RE_PRIORITY, "", string.strip(), 1).strip()
 
 
-def parse_priority_from_string(string):
+def parse_priority_from_string(string: str) -> int:
     """
     Parse on-call shift priority from the given string
     Example input:
@@ -409,17 +397,16 @@ def parse_priority_from_string(string):
     Example output:
     1
     """
-    priority = re.findall(RE_PRIORITY, string.strip())
-    if len(priority) > 0:
-        priority = int(priority[0])
+    priority = 0
+    priority_matches = re.findall(RE_PRIORITY, string.strip())
+    if len(priority_matches) > 0:
+        priority = int(priority_matches[0])
         if priority < 1:
             priority = 0
-    else:
-        priority = 0
     return priority
 
 
-def parse_event_uid(string):
+def parse_event_uid(string: str, sequence: str = None, recurrence_id: str = None):
     pk = None
     source = None
     source_verbal = None
@@ -436,10 +423,18 @@ def parse_event_uid(string):
         else:
             # fallback to use the UID string as the rotation ID
             pk = string
+            # in ical imported calendars, sequence and/or recurrence_id
+            # distinguish main recurring event vs instance modification
+            # (see https://icalendar.org/iCalendar-RFC-5545/3-8-4-4-recurrence-id.html)
+            if sequence:
+                pk = f"{pk}_{sequence}"
+            if recurrence_id:
+                pk = f"{pk}_{recurrence_id}"
 
     if source is not None:
         source = int(source)
-        CustomOnCallShift = apps.get_model("schedules", "CustomOnCallShift")
+        from apps.schedules.models import CustomOnCallShift
+
         source_verbal = CustomOnCallShift.SOURCE_CHOICES[source][1]
 
     return pk, source_verbal
@@ -461,7 +456,7 @@ def get_usernames_from_ical_event(event):
     return usernames_found, priority
 
 
-def get_missing_users_from_ical_event(event, organization):
+def get_missing_users_from_ical_event(event, organization: "Organization"):
     all_usernames, _ = get_usernames_from_ical_event(event)
     users = list(get_users_from_ical_event(event, organization))
     found_usernames = [u.username for u in users]
@@ -469,7 +464,7 @@ def get_missing_users_from_ical_event(event, organization):
     return [u for u in all_usernames if u != "" and u not in found_usernames and u.lower() not in found_emails]
 
 
-def get_users_from_ical_event(event, organization):
+def get_users_from_ical_event(event, organization: "Organization") -> typing.Sequence["User"]:
     usernames_from_ical, _ = get_usernames_from_ical_event(event)
     users = []
     if len(usernames_from_ical) != 0:
@@ -505,21 +500,15 @@ def is_icals_equal(first, second):
         second_cal = Calendar.from_ical(second)
         first_subcomponents = first_cal.subcomponents
         second_subcomponents = second_cal.subcomponents
-        if len(first_subcomponents) != len(second_subcomponents):
-            return False
-        first_cal_events = {}
-        second_cal_events = {}
-        for cmp in first_cal.subcomponents:
-            first_cal_events[cmp.get("UID", None)] = cmp.get("SEQUENCE", None)
-        for cmp in second_cal.subcomponents:
-            second_cal_events[cmp.get("UID", None)] = cmp.get("SEQUENCE", None)
-        for first_uid, first_seq in first_cal_events.items():
-            if first_uid not in second_cal_events:
-                return False
-            second_seq = second_cal_events.get(first_uid, None)
-            if first_seq != second_seq:
-                return False
-        return True
+        # only consider VEVENT components
+        first_cal_events = {
+            cmp.get("UID", None): cmp.get("SEQUENCE", None) for cmp in first_subcomponents if cmp.name == "VEVENT"
+        }
+        second_cal_events = {
+            cmp.get("UID", None): cmp.get("SEQUENCE", None) for cmp in second_subcomponents if cmp.name == "VEVENT"
+        }
+        # check events and their respective sequences are equal
+        return first_cal_events == second_cal_events
 
 
 def ical_date_to_datetime(date, tz, start):
@@ -527,36 +516,36 @@ def ical_date_to_datetime(date, tz, start):
     all_day = False
     if type(date) == datetime.date:
         all_day = True
-        calendar_timezone_offset = timezone.datetime.now().astimezone(tz).utcoffset()
-        date = timezone.datetime.combine(date, datetime_to_combine).astimezone(tz) - calendar_timezone_offset
+        calendar_timezone_offset = datetime.datetime.now().astimezone(tz).utcoffset()
+        date = datetime.datetime.combine(date, datetime_to_combine).astimezone(tz) - calendar_timezone_offset
         if not start:
-            date -= timezone.timedelta(seconds=1)
+            date -= datetime.timedelta(seconds=1)
     return date, all_day
 
 
-def calculate_shift_diff(first_shift, second_shift):
-    fields_to_compare = ["users", "end", "start", "all_day", "priority"]
+def calculate_shift_diff(shifts: list, prev_shifts: list) -> typing.Tuple[bool, list]:
+    """
+    Get shifts diff comparing with the previous shifts
+    """
+    fields_to_compare = ["users", "end", "start", "all_day", "priority_level", "shift"]
 
-    shift_changed = set(first_shift.keys()) != set(second_shift.keys())
-    if not shift_changed:
-        diff = set()
-        for k, v in first_shift.items():
-            for f in fields_to_compare:
-                if v.get(f) != second_shift[k].get(f):
-                    shift_changed = True
-                    diff.add(k)
-                    break
-    else:
-        diff = set(first_shift.keys()) - set(second_shift.keys())
+    shifts_fields = [{k: v for k, v in shift.items() if k in fields_to_compare} for shift in shifts]
+    prev_shifts_fields = [{k: v for k, v in shift.items() if k in fields_to_compare} for shift in prev_shifts]
+
+    shift_changed = len(shifts) != len(prev_shifts)
+
+    diff = []
+
+    for idx, shift in enumerate(shifts_fields):
+        if shift not in prev_shifts_fields:
+            shift_changed = True
+            diff.append(shifts[idx])
 
     return shift_changed, diff
 
 
 def get_icalendar_tz_or_utc(icalendar):
-    try:
-        calendar_timezone = icalendar.walk("VTIMEZONE")[0]["TZID"]
-    except (IndexError, KeyError):
-        calendar_timezone = "UTC"
+    calendar_timezone = icalendar.get("X-WR-TIMEZONE", "UTC")
 
     if pytz_timezone := is_valid_timezone(calendar_timezone):
         return pytz_timezone
@@ -568,11 +557,11 @@ def get_icalendar_tz_or_utc(icalendar):
     return pytz.timezone(converted_timezone)
 
 
-def fetch_ical_file_or_get_error(ical_url):
-    cached_ical_file = None
-    ical_file_error = None
+def fetch_ical_file_or_get_error(ical_url: str) -> typing.Tuple[str | None, str | None]:
+    cached_ical_file: str | None = None
+    ical_file_error: str | None = None
     try:
-        new_ical_file = requests.get(ical_url, timeout=10).text
+        new_ical_file = fetch_ical_file(ical_url)
         Calendar.from_ical(new_ical_file)
         cached_ical_file = new_ical_file
     except requests.exceptions.RequestException:
@@ -583,79 +572,69 @@ def fetch_ical_file_or_get_error(ical_url):
     return cached_ical_file, ical_file_error
 
 
+def fetch_ical_file(ical_url: str) -> str:
+    # without user-agent header google calendar sometimes returns text/html instead of text/calendar
+    headers = {"User-Agent": "Grafana OnCall"}
+    r = requests.get(ical_url, headers=headers, timeout=10)
+    logger.info(f"fetch_ical_file: content-type={r.headers.get('Content-Type')}")
+    return r.text
+
+
 def create_base_icalendar(name: str) -> Calendar:
     cal = Calendar()
     cal.add("calscale", "GREGORIAN")
     cal.add("x-wr-calname", name)
     cal.add("x-wr-timezone", "UTC")
+    cal.add("version", "2.0")
     cal.add("prodid", "//Grafana Labs//Grafana On-Call//")
+    # suggested minimum interval for polling for changes
+    cal.add("REFRESH-INTERVAL;VALUE=DURATION", "P1H")
 
     return cal
 
 
-def get_events_from_calendars(ical_obj: Calendar, calendars: tuple) -> None:
-    for calendar in calendars:
-        if calendar:
-            for component in calendar.walk():
-                if component.name == "VEVENT":
+def get_user_events_from_calendars(
+    ical_obj: Calendar, calendar: Calendar, user: User, name: typing.Optional[str] = None
+) -> None:
+    if calendar:
+        for component in calendar.walk():
+            if component.name == "VEVENT":
+                event_user = get_usernames_from_ical_event(component)
+                event_user_value = event_user[0][0]
+                if event_user_value == user.username or event_user_value.lower() == user.email.lower():
+                    if name:
+                        component["SUMMARY"] = "{}: {}".format(name, component["SUMMARY"])
                     ical_obj.add_component(component)
 
 
-def get_user_events_from_calendars(ical_obj: Calendar, calendars: tuple, user: User) -> None:
-    for calendar in calendars:
-        if calendar:
-            for component in calendar.walk():
-                if component.name == "VEVENT":
-                    event_user = get_usernames_from_ical_event(component)
-                    event_user_value = event_user[0][0]
-                    if event_user_value == user.username or event_user_value.lower() == user.email.lower():
-                        ical_obj.add_component(component)
+def _get_ical_data_final_schedule(schedule: "OnCallSchedule") -> str | None:
+    ical_data = schedule.cached_ical_final_schedule
+    if ical_data is None:
+        schedule.refresh_ical_final_schedule()
+        # casting is safe here. cached_ical_final_schedule is updated inside of refresh_ical_final_schedule
+        return typing.cast(str, schedule.cached_ical_final_schedule)
+    return ical_data
 
 
-def ical_export_from_schedule(schedule: OnCallSchedule) -> bytes:
-    calendars = schedule.get_icalendars()
-    ical_obj = create_base_icalendar(schedule.name)
-    get_events_from_calendars(ical_obj, calendars)
-    return ical_obj.to_ical()
+def ical_export_from_schedule(schedule: "OnCallSchedule") -> bytes:
+    ical_data = _get_ical_data_final_schedule(schedule)
+    return ical_data.encode()
 
 
-def user_ical_export(user: User, schedules: list[OnCallSchedule]) -> bytes:
+def user_ical_export(user: "User", schedules: "OnCallScheduleQuerySet") -> bytes:
     schedule_name = "On-Call Schedule for {0}".format(user.username)
     ical_obj = create_base_icalendar(schedule_name)
 
     for schedule in schedules:
-        calendars = schedule.get_icalendars()
-        get_user_events_from_calendars(ical_obj, calendars, user)
+        name = schedule.name
+        ical_data = _get_ical_data_final_schedule(schedule)
+        get_user_events_from_calendars(ical_obj, Calendar.from_ical(ical_data), user, name=name)
 
     return ical_obj.to_ical()
 
 
-DatetimeInterval = namedtuple("DatetimeInterval", ["start", "end"])
-
-
-def list_of_gaps_in_schedule(schedule, start_date, end_date):
-    calendars = schedule.get_icalendars()
-    intervals = []
-    start_datetime = timezone.datetime.combine(start_date, datetime.time.min) + timezone.timedelta(milliseconds=1)
-    start_datetime = start_datetime.astimezone(pytz.UTC)
-    end_datetime = timezone.datetime.combine(end_date, datetime.time.max).astimezone(pytz.UTC)
-
-    for idx, calendar in enumerate(calendars):
-        if calendar is not None:
-            calendar_tz = get_icalendar_tz_or_utc(calendar)
-            events = ical_events.get_events_from_ical_between(
-                calendar,
-                start_datetime,
-                end_datetime,
-            )
-            for event in events:
-                start, end, _ = event_start_end_all_day_with_respect_to_type(event, calendar_tz)
-                intervals.append(DatetimeInterval(start, end))
-    return detect_gaps(intervals, start_datetime, end_datetime)
-
-
-def detect_gaps(intervals, start, end):
-    gaps = []
+def detect_gaps(intervals: DatetimeIntervals, start: datetime.datetime, end: datetime.datetime) -> DatetimeIntervals:
+    gaps: DatetimeIntervals = []
     intervals = sorted(intervals, key=lambda dt: dt.start)
     if len(intervals) > 0:
         base_interval = intervals[0]
@@ -671,7 +650,7 @@ def detect_gaps(intervals, start, end):
     return gaps
 
 
-def merge_if_overlaps(a: DatetimeInterval, b: DatetimeInterval):
+def merge_if_overlaps(a: DatetimeInterval, b: DatetimeInterval) -> typing.Tuple[bool, DatetimeInterval]:
     if a.end >= b.end:
         return True, DatetimeInterval(a.start, a.end)
     if b.start - a.end < datetime.timedelta(minutes=1):
@@ -680,13 +659,13 @@ def merge_if_overlaps(a: DatetimeInterval, b: DatetimeInterval):
         return False, DatetimeInterval(b.start, b.end)
 
 
-def start_end_with_respect_to_all_day(event, calendar_tz):
+def start_end_with_respect_to_all_day(event: IcalEvent, calendar_tz):
     start, _ = ical_date_to_datetime(event[ICAL_DATETIME_START].dt, calendar_tz, start=True)
     end, _ = ical_date_to_datetime(event[ICAL_DATETIME_END].dt, calendar_tz, start=False)
     return start, end
 
 
-def event_start_end_all_day_with_respect_to_type(event, calendar_tz):
+def event_start_end_all_day_with_respect_to_type(event: IcalEvent, calendar_tz):
     all_day = False
     if type(event[ICAL_DATETIME_START].dt) == datetime.date:
         start, end = start_end_with_respect_to_all_day(event, calendar_tz)
@@ -696,7 +675,7 @@ def event_start_end_all_day_with_respect_to_type(event, calendar_tz):
     return start, end, all_day
 
 
-def convert_windows_timezone_to_iana(tz_name):
+def convert_windows_timezone_to_iana(tz_name: str) -> str | None:
     """
     Conversion info taken from https://raw.githubusercontent.com/unicode-org/cldr/main/common/supplemental/windowsZones.xml
     Also see https://gist.github.com/mrled/8d29fde758cfc7dd0b52f3bbf2b8f06e

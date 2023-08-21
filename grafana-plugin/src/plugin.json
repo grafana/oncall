@@ -4,15 +4,15 @@
   "name": "Grafana OnCall",
   "id": "grafana-oncall-app",
   "info": {
-    "description": "Incident Response Manager",
+    "description": "Collect and analyze alerts, escalate based on schedules and deliver them to Slack, Phone Calls, SMS and others.",
     "author": {
       "name": "Grafana Labs",
       "url": "https://grafana.com"
     },
     "keywords": ["oncall", "irm", "incident", "response"],
     "logos": {
-      "small": "img/logo.svg",
-      "large": "img/logo.svg"
+      "small": "assets/img/logo.svg",
+      "large": "assets/img/logo.svg"
     },
     "links": [
       {
@@ -24,18 +24,26 @@
         "url": "https://github.com/grafana/oncall/blob/main/LICENSE"
       }
     ],
-    "screenshots": [{ "name": "Escalation chain", "path": "img/screenshot.png" }],
+    "screenshots": [{ "name": "Escalation chain", "path": "assets/img/screenshot.png" }],
     "version": "%VERSION%",
     "updated": "%TODAY%"
   },
   "includes": [
     {
       "type": "page",
-      "name": "Incidents",
-      "path": "/a/grafana-oncall-app/incidents",
+      "name": "Home",
+      "path": "/a/grafana-oncall-app",
       "role": "Viewer",
       "action": "grafana-oncall-app.alert-groups:read",
       "defaultNav": true,
+      "addToNav": true
+    },
+    {
+      "type": "page",
+      "name": "Alert groups",
+      "path": "/a/grafana-oncall-app/alert-groups",
+      "role": "Viewer",
+      "action": "grafana-oncall-app.alert-groups:read",
       "addToNav": true
     },
     {
@@ -56,7 +64,7 @@
     },
     {
       "type": "page",
-      "name": "Escalation Chains",
+      "name": "Escalation chains",
       "path": "/a/grafana-oncall-app/escalations",
       "role": "Viewer",
       "action": "grafana-oncall-app.escalation-chains:read",
@@ -70,10 +78,9 @@
       "action": "grafana-oncall-app.schedules:read",
       "addToNav": true
     },
-
     {
       "type": "page",
-      "name": "Outgoing Webhooks",
+      "name": "Outgoing webhooks",
       "path": "/a/grafana-oncall-app/outgoing_webhooks",
       "role": "Viewer",
       "action": "grafana-oncall-app.outgoing-webhooks:read",
@@ -94,6 +101,11 @@
       "role": "Viewer",
       "action": "grafana-oncall-app.other-settings:read",
       "addToNav": true
+    },
+    {
+      "type": "dashboard",
+      "path": "dashboards/oncall_metrics_dashboard.json",
+      "name": "OnCall Metrics"
     }
   ],
   "routes": [
@@ -298,6 +310,18 @@
     },
     {
       "role": {
+        "name": "Notifications Receiver",
+        "description": "Grants the ability to receive OnCall alert notifications. By virtue, also grants the user the ability to edit their own OnCall settings.",
+        "permissions": [
+          { "action": "plugins.app:access", "scope": "plugins:id:grafana-oncall-app" },
+          { "action": "grafana-oncall-app.notifications:read" },
+          { "action": "grafana-oncall-app.user-settings:write" }
+        ]
+      },
+      "grants": []
+    },
+    {
+      "role": {
         "name": "OnCaller",
         "description": "Grants read access to everything in OnCall. In addition, grants edit access to Alert Groups and Schedules",
         "permissions": [
@@ -315,6 +339,7 @@
           { "action": "grafana-oncall-app.chatops:read" },
           { "action": "grafana-oncall-app.outgoing-webhooks:read" },
           { "action": "grafana-oncall-app.maintenance:read" },
+          { "action": "grafana-oncall-app.notifications:read" },
           { "action": "grafana-oncall-app.notification-settings:read" },
           { "action": "grafana-oncall-app.user-settings:read" },
           { "action": "grafana-oncall-app.other-settings:read" }
@@ -593,8 +618,7 @@
     }
   ],
   "dependencies": {
-    "grafanaDependency": ">=8.3.2",
-    "grafanaVersion": "8.3",
+    "grafanaDependency": ">=9.2.0",
     "plugins": []
   }
 }

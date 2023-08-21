@@ -1,7 +1,10 @@
+import { TemplateForEdit, commonTemplateForEdit } from './CommonAlertTemplatesForm.config';
 export interface Template {
   name: string;
   group: string;
 }
+
+export const templateForEdit: { [id: string]: TemplateForEdit } = commonTemplateForEdit;
 
 export const templatesToRender: Template[] = [
   {

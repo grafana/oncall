@@ -1,0 +1,31 @@
+.root {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 5px;
+}
+
+.quality {
+  line-height: 16px;
+}
+
+.tag {
+  font-size: 12px;
+  padding: 4px 10px 3px 10px;
+
+  &--danger {
+    background-color: var(--tag-background-danger);
+    color: var(--tag-text-danger);
+    border: 1px solid var(--tag-border-danger);
+  }
+  &--warning {
+    background-color: var(--tag-background-warning);
+    color: var(--tag-text-warning);
+    border: 1px solid var(--tag-border-warning);
+  }
+  &--primary {
+    background-color: var(--tag-background-success);
+    color: var(--tag-text-success);
+    border: 1px solid var(--tag-border-success);
+  }
+}

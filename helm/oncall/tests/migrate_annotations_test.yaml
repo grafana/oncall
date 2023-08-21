@@ -1,0 +1,50 @@
+suite: test migrate annotations
+templates:
+  - engine/job-migrate.yaml
+release:
+  name: oncall
+tests:
+  - it: migrate.useHook=false -> should not provide an annotations block
+    set:
+      migrate.useHook: false
+    asserts:
+      - notExists:
+          path: metadata.annotations
+
+  - it: migrate.useHook=true -> should only provide the "helm.sh/hook" annotation
+    set:
+      migrate.useHook: true
+    asserts:
+      - isSubset:
+          path: metadata.annotations
+          content:
+            "helm.sh/hook": pre-install,pre-upgrade
+
+  - it: migrate.useHook=false and annotations set -> should only contain the custom annotations
+    set:
+      migrate.useHook: false
+      migrate.annotations:
+        some-annotation: some-value
+        other-annotation: other-value
+    asserts:
+      - isSubset:
+          path: metadata.annotations
+          content:
+            some-annotation: some-value
+            other-annotation: other-value
+
+  - it: >
+      migrate.useHook=true and annotations set -> should contain the custom annotations
+      and the "helm.sh/hook" annotation
+    set:
+      migrate.useHook: true
+      migrate.annotations:
+        some-annotation: some-value
+        other-annotation: other-value
+    asserts:
+      - isSubset:
+          path: metadata.annotations
+          content:
+            "helm.sh/hook": pre-install,pre-upgrade
+            some-annotation: some-value
+            other-annotation: other-value

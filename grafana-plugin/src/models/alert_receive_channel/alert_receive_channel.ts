@@ -1,14 +1,13 @@
 import { omit } from 'lodash-es';
 import { action, observable } from 'mobx';
 
-import { ActionDTO } from 'models/action';
 import { AlertTemplatesDTO } from 'models/alert_templates';
 import { Alert } from 'models/alertgroup/alertgroup.types';
 import BaseStore from 'models/base_store';
 import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
+import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
 import { Heartbeat } from 'models/heartbeat/heartbeat.types';
 import { OutgoingWebhook } from 'models/outgoing_webhook/outgoing_webhook.types';
-import { Team } from 'models/team/team.types';
 import { makeRequest } from 'network';
 import { Mixpanel } from 'services/mixpanel';
 import { RootStore } from 'state';
@@ -20,11 +19,16 @@ import {
   AlertReceiveChannel,
   AlertReceiveChannelOption,
   AlertReceiveChannelCounters,
+  ContactPoint,
+  MaintenanceMode,
 } from './alert_receive_channel.types';
 
 export class AlertReceiveChannelStore extends BaseStore {
   @observable.shallow
   searchResult: Array<AlertReceiveChannel['id']>;
+
+  @observable.shallow
+  paginatedSearchResult: { count?: number; results?: Array<AlertReceiveChannel['id']> } = {};
 
   @observable.shallow
   items: { [id: string]: AlertReceiveChannel } = {};
@@ -52,6 +56,9 @@ export class AlertReceiveChannelStore extends BaseStore {
   @observable.shallow
   templates: { [id: string]: AlertTemplatesDTO[] } = {};
 
+  @observable
+  connectedContactPoints: { [id: string]: ContactPoint[] } = {};
+
   constructor(rootStore: RootStore) {
     super(rootStore);
 
@@ -68,25 +75,45 @@ export class AlertReceiveChannelStore extends BaseStore {
     );
   }
 
+  getPaginatedSearchResult(_query = '') {
+    if (!this.paginatedSearchResult) {
+      return undefined;
+    }
+
+    return {
+      count: this.paginatedSearchResult.count,
+      results:
+        this.paginatedSearchResult.results &&
+        this.paginatedSearchResult.results.map(
+          (alertReceiveChannelId: AlertReceiveChannel['id']) => this.items?.[alertReceiveChannelId]
+        ),
+    };
+  }
+
   @action
   async loadItem(id: AlertReceiveChannel['id'], skipErrorHandling = false): Promise<AlertReceiveChannel> {
     const alertReceiveChannel = await this.getById(id, skipErrorHandling);
 
+    // @ts-ignore
     this.items = {
       ...this.items,
-      [id]: alertReceiveChannel,
+      [id]: omit(alertReceiveChannel, 'heartbeat'),
     };
+
+    this.populateHearbeats([alertReceiveChannel]);
 
     return alertReceiveChannel;
   }
 
   @action
-  async updateItems(query = '') {
-    const result = await this.getAll(query);
+  async updateItems(query: any = '') {
+    const params = typeof query === 'string' ? { search: query } : query;
+
+    const { results } = await makeRequest(this.path, { params });
 
     this.items = {
       ...this.items,
-      ...result.reduce(
+      ...results.reduce(
         (acc: { [key: number]: AlertReceiveChannel }, item: AlertReceiveChannel) => ({
           ...acc,
           [item.id]: omit(item, 'heartbeat'),
@@ -95,9 +122,44 @@ export class AlertReceiveChannelStore extends BaseStore {
       ),
     };
 
-    this.searchResult = result.map((item: AlertReceiveChannel) => item.id);
+    this.populateHearbeats(results);
 
-    const heartbeats = result.reduce((acc: any, alertReceiveChannel: AlertReceiveChannel) => {
+    this.searchResult = results.map((item: AlertReceiveChannel) => item.id);
+
+    this.updateCounters();
+
+    return results;
+  }
+
+  async updatePaginatedItems(query: any = '', page = 1) {
+    const filters = typeof query === 'string' ? { search: query } : query;
+    const { count, results } = await makeRequest(this.path, { params: { ...filters, page } });
+
+    this.items = {
+      ...this.items,
+      ...results.reduce(
+        (acc: { [key: number]: AlertReceiveChannel }, item: AlertReceiveChannel) => ({
+          ...acc,
+          [item.id]: omit(item, 'heartbeat'),
+        }),
+        {}
+      ),
+    };
+
+    this.populateHearbeats(results);
+
+    this.paginatedSearchResult = {
+      count,
+      results: results.map((item: AlertReceiveChannel) => item.id),
+    };
+
+    this.updateCounters();
+
+    return results;
+  }
+
+  populateHearbeats(alertReceiveChannels: AlertReceiveChannel[]) {
+    const heartbeats = alertReceiveChannels.reduce((acc: any, alertReceiveChannel: AlertReceiveChannel) => {
       if (alertReceiveChannel.heartbeat) {
         acc[alertReceiveChannel.heartbeat.id] = alertReceiveChannel.heartbeat;
       }
@@ -110,24 +172,25 @@ export class AlertReceiveChannelStore extends BaseStore {
       ...heartbeats,
     };
 
-    const alertReceiveChannelToHeartbeat = result.reduce((acc: any, alertReceiveChannel: AlertReceiveChannel) => {
-      if (alertReceiveChannel.heartbeat) {
-        acc[alertReceiveChannel.id] = alertReceiveChannel.heartbeat.id;
-      }
+    const alertReceiveChannelToHeartbeat = alertReceiveChannels.reduce(
+      (acc: any, alertReceiveChannel: AlertReceiveChannel) => {
+        if (alertReceiveChannel.heartbeat) {
+          acc[alertReceiveChannel.id] = alertReceiveChannel.heartbeat.id;
+        }
 
-      return acc;
-    }, {});
+        return acc;
+      },
+      {}
+    );
 
     this.alertReceiveChannelToHeartbeat = {
       ...this.alertReceiveChannelToHeartbeat,
       ...alertReceiveChannelToHeartbeat,
     };
-
-    this.updateCounters();
   }
 
   @action
-  async updateChannelFilters(alertReceiveChannelId: AlertReceiveChannel['id']) {
+  async updateChannelFilters(alertReceiveChannelId: AlertReceiveChannel['id'], isOverwrite = false) {
     const response = await makeRequest(`/channel_filters/`, {
       params: { alert_receive_channel: alertReceiveChannelId },
     });
@@ -145,6 +208,13 @@ export class AlertReceiveChannelStore extends BaseStore {
       ...channelFilters,
     };
 
+    if (isOverwrite) {
+      // This is needed because on Move Up/Down/Removal the store no longer reflects the correct state
+      this.channelFilters = {
+        ...channelFilters,
+      };
+    }
+
     this.channelFilterIds = {
       ...this.channelFilterIds,
       [alertReceiveChannelId]: response.map((channelFilter: ChannelFilter) => channelFilter.id),
@@ -159,6 +229,13 @@ export class AlertReceiveChannelStore extends BaseStore {
       ...this.channelFilters,
       [channelFilterId]: response,
     };
+  }
+
+  @action
+  async migrateChannel(id: AlertReceiveChannel['id']) {
+    return await makeRequest(`/alert_receive_channels/${id}/migrate`, {
+      method: 'POST',
+    });
   }
 
   @action
@@ -202,7 +279,7 @@ export class AlertReceiveChannelStore extends BaseStore {
 
     await makeRequest(`/channel_filters/${channelFilterId}/move_to_position/?position=${newIndex}`, { method: 'PUT' });
 
-    this.updateChannelFilters(alertReceiveChannelId);
+    this.updateChannelFilters(alertReceiveChannelId, true);
   }
 
   @action
@@ -220,7 +297,7 @@ export class AlertReceiveChannelStore extends BaseStore {
       method: 'DELETE',
     });
 
-    this.updateChannelFilters(channelFilter.alert_receive_channel);
+    this.updateChannelFilters(channelFilter.alert_receive_channel, true);
   }
 
   @action
@@ -292,25 +369,71 @@ export class AlertReceiveChannelStore extends BaseStore {
     };
   }
 
-  @action
-  async updateCustomButtons(alertReceiveChannelId: AlertReceiveChannel['id']) {
-    const response = await makeRequest(`/custom_buttons/`, {
-      params: {
-        alert_receive_channel: alertReceiveChannelId,
-      },
-      withCredentials: true,
-    });
+  async getGrafanaAlertingContactPoints() {
+    return await makeRequest(`${this.path}contact_points/`, {}).catch(showApiError);
+  }
 
-    this.actions = {
-      ...this.actions,
-      [alertReceiveChannelId]: response,
+  @action
+  async updateConnectedContactPoints(alertReceiveChannelId: AlertReceiveChannel['id']) {
+    const response = await makeRequest(`${this.path}${alertReceiveChannelId}/connected_contact_points `, {});
+
+    this.connectedContactPoints = {
+      ...this.connectedContactPoints,
+
+      [alertReceiveChannelId]: response.reduce((list: ContactPoint[], payload) => {
+        payload.contact_points.forEach((contactPoint: { name: string; notification_connected: boolean }) => {
+          list.push({
+            dataSourceName: payload.name,
+            dataSourceId: payload.uid,
+            contactPoint: contactPoint.name,
+            notificationConnected: contactPoint.notification_connected,
+          } as ContactPoint);
+        });
+
+        return list;
+      }, []),
     };
   }
 
-  async deleteCustomButton(id: ActionDTO['id']) {
-    await makeRequest(`/custom_buttons/${id}/`, {
-      method: 'DELETE',
-      withCredentials: true,
+  async connectContactPoint(
+    alertReceiveChannelId: AlertReceiveChannel['id'],
+    datasource_uid: string,
+    contact_point_name: string
+  ) {
+    return await makeRequest(`${this.path}${alertReceiveChannelId}/connect_contact_point`, {
+      method: 'POST',
+      data: {
+        datasource_uid,
+        contact_point_name,
+      },
+    });
+  }
+
+  async disconnectContactPoint(
+    alertReceiveChannelId: AlertReceiveChannel['id'],
+    datasource_uid: string,
+    contact_point_name: string
+  ) {
+    return await makeRequest(`${this.path}${alertReceiveChannelId}/disconnect_contact_point`, {
+      method: 'POST',
+      data: {
+        datasource_uid,
+        contact_point_name,
+      },
+    });
+  }
+
+  async createContactPoint(
+    alertReceiveChannelId: AlertReceiveChannel['id'],
+    datasource_uid: string,
+    contact_point_name: string
+  ) {
+    return await makeRequest(`${this.path}${alertReceiveChannelId}/create_contact_point`, {
+      method: 'POST',
+      data: {
+        datasource_uid,
+        contact_point_name,
+      },
     });
   }
 
@@ -327,8 +450,18 @@ export class AlertReceiveChannelStore extends BaseStore {
     });
   }
 
-  async sendDemoAlert(id: AlertReceiveChannel['id']) {
-    await makeRequest(`${this.path}${id}/send_demo_alert/`, { method: 'POST' }).catch(showApiError);
+  async sendDemoAlert(id: AlertReceiveChannel['id'], payload: string = undefined) {
+    const requestConfig: any = {
+      method: 'POST',
+    };
+
+    if (payload) {
+      requestConfig.data = {
+        demo_alert_payload: payload,
+      };
+    }
+
+    await makeRequest(`${this.path}${id}/send_demo_alert/`, requestConfig).catch(showApiError);
 
     Mixpanel.track('Send Demo Incident', null);
   }
@@ -337,14 +470,21 @@ export class AlertReceiveChannelStore extends BaseStore {
     await makeRequest(`/channel_filters/${id}/send_demo_alert/`, { method: 'POST' }).catch(showApiError);
   }
 
-  async renderPreview(id: AlertReceiveChannel['id'], template_name: string, template_body: string) {
+  async convertRegexpTemplateToJinja2Template(id: ChannelFilter['id']) {
+    const result = await makeRequest(`/channel_filters/${id}/convert_from_regex_to_jinja2/`, { method: 'POST' }).catch(
+      showApiError
+    );
+    return result;
+  }
+
+  async renderPreview(id: AlertReceiveChannel['id'], template_name: string, template_body: string, payload: JSON) {
     return await makeRequest(`${this.path}${id}/preview_template/`, {
       method: 'POST',
-      data: { template_name, template_body },
+      data: { template_name, template_body, payload },
     });
   }
 
-  async changeTeam(id: AlertReceiveChannel['id'], teamId: Team['pk']) {
+  async changeTeam(id: AlertReceiveChannel['id'], teamId: GrafanaTeam['id']) {
     return await makeRequest(`${this.path}${id}/change_team`, {
       params: { team_id: String(teamId) },
       method: 'PUT',
@@ -358,4 +498,18 @@ export class AlertReceiveChannelStore extends BaseStore {
 
     this.counters = counters;
   }
+
+  startMaintenanceMode = (id: AlertReceiveChannel['id'], mode: MaintenanceMode, duration: number): Promise<void> =>
+    makeRequest<null>(`${this.path}${id}/start_maintenance/`, {
+      method: 'POST',
+      data: {
+        mode,
+        duration,
+      },
+    });
+
+  stopMaintenanceMode = (id: AlertReceiveChannel['id']) =>
+    makeRequest<null>(`${this.path}${id}/stop_maintenance/`, {
+      method: 'POST',
+    });
 }

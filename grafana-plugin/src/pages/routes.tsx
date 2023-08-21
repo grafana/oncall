@@ -1,9 +1,7 @@
 import EscalationsChainsPage from 'pages/escalation-chains/EscalationChains';
 import IncidentPage from 'pages/incident/Incident';
 import IncidentsPage from 'pages/incidents/Incidents';
-import IntegrationsPage from 'pages/integrations/Integrations';
 import MaintenancePage from 'pages/maintenance/Maintenance';
-import OrganizationLogPage from 'pages/organization-logs/OrganizationLog';
 import OutgoingWebhooks from 'pages/outgoing_webhooks/OutgoingWebhooks';
 import SchedulePage from 'pages/schedule/Schedule';
 import SchedulesPage from 'pages/schedules/Schedules';
@@ -11,8 +9,9 @@ import SettingsPage from 'pages/settings/SettingsPage';
 import ChatOpsPage from 'pages/settings/tabs/ChatOps/ChatOps';
 import CloudPage from 'pages/settings/tabs/Cloud/CloudPage';
 import LiveSettingsPage from 'pages/settings/tabs/LiveSettings/LiveSettingsPage';
-import Test from 'pages/test/Test';
 import UsersPage from 'pages/users/Users';
+
+import IntegrationsPage2 from './integrations/Integrations';
 
 export interface NavRoute {
   id: string;
@@ -33,7 +32,7 @@ export const routes: { [id: string]: NavRoute } = [
     id: 'users',
   },
   {
-    component: IntegrationsPage,
+    component: IntegrationsPage2,
     id: 'integrations',
   },
   {
@@ -69,16 +68,8 @@ export const routes: { [id: string]: NavRoute } = [
     id: 'live-settings',
   },
   {
-    component: OrganizationLogPage,
-    id: 'organization-logs',
-  },
-  {
     component: CloudPage,
     id: 'cloud',
-  },
-  {
-    component: Test,
-    id: 'test',
   },
 ].reduce((prev, current) => {
   prev[current.id] = {

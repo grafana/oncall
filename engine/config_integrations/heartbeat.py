@@ -26,4 +26,4 @@ resolve_condition = '{{ payload.get("is_resolve", False) == True }}'
 
 acknowledge_condition = None
 
-example_payload = {"foo": "bar"}
+example_payload = None

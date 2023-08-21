@@ -54,6 +54,17 @@ class BaseMessagingBackend:
         """
         raise NotImplementedError("notify_user method missing implementation")
 
+    @property
+    def slug(self):
+        return self.backend_id.lower()
+
+    @property
+    def customizable_templates(self):
+        """
+        customizable_templates indicates if templates for messaging backend can be changes by user
+        """
+        return True
+
 
 def load_backend(path, *args, **kwargs):
     return import_string(path)(*args, **kwargs)
@@ -63,7 +74,7 @@ def get_messaging_backends():
     global _messaging_backends
     if _messaging_backends is None:
         _messaging_backends = {}
-        for (backend_path, notification_channel_id) in settings.EXTRA_MESSAGING_BACKENDS:
+        for backend_path, notification_channel_id in settings.EXTRA_MESSAGING_BACKENDS:
             backend = load_backend(backend_path, notification_channel_id=notification_channel_id)
             _messaging_backends[backend.backend_id] = backend
     return _messaging_backends.items()

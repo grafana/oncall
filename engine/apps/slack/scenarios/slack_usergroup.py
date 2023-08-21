@@ -1,22 +1,25 @@
-from django.apps import apps
+import typing
+
 from django.utils import timezone
 
 from apps.slack.scenarios import scenario_step
+from apps.slack.types import EventPayload, EventType, PayloadType, ScenarioRoute
+
+if typing.TYPE_CHECKING:
+    from apps.slack.models import SlackTeamIdentity, SlackUserIdentity
 
 
 class SlackUserGroupEventStep(scenario_step.ScenarioStep):
-    tags = [
-        scenario_step.ScenarioStep.TAG_TRIGGERED_BY_SYSTEM,
-    ]
-
-    # Avoid logging this step to prevent collecting sensitive data of our customers
-    need_to_be_logged = False
-
-    def process_scenario(self, slack_user_identity, slack_team_identity, payload, action=None):
+    def process_scenario(
+        self,
+        slack_user_identity: "SlackUserIdentity",
+        slack_team_identity: "SlackTeamIdentity",
+        payload: EventPayload,
+    ) -> None:
         """
         Triggered by action: creation user groups or changes in user groups except its members.
         """
-        SlackUserGroup = apps.get_model("slack", "SlackUserGroup")
+        from apps.slack.models import SlackUserGroup
 
         slack_id = payload["event"]["subteam"]["id"]
         usergroup_name = payload["event"]["subteam"]["name"]
@@ -38,18 +41,16 @@ class SlackUserGroupEventStep(scenario_step.ScenarioStep):
 
 
 class SlackUserGroupMembersChangedEventStep(scenario_step.ScenarioStep):
-    tags = [
-        scenario_step.ScenarioStep.TAG_TRIGGERED_BY_SYSTEM,
-    ]
-
-    # Avoid logging this step to prevent collecting sensitive data of our customers
-    need_to_be_logged = False
-
-    def process_scenario(self, slack_user_identity, slack_team_identity, payload, action=None):
+    def process_scenario(
+        self,
+        slack_user_identity: "SlackUserIdentity",
+        slack_team_identity: "SlackTeamIdentity",
+        payload: EventPayload,
+    ) -> None:
         """
         Triggered by action: changed members in user group.
         """
-        SlackUserGroup = apps.get_model("slack", "SlackUserGroup")
+        from apps.slack.models import SlackUserGroup
 
         slack_id = payload["event"]["subteam_id"]
         try:
@@ -69,20 +70,20 @@ class SlackUserGroupMembersChangedEventStep(scenario_step.ScenarioStep):
             user_group.save(update_fields=["members"])
 
 
-STEPS_ROUTING = [
+STEPS_ROUTING: ScenarioRoute.RoutingSteps = [
     {
-        "payload_type": scenario_step.PAYLOAD_TYPE_EVENT_CALLBACK,
-        "event_type": scenario_step.EVENT_TYPE_SUBTEAM_CREATED,
+        "payload_type": PayloadType.EVENT_CALLBACK,
+        "event_type": EventType.SUBTEAM_CREATED,
         "step": SlackUserGroupEventStep,
     },
     {
-        "payload_type": scenario_step.PAYLOAD_TYPE_EVENT_CALLBACK,
-        "event_type": scenario_step.EVENT_TYPE_SUBTEAM_UPDATED,
+        "payload_type": PayloadType.EVENT_CALLBACK,
+        "event_type": EventType.SUBTEAM_UPDATED,
         "step": SlackUserGroupEventStep,
     },
     {
-        "payload_type": scenario_step.PAYLOAD_TYPE_EVENT_CALLBACK,
-        "event_type": scenario_step.EVENT_TYPE_SUBTEAM_MEMBERS_CHANGED,
+        "payload_type": PayloadType.EVENT_CALLBACK,
+        "event_type": EventType.SUBTEAM_MEMBERS_CHANGED,
         "step": SlackUserGroupMembersChangedEventStep,
     },
 ]

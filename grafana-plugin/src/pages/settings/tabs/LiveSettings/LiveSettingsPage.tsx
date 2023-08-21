@@ -9,7 +9,7 @@ import { Lambda } from 'mobx/lib/internal';
 import GTable from 'components/GTable/GTable';
 import Text from 'components/Text/Text';
 import WithConfirm from 'components/WithConfirm/WithConfirm';
-import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
+import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { GlobalSetting } from 'models/global_setting/global_setting.types';
 import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
@@ -119,7 +119,7 @@ class LiveSettings extends React.Component<LiveSettingsProps, LiveSettingsState>
                 <Text.Title level={3}>Env Variables</Text.Title>
               </HorizontalGroup>
               <HorizontalGroup justify="flex-end">
-                <WithPermissionControl userAction={UserActions.OtherSettingsWrite}>
+                <WithPermissionControlTooltip userAction={UserActions.OtherSettingsWrite}>
                   <Button
                     variant="primary"
                     icon={hideValues ? 'eye' : 'eye-slash'}
@@ -127,7 +127,7 @@ class LiveSettings extends React.Component<LiveSettingsProps, LiveSettingsState>
                   >
                     {hideValues ? 'Show values' : 'Hide values'}
                   </Button>
-                </WithPermissionControl>
+                </WithPermissionControlTooltip>
               </HorizontalGroup>
             </div>
           )}
@@ -166,7 +166,7 @@ class LiveSettings extends React.Component<LiveSettingsProps, LiveSettingsState>
           onTextChange={this.getEditValueChangeHandler(item)}
           editable={isUserActionAllowed(UserActions.OtherSettingsWrite)}
           clearBeforeEdit={item.is_secret}
-          hidden={hideValues}
+          hidden={hideValues && item.is_secret}
         >
           {normalizeValue(item.value)}
         </Text>
@@ -208,7 +208,7 @@ class LiveSettings extends React.Component<LiveSettingsProps, LiveSettingsState>
 
     return (
       <div style={{ wordWrap: 'break-word', wordBreak: 'break-word' }}>
-        <Text>{hideValues ? PLACEHOLDER : normalizeValue(item.default_value)}</Text>
+        <Text>{hideValues && item.is_secret ? PLACEHOLDER : normalizeValue(item.default_value)}</Text>
       </div>
     );
   };

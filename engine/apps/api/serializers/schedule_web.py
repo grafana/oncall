@@ -2,8 +2,7 @@ from apps.api.serializers.schedule_base import ScheduleBaseSerializer
 from apps.schedules.models import OnCallScheduleWeb
 from apps.schedules.tasks import schedule_notify_about_empty_shifts_in_schedule, schedule_notify_about_gaps_in_schedule
 from apps.slack.models import SlackChannel, SlackUserGroup
-from common.api_helpers.custom_fields import OrganizationFilteredPrimaryKeyRelatedField
-from common.timezones import TimeZoneField
+from common.api_helpers.custom_fields import OrganizationFilteredPrimaryKeyRelatedField, TimeZoneField
 
 
 class ScheduleWebSerializer(ScheduleBaseSerializer):
@@ -12,6 +11,9 @@ class ScheduleWebSerializer(ScheduleBaseSerializer):
     class Meta:
         model = OnCallScheduleWeb
         fields = [*ScheduleBaseSerializer.Meta.fields, "slack_channel", "time_zone"]
+
+    def get_enable_web_overrides(self, obj):
+        return True
 
 
 class ScheduleWebCreateSerializer(ScheduleWebSerializer):

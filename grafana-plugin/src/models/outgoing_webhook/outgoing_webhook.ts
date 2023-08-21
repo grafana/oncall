@@ -16,7 +16,7 @@ export class OutgoingWebhookStore extends BaseStore {
   constructor(rootStore: RootStore) {
     super(rootStore);
 
-    this.path = '/custom_buttons/';
+    this.path = '/webhooks/';
   }
 
   @action
@@ -44,7 +44,6 @@ export class OutgoingWebhookStore extends BaseStore {
   @action
   async updateItem(id: OutgoingWebhook['id'], fromOrganization = false) {
     const response = await this.getById(id, false, fromOrganization);
-
     this.items = {
       ...this.items,
       [id]: response,
@@ -52,9 +51,11 @@ export class OutgoingWebhookStore extends BaseStore {
   }
 
   @action
-  async updateItems(query = '') {
+  async updateItems(query: any = '') {
+    const params = typeof query === 'string' ? { search: query } : query;
+
     const results = await makeRequest(`${this.path}`, {
-      params: { search: query },
+      params,
     });
 
     this.items = {
@@ -68,9 +69,11 @@ export class OutgoingWebhookStore extends BaseStore {
       ),
     };
 
+    const key = typeof query === 'string' ? query : '';
+
     this.searchResult = {
       ...this.searchResult,
-      [query]: results.map((item: OutgoingWebhook) => item.id),
+      [key]: results.map((item: OutgoingWebhook) => item.id),
     };
   }
 
@@ -80,5 +83,18 @@ export class OutgoingWebhookStore extends BaseStore {
     }
 
     return this.searchResult[query].map((outgoingWebhookId: OutgoingWebhook['id']) => this.items[outgoingWebhookId]);
+  }
+
+  async getLastResponses(id: OutgoingWebhook['id']) {
+    const result = await makeRequest(`${this.path}${id}/responses`, {});
+
+    return result;
+  }
+
+  async renderPreview(id: OutgoingWebhook['id'], template_name: string, template_body: string, payload) {
+    return await makeRequest(`${this.path}${id}/preview_template/`, {
+      method: 'POST',
+      data: { template_name, template_body, payload },
+    });
   }
 }

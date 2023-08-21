@@ -1,0 +1,36 @@
+/* Navigation/Layout */
+
+.drawer-content,
+.rc-drawer-content {
+  overflow: auto !important; /* fix https://github.com/grafana/oncall/issues/415 */
+}
+
+.page-body {
+  max-width: unset !important;
+}
+
+[class$='-page-header'] {
+  display: none; /* hide header that comes from Grafana (topnavbar) and instead use ours */
+}
+
+[class$='-page-container'] {
+  min-width: 0; /* top navbar container overflows for a few screens */
+}
+
+.page-container {
+  max-width: unset !important;
+}
+
+.page-scrollbar-content > div:first-child {
+  flex-grow: 1;
+}
+
+.page-header__title {
+  padding-top: 0 !important;
+  font-size: 2rem !important;
+  margin-right: 8px;
+}
+
+.page-header__info-block {
+  flex-grow: 1; /* Stretch the navigation subtitle panel */
+}

@@ -1,20 +1,25 @@
+import base64
+import json
 import os
+import typing
 from random import randrange
 
 from celery.schedules import crontab
+from firebase_admin import credentials, initialize_app
 
 from common.utils import getenv_boolean, getenv_integer
 
 VERSION = "dev-oss"
-# Indicates if instance is OSS installation.
-# It is needed to plug-in oss application and urls.
-OSS_INSTALLATION = getenv_boolean("GRAFANA_ONCALL_OSS_INSTALLATION", True)
 SEND_ANONYMOUS_USAGE_STATS = getenv_boolean("SEND_ANONYMOUS_USAGE_STATS", default=True)
+ADMIN_ENABLED = False  # disable django admin panel
 
 # License is OpenSource or Cloud
 OPEN_SOURCE_LICENSE_NAME = "OpenSource"
 CLOUD_LICENSE_NAME = "Cloud"
 LICENSE = os.environ.get("ONCALL_LICENSE", default=OPEN_SOURCE_LICENSE_NAME)
+IS_OPEN_SOURCE = LICENSE == OPEN_SOURCE_LICENSE_NAME
+CURRENTLY_UNDERGOING_MAINTENANCE_MESSAGE = os.environ.get("CURRENTLY_UNDERGOING_MAINTENANCE_MESSAGE", None)
+IS_IN_MAINTENANCE_MODE = CURRENTLY_UNDERGOING_MAINTENANCE_MESSAGE is not None
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
@@ -46,8 +51,7 @@ OTEL_EXPORTER_OTLP_ENDPOINT = os.environ.get("OTEL_EXPORTER_OTLP_ENDPOINT")
 
 ALLOWED_HOSTS = [item.strip() for item in os.environ.get("ALLOWED_HOSTS", "*").split(",")]
 
-# TODO: update link to up-to-date docs
-DOCS_URL = "https://grafana.com/docs/grafana-cloud/oncall/"
+DOCS_URL = "https://grafana.com/docs/oncall/latest/"
 
 # Settings of running OnCall instance.
 BASE_URL = os.environ.get("BASE_URL")  # Root URL of OnCall backend
@@ -57,9 +61,10 @@ FEATURE_LIVE_SETTINGS_ENABLED = getenv_boolean("FEATURE_LIVE_SETTINGS_ENABLED", 
 FEATURE_TELEGRAM_INTEGRATION_ENABLED = getenv_boolean("FEATURE_TELEGRAM_INTEGRATION_ENABLED", default=True)
 FEATURE_EMAIL_INTEGRATION_ENABLED = getenv_boolean("FEATURE_EMAIL_INTEGRATION_ENABLED", default=True)
 FEATURE_SLACK_INTEGRATION_ENABLED = getenv_boolean("FEATURE_SLACK_INTEGRATION_ENABLED", default=True)
-FEATURE_MOBILE_APP_INTEGRATION_ENABLED = getenv_boolean("FEATURE_MOBILE_APP_INTEGRATION_ENABLED", default=False)
-FEATURE_WEB_SCHEDULES_ENABLED = getenv_boolean("FEATURE_WEB_SCHEDULES_ENABLED", default=False)
 FEATURE_MULTIREGION_ENABLED = getenv_boolean("FEATURE_MULTIREGION_ENABLED", default=False)
+FEATURE_INBOUND_EMAIL_ENABLED = getenv_boolean("FEATURE_INBOUND_EMAIL_ENABLED", default=False)
+FEATURE_PROMETHEUS_EXPORTER_ENABLED = getenv_boolean("FEATURE_PROMETHEUS_EXPORTER_ENABLED", default=False)
+FEATURE_GRAFANA_ALERTING_V2_ENABLED = getenv_boolean("FEATURE_GRAFANA_ALERTING_V2_ENABLED", default=False)
 GRAFANA_CLOUD_ONCALL_HEARTBEAT_ENABLED = getenv_boolean("GRAFANA_CLOUD_ONCALL_HEARTBEAT_ENABLED", default=True)
 GRAFANA_CLOUD_NOTIFICATIONS_ENABLED = getenv_boolean("GRAFANA_CLOUD_NOTIFICATIONS_ENABLED", default=True)
 
@@ -69,6 +74,7 @@ TWILIO_ACCOUNT_SID = os.environ.get("TWILIO_ACCOUNT_SID")
 TWILIO_AUTH_TOKEN = os.environ.get("TWILIO_AUTH_TOKEN")
 TWILIO_NUMBER = os.environ.get("TWILIO_NUMBER")
 TWILIO_VERIFY_SERVICE_SID = os.environ.get("TWILIO_VERIFY_SERVICE_SID")
+PHONE_NOTIFICATIONS_LIMIT = getenv_integer("PHONE_NOTIFICATIONS_LIMIT", 200)
 
 TELEGRAM_WEBHOOK_HOST = os.environ.get("TELEGRAM_WEBHOOK_HOST", BASE_URL)
 TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN")
@@ -81,11 +87,15 @@ GRAFANA_CLOUD_ONCALL_TOKEN = os.environ.get("GRAFANA_CLOUD_ONCALL_TOKEN", None)
 
 # Outgoing webhook settings
 DANGEROUS_WEBHOOKS_ENABLED = getenv_boolean("DANGEROUS_WEBHOOKS_ENABLED", default=False)
+WEBHOOK_RESPONSE_LIMIT = 50000
 
 # Multiregion settings
-ONCALL_GATEWAY_URL = os.environ.get("ONCALL_GATEWAY_URL")
-ONCALL_GATEWAY_API_TOKEN = os.environ.get("ONCALL_GATEWAY_API_TOKEN")
+ONCALL_GATEWAY_URL = os.environ.get("ONCALL_GATEWAY_URL", "")
+ONCALL_GATEWAY_API_TOKEN = os.environ.get("ONCALL_GATEWAY_API_TOKEN", "")
 ONCALL_BACKEND_REGION = os.environ.get("ONCALL_BACKEND_REGION")
+
+# Prometheus exporter metrics endpoint auth
+PROMETHEUS_EXPORTER_SECRET = os.environ.get("PROMETHEUS_EXPORTER_SECRET")
 
 
 # Database
@@ -117,7 +127,9 @@ assert DATABASE_TYPE in {DatabaseTypes.MYSQL, DatabaseTypes.POSTGRESQL, Database
 
 DATABASE_ENGINE = f"django.db.backends.{DATABASE_TYPE}"
 
-DATABASE_CONFIGS = {
+DatabaseConfig = typing.Dict[str, typing.Dict[str, typing.Any]]
+
+DATABASE_CONFIGS: DatabaseConfig = {
     DatabaseTypes.SQLITE3: {
         "ENGINE": DATABASE_ENGINE,
         "NAME": DATABASE_NAME or "/var/lib/oncall/oncall.db",
@@ -144,6 +156,7 @@ DATABASE_CONFIGS = {
     },
 }
 
+READONLY_DATABASES: DatabaseConfig = {}
 DATABASES = {
     "default": DATABASE_CONFIGS[DATABASE_TYPE],
 }
@@ -196,7 +209,6 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "rest_framework",
     "django_filters",
-    "ordered_model",
     "mirage",
     "engine",
     "apps.user_management",
@@ -215,11 +227,17 @@ INSTALLED_APPS = [
     "apps.auth_token",
     "apps.public_api",
     "apps.grafana_plugin",
+    "apps.webhooks",
+    "apps.metrics_exporter",
     "corsheaders",
     "debug_toolbar",
     "social_django",
     "polymorphic",
+    "django_migration_linter",
     "fcm_django",
+    "django_dbconn_retry",
+    "apps.phone_notifications",
+    "drf_spectacular",
 ]
 
 REST_FRAMEWORK = {
@@ -229,13 +247,41 @@ REST_FRAMEWORK = {
         "rest_framework.parsers.MultiPartParser",
     ),
     "DEFAULT_AUTHENTICATION_CLASSES": [],
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 }
+
+
+DRF_SPECTACULAR_ENABLED = getenv_boolean("DRF_SPECTACULAR_ENABLED", default=False)
+
+SPECTACULAR_SETTINGS = {
+    "TITLE": "Grafana OnCall Private API",
+    "DESCRIPTION": "Internal API docs. This is not meant to be used by end users. API endpoints will be kept added/removed/changed without notice.",
+    "VERSION": "1.0.0",
+    "SERVE_INCLUDE_SCHEMA": False,
+    # OTHER SETTINGS
+    "PREPROCESSING_HOOKS": [
+        "engine.included_path.custom_preprocessing_hook"  # Custom hook to include only paths from SPECTACULAR_INCLUDED_PATHS
+    ],
+    "SERVE_URLCONF": ("apps.api.urls"),
+    "SWAGGER_UI_SETTINGS": {
+        "supportedSubmitMethods": [],  # Disable "Try it out" button for all endpoints
+    },
+    "SERVE_PUBLIC": False,
+}
+# Use custom scheme if env var exists
+SWAGGER_UI_SETTINGS_URL = os.getenv("SWAGGER_UI_SETTINGS_URL")
+if SWAGGER_UI_SETTINGS_URL:
+    SPECTACULAR_SETTINGS["SWAGGER_UI_SETTINGS"]["url"] = SWAGGER_UI_SETTINGS_URL
+
+SPECTACULAR_INCLUDED_PATHS = [
+    "/features",
+    "/alertgroups",
+]
 
 MIDDLEWARE = [
     "log_request_id.middleware.RequestIDMiddleware",
     "engine.middlewares.RequestTimeLoggingMiddleware",
     "engine.middlewares.BanAlertConsumptionBasedOnSettingsMiddleware",
-    "engine.middlewares.RequestBodyReadingMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "debug_toolbar.middleware.DebugToolbarMiddleware",
@@ -392,15 +438,15 @@ CELERY_MAX_TASKS_PER_CHILD = 1
 CELERY_WORKER_SEND_TASK_EVENTS = True
 CELERY_TASK_SEND_SENT_EVENT = True
 
+ESCALATION_AUDITOR_ENABLED = getenv_boolean("ESCALATION_AUDITOR_ENABLED", default=True)
+ALERT_GROUP_ESCALATION_AUDITOR_CELERY_TASK_HEARTBEAT_URL = os.getenv(
+    "ALERT_GROUP_ESCALATION_AUDITOR_CELERY_TASK_HEARTBEAT_URL", None
+)
+
 CELERY_BEAT_SCHEDULE = {
-    "restore_heartbeat_tasks": {
-        "task": "apps.heartbeat.tasks.restore_heartbeat_tasks",
-        "schedule": 10 * 60,
-        "args": (),
-    },
-    "check_escalations": {
-        "task": "apps.alerts.tasks.check_escalation_finished.check_escalation_finished_task",
-        "schedule": 10 * 60,
+    "start_refresh_ical_final_schedules": {
+        "task": "apps.schedules.tasks.refresh_ical_files.start_refresh_ical_final_schedules",
+        "schedule": crontab(minute=15, hour=0),
         "args": (),
     },
     "start_refresh_ical_files": {
@@ -458,13 +504,47 @@ CELERY_BEAT_SCHEDULE = {
         "schedule": 60 * 10,
         "args": (),
     },
+    "conditionally_send_going_oncall_push_notifications_for_all_schedules": {
+        "task": "apps.mobile_app.tasks.conditionally_send_going_oncall_push_notifications_for_all_schedules",
+        "schedule": 10 * 60,
+    },
+    "notify_shift_swap_requests": {
+        "task": "apps.mobile_app.tasks.notify_shift_swap_requests",
+        "schedule": getenv_integer("NOTIFY_SHIFT_SWAP_REQUESTS_INTERVAL", default=10 * 60),
+    },
+    "send_shift_swap_request_slack_followups": {
+        "task": "apps.schedules.tasks.shift_swaps.slack_followups.send_shift_swap_request_slack_followups",
+        "schedule": 10 * 60,
+    },
+    "save_organizations_ids_in_cache": {
+        "task": "apps.metrics_exporter.tasks.save_organizations_ids_in_cache",
+        "schedule": 60 * 30,
+        "args": (),
+    },
+    "check_heartbeats": {
+        "task": "apps.heartbeat.tasks.check_heartbeats",
+        "schedule": crontab(minute="*/2"),  # every 2 minutes
+        "args": (),
+    },
 }
+
+if ESCALATION_AUDITOR_ENABLED:
+    CELERY_BEAT_SCHEDULE["check_escalations"] = {
+        "task": "apps.alerts.tasks.check_escalation_finished.check_escalation_finished_task",
+        # the task should be executed a minute or two less than the integration's configured interval
+        #
+        # ex. if the integration is configured to expect a heartbeat every 15 minutes then this value should be set
+        # to something like 13 * 60 (every 13 minutes)
+        "schedule": getenv_integer("ALERT_GROUP_ESCALATION_AUDITOR_CELERY_TASK_HEARTBEAT_INTERVAL", 13 * 60),
+        "args": (),
+    }
 
 INTERNAL_IPS = ["127.0.0.1"]
 
 SELF_IP = os.environ.get("SELF_IP")
 
-SILK_PROFILER_ENABLED = getenv_boolean("SILK_PROFILER_ENABLED", default=False)
+SILK_PROFILER_ENABLED = getenv_boolean("SILK_PROFILER_ENABLED", default=False) and not IS_IN_MAINTENANCE_MODE
+
 if SILK_PROFILER_ENABLED:
     SILK_PATH = os.environ.get("SILK_PATH", "silk/")
     SILKY_INTERCEPT_PERCENT = getenv_integer("SILKY_INTERCEPT_PERCENT", 100)
@@ -475,16 +555,16 @@ if SILK_PROFILER_ENABLED:
     SILKY_AUTHENTICATION = True
     SILKY_AUTHORISATION = True
     SILKY_PYTHON_PROFILER_BINARY = getenv_boolean("SILKY_PYTHON_PROFILER_BINARY", default=False)
-    SILKY_MAX_RECORDED_REQUESTS = 10**4
     SILKY_PYTHON_PROFILER = True
     SILKY_IGNORE_PATHS = ["/health/", "/ready/"]
+
+    # see the following GitHub issue comment for why the following two settings are set the way they are
+    # https://github.com/jazzband/django-silk/issues/265#issuecomment-705482767
+    SILKY_MAX_RECORDED_REQUESTS_CHECK_PERCENT = 0.01
+    SILKY_MAX_RECORDED_REQUESTS = 100_000
+
     if "SILKY_PYTHON_PROFILER_RESULT_PATH" in os.environ:
         SILKY_PYTHON_PROFILER_RESULT_PATH = os.environ.get("SILKY_PYTHON_PROFILER_RESULT_PATH")
-
-# get ONCALL_DJANGO_ADMIN_PATH from env and add trailing / to it
-ONCALL_DJANGO_ADMIN_PATH = os.environ.get("ONCALL_DJANGO_ADMIN_PATH", "django-admin") + "/"
-
-ADMIN_SITE_HEADER = "OnCall Admin Panel"
 
 # Social auth settings
 SOCIAL_AUTH_USER_MODEL = "user_management.User"
@@ -505,6 +585,9 @@ SLACK_CLIENT_OAUTH_SECRET = os.environ.get("SLACK_CLIENT_OAUTH_SECRET")
 
 SLACK_SLASH_COMMAND_NAME = os.environ.get("SLACK_SLASH_COMMAND_NAME", "/oncall")
 SLACK_DIRECT_PAGING_SLASH_COMMAND = os.environ.get("SLACK_DIRECT_PAGING_SLASH_COMMAND", "/escalate")
+
+# Controls if slack integration can be installed/uninstalled.
+SLACK_INTEGRATION_MAINTENANCE_ENABLED = os.environ.get("SLACK_INTEGRATION_MAINTENANCE_ENABLED", False)
 
 SOCIAL_AUTH_SLACK_LOGIN_KEY = SLACK_CLIENT_OAUTH_ID
 SOCIAL_AUTH_SLACK_LOGIN_SECRET = SLACK_CLIENT_OAUTH_SECRET
@@ -532,12 +615,9 @@ SOCIAL_AUTH_PIPELINE = (
     "apps.social_auth.pipeline.delete_slack_auth_token",
 )
 
-SOCIAL_AUTH_FIELDS_STORED_IN_SESSION = []
+SOCIAL_AUTH_FIELDS_STORED_IN_SESSION: typing.List[str] = []
 SOCIAL_AUTH_REDIRECT_IS_HTTPS = getenv_boolean("SOCIAL_AUTH_REDIRECT_IS_HTTPS", default=True)
 SOCIAL_AUTH_SLUGIFY_USERNAMES = True
-
-FEATURE_CAPTCHA_ENABLED = getenv_boolean("FEATURE_CAPTCHA_ENABLED", default=False)
-RECAPTCHA_SECRET_KEY = os.environ.get("RECAPTCHA_SECRET_KEY")
 
 PUBLIC_PRIMARY_KEY_MIN_LENGTH = 12
 # excluding (O,0) Result: (25 + 9)^12 combinations
@@ -558,25 +638,29 @@ GRAFANA_COM_ADMIN_API_TOKEN = os.environ.get("GRAFANA_COM_ADMIN_API_TOKEN", None
 
 GRAFANA_API_KEY_NAME = "Grafana OnCall"
 
-EXTRA_MESSAGING_BACKENDS = []
-if FEATURE_MOBILE_APP_INTEGRATION_ENABLED:
-    from firebase_admin import initialize_app
+EXTRA_MESSAGING_BACKENDS = [
+    ("apps.mobile_app.backend.MobileAppBackend", 5),
+    ("apps.mobile_app.backend.MobileAppCriticalBackend", 6),
+]
 
-    EXTRA_MESSAGING_BACKENDS += [
-        ("apps.mobile_app.backend.MobileAppBackend", 5),
-        ("apps.mobile_app.backend.MobileAppCriticalBackend", 6),
-    ]
+# Firebase credentials can be passed as base64 encoded JSON string in GOOGLE_APPLICATION_CREDENTIALS_JSON_BASE64 env variable.
+# If it's not passed, firebase_admin will use a file located at GOOGLE_APPLICATION_CREDENTIALS env variable.
+credential = None
+GOOGLE_APPLICATION_CREDENTIALS_JSON_BASE64 = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS_JSON_BASE64", None)
+if GOOGLE_APPLICATION_CREDENTIALS_JSON_BASE64:
+    credentials_json = json.loads(base64.b64decode(GOOGLE_APPLICATION_CREDENTIALS_JSON_BASE64))
+    credential = credentials.Certificate(credentials_json)
 
-    FIREBASE_APP = initialize_app(options={"projectId": os.environ.get("FCM_PROJECT_ID", None)})
+# FCM_PROJECT_ID can be different from the project ID in the credentials file.
+FCM_PROJECT_ID = os.environ.get("FCM_PROJECT_ID", None)
 
 FCM_RELAY_ENABLED = getenv_boolean("FCM_RELAY_ENABLED", default=False)
 FCM_DJANGO_SETTINGS = {
     # an instance of firebase_admin.App to be used as default for all fcm-django requests
-    # default: None (the default Firebase app)
-    "DEFAULT_FIREBASE_APP": None,
+    "DEFAULT_FIREBASE_APP": initialize_app(credential=credential, options={"projectId": FCM_PROJECT_ID}),
     "APP_VERBOSE_NAME": "OnCall",
     "ONE_DEVICE_PER_USER": True,
-    "DELETE_INACTIVE_DEVICES": False,
+    "DELETE_INACTIVE_DEVICES": True,
     "UPDATE_ON_DUPLICATE_REG_ID": True,
     "USER_MODEL": "user_management.User",
 }
@@ -589,6 +673,7 @@ SELF_HOSTED_SETTINGS = {
     "ORG_TITLE": "Self-Hosted Organization",
     "REGION_SLUG": "self_hosted_region",
     "GRAFANA_API_URL": os.environ.get("GRAFANA_API_URL", default=None),
+    "CLUSTER_SLUG": "self_hosted_cluster",
 }
 
 GRAFANA_INCIDENT_STATIC_API_KEY = os.environ.get("GRAFANA_INCIDENT_STATIC_API_KEY", None)
@@ -609,14 +694,22 @@ EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
 EMAIL_PORT = getenv_integer("EMAIL_PORT", 587)
 EMAIL_USE_TLS = getenv_boolean("EMAIL_USE_TLS", True)
 EMAIL_FROM_ADDRESS = os.getenv("EMAIL_FROM_ADDRESS")
+EMAIL_NOTIFICATIONS_LIMIT = getenv_integer("EMAIL_NOTIFICATIONS_LIMIT", 200)
 
 if FEATURE_EMAIL_INTEGRATION_ENABLED:
     EXTRA_MESSAGING_BACKENDS += [("apps.email.backend.EmailBackend", 8)]
 
+# Inbound email settings
+INBOUND_EMAIL_ESP = os.getenv("INBOUND_EMAIL_ESP")
+INBOUND_EMAIL_DOMAIN = os.getenv("INBOUND_EMAIL_DOMAIN")
+INBOUND_EMAIL_WEBHOOK_SECRET = os.getenv("INBOUND_EMAIL_WEBHOOK_SECRET")
+
 INSTALLED_ONCALL_INTEGRATIONS = [
     "config_integrations.alertmanager",
+    "config_integrations.legacy_alertmanager",
     "config_integrations.grafana",
     "config_integrations.grafana_alerting",
+    "config_integrations.legacy_grafana_alerting",
     "config_integrations.formatted_webhook",
     "config_integrations.webhook",
     "config_integrations.kapacitor",
@@ -630,8 +723,8 @@ INSTALLED_ONCALL_INTEGRATIONS = [
     "config_integrations.direct_paging",
 ]
 
-if OSS_INSTALLATION:
-    INSTALLED_APPS += ["apps.oss_installation"]  # noqa
+if IS_OPEN_SOURCE:
+    INSTALLED_APPS += ["apps.oss_installation", "apps.zvonok"]  # noqa
 
     CELERY_BEAT_SCHEDULE["send_usage_stats"] = {  # noqa
         "task": "apps.oss_installation.tasks.send_usage_stats_report",
@@ -653,16 +746,40 @@ if OSS_INSTALLATION:
         "args": (),
     }  # noqa
 
-PYROSCOPE_PROFILER_ENABLED = getenv_boolean("PYROSCOPE_PROFILER_ENABLED", default=False)
-if PYROSCOPE_PROFILER_ENABLED:
-    import pyroscope
+# RECAPTCHA_V3 settings
+RECAPTCHA_V3_SITE_KEY = os.environ.get("RECAPTCHA_SITE_KEY", default="6LeIPJ8kAAAAAJdUfjO3uUtQtVxsYf93y46mTec1")
+RECAPTCHA_V3_SECRET_KEY = os.environ.get("RECAPTCHA_SECRET_KEY", default=None)
+RECAPTCHA_V3_ENABLED = os.environ.get("RECAPTCHA_ENABLED", default=False)
+RECAPTCHA_V3_HOSTNAME_VALIDATION = os.environ.get("RECAPTCHA_HOSTNAME_VALIDATION", default=False)
 
-    pyroscope.configure(
-        application_name=os.getenv("PYROSCOPE_APPLICATION_NAME", "oncall"),
-        server_address=os.getenv("PYROSCOPE_SERVER_ADDRESS", "http://pyroscope:4040"),
-        auth_token=os.getenv("PYROSCOPE_AUTH_TOKEN", ""),
-        detect_subprocesses=True,
-        tags={
-            "celery_worker": os.getenv("CELERY_WORKER_QUEUE", None),
-        },
-    )
+MIGRATION_LINTER_OPTIONS = {"exclude_apps": ["social_django", "silk", "fcm_django"]}
+# Run migrations linter on each `python manage.py makemigrations`
+MIGRATION_LINTER_OVERRIDE_MAKEMIGRATIONS = True
+
+PYROSCOPE_PROFILER_ENABLED = getenv_boolean("PYROSCOPE_PROFILER_ENABLED", default=False)
+PYROSCOPE_APPLICATION_NAME = os.getenv("PYROSCOPE_APPLICATION_NAME", "oncall")
+PYROSCOPE_SERVER_ADDRESS = os.getenv("PYROSCOPE_SERVER_ADDRESS", "http://pyroscope:4040")
+PYROSCOPE_AUTH_TOKEN = os.getenv("PYROSCOPE_AUTH_TOKEN", "")
+
+# map of phone provider alias to importpath.
+# Used in get_phone_provider function to dynamically load current provider.
+DEFAULT_PHONE_PROVIDER = "twilio"
+PHONE_PROVIDERS = {
+    "twilio": "apps.twilioapp.phone_provider.TwilioPhoneProvider",
+    # "simple": "apps.phone_notifications.simple_phone_provider.SimplePhoneProvider",
+}
+
+if IS_OPEN_SOURCE:
+    PHONE_PROVIDERS["zvonok"] = "apps.zvonok.phone_provider.ZvonokPhoneProvider"
+
+PHONE_PROVIDER = os.environ.get("PHONE_PROVIDER", default=DEFAULT_PHONE_PROVIDER)
+
+ZVONOK_API_KEY = os.getenv("ZVONOK_API_KEY", None)
+ZVONOK_CAMPAIGN_ID = os.getenv("ZVONOK_CAMPAIGN_ID", None)
+ZVONOK_AUDIO_ID = os.getenv("ZVONOK_AUDIO_ID", None)
+ZVONOK_SPEAKER_ID = os.getenv("ZVONOK_SPEAKER_ID", "Salli")
+ZVONOK_POSTBACK_CALL_ID = os.getenv("ZVONOK_POSTBACK_CALL_ID", "call_id")
+ZVONOK_POSTBACK_CAMPAIGN_ID = os.getenv("ZVONOK_POSTBACK_CAMPAIGN_ID", "campaign_id")
+ZVONOK_POSTBACK_STATUS = os.getenv("ZVONOK_POSTBACK_STATUS", "status")
+ZVONOK_POSTBACK_USER_CHOICE = os.getenv("ZVONOK_POSTBACK_USER_CHOICE", None)
+ZVONOK_POSTBACK_USER_CHOICE_ACK = os.getenv("ZVONOK_POSTBACK_USER_CHOICE_ACK", None)

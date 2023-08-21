@@ -1,62 +1,57 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`PluginState.generateInvalidOnCallApiURLErrorMsg it returns the proper error message - configured through env var: false 1`] = `
-"Could not communicate with your OnCall API at http://hello.com.
-Validate that the URL is correct, your OnCall API is running, and that it is accessible from your Grafana instance."
+"Could not communicate with OnCall API at http://hello.com.
+Validate that the URL is correct, OnCall API is running, and that it is accessible from your Grafana instance."
 `;
 
 exports[`PluginState.generateInvalidOnCallApiURLErrorMsg it returns the proper error message - configured through env var: true 1`] = `
-"Could not communicate with your OnCall API at http://hello.com (NOTE: your OnCall API URL is currently being taken from process.env of your UI).
-Validate that the URL is correct, your OnCall API is running, and that it is accessible from your Grafana instance."
+"Could not communicate with OnCall API at http://hello.com (NOTE: OnCall API URL is currently being taken from process.env of your UI).
+Validate that the URL is correct, OnCall API is running, and that it is accessible from your Grafana instance."
 `;
 
 exports[`PluginState.generateOnCallApiUrlConfiguredThroughEnvVarMsg it returns the proper error message - configured through env var: false 1`] = `""`;
 
-exports[`PluginState.generateOnCallApiUrlConfiguredThroughEnvVarMsg it returns the proper error message - configured through env var: true 1`] = `" (NOTE: your OnCall API URL is currently being taken from process.env of your UI)"`;
+exports[`PluginState.generateOnCallApiUrlConfiguredThroughEnvVarMsg it returns the proper error message - configured through env var: true 1`] = `" (NOTE: OnCall API URL is currently being taken from process.env of your UI)"`;
 
 exports[`PluginState.generateUnknownErrorMsg it returns the proper error message - configured through env var: false 1`] = `
-"An unknown error occured when trying to install the plugin. Are you sure that your OnCall API URL, http://hello.com, is correct?
+"An unknown error occurred when trying to install the plugin. Verify OnCall API URL, http://hello.com, is correct?
 Refresh your page and try again, or try removing your plugin configuration and reconfiguring."
 `;
 
 exports[`PluginState.generateUnknownErrorMsg it returns the proper error message - configured through env var: false 2`] = `
-"An unknown error occured when trying to sync the plugin. Are you sure that your OnCall API URL, http://hello.com, is correct?
+"An unknown error occurred when trying to sync the plugin. Verify OnCall API URL, http://hello.com, is correct?
 Refresh your page and try again, or try removing your plugin configuration and reconfiguring."
 `;
 
 exports[`PluginState.generateUnknownErrorMsg it returns the proper error message - configured through env var: true 1`] = `
-"An unknown error occured when trying to install the plugin. Are you sure that your OnCall API URL, http://hello.com, is correct (NOTE: your OnCall API URL is currently being taken from process.env of your UI)?
+"An unknown error occurred when trying to install the plugin. Verify OnCall API URL, http://hello.com, is correct (NOTE: OnCall API URL is currently being taken from process.env of your UI)?
 Refresh your page and try again, or try removing your plugin configuration and reconfiguring."
 `;
 
 exports[`PluginState.generateUnknownErrorMsg it returns the proper error message - configured through env var: true 2`] = `
-"An unknown error occured when trying to sync the plugin. Are you sure that your OnCall API URL, http://hello.com, is correct (NOTE: your OnCall API URL is currently being taken from process.env of your UI)?
+"An unknown error occurred when trying to sync the plugin. Verify OnCall API URL, http://hello.com, is correct (NOTE: OnCall API URL is currently being taken from process.env of your UI)?
 Refresh your page and try again, or try removing your plugin configuration and reconfiguring."
 `;
 
 exports[`PluginState.getHumanReadableErrorFromOnCallError it handles a 400 network error properly - has custom error message: false 1`] = `
-"An unknown error occured when trying to install the plugin. Are you sure that your OnCall API URL, http://hello.com, is correct (NOTE: your OnCall API URL is currently being taken from process.env of your UI)?
+"An unknown error occurred when trying to install the plugin. Verify OnCall API URL, http://hello.com, is correct (NOTE: OnCall API URL is currently being taken from process.env of your UI)?
 Refresh your page and try again, or try removing your plugin configuration and reconfiguring."
 `;
 
 exports[`PluginState.getHumanReadableErrorFromOnCallError it handles a 400 network error properly - has custom error message: true 1`] = `"ohhhh nooo an error"`;
 
 exports[`PluginState.getHumanReadableErrorFromOnCallError it handles a non-400 network error properly - status code: 409 1`] = `
-"An unknown error occured when trying to install the plugin. Are you sure that your OnCall API URL, http://hello.com, is correct (NOTE: your OnCall API URL is currently being taken from process.env of your UI)?
+"An unknown error occurred when trying to install the plugin. Verify OnCall API URL, http://hello.com, is correct (NOTE: OnCall API URL is currently being taken from process.env of your UI)?
 Refresh your page and try again, or try removing your plugin configuration and reconfiguring."
 `;
 
 exports[`PluginState.getHumanReadableErrorFromOnCallError it handles a non-400 network error properly - status code: 502 1`] = `
-"Could not communicate with your OnCall API at http://hello.com (NOTE: your OnCall API URL is currently being taken from process.env of your UI).
-Validate that the URL is correct, your OnCall API is running, and that it is accessible from your Grafana instance."
+"Could not communicate with OnCall API at http://hello.com (NOTE: OnCall API URL is currently being taken from process.env of your UI).
+Validate that the URL is correct, OnCall API is running, and that it is accessible from your Grafana instance."
 `;
 
 exports[`PluginState.getHumanReadableErrorFromOnCallError it handles an unknown error properly 1`] = `
-"An unknown error occured when trying to install the plugin. Are you sure that your OnCall API URL, http://hello.com, is correct (NOTE: your OnCall API URL is currently being taken from process.env of your UI)?
+"An unknown error occurred when trying to install the plugin. Verify OnCall API URL, http://hello.com, is correct (NOTE: OnCall API URL is currently being taken from process.env of your UI)?
 Refresh your page and try again, or try removing your plugin configuration and reconfiguring."
-`;
-
-exports[`PluginState.pollOnCallDataSyncStatus it returns an error message if the pollCount is greater than 10 1`] = `
-"There was an issue while synchronizing data required for the plugin.
-Verify your OnCall backend setup (ie. that Celery workers are launched and properly configured)"
 `;

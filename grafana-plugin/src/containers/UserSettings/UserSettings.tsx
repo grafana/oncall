@@ -1,15 +1,15 @@
 import React, { useEffect, useState, useCallback } from 'react';
 
-import { Modal } from '@grafana/ui';
+import { HorizontalGroup, Modal } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 import { useMediaQuery } from 'react-responsive';
 
+import Avatar from 'components/Avatar/Avatar';
 import { Tabs, TabsContent } from 'containers/UserSettings/parts';
 import { User as UserType } from 'models/user/user.types';
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
-import { isUserActionAllowed, UserActions } from 'utils/authorization';
 import { BREAKPOINT_TABS } from 'utils/consts';
 
 import { UserSettingsTab } from './UserSettings.types';
@@ -28,7 +28,7 @@ interface UserFormProps {
 
 const UserSettings = observer(({ id, onHide, tab = UserSettingsTab.UserInfo }: UserFormProps) => {
   const store = useStore();
-  const { userStore, teamStore } = store;
+  const { userStore, organizationStore } = store;
 
   const storeUser = userStore.items[id];
   const isCurrent = id === store.userStore.currentUserPk;
@@ -51,20 +51,20 @@ const UserSettings = observer(({ id, onHide, tab = UserSettingsTab.UserInfo }: U
 
   const [showNotificationSettingsTab, showSlackConnectionTab, showTelegramConnectionTab, showMobileAppConnectionTab] = [
     !isDesktopOrLaptop,
-    isCurrent && teamStore.currentTeam?.slack_team_identity && !storeUser.slack_user_identity,
-    isCurrent && !storeUser.telegram_configuration,
-    isCurrent && store.hasFeature(AppFeature.MobileApp) && isUserActionAllowed(UserActions.UserSettingsWrite),
+    isCurrent && organizationStore.currentOrganization?.slack_team_identity && !storeUser.slack_user_identity,
+    isCurrent && store.hasFeature(AppFeature.Telegram) && !storeUser.telegram_configuration,
+    isCurrent,
   ];
+
+  const title = (
+    <HorizontalGroup>
+      <Avatar className={cx('user-avatar')} size="large" src={storeUser.avatar} /> <h2>{storeUser.username}</h2>
+    </HorizontalGroup>
+  );
 
   return (
     <>
-      <Modal
-        title={`${storeUser.username}`}
-        className={cx('modal', 'modal-wide')}
-        isOpen
-        closeOnEscape={false}
-        onDismiss={onHide}
-      >
+      <Modal title={title} className={cx('modal', 'modal-wide')} isOpen closeOnEscape={false} onDismiss={onHide}>
         <div className={cx('root')}>
           <Tabs
             onTabChange={onTabChange}

@@ -3,13 +3,13 @@ import random
 
 from celery import shared_task
 from celery.utils.log import get_task_logger
-from django.apps import apps
 from django.conf import settings
 from django.core.cache import cache
 
 from apps.alerts.models.alert_group_counter import ConcurrentUpdateError
 from apps.alerts.tasks import resolve_alert_group_by_source_if_needed
-from apps.slack.scenarios.scenario_step import SlackAPIException, SlackClientWithErrorHandling
+from apps.slack.slack_client import SlackClientWithErrorHandling
+from apps.slack.slack_client.exceptions import SlackAPIException
 from common.custom_celery_tasks import shared_dedicated_queue_retry_task
 from common.custom_celery_tasks.create_alert_base_task import CreateAlertBaseTask
 
@@ -24,15 +24,14 @@ logger.setLevel(logging.DEBUG)
     max_retries=1 if settings.DEBUG else None,
 )
 def create_alertmanager_alerts(alert_receive_channel_pk, alert, is_demo=False, force_route_id=None):
-    AlertReceiveChannel = apps.get_model("alerts", "AlertReceiveChannel")
-    Alert = apps.get_model("alerts", "Alert")
+    from apps.alerts.models import Alert, AlertReceiveChannel
 
     alert_receive_channel = AlertReceiveChannel.objects_with_deleted.get(pk=alert_receive_channel_pk)
     if (
         alert_receive_channel.deleted_at is not None
         or alert_receive_channel.integration == AlertReceiveChannel.INTEGRATION_MAINTENANCE
     ):
-        logger.info(f"AlertReceiveChannel alert ignored if deleted/maintenance")
+        logger.info("AlertReceiveChannel alert ignored if deleted/maintenance")
         return
 
     try:
@@ -57,9 +56,11 @@ def create_alertmanager_alerts(alert_receive_channel_pk, alert, is_demo=False, f
         return
 
     if alert_receive_channel.allow_source_based_resolving:
-        task = resolve_alert_group_by_source_if_needed.apply_async((alert.group.pk,), countdown=5)
-        alert.group.active_resolve_calculation_id = task.id
-        alert.group.save(update_fields=["active_resolve_calculation_id"])
+        alert_group = alert.group
+        if alert_group.resolved_by != alert_group.NOT_YET_STOP_AUTORESOLVE:
+            task = resolve_alert_group_by_source_if_needed.apply_async((alert.group.pk,), countdown=5)
+            alert.group.active_resolve_calculation_id = task.id
+            alert.group.save(update_fields=["active_resolve_calculation_id"])
 
     logger.info(f"Created alert {alert.pk} for alert group {alert.group.pk}")
 
@@ -81,8 +82,7 @@ def create_alert(
     is_demo=False,
     force_route_id=None,
 ):
-    AlertReceiveChannel = apps.get_model("alerts", "AlertReceiveChannel")
-    Alert = apps.get_model("alerts", "Alert")
+    from apps.alerts.models import Alert, AlertReceiveChannel
 
     try:
         alert_receive_channel = AlertReceiveChannel.objects.get(pk=alert_receive_channel_pk)
@@ -141,7 +141,7 @@ def start_notify_about_integration_ratelimit(team_id, text, **kwargs):
 )
 def notify_about_integration_ratelimit_in_slack(organization_id, text, **kwargs):
     # TODO: Review ratelimits
-    Organization = apps.get_model("user_management", "Organization")
+    from apps.user_management.models import Organization
 
     try:
         organization = Organization.objects.get(pk=organization_id)

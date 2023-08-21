@@ -37,6 +37,7 @@ interface IncidentsFiltersProps extends WithStoreProps {
   value: IncidentsFiltersType;
   onChange: (filters: { [key: string]: any }, isOnMount: boolean) => void;
   query: { [key: string]: any };
+  objectStore: any;
 }
 interface IncidentsFiltersState {
   filterOptions?: FilterOption[];
@@ -57,20 +58,21 @@ class IncidentsFilters extends Component<IncidentsFiltersProps, IncidentsFilters
   searchRef = React.createRef<HTMLInputElement>();
 
   async componentDidMount() {
-    const { query, store } = this.props;
+    const { query, objectStore } = this.props;
 
-    const filterOptions = await makeRequest('/alertgroups/filters/', {});
+    const filterOptions = await makeRequest(objectStore.path + 'filters/', {});
 
     let { filters, values } = parseFilters(query, filterOptions);
 
     if (isEmpty(values)) {
       // TODO fill filters if no filters in query
       let newQuery;
-      if (store.incidentFilters) {
-        newQuery = { ...store.incidentFilters };
+      if (objectStore.incidentFilters) {
+        newQuery = { ...objectStore.incidentFilters };
       } else {
         newQuery = {
-          status: [IncidentStatus.New, IncidentStatus.Acknowledged],
+          team: [],
+          status: [IncidentStatus.Firing, IncidentStatus.Acknowledged],
           mine: false,
         };
       }
@@ -82,12 +84,7 @@ class IncidentsFilters extends Component<IncidentsFiltersProps, IncidentsFilters
   }
 
   render() {
-    return (
-      <div className={cx('root')}>
-        {this.renderFilters()}
-        {this.renderCards()}
-      </div>
-    );
+    return <div className={cx('root')}>{this.renderFilters()}</div>;
   }
 
   renderFilters = () => {
@@ -146,17 +143,17 @@ class IncidentsFilters extends Component<IncidentsFiltersProps, IncidentsFilters
       <div className={cx('cards', 'row')}>
         <div key="new" className={cx('col')}>
           <CardButton
-            icon={<Icon name="bell" size="xxxl" />}
-            description="New alert groups"
+            icon={<Icon name="bell" size="xl" />}
+            description="Firing"
             title={newIncidentsCount}
-            selected={status.includes(IncidentStatus.New)}
-            onClick={this.getStatusButtonClickHandler(IncidentStatus.New)}
+            selected={status.includes(IncidentStatus.Firing)}
+            onClick={this.getStatusButtonClickHandler(IncidentStatus.Firing)}
           />
         </div>
         <div key="acknowledged" className={cx('col')}>
           <CardButton
-            icon={<Icon name="eye" size="xxxl" />}
-            description="Acknowledged alert groups"
+            icon={<Icon name="eye" size="xl" />}
+            description="Acknowledged"
             title={acknowledgedIncidentsCount}
             selected={status.includes(IncidentStatus.Acknowledged)}
             onClick={this.getStatusButtonClickHandler(IncidentStatus.Acknowledged)}
@@ -164,8 +161,8 @@ class IncidentsFilters extends Component<IncidentsFiltersProps, IncidentsFilters
         </div>
         <div key="resolved" className={cx('col')}>
           <CardButton
-            icon={<Icon name="check" size="xxxl" />}
-            description="Resolved alert groups"
+            icon={<Icon name="check" size="xl" />}
+            description="Resolved"
             title={resolvedIncidentsCount}
             selected={status.includes(IncidentStatus.Resolved)}
             onClick={this.getStatusButtonClickHandler(IncidentStatus.Resolved)}
@@ -173,8 +170,8 @@ class IncidentsFilters extends Component<IncidentsFiltersProps, IncidentsFilters
         </div>
         <div key="silenced" className={cx('col')}>
           <CardButton
-            icon={<Icon name="bell-slash" size="xxxl" />}
-            description="Silenced alert groups"
+            icon={<Icon name="bell-slash" size="xl" />}
+            description="Silenced"
             title={silencedIncidentsCount}
             selected={status.includes(IncidentStatus.Silenced)}
             onClick={this.getStatusButtonClickHandler(IncidentStatus.Silenced)}
@@ -238,7 +235,6 @@ class IncidentsFilters extends Component<IncidentsFiltersProps, IncidentsFilters
     const { values, hadInteraction } = this.state;
 
     const autoFocus = Boolean(hadInteraction);
-
     switch (filter.type) {
       case 'options':
         if (filter.options) {
@@ -288,6 +284,21 @@ class IncidentsFilters extends Component<IncidentsFiltersProps, IncidentsFilters
             autoFocus={autoFocus}
             value={values[filter.name]}
             onChange={this.getSearchFilterChangeHandler(filter.name)}
+          />
+        );
+
+      case 'team_select':
+        return (
+          <RemoteSelect
+            autoFocus={autoFocus}
+            className={cx('filter-select')}
+            isMulti
+            fieldToShow="name"
+            valueField="id"
+            href={filter.href.replace('/api/internal/v1', '')}
+            value={values[filter.name]}
+            onChange={this.getRemoteOptionsChangeHandler(filter.name)}
+            getOptionLabel={(item: SelectableValue) => <Emoji text={item.label || ''} />}
           />
         );
 
@@ -395,6 +406,13 @@ class IncidentsFilters extends Component<IncidentsFiltersProps, IncidentsFilters
   getSearchFilterChangeHandler = (name: FilterOption['name']) => {
     return (event: React.ChangeEvent<HTMLInputElement>) => {
       const text = event.target.value;
+      this.onFiltersValueChange(name, text);
+    };
+  };
+
+  getTeamSelectFilterChangeHandler = (name: FilterOption['name']) => {
+    return (value: any) => {
+      const text = value;
       this.onFiltersValueChange(name, text);
     };
   };

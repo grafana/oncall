@@ -20,7 +20,6 @@ logger.setLevel(logging.DEBUG)
 
 
 class UserNotificationPolicyLogRecord(models.Model):
-
     (
         TYPE_PERSONAL_NOTIFICATION_TRIGGERED,
         TYPE_PERSONAL_NOTIFICATION_FINISHED,
@@ -162,7 +161,7 @@ class UserNotificationPolicyLogRecord(models.Model):
         if substitute_author_with_tag:
             user_verbal = "{{author}}"
         elif for_slack:
-            user_verbal = self.author.get_user_verbal_for_team_for_slack()
+            user_verbal = self.author.get_username_with_slack_verbal()
         else:
             user_verbal = self.author.username
 

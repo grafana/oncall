@@ -46,15 +46,8 @@ source_link = None
 
 grouping_id = '{{ payload.get("alert_uid", "")}}'
 
-resolve_condition = """\
-{%- if "is_amixr_heartbeat_restored" in payload -%}
-{# We don't know the payload format from your integration.  #}
-{# The heartbeat alerts will go here so we check for our own key #}
-{{ payload["is_amixr_heartbeat_restored"] }}
-{%- else -%}
-{{ payload.get("state", "").upper() == "OK" }}
-{%- endif %}"""
+resolve_condition = """{{ payload.get("state", "").upper() == "OK" }}"""
 
 acknowledge_condition = None
 
-example_payload = {"message": "This alert was sent by user for the demonstration purposes"}
+example_payload = {"message": "This alert was sent by user for demonstration purposes"}

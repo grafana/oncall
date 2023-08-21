@@ -3,7 +3,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.auth_token.auth import PluginAuthentication
-from common.api_helpers.mixins import NOTIFICATION_CHANNEL_OPTIONS, TEMPLATE_NAME_OPTIONS
+from common.api_helpers.mixins import ALL_TEMPLATE_NAMES, NOTIFICATION_CHANNEL_OPTIONS
 
 
 class PreviewTemplateOptionsView(APIView):
@@ -14,6 +14,6 @@ class PreviewTemplateOptionsView(APIView):
         return Response(
             {
                 "notification_channel_options": NOTIFICATION_CHANNEL_OPTIONS,
-                "template_name_options": TEMPLATE_NAME_OPTIONS,
+                "template_name_options": ALL_TEMPLATE_NAMES,
             }
         )

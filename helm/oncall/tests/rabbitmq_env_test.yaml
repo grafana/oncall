@@ -1,0 +1,271 @@
+suite: test Rabbitmq configs for deployments
+templates:
+  - engine/deployment.yaml
+  - engine/job-migrate.yaml
+  - celery/deployment-celery.yaml
+  - secrets.yaml
+release:
+  name: oncall
+tests:
+  - it: rabbitmq.enabled=true -> should use default values from rabbitmq subchart
+    templates:
+      - engine/deployment.yaml
+      - engine/job-migrate.yaml
+      - celery/deployment-celery.yaml
+    set:
+      broker.type: rabbitmq
+      rabbitmq.enabled: true
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: BROKER_TYPE
+            value: rabbitmq
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: RABBITMQ_USERNAME
+            value: user
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: BROKER_TYPE
+            value: rabbitmq
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: RABBITMQ_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                key: rabbitmq-password
+                name: oncall-rabbitmq
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: RABBITMQ_HOST
+            value: oncall-rabbitmq
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: RABBITMQ_PORT
+            value: "5672"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: RABBITMQ_PROTOCOL
+            value: amqp
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: RABBITMQ_VHOST
+            value: ""
+
+  - it: rabbitmq.enabled=true -> should use custom auth values from rabbitmq subchart
+    templates:
+      - engine/deployment.yaml
+      - engine/job-migrate.yaml
+      - celery/deployment-celery.yaml
+    set:
+      broker.type: rabbitmq
+      rabbitmq.enabled: true
+      rabbitmq:
+        auth:
+          username: test_user
+          password: test_password
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: BROKER_TYPE
+            value: rabbitmq
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: RABBITMQ_USERNAME
+            value: user
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: RABBITMQ_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                key: rabbitmq-password
+                name: oncall-rabbitmq
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: RABBITMQ_HOST
+            value: oncall-rabbitmq
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: RABBITMQ_PORT
+            value: "5672"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: RABBITMQ_PROTOCOL
+            value: amqp
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: RABBITMQ_VHOST
+            value: ""
+
+  - it: rabbitmq.enabled=false -> should fail if not externalRabbitmq.existingSecret or not externalRabbitmq.password
+    templates:
+      - engine/deployment.yaml
+      - engine/job-migrate.yaml
+      - celery/deployment-celery.yaml
+    set:
+      broker.type: rabbitmq
+      rabbitmq.enabled: false
+      asserts:
+        - failedTemplate:
+            errorMessage: >
+              externalRabbitmq.password is required if not rabbitmq.enabled and not externalRabbitmq.existingSecret
+          template: secrets.yaml
+
+  - it: rabbitmq.enabled=false -> should use internal custom values
+    templates:
+      - engine/deployment.yaml
+      - engine/job-migrate.yaml
+      - celery/deployment-celery.yaml
+    set:
+      broker.type: rabbitmq
+      rabbitmq.enabled: false
+      externalRabbitmq:
+        host: custom-host
+        port: custom-port
+        user: custom-user
+        password: custom-password
+        protocol: custom-protocol
+        vhost: custom-vhost
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: BROKER_TYPE
+            value: rabbitmq
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: RABBITMQ_USERNAME
+            value: custom-user
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: RABBITMQ_HOST
+            value: custom-host
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: RABBITMQ_PORT
+            value: custom-port
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: RABBITMQ_PROTOCOL
+            value: custom-protocol
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: RABBITMQ_VHOST
+            value: custom-vhost
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: RABBITMQ_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                key: rabbitmq-password
+                name: oncall-rabbitmq-external
+      - containsDocument:
+          kind: Secret
+          apiVersion: v1
+          name: oncall-rabbitmq-external
+        template: secrets.yaml
+      - equal:
+          path: data.rabbitmq-password
+          value: custom-password
+          decodeBase64: true
+        documentIndex: 1
+        template: secrets.yaml
+
+  - it: rabbitmq.enabled=false -> should use default internal values and auth from existing secret
+    templates:
+      - engine/deployment.yaml
+      - engine/job-migrate.yaml
+      - celery/deployment-celery.yaml
+    set:
+      broker.type: rabbitmq
+      rabbitmq.enabled: false
+      externalRabbitmq:
+        host: some-rabbitmq-host
+        existingSecret: existing-secret
+        passwordKey: password-key
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: RABBITMQ_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: existing-secret
+                key: password-key
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: BROKER_TYPE
+            value: rabbitmq
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: RABBITMQ_USERNAME
+            valueFrom:
+              secretKeyRef:
+                key: username
+                name: existing-secret
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: RABBITMQ_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                key: password-key
+                name: existing-secret
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: RABBITMQ_HOST
+            value: some-rabbitmq-host
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: RABBITMQ_PORT
+            value: "5672"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: RABBITMQ_PROTOCOL
+            value: amqp
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: RABBITMQ_VHOST
+            value: ""
+  - it: rabbitmq.enabled=false -> should fail if host is missing
+    templates:
+      - engine/deployment.yaml
+      - engine/job-migrate.yaml
+      - celery/deployment-celery.yaml
+    set:
+      broker.type: rabbitmq
+      rabbitmq.enabled: false
+      externalRabbitmq:
+        existingSecret: existing-secret
+        passwordKey: password-key
+    asserts:
+      - failedTemplate:
+          errorMessage: externalRabbitmq.host is required if not rabbitmq.enabled
+        template: engine/job-migrate.yaml

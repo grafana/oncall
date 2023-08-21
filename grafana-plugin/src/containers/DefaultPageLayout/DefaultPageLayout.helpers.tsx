@@ -1,19 +1,19 @@
 import React from 'react';
 
 import PluginLink from 'components/PluginLink/PluginLink';
-import { Team } from 'models/team/team.types';
+import { Organization } from 'models/organization/organization.types';
 
 import { SlackError } from './DefaultPageLayout.types';
 
-export function getSlackMessage(slackError: SlackError, team: Team, hasLiveSettingsFeature: boolean) {
+export function getSlackMessage(slackError: SlackError, organization: Organization, hasLiveSettingsFeature: boolean) {
   if (slackError === SlackError.WRONG_WORKSPACE) {
     return (
       <>
         Couldn't connect Slack.
-        {Boolean(team?.slack_team_identity) && (
+        {Boolean(organization?.slack_team_identity) && (
           <>
             {' '}
-            Select <b>{team.slack_team_identity.cached_name}</b> workspace when connecting please
+            Select <b>{organization.slack_team_identity.cached_name}</b> workspace when connecting please
           </>
         )}
       </>
@@ -37,6 +37,12 @@ export function getSlackMessage(slackError: SlackError, team: Team, hasLiveSetti
           </>
         )}
       </>
+    );
+  }
+
+  if (slackError === SlackError.REGION_ERROR) {
+    return (
+      <>Couldn't connect to Slack. Slack workspace has already been connected to OnCall instance in another region.</>
     );
   }
 

@@ -1,12 +1,11 @@
+import datetime
 from uuid import uuid4
 
 import humanize
 import pytz
-from django.apps import apps
 from django.db import models, transaction
 from django.utils import timezone
 
-from apps.slack.scenarios.scenario_step import ScenarioStep
 from common.exceptions import MaintenanceCouldNotBeStartedError
 from common.insight_log import MaintenanceEvent, write_maintenance_insight_log
 
@@ -15,11 +14,11 @@ class MaintainableObject(models.Model):
     class Meta:
         abstract = True
 
-    DURATION_ONE_HOUR = timezone.timedelta(hours=1)
-    DURATION_THREE_HOURS = timezone.timedelta(hours=3)
-    DURATION_SIX_HOURS = timezone.timedelta(hours=6)
-    DURATION_TWELVE_HOURS = timezone.timedelta(hours=12)
-    DURATION_TWENTY_FOUR_HOURS = timezone.timedelta(hours=24)
+    DURATION_ONE_HOUR = datetime.timedelta(hours=1)
+    DURATION_THREE_HOURS = datetime.timedelta(hours=3)
+    DURATION_SIX_HOURS = datetime.timedelta(hours=6)
+    DURATION_TWELVE_HOURS = datetime.timedelta(hours=12)
+    DURATION_TWENTY_FOUR_HOURS = datetime.timedelta(hours=24)
 
     MAINTENANCE_DURATION_CHOICES = (
         (DURATION_ONE_HOUR, "1 hour"),
@@ -67,21 +66,8 @@ class MaintainableObject(models.Model):
     def notify_about_maintenance_action(self, text, send_to_general_log_channel=True):
         raise NotImplementedError
 
-    def send_maintenance_incident(self, organization, group, alert):
-        slack_team_identity = organization.slack_team_identity
-        if slack_team_identity is not None:
-            channel_id = organization.general_log_channel_id
-            attachments = group.render_slack_attachments()
-            blocks = group.render_slack_blocks()
-            AlertShootingStep = ScenarioStep.get_step("distribute_alerts", "AlertShootingStep")
-            AlertShootingStep(slack_team_identity, organization).publish_slack_messages(
-                slack_team_identity, group, alert, attachments, channel_id, blocks
-            )
-
     def start_maintenance(self, mode, maintenance_duration, user):
-        AlertGroup = apps.get_model("alerts", "AlertGroup")
-        AlertReceiveChannel = apps.get_model("alerts", "AlertReceiveChannel")
-        Alert = apps.get_model("alerts", "Alert")
+        from apps.alerts.models import Alert, AlertGroup, AlertReceiveChannel
 
         with transaction.atomic():
             _self = self.__class__.objects.select_for_update().get(pk=self.pk)
@@ -90,7 +76,7 @@ class MaintainableObject(models.Model):
             organization = _self.get_organization()
             team = _self.get_team()
             verbal = _self.get_verbal()
-            user_verbal = user.get_user_verbal_for_team_for_slack()
+            user_verbal = user.get_username_with_slack_verbal()
             duration_verbal = humanize.naturaldelta(maintenance_duration)
             # NOTE: there could be multiple maintenance integrations in case of a race condition
             # (no constraints at the db level, it shouldn't be an issue functionality-wise)
@@ -109,7 +95,7 @@ class MaintainableObject(models.Model):
 
             maintenance_uuid = _self.start_disable_maintenance_task(maintenance_duration)
 
-            _self.maintenance_duration = timezone.timedelta(seconds=maintenance_duration)
+            _self.maintenance_duration = datetime.timedelta(seconds=maintenance_duration)
             _self.maintenance_uuid = maintenance_uuid
             _self.maintenance_mode = mode
             _self.maintenance_started_at = timezone.now()
@@ -129,7 +115,7 @@ class MaintainableObject(models.Model):
             self.maintenance_started_at = _self.maintenance_started_at
             self.maintenance_author = _self.maintenance_author
             if mode == AlertReceiveChannel.MAINTENANCE:
-                group = AlertGroup.all_objects.create(
+                group = AlertGroup.objects.create(
                     distinction=uuid4(),
                     web_title_cache=f"Maintenance of {verbal} for {maintenance_duration}",
                     maintenance_uuid=maintenance_uuid,
@@ -142,6 +128,7 @@ class MaintainableObject(models.Model):
                     f" During this time all alerts from integration will be collected here without escalations"
                 )
                 alert = Alert(
+                    is_the_first_alert_in_group=True,
                     is_resolve_signal=False,
                     title=title,
                     message=message,
@@ -154,7 +141,6 @@ class MaintainableObject(models.Model):
                 alert.save()
         write_maintenance_insight_log(self, user, MaintenanceEvent.STARTED)
         if mode == AlertReceiveChannel.MAINTENANCE:
-            self.send_maintenance_incident(organization, group, alert)
             self.notify_about_maintenance_action(
                 f"Maintenance of {verbal}. Initiated by {user_verbal} for {duration_verbal}.",
                 send_to_general_log_channel=False,

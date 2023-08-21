@@ -2,7 +2,6 @@ import logging
 
 from celery import uuid as celery_uuid
 from celery.utils.log import get_task_logger
-from django.apps import apps
 from django.conf import settings
 from telegram import error
 
@@ -83,11 +82,11 @@ def edit_message(self, message_pk):
 def send_link_to_channel_message_or_fallback_to_full_alert_group(
     self, alert_group_pk, notification_policy_pk, user_connector_pk
 ):
-    TelegramToUserConnector = apps.get_model("telegram", "TelegramToUserConnector")
+    from apps.telegram.models import TelegramToUserConnector
 
     try:
         user_connector = TelegramToUserConnector.objects.get(pk=user_connector_pk)
-        alert_group = AlertGroup.all_objects.get(pk=alert_group_pk)
+        alert_group = AlertGroup.objects.get(pk=alert_group_pk)
         notification_policy = UserNotificationPolicy.objects.get(pk=notification_policy_pk)
 
         # probably telegram message just didn't appear in Telegram channel yet

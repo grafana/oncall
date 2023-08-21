@@ -14,7 +14,7 @@ def test_render_for_phone_call(
     make_alert,
 ):
     organization, _ = make_organization_with_slack_team_identity()
-    alert_receive_channel = make_alert_receive_channel(organization, integration_slack_channel_id="CWER1ASD")
+    alert_receive_channel = make_alert_receive_channel(organization)
 
     alert_group = make_alert_group(alert_receive_channel)
     SlackMessage.objects.create(channel_id="CWER1ASD", alert_group=alert_group)
@@ -33,12 +33,11 @@ def test_render_for_phone_call(
             "startsAt": "2018-12-25T15:47:47.377363608Z",
             "endsAt": "0001-01-01T00:00:00Z",
             "generatorURL": "",
-            "amixr_demo": True,
         },
     )
 
     expected_verbose_name = (
-        f"You are invited to check an incident from Grafana OnCall. "
+        f"to check an Alert Group from Grafana OnCall. "
         f"Alert via {alert_receive_channel.verbal_name} - Grafana with title TestAlert triggered 1 times"
     )
     rendered_text = AlertGroupPhoneCallRenderer(alert_group).render()
@@ -60,7 +59,7 @@ def test_delete(
     slack_channel = make_slack_channel(slack_team_identity, name="general", slack_id="CWER1ASD")
     user = make_user(organization=organization)
 
-    alert_receive_channel = make_alert_receive_channel(organization, integration_slack_channel_id="CWER1ASD")
+    alert_receive_channel = make_alert_receive_channel(organization)
 
     alert_group = make_alert_group(alert_receive_channel)
     SlackMessage.objects.create(channel_id="CWER1ASD", alert_group=alert_group)
@@ -94,3 +93,26 @@ def test_delete(
 
     with pytest.raises(AlertGroup.DoesNotExist):
         alert_group.refresh_from_db()
+
+
+@pytest.mark.django_db
+def test_alerts_count_gt(
+    make_organization,
+    make_alert_receive_channel,
+    make_alert_group,
+    make_alert,
+):
+    organization = make_organization()
+    alert_receive_channel = make_alert_receive_channel(organization)
+
+    alert_group = make_alert_group(alert_receive_channel)
+
+    # Check case when there is no alerts
+    assert alert_group.alerts_count_gt(1) is False
+
+    make_alert(alert_group, raw_request_data={})
+    make_alert(alert_group, raw_request_data={})
+
+    assert alert_group.alerts_count_gt(1) is True
+    assert alert_group.alerts_count_gt(2) is False
+    assert alert_group.alerts_count_gt(3) is False

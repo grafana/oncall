@@ -1,0 +1,33 @@
+suite: test image and imagePullPolicy for deployments
+templates:
+  - celery/deployment-celery.yaml
+  - engine/deployment.yaml
+  - engine/job-migrate.yaml
+release:
+  name: oncall
+tests:
+  - it: tolerations={} -> should set tolerations null
+    asserts:
+      - notExists:
+          path: spec.template.spec.tolerations
+
+  - it: tolerations -> should use custom tolerations
+    set:
+      migrate:
+        tolerations:
+          - key: "node-role.kubernetes.io/unittest"
+            operator: "Exists"
+            effect: "NoSchedule"
+      engine:
+        tolerations:
+          - key: "node-role.kubernetes.io/unittest"
+            operator: "Exists"
+            effect: "NoSchedule"
+      celery:
+        tolerations:
+          - key: "node-role.kubernetes.io/unittest"
+            operator: "Exists"
+            effect: "NoSchedule"
+    asserts:
+      - matchSnapshot:
+          path: spec.template.spec.tolerations

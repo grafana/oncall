@@ -2,10 +2,12 @@
 
 - [Running the project](#running-the-project)
   - [`COMPOSE_PROFILES`](#compose_profiles)
-  - [`GRAFANA_VERSION`](#grafana_version)
+  - [`GRAFANA_IMAGE`](#grafana_image)
   - [Configuring Grafana](#configuring-grafana)
+  - [Enabling RBAC for OnCall for local development](#enabling-rbac-for-oncall-for-local-development)
   - [Django Silk Profiling](#django-silk-profiling)
   - [Running backend services outside Docker](#running-backend-services-outside-docker)
+- [UI E2E Tests](#ui-e2e-tests)
 - [Useful `make` commands](#useful-make-commands)
 - [Setting environment variables](#setting-environment-variables)
 - [Slack application setup](#slack-application-setup)
@@ -20,6 +22,7 @@
   - [symbol not found in flat namespace '\_EVP_DigestSignUpdate'](#symbol-not-found-in-flat-namespace-_evp_digestsignupdate)
 - [IDE Specific Instructions](#ide-specific-instructions)
   - [PyCharm](#pycharm)
+- [How to write database migrations](#how-to-write-database-migrations)
 
 Related: [How to develop integrations](/engine/config_integrations/README.md)
 
@@ -32,15 +35,15 @@ environment variable.
    **NOTE**: the `docker-compose-developer.yml` file uses some syntax/features that are only supported by Docker Compose
    v2. For instructions on how to enable this (if you haven't already done so),
    see [here](https://www.docker.com/blog/announcing-compose-v2-general-availability/). Ensure you have Docker Compose
-   version 2.10 or above installed - update instructions are [here](https://docs.docker.com/compose/install/linux/).
+   version 2.20.2 or above installed - update instructions are [here](https://docs.docker.com/compose/install/linux/).
 2. Run `make init start`. By default this will run everything in Docker, using SQLite as the database and Redis as the
    message broker/cache. See [`COMPOSE_PROFILES`](#compose_profiles) below for more details on how to swap
    out/disable which components are run in Docker.
 3. Open Grafana in a browser [here](http://localhost:3000/plugins/grafana-oncall-app) (login: `oncall`, password: `oncall`).
-4. You should now see the OnCall plugin configuration page.  You may safely ignore the warning about the invalid
-   plugin signature.  When opening the main plugin page, you may also ignore warnings about version mismatch and lack of
-   communication channels.
-5. Enjoy! Check our [OSS docs](https://grafana.com/docs/grafana-cloud/oncall/open-source/) if you want to set up Slack,
+4. You should now see the OnCall plugin configuration page. You may safely ignore the warning about the invalid
+   plugin signature. Set "OnCall backend URL" as "http://host.docker.internal:8080". When opening the main plugin page,
+   you may also ignore warnings about version mismatch and lack of communication channels.
+5. Enjoy! Check our [OSS docs](https://grafana.com/docs/oncall/latest/open-source/) if you want to set up Slack,
    Telegram, Twilio or SMS/calls through Grafana Cloud.
 6. (Optional) Install `pre-commit` hooks by running `make install-precommit-hook`
 
@@ -65,6 +68,7 @@ make start COMPOSE_PROFILES=postgres,engine,grafana,rabbitmq
 The possible profiles values are:
 
 - `grafana`
+- `prometheus`
 - `engine`
 - `oncall_ui`
 - `redis`
@@ -78,11 +82,11 @@ The default is `engine,oncall_ui,redis,grafana`. This runs:
 - Redis as the Celery message broker/cache
 - a Grafana container
 
-### `GRAFANA_VERSION`
+### `GRAFANA_IMAGE`
 
-If you would like to change the version of Grafana being run, simply pass in a `GRAFANA_VERSION` environment variable
-to `make start` (or alternatively set it in your `.env.dev` file). The value of this environment variable should be a
-valid `grafana/grafana` published Docker [image tag](https://hub.docker.com/r/grafana/grafana/tags).
+If you would like to change the image or version of Grafana being run, simply pass in a `GRAFANA_IMAGE` environment variable
+to `make start` (or alternatively set it in your root `.env` file). The value of this environment variable should be a
+valid `grafana` image/tag combination (ex. `grafana:main` or `grafana-enterprise:latest`).
 
 ### Configuring Grafana
 
@@ -94,19 +98,68 @@ The following commands assume you run them from the root of the project:
 ```bash
 touch ./dev/grafana.dev.ini
 # make desired changes to ./dev/grafana.dev.ini then run
-touch .env && ./dev/add_env_var.sh GRAFANA_DEV_PROVISIONING ./dev/grafana.dev.ini .env
+touch .env && ./dev/add_env_var.sh GRAFANA_DEV_PROVISIONING ./dev/grafana/grafana.dev.ini .env
 ```
 
-The next time you start the project via `docker-compose`, the `grafana` container will have `./dev/grafana.dev.ini`
+For example, if you would like to enable the `topnav` feature toggle, you can modify your `./dev/grafana.dev.ini` as
+such:
+
+```ini
+[feature_toggles]
+enable = top_nav
+```
+
+The next time you start the project via `docker-compose`, the `grafana` container will have `./dev/grafana/grafana.dev.ini`
 volume mounted inside the container.
+
+#### Modifying Provisioning Configuration
+
+Files under `./dev/grafana/provisioning` are volume mounted into your Grafana container and allow you to easily
+modify the instance's provisioning configuration. See the Grafana docs [here](https://grafana.com/docs/grafana/latest/administration/provisioning/#:~:text=You%20can%20manage%20data%20sources,match%20the%20provisioned%20configuration%20file.)
+for more information.
+
+### Enabling RBAC for OnCall for local development
+
+To run the project locally w/ RBAC for OnCall enabled, you will first need to run a `grafana-enterprise` container,
+instead of a `grafana` container. See the instructions [here](#grafana_image) on how to do so.
+
+Next, you will need to follow the steps [here](https://grafana.com/docs/grafana/latest/administration/enterprise-licensing/)
+on setting up/downloading a Grafana Enterprise license.
+
+Lastly, you will need to modify the instance's configuration. Follow the instructions [here](#configuring-grafana) on
+how to do so. You can modify your configuration file (`./dev/grafana.dev.ini`) as such:
+
+```ini
+[rbac]
+enabled = true
+
+[feature_toggles]
+enable = accessControlOnCall
+
+[server]
+root_url = https://<your-stack-slug>.grafana.net/
+
+[enterprise]
+license_text = <content-of-the-license-jwt-that-you-downloaded>
+```
+
+(_Note_: you may need to restart your `grafana` container after modifying its configuration)
+
+### Enabling OnCall prometheus exporter for local development
+
+Add `prometheus` to your `COMPOSE_PROFILES` and set `FEATURE_PROMETHEUS_EXPORTER_ENABLED=True` in your
+`dev/.env.dev` file. You may need to restart your `grafana` container to make sure the new datasource
+is added (or add it manually using the UI; Prometheus will be running in `host.docker.internal:9090`
+by default, using default settings).
 
 ### Django Silk Profiling
 
 In order to setup [`django-silk`](https://github.com/jazzband/django-silk) for local profiling, perform the following
 steps:
 
-1. `make engine-manage CMD="createsuperuser"` - follow CLI prompts to create a Django superuser
-2. Visit <http://localhost:8080/django-admin> and login using the credentials you created in step #2
+1. `make backend-debug-enable`
+2. `make engine-manage CMD="createsuperuser"` - follow CLI prompts to create a Django superuser
+3. Visit <http://localhost:8080/django-admin> and login using the credentials you created in step #2
 
 You should now be able to visit <http://localhost:8080/silk/> and see the Django Silk UI.
 See the `django-silk` documentation [here](https://github.com/jazzband/django-silk) for more information.
@@ -116,8 +169,8 @@ See the `django-silk` documentation [here](https://github.com/jazzband/django-si
 By default everything runs inside Docker. If you would like to run the backend services outside of Docker
 (for integrating w/ PyCharm for example), follow these instructions:
 
-1. Create a Python 3.9 virtual environment using a method of your choosing (ex.
-   [venv](https://docs.python.org/3.9/library/venv.html) or [pyenv-virtualenv](https://github.com/pyenv/pyenv-virtualenv)).
+1. Create a Python 3.11 virtual environment using a method of your choosing (ex.
+   [venv](https://docs.python.org/3.11/library/venv.html) or [pyenv-virtualenv](https://github.com/pyenv/pyenv-virtualenv)).
    Make sure the virtualenv is "activated".
 2. `postgres` is a dependency on some of our Python dependencies (notably `psycopg2`
    ([docs](https://www.psycopg.org/docs/install.html#prerequisites))). Please visit
@@ -136,43 +189,24 @@ By default everything runs inside Docker. If you would like to run the backend s
 - `make run-backend-server` - runs the HTTP server
 - `make run-backend-celery` - runs Celery workers
 
-## Useful `make` commands
+## UI E2E Tests
 
-See [`COMPOSE_PROFILES`](#compose_profiles) for more information on what this option is and how to configure it.
+We've developed a suite of "end-to-end" integration tests using [Playwright](https://playwright.dev/). These tests
+are run on pull request CI builds. New features should ideally include a new/modified integration test.
+
+To run these tests locally simply do the following:
 
 ```bash
-make init # build the frontend plugin code then run make start
-make start # start all of the docker containers
-make stop # stop all of the docker containers
-make restart # restart all docker containers
-make build # rebuild images (e.g. when changing requirements.txt)
-# run Django's `manage.py` script, inside of a docker container, passing `$CMD` as arguments.
-# e.g. `make engine-manage CMD="makemigrations"` - https://docs.djangoproject.com/en/4.1/ref/django-admin/#django-admin-makemigrations
-make engine-manage CMD="..."
-# sets a feature flag, related to mobile app backend functionality, in your ./dev/.env.dev
-# and sets the necessary database values
-# NOTE: you need to enable, and configure, the plugin before running this command
-make enable-mobile-app-feature-flags
-
-# this will remove all of the images, containers, volumes, and networks
-# associated with your local OnCall developer setup
-make cleanup
-
-make start-celery-beat # start celery beat
-make purge-queues # purge celery queues
-make shell # starts an OnCall engine Django shell
-make dbshell # opens a DB shell
-make exec-engine # exec into engine container's bash
-make test # run backend tests
-
-# run Django's `manage.py` script, passing `$CMD` as arguments.
-# e.g. `make backend-manage-command CMD="makemigrations"` - https://docs.djangoproject.com/en/4.1/ref/django-admin/#django-admin-makemigrations
-make backend-manage-command CMD="..."
-
-# run both frontend and backend linters
-# may need to run `yarn install` from within `grafana-plugin` to install several `pre-commit` dependencies
-make lint
+npx playwright install  # install playwright dependencies
+cp ./grafana-plugin/e2e-tests/.env.example ./grafana-plugin/e2e-tests/.env
+# you may need to tweak the values in ./grafana-plugin/.env according to your local setup
+cd grafana-plugin
+yarn test:e2e
 ```
+
+## Useful `make` commands
+
+> 🚶‍This part was moved to `make help` command. Run it to see all the available commands and their descriptions
 
 ## Setting environment variables
 
@@ -182,7 +216,7 @@ and also overrides any defaults that are set in other `.env*` files
 
 ## Slack application setup
 
-For Slack app configuration check our docs: <https://grafana.com/docs/grafana-cloud/oncall/open-source/#slack-setup>
+For Slack app configuration check our docs: <https://grafana.com/docs/oncall/latest/open-source/#slack-setup>
 
 ## Update drone build
 
@@ -241,25 +275,17 @@ ERROR: Failed building wheel for cryptography
 
 **Solution:**
 
-<!-- markdownlint-disable MD013 -->
-
 ```bash
 LDFLAGS="-L$(brew --prefix openssl@1.1)/lib" CFLAGS="-I$(brew --prefix openssl@1.1)/include" pip install `cat engine/requirements.txt | grep cryptography`
 ```
-
-<!-- markdownlint-enable MD013 -->
 
 ### django.db.utils.OperationalError: (1366, "Incorrect string value")
 
 **Problem:**
 
-<!-- markdownlint-disable MD013 -->
-
 ```bash
 django.db.utils.OperationalError: (1366, "Incorrect string value: '\\xF0\\x9F\\x98\\x8A\\xF0\\x9F...' for column 'cached_name' at row 1")
 ```
-
-<!-- markdownlint-enable MD013 -->
 
 **Solution:**
 
@@ -293,14 +319,10 @@ $ CDPATH="" make init
 
 When running `make init start`:
 
-<!-- markdownlint-disable MD013 -->
-
 ```bash
 Error response from daemon: open /var/lib/docker/overlay2/ac57b871108ee1b98ff4455e36d2175eae90cbc7d4c9a54608c0b45cfb7c6da5/committed: is a directory
 make: *** [start] Error 1
 ```
-
-<!-- markdownlint-enable MD013 -->
 
 **Solution:**
 clear everything in docker by resetting or:
@@ -348,8 +370,6 @@ See solution for "Encountered error while trying to install package - grpcio" [h
 This problem seems to occur when running the Celery process, outside of `docker-compose`
 (via `make run-backend-celery`), and using a `conda` virtual environment.
 
-<!-- markdownlint-disable MD013 -->
-
 ```bash
 conda create --name oncall-dev python=3.9.13
 conda activate oncall-dev
@@ -367,8 +387,6 @@ File "~/oncall/engine/engine/__init__.py", line 5, in <module>
     from grpc._cython import cygrpc
 ImportError: dlopen(/opt/homebrew/Caskroom/miniconda/base/envs/oncall-dev/lib/python3.9/site-packages/grpc/_cython/cygrpc.cpython-39-darwin.so, 0x0002): symbol not found in flat namespace '_EVP_DigestSignUpdate'
 ```
-
-<!-- markdownlint-enable MD013 -->
 
 **Solution:**
 
@@ -397,3 +415,44 @@ make run-backend-celery
 5. Create a new Django Server run configuration to Run/Debug the engine
    - Use a plugin such as EnvFile to load the .env.dev file
    - Change port from 8000 to 8080
+
+## How to write database migrations
+
+We use [django-migration-linter](https://github.com/3YOURMIND/django-migration-linter) to keep database migrations
+backwards compatible
+
+- we can automatically run migrations and they are zero-downtime, e.g. old code can work with the migrated database
+- we can run and rollback migrations without worrying about data safety
+- OnCall is deployed to the multiple environments core team is not able to control
+
+See [django-migration-linter checklist](https://github.com/3YOURMIND/django-migration-linter/blob/main/docs/incompatibilities.md)
+for the common mistakes and best practices
+
+### Removing a nullable field from a model
+
+> This only works for nullable fields (fields with `null=True` in the field definition).
+>
+> DO NOT USE THIS APPROACH FOR NON-NULLABLE FIELDS, IT CAN BREAK THINGS!
+
+1. Remove all usages of the field you want to remove. Make sure the field is not used anywhere, including filtering,
+querying, or explicit field referencing from views, models, forms, serializers, etc.
+2. Remove the field from the model definition.
+3. Generate migrations using the following management command:
+
+    ```python
+    python manage.py remove_field <APP_LABEL> <MODEL_NAME> <FIELD_NAME>
+    ```
+
+    Example: `python manage.py remove_field alerts AlertReceiveChannel restricted_at`
+
+    This command will generate two migrations that **MUST BE DEPLOYED IN TWO SEPARATE RELEASES**:
+   - Migration #1 will remove the field from Django's state, but not from the database. Release #1 must include
+   migration #1, and must not include migration #2.
+   - Migration #2 will remove the field from the database. Stash this migration for use in a future release.
+
+4. Make release #1 (removal of the field + migration #1). Once released and deployed, Django will not be
+aware of this field anymore, but the field will be still present in the database. This allows for a gradual migration,
+where the field is no longer used in new code, but still exists in the database for backward compatibility with old code.
+5. In any subsequent release, include migration #2 (the one that removes the field from the database).
+6. After releasing and deploying migration #2, the field will be removed both from the database and Django state,
+without backward compatibility issues or downtime 🎉
