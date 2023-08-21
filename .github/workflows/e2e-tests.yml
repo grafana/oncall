@@ -186,7 +186,7 @@ jobs:
         working-directory: ./grafana-plugin
         run: yarn test:e2e-expensive
 
-      # spit out the db migrate, engine, celery, and grafana logs, if the the e2e tests have failed (or were flaky)
+      # spit out the engine, celery, and grafana logs, if the the e2e tests have failed (or were flaky)
       # can be helpful for debugging these tests
       # GitHub Action reference: https://github.com/jupyterhub/action-k8s-namespace-report
       - name: oncall-engine logs
