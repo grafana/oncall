@@ -186,7 +186,6 @@ class Users extends React.Component<UsersProps, UsersState> {
 
     const { usersFilters, page, initialUsersLoaded, userPkToEdit, queuedUpdateUsers } = this.state;
 
-
     const { count, results } = userStore.getSearchResult();
     const columns = this.getTableColumns();
 
@@ -428,7 +427,7 @@ class Users extends React.Component<UsersProps, UsersState> {
   }
 
   handleChangePage = (page: number) => {
-    this.setState({ page }, this.debouncedUpdateUsers);
+    this.setState({ page }, this.updateUsers);
   };
 
   debouncedUpdateUsers = debounce(this.updateUsers, 500);
