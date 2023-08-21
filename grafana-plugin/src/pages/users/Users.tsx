@@ -47,28 +47,34 @@ interface UsersState extends PageBaseState {
     searchTerm: string;
   };
   initialUsersLoaded: boolean;
+  queuedUpdateUsers: boolean;
 }
 
 @observer
 class Users extends React.Component<UsersProps, UsersState> {
-  state: UsersState = {
-    page: 1,
-    isWrongTeam: false,
-    userPkToEdit: undefined,
-    usersFilters: {
-      searchTerm: '',
-    },
+  constructor(props: UsersProps) {
+    super(props);
 
-    errorData: initErrorDataState(),
-    initialUsersLoaded: false,
-  };
-
-  async componentDidMount() {
     const {
       query: { p },
-    } = this.props;
-    this.setState({ page: p ? Number(p) : 1 }, this.updateUsers);
+    } = props;
 
+    this.state = {
+      page: p ? Number(p) : 1,
+      isWrongTeam: false,
+      userPkToEdit: undefined,
+      usersFilters: {
+        searchTerm: '',
+      },
+
+      errorData: initErrorDataState(),
+      initialUsersLoaded: false,
+      queuedUpdateUsers: false,
+    };
+  }
+
+  async componentDidMount() {
+    this.updateUsers();
     this.parseParams();
   }
 
@@ -84,14 +90,14 @@ class Users extends React.Component<UsersProps, UsersState> {
     LocationHelper.update({ p: page }, 'partial');
     await userStore.updateItems(usersFilters, page);
 
-    this.setState({ initialUsersLoaded: true });
+    this.setState({ initialUsersLoaded: true }, () => {
+      if (this.state.queuedUpdateUsers) {
+        this.updateUsers();
+      }
+    });
   };
 
   componentDidUpdate(prevProps: UsersProps) {
-    if (!this.state.initialUsersLoaded) {
-      this.updateUsers();
-    }
-
     if (prevProps.match.params.id !== this.props.match.params.id) {
       this.parseParams();
     }
@@ -181,9 +187,12 @@ class Users extends React.Component<UsersProps, UsersState> {
     const { count, results } = userStore.getSearchResult();
     const columns = this.getTableColumns();
 
+    // disable search until we get all users retrieved so that there's no conflict on update
+    const isSearchDisabled = !initialUsersLoaded;
+
     const handleClear = () =>
       this.setState({ usersFilters: { searchTerm: '' } }, () => {
-        this.debouncedUpdateUsers();
+        this.updateUsers();
       });
 
     return (
@@ -195,6 +204,7 @@ class Users extends React.Component<UsersProps, UsersState> {
                 className={cx('users-filters')}
                 value={usersFilters}
                 onChange={this.handleUsersFiltersChange}
+                isLoading={isSearchDisabled}
               />
               <Button variant="secondary" icon="times" onClick={handleClear} className={cx('searchIntegrationClear')}>
                 Clear filters
@@ -418,13 +428,16 @@ class Users extends React.Component<UsersProps, UsersState> {
   }
 
   handleChangePage = (page: number) => {
-    this.setState({ page }, this.updateUsers);
+    this.setState({ page }, this.debouncedUpdateUsers);
   };
 
   debouncedUpdateUsers = debounce(this.updateUsers, 500);
 
   handleUsersFiltersChange = (usersFilters: any) => {
     this.setState({ usersFilters, page: 1 }, () => {
+      this.setState({ queuedUpdateUsers: !this.state.initialUsersLoaded });
+      if (!this.state.initialUsersLoaded) return;
+
       this.debouncedUpdateUsers();
     });
   };
@@ -434,10 +447,6 @@ class Users extends React.Component<UsersProps, UsersState> {
     this.setState({ userPkToEdit: undefined });
 
     history.push(`${PLUGIN_ROOT}/users`);
-  };
-
-  handleUserUpdate = () => {
-    this.updateUsers();
   };
 }
 
