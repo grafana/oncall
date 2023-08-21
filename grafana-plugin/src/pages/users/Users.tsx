@@ -90,8 +90,9 @@ class Users extends React.Component<UsersProps, UsersState> {
     LocationHelper.update({ p: page }, 'partial');
     await userStore.updateItems(usersFilters, page);
 
-    this.setState({ initialUsersLoaded: true }, () => {
-      if (this.state.queuedUpdateUsers) {
+    const { queuedUpdateUsers } = this.state;
+    this.setState({ initialUsersLoaded: true, queuedUpdateUsers: false }, () => {
+      if (queuedUpdateUsers) {
         this.updateUsers();
       }
     });
@@ -182,13 +183,12 @@ class Users extends React.Component<UsersProps, UsersState> {
     const {
       store: { userStore },
     } = this.props;
-    const { usersFilters, page, initialUsersLoaded, userPkToEdit } = this.state;
+
+    const { usersFilters, page, initialUsersLoaded, userPkToEdit, queuedUpdateUsers } = this.state;
+
 
     const { count, results } = userStore.getSearchResult();
     const columns = this.getTableColumns();
-
-    // disable search until we get all users retrieved so that there's no conflict on update
-    const isSearchDisabled = !initialUsersLoaded;
 
     const handleClear = () =>
       this.setState({ usersFilters: { searchTerm: '' } }, () => {
@@ -203,8 +203,8 @@ class Users extends React.Component<UsersProps, UsersState> {
               <UsersFilters
                 className={cx('users-filters')}
                 value={usersFilters}
+                isLoading={queuedUpdateUsers}
                 onChange={this.handleUsersFiltersChange}
-                isLoading={isSearchDisabled}
               />
               <Button variant="secondary" icon="times" onClick={handleClear} className={cx('searchIntegrationClear')}>
                 Clear filters
@@ -435,8 +435,10 @@ class Users extends React.Component<UsersProps, UsersState> {
 
   handleUsersFiltersChange = (usersFilters: any) => {
     this.setState({ usersFilters, page: 1 }, () => {
-      this.setState({ queuedUpdateUsers: !this.state.initialUsersLoaded });
-      if (!this.state.initialUsersLoaded) return;
+      if (!this.state.initialUsersLoaded) {
+        // queue delayed users update
+        return this.setState({ queuedUpdateUsers: true });
+      }
 
       this.debouncedUpdateUsers();
     });

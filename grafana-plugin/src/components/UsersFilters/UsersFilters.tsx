@@ -33,7 +33,6 @@ const UsersFilters = (props: UsersFiltersProps) => {
     <div className={cx('root', className)}>
       <Input
         loading={isLoading}
-        disabled={isLoading}
         prefix={<Icon name="search" />}
         className={cx('search', 'control')}
         placeholder="Search users..."
