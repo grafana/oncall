@@ -3,14 +3,14 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from apps.grafana_plugin.permissions import PluginTokenVerified
+from apps.auth_token.auth import BasePluginAuthentication
 from apps.user_management.models import Organization
 from apps.user_management.sync import sync_organization
 from common.api_helpers.mixins import GrafanaHeadersMixin
 
 
 class InstallView(GrafanaHeadersMixin, APIView):
-    permission_classes = (PluginTokenVerified,)
+    authentication_classes = (BasePluginAuthentication,)
 
     def post(self, request: Request) -> Response:
         stack_id = self.instance_context["stack_id"]
