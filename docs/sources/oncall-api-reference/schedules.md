@@ -312,9 +312,6 @@ Some notes on the `start_date` and `end_date` query parameters:
 - `end_date` must be greater than or equal to `start_date`
 - `end_date` cannot be more than 365 days in the future from `start_date`
 
-Lastly, this endpoint is currently only active for web schedules. It will return HTTP 400 for schedules
-defined via Terraform or iCal.
-
 ## Example script to transform data to .csv for all of your schedules
 
 The following Python script will generate a `.csv` file, `oncall-report-2023-01-01-to-2023-01-31.csv`. This file will
