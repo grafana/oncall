@@ -96,7 +96,7 @@ jobs:
 
       - name: Install helm chart
         run: |
-          helm install helm-testing \
+          helm install oncall-ci \
             --values ./.github/helm-values.yml \
             --set oncall.twilio.accountSid="${{ secrets.TWILIO_ACCOUNT_SID }}" \
             --set oncall.twilio.authToken="${{ secrets.TWILIO_AUTH_TOKEN }}" \
@@ -141,9 +141,9 @@ jobs:
       # setup tasks (ex. install playwright + its dependencies)
       - name: Wait until k8s resources are ready
         run: |
-          kubectl rollout status deployment/helm-testing-grafana --timeout=300s
-          kubectl rollout status deployment/helm-testing-oncall-engine --timeout=300s
-          kubectl rollout status deployment/helm-testing-oncall-celery --timeout=300s
+          kubectl rollout status deployment/oncall-ci-grafana --timeout=300s
+          kubectl rollout status deployment/oncall-ci-oncall-engine --timeout=300s
+          kubectl rollout status deployment/oncall-ci-oncall-celery --timeout=300s
 
       - name: Run e2e Tests
         env:
@@ -188,19 +188,19 @@ jobs:
         if: always()
         uses: jupyterhub/action-k8s-namespace-report@v1
         with:
-          important-workloads: deploy/helm-testing-oncall-engine
+          important-workloads: deploy/oncall-ci-oncall-engine
 
       - name: oncall-celery logs
         if: always()
         uses: jupyterhub/action-k8s-namespace-report@v1
         with:
-          important-workloads: deploy/helm-testing-oncall-celery
+          important-workloads: deploy/oncall-ci-oncall-celery
 
       - name: grafana logs
         if: always()
         uses: jupyterhub/action-k8s-namespace-report@v1
         with:
-          important-workloads: deploy/helm-testing-grafana
+          important-workloads: deploy/oncall-ci-grafana
 
       - uses: actions/upload-artifact@v3
         if: failure()

@@ -36,13 +36,13 @@ grafana:
       # yamllint enable rule:line-length
       env:
         - name: DATABASE_HOST
-          value: oncall-dev-mariadb
+          value: oncall-ci-mariadb
         - name: DATABASE_USER
           value: root
         - name: DATABASE_PASSWORD
           valueFrom:
             secretKeyRef:
-              name: oncall-dev-mariadb
+              name: oncall-ci-mariadb
               key: mariadb-root-password
   env:
     GF_FEATURE_TOGGLES_ENABLE: topnav
@@ -50,13 +50,13 @@ grafana:
     GF_SECURITY_ADMIN_USER: oncall
     GF_PLUGINS_ALLOW_LOADING_UNSIGNED_PLUGINS: grafana-oncall-app
     GF_DATABASE_TYPE: mysql
-    GF_DATABASE_HOST: oncall-dev-mariadb:3306
+    GF_DATABASE_HOST: oncall-ci-mariadb:3306
     GF_DATABASE_USER: root
     GF_DATABASE_SSL_MODE: disable
   envValueFrom:
     GF_DATABASE_PASSWORD:
       secretKeyRef:
-        name: oncall-dev-mariadb
+        name: oncall-ci-mariadb
         key: mariadb-root-password
   # by settings grafana.plugins to [] and configuring grafana.extraVolumeMounts we are using the locally built
   # OnCall plugin rather than the latest published version
