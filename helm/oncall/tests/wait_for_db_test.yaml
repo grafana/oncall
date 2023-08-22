@@ -1,6 +1,6 @@
 suite: test init container wait-for-db in deployments
 templates:
-  - celery/deployment-celery.yaml
+  - celery/deployment.yaml
   - engine/deployment.yaml
 release:
   name: oncall

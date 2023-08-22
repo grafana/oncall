@@ -2,7 +2,7 @@ suite: test uwsgi environment variables
 templates:
   - engine/deployment.yaml
   - engine/job-migrate.yaml
-  - celery/deployment-celery.yaml
+  - celery/deployment.yaml
 release:
   name: oncall
 tests:

@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 class AlertChannelDefiningMixin(object):
     """
-    Mixin is defining "alert chanel" used for this request, gathers Slack Team and Chanel to fulfill "request".
+    Mixin is defining "alert channel" used for this request, gathers Slack Team and Chanel to fulfill "request".
     To make it easy to access them in ViewSets.
     """
 

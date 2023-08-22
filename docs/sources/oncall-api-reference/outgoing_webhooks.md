@@ -103,6 +103,27 @@ curl "{{API_URL}}/api/v1/webhooks/" \
   }'
 ```
 
+### Trigger Types
+
+See [here](outgoing-webhooks#event-types) for details
+
+- `escalation`
+- `alert group created`
+- `acknowledge`
+- `resolve`
+- `silence`
+- `unsilence`
+- `unresolve`
+- `unacknowledge`
+
+### HTTP Methods
+
+- `POST`
+- `GET`
+- `PUT`
+- `DELETE`
+- `OPTIONS`
+
 The above command returns JSON structured in the following way:
 
 ```json

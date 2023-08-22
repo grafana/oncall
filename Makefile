@@ -23,10 +23,24 @@ DEV_ENV_DIR = ./dev
 DEV_ENV_FILE = $(DEV_ENV_DIR)/.env.dev
 DEV_ENV_EXAMPLE_FILE = $(DEV_ENV_FILE).example
 
+DEV_HELM_FILE = $(DEV_ENV_DIR)/helm-local.yml
+DEV_HELM_USER_SPECIFIC_FILE = $(DEV_ENV_DIR)/helm-local.dev.yml
+
 ENGINE_DIR = ./engine
 REQUIREMENTS_TXT = $(ENGINE_DIR)/requirements.txt
 REQUIREMENTS_ENTERPRISE_TXT = $(ENGINE_DIR)/requirements-enterprise.txt
 SQLITE_DB_FILE = $(ENGINE_DIR)/oncall.db
+
+HELM_RELEASE_NAME = oncall-dev
+K8S_NAMESPACE = oncall-dev
+KIND_CLUSTER_NAME = oncall-dev
+ENGINE_DOCKER_IMAGE_NAME = oncall/engine:dev
+PLUGIN_DOCKER_IMAGE_NAME = oncall/ui:dev
+
+# make sure that DEV_HELM_USER_SPECIFIC_FILE and SQLITE_DB_FILE always exists
+# (NOTE: touch will only create the file if it doesn't already exist)
+$(shell touch $(DEV_HELM_USER_SPECIFIC_FILE))
+$(shell touch $(SQLITE_DB_FILE))
 
 # -n flag only copies DEV_ENV_EXAMPLE_FILE-> DEV_ENV_FILE if it doesn't already exist
 $(shell cp -n $(DEV_ENV_EXAMPLE_FILE) $(DEV_ENV_FILE))
@@ -55,6 +69,23 @@ else
 	BROKER_TYPE=$(REDIS_PROFILE)
 endif
 
+# TODO: remove this when docker-compose local setup is removed
+# https://stackoverflow.com/a/649462
+define _DEPRECATION_MESSAGE
+⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️
+NOTE: docker-compose based make commands will be released on (or around) October 1, 2023, in favour of
+helm/k8s based commands. Please familirize yourself with the helm/k8s commands.
+
+See https://github.com/grafana/oncall/pull/2751 for instructions on how to use the helm/k8s commands.
+⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️
+
+
+endef
+export _DEPRECATION_MESSAGE
+define echo_deprecation_message
+	@echo "$$_DEPRECATION_MESSAGE"
+endef
+
 # SQLITE_DB_FiLE is set to properly mount the sqlite db file
 DOCKER_COMPOSE_ENV_VARS := COMPOSE_PROFILES=$(COMPOSE_PROFILES) DB=$(DB) BROKER_TYPE=$(BROKER_TYPE)
 ifeq ($(DB),$(SQLITE_PROFILE))
@@ -62,6 +93,7 @@ ifeq ($(DB),$(SQLITE_PROFILE))
 endif
 
 define run_docker_compose_command
+	$(call echo_deprecation_message)
 	$(DOCKER_COMPOSE_ENV_VARS) docker compose -f $(DOCKER_COMPOSE_FILE) $(1)
 endef
 
@@ -79,14 +111,41 @@ define run_backend_tests
 	$(call run_engine_docker_command,pytest --ds=settings.ci-test $(1))
 endef
 
-# touch SQLITE_DB_FILE if it does not exist and DB is eqaul to SQLITE_PROFILE
-start:  ## start all of the docker containers
-ifeq ($(DB),$(SQLITE_PROFILE))
-	@if [ ! -f $(SQLITE_DB_FILE) ]; then \
-		touch $(SQLITE_DB_FILE); \
-	fi
-endif
+build-dev-images:  ## build the docker images required to run the helm chart locally
+	docker build ./engine -t $(ENGINE_DOCKER_IMAGE_NAME) --target prod --load
+	docker build ./grafana-plugin -t $(PLUGIN_DOCKER_IMAGE_NAME) -f ./grafana-plugin/Dockerfile.dev --load
 
+init-k8s:  ## create a kind cluster + upload the docker images onto the cluster nodes
+# piping to true will return a zero exit code in the event that this kind cluster already exists
+	kind create cluster --config ./dev/kind.yml --name $(KIND_CLUSTER_NAME) || true
+
+	kind load docker-image $(ENGINE_DOCKER_IMAGE_NAME) --name $(KIND_CLUSTER_NAME)
+	kind load docker-image $(PLUGIN_DOCKER_IMAGE_NAME) --name $(KIND_CLUSTER_NAME)
+
+start-k8s:  ## NOTE: beta - deploy all containers locally via helm, to our kind based k8s cluster
+	kubectl config use-context kind-$(KIND_CLUSTER_NAME)
+	helm upgrade $(HELM_RELEASE_NAME) \
+		--install \
+		--create-namespace \
+		--wait \
+		--timeout 30m \
+		--namespace $(K8S_NAMESPACE) \
+		--values $(DEV_HELM_FILE) \
+		--values $(DEV_HELM_USER_SPECIFIC_FILE) \
+		./helm/oncall
+
+get-mariadb-password: ## decodes the kubernetes secret containing the password to the local MariaDB user
+	kubectl get secret $(HELM_RELEASE_NAME)-mariadb -o jsonpath='{.data}' --namespace $(K8S_NAMESPACE) | jq -r '."mariadb-root-password"' | base64 -d
+
+delete-helm-release:  ## delete dev helm release
+# piping to true will return a zero exit code in the event that the helm release does not exist
+	kubectl config use-context kind-$(KIND_CLUSTER_NAME)
+	helm delete $(HELM_RELEASE_NAME) || true
+
+cleanup-k8s: ## delete kind cluster
+	kind delete cluster --name $(KIND_CLUSTER_NAME)
+
+start:  ## start all of the docker containers
 	$(call run_docker_compose_command,up --remove-orphans -d)
 
 init:  ## build the frontend plugin code then run make start
@@ -108,6 +167,7 @@ build:  ## rebuild images (e.g. when changing requirements.txt)
 
 cleanup: stop  ## this will remove all of the images, containers, volumes, and networks
                ## associated with your local OnCall developer setup
+	$(call echo_deprecation_message)
 	docker system prune --filter label="$(DOCKER_COMPOSE_DEV_LABEL)" --all --volumes
 
 install-pre-commit:

@@ -92,13 +92,6 @@ class WebhookCreateSerializer(serializers.ModelSerializer):
 
     def to_internal_value(self, data):
         webhook = self.instance
-
-        # If webhook is being copied instance won't exist to copy values from
-        if not webhook and "id" in data:
-            webhook = Webhook.objects.get(
-                public_primary_key=data["id"], organization=self.context["request"].auth.organization
-            )
-
         if data.get("password") == WEBHOOK_FIELD_PLACEHOLDER:
             data["password"] = webhook.password
         if data.get("authorization_header") == WEBHOOK_FIELD_PLACEHOLDER:

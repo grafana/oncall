@@ -1,0 +1,19 @@
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+nodes:
+  - role: control-plane
+    extraPortMappings:
+      - containerPort: 30001
+        hostPort: 30001
+      - containerPort: 30002
+        hostPort: 30002
+    # https://stackoverflow.com/a/62695918
+    extraMounts:
+      # this basically mounts our local ./grafana-plugin (frontend) directory into the kind node
+      # so that we can later use a volumeMount to mount from the kind-control-plane Docker container -> grafana
+      # k8s pod. This will allow us to mount the current frontend source code
+      #
+      # NOTE: this is a bit hacky and implies that kind create is run from the root of the project
+      # but for now it works... alternative would be to use something like $(pwd)/grafana-plugin
+      - hostPath: ./grafana-plugin
+        containerPath: /oncall-plugin
