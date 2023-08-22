@@ -27,7 +27,7 @@ const IntegrationHowToConnect: React.FC<{ id: AlertReceiveChannel['id'] }> = ({ 
     switch (integration) {
       case 'direct_paging':
         return 'Manual';
-      case 'email':
+      case 'inbound_email':
         return 'Inbound Email';
       default:
         return 'HTTP Endpoint';
