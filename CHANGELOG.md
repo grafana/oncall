@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Changed
+
+- Increase mobile app verification token TTL by @joeyorlando ([#TBD](https://github.com/grafana/oncall/pull/TBD))
+
 ### Fixed
 
 - Changed HTTP Endpoint to Email for inbound email integrations
