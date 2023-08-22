@@ -63,7 +63,7 @@ const IntegrationForm = observer((props: IntegrationFormProps) => {
   const [showNewIntegrationForm, setShowNewIntegrationForm] = useState(false);
   const [selectedOption, setSelectedOption] = useState<AlertReceiveChannelOption>(undefined);
   const [showIntegrarionsListDrawer, setShowIntegrarionsListDrawer] = useState(id === 'new');
-  const [allContactPoints, setAllContactPoints] = useState(undefined);
+  const [allContactPoints, setAllContactPoints] = useState([]);
 
   useEffect(() => {
     (async function () {
