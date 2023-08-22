@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Increase mobile app verification token TTL by @joeyorlando ([#TBD](https://github.com/grafana/oncall/pull/TBD))
+- Increase mobile app verification token TTL by @joeyorlando ([#2859](https://github.com/grafana/oncall/pull/2859))
 
 ### Fixed
 
