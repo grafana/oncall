@@ -310,6 +310,9 @@ jobs:
     name: End to end tests
     uses: ./.github/workflows/e2e-tests.yml
     with:
-      grafana-image-tag: latest
+      # NOTE: don't run on > 10.0.3 until this issue is fixed. It appears that something was changed
+      # with the plugin-proxy that caused it to start throwing HTTP 502s from time to time
+      # https://raintank-corp.slack.com/archives/C01C4K8DETW/p1692279329797149
+      grafana-image-tag: 10.0.2
       run-expensive-tests: false
     secrets: inherit
