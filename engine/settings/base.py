@@ -62,7 +62,7 @@ FEATURE_TELEGRAM_INTEGRATION_ENABLED = getenv_boolean("FEATURE_TELEGRAM_INTEGRAT
 FEATURE_EMAIL_INTEGRATION_ENABLED = getenv_boolean("FEATURE_EMAIL_INTEGRATION_ENABLED", default=True)
 FEATURE_SLACK_INTEGRATION_ENABLED = getenv_boolean("FEATURE_SLACK_INTEGRATION_ENABLED", default=True)
 FEATURE_MULTIREGION_ENABLED = getenv_boolean("FEATURE_MULTIREGION_ENABLED", default=False)
-FEATURE_INBOUND_EMAIL_ENABLED = getenv_boolean("FEATURE_INBOUND_EMAIL_ENABLED", default=False)
+FEATURE_INBOUND_EMAIL_ENABLED = getenv_boolean("FEATURE_INBOUND_EMAIL_ENABLED", default=True)
 FEATURE_PROMETHEUS_EXPORTER_ENABLED = getenv_boolean("FEATURE_PROMETHEUS_EXPORTER_ENABLED", default=False)
 FEATURE_GRAFANA_ALERTING_V2_ENABLED = getenv_boolean("FEATURE_GRAFANA_ALERTING_V2_ENABLED", default=False)
 GRAFANA_CLOUD_ONCALL_HEARTBEAT_ENABLED = getenv_boolean("GRAFANA_CLOUD_ONCALL_HEARTBEAT_ENABLED", default=True)
@@ -260,11 +260,18 @@ SPECTACULAR_SETTINGS = {
     "SERVE_INCLUDE_SCHEMA": False,
     # OTHER SETTINGS
     "PREPROCESSING_HOOKS": [
-        "engine.included_path.custom_preprocessing_hook"
-    ],  # Custom hook to include only paths from SPECTACULAR_INCLUDED_PATHS
+        "engine.included_path.custom_preprocessing_hook"  # Custom hook to include only paths from SPECTACULAR_INCLUDED_PATHS
+    ],
     "SERVE_URLCONF": ("apps.api.urls"),
-    "SWAGGER_UI_SETTINGS": {"supportedSubmitMethods": []},  # Disable "Try it out" button for all endpoints
+    "SWAGGER_UI_SETTINGS": {
+        "supportedSubmitMethods": [],  # Disable "Try it out" button for all endpoints
+    },
+    "SERVE_PUBLIC": False,
 }
+# Use custom scheme if env var exists
+SWAGGER_UI_SETTINGS_URL = os.getenv("SWAGGER_UI_SETTINGS_URL")
+if SWAGGER_UI_SETTINGS_URL:
+    SPECTACULAR_SETTINGS["SWAGGER_UI_SETTINGS"]["url"] = SWAGGER_UI_SETTINGS_URL
 
 SPECTACULAR_INCLUDED_PATHS = [
     "/features",

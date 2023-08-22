@@ -42,8 +42,27 @@ Use the Grafana OnCall Terraform provider to manage schedules within your “as-
 via Terraform are automatically added to your schedules in Grafana OnCall. Similar to the iCal import, these schedules
 read-only and cannot be edited from the UI.
 
-To learn more, read our [Get started with Grafana OnCall and Terraform](
-<https://grafana.com/blog/2022/08/29/get-started-with-grafana-oncall-and-terraform/>) blog post.
+To learn more, read our [Get started with Grafana OnCall and Terraform](https://grafana.com/blog/2022/08/29/get-started-with-grafana-oncall-and-terraform/)
+blog post.
+
+### Shift swap requests
+
+<div style="position: relative; padding-bottom: 56.25%; height: 0;">
+  <iframe
+    src="https://www.loom.com/embed/1638acd3033e48d5ace554e927a016a3?sid=ed08af31-5176-4c69-b91b-f76f4785eb0e"
+    frameborder="0"
+    webkitallowfullscreen
+    mozallowfullscreen
+    allowfullscreen
+    style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"
+  />
+</div>
+
+Sometimes you may need someone to cover your scheduled on-call shifts (e.g. you are going on vacation
+for a couple of weeks). You can then create a shift swap request, which will let your teammates
+know about this as well as allowing them to volunteer and take your affected shifts for that period.
+
+Learn more about [Shift swap requests][shift-swaps]
 
 {{% docs/reference %}}
 [ical-schedules]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/on-call-schedules/ical-schedules"
@@ -54,4 +73,7 @@ To learn more, read our [Get started with Grafana OnCall and Terraform](
 
 [web-schedule]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/on-call-schedules/web-schedule"
 [web-schedule]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/on-call-schedules/web-schedule"
+
+[shift-swaps]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/on-call-schedules/shift-swaps"
+[shift-swaps]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/on-call-schedules/shift-swaps"
 {{% /docs/reference %}}

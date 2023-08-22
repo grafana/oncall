@@ -55,3 +55,10 @@ export interface AlertReceiveChannelChoice {
   display_name: string;
   value: number;
 }
+
+export interface ContactPoint {
+  dataSourceName: string;
+  dataSourceId: string;
+  contactPoint: string;
+  notificationConnected: boolean;
+}

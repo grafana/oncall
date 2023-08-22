@@ -1,5 +1,8 @@
 import { FormItem, FormItemType } from 'components/GForm/GForm.types';
 import { PRIVATE_CHANNEL_NAME } from 'models/slack_channel/slack_channel.config';
+import { generateAssignToTeamInputDescription } from 'utils/consts';
+
+const assignToTeamDescription = generateAssignToTeamInputDescription('Schedules');
 
 const commonFields: FormItem[] = [
   {
@@ -90,8 +93,7 @@ export const iCalForm: { name: string; fields: FormItem[] } = {
     {
       name: 'team',
       label: 'Assign to team',
-      description:
-        'Assigning to the teams allows you to filter Schedules and configure their visibility. Go to OnCall -> Settings -> Team and Access Settings for more details',
+      description: assignToTeamDescription,
       type: FormItemType.GSelect,
       extra: {
         modelName: 'grafanaTeamStore',
@@ -130,8 +132,7 @@ export const calendarForm: { name: string; fields: FormItem[] } = {
     {
       name: 'team',
       label: 'Assign to team',
-      description:
-        'Assigning to the teams allows you to filter Schedules and configure their visibility. Go to OnCall -> Settings -> Team and Access Settings for more details',
+      description: assignToTeamDescription,
       type: FormItemType.GSelect,
       extra: {
         modelName: 'grafanaTeamStore',
@@ -171,8 +172,7 @@ export const apiForm: { name: string; fields: FormItem[] } = {
     {
       name: 'team',
       label: 'Assign to team',
-      description:
-        'Assigning to the teams allows you to filter Schedules and configure their visibility. Go to OnCall -> Settings -> Team and Access Settings for more details',
+      description: assignToTeamDescription,
       type: FormItemType.GSelect,
       extra: {
         modelName: 'grafanaTeamStore',

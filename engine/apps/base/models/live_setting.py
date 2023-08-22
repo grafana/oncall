@@ -2,6 +2,7 @@ from django.conf import settings
 from django.core.validators import MinLengthValidator
 from django.db import models
 from django.db.models import JSONField
+from django.db.utils import IntegrityError
 
 from apps.base.utils import LiveSettingValidator
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
@@ -223,7 +224,13 @@ class LiveSetting(models.Model):
             return
 
         for setting_name in setting_names_to_populate:
-            cls.objects.create(name=setting_name, value=cls._get_setting_from_setting_file(setting_name))
+            try:
+                cls.objects.create(name=setting_name, value=cls._get_setting_from_setting_file(setting_name))
+            except IntegrityError:
+                # prevent the rare case where concurrent requests try inserting the same live setting and lead to:
+                # django.db.utils.IntegrityError: duplicate key value violates unique constraint "base_livesetting_name_key"
+                # this infers that a setting with this name already exists, and we can safely skip this
+                continue
 
         cls.validate_settings()
 
