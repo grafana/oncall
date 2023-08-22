@@ -142,8 +142,8 @@ jobs:
       - name: Wait until k8s resources are ready
         run: |
           kubectl rollout status deployment/oncall-ci-grafana --timeout=300s
-          kubectl rollout status deployment/oncall-ci-oncall-engine --timeout=300s
-          kubectl rollout status deployment/oncall-ci-oncall-celery --timeout=300s
+          kubectl rollout status deployment/oncall-ci-engine --timeout=300s
+          kubectl rollout status deployment/oncall-ci-celery --timeout=300s
 
       - name: Run e2e Tests
         env:
@@ -188,13 +188,13 @@ jobs:
         if: always()
         uses: jupyterhub/action-k8s-namespace-report@v1
         with:
-          important-workloads: deploy/oncall-ci-oncall-engine
+          important-workloads: deploy/oncall-ci-engine
 
       - name: oncall-celery logs
         if: always()
         uses: jupyterhub/action-k8s-namespace-report@v1
         with:
-          important-workloads: deploy/oncall-ci-oncall-celery
+          important-workloads: deploy/oncall-ci-celery
 
       - name: grafana logs
         if: always()
