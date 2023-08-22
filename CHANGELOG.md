@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Changed HTTP Endpoint to Email for inbound email integrations
   ([#2816](https://github.com/grafana/oncall/issues/2816))
 - Enable inbound email feature flag by default by @vadimkerr ([#2846](https://github.com/grafana/oncall/pull/2846))
+- Fixed initial search on Users page ([#2842](https://github.com/grafana/oncall/issues/2842))
 
 ## v1.3.25 (2023-08-18)
 
