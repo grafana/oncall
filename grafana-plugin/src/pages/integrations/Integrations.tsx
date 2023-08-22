@@ -62,20 +62,23 @@ interface IntegrationsProps extends WithStoreProps, PageProps, RouteComponentPro
 
 @observer
 class Integrations extends React.Component<IntegrationsProps, IntegrationsState> {
-  state: IntegrationsState = {
-    integrationsFilters: { searchTerm: '' },
-    errorData: initErrorDataState(),
-    page: 1,
-    confirmationModal: undefined,
-  };
+  constructor(props: IntegrationsProps) {
+    super(props);
 
-  async componentDidMount() {
     const {
       query: { p },
-    } = this.props;
+    } = props;
 
-    this.setState({ page: p ? Number(p) : 1 }, this.update);
+    this.state = {
+      integrationsFilters: { searchTerm: '' },
+      errorData: initErrorDataState(),
+      page: p ? Number(p) : 1,
+      confirmationModal: undefined,
+    };
+  }
 
+  async componentDidMount() {
+    this.update();
     this.parseQueryParams();
   }
 
@@ -119,6 +122,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
   update = () => {
     const { store } = this.props;
     const { page, integrationsFilters } = this.state;
+
     LocationHelper.update({ p: page }, 'partial');
 
     return store.alertReceiveChannelStore.updatePaginatedItems(integrationsFilters, page);
@@ -493,11 +497,17 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
   applyFilters = () => {
     const { store } = this.props;
     const { alertReceiveChannelStore } = store;
-    const { integrationsFilters } = this.state;
+    const { integrationsFilters, page } = this.state;
 
-    return alertReceiveChannelStore.updatePaginatedItems(integrationsFilters).then(() => {
-      this.setState({ page: 1 });
-      LocationHelper.update({ p: 1 }, 'partial');
+    // by default it has the the page param (`p`) within
+    const query = { ...this.props.query };
+    delete query.p;
+
+    const newUpdatedPage = Object.keys(query).length === 0 ? page : 1;
+
+    return alertReceiveChannelStore.updatePaginatedItems(integrationsFilters, newUpdatedPage).then(() => {
+      this.setState({ page: newUpdatedPage });
+      LocationHelper.update({ p: newUpdatedPage }, 'partial');
     });
   };
 
