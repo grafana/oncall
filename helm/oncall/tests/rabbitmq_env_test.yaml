@@ -2,7 +2,7 @@ suite: test Rabbitmq configs for deployments
 templates:
   - engine/deployment.yaml
   - engine/job-migrate.yaml
-  - celery/deployment-celery.yaml
+  - celery/deployment.yaml
   - secrets.yaml
 release:
   name: oncall
@@ -11,7 +11,7 @@ tests:
     templates:
       - engine/deployment.yaml
       - engine/job-migrate.yaml
-      - celery/deployment-celery.yaml
+      - celery/deployment.yaml
     set:
       broker.type: rabbitmq
       rabbitmq.enabled: true
@@ -64,7 +64,7 @@ tests:
     templates:
       - engine/deployment.yaml
       - engine/job-migrate.yaml
-      - celery/deployment-celery.yaml
+      - celery/deployment.yaml
     set:
       broker.type: rabbitmq
       rabbitmq.enabled: true
@@ -116,7 +116,7 @@ tests:
     templates:
       - engine/deployment.yaml
       - engine/job-migrate.yaml
-      - celery/deployment-celery.yaml
+      - celery/deployment.yaml
     set:
       broker.type: rabbitmq
       rabbitmq.enabled: false
@@ -130,7 +130,7 @@ tests:
     templates:
       - engine/deployment.yaml
       - engine/job-migrate.yaml
-      - celery/deployment-celery.yaml
+      - celery/deployment.yaml
     set:
       broker.type: rabbitmq
       rabbitmq.enabled: false
@@ -196,7 +196,7 @@ tests:
     templates:
       - engine/deployment.yaml
       - engine/job-migrate.yaml
-      - celery/deployment-celery.yaml
+      - celery/deployment.yaml
     set:
       broker.type: rabbitmq
       rabbitmq.enabled: false
@@ -258,7 +258,7 @@ tests:
     templates:
       - engine/deployment.yaml
       - engine/job-migrate.yaml
-      - celery/deployment-celery.yaml
+      - celery/deployment.yaml
     set:
       broker.type: rabbitmq
       rabbitmq.enabled: false
