@@ -38,6 +38,7 @@ const UsersFilters = (props: UsersFiltersProps) => {
         placeholder="Search users..."
         value={value.searchTerm}
         onChange={onSearchTermChangeCallback}
+        data-testid="search-users"
       />
     </div>
   );
