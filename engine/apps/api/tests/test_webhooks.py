@@ -64,8 +64,8 @@ def test_get_list_webhooks(webhook_internal_api_setup, make_user_auth_headers):
                 "event_data": "",
             },
             "trigger_template": None,
-            "trigger_type": None,
-            "trigger_type_name": "",
+            "trigger_type": "0",
+            "trigger_type_name": "Escalation step",
         }
     ]
 
@@ -106,8 +106,8 @@ def test_get_detail_webhook(webhook_internal_api_setup, make_user_auth_headers):
             "event_data": "",
         },
         "trigger_template": None,
-        "trigger_type": None,
-        "trigger_type_name": "",
+        "trigger_type": "0",
+        "trigger_type_name": "Escalation step",
     }
 
     response = client.get(url, format="json", **make_user_auth_headers(user, token))

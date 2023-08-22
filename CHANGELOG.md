@@ -7,8 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+
+- Public API for webhooks @mderynck ([#2790](https://github.com/grafana/oncall/pull/2790))
+
 ### Changed
 
+- Public API for actions now wraps webhooks @mderynck ([#2790](https://github.com/grafana/oncall/pull/2790))
 - Allow mobile app to access status endpoint @mderynck ([#2791](https://github.com/grafana/oncall/pull/2791))
 
 ## v1.3.26 (2023-08-22)
