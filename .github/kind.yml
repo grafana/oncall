@@ -17,6 +17,3 @@ nodes:
       # but for now it works... alternative would be to use something like $(pwd)/grafana-plugin
       - hostPath: ./grafana-plugin
         containerPath: /oncall-plugin
-      # this is really only needed such that ./engine/oncall.db can be shared across the various backend containers
-      - hostPath: ./engine
-        containerPath: /engine

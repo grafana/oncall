@@ -52,11 +52,6 @@ jobs:
           cache: "yarn"
           cache-dependency-path: grafana-plugin/yarn.lock
 
-      # This will be our test database
-      - name: Create test sqlite database
-        working-directory: engine
-        run: touch oncall.db
-
       - name: Use cached frontend dependencies
         id: cache-frontend-dependencies
         uses: actions/cache@v3
