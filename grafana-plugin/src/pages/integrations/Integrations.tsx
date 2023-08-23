@@ -78,13 +78,6 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
   }
 
   async componentDidMount() {
-    // TODO: figure out parsing filters
-    // let { filters, values } = parseFilters(
-    //   { ...this.props.query, ...this.props.store.filtersStore.globalValues },
-    //   filterOptions,
-    //   this.props.query
-    // );
-
     this.update(true);
     this.parseQueryParams();
   }
@@ -505,17 +498,11 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
   applyFilters = () => {
     const { store } = this.props;
     const { alertReceiveChannelStore } = store;
-    const { integrationsFilters, page } = this.state;
+    const { integrationsFilters } = this.state;
 
-    // by default it has the the page param (`p`) within
-    const query = { ...this.props.query };
-    delete query.p;
-
-    const newUpdatedPage = Object.keys(query).length === 0 ? page : 1;
-
-    return alertReceiveChannelStore.updatePaginatedItems(integrationsFilters, newUpdatedPage).then(() => {
-      this.setState({ page: newUpdatedPage });
-      LocationHelper.update({ p: newUpdatedPage }, 'partial');
+    return alertReceiveChannelStore.updatePaginatedItems(integrationsFilters, 1).then(() => {
+      this.setState({ page: 1 });
+      LocationHelper.update({ p: 1 }, 'partial');
     });
   };
 
