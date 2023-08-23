@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Public API for actions now wraps webhooks @mderynck ([#2790](https://github.com/grafana/oncall/pull/2790))
 - Allow mobile app to access status endpoint @mderynck ([#2791](https://github.com/grafana/oncall/pull/2791))
+- Enable shifts export endpoint for all schedule types ([#2863](https://github.com/grafana/oncall/pull/2863))
 
 ## v1.3.26 (2023-08-22)
 
