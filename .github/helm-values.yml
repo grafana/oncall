@@ -1,0 +1,106 @@
+base_url: 172.17.0.1:30001
+base_url_protocol: http
+
+env:
+  - name: GRAFANA_CLOUD_NOTIFICATIONS_ENABLED
+    value: "False"
+image:
+  tag: latest
+  pullPolicy: Always
+broker:
+  type: redis
+redis:
+  architecture: standalone # don't run replicas, just eats up resources
+rabbitmq:
+  enabled: false
+engine:
+  replicaCount: 1
+celery:
+  replicaCount: 1
+  worker_beat_enabled: false
+
+grafana:
+  replicas: 1
+  extraInitContainers:
+    - name: create-db-if-not-exists
+      image: mysql:8.0.32
+      command:
+        # yamllint disable rule:line-length
+        [
+          "bash",
+          "-c",
+          'while ! mysqladmin ping -h "$DATABASE_HOST" --silent; do echo ''awaiting mysql db to be available'' && sleep 1; done && mysql -h "$DATABASE_HOST" -u "$DATABASE_USER" -p"$DATABASE_PASSWORD" -e ''CREATE DATABASE IF NOT EXISTS grafana CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;''',
+        ]
+      # yamllint enable rule:line-length
+      env:
+        - name: DATABASE_HOST
+          value: oncall-ci-mariadb
+        - name: DATABASE_USER
+          value: root
+        - name: DATABASE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: oncall-ci-mariadb
+              key: mariadb-root-password
+  env:
+    GF_FEATURE_TOGGLES_ENABLE: topnav
+    GF_SECURITY_ADMIN_PASSWORD: oncall
+    GF_SECURITY_ADMIN_USER: oncall
+    GF_PLUGINS_ALLOW_LOADING_UNSIGNED_PLUGINS: grafana-oncall-app
+    GF_DATABASE_TYPE: mysql
+    GF_DATABASE_HOST: oncall-ci-mariadb:3306
+    GF_DATABASE_USER: root
+    GF_DATABASE_SSL_MODE: disable
+  envValueFrom:
+    GF_DATABASE_PASSWORD:
+      secretKeyRef:
+        name: oncall-ci-mariadb
+        key: mariadb-root-password
+  # by settings grafana.plugins to [] and configuring grafana.extraVolumeMounts we are using the locally built
+  # OnCall plugin rather than the latest published version
+  plugins: []
+  extraVolumeMounts:
+    - name: plugins
+      mountPath: /var/lib/grafana/plugins/grafana-plugin
+      # hostPath is defined in .github/kind.yml
+      hostPath: /oncall-plugin
+      readOnly: true
+  service:
+    type: NodePort
+    nodePort: 30002
+
+database:
+  type: mysql
+mariadb:
+  enabled: true
+  primary:
+    service:
+      type: NodePort
+      nodePort: 30003
+    extraEnvVars:
+      # See "Passing extra command line flags to mysqld startup" section
+      # https://hub.docker.com/r/bitnami/mariadb
+      #
+      # max_allowed_packet is set to 128mb in bytes
+      #
+      # this avoids "Got an error reading communication packets" errors that arise from the grafana container
+      # apparently sending too much data to mariadb at once
+      # https://mariadb.com/docs/skysql-dbaas/ref/mdb/system-variables/max_allowed_packet/
+      - name: MARIADB_EXTRA_FLAGS
+        value: "--max_allowed_packet=134217728 --max_connections=1024"
+      - name: MARIADB_CHARACTER_SET
+        value: utf8mb4
+      - name: MARIADB_COLLATE
+        value: utf8mb4_unicode_ci
+
+ingress:
+  enabled: false
+ingress-nginx:
+  enabled: false
+cert-manager:
+  enabled: false
+service:
+  enabled: true
+  type: NodePort
+  port: 8080
+  nodePort: 30001

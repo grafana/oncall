@@ -1,8 +1,10 @@
 import json
+import logging
 import typing
 from json import JSONDecodeError
 
 import requests
+from celery.utils.log import get_task_logger
 from django.conf import settings
 from django.core.validators import MinLengthValidator
 from django.db import models
@@ -30,6 +32,10 @@ if typing.TYPE_CHECKING:
     from apps.alerts.models import EscalationPolicy
 
 WEBHOOK_FIELD_PLACEHOLDER = "****************"
+PUBLIC_WEBHOOK_HTTP_METHODS = ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+
+logger = get_task_logger(__name__)
+logger.setLevel(logging.DEBUG)
 
 
 def generate_public_primary_key_for_webhook():
@@ -88,6 +94,19 @@ class Webhook(models.Model):
         (TRIGGER_UNACKNOWLEDGE, "Unacknowledged"),
     )
 
+    PUBLIC_TRIGGER_TYPES_MAP = {
+        TRIGGER_ESCALATION_STEP: "escalation",
+        TRIGGER_ALERT_GROUP_CREATED: "alert group created",
+        TRIGGER_ACKNOWLEDGE: "acknowledge",
+        TRIGGER_RESOLVE: "resolve",
+        TRIGGER_SILENCE: "silence",
+        TRIGGER_UNSILENCE: "unsilence",
+        TRIGGER_UNRESOLVE: "unresolve",
+        TRIGGER_UNACKNOWLEDGE: "unacknowledge",
+    }
+
+    PUBLIC_ALL_TRIGGER_TYPES = [i for i in PUBLIC_TRIGGER_TYPES_MAP.values()]
+
     public_primary_key = models.CharField(
         max_length=20,
         validators=[MinLengthValidator(settings.PUBLIC_PRIMARY_KEY_MIN_LENGTH + 1)],
@@ -119,7 +138,7 @@ class Webhook(models.Model):
     data = models.TextField(null=True, default=None)
     forward_all = models.BooleanField(default=True)
     http_method = models.CharField(max_length=32, default="POST")
-    trigger_type = models.IntegerField(choices=TRIGGER_TYPES, default=None, null=True)
+    trigger_type = models.IntegerField(choices=TRIGGER_TYPES, default=TRIGGER_ESCALATION_STEP, null=True)
     is_webhook_enabled = models.BooleanField(null=True, default=True)
     integration_filter = models.JSONField(default=None, null=True, blank=True)
     is_legacy = models.BooleanField(null=True, default=False)

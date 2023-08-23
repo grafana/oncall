@@ -1,7 +1,7 @@
 suite: test telegram envs for deployments
 templates:
   - engine/deployment.yaml
-  - celery/deployment-celery.yaml
+  - celery/deployment.yaml
   - telegram-polling/deployment.yaml
 release:
   name: oncall

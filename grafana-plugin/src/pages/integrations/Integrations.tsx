@@ -183,7 +183,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
             onHide={() => {
               this.setState({ alertReceiveChannelId: undefined });
             }}
-            onUpdate={this.update}
+            onSubmit={this.update}
             id={alertReceiveChannelId}
           />
         )}
@@ -264,7 +264,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
     );
   }
 
-  renderIntegrationStatus(item: AlertReceiveChannel, alertReceiveChannelStore) {
+  renderIntegrationStatus(item: AlertReceiveChannel, alertReceiveChannelStore: AlertReceiveChannelStore) {
     const alertReceiveChannelCounter = alertReceiveChannelStore.counters[item.id];
     let routesCounter = item.routes_count;
     let connectedEscalationsChainsCount = item.connected_escalations_chains_count;

@@ -1,6 +1,6 @@
 {{- define "snippet.oncall.env" -}}
 - name: BASE_URL
-  value: https://{{ .Values.base_url }}
+  value: {{ .Values.base_url_protocol }}://{{ .Values.base_url }}
 - name: SECRET_KEY
   valueFrom:
     secretKeyRef:
@@ -318,6 +318,13 @@
       key: {{ include "snippet.postgresql.password.secret.key" . | quote }}
 {{- end }}
 
+{{- define "snippet.sqlite.env" -}}
+- name: DATABASE_TYPE
+  value: sqlite3
+- name: DATABASE_NAME
+  value: /etc/app/oncall.db
+{{- end }}
+
 {{- define "snippet.postgresql.password.secret.name" -}}
 {{ if .Values.postgresql.enabled -}}
   {{ if .Values.postgresql.auth.existingSecret -}}
@@ -383,7 +390,6 @@
 {{- end }}
 
 {{- define "snippet.rabbitmq.env" }}
-{{- if eq .Values.broker.type "rabbitmq" -}}
 - name: RABBITMQ_USERNAME
 {{- if and (not .Values.rabbitmq.enabled) .Values.externalRabbitmq.existingSecret .Values.externalRabbitmq.usernameKey (not .Values.externalRabbitmq.user) }}
   valueFrom:
@@ -406,7 +412,6 @@
   value: {{ include "snippet.rabbitmq.protocol" . | quote }}
 - name: RABBITMQ_VHOST
   value: {{ include "snippet.rabbitmq.vhost" . | quote }}
-{{- end }}
 {{- end }}
 
 {{- define "snippet.rabbitmq.user" -}}
@@ -521,6 +526,28 @@
     secretKeyRef:
       name: {{ include "snippet.redis.password.secret.name" . }}
       key: {{ include "snippet.redis.password.secret.key" . | quote}}
+{{- end }}
+
+{{- define "snippet.broker.env" -}}
+{{- if eq .Values.broker.type "redis" }}
+{{- include "snippet.redis.env" . }}
+{{- else if eq .Values.broker.type "rabbitmq" }}
+{{- include "snippet.rabbitmq.env" . }}
+{{- else -}}
+{{- fail "value for .Values.broker.type must be either 'redis' or 'rabbitmq'" }}
+{{- end }}
+{{- end }}
+
+{{- define "snippet.db.env" -}}
+{{- if eq .Values.database.type "mysql" }}
+{{- include "snippet.mysql.env" . }}
+{{- else if eq .Values.database.type "postgresql" }}
+{{- include "snippet.postgresql.env" . }}
+{{- else if eq .Values.database.type "sqlite" -}}
+{{- include "snippet.sqlite.env" . }}
+{{- else -}}
+{{- fail "value for .Values.db.type must be either 'mysql', 'postgresql', or 'sqlite'" }}
+{{- end }}
 {{- end }}
 
 {{- define "snippet.oncall.smtp.env" -}}

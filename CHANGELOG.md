@@ -9,8 +9,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Public API for webhooks @mderynck ([#2790](https://github.com/grafana/oncall/pull/2790))
 - Use Telegram polling protocol instead of a webhook if `FEATURE_TELEGRAM_LONG_POLLING_ENABLED` set to `True` by @alexintech
   ([#2250](https://github.com/grafana/oncall/pull/2250))
+
+### Changed
+
+- Public API for actions now wraps webhooks @mderynck ([#2790](https://github.com/grafana/oncall/pull/2790))
+- Allow mobile app to access status endpoint @mderynck ([#2791](https://github.com/grafana/oncall/pull/2791))
+
+## v1.3.26 (2023-08-22)
+
+### Changed
+
+- Increase mobile app verification token TTL by @joeyorlando ([#2859](https://github.com/grafana/oncall/pull/2859))
+
+### Fixed
+
+- Changed HTTP Endpoint to Email for inbound email integrations
+  ([#2816](https://github.com/grafana/oncall/issues/2816))
+- Enable inbound email feature flag by default by @vadimkerr ([#2846](https://github.com/grafana/oncall/pull/2846))
+- Fixed initial search on Users page ([#2842](https://github.com/grafana/oncall/issues/2842))
+
+## v1.3.25 (2023-08-18)
+
+### Changed
+
+- Improve Grafana Alerting integration by @Ferril @teodosii ([#2742](https://github.com/grafana/oncall/pull/2742))
+- Fixed UTC conversion for escalation chain step of timerange
+  ([#2781](https://github.com/grafana/oncall/issues/2781))
+
+### Fixed
+
+- Check for possible split events in range when resolving schedule ([#2828](https://github.com/grafana/oncall/pull/2828))
 
 ## v1.3.24 (2023-08-17)
 
@@ -31,6 +62,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix issue with updating "Require resolution note" setting by @Ferril ([#2782](https://github.com/grafana/oncall/pull/2782))
 - Don't send notifications about past SSRs when turning on info notifications by @vadimkerr ([#2783](https://github.com/grafana/oncall/pull/2783))
 - Add schedule shift type validation on create/preview ([#2789](https://github.com/grafana/oncall/pull/2789))
+- Add alertmanager integration for heartbeat support ([2807](https://github.com/grafana/oncall/pull/2807))
 
 ## v1.3.23 (2023-08-10)
 

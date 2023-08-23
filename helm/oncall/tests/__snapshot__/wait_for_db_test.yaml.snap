@@ -59,15 +59,6 @@ database.type=mysql -> should create initContainer for MySQL database (default):
           value: amqp
         - name: RABBITMQ_VHOST
           value: ""
-        - name: REDIS_HOST
-          value: oncall-redis-master
-        - name: REDIS_PORT
-          value: "6379"
-        - name: REDIS_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              key: redis-password
-              name: oncall-redis
       image: grafana/oncall:v1.2.36
       imagePullPolicy: Always
       name: wait-for-db
@@ -139,15 +130,6 @@ database.type=mysql -> should create initContainer for MySQL database (default):
           value: amqp
         - name: RABBITMQ_VHOST
           value: ""
-        - name: REDIS_HOST
-          value: oncall-redis-master
-        - name: REDIS_PORT
-          value: "6379"
-        - name: REDIS_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              key: redis-password
-              name: oncall-redis
       image: grafana/oncall:v1.2.36
       imagePullPolicy: Always
       name: wait-for-db
@@ -302,15 +284,6 @@ database.type=postgresql -> should create initContainer for PostgreSQL database:
           value: amqp
         - name: RABBITMQ_VHOST
           value: ""
-        - name: REDIS_HOST
-          value: oncall-redis-master
-        - name: REDIS_PORT
-          value: "6379"
-        - name: REDIS_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              key: redis-password
-              name: oncall-redis
       image: grafana/oncall:v1.2.36
       imagePullPolicy: Always
       name: wait-for-db
@@ -384,15 +357,6 @@ database.type=postgresql -> should create initContainer for PostgreSQL database:
           value: amqp
         - name: RABBITMQ_VHOST
           value: ""
-        - name: REDIS_HOST
-          value: oncall-redis-master
-        - name: REDIS_PORT
-          value: "6379"
-        - name: REDIS_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              key: redis-password
-              name: oncall-redis
       image: grafana/oncall:v1.2.36
       imagePullPolicy: Always
       name: wait-for-db

@@ -19,6 +19,13 @@ export const createOnCallSchedule = async (page: Page, scheduleName: string, use
 
   await clickButton({ page, buttonText: 'Add rotation' });
 
+  /**
+   * Drag the modal such that the "Create" button will always be visible within the viewport. We cannot scroll
+   * on the modal itself
+   * https://playwright.dev/docs/input#dragging-manually
+   */
+  await page.locator('.ReactModal__Content .drag-handler').dragTo(page.locator('.page-header__logo'));
+
   await selectDropdownValue({
     page,
     selectType: 'grafanaSelect',
