@@ -22,6 +22,6 @@ jobs:
           git config --local user.name "grafanabot"
           git commit -m "Update \`make docs\` procedure"
           git push -v origin "refs/heads/${BRANCH}"
-          gh pr create --fill
+          gh pr create --fill --label "pr:no changelog"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
