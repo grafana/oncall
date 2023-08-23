@@ -40,7 +40,7 @@
           "showLineNumbers": false,
           "showMiniMap": false
         },
-        "content": "<div>\n  <img src=\"https://ops.grafana-ops.net/public/plugins/grafana-oncall-app/assets/img/logo.svg\">\n</div>",
+        "content": "<div>\n  <img src=\"/public/plugins/grafana-oncall-app/assets/img/logo.svg\">\n</div>",
         "mode": "html"
       },
       "pluginVersion": "9.5.2",
@@ -91,7 +91,7 @@
           "showLineNumbers": false,
           "showMiniMap": false
         },
-        "content": "📣 This is a read-only dashboard. To make a copy, click \"Settings\" and \"Save as\".",
+        "content": "📣 This is a read-only dashboard. To make a copy, click \"Settings\" and \"Save as\".\n\n📝 If you see *\"No data\"* errors, check the right datasource is selected\nand that you have already used and setup the [OnCall](/a/grafana-oncall-app/alert-groups) plugin.\nYou can also try [re-importing the dashboard](/plugins/grafana-oncall-app?page=dashboards)\nto confirm you have the latest updates. If you just copied the dashboard,\nyou may need to reload it.",
         "mode": "markdown"
       },
       "pluginVersion": "9.5.2",
