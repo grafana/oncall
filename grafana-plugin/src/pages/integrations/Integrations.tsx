@@ -195,7 +195,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
             onHide={() => {
               this.setState({ alertReceiveChannelId: undefined });
             }}
-            onUpdate={this.update}
+            onSubmit={this.update}
             id={alertReceiveChannelId}
           />
         )}

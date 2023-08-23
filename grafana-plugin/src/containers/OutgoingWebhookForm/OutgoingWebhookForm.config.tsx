@@ -5,6 +5,7 @@ import Emoji from 'react-emoji-render';
 
 import { FormItem, FormItemType } from 'components/GForm/GForm.types';
 import { KeyValuePair } from 'utils';
+import { generateAssignToTeamInputDescription } from 'utils/consts';
 
 export const WebhookTriggerType = {
   EscalationStep: new KeyValuePair('0', 'Escalation Step'),
@@ -34,8 +35,9 @@ export const form: { name: string; fields: FormItem[] } = {
     {
       name: 'team',
       label: 'Assign to Team',
-      description:
-        'Assigning to the teams allows you to filter Outgoing Webhooks and configure their visibility. Go to OnCall -> Settings -> Team and Access Settings for more details. This setting does not effect execution of the webhook.',
+      description: `${generateAssignToTeamInputDescription(
+        'Outgoing Webhooks'
+      )} This setting does not effect execution of the webhook.`,
       type: FormItemType.GSelect,
       extra: {
         modelName: 'grafanaTeamStore',

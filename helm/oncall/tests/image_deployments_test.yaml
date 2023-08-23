@@ -1,6 +1,6 @@
 suite: test image and imagePullPolicy for deployments
 templates:
-  - celery/deployment-celery.yaml
+  - celery/deployment.yaml
   - engine/deployment.yaml
   - engine/job-migrate.yaml
 release:
