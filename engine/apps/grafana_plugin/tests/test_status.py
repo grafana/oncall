@@ -84,8 +84,5 @@ def test_status_mobile_app_auth_token(
     response = client.post(url)
     assert response.status_code == status.HTTP_403_FORBIDDEN
 
-    auth_headers = make_user_auth_headers(
-        user,
-        auth_token,
-    )
+    auth_headers = {"HTTP_AUTHORIZATION": f"{auth_token}"}
     _check_status_response(auth_headers, client)
