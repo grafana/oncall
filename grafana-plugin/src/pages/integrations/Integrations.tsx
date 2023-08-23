@@ -126,7 +126,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
     }
   };
 
-  update = (isOnMount: boolean = false) => {
+  update = (isOnMount = false) => {
     const { store } = this.props;
     const { page, integrationsFilters } = this.state;
 

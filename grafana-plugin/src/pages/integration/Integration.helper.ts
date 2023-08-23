@@ -15,7 +15,9 @@ import { MAX_CHARACTERS_COUNT, TEXTAREA_ROWS_COUNT } from './IntegrationCommon.c
 
 const IntegrationHelper = {
   isGrafanaAlerting: (alertReceiveChannel: AlertReceiveChannel | string) => {
-    if (!alertReceiveChannel) return false;
+    if (!alertReceiveChannel) {
+      return false;
+    }
 
     if (typeof alertReceiveChannel === 'string') {
       return alertReceiveChannel === 'grafana_alerting';
