@@ -78,7 +78,14 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
   }
 
   async componentDidMount() {
-    this.update();
+    // TODO: figure out parsing filters
+    // let { filters, values } = parseFilters(
+    //   { ...this.props.query, ...this.props.store.filtersStore.globalValues },
+    //   filterOptions,
+    //   this.props.query
+    // );
+
+    this.update(true);
     this.parseQueryParams();
   }
 
@@ -119,13 +126,13 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
     }
   };
 
-  update = () => {
+  update = (isOnMount: boolean = false) => {
     const { store } = this.props;
     const { page, integrationsFilters } = this.state;
 
     LocationHelper.update({ p: page }, 'partial');
 
-    return store.alertReceiveChannelStore.updatePaginatedItems(integrationsFilters, page);
+    return store.alertReceiveChannelStore.updatePaginatedItems(integrationsFilters, page, isOnMount);
   };
 
   render() {
@@ -182,6 +189,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
             />
           </div>
         </div>
+
         {alertReceiveChannelId && (
           <IntegrationForm
             onHide={() => {

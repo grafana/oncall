@@ -131,7 +131,7 @@ export class AlertReceiveChannelStore extends BaseStore {
     return results;
   }
 
-  async updatePaginatedItems(query: any = '', page = 1) {
+  async updatePaginatedItems(query: any = '', page = 1, updateCounters: boolean = false) {
     const filters = typeof query === 'string' ? { search: query } : query;
     const { count, results } = await makeRequest(this.path, { params: { ...filters, page } });
 
@@ -153,7 +153,9 @@ export class AlertReceiveChannelStore extends BaseStore {
       results: results.map((item: AlertReceiveChannel) => item.id),
     };
 
-    this.updateCounters();
+    if (updateCounters) {
+      this.updateCounters();
+    }
 
     return results;
   }
@@ -497,6 +499,21 @@ export class AlertReceiveChannelStore extends BaseStore {
     });
 
     this.counters = counters;
+  }
+
+  async updateCountersForIntegration(id: AlertReceiveChannel['id']): Promise<any> {
+    const counters = await makeRequest(`${this.path}${id}/counters`, {
+      method: 'GET',
+    });
+
+    this.counters = {
+      ...this.counters,
+      [id]: {
+        ...counters[id],
+      },
+    };
+
+    return counters;
   }
 
   startMaintenanceMode = (id: AlertReceiveChannel['id'], mode: MaintenanceMode, duration: number): Promise<void> =>

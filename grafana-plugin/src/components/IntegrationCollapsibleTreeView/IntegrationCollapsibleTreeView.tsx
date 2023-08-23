@@ -9,6 +9,7 @@ import styles from './IntegrationCollapsibleTreeView.module.scss';
 const cx = cn.bind(styles);
 
 export interface IntegrationCollapsibleItem {
+  isHidden?: boolean;
   customIcon?: IconName;
   canHoverIcon: boolean;
   collapsedView: (toggle?: () => void) => React.ReactNode; // needs toggle param for toggling on click
@@ -107,7 +108,7 @@ const IntegrationCollapsibleTreeItem: React.FC<{
   const iconOnClickFn = !item.isCollapsible ? undefined : onClick;
 
   return (
-    <div className={cx('integrationTree__group')}>
+    <div className={cx('integrationTree__group', { 'integrationTree__group--hidden': item.isHidden })}>
       <div className={cx('integrationTree__icon')}>
         {item.canHoverIcon ? (
           <IconButton name={getIconName()} onClick={iconOnClickFn} size="lg" />

@@ -112,7 +112,7 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
       this.openEditTemplateModal(query.template, query.routeId && query.routeId);
     }
 
-    await this.loadIntegration();
+    await this.loadData();
   }
 
   render() {
@@ -200,7 +200,7 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
               {this.renderDescriptionMaybe(alertReceiveChannel)}
 
               {/* MobX seems to have issues updating contact points if we don't reference it here */}
-              {!contactPoints?.length && this.renderContactPointsWarningMaybe(alertReceiveChannel)}
+              {contactPoints && contactPoints.length === 0 && this.renderContactPointsWarningMaybe(alertReceiveChannel)}
 
               <div className={cx('no-wrap')}>
                 <IntegrationHeader
@@ -356,9 +356,11 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
     } = this.props;
 
     const alertReceiveChannel = alertReceiveChannelStore.items[id];
+    const contactPoints = alertReceiveChannelStore.connectedContactPoints[id];
 
     return [
       IntegrationHelper.isGrafanaAlerting(alertReceiveChannel) && {
+        isHidden: contactPoints === null || contactPoints === undefined,
         isCollapsible: false,
         customIcon: 'grafana',
         canHoverIcon: false,
@@ -655,7 +657,7 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
     alertReceiveChannelStore.deleteAlertReceiveChannel(id).then(() => history.push(`${PLUGIN_ROOT}/integrations/`));
   };
 
-  async loadIntegration() {
+  async loadData() {
     const {
       store,
       store: { alertReceiveChannelStore },
@@ -668,12 +670,9 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
     const promises = [];
 
     if (!alertReceiveChannelStore.items[id]) {
-      // See what happens if the request fails
-      promises.push(alertReceiveChannelStore.loadItem(id));
-    }
-
-    if (!alertReceiveChannelStore.counters[id]) {
-      promises.push(alertReceiveChannelStore.updateCounters());
+      promises.push(alertReceiveChannelStore.loadItem(id).then(() => this.loadContactPointsMaybe(id)));
+    } else {
+      promises.push(this.loadContactPointsMaybe(id));
     }
 
     if (!alertReceiveChannelStore.channelFilterIds[id]) {
@@ -681,12 +680,8 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
     }
 
     promises.push(alertReceiveChannelStore.updateTemplates(id));
-
     promises.push(IntegrationHelper.fetchChatOps(store));
-
-    // skip checking for grafana alerting so that we don't wait for the first request to complete
-    // at the cost of getting a failed network request for all other types other than alerting
-    promises.push(alertReceiveChannelStore.updateConnectedContactPoints(id).catch(noop));
+    promises.push(alertReceiveChannelStore.updateCountersForIntegration(id));
 
     await Promise.all(promises)
       .catch(() => {
@@ -696,6 +691,17 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
         }
       })
       .finally(() => this.setState({ isLoading: false }));
+  }
+
+  async loadContactPointsMaybe(id: AlertReceiveChannel['id']) {
+    const { alertReceiveChannelStore } = this.props.store;
+
+    if (IntegrationHelper.isGrafanaAlerting(alertReceiveChannelStore.items[id])) {
+      // this will be delayed and not awaitable so that we don't delay the whole page load
+      return await alertReceiveChannelStore.updateConnectedContactPoints(id).catch(noop);
+    }
+
+    return Promise.resolve();
   }
 }
 
