@@ -26,6 +26,10 @@ from common.api_helpers.exceptions import BadRequest
 from common.jinja_templater import apply_jinja_template
 from common.jinja_templater.apply_jinja_template import JinjaTemplateError, JinjaTemplateWarning
 
+X_INSTANCE_CONTEXT = "X-Instance-Context"
+
+X_GRAFANA_CONTEXT = "X-Grafana-Context"
+
 
 class UpdateSerializerMixin:
     serializer_class = None
@@ -366,10 +370,16 @@ class GrafanaHeadersMixin:
 
     @cached_property
     def grafana_context(self) -> GrafanaContext:
-        grafana_context: GrafanaContext = json.loads(self.request.headers["X-Grafana-Context"])
+        if X_GRAFANA_CONTEXT in self.request.headers:
+            grafana_context: GrafanaContext = json.loads(self.request.headers[X_GRAFANA_CONTEXT])
+        else:
+            grafana_context = None
         return grafana_context
 
     @cached_property
     def instance_context(self) -> InstanceContext:
-        instance_context: InstanceContext = json.loads(self.request.headers["X-Instance-Context"])
+        if X_INSTANCE_CONTEXT in self.request.headers:
+            instance_context: InstanceContext = json.loads(self.request.headers[X_INSTANCE_CONTEXT])
+        else:
+            instance_context = None
         return instance_context
