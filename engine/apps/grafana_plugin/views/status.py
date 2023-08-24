@@ -31,16 +31,14 @@ class StatusView(GrafanaHeadersMixin, APIView):
                 }
             )
 
-        stack_id = self.instance_context["stack_id"]
-        org_id = self.instance_context["org_id"]
-
+        organization = request.auth.organization
         is_installed = False
         token_ok = False
         allow_signup = True
         api_url = settings.BASE_URL
 
         # Check if organization is in OnCall database
-        if organization := Organization.objects.get(stack_id=stack_id, org_id=org_id):
+        if organization:
             is_installed = True
             token_ok = organization.api_token_status == Organization.API_TOKEN_STATUS_OK
             if organization.is_moved:
@@ -64,7 +62,9 @@ class StatusView(GrafanaHeadersMixin, APIView):
                 "is_installed": is_installed,
                 "token_ok": token_ok,
                 "allow_signup": allow_signup,
-                "is_user_anonymous": self.grafana_context.get("IsAnonymous", request.user is None),
+                "is_user_anonymous": self.grafana_context["IsAnonymous"]
+                if self.grafana_context
+                else request.user is None,
                 "license": settings.LICENSE,
                 "version": settings.VERSION,
                 "recaptcha_site_key": settings.RECAPTCHA_V3_SITE_KEY,
