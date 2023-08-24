@@ -1,0 +1,73 @@
+suite: test telegram polling deployment
+templates:
+  - telegram-polling/deployment.yaml
+release:
+  name: oncall
+tests:
+  - it: telegramPolling.enabled=false -> should not create deployment (default)
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: telegramPolling.enabled=true -> should create telegram polling deployment
+    set:
+      telegramPolling.enabled: true
+    asserts:
+      - containsDocument:
+          kind: Deployment
+          apiVersion: apps/v1
+          name: oncall-telegram-polling
+      - isSubset:
+          path: metadata.labels
+          content:
+            app.kubernetes.io/component: telegram-polling
+            app.kubernetes.io/instance: oncall
+            app.kubernetes.io/name: oncall
+      - isSubset:
+          path: spec.selector.matchLabels
+          content:
+            app.kubernetes.io/component: telegram-polling
+            app.kubernetes.io/instance: oncall
+            app.kubernetes.io/name: oncall
+      - isSubset:
+          path: spec.template.metadata.labels
+          content:
+            app.kubernetes.io/component: telegram-polling
+            app.kubernetes.io/instance: oncall
+            app.kubernetes.io/name: oncall
+      # Should contain only one replica to avoid Conflict while polling Telegram updates
+      - equal:
+          path: spec.replicas
+          value: 1
+      - equal:
+          path: spec.template.spec.serviceAccountName
+          value: oncall
+      - contains:
+          path: spec.template.spec.initContainers
+          content:
+            name: wait-for-db
+          any: true
+      - matchSnapshot:
+          path: spec.template.spec.containers
+
+  - it: telegramPolling.resources -> should specify resources
+    set:
+      telegramPolling:
+        enabled: true
+        resources:
+          limits:
+            cpu: 100m
+            memory: 128Mi
+          requests:
+            cpu: 100m
+            memory: 128Mi
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].resources
+          value:
+            limits:
+              cpu: 100m
+              memory: 128Mi
+            requests:
+              cpu: 100m
+              memory: 128Mi

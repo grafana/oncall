@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Public API for webhooks @mderynck ([#2790](https://github.com/grafana/oncall/pull/2790))
+- Use Telegram polling protocol instead of a webhook if `FEATURE_TELEGRAM_LONG_POLLING_ENABLED` set to `True` by @alexintech
+  ([#2250](https://github.com/grafana/oncall/pull/2250))
 
 ### Changed
 
