@@ -7,7 +7,7 @@ phonenumbers==8.10.0
 celery[amqp,redis]==5.3.1
 redis==4.6.0
 humanize==0.5.1
-uwsgi==2.0.21
+uwsgi==2.0.22
 django-cors-headers==3.7.0
 django-debug-toolbar==4.1
 django-sns-view==0.1.2
