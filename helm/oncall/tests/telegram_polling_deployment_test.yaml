@@ -47,16 +47,8 @@ tests:
           content:
             name: wait-for-db
           any: true
-      - equal:
-          path: spec.template.spec.containers[0].name
-          value: telegram-polling
-      - equal:
-          path: spec.template.spec.containers[0].command
-          value: ['sh', '-c', 'python manage.py start_telegram_polling']
-      - notExists:
-          path: spec.template.spec.containers[0].resources
       - matchSnapshot:
-          path: spec.template.spec.containers[0].env
+          path: spec.template.spec.containers
 
   - it: telegramPolling.resources -> should specify resources
     set:
