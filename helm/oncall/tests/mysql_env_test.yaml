@@ -3,11 +3,13 @@ templates:
   - engine/deployment.yaml
   - engine/job-migrate.yaml
   - celery/deployment.yaml
+  - telegram-polling/deployment.yaml
 release:
   name: oncall
 tests:
   - it: mariadb.enabled=false -> external MySQL default settings
     set:
+      telegramPolling.enabled: true
       mariadb.enabled: false
     asserts:
       - contains:
@@ -38,6 +40,7 @@ tests:
 
   - it: externalMysql -> use external MySQL custom settings
     set:
+      telegramPolling.enabled: true
       mariadb.enabled: false
       externalMysql:
         host: test-host
@@ -67,6 +70,8 @@ tests:
             value: test-host
 
   - it: mariadb.enabled=true -> internal MySQL default settings
+    set:
+      telegramPolling.enabled: true
     asserts:
       - contains:
           path: spec.template.spec.containers[0].env
@@ -91,6 +96,7 @@ tests:
 
   - it: mariadb.auth -> internal MySQL custom settings
     set:
+      telegramPolling.enabled: true
       mariadb:
         auth:
           database: grafana_oncall
