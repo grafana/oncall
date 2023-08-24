@@ -9,7 +9,7 @@ tests:
   - it: oncall.telegram.enabled=false -> Telegram integration disabled (default)
     templates:
       - engine/deployment.yaml
-      - celery/deployment-celery.yaml
+      - celery/deployment.yaml
     asserts:
       - contains:
           path: spec.template.spec.containers[0].env
@@ -20,7 +20,7 @@ tests:
   - it: oncall.telegram.enabled=true -> should enable Telegram integration
     templates:
       - engine/deployment.yaml
-      - celery/deployment-celery.yaml
+      - celery/deployment.yaml
     set:
       oncall.telegram:
         enabled: true
@@ -46,7 +46,7 @@ tests:
   - it: oncall.telegram.existingSecret=some-secret -> should prefer existing secret over oncall.telegram.token
     templates:
       - engine/deployment.yaml
-      - celery/deployment-celery.yaml
+      - celery/deployment.yaml
     set:
       oncall.telegram:
         enabled: true

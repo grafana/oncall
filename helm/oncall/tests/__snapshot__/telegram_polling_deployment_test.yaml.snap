@@ -62,12 +62,3 @@ telegramPolling.enabled=true -> should create telegram polling deployment:
       value: amqp
     - name: RABBITMQ_VHOST
       value: ""
-    - name: REDIS_HOST
-      value: oncall-redis-master
-    - name: REDIS_PORT
-      value: "6379"
-    - name: REDIS_PASSWORD
-      valueFrom:
-        secretKeyRef:
-          key: redis-password
-          name: oncall-redis
