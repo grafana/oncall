@@ -275,6 +275,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Modified DRF pagination class used by `GET /api/internal/v1/alert_receive_channels` and `GET /api/internal/v1/schedules`
   endpoints so that the `next` and `previous` pagination links are properly set when OnCall is run behind
   a reverse proxy by @joeyorlando ([#2467](https://github.com/grafana/oncall/pull/2467))
+- Polish user settings and warnings ([#2425](https://github.com/grafana/oncall/pull/2425))
 
 ### Fixed
 
@@ -312,7 +313,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - UI drawer updates for webhooks2 ([#2419](https://github.com/grafana/oncall/pull/2419))
-- Removed url from sms notification, changed format ([2317](https://github.com/grafana/oncall/pull/2317))
+- Removed url from sms notification, changed format ([#2317](https://github.com/grafana/oncall/pull/2317))
 
 ## v1.3.3 (2023-06-29)
 
