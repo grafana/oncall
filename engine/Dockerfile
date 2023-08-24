@@ -1,25 +1,24 @@
-FROM python:3.11.4-slim-bookworm AS base
+FROM python:3.11.4-alpine3.18 AS base
 
 # Create a group and user to run an app
 ENV APP_USER=appuser
-RUN groupadd --system --gid 2000 ${APP_USER} && \
-    useradd --no-log-init --system --uid 1000 --gid ${APP_USER} ${APP_USER}
+RUN addgroup --system --gid 2000 ${APP_USER} && \
+    adduser --system --uid 1000 --ingroup ${APP_USER} ${APP_USER}
 
-RUN apt-get update && apt-get install -y \
-    python3-dev \
-    gcc \
-    libmariadb-dev \
-    libpq-dev \
-    netcat-traditional \
-    curl \
-    bash \
-    git \
-    libpcre3 \
-    libpcre3-dev
+RUN apk add bash \
+            python3-dev \
+            build-base \
+            linux-headers \
+            pcre-dev \
+            mariadb-connector-c-dev \
+            libffi-dev \
+            git \
+            postgresql-dev 
 
 WORKDIR /etc/app
 COPY ./requirements.txt ./
 RUN pip install --upgrade pip
+RUN pip install --upgrade setuptools wheel
 RUN pip install -r requirements.txt
 
 # we intentionally have two COPY commands, this is to have the requirements.txt in a separate build step
@@ -48,7 +47,7 @@ RUN chown -R ${APP_USER}:${APP_USER} /tmp/prometheus_django_metrics
 ENV prometheus_multiproc_dir "/tmp/prometheus_django_metrics"
 
 FROM base AS dev
-RUN apt-get install -y sqlite3 default-mysql-client postgresql-client
+RUN apk add sqlite mysql-client postgresql-client
 RUN pip install -r requirements-dev.txt
 
 FROM dev AS dev-enterprise
