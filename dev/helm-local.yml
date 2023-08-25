@@ -28,11 +28,15 @@ ui:
   image:
     repository: localhost:63628/oncall/ui
   env:
-    ONCALL_API_URL: http://oncall-dev-engine-external:8080
+    ONCALL_API_URL: http://oncall-dev-engine:8080
     MOBILE_APP_QR_INTERVAL_QUEUE: 290000 # 4 minutes and 50 seconds
 
+externalGrafana:
+  # Example: https://grafana.mydomain.com
+  url: https://grafana.mydomain.com
+
 grafana:
-  enabled: true
+  enabled: false
   grafana.ini:
     server:
       domain: localhost:3000
