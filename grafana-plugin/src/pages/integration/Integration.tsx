@@ -763,7 +763,7 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
         <IntegrationForm
           isTableView={false}
           onHide={() => setIsIntegrationSettingsOpen(false)}
-          onUpdate={() => alertReceiveChannelStore.updateItem(alertReceiveChannel['id'])}
+          onSubmit={() => alertReceiveChannelStore.updateItem(alertReceiveChannel['id'])}
           id={alertReceiveChannel['id']}
         />
       )}

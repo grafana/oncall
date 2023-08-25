@@ -371,7 +371,7 @@ To fix change the template to:
 
 ```json
 {
-  "labels": "{{ alert_payload.labels | tojson()}}"
+  "labels": {{ alert_payload.labels | tojson()}}
 }
 ```
 

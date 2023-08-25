@@ -1,0 +1,31 @@
+{{- if .Values.ui.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: oncall-ui
+  labels:
+    app.kubernetes.io/component: oncall-ui
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: oncall-ui
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: oncall-ui
+    spec:
+      containers:
+        - name: oncall-ui
+          image: "oncall/ui:dev"
+          imagePullPolicy: IfNotPresent
+          env:
+            {{- include "ui.env" . | nindent 12 }}
+          volumeMounts:
+            - mountPath: /etc/app
+              name: hot-reloaded-plugin
+      volumes:
+        - name: hot-reloaded-plugin
+          hostPath:
+            path: /oncall-plugin
+{{- end }}

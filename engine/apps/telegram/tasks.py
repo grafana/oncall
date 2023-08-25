@@ -28,6 +28,9 @@ logger.setLevel(logging.DEBUG)
 )
 @handle_missing_token
 def register_telegram_webhook(token=None):
+    if settings.FEATURE_TELEGRAM_LONG_POLLING_ENABLED:
+        return
+
     telegram_client = TelegramClient(token=token)
 
     try:

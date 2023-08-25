@@ -13,7 +13,7 @@ from apps.schedules.constants import (
     ICAL_DATETIME_END,
     ICAL_DATETIME_START,
     ICAL_LAST_MODIFIED,
-    ICAL_LOCATION,
+    ICAL_PRIORITY,
     ICAL_STATUS,
     ICAL_STATUS_CANCELLED,
     ICAL_SUMMARY,
@@ -1663,25 +1663,25 @@ def test_refresh_ical_final_schedule_ok(
             u1.username,
             today,
             today + timezone.timedelta(seconds=(12 * 60 * 60) - 1),
-            OnCallSchedule.CALENDAR_TYPE_VERBAL[OnCallSchedule.PRIMARY],
+            OnCallSchedule.PRIMARY,
         ),
         (
             u2.username,
             today + timezone.timedelta(hours=12),
             today + timezone.timedelta(hours=22),
-            OnCallSchedule.CALENDAR_TYPE_VERBAL[OnCallSchedule.PRIMARY],
+            OnCallSchedule.PRIMARY,
         ),
         (
             u1.username,
             today + timezone.timedelta(hours=22),
             today + timezone.timedelta(hours=23),
-            OnCallSchedule.CALENDAR_TYPE_VERBAL[OnCallSchedule.OVERRIDES],
+            OnCallSchedule.OVERRIDES,
         ),
         (
             u2.username,
             today + timezone.timedelta(hours=23),
             today + timezone.timedelta(seconds=(24 * 60 * 60) - 1),
-            OnCallSchedule.CALENDAR_TYPE_VERBAL[OnCallSchedule.PRIMARY],
+            OnCallSchedule.PRIMARY,
         ),
     }
 
@@ -1699,7 +1699,7 @@ def test_refresh_ical_final_schedule_ok(
                     component[ICAL_SUMMARY],
                     component[ICAL_DATETIME_START].dt,
                     component[ICAL_DATETIME_END].dt,
-                    component[ICAL_LOCATION],
+                    component[ICAL_PRIORITY],
                 )
                 assert event in expected_events
 
