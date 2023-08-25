@@ -1,6 +1,6 @@
 help:
 	@sed \
-		-e '/^[a-zA-Z0-9_\-]*:.*##/!d' \
+		-e '/^[a-zA-Z0-9_\-\/\-]*:.*##/!d' \
 		-e 's/:.*##\s*/:/' \
 		-e 's/^\(.\+\):\(.*\)/$(shell tput setaf 6)\1$(shell tput sgr0):\2/' \
 		$(MAKEFILE_LIST) | column -c2 -t -s :
@@ -31,12 +31,6 @@ ENGINE_DIR = ./engine
 REQUIREMENTS_TXT = $(ENGINE_DIR)/requirements.txt
 REQUIREMENTS_ENTERPRISE_TXT = $(ENGINE_DIR)/requirements-enterprise.txt
 SQLITE_DB_FILE = $(ENGINE_DIR)/oncall.db
-
-HELM_RELEASE_NAME = oncall-dev
-K8S_NAMESPACE = oncall-dev
-KIND_CLUSTER_NAME = oncall-dev
-ENGINE_DOCKER_IMAGE_NAME = oncall/engine:dev
-PLUGIN_DOCKER_IMAGE_NAME = oncall/ui:dev
 
 # make sure that DEV_HELM_USER_SPECIFIC_FILE and SQLITE_DB_FILE always exists
 # (NOTE: touch will only create the file if it doesn't already exist)
@@ -112,39 +106,19 @@ define run_backend_tests
 	$(call run_engine_docker_command,pytest --ds=settings.ci-test $(1))
 endef
 
-build-dev-images:  ## build the docker images required to run the helm chart locally
-	docker build ./engine -t $(ENGINE_DOCKER_IMAGE_NAME) --target prod --load
-	docker build ./grafana-plugin -t $(PLUGIN_DOCKER_IMAGE_NAME) -f ./grafana-plugin/Dockerfile.dev --load
+k8s/up: k8s/cluster-create  ## (beta) deploy all containers locally via tilt (k8s cluster will be created if it doesn't exist)
+	tilt up
 
-init-k8s:  ## create a kind cluster + upload the docker images onto the cluster nodes
-# piping to true will return a zero exit code in the event that this kind cluster already exists
-	kind create cluster --config ./dev/kind.yml --name $(KIND_CLUSTER_NAME) || true
+k8s/down:  ## (beta) remove all containers deployed via tilt
+	tilt down
 
-	kind load docker-image $(ENGINE_DOCKER_IMAGE_NAME) --name $(KIND_CLUSTER_NAME)
-	kind load docker-image $(PLUGIN_DOCKER_IMAGE_NAME) --name $(KIND_CLUSTER_NAME)
+k8s/clean: k8s/cluster-delete ## (beta) clean up k8s local dev environment
 
-start-k8s:  ## NOTE: beta - deploy all containers locally via helm, to our kind based k8s cluster
-	kubectl config use-context kind-$(KIND_CLUSTER_NAME)
-	helm upgrade $(HELM_RELEASE_NAME) \
-		--install \
-		--create-namespace \
-		--wait \
-		--timeout 30m \
-		--namespace $(K8S_NAMESPACE) \
-		--values $(DEV_HELM_FILE) \
-		--values $(DEV_HELM_USER_SPECIFIC_FILE) \
-		./helm/oncall
+k8s/cluster-create:  ## (beta) create a kind cluster
+	ctlptl apply -f dev/kind-config.yaml
 
-get-mariadb-password: ## decodes the kubernetes secret containing the password to the local MariaDB user
-	kubectl get secret $(HELM_RELEASE_NAME)-mariadb -o jsonpath='{.data}' --namespace $(K8S_NAMESPACE) | jq -r '."mariadb-root-password"' | base64 -d
-
-delete-helm-release:  ## delete dev helm release
-# piping to true will return a zero exit code in the event that the helm release does not exist
-	kubectl config use-context kind-$(KIND_CLUSTER_NAME)
-	helm delete $(HELM_RELEASE_NAME) || true
-
-cleanup-k8s: ## delete kind cluster
-	kind delete cluster --name $(KIND_CLUSTER_NAME)
+k8s/cluster-delete: ## (beta) delete kind cluster
+	ctlptl delete -f dev/kind-config.yaml
 
 start:  ## start all of the docker containers
 	$(call run_docker_compose_command,up --remove-orphans -d)

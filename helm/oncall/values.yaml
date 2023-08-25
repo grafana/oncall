@@ -510,6 +510,9 @@ init:
     #   memory: 128Mi
 
 ui:
+  image:
+    repository: oncall/ui
+    tag: dev
   # this is intended to be used for local development. In short, it will spin up an additional container
   # running the plugin frontend, such that hot reloading can be enabled
   enabled: false
