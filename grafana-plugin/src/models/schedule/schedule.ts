@@ -9,8 +9,10 @@ import { RootStore } from 'state';
 import { SelectOption } from 'state/types';
 
 import {
+  createShiftSwapEventFromShiftSwap,
   enrichLayers,
   enrichOverrides,
+  flattenShiftEvents,
   getFromString,
   splitToLayers,
   splitToShiftsAndFillGaps,
@@ -49,6 +51,9 @@ export class ScheduleStore extends BaseStore {
   shiftSwaps: { [id: string]: ShiftSwap } = {};
 
   @observable.shallow
+  scheduleAndDateToShiftSwaps: { [scheduleId: string]: { [date: string]: ShiftEvents[] } } = {};
+
+  @observable.shallow
   rotations: {
     [id: string]: {
       [startMoment: string]: Rotation;
@@ -65,13 +70,18 @@ export class ScheduleStore extends BaseStore {
   } = {};
 
   @observable
-  finalPreview?: Array<{ shiftId: Shift['id']; events: Event[] }>;
+  finalPreview?: { [fromString: string]: Array<{ shiftId: Shift['id']; events: Event[] }> };
 
   @observable
-  rotationPreview?: Layer[];
+  rotationPreview?: { [fromString: string]: Layer[] };
 
   @observable
-  overridePreview?: Array<{ shiftId: Shift['id']; isPreview?: boolean; events: Event[] }>;
+  shiftSwapsPreview?: {
+    [fromString: string]: ShiftEvents[];
+  };
+
+  @observable
+  overridePreview?: { [fromString: string]: ShiftEvents[] };
 
   @observable
   rotationFormLiveParams: RotationFormLiveParams = undefined;
@@ -103,24 +113,6 @@ export class ScheduleStore extends BaseStore {
     };
 
     return schedule;
-  }
-
-  @action
-  async updateScheduleEvents(
-    scheduleId: Schedule['id'],
-    withEmpty: boolean,
-    with_gap: boolean,
-    date: string,
-    user_tz: string
-  ) {
-    const { events } = await makeRequest(`/schedules/${scheduleId}/events/`, {
-      params: { date, user_tz, with_empty: withEmpty, with_gap: with_gap },
-    });
-
-    this.scheduleToScheduleEvents = {
-      ...this.scheduleToScheduleEvents,
-      [scheduleId]: events,
-    };
   }
 
   @action
@@ -455,5 +447,43 @@ export class ScheduleStore extends BaseStore {
     this.shiftSwaps = { ...this.shiftSwaps, [id]: result };
 
     return result;
+  }
+
+  async updateShiftSwaps(scheduleId: Schedule['id'], startMoment: dayjs.Dayjs, days = 9) {
+    const fromString = getFromString(startMoment);
+
+    const dayBefore = startMoment.subtract(1, 'day');
+
+    const result = await makeRequest(`/schedules/${scheduleId}/filter_shift_swaps/`, {
+      method: 'GET',
+      params: {
+        date: getFromString(dayBefore),
+        days,
+      },
+    });
+
+    const shiftEventsList: ShiftEvents[] = result.shift_swaps.map((shiftSwap) => ({
+      shiftId: shiftSwap.id,
+      events: [createShiftSwapEventFromShiftSwap(shiftSwap)],
+      isPreview: false,
+    }));
+
+    const shiftEventsListFlattened = flattenShiftEvents(shiftEventsList);
+
+    this.shiftSwaps = result.shift_swaps.reduce(
+      (memo, shiftSwap) => ({
+        ...memo,
+        [shiftSwap.id]: shiftSwap,
+      }),
+      this.shiftSwaps
+    );
+
+    this.scheduleAndDateToShiftSwaps = {
+      ...this.scheduleAndDateToShiftSwaps,
+      [scheduleId]: {
+        ...this.scheduleAndDateToShiftSwaps[scheduleId],
+        [fromString]: shiftEventsListFlattened,
+      },
+    };
   }
 }

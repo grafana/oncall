@@ -12,16 +12,22 @@ import TimelineMarks from 'components/TimelineMarks/TimelineMarks';
 import Rotation from 'containers/Rotation/Rotation';
 import ScheduleOverrideForm from 'containers/RotationForm/ScheduleOverrideForm';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
-import { getOverrideColor, getOverridesFromStore } from 'models/schedule/schedule.helpers';
-import { Schedule, Shift, ShiftEvents } from 'models/schedule/schedule.types';
+import {
+  getLayersFromStore,
+  getOverrideColor,
+  getOverridesFromStore,
+  getShiftSwapsFromStore,
+  SHIFT_SWAP_COLOR,
+} from 'models/schedule/schedule.helpers';
+import { Schedule, Shift, ShiftEvents, ShiftSwap } from 'models/schedule/schedule.types';
 import { Timezone } from 'models/timezone/timezone.types';
-import { getStartOfDay } from 'pages/schedule/Schedule.helpers';
+import { getStartOfDay, getUTCString } from 'pages/schedule/Schedule.helpers';
 import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import { UserActions } from 'utils/authorization';
 
 import { DEFAULT_TRANSITION_TIMEOUT } from './Rotations.config';
-import { findColor } from './Rotations.helpers';
+import { findClosestUserEvent, findColor } from './Rotations.helpers';
 
 import styles from './Rotations.module.css';
 
@@ -35,6 +41,7 @@ interface ScheduleOverridesProps extends WithStoreProps {
   scheduleId: Schedule['id'];
   shiftIdToShowRotationForm?: Shift['id'] | 'new';
   onShowRotationForm: (shiftId: Shift['id'] | 'new') => void;
+  onShowShiftSwapForm: (id: ShiftSwap['id'] | 'new', params?: Partial<ShiftSwap>) => void;
   onCreate: () => void;
   onUpdate: () => void;
   onDelete: () => void;
@@ -67,11 +74,20 @@ class ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverri
       disabled,
       shiftStartToShowOverrideForm: propsShiftStartToShowOverrideForm,
       shiftEndToShowOverrideForm: propsShiftEndToShowOverrideForm,
+      onShowShiftSwapForm,
       filters,
+      store: {
+        userStore: { currentUserPk },
+      },
     } = this.props;
     const { shiftStartToShowOverrideForm, shiftEndToShowOverrideForm } = this.state;
 
     const shifts = getOverridesFromStore(store, scheduleId, startMoment) as ShiftEvents[];
+
+    const layers = getLayersFromStore(store, scheduleId, startMoment);
+
+    const shiftSwaps = getShiftSwapsFromStore(store, scheduleId, startMoment);
+    console.log(shifts?.length, shiftSwaps?.length, !shifts?.length && !shiftSwaps?.length);
 
     const base = 7 * 24 * 60; // in minutes
     const diff = dayjs().tz(currentTimezone).diff(startMoment, 'minutes');
@@ -91,35 +107,73 @@ class ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverri
             <HorizontalGroup justify="space-between">
               <div className={cx('title')}>
                 <Text.Title level={4} type="primary">
-                  Overrides
+                  Overrides and swaps
                 </Text.Title>
               </div>
-              {isTypeReadOnly ? (
-                <Tooltip content="You can set an override using the override calendar" placement="top">
-                  <div>
-                    <Button variant="primary" icon="plus" disabled>
+              <HorizontalGroup>
+                <Button
+                  variant="secondary"
+                  onClick={() => {
+                    const closestEvent = findClosestUserEvent(dayjs(), currentUserPk, layers);
+                    const swapStart = closestEvent
+                      ? dayjs(closestEvent.start)
+                      : dayjs().tz(currentTimezone).startOf('day').add(1, 'day');
+
+                    const swapEnd = closestEvent ? dayjs(closestEvent.end) : swapStart.add(1, 'day');
+
+                    onShowShiftSwapForm('new', {
+                      swap_start: getUTCString(swapStart),
+                      swap_end: getUTCString(swapEnd),
+                    });
+                  }}
+                >
+                  Request shift swap
+                </Button>
+                {isTypeReadOnly ? (
+                  <Tooltip content="You can set an override using the override calendar" placement="top">
+                    <div>
+                      <Button variant="primary" icon="plus" disabled>
+                        Add override
+                      </Button>
+                    </div>
+                  </Tooltip>
+                ) : (
+                  <WithPermissionControlTooltip userAction={UserActions.SchedulesWrite}>
+                    <Button disabled={disabled} icon="plus" onClick={this.handleAddOverride} variant="secondary">
                       Add override
                     </Button>
-                  </div>
-                </Tooltip>
-              ) : (
-                <WithPermissionControlTooltip userAction={UserActions.SchedulesWrite}>
-                  <Button disabled={disabled} icon="plus" onClick={this.handleAddOverride} variant="secondary">
-                    Add override
-                  </Button>
-                </WithPermissionControlTooltip>
-              )}
+                  </WithPermissionControlTooltip>
+                )}
+              </HorizontalGroup>
             </HorizontalGroup>
           </div>
           <div className={cx('header-plus-content')}>
             {!currentTimeHidden && <div className={cx('current-time')} style={{ left: `${currentTimeX * 100}%` }} />}
             <TimelineMarks startMoment={startMoment} timezone={currentTimezone} />
             <TransitionGroup className={cx('rotations')}>
-              {shifts && shifts.length ? (
-                shifts.map(({ shiftId, isPreview, events }, rotationIndex) => (
-                  <CSSTransition key={rotationIndex} timeout={DEFAULT_TRANSITION_TIMEOUT} classNames={{ ...styles }}>
+              {shiftSwaps &&
+                shiftSwaps.map(({ isPreview, events, shiftId }) => (
+                  <CSSTransition key={shiftId} timeout={DEFAULT_TRANSITION_TIMEOUT} classNames={{ ...styles }}>
                     <Rotation
-                      key={rotationIndex}
+                      key={shiftId}
+                      scheduleId={scheduleId}
+                      events={events}
+                      color={SHIFT_SWAP_COLOR}
+                      startMoment={startMoment}
+                      currentTimezone={currentTimezone}
+                      onSlotClick={(event) => {
+                        onShowShiftSwapForm(event.shiftSwapId);
+                      }}
+                      transparent={isPreview}
+                      filters={filters}
+                    />
+                  </CSSTransition>
+                ))}
+              {shifts &&
+                shifts.map(({ shiftId, isPreview, events }, rotationIndex) => (
+                  <CSSTransition key={shiftId} timeout={DEFAULT_TRANSITION_TIMEOUT} classNames={{ ...styles }}>
+                    <Rotation
+                      key={shiftId}
                       scheduleId={scheduleId}
                       events={events}
                       color={getOverrideColor(rotationIndex)}
@@ -132,10 +186,11 @@ class ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverri
                       filters={filters}
                     />
                   </CSSTransition>
-                ))
-              ) : (
+                ))}
+              {!shifts?.length && !shiftSwaps?.length && (
                 <CSSTransition key={0} timeout={DEFAULT_TRANSITION_TIMEOUT} classNames={{ ...styles }}>
                   <Rotation
+                    key={0}
                     events={[]}
                     scheduleId={scheduleId}
                     startMoment={startMoment}

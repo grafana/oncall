@@ -17,13 +17,12 @@ import { getColor, getLayersFromStore } from 'models/schedule/schedule.helpers';
 import { Layer, Schedule, ScheduleType, Shift, ShiftSwap, Event } from 'models/schedule/schedule.types';
 import { Timezone } from 'models/timezone/timezone.types';
 import { User } from 'models/user/user.types';
-import { getUTCString } from 'pages/schedule/Schedule.helpers';
 import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import { UserActions } from 'utils/authorization';
 
 import { DEFAULT_TRANSITION_TIMEOUT } from './Rotations.config';
-import { findClosestUserEvent, findColor } from './Rotations.helpers';
+import { findColor } from './Rotations.helpers';
 
 import styles from './Rotations.module.css';
 
@@ -75,9 +74,6 @@ class Rotations extends Component<RotationsProps, RotationsState> {
       filters,
       onShowShiftSwapForm,
       onSlotClick,
-      store: {
-        userStore: { currentUserPk },
-      },
     } = this.props;
     const { layerPriority, shiftStartToShowRotationForm, shiftEndToShowRotationForm } = this.state;
 
@@ -115,24 +111,6 @@ class Rotations extends Component<RotationsProps, RotationsState> {
                 </Text.Title>
               </div>
               <HorizontalGroup>
-                <Button
-                  variant="secondary"
-                  onClick={() => {
-                    const closestEvent = findClosestUserEvent(dayjs(), currentUserPk, layers);
-                    const swapStart = closestEvent
-                      ? dayjs(closestEvent.start)
-                      : dayjs().tz(currentTimezone).startOf('day').add(1, 'day');
-
-                    const swapEnd = closestEvent ? dayjs(closestEvent.end) : swapStart.add(1, 'day');
-
-                    onShowShiftSwapForm('new', {
-                      swap_start: getUTCString(swapStart),
-                      swap_end: getUTCString(swapEnd),
-                    });
-                  }}
-                >
-                  Request shift swap
-                </Button>
                 {disabled ? (
                   isTypeReadOnly ? (
                     <Tooltip content="Ical and API/Terraform rotations are read-only here" placement="top">

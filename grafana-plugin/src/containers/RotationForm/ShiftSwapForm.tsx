@@ -42,7 +42,10 @@ const ShiftSwapForm = (props: ShiftSwapFormProps) => {
   const [shiftSwap, setShiftSwap] = useState({ ...defaultParams });
 
   const store = useStore();
-  const { scheduleStore } = store;
+  const {
+    scheduleStore,
+    userStore: { currentUserPk },
+  } = store;
 
   useEffect(() => {
     if (id !== 'new') {
@@ -98,6 +101,12 @@ const ShiftSwapForm = (props: ShiftSwapFormProps) => {
     onUpdate();
   }, [id]);
 
+  useEffect(() => {
+    if (shiftSwap?.beneficiary && !store.userStore.items[shiftSwap.beneficiary]) {
+      store.userStore.updateItem(shiftSwap.beneficiary);
+    }
+  }, [shiftSwap?.beneficiary]);
+
   const beneficiaryName = shiftSwap?.beneficiary && store.userStore.items[shiftSwap.beneficiary]?.name;
 
   const isNew = id === 'new';
@@ -120,15 +129,19 @@ const ShiftSwapForm = (props: ShiftSwapFormProps) => {
           <HorizontalGroup justify="space-between">
             <HorizontalGroup spacing="sm">
               {isNew && <Tag color={SHIFT_SWAP_COLOR}>New</Tag>}
-              <Text.Title level={5} editable>
-                Shift swap
-              </Text.Title>
+              <Text.Title level={5}>{isNew ? 'Shift swap request' : 'Shift swap'}</Text.Title>
             </HorizontalGroup>
             <HorizontalGroup>
               {!isNew && (
                 <WithPermissionControlTooltip userAction={UserActions.SchedulesWrite}>
                   <WithConfirm title="Are you sure to delete shift swap request?" confirmText="Delete">
-                    <IconButton variant="secondary" tooltip="Delete" name="trash-alt" onClick={handleDelete} />
+                    <IconButton
+                      variant="secondary"
+                      tooltip="Delete"
+                      name="trash-alt"
+                      onClick={handleDelete}
+                      disabled={shiftSwap.beneficiary !== currentUserPk}
+                    />
                   </WithConfirm>
                 </WithPermissionControlTooltip>
               )}
@@ -139,7 +152,7 @@ const ShiftSwapForm = (props: ShiftSwapFormProps) => {
 
           <div className={cx('fields')}>
             {!isNew && (
-              <Field label="Creator">
+              <Field label="Requested by">
                 <Input disabled value={beneficiaryName}></Input>
               </Field>
             )}
@@ -169,7 +182,7 @@ const ShiftSwapForm = (props: ShiftSwapFormProps) => {
               </TextArea>
             </Field>
             {!isNew && (
-              <Field label="Taken by">
+              <Field label="Swapped by">
                 {shiftSwap?.benefactor ? (
                   <UserItem
                     pk={shiftSwap?.benefactor}
@@ -193,8 +206,12 @@ const ShiftSwapForm = (props: ShiftSwapFormProps) => {
                     Create
                   </Button>
                 ) : (
-                  <Button variant="primary" onClick={handleTake} disabled={Boolean(isPastDue || shiftSwap?.benefactor)}>
-                    Take
+                  <Button
+                    variant="primary"
+                    onClick={handleTake}
+                    disabled={Boolean(isPastDue || shiftSwap?.benefactor || shiftSwap.beneficiary === currentUserPk)}
+                  >
+                    Accept
                   </Button>
                 )}
               </WithPermissionControlTooltip>

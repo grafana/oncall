@@ -62,7 +62,7 @@ const PagedUsers = observer((props: PagedUsersProps) => {
             <li key={pagedUser.pk}>
               <HorizontalGroup justify="space-between">
                 <HorizontalGroup>
-                  <Avatar size="big" src={pagedUser.avatar} />
+                  <Avatar size="medium" src={pagedUser.avatar} />
                   <Text strong>{pagedUser.username}</Text>
                   {Boolean(
                     storeUser &&

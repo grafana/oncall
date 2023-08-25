@@ -322,6 +322,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
                       disabled={disabledOverrideForm}
                       shiftStartToShowOverrideForm={shiftStartToShowOverrideForm}
                       shiftEndToShowOverrideForm={shiftEndToShowOverrideForm}
+                      onShowShiftSwapForm={this.handleShowShiftSwapForm}
                       filters={filters}
                     />
                   </div>
@@ -440,6 +441,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
       store.scheduleStore.updateEvents(scheduleId, startMoment, 'rotation'),
       store.scheduleStore.updateEvents(scheduleId, startMoment, 'override'),
       store.scheduleStore.updateEvents(scheduleId, startMoment, 'final'),
+      store.scheduleStore.updateShiftSwaps(scheduleId, startMoment),
     ]);
   };
 
