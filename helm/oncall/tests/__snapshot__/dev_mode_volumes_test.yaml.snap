@@ -1,0 +1,21 @@
+does add a volume and volume mount when oncall.devMode is enabled:
+  1: |
+    - mountPath: /etc/app
+      name: dev-reloaded-engine
+  2: |
+    - mountPath: /etc/app
+      name: dev-reloaded-engine
+  3: |
+    - mountPath: /etc/app
+      name: dev-reloaded-engine
+  4: |
+    - mountPath: /etc/app
+      name: dev-reloaded-engine
+  5: |
+    - hostPath:
+        path: /engine
+      name: dev-reloaded-engine
+  6: |
+    - hostPath:
+        path: /engine
+      name: dev-reloaded-engine

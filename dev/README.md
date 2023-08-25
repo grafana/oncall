@@ -75,6 +75,7 @@ The possible profiles values are:
 - `rabbitmq`
 - `postgres`
 - `mysql`
+- `telegram_polling`
 
 The default is `engine,oncall_ui,redis,grafana`. This runs:
 
