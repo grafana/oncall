@@ -216,7 +216,7 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
                     modeToShowEscalationChainForm: undefined,
                   });
                 }}
-                onUpdate={this.handleEscalationChainCreate}
+                onSubmit={this.handleEscalationChainCreate}
               />
             )}
           </>

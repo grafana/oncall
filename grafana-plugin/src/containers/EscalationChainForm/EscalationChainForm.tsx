@@ -7,6 +7,7 @@ import GSelect from 'containers/GSelect/GSelect';
 import { EscalationChain } from 'models/escalation_chain/escalation_chain.types';
 import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
 import { useStore } from 'state/useStore';
+import { openWarningNotification } from 'utils';
 
 import styles from 'containers/EscalationChainForm/EscalationChainForm.module.css';
 
@@ -20,13 +21,13 @@ interface EscalationChainFormProps {
   escalationChainId?: EscalationChain['id'];
   mode: EscalationChainFormMode;
   onHide: () => void;
-  onUpdate: (id: EscalationChain['id']) => void;
+  onSubmit: (id: EscalationChain['id']) => Promise<void>;
 }
 
 const cx = cn.bind(styles);
 
 const EscalationChainForm: FC<EscalationChainFormProps> = (props) => {
-  const { escalationChainId, onHide, onUpdate, mode } = props;
+  const { escalationChainId, onHide, onSubmit: onSubmitProp, mode } = props;
 
   const store = useStore();
   const { escalationChainStore, userStore } = store;
@@ -41,26 +42,47 @@ const EscalationChainForm: FC<EscalationChainFormProps> = (props) => {
   const [selectedTeam, setSelectedTeam] = useState<GrafanaTeam['id']>(escalationChain?.team || user.current_team);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
-  const onCreateClickCallback = useCallback(() => {
-    const promise =
-      mode === EscalationChainFormMode.Create
-        ? escalationChainStore.create({ name, team: selectedTeam })
-        : mode === EscalationChainFormMode.Copy
-        ? escalationChainStore.clone(escalationChainId, { name, team: selectedTeam })
-        : escalationChainStore.update(escalationChainId, { name, team: selectedTeam });
+  const onSubmit = useCallback(async () => {
+    let escalationChain: EscalationChain | void;
 
-    promise
-      .then((escalationChain: EscalationChain) => {
-        onUpdate(escalationChain.id);
+    const isCreateMode = mode === EscalationChainFormMode.Create;
+    const isCopyMode = mode === EscalationChainFormMode.Copy;
 
-        onHide();
-      })
-      .catch((data) => {
-        setErrors({
-          name: data.response.data.name || data.response.data.detail || data.response.data.non_field_errors,
-        });
+    if (isCreateMode) {
+      escalationChain = await escalationChainStore.create<EscalationChain>({ name, team: selectedTeam });
+    } else if (isCopyMode) {
+      escalationChain = await escalationChainStore.clone(escalationChainId, { name, team: selectedTeam });
+    } else {
+      escalationChain = await escalationChainStore.update<EscalationChain>(escalationChainId, {
+        name,
+        team: selectedTeam,
       });
-  }, [name, selectedTeam, mode]);
+    }
+
+    if (!escalationChain) {
+      let verb: string;
+
+      if (isCreateMode) {
+        verb = 'creating';
+      } else if (isCopyMode) {
+        verb = 'copying';
+      } else {
+        verb = 'updating';
+      }
+
+      openWarningNotification(`There was an issue ${verb} the escalation chain. Please try again`);
+      return;
+    }
+
+    try {
+      await onSubmitProp(escalationChain.id);
+      onHide();
+    } catch (err) {
+      setErrors({
+        name: err.response.data.name || err.response.data.detail || err.response.data.non_field_errors,
+      });
+    }
+  }, [name, selectedTeam, mode, onSubmitProp]);
 
   const handleNameChange = useCallback((event: ChangeEvent<HTMLInputElement>) => {
     setName(event.target.value);
@@ -94,7 +116,7 @@ const EscalationChainForm: FC<EscalationChainFormProps> = (props) => {
           <Button variant="secondary" onClick={onHide}>
             Cancel
           </Button>
-          <Button variant="primary" onClick={onCreateClickCallback}>
+          <Button variant="primary" onClick={onSubmit}>
             {`${mode} Escalation Chain`}
           </Button>
         </HorizontalGroup>

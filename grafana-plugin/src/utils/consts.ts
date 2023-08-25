@@ -43,3 +43,6 @@ export const DOCS_TELEGRAM_SETUP = 'https://grafana.com/docs/oncall/latest/notif
 
 // Make sure if you chage max-width here you also change it in responsive.css
 export const TABLE_COLUMN_MAX_WIDTH = 1500;
+
+export const generateAssignToTeamInputDescription = (objectName: string): string =>
+  `Assigning to a team allows you to filter ${objectName} and configure their visibility. Go to OnCall -> Settings -> Team and Access Settings for more details.`;
