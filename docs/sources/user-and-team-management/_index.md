@@ -35,7 +35,7 @@ organization administrator. There are three available roles: `Viewer`, `Editor`,
     mozallowfullscreen
     allowfullscreen
     style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"
-  />
+  /></iframe>
 </div>
 
 RBAC for Grafana plugins allows for fine-grained access control so you can define custom roles and actions for users in Grafana OnCall. Use RBAC to grant
