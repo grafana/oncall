@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## v1.3.27 (2023-08-25)
+
 ### Added
 
 - Public API for webhooks @mderynck ([#2790](https://github.com/grafana/oncall/pull/2790))
