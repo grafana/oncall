@@ -20,6 +20,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Enable shifts export endpoint for all schedule types ([#2863](https://github.com/grafana/oncall/pull/2863))
 - Use priority field to track primary/overrides calendar in schedule iCal export ([#2871](https://github.com/grafana/oncall/pull/2871))
 
+### Fixed
+
+- Fix public api docs for escalation policies by @Ferril ([#2830](https://github.com/grafana/oncall/pull/2830))
+
 ## v1.3.26 (2023-08-22)
 
 ### Changed
@@ -44,7 +48,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Check for possible split events in range when resolving schedule ([#2828](https://github.com/grafana/oncall/pull/2828))
-- Fix public api docs for escalation policies by @Ferril ([#2830](https://github.com/grafana/oncall/pull/2830))
 
 ## v1.3.24 (2023-08-17)
 
