@@ -434,12 +434,15 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
 
   renderTable() {
     const { selectedIncidentIds, pagination } = this.state;
-    const { store } = this.props;
-    const { alertGroupsLoading } = store.alertGroupStore;
+    const {
+      store,
+      store: { alertGroupStore, filtersStore },
+    } = this.props;
 
-    const results = store.alertGroupStore.getAlertSearchResult('default');
-    const prev = get(store.alertGroupStore.alertsSearchResult, `default.prev`);
-    const next = get(store.alertGroupStore.alertsSearchResult, `default.next`);
+    const results = alertGroupStore.getAlertSearchResult('default');
+    const prev = get(alertGroupStore.alertsSearchResult, `default.prev`);
+    const next = get(alertGroupStore.alertsSearchResult, `default.next`);
+    const isLoading = alertGroupStore.alertGroupsLoading || filtersStore.isLoading;
 
     if (results && !results.length) {
       return (
@@ -517,8 +520,8 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
       <div className={cx('root')}>
         {this.renderBulkActions()}
         <GTable
-          emptyText={alertGroupsLoading ? 'Loading...' : 'No alert groups found'}
-          loading={alertGroupsLoading}
+          emptyText={isLoading ? 'Loading...' : 'No alert groups found'}
+          loading={isLoading}
           className={cx('incidents-table')}
           rowSelection={{
             selectedRowKeys: selectedIncidentIds,
@@ -531,7 +534,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
         <div className={cx('pagination')}>
           <CursorPagination
             current={`${pagination.start}-${pagination.end}`}
-            itemsPerPage={store.alertGroupStore.incidentsItemsPerPage}
+            itemsPerPage={alertGroupStore.incidentsItemsPerPage}
             itemsPerPageOptions={[
               { label: '25', value: 25 },
               { label: '50', value: 50 },

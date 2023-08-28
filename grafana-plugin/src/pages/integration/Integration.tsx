@@ -25,7 +25,7 @@ import HamburgerMenu from 'components/HamburgerMenu/HamburgerMenu';
 import IntegrationCollapsibleTreeView, {
   IntegrationCollapsibleItem,
 } from 'components/IntegrationCollapsibleTreeView/IntegrationCollapsibleTreeView';
-import IntegrationContactPoint from 'components/IntegrationContactPoint/IntegrationContactPoint';
+// import IntegrationContactPoint from 'components/IntegrationContactPoint/IntegrationContactPoint';
 import IntegrationHowToConnect from 'components/IntegrationHowToConnect/IntegrationHowToConnect';
 import IntegrationLogo from 'components/IntegrationLogo/IntegrationLogo';
 import IntegrationSendDemoAlertModal from 'components/IntegrationSendDemoAlertModal/IntegrationSendDemoAlertModal';
@@ -351,22 +351,22 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
   }
 
   getConfigForTreeComponent(id: string, templates: AlertTemplatesDTO[]) {
-    const {
-      store: { alertReceiveChannelStore },
-    } = this.props;
+    // const {
+    //   store: { alertReceiveChannelStore },
+    // } = this.props;
 
-    const alertReceiveChannel = alertReceiveChannelStore.items[id];
-    const contactPoints = alertReceiveChannelStore.connectedContactPoints[id];
+    // const alertReceiveChannel = alertReceiveChannelStore.items[id];
+    // const contactPoints = alertReceiveChannelStore.connectedContactPoints[id];
 
     return [
-      IntegrationHelper.isGrafanaAlerting(alertReceiveChannel) && {
-        isHidden: contactPoints === null || contactPoints === undefined,
-        isCollapsible: false,
-        customIcon: 'grafana',
-        canHoverIcon: false,
-        collapsedView: null,
-        expandedView: () => <IntegrationContactPoint id={id} />,
-      },
+      // IntegrationHelper.isGrafanaAlerting(alertReceiveChannel) && {
+      //   isHidden: contactPoints === null || contactPoints === undefined,
+      //   isCollapsible: false,
+      //   customIcon: 'grafana',
+      //   canHoverIcon: false,
+      //   collapsedView: null,
+      //   expandedView: () => <IntegrationContactPoint id={id} />,
+      // },
       {
         isCollapsible: false,
         customIcon: 'plug',
@@ -484,7 +484,7 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
   };
 
   handleAddNewRoute = () => {
-    const { alertReceiveChannelStore, escalationPolicyStore } = this.props.store;
+    const { alertReceiveChannelStore } = this.props.store;
     const {
       params: { id },
     } = this.props.match;
@@ -501,12 +501,16 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
             filtering_term_type: 1, // non-regex
           })
           .then(async (channelFilter: ChannelFilter) => {
-            this.setState((prevState) => ({
-              isAddingRoute: false,
-              openRoutes: prevState.openRoutes.concat(channelFilter.id),
-            }));
-            await alertReceiveChannelStore.updateChannelFilters(id, true);
-            await escalationPolicyStore.updateEscalationPolicies(channelFilter.escalation_chain);
+            await alertReceiveChannelStore.updateChannelFilters(id);
+
+            this.setState(
+              (prevState) => ({
+                isAddingRoute: false,
+                openRoutes: prevState.openRoutes.concat(channelFilter.id),
+              }),
+              () => this.forceUpdate()
+            );
+
             openNotification('A new route has been added');
           })
           .catch((err) => {
@@ -532,6 +536,12 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
     const templates = alertReceiveChannelStore.templates[id];
     const channelFilterIds = alertReceiveChannelStore.channelFilterIds[id];
 
+    const onRouteDelete = async (routeId: string) => {
+      await alertReceiveChannelStore.deleteChannelFilter(routeId);
+      // this.forceUpdate();
+      openNotification('Route has been deleted');
+    };
+
     return channelFilterIds.map(
       (channelFilterId: ChannelFilter['id'], routeIndex: number) =>
         ({
@@ -554,6 +564,7 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
               toggle={toggle}
               openEditTemplateModal={this.openEditTemplateModal}
               onEditRegexpTemplate={this.handleEditRegexpRouteTemplate}
+              onRouteDelete={onRouteDelete}
             />
           ),
           expandedView: () => (
@@ -564,6 +575,7 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
               templates={templates}
               openEditTemplateModal={this.openEditTemplateModal}
               onEditRegexpTemplate={this.handleEditRegexpRouteTemplate}
+              onRouteDelete={onRouteDelete}
             />
           ),
         } as IntegrationCollapsibleItem)

@@ -167,7 +167,8 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
               onChange={this.handleIntegrationsFiltersChange}
             />
             <GTable
-              emptyText={this.renderNotFound()}
+              emptyText={count === undefined ? 'Loading...' : 'No integrations found'}
+              loading={count === undefined}
               data-testid="integrations-table"
               rowKey="id"
               data={results}
@@ -211,14 +212,6 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
           />
         )}
       </>
-    );
-  }
-
-  renderNotFound() {
-    return (
-      <div className={cx('loader')}>
-        <Text type="secondary">Not found</Text>
-      </div>
     );
   }
 
@@ -491,18 +484,20 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
     this.setState({ confirmationModal: undefined });
   };
 
-  handleIntegrationsFiltersChange = (integrationsFilters: Filters) => {
-    this.setState({ integrationsFilters }, () => this.debouncedUpdateIntegrations());
+  handleIntegrationsFiltersChange = (integrationsFilters: Filters, isOnMount: boolean) => {
+    this.setState({ integrationsFilters }, () => this.debouncedUpdateIntegrations(isOnMount));
   };
 
-  applyFilters = () => {
+  applyFilters = async (isOnMount: boolean) => {
     const { store } = this.props;
     const { alertReceiveChannelStore } = store;
-    const { integrationsFilters } = this.state;
+    const { integrationsFilters, page } = this.state;
 
-    return alertReceiveChannelStore.updatePaginatedItems(integrationsFilters, 1).then(() => {
-      this.setState({ page: 1 });
-      LocationHelper.update({ p: 1 }, 'partial');
+    const newPage = isOnMount ? page : 1;
+
+    return alertReceiveChannelStore.updatePaginatedItems(integrationsFilters, newPage).then(() => {
+      this.setState({ page: newPage });
+      LocationHelper.update({ p: newPage }, 'partial');
     });
   };
 

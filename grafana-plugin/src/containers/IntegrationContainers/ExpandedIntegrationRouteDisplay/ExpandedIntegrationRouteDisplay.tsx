@@ -50,6 +50,7 @@ interface ExpandedIntegrationRouteDisplayProps {
   templates: AlertTemplatesDTO[];
   openEditTemplateModal: (templateName: string | string[], channelFilterId?: ChannelFilter['id']) => void;
   onEditRegexpTemplate: (channelFilterId: ChannelFilter['id']) => void;
+  onRouteDelete: (routeId: string) => void;
 }
 
 interface ExpandedIntegrationRouteDisplayState {
@@ -59,7 +60,15 @@ interface ExpandedIntegrationRouteDisplayState {
 }
 
 const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayProps> = observer(
-  ({ alertReceiveChannelId, channelFilterId, templates, routeIndex, openEditTemplateModal, onEditRegexpTemplate }) => {
+  ({
+    alertReceiveChannelId,
+    channelFilterId,
+    templates,
+    routeIndex,
+    openEditTemplateModal,
+    onEditRegexpTemplate,
+    onRouteDelete,
+  }) => {
     const store = useStore();
     const {
       telegramChannelStore,
@@ -278,8 +287,7 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
 
     async function onRouteDeleteConfirm() {
       setState({ routeIdForDeletion: undefined });
-      await alertReceiveChannelStore.deleteChannelFilter(routeIdForDeletion);
-      openNotification('Route has been deleted');
+      onRouteDelete(routeIdForDeletion);
     }
 
     function onEscalationChainChange({ id }) {

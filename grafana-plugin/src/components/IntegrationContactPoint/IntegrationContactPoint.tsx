@@ -87,6 +87,7 @@ const IntegrationContactPoint: React.FC<{
             <Drawer scrollableContent title="Connected Contact Points" onClose={closeDrawer} closeOnMaskClick={false}>
               <div className={cx('contactpoints__drawer')}>
                 <GTable
+                  emptyText={'No contact points'}
                   className={cx('contactpoints__table')}
                   rowKey="id"
                   data={contactPoints}

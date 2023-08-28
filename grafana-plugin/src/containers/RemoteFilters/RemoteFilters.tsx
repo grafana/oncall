@@ -379,10 +379,7 @@ class RemoteFilters extends Component<RemoteFiltersProps, RemoteFiltersState> {
 
     LocationHelper.update({ ...values }, 'partial');
 
-    if (!isOnMount) {
-      // don't trigger change on the first render
-      onChange(values, isOnMount);
-    }
+    onChange(values, isOnMount);
   };
 
   debouncedOnChange = debounce(this.onChange, 500);
