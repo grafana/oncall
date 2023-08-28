@@ -669,8 +669,9 @@ def test_delete_others_ssr_permissions(ssr_setup, make_user_auth_headers):
     assert response.status_code == status.HTTP_403_FORBIDDEN
 
 
+@patch("apps.api.views.shift_swap.update_shift_swap_request_message")
 @pytest.mark.django_db
-def test_take(ssr_setup, make_user_auth_headers):
+def test_take(mock_update_shift_swap_request_message, ssr_setup, make_user_auth_headers):
     ssr, _, token, benefactor = ssr_setup()
     client = APIClient()
     url = reverse("api-internal:shift_swap-take", kwargs={"pk": ssr.public_primary_key})
@@ -696,15 +697,22 @@ def test_take(ssr_setup, make_user_auth_headers):
     assert response.status_code == status.HTTP_200_OK
     assert response_json == expected_response
 
+    mock_update_shift_swap_request_message.apply_async.assert_called_once_with((ssr.pk,))
 
+
+@patch("apps.api.views.shift_swap.update_shift_swap_request_message")
 @pytest.mark.django_db
-def test_benficiary_tries_to_take_their_own_ssr(ssr_setup, make_user_auth_headers):
+def test_benficiary_tries_to_take_their_own_ssr(
+    mock_update_shift_swap_request_message, ssr_setup, make_user_auth_headers
+):
     ssr, beneficiary, token, _ = ssr_setup()
     client = APIClient()
     url = reverse("api-internal:shift_swap-take", kwargs={"pk": ssr.public_primary_key})
 
     response = client.post(url, format="json", **make_user_auth_headers(beneficiary, token))
     assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    mock_update_shift_swap_request_message.apply_async.assert_not_called()
 
 
 @pytest.mark.django_db
@@ -713,15 +721,22 @@ def test_take_already_taken_ssr(ssr_setup, make_user_auth_headers):
     client = APIClient()
     url = reverse("api-internal:shift_swap-take", kwargs={"pk": ssr.public_primary_key})
 
-    response = client.post(url, format="json", **make_user_auth_headers(benefactor, token))
-    assert response.status_code == status.HTTP_200_OK
+    with patch("apps.api.views.shift_swap.update_shift_swap_request_message") as mock_update_shift_swap_request_message:
+        response = client.post(url, format="json", **make_user_auth_headers(benefactor, token))
+        assert response.status_code == status.HTTP_200_OK
 
-    response = client.post(url, format="json", **make_user_auth_headers(benefactor, token))
-    assert response.status_code == status.HTTP_400_BAD_REQUEST
+        mock_update_shift_swap_request_message.apply_async.assert_called_once_with((ssr.pk,))
+
+    with patch("apps.api.views.shift_swap.update_shift_swap_request_message") as mock_update_shift_swap_request_message:
+        response = client.post(url, format="json", **make_user_auth_headers(benefactor, token))
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+        mock_update_shift_swap_request_message.apply_async.assert_not_called()
 
 
+@patch("apps.api.views.shift_swap.update_shift_swap_request_message")
 @pytest.mark.django_db
-def test_take_past_due_ssr(ssr_setup, make_user_auth_headers):
+def test_take_past_due_ssr(mock_update_shift_swap_request_message, ssr_setup, make_user_auth_headers):
     ssr, _, token, benefactor = ssr_setup()
     client = APIClient()
     url = reverse("api-internal:shift_swap-take", kwargs={"pk": ssr.public_primary_key})
@@ -732,9 +747,12 @@ def test_take_past_due_ssr(ssr_setup, make_user_auth_headers):
     response = client.post(url, format="json", **make_user_auth_headers(benefactor, token))
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 
+    mock_update_shift_swap_request_message.apply_async.assert_not_called()
 
+
+@patch("apps.api.views.shift_swap.update_shift_swap_request_message")
 @pytest.mark.django_db
-def test_take_deleted_ssr(ssr_setup, make_user_auth_headers):
+def test_take_deleted_ssr(mock_update_shift_swap_request_message, ssr_setup, make_user_auth_headers):
     ssr, _, token, benefactor = ssr_setup()
     client = APIClient()
     url = reverse("api-internal:shift_swap-take", kwargs={"pk": ssr.public_primary_key})
@@ -743,6 +761,8 @@ def test_take_deleted_ssr(ssr_setup, make_user_auth_headers):
 
     response = client.post(url, format="json", **make_user_auth_headers(benefactor, token))
     assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    mock_update_shift_swap_request_message.apply_async.assert_not_called()
 
 
 @patch("apps.api.views.shift_swap.ShiftSwapViewSet.take", return_value=mock_success_response)
