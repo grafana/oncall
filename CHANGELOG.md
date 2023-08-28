@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## v1.3.27 (2023-08-25)
+
 ### Added
 
 - Public API for webhooks @mderynck ([#2790](https://github.com/grafana/oncall/pull/2790))
@@ -18,7 +20,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Public API for actions now wraps webhooks @mderynck ([#2790](https://github.com/grafana/oncall/pull/2790))
 - Allow mobile app to access status endpoint @mderynck ([#2791](https://github.com/grafana/oncall/pull/2791))
 - Enable shifts export endpoint for all schedule types ([#2863](https://github.com/grafana/oncall/pull/2863))
+- Use priority field to track primary/overrides calendar in schedule iCal export ([#2871](https://github.com/grafana/oncall/pull/2871))
 - Performance and UX tweaks to integrations page ([#2869](https://github.com/grafana/oncall/pull/2869))
+
+### Fixed
+
+- Fix public api docs for escalation policies by @Ferril ([#2830](https://github.com/grafana/oncall/pull/2830))
 
 ## v1.3.26 (2023-08-22)
 
