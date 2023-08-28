@@ -3,7 +3,7 @@ import json
 from django.conf import settings
 
 from apps.base.messaging import BaseMessagingBackend
-from apps.mobile_app.tasks import notify_user_async
+from apps.mobile_app.tasks.new_alert_group import notify_user_async
 
 
 class MobileAppBackend(BaseMessagingBackend):
