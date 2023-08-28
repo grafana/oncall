@@ -14,6 +14,8 @@ redis:
   image:
     repository: redis # the default, bitnami/redis does not support ARM64
     tag: 7.0.5
+  auth:
+    password: oncallpassword
 rabbitmq:
   enabled: false
 oncall:
@@ -32,8 +34,7 @@ ui:
     MOBILE_APP_QR_INTERVAL_QUEUE: 290000 # 4 minutes and 50 seconds
 
 externalGrafana:
-  # Example: https://grafana.mydomain.com
-  url: https://grafana.mydomain.com
+  url: http://grafana:3000
 
 grafana:
   enabled: false

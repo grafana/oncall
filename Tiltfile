@@ -11,9 +11,21 @@ load('ext://configmap', 'configmap_create')
 
 allow_k8s_contexts(["kind-kind"])
 
-docker_build("localhost:63628/oncall/engine:dev", "./engine", target = 'prod')
+docker_build(
+     "localhost:63628/oncall/engine:dev", 
+     "./engine", 
+     target = 'prod',
+    live_update=[
+      sync('./engine/', '/etc/app'),
+      run('cd /etc/app && pip install -r requirements.txt',
+          trigger='./engine/requirements.txt'),
+      run('OnCall backend is updated')
+    ]
+)
+
 # Build the plugin in the background
-docker_compose('grafana-plugin/docker-compose-dev.yaml')
+# docker_compose('grafana-plugin/docker-compose-dev.yaml')
+local_resource('build-ui', cmd='cd grafana-plugin && ONCALL_API_URL=http://oncall-dev-engine:8080 yarn watch', allow_parallel=True)
 
 yaml = helm(
   'helm/oncall',
@@ -23,7 +35,7 @@ yaml = helm(
 k8s_yaml(yaml)
 
 # Generate and load the grafana deploy yaml
-configmap_create('grafana-oncall-app-provisioning', namespace='default', from_file='./dev/cm-grafana-oncall-app-provisioning.yaml')
+configmap_create('grafana-oncall-app-provisioning', namespace='default', from_file='dev/grafana/provisioning/plugins/grafana-oncall-app-provisioning.yaml')
 
 k8s_resource(objects=['grafana-oncall-app-provisioning:configmap'],
                 new_name='grafana-oncall-app-provisioning-configmap',
@@ -34,16 +46,14 @@ if os.getenv('START_GRAFANA', 'true') != 'false':
 	grafana(context='grafana-plugin',
 			plugin_files = ['grafana-plugin/src/plugin.json'],
 			namespace='default',
-			deps = ['grafana-oncall-app-provisioning-configmap', 'engine', 'build-ui'],
+			deps = ['grafana-oncall-app-provisioning-configmap'],
 			extra_env={
 				'GF_SECURITY_ADMIN_PASSWORD': 'oncall',
 				'GF_SECURITY_ADMIN_USER': 'oncall',
-                'GF_AUTH_ANONYMOUS_ENABLED': 'false',
+        'GF_AUTH_ANONYMOUS_ENABLED': 'false',
 		},
 			)
 
-# k8s_resource(workload='grafana', resource_deps=['mariadb', 'engine', 'oncall-ui'], labels=['Grafana'])
-# k8s_resource(workload='oncall-ui', labels=['OnCallUI'])
 k8s_resource(workload='celery', resource_deps=['mariadb', 'redis-master'], labels=['OnCallBackend'])
 k8s_resource(workload='engine', port_forwards=8080, resource_deps=['mariadb', 'redis-master'], labels=['OnCallBackend'])
 k8s_resource(workload='redis-master', labels=['OnCallDeps'])

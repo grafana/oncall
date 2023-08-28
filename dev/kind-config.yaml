@@ -7,10 +7,3 @@ kindV1Alpha4Cluster:
   nodes:
     - role: control-plane
       image: kindest/node:v1.24.7
-      extraMounts:
-        - hostPath: ./grafana-plugin
-          containerPath: /oncall-plugin
-        - hostPath: ./dev
-          containerPath: /dev-config
-        - hostPath: ./engine
-          containerPath: /engine

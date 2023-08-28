@@ -96,4 +96,3 @@ spec:
       {{- with .Values.engine.priorityClassName }}
       priorityClassName: {{ . }}
       {{- end }}
-      {{- include "oncall.volumes" . | nindent 6 }}

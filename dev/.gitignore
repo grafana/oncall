@@ -14,7 +14,6 @@
 !helm-local.yml
 !kind.yml
 !kind-config.yaml
-!cm-grafana-oncall-app-provisioning.yaml
 
 # only source control grafana/provisioning/datasources/automatic.yml
 # any other files under ./grafana will be ignored

@@ -93,5 +93,4 @@ spec:
       {{- with .Values.migrate.extraContainers }}
       {{- tpl . $ | nindent 6 }}
       {{- end }}
-      {{- include "oncall.volumes" . | nindent 6 }}
 {{- end }}

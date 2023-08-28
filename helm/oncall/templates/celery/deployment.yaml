@@ -86,4 +86,3 @@ spec:
       {{- with .Values.celery.extraContainers }}
         {{- tpl . $ | nindent 8 }}
       {{- end }}
-      {{- include "oncall.volumes" . | nindent 6 }}
