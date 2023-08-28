@@ -51,8 +51,6 @@ const CollapsedIntegrationRouteDisplay: React.FC<CollapsedIntegrationRouteDispla
       );
     }, [routeIndex, alertReceiveChannelStore.channelFilterIds[alertReceiveChannelId]]);
 
-    console.log({ routeIndex, routeWording });
-
     if (!channelFilter) {
       return null;
     }

@@ -682,9 +682,9 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
     const promises = [];
 
     if (!alertReceiveChannelStore.items[id]) {
-      promises.push(alertReceiveChannelStore.loadItem(id).then(() => this.loadContactPointsMaybe(id)));
+      promises.push(alertReceiveChannelStore.loadItem(id).then(() => this.loadExtraDataMaybe(id)));
     } else {
-      promises.push(this.loadContactPointsMaybe(id));
+      promises.push(this.loadExtraDataMaybe(id));
     }
 
     if (!alertReceiveChannelStore.channelFilterIds[id]) {
@@ -705,12 +705,12 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
       .finally(() => this.setState({ isLoading: false }));
   }
 
-  async loadContactPointsMaybe(id: AlertReceiveChannel['id']) {
+  async loadExtraDataMaybe(id: AlertReceiveChannel['id']) {
     const { alertReceiveChannelStore } = this.props.store;
 
     if (IntegrationHelper.isGrafanaAlerting(alertReceiveChannelStore.items[id])) {
       // this will be delayed and not awaitable so that we don't delay the whole page load
-      return await alertReceiveChannelStore.updateConnectedContactPoints(id).catch(noop);
+      return await alertReceiveChannelStore.updateConnectedContactPoints(id);
     }
 
     return Promise.resolve();
