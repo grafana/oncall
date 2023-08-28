@@ -24,7 +24,7 @@ celery:
   replicaCount: 1
 
 ui:
-  enabled: true
+  enabled: false
   image:
     repository: localhost:63628/oncall/ui
   env:

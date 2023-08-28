@@ -7,11 +7,13 @@ DOCKER_REGISTRY="localhost:63628/"
 v1alpha1.extension_repo(name='grafana-tilt-extensions', url='https://github.com/grafana/tilt-extensions')
 v1alpha1.extension(name='grafana', repo_name='grafana-tilt-extensions', repo_path='grafana')
 load('ext://grafana', 'grafana')
+load('ext://configmap', 'configmap_create')
 
 allow_k8s_contexts(["kind-kind"])
 
 docker_build("localhost:63628/oncall/engine:dev", "./engine", target = 'prod')
-docker_build("localhost:63628/oncall/ui:dev", "./grafana-plugin", dockerfile = './grafana-plugin/Dockerfile.dev')
+# Build the plugin in the background
+docker_compose('grafana-plugin/docker-compose-dev.yaml')
 
 yaml = helm(
   'helm/oncall',
@@ -21,16 +23,18 @@ yaml = helm(
 k8s_yaml(yaml)
 
 # Generate and load the grafana deploy yaml
-k8s_yaml(local("cat ./dev/cm-grafana-oncall-app-provisioning.yaml"))
+configmap_create('grafana-oncall-app-provisioning', namespace='default', from_file='./dev/cm-grafana-oncall-app-provisioning.yaml')
+
 k8s_resource(objects=['grafana-oncall-app-provisioning:configmap'],
                 new_name='grafana-oncall-app-provisioning-configmap',
                 labels=['Grafana'])
 
 # Use separate grafana helm chart
 if os.getenv('START_GRAFANA', 'true') != 'false':
-	grafana(context='./grafana-plugin',
+	grafana(context='grafana-plugin',
 			plugin_files = ['grafana-plugin/src/plugin.json'],
 			namespace='default',
+			deps = ['grafana-oncall-app-provisioning-configmap', 'engine', 'build-ui'],
 			extra_env={
 				'GF_SECURITY_ADMIN_PASSWORD': 'oncall',
 				'GF_SECURITY_ADMIN_USER': 'oncall',
@@ -39,7 +43,7 @@ if os.getenv('START_GRAFANA', 'true') != 'false':
 			)
 
 # k8s_resource(workload='grafana', resource_deps=['mariadb', 'engine', 'oncall-ui'], labels=['Grafana'])
-k8s_resource(workload='oncall-ui', labels=['OnCallUI'])
+# k8s_resource(workload='oncall-ui', labels=['OnCallUI'])
 k8s_resource(workload='celery', resource_deps=['mariadb', 'redis-master'], labels=['OnCallBackend'])
 k8s_resource(workload='engine', port_forwards=8080, resource_deps=['mariadb', 'redis-master'], labels=['OnCallBackend'])
 k8s_resource(workload='redis-master', labels=['OnCallDeps'])

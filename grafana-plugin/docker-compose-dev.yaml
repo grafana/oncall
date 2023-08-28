@@ -1,0 +1,13 @@
+# compose file that will start a container, Dockerfile.dev, in this directory, mount this directory to the container, and run npm run start
+# this will start the react app in the container, and we can see the app in the browser
+version: '3.9'
+
+services:
+  build-ui:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./node_modules:/etc/app/node_modules
+      - .:/etc/app
+
