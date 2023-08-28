@@ -57,6 +57,20 @@ test.describe('Users screen actions', () => {
     await _testButtons(editorRolePage.page, 'button.edit-other-profile-button:not([disabled])');
   });
 
+  test('Search updates the table view', async ({ adminRolePage }) => {
+    const { page } = adminRolePage;
+    await goToOnCallPage(page, 'users');
+
+    const searchInput = page.locator(`[data-testid="search-users"]`);
+
+    await searchInput.fill('oncall');
+    await page.waitForTimeout(5000);
+
+    const result = page.locator(`[data-testid="users-username"]`);
+
+    expect(await result.count()).toBe(1);
+  });
+
   /*
    * Helper methods
    */

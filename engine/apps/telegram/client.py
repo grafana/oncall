@@ -46,6 +46,13 @@ class TelegramClient:
 
         self.api_client.set_webhook(webhook_url, allowed_updates=self.ALLOWED_UPDATES)
 
+    def delete_webhook(self):
+        webhook_info = self.api_client.get_webhook_info()
+        if webhook_info.url == "":
+            return
+
+        self.api_client.delete_webhook()
+
     def send_message(
         self,
         chat_id: Union[int, str],

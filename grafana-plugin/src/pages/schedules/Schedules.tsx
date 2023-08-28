@@ -191,7 +191,6 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
         {showNewScheduleSelector && (
           <NewScheduleSelector
             onCreate={this.handleCreateSchedule}
-            onUpdate={this.update}
             onHide={() => {
               this.setState({ showNewScheduleSelector: false });
             }}
@@ -200,7 +199,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
         {scheduleIdToEdit && (
           <ScheduleForm
             id={scheduleIdToEdit}
-            onUpdate={this.update}
+            onSubmit={this.update}
             onHide={() => {
               this.setState({ scheduleIdToEdit: undefined });
             }}

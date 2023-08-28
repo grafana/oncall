@@ -3,6 +3,7 @@
 # Set the domain name Grafana OnCall will be installed on.
 # If you want to install grafana as a part of this release make sure to configure grafana.grafana.ini.server.domain too
 base_url: example.com
+base_url_protocol: https
 
 ## Optionally specify an array of imagePullSecrets.
 ## Secrets must be manually created in the namespace.
@@ -133,7 +134,23 @@ celery:
   #     - --port=5432
   #     - example:europe-west3:grafana-oncall-db
 
+# Telegram polling pod configuration
+telegramPolling:
+  enabled: false
+  resources: {}
+    # limits:
+    #   cpu: 100m
+    #   memory: 128Mi
+    # requests:
+    #   cpu: 100m
+    #   memory: 128Mi
+
 oncall:
+  # this is intended to be used for local development. In short, it will mount the ./engine dir into
+  # any backend related containers, to allow hot-reloading + also run the containers with slightly modified
+  # startup commands (which configures the hot-reloading)
+  devMode: false
+
   # Override default MIRAGE_CIPHER_IV (must be 16 bytes long)
   # For existing installation, this should not be changed.
   # mirageCipherIV: 1234567890abcdef
@@ -253,6 +270,14 @@ migrate:
   #     - --private-ip
   #     - --port=5432
   #     - example:europe-west3:grafana-oncall-db
+  resources:
+    {}
+    # limits:
+    #   cpu: 100m
+    #   memory: 128Mi
+    # requests:
+    #   cpu: 100m
+    #   memory: 128Mi
 
 # Sets environment variables with name capitalized and prefixed with UWSGI_,
 # and dashes are substituted with underscores.
@@ -483,3 +508,10 @@ init:
     # requests:
     #   cpu: 100m
     #   memory: 128Mi
+
+ui:
+  # this is intended to be used for local development. In short, it will spin up an additional container
+  # running the plugin frontend, such that hot reloading can be enabled
+  enabled: false
+  # Additional env vars for the ui container
+  env: {}

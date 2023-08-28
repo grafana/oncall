@@ -85,24 +85,24 @@ Create the name of the service account to use
 {{- printf "%s-%s" .Release.Name "redis" | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
-{{- define "oncall.mariadb.wait-for-db" }}
-- name: wait-for-db
-  image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
-  imagePullPolicy: {{ .Values.image.pullPolicy }}
-  command: ['sh', '-c', "until (python manage.py migrate --check); do echo Waiting for database migrations; sleep 2; done"]
-  securityContext:
-  {{ toYaml .Values.init.securityContext | nindent 4 }}
-  resources:
-  {{ toYaml .Values.init.resources | nindent 4 }}
-  env:
-    {{- include "snippet.oncall.env" . | nindent 4 }}
-    {{- include "snippet.mysql.env" . | nindent 4 }}
-    {{- include "snippet.rabbitmq.env" . | nindent 4 }}
-    {{- include "snippet.redis.env" . | nindent 4 }}
-    {{- include "oncall.extraEnvs" . | nindent 4 }}
+{{- define "oncall.volumes" -}}
+{{- if .Values.oncall.devMode }}
+volumes:
+  - name: dev-reloaded-engine
+    hostPath:
+      path: /engine
+{{- end }}
 {{- end }}
 
-{{- define "oncall.postgresql.wait-for-db" }}
+{{- define "oncall.volumeMounts" -}}
+{{- if .Values.oncall.devMode }}
+volumeMounts:
+  - mountPath: /etc/app
+    name: dev-reloaded-engine
+{{- end }}
+{{- end }}
+
+{{- define "oncall.initContainer" }}
 - name: wait-for-db
   image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
   imagePullPolicy: {{ .Values.image.pullPolicy }}
@@ -113,10 +113,10 @@ Create the name of the service account to use
   {{ toYaml .Values.init.resources | nindent 4 }}
   env:
     {{- include "snippet.oncall.env" . | nindent 4 }}
-    {{- include "snippet.postgresql.env" . | nindent 4 }}
-    {{- include "snippet.rabbitmq.env" . | nindent 4 }}
-    {{- include "snippet.redis.env" . | nindent 4 }}
+    {{- include "snippet.db.env" . | nindent 4 }}
+    {{- include "snippet.broker.env" . | nindent 4 }}
     {{- include "oncall.extraEnvs" . | nindent 4 }}
+  {{- include "oncall.volumeMounts" . | nindent 2 }}
 {{- end }}
 
 {{- define "oncall.extraEnvs" -}}

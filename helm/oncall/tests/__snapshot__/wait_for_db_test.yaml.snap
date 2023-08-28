@@ -59,15 +59,6 @@ database.type=mysql -> should create initContainer for MySQL database (default):
           value: amqp
         - name: RABBITMQ_VHOST
           value: ""
-        - name: REDIS_HOST
-          value: oncall-redis-master
-        - name: REDIS_PORT
-          value: "6379"
-        - name: REDIS_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              key: redis-password
-              name: oncall-redis
       image: grafana/oncall:v1.2.36
       imagePullPolicy: Always
       name: wait-for-db
@@ -139,15 +130,77 @@ database.type=mysql -> should create initContainer for MySQL database (default):
           value: amqp
         - name: RABBITMQ_VHOST
           value: ""
-        - name: REDIS_HOST
-          value: oncall-redis-master
-        - name: REDIS_PORT
-          value: "6379"
-        - name: REDIS_PASSWORD
+      image: grafana/oncall:v1.2.36
+      imagePullPolicy: Always
+      name: wait-for-db
+      resources:
+        limits:
+          cpu: 100m
+          memory: 128Mi
+        requests:
+          cpu: 100m
+          memory: 128Mi
+      securityContext: {}
+  3: |
+    - command:
+        - sh
+        - -c
+        - until (python manage.py migrate --check); do echo Waiting for database migrations; sleep 2; done
+      env:
+        - name: BASE_URL
+          value: https://example.com
+        - name: SECRET_KEY
           valueFrom:
             secretKeyRef:
-              key: redis-password
-              name: oncall-redis
+              key: SECRET_KEY
+              name: oncall
+        - name: MIRAGE_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              key: MIRAGE_SECRET_KEY
+              name: oncall
+        - name: MIRAGE_CIPHER_IV
+          value: 1234567890abcdef
+        - name: DJANGO_SETTINGS_MODULE
+          value: settings.helm
+        - name: AMIXR_DJANGO_ADMIN_PATH
+          value: admin
+        - name: OSS
+          value: "True"
+        - name: UWSGI_LISTEN
+          value: "1024"
+        - name: BROKER_TYPE
+          value: rabbitmq
+        - name: GRAFANA_API_URL
+          value: http://oncall-grafana
+        - name: MYSQL_HOST
+          value: oncall-mariadb
+        - name: MYSQL_PORT
+          value: "3306"
+        - name: MYSQL_DB_NAME
+          value: oncall
+        - name: MYSQL_USER
+          value: root
+        - name: MYSQL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: mariadb-root-password
+              name: oncall-mariadb
+        - name: RABBITMQ_USERNAME
+          value: user
+        - name: RABBITMQ_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: rabbitmq-password
+              name: oncall-rabbitmq
+        - name: RABBITMQ_HOST
+          value: oncall-rabbitmq
+        - name: RABBITMQ_PORT
+          value: "5672"
+        - name: RABBITMQ_PROTOCOL
+          value: amqp
+        - name: RABBITMQ_VHOST
+          value: ""
       image: grafana/oncall:v1.2.36
       imagePullPolicy: Always
       name: wait-for-db
@@ -222,15 +275,6 @@ database.type=postgresql -> should create initContainer for PostgreSQL database:
           value: amqp
         - name: RABBITMQ_VHOST
           value: ""
-        - name: REDIS_HOST
-          value: oncall-redis-master
-        - name: REDIS_PORT
-          value: "6379"
-        - name: REDIS_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              key: redis-password
-              name: oncall-redis
       image: grafana/oncall:v1.2.36
       imagePullPolicy: Always
       name: wait-for-db
@@ -304,15 +348,79 @@ database.type=postgresql -> should create initContainer for PostgreSQL database:
           value: amqp
         - name: RABBITMQ_VHOST
           value: ""
-        - name: REDIS_HOST
-          value: oncall-redis-master
-        - name: REDIS_PORT
-          value: "6379"
-        - name: REDIS_PASSWORD
+      image: grafana/oncall:v1.2.36
+      imagePullPolicy: Always
+      name: wait-for-db
+      resources:
+        limits:
+          cpu: 100m
+          memory: 128Mi
+        requests:
+          cpu: 100m
+          memory: 128Mi
+      securityContext: {}
+  3: |
+    - command:
+        - sh
+        - -c
+        - until (python manage.py migrate --check); do echo Waiting for database migrations; sleep 2; done
+      env:
+        - name: BASE_URL
+          value: https://example.com
+        - name: SECRET_KEY
           valueFrom:
             secretKeyRef:
-              key: redis-password
-              name: oncall-redis
+              key: SECRET_KEY
+              name: oncall
+        - name: MIRAGE_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              key: MIRAGE_SECRET_KEY
+              name: oncall
+        - name: MIRAGE_CIPHER_IV
+          value: 1234567890abcdef
+        - name: DJANGO_SETTINGS_MODULE
+          value: settings.helm
+        - name: AMIXR_DJANGO_ADMIN_PATH
+          value: admin
+        - name: OSS
+          value: "True"
+        - name: UWSGI_LISTEN
+          value: "1024"
+        - name: BROKER_TYPE
+          value: rabbitmq
+        - name: GRAFANA_API_URL
+          value: http://oncall-grafana
+        - name: DATABASE_TYPE
+          value: postgresql
+        - name: DATABASE_HOST
+          value: some-postgresql-host
+        - name: DATABASE_PORT
+          value: "5432"
+        - name: DATABASE_NAME
+          value: oncall
+        - name: DATABASE_USER
+          value: postgres
+        - name: DATABASE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: postgres-password
+              name: oncall-postgresql-external
+        - name: RABBITMQ_USERNAME
+          value: user
+        - name: RABBITMQ_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: rabbitmq-password
+              name: oncall-rabbitmq
+        - name: RABBITMQ_HOST
+          value: oncall-rabbitmq
+        - name: RABBITMQ_PORT
+          value: "5672"
+        - name: RABBITMQ_PROTOCOL
+          value: amqp
+        - name: RABBITMQ_VHOST
+          value: ""
       image: grafana/oncall:v1.2.36
       imagePullPolicy: Always
       name: wait-for-db

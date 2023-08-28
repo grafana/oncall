@@ -9,9 +9,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Address bug when a Shift Swap Request is accepted either via the web or mobile UI, and the Slack message is not
+  updated to reflect the latest state by @joeyorlando ([#2886](https://github.com/grafana/oncall/pull/2886))
+
+## v1.3.27 (2023-08-25)
+
+### Added
+
+- Public API for webhooks @mderynck ([#2790](https://github.com/grafana/oncall/pull/2790))
+- Use Telegram polling protocol instead of a webhook if `FEATURE_TELEGRAM_LONG_POLLING_ENABLED` set to `True` by @alexintech
+  ([#2250](https://github.com/grafana/oncall/pull/2250))
+
+### Changed
+
+- Public API for actions now wraps webhooks @mderynck ([#2790](https://github.com/grafana/oncall/pull/2790))
+- Allow mobile app to access status endpoint @mderynck ([#2791](https://github.com/grafana/oncall/pull/2791))
+- Enable shifts export endpoint for all schedule types ([#2863](https://github.com/grafana/oncall/pull/2863))
+- Use priority field to track primary/overrides calendar in schedule iCal export ([#2871](https://github.com/grafana/oncall/pull/2871))
+
+### Fixed
+
+- Fix public api docs for escalation policies by @Ferril ([#2830](https://github.com/grafana/oncall/pull/2830))
+
+## v1.3.26 (2023-08-22)
+
+### Changed
+
+- Increase mobile app verification token TTL by @joeyorlando ([#2859](https://github.com/grafana/oncall/pull/2859))
+
+### Fixed
+
 - Changed HTTP Endpoint to Email for inbound email integrations
   ([#2816](https://github.com/grafana/oncall/issues/2816))
 - Enable inbound email feature flag by default by @vadimkerr ([#2846](https://github.com/grafana/oncall/pull/2846))
+- Fixed initial search on Users page ([#2842](https://github.com/grafana/oncall/issues/2842))
 
 ## v1.3.25 (2023-08-18)
 

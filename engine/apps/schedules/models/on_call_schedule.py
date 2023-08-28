@@ -27,7 +27,7 @@ from apps.schedules.constants import (
     ICAL_DATETIME_STAMP,
     ICAL_DATETIME_START,
     ICAL_LAST_MODIFIED,
-    ICAL_LOCATION,
+    ICAL_PRIORITY,
     ICAL_STATUS,
     ICAL_STATUS_CANCELLED,
     ICAL_SUMMARY,
@@ -461,7 +461,9 @@ class OnCallSchedule(PolymorphicModel):
                 event.add(ICAL_DATETIME_END, e["end"])
                 event.add(ICAL_DATETIME_STAMP, now)
                 event.add(ICAL_LAST_MODIFIED, now)
-                event.add(ICAL_LOCATION, self.CALENDAR_TYPE_VERBAL.get(e["calendar_type"], ""))
+                # set priority based on primary/overrides
+                # 0: undefined priority, 1: high priority
+                event.add(ICAL_PRIORITY, e["calendar_type"])
                 event_uid = "{}-{}-{}".format(e["shift"]["pk"], e["start"].strftime("%Y%m%d%H%S"), u["pk"])
                 event[ICAL_UID] = event_uid
                 calendar.add_component(event)

@@ -18,6 +18,7 @@ from apps.webhooks.utils import apply_jinja_template_for_json
 from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.filters import ByTeamModelFieldFilterMixin, ModelFieldFilterMixin, TeamModelMultipleChoiceFilter
 from common.api_helpers.mixins import PublicPrimaryKeyMixin, TeamFilteringMixin
+from common.insight_log import EntityEvent, write_resource_insight_log
 from common.jinja_templater.apply_jinja_template import JinjaTemplateError, JinjaTemplateWarning
 
 NEW_WEBHOOK_PK = "new"
@@ -59,6 +60,30 @@ class WebhooksView(TeamFilteringMixin, PublicPrimaryKeyMixin, ModelViewSet):
     filter_backends = [SearchFilter, filters.DjangoFilterBackend]
     search_fields = ["public_primary_key", "name"]
     filterset_class = WebhooksFilter
+
+    def perform_create(self, serializer):
+        serializer.save()
+        write_resource_insight_log(instance=serializer.instance, author=self.request.user, event=EntityEvent.CREATED)
+
+    def perform_update(self, serializer):
+        prev_state = serializer.instance.insight_logs_serialized
+        serializer.save()
+        new_state = serializer.instance.insight_logs_serialized
+        write_resource_insight_log(
+            instance=serializer.instance,
+            author=self.request.user,
+            event=EntityEvent.UPDATED,
+            prev_state=prev_state,
+            new_state=new_state,
+        )
+
+    def perform_destroy(self, instance):
+        write_resource_insight_log(
+            instance=instance,
+            author=self.request.user,
+            event=EntityEvent.DELETED,
+        )
+        instance.delete()
 
     def get_queryset(self, ignore_filtering_by_available_teams=False):
         queryset = Webhook.objects.filter(

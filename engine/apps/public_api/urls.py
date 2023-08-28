@@ -26,6 +26,7 @@ router.register(r"user_groups", views.UserGroupView, basename="user_groups")
 router.register(r"on_call_shifts", views.CustomOnCallShiftView, basename="on_call_shifts")
 router.register(r"teams", views.TeamView, basename="teams")
 router.register(r"shift_swaps", views.ShiftSwapViewSet, basename="shift_swap")
+router.register(r"webhooks", views.WebhooksView, basename="webhooks")
 
 
 urlpatterns = [
