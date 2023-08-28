@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+
+- Visualization of shift swap requests in Overrides and swaps section ([#2844](https://github.com/grafana/oncall/issues/2844))
+
 ### Fixed
 
 - Address bug when a Shift Swap Request is accepted either via the web or mobile UI, and the Slack message is not
