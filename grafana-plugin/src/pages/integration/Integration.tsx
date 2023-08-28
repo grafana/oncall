@@ -13,7 +13,7 @@ import {
   Alert,
 } from '@grafana/ui';
 import cn from 'classnames/bind';
-import { get, noop } from 'lodash-es';
+import { get } from 'lodash-es';
 import { observer } from 'mobx-react';
 import CopyToClipboard from 'react-copy-to-clipboard';
 import Emoji from 'react-emoji-render';

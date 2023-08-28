@@ -216,12 +216,10 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
   }
 
   renderName = (item: AlertReceiveChannel) => {
-    const {
-      query: { p },
-    } = this.props;
+    const { page } = this.state;
 
     return (
-      <PluginLink query={{ page: 'integrations', id: item.id, p }}>
+      <PluginLink query={{ page: 'integrations', id: item.id, p: page }}>
         <Text type="link" size="medium">
           <Emoji
             className={cx('title')}
