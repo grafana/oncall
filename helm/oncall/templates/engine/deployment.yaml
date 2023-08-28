@@ -73,7 +73,6 @@ spec:
             timeoutSeconds: 3
           resources:
             {{- toYaml .Values.engine.resources | nindent 12 }}
-          {{- include "oncall.volumeMounts" . | nindent 10 }}
       {{- with .Values.engine.extraContainers }}
         {{- tpl . $ | nindent 8 }}
       {{- end }}

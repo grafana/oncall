@@ -9,6 +9,11 @@ v1alpha1.extension(name='grafana', repo_name='grafana-tilt-extensions', repo_pat
 load('ext://grafana', 'grafana')
 load('ext://configmap', 'configmap_create')
 
+# Tell ops-devenv/Tiltifle where our plugin.json file lives
+plugin_file = os.path.abspath('grafana-plugin/src/plugin.json')
+def plugin_json():
+    return plugin_file
+
 allow_k8s_contexts(["kind-kind"])
 
 docker_build(
@@ -58,7 +63,6 @@ k8s_resource(workload='celery', resource_deps=['mariadb', 'redis-master'], label
 k8s_resource(workload='engine', port_forwards=8080, resource_deps=['mariadb', 'redis-master'], labels=['OnCallBackend'])
 k8s_resource(workload='redis-master', labels=['OnCallDeps'])
 k8s_resource(workload='mariadb', labels=['OnCallDeps'])
-
 
 # name all tilt resources after the k8s object namespace + name
 def resource_name(id):

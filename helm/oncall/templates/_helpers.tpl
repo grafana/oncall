@@ -99,7 +99,6 @@ Create the name of the service account to use
     {{- include "snippet.db.env" . | nindent 4 }}
     {{- include "snippet.broker.env" . | nindent 4 }}
     {{- include "oncall.extraEnvs" . | nindent 4 }}
-  {{- include "oncall.volumeMounts" . | nindent 2 }}
 {{- end }}
 
 {{- define "oncall.extraEnvs" -}}
