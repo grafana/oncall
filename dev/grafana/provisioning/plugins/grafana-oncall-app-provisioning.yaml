@@ -1,0 +1,4 @@
+apiVersion: 1
+plugins:
+  - type: grafana-oncall-app
+    disabled: false

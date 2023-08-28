@@ -21,3 +21,6 @@
 !grafana/provisioning/
 !grafana/provisioning/datasources/
 !grafana/provisioning/datasources/automatic.yml
+!grafana/provisioning/plugins/
+!grafana/provisioning/plugins/grafana-oncall-app-provisioning.yaml
+
