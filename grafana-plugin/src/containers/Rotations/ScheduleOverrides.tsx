@@ -87,7 +87,6 @@ class ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverri
     const layers = getLayersFromStore(store, scheduleId, startMoment);
 
     const shiftSwaps = getShiftSwapsFromStore(store, scheduleId, startMoment);
-    console.log(shifts?.length, shiftSwaps?.length, !shifts?.length && !shiftSwaps?.length);
 
     const base = 7 * 24 * 60; // in minutes
     const diff = dayjs().tz(currentTimezone).diff(startMoment, 'minutes');
@@ -113,6 +112,7 @@ class ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverri
               <HorizontalGroup>
                 <Button
                   variant="secondary"
+                  disabled={disabled}
                   onClick={() => {
                     const closestEvent = findClosestUserEvent(dayjs(), currentUserPk, layers);
                     const swapStart = closestEvent
@@ -151,32 +151,36 @@ class ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverri
             {!currentTimeHidden && <div className={cx('current-time')} style={{ left: `${currentTimeX * 100}%` }} />}
             <TimelineMarks startMoment={startMoment} timezone={currentTimezone} />
             <TransitionGroup className={cx('rotations')}>
-              {shiftSwaps &&
-                shiftSwaps.map(({ isPreview, events, shiftId }) => (
-                  <CSSTransition key={shiftId} timeout={DEFAULT_TRANSITION_TIMEOUT} classNames={{ ...styles }}>
+              {shiftSwaps && shiftSwaps.length
+                ? shiftSwaps.map(({ isPreview, events }, index) => (
+                    <CSSTransition key={index} timeout={DEFAULT_TRANSITION_TIMEOUT} classNames={{ ...styles }}>
+                      <Rotation
+                        scheduleId={scheduleId}
+                        events={events}
+                        color={SHIFT_SWAP_COLOR}
+                        startMoment={startMoment}
+                        currentTimezone={currentTimezone}
+                        onSlotClick={(event) => {
+                          if (event.is_gap) {
+                            return;
+                          }
+                          onShowShiftSwapForm(event.shiftSwapId);
+                        }}
+                        transparent={isPreview}
+                        filters={filters}
+                      />
+                    </CSSTransition>
+                  ))
+                : null}
+            </TransitionGroup>
+            <TransitionGroup className={cx('rotations')}>
+              {shifts && shifts.length ? (
+                shifts.map(({ shiftId, isPreview, events }, index) => (
+                  <CSSTransition key={index} timeout={DEFAULT_TRANSITION_TIMEOUT} classNames={{ ...styles }}>
                     <Rotation
-                      key={shiftId}
                       scheduleId={scheduleId}
                       events={events}
-                      color={SHIFT_SWAP_COLOR}
-                      startMoment={startMoment}
-                      currentTimezone={currentTimezone}
-                      onSlotClick={(event) => {
-                        onShowShiftSwapForm(event.shiftSwapId);
-                      }}
-                      transparent={isPreview}
-                      filters={filters}
-                    />
-                  </CSSTransition>
-                ))}
-              {shifts &&
-                shifts.map(({ shiftId, isPreview, events }, rotationIndex) => (
-                  <CSSTransition key={shiftId} timeout={DEFAULT_TRANSITION_TIMEOUT} classNames={{ ...styles }}>
-                    <Rotation
-                      key={shiftId}
-                      scheduleId={scheduleId}
-                      events={events}
-                      color={getOverrideColor(rotationIndex)}
+                      color={getOverrideColor(index)}
                       startMoment={startMoment}
                       currentTimezone={currentTimezone}
                       onClick={(shiftStart, shiftEnd) => {
@@ -186,8 +190,8 @@ class ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverri
                       filters={filters}
                     />
                   </CSSTransition>
-                ))}
-              {!shifts?.length && !shiftSwaps?.length && (
+                ))
+              ) : (
                 <CSSTransition key={0} timeout={DEFAULT_TRANSITION_TIMEOUT} classNames={{ ...styles }}>
                   <Rotation
                     key={0}

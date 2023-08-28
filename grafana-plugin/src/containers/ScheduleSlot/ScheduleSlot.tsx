@@ -59,9 +59,18 @@ const ScheduleSlot: FC<ScheduleSlotProps> = observer((props) => {
 
   const width = duration / base;
 
+  const currentMoment = useMemo(() => dayjs(), []);
+
   const renderEvent = (event): React.ReactElement | React.ReactElement[] => {
     if (event.shiftSwapId) {
-      return <ShiftSwapEvent event={event} simplified={simplified} currentTimezone={currentTimezone} />;
+      return (
+        <ShiftSwapEvent
+          currentMoment={currentMoment}
+          event={event}
+          simplified={simplified}
+          currentTimezone={currentTimezone}
+        />
+      );
     }
 
     if (event.is_gap) {
@@ -96,6 +105,7 @@ const ScheduleSlot: FC<ScheduleSlotProps> = observer((props) => {
         currentTimezone={currentTimezone}
         simplified={simplified}
         color={color}
+        currentMoment={currentMoment}
       />
     );
   };
@@ -113,10 +123,11 @@ interface ShiftSwapEventProps {
   event: Event;
   currentTimezone: Timezone;
   simplified: boolean;
+  currentMoment: dayjs.Dayjs;
 }
 
 const ShiftSwapEvent = (props: ShiftSwapEventProps) => {
-  const { event, currentTimezone, simplified } = props;
+  const { event, currentTimezone, simplified, currentMoment } = props;
 
   const store = useStore();
 
@@ -150,6 +161,7 @@ const ShiftSwapEvent = (props: ShiftSwapEventProps) => {
           event={event}
           simplified={simplified}
           color={SHIFT_SWAP_COLOR}
+          currentMoment={currentMoment}
         />
       }
     >
@@ -181,6 +193,7 @@ interface RegularEventProps {
   filters?: ScheduleFiltersType;
   start: dayjs.Dayjs;
   duration: number;
+  currentMoment: dayjs.Dayjs;
 }
 
 const RegularEvent = (props: RegularEventProps) => {
@@ -196,6 +209,7 @@ const RegularEvent = (props: RegularEventProps) => {
     duration,
     handleAddOverride,
     handleAddShiftSwap,
+    currentMoment,
   } = props;
   const store = useStore();
 
@@ -277,11 +291,22 @@ const RegularEvent = (props: RegularEventProps) => {
                 currentTimezone={currentTimezone}
                 event={event}
                 handleAddOverride={
-                  !enableWebOverrides || simplified || event.is_override || isShiftSwap ? undefined : handleAddOverride
+                  !enableWebOverrides ||
+                  simplified ||
+                  event.is_override ||
+                  isShiftSwap ||
+                  currentMoment.isAfter(dayjs(event.end))
+                    ? undefined
+                    : handleAddOverride
                 }
-                handleAddShiftSwap={simplified || isShiftSwap || !isCurrentUserSlot ? undefined : handleAddShiftSwap}
+                handleAddShiftSwap={
+                  simplified || isShiftSwap || !isCurrentUserSlot || currentMoment.isAfter(dayjs(event.start))
+                    ? undefined
+                    : handleAddShiftSwap
+                }
                 simplified={simplified}
                 color={backgroundColor}
+                currentMoment={currentMoment}
               />
             }
           >
@@ -305,6 +330,7 @@ interface ScheduleSlotDetailsProps {
   isShiftSwap?: boolean;
   beneficiaryName?: string;
   benefactorName?: string;
+  currentMoment: dayjs.Dayjs;
 }
 
 const ScheduleSlotDetails = (props: ScheduleSlotDetailsProps) => {
@@ -318,12 +344,11 @@ const ScheduleSlotDetails = (props: ScheduleSlotDetailsProps) => {
     isShiftSwap,
     beneficiaryName,
     benefactorName,
+    currentMoment,
   } = props;
 
   const store = useStore();
   const { scheduleStore } = store;
-
-  const currentMoment = useMemo(() => dayjs(), []);
 
   const shift = scheduleStore.shifts[event.shift?.pk];
 

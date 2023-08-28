@@ -152,13 +152,15 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
       !isUserActionAllowed(UserActions.SchedulesWrite) ||
       schedule?.type !== ScheduleType.API ||
       !!shiftIdToShowRotationForm ||
-      shiftIdToShowOverridesForm;
+      shiftIdToShowOverridesForm ||
+      shiftSwapIdToShowForm;
 
     const disabledOverrideForm =
       !isUserActionAllowed(UserActions.SchedulesWrite) ||
       !schedule?.enable_web_overrides ||
       !!shiftIdToShowOverridesForm ||
-      shiftIdToShowRotationForm;
+      shiftIdToShowRotationForm ||
+      shiftSwapIdToShowForm;
 
     return !basicDataLoaded ? (
       <LoadingPlaceholder text="Loading..." />

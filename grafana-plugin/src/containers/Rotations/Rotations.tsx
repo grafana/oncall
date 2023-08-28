@@ -154,7 +154,7 @@ class Rotations extends Component<RotationsProps, RotationsState> {
                           <Text type="secondary">Layer {layer.priority}</Text>
                         </HorizontalGroup>
                       </div>
-                      <div className={cx('rotations')}>
+                      <div className={cx('header-plus-content')}>
                         <TimelineMarks startMoment={startMoment} timezone={currentTimezone} />
                         {!currentTimeHidden && (
                           <div className={cx('current-time')} style={{ left: `${currentTimeX * 100}%` }} />
