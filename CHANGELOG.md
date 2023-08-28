@@ -9,8 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Fix case where accepting a shift swap request via Slack sends an `event_callback` Slack payload type that was
-  previously being ignored by @joeyorlando ([#2886](https://github.com/grafana/oncall/pull/2886))
+- Address bug when a Shift Swap Request is accepted either via the web or mobile UI, and the Slack message is not
+  updated to reflect the latest state by @joeyorlando ([#2886](https://github.com/grafana/oncall/pull/2886))
 
 ## v1.3.27 (2023-08-25)
 

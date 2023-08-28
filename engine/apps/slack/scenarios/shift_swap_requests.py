@@ -8,7 +8,7 @@ from django.utils import timezone
 from apps.slack.constants import DIVIDER
 from apps.slack.models import SlackMessage
 from apps.slack.scenarios import scenario_step
-from apps.slack.types import Block, BlockActionType, EventPayload, EventType, PayloadType, ScenarioRoute
+from apps.slack.types import Block, BlockActionType, EventPayload, PayloadType, ScenarioRoute
 from apps.slack.utils import SlackDateFormat, format_datetime_to_slack, format_datetime_to_slack_with_time
 
 if typing.TYPE_CHECKING:
@@ -245,12 +245,6 @@ class ShiftSwapRequestFollowUp(scenario_step.ScenarioStep):
 
 
 STEPS_ROUTING: ScenarioRoute.RoutingSteps = [
-    {
-        "payload_type": PayloadType.EVENT_CALLBACK,
-        "event_type": EventType.MESSAGE,
-        "step": AcceptShiftSwapRequestStep,
-        "message_channel_type": EventType.MESSAGE_CHANNEL,
-    },
     {
         "payload_type": PayloadType.BLOCK_ACTIONS,
         "block_action_type": BlockActionType.BUTTON,
