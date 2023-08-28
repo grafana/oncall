@@ -45,6 +45,8 @@ class BaseShiftSwapViewSet(ModelViewSet):
         except exceptions.BeneficiaryCannotTakeOwnShiftSwapRequest:
             raise BadRequest(detail="A shift swap request cannot be created and taken by the same user")
 
+        update_shift_swap_request_message.apply_async((shift_swap.pk,))
+
         return ShiftSwapRequestSerializer(shift_swap).data
 
     def get_serializer_class(self):
