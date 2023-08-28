@@ -227,11 +227,7 @@ def test_accept_shift_swap_request(
             {
                 "action_id": "AcceptShiftSwapRequestStep",
                 "block_id": "G0ec",
-                "text": {
-                    "type": "plain_text",
-                    "text": ":heavy_check_mark: Accept Shift Swap Request",
-                    "emoji": True,
-                },
+                "text": {"type": "plain_text", "text": ":heavy_check_mark: Accept Shift Swap Request", "emoji": True},
                 "value": '{"shift_swap_request_pk": 5, "organization_id": 1}',
                 "style": "primary",
                 "type": "button",
