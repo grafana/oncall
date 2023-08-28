@@ -200,6 +200,67 @@ def test_organization_not_found_scenario_doesnt_break_manage_responders(
     mock_process_scenario.assert_called_once()
 
 
+@pytest.mark.parametrize(
+    "payload",
+    [
+        {
+            "type": "block_actions",
+            "user": {
+                "id": SLACK_USER_ID,
+            },
+            "team": {
+                "id": SLACK_TEAM_ID,
+            },
+            "actions": [
+                {
+                    "action_id": "AcceptShiftSwapRequestStep",
+                    "block_id": "G0ec",
+                    "text": {
+                        "type": "plain_text",
+                        "text": ":heavy_check_mark: Accept Shift Swap Request",
+                        "emoji": True,
+                    },
+                    "value": '{"shift_swap_request_pk": 5, "organization_id": 1}',
+                    "style": "primary",
+                    "type": "button",
+                    "action_ts": "1693208812.474860",
+                }
+            ],
+        },
+        {
+            "team_id": SLACK_TEAM_ID,
+            "context_team_id": SLACK_TEAM_ID,
+            "context_enterprise_id": None,
+            "event": {
+                "bot_id": "B029VQH5RMM",
+                "type": "message",
+                "text": "zxcvzxcv",
+                "user": SLACK_USER_ID,
+                "ts": "1692922497.094919",
+                "app_id": "A029KMD79FU",
+                "blocks": [],
+                "team": SLACK_TEAM_ID,
+                "channel": "C03KS498VGV",
+                "event_ts": "1692922497.094919",
+                "channel_type": "channel",
+            },
+            "type": "event_callback",
+            "event_id": "Ev05Q5H42VLG",
+            "event_time": 1692922497,
+            "authorizations": [
+                {
+                    "enterprise_id": None,
+                    "team_id": SLACK_TEAM_ID,
+                    "user_id": SLACK_USER_ID,
+                    "is_bot": True,
+                    "is_enterprise_install": False,
+                }
+            ],
+            "is_ext_shared_channel": False,
+            "event_context": "nmxcvnmcxvnxnmxvcmn",
+        },
+    ],
+)
 @patch("apps.slack.views.SlackEventApiEndpointView.verify_signature", return_value=True)
 @patch.object(AcceptShiftSwapRequestStep, "process_scenario")
 @pytest.mark.django_db
@@ -210,31 +271,11 @@ def test_accept_shift_swap_request(
     make_slack_user_identity,
     make_user,
     slack_team_identity,
+    payload,
 ):
     organization = make_organization(slack_team_identity=slack_team_identity)
     slack_user_identity = make_slack_user_identity(slack_team_identity=slack_team_identity, slack_id=SLACK_USER_ID)
     make_user(organization=organization, slack_user_identity=slack_user_identity)
-
-    payload = {
-        "type": "block_actions",
-        "user": {
-            "id": SLACK_USER_ID,
-        },
-        "team": {
-            "id": SLACK_TEAM_ID,
-        },
-        "actions": [
-            {
-                "action_id": "AcceptShiftSwapRequestStep",
-                "block_id": "G0ec",
-                "text": {"type": "plain_text", "text": ":heavy_check_mark: Accept Shift Swap Request", "emoji": True},
-                "value": '{"shift_swap_request_pk": 5, "organization_id": 1}',
-                "style": "primary",
-                "type": "button",
-                "action_ts": "1693208812.474860",
-            }
-        ],
-    }
 
     response = _make_request(payload)
 
