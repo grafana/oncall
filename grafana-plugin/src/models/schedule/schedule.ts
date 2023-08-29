@@ -276,7 +276,7 @@ export class ScheduleStore extends BaseStore {
   }
 
   @action
-  updateShiftsSwapPreview(scheduleId: Schedule['id'], startMoment: dayjs.Dayjs, params: Partial<ShiftSwap>) {
+  async updateShiftsSwapPreview(scheduleId: Schedule['id'], startMoment: dayjs.Dayjs, params: Partial<ShiftSwap>) {
     const fromString = getFromString(startMoment);
 
     const newShiftEvents: ShiftEvents = {
@@ -284,6 +284,10 @@ export class ScheduleStore extends BaseStore {
       events: [createShiftSwapEventFromShiftSwap(params)],
       isPreview: true,
     };
+
+    if (!this.scheduleAndDateToShiftSwaps[scheduleId][fromString]) {
+      await this.updateShiftSwaps(scheduleId, startMoment);
+    }
 
     const existingShiftEventsList: ShiftEvents[] = this.scheduleAndDateToShiftSwaps[scheduleId][fromString];
 

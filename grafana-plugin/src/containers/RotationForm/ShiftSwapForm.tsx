@@ -54,6 +54,12 @@ const ShiftSwapForm = (props: ShiftSwapFormProps) => {
     }
   }, [id]);
 
+  const handleHide = useCallback(() => {
+    scheduleStore.clearPreview();
+
+    onHide();
+  }, []);
+
   useEffect(() => {
     if (defaultParams) {
       setShiftSwap({ ...shiftSwap, swap_start: defaultParams.swap_start, swap_end: defaultParams.swap_end });
@@ -84,7 +90,7 @@ const ShiftSwapForm = (props: ShiftSwapFormProps) => {
         ...shiftSwap,
       });
     }
-  }, [shiftSwap]);
+  }, [shiftSwap, startMoment]);
 
   const handleDescriptionChange = useCallback(
     (event) => {
@@ -130,7 +136,7 @@ const ShiftSwapForm = (props: ShiftSwapFormProps) => {
       top="0"
       isOpen
       width="430px"
-      onDismiss={onHide}
+      onDismiss={handleHide}
       contentElement={(props, children) => (
         <Draggable handle=".drag-handler" defaultClassName={cx('draggable')} positionOffset={{ x: 0, y: 200 }}>
           <div {...props}>{children}</div>
@@ -159,7 +165,7 @@ const ShiftSwapForm = (props: ShiftSwapFormProps) => {
                 </WithPermissionControlTooltip>
               )}
               <IconButton variant="secondary" className={cx('drag-handler')} name="draggabledots" />
-              <IconButton name="times" variant="secondary" tooltip="Close" onClick={onHide} />
+              <IconButton name="times" variant="secondary" tooltip="Close" onClick={handleHide} />
             </HorizontalGroup>
           </HorizontalGroup>
 
@@ -204,7 +210,7 @@ const ShiftSwapForm = (props: ShiftSwapFormProps) => {
                     shiftEnd={shiftSwap.swap_end}
                   />
                 ) : (
-                  <Text type="secondary">Not taken yet</Text>
+                  <Text type="secondary">Not accepted yet</Text>
                 )}
               </Field>
             )}

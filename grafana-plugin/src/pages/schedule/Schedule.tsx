@@ -344,7 +344,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
                 currentTimezone={currentTimezone}
                 params={shiftSwapParamsToShowForm}
                 onHide={this.handleHideShiftSwapForm}
-                onUpdate={this.updateEvents}
+                onUpdate={this.handleUpdateShiftSwaps}
               />
             )}
           </>
@@ -451,6 +451,14 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
   };
 
   handleUpdateRotation = () => {
+    const { store } = this.props;
+
+    this.updateEvents().then(() => {
+      store.scheduleStore.clearPreview();
+    });
+  };
+
+  handleUpdateShiftSwaps = () => {
     const { store } = this.props;
 
     this.updateEvents().then(() => {
@@ -574,7 +582,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
     const { filters } = this.state;
 
     const {
-      store: { userStore, scheduleStore },
+      store: { userStore },
     } = this.props;
 
     if (this.highlightMyShiftsWasToggled) {
@@ -589,8 +597,6 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
       }
     }
     this.setState({ shiftSwapIdToShowForm: undefined, shiftSwapParamsToShowForm: undefined });
-
-    scheduleStore.clearPreview();
   };
 
   adjustShiftSwapForm = (event: Event) => {
