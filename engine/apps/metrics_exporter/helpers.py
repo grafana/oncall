@@ -53,6 +53,7 @@ def is_allowed_to_start_metrics_calculation(organization_id, force=False) -> boo
     """Check if metrics_cache_timer doesn't exist or if recalculation was started by force."""
     recalculate_timeout = get_metrics_recalculation_timeout()
     metrics_cache_timer_key = get_metrics_cache_timer_key(organization_id)
+    metrics_cache_timer: typing.Optional[RecalculateMetricsTimer]
     metrics_cache_timer = cache.get(metrics_cache_timer_key)
 
     if metrics_cache_timer:
@@ -61,7 +62,7 @@ def is_allowed_to_start_metrics_calculation(organization_id, force=False) -> boo
         else:
             metrics_cache_timer["forced_started"] = True
     else:
-        metrics_cache_timer: RecalculateMetricsTimer = {
+        metrics_cache_timer = {
             "recalculate_timeout": recalculate_timeout,
             "forced_started": force,
         }
