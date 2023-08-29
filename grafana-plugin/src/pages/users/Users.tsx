@@ -47,28 +47,34 @@ interface UsersState extends PageBaseState {
     searchTerm: string;
   };
   initialUsersLoaded: boolean;
+  queuedUpdateUsers: boolean;
 }
 
 @observer
 class Users extends React.Component<UsersProps, UsersState> {
-  state: UsersState = {
-    page: 1,
-    isWrongTeam: false,
-    userPkToEdit: undefined,
-    usersFilters: {
-      searchTerm: '',
-    },
+  constructor(props: UsersProps) {
+    super(props);
 
-    errorData: initErrorDataState(),
-    initialUsersLoaded: false,
-  };
-
-  async componentDidMount() {
     const {
       query: { p },
-    } = this.props;
-    this.setState({ page: p ? Number(p) : 1 }, this.updateUsers);
+    } = props;
 
+    this.state = {
+      page: p ? Number(p) : 1,
+      isWrongTeam: false,
+      userPkToEdit: undefined,
+      usersFilters: {
+        searchTerm: '',
+      },
+
+      errorData: initErrorDataState(),
+      initialUsersLoaded: false,
+      queuedUpdateUsers: false,
+    };
+  }
+
+  async componentDidMount() {
+    this.updateUsers();
     this.parseParams();
   }
 
@@ -84,14 +90,15 @@ class Users extends React.Component<UsersProps, UsersState> {
     LocationHelper.update({ p: page }, 'partial');
     await userStore.updateItems(usersFilters, page);
 
-    this.setState({ initialUsersLoaded: true });
+    const { queuedUpdateUsers } = this.state;
+    this.setState({ initialUsersLoaded: true, queuedUpdateUsers: false }, () => {
+      if (queuedUpdateUsers) {
+        this.updateUsers();
+      }
+    });
   };
 
   componentDidUpdate(prevProps: UsersProps) {
-    if (!this.state.initialUsersLoaded) {
-      this.updateUsers();
-    }
-
     if (prevProps.match.params.id !== this.props.match.params.id) {
       this.parseParams();
     }
@@ -176,14 +183,15 @@ class Users extends React.Component<UsersProps, UsersState> {
     const {
       store: { userStore },
     } = this.props;
-    const { usersFilters, page, initialUsersLoaded, userPkToEdit } = this.state;
+
+    const { usersFilters, page, initialUsersLoaded, userPkToEdit, queuedUpdateUsers } = this.state;
 
     const { count, results } = userStore.getSearchResult();
     const columns = this.getTableColumns();
 
     const handleClear = () =>
       this.setState({ usersFilters: { searchTerm: '' } }, () => {
-        this.debouncedUpdateUsers();
+        this.updateUsers();
       });
 
     return (
@@ -194,6 +202,7 @@ class Users extends React.Component<UsersProps, UsersState> {
               <UsersFilters
                 className={cx('users-filters')}
                 value={usersFilters}
+                isLoading={queuedUpdateUsers}
                 onChange={this.handleUsersFiltersChange}
               />
               <Button variant="secondary" icon="times" onClick={handleClear} className={cx('searchIntegrationClear')}>
@@ -425,6 +434,11 @@ class Users extends React.Component<UsersProps, UsersState> {
 
   handleUsersFiltersChange = (usersFilters: any) => {
     this.setState({ usersFilters, page: 1 }, () => {
+      if (!this.state.initialUsersLoaded) {
+        // queue delayed users update
+        return this.setState({ queuedUpdateUsers: true });
+      }
+
       this.debouncedUpdateUsers();
     });
   };
@@ -434,10 +448,6 @@ class Users extends React.Component<UsersProps, UsersState> {
     this.setState({ userPkToEdit: undefined });
 
     history.push(`${PLUGIN_ROOT}/users`);
-  };
-
-  handleUserUpdate = () => {
-    this.updateUsers();
   };
 }
 

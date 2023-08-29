@@ -20,6 +20,7 @@ if typing.TYPE_CHECKING:
     from apps.alerts.models import ChannelFilter
 
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 # Is a delay to prevent intermediate activity by system in case user is doing some multi-step action.
 # For example if user wants to unack and ack we don't need to launch escalation right after unack.
@@ -222,21 +223,36 @@ class EscalationSnapshotMixin:
         raw_next_step_eta = self.raw_escalation_snapshot.get("next_step_eta")
         return None if not raw_next_step_eta else parse(raw_next_step_eta).replace(tzinfo=pytz.UTC)
 
+    def update_next_step_eta(self, increase_by_timedelta: datetime.timedelta) -> typing.Optional[dict]:
+        """
+        update next_step_eta field directly to avoid serialization overhead
+        """
+        if not self.raw_escalation_snapshot:
+            return None
+
+        raw_next_step_eta = self.raw_escalation_snapshot.get("next_step_eta")
+        next_step_eta = parse(raw_next_step_eta).replace(tzinfo=pytz.UTC)
+        updated_next_step_eta = next_step_eta + increase_by_timedelta
+        self.raw_escalation_snapshot["next_step_eta"] = updated_next_step_eta.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+        return self.raw_escalation_snapshot
+
     def start_escalation_if_needed(self, countdown=START_ESCALATION_DELAY, eta=None):
         """
         :type self:AlertGroup
         """
         from apps.alerts.models import AlertGroup
 
-        is_on_maintenace_or_debug_mode = self.channel.maintenance_mode is not None
+        is_on_maintenance_or_debug_mode = self.channel.maintenance_mode is not None
 
-        if self.is_restricted or is_on_maintenace_or_debug_mode or not self.escalation_chain_exists:
+        if self.is_restricted or is_on_maintenance_or_debug_mode or not self.escalation_chain_exists:
             logger.debug(
                 f"Not escalating alert group w/ pk: {self.pk}\n"
                 f"is_restricted: {self.is_restricted}\n"
-                f"is_on_maintenace_or_debug_mode: {is_on_maintenace_or_debug_mode}\n"
+                f"is_on_maintenance_or_debug_mode: {is_on_maintenance_or_debug_mode}\n"
                 f"escalation_chain_exists: {self.escalation_chain_exists}"
             )
+            # set is_escalation_finished to True as this alert group won't be escalated
+            AlertGroup.objects.filter(pk=self.pk).update(is_escalation_finished=True)
             return
 
         logger.debug(f"Start escalation for alert group with pk: {self.pk}")

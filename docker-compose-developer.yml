@@ -3,7 +3,7 @@ version: "3.9"
 x-labels: &oncall-labels
   - "com.grafana.oncall.env=dev"
 
-x-user: &oncall-user "appuser"
+x-user: &oncall-user "root"
 
 x-oncall-build: &oncall-build-args
   context: ./engine
@@ -53,7 +53,6 @@ services:
       labels: *oncall-labels
     environment:
       ONCALL_API_URL: http://host.docker.internal:8080
-      MOBILE_APP_QR_INTERVAL_QUEUE: 290000 # 4 minutes and 50 seconds
     volumes:
       - ./grafana-plugin:/etc/app
       - node_modules_dev:/etc/app/node_modules
@@ -81,6 +80,23 @@ services:
         condition: service_completed_successfully
     profiles:
       - engine
+
+  oncall_telegram_polling:
+    container_name: oncall_telegram_polling
+    labels: *oncall-labels
+    build: *oncall-build-args
+    restart: always
+    user: *oncall-user
+    command: sh -c "python manage.py start_telegram_polling"
+    env_file: *oncall-env-files
+    environment: *oncall-env-vars
+    volumes: *oncall-volumes
+    extra_hosts: *oncall-extra-hosts
+    depends_on:
+      oncall_db_migration:
+        condition: service_completed_successfully
+    profiles:
+      - telegram_polling
 
   # used to invoke one-off commands, primarily from the Makefile
   # oncall_engine couldn't (easily) be used due to it's depends_on property
@@ -336,6 +352,7 @@ services:
         required: false
     profiles:
       - grafana
+
 volumes:
   redisdata_dev:
     labels: *oncall-labels

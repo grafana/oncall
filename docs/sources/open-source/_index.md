@@ -178,18 +178,20 @@ frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media
 web-share" allowfullscreen></iframe>
 
 The Telegram integration for Grafana OnCall is designed for collaborative team work and improved incident response.
+It's available in two options: using Webhooks or Long Polling.
 Refer to the following steps to configure the Telegram integration:
 
 1. Ensure your Grafana OnCall environment is up and running.
 2. Set `FEATURE_TELEGRAM_INTEGRATION_ENABLED` as "True"
-3. Create a Telegram bot using [BotFather](https://t.me/BotFather) and save the token provided by BotFather. Please make
+3. (Long Polling only) Set `FEATURE_TELEGRAM_LONG_POLLING_ENABLED` as "True"
+4. Create a Telegram bot using [BotFather](https://t.me/BotFather) and save the token provided by BotFather. Please make
    sure to disable **Group Privacy** for the bot (Bot Settings -> Group Privacy -> Turn off).
-4. Paste the token provided by BotFather to the `TELEGRAM_TOKEN` variable on the **Env Variables** page of your
+5. Paste the token provided by BotFather to the `TELEGRAM_TOKEN` variable on the **Env Variables** page of your
    Grafana OnCall instance.
-5. Set the `TELEGRAM_WEBHOOK_HOST` variable to the external address of your Grafana OnCall instance. Please note
+6. (Webhook only) Set the `TELEGRAM_WEBHOOK_HOST` variable to the external address of your Grafana OnCall instance. Please note
    that `TELEGRAM_WEBHOOK_HOST` must start with `https://` and be publicly available (meaning that it can be reached by
    Telegram servers). If your host is private or local, consider using a reverse proxy (e.g. [ngrok](https://ngrok.com)).
-6. Now you can connect Telegram accounts on the **Users** page and receive alert groups to Telegram direct messages.
+7. Now you can connect Telegram accounts on the **Users** page and receive alert groups to Telegram direct messages.
    Alternatively, in case you want to connect Telegram channels to your Grafana OnCall environment, navigate
    to the **ChatOps** tab.
 

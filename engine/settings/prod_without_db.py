@@ -48,6 +48,9 @@ CELERY_TASK_ROUTES = {
     # DEFAULT
     "apps.alerts.tasks.create_contact_points_for_datasource.create_contact_points_for_datasource": {"queue": "default"},
     "apps.alerts.tasks.sync_grafana_alerting_contact_points.sync_grafana_alerting_contact_points": {"queue": "default"},
+    "apps.alerts.tasks.sync_grafana_alerting_contact_points.disconnect_integration_from_alerting_contact_points": {
+        "queue": "default"
+    },
     "apps.alerts.tasks.delete_alert_group.delete_alert_group": {"queue": "default"},
     "apps.alerts.tasks.send_alert_group_signal.send_alert_group_signal": {"queue": "default"},
     "apps.alerts.tasks.wipe.wipe": {"queue": "default"},
@@ -77,8 +80,10 @@ CELERY_TASK_ROUTES = {
     "apps.schedules.tasks.notify_about_empty_shifts_in_schedule.start_notify_about_empty_shifts_in_schedule": {
         "queue": "default"
     },
-    "apps.schedules.tasks.shift_swaps.slack_messages.post_shift_swap_request_creation_message": {"queue": "default"},
+    "apps.schedules.tasks.shift_swaps.slack_messages.create_shift_swap_request_message": {"queue": "default"},
     "apps.schedules.tasks.shift_swaps.slack_messages.update_shift_swap_request_message": {"queue": "default"},
+    "apps.schedules.tasks.shift_swaps.slack_followups.send_shift_swap_request_slack_followups": {"queue": "default"},
+    "apps.schedules.tasks.shift_swaps.slack_followups.send_shift_swap_request_slack_followup": {"queue": "default"},
     # CRITICAL
     "apps.alerts.tasks.acknowledge_reminder.acknowledge_reminder_task": {"queue": "critical"},
     "apps.alerts.tasks.acknowledge_reminder.unacknowledge_timeout_task": {"queue": "critical"},
@@ -158,4 +163,5 @@ REST_FRAMEWORK = {
     ),
     "DEFAULT_AUTHENTICATION_CLASSES": [],
     "DEFAULT_RENDERER_CLASSES": ("rest_framework.renderers.JSONRenderer",),
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 }

@@ -136,12 +136,6 @@ class OnCallScheduleChannelView(RateLimitHeadersMixin, UpdateSerializerMixin, Mo
     def final_shifts(self, request, pk):
         schedule = self.get_object()
 
-        if not isinstance(schedule, OnCallScheduleWeb):
-            return Response(
-                "OnCall shifts exports are currently only available for web calendars",
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
         serializer = FinalShiftQueryParamsSerializer(data=request.query_params)
         serializer.is_valid(raise_exception=True)
 

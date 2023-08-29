@@ -364,7 +364,11 @@ def test_check_escalation_finished_task_calls_audit_alert_group_escalation_for_e
     with pytest.raises(AlertGroupEscalationPolicyExecutionAuditException) as exc:
         check_escalation_finished_task()
 
-    assert str(exc.value) == f"The following alert group id(s) failed auditing: {alert_group1.id}, {alert_group2.id}"
+    error_msg = str(exc.value)
+
+    assert "The following alert group id(s) failed auditing:" in error_msg
+    assert str(alert_group1.id) in error_msg
+    assert str(alert_group2.id) in error_msg
 
     mocked_audit_alert_group_escalation.assert_any_call(alert_group1)
     mocked_audit_alert_group_escalation.assert_any_call(alert_group2)

@@ -2,7 +2,6 @@ from __future__ import annotations  # https://stackoverflow.com/a/33533514
 
 import typing
 
-from django.conf import settings
 from django.core import validators
 from django.db import models
 from django.utils import timezone
@@ -15,7 +14,7 @@ from apps.mobile_app.types import MessageType, Platform
 if typing.TYPE_CHECKING:
     from apps.user_management.models import Organization, User
 
-MOBILE_APP_AUTH_VERIFICATION_TOKEN_TIMEOUT_SECONDS = 60 * (5 if settings.DEBUG else 1)
+MOBILE_APP_AUTH_VERIFICATION_TOKEN_TIMEOUT_SECONDS = 60 * 5  # 5 minutes
 
 
 def get_expire_date():

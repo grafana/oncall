@@ -22,8 +22,11 @@ from apps.schedules.constants import (
     ICAL_DATETIME_START,
     ICAL_DESCRIPTION,
     ICAL_LOCATION,
+    ICAL_PRIORITY,
     ICAL_RECURRENCE_ID,
     ICAL_SEQUENCE,
+    ICAL_STATUS,
+    ICAL_STATUS_CANCELLED,
     ICAL_SUMMARY,
     ICAL_UID,
     RE_EVENT_UID_V1,
@@ -200,6 +203,10 @@ def get_shifts_dict(
     result_datetime = []
     result_date = []
     for event in events:
+        status = event.get(ICAL_STATUS)
+        if status == ICAL_STATUS_CANCELLED:
+            # ignore cancelled events
+            continue
         sequence = event.get(ICAL_SEQUENCE)
         recurrence_id = event.get(ICAL_RECURRENCE_ID)
         if recurrence_id:
@@ -212,7 +219,12 @@ def get_shifts_dict(
         if calendar_type == CALENDAR_TYPE_FINAL:
             event_calendar_type = (
                 schedule.OVERRIDES
-                if event.get(ICAL_LOCATION, "") == schedule.CALENDAR_TYPE_VERBAL[schedule.OVERRIDES]
+                if (
+                    event.get(ICAL_PRIORITY, "") == schedule.OVERRIDES
+                    or
+                    # keep for backwards compatibility (to be removed later once schedules are refreshed)
+                    event.get(ICAL_LOCATION, "") == schedule.CALENDAR_TYPE_VERBAL[schedule.OVERRIDES]
+                )
                 else schedule.PRIMARY
             )
         # Define on-call shift out of ical event that has the actual user

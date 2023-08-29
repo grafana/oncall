@@ -49,16 +49,16 @@ export default class BaseStore {
   }
 
   @action
-  async create(data: any) {
-    return await makeRequest(this.path, {
+  async create<RT = any>(data: any): Promise<RT | void> {
+    return await makeRequest<RT>(this.path, {
       method: 'POST',
       data,
     }).catch(this.onApiError);
   }
 
   @action
-  async update(id: any, data: any, params: any = null) {
-    const result = await makeRequest(`${this.path}${id}/`, {
+  async update<RT = any>(id: any, data: any, params: any = null): Promise<RT | void> {
+    const result = await makeRequest<RT>(`${this.path}${id}/`, {
       method: 'PUT',
       data,
       params: params,

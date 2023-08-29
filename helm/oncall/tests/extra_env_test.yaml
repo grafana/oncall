@@ -2,12 +2,14 @@ suite: test extra envs for deployments
 templates:
   - engine/deployment.yaml
   - engine/job-migrate.yaml
-  - celery/deployment-celery.yaml
+  - celery/deployment.yaml
+  - telegram-polling/deployment.yaml
 release:
   name: oncall
 tests:
   - it: env=[] -> should support old syntax
     set:
+      telegramPolling.enabled: true
       env:
         - name: SOME_VAR
           value: some_value
@@ -20,6 +22,7 @@ tests:
 
   - it: env=map[] -> should set multiple envs
     set:
+      telegramPolling.enabled: true
       env:
         SOME_VAR: some_value
         another_var: "another_value"
@@ -38,8 +41,10 @@ tests:
   - it: env=[] -> should add envs into initContainer
     templates:
       - engine/deployment.yaml
-      - celery/deployment-celery.yaml
+      - celery/deployment.yaml
+      - telegram-polling/deployment.yaml
     set:
+      telegramPolling.enabled: true
       env:
         - name: SOME_VAR
           value: some_value
@@ -53,8 +58,10 @@ tests:
   - it: env=map[] -> should add envs into initContainer
     templates:
       - engine/deployment.yaml
-      - celery/deployment-celery.yaml
+      - celery/deployment.yaml
+      - telegram-polling/deployment.yaml
     set:
+      telegramPolling.enabled: true
       env:
         SOME_VAR: some_value
         another_var: "another_value"
@@ -73,8 +80,10 @@ tests:
   - it: database.type=postgresql and env=map[] -> should add envs into initContainer
     templates:
       - engine/deployment.yaml
-      - celery/deployment-celery.yaml
+      - celery/deployment.yaml
+      - telegram-polling/deployment.yaml
     set:
+      telegramPolling.enabled: true
       database.type: postgresql
       postgresql.enabled: true
       env:
@@ -95,8 +104,10 @@ tests:
   - it: database.type=postgresql and env=[] -> should support old style for initContainer
     templates:
       - engine/deployment.yaml
-      - celery/deployment-celery.yaml
+      - celery/deployment.yaml
+      - telegram-polling/deployment.yaml
     set:
+      telegramPolling.enabled: true
       database.type: postgresql
       postgresql.enabled: true
       env:

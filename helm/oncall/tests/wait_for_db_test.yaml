@@ -1,7 +1,8 @@
 suite: test init container wait-for-db in deployments
 templates:
-  - celery/deployment-celery.yaml
+  - celery/deployment.yaml
   - engine/deployment.yaml
+  - telegram-polling/deployment.yaml
 release:
   name: oncall
 chart:
@@ -16,6 +17,8 @@ tests:
         requests:
           cpu: 100m
           memory: 128Mi
+      telegramPolling.enabled: true
+      database.type: mysql
     asserts:
       - contains:
           path: spec.template.spec.initContainers
@@ -32,6 +35,7 @@ tests:
 
   - it: database.type=postgresql -> should create initContainer for PostgreSQL database
     set:
+      telegramPolling.enabled: true
       database.type: postgresql
       externalPostgresql.host: some-postgresql-host
       init.resources:

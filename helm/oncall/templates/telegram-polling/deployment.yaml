@@ -1,0 +1,44 @@
+{{- if .Values.telegramPolling.enabled -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "oncall.telegramPolling.fullname" . }}
+  labels:
+    {{- include "oncall.telegramPolling.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "oncall.telegramPolling.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "oncall.telegramPolling.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "oncall.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      initContainers:
+        {{- include "oncall.initContainer" . | nindent 8 }}
+      containers:
+        - name: telegram-polling
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command: ['sh', '-c', 'python manage.py start_telegram_polling']
+          env:
+            {{- include "snippet.oncall.env" . | nindent 12 }}
+            {{- include "snippet.oncall.telegram.env" . | nindent 12 }}
+            {{- include "snippet.db.env" . | nindent 12 }}
+            {{- include "snippet.broker.env" . | nindent 12 }}
+            {{- include "oncall.extraEnvs" . | nindent 12 }}
+          {{- with .Values.telegramPolling.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+{{- end -}}

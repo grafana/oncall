@@ -265,6 +265,9 @@ class GrafanaAPIClient(APIClient):
     def update_alerting_config(self, recipient, config) -> APIClientResponse:
         return self.api_post(f"api/alertmanager/{recipient}/config/api/v1/alerts", config)
 
+    def get_alerting_notifiers(self):
+        return self.api_get("api/alert-notifiers")
+
     def get_grafana_plugin_settings(self, recipient: str) -> APIClientResponse:
         return self.api_get(f"api/plugins/{recipient}/settings")
 

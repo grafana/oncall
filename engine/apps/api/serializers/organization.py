@@ -22,7 +22,7 @@ class OrganizationSerializer(EagerLoadingMixin, serializers.ModelSerializer):
     name = serializers.CharField(required=False, allow_null=True, allow_blank=True, source="org_title")
     slack_channel = serializers.SerializerMethodField()
 
-    rbac_enabled = serializers.BooleanField(source="is_rbac_permissions_enabled")
+    rbac_enabled = serializers.BooleanField(read_only=True, source="is_rbac_permissions_enabled")
 
     SELECT_RELATED = ["slack_team_identity"]
 

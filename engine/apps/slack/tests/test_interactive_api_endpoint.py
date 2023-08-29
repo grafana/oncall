@@ -8,6 +8,7 @@ from rest_framework.test import APIClient
 
 from apps.slack.scenarios.manage_responders import ManageRespondersUserChange
 from apps.slack.scenarios.paging import OnPagingTeamChange
+from apps.slack.scenarios.shift_swap_requests import AcceptShiftSwapRequestStep
 from apps.slack.types import PayloadType
 
 EVENT_TRIGGER_ID = "5333959822612.4122782784722.4734ff484b2ac4d36a185bb242ee9932"
@@ -125,7 +126,7 @@ def test_organization_not_found_scenario_doesnt_break_slash_commands(
             "command": settings.SLACK_DIRECT_PAGING_SLASH_COMMAND,
             "text": "potato",
             "api_app_id": "A0909234092340293402934234234234234234",
-            "is_enterprise_install": "false",
+            "is_enterprise_install": "False",
             "response_url": "https://hooks.slack.com/commands/cvcv/cvcv/cvcv",
             "trigger_id": "asdfasdf.4122782784722.cvcv",
         }
@@ -197,3 +198,45 @@ def test_organization_not_found_scenario_doesnt_break_manage_responders(
 
     assert response.status_code == status.HTTP_200_OK
     mock_process_scenario.assert_called_once()
+
+
+@patch("apps.slack.views.SlackEventApiEndpointView.verify_signature", return_value=True)
+@patch.object(AcceptShiftSwapRequestStep, "process_scenario")
+@pytest.mark.django_db
+def test_accept_shift_swap_request(
+    mock_process_scenario,
+    _mock_verify_signature,
+    make_organization,
+    make_slack_user_identity,
+    make_user,
+    slack_team_identity,
+):
+    organization = make_organization(slack_team_identity=slack_team_identity)
+    slack_user_identity = make_slack_user_identity(slack_team_identity=slack_team_identity, slack_id=SLACK_USER_ID)
+    make_user(organization=organization, slack_user_identity=slack_user_identity)
+
+    payload = {
+        "type": "block_actions",
+        "user": {
+            "id": SLACK_USER_ID,
+        },
+        "team": {
+            "id": SLACK_TEAM_ID,
+        },
+        "actions": [
+            {
+                "action_id": "AcceptShiftSwapRequestStep",
+                "block_id": "G0ec",
+                "text": {"type": "plain_text", "text": ":heavy_check_mark: Accept Shift Swap Request", "emoji": True},
+                "value": f'{{"shift_swap_request_pk": 5, "organization_id": {organization.pk}}}',
+                "style": "primary",
+                "type": "button",
+                "action_ts": "1693208812.474860",
+            }
+        ],
+    }
+
+    response = _make_request(payload)
+
+    assert response.status_code == status.HTTP_200_OK
+    mock_process_scenario.assert_called_once_with(slack_user_identity, slack_team_identity, payload)
