@@ -5,6 +5,7 @@ import cn from 'classnames/bind';
 import { isArray, isUndefined } from 'lodash-es';
 
 import styles from './IntegrationCollapsibleTreeView.module.scss';
+import { observer } from 'mobx-react';
 
 const cx = cn.bind(styles);
 
@@ -23,7 +24,7 @@ interface IntegrationCollapsibleTreeViewProps {
   configElements: Array<IntegrationCollapsibleItem | IntegrationCollapsibleItem[]>;
 }
 
-const IntegrationCollapsibleTreeView: React.FC<IntegrationCollapsibleTreeViewProps> = (props) => {
+const IntegrationCollapsibleTreeView: React.FC<IntegrationCollapsibleTreeViewProps> = observer((props) => {
   const { configElements } = props;
 
   const [expandedList, setExpandedList] = useState(getStartingExpandedState());
@@ -98,7 +99,7 @@ const IntegrationCollapsibleTreeView: React.FC<IntegrationCollapsibleTreeViewPro
       })
     );
   }
-};
+});
 
 const IntegrationCollapsibleTreeItem: React.FC<{
   item: IntegrationCollapsibleItem;

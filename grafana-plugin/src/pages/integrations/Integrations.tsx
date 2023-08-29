@@ -496,8 +496,6 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
     const { alertReceiveChannelStore } = store;
     const { integrationsFilters, page } = this.state;
 
-    console.log('Apply filters wtf');
-
     const newPage = isOnMount ? page : 1;
 
     return alertReceiveChannelStore.updatePaginatedItems(integrationsFilters, newPage).then(() => {

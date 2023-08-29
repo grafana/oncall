@@ -299,7 +299,7 @@ export class AlertReceiveChannelStore extends BaseStore {
       method: 'DELETE',
     });
 
-    this.updateChannelFilters(channelFilter.alert_receive_channel, true);
+    return this.updateChannelFilters(channelFilter.alert_receive_channel, true);
   }
 
   @action

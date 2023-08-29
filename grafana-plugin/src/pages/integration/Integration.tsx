@@ -25,7 +25,7 @@ import HamburgerMenu from 'components/HamburgerMenu/HamburgerMenu';
 import IntegrationCollapsibleTreeView, {
   IntegrationCollapsibleItem,
 } from 'components/IntegrationCollapsibleTreeView/IntegrationCollapsibleTreeView';
-// import IntegrationContactPoint from 'components/IntegrationContactPoint/IntegrationContactPoint';
+import IntegrationContactPoint from 'components/IntegrationContactPoint/IntegrationContactPoint';
 import IntegrationHowToConnect from 'components/IntegrationHowToConnect/IntegrationHowToConnect';
 import IntegrationLogo from 'components/IntegrationLogo/IntegrationLogo';
 import IntegrationSendDemoAlertModal from 'components/IntegrationSendDemoAlertModal/IntegrationSendDemoAlertModal';
@@ -351,22 +351,22 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
   }
 
   getConfigForTreeComponent(id: string, templates: AlertTemplatesDTO[]) {
-    // const {
-    //   store: { alertReceiveChannelStore },
-    // } = this.props;
+    const {
+      store: { alertReceiveChannelStore },
+    } = this.props;
 
-    // const alertReceiveChannel = alertReceiveChannelStore.items[id];
-    // const contactPoints = alertReceiveChannelStore.connectedContactPoints[id];
+    const alertReceiveChannel = alertReceiveChannelStore.items[id];
+    const contactPoints = alertReceiveChannelStore.connectedContactPoints[id];
 
     return [
-      // IntegrationHelper.isGrafanaAlerting(alertReceiveChannel) && {
-      //   isHidden: contactPoints === null || contactPoints === undefined,
-      //   isCollapsible: false,
-      //   customIcon: 'grafana',
-      //   canHoverIcon: false,
-      //   collapsedView: null,
-      //   expandedView: () => <IntegrationContactPoint id={id} />,
-      // },
+      IntegrationHelper.isGrafanaAlerting(alertReceiveChannel) && {
+        isHidden: contactPoints === null || contactPoints === undefined,
+        isCollapsible: false,
+        customIcon: 'grafana',
+        canHoverIcon: false,
+        collapsedView: null,
+        expandedView: () => <IntegrationContactPoint id={id} />,
+      },
       {
         isCollapsible: false,
         customIcon: 'plug',
@@ -537,8 +537,7 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
     const channelFilterIds = alertReceiveChannelStore.channelFilterIds[id];
 
     const onRouteDelete = async (routeId: string) => {
-      await alertReceiveChannelStore.deleteChannelFilter(routeId);
-      // this.forceUpdate();
+      await alertReceiveChannelStore.deleteChannelFilter(routeId).then(() => this.forceUpdate());
       openNotification('Route has been deleted');
     };
 
