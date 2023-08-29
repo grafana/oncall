@@ -505,11 +505,11 @@ CELERY_BEAT_SCHEDULE = {
         "args": (),
     },
     "conditionally_send_going_oncall_push_notifications_for_all_schedules": {
-        "task": "apps.mobile_app.tasks.conditionally_send_going_oncall_push_notifications_for_all_schedules",
+        "task": "apps.mobile_app.tasks.going_oncall_notification.conditionally_send_going_oncall_push_notifications_for_all_schedules",
         "schedule": 10 * 60,
     },
     "notify_shift_swap_requests": {
-        "task": "apps.mobile_app.tasks.notify_shift_swap_requests",
+        "task": "apps.mobile_app.tasks.new_shift_swap_request.notify_shift_swap_requests",
         "schedule": getenv_integer("NOTIFY_SHIFT_SWAP_REQUESTS_INTERVAL", default=10 * 60),
     },
     "send_shift_swap_request_slack_followups": {
