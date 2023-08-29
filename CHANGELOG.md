@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Changed
+
+- Switch engine to alpine base image ([2872](https://github.com/grafana/oncall/pull/2872))
+
 ### Fixed
 
 - Address bug when a Shift Swap Request is accepted either via the web or mobile UI, and the Slack message is not
