@@ -9,7 +9,7 @@ from rest_framework.test import APIClient
 
 from apps.mobile_app.fcm_relay import FCMRelayThrottler, _get_message_from_request_data, fcm_relay_async
 from apps.mobile_app.models import FCMDevice
-from apps.mobile_app.tasks import _get_alert_group_escalation_fcm_message
+from apps.mobile_app.tasks.new_alert_group import _get_fcm_message
 
 
 @pytest.mark.django_db
@@ -118,7 +118,7 @@ def test_fcm_relay_serialize_deserialize(
     make_alert(alert_group=alert_group, raw_request_data={})
 
     # Imitate sending a message to the FCM relay endpoint
-    original_message = _get_alert_group_escalation_fcm_message(alert_group, user, device, critical=False)
+    original_message = _get_fcm_message(alert_group, user, device, critical=False)
     request_data = json.loads(str(original_message))
 
     # Imitate receiving a message from the FCM relay endpoint

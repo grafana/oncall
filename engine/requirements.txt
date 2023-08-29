@@ -46,7 +46,7 @@ opentelemetry-instrumentation-celery==0.36b0
 opentelemetry-instrumentation-pymysql==0.36b0
 opentelemetry-instrumentation-wsgi==0.36b0
 opentelemetry-exporter-otlp-proto-grpc==1.15.0
-pyroscope-io==0.8.1
+# pyroscope-io==0.8.1
 django-dbconn-retry==0.1.7
 django-ipware==4.0.2
 django-anymail==8.6

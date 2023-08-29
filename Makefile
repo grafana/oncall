@@ -194,6 +194,9 @@ test-dev:  ## very similar to `test` command, but allows you to pass arbitray ar
            ## for example, `make test-dev ARGS="--last-failed --pdb"
 	$(call run_backend_tests,$(ARGS))
 
+test-helm:  ## run helm unit tests
+	helm unittest ./helm/oncall
+
 start-celery-beat:  ## start celery beat
 	$(call run_engine_docker_command,celery -A engine beat -l info)
 
