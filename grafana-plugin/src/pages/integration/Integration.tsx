@@ -286,7 +286,7 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
                   To ensure a smooth transition you can migrate now using "Migrate" button in the menu on the right.
                 </Text>
                 <Text type="secondary">
-                  Please, check{' '}
+                  Please check out the{' '}
                   <a
                     href={`https://grafana.com/docs/oncall/latest/integrations/${getIntegrationName()}`}
                     target="_blank"
@@ -561,6 +561,7 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
               channelFilterId={channelFilterId}
               routeIndex={routeIndex}
               toggle={toggle}
+              onItemMove={() => this.forceUpdate()}
               openEditTemplateModal={this.openEditTemplateModal}
               onEditRegexpTemplate={this.handleEditRegexpRouteTemplate}
               onRouteDelete={onRouteDelete}
@@ -574,6 +575,7 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
               templates={templates}
               openEditTemplateModal={this.openEditTemplateModal}
               onEditRegexpTemplate={this.handleEditRegexpRouteTemplate}
+              onItemMove={() => this.forceUpdate()}
               onRouteDelete={onRouteDelete}
             />
           ),

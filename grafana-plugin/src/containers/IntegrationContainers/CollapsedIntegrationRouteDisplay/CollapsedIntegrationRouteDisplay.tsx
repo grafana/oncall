@@ -26,6 +26,7 @@ interface CollapsedIntegrationRouteDisplayProps {
   openEditTemplateModal: (templateName: string | string[], channelFilterId?: ChannelFilter['id']) => void;
   onEditRegexpTemplate: (channelFilterId: ChannelFilter['id']) => void;
   onRouteDelete: (routeId: string) => void;
+  onItemMove: () => void;
 }
 
 const CollapsedIntegrationRouteDisplay: React.FC<CollapsedIntegrationRouteDisplayProps> = observer(
@@ -37,6 +38,7 @@ const CollapsedIntegrationRouteDisplay: React.FC<CollapsedIntegrationRouteDispla
     openEditTemplateModal,
     onEditRegexpTemplate,
     onRouteDelete,
+    onItemMove,
   }) => {
     const store = useStore();
     const { escalationChainStore, alertReceiveChannelStore } = store;
@@ -102,6 +104,7 @@ const CollapsedIntegrationRouteDisplay: React.FC<CollapsedIntegrationRouteDispla
                   alertReceiveChannelId={alertReceiveChannelId}
                   channelFilterId={channelFilterId}
                   routeIndex={routeIndex}
+                  onItemMove={onItemMove}
                   setRouteIdForDeletion={() => setRouteIdForDeletion(channelFilterId)}
                   openRouteTemplateEditor={() => handleEditRoutingTemplate(channelFilter, channelFilterId)}
                 />
