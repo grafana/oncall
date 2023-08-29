@@ -4,7 +4,7 @@ HELM_PREFIX="oncall-dev"
 DOCKER_REGISTRY="localhost:63628/"
 
 # Load the custom Grafana extensions
-v1alpha1.extension_repo(name='grafana-tilt-extensions', url='https://github.com/grafana/tilt-extensions')
+v1alpha1.extension_repo(name='grafana-tilt-extensions', url=os.getenv('GRAFANA_TILT_EXTENSION_REPO', 'https://github.com/grafana/tilt-extensions'))
 v1alpha1.extension(name='grafana', repo_name='grafana-tilt-extensions', repo_path='grafana')
 load('ext://grafana', 'grafana')
 load('ext://configmap', 'configmap_create')
@@ -50,6 +50,7 @@ configmap_create('grafana-oncall-app-provisioning',
 
 k8s_resource(objects=['grafana-oncall-app-provisioning:configmap'],
     		new_name='grafana-oncall-app-provisioning-configmap',
+			resource_deps = ['build-ui', 'engine'],
 			labels=['Grafana'])
 
 # Use separate grafana helm chart
@@ -57,7 +58,7 @@ if os.getenv('START_GRAFANA', 'true') != 'false':
 	grafana(context='grafana-plugin',
 			plugin_files = ['grafana-plugin/src/plugin.json'],
 			namespace='default',
-			deps = ['grafana-oncall-app-provisioning-configmap', 'build-ui'],
+			deps = ['grafana-oncall-app-provisioning-configmap', 'build-ui', 'engine'],
 			extra_env={
 				'GF_SECURITY_ADMIN_PASSWORD': 'oncall',
 				'GF_SECURITY_ADMIN_USER': 'oncall',
