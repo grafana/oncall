@@ -59,8 +59,10 @@ class ApplicationMetricsCollector:
         # user was notified of alert groups metrics: counter
         user_was_notified, missing_org_ids_3 = self._get_user_was_notified_of_alert_groups_metric(org_ids)
 
-        # update new metric gradually
-        missing_org_ids_3 = self._update_new_metric(USER_WAS_NOTIFIED_OF_ALERT_GROUPS, org_ids, missing_org_ids_3)
+        # This part is used for releasing new metrics to avoid recalculation for every metric.
+        # Uncomment with metric name when needed.
+        # # update new metric gradually
+        # missing_org_ids_3 = self._update_new_metric(USER_WAS_NOTIFIED_OF_ALERT_GROUPS, org_ids, missing_org_ids_3)
 
         # check for orgs missing any of the metrics or needing a refresh, start recalculation task for missing org ids
         missing_org_ids = missing_org_ids_1 | missing_org_ids_2 | missing_org_ids_3
