@@ -7,10 +7,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
-### Changed
-
-- Rename `notify_user_async` celery task to `notify_user_about_new_alert_group` by @joeyorlando ([#2900](https://github.com/grafana/oncall/pull/2900))
-
 ## v1.3.28 (2023-08-29)
 
 ### Changed
