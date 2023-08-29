@@ -69,9 +69,9 @@ endif
 define _DEPRECATION_MESSAGE
 ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️
 NOTE: docker-compose based make commands will be released on (or around) October 1, 2023, in favour of
-helm/k8s based commands. Please familirize yourself with the helm/k8s commands.
+tilt/k8s based commands. Please familirize yourself with the tilt/k8s commands.
 
-See https://github.com/grafana/oncall/pull/2751 for instructions on how to use the helm/k8s commands.
+See https://github.com/grafana/oncall/pull/2751 for instructions on how to use tilt helm/k8s commands.
 ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️
 
 
@@ -106,18 +106,23 @@ define run_backend_tests
 	$(call run_engine_docker_command,pytest --ds=settings.ci-test $(1))
 endef
 
-k8s/up: k8s/cluster-create  ## (beta) deploy all containers locally via tilt (k8s cluster will be created if it doesn't exist)
+.PHONY: local/up
+local/up: cluster/up  ## (beta) deploy all containers locally via tilt (k8s cluster will be created if it doesn't exist)
 	tilt up
 
-k8s/down:  ## (beta) remove all containers deployed via tilt
+.PHONY: local/down
+local/down:  ## (beta) remove all containers deployed via tilt
 	tilt down
 
-k8s/clean: k8s/cluster-delete ## (beta) clean up k8s local dev environment
+.PHONY: local/clean
+local/clean: cluster/down ## (beta) clean up k8s local dev environment
 
-k8s/cluster-create:  ## (beta) create a kind cluster
+.PHONY: cluster/up
+cluster/up:  ## (beta) create a local development k8s cluster
 	ctlptl apply -f dev/kind-config.yaml
 
-k8s/cluster-delete: ## (beta) delete kind cluster
+.PHONY: cluster/down
+cluster/down: ## (beta) delete local development k8s cluster
 	ctlptl delete -f dev/kind-config.yaml
 
 start:  ## start all of the docker containers
