@@ -78,7 +78,6 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
   }
 
   async componentDidMount() {
-    this.update(true);
     this.parseQueryParams();
   }
 
@@ -119,13 +118,13 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
     }
   };
 
-  update = (isOnMount = false) => {
+  update = () => {
     const { store } = this.props;
     const { page, integrationsFilters } = this.state;
 
     LocationHelper.update({ p: page }, 'partial');
 
-    return store.alertReceiveChannelStore.updatePaginatedItems(integrationsFilters, page, isOnMount);
+    return store.alertReceiveChannelStore.updatePaginatedItems(integrationsFilters, page, false);
   };
 
   render() {
@@ -216,10 +215,16 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
   }
 
   renderName = (item: AlertReceiveChannel) => {
-    const { page } = this.state;
+    const { query } = this.props;
 
     return (
-      <PluginLink query={{ page: 'integrations', id: item.id, p: page }}>
+      <PluginLink
+        query={{
+          page: 'integrations',
+          id: item.id,
+          ...query,
+        }}
+      >
         <Text type="link" size="medium">
           <Emoji
             className={cx('title')}
@@ -490,6 +495,8 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
     const { store } = this.props;
     const { alertReceiveChannelStore } = store;
     const { integrationsFilters, page } = this.state;
+
+    console.log('Apply filters wtf');
 
     const newPage = isOnMount ? page : 1;
 
