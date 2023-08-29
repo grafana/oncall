@@ -1,3 +1,4 @@
+import datetime
 from unittest.mock import PropertyMock, patch
 
 import pytest
@@ -657,3 +658,29 @@ def test_next_step_eta(
 
     mock_dateutil_parser.assert_called_once_with(mocked_raw_date)
     mock_dateutil_parser.return_value.replace.assert_called_once_with(tzinfo=pytz.UTC)
+
+
+@pytest.mark.django_db
+def test_update_next_step_eta(
+    make_organization_and_user,
+    make_alert_receive_channel,
+    make_alert_group,
+):
+    raw_next_step_eta = "2023-08-28T09:27:26.627047Z"
+    updated_raw_next_step_eta = "2023-08-28T11:27:26.627047Z"
+    increase_by_timedelta = datetime.timedelta(minutes=120)
+
+    organization, _ = make_organization_and_user()
+    alert_receive_channel = make_alert_receive_channel(organization)
+    alert_group = make_alert_group(alert_receive_channel)
+    alert_group.raw_escalation_snapshot = alert_group.build_raw_escalation_snapshot()
+    alert_group.raw_escalation_snapshot["next_step_eta"] = raw_next_step_eta
+
+    assert alert_group.raw_escalation_snapshot is not None
+    assert alert_group.raw_escalation_snapshot["next_step_eta"] == raw_next_step_eta
+
+    alert_group.update_next_step_eta(increase_by_timedelta)
+    alert_group.save()
+    alert_group.refresh_from_db()
+
+    assert alert_group.raw_escalation_snapshot["next_step_eta"] == updated_raw_next_step_eta
