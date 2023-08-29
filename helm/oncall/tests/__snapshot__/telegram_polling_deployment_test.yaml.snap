@@ -1,0 +1,73 @@
+telegramPolling.enabled=true -> should create telegram polling deployment:
+  1: |
+    - command:
+        - sh
+        - -c
+        - python manage.py start_telegram_polling
+      env:
+        - name: BASE_URL
+          value: https://example.com
+        - name: SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              key: SECRET_KEY
+              name: oncall
+        - name: MIRAGE_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              key: MIRAGE_SECRET_KEY
+              name: oncall
+        - name: MIRAGE_CIPHER_IV
+          value: 1234567890abcdef
+        - name: DJANGO_SETTINGS_MODULE
+          value: settings.helm
+        - name: AMIXR_DJANGO_ADMIN_PATH
+          value: admin
+        - name: OSS
+          value: "True"
+        - name: UWSGI_LISTEN
+          value: "1024"
+        - name: BROKER_TYPE
+          value: rabbitmq
+        - name: GRAFANA_API_URL
+          value: http://oncall-grafana
+        - name: FEATURE_TELEGRAM_INTEGRATION_ENABLED
+          value: "True"
+        - name: FEATURE_TELEGRAM_LONG_POLLING_ENABLED
+          value: "True"
+        - name: TELEGRAM_WEBHOOK_HOST
+          value: https://example.com
+        - name: TELEGRAM_TOKEN
+          value: ""
+        - name: MYSQL_HOST
+          value: oncall-mariadb
+        - name: MYSQL_PORT
+          value: "3306"
+        - name: MYSQL_DB_NAME
+          value: oncall
+        - name: MYSQL_USER
+          value: root
+        - name: MYSQL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: mariadb-root-password
+              name: oncall-mariadb
+        - name: RABBITMQ_USERNAME
+          value: user
+        - name: RABBITMQ_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: rabbitmq-password
+              name: oncall-rabbitmq
+        - name: RABBITMQ_HOST
+          value: oncall-rabbitmq
+        - name: RABBITMQ_PORT
+          value: "5672"
+        - name: RABBITMQ_PROTOCOL
+          value: amqp
+        - name: RABBITMQ_VHOST
+          value: ""
+      image: grafana/oncall:v1.3.20
+      imagePullPolicy: Always
+      name: telegram-polling
+      securityContext: {}

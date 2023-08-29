@@ -59,6 +59,7 @@ BASE_URL = os.environ.get("BASE_URL")  # Root URL of OnCall backend
 # Feature toggles
 FEATURE_LIVE_SETTINGS_ENABLED = getenv_boolean("FEATURE_LIVE_SETTINGS_ENABLED", default=True)
 FEATURE_TELEGRAM_INTEGRATION_ENABLED = getenv_boolean("FEATURE_TELEGRAM_INTEGRATION_ENABLED", default=True)
+FEATURE_TELEGRAM_LONG_POLLING_ENABLED = getenv_boolean("FEATURE_TELEGRAM_LONG_POLLING_ENABLED", default=False)
 FEATURE_EMAIL_INTEGRATION_ENABLED = getenv_boolean("FEATURE_EMAIL_INTEGRATION_ENABLED", default=True)
 FEATURE_SLACK_INTEGRATION_ENABLED = getenv_boolean("FEATURE_SLACK_INTEGRATION_ENABLED", default=True)
 FEATURE_MULTIREGION_ENABLED = getenv_boolean("FEATURE_MULTIREGION_ENABLED", default=False)
@@ -266,7 +267,6 @@ SPECTACULAR_SETTINGS = {
     "SWAGGER_UI_SETTINGS": {
         "supportedSubmitMethods": [],  # Disable "Try it out" button for all endpoints
     },
-    "SERVE_PUBLIC": False,
 }
 # Use custom scheme if env var exists
 SWAGGER_UI_SETTINGS_URL = os.getenv("SWAGGER_UI_SETTINGS_URL")

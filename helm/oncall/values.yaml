@@ -134,6 +134,17 @@ celery:
   #     - --port=5432
   #     - example:europe-west3:grafana-oncall-db
 
+# Telegram polling pod configuration
+telegramPolling:
+  enabled: false
+  resources: {}
+    # limits:
+    #   cpu: 100m
+    #   memory: 128Mi
+    # requests:
+    #   cpu: 100m
+    #   memory: 128Mi
+
 oncall:
   # this is intended to be used for local development. In short, it will mount the ./engine dir into
   # any backend related containers, to allow hot-reloading + also run the containers with slightly modified

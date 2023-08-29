@@ -60,9 +60,13 @@ def audit_alert_group_escalation(alert_group: "AlertGroup") -> None:
     )
 
     if escalation_snapshot.next_step_eta_is_valid() is False:
-        raise AlertGroupEscalationPolicyExecutionAuditException(
+        msg = (
             f"{base_msg}'s escalation snapshot does not have a valid next_step_eta: {escalation_snapshot.next_step_eta}"
         )
+
+        task_logger.warning(msg)
+        raise AlertGroupEscalationPolicyExecutionAuditException(msg)
+
     task_logger.info(f"{base_msg}'s escalation snapshot has a valid next_step_eta: {escalation_snapshot.next_step_eta}")
 
     executed_escalation_policy_snapshots = escalation_snapshot.executed_escalation_policy_snapshots

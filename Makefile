@@ -18,6 +18,7 @@ REDIS_PROFILE = redis
 RABBITMQ_PROFILE = rabbitmq
 PROMETHEUS_PROFILE = prometheus
 GRAFANA_PROFILE = grafana
+TELEGRAM_POLLING_PROFILE = telegram_polling
 
 DEV_ENV_DIR = ./dev
 DEV_ENV_FILE = $(DEV_ENV_DIR)/.env.dev

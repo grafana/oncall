@@ -223,6 +223,19 @@ class EscalationSnapshotMixin:
         raw_next_step_eta = self.raw_escalation_snapshot.get("next_step_eta")
         return None if not raw_next_step_eta else parse(raw_next_step_eta).replace(tzinfo=pytz.UTC)
 
+    def update_next_step_eta(self, increase_by_timedelta: datetime.timedelta) -> typing.Optional[dict]:
+        """
+        update next_step_eta field directly to avoid serialization overhead
+        """
+        if not self.raw_escalation_snapshot:
+            return None
+
+        raw_next_step_eta = self.raw_escalation_snapshot.get("next_step_eta")
+        next_step_eta = parse(raw_next_step_eta).replace(tzinfo=pytz.UTC)
+        updated_next_step_eta = next_step_eta + increase_by_timedelta
+        self.raw_escalation_snapshot["next_step_eta"] = updated_next_step_eta.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+        return self.raw_escalation_snapshot
+
     def start_escalation_if_needed(self, countdown=START_ESCALATION_DELAY, eta=None):
         """
         :type self:AlertGroup
