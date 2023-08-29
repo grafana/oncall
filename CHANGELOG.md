@@ -17,9 +17,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   updated to reflect the latest state by @joeyorlando ([#2886](https://github.com/grafana/oncall/pull/2886))
 - Fix issue where Grafana integration would fail to parse alerting config for routes without receivers @mderynck
   ([#2894](https://github.com/grafana/oncall/pull/2894))
-
-### Changed
-
 - Performance and UX tweaks to integrations page ([#2869](https://github.com/grafana/oncall/pull/2869))
 
 ## v1.3.27 (2023-08-25)
