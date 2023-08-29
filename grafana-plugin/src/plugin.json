@@ -105,7 +105,7 @@
     {
       "type": "dashboard",
       "path": "dashboards/oncall_metrics_dashboard.json",
-      "name": "OnCall Metrics"
+      "name": "OnCall Insights"
     }
   ],
   "routes": [
