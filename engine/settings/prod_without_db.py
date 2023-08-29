@@ -112,7 +112,9 @@ CELERY_TASK_ROUTES = {
     "apps.integrations.tasks.create_alert": {"queue": "critical"},
     "apps.integrations.tasks.create_alertmanager_alerts": {"queue": "critical"},
     "apps.integrations.tasks.start_notify_about_integration_ratelimit": {"queue": "critical"},
+    # TODO: remove apps.mobile_app.tasks.notify_user_async in a future release
     "apps.mobile_app.tasks.notify_user_async": {"queue": "critical"},
+    "apps.mobile_app.tasks.notify_user_about_new_alert_group": {"queue": "critical"},
     "apps.schedules.tasks.drop_cached_ical.drop_cached_ical_for_custom_events_for_organization": {"queue": "critical"},
     "apps.schedules.tasks.drop_cached_ical.drop_cached_ical_task": {"queue": "critical"},
     # LONG

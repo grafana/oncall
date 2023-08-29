@@ -4,7 +4,7 @@ import pytest
 
 from apps.base.models import UserNotificationPolicy, UserNotificationPolicyLogRecord
 from apps.mobile_app.models import FCMDevice, MobileAppUserSettings
-from apps.mobile_app.tasks.new_alert_group import _get_fcm_message, notify_user_async
+from apps.mobile_app.tasks.new_alert_group import _get_fcm_message, notify_user_about_new_alert_group
 
 MOBILE_APP_BACKEND_ID = 5
 CLOUD_LICENSE_NAME = "Cloud"
@@ -13,7 +13,7 @@ OPEN_SOURCE_LICENSE_NAME = "OpenSource"
 
 @patch("apps.mobile_app.tasks.new_alert_group.send_push_notification")
 @pytest.mark.django_db
-def test_notify_user_async(
+def test_notify_user_about_new_alert_group(
     mock_send_push_notification,
     make_organization_and_user,
     make_user_notification_policy,
@@ -37,7 +37,7 @@ def test_notify_user_async(
     alert_group = make_alert_group(alert_receive_channel, channel_filter=channel_filter)
     make_alert(alert_group=alert_group, raw_request_data={})
 
-    notify_user_async(
+    notify_user_about_new_alert_group(
         user_pk=user.pk,
         alert_group_pk=alert_group.pk,
         notification_policy_pk=notification_policy.pk,
@@ -49,7 +49,7 @@ def test_notify_user_async(
 
 @patch("apps.mobile_app.tasks.new_alert_group.send_push_notification")
 @pytest.mark.django_db
-def test_notify_user_async_no_device_connected(
+def test_notify_user_about_new_alert_group_no_device_connected(
     mock_send_push_notification,
     make_organization_and_user,
     make_user_notification_policy,
@@ -72,7 +72,7 @@ def test_notify_user_async_no_device_connected(
     alert_group = make_alert_group(alert_receive_channel, channel_filter=channel_filter)
     make_alert(alert_group=alert_group, raw_request_data={})
 
-    notify_user_async(
+    notify_user_about_new_alert_group(
         user_pk=user.pk,
         alert_group_pk=alert_group.pk,
         notification_policy_pk=notification_policy.pk,
