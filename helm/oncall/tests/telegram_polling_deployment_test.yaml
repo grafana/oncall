@@ -4,7 +4,7 @@ templates:
 release:
   name: oncall
 chart:
-  appVersion: v1.3.20
+  appVersion: v1.2.36
 tests:
   - it: telegramPolling.enabled=false -> should not create deployment (default)
     asserts:
