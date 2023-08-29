@@ -3,9 +3,9 @@ import React, { useEffect, useState } from 'react';
 import { Icon, IconButton, IconName } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { isArray, isUndefined } from 'lodash-es';
+import { observer } from 'mobx-react';
 
 import styles from './IntegrationCollapsibleTreeView.module.scss';
-import { observer } from 'mobx-react';
 
 const cx = cn.bind(styles);
 
