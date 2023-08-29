@@ -134,19 +134,40 @@ const ShiftSwapEvent = (props: ShiftSwapEventProps) => {
   const shiftSwap = store.scheduleStore.shiftSwaps[event.shiftSwapId];
 
   useEffect(() => {
-    if (shiftSwap.beneficiary && !store.userStore.items[shiftSwap.beneficiary]) {
+    if (shiftSwap?.beneficiary && !store.userStore.items[shiftSwap.beneficiary]) {
       store.userStore.updateItem(shiftSwap.beneficiary);
     }
-  }, [shiftSwap.beneficiary]);
+  }, [shiftSwap?.beneficiary]);
 
   useEffect(() => {
-    if (shiftSwap.benefactor && !store.userStore.items[shiftSwap.benefactor]) {
+    if (shiftSwap?.benefactor && !store.userStore.items[shiftSwap.benefactor]) {
       store.userStore.updateItem(shiftSwap.benefactor);
     }
-  }, [shiftSwap.benefactor]);
+  }, [shiftSwap?.benefactor]);
 
-  const beneficiary = store.userStore.items[shiftSwap.beneficiary];
-  const benefactor = store.userStore.items[shiftSwap.benefactor];
+  const beneficiary = store.userStore.items[shiftSwap?.beneficiary];
+  const benefactor = store.userStore.items[shiftSwap?.benefactor];
+
+  const scheduleSlotContent = (
+    <div className={cx('root', { 'root__type_shift-swap': true })}>
+      {shiftSwap && (
+        <HorizontalGroup spacing="xs">
+          {beneficiary && <Avatar size="xs" src={beneficiary.avatar} />}
+          {benefactor ? (
+            <Avatar size="xs" src={benefactor.avatar} />
+          ) : (
+            <div className={cx('no-user')}>
+              <Text size="xs">?</Text>
+            </div>
+          )}
+        </HorizontalGroup>
+      )}
+    </div>
+  );
+
+  if (!shiftSwap) {
+    return scheduleSlotContent;
+  }
 
   return (
     <Tooltip
@@ -165,18 +186,7 @@ const ShiftSwapEvent = (props: ShiftSwapEventProps) => {
         />
       }
     >
-      <div className={cx('root', { 'root__type_shift-swap': true })}>
-        <HorizontalGroup spacing="xs">
-          {beneficiary && <Avatar size="small" src={beneficiary.avatar} />}
-          {benefactor ? (
-            <Avatar size="small" src={benefactor.avatar} />
-          ) : (
-            <div className={cx('no-user')}>
-              <Text size="small">?</Text>
-            </div>
-          )}
-        </HorizontalGroup>
-      </div>
+      {scheduleSlotContent}
     </Tooltip>
   );
 };
@@ -215,13 +225,16 @@ const RegularEvent = (props: RegularEventProps) => {
 
   const { users } = event;
 
-  const getShiftSwapClickHandler = useCallback((swapId: ShiftSwap['id']) => {
-    return (event: React.MouseEvent<HTMLDivElement>) => {
-      event.stopPropagation();
+  const getShiftSwapClickHandler = useCallback(
+    (swapId: ShiftSwap['id']) => {
+      return (event: React.MouseEvent<HTMLDivElement>) => {
+        event.stopPropagation();
 
-      onShiftSwapClick(swapId);
-    };
-  }, []);
+        onShiftSwapClick(swapId);
+      };
+    },
+    [onShiftSwapClick]
+  );
 
   const onCallNow = store.scheduleStore.items[scheduleId]?.on_call_now;
 
@@ -371,7 +384,7 @@ const ScheduleSlotDetails = (props: ScheduleSlotDetailsProps) => {
             <VerticalGroup spacing="xs">
               <Text type="primary">Swap pair</Text>
               <Text type="primary" className={cx('username')}>
-                {beneficiaryName} <Text type="secondary"> (creator)</Text>
+                {beneficiaryName} <Text type="secondary"> (requested by)</Text>
               </Text>
               {benefactorName ? (
                 <Text type="primary" className={cx('username')}>

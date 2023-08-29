@@ -276,10 +276,31 @@ export class ScheduleStore extends BaseStore {
   }
 
   @action
+  updateShiftsSwapPreview(scheduleId: Schedule['id'], startMoment: dayjs.Dayjs, params: Partial<ShiftSwap>) {
+    const fromString = getFromString(startMoment);
+
+    const newShiftEvents: ShiftEvents = {
+      shiftId: 'new',
+      events: [createShiftSwapEventFromShiftSwap(params)],
+      isPreview: true,
+    };
+
+    const existingShiftEventsList: ShiftEvents[] = this.scheduleAndDateToShiftSwaps[scheduleId][fromString];
+
+    const shiftEventsListFlattened = flattenShiftEvents([...existingShiftEventsList, newShiftEvents]);
+
+    this.shiftSwapsPreview = {
+      ...this.shiftSwapsPreview,
+      [fromString]: shiftEventsListFlattened,
+    };
+  }
+
+  @action
   clearPreview() {
     this.finalPreview = undefined;
     this.rotationPreview = undefined;
     this.overridePreview = undefined;
+    this.shiftSwapsPreview = undefined;
     this.rotationFormLiveParams = undefined;
   }
 

@@ -4,6 +4,11 @@
   overflow: hidden;
 }
 
+.avatarSize-xs {
+  width: 12px;
+  height: 12px;
+}
+
 .avatarSize-small {
   width: 16px;
   height: 16px;

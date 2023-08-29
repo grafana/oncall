@@ -28,6 +28,7 @@ const cx = cn.bind(styles);
 interface ShiftSwapFormProps {
   id: ShiftSwap['id'] | 'new';
   scheduleId: Schedule['id'];
+  startMoment: dayjs.Dayjs;
   params: Partial<ShiftSwap>;
   currentTimezone: Timezone;
 
@@ -37,7 +38,7 @@ interface ShiftSwapFormProps {
 }
 
 const ShiftSwapForm = (props: ShiftSwapFormProps) => {
-  const { onUpdate, onHide, id, scheduleId, params: defaultParams, currentTimezone } = props;
+  const { onUpdate, onHide, id, scheduleId, startMoment, params: defaultParams, currentTimezone } = props;
 
   const [shiftSwap, setShiftSwap] = useState({ ...defaultParams });
 
@@ -61,7 +62,9 @@ const ShiftSwapForm = (props: ShiftSwapFormProps) => {
 
   const handleShiftSwapStartChange = useCallback(
     (value) => {
-      setShiftSwap({ ...shiftSwap, swap_start: getUTCString(value) });
+      const diff = dayjs(shiftSwap.swap_end).diff(dayjs(shiftSwap.swap_start));
+
+      setShiftSwap({ ...shiftSwap, swap_start: getUTCString(value), swap_end: getUTCString(value.add(diff)) });
     },
     [shiftSwap]
   );
@@ -72,6 +75,16 @@ const ShiftSwapForm = (props: ShiftSwapFormProps) => {
     },
     [shiftSwap]
   );
+
+  useEffect(() => {
+    if (id === 'new') {
+      store.scheduleStore.updateShiftsSwapPreview(scheduleId, startMoment, {
+        id: 'new',
+        beneficiary: currentUserPk,
+        ...shiftSwap,
+      });
+    }
+  }, [shiftSwap]);
 
   const handleDescriptionChange = useCallback(
     (event) => {

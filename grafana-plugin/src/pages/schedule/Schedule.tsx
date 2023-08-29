@@ -274,7 +274,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
                       disabled={disabledRotationForm}
                       onShowOverrideForm={this.handleShowOverridesForm}
                       filters={filters}
-                      onShowShiftSwapForm={this.handleShowShiftSwapForm}
+                      onShowShiftSwapForm={!shiftSwapIdToShowForm ? this.handleShowShiftSwapForm : undefined}
                       onSlotClick={
                         shiftSwapIdToShowForm
                           ? this.adjustShiftSwapForm
@@ -295,7 +295,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
                       onShowOverrideForm={this.handleShowOverridesForm}
                       disabled={disabledRotationForm}
                       filters={filters}
-                      onShowShiftSwapForm={this.handleShowShiftSwapForm}
+                      onShowShiftSwapForm={!shiftSwapIdToShowForm ? this.handleShowShiftSwapForm : undefined}
                       onSlotClick={shiftSwapIdToShowForm ? this.adjustShiftSwapForm : undefined}
                     />
                     <ScheduleOverrides
@@ -310,7 +310,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
                       disabled={disabledOverrideForm}
                       shiftStartToShowOverrideForm={shiftStartToShowOverrideForm}
                       shiftEndToShowOverrideForm={shiftEndToShowOverrideForm}
-                      onShowShiftSwapForm={this.handleShowShiftSwapForm}
+                      onShowShiftSwapForm={!shiftSwapIdToShowForm ? this.handleShowShiftSwapForm : undefined}
                       filters={filters}
                     />
                   </div>
@@ -340,6 +340,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
               <ShiftSwapForm
                 id={shiftSwapIdToShowForm}
                 scheduleId={scheduleId}
+                startMoment={startMoment}
                 currentTimezone={currentTimezone}
                 params={shiftSwapParamsToShowForm}
                 onHide={this.handleHideShiftSwapForm}
@@ -573,7 +574,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
     const { filters } = this.state;
 
     const {
-      store: { userStore },
+      store: { userStore, scheduleStore },
     } = this.props;
 
     if (this.highlightMyShiftsWasToggled) {
@@ -588,6 +589,8 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
       }
     }
     this.setState({ shiftSwapIdToShowForm: undefined, shiftSwapParamsToShowForm: undefined });
+
+    scheduleStore.clearPreview();
   };
 
   adjustShiftSwapForm = (event: Event) => {

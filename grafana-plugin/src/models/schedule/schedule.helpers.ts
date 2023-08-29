@@ -25,7 +25,7 @@ const createGap = (start, end) => {
   };
 };
 
-export const createShiftSwapEventFromShiftSwap = (shiftSwap: ShiftSwap) => {
+export const createShiftSwapEventFromShiftSwap = (shiftSwap: Partial<ShiftSwap>) => {
   return {
     shiftSwapId: shiftSwap.id,
     start: shiftSwap.swap_start,
