@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   updated to reflect the latest state by @joeyorlando ([#2886](https://github.com/grafana/oncall/pull/2886))
 - Fix issue where Grafana integration would fail to parse alerting config for routes without receivers @mderynck
   ([#2894](https://github.com/grafana/oncall/pull/2894))
+- Fix slack schedule notification settings dialog ([#2902](https://github.com/grafana/oncall/pull/2902))
 
 ## v1.3.27 (2023-08-25)
 
