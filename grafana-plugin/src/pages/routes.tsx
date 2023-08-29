@@ -1,7 +1,6 @@
 import EscalationsChainsPage from 'pages/escalation-chains/EscalationChains';
 import IncidentPage from 'pages/incident/Incident';
 import IncidentsPage from 'pages/incidents/Incidents';
-import MaintenancePage from 'pages/maintenance/Maintenance';
 import OutgoingWebhooks from 'pages/outgoing_webhooks/OutgoingWebhooks';
 import SchedulePage from 'pages/schedule/Schedule';
 import SchedulesPage from 'pages/schedules/Schedules';
@@ -54,10 +53,6 @@ export const routes: { [id: string]: NavRoute } = [
   {
     component: OutgoingWebhooks,
     id: 'outgoing_webhooks',
-  },
-  {
-    component: MaintenancePage,
-    id: 'maintenance',
   },
   {
     component: SettingsPage,

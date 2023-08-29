@@ -12,6 +12,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Address bug when a Shift Swap Request is accepted either via the web or mobile UI, and the Slack message is not
   updated to reflect the latest state by @joeyorlando ([#2886](https://github.com/grafana/oncall/pull/2886))
 
+### Changed
+
+- Performance and UX tweaks to integrations page ([#2869](https://github.com/grafana/oncall/pull/2869))
+
 ## v1.3.27 (2023-08-25)
 
 ### Added
@@ -26,7 +30,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Allow mobile app to access status endpoint @mderynck ([#2791](https://github.com/grafana/oncall/pull/2791))
 - Enable shifts export endpoint for all schedule types ([#2863](https://github.com/grafana/oncall/pull/2863))
 - Use priority field to track primary/overrides calendar in schedule iCal export ([#2871](https://github.com/grafana/oncall/pull/2871))
-- Performance and UX tweaks to integrations page ([#2869](https://github.com/grafana/oncall/pull/2869))
 
 ### Fixed
 
