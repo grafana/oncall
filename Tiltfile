@@ -9,6 +9,15 @@ v1alpha1.extension(name='grafana', repo_name='grafana-tilt-extensions', repo_pat
 load('ext://grafana', 'grafana')
 load('ext://configmap', 'configmap_create')
 
+# This will be used later. Should be factored out into a plugin
+# https://github.com/tilt-dev/tilt/issues/3048#issuecomment-1245171184
+def post_build(name, resource, target_resource, labels=[]):
+    local_resource(
+        name,
+        labels=labels,
+        serve_cmd="bash ./dev/scripts/provision-plugin-settings-tilt.sh {resource} {target_resource}".format(resource=resource, target_resource=target_resource))
+
+
 # Tell ops-devenv/Tiltifle where our plugin.json file lives
 plugin_file = os.path.abspath('grafana-plugin/src/plugin.json')
 def plugin_json():
@@ -70,6 +79,11 @@ k8s_resource(workload='celery', resource_deps=['mariadb', 'redis-master'], label
 k8s_resource(workload='engine', port_forwards=8080, resource_deps=['mariadb', 'redis-master'], labels=['OnCallBackend'])
 k8s_resource(workload='redis-master', labels=['OnCallDeps'])
 k8s_resource(workload='mariadb', labels=['OnCallDeps'])
+
+# Provide the ability to configure the plugin
+local_resource("configure-plugin", "cd dev; bash scripts/provision-plugin-settings.sh", resource_deps=["grafana"], labels=['Grafana'])
+# Trigger plugin config after changes to grafana
+post_build('trigger plugin change', 'grafana', 'configure-plugin', labels=['SLOBuild'])
 
 # name all tilt resources after the k8s object namespace + name
 def resource_name(id):
