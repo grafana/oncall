@@ -68,8 +68,10 @@ CELERY_TASK_ROUTES = {
     "apps.migration_tool.tasks.migrate_user_data": {"queue": "default"},
     "apps.schedules.tasks.notify_about_gaps_in_schedule.notify_about_gaps_in_schedule": {"queue": "default"},
     "celery.backend_cleanup": {"queue": "default"},
-    "extensions.engine_enterprise.apps.irm_sku.tasks.conditionally_restrict_alert_group_async": {"queue": "default"},
     "apps.heartbeat.tasks.check_heartbeats": {"queue": "default"},
+    "apps.oss_installation.tasks.send_cloud_heartbeat_task": {"queue": "default"},
+    "apps.oss_installation.tasks.send_usage_stats_report": {"queue": "default"},
+    "apps.oss_installation.tasks.sync_users_with_cloud": {"queue": "default"},
     # CRITICAL
     "apps.alerts.tasks.acknowledge_reminder.acknowledge_reminder_task": {"queue": "critical"},
     "apps.alerts.tasks.acknowledge_reminder.unacknowledge_timeout_task": {"queue": "critical"},
@@ -120,9 +122,9 @@ CELERY_TASK_ROUTES = {
     "apps.grafana_plugin.tasks.sync.start_sync_organizations": {"queue": "long"},
     "apps.grafana_plugin.tasks.sync.sync_organization_async": {"queue": "long"},
     "apps.grafana_plugin.tasks.sync.sync_team_members_for_organization_async": {"queue": "long"},
+    "apps.grafana_plugin.tasks.sync.start_sync_regions": {"queue": "long"},
     "apps.metrics_exporter.tasks.calculate_and_cache_metrics": {"queue": "long"},
     "apps.metrics_exporter.tasks.calculate_and_cache_user_was_notified_metric": {"queue": "long"},
-    "extensions.engine_enterprise.apps.gcom_integration.tasks.push_active_users_to_gcom": {"queue": "long"},
     # SLACK
     "apps.integrations.tasks.notify_about_integration_ratelimit_in_slack": {"queue": "slack"},
     "apps.slack.helpers.alert_group_representative.on_alert_group_action_triggered_async": {"queue": "slack"},
