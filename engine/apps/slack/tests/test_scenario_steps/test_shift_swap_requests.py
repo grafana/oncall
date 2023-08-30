@@ -40,25 +40,15 @@ class TestBaseShiftSwapRequestStep:
         step = scenarios.BaseShiftSwapRequestStep(ssr.organization.slack_team_identity, ssr.organization)
         blocks = step._generate_blocks(ssr)
 
-        assert (
-            blocks[0]["text"]["text"]
-            == f"Your teammate {beneficiary.get_username_with_slack_verbal()} has submitted a shift swap request."
+        assert blocks[0]["text"]["text"] == (
+            f"*New shift swap request for <{ssr.schedule.web_detail_page_link}|{ssr.schedule.name}>*\n"
+            f"Your teammate {beneficiary.get_username_with_slack_verbal()} has submitted a shift swap request."
         )
 
         accept_button = blocks[2]
 
-        assert accept_button["elements"][0]["text"]["text"] == "✔️ Accept Shift Swap Request"
+        assert accept_button["elements"][0]["text"]["text"] == "Accept"
         assert accept_button["type"] == "actions"
-
-        assert blocks[3]["type"] == "divider"
-
-        context_section = blocks[4]
-
-        assert context_section["type"] == "context"
-        assert (
-            context_section["elements"][0]["text"]
-            == f"👀 View the shift swap within Grafana OnCall by clicking <{ssr.web_link}|here>."
-        )
 
     @patch("apps.schedules.models.ShiftSwapRequest.shifts")
     @pytest.mark.parametrize(
@@ -108,7 +98,7 @@ class TestBaseShiftSwapRequestStep:
         step = scenarios.BaseShiftSwapRequestStep(ssr.organization.slack_team_identity, ssr.organization)
         blocks = step._generate_blocks(ssr)
 
-        assert blocks[1]["text"]["text"] == f"*📅 Shift Details*:\n\n{expected_text}"
+        assert blocks[1]["text"]["text"] == f"*Shift details*:\n\n{expected_text}"
 
     @pytest.mark.django_db
     def test_generate_blocks_ssr_has_description(self, setup) -> None:
@@ -118,7 +108,7 @@ class TestBaseShiftSwapRequestStep:
         step = scenarios.BaseShiftSwapRequestStep(ssr.organization.slack_team_identity, ssr.organization)
         blocks = step._generate_blocks(ssr)
 
-        assert blocks[2]["text"]["text"] == f"*📝 Description*: {description}"
+        assert blocks[2]["text"]["text"] == f"*Description*: {description}"
 
     @pytest.mark.django_db
     def test_generate_blocks_ssr_is_deleted(self, setup) -> None:
@@ -128,7 +118,7 @@ class TestBaseShiftSwapRequestStep:
         step = scenarios.BaseShiftSwapRequestStep(ssr.organization.slack_team_identity, ssr.organization)
         blocks = step._generate_blocks(ssr)
 
-        assert blocks[2]["text"]["text"] == "*Update*: this shift swap request has been deleted."
+        assert blocks[2]["text"]["text"] == "❌ this shift swap request has been deleted"
 
     @pytest.mark.django_db
     def test_generate_blocks_ssr_is_taken(self, setup) -> None:
@@ -141,7 +131,7 @@ class TestBaseShiftSwapRequestStep:
 
         assert (
             blocks[2]["text"]["text"]
-            == f"*Update*: {benefactor.get_username_with_slack_verbal()} has taken the shift swap."
+            == f"✅ {benefactor.get_username_with_slack_verbal()} has accepted the shift swap request"
         )
 
     @patch("apps.slack.scenarios.shift_swap_requests.BaseShiftSwapRequestStep._generate_blocks")

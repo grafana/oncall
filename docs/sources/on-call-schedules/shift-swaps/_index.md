@@ -36,14 +36,14 @@ of a schedule, or clicking the button shown when hovering on a particular shift 
 <img src="/static/img/oncall/swap-web-hover.png">
 <img src="/static/img/oncall/swap-web-request.png">
 
->**Note**: no recurrence rules support is available when requesting a shift swap. If you need to recurrently change a shift,
-consider creating a higher level layer rotation with the desired updates.
+> **Note**: no recurrence rules support is available when requesting a shift swap. If you need to recurrently change a shift,
+> consider creating a higher level layer rotation with the desired updates.
 
 Upon submitting the request, a Slack notification will be sent to the channel associated to the correspondent
 schedule, if there is one. A [mobile push notification][shift-swap-notifications] will be sent to team members who
 participate in the schedule and have the notifications enabled.
 
-<img src="/static/img/oncall/swap-slack-notification.png">
+<img src="/static/img/oncall/swap-slack-notification-2.png">
 
 Push notifications are sent 4 weeks ahead of the requested shift swap, or shortly after creation in case
 the shift swap start time is less than 4 weeks away, but always during users' working hours (by default 9am-5pm on
@@ -64,8 +64,8 @@ The follow-up notifications will be sent at the following intervals before the s
 
 You can delete the swap request at any time. If the swap has been taken, it will automatically be undone upon removal.
 
->**Note**: if [RBAC][rbac] is enabled, a user is required to have the `SCHEDULES_WRITE` permission to create,
-update, take or delete a swap request. `SCHEDULES_READ` will be enough to get details about existing requests.
+> **Note**: if [RBAC][rbac] is enabled, a user is required to have the `SCHEDULES_WRITE` permission to create,
+> update, take or delete a swap request. `SCHEDULES_READ` will be enough to get details about existing requests.
 
 ## Check existing swap requests
 
