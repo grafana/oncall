@@ -74,6 +74,7 @@ class AlertGroupLogRecord(models.Model):
         TYPE_RESOLVED,
         TYPE_UN_RESOLVED,
         TYPE_UN_SILENCE,
+        TYPE_DIRECT_PAGING,
     )
 
     TYPE_CHOICES = (
