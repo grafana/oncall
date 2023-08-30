@@ -81,9 +81,9 @@ k8s_resource(workload='redis-master', labels=['OnCallDeps'])
 k8s_resource(workload='mariadb', labels=['OnCallDeps'])
 
 # Provide the ability to configure the plugin
-local_resource("configure-plugin", "cd dev; bash scripts/provision-plugin-settings.sh", resource_deps=["grafana"], labels=['Grafana'])
+local_resource("configure-oncall-plugin", "cd dev; bash scripts/provision-plugin-settings.sh", resource_deps=["grafana"], labels=['Grafana'])
 # Trigger plugin config after changes to grafana
-post_build('trigger plugin change', 'grafana', 'configure-plugin', labels=['SLOBuild'])
+post_build('trigger plugin change', 'grafana', 'configure-oncall-plugin', labels=['SLOBuild'])
 
 # name all tilt resources after the k8s object namespace + name
 def resource_name(id):
