@@ -422,7 +422,12 @@ const RotationForm = observer((props: RotationFormProps) => {
         width="430px"
         onDismiss={onHide}
         contentElement={(props, children) => (
-          <Draggable handle=".drag-handler" defaultClassName={cx('draggable')} positionOffset={{ x: 0, y: offsetTop }}>
+          <Draggable
+            handle=".drag-handler"
+            defaultClassName={cx('draggable')}
+            positionOffset={{ x: 0, y: offsetTop }}
+            bounds={{ top: 0 }}
+          >
             <div {...props}>{children}</div>
           </Draggable>
         )}
