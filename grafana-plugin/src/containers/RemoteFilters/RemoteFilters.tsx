@@ -27,6 +27,7 @@ import { GrafanaTeamStore } from 'models/grafana_team/grafana_team';
 import { SelectOption, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import LocationHelper from 'utils/LocationHelper';
+import { PAGE } from 'utils/consts';
 
 import { parseFilters } from './RemoteFilters.helpers';
 import { FilterOption, RemoteFiltersType } from './RemoteFilters.types';
@@ -39,7 +40,7 @@ interface RemoteFiltersProps extends WithStoreProps {
   value: RemoteFiltersType;
   onChange: (filters: { [key: string]: any }, isOnMount: boolean) => void;
   query: { [key: string]: any };
-  page: string;
+  page: PAGE;
   defaultFilters?: FiltersValues;
   extraFilters?: (state, setState, onFiltersValueChange) => React.ReactNode;
   grafanaTeamStore: GrafanaTeamStore;
@@ -378,6 +379,7 @@ class RemoteFilters extends Component<RemoteFiltersProps, RemoteFiltersState> {
     }
 
     LocationHelper.update({ ...values }, 'partial');
+
     onChange(values, isOnMount);
   };
 

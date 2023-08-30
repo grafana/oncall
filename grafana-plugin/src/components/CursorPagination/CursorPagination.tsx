@@ -24,7 +24,7 @@ const CursorPagination: FC<CursorPaginationProps> = (props) => {
     setDisabled(false);
   }, [prev, next]);
 
-  const onChangeItemsPerPageCallback = useCallback((option) => {
+  const onChangeItemsPerPageCallback = useCallback((option: SelectableValue) => {
     setDisabled(true);
     onChangeItemsPerPage(option.value);
   }, []);
