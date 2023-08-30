@@ -8,6 +8,7 @@ from rest_framework.test import APIClient
 
 from apps.slack.scenarios.manage_responders import ManageRespondersUserChange
 from apps.slack.scenarios.paging import OnPagingTeamChange
+from apps.slack.scenarios.schedules import EditScheduleShiftNotifyStep
 from apps.slack.scenarios.shift_swap_requests import AcceptShiftSwapRequestStep
 from apps.slack.types import PayloadType
 
@@ -198,6 +199,37 @@ def test_organization_not_found_scenario_doesnt_break_manage_responders(
 
     assert response.status_code == status.HTTP_200_OK
     mock_process_scenario.assert_called_once()
+
+
+@patch("apps.slack.views.SlackEventApiEndpointView.verify_signature", return_value=True)
+@patch.object(EditScheduleShiftNotifyStep, "process_scenario")
+@pytest.mark.django_db
+def test_organization_not_found_scenario_doesnt_break_edit_schedule_notifications(
+    mock_edit_schedule_notifications,
+    _,
+    make_organization,
+    make_slack_user_identity,
+    make_user,
+    slack_team_identity,
+):
+    """
+    Check EditScheduleShiftNotifyStep.process_scenario gets called when a user clicks settings in shift notification.
+    """
+    organization = make_organization(slack_team_identity=slack_team_identity)
+    slack_user_identity = make_slack_user_identity(slack_team_identity=slack_team_identity, slack_id=SLACK_USER_ID)
+    make_user(organization=organization, slack_user_identity=slack_user_identity)
+
+    response = _make_request(
+        {
+            "team_id": SLACK_TEAM_ID,
+            "user_id": SLACK_USER_ID,
+            "type": "block_actions",
+            "actions": [{"action_id": EditScheduleShiftNotifyStep.routing_uid(), "type": "button"}],
+        }
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    mock_edit_schedule_notifications.assert_called_once()
 
 
 @patch("apps.slack.views.SlackEventApiEndpointView.verify_signature", return_value=True)

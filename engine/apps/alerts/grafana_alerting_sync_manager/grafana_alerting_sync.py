@@ -374,7 +374,7 @@ class GrafanaAlertingSyncManager:
             return True
         routes = route_config.get("routes", [])
         for route in routes:
-            if route["receiver"] == receiver_name:
+            if route.get("receiver") == receiver_name:
                 return True
             if route.get("routes"):
                 if self._recursive_check_contact_point_is_in_routes(route, receiver_name):

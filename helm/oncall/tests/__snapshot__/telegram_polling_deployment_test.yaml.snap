@@ -67,7 +67,7 @@ telegramPolling.enabled=true -> should create telegram polling deployment:
           value: amqp
         - name: RABBITMQ_VHOST
           value: ""
-      image: grafana/oncall:v1.3.20
+      image: grafana/oncall:v1.2.36
       imagePullPolicy: Always
       name: telegram-polling
       securityContext: {}

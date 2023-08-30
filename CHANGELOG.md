@@ -5,7 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Unreleased
+## v1.3.29 (2023-08-29)
+
+### Fixed
+
+- Fix metrics calculation and OnCall dashboard, rename dashboard @Ferril ([#2895](https://github.com/grafana/oncall/pull/2895))
+- Fix slack schedule notification settings dialog ([#2902](https://github.com/grafana/oncall/pull/2902))
+
+## v1.3.28 (2023-08-29)
+
+### Changed
+
+- Switch engine to alpine base image ([2872](https://github.com/grafana/oncall/pull/2872))
 
 ### Added
 
@@ -15,6 +26,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Address bug when a Shift Swap Request is accepted either via the web or mobile UI, and the Slack message is not
   updated to reflect the latest state by @joeyorlando ([#2886](https://github.com/grafana/oncall/pull/2886))
+- Fix issue where Grafana integration would fail to parse alerting config for routes without receivers @mderynck
+  ([#2894](https://github.com/grafana/oncall/pull/2894))
 
 ## v1.3.27 (2023-08-25)
 

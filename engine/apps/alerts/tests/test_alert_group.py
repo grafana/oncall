@@ -1,7 +1,9 @@
+from unittest.mock import patch
+
 import pytest
 
 from apps.alerts.incident_appearance.renderers.phone_call_renderer import AlertGroupPhoneCallRenderer
-from apps.alerts.models import AlertGroup
+from apps.alerts.models import AlertGroup, AlertGroupLogRecord
 from apps.alerts.tasks.delete_alert_group import delete_alert_group
 from apps.slack.models import SlackMessage
 
@@ -116,3 +118,161 @@ def test_alerts_count_gt(
     assert alert_group.alerts_count_gt(1) is True
     assert alert_group.alerts_count_gt(2) is False
     assert alert_group.alerts_count_gt(3) is False
+
+
+@patch("apps.alerts.models.AlertGroup.start_unsilence_task", return_value=None)
+@pytest.mark.django_db
+def test_silence_by_user_for_period(
+    mocked_start_unsilence_task,
+    make_organization_and_user,
+    make_alert_receive_channel,
+    make_alert_group,
+):
+    organization, user = make_organization_and_user()
+    alert_receive_channel = make_alert_receive_channel(organization)
+
+    alert_group = make_alert_group(alert_receive_channel)
+
+    raw_next_step_eta = "2023-08-28T09:27:26.627047Z"
+    silence_delay = 120 * 60
+    updated_raw_next_step_eta = "2023-08-28T11:27:36.627047Z"  # silence_delay + START_ESCALATION_DELAY
+
+    alert_group.raw_escalation_snapshot = alert_group.build_raw_escalation_snapshot()
+    alert_group.raw_escalation_snapshot["next_step_eta"] = raw_next_step_eta
+
+    assert not alert_group.log_records.filter(
+        type=AlertGroupLogRecord.TYPE_SILENCE,
+        author=user,
+    ).exists()
+
+    alert_group.silence_by_user(user, silence_delay=silence_delay)
+
+    assert alert_group.log_records.filter(
+        type=AlertGroupLogRecord.TYPE_SILENCE,
+        author=user,
+    ).exists()
+
+    alert_group.refresh_from_db()
+
+    assert alert_group.silenced
+    assert alert_group.raw_escalation_snapshot["next_step_eta"] == updated_raw_next_step_eta
+    assert mocked_start_unsilence_task.called
+
+
+@patch("apps.alerts.models.AlertGroup.start_unsilence_task", return_value=None)
+@pytest.mark.django_db
+def test_silence_by_user_forever(
+    mocked_start_unsilence_task,
+    make_organization_and_user,
+    make_alert_receive_channel,
+    make_alert_group,
+):
+    organization, user = make_organization_and_user()
+    alert_receive_channel = make_alert_receive_channel(organization)
+
+    alert_group = make_alert_group(alert_receive_channel)
+
+    raw_next_step_eta = "2023-08-28T09:27:26.627047Z"
+
+    alert_group.raw_escalation_snapshot = alert_group.build_raw_escalation_snapshot()
+    alert_group.raw_escalation_snapshot["next_step_eta"] = raw_next_step_eta
+
+    assert not alert_group.log_records.filter(
+        type=AlertGroupLogRecord.TYPE_SILENCE,
+        author=user,
+    ).exists()
+
+    alert_group.silence_by_user(user, silence_delay=None)
+
+    assert alert_group.log_records.filter(
+        type=AlertGroupLogRecord.TYPE_SILENCE,
+        author=user,
+    ).exists()
+
+    alert_group.refresh_from_db()
+
+    assert alert_group.silenced
+    assert alert_group.raw_escalation_snapshot["next_step_eta"] == raw_next_step_eta
+    assert not mocked_start_unsilence_task.called
+
+
+@patch("apps.alerts.models.AlertGroup.start_unsilence_task", return_value=None)
+@pytest.mark.django_db
+def test_bulk_silence_for_period(
+    mocked_start_unsilence_task,
+    make_organization_and_user,
+    make_alert_receive_channel,
+    make_alert_group,
+):
+    organization, user = make_organization_and_user()
+    alert_receive_channel = make_alert_receive_channel(organization)
+
+    alert_group = make_alert_group(alert_receive_channel)
+
+    raw_next_step_eta = "2023-08-28T09:27:26.627047Z"
+    silence_delay = 120 * 60
+    updated_raw_next_step_eta = "2023-08-28T11:27:36.627047Z"  # silence_delay + START_ESCALATION_DELAY
+
+    alert_group.raw_escalation_snapshot = alert_group.build_raw_escalation_snapshot()
+    alert_group.raw_escalation_snapshot["next_step_eta"] = raw_next_step_eta
+    alert_group.save()
+
+    alert_groups = AlertGroup.objects.filter(pk__in=[alert_group.id])
+
+    assert not alert_group.log_records.filter(
+        type=AlertGroupLogRecord.TYPE_SILENCE,
+        author=user,
+    ).exists()
+
+    AlertGroup.bulk_silence(user, alert_groups, silence_delay=silence_delay)
+
+    assert alert_group.log_records.filter(
+        type=AlertGroupLogRecord.TYPE_SILENCE,
+        author=user,
+    ).exists()
+
+    alert_group.refresh_from_db()
+
+    assert alert_group.silenced
+    assert alert_group.raw_escalation_snapshot["next_step_eta"] == updated_raw_next_step_eta
+    assert mocked_start_unsilence_task.called
+
+
+@patch("apps.alerts.models.AlertGroup.start_unsilence_task", return_value=None)
+@pytest.mark.django_db
+def test_bulk_silence_forever(
+    mocked_start_unsilence_task,
+    make_organization_and_user,
+    make_alert_receive_channel,
+    make_alert_group,
+):
+    organization, user = make_organization_and_user()
+    alert_receive_channel = make_alert_receive_channel(organization)
+
+    alert_group = make_alert_group(alert_receive_channel)
+
+    raw_next_step_eta = "2023-08-28T09:27:26.627047Z"
+
+    alert_group.raw_escalation_snapshot = alert_group.build_raw_escalation_snapshot()
+    alert_group.raw_escalation_snapshot["next_step_eta"] = raw_next_step_eta
+    alert_group.save()
+
+    alert_groups = AlertGroup.objects.filter(pk__in=[alert_group.id])
+
+    assert not alert_group.log_records.filter(
+        type=AlertGroupLogRecord.TYPE_SILENCE,
+        author=user,
+    ).exists()
+
+    AlertGroup.bulk_silence(user, alert_groups, silence_delay=0)
+
+    assert alert_group.log_records.filter(
+        type=AlertGroupLogRecord.TYPE_SILENCE,
+        author=user,
+    ).exists()
+
+    alert_group.refresh_from_db()
+
+    assert alert_group.silenced
+    assert alert_group.raw_escalation_snapshot["next_step_eta"] == raw_next_step_eta
+    assert not mocked_start_unsilence_task.called
