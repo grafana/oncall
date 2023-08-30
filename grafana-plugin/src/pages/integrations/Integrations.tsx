@@ -46,7 +46,6 @@ const MAX_LINE_LENGTH = 40;
 interface IntegrationsState extends PageBaseState {
   integrationsFilters: Filters;
   alertReceiveChannelId?: AlertReceiveChannel['id'] | 'new';
-  lastQueriedPage: number;
   confirmationModal: {
     isOpen: boolean;
     title: any;
@@ -72,7 +71,6 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
       integrationsFilters: { searchTerm: '' },
       errorData: initErrorDataState(),
       confirmationModal: undefined,
-      lastQueriedPage: undefined,
     };
 
     store.currentPage['integrations'] = Number(store.currentPage['integrations'] || query.p || 1);
@@ -126,11 +124,8 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
 
     LocationHelper.update({ p: page }, 'partial');
 
-    return store.alertReceiveChannelStore.updatePaginatedItems(
-      integrationsFilters,
-      page,
-      false,
-      this.invalidateRequestFn
+    return store.alertReceiveChannelStore.updatePaginatedItems(integrationsFilters, page, false, () =>
+      this.invalidateRequestFn(page)
     );
   };
 
@@ -477,17 +472,9 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
     ];
   };
 
-  invalidateRequestFn = (page) => {
+  invalidateRequestFn = (requestedPage: number) => {
     const { store } = this.props;
-    const { lastQueriedPage } = this.state;
-
-    const urlPage = store.currentPage['integrations'];
-    const lastReqPage = page || urlPage;
-
-    if (lastQueriedPage === undefined) {
-      return false;
-    }
-    return lastReqPage !== lastQueriedPage;
+    return requestedPage !== store.getCurrentPage(PAGE.Integrations);
   };
 
   handleChangePage = (page: number) => {
