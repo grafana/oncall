@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Update Shift Swap Request Slack message formatting by @joeyorlando ([#TBD](https://github.com/grafana/oncall/pull/TBD))
+- Update Shift Swap Request Slack message formatting by @joeyorlando ([#2918](https://github.com/grafana/oncall/pull/2918))
 
 ## v1.3.29 (2023-08-29)
 
