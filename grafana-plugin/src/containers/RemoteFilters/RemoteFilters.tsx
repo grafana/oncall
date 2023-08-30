@@ -27,12 +27,12 @@ import { GrafanaTeamStore } from 'models/grafana_team/grafana_team';
 import { SelectOption, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import LocationHelper from 'utils/LocationHelper';
+import { PAGE } from 'utils/consts';
 
 import { parseFilters } from './RemoteFilters.helpers';
 import { FilterOption, RemoteFiltersType } from './RemoteFilters.types';
 
 import styles from './RemoteFilters.module.css';
-import { PAGE } from 'utils/consts';
 
 const cx = cn.bind(styles);
 

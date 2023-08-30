@@ -34,9 +34,9 @@ import { withMobXProviderContext } from 'state/withStore';
 import { openNotification } from 'utils';
 import LocationHelper from 'utils/LocationHelper';
 import { UserActions } from 'utils/authorization';
+import { PAGE } from 'utils/consts';
 
 import styles from './Integrations.module.scss';
-import { PAGE } from 'utils/consts';
 
 const cx = cn.bind(styles);
 const FILTERS_DEBOUNCE_MS = 500;
