@@ -1,4 +1,5 @@
 import datetime
+import typing
 
 from django.utils import timezone
 from rest_framework import serializers
@@ -6,6 +7,9 @@ from rest_framework import serializers
 from apps.schedules.models import OnCallSchedule, ShiftSwapRequest
 from common.api_helpers.custom_fields import OrganizationFilteredPrimaryKeyRelatedField, TimeZoneAwareDatetimeField
 from common.api_helpers.mixins import EagerLoadingMixin
+
+if typing.TYPE_CHECKING:
+    from apps.user_management.models import User
 
 
 class ShiftSwapRequestListSerializer(EagerLoadingMixin, serializers.ModelSerializer):
@@ -88,3 +92,25 @@ class ShiftSwapRequestSerializer(ShiftSwapRequestListSerializer):
         # between swap_start and swap_end
 
         return data
+
+
+class ShiftSwapRequestExpandedUsersSerializer(ShiftSwapRequestListSerializer):
+    beneficiary = serializers.SerializerMethodField(read_only=True)
+    benefactor = serializers.SerializerMethodField(read_only=True)
+
+    def _serialize_user(self, user: "User") -> dict | None:
+        user_data = None
+        if user:
+            user_data = {
+                "display_name": user.username,
+                "email": user.email,
+                "pk": user.public_primary_key,
+                "avatar_full": user.avatar_full_url,
+            }
+        return user_data
+
+    def get_benefactor(self, obj: ShiftSwapRequest) -> dict | None:
+        return self._serialize_user(obj.benefactor)
+
+    def get_beneficiary(self, obj: ShiftSwapRequest) -> dict | None:
+        return self._serialize_user(obj.beneficiary)
