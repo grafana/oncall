@@ -89,6 +89,10 @@ endef
 
 # SQLITE_DB_FiLE is set to properly mount the sqlite db file
 DOCKER_COMPOSE_ENV_VARS := COMPOSE_PROFILES=$(COMPOSE_PROFILES) DB=$(DB) BROKER_TYPE=$(BROKER_TYPE)
+
+# It's better to output pip log on the fly while building because it takes a lot of time
+DOCKER_COMPOSE_ENV_VARS += BUILDKIT_PROGRESS=plain
+
 ifeq ($(DB),$(SQLITE_PROFILE))
 	DOCKER_COMPOSE_ENV_VARS += SQLITE_DB_FILE=$(SQLITE_DB_FILE)
 endif
@@ -113,8 +117,8 @@ define run_backend_tests
 endef
 
 build-dev-images:  ## build the docker images required to run the helm chart locally
-	docker build ./engine -t $(ENGINE_DOCKER_IMAGE_NAME) --target prod --load
-	docker build ./grafana-plugin -t $(PLUGIN_DOCKER_IMAGE_NAME) -f ./grafana-plugin/Dockerfile.dev --load
+	docker build ./engine -t $(ENGINE_DOCKER_IMAGE_NAME) --target prod --load --progress=plain
+	docker build ./grafana-plugin -t $(PLUGIN_DOCKER_IMAGE_NAME) -f ./grafana-plugin/Dockerfile.dev --load --progress=plain
 
 init-k8s:  ## create a kind cluster + upload the docker images onto the cluster nodes
 # piping to true will return a zero exit code in the event that this kind cluster already exists
