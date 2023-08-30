@@ -157,7 +157,9 @@ const ShiftSwapEvent = (props: ShiftSwapEventProps) => {
             <Avatar size="xs" src={benefactor.avatar} />
           ) : (
             <div className={cx('no-user')}>
-              <Text size="xs">?</Text>
+              <Text size="xs" type="primary">
+                ?
+              </Text>
             </div>
           )}
         </HorizontalGroup>

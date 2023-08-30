@@ -42,7 +42,7 @@
 .no-user {
   width: 12px;
   height: 12px;
-  background: #464c54;
+  background: var(--tag-background-primary);
   border-radius: 50%;
   display: flex;
   justify-content: center;
