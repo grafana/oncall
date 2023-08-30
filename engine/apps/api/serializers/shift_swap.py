@@ -12,7 +12,7 @@ if typing.TYPE_CHECKING:
     from apps.user_management.models import User
 
 
-class ShiftSwapRequestListSerializer(EagerLoadingMixin, serializers.ModelSerializer):
+class BaseShiftSwapRequestListSerializer(EagerLoadingMixin, serializers.ModelSerializer):
     id = serializers.CharField(read_only=True, source="public_primary_key")
     schedule = OrganizationFilteredPrimaryKeyRelatedField(queryset=OnCallSchedule.objects)
 
@@ -49,6 +49,8 @@ class ShiftSwapRequestListSerializer(EagerLoadingMixin, serializers.ModelSeriali
             "status",
         ]
 
+
+class ShiftSwapRequestListSerializer(BaseShiftSwapRequestListSerializer):
     def get_benefactor(self, obj: ShiftSwapRequest) -> str | None:
         return obj.benefactor.public_primary_key if obj.benefactor else None
 
@@ -94,7 +96,7 @@ class ShiftSwapRequestSerializer(ShiftSwapRequestListSerializer):
         return data
 
 
-class ShiftSwapRequestExpandedUsersSerializer(ShiftSwapRequestListSerializer):
+class ShiftSwapRequestExpandedUsersSerializer(BaseShiftSwapRequestListSerializer):
     beneficiary = serializers.SerializerMethodField(read_only=True)
     benefactor = serializers.SerializerMethodField(read_only=True)
 
