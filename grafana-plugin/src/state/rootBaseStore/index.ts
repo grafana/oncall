@@ -306,6 +306,7 @@ export class RootBaseStore {
     return this.currentPage[page];
   };
 
+  @action
   setCurrentPage = (page: PAGE, value: number) => {
     this.currentPage[page] = value;
   };
