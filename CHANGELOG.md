@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Performance and UX tweaks to integrations page ([#2869](https://github.com/grafana/oncall/pull/2869))
+- Expand users details in filter swaps internal endpoint ([#2921](https://github.com/grafana/oncall/pull/2921))
 
 ## v1.3.29 (2023-08-29)
 
