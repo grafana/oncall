@@ -1310,13 +1310,22 @@ def test_filter_swap_requests(
     response = client.get(url, format="json", **make_user_auth_headers(admin, token))
     assert response.status_code == status.HTTP_200_OK
 
+    def _serialized_user(u):
+        if u:
+            return {
+                "display_name": u.username,
+                "email": u.email,
+                "pk": u.public_primary_key,
+                "avatar_full": u.avatar_full_url,
+            }
+
     expected = [
         {
             "pk": swap.public_primary_key,
             "swap_start": serialize_datetime_as_utc_timestamp(swap.swap_start),
             "swap_end": serialize_datetime_as_utc_timestamp(swap.swap_end),
-            "beneficiary": swap.beneficiary.public_primary_key,
-            "benefactor": swap.benefactor.public_primary_key if swap.benefactor else None,
+            "beneficiary": _serialized_user(swap.beneficiary),
+            "benefactor": _serialized_user(swap.benefactor),
         }
         for swap in (swap_a, swap_b)
     ]
