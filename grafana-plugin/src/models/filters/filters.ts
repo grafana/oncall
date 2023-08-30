@@ -17,9 +17,6 @@ export class FiltersStore extends BaseStore {
   @observable.shallow
   public values: { [page: string]: FiltersValues } = {};
 
-  @observable
-  public isLoading = true;
-
   private _globalValues: FiltersValues = {};
 
   constructor(rootStore: RootStore) {
@@ -54,8 +51,6 @@ export class FiltersStore extends BaseStore {
       ...this.options,
       [page]: result,
     };
-
-    this.isLoading = false;
 
     return result;
   }

@@ -37,6 +37,7 @@ import {
   CLOUD_VERSION_REGEX,
   GRAFANA_LICENSE_CLOUD,
   GRAFANA_LICENSE_OSS,
+  PAGE,
   PLUGIN_ROOT,
 } from 'utils/consts';
 import FaroHelper from 'utils/faro';
@@ -78,6 +79,9 @@ export class RootBaseStore {
 
   @observable
   incidentsPage: any = this.initialQuery.p ? Number(this.initialQuery.p) : 1;
+
+  @observable
+  currentPage: { [key: string]: number } = {};
 
   @observable
   onCallApiUrl: string;
@@ -297,4 +301,12 @@ export class RootBaseStore {
     const settings = await PluginState.getGrafanaPluginSettings();
     return settings.jsonData?.onCallApiUrl;
   }
+
+  getCurrentPage = (page: PAGE): number => {
+    return this.currentPage[page];
+  };
+
+  setCurrentPage = (page: PAGE, value: number) => {
+    this.currentPage[page] = value;
+  };
 }

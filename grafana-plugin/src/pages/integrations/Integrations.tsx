@@ -36,6 +36,7 @@ import LocationHelper from 'utils/LocationHelper';
 import { UserActions } from 'utils/authorization';
 
 import styles from './Integrations.module.scss';
+import { PAGE } from 'utils/consts';
 
 const cx = cn.bind(styles);
 const FILTERS_DEBOUNCE_MS = 500;
@@ -45,7 +46,7 @@ const MAX_LINE_LENGTH = 40;
 interface IntegrationsState extends PageBaseState {
   integrationsFilters: Filters;
   alertReceiveChannelId?: AlertReceiveChannel['id'] | 'new';
-  page: number;
+  lastQueriedPage: number;
   confirmationModal: {
     isOpen: boolean;
     title: any;
@@ -65,16 +66,16 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
   constructor(props: IntegrationsProps) {
     super(props);
 
-    const {
-      query: { p },
-    } = props;
+    const { query, store } = props;
 
     this.state = {
       integrationsFilters: { searchTerm: '' },
       errorData: initErrorDataState(),
-      page: p ? Number(p) : 1,
       confirmationModal: undefined,
+      lastQueriedPage: undefined,
     };
+
+    store.currentPage['integrations'] = Number(store.currentPage['integrations'] || query.p || 1);
   }
 
   async componentDidMount() {
@@ -120,16 +121,22 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
 
   update = () => {
     const { store } = this.props;
-    const { page, integrationsFilters } = this.state;
+    const { integrationsFilters } = this.state;
+    const page = store.currentPage['integrations'];
 
     LocationHelper.update({ p: page }, 'partial');
 
-    return store.alertReceiveChannelStore.updatePaginatedItems(integrationsFilters, page, false);
+    return store.alertReceiveChannelStore.updatePaginatedItems(
+      integrationsFilters,
+      page,
+      false,
+      this.invalidateRequestFn
+    );
   };
 
   render() {
     const { store, query } = this.props;
-    const { alertReceiveChannelId, page, confirmationModal } = this.state;
+    const { alertReceiveChannelId, confirmationModal } = this.state;
     const { alertReceiveChannelStore } = store;
 
     const { count, results } = alertReceiveChannelStore.getPaginatedSearchResult();
@@ -161,7 +168,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
           <div>
             <RemoteFilters
               query={query}
-              page="integrations"
+              page={PAGE.Integrations}
               grafanaTeamStore={store.grafanaTeamStore}
               onChange={this.handleIntegrationsFiltersChange}
             />
@@ -175,7 +182,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
               className={cx('integrations-table')}
               rowClassName={cx('integrations-table-row')}
               pagination={{
-                page,
+                page: store.currentPage['integrations'],
                 total: Math.ceil((count || 0) / ITEMS_PER_PAGE),
                 onChange: this.handleChangePage,
               }}
@@ -470,8 +477,24 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
     ];
   };
 
+  invalidateRequestFn = (page) => {
+    const { store } = this.props;
+    const { lastQueriedPage } = this.state;
+
+    const urlPage = store.currentPage['integrations'];
+    const lastReqPage = page || urlPage;
+
+    if (lastQueriedPage === undefined) {
+      return false;
+    }
+    return lastReqPage !== lastQueriedPage;
+  };
+
   handleChangePage = (page: number) => {
-    this.setState({ page }, this.update);
+    const { store } = this.props;
+
+    store.currentPage['integrations'] = page;
+    this.update();
   };
 
   onIntegrationEditClick = (id: AlertReceiveChannel['id']) => {
@@ -494,14 +517,16 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
   applyFilters = async (isOnMount: boolean) => {
     const { store } = this.props;
     const { alertReceiveChannelStore } = store;
-    const { integrationsFilters, page } = this.state;
+    const { integrationsFilters } = this.state;
 
-    const newPage = isOnMount ? page : 1;
+    const newPage = isOnMount ? store.getCurrentPage(PAGE.Integrations) : 1;
 
-    return alertReceiveChannelStore.updatePaginatedItems(integrationsFilters, newPage).then(() => {
-      this.setState({ page: newPage });
-      LocationHelper.update({ p: newPage }, 'partial');
-    });
+    return alertReceiveChannelStore
+      .updatePaginatedItems(integrationsFilters, newPage, false, () => this.invalidateRequestFn(newPage))
+      .then(() => {
+        store.setCurrentPage(PAGE.Integrations, newPage);
+        LocationHelper.update({ p: newPage }, 'partial');
+      });
   };
 
   debouncedUpdateIntegrations = debounce(this.applyFilters, FILTERS_DEBOUNCE_MS);

@@ -541,7 +541,7 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
       openNotification('Route has been deleted');
     };
 
-    return channelFilterIds.map(
+    return (channelFilterIds || []).map(
       (channelFilterId: ChannelFilter['id'], routeIndex: number) =>
         ({
           canHoverIcon: true,
@@ -683,9 +683,9 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
     const promises = [];
 
     if (!alertReceiveChannelStore.items[id]) {
-      promises.push(alertReceiveChannelStore.loadItem(id).then(() => this.loadExtraDataMaybe(id)));
+      promises.push(alertReceiveChannelStore.loadItem(id).then(() => this.loadExtraData(id)));
     } else {
-      promises.push(this.loadExtraDataMaybe(id));
+      promises.push(this.loadExtraData(id));
     }
 
     if (!alertReceiveChannelStore.channelFilterIds[id]) {
@@ -706,7 +706,7 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
       .finally(() => this.setState({ isLoading: false }));
   }
 
-  async loadExtraDataMaybe(id: AlertReceiveChannel['id']) {
+  async loadExtraData(id: AlertReceiveChannel['id']) {
     const { alertReceiveChannelStore } = this.props.store;
 
     if (IntegrationHelper.isGrafanaAlerting(alertReceiveChannelStore.items[id])) {

@@ -32,6 +32,7 @@ import { parseFilters } from './RemoteFilters.helpers';
 import { FilterOption, RemoteFiltersType } from './RemoteFilters.types';
 
 import styles from './RemoteFilters.module.css';
+import { PAGE } from 'utils/consts';
 
 const cx = cn.bind(styles);
 
@@ -39,7 +40,7 @@ interface RemoteFiltersProps extends WithStoreProps {
   value: RemoteFiltersType;
   onChange: (filters: { [key: string]: any }, isOnMount: boolean) => void;
   query: { [key: string]: any };
-  page: string;
+  page: PAGE;
   defaultFilters?: FiltersValues;
   extraFilters?: (state, setState, onFiltersValueChange) => React.ReactNode;
   grafanaTeamStore: GrafanaTeamStore;

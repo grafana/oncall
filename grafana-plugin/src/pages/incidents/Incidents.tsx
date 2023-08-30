@@ -27,7 +27,7 @@ import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import LocationHelper from 'utils/LocationHelper';
 import { UserActions } from 'utils/authorization';
-import { PLUGIN_ROOT } from 'utils/consts';
+import { PAGE, PLUGIN_ROOT } from 'utils/consts';
 
 import styles from './Incidents.module.scss';
 import { IncidentDropdown } from './parts/IncidentDropdown';
@@ -264,7 +264,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
       <div className={cx('filters')}>
         <RemoteFilters
           query={query}
-          page="incidents"
+          page={PAGE.Incidents}
           onChange={this.handleFiltersChange}
           extraFilters={this.renderCards.bind(this)}
           grafanaTeamStore={store.grafanaTeamStore}
@@ -442,7 +442,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
     const results = alertGroupStore.getAlertSearchResult('default');
     const prev = get(alertGroupStore.alertsSearchResult, `default.prev`);
     const next = get(alertGroupStore.alertsSearchResult, `default.next`);
-    const isLoading = alertGroupStore.alertGroupsLoading || filtersStore.isLoading;
+    const isLoading = alertGroupStore.alertGroupsLoading || filtersStore.options['incidents'] === undefined;
 
     if (results && !results.length) {
       return (
