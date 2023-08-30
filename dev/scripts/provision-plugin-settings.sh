@@ -2,7 +2,11 @@
 # This script provisions plugin settings. If the plugin config changes
 # this will need to be updated
 
-BASE_URL="http://oncall:oncall@localhost:3000"
+GRAFANA_USERNAME=${GRAFANA_USERNAME:-oncall}
+GRAFANA_PASSWORD=${GRAFANA_PASSWORD:-oncall}
+BASE_URL="http://${GRAFANA_USERNAME}:${GRAFANA_PASSWORD}@localhost:3000"
+
+# Url of the engine endpoint. Requires a portforward to the engine service
 ENGINE_URL="http://localhost:8080"
 
 # https://stackoverflow.com/questions/51974418/wait-until-a-condition-is-met-in-bash-script
@@ -26,6 +30,19 @@ function is_grafana_up() {
 
 echo -n 'Creating and setting api keys. Waiting for grafana to start...'
 wait_for 100 is_grafana_up
+
+SERVICE_ACCOUNT_ID=$(curl -s \
+        -H "Content-Type: application/json" \
+        "${BASE_URL}/api/serviceaccounts/search?perpage=10&page=1&query=sa-autogen-OnCall" \
+        | jq -r ".serviceAccounts[0].id ")
+
+# Delete the service account, if it exists
+if [ $SERVICE_ACCOUNT_ID != "null" ]; then
+    MESSAGE=$(curl -s -X DELETE \
+        ${BASE_URL}/api/serviceaccounts/${SERVICE_ACCOUNT_ID} \
+        | jq -r ".message")
+    echo $MESSAGE
+fi
 
 SERVICE_ACCOUNT_ID=$(curl -s -X POST \
         -H "Content-Type: application/json" \
@@ -66,9 +83,9 @@ curl -s -X POST \
         -d @.settings-merged \
         ${BASE_URL}/api/plugins/grafana-oncall-app/settings | jq -r ".message"
 
-# Print the updated settings for debugging
-# curl -s -X GET \
-# 	-H "Accept: application/json" \
-#   ${BASE_URL}/api/plugins/grafana-oncall-app/settings | jq
+Print the updated settings for debugging
+curl -s -X GET \
+	-H "Accept: application/json" \
+  ${BASE_URL}/api/plugins/grafana-oncall-app/settings | jq
 
 rm .settings .settings-merged
