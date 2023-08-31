@@ -16,6 +16,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fix issue with helm chart when specifying `broker.type=rabbitmq` where Redis environment variables
   were not longer being injected @joeyorlando ([#2927](https://github.com/grafana/oncall/pull/2927))
+- Fixed NPE when migrating legacy Grafana Alerting integrations
+  ([#2908](https://github.com/grafana/oncall/issues/2908))
 
 ## v1.3.29 (2023-08-29)
 
