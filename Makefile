@@ -199,7 +199,7 @@ test-dev:  ## very similar to `test` command, but allows you to pass arbitray ar
 	$(call run_backend_tests,$(ARGS))
 
 test-helm:  ## run helm unit tests
-	helm unittest ./helm/oncall
+	helm unittest ./helm/oncall $(ARGS)
 
 start-celery-beat:  ## start celery beat
 	$(call run_engine_docker_command,celery -A engine beat -l info)
