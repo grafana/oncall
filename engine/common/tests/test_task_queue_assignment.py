@@ -19,4 +19,9 @@ def check_celery_task_route_mapping(task_ids):
 
 
 def test_celery_task_route_mapping():
+    """
+    If this test does not pass make sure you have added any newly added
+    @shared_dedicated_queue_retry_task or @shared_task to CELERY_TASK_ROUTES
+    in engine/settings/celery_task_routes.py
+    """
     check_celery_task_route_mapping(CELERY_TASK_ROUTES.keys())
