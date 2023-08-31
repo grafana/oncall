@@ -5,7 +5,7 @@ from settings.celery_task_routes import CELERY_TASK_ROUTES
 """
 If a task has a legitimate reason to not have a queue assignment it can
 be added here (In development, in process of deprecation, etc.) if possible
-we should avoid the @shared_dedicated_queue_retry_task or @shared_task or
+we should avoid @shared_dedicated_queue_retry_task or @shared_task and
 remove entirely if it is not needed.
 """
 IGNORED_TASKS = [
