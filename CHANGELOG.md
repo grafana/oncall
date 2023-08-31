@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fix issue with helm chart when specifying `broker.type=rabbitmq` where Redis environment variables
   were not longer being injected @joeyorlando ([#2927](https://github.com/grafana/oncall/pull/2927))
+- Fix silence for alert groups with empty escalation chain @Ferril ([#2929](https://github.com/grafana/oncall/pull/2929))
 
 ## v1.3.29 (2023-08-29)
 
