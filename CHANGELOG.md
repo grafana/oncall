@@ -12,6 +12,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Performance and UX tweaks to integrations page ([#2869](https://github.com/grafana/oncall/pull/2869))
 - Expand users details in filter swaps internal endpoint ([#2921](https://github.com/grafana/oncall/pull/2921))
 
+### Fixed
+
+- Fix issue with helm chart when specifying `broker.type=rabbitmq` where Redis environment variables
+  were not longer being injected @joeyorlando ([#2927](https://github.com/grafana/oncall/pull/2927))
+
 ## v1.3.29 (2023-08-29)
 
 ### Fixed
