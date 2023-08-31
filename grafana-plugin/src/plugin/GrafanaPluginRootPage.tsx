@@ -73,7 +73,7 @@ export const Root = observer((props: AppRootProps) => {
   const [basicDataLoaded, setBasicDataLoaded] = useState(false);
 
   useEffect(() => {
-    updateBasicData();
+    runQueuedUpdateData();
   }, []);
 
   const location = useLocation();
@@ -97,11 +97,6 @@ export const Root = observer((props: AppRootProps) => {
       head.removeChild(styleEl); // remove on unmount
     };
   }, []);
-
-  const updateBasicData = async () => {
-    await store.updateBasicData();
-    setBasicDataLoaded(true);
-  };
 
   const page = getMatchedPage(location.pathname);
   const pagePermissionAction = pages[page]?.action;
@@ -206,4 +201,13 @@ export const Root = observer((props: AppRootProps) => {
       </div>
     </DefaultPageLayout>
   );
+
+  async function runQueuedUpdateData() {
+    try {
+      await store.updateBasicData();
+      setBasicDataLoaded(true);
+    } catch {
+      setTimeout(runQueuedUpdateData, 1000);
+    }
+  }
 });
