@@ -684,3 +684,24 @@ def test_update_next_step_eta(
     alert_group.refresh_from_db()
 
     assert alert_group.raw_escalation_snapshot["next_step_eta"] == updated_raw_next_step_eta
+
+
+@pytest.mark.django_db
+def test_update_next_step_eta_none(
+    make_organization_and_user,
+    make_alert_receive_channel,
+    make_alert_group,
+):
+    increase_by_timedelta = datetime.timedelta(minutes=120)
+
+    organization, _ = make_organization_and_user()
+    alert_receive_channel = make_alert_receive_channel(organization)
+    alert_group = make_alert_group(alert_receive_channel)
+    alert_group.raw_escalation_snapshot = alert_group.build_raw_escalation_snapshot()
+
+    assert alert_group.raw_escalation_snapshot is not None
+    assert alert_group.raw_escalation_snapshot.get("next_step_eta") is None
+
+    updated_snapshot = alert_group.update_next_step_eta(increase_by_timedelta)
+    assert updated_snapshot == alert_group.build_raw_escalation_snapshot()
+    assert updated_snapshot.get("next_step_eta") is None
