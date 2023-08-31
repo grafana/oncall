@@ -325,7 +325,7 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
   }
 
   renderContactPointsWarningMaybe(alertReceiveChannel: AlertReceiveChannel) {
-    if (IntegrationHelper.isGrafanaAlerting(alertReceiveChannel)) {
+    if (IntegrationHelper.isSpecificIntegration(alertReceiveChannel, 'grafana_alerting')) {
       return (
         <div className={cx('u-padding-top-md')}>
           <Alert
@@ -358,9 +358,12 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
     const alertReceiveChannel = alertReceiveChannelStore.items[id];
     const contactPoints = alertReceiveChannelStore.connectedContactPoints[id];
 
+    const isAlerting = IntegrationHelper.isSpecificIntegration(alertReceiveChannel, 'grafana_alerting');
+    const isLegacyAlerting = IntegrationHelper.isSpecificIntegration(alertReceiveChannel, 'legacy_grafana_alerting');
+
     return [
-      IntegrationHelper.isGrafanaAlerting(alertReceiveChannel) && {
-        isHidden: contactPoints === null || contactPoints === undefined,
+      (isAlerting || isLegacyAlerting) && {
+        isHidden: isLegacyAlerting || contactPoints === null || contactPoints === undefined,
         isCollapsible: false,
         customIcon: 'grafana',
         canHoverIcon: false,
@@ -709,7 +712,7 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
   async loadExtraData(id: AlertReceiveChannel['id']) {
     const { alertReceiveChannelStore } = this.props.store;
 
-    if (IntegrationHelper.isGrafanaAlerting(alertReceiveChannelStore.items[id])) {
+    if (IntegrationHelper.isSpecificIntegration(alertReceiveChannelStore.items[id], 'grafana_alerting')) {
       // this will be delayed and not awaitable so that we don't delay the whole page load
       return await alertReceiveChannelStore.updateConnectedContactPoints(id);
     }
