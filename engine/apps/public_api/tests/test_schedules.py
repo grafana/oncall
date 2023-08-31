@@ -969,7 +969,7 @@ def test_oncall_shifts_export_from_ical_schedule(
     client = APIClient()
 
     url = reverse("api-public:schedules-final-shifts", kwargs={"pk": schedule.public_primary_key})
-    response = client.get(f"{url}?start_date=2023-07-01&end_date=2023-08-01", format="json", HTTP_AUTHORIZATION=token)
+    response = client.get(f"{url}?start_date=2023-07-01&end_date=2023-07-31", format="json", HTTP_AUTHORIZATION=token)
     assert response.status_code == status.HTTP_200_OK
 
     expected_on_call_times = {
@@ -1006,7 +1006,7 @@ def test_oncall_shifts_export_from_api_schedule(
     client = APIClient()
 
     url = reverse("api-public:schedules-final-shifts", kwargs={"pk": schedule.public_primary_key})
-    response = client.get(f"{url}?start_date=2023-07-01&end_date=2023-08-01", format="json", HTTP_AUTHORIZATION=token)
+    response = client.get(f"{url}?start_date=2023-07-01&end_date=2023-07-31", format="json", HTTP_AUTHORIZATION=token)
     assert response.status_code == status.HTTP_200_OK
 
     expected_on_call_times = {
@@ -1014,3 +1014,47 @@ def test_oncall_shifts_export_from_api_schedule(
         user2.public_primary_key: 30,  # daily 2h * 15d
     }
     assert_expected_shifts_export_response(response, (user1, user2), expected_on_call_times)
+
+
+@pytest.mark.django_db
+def test_oncall_shifts_export_truncate_events(
+    make_organization_and_user_with_token,
+    make_user,
+    make_schedule,
+    make_on_call_shift,
+):
+    organization, _, token = make_organization_and_user_with_token()
+
+    user1_email = "alice909450945045@example.com"
+    user1_username = "alice"
+
+    user1 = make_user(organization=organization, email=user1_email, username=user1_username)
+
+    user1_public_primary_key = user1.public_primary_key
+    schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
+
+    # 24h shifts starting 9am on Mo, We and Fr
+    start_date = timezone.datetime(2023, 1, 1, 9, 0, 0, tzinfo=pytz.UTC)
+    make_on_call_shift(
+        organization=organization,
+        schedule=schedule,
+        shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT,
+        frequency=CustomOnCallShift.FREQUENCY_DAILY,
+        priority_level=1,
+        interval=1,
+        by_day=["MO", "WE", "FR"],
+        start=start_date,
+        rolling_users=[{user1.pk: user1_public_primary_key}],
+        rotation_start=start_date,
+        duration=timezone.timedelta(hours=24),
+    )
+
+    client = APIClient()
+
+    # request shifts on a Tu (ie. 00:00 - 09:00)
+    url = reverse("api-public:schedules-final-shifts", kwargs={"pk": schedule.public_primary_key})
+    response = client.get(f"{url}?start_date=2023-01-03&end_date=2023-01-03", format="json", HTTP_AUTHORIZATION=token)
+    assert response.status_code == status.HTTP_200_OK
+
+    expected_on_call_times = {user1.public_primary_key: 9}
+    assert_expected_shifts_export_response(response, (user1,), expected_on_call_times)
