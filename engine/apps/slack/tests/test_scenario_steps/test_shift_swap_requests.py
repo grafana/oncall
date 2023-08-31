@@ -45,7 +45,7 @@ class TestBaseShiftSwapRequestStep:
             f"Your teammate {beneficiary.get_username_with_slack_verbal()} has submitted a shift swap request."
         )
 
-        accept_button = blocks[2]
+        accept_button = blocks[1]
 
         assert accept_button["elements"][0]["text"]["text"] == "Accept"
         assert accept_button["type"] == "actions"
@@ -98,7 +98,7 @@ class TestBaseShiftSwapRequestStep:
         step = scenarios.BaseShiftSwapRequestStep(ssr.organization.slack_team_identity, ssr.organization)
         blocks = step._generate_blocks(ssr)
 
-        assert blocks[1]["text"]["text"] == f"*Shift details*:\n\n{expected_text}"
+        assert blocks[1]["text"]["text"] == f"*Shift details*\n{expected_text}"
 
     @pytest.mark.django_db
     def test_generate_blocks_ssr_has_description(self, setup) -> None:
@@ -108,7 +108,7 @@ class TestBaseShiftSwapRequestStep:
         step = scenarios.BaseShiftSwapRequestStep(ssr.organization.slack_team_identity, ssr.organization)
         blocks = step._generate_blocks(ssr)
 
-        assert blocks[2]["text"]["text"] == f"*Description*: {description}"
+        assert blocks[1]["text"]["text"] == f"*Description*\n{description}"
 
     @pytest.mark.django_db
     def test_generate_blocks_ssr_is_deleted(self, setup) -> None:
@@ -118,7 +118,7 @@ class TestBaseShiftSwapRequestStep:
         step = scenarios.BaseShiftSwapRequestStep(ssr.organization.slack_team_identity, ssr.organization)
         blocks = step._generate_blocks(ssr)
 
-        assert blocks[2]["text"]["text"] == "❌ this shift swap request has been deleted"
+        assert blocks[1]["text"]["text"] == "❌ this shift swap request has been deleted"
 
     @pytest.mark.django_db
     def test_generate_blocks_ssr_is_taken(self, setup) -> None:
@@ -130,7 +130,7 @@ class TestBaseShiftSwapRequestStep:
         blocks = step._generate_blocks(ssr)
 
         assert (
-            blocks[2]["text"]["text"]
+            blocks[1]["text"]["text"]
             == f"✅ {benefactor.get_username_with_slack_verbal()} has accepted the shift swap request"
         )
 

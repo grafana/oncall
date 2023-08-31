@@ -43,7 +43,7 @@ Upon submitting the request, a Slack notification will be sent to the channel as
 schedule, if there is one. A [mobile push notification][shift-swap-notifications] will be sent to team members who
 participate in the schedule and have the notifications enabled.
 
-<img src="/static/img/oncall/swap-slack-notification-2.png">
+<img src="/static/img/oncall/swap-slack-notification-3.png">
 
 Push notifications are sent 4 weeks ahead of the requested shift swap, or shortly after creation in case
 the shift swap start time is less than 4 weeks away, but always during users' working hours (by default 9am-5pm on

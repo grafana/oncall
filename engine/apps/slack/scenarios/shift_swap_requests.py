@@ -38,7 +38,8 @@ class BaseShiftSwapRequestStep(scenario_step.ScenarioStep):
         time_format = SlackDateFormat.TIME
 
         shift_details = ""
-        for shift in shift_swap_request.shifts():
+        shifts = shift_swap_request.shifts()
+        for shift in shifts:
             shift_start = shift["start"]
             shift_start_posix = shift_start.timestamp()
             shift_end = shift["end"]
@@ -65,17 +66,21 @@ class BaseShiftSwapRequestStep(scenario_step.ScenarioStep):
                     },
                 },
             ),
-            typing.cast(
-                Block.Section,
-                {
-                    "type": "section",
-                    "text": {
-                        "type": "mrkdwn",
-                        "text": f"*Shift details*:\n\n{shift_details}",
-                    },
-                },
-            ),
         ]
+
+        if shifts:
+            blocks.append(
+                typing.cast(
+                    Block.Section,
+                    {
+                        "type": "section",
+                        "text": {
+                            "type": "mrkdwn",
+                            "text": f"*Shift detail{'s' if len(shifts) > 1 else ''}*\n{shift_details}",
+                        },
+                    },
+                ),
+            )
 
         if description := shift_swap_request.description:
             blocks.append(
@@ -85,7 +90,7 @@ class BaseShiftSwapRequestStep(scenario_step.ScenarioStep):
                         "type": "section",
                         "text": {
                             "type": "mrkdwn",
-                            "text": f"*Description*: {description}",
+                            "text": f"*Description*\n{description}",
                         },
                     },
                 )
