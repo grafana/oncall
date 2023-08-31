@@ -538,11 +538,16 @@ class OnCallSchedule(PolymorphicModel):
     ) -> typing.Tuple[ScheduleEvents, bool]:
         now = timezone.now()
         is_oncall_now = False
+
+        if self.cached_ical_final_schedule is None:
+            # no final schedule info available
+            return [], False
+
         events = self.filter_events(
             datetime_start,
             datetime_end,
             all_day_datetime=True,
-            from_cached_final=self.cached_ical_final_schedule is not None,
+            from_cached_final=True,
         )
         user_events = []
         for event in events:
