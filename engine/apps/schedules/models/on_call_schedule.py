@@ -533,6 +533,26 @@ class OnCallSchedule(PolymorphicModel):
 
         return current_shift, upcoming_shift
 
+    def user_events_with_oncall_status(
+        self, datetime_start: datetime.datetime, datetime_end: datetime.datetime, user: User
+    ) -> typing.Tuple[ScheduleEvents, bool]:
+        now = timezone.now()
+        is_oncall_now = False
+        events = self.filter_events(
+            datetime_start,
+            datetime_end,
+            all_day_datetime=True,
+            from_cached_final=self.cached_ical_final_schedule is not None,
+        )
+        user_events = []
+        for event in events:
+            users = {u["pk"] for u in event["users"]}
+            if user.public_primary_key in users:
+                user_events.append(event)
+                if event["start"] <= now < event["end"]:
+                    is_oncall_now = True
+        return user_events, is_oncall_now
+
     def quality_report(self, date: typing.Optional[datetime.datetime], days: typing.Optional[int]) -> QualityReport:
         """
         Return schedule quality report to be used by the web UI.

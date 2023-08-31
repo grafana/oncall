@@ -92,6 +92,7 @@ class ScheduleView(
         "notify_oncall_shift_freq_options": [RBACPermission.Permissions.SCHEDULES_READ],
         "mention_options": [RBACPermission.Permissions.SCHEDULES_READ],
         "related_escalation_chains": [RBACPermission.Permissions.SCHEDULES_READ],
+        "current_user_events": [RBACPermission.Permissions.SCHEDULES_READ],
         "create": [RBACPermission.Permissions.SCHEDULES_WRITE],
         "update": [RBACPermission.Permissions.SCHEDULES_WRITE],
         "partial_update": [RBACPermission.Permissions.SCHEDULES_WRITE],
@@ -405,6 +406,29 @@ class ScheduleView(
         days = int(days) if days else None
 
         return Response(schedule.quality_report(datetime_start, days))
+
+    @action(detail=False, methods=["get"])
+    def current_user_events(self, request):
+        user_tz, starting_date, days = get_date_range_from_request(self.request)
+        pytz_tz = pytz.timezone(user_tz)
+        datetime_start = datetime.datetime.combine(starting_date, datetime.time.min, tzinfo=pytz_tz)
+        datetime_end = datetime_start + datetime.timedelta(days=days)
+
+        schedules = OnCallSchedule.objects.related_to_user(self.request.user)
+        schedules_events = []
+        is_oncall = False
+        for schedule in schedules:
+            user_events, is_oncall_now = schedule.user_events_with_oncall_status(
+                datetime_start, datetime_end, self.request.user
+            )
+            if user_events:
+                schedules_events.append(
+                    {"schedule_id": schedule.public_primary_key, "schedule_name": schedule.name, "events": user_events}
+                )
+                if is_oncall_now:
+                    is_oncall = is_oncall_now
+        result = {"schedules_events": schedules_events, "is_oncall": is_oncall}
+        return Response(result, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=["get"])
     def type_options(self, request):
