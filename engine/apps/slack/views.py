@@ -143,6 +143,11 @@ class SlackEventApiEndpointView(APIView):
         payload_user = payload.get("user")
         payload_user_id = payload.get("user_id")
 
+        edit_schedule_actions = {s["block_action_id"] for s in SCHEDULES_ROUTING}
+        payload_action_edit_schedule = (
+            payload_actions[0].get("action_id") in edit_schedule_actions if payload_actions else False
+        )
+
         payload_event = payload.get("event", {})
         payload_event_type = payload_event.get("type")
         payload_event_subtype = payload_event.get("subtype")
@@ -272,8 +277,12 @@ class SlackEventApiEndpointView(APIView):
                 # Open pop-up to inform user why OnCall bot doesn't work if any action was triggered
                 self._open_warning_window_if_needed(payload, slack_team_identity, warning_text)
                 return Response(status=200)
-        # direct paging / manual incident dialogs don't require organization to be set
-        elif organization is None and payload_type_is_block_actions and not payload.get("view"):
+        # direct paging / manual incident / schedule update dialogs don't require organization to be set
+        elif (
+            organization is None
+            and payload_type_is_block_actions
+            and not (payload.get("view") or payload_action_edit_schedule)
+        ):
             # see this GitHub issue for more context on how this situation can arise
             # https://github.com/grafana/oncall-private/issues/1836
             warning_text = (

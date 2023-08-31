@@ -5,7 +5,8 @@ from django.db.models import Count, Max, Q
 from django.utils import timezone
 from django_filters import rest_framework as filters
 from django_filters.widgets import RangeWidget
-from rest_framework import mixins, status, viewsets
+from drf_spectacular.utils import extend_schema, inline_serializer
+from rest_framework import mixins, serializers, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound
 from rest_framework.filters import SearchFilter
@@ -396,8 +397,10 @@ class AlertGroupView(
 
         return alert_groups
 
+    @extend_schema(responses=inline_serializer(name="AlertGroupStats", fields={"count": serializers.IntegerField()}))
     @action(detail=False)
     def stats(self, *args, **kwargs):
+        """Return number of alert groups capped at 100001"""
         MAX_COUNT = 100001
         alert_groups = self.filter_queryset(self.get_queryset())[:MAX_COUNT]
         count = alert_groups.count()
@@ -495,6 +498,9 @@ class AlertGroupView(
 
     @action(methods=["post"], detail=True)
     def attach(self, request, pk=None):
+        """
+        Attach alert group to another alert group
+        """
         alert_group = self.get_object()
         if alert_group.is_maintenance_incident:
             raise BadRequest(detail="Can't attach maintenance alert group")
@@ -540,6 +546,13 @@ class AlertGroupView(
         alert_group.silence_by_user(request.user, silence_delay=delay, action_source=ActionSource.WEB)
         return Response(AlertGroupSerializer(alert_group, context={"request": request}).data)
 
+    @extend_schema(
+        responses=inline_serializer(
+            name="silence_options",
+            fields={"value": serializers.CharField(), "display_name": serializers.CharField()},
+            many=True,
+        )
+    )
     @action(methods=["get"], detail=False)
     def silence_options(self, request):
         data = [

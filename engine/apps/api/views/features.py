@@ -1,4 +1,6 @@
 from django.conf import settings
+from drf_spectacular.utils import OpenApiExample, extend_schema
+from rest_framework import serializers
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -21,8 +23,19 @@ class FeaturesAPIView(APIView):
 
     authentication_classes = (PluginAuthentication,)
 
+    @extend_schema(
+        request=None,
+        responses=serializers.ListField(child=serializers.CharField()),
+        examples=[
+            OpenApiExample(
+                name="Example response",
+                value=["slack", "telegram", "grafana_cloud_connection", "live_settings", "grafana_cloud_notifications"],
+            )
+        ],
+    )
     def get(self, request):
-        return Response(self._get_enabled_features(request))
+        data = self._get_enabled_features(request)
+        return Response(data)
 
     def _get_enabled_features(self, request):
         enabled_features = []

@@ -60,9 +60,13 @@ def audit_alert_group_escalation(alert_group: "AlertGroup") -> None:
     )
 
     if escalation_snapshot.next_step_eta_is_valid() is False:
-        raise AlertGroupEscalationPolicyExecutionAuditException(
+        msg = (
             f"{base_msg}'s escalation snapshot does not have a valid next_step_eta: {escalation_snapshot.next_step_eta}"
         )
+
+        task_logger.warning(msg)
+        raise AlertGroupEscalationPolicyExecutionAuditException(msg)
+
     task_logger.info(f"{base_msg}'s escalation snapshot has a valid next_step_eta: {escalation_snapshot.next_step_eta}")
 
     executed_escalation_policy_snapshots = escalation_snapshot.executed_escalation_policy_snapshots
@@ -110,7 +114,7 @@ def check_escalation_finished_task() -> None:
     """
     from apps.alerts.models import AlertGroup
 
-    now = timezone.now()
+    now = timezone.now() - datetime.timedelta(minutes=5)
     two_days_ago = now - datetime.timedelta(days=2)
 
     alert_groups = AlertGroup.objects.using(get_random_readonly_database_key_if_present_otherwise_default()).filter(

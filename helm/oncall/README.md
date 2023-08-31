@@ -214,7 +214,7 @@ oncall:
 `oncall.slack.commandName` is used for changing default bot slash command,
 `oncall`. In slack, it could be called via `/<oncall.slack.commandName>`.
 
-To set up Telegram tokem and webhook url use:
+To set up Telegram token and webhook url use:
 
 ```yaml
 oncall:
@@ -222,6 +222,13 @@ oncall:
     enabled: true
     token: ~
     webhookUrl: ~
+```
+
+To use Telegram long polling instead of webhook use:
+
+```yaml
+telegramPolling:
+  enabled: true
 ```
 
 ### Set up external access

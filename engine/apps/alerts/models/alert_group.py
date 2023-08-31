@@ -17,6 +17,7 @@ from django.utils.functional import cached_property
 
 from apps.alerts.constants import AlertGroupState
 from apps.alerts.escalation_snapshot import EscalationSnapshotMixin
+from apps.alerts.escalation_snapshot.escalation_snapshot_mixin import START_ESCALATION_DELAY
 from apps.alerts.incident_appearance.renderers.constants import DEFAULT_BACKUP_TITLE
 from apps.alerts.incident_appearance.renderers.slack_renderer import AlertGroupSlackRenderer
 from apps.alerts.incident_log_builder import IncidentLogBuilder
@@ -977,12 +978,18 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
             silence_delay_timedelta = datetime.timedelta(seconds=silence_delay)
             silenced_until = now + silence_delay_timedelta
             if self.is_root_alert_group:
+                self.update_next_step_eta(datetime.timedelta(seconds=silence_delay + START_ESCALATION_DELAY))
                 self.start_unsilence_task(countdown=silence_delay)
         else:
             silence_delay_timedelta = None
             silenced_until = None
 
-        self.silence(silenced_at=now, silenced_until=silenced_until, silenced_by_user=user)
+        self.silence(
+            silenced_at=now,
+            silenced_until=silenced_until,
+            silenced_by_user=user,
+            raw_escalation_snapshot=self.raw_escalation_snapshot,
+        )
         # Update alert group state and response time metrics cache
         self._update_metrics(organization_id=user.organization_id, previous_state=initial_state, state=self.state)
 
@@ -1520,6 +1527,8 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
             alert_group.silenced_by_user = user
             if not silence_for_period:
                 alert_group.is_escalation_finished = True
+            else:
+                alert_group.update_next_step_eta(datetime.timedelta(seconds=silence_delay + START_ESCALATION_DELAY))
             if alert_group.response_time is None:
                 alert_group.response_time = alert_group._get_response_time()
 
@@ -1537,6 +1546,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
             "silenced_until",
             "silenced_by_user",
             "is_escalation_finished",
+            "raw_escalation_snapshot",
             "response_time",
         ]
         AlertGroup.objects.bulk_update(alert_groups_to_silence_list, fields=fields_to_update, batch_size=100)

@@ -13,6 +13,7 @@
 }
 
 .integrationTree__element {
+  margin-left: 6px;
   visibility: hidden;
   overflow-y: hidden;
   height: 0;
@@ -26,6 +27,10 @@
 .integrationTree__group {
   position: relative;
   margin-bottom: 12px;
+
+  &--hidden {
+    display: none;
+  }
 }
 
 .integrationTree__icon {
@@ -45,4 +50,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
+
+  path {
+    // this will overwrite all icons below to be gray
+    fill: var(--always-gray);
+  }
 }

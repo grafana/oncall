@@ -27,9 +27,12 @@ type Props = {
 };
 
 const INTERVAL_MIN_THROTTLING = 500;
-const INTERVAL_QUEUE_QR = process.env.MOBILE_APP_QR_INTERVAL_QUEUE
-  ? parseInt(process.env.MOBILE_APP_QR_INTERVAL_QUEUE, 10)
-  : 50000;
+/**
+ * 290_000 = 4 minutes and 50 seconds
+ * QR code token has a TTL of 5 minutes
+ * This means we will fetch a new token just before the current one expires
+ */
+const INTERVAL_QUEUE_QR = 290_000;
 const INTERVAL_POLLING = 5000;
 const BACKEND = 'MOBILE_APP';
 

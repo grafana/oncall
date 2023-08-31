@@ -8,6 +8,7 @@ import GForm from 'components/GForm/GForm';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { Schedule, ScheduleType } from 'models/schedule/schedule.types';
 import { useStore } from 'state/useStore';
+import { openWarningNotification } from 'utils';
 import { UserActions } from 'utils/authorization';
 
 import { apiForm, calendarForm, iCalForm } from './ScheduleForm.config';
@@ -20,8 +21,7 @@ const cx = cn.bind(styles);
 interface ScheduleFormProps {
   id: Schedule['id'] | 'new';
   onHide: () => void;
-  onUpdate: () => void;
-  onCreate?: (data: Schedule) => void;
+  onSubmit: (data: Schedule) => void;
   type?: ScheduleType;
 }
 
@@ -32,32 +32,37 @@ const scheduleTypeToForm = {
 };
 
 const ScheduleForm = observer((props: ScheduleFormProps) => {
-  const { id, type, onUpdate, onCreate, onHide } = props;
+  const { id, type, onSubmit, onHide } = props;
+  const isNew = id === 'new';
 
   const store = useStore();
 
   const { scheduleStore, userStore } = store;
 
   const data = useMemo(() => {
-    return id === 'new' ? { team: userStore.currentUser?.current_team, type } : prepareForEdit(scheduleStore.items[id]);
+    return isNew ? { team: userStore.currentUser?.current_team, type } : prepareForEdit(scheduleStore.items[id]);
   }, [id]);
 
   const handleSubmit = useCallback(
-    (formData: Partial<Schedule>) => {
-      (id === 'new'
-        ? scheduleStore.create({ ...formData, type: data.type })
-        : scheduleStore.update(id, { ...formData, type: data.type })
-      ).then((data) => {
-        onHide();
+    async (formData: Partial<Schedule>): Promise<void> => {
+      const apiData = { ...formData, type: data.type };
 
-        onUpdate();
+      let schedule: Schedule | void;
+      if (isNew) {
+        schedule = await scheduleStore.create<Schedule>(apiData);
+      } else {
+        schedule = await scheduleStore.update<Schedule>(id, apiData);
+      }
 
-        if (id === 'new') {
-          onCreate(data);
-        }
-      });
+      if (!schedule) {
+        openWarningNotification(`There was an issue ${isNew ? 'creating' : 'updating'} the schedule. Please try again`);
+        return;
+      }
+
+      onSubmit(schedule);
+      onHide();
     },
-    [id]
+    [id, isNew]
   );
 
   const formConfig = scheduleTypeToForm[data.type];

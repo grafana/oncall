@@ -29,7 +29,7 @@ const config: PlaywrightTestConfig = {
      * Maximum time expect() should wait for the condition to be met.
      * For example in `await expect(locator).toHaveText();`
      */
-    timeout: 5000,
+    timeout: 10000,
   },
   /* Run tests in files in parallel */
   fullyParallel: true,
@@ -42,7 +42,7 @@ const config: PlaywrightTestConfig = {
    * to flaky tests.. let's just retry failed tests. If the same test fails 3 times, you know something must be up
    */
   retries: !!process.env.CI ? 3 : 0,
-  workers: 3,
+  workers: 2,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   reporter: 'html',
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */

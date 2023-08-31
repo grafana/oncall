@@ -19,6 +19,7 @@ import {
   AlertReceiveChannel,
   AlertReceiveChannelOption,
   AlertReceiveChannelCounters,
+  ContactPoint,
   MaintenanceMode,
 } from './alert_receive_channel.types';
 
@@ -54,6 +55,9 @@ export class AlertReceiveChannelStore extends BaseStore {
 
   @observable.shallow
   templates: { [id: string]: AlertTemplatesDTO[] } = {};
+
+  @observable
+  connectedContactPoints: { [id: string]: ContactPoint[] } = {};
 
   constructor(rootStore: RootStore) {
     super(rootStore);
@@ -127,9 +131,13 @@ export class AlertReceiveChannelStore extends BaseStore {
     return results;
   }
 
-  async updatePaginatedItems(query: any = '', page = 1) {
+  async updatePaginatedItems(query: any = '', page = 1, updateCounters = false, invalidateFn = undefined) {
     const filters = typeof query === 'string' ? { search: query } : query;
     const { count, results } = await makeRequest(this.path, { params: { ...filters, page } });
+
+    if (invalidateFn?.()) {
+      return undefined;
+    }
 
     this.items = {
       ...this.items,
@@ -149,7 +157,9 @@ export class AlertReceiveChannelStore extends BaseStore {
       results: results.map((item: AlertReceiveChannel) => item.id),
     };
 
-    this.updateCounters();
+    if (updateCounters) {
+      this.updateCounters();
+    }
 
     return results;
   }
@@ -293,7 +303,7 @@ export class AlertReceiveChannelStore extends BaseStore {
       method: 'DELETE',
     });
 
-    this.updateChannelFilters(channelFilter.alert_receive_channel, true);
+    return this.updateChannelFilters(channelFilter.alert_receive_channel, true);
   }
 
   @action
@@ -365,6 +375,74 @@ export class AlertReceiveChannelStore extends BaseStore {
     };
   }
 
+  async getGrafanaAlertingContactPoints() {
+    return await makeRequest(`${this.path}contact_points/`, {}).catch(showApiError);
+  }
+
+  @action
+  async updateConnectedContactPoints(alertReceiveChannelId: AlertReceiveChannel['id']) {
+    const response = await makeRequest(`${this.path}${alertReceiveChannelId}/connected_contact_points `, {});
+
+    this.connectedContactPoints = {
+      ...this.connectedContactPoints,
+
+      [alertReceiveChannelId]: response.reduce((list: ContactPoint[], payload) => {
+        payload.contact_points.forEach((contactPoint: { name: string; notification_connected: boolean }) => {
+          list.push({
+            dataSourceName: payload.name,
+            dataSourceId: payload.uid,
+            contactPoint: contactPoint.name,
+            notificationConnected: contactPoint.notification_connected,
+          } as ContactPoint);
+        });
+
+        return list;
+      }, []),
+    };
+  }
+
+  async connectContactPoint(
+    alertReceiveChannelId: AlertReceiveChannel['id'],
+    datasource_uid: string,
+    contact_point_name: string
+  ) {
+    return await makeRequest(`${this.path}${alertReceiveChannelId}/connect_contact_point`, {
+      method: 'POST',
+      data: {
+        datasource_uid,
+        contact_point_name,
+      },
+    });
+  }
+
+  async disconnectContactPoint(
+    alertReceiveChannelId: AlertReceiveChannel['id'],
+    datasource_uid: string,
+    contact_point_name: string
+  ) {
+    return await makeRequest(`${this.path}${alertReceiveChannelId}/disconnect_contact_point`, {
+      method: 'POST',
+      data: {
+        datasource_uid,
+        contact_point_name,
+      },
+    });
+  }
+
+  async createContactPoint(
+    alertReceiveChannelId: AlertReceiveChannel['id'],
+    datasource_uid: string,
+    contact_point_name: string
+  ) {
+    return await makeRequest(`${this.path}${alertReceiveChannelId}/create_contact_point`, {
+      method: 'POST',
+      data: {
+        datasource_uid,
+        contact_point_name,
+      },
+    });
+  }
+
   async getAccessLogs(alertReceiveChannelId: AlertReceiveChannel['id']) {
     const { integration_log } = await makeRequest(`/alert_receive_channel_access_log/${alertReceiveChannelId}/`, {});
 
@@ -425,6 +503,21 @@ export class AlertReceiveChannelStore extends BaseStore {
     });
 
     this.counters = counters;
+  }
+
+  async updateCountersForIntegration(id: AlertReceiveChannel['id']): Promise<any> {
+    const counters = await makeRequest(`${this.path}${id}/counters`, {
+      method: 'GET',
+    });
+
+    this.counters = {
+      ...this.counters,
+      [id]: {
+        ...counters[id],
+      },
+    };
+
+    return counters;
   }
 
   startMaintenanceMode = (id: AlertReceiveChannel['id'], mode: MaintenanceMode, duration: number): Promise<void> =>

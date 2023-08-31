@@ -97,14 +97,14 @@ class Webhook(models.Model):
     )
 
     PUBLIC_TRIGGER_TYPES_MAP = {
-        TRIGGER_ESCALATION_STEP: "escalation step",
+        TRIGGER_ESCALATION_STEP: "escalation",
         TRIGGER_ALERT_GROUP_CREATED: "alert group created",
-        TRIGGER_ACKNOWLEDGE: "acknowledged",
-        TRIGGER_RESOLVE: "resolved",
-        TRIGGER_SILENCE: "silenced",
-        TRIGGER_UNSILENCE: "unsilenced",
-        TRIGGER_UNRESOLVE: "unresolved",
-        TRIGGER_UNACKNOWLEDGE: "unacknowledged",
+        TRIGGER_ACKNOWLEDGE: "acknowledge",
+        TRIGGER_RESOLVE: "resolve",
+        TRIGGER_SILENCE: "silence",
+        TRIGGER_UNSILENCE: "unsilence",
+        TRIGGER_UNRESOLVE: "unresolve",
+        TRIGGER_UNACKNOWLEDGE: "unacknowledge",
     }
 
     PUBLIC_ALL_TRIGGER_TYPES = [i for i in PUBLIC_TRIGGER_TYPES_MAP.values()]
@@ -140,7 +140,7 @@ class Webhook(models.Model):
     data = models.TextField(null=True, default=None)
     forward_all = models.BooleanField(default=True)
     http_method = models.CharField(max_length=32, default="POST")
-    trigger_type = models.IntegerField(choices=TRIGGER_TYPES, default=None, null=True)
+    trigger_type = models.IntegerField(choices=TRIGGER_TYPES, default=TRIGGER_ESCALATION_STEP, null=True)
     is_webhook_enabled = models.BooleanField(null=True, default=True)
     integration_filter = models.JSONField(default=None, null=True, blank=True)
     is_legacy = models.BooleanField(null=True, default=False)

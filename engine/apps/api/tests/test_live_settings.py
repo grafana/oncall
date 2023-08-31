@@ -160,3 +160,33 @@ def test_live_settings_telegram_calls_set_webhook_once(
     mock_set_webhook.assert_called_once_with(
         "TEST_UPDATED_VALUE/telegram/", allowed_updates=("message", "callback_query")
     )
+
+
+@pytest.mark.django_db
+def test_live_settings_telegram_set_webhook_not_called_if_long_polling_enabled(
+    make_organization_and_user_with_plugin_token,
+    make_user_auth_headers,
+    make_live_setting,
+    settings,
+):
+    """
+    Check that when FEATURE_TELEGRAM_LONG_POLLING_ENABLED is true setting webhook with updating
+    TELEGRAM_WEBHOOK_HOST live setting does not evaluate.
+    """
+
+    settings.FEATURE_LIVE_SETTINGS_ENABLED = True
+    settings.FEATURE_TELEGRAM_LONG_POLLING_ENABLED = True
+
+    organization, user, token = make_organization_and_user_with_plugin_token()
+    LiveSetting.populate_settings_if_needed()
+    live_setting = LiveSetting.objects.get(name="TELEGRAM_WEBHOOK_HOST")
+
+    client = APIClient()
+    url = reverse("api-internal:live_settings-detail", kwargs={"pk": live_setting.public_primary_key})
+    data = {"id": live_setting.public_primary_key, "value": "TEST_UPDATED_VALUE", "name": "TELEGRAM_WEBHOOK_HOST"}
+
+    with mock.patch("telegram.Bot.set_webhook") as mock_set_webhook:
+        response = client.put(url, data=data, format="json", **make_user_auth_headers(user, token))
+
+    assert response.status_code == HTTP_200_OK
+    mock_set_webhook.assert_not_called()
