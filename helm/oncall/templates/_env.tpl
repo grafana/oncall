@@ -528,9 +528,14 @@
       key: {{ include "snippet.redis.password.secret.key" . | quote}}
 {{- end }}
 
+{{- /*
+when broker.type != rabbitmq, we do not need to include rabbitmq environment variables
+*/}}
 {{- define "snippet.broker.env" -}}
 {{- include "snippet.redis.env" . }}
+{{- if eq .Values.broker.type "rabbitmq" -}}
 {{- include "snippet.rabbitmq.env" . }}
+{{- end }}
 {{- end }}
 
 {{- define "snippet.db.env" -}}
