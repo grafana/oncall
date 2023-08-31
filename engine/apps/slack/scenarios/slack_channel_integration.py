@@ -82,46 +82,32 @@ class SlackChannelMessageEventStep(scenario_step.ScenarioStep):
         if result["permalink"] is not None:
             permalink = result["permalink"]
 
-        try:
-            slack_thread_message = ResolutionNoteSlackMessage.objects.get(
-                ts=message_ts,
-                thread_ts=thread_ts,
-                alert_group=alert_group,
-            )
-            if len(text) > 2900:
-                if slack_thread_message.added_to_resolution_note:
-                    self._slack_client.api_call(
-                        "chat.postEphemeral",
-                        channel=channel,
-                        user=slack_user_identity.slack_id,
-                        text=":warning: Unable to update the <{}|message> in Resolution Note: the message is too long ({}). "
-                        "Max length - 2900 symbols.".format(permalink, len(text)),
-                    )
-                return
-            slack_thread_message.text = text
-            slack_thread_message.save()
+        slack_thread_message, created = ResolutionNoteSlackMessage.objects.get_or_create(
+            ts=message_ts,
+            thread_ts=thread_ts,
+            alert_group=alert_group,
+            defaults={
+                "user": self.user,
+                "added_by_user": self.user,
+                "text": text,
+                "slack_channel_id": channel,
+                "permalink": permalink,
+            },
+        )
 
-        except ResolutionNoteSlackMessage.DoesNotExist:
-            if len(text) > 2900:
+        if len(text) > 2900:
+            if created or slack_thread_message.added_to_resolution_note:
                 self._slack_client.api_call(
                     "chat.postEphemeral",
                     channel=channel,
                     user=slack_user_identity.slack_id,
-                    text=":warning: The <{}|message> will not be displayed in Resolution Note: "
-                    "the message is too long ({}). Max length - 2900 symbols.".format(permalink, len(text)),
+                    text=":warning: Unable to update the <{}|message> in Resolution Note: the message is too long ({}). "
+                    "Max length - 2900 symbols.".format(permalink, len(text)),
                 )
-                return
+            return
 
-            slack_thread_message = ResolutionNoteSlackMessage(
-                alert_group=alert_group,
-                user=self.user,
-                added_by_user=self.user,
-                text=text,
-                slack_channel_id=channel,
-                thread_ts=thread_ts,
-                ts=message_ts,
-                permalink=permalink,
-            )
+        if not created:
+            slack_thread_message.text = text
             slack_thread_message.save()
 
     def delete_thread_message_from_resolution_note(

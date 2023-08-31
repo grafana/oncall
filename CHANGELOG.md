@@ -15,7 +15,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Fix issue with helm chart when specifying `broker.type=rabbitmq` where Redis environment variables
-  were not longer being injected @joeyorlando ([#2927](https://github.com/grafana/oncall/pull/2927))
+  were not longer being injected by @joeyorlando ([#2927](https://github.com/grafana/oncall/pull/2927))
+- Fix `IntegrityError` exceptions that occasionally would occur when trying to create `ResolutionNoteSlackMessage`
+  objects by @joeyorlando ([#TBD](https://github.com/grafana/oncall/pull/TBD))
 
 ## v1.3.29 (2023-08-29)
 
