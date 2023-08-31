@@ -109,6 +109,7 @@ tests:
       - celery/deployment.yaml
     set:
       broker.type: redis
+      rabbitmq.enabled: false
       redis.enabled: false
       externalRedis:
         host: custom-host
