@@ -1,12 +1,18 @@
 from django_filters import rest_framework as filters
+from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
 from apps.auth_token.auth import ApiTokenAuthentication
-from apps.public_api.serializers.webhooks import WebhookCreateSerializer, WebhookUpdateSerializer
+from apps.public_api.serializers.webhooks import (
+    WebhookCreateSerializer,
+    WebhookResponseSerializer,
+    WebhookUpdateSerializer,
+)
 from apps.public_api.throttlers import UserThrottle
-from apps.webhooks.models import Webhook
+from apps.webhooks.models import Webhook, WebhookResponse
 from common.api_helpers.filters import ByTeamFilter
 from common.api_helpers.mixins import RateLimitHeadersMixin, UpdateSerializerMixin
 from common.api_helpers.paginators import FiftyPageSizePaginator
@@ -72,3 +78,17 @@ class WebhooksView(RateLimitHeadersMixin, UpdateSerializerMixin, ModelViewSet):
             event=EntityEvent.DELETED,
         )
         instance.delete()
+
+    @action(methods=["get"], detail=True)
+    def responses(self, request, pk):
+        webhook = self.get_object()
+        queryset = WebhookResponse.objects.filter(webhook_id=webhook.id, trigger_type=webhook.trigger_type).order_by(
+            "-timestamp"
+        )
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            response_serializer = WebhookResponseSerializer(page, many=True)
+            return self.get_paginated_response(response_serializer.data)
+
+        response_serializer = WebhookResponseSerializer(queryset, many=True)
+        return Response(response_serializer.data)

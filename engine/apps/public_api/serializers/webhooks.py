@@ -3,6 +3,7 @@ from collections import defaultdict
 from rest_framework import fields, serializers
 from rest_framework.validators import UniqueTogetherValidator
 
+from apps.alerts.models import AlertReceiveChannel
 from apps.webhooks.models import Webhook, WebhookResponse
 from apps.webhooks.models.webhook import PUBLIC_WEBHOOK_HTTP_METHODS, WEBHOOK_FIELD_PLACEHOLDER
 from common.api_helpers.custom_fields import TeamPrimaryKeyRelatedField
@@ -11,20 +12,7 @@ from common.api_helpers.utils import CurrentOrganizationDefault, CurrentTeamDefa
 from common.jinja_templater import apply_jinja_template
 from common.jinja_templater.apply_jinja_template import JinjaTemplateError, JinjaTemplateWarning
 
-
-class WebhookResponseSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = WebhookResponse
-        fields = [
-            "timestamp",
-            "url",
-            "request_trigger",
-            "request_headers",
-            "request_data",
-            "status_code",
-            "content",
-            "event_data",
-        ]
+INTEGRATION_FILTER_MESSAGE = "integration_filter must be a list of valid integration ids"
 
 
 class WebhookTriggerTypeField(fields.CharField):
@@ -41,6 +29,21 @@ class WebhookTriggerTypeField(fields.CharField):
         except IndexError:
             raise BadRequest(detail=f"trigger_type must one of {Webhook.PUBLIC_ALL_TRIGGER_TYPES}")
         return trigger_type
+
+
+class WebhookResponseSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = WebhookResponse
+        fields = [
+            "timestamp",
+            "url",
+            "request_trigger",
+            "request_headers",
+            "request_data",
+            "status_code",
+            "content",
+            "event_data",
+        ]
 
 
 class WebhookCreateSerializer(serializers.ModelSerializer):
@@ -81,10 +84,6 @@ class WebhookCreateSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         result = super().to_representation(instance)
-        if instance.trigger_type:
-            result["trigger_type"] = next(
-                filter(lambda trigger_type: trigger_type[0] == instance.trigger_type, Webhook.TRIGGER_TYPES)
-            )[1]
         if instance.password:
             result["password"] = WEBHOOK_FIELD_PLACEHOLDER
         if instance.authorization_header:
@@ -93,13 +92,6 @@ class WebhookCreateSerializer(serializers.ModelSerializer):
 
     def to_internal_value(self, data):
         webhook = self.instance
-
-        # If webhook is being copied instance won't exist to copy values from
-        if not webhook and "id" in data:
-            webhook = Webhook.objects.get(
-                public_primary_key=data["id"], organization=self.context["request"].auth.organization
-            )
-
         if data.get("password") == WEBHOOK_FIELD_PLACEHOLDER:
             data["password"] = webhook.password
         if data.get("authorization_header") == WEBHOOK_FIELD_PLACEHOLDER:
@@ -145,6 +137,17 @@ class WebhookCreateSerializer(serializers.ModelSerializer):
         if http_method not in PUBLIC_WEBHOOK_HTTP_METHODS:
             raise serializers.ValidationError(f"Must be one of {PUBLIC_WEBHOOK_HTTP_METHODS}")
         return http_method
+
+    def validate_integration_filter(self, integration_filter):
+        if integration_filter:
+            if type(integration_filter) is not list:
+                raise serializers.ValidationError(INTEGRATION_FILTER_MESSAGE)
+            integrations = AlertReceiveChannel.objects.filter(
+                organization=self.context["request"].auth.organization, public_primary_key__in=integration_filter
+            )
+            if len(integrations) != len(integration_filter):
+                raise serializers.ValidationError(INTEGRATION_FILTER_MESSAGE)
+        return integration_filter
 
 
 class WebhookUpdateSerializer(WebhookCreateSerializer):
