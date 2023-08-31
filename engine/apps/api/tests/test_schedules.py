@@ -2009,6 +2009,36 @@ def test_schedule_mention_options_permissions(
 
 
 @pytest.mark.django_db
+@pytest.mark.parametrize(
+    "role,expected_status",
+    [
+        (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
+        (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
+        (LegacyAccessControlRole.VIEWER, status.HTTP_200_OK),
+    ],
+)
+def test_current_user_events_permissions(
+    make_organization_and_user_with_plugin_token,
+    make_user_auth_headers,
+    role,
+    expected_status,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token(role)
+    client = APIClient()
+    url = reverse("api-internal:schedule-current-user-events")
+
+    with patch(
+        "apps.api.views.schedule.ScheduleView.current_user_events",
+        return_value=Response(
+            status=status.HTTP_200_OK,
+        ),
+    ):
+        response = client.get(url, format="json", **make_user_auth_headers(user, token))
+
+    assert response.status_code == expected_status
+
+
+@pytest.mark.django_db
 def test_get_schedule_from_other_team_with_flag(
     make_organization_and_user_with_plugin_token,
     make_team,
