@@ -50,6 +50,8 @@ interface ExpandedIntegrationRouteDisplayProps {
   templates: AlertTemplatesDTO[];
   openEditTemplateModal: (templateName: string | string[], channelFilterId?: ChannelFilter['id']) => void;
   onEditRegexpTemplate: (channelFilterId: ChannelFilter['id']) => void;
+  onRouteDelete: (routeId: string) => void;
+  onItemMove: () => void;
 }
 
 interface ExpandedIntegrationRouteDisplayState {
@@ -59,7 +61,16 @@ interface ExpandedIntegrationRouteDisplayState {
 }
 
 const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayProps> = observer(
-  ({ alertReceiveChannelId, channelFilterId, templates, routeIndex, openEditTemplateModal, onEditRegexpTemplate }) => {
+  ({
+    alertReceiveChannelId,
+    channelFilterId,
+    templates,
+    routeIndex,
+    openEditTemplateModal,
+    onEditRegexpTemplate,
+    onRouteDelete,
+    onItemMove,
+  }) => {
     const store = useStore();
     const {
       telegramChannelStore,
@@ -130,6 +141,7 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
                   alertReceiveChannelId={alertReceiveChannelId}
                   channelFilterId={channelFilterId}
                   routeIndex={routeIndex}
+                  onItemMove={onItemMove}
                   setRouteIdForDeletion={() => setState({ routeIdForDeletion: channelFilterId })}
                   openRouteTemplateEditor={() => handleEditRoutingTemplate(channelFilter, channelFilterId)}
                 />
@@ -278,8 +290,7 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
 
     async function onRouteDeleteConfirm() {
       setState({ routeIdForDeletion: undefined });
-      await alertReceiveChannelStore.deleteChannelFilter(routeIdForDeletion);
-      openNotification('Route has been deleted');
+      onRouteDelete(routeIdForDeletion);
     }
 
     function onEscalationChainChange({ id }) {
@@ -319,6 +330,7 @@ interface RouteButtonsDisplayProps {
   routeIndex: number;
   setRouteIdForDeletion(): void;
   openRouteTemplateEditor(): void;
+  onItemMove();
 }
 
 export const RouteButtonsDisplay: React.FC<RouteButtonsDisplayProps> = ({
@@ -327,6 +339,7 @@ export const RouteButtonsDisplay: React.FC<RouteButtonsDisplayProps> = ({
   routeIndex,
   setRouteIdForDeletion,
   openRouteTemplateEditor,
+  onItemMove,
 }) => {
   const { alertReceiveChannelStore } = useStore();
   const channelFilter = alertReceiveChannelStore.channelFilters[channelFilterId];
@@ -404,11 +417,13 @@ export const RouteButtonsDisplay: React.FC<RouteButtonsDisplayProps> = ({
   function onRouteMoveDown(e: React.SyntheticEvent) {
     e.stopPropagation();
     alertReceiveChannelStore.moveChannelFilterToPosition(alertReceiveChannelId, routeIndex, routeIndex + 1);
+    onItemMove();
   }
 
   function onRouteMoveUp(e: React.SyntheticEvent) {
     e.stopPropagation();
     alertReceiveChannelStore.moveChannelFilterToPosition(alertReceiveChannelId, routeIndex, routeIndex - 1);
+    onItemMove();
   }
 };
 

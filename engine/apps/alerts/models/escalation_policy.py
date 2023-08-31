@@ -130,7 +130,7 @@ class EscalationPolicy(OrderedModel):
         STEP_NOTIFY_USERS_QUEUE: ("Round robin notification for {{users}}", "Notify users one by one (round-robin)"),
         STEP_NOTIFY_IF_TIME: (
             "Continue escalation if current UTC time is in {{timerange}}",
-            "Continue escalation if current time is in range",
+            "Continue escalation if current UTC time is in range",
         ),
         STEP_NOTIFY_IF_NUM_ALERTS_IN_TIME_WINDOW: (
             "Continue escalation if >{{num_alerts_in_window}} alerts per {{num_minutes_in_window}} minutes",

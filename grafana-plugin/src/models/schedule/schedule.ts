@@ -82,7 +82,7 @@ export class ScheduleStore extends BaseStore {
   } = {};
 
   @observable
-  byDayOptions: SelectOption[];
+  byDayOptions: SelectOption[] = [];
 
   @observable
   scheduleId: Schedule['id'];

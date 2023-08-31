@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Update Shift Swap Request Slack message formatting by @joeyorlando ([#2918](https://github.com/grafana/oncall/pull/2918))
+- Performance and UX tweaks to integrations page ([#2869](https://github.com/grafana/oncall/pull/2869))
 
 ## v1.3.29 (2023-08-29)
 

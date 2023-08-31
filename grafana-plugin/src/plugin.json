@@ -88,14 +88,6 @@
     },
     {
       "type": "page",
-      "name": "Maintenance",
-      "path": "/a/grafana-oncall-app/maintenance",
-      "role": "Viewer",
-      "action": "grafana-oncall-app.maintenance:read",
-      "addToNav": true
-    },
-    {
-      "type": "page",
       "name": "Settings",
       "path": "/a/grafana-oncall-app/settings",
       "role": "Viewer",
