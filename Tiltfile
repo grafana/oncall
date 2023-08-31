@@ -1,6 +1,6 @@
 running_under_parent_tiltfile = os.getenv('TILT_PARENT', 'false') == 'true'
 # The user/pass that you will login to Grafana with
-grafana_admin_user_pass = 'slo'
+grafana_admin_user_pass = os.getenv('GRAFANA_ADMIN_USER_PASS', 'slo')
 # This will feed the plugin setup script with the admin user/pass
 os.putenv('GRAFANA_USERNAME', grafana_admin_user_pass)
 os.putenv('GRAFANA_PASSWORD', grafana_admin_user_pass)
