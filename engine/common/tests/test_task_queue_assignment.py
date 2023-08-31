@@ -15,8 +15,8 @@ IGNORED_TASKS = [
 ]
 
 
-def check_celery_task_route_mapping(task_ids, ignored_tasks=None):
-    tasks = set(k for k in current_app.tasks.keys() if not k.startswith("celery"))
+def check_celery_task_route_mapping(task_ids, ignored_prefixes, ignored_tasks=None):
+    tasks = set(k for k in current_app.tasks.keys() if not k.startswith(ignored_prefixes))
     if ignored_tasks:
         tasks -= set(ignored_tasks)
     tasks -= set(task_ids)
@@ -31,4 +31,4 @@ def test_celery_task_route_mapping():
     @shared_dedicated_queue_retry_task or @shared_task to CELERY_TASK_ROUTES
     in engine/settings/celery_task_routes.py
     """
-    check_celery_task_route_mapping(CELERY_TASK_ROUTES.keys(), IGNORED_TASKS)
+    check_celery_task_route_mapping(CELERY_TASK_ROUTES.keys(), ("extensions", "celery"), IGNORED_TASKS)
