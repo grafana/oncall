@@ -1024,11 +1024,7 @@ def test_oncall_shifts_export_truncate_events(
     make_on_call_shift,
 ):
     organization, _, token = make_organization_and_user_with_token()
-
-    user1_email = "alice909450945045@example.com"
-    user1_username = "alice"
-
-    user1 = make_user(organization=organization, email=user1_email, username=user1_username)
+    user1 = make_user(organization=organization)
 
     user1_public_primary_key = user1.public_primary_key
     schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
@@ -1056,5 +1052,5 @@ def test_oncall_shifts_export_truncate_events(
     response = client.get(f"{url}?start_date=2023-01-03&end_date=2023-01-03", format="json", HTTP_AUTHORIZATION=token)
     assert response.status_code == status.HTTP_200_OK
 
-    expected_on_call_times = {user1.public_primary_key: 9}
+    expected_on_call_times = {user1_public_primary_key: 9}
     assert_expected_shifts_export_response(response, (user1,), expected_on_call_times)
