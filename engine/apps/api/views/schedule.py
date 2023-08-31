@@ -28,7 +28,7 @@ from apps.api.serializers.schedule_polymorphic import (
     PolymorphicScheduleSerializer,
     PolymorphicScheduleUpdateSerializer,
 )
-from apps.api.serializers.shift_swap import ShiftSwapRequestExpandedUsersSerializer
+from apps.api.serializers.shift_swap import ShiftSwapRequestExpandedUsersListSerializer
 from apps.api.serializers.user import ScheduleUserSerializer
 from apps.auth_token.auth import PluginAuthentication
 from apps.auth_token.constants import SCHEDULE_EXPORT_TOKEN_NAME
@@ -356,7 +356,7 @@ class ScheduleView(
 
         swap_requests = schedule.filter_swap_requests(datetime_start, datetime_end)
 
-        serialized_swap_requests = ShiftSwapRequestExpandedUsersSerializer(swap_requests, many=True)
+        serialized_swap_requests = ShiftSwapRequestExpandedUsersListSerializer(swap_requests, many=True)
         result = {"shift_swaps": serialized_swap_requests.data}
 
         return Response(result, status=status.HTTP_200_OK)
