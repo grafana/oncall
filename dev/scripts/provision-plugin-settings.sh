@@ -2,8 +2,8 @@
 # This script provisions plugin settings. If the plugin config changes
 # this will need to be updated
 
-GRAFANA_USERNAME=${GRAFANA_USERNAME:-oncall}
-GRAFANA_PASSWORD=${GRAFANA_PASSWORD:-oncall}
+GRAFANA_USERNAME=${GRAFANA_ADMIN_USER_PASS:-oncall}
+GRAFANA_PASSWORD=${GRAFANA_ADMIN_USER_PASS:-oncall}
 BASE_URL="http://${GRAFANA_USERNAME}:${GRAFANA_PASSWORD}@localhost:3000"
 
 # Url of the engine endpoint. Requires a portforward to the engine service
@@ -83,7 +83,7 @@ curl -s -X POST \
         -d @.settings-merged \
         ${BASE_URL}/api/plugins/grafana-oncall-app/settings | jq -r ".message"
 
-Print the updated settings for debugging
+# Print the updated settings for debugging
 curl -s -X GET \
 	-H "Accept: application/json" \
   ${BASE_URL}/api/plugins/grafana-oncall-app/settings | jq
