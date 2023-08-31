@@ -2552,3 +2552,168 @@ def test_filter_events_ical_duplicated_uid(make_organization, make_user_for_orga
     assert len(events) == 2
     assert events[0]["shift"]["pk"] == "eventuid@google.com_1"
     assert events[1]["shift"]["pk"] == "eventuid@google.com_2_1970-01-01T01:00:00+01:00"
+
+
+@pytest.mark.django_db
+def test_user_events_with_oncall_status(
+    make_organization,
+    make_user_for_organization,
+    make_schedule,
+    make_on_call_shift,
+):
+    organization = make_organization()
+    current_user = make_user_for_organization(organization)
+    user2 = make_user_for_organization(organization)
+    schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
+
+    today = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    start_date = today - timezone.timedelta(days=2)
+    end_date = start_date + timezone.timedelta(days=7)
+
+    data = {
+        "start": start_date + timezone.timedelta(hours=10),
+        "rotation_start": start_date + timezone.timedelta(hours=10),
+        "duration": timezone.timedelta(hours=24),
+        "priority_level": 1,
+        "frequency": CustomOnCallShift.FREQUENCY_DAILY,
+        "schedule": schedule,
+    }
+    on_call_shift = make_on_call_shift(
+        organization=organization, shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT, **data
+    )
+    on_call_shift.add_rolling_users([[current_user]])
+
+    # shift with another user
+    data = {
+        "start": start_date + timezone.timedelta(hours=10),
+        "rotation_start": start_date + timezone.timedelta(hours=10),
+        "duration": timezone.timedelta(hours=24),
+        "priority_level": 1,
+        "frequency": CustomOnCallShift.FREQUENCY_DAILY,
+        "schedule": schedule,
+    }
+    on_call_shift = make_on_call_shift(
+        organization=organization, shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT, **data
+    )
+    on_call_shift.add_rolling_users([[user2]])
+
+    schedule.refresh_ical_final_schedule()
+
+    events, is_oncall = schedule.user_events_with_oncall_status(start_date, end_date, current_user)
+    assert len(events) == 7  # counts only shifts with current_user
+    assert is_oncall is True
+    for event in events:
+        users = {u["pk"] for u in event["users"]}
+        assert current_user.public_primary_key in users
+
+
+@pytest.mark.django_db
+def test_user_events_with_oncall_status_not_oncall(
+    make_organization,
+    make_user_for_organization,
+    make_schedule,
+    make_on_call_shift,
+):
+    organization = make_organization()
+    current_user = make_user_for_organization(organization)
+    user2 = make_user_for_organization(organization)
+    schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
+
+    now = timezone.now()
+    today = now.replace(hour=0, minute=0, second=0, microsecond=0)
+    start_date = today - timezone.timedelta(days=2)
+    end_date = start_date + timezone.timedelta(days=7)
+
+    data = {
+        "start": now + timezone.timedelta(hours=1),
+        "rotation_start": now + timezone.timedelta(hours=1),
+        "duration": timezone.timedelta(hours=2),
+        "priority_level": 1,
+        "frequency": CustomOnCallShift.FREQUENCY_DAILY,
+        "schedule": schedule,
+    }
+    on_call_shift = make_on_call_shift(
+        organization=organization, shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT, **data
+    )
+    on_call_shift.add_rolling_users([[current_user]])
+
+    # shift with another user
+    data = {
+        "start": start_date + timezone.timedelta(hours=10),
+        "rotation_start": start_date + timezone.timedelta(hours=10),
+        "duration": timezone.timedelta(hours=24),
+        "priority_level": 1,
+        "frequency": CustomOnCallShift.FREQUENCY_DAILY,
+        "schedule": schedule,
+    }
+    on_call_shift = make_on_call_shift(
+        organization=organization, shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT, **data
+    )
+    on_call_shift.add_rolling_users([[user2]])
+
+    schedule.refresh_ical_final_schedule()
+
+    events, is_oncall = schedule.user_events_with_oncall_status(start_date, end_date, current_user)
+    assert len(events) == 5  # counts only shifts with current_user
+    assert is_oncall is False
+    for event in events:
+        users = {u["pk"] for u in event["users"]}
+        assert current_user.public_primary_key in users
+
+
+@pytest.mark.django_db
+def test_user_events_with_oncall_status_no_events(
+    make_organization,
+    make_user_for_organization,
+    make_schedule,
+    make_on_call_shift,
+):
+    organization = make_organization()
+    current_user = make_user_for_organization(organization)
+    user2 = make_user_for_organization(organization)
+    schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
+
+    now = timezone.now()
+    today = now.replace(hour=0, minute=0, second=0, microsecond=0)
+    start_date = today - timezone.timedelta(days=2)
+    end_date = start_date + timezone.timedelta(days=7)
+
+    # shift with another user
+    data = {
+        "start": start_date + timezone.timedelta(hours=10),
+        "rotation_start": start_date + timezone.timedelta(hours=10),
+        "duration": timezone.timedelta(hours=24),
+        "priority_level": 1,
+        "frequency": CustomOnCallShift.FREQUENCY_DAILY,
+        "schedule": schedule,
+    }
+    on_call_shift = make_on_call_shift(
+        organization=organization, shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT, **data
+    )
+    on_call_shift.add_rolling_users([[user2]])
+
+    schedule.refresh_ical_final_schedule()
+
+    events, is_oncall = schedule.user_events_with_oncall_status(start_date, end_date, current_user)
+    assert len(events) == 0  # no events with current_user
+    assert is_oncall is False
+
+
+@pytest.mark.django_db
+def test_user_events_with_oncall_status_without_final_ical(
+    make_organization,
+    make_user_for_organization,
+    make_schedule,
+    make_on_call_shift,
+):
+    organization = make_organization()
+    user = make_user_for_organization(organization)
+    schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
+
+    today = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    start_date = today - timezone.timedelta(days=2)
+    end_date = start_date + timezone.timedelta(days=7)
+
+    events, is_oncall = schedule.user_events_with_oncall_status(start_date, end_date, user)
+    assert len(events) == 0
+    assert is_oncall is False
