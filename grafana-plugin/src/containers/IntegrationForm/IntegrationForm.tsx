@@ -93,7 +93,7 @@ const IntegrationForm = observer((props: IntegrationFormProps) => {
 
   const extraGFormProps: { customFieldSectionRenderer?: React.FC<CustomFieldSectionRendererProps> } = {};
 
-  if (selectedOption && IntegrationHelper.isGrafanaAlerting(selectedOption.value)) {
+  if (selectedOption && IntegrationHelper.isSpecificIntegration(selectedOption.value, 'grafana_alerting')) {
     extraGFormProps.customFieldSectionRenderer = CustomFieldSectionRenderer;
   }
 
@@ -205,7 +205,7 @@ const IntegrationForm = observer((props: IntegrationFormProps) => {
             return;
           }
 
-          if (!IntegrationHelper.isGrafanaAlerting(selectedOption.value)) {
+          if (!IntegrationHelper.isSpecificIntegration(selectedOption.value, 'grafana_alerting')) {
             return pushHistory(response.id);
           }
 
