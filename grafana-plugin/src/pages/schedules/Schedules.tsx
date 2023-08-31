@@ -32,7 +32,7 @@ import { WithStoreProps, PageProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import LocationHelper from 'utils/LocationHelper';
 import { UserActions } from 'utils/authorization';
-import { PLUGIN_ROOT, TABLE_COLUMN_MAX_WIDTH } from 'utils/consts';
+import { PAGE, PLUGIN_ROOT, TABLE_COLUMN_MAX_WIDTH } from 'utils/consts';
 
 import styles from './Schedules.module.css';
 
@@ -153,7 +153,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
             <div className={cx('schedules__filters-container')}>
               <RemoteFilters
                 query={query}
-                page="schedules"
+                page={PAGE.Schedules}
                 grafanaTeamStore={store.grafanaTeamStore}
                 onChange={this.handleSchedulesFiltersChange}
               />

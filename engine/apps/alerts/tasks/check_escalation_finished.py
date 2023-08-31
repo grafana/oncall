@@ -114,7 +114,7 @@ def check_escalation_finished_task() -> None:
     """
     from apps.alerts.models import AlertGroup
 
-    now = timezone.now()
+    now = timezone.now() - datetime.timedelta(minutes=5)
     two_days_ago = now - datetime.timedelta(days=2)
 
     alert_groups = AlertGroup.objects.using(get_random_readonly_database_key_if_present_otherwise_default()).filter(

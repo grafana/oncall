@@ -14,12 +14,16 @@ import { AppFeature } from 'state/features';
 import { MAX_CHARACTERS_COUNT, TEXTAREA_ROWS_COUNT } from './IntegrationCommon.config';
 
 const IntegrationHelper = {
-  isGrafanaAlerting: (alertReceiveChannel: AlertReceiveChannel | string) => {
-    if (typeof alertReceiveChannel === 'string') {
-      return alertReceiveChannel === 'grafana_alerting';
+  isSpecificIntegration: (alertReceiveChannel: AlertReceiveChannel | string, name: string) => {
+    if (!alertReceiveChannel) {
+      return false;
     }
 
-    return alertReceiveChannel.integration === 'grafana_alerting';
+    if (typeof alertReceiveChannel === 'string') {
+      return name === alertReceiveChannel;
+    }
+
+    return name === alertReceiveChannel.integration;
   },
 
   getFilteredTemplate: (template: string, isTextArea: boolean): string => {

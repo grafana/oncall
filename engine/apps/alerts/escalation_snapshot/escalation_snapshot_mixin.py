@@ -231,6 +231,9 @@ class EscalationSnapshotMixin:
             return None
 
         raw_next_step_eta = self.raw_escalation_snapshot.get("next_step_eta")
+        if not raw_next_step_eta:  # empty escalation chain or paused escalations
+            return self.raw_escalation_snapshot
+
         next_step_eta = parse(raw_next_step_eta).replace(tzinfo=pytz.UTC)
         updated_next_step_eta = next_step_eta + increase_by_timedelta
         self.raw_escalation_snapshot["next_step_eta"] = updated_next_step_eta.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
