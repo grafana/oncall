@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## v1.3.30 (2023-08-31)
+
 ### Added
 
 - Add optional param to expand user details in shift swaps internal endpoints ([#2923](https://github.com/grafana/oncall/pull/2923))
