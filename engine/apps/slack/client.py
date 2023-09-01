@@ -3,38 +3,37 @@ from typing import Optional, Tuple
 
 from django.utils import timezone
 from slackclient import SlackClient
-from slackclient.exceptions import TokenRefreshError
 
 from apps.slack.constants import SLACK_RATE_LIMIT_DELAY
-
-from .exceptions import (
-    SlackAPIChannelArchivedException,
-    SlackAPIException,
-    SlackAPIRateLimitException,
-    SlackAPITokenException,
-)
-from .slack_client_server import SlackClientServer
 
 logger = logging.getLogger(__name__)
 
 
+class SlackAPIException(Exception):
+    def __init__(self, *args, **kwargs):
+        self.response = {}
+        if "response" in kwargs:
+            self.response = kwargs["response"]
+        super().__init__(*args)
+
+
+class SlackAPITokenException(SlackAPIException):
+    pass
+
+
+class SlackAPIChannelArchivedException(SlackAPIException):
+    pass
+
+
+class SlackAPIRateLimitException(SlackAPIException):
+    pass
+
+
+class SlackClientException(Exception):
+    pass
+
+
 class SlackClientWithErrorHandling(SlackClient):
-    def __init__(self, token=None, **kwargs):
-        """
-        This method is rewritten because we want to use custom server SlackClientServer for SlackClient
-        """
-        super().__init__(token=token, **kwargs)
-
-        proxies = kwargs.get("proxies")
-
-        if self.refresh_token:
-            if callable(self.token_update_callback):
-                token = None
-            else:
-                raise TokenRefreshError("Token refresh callback function is required when using refresh token.")
-        # Slack app configs
-        self.server = SlackClientServer(token=token, connect=False, proxies=proxies)
-
     def paginated_api_call(self, *args, **kwargs):
         # It's a key from response which is paginated. For example "users" or "channels"
         listed_key = kwargs["paginated_key"]

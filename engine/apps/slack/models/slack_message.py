@@ -5,11 +5,11 @@ import uuid
 
 from django.db import models
 
-from apps.slack.slack_client import SlackClientWithErrorHandling
-from apps.slack.slack_client.exceptions import (
+from apps.slack.client import (
     SlackAPIChannelArchivedException,
     SlackAPIException,
     SlackAPITokenException,
+    SlackClientWithErrorHandling,
 )
 
 if typing.TYPE_CHECKING:

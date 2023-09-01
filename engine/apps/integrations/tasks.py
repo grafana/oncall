@@ -8,8 +8,7 @@ from django.core.cache import cache
 
 from apps.alerts.models.alert_group_counter import ConcurrentUpdateError
 from apps.alerts.tasks import resolve_alert_group_by_source_if_needed
-from apps.slack.slack_client import SlackClientWithErrorHandling
-from apps.slack.slack_client.exceptions import SlackAPIException
+from apps.slack.client import SlackAPIException, SlackClientWithErrorHandling
 from common.custom_celery_tasks import shared_dedicated_queue_retry_task
 from common.custom_celery_tasks.create_alert_base_task import CreateAlertBaseTask
 

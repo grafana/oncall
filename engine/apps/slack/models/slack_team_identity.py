@@ -5,9 +5,8 @@ from django.db import models
 from django.db.models import JSONField
 
 from apps.api.permissions import RBACPermission
+from apps.slack.client import SlackAPIException, SlackAPITokenException, SlackClientWithErrorHandling
 from apps.slack.constants import SLACK_INVALID_AUTH_RESPONSE, SLACK_WRONG_TEAM_NAMES
-from apps.slack.slack_client import SlackClientWithErrorHandling
-from apps.slack.slack_client.exceptions import SlackAPIException, SlackAPITokenException
 from apps.user_management.models.user import User
 from common.insight_log.chatops_insight_logs import ChatOpsEvent, ChatOpsTypePlug, write_chatops_insight_log
 

@@ -1,6 +1,5 @@
 from apps.public_api.constants import VALID_DATE_FOR_DELETE_INCIDENT
-from apps.slack.slack_client import SlackClientWithErrorHandling
-from apps.slack.slack_client.exceptions import SlackAPITokenException
+from apps.slack.client import SlackAPITokenException, SlackClientWithErrorHandling
 
 
 def team_has_slack_token_for_deleting(alert_group):

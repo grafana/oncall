@@ -6,9 +6,9 @@ import typing
 from django.db.models import Q
 
 from apps.api.permissions import RBACPermission
+from apps.slack.client import SlackAPIException
 from apps.slack.constants import DIVIDER
 from apps.slack.scenarios import scenario_step
-from apps.slack.slack_client.exceptions import SlackAPIException
 from apps.slack.types import (
     Block,
     BlockActionType,

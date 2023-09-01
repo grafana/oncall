@@ -2,8 +2,7 @@ import enum
 import typing
 from datetime import datetime
 
-from apps.slack.slack_client import SlackClientWithErrorHandling
-from apps.slack.slack_client.exceptions import SlackAPIException
+from apps.slack.client import SlackAPIException, SlackClientWithErrorHandling
 
 if typing.TYPE_CHECKING:
     from apps.user_management.models import Organization

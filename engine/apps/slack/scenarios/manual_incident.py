@@ -5,9 +5,9 @@ from uuid import uuid4
 from django.conf import settings
 
 from apps.alerts.models import AlertReceiveChannel, ChannelFilter
+from apps.slack.client import SlackAPIException
 from apps.slack.constants import DIVIDER
 from apps.slack.scenarios import scenario_step
-from apps.slack.slack_client.exceptions import SlackAPIException
 from apps.slack.types import (
     Block,
     BlockActionType,

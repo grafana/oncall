@@ -1,14 +1,14 @@
 import logging
 import typing
 
-from apps.slack.constants import SLACK_RATE_LIMIT_DELAY
-from apps.slack.slack_client import SlackClientWithErrorHandling
-from apps.slack.slack_client.exceptions import (
+from apps.slack.client import (
     SlackAPIChannelArchivedException,
     SlackAPIException,
     SlackAPIRateLimitException,
     SlackAPITokenException,
+    SlackClientWithErrorHandling,
 )
+from apps.slack.constants import SLACK_RATE_LIMIT_DELAY
 
 if typing.TYPE_CHECKING:
     from apps.alerts.models import AlertGroup

@@ -10,10 +10,9 @@ from django.utils import timezone
 
 from apps.alerts.tasks.compare_escalations import compare_escalations
 from apps.slack.alert_group_slack_service import AlertGroupSlackService
+from apps.slack.client import SlackAPIException, SlackAPITokenException, SlackClientWithErrorHandling
 from apps.slack.constants import CACHE_UPDATE_INCIDENT_SLACK_MESSAGE_LIFETIME, SLACK_BOT_ID
 from apps.slack.scenarios.scenario_step import ScenarioStep
-from apps.slack.slack_client import SlackClientWithErrorHandling
-from apps.slack.slack_client.exceptions import SlackAPIException, SlackAPITokenException
 from apps.slack.utils import (
     get_cache_key_update_incident_slack_message,
     get_populate_slack_channel_task_id_key,

@@ -154,7 +154,7 @@ def test_followup_offsets():
         assert ShiftSwapRequest.FOLLOWUP_OFFSETS[idx] > FOLLOWUP_WINDOW
 
 
-@patch("apps.slack.slack_client.SlackClientWithErrorHandling.api_call")
+@patch("apps.slack.client.SlackClientWithErrorHandling.api_call")
 @pytest.mark.django_db
 def test_send_shift_swap_request_followup(mock_slack_api_call, shift_swap_request_test_setup):
     shift_swap_request = shift_swap_request_test_setup()

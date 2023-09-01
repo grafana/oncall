@@ -3,8 +3,8 @@ import typing
 
 from django.utils import timezone
 
+from apps.slack.client import SlackClientWithErrorHandling
 from apps.slack.scenarios import scenario_step
-from apps.slack.slack_client import SlackClientWithErrorHandling
 from apps.slack.types import EventPayload, EventType, PayloadType, ScenarioRoute
 
 if typing.TYPE_CHECKING:

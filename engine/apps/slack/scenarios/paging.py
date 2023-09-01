@@ -15,9 +15,9 @@ from apps.alerts.paging import (
     check_user_availability,
     direct_paging,
 )
+from apps.slack.client import SlackAPIException
 from apps.slack.constants import DIVIDER, PRIVATE_METADATA_MAX_LENGTH
 from apps.slack.scenarios import scenario_step
-from apps.slack.slack_client.exceptions import SlackAPIException
 from apps.slack.types import (
     Block,
     BlockActionType,

@@ -49,7 +49,7 @@ def test_no_empty_shifts_no_triggering_notification(
 
     empty_shifts_report_sent_at = schedule.empty_shifts_report_sent_at
 
-    with patch("apps.slack.slack_client.SlackClientWithErrorHandling.api_call") as mock_slack_api_call:
+    with patch("apps.slack.client.SlackClientWithErrorHandling.api_call") as mock_slack_api_call:
         notify_about_empty_shifts_in_schedule(schedule.pk)
 
     assert not mock_slack_api_call.called
@@ -97,7 +97,7 @@ def test_empty_shifts_trigger_notification(
 
     empty_shifts_report_sent_at = schedule.empty_shifts_report_sent_at
 
-    with patch("apps.slack.slack_client.SlackClientWithErrorHandling.api_call") as mock_slack_api_call:
+    with patch("apps.slack.client.SlackClientWithErrorHandling.api_call") as mock_slack_api_call:
         notify_about_empty_shifts_in_schedule(schedule.pk)
 
     assert mock_slack_api_call.called
@@ -160,7 +160,7 @@ def test_empty_non_empty_shifts_trigger_notification(
 
     empty_shifts_report_sent_at = schedule.empty_shifts_report_sent_at
 
-    with patch("apps.slack.slack_client.SlackClientWithErrorHandling.api_call") as mock_slack_api_call:
+    with patch("apps.slack.client.SlackClientWithErrorHandling.api_call") as mock_slack_api_call:
         notify_about_empty_shifts_in_schedule(schedule.pk)
 
     assert mock_slack_api_call.called

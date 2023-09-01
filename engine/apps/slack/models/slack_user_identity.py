@@ -4,10 +4,9 @@ import typing
 import requests
 from django.db import models
 
+from apps.slack.client import SlackAPIException, SlackAPITokenException, SlackClientWithErrorHandling
 from apps.slack.constants import SLACK_BOT_ID
 from apps.slack.scenarios.notified_user_not_in_channel import NotifiedUserNotInChannelStep
-from apps.slack.slack_client import SlackClientWithErrorHandling
-from apps.slack.slack_client.exceptions import SlackAPIException, SlackAPITokenException
 from apps.user_management.models import Organization, User
 
 if typing.TYPE_CHECKING:

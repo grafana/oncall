@@ -1,7 +1,7 @@
 import typing
 
+from apps.slack.client import SlackAPIException, SlackAPITokenException
 from apps.slack.scenarios import scenario_step
-from apps.slack.slack_client.exceptions import SlackAPIException, SlackAPITokenException
 from apps.slack.types import Block
 
 if typing.TYPE_CHECKING:

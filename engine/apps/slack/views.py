@@ -15,6 +15,7 @@ from rest_framework.views import APIView
 from apps.api.permissions import RBACPermission
 from apps.auth_token.auth import PluginAuthentication
 from apps.base.utils import live_settings
+from apps.slack.client import SlackAPIException, SlackAPITokenException, SlackClientWithErrorHandling
 from apps.slack.scenarios.alertgroup_appearance import STEPS_ROUTING as ALERTGROUP_APPEARANCE_ROUTING
 
 # Importing routes from scenarios
@@ -34,8 +35,6 @@ from apps.slack.scenarios.shift_swap_requests import STEPS_ROUTING as SHIFT_SWAP
 from apps.slack.scenarios.slack_channel import STEPS_ROUTING as CHANNEL_ROUTING
 from apps.slack.scenarios.slack_channel_integration import STEPS_ROUTING as SLACK_CHANNEL_INTEGRATION_ROUTING
 from apps.slack.scenarios.slack_usergroup import STEPS_ROUTING as SLACK_USERGROUP_UPDATE_ROUTING
-from apps.slack.slack_client import SlackClientWithErrorHandling
-from apps.slack.slack_client.exceptions import SlackAPIException, SlackAPITokenException
 from apps.slack.tasks import clean_slack_integration_leftovers, unpopulate_slack_user_identities
 from apps.slack.types import EventPayload, EventType, MessageEventSubtype, PayloadType, ScenarioRoute
 from apps.user_management.models import Organization

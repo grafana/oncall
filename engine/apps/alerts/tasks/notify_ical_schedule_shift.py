@@ -6,9 +6,8 @@ from typing import TYPE_CHECKING
 from django.utils import timezone
 
 from apps.schedules.ical_utils import calculate_shift_diff, parse_event_uid
+from apps.slack.client import SlackAPIException, SlackAPITokenException, SlackClientWithErrorHandling
 from apps.slack.scenarios import scenario_step
-from apps.slack.slack_client import SlackClientWithErrorHandling
-from apps.slack.slack_client.exceptions import SlackAPIException, SlackAPITokenException
 from common.custom_celery_tasks import shared_dedicated_queue_retry_task
 
 from .task_logger import task_logger

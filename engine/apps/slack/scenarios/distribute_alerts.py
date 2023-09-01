@@ -15,17 +15,17 @@ from apps.alerts.models import Alert, AlertGroup, AlertGroupLogRecord, AlertRece
 from apps.alerts.tasks import custom_button_result
 from apps.alerts.utils import render_curl_command
 from apps.api.permissions import RBACPermission
-from apps.slack.constants import CACHE_UPDATE_INCIDENT_SLACK_MESSAGE_LIFETIME, SLACK_RATE_LIMIT_DELAY
-from apps.slack.models import SlackMessage
-from apps.slack.scenarios import scenario_step
-from apps.slack.scenarios.slack_renderer import AlertGroupLogSlackRenderer
-from apps.slack.slack_client import SlackClientWithErrorHandling
-from apps.slack.slack_client.exceptions import (
+from apps.slack.client import (
     SlackAPIChannelArchivedException,
     SlackAPIException,
     SlackAPIRateLimitException,
     SlackAPITokenException,
+    SlackClientWithErrorHandling,
 )
+from apps.slack.constants import CACHE_UPDATE_INCIDENT_SLACK_MESSAGE_LIFETIME, SLACK_RATE_LIMIT_DELAY
+from apps.slack.models import SlackMessage
+from apps.slack.scenarios import scenario_step
+from apps.slack.scenarios.slack_renderer import AlertGroupLogSlackRenderer
 from apps.slack.slack_formatter import SlackFormatter
 from apps.slack.tasks import (
     post_or_update_log_report_message_task,
