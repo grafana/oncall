@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Update Shift Swap Request Slack message formatting by @joeyorlando ([#2918](https://github.com/grafana/oncall/pull/2918))
 - Performance and UX tweaks to integrations page ([#2869](https://github.com/grafana/oncall/pull/2869))
 - Expand users details in filter swaps internal endpoint ([#2921](https://github.com/grafana/oncall/pull/2921))
 - Truncate exported final shifts to match the requested period ([#2924](https://github.com/grafana/oncall/pull/2924))
