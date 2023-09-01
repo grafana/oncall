@@ -8,9 +8,7 @@ be added here (In development, in process of deprecation, etc.) if possible
 we should avoid @shared_dedicated_queue_retry_task or @shared_task and
 remove entirely if it is not needed.
 """
-COMMON_IGNORED_TASKS = {
-    "apps.alerts.tasks.create_contact_points_for_datasource.schedule_create_contact_points_for_datasource",
-}
+COMMON_IGNORED_TASKS = set()
 
 
 def check_celery_task_route_mapping(task_ids, ignored_prefixes, additional_ignored_tasks=None):
