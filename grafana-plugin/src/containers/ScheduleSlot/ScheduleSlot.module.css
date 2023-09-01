@@ -33,6 +33,21 @@
   visibility: hidden;
 }
 
+.root__type_shift-swap {
+  border-radius: 10px;
+  background: #ff99002e;
+  height: 20px;
+}
+
+.no-user {
+  width: 12px;
+  height: 12px;
+  background: var(--tag-background-primary);
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+}
+
 .root__inactive {
   opacity: 0.3;
 }

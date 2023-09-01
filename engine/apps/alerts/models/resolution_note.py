@@ -85,6 +85,11 @@ class ResolutionNoteSlackMessage(models.Model):
     class Meta:
         unique_together = ("thread_ts", "ts")
 
+        indexes = [
+            models.Index(fields=["ts", "thread_ts", "alert_group_id"]),
+            models.Index(fields=["ts", "thread_ts", "slack_channel_id"]),
+        ]
+
     def get_resolution_note(self) -> typing.Optional["ResolutionNote"]:
         try:
             return self.resolution_note

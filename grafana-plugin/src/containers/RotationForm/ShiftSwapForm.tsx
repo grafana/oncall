@@ -28,6 +28,7 @@ const cx = cn.bind(styles);
 interface ShiftSwapFormProps {
   id: ShiftSwap['id'] | 'new';
   scheduleId: Schedule['id'];
+  startMoment: dayjs.Dayjs;
   params: Partial<ShiftSwap>;
   currentTimezone: Timezone;
 
@@ -37,18 +38,27 @@ interface ShiftSwapFormProps {
 }
 
 const ShiftSwapForm = (props: ShiftSwapFormProps) => {
-  const { onUpdate, onHide, id, scheduleId, params: defaultParams, currentTimezone } = props;
+  const { onUpdate, onHide, id, scheduleId, startMoment, params: defaultParams, currentTimezone } = props;
 
   const [shiftSwap, setShiftSwap] = useState({ ...defaultParams });
 
   const store = useStore();
-  const { scheduleStore } = store;
+  const {
+    scheduleStore,
+    userStore: { currentUserPk },
+  } = store;
 
   useEffect(() => {
     if (id !== 'new') {
       scheduleStore.loadShiftSwap(id).then(setShiftSwap);
     }
   }, [id]);
+
+  const handleHide = useCallback(() => {
+    scheduleStore.clearPreview();
+
+    onHide();
+  }, []);
 
   useEffect(() => {
     if (defaultParams) {
@@ -58,7 +68,9 @@ const ShiftSwapForm = (props: ShiftSwapFormProps) => {
 
   const handleShiftSwapStartChange = useCallback(
     (value) => {
-      setShiftSwap({ ...shiftSwap, swap_start: getUTCString(value) });
+      const diff = dayjs(shiftSwap.swap_end).diff(dayjs(shiftSwap.swap_start));
+
+      setShiftSwap({ ...shiftSwap, swap_start: getUTCString(value), swap_end: getUTCString(value.add(diff)) });
     },
     [shiftSwap]
   );
@@ -69,6 +81,16 @@ const ShiftSwapForm = (props: ShiftSwapFormProps) => {
     },
     [shiftSwap]
   );
+
+  useEffect(() => {
+    if (id === 'new') {
+      store.scheduleStore.updateShiftsSwapPreview(scheduleId, startMoment, {
+        id: 'new',
+        beneficiary: currentUserPk,
+        ...shiftSwap,
+      });
+    }
+  }, [shiftSwap, startMoment]);
 
   const handleDescriptionChange = useCallback(
     (event) => {
@@ -98,6 +120,12 @@ const ShiftSwapForm = (props: ShiftSwapFormProps) => {
     onUpdate();
   }, [id]);
 
+  useEffect(() => {
+    if (shiftSwap?.beneficiary && !store.userStore.items[shiftSwap.beneficiary]) {
+      store.userStore.updateItem(shiftSwap.beneficiary);
+    }
+  }, [shiftSwap?.beneficiary]);
+
   const beneficiaryName = shiftSwap?.beneficiary && store.userStore.items[shiftSwap.beneficiary]?.name;
 
   const isNew = id === 'new';
@@ -108,7 +136,7 @@ const ShiftSwapForm = (props: ShiftSwapFormProps) => {
       top="0"
       isOpen
       width="430px"
-      onDismiss={onHide}
+      onDismiss={handleHide}
       contentElement={(props, children) => (
         <Draggable handle=".drag-handler" defaultClassName={cx('draggable')} positionOffset={{ x: 0, y: 200 }}>
           <div {...props}>{children}</div>
@@ -120,26 +148,30 @@ const ShiftSwapForm = (props: ShiftSwapFormProps) => {
           <HorizontalGroup justify="space-between">
             <HorizontalGroup spacing="sm">
               {isNew && <Tag color={SHIFT_SWAP_COLOR}>New</Tag>}
-              <Text.Title level={5} editable>
-                Shift swap
-              </Text.Title>
+              <Text.Title level={5}>{isNew ? 'Shift swap request' : 'Shift swap'}</Text.Title>
             </HorizontalGroup>
             <HorizontalGroup>
               {!isNew && (
                 <WithPermissionControlTooltip userAction={UserActions.SchedulesWrite}>
                   <WithConfirm title="Are you sure to delete shift swap request?" confirmText="Delete">
-                    <IconButton variant="secondary" tooltip="Delete" name="trash-alt" onClick={handleDelete} />
+                    <IconButton
+                      variant="secondary"
+                      tooltip="Delete"
+                      name="trash-alt"
+                      onClick={handleDelete}
+                      disabled={shiftSwap.beneficiary !== currentUserPk}
+                    />
                   </WithConfirm>
                 </WithPermissionControlTooltip>
               )}
               <IconButton variant="secondary" className={cx('drag-handler')} name="draggabledots" />
-              <IconButton name="times" variant="secondary" tooltip="Close" onClick={onHide} />
+              <IconButton name="times" variant="secondary" tooltip="Close" onClick={handleHide} />
             </HorizontalGroup>
           </HorizontalGroup>
 
           <div className={cx('fields')}>
             {!isNew && (
-              <Field label="Creator">
+              <Field label="Requested by">
                 <Input disabled value={beneficiaryName}></Input>
               </Field>
             )}
@@ -169,7 +201,7 @@ const ShiftSwapForm = (props: ShiftSwapFormProps) => {
               </TextArea>
             </Field>
             {!isNew && (
-              <Field label="Taken by">
+              <Field label="Swapped by">
                 {shiftSwap?.benefactor ? (
                   <UserItem
                     pk={shiftSwap?.benefactor}
@@ -178,7 +210,7 @@ const ShiftSwapForm = (props: ShiftSwapFormProps) => {
                     shiftEnd={shiftSwap.swap_end}
                   />
                 ) : (
-                  <Text type="secondary">Not taken yet</Text>
+                  <Text type="secondary">Not accepted yet</Text>
                 )}
               </Field>
             )}
@@ -193,8 +225,12 @@ const ShiftSwapForm = (props: ShiftSwapFormProps) => {
                     Create
                   </Button>
                 ) : (
-                  <Button variant="primary" onClick={handleTake} disabled={Boolean(isPastDue || shiftSwap?.benefactor)}>
-                    Take
+                  <Button
+                    variant="primary"
+                    onClick={handleTake}
+                    disabled={Boolean(isPastDue || shiftSwap?.benefactor || shiftSwap.beneficiary === currentUserPk)}
+                  >
+                    Accept
                   </Button>
                 )}
               </WithPermissionControlTooltip>

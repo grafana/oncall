@@ -24,11 +24,6 @@
   margin: 16px 0;
 }
 
-.rotations-plus-title {
-  display: flex;
-  flex-direction: column;
-}
-
 .layer {
   display: block;
 }
@@ -49,8 +44,15 @@
   background: rgba(204, 204, 220, 0.12);
 }
 
+.rotations-plus-title {
+  display: flex;
+  flex-direction: column;
+}
+
 .header-plus-content {
   position: relative;
+  padding-top: 26px;
+  padding-bottom: 26px;
 }
 
 .layer-header {

@@ -1,18 +1,15 @@
 CELERY_TASK_ROUTES = {
     # DEFAULT
-    "apps.alerts.tasks.create_contact_points_for_datasource.create_contact_points_for_datasource": {"queue": "default"},
     "apps.alerts.tasks.sync_grafana_alerting_contact_points.disconnect_integration_from_alerting_contact_points": {
         "queue": "default"
     },
-    "apps.alerts.tasks.sync_grafana_alerting_contact_points.sync_grafana_alerting_contact_points": {"queue": "default"},
     "apps.alerts.tasks.delete_alert_group.delete_alert_group": {"queue": "default"},
     "apps.alerts.tasks.invalidate_web_cache_for_alert_group.invalidate_web_cache_for_alert_group": {"queue": "default"},
     "apps.alerts.tasks.send_alert_group_signal.send_alert_group_signal": {"queue": "default"},
     "apps.alerts.tasks.wipe.wipe": {"queue": "default"},
     "common.oncall_gateway.tasks.create_oncall_connector_async": {"queue": "default"},
     "common.oncall_gateway.tasks.delete_oncall_connector_async": {"queue": "default"},
-    "common.oncall_gateway.tasks.create_slack_connector_async": {"queue": "default"},
-    "common.oncall_gateway.tasks.delete_slack_connector_async": {"queue": "default"},
+    "common.oncall_gateway.tasks.create_slack_connector_async_v2": {"queue": "default"},
     "common.oncall_gateway.tasks.delete_slack_connector_async_v2": {"queue": "default"},
     "apps.heartbeat.tasks.integration_heartbeat_checkup": {"queue": "default"},
     "apps.heartbeat.tasks.process_heartbeat_task": {"queue": "default"},
@@ -100,8 +97,6 @@ CELERY_TASK_ROUTES = {
     "apps.integrations.tasks.create_alert": {"queue": "critical"},
     "apps.integrations.tasks.create_alertmanager_alerts": {"queue": "critical"},
     "apps.integrations.tasks.start_notify_about_integration_ratelimit": {"queue": "critical"},
-    # TODO: remove apps.mobile_app.tasks.notify_user_async in a future release
-    "apps.mobile_app.tasks.notify_user_async": {"queue": "critical"},
     "apps.mobile_app.tasks.new_alert_group.notify_user_about_new_alert_group": {"queue": "critical"},
     "apps.mobile_app.tasks.going_oncall_notification.conditionally_send_going_oncall_push_notifications_for_schedule": {
         "queue": "critical"

@@ -11,7 +11,7 @@ import Text from 'components/Text/Text';
 import TimelineMarks from 'components/TimelineMarks/TimelineMarks';
 import Rotation from 'containers/Rotation/Rotation';
 import {
-  flattenFinalShifs,
+  flattenShiftEvents,
   getLayersFromStore,
   getOverridesFromStore,
   getShiftsFromStore,
@@ -60,7 +60,7 @@ class ScheduleFinal extends Component<ScheduleFinalProps, ScheduleOverridesState
 
     const currentTimeX = diff / base;
 
-    const shifts = flattenFinalShifs(getShiftsFromStore(store, scheduleId, startMoment));
+    const shifts = flattenShiftEvents(getShiftsFromStore(store, scheduleId, startMoment));
 
     const layers = getLayersFromStore(store, scheduleId, startMoment);
 

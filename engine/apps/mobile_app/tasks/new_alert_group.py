@@ -137,9 +137,3 @@ def notify_user_about_new_alert_group(user_pk, alert_group_pk, notification_poli
 
     message = _get_fcm_message(alert_group, user, device_to_notify, critical)
     send_push_notification(device_to_notify, message, _create_error_log_record)
-
-
-# TODO: remove this in a future release
-@shared_dedicated_queue_retry_task(autoretry_for=(Exception,), retry_backoff=True, max_retries=MAX_RETRIES)
-def notify_user_async(user_pk, alert_group_pk, notification_policy_pk, critical):
-    notify_user_about_new_alert_group(user_pk, alert_group_pk, notification_policy_pk, critical)
