@@ -2,7 +2,7 @@ import dayjs from 'dayjs';
 
 import { RootStore } from 'state';
 
-import { Event, Layer, Schedule, ScheduleType, Shift, ShiftEvents } from './schedule.types';
+import { Event, Layer, Schedule, ScheduleType, Shift, ShiftEvents, ShiftSwap } from './schedule.types';
 
 export const getFromString = (moment: dayjs.Dayjs) => {
   return moment.format('YYYY-MM-DD');
@@ -18,6 +18,25 @@ const createGap = (start, end) => {
     shift: null,
     missing_users: [],
     is_empty: true,
+    calendar_type: ScheduleType.API,
+    priority_level: null,
+    source: 'web',
+    is_override: false,
+  };
+};
+
+export const createShiftSwapEventFromShiftSwap = (shiftSwap: Partial<ShiftSwap>) => {
+  return {
+    shiftSwapId: shiftSwap.id,
+    start: shiftSwap.swap_start,
+    end: shiftSwap.swap_end,
+    is_gap: false,
+    users: [],
+    all_day: false,
+    shift: null,
+    missing_users: [],
+    is_empty: true,
+    is_shift_swap: true,
     calendar_type: ScheduleType.API,
     priority_level: null,
     source: 'web',
@@ -74,7 +93,7 @@ export const getShiftsFromStore = (
     : (store.scheduleStore.events[scheduleId]?.['final']?.[getFromString(startMoment)] as any);
 };
 
-export const flattenFinalShifs = (shifts: ShiftEvents[]) => {
+export const flattenShiftEvents = (shifts: ShiftEvents[]) => {
   if (!shifts) {
     return undefined;
   }
@@ -193,6 +212,16 @@ export const getLayersFromStore = (store: RootStore, scheduleId: Schedule['id'],
     : (store.scheduleStore.events[scheduleId]?.['rotation']?.[getFromString(startMoment)] as Layer[]);
 };
 
+export const getShiftSwapsFromStore = (
+  store: RootStore,
+  scheduleId: Schedule['id'],
+  startMoment: dayjs.Dayjs
+): ShiftEvents[] => {
+  return store.scheduleStore.shiftSwapsPreview
+    ? store.scheduleStore.shiftSwapsPreview[getFromString(startMoment)]
+    : store.scheduleStore.scheduleAndDateToShiftSwaps[scheduleId]?.[getFromString(startMoment)];
+};
+
 export const getOverridesFromStore = (
   store: RootStore,
   scheduleId: Schedule['id'],
@@ -200,7 +229,7 @@ export const getOverridesFromStore = (
 ): ShiftEvents[] => {
   return store.scheduleStore.overridePreview
     ? store.scheduleStore.overridePreview[getFromString(startMoment)]
-    : (store.scheduleStore.events[scheduleId]?.['override']?.[getFromString(startMoment)] as Layer[]);
+    : (store.scheduleStore.events[scheduleId]?.['override']?.[getFromString(startMoment)] as ShiftEvents[]);
 };
 
 export const splitToLayers = (

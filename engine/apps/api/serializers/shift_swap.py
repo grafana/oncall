@@ -96,7 +96,7 @@ class ShiftSwapRequestSerializer(ShiftSwapRequestListSerializer):
         return data
 
 
-class ShiftSwapRequestExpandedUsersSerializer(BaseShiftSwapRequestListSerializer):
+class ShiftSwapRequestExpandedUsersListSerializer(BaseShiftSwapRequestListSerializer):
     beneficiary = serializers.SerializerMethodField(read_only=True)
     benefactor = serializers.SerializerMethodField(read_only=True)
 
@@ -116,3 +116,10 @@ class ShiftSwapRequestExpandedUsersSerializer(BaseShiftSwapRequestListSerializer
 
     def get_beneficiary(self, obj: ShiftSwapRequest) -> dict | None:
         return self._serialize_user(obj.beneficiary)
+
+
+class ShiftSwapRequestExpandedUsersSerializer(
+    ShiftSwapRequestExpandedUsersListSerializer,
+    ShiftSwapRequestSerializer,
+):
+    pass
