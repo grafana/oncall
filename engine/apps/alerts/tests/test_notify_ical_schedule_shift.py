@@ -104,9 +104,10 @@ def test_next_shift_notification_long_shifts(
             notify_ical_schedule_shift(ical_schedule.pk)
 
     slack_blocks = mock_slack_api_call.call_args_list[0][1]["blocks"]
-    notification = slack_blocks[0]["text"]["text"]
-    assert "*New on-call shift:*\nuser2" in notification
-    assert "*Next on-call shift:*\nuser1" in notification
+    notification = slack_blocks[1]["text"]["text"]
+    assert "*New on-call shift*\nuser2" in notification
+    notification = slack_blocks[2]["text"]["text"]
+    assert "*Next on-call shift*\nuser1" in notification
 
 
 @pytest.mark.django_db
@@ -366,7 +367,7 @@ def test_current_shift_changes_swap_split(
     with patch("apps.slack.slack_client.SlackClientWithErrorHandling.api_call") as mock_slack_api_call:
         notify_ical_schedule_shift(schedule.pk)
 
-    text_block = mock_slack_api_call.call_args_list[0][1]["blocks"][0]["text"]["text"]
+    text_block = mock_slack_api_call.call_args_list[0][1]["blocks"][1]["text"]["text"]
     assert "user2" in text_block if swap_taken else "user1" in text_block
 
 
@@ -817,9 +818,9 @@ def test_next_shift_notification_long_and_short_shifts(
         notify_ical_schedule_shift(schedule.pk)
 
     assert mock_slack_api_call.called
-    notification = mock_slack_api_call.call_args[1]["blocks"][0]["text"]["text"]
-    new_shift_notification, next_shift_notification = notification.split("\n\n")
+    new_shift_notification = mock_slack_api_call.call_args[1]["blocks"][1]["text"]["text"]
+    next_shift_notification = mock_slack_api_call.call_args[1]["blocks"][2]["text"]["text"]
 
-    assert "*New on-call shift:*\n[L1] user1" in new_shift_notification
+    assert "*New on-call shift*\n[L1] user1" in new_shift_notification
     assert "[L1] user3" in new_shift_notification
-    assert "*Next on-call shift:*\n[L1] user2" in notification
+    assert "*Next on-call shift*\n[L1] user2" in next_shift_notification
