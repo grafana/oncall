@@ -261,7 +261,7 @@ class TestSlackChannelMessageEventStep:
                     "chat.postEphemeral",
                     channel=payload["event"]["channel"],
                     user=slack_user_identity.slack_id,
-                    text=":warning: Unable to update the <{}|message> in Resolution Note: the message is too long ({}). "
+                    text=":warning: Unable to show the <{}|message> in Resolution Note: the message is too long ({}). "
                     "Max length - 2900 symbols.".format(mock_permalink, len(payload["event"]["text"])),
                 ),
             ]

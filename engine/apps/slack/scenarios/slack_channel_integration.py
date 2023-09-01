@@ -87,7 +87,7 @@ class SlackChannelMessageEventStep(scenario_step.ScenarioStep):
                 "chat.postEphemeral",
                 channel=channel,
                 user=slack_user_identity.slack_id,
-                text=":warning: Unable to update the <{}|message> in Resolution Note: the message is too long ({}). "
+                text=":warning: Unable to show the <{}|message> in Resolution Note: the message is too long ({}). "
                 "Max length - 2900 symbols.".format(permalink, len(text)),
             )
             return
