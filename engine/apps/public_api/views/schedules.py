@@ -145,7 +145,7 @@ class OnCallScheduleChannelView(RateLimitHeadersMixin, UpdateSerializerMixin, Mo
 
         datetime_start = datetime.datetime.combine(start_date, datetime.time.min, tzinfo=pytz.UTC)
         datetime_end = datetime_start + datetime.timedelta(
-            days=days_between_start_and_end - 1, hours=23, minutes=59, seconds=59
+            days=days_between_start_and_end, hours=23, minutes=59, seconds=59
         )
 
         final_schedule_events: ScheduleEvents = schedule.final_events(datetime_start, datetime_end)
@@ -158,8 +158,9 @@ class OnCallScheduleChannelView(RateLimitHeadersMixin, UpdateSerializerMixin, Mo
                 "user_pk": user["pk"],
                 "user_email": user["email"],
                 "user_username": user["display_name"],
-                "shift_start": event["start"],
-                "shift_end": event["end"],
+                # truncate shift start/end exceeding the requested period
+                "shift_start": event["start"] if event["start"] >= datetime_start else datetime_start,
+                "shift_end": event["end"] if event["end"] <= datetime_end else datetime_end,
             }
             for event in final_schedule_events
             for user in event["users"]
