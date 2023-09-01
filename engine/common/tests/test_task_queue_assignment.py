@@ -9,7 +9,6 @@ we should avoid @shared_dedicated_queue_retry_task or @shared_task and
 remove entirely if it is not needed.
 """
 COMMON_IGNORED_TASKS = {
-    "apps.mobile_app.tasks.new_alert_group.notify_user_async",
     "apps.alerts.tasks.create_contact_points_for_datasource.schedule_create_contact_points_for_datasource",
     "common.oncall_gateway.tasks.create_slack_connector_async_v2",
 }
