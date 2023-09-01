@@ -510,7 +510,7 @@ class OnCallSchedule(PolymorphicModel):
     ) -> typing.Tuple[typing.Optional[ScheduleEvent], typing.Optional[ScheduleEvent], ScheduleEvents]:
         now = timezone.now()
         datetime_end = datetime_start + datetime.timedelta(days=days)
-        user_shifts = []
+        user_shifts: ScheduleEvents = []
         current_shift = upcoming_shift = None
 
         if self.cached_ical_final_schedule is None:
