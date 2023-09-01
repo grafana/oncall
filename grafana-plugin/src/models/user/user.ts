@@ -111,35 +111,35 @@ export class UserStore extends BaseStore {
   }
 
   @action
-  async updateItems(f: any = { searchTerm: '' }, page = 1) {
-    return new Promise<void>(async (resolve) => {
-      const filters = typeof f === 'string' ? { searchTerm: f } : f; // for GSelect compatibility
-      const { searchTerm: search } = filters;
-      const { count, results } = await makeRequest(this.path, {
-        params: { search, page },
-      });
-
-      this.items = {
-        ...this.items,
-        ...results.reduce(
-          (acc: { [key: number]: User }, item: User) => ({
-            ...acc,
-            [item.pk]: {
-              ...item,
-              timezone: getTimezone(item),
-            },
-          }),
-          {}
-        ),
-      };
-
-      this.searchResult = {
-        count,
-        results: results.map((item: User) => item.pk),
-      };
-
-      resolve();
+  async updateItems(f: any = { searchTerm: '' }, page = 1): Promise<any> {
+    const filters = typeof f === 'string' ? { searchTerm: f } : f; // for GSelect compatibility
+    const { searchTerm: search } = filters;
+    const response = await makeRequest(this.path, {
+      params: { search, page },
     });
+
+    const { count, results } = response;
+
+    this.items = {
+      ...this.items,
+      ...results.reduce(
+        (acc: { [key: number]: User }, item: User) => ({
+          ...acc,
+          [item.pk]: {
+            ...item,
+            timezone: getTimezone(item),
+          },
+        }),
+        {}
+      ),
+    };
+
+    this.searchResult = {
+      count,
+      results: results.map((item: User) => item.pk),
+    };
+
+    return response;
   }
 
   getSearchResult() {

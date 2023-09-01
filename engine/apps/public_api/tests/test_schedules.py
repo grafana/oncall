@@ -1,4 +1,5 @@
 import collections
+import textwrap
 from unittest.mock import patch
 
 import pytest
@@ -17,6 +18,47 @@ from apps.schedules.models import (
 )
 
 ICAL_URL = "https://some.calendar.url"
+
+
+def assert_expected_shifts_export_response(response, users, expected_on_call_times):
+    """Check expected response data for schedule shifts export call."""
+    response_json = response.json()
+    shifts = response_json["results"]
+
+    total_time_on_call = collections.defaultdict(int)
+    pk_to_user_mapping = {
+        u.public_primary_key: {
+            "email": u.email,
+            "username": u.username,
+        }
+        for u in users
+    }
+
+    for row in shifts:
+        user_pk = row["user_pk"]
+
+        # make sure we're exporting email and username as well
+        assert pk_to_user_mapping[user_pk]["email"] == row["user_email"]
+        assert pk_to_user_mapping[user_pk]["username"] == row["user_username"]
+
+        end = timezone.datetime.fromisoformat(row["shift_end"])
+        start = timezone.datetime.fromisoformat(row["shift_start"])
+        shift_time_in_seconds = (end - start).total_seconds()
+        total_time_on_call[row["user_pk"]] += shift_time_in_seconds / (60 * 60)
+
+    for u_pk, on_call_hours in total_time_on_call.items():
+        assert on_call_hours == expected_on_call_times[u_pk]
+
+    # pagination parameters are mocked out for now
+    del response_json["results"]
+    assert response_json == {
+        "next": None,
+        "previous": None,
+        "count": len(shifts),
+        "current_page_number": 1,
+        "page_size": 50,
+        "total_pages": 1,
+    }
 
 
 @pytest.mark.django_db
@@ -783,11 +825,8 @@ def test_oncall_shifts_request_validation(
     make_schedule,
 ):
     organization, _, token = make_organization_and_user_with_token()
-    ical_schedule = make_schedule(organization, schedule_class=OnCallScheduleICal)
-    terraform_schedule = make_schedule(organization, schedule_class=OnCallScheduleCalendar)
     web_schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
 
-    schedule_type_validation_msg = "OnCall shifts exports are currently only available for web calendars"
     valid_date_msg = "Date has wrong format. Use one of these formats instead: YYYY-MM-DD."
 
     client = APIClient()
@@ -795,15 +834,6 @@ def test_oncall_shifts_request_validation(
     def _make_request(schedule, query_params=""):
         url = reverse("api-public:schedules-final-shifts", kwargs={"pk": schedule.public_primary_key})
         return client.get(f"{url}{query_params}", format="json", HTTP_AUTHORIZATION=token)
-
-    # only web schedules are allowed for now
-    response = _make_request(ical_schedule)
-    assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert response.data == schedule_type_validation_msg
-
-    response = _make_request(terraform_schedule)
-    assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert response.data == schedule_type_validation_msg
 
     # query param validation
     response = _make_request(web_schedule, "?start_date=2021-01-01")
@@ -880,47 +910,147 @@ def test_oncall_shifts_export(
 
     url = reverse("api-public:schedules-final-shifts", kwargs={"pk": schedule.public_primary_key})
     response = client.get(f"{url}?start_date=2023-01-01&end_date=2023-02-01", format="json", HTTP_AUTHORIZATION=token)
-    response_json = response.json()
-    shifts = response_json["results"]
-
-    total_time_on_call = collections.defaultdict(int)
-    pk_to_user_mapping = {
-        user1_public_primary_key: {
-            "email": user1_email,
-            "username": user1_username,
-        },
-        user2_public_primary_key: {
-            "email": user2_email,
-            "username": user2_username,
-        },
-    }
-
-    for row in shifts:
-        user_pk = row["user_pk"]
-
-        # make sure we're exporting email and username as well
-        assert pk_to_user_mapping[user_pk]["email"] == row["user_email"]
-        assert pk_to_user_mapping[user_pk]["username"] == row["user_username"]
-
-        end = timezone.datetime.fromisoformat(row["shift_end"])
-        start = timezone.datetime.fromisoformat(row["shift_start"])
-        shift_time_in_seconds = (end - start).total_seconds()
-        total_time_on_call[row["user_pk"]] += shift_time_in_seconds / (60 * 60)
-
     assert response.status_code == status.HTTP_200_OK
 
-    # 3 shifts per week x 4 weeks x 8 hours per shift = 96 / 2 users = 48h per user for this period
-    expected_time_on_call = 48
-    assert total_time_on_call[user1_public_primary_key] == expected_time_on_call
-    assert total_time_on_call[user2_public_primary_key] == expected_time_on_call
-
-    # pagination parameters are mocked out for now
-    del response_json["results"]
-    assert response_json == {
-        "next": None,
-        "previous": None,
-        "count": len(shifts),
-        "current_page_number": 1,
-        "page_size": 50,
-        "total_pages": 1,
+    expected_on_call_times = {
+        # 3 shifts per week x 4 weeks x 8 hours per shift = 96 / 2 users = 48h per user for this period
+        user1.public_primary_key: 48,
+        user2.public_primary_key: 48,
     }
+    assert_expected_shifts_export_response(response, (user1, user2), expected_on_call_times)
+
+
+@pytest.mark.django_db
+def test_oncall_shifts_export_from_ical_schedule(
+    make_organization_and_user_with_token,
+    make_user,
+    make_schedule,
+):
+    organization, _, token = make_organization_and_user_with_token()
+    user1 = make_user(organization=organization)
+    user2 = make_user(organization=organization)
+
+    ical_data = textwrap.dedent(
+        """
+        BEGIN:VCALENDAR
+        PRODID:-//Google Inc//Google Calendar 70.9054//EN
+        VERSION:2.0
+        CALSCALE:GREGORIAN
+        METHOD:PUBLISH
+        BEGIN:VEVENT
+        DTSTART:20230601T090000Z
+        DTEND:20230601T180000Z
+        RRULE:FREQ=DAILY
+        DTSTAMP:20230601T090000Z
+        UID:something@google.com
+        CREATED:20230601T090000Z
+        DESCRIPTION:
+        STATUS:CONFIRMED
+        SUMMARY:{}
+        END:VEVENT
+        BEGIN:VEVENT
+        DTSTART:20230601T180000Z
+        DTEND:20230601T210000Z
+        RRULE:FREQ=DAILY
+        DTSTAMP:20230601T090000Z
+        UID:somethingelse@google.com
+        CREATED:20230601T090000Z
+        DESCRIPTION:
+        STATUS:CONFIRMED
+        SUMMARY:{}
+        END:VEVENT
+        END:VCALENDAR
+    """.format(
+            user1.username, user2.username
+        )
+    )
+    schedule = make_schedule(organization, schedule_class=OnCallScheduleICal, cached_ical_file_primary=ical_data)
+
+    client = APIClient()
+
+    url = reverse("api-public:schedules-final-shifts", kwargs={"pk": schedule.public_primary_key})
+    response = client.get(f"{url}?start_date=2023-07-01&end_date=2023-07-31", format="json", HTTP_AUTHORIZATION=token)
+    assert response.status_code == status.HTTP_200_OK
+
+    expected_on_call_times = {
+        user1.public_primary_key: 279,  # daily 9h * 31d
+        user2.public_primary_key: 93,  # daily 3h * 31d
+    }
+    assert_expected_shifts_export_response(response, (user1, user2), expected_on_call_times)
+
+
+@pytest.mark.django_db
+def test_oncall_shifts_export_from_api_schedule(
+    make_organization_and_user_with_token,
+    make_user,
+    make_schedule,
+    make_on_call_shift,
+):
+    organization, _, token = make_organization_and_user_with_token()
+    user1 = make_user(organization=organization)
+    user2 = make_user(organization=organization)
+    schedule = make_schedule(organization, schedule_class=OnCallScheduleCalendar)
+    start_date = timezone.datetime(2023, 1, 1, 9, 0, 0, tzinfo=pytz.UTC)
+    on_call_shift = make_on_call_shift(
+        organization=organization,
+        shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT,
+        frequency=CustomOnCallShift.FREQUENCY_DAILY,
+        start=start_date,
+        rotation_start=start_date,
+        duration=timezone.timedelta(hours=2),
+        start_rotation_from_user_index=1,
+    )
+    on_call_shift.add_rolling_users([[user1], [user2]])
+    schedule.custom_on_call_shifts.add(on_call_shift)
+
+    client = APIClient()
+
+    url = reverse("api-public:schedules-final-shifts", kwargs={"pk": schedule.public_primary_key})
+    response = client.get(f"{url}?start_date=2023-07-01&end_date=2023-07-31", format="json", HTTP_AUTHORIZATION=token)
+    assert response.status_code == status.HTTP_200_OK
+
+    expected_on_call_times = {
+        user1.public_primary_key: 32,  # daily 2h * 16d
+        user2.public_primary_key: 30,  # daily 2h * 15d
+    }
+    assert_expected_shifts_export_response(response, (user1, user2), expected_on_call_times)
+
+
+@pytest.mark.django_db
+def test_oncall_shifts_export_truncate_events(
+    make_organization_and_user_with_token,
+    make_user,
+    make_schedule,
+    make_on_call_shift,
+):
+    organization, _, token = make_organization_and_user_with_token()
+    user1 = make_user(organization=organization)
+
+    user1_public_primary_key = user1.public_primary_key
+    schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
+
+    # 24h shifts starting 9am on Mo, We and Fr
+    start_date = timezone.datetime(2023, 1, 1, 9, 0, 0, tzinfo=pytz.UTC)
+    make_on_call_shift(
+        organization=organization,
+        schedule=schedule,
+        shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT,
+        frequency=CustomOnCallShift.FREQUENCY_DAILY,
+        priority_level=1,
+        interval=1,
+        by_day=["MO", "WE", "FR"],
+        start=start_date,
+        rolling_users=[{user1.pk: user1_public_primary_key}],
+        rotation_start=start_date,
+        duration=timezone.timedelta(hours=24),
+    )
+
+    client = APIClient()
+
+    # request shifts on a Tu (ie. 00:00 - 09:00)
+    url = reverse("api-public:schedules-final-shifts", kwargs={"pk": schedule.public_primary_key})
+    response = client.get(f"{url}?start_date=2023-01-03&end_date=2023-01-03", format="json", HTTP_AUTHORIZATION=token)
+    assert response.status_code == status.HTTP_200_OK
+
+    expected_on_call_times = {user1_public_primary_key: 9}
+    assert_expected_shifts_export_response(response, (user1,), expected_on_call_times)

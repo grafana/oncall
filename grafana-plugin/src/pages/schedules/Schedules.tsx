@@ -32,7 +32,7 @@ import { WithStoreProps, PageProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import LocationHelper from 'utils/LocationHelper';
 import { UserActions } from 'utils/authorization';
-import { PLUGIN_ROOT, TABLE_COLUMN_MAX_WIDTH } from 'utils/consts';
+import { PAGE, PLUGIN_ROOT, TABLE_COLUMN_MAX_WIDTH } from 'utils/consts';
 
 import styles from './Schedules.module.css';
 
@@ -153,7 +153,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
             <div className={cx('schedules__filters-container')}>
               <RemoteFilters
                 query={query}
-                page="schedules"
+                page={PAGE.Schedules}
                 grafanaTeamStore={store.grafanaTeamStore}
                 onChange={this.handleSchedulesFiltersChange}
               />
@@ -191,7 +191,6 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
         {showNewScheduleSelector && (
           <NewScheduleSelector
             onCreate={this.handleCreateSchedule}
-            onUpdate={this.update}
             onHide={() => {
               this.setState({ showNewScheduleSelector: false });
             }}
@@ -200,7 +199,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
         {scheduleIdToEdit && (
           <ScheduleForm
             id={scheduleIdToEdit}
-            onUpdate={this.update}
+            onSubmit={this.update}
             onHide={() => {
               this.setState({ scheduleIdToEdit: undefined });
             }}
@@ -370,7 +369,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
                 <PluginLink key={user.pk} query={{ page: 'users', id: user.pk }} className="table__email-content">
                   <div className={cx('schedules__user-on-call')}>
                     <div>
-                      <Avatar size="big" src={user.avatar} />
+                      <Avatar size="medium" src={user.avatar} />
                     </div>
                     <MatchMediaTooltip placement="top" content={user.username} maxWidth={TABLE_COLUMN_MAX_WIDTH}>
                       <span className="table__email-content">{user.username}</span>

@@ -36,7 +36,7 @@ import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import { openErrorNotification, openNotification } from 'utils';
 import { isUserActionAllowed, UserActions } from 'utils/authorization';
-import { PLUGIN_ROOT } from 'utils/consts';
+import { PAGE, PLUGIN_ROOT } from 'utils/consts';
 
 import styles from './OutgoingWebhooks.module.scss';
 import { WebhookFormActionType } from './OutgoingWebhooks.types';
@@ -225,7 +225,7 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
       <div className={cx('filters')}>
         <RemoteFilters
           query={query}
-          page="webhooks"
+          page={PAGE.Webhooks}
           grafanaTeamStore={store.grafanaTeamStore}
           onChange={this.handleFiltersChange}
         />

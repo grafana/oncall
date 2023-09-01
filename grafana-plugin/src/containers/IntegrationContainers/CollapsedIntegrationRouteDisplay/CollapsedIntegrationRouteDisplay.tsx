@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 
 import { ConfirmModal, HorizontalGroup, Icon, IconName } from '@grafana/ui';
 import cn from 'classnames/bind';
@@ -15,7 +15,6 @@ import { ChannelFilter } from 'models/channel_filter';
 import CommonIntegrationHelper from 'pages/integration/CommonIntegration.helper';
 import IntegrationHelper from 'pages/integration/Integration.helper';
 import { useStore } from 'state/useStore';
-import { openNotification } from 'utils';
 
 const cx = cn.bind(styles);
 
@@ -26,24 +25,39 @@ interface CollapsedIntegrationRouteDisplayProps {
   toggle: () => void;
   openEditTemplateModal: (templateName: string | string[], channelFilterId?: ChannelFilter['id']) => void;
   onEditRegexpTemplate: (channelFilterId: ChannelFilter['id']) => void;
+  onRouteDelete: (routeId: string) => void;
+  onItemMove: () => void;
 }
 
 const CollapsedIntegrationRouteDisplay: React.FC<CollapsedIntegrationRouteDisplayProps> = observer(
-  ({ channelFilterId, alertReceiveChannelId, routeIndex, toggle, openEditTemplateModal, onEditRegexpTemplate }) => {
+  ({
+    channelFilterId,
+    alertReceiveChannelId,
+    routeIndex,
+    toggle,
+    openEditTemplateModal,
+    onEditRegexpTemplate,
+    onRouteDelete,
+    onItemMove,
+  }) => {
     const store = useStore();
     const { escalationChainStore, alertReceiveChannelStore } = store;
     const [routeIdForDeletion, setRouteIdForDeletion] = useState<ChannelFilter['id']>(undefined);
 
     const channelFilter = alertReceiveChannelStore.channelFilters[channelFilterId];
+
+    const routeWording = useMemo(() => {
+      return CommonIntegrationHelper.getRouteConditionWording(
+        alertReceiveChannelStore.channelFilterIds[alertReceiveChannelId],
+        routeIndex
+      );
+    }, [routeIndex, alertReceiveChannelStore.channelFilterIds[alertReceiveChannelId]]);
+
     if (!channelFilter) {
       return null;
     }
 
     const escalationChain = escalationChainStore.items[channelFilter.escalation_chain];
-    const routeWording = CommonIntegrationHelper.getRouteConditionWording(
-      alertReceiveChannelStore.channelFilterIds[alertReceiveChannelId],
-      routeIndex
-    );
     const chatOpsAvailableChannels = IntegrationHelper.getChatOpsChannels(channelFilter, store).filter(
       (channel) => channel
     );
@@ -59,10 +73,7 @@ const CollapsedIntegrationRouteDisplay: React.FC<CollapsedIntegrationRouteDispla
               <div className={cx('heading-container__item', 'heading-container__item--large')}>
                 <TooltipBadge
                   borderType="success"
-                  text={CommonIntegrationHelper.getRouteConditionWording(
-                    alertReceiveChannelStore.channelFilterIds[alertReceiveChannelId],
-                    routeIndex
-                  )}
+                  text={routeWording}
                   tooltipTitle={CommonIntegrationHelper.getRouteConditionTooltipWording(
                     alertReceiveChannelStore.channelFilterIds[alertReceiveChannelId],
                     routeIndex
@@ -93,6 +104,7 @@ const CollapsedIntegrationRouteDisplay: React.FC<CollapsedIntegrationRouteDispla
                   alertReceiveChannelId={alertReceiveChannelId}
                   channelFilterId={channelFilterId}
                   routeIndex={routeIndex}
+                  onItemMove={onItemMove}
                   setRouteIdForDeletion={() => setRouteIdForDeletion(channelFilterId)}
                   openRouteTemplateEditor={() => handleEditRoutingTemplate(channelFilter, channelFilterId)}
                 />
@@ -179,8 +191,7 @@ const CollapsedIntegrationRouteDisplay: React.FC<CollapsedIntegrationRouteDispla
 
     async function onRouteDeleteConfirm() {
       setRouteIdForDeletion(undefined);
-      await alertReceiveChannelStore.deleteChannelFilter(routeIdForDeletion);
-      openNotification('Route has been deleted');
+      onRouteDelete(routeIdForDeletion);
     }
   }
 );

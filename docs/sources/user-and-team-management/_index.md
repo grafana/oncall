@@ -27,8 +27,6 @@ organization administrator. There are three available roles: `Viewer`, `Editor`,
 
 ### Role-based access control (RBAC)
 
-<!-- markdownlint-disable MD033 -->
-
 <div style="position: relative; padding-bottom: 56.25%; height: 0;">
   <iframe
     src="https://www.loom.com/embed/bcc472b2a22f40bdb62baf2a85cf1532?sid=e5160621-ca5b-4a60-9d31-a6ecac4a35f8"
@@ -39,8 +37,6 @@ organization administrator. There are three available roles: `Viewer`, `Editor`,
     style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"
   /></iframe>
 </div>
-
-<!-- markdownlint-enable MD033 -->
 
 RBAC for Grafana plugins allows for fine-grained access control so you can define custom roles and actions for users in Grafana OnCall. Use RBAC to grant
 specific permissions within the Grafana OnCall plugin without changing the user’s basic role at the organization level. You can fine-tune basic roles to add or

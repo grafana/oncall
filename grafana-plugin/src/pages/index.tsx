@@ -98,14 +98,6 @@ export const pages: { [id: string]: PageDefinition } = [
     action: UserActions.ChatOpsRead,
   },
   {
-    icon: 'wrench',
-    id: 'maintenance',
-    text: 'Maintenance',
-    hideFromBreadcrumbs: true,
-    path: getPath('maintenance'),
-    action: UserActions.MaintenanceRead,
-  },
-  {
     icon: 'cog',
     id: 'settings',
     text: 'Settings',
@@ -169,7 +161,6 @@ export const ROUTES = {
   schedules: ['schedules'],
   schedule: ['schedules/:id'],
   outgoing_webhooks: ['outgoing_webhooks', 'outgoing_webhooks/:id', 'outgoing_webhooks/:action/:id'],
-  maintenance: ['maintenance'],
   settings: ['settings'],
   'chat-ops': ['chat-ops'],
   'live-settings': ['live-settings'],

@@ -3,12 +3,14 @@ import React, { useEffect, useState } from 'react';
 import { Icon, IconButton, IconName } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { isArray, isUndefined } from 'lodash-es';
+import { observer } from 'mobx-react';
 
 import styles from './IntegrationCollapsibleTreeView.module.scss';
 
 const cx = cn.bind(styles);
 
 export interface IntegrationCollapsibleItem {
+  isHidden?: boolean;
   customIcon?: IconName;
   canHoverIcon: boolean;
   collapsedView: (toggle?: () => void) => React.ReactNode; // needs toggle param for toggling on click
@@ -22,7 +24,7 @@ interface IntegrationCollapsibleTreeViewProps {
   configElements: Array<IntegrationCollapsibleItem | IntegrationCollapsibleItem[]>;
 }
 
-const IntegrationCollapsibleTreeView: React.FC<IntegrationCollapsibleTreeViewProps> = (props) => {
+const IntegrationCollapsibleTreeView: React.FC<IntegrationCollapsibleTreeViewProps> = observer((props) => {
   const { configElements } = props;
 
   const [expandedList, setExpandedList] = useState(getStartingExpandedState());
@@ -97,7 +99,7 @@ const IntegrationCollapsibleTreeView: React.FC<IntegrationCollapsibleTreeViewPro
       })
     );
   }
-};
+});
 
 const IntegrationCollapsibleTreeItem: React.FC<{
   item: IntegrationCollapsibleItem;
@@ -107,7 +109,7 @@ const IntegrationCollapsibleTreeItem: React.FC<{
   const iconOnClickFn = !item.isCollapsible ? undefined : onClick;
 
   return (
-    <div className={cx('integrationTree__group')}>
+    <div className={cx('integrationTree__group', { 'integrationTree__group--hidden': item.isHidden })}>
       <div className={cx('integrationTree__icon')}>
         {item.canHoverIcon ? (
           <IconButton name={getIconName()} onClick={iconOnClickFn} size="lg" />

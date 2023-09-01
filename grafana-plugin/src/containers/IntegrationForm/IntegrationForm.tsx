@@ -46,14 +46,14 @@ interface IntegrationFormProps {
   id: AlertReceiveChannel['id'] | 'new';
   isTableView?: boolean;
   onHide: () => void;
-  onUpdate: () => void;
+  onSubmit: () => Promise<void>;
 }
 
 const IntegrationForm = observer((props: IntegrationFormProps) => {
   const store = useStore();
   const history = useHistory();
 
-  const { id, onHide, onUpdate, isTableView = true } = props;
+  const { id, onHide, onSubmit, isTableView = true } = props;
   const {
     alertReceiveChannelStore,
     userStore: { currentUser: user },
@@ -63,7 +63,7 @@ const IntegrationForm = observer((props: IntegrationFormProps) => {
   const [showNewIntegrationForm, setShowNewIntegrationForm] = useState(false);
   const [selectedOption, setSelectedOption] = useState<AlertReceiveChannelOption>(undefined);
   const [showIntegrarionsListDrawer, setShowIntegrarionsListDrawer] = useState(id === 'new');
-  const [allContactPoints, setAllContactPoints] = useState(undefined);
+  const [allContactPoints, setAllContactPoints] = useState([]);
 
   useEffect(() => {
     (async function () {
@@ -93,7 +93,7 @@ const IntegrationForm = observer((props: IntegrationFormProps) => {
 
   const extraGFormProps: { customFieldSectionRenderer?: React.FC<CustomFieldSectionRendererProps> } = {};
 
-  if (selectedOption && IntegrationHelper.isGrafanaAlerting(selectedOption.value)) {
+  if (selectedOption && IntegrationHelper.isSpecificIntegration(selectedOption.value, 'grafana_alerting')) {
     extraGFormProps.customFieldSectionRenderer = CustomFieldSectionRenderer;
   }
 
@@ -160,7 +160,7 @@ const IntegrationForm = observer((props: IntegrationFormProps) => {
     </>
   );
 
-  function handleSubmit(data) {
+  async function handleSubmit(data): Promise<void> {
     const { alert_manager, contact_point, is_existing: isExisting } = data;
 
     const matchingAlertManager = allContactPoints.find((cp) => cp.uid === alert_manager);
@@ -175,19 +175,37 @@ const IntegrationForm = observer((props: IntegrationFormProps) => {
       return;
     }
 
-    (id === 'new' ? createNewIntegration() : alertReceiveChannelStore.update(id, data)).then(() => {
-      onHide();
-      onUpdate();
-    });
+    let apiResponseData: void | AlertReceiveChannel;
+    const isCreate = id === 'new';
 
-    function createNewIntegration(): Promise<void> {
-      let promise = alertReceiveChannelStore.create(data);
+    if (isCreate) {
+      apiResponseData = await createNewIntegration();
+    } else {
+      apiResponseData = await alertReceiveChannelStore.update(id, data);
+    }
+
+    if (!apiResponseData) {
+      openErrorNotification(
+        `There was an issue ${isCreate ? 'creating' : 'updating'} the integration. Please try again.`
+      );
+      return;
+    }
+
+    await onSubmit();
+    onHide();
+
+    function createNewIntegration(): Promise<void | AlertReceiveChannel> {
+      let promise = alertReceiveChannelStore.create<AlertReceiveChannel>(data);
 
       const pushHistory = (id) => history.push(`${PLUGIN_ROOT}/integrations/${id}`);
 
       promise
         .then((response) => {
-          if (!IntegrationHelper.isGrafanaAlerting(selectedOption.value)) {
+          if (!response) {
+            return;
+          }
+
+          if (!IntegrationHelper.isSpecificIntegration(selectedOption.value, 'grafana_alerting')) {
             return pushHistory(response.id);
           }
 

@@ -13,7 +13,7 @@ import {
   Alert,
 } from '@grafana/ui';
 import cn from 'classnames/bind';
-import { get, noop } from 'lodash-es';
+import { get } from 'lodash-es';
 import { observer } from 'mobx-react';
 import CopyToClipboard from 'react-copy-to-clipboard';
 import Emoji from 'react-emoji-render';
@@ -112,7 +112,7 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
       this.openEditTemplateModal(query.template, query.routeId && query.routeId);
     }
 
-    await this.loadIntegration();
+    await this.loadData();
   }
 
   render() {
@@ -127,7 +127,7 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
     } = this.state;
     const {
       store: { alertReceiveChannelStore },
-      query: { p },
+      query,
       match: {
         params: { id },
       },
@@ -181,7 +181,7 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
             )}
 
             <div className={cx('integration__heading-container')}>
-              <PluginLink query={{ page: 'integrations', p }} className={cx('back-arrow')}>
+              <PluginLink query={{ page: 'integrations', ...query }} className={cx('back-arrow')}>
                 <IconButton name="arrow-left" size="xl" />
               </PluginLink>
               <h2 className={cx('integration__name')}>
@@ -200,7 +200,7 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
               {this.renderDescriptionMaybe(alertReceiveChannel)}
 
               {/* MobX seems to have issues updating contact points if we don't reference it here */}
-              {!contactPoints?.length && this.renderContactPointsWarningMaybe(alertReceiveChannel)}
+              {contactPoints && contactPoints.length === 0 && this.renderContactPointsWarningMaybe(alertReceiveChannel)}
 
               <div className={cx('no-wrap')}>
                 <IntegrationHeader
@@ -286,7 +286,7 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
                   To ensure a smooth transition you can migrate now using "Migrate" button in the menu on the right.
                 </Text>
                 <Text type="secondary">
-                  Please, check{' '}
+                  Please check out the{' '}
                   <a
                     href={`https://grafana.com/docs/oncall/latest/integrations/${getIntegrationName()}`}
                     target="_blank"
@@ -325,7 +325,7 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
   }
 
   renderContactPointsWarningMaybe(alertReceiveChannel: AlertReceiveChannel) {
-    if (IntegrationHelper.isGrafanaAlerting(alertReceiveChannel)) {
+    if (IntegrationHelper.isSpecificIntegration(alertReceiveChannel, 'grafana_alerting')) {
       return (
         <div className={cx('u-padding-top-md')}>
           <Alert
@@ -356,9 +356,14 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
     } = this.props;
 
     const alertReceiveChannel = alertReceiveChannelStore.items[id];
+    const contactPoints = alertReceiveChannelStore.connectedContactPoints[id];
+
+    const isAlerting = IntegrationHelper.isSpecificIntegration(alertReceiveChannel, 'grafana_alerting');
+    const isLegacyAlerting = IntegrationHelper.isSpecificIntegration(alertReceiveChannel, 'legacy_grafana_alerting');
 
     return [
-      IntegrationHelper.isGrafanaAlerting(alertReceiveChannel) && {
+      (isAlerting || isLegacyAlerting) && {
+        isHidden: isLegacyAlerting || contactPoints === null || contactPoints === undefined,
         isCollapsible: false,
         customIcon: 'grafana',
         canHoverIcon: false,
@@ -482,7 +487,7 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
   };
 
   handleAddNewRoute = () => {
-    const { alertReceiveChannelStore, escalationPolicyStore } = this.props.store;
+    const { alertReceiveChannelStore } = this.props.store;
     const {
       params: { id },
     } = this.props.match;
@@ -499,12 +504,16 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
             filtering_term_type: 1, // non-regex
           })
           .then(async (channelFilter: ChannelFilter) => {
-            this.setState((prevState) => ({
-              isAddingRoute: false,
-              openRoutes: prevState.openRoutes.concat(channelFilter.id),
-            }));
-            await alertReceiveChannelStore.updateChannelFilters(id, true);
-            await escalationPolicyStore.updateEscalationPolicies(channelFilter.escalation_chain);
+            await alertReceiveChannelStore.updateChannelFilters(id);
+
+            this.setState(
+              (prevState) => ({
+                isAddingRoute: false,
+                openRoutes: prevState.openRoutes.concat(channelFilter.id),
+              }),
+              () => this.forceUpdate()
+            );
+
             openNotification('A new route has been added');
           })
           .catch((err) => {
@@ -530,7 +539,12 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
     const templates = alertReceiveChannelStore.templates[id];
     const channelFilterIds = alertReceiveChannelStore.channelFilterIds[id];
 
-    return channelFilterIds.map(
+    const onRouteDelete = async (routeId: string) => {
+      await alertReceiveChannelStore.deleteChannelFilter(routeId).then(() => this.forceUpdate());
+      openNotification('Route has been deleted');
+    };
+
+    return (channelFilterIds || []).map(
       (channelFilterId: ChannelFilter['id'], routeIndex: number) =>
         ({
           canHoverIcon: true,
@@ -550,8 +564,10 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
               channelFilterId={channelFilterId}
               routeIndex={routeIndex}
               toggle={toggle}
+              onItemMove={() => this.forceUpdate()}
               openEditTemplateModal={this.openEditTemplateModal}
               onEditRegexpTemplate={this.handleEditRegexpRouteTemplate}
+              onRouteDelete={onRouteDelete}
             />
           ),
           expandedView: () => (
@@ -562,6 +578,8 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
               templates={templates}
               openEditTemplateModal={this.openEditTemplateModal}
               onEditRegexpTemplate={this.handleEditRegexpRouteTemplate}
+              onItemMove={() => this.forceUpdate()}
+              onRouteDelete={onRouteDelete}
             />
           ),
         } as IntegrationCollapsibleItem)
@@ -655,7 +673,7 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
     alertReceiveChannelStore.deleteAlertReceiveChannel(id).then(() => history.push(`${PLUGIN_ROOT}/integrations/`));
   };
 
-  async loadIntegration() {
+  async loadData() {
     const {
       store,
       store: { alertReceiveChannelStore },
@@ -668,12 +686,9 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
     const promises = [];
 
     if (!alertReceiveChannelStore.items[id]) {
-      // See what happens if the request fails
-      promises.push(alertReceiveChannelStore.loadItem(id));
-    }
-
-    if (!alertReceiveChannelStore.counters[id]) {
-      promises.push(alertReceiveChannelStore.updateCounters());
+      promises.push(alertReceiveChannelStore.loadItem(id).then(() => this.loadExtraData(id)));
+    } else {
+      promises.push(this.loadExtraData(id));
     }
 
     if (!alertReceiveChannelStore.channelFilterIds[id]) {
@@ -681,12 +696,8 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
     }
 
     promises.push(alertReceiveChannelStore.updateTemplates(id));
-
     promises.push(IntegrationHelper.fetchChatOps(store));
-
-    // skip checking for grafana alerting so that we don't wait for the first request to complete
-    // at the cost of getting a failed network request for all other types other than alerting
-    promises.push(alertReceiveChannelStore.updateConnectedContactPoints(id).catch(noop));
+    promises.push(alertReceiveChannelStore.updateCountersForIntegration(id));
 
     await Promise.all(promises)
       .catch(() => {
@@ -696,6 +707,17 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
         }
       })
       .finally(() => this.setState({ isLoading: false }));
+  }
+
+  async loadExtraData(id: AlertReceiveChannel['id']) {
+    const { alertReceiveChannelStore } = this.props.store;
+
+    if (IntegrationHelper.isSpecificIntegration(alertReceiveChannelStore.items[id], 'grafana_alerting')) {
+      // this will be delayed and not awaitable so that we don't delay the whole page load
+      return await alertReceiveChannelStore.updateConnectedContactPoints(id);
+    }
+
+    return Promise.resolve();
   }
 }
 
@@ -763,7 +785,7 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
         <IntegrationForm
           isTableView={false}
           onHide={() => setIsIntegrationSettingsOpen(false)}
-          onUpdate={() => alertReceiveChannelStore.updateItem(alertReceiveChannel['id'])}
+          onSubmit={() => alertReceiveChannelStore.updateItem(alertReceiveChannel['id'])}
           id={alertReceiveChannel['id']}
         />
       )}

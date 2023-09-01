@@ -55,6 +55,7 @@ module.exports = {
      * https://github.com/jsx-eslint/eslint-plugin-react/issues/3325
      */
     'react/prop-types': 'off',
+    'react/no-unused-prop-types': 'off',
     'react/jsx-key': 'warn',
     'react/jsx-no-target-blank': 'warn',
     'react/no-unescaped-entities': 'off',

@@ -28,7 +28,7 @@ import { FiltersValues } from 'models/filters/filters.types';
 import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import { UserActions } from 'utils/authorization';
-import { PLUGIN_ROOT } from 'utils/consts';
+import { PAGE, PLUGIN_ROOT } from 'utils/consts';
 
 import styles from './EscalationChains.module.css';
 
@@ -216,7 +216,7 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
                     modeToShowEscalationChainForm: undefined,
                   });
                 }}
-                onUpdate={this.handleEscalationChainCreate}
+                onSubmit={this.handleEscalationChainCreate}
               />
             )}
           </>
@@ -231,7 +231,7 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
       <div className={cx('filters')}>
         <RemoteFilters
           query={query}
-          page="escalation_chains"
+          page={PAGE.Escalations}
           grafanaTeamStore={store.grafanaTeamStore}
           onChange={this.handleFiltersChange}
         />

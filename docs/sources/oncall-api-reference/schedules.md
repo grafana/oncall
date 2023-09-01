@@ -312,8 +312,10 @@ Some notes on the `start_date` and `end_date` query parameters:
 - `end_date` must be greater than or equal to `start_date`
 - `end_date` cannot be more than 365 days in the future from `start_date`
 
-Lastly, this endpoint is currently only active for web schedules. It will return HTTP 400 for schedules
-defined via Terraform or iCal.
+>**Note**: you can update schedules affecting past events, which will then
+change the output you get from this endpoint. To get consistent information about past shifts
+you must be sure to avoid updating rotations in-place but apply the changes as new rotations
+with the right starting dates.
 
 ## Example script to transform data to .csv for all of your schedules
 

@@ -3,18 +3,15 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from apps.alerts.models import CustomButton
+from apps.webhooks.models import Webhook
 
 
 @pytest.mark.django_db
-def test_get_custom_actions(
-    make_organization_and_user_with_token,
-    make_custom_action,
-):
+def test_get_custom_actions(make_organization_and_user_with_token, make_custom_webhook):
     organization, user, token = make_organization_and_user_with_token()
     client = APIClient()
 
-    custom_action = make_custom_action(organization=organization)
+    custom_action = make_custom_webhook(organization=organization)
 
     url = reverse("api-public:actions-list")
 
@@ -29,12 +26,18 @@ def test_get_custom_actions(
                 "id": custom_action.public_primary_key,
                 "name": custom_action.name,
                 "team_id": None,
-                "url": custom_action.webhook,
+                "url": custom_action.url,
                 "data": custom_action.data,
                 "user": custom_action.user,
                 "password": custom_action.password,
                 "authorization_header": custom_action.authorization_header,
-                "forward_whole_payload": custom_action.forward_whole_payload,
+                "forward_whole_payload": custom_action.forward_all,
+                "is_webhook_enabled": custom_action.is_webhook_enabled,
+                "trigger_template": custom_action.trigger_template,
+                "headers": custom_action.headers,
+                "http_method": custom_action.http_method,
+                "trigger_type": Webhook.PUBLIC_TRIGGER_TYPES_MAP[custom_action.trigger_type],
+                "integration_filter": custom_action.integration_filter,
             }
         ],
         "current_page_number": 1,
@@ -49,13 +52,13 @@ def test_get_custom_actions(
 @pytest.mark.django_db
 def test_get_custom_actions_filter_by_name(
     make_organization_and_user_with_token,
-    make_custom_action,
+    make_custom_webhook,
 ):
     organization, user, token = make_organization_and_user_with_token()
     client = APIClient()
 
-    custom_action = make_custom_action(organization=organization)
-    make_custom_action(organization=organization)
+    custom_action = make_custom_webhook(organization=organization)
+    make_custom_webhook(organization=organization)
     url = reverse("api-public:actions-list")
 
     response = client.get(f"{url}?name={custom_action.name}", format="json", HTTP_AUTHORIZATION=f"{token}")
@@ -69,12 +72,18 @@ def test_get_custom_actions_filter_by_name(
                 "id": custom_action.public_primary_key,
                 "name": custom_action.name,
                 "team_id": None,
-                "url": custom_action.webhook,
+                "url": custom_action.url,
                 "data": custom_action.data,
-                "user": custom_action.user,
+                "user": custom_action.username,
                 "password": custom_action.password,
                 "authorization_header": custom_action.authorization_header,
-                "forward_whole_payload": custom_action.forward_whole_payload,
+                "forward_whole_payload": custom_action.forward_all,
+                "is_webhook_enabled": custom_action.is_webhook_enabled,
+                "trigger_template": custom_action.trigger_template,
+                "headers": custom_action.headers,
+                "http_method": custom_action.http_method,
+                "trigger_type": Webhook.PUBLIC_TRIGGER_TYPES_MAP[custom_action.trigger_type],
+                "integration_filter": custom_action.integration_filter,
             }
         ],
         "current_page_number": 1,
@@ -89,12 +98,12 @@ def test_get_custom_actions_filter_by_name(
 @pytest.mark.django_db
 def test_get_custom_actions_filter_by_name_empty_result(
     make_organization_and_user_with_token,
-    make_custom_action,
+    make_custom_webhook,
 ):
     organization, user, token = make_organization_and_user_with_token()
     client = APIClient()
 
-    make_custom_action(organization=organization)
+    make_custom_webhook(organization=organization)
 
     url = reverse("api-public:actions-list")
 
@@ -117,12 +126,12 @@ def test_get_custom_actions_filter_by_name_empty_result(
 @pytest.mark.django_db
 def test_get_custom_action(
     make_organization_and_user_with_token,
-    make_custom_action,
+    make_custom_webhook,
 ):
     organization, user, token = make_organization_and_user_with_token()
     client = APIClient()
 
-    custom_action = make_custom_action(organization=organization)
+    custom_action = make_custom_webhook(organization=organization)
 
     url = reverse("api-public:actions-detail", kwargs={"pk": custom_action.public_primary_key})
 
@@ -132,12 +141,18 @@ def test_get_custom_action(
         "id": custom_action.public_primary_key,
         "name": custom_action.name,
         "team_id": None,
-        "url": custom_action.webhook,
+        "url": custom_action.url,
         "data": custom_action.data,
-        "user": custom_action.user,
+        "user": custom_action.username,
         "password": custom_action.password,
         "authorization_header": custom_action.authorization_header,
-        "forward_whole_payload": custom_action.forward_whole_payload,
+        "forward_whole_payload": custom_action.forward_all,
+        "is_webhook_enabled": custom_action.is_webhook_enabled,
+        "trigger_template": custom_action.trigger_template,
+        "headers": custom_action.headers,
+        "http_method": custom_action.http_method,
+        "trigger_type": Webhook.PUBLIC_TRIGGER_TYPES_MAP[custom_action.trigger_type],
+        "integration_filter": custom_action.integration_filter,
     }
 
     assert response.status_code == status.HTTP_200_OK
@@ -158,18 +173,24 @@ def test_create_custom_action(make_organization_and_user_with_token):
 
     response = client.post(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
 
-    custom_action = CustomButton.objects.get(public_primary_key=response.data["id"])
+    custom_action = Webhook.objects.get(public_primary_key=response.data["id"])
 
     expected_result = {
         "id": custom_action.public_primary_key,
         "name": custom_action.name,
         "team_id": None,
-        "url": custom_action.webhook,
+        "url": custom_action.url,
         "data": custom_action.data,
-        "user": custom_action.user,
+        "user": custom_action.username,
         "password": custom_action.password,
         "authorization_header": custom_action.authorization_header,
-        "forward_whole_payload": custom_action.forward_whole_payload,
+        "forward_whole_payload": custom_action.forward_all,
+        "is_webhook_enabled": custom_action.is_webhook_enabled,
+        "trigger_template": custom_action.trigger_template,
+        "headers": custom_action.headers,
+        "http_method": custom_action.http_method,
+        "trigger_type": Webhook.PUBLIC_TRIGGER_TYPES_MAP[custom_action.trigger_type],
+        "integration_filter": custom_action.integration_filter,
     }
 
     assert response.status_code == status.HTTP_201_CREATED
@@ -195,18 +216,24 @@ def test_create_custom_action_nested_data(make_organization_and_user_with_token)
 
     response = client.post(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
 
-    custom_action = CustomButton.objects.get(public_primary_key=response.data["id"])
+    custom_action = Webhook.objects.get(public_primary_key=response.data["id"])
 
     expected_result = {
         "id": custom_action.public_primary_key,
         "name": custom_action.name,
         "team_id": None,
-        "url": custom_action.webhook,
+        "url": custom_action.url,
         "data": custom_action.data,
-        "user": custom_action.user,
+        "user": custom_action.username,
         "password": custom_action.password,
         "authorization_header": custom_action.authorization_header,
-        "forward_whole_payload": custom_action.forward_whole_payload,
+        "forward_whole_payload": custom_action.forward_all,
+        "is_webhook_enabled": custom_action.is_webhook_enabled,
+        "trigger_template": custom_action.trigger_template,
+        "headers": custom_action.headers,
+        "http_method": custom_action.http_method,
+        "trigger_type": Webhook.PUBLIC_TRIGGER_TYPES_MAP[custom_action.trigger_type],
+        "integration_filter": custom_action.integration_filter,
     }
 
     assert response.status_code == status.HTTP_201_CREATED
@@ -232,18 +259,24 @@ def test_create_custom_action_valid_after_render(make_organization_and_user_with
 
     response = client.post(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
 
-    custom_action = CustomButton.objects.get(public_primary_key=response.data["id"])
+    custom_action = Webhook.objects.get(public_primary_key=response.data["id"])
 
     expected_result = {
         "id": custom_action.public_primary_key,
         "name": custom_action.name,
         "team_id": None,
-        "url": custom_action.webhook,
+        "url": custom_action.url,
         "data": custom_action.data,
-        "user": custom_action.user,
+        "user": custom_action.username,
         "password": custom_action.password,
         "authorization_header": custom_action.authorization_header,
-        "forward_whole_payload": custom_action.forward_whole_payload,
+        "forward_whole_payload": custom_action.forward_all,
+        "is_webhook_enabled": custom_action.is_webhook_enabled,
+        "trigger_template": custom_action.trigger_template,
+        "headers": custom_action.headers,
+        "http_method": custom_action.http_method,
+        "trigger_type": Webhook.PUBLIC_TRIGGER_TYPES_MAP[custom_action.trigger_type],
+        "integration_filter": custom_action.integration_filter,
     }
 
     assert response.status_code == status.HTTP_201_CREATED
@@ -269,18 +302,24 @@ def test_create_custom_action_valid_after_render_use_all_data(make_organization_
 
     response = client.post(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
 
-    custom_action = CustomButton.objects.get(public_primary_key=response.data["id"])
+    custom_action = Webhook.objects.get(public_primary_key=response.data["id"])
 
     expected_result = {
         "id": custom_action.public_primary_key,
         "name": custom_action.name,
         "team_id": None,
-        "url": custom_action.webhook,
+        "url": custom_action.url,
         "data": custom_action.data,
-        "user": custom_action.user,
+        "user": custom_action.username,
         "password": custom_action.password,
         "authorization_header": custom_action.authorization_header,
-        "forward_whole_payload": custom_action.forward_whole_payload,
+        "forward_whole_payload": custom_action.forward_all,
+        "is_webhook_enabled": custom_action.is_webhook_enabled,
+        "trigger_template": custom_action.trigger_template,
+        "headers": custom_action.headers,
+        "http_method": custom_action.http_method,
+        "trigger_type": Webhook.PUBLIC_TRIGGER_TYPES_MAP[custom_action.trigger_type],
+        "integration_filter": custom_action.integration_filter,
     }
 
     assert response.status_code == status.HTTP_201_CREATED
@@ -288,75 +327,14 @@ def test_create_custom_action_valid_after_render_use_all_data(make_organization_
 
 
 @pytest.mark.django_db
-def test_create_custom_action_invalid_data(
-    make_organization_and_user_with_token,
-):
-    organization, user, token = make_organization_and_user_with_token()
-    client = APIClient()
-
-    url = reverse("api-public:actions-list")
-
-    data = {
-        "name": "Test outgoing webhook",
-        "url": "invalid_url",
-    }
-
-    response = client.post(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
-
-    assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert response.data["url"][0] == "URL is incorrect"
-
-    data = {
-        "name": "Test outgoing webhook",
-    }
-
-    response = client.post(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
-
-    assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert response.data["url"][0] == "This field is required."
-
-    data = {
-        "url": "https://example.com",
-    }
-
-    response = client.post(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
-
-    assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert response.data["name"][0] == "This field is required."
-
-    data = {
-        "name": "Test outgoing webhook",
-        "url": "https://example.com",
-        "data": "invalid_json",
-    }
-
-    response = client.post(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
-
-    assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert response.data["data"][0] == "Data has incorrect format"
-
-    data = {
-        "name": "Test outgoing webhook",
-        "url": "https://example.com",
-        # This would need a `| tojson` or some double quotes around it to pass validation.
-        "data": "{{ alert_payload.name }}",
-    }
-
-    response = client.post(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
-
-    assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert response.data["data"][0] == "Data has incorrect format"
-
-
-@pytest.mark.django_db
 def test_update_custom_action(
     make_organization_and_user_with_token,
-    make_custom_action,
+    make_custom_webhook,
 ):
     organization, user, token = make_organization_and_user_with_token()
     client = APIClient()
 
-    custom_action = make_custom_action(organization=organization)
+    custom_action = make_custom_webhook(organization=organization)
 
     url = reverse("api-public:actions-detail", kwargs={"pk": custom_action.public_primary_key})
 
@@ -372,12 +350,18 @@ def test_update_custom_action(
         "id": custom_action.public_primary_key,
         "name": data["name"],
         "team_id": None,
-        "url": custom_action.webhook,
+        "url": custom_action.url,
         "data": custom_action.data,
-        "user": custom_action.user,
+        "user": custom_action.username,
         "password": custom_action.password,
         "authorization_header": custom_action.authorization_header,
-        "forward_whole_payload": custom_action.forward_whole_payload,
+        "forward_whole_payload": custom_action.forward_all,
+        "is_webhook_enabled": custom_action.is_webhook_enabled,
+        "trigger_template": custom_action.trigger_template,
+        "headers": custom_action.headers,
+        "http_method": custom_action.http_method,
+        "trigger_type": Webhook.PUBLIC_TRIGGER_TYPES_MAP[custom_action.trigger_type],
+        "integration_filter": custom_action.integration_filter,
     }
 
     assert response.status_code == status.HTTP_200_OK
@@ -389,12 +373,12 @@ def test_update_custom_action(
 @pytest.mark.django_db
 def test_delete_custom_action(
     make_organization_and_user_with_token,
-    make_custom_action,
+    make_custom_webhook,
 ):
     organization, user, token = make_organization_and_user_with_token()
     client = APIClient()
 
-    custom_action = make_custom_action(organization=organization)
+    custom_action = make_custom_webhook(organization=organization)
     url = reverse("api-public:actions-detail", kwargs={"pk": custom_action.public_primary_key})
 
     assert custom_action.deleted_at is None

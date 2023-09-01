@@ -40,7 +40,7 @@
           "showLineNumbers": false,
           "showMiniMap": false
         },
-        "content": "<div>\n  <img src=\"https://ops.grafana-ops.net/public/plugins/grafana-oncall-app/assets/img/logo.svg\">\n</div>",
+        "content": "<div>\n  <img src=\"/public/plugins/grafana-oncall-app/assets/img/logo.svg\">\n</div>",
         "mode": "html"
       },
       "pluginVersion": "9.5.2",
@@ -79,7 +79,7 @@
         "uid": "${datasource}"
       },
       "gridPos": {
-        "h": 2,
+        "h": 3,
         "w": 24,
         "x": 0,
         "y": 2
@@ -91,7 +91,7 @@
           "showLineNumbers": false,
           "showMiniMap": false
         },
-        "content": "📣 This is a read-only dashboard. To make a copy, click \"Settings\" and \"Save as\".",
+        "content": "📣 This is a read-only dashboard. To make a copy, click \"Settings\" and \"Save as\".\n\n📝 If you see *\"No data\"* errors, check the right datasource is selected\nand that you have already used and setup the [OnCall](/a/grafana-oncall-app/alert-groups) plugin.\nYou can also try [re-importing the dashboard](/plugins/grafana-oncall-app?page=dashboards)\nto confirm you have the latest updates. If you just copied the dashboard,\nyou may need to reload it.",
         "mode": "markdown"
       },
       "pluginVersion": "9.5.2",
@@ -104,7 +104,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 4
+        "y": 5
       },
       "id": 19,
       "panels": [],
@@ -152,7 +152,7 @@
         "h": 7,
         "w": 5,
         "x": 0,
-        "y": 5
+        "y": 6
       },
       "id": 25,
       "options": {
@@ -263,7 +263,7 @@
         "h": 7,
         "w": 6,
         "x": 5,
-        "y": 5
+        "y": 6
       },
       "id": 1,
       "options": {
@@ -363,7 +363,7 @@
         "h": 7,
         "w": 5,
         "x": 11,
-        "y": 5
+        "y": 6
       },
       "id": 29,
       "options": {
@@ -446,7 +446,7 @@
         "h": 7,
         "w": 4,
         "x": 16,
-        "y": 5
+        "y": 6
       },
       "id": 14,
       "options": {
@@ -531,7 +531,7 @@
         "h": 7,
         "w": 4,
         "x": 20,
-        "y": 5
+        "y": 6
       },
       "id": 32,
       "options": {
@@ -648,7 +648,7 @@
         "h": 10,
         "w": 24,
         "x": 0,
-        "y": 12
+        "y": 13
       },
       "id": 24,
       "options": {
@@ -762,7 +762,7 @@
         "h": 9,
         "w": 24,
         "x": 0,
-        "y": 22
+        "y": 23
       },
       "id": 34,
       "options": {
@@ -802,7 +802,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 31
+        "y": 32
       },
       "id": 11,
       "panels": [],
@@ -866,7 +866,7 @@
         "h": 23,
         "w": 12,
         "x": 0,
-        "y": 32
+        "y": 33
       },
       "id": 20,
       "options": {
@@ -982,7 +982,7 @@
         "h": 23,
         "w": 12,
         "x": 12,
-        "y": 32
+        "y": 33
       },
       "id": 21,
       "options": {
@@ -1052,7 +1052,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 55
+        "y": 56
       },
       "id": 38,
       "panels": [],
@@ -1142,7 +1142,7 @@
         "h": 10,
         "w": 24,
         "x": 0,
-        "y": 56
+        "y": 57
       },
       "id": 36,
       "options": {
@@ -1236,7 +1236,7 @@
         "h": 11,
         "w": 12,
         "x": 0,
-        "y": 66
+        "y": 67
       },
       "id": 35,
       "options": {
@@ -1349,7 +1349,7 @@
         "h": 11,
         "w": 12,
         "x": 12,
-        "y": 66
+        "y": 67
       },
       "id": 37,
       "options": {
@@ -1411,7 +1411,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 77
+        "y": 78
       },
       "id": 12,
       "panels": [],
@@ -1475,7 +1475,7 @@
         "h": 11,
         "w": 12,
         "x": 0,
-        "y": 78
+        "y": 79
       },
       "id": 22,
       "options": {
@@ -1591,7 +1591,7 @@
         "h": 11,
         "w": 12,
         "x": 12,
-        "y": 78
+        "y": 79
       },
       "id": 23,
       "options": {
@@ -1878,7 +1878,7 @@
     "time_options": ["5m", "15m", "1h", "6h", "12h", "24h", "2d", "7d", "30d"]
   },
   "timezone": "browser",
-  "title": "OnCall Metrics",
-  "version": 1,
+  "title": "OnCall Insights",
+  "version": 2,
   "weekStart": ""
 }

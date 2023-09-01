@@ -3,6 +3,7 @@ import re
 from urllib.parse import urlparse
 
 import phonenumbers
+from django.conf import settings
 from phonenumbers import NumberParseException
 from telegram import Bot
 from twilio.base.exceptions import TwilioException
@@ -137,6 +138,9 @@ class LiveSettingValidator:
 
     @classmethod
     def _check_telegram_webhook_host(cls, telegram_webhook_host):
+        if settings.FEATURE_TELEGRAM_LONG_POLLING_ENABLED:
+            return
+
         try:
             # avoid circular import
             from apps.telegram.client import TelegramClient

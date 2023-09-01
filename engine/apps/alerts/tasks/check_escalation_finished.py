@@ -60,9 +60,13 @@ def audit_alert_group_escalation(alert_group: "AlertGroup") -> None:
     )
 
     if escalation_snapshot.next_step_eta_is_valid() is False:
-        raise AlertGroupEscalationPolicyExecutionAuditException(
+        msg = (
             f"{base_msg}'s escalation snapshot does not have a valid next_step_eta: {escalation_snapshot.next_step_eta}"
         )
+
+        task_logger.warning(msg)
+        raise AlertGroupEscalationPolicyExecutionAuditException(msg)
+
     task_logger.info(f"{base_msg}'s escalation snapshot has a valid next_step_eta: {escalation_snapshot.next_step_eta}")
 
     executed_escalation_policy_snapshots = escalation_snapshot.executed_escalation_policy_snapshots
@@ -77,40 +81,23 @@ def audit_alert_group_escalation(alert_group: "AlertGroup") -> None:
             f"{base_msg}'s escalation snapshot has {num_of_executed_escalation_policy_snapshots} executed escalation policies"
         )
 
-    # TODO: consider adding the below checks later on. This is it a bit trickier to properly audit as the
-    # number of log records can vary if there are any STEP_NOTIFY_IF_NUM_ALERTS_IN_TIME_WINDOW or
-    # STEP_REPEAT_ESCALATION_N_TIMES escalation policy steps in the escalation chain
-    # see conversations in the original PR (https://github.com/grafana/oncall/pull/1266) for more context on this
-    #
-    # compare number of triggered/failed alert group log records to the number of executed
-    # escalation policy snapshot steps
-    # num_of_relevant_log_records = AlertGroupLogRecord.objects.filter(
-    #     alert_group_id=alert_group_id,
-    #     type__in=[AlertGroupLogRecord.TYPE_ESCALATION_TRIGGERED, AlertGroupLogRecord.TYPE_ESCALATION_FAILED],
-    # ).count()
-
-    # if num_of_relevant_log_records < num_of_executed_escalation_policy_snapshots:
-    #     raise AlertGroupEscalationPolicyExecutionAuditException(
-    #         f"{base_msg}'s number of triggered/failed alert group log records ({num_of_relevant_log_records}) is less "
-    #         f"than the number of executed escalation policy snapshot steps ({num_of_executed_escalation_policy_snapshots})"
-    #     )
-
-    # task_logger.info(
-    #     f"{base_msg}'s number of triggered/failed alert group log records ({num_of_relevant_log_records}) is greater "
-    #     f"than or equal to the number of executed escalation policy snapshot steps ({num_of_executed_escalation_policy_snapshots})"
-    # )
-
     task_logger.info(f"{base_msg} passed the audit checks")
 
 
 @shared_task
 def check_escalation_finished_task() -> None:
     """
-    don't retry this task, the idea is to be alerted of failures
+    This task takes alert groups with active escalation, checks if escalation snapshot with escalation policies
+    was created and next escalation step eta is higher than now minus 5 min for every active alert group,
+    what means that escalations are going as expected.
+    If there are alert groups that failed the check, it raises exception. Otherwise - send heartbeat. Missing heartbeat
+    raises alert.
+
+    Attention: don't retry this task, the idea is to be alerted of failures
     """
     from apps.alerts.models import AlertGroup
 
-    now = timezone.now()
+    now = timezone.now() - datetime.timedelta(minutes=5)
     two_days_ago = now - datetime.timedelta(days=2)
 
     alert_groups = AlertGroup.objects.using(get_random_readonly_database_key_if_present_otherwise_default()).filter(

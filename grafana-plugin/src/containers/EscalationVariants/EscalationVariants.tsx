@@ -189,7 +189,7 @@ const UserResponder = ({ important, data, onImportantChange, handleDelete }) => 
       <HorizontalGroup justify="space-between">
         <HorizontalGroup>
           <div className={cx('timeline-icon-background', { 'timeline-icon-background--green': true })}>
-            <Avatar size="big" src={data?.avatar} />
+            <Avatar size="medium" src={data?.avatar} />
           </div>
           <Text className={cx('responder-name')}>{data?.username}</Text>
           {data.notification_chain_verbal.default || data.notification_chain_verbal.important ? (
