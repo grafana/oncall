@@ -82,6 +82,16 @@ class SlackChannelMessageEventStep(scenario_step.ScenarioStep):
         if result["permalink"] is not None:
             permalink = result["permalink"]
 
+        if len(text) > 2900:
+            self._slack_client.api_call(
+                "chat.postEphemeral",
+                channel=channel,
+                user=slack_user_identity.slack_id,
+                text=":warning: Unable to update the <{}|message> in Resolution Note: the message is too long ({}). "
+                "Max length - 2900 symbols.".format(permalink, len(text)),
+            )
+            return
+
         slack_thread_message, created = ResolutionNoteSlackMessage.objects.get_or_create(
             ts=message_ts,
             thread_ts=thread_ts,
@@ -94,17 +104,6 @@ class SlackChannelMessageEventStep(scenario_step.ScenarioStep):
                 "permalink": permalink,
             },
         )
-
-        if len(text) > 2900:
-            if created or slack_thread_message.added_to_resolution_note:
-                self._slack_client.api_call(
-                    "chat.postEphemeral",
-                    channel=channel,
-                    user=slack_user_identity.slack_id,
-                    text=":warning: Unable to update the <{}|message> in Resolution Note: the message is too long ({}). "
-                    "Max length - 2900 symbols.".format(permalink, len(text)),
-                )
-            return
 
         if not created:
             slack_thread_message.text = text
