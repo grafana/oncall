@@ -437,3 +437,36 @@ class TestSlackChannelMessageEventStep:
             ).count()
             == 0
         )
+
+    def test_slack_message_has_no_alert_group(
+        self,
+        make_organization_and_user_with_slack_identities,
+        make_slack_message,
+    ) -> None:
+        """Thread messages for SlackMessage instances without alert_group set (e.g., SSR Slack messages)"""
+        (
+            organization,
+            user,
+            slack_team_identity,
+            slack_user_identity,
+        ) = make_organization_and_user_with_slack_identities()
+
+        channel = "potato"
+        ts = 88945.4849
+        thread_ts = 16789.123
+
+        payload = {
+            "event": {
+                "channel": channel,
+                "ts": ts,
+                "thread_ts": thread_ts,
+                "text": "hello",
+            },
+        }
+
+        make_slack_message(alert_group=None, organization=organization, slack_id=thread_ts, channel_id=channel)
+
+        step = SlackChannelMessageEventStep(slack_team_identity, organization, user)
+        step.process_scenario(slack_user_identity, slack_team_identity, payload)
+
+        assert not ResolutionNoteSlackMessage.objects.exists()

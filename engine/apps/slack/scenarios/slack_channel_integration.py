@@ -1,6 +1,8 @@
 import logging
 import typing
 
+from django.core.exceptions import ObjectDoesNotExist
+
 from apps.slack.scenarios import scenario_step
 from apps.slack.types import EventPayload, EventType, MessageEventSubtype, PayloadType, ScenarioRoute
 
@@ -71,7 +73,11 @@ class SlackChannelMessageEventStep(scenario_step.ScenarioStep):
         except SlackMessage.DoesNotExist:
             return
 
-        alert_group = slack_message.get_alert_group()
+        try:
+            alert_group = slack_message.get_alert_group()
+        except ObjectDoesNotExist:
+            # SlackMessage instances without alert_group set (e.g., SSR Slack messages)
+            return
 
         result = self._slack_client.api_call(
             "chat.getPermalink",
