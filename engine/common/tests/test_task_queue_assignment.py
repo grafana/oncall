@@ -10,7 +10,6 @@ remove entirely if it is not needed.
 """
 COMMON_IGNORED_TASKS = {
     "apps.alerts.tasks.create_contact_points_for_datasource.schedule_create_contact_points_for_datasource",
-    "common.oncall_gateway.tasks.create_slack_connector_async_v2",
 }
 
 
