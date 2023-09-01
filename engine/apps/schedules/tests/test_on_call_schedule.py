@@ -1571,7 +1571,7 @@ def test_user_related_schedules_only_username(
 
 
 @pytest.mark.django_db
-def test_upcoming_shift_for_user(
+def test_shifts_for_user_only_closest(
     make_organization,
     make_user_for_organization,
     make_schedule,
@@ -1586,7 +1586,8 @@ def test_upcoming_shift_for_user(
         # user, priority, start time (h), duration (seconds)
         (admin, 1, 0, (24 * 60 * 60) - 1),  # r1-1: 0-23:59:59
     )
-    today = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    now = timezone.now()
+    today = now.replace(hour=0, minute=0, second=0, microsecond=0)
     for user, priority, start_h, duration in shifts:
         data = {
             "start": today + timezone.timedelta(hours=start_h),
@@ -1603,12 +1604,12 @@ def test_upcoming_shift_for_user(
     schedule.refresh_ical_file()
     schedule.refresh_ical_final_schedule()
 
-    current_shift, upcoming_shift = schedule.upcoming_shift_for_user(admin)
+    current_shift, upcoming_shift, _ = schedule.shifts_for_user(admin, now, only_closest=True)
     assert current_shift is not None and current_shift["start"] == on_call_shift.start
     next_shift_start = on_call_shift.start + timezone.timedelta(days=1)
     assert upcoming_shift is not None and upcoming_shift["start"] == next_shift_start
 
-    current_shift, upcoming_shift = schedule.upcoming_shift_for_user(other_user)
+    current_shift, upcoming_shift, _ = schedule.shifts_for_user(other_user, now, only_closest=True)
     assert current_shift is None
     assert upcoming_shift is None
 
@@ -2555,7 +2556,7 @@ def test_filter_events_ical_duplicated_uid(make_organization, make_user_for_orga
 
 
 @pytest.mark.django_db
-def test_user_events_with_oncall_status(
+def test_shifts_for_user(
     make_organization,
     make_user_for_organization,
     make_schedule,
@@ -2568,7 +2569,7 @@ def test_user_events_with_oncall_status(
 
     today = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
     start_date = today - timezone.timedelta(days=2)
-    end_date = start_date + timezone.timedelta(days=7)
+    days = 7
 
     data = {
         "start": start_date + timezone.timedelta(hours=10),
@@ -2599,16 +2600,17 @@ def test_user_events_with_oncall_status(
 
     schedule.refresh_ical_final_schedule()
 
-    events, is_oncall = schedule.user_events_with_oncall_status(start_date, end_date, current_user)
-    assert len(events) == 7  # counts only shifts with current_user
-    assert is_oncall is True
-    for event in events:
-        users = {u["pk"] for u in event["users"]}
+    current_shift, upcoming_shift, shifts = schedule.shifts_for_user(current_user, start_date, days)
+    assert len(shifts) == 7  # counts only shifts with current_user
+    assert current_shift is not None
+    assert upcoming_shift is not None
+    for shift in shifts:
+        users = {u["pk"] for u in shift["users"]}
         assert current_user.public_primary_key in users
 
 
 @pytest.mark.django_db
-def test_user_events_with_oncall_status_not_oncall(
+def test_shifts_for_user_not_oncall(
     make_organization,
     make_user_for_organization,
     make_schedule,
@@ -2622,7 +2624,7 @@ def test_user_events_with_oncall_status_not_oncall(
     now = timezone.now()
     today = now.replace(hour=0, minute=0, second=0, microsecond=0)
     start_date = today - timezone.timedelta(days=2)
-    end_date = start_date + timezone.timedelta(days=7)
+    days = 7
 
     data = {
         "start": now + timezone.timedelta(hours=1),
@@ -2653,16 +2655,17 @@ def test_user_events_with_oncall_status_not_oncall(
 
     schedule.refresh_ical_final_schedule()
 
-    events, is_oncall = schedule.user_events_with_oncall_status(start_date, end_date, current_user)
-    assert len(events) == 5  # counts only shifts with current_user
-    assert is_oncall is False
-    for event in events:
-        users = {u["pk"] for u in event["users"]}
+    current_shift, upcoming_shift, shifts = schedule.shifts_for_user(current_user, start_date, days)
+    assert len(shifts) == 5  # counts only shifts with current_user
+    assert current_shift is None
+    assert upcoming_shift is not None
+    for shift in shifts:
+        users = {u["pk"] for u in shift["users"]}
         assert current_user.public_primary_key in users
 
 
 @pytest.mark.django_db
-def test_user_events_with_oncall_status_no_events(
+def test_shifts_for_user_no_events(
     make_organization,
     make_user_for_organization,
     make_schedule,
@@ -2676,7 +2679,7 @@ def test_user_events_with_oncall_status_no_events(
     now = timezone.now()
     today = now.replace(hour=0, minute=0, second=0, microsecond=0)
     start_date = today - timezone.timedelta(days=2)
-    end_date = start_date + timezone.timedelta(days=7)
+    days = 7
 
     # shift with another user
     data = {
@@ -2694,13 +2697,14 @@ def test_user_events_with_oncall_status_no_events(
 
     schedule.refresh_ical_final_schedule()
 
-    events, is_oncall = schedule.user_events_with_oncall_status(start_date, end_date, current_user)
+    current_shift, upcoming_shift, events = schedule.shifts_for_user(current_user, start_date, days)
     assert len(events) == 0  # no events with current_user
-    assert is_oncall is False
+    assert current_shift is None
+    assert upcoming_shift is None
 
 
 @pytest.mark.django_db
-def test_user_events_with_oncall_status_without_final_ical(
+def test_shifts_for_user_without_final_ical(
     make_organization,
     make_user_for_organization,
     make_schedule,
@@ -2712,8 +2716,9 @@ def test_user_events_with_oncall_status_without_final_ical(
 
     today = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
     start_date = today - timezone.timedelta(days=2)
-    end_date = start_date + timezone.timedelta(days=7)
+    days = 7
 
-    events, is_oncall = schedule.user_events_with_oncall_status(start_date, end_date, user)
+    current_shift, upcoming_shift, events = schedule.shifts_for_user(user, start_date, days)
     assert len(events) == 0
-    assert is_oncall is False
+    assert current_shift is None
+    assert upcoming_shift is None

@@ -505,58 +505,32 @@ class OnCallSchedule(PolymorphicModel):
         self.cached_ical_final_schedule = ical_data
         self.save(update_fields=["cached_ical_final_schedule"])
 
-    def upcoming_shift_for_user(self, user, days=7):
+    def shifts_for_user(
+        self, user: User, datetime_start: datetime.datetime, days: int = 7, only_closest: bool = False
+    ) -> typing.Tuple[typing.Optional[ScheduleEvent], typing.Optional[ScheduleEvent], ScheduleEvents]:
         now = timezone.now()
-        # consider an extra day before to include events from UTC yesterday
-        datetime_start = now - datetime.timedelta(days=1)
         datetime_end = datetime_start + datetime.timedelta(days=days)
-
+        user_shifts = []
         current_shift = upcoming_shift = None
 
         if self.cached_ical_final_schedule is None:
             # no final schedule info available
-            return None, None
+            return current_shift, upcoming_shift, user_shifts
 
         events = self.filter_events(datetime_start, datetime_end, all_day_datetime=True, from_cached_final=True)
-        for e in events:
-            if e["end"] < now:
-                # shift is finished, ignore
-                continue
-            users = {u["pk"] for u in e["users"]}
-            if user.public_primary_key in users:
-                if e["start"] < now and e["end"] > now:
-                    # shift is in progress
-                    current_shift = e
-                    continue
-                upcoming_shift = e
-                break
-
-        return current_shift, upcoming_shift
-
-    def user_events_with_oncall_status(
-        self, datetime_start: datetime.datetime, datetime_end: datetime.datetime, user: User
-    ) -> typing.Tuple[ScheduleEvents, bool]:
-        now = timezone.now()
-        is_oncall_now = False
-
-        if self.cached_ical_final_schedule is None:
-            # no final schedule info available
-            return [], False
-
-        events = self.filter_events(
-            datetime_start,
-            datetime_end,
-            all_day_datetime=True,
-            from_cached_final=True,
-        )
-        user_events = []
+        events.sort(key=lambda e: e["start"])
         for event in events:
             users = {u["pk"] for u in event["users"]}
             if user.public_primary_key in users:
-                user_events.append(event)
+                user_shifts.append(event)
                 if event["start"] <= now < event["end"]:
-                    is_oncall_now = True
-        return user_events, is_oncall_now
+                    current_shift = event
+                    continue
+                upcoming_shift = event
+                if only_closest:
+                    break
+
+        return current_shift, upcoming_shift, user_shifts
 
     def quality_report(self, date: typing.Optional[datetime.datetime], days: typing.Optional[int]) -> QualityReport:
         """

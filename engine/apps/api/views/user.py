@@ -5,6 +5,7 @@ from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.utils import IntegrityError
 from django.urls import reverse
+from django.utils import timezone
 from django_filters import rest_framework as filters
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
@@ -577,13 +578,16 @@ class UserView(
         if days <= 0 or days > UPCOMING_SHIFTS_MAX_DAYS:
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
+        now = timezone.now()
         # filter user-related schedules
         schedules = OnCallSchedule.objects.related_to_user(user)
 
         # check upcoming shifts
         upcoming = []
         for schedule in schedules:
-            current_shift, upcoming_shift = schedule.upcoming_shift_for_user(user, days=days)
+            current_shift, upcoming_shift, _ = schedule.shifts_for_user(
+                user, datetime_start=now, days=days, only_closest=True
+            )
             if current_shift or upcoming_shift:
                 upcoming.append(
                     {

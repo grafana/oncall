@@ -412,22 +412,21 @@ class ScheduleView(
         user_tz, starting_date, days = get_date_range_from_request(self.request)
         pytz_tz = pytz.timezone(user_tz)
         datetime_start = datetime.datetime.combine(starting_date, datetime.time.min, tzinfo=pytz_tz)
-        datetime_end = datetime_start + datetime.timedelta(days=days)
 
         schedules = OnCallSchedule.objects.related_to_user(self.request.user)
         schedules_events = []
         is_oncall = False
         for schedule in schedules:
-            user_events, is_oncall_now = schedule.user_events_with_oncall_status(
-                datetime_start, datetime_end, self.request.user
+            current_shift, _, user_shifts = schedule.shifts_for_user(
+                user=self.request.user, datetime_start=datetime_start, days=days
             )
-            if user_events:
+            if user_shifts:
                 schedules_events.append(
-                    {"schedule_id": schedule.public_primary_key, "schedule_name": schedule.name, "events": user_events}
+                    {"id": schedule.public_primary_key, "name": schedule.name, "events": user_shifts}
                 )
-                if is_oncall_now:
-                    is_oncall = is_oncall_now
-        result = {"schedules_events": schedules_events, "is_oncall": is_oncall}
+                if current_shift and not is_oncall:
+                    is_oncall = True
+        result = {"schedules": schedules_events, "is_oncall": is_oncall}
         return Response(result, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=["get"])
