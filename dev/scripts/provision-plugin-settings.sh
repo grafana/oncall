@@ -57,6 +57,10 @@ API_KEY=$(curl -s -X POST \
         ${BASE_URL}/api/serviceaccounts/${SERVICE_ACCOUNT_ID}/tokens \
         | jq -r ".key")
 
+if [ -z "$API_KEY" ] || [ "$API_KEY" == "null" ]; then
+  echo "Failed to generate API_KEY"
+  exit 1
+fi
 echo $API_KEY >| .last-api-key
 
 ONCALL_TOKEN=$(curl -s -X POST \
@@ -64,6 +68,11 @@ ONCALL_TOKEN=$(curl -s -X POST \
         -H "X-Instance-Context: { \"grafana_token\": \"${API_KEY}\" }" \
         ${ENGINE_URL}/api/internal/v1/plugin/self-hosted/install \
         | jq -r ".onCallToken")
+
+if [ -z "$ONCALL_TOKEN" ] || [ "$ONCALL_TOKEN" == "null" ]; then
+  echo "Failed to generate ONCALL_TOKEN"
+  exit 1
+fi
 
 # Get existing plugin settings to merge with our new settings
 curl -s -X GET \
