@@ -73,7 +73,7 @@ export const Root = observer((props: AppRootProps) => {
   const [basicDataLoaded, setBasicDataLoaded] = useState(false);
 
   useEffect(() => {
-    runQueuedUpdateData();
+    runQueuedUpdateData(0);
   }, []);
 
   const location = useLocation();
@@ -202,12 +202,16 @@ export const Root = observer((props: AppRootProps) => {
     </DefaultPageLayout>
   );
 
-  async function runQueuedUpdateData() {
+  async function runQueuedUpdateData(attemptCount: number) {
+    if (attemptCount === 10) {
+      return;
+    }
+
     try {
       await store.updateBasicData();
       setBasicDataLoaded(true);
     } catch {
-      setTimeout(runQueuedUpdateData, 1000);
+      setTimeout(() => runQueuedUpdateData(attemptCount + 1), 1000);
     }
   }
 });
