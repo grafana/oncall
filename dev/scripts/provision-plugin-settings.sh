@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # This script provisions plugin settings. If the plugin config changes
 # this will need to be updated
+set -x
 
 GRAFANA_USERNAME=${GRAFANA_ADMIN_USER_PASS:-oncall}
 GRAFANA_PASSWORD=${GRAFANA_ADMIN_USER_PASS:-oncall}
