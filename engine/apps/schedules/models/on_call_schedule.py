@@ -506,31 +506,31 @@ class OnCallSchedule(PolymorphicModel):
         self.save(update_fields=["cached_ical_final_schedule"])
 
     def shifts_for_user(
-        self, user: User, datetime_start: datetime.datetime, days: int = 7, only_closest: bool = False
-    ) -> typing.Tuple[typing.Optional[ScheduleEvent], typing.Optional[ScheduleEvent], ScheduleEvents]:
+        self, user: User, datetime_start: datetime.datetime, days: int = 7
+    ) -> typing.Tuple[ScheduleEvents, ScheduleEvents, ScheduleEvents]:
         now = timezone.now()
         datetime_end = datetime_start + datetime.timedelta(days=days)
-        user_shifts: ScheduleEvents = []
-        current_shift = upcoming_shift = None
+        passed_shifts: ScheduleEvents = []
+        current_shifts: ScheduleEvents = []
+        upcoming_shifts: ScheduleEvents = []
 
         if self.cached_ical_final_schedule is None:
             # no final schedule info available
-            return current_shift, upcoming_shift, user_shifts
+            return passed_shifts, current_shifts, upcoming_shifts
 
         events = self.filter_events(datetime_start, datetime_end, all_day_datetime=True, from_cached_final=True)
         events.sort(key=lambda e: e["start"])
         for event in events:
             users = {u["pk"] for u in event["users"]}
             if user.public_primary_key in users:
-                user_shifts.append(event)
-                if event["start"] <= now < event["end"]:
-                    current_shift = event
-                    continue
-                upcoming_shift = event
-                if only_closest:
-                    break
+                if event["end"] <= now:
+                    passed_shifts.append(event)
+                elif event["start"] <= now < event["end"]:
+                    current_shifts.append(event)
+                else:
+                    upcoming_shifts.append(event)
 
-        return current_shift, upcoming_shift, user_shifts
+        return passed_shifts, current_shifts, upcoming_shifts
 
     def quality_report(self, date: typing.Optional[datetime.datetime], days: typing.Optional[int]) -> QualityReport:
         """

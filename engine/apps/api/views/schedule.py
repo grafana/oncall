@@ -417,14 +417,15 @@ class ScheduleView(
         schedules_events = []
         is_oncall = False
         for schedule in schedules:
-            current_shift, _, user_shifts = schedule.shifts_for_user(
+            passed_shifts, current_shifts, upcoming_shifts = schedule.shifts_for_user(
                 user=self.request.user, datetime_start=datetime_start, days=days
             )
-            if user_shifts:
+            all_shifts = passed_shifts + current_shifts + upcoming_shifts
+            if all_shifts:
                 schedules_events.append(
-                    {"id": schedule.public_primary_key, "name": schedule.name, "events": user_shifts}
+                    {"id": schedule.public_primary_key, "name": schedule.name, "events": all_shifts}
                 )
-                if current_shift and not is_oncall:
+                if current_shifts and not is_oncall:
                     is_oncall = True
         result = {"schedules": schedules_events, "is_oncall": is_oncall}
         return Response(result, status=status.HTTP_200_OK)

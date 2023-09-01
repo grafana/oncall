@@ -585,17 +585,15 @@ class UserView(
         # check upcoming shifts
         upcoming = []
         for schedule in schedules:
-            current_shift, upcoming_shift, _ = schedule.shifts_for_user(
-                user, datetime_start=now, days=days, only_closest=True
-            )
-            if current_shift or upcoming_shift:
+            _, current_shifts, upcoming_shifts = schedule.shifts_for_user(user, datetime_start=now, days=days)
+            if current_shifts or upcoming_shifts:
                 upcoming.append(
                     {
                         "schedule_id": schedule.public_primary_key,
                         "schedule_name": schedule.name,
-                        "is_oncall": current_shift is not None,
-                        "current_shift": current_shift,
-                        "next_shift": upcoming_shift,
+                        "is_oncall": len(current_shifts) > 0,
+                        "current_shift": current_shifts[0] if current_shifts else None,
+                        "next_shift": upcoming_shifts[0] if upcoming_shifts else None,
                     }
                 )
 
