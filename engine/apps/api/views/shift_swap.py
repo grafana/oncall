@@ -8,7 +8,12 @@ from rest_framework.serializers import BaseSerializer
 from rest_framework.viewsets import ModelViewSet
 
 from apps.api.permissions import AuthenticatedRequest, IsOwner, RBACPermission
-from apps.api.serializers.shift_swap import ShiftSwapRequestListSerializer, ShiftSwapRequestSerializer
+from apps.api.serializers.shift_swap import (
+    ShiftSwapRequestExpandedUsersListSerializer,
+    ShiftSwapRequestExpandedUsersSerializer,
+    ShiftSwapRequestListSerializer,
+    ShiftSwapRequestSerializer,
+)
 from apps.auth_token.auth import PluginAuthentication
 from apps.mobile_app.auth import MobileAppAuthTokenAuthentication
 from apps.schedules import exceptions
@@ -50,6 +55,13 @@ class BaseShiftSwapViewSet(ModelViewSet):
         return ShiftSwapRequestSerializer(shift_swap).data
 
     def get_serializer_class(self):
+        if self.request.query_params.get("expand_users", "false") == "true":
+            # return detailed benefactor/beneficiary user information
+            return (
+                ShiftSwapRequestExpandedUsersListSerializer
+                if self.action == "list"
+                else ShiftSwapRequestExpandedUsersSerializer
+            )
         return ShiftSwapRequestListSerializer if self.action == "list" else super().get_serializer_class()
 
     def get_queryset(self):
