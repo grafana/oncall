@@ -311,9 +311,8 @@ def perform_notification(log_record_pk):
                 return
 
             retry_timeout_hours = 1
-            slack_message = alert_group.slack_message
-            if slack_message is not None:
-                slack_message.send_slack_notification(user, alert_group, notification_policy)
+            if alert_group.slack_message:
+                alert_group.slack_message.send_slack_notification(user, alert_group, notification_policy)
                 task_logger.debug(f"Finished send_slack_notification for alert_group {alert_group.pk}.")
             # check how much time has passed since log record was created
             # to prevent eternal loop of restarting perform_notification task

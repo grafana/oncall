@@ -76,17 +76,13 @@ class AlertGroupSlackService:
         if alert_group.channel.is_rate_limited_in_slack:
             return
 
-        from apps.slack.models import SlackMessage
-
-        slack_message = alert_group.slack_message
-        channel_id = slack_message.channel_id
         try:
             result = self._slack_client.api_call(
                 "chat.postMessage",
-                channel=channel_id,
+                channel=alert_group.slack_message.channel_id,
+                thread_ts=alert_group.slack_message.slack_id,
                 text=text,
                 attachments=attachments,
-                thread_ts=slack_message.slack_id,
                 mrkdwn=mrkdwn,
                 unfurl_links=unfurl_links,
             )
@@ -118,10 +114,9 @@ class AlertGroupSlackService:
             else:
                 raise e
         else:
-            SlackMessage(
+            alert_group.slack_messages.create(
                 slack_id=result["ts"],
+                channel_id=alert_group.slack_message.channel_id,
                 organization=alert_group.channel.organization,
                 _slack_team_identity=self.slack_team_identity,
-                channel_id=channel_id,
-                alert_group=alert_group,
-            ).save()
+            )
