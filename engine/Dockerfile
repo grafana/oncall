@@ -17,6 +17,8 @@ RUN apk add bash \
 
 WORKDIR /etc/app
 COPY ./requirements.txt ./
+COPY ./pip/cache ./pip/cache
+RUN if uname -m | grep -q "aarch64" ; then pip install pip/cache/grpcio-1.57.0-cp311-cp311-linux_aarch64.whl ; else echo "skip"  ; fi
 RUN pip install --upgrade pip
 RUN pip install --upgrade setuptools wheel
 RUN pip install -r requirements.txt
