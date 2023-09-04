@@ -1,7 +1,18 @@
 import React, { useEffect, useReducer } from 'react';
 
 import { SelectableValue } from '@grafana/data';
-import { Button, Drawer, HorizontalGroup, Icon, IconButton, Select, Tooltip, VerticalGroup } from '@grafana/ui';
+import {
+  Button,
+  Drawer,
+  HorizontalGroup,
+  Icon,
+  IconButton,
+  Input,
+  RadioButtonGroup,
+  Select,
+  Tooltip,
+  VerticalGroup,
+} from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
@@ -22,6 +33,7 @@ interface IntegrationContactPointState {
   isLoading: boolean;
   isDrawerOpen: boolean;
   isConnectOpen: boolean;
+  isExistingContactPoint: boolean;
   allContactPoints: Array<{ name: string; uid: string; contact_points: string[] }>;
 
   // dropdown selected values
@@ -49,6 +61,7 @@ const IntegrationContactPoint: React.FC<{
       selectedAlertManager,
       selectedContactPoint,
       isConnectOpen,
+      isExistingContactPoint,
     },
     setState,
   ] = useReducer(
@@ -59,6 +72,7 @@ const IntegrationContactPoint: React.FC<{
     {
       isLoading: false,
       isDrawerOpen: false,
+      isExistingContactPoint: true,
       contactPointOptions: [],
       dataSourceOptions: [],
       allContactPoints: [],
@@ -77,6 +91,17 @@ const IntegrationContactPoint: React.FC<{
       });
     })();
   }, []);
+
+  const radioOptions = [
+    {
+      label: 'Connect existing Contact point',
+      value: 'existing',
+    },
+    {
+      label: 'Create a new one',
+      value: 'new',
+    },
+  ];
 
   return (
     <IntegrationBlock
@@ -100,14 +125,31 @@ const IntegrationContactPoint: React.FC<{
                       className={cx('contactpoints__connect-toggler')}
                       onClick={() => setState({ isConnectOpen: !isConnectOpen })}
                     >
-                      <HorizontalGroup spacing="xs">
-                        <Text type="primary">Connect existing contact point</Text>
+                      <HorizontalGroup justify="space-between">
+                        <HorizontalGroup spacing="xs" align="center">
+                          <Text type="primary">Grafana Alerting Contact point</Text>
+                          <Icon name="info-circle" className={cx('extra-fields__icon')} />
+                        </HorizontalGroup>
+
                         {isConnectOpen ? <Icon name="arrow-down" /> : <Icon name="arrow-right" />}
                       </HorizontalGroup>
                     </div>
 
                     {isConnectOpen && (
                       <VerticalGroup spacing="md">
+                        <RadioButtonGroup
+                          options={radioOptions}
+                          value={isExistingContactPoint ? 'existing' : 'new'}
+                          onChange={(radioValue) => {
+                            setState({
+                              isExistingContactPoint: radioValue === 'existing',
+                              contactPointOptions: [],
+                              selectedAlertManager: null,
+                              selectedContactPoint: null,
+                            });
+                          }}
+                        />
+
                         <Select
                           options={dataSourceOptions}
                           onChange={onAlertManagerChange}
@@ -115,12 +157,23 @@ const IntegrationContactPoint: React.FC<{
                           placeholder="Select Alert Manager"
                         />
 
-                        <Select
-                          options={contactPointOptions}
-                          onChange={onContactPointChange}
-                          value={selectedContactPoint}
-                          placeholder="Select Contact Point"
-                        />
+                        {isExistingContactPoint ? (
+                          <Select
+                            options={contactPointOptions}
+                            onChange={onContactPointChange}
+                            value={selectedContactPoint}
+                            placeholder="Select Contact Point"
+                          />
+                        ) : (
+                          <Input
+                            value={selectedContactPoint}
+                            placeholder="Choose Contact Point"
+                            onChange={({ target }) => {
+                              const value = (target as HTMLInputElement).value;
+                              setState({ selectedContactPoint: value });
+                            }}
+                          />
+                        )}
 
                         <HorizontalGroup align="center">
                           <Button
@@ -139,19 +192,6 @@ const IntegrationContactPoint: React.FC<{
                     )}
                   </VerticalGroup>
                 </div>
-
-                <Text type="secondary">
-                  If you didn't find relevant Alerting Contact point, you can{' '}
-                  <a
-                    className={cx('link-flex')}
-                    href={`${window.location.origin}/alerting/notifications`}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    <Text type="link">create a new one</Text>
-                    <Icon name="external-link-alt" />
-                  </a>
-                </Text>
               </div>
             </Drawer>
           )}
@@ -286,8 +326,11 @@ const IntegrationContactPoint: React.FC<{
 
   function onContactPointConnect() {
     setState({ isLoading: true });
-    alertReceiveChannelStore
-      .connectContactPoint(id, selectedAlertManager, selectedContactPoint)
+
+    (isExistingContactPoint
+      ? alertReceiveChannelStore.connectContactPoint(id, selectedAlertManager, selectedContactPoint)
+      : alertReceiveChannelStore.createContactPoint(id, selectedAlertManager, selectedContactPoint)
+    )
       .then(() => {
         closeDrawer();
         openNotification('A new contact point has been connected to your integration');
