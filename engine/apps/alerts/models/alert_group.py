@@ -1787,7 +1787,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
 
     @property
     def slack_channel_id(self) -> str | None:
-        if self.channel.organization.slack_team_identity is None:
+        if not self.channel.organization.slack_team_identity:
             return None
 
         if self.slack_message:
