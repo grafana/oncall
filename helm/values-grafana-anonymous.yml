@@ -1,6 +1,0 @@
-# Allow admin login without creds. Use at your own risk!
-grafana:
-  grafana.ini:
-    auth.anonymous:
-      enabled: true
-      org_role: Admin

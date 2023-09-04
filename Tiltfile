@@ -38,7 +38,6 @@ docker_build(
 )
 
 # Build the plugin in the background
-# docker_compose('grafana-plugin/docker-compose-dev.yaml')
 local_resource('build-ui',
 				labels=['OnCallUI'],
 				cmd='cd grafana-plugin && yarn install && yarn build:dev',
