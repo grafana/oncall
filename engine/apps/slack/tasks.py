@@ -539,7 +539,7 @@ def populate_slack_channels_for_team(slack_team_identity_id: int, cursor: Option
         return start_populate_slack_channels_for_team(slack_team_identity_id, delay)
     try:
         response, cursor, rate_limited = sc.paginated_api_call_with_ratelimit(
-            "conversations.list",
+            "conversations_list",
             paginated_key="channels",
             json={
                 "types": "public_channel,private_channel",

@@ -139,10 +139,10 @@ class SlackTeamIdentity(models.Model):
             **User.build_permissions_query(RBACPermission.Permissions.CHATOPS_WRITE, organization),
         )
 
-    def get_conversation_members(self, slack_client, channel_id):
+    def get_conversation_members(self, slack_client: SlackClientWithErrorHandling, channel_id: str):
         try:
             members = slack_client.paginated_api_call(
-                "conversations.members", paginated_key="members", json={"channel": channel_id}
+                "conversations_members", paginated_key="members", channel=channel_id
             )["members"]
         except SlackAPITokenException as e:
             logger.warning(

@@ -31,11 +31,13 @@ class SlackAPIRateLimitException(SlackAPIException):
 
 
 class SlackClientWithErrorHandling(WebClient):
-    def paginated_api_call(self, *args, **kwargs):
-        # It's a key from response which is paginated. For example "users" or "channels"
-        listed_key = kwargs.pop("paginated_key")
+    def paginated_api_call(self, method: str, paginated_key: str, **kwargs):
+        """
+        `paginated_key` represents a key from the response which is paginated. For example "users" or "channels"
+        """
+        api_method = getattr(self, method)
 
-        response = self.api_call(*args, **kwargs)
+        response = api_method(**kwargs)
         cumulative_response = response
 
         while (
@@ -44,25 +46,30 @@ class SlackClientWithErrorHandling(WebClient):
             and response["response_metadata"]["next_cursor"] != ""
         ):
             kwargs["cursor"] = response["response_metadata"]["next_cursor"]
-            response = self.api_call(*args, **kwargs)
-            cumulative_response[listed_key] += response[listed_key]
+            response = api_method(**kwargs)
+            cumulative_response[paginated_key] += response[paginated_key]
 
         return cumulative_response
 
-    def paginated_api_call_with_ratelimit(self, *args, **kwargs) -> Tuple[dict, Optional[str], bool]:
+    def paginated_api_call_with_ratelimit(
+        self, method: str, paginated_key: str, **kwargs
+    ) -> Tuple[dict, Optional[str], bool]:
         """
-        This method do paginated api call and handle slack rate limit error in order to return collected data and have
-        ability to continue doing paginated requests from the last successful cursor. Return last successful cursor
-        instead of next cursor to avoid data loss during delay time
+        This method does paginated api calls and handle slack rate limit errors in order to return collected data
+        and have the ability to continue doing paginated requests from the last successful cursor.
+
+        Return last successful cursor instead of next cursor to avoid data loss during delay time.
+
+        `paginated_key` represents a key from the response which is paginated. For example "users" or "channels"
         """
-        # It's a key from response which is paginated. For example "users" or "channels"
-        listed_key = kwargs.pop("paginated_key")
+        api_method = getattr(self, method)
+
         cumulative_response = {}
-        cursor = kwargs["json"]["cursor"]
+        cursor = kwargs["cursor"]
         rate_limited = False
 
         try:
-            response = self.api_call(*args, **kwargs)
+            response = api_method(**kwargs)
             cumulative_response = response
             cursor = response["response_metadata"]["next_cursor"]
 
@@ -72,9 +79,9 @@ class SlackClientWithErrorHandling(WebClient):
                 and response["response_metadata"]["next_cursor"] != ""
             ):
                 next_cursor = response["response_metadata"]["next_cursor"]
-                kwargs["json"]["cursor"] = next_cursor
-                response = self.api_call(*args, **kwargs)
-                cumulative_response[listed_key] += response[listed_key]
+                kwargs["cursor"] = next_cursor
+                response = api_method(**kwargs)
+                cumulative_response[paginated_key] += response[paginated_key]
                 cursor = next_cursor
 
         except SlackAPIRateLimitException:
