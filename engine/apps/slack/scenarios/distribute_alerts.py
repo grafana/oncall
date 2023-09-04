@@ -138,16 +138,13 @@ class AlertShootingStep(scenario_step.ScenarioStep):
                 "chat.postMessage", channel=channel_id, attachments=attachments, blocks=blocks
             )
 
-            slack_message = SlackMessage.objects.create(
+            SlackMessage.objects.create(
                 slack_id=result["ts"],
                 organization=alert_group.channel.organization,
                 _slack_team_identity=slack_team_identity,
                 channel_id=channel_id,
                 alert_group=alert_group,
             )
-
-            alert_group.slack_message = slack_message
-            alert_group.save(update_fields=["slack_message"])
 
             # If alert was made out of a message:
             if alert_group.channel.integration == AlertReceiveChannel.INTEGRATION_SLACK_CHANNEL:
@@ -1028,7 +1025,7 @@ class UpdateLogReportMessageStep(scenario_step.ScenarioStep):
     def post_log_message(self, alert_group: AlertGroup) -> None:
         from apps.slack.models import SlackMessage
 
-        slack_message = alert_group.get_slack_message()
+        slack_message = alert_group.slack_message
 
         if slack_message is None:
             logger.info(f"Cannot post log message for alert_group {alert_group.pk} because SlackMessage doesn't exist")
@@ -1084,7 +1081,7 @@ class UpdateLogReportMessageStep(scenario_step.ScenarioStep):
             self.update_log_message(alert_group)
 
     def update_log_message(self, alert_group: AlertGroup) -> None:
-        slack_message = alert_group.get_slack_message()
+        slack_message = alert_group.slack_message
 
         if slack_message is None:
             logger.info(

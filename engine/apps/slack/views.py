@@ -490,13 +490,13 @@ class SlackEventApiEndpointView(APIView):
         if not (channel_id and message_ts):
             return None
 
-        with suppress(ObjectDoesNotExist):
+        with suppress(SlackMessage.DoesNotExist):
             slack_message = SlackMessage.objects.get(
                 _slack_team_identity=slack_team_identity,
                 slack_id=message_ts,
                 channel_id=channel_id,
             )
-            return slack_message.get_alert_group().channel.organization
+            return slack_message.alert_group.channel.organization if slack_message.alert_group else None
 
         return None
 

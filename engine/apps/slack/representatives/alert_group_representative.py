@@ -103,7 +103,7 @@ class AlertGroupSlackRepresentative(AlertGroupAbstractRepresentative):
         self.log_record = log_record
 
     def is_applicable(self):
-        slack_message = self.log_record.alert_group.get_slack_message()
+        slack_message = self.log_record.alert_group.slack_message
         slack_team_identity = self.log_record.alert_group.channel.organization.slack_team_identity
         return (
             slack_message is not None

@@ -148,7 +148,6 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
     resolution_note_slack_messages: "RelatedManager['ResolutionNoteSlackMessage']"
     resolved_by_alert: typing.Optional["Alert"]
     root_alert_group: typing.Optional["AlertGroup"]
-    slack_message: typing.Optional["SlackMessage"]
     slack_log_message: typing.Optional["SlackMessage"]
     slack_messages: "RelatedManager['SlackMessage']"
     users: "RelatedManager['User']"
@@ -339,14 +338,6 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
         null=True,
         default=None,
         related_name="wiped_alert_groups",
-    )
-
-    slack_message = models.OneToOneField(
-        "slack.SlackMessage",
-        on_delete=models.SET_NULL,
-        null=True,
-        default=None,
-        related_name="_alert_group",
     )
 
     slack_log_message = models.OneToOneField(
@@ -1798,20 +1789,16 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
     def slack_channel_id(self):
         slack_channel_id = None
         if self.channel.organization.slack_team_identity is not None:
-            slack_message = self.get_slack_message()
+            slack_message = self.slack_message
             if slack_message is not None:
                 slack_channel_id = slack_message.channel_id
             elif self.channel_filter is not None:
                 slack_channel_id = self.channel_filter.slack_channel_id_or_general_log_id
         return slack_channel_id
 
-    def get_slack_message(self):
-        from apps.slack.models import SlackMessage
-
-        if self.slack_message is None:
-            slack_message = SlackMessage.objects.filter(alert_group=self).order_by("created_at").first()
-            return slack_message
-        return self.slack_message
+    @property
+    def slack_message(self) -> typing.Optional["SlackMessage"]:
+        return self.slack_messages.order_by("created_at").first()
 
     @cached_property
     def last_stop_escalation_log(self):

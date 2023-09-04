@@ -74,7 +74,7 @@ class AlertGroupSlackService:
                     alert_group=alert_group,
                 )
                 slack_message_updated.save()
-                alert_group.slack_message = slack_message_updated
+                alert_group.slack_message = slack_message_updated  # TODO: what to do here?
                 alert_group.save(update_fields=["slack_message"])
                 logger.info(f"Message has been posted for alert_group {alert_group.pk}")
             elif e.response["error"] == "is_inactive":  # deleted channel error
@@ -97,7 +97,7 @@ class AlertGroupSlackService:
 
         from apps.slack.models import SlackMessage
 
-        slack_message = alert_group.get_slack_message()
+        slack_message = alert_group.slack_message
         channel_id = slack_message.channel_id
         try:
             result = self._slack_client.api_call(
