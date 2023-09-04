@@ -1,4 +1,3 @@
-import { IRMPlanStatus } from 'models/alertgroup/alertgroup.types';
 import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
 import { Heartbeat } from 'models/heartbeat/heartbeat.types';
 import { User } from 'models/user/user.types';
@@ -31,7 +30,6 @@ export interface AlertReceiveChannel {
   author: User['pk'];
   team: GrafanaTeam['id'];
   created_at: string;
-  status: IRMPlanStatus;
   integration_url: string;
   inbound_email: string;
   allow_source_based_resolving: boolean;
