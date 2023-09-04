@@ -846,6 +846,9 @@ def test_escalation_policy_filter_by_user(
 
     assert response.status_code == status.HTTP_200_OK
 
+    result = response.json()
+    assert set(result[1]["notify_to_users_queue"]) == {user.public_primary_key, second_user.public_primary_key}
+    expected_payload[1]["notify_to_users_queue"] = result[1]["notify_to_users_queue"]
     assert response.json() == expected_payload
 
 
