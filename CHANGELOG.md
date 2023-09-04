@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Fixed
+
+- Fix for Cloud plugin install not refreshing page after completion ([2974](https://github.com/grafana/oncall/issues/2874))
+
 ## v1.3.30 (2023-08-31)
 
 ### Added
@@ -25,8 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix issue with helm chart when specifying `broker.type=rabbitmq` where Redis environment variables
   were not longer being injected by @joeyorlando ([#2927](https://github.com/grafana/oncall/pull/2927))
 - Fix silence for alert groups with empty escalation chain @Ferril ([#2929](https://github.com/grafana/oncall/pull/2929))
-- Fixed NPE when migrating legacy Grafana Alerting integrations
-  ([#2908](https://github.com/grafana/oncall/issues/2908))
+- Fixed NPE when migrating legacy Grafana Alerting integrations ([#2908](https://github.com/grafana/oncall/issues/2908))
 - Fix `IntegrityError` exceptions that occasionally would occur when trying to create `ResolutionNoteSlackMessage`
   objects by @joeyorlando ([#2933](https://github.com/grafana/oncall/pull/2933))
 

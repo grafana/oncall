@@ -53,26 +53,6 @@ def delete_oncall_connector_async(oncall_org_id):
         raise e
 
 
-# deprecated
-@shared_dedicated_queue_retry_task(
-    autoretry_for=(Exception,),
-    retry_backoff=True,
-    max_retries=None,
-)
-def create_slack_connector_async(slack_id, backend):
-    pass
-
-
-# deprecated
-@shared_dedicated_queue_retry_task(
-    autoretry_for=(Exception,),
-    retry_backoff=True,
-    max_retries=None,
-)
-def delete_slack_connector_async(slack_id):
-    pass
-
-
 @shared_dedicated_queue_retry_task(
     autoretry_for=(Exception,),
     retry_backoff=True,
