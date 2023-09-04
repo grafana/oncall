@@ -2257,6 +2257,7 @@ def test_current_user_events_multiple_schedules(
     assert response.status_code == status.HTTP_200_OK
     assert result["is_oncall"] is True
     assert len(result["schedules"]) == 2
+    assert result["schedules"][0]["id"] != result["schedules"][1]["id"]
     assert result["schedules"][0]["id"] in (schedule_1.public_primary_key, schedule_2.public_primary_key)
     assert result["schedules"][0]["name"] in (schedule_1.name, schedule_2.name)
     assert result["schedules"][1]["id"] in (schedule_1.public_primary_key, schedule_2.public_primary_key)
