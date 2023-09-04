@@ -71,8 +71,7 @@ class SlackChannelMessageEventStep(scenario_step.ScenarioStep):
         except SlackMessage.DoesNotExist:
             return
 
-        alert_group = slack_message.alert_group
-        if not alert_group:
+        if not slack_message.alert_group:
             # SlackMessage instances without alert_group set (e.g., SSR Slack messages)
             return
 
@@ -98,7 +97,7 @@ class SlackChannelMessageEventStep(scenario_step.ScenarioStep):
         slack_thread_message, created = ResolutionNoteSlackMessage.objects.get_or_create(
             ts=message_ts,
             thread_ts=thread_ts,
-            alert_group=alert_group,
+            alert_group=slack_message.alert_group,
             defaults={
                 "user": self.user,
                 "added_by_user": self.user,
