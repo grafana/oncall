@@ -1,6 +1,7 @@
 import logging
 import typing
 
+import requests
 from django.conf import settings
 from django.core.validators import MinLengthValidator
 from django.db import models
@@ -67,12 +68,12 @@ class SlackUserGroup(models.Model):
 
     @property
     def can_be_updated(self) -> bool:
-        sc = SlackClientWithErrorHandling(self.slack_team_identity.bot_access_token)
+        sc = SlackClientWithErrorHandling(self.slack_team_identity.bot_access_token, timeout=5)
 
         try:
             sc.usergroups_update(usergroup=self.slack_id)
             return True
-        except SlackAPIException:
+        except (SlackAPIException, requests.exceptions.Timeout):
             return False
 
     @property
