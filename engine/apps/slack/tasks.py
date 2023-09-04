@@ -97,9 +97,8 @@ def check_slack_message_exists_before_post_message_to_thread(
         )
         return
     retry_timeout_hours = 24
-    slack_message = alert_group.get_slack_message()
 
-    if slack_message is not None:
+    if alert_group.slack_message:
         AlertGroupSlackService(slack_team_identity).publish_message_to_alert_group_thread(alert_group, text=text)
 
     # check how much time has passed since alert group was created
