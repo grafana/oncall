@@ -135,61 +135,7 @@ const IntegrationContactPoint: React.FC<{
                       </HorizontalGroup>
                     </div>
 
-                    {isConnectOpen && (
-                      <VerticalGroup spacing="md">
-                        <RadioButtonGroup
-                          options={radioOptions}
-                          value={isExistingContactPoint ? 'existing' : 'new'}
-                          onChange={(radioValue) => {
-                            setState({
-                              isExistingContactPoint: radioValue === 'existing',
-                              contactPointOptions: [],
-                              selectedAlertManager: null,
-                              selectedContactPoint: null,
-                            });
-                          }}
-                        />
-
-                        <Select
-                          options={dataSourceOptions}
-                          onChange={onAlertManagerChange}
-                          value={selectedAlertManager}
-                          placeholder="Select Alert Manager"
-                        />
-
-                        {isExistingContactPoint ? (
-                          <Select
-                            options={contactPointOptions}
-                            onChange={onContactPointChange}
-                            value={selectedContactPoint}
-                            placeholder="Select Contact Point"
-                          />
-                        ) : (
-                          <Input
-                            value={selectedContactPoint}
-                            placeholder="Choose Contact Point"
-                            onChange={({ target }) => {
-                              const value = (target as HTMLInputElement).value;
-                              setState({ selectedContactPoint: value });
-                            }}
-                          />
-                        )}
-
-                        <HorizontalGroup align="center">
-                          <Button
-                            variant="primary"
-                            disabled={!selectedAlertManager || !selectedContactPoint || isLoading}
-                            onClick={onContactPointConnect}
-                          >
-                            Connect contact point
-                          </Button>
-                          <Button variant="secondary" onClick={closeDrawer}>
-                            Cancel
-                          </Button>
-                          {isLoading && <Icon name="fa fa-spinner" size="md" className={cx('loadingPlaceholder')} />}
-                        </HorizontalGroup>
-                      </VerticalGroup>
-                    )}
+                    {renderConnectSection()}
                   </VerticalGroup>
                 </div>
               </div>
@@ -243,6 +189,68 @@ const IntegrationContactPoint: React.FC<{
       content={undefined}
     />
   );
+
+  function renderConnectSection() {
+    if (!isConnectOpen) {
+      return null;
+    }
+
+    return (
+      <VerticalGroup spacing="md">
+        <RadioButtonGroup
+          options={radioOptions}
+          value={isExistingContactPoint ? 'existing' : 'new'}
+          onChange={(radioValue) => {
+            setState({
+              isExistingContactPoint: radioValue === 'existing',
+              contactPointOptions: [],
+              selectedAlertManager: null,
+              selectedContactPoint: null,
+            });
+          }}
+        />
+
+        <Select
+          options={dataSourceOptions}
+          onChange={onAlertManagerChange}
+          value={selectedAlertManager}
+          placeholder="Select Alert Manager"
+        />
+
+        {isExistingContactPoint ? (
+          <Select
+            options={contactPointOptions}
+            onChange={onContactPointChange}
+            value={selectedContactPoint}
+            placeholder="Select Contact Point"
+          />
+        ) : (
+          <Input
+            value={selectedContactPoint}
+            placeholder="Choose Contact Point"
+            onChange={({ target }) => {
+              const value = (target as HTMLInputElement).value;
+              setState({ selectedContactPoint: value });
+            }}
+          />
+        )}
+
+        <HorizontalGroup align="center">
+          <Button
+            variant="primary"
+            disabled={!selectedAlertManager || !selectedContactPoint || isLoading}
+            onClick={onContactPointConnect}
+          >
+            Connect contact point
+          </Button>
+          <Button variant="secondary" onClick={closeDrawer}>
+            Cancel
+          </Button>
+          {isLoading && <Icon name="fa fa-spinner" size="md" className={cx('loadingPlaceholder')} />}
+        </HorizontalGroup>
+      </VerticalGroup>
+    );
+  }
 
   function renderActions(item: ContactPoint) {
     return (
@@ -336,8 +344,9 @@ const IntegrationContactPoint: React.FC<{
         openNotification('A new contact point has been connected to your integration');
         alertReceiveChannelStore.updateConnectedContactPoints(id);
       })
-      .catch(() => {
-        openErrorNotification('An error has occurred. Please try again.');
+      .catch((ex) => {
+        const error = ex.response?.data?.detail ?? 'An error has occurred. Please try again.';
+        openErrorNotification(error);
       })
       .finally(() => setState({ isLoading: false }));
   }
