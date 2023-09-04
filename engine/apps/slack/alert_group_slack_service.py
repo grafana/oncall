@@ -116,7 +116,7 @@ class AlertGroupSlackService:
         else:
             alert_group.slack_messages.create(
                 slack_id=result["ts"],
-                channel_id=alert_group.slack_message.channel_id,
                 organization=alert_group.channel.organization,
                 _slack_team_identity=self.slack_team_identity,
+                channel_id=alert_group.slack_message.channel_id,
             )
