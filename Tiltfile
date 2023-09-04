@@ -9,9 +9,8 @@ DOCKER_REGISTRY="localhost:63628/"
 if not running_under_parent_tiltfile:
     # Load the custom Grafana extensions
     v1alpha1.extension_repo(name='grafana-tilt-extensions', 
-#        ref='main',
-#        url='https://github.com/grafana/tilt-extensions'
-        url='file:///Users/bcotton/projects/grafana-tilt-extensions')
+       ref='main',
+       url='https://github.com/grafana/tilt-extensions)
 v1alpha1.extension(name='grafana', repo_name='grafana-tilt-extensions', repo_path='grafana')
 v1alpha1.extension(name='post_build', repo_name='grafana-tilt-extensions', repo_path='post_build')
 
