@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+
+- Add internal API endpoint for getting schedules shifts for current user by @Ferril([#2928](https://github.com/grafana/oncall/pull/2928))
+
 ### Fixed
 
 - Fix for Cloud plugin install not refreshing page after completion ([2974](https://github.com/grafana/oncall/issues/2874))
