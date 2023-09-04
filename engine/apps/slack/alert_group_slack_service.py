@@ -32,21 +32,16 @@ class AlertGroupSlackService:
             self._slack_client = SlackClientWithErrorHandling(slack_team_identity.bot_access_token)
 
     def update_alert_group_slack_message(self, alert_group: "AlertGroup") -> None:
-        logger.info(f"Started _update_slack_message for alert_group {alert_group.pk}")
         from apps.alerts.models import AlertReceiveChannel
-        from apps.slack.models import SlackMessage
 
-        slack_message = alert_group.slack_message
-        attachments = alert_group.render_slack_attachments()
-        blocks = alert_group.render_slack_blocks()
         logger.info(f"Update message for alert_group {alert_group.pk}")
         try:
             self._slack_client.api_call(
                 "chat.update",
-                channel=slack_message.channel_id,
-                ts=slack_message.slack_id,
-                attachments=attachments,
-                blocks=blocks,
+                channel=alert_group.slack_message.channel_id,
+                ts=alert_group.slack_message.slack_id,
+                attachments=alert_group.render_slack_attachments(),
+                blocks=alert_group.render_slack_blocks(),
             )
             logger.info(f"Message has been updated for alert_group {alert_group.pk}")
         except SlackAPIRateLimitException as e:
@@ -61,22 +56,8 @@ class AlertGroupSlackService:
                 raise e
 
         except SlackAPIException as e:
-            if e.response["error"] == "message_not_found":
-                logger.info(f"message_not_found for alert_group {alert_group.pk}, trying to post new message")
-                result = self._slack_client.api_call(
-                    "chat.postMessage", channel=slack_message.channel_id, attachments=attachments, blocks=blocks
-                )
-                slack_message_updated = SlackMessage(
-                    slack_id=result["ts"],
-                    organization=slack_message.organization,
-                    _slack_team_identity=slack_message.slack_team_identity,
-                    channel_id=slack_message.channel_id,
-                    alert_group=alert_group,
-                )
-                slack_message_updated.save()
-                alert_group.slack_message = slack_message_updated  # TODO: what to do here?
-                alert_group.save(update_fields=["slack_message"])
-                logger.info(f"Message has been posted for alert_group {alert_group.pk}")
+            if e.response["error"] == "message_not_found":  # message deleted from channel
+                logger.info(f"Skip updating slack message for alert_group {alert_group.pk} due message_not_found")
             elif e.response["error"] == "is_inactive":  # deleted channel error
                 logger.info(f"Skip updating slack message for alert_group {alert_group.pk} due to is_inactive")
             elif e.response["error"] == "account_inactive":
