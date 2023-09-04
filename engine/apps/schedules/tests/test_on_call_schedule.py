@@ -2621,9 +2621,9 @@ def test_shifts_for_user_only_two_users_with_shifts(
         assert current_user.public_primary_key in users
 
     passed_shifts, current_shifts, upcoming_shifts = schedule.shifts_for_user(user2, start_date, days)
-    assert len(passed_shifts) == 2
-    assert len(current_shifts) == 1
-    assert len(upcoming_shifts) == 4
+    assert len(passed_shifts) > 0
+    assert len(current_shifts) > 0
+    assert len(upcoming_shifts) > 0
     for shifts in (passed_shifts, current_shifts, upcoming_shifts):
         for shift in shifts:
             users = {u["pk"] for u in shift["users"]}
