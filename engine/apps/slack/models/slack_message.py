@@ -178,13 +178,12 @@ class SlackMessage(models.Model):
             ).save()
             return
         else:
-            SlackMessage(
+            alert_group.slack_messages.create(
                 slack_id=result["ts"],
                 organization=self.organization,
                 _slack_team_identity=self.slack_team_identity,
                 channel_id=channel_id,
-                alert_group=alert_group,
-            ).save()
+            )
 
         # Check if escalated user is in channel. Otherwise send notification and request to invite him.
         try:
