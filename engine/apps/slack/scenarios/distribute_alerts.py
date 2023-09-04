@@ -16,7 +16,6 @@ from apps.alerts.tasks import custom_button_result
 from apps.alerts.utils import render_curl_command
 from apps.api.permissions import RBACPermission
 from apps.slack.constants import CACHE_UPDATE_INCIDENT_SLACK_MESSAGE_LIFETIME, SLACK_RATE_LIMIT_DELAY
-from apps.slack.models import SlackMessage
 from apps.slack.scenarios import scenario_step
 from apps.slack.scenarios.slack_renderer import AlertGroupLogSlackRenderer
 from apps.slack.slack_client import SlackClientWithErrorHandling
@@ -138,12 +137,11 @@ class AlertShootingStep(scenario_step.ScenarioStep):
                 "chat.postMessage", channel=channel_id, attachments=attachments, blocks=blocks
             )
 
-            SlackMessage.objects.create(
+            alert_group.slack_messages.create(
                 slack_id=result["ts"],
                 organization=alert_group.channel.organization,
                 _slack_team_identity=slack_team_identity,
                 channel_id=channel_id,
-                alert_group=alert_group,
             )
 
             # If alert was made out of a message:
@@ -156,13 +154,12 @@ class AlertShootingStep(scenario_step.ScenarioStep):
                     text=":rocket: <{}|Incident registered!>".format(alert_group.slack_message.permalink),
                     team=slack_team_identity,
                 )
-                SlackMessage(
+                alert_group.slack_messages.create(
                     slack_id=result["ts"],
                     organization=alert_group.channel.organization,
                     _slack_team_identity=self.slack_team_identity,
                     channel_id=channel,
-                    alert_group=alert_group,
-                ).save()
+                )
 
             alert.delivered = True
         except SlackAPITokenException:
@@ -846,7 +843,6 @@ class AcknowledgeConfirmationStep(AcknowledgeGroupStep):
             )
 
     def process_signal(self, log_record: AlertGroupLogRecord) -> None:
-        from apps.slack.models import SlackMessage
         from apps.user_management.models import Organization
 
         alert_group = log_record.alert_group
@@ -910,13 +906,12 @@ class AcknowledgeConfirmationStep(AcknowledgeGroupStep):
                 else:
                     raise e
             else:
-                SlackMessage(
+                alert_group.slack_messages.create(
                     slack_id=response["ts"],
                     organization=alert_group.channel.organization,
                     _slack_team_identity=self.slack_team_identity,
                     channel_id=channel_id,
-                    alert_group=alert_group,
-                ).save()
+                )
 
                 alert_group.slack_message.ack_reminder_message_ts = response["ts"]
                 alert_group.slack_message.save(update_fields=["ack_reminder_message_ts"])
@@ -1023,10 +1018,7 @@ class UpdateLogReportMessageStep(scenario_step.ScenarioStep):
         self.update_log_message(alert_group)
 
     def post_log_message(self, alert_group: AlertGroup) -> None:
-        from apps.slack.models import SlackMessage
-
         slack_message = alert_group.slack_message
-
         if slack_message is None:
             logger.info(f"Cannot post log message for alert_group {alert_group.pk} because SlackMessage doesn't exist")
             return None
@@ -1061,15 +1053,13 @@ class UpdateLogReportMessageStep(scenario_step.ScenarioStep):
                     raise e
             else:
                 logger.debug(f"Create new slack_log_message for alert_group {alert_group.pk}")
-                slack_log_message = SlackMessage(
+                slack_log_message = alert_group.slack_messages.create(
                     slack_id=result["ts"],
                     organization=self.organization,
                     _slack_team_identity=self.slack_team_identity,
                     channel_id=slack_message.channel_id,
                     last_updated=timezone.now(),
-                    alert_group=alert_group,
                 )
-                slack_log_message.save()
 
                 alert_group.slack_log_message = slack_log_message
                 alert_group.save(update_fields=["slack_log_message"])
@@ -1082,7 +1072,6 @@ class UpdateLogReportMessageStep(scenario_step.ScenarioStep):
 
     def update_log_message(self, alert_group: AlertGroup) -> None:
         slack_message = alert_group.slack_message
-
         if slack_message is None:
             logger.info(
                 f"Cannot update log message for alert_group {alert_group.pk} because SlackMessage doesn't exist"
