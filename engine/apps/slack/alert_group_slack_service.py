@@ -80,9 +80,9 @@ class AlertGroupSlackService:
             result = self._slack_client.api_call(
                 "chat.postMessage",
                 channel=alert_group.slack_message.channel_id,
-                thread_ts=alert_group.slack_message.slack_id,
                 text=text,
                 attachments=attachments,
+                thread_ts=alert_group.slack_message.slack_id,
                 mrkdwn=mrkdwn,
                 unfurl_links=unfurl_links,
             )
