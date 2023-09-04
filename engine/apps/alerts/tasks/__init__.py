@@ -4,8 +4,6 @@ from .alert_group_web_title_cache import (  # noqa:F401
     update_web_title_cache_for_alert_receive_channel,
 )
 from .check_escalation_finished import check_escalation_finished_task  # noqa: F401
-from .create_contact_points_for_datasource import create_contact_points_for_datasource  # noqa: F401
-from .create_contact_points_for_datasource import schedule_create_contact_points_for_datasource  # noqa: F401
 from .custom_button_result import custom_button_result  # noqa: F401
 from .custom_webhook_result import custom_webhook_result  # noqa: F401
 from .delete_alert_group import delete_alert_group  # noqa: F401
@@ -22,9 +20,6 @@ from .resolve_by_last_step import resolve_by_last_step_task  # noqa: F401
 from .send_alert_group_signal import send_alert_group_signal  # noqa: F401
 from .send_update_log_report_signal import send_update_log_report_signal  # noqa: F401
 from .send_update_resolution_note_signal import send_update_resolution_note_signal  # noqa: F401
-from .sync_grafana_alerting_contact_points import (  # noqa: F401
-    disconnect_integration_from_alerting_contact_points,
-    sync_grafana_alerting_contact_points,
-)
+from .sync_grafana_alerting_contact_points import disconnect_integration_from_alerting_contact_points  # noqa: F401
 from .unsilence import unsilence_task  # noqa: F401
 from .wipe import wipe  # noqa: F401
