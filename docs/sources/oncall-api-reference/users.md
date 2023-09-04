@@ -8,7 +8,6 @@ weight: 1500
 
 This endpoint retrieves the user object.
 
-````shell
 ```shell
 curl "{{API_URL}}/api/v1/users/current/" \
   --request GET \

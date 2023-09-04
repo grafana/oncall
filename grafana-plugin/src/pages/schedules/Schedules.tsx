@@ -369,7 +369,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
                 <PluginLink key={user.pk} query={{ page: 'users', id: user.pk }} className="table__email-content">
                   <div className={cx('schedules__user-on-call')}>
                     <div>
-                      <Avatar size="big" src={user.avatar} />
+                      <Avatar size="medium" src={user.avatar} />
                     </div>
                     <MatchMediaTooltip placement="top" content={user.username} maxWidth={TABLE_COLUMN_MAX_WIDTH}>
                       <span className="table__email-content">{user.username}</span>

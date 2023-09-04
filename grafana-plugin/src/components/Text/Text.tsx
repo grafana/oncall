@@ -14,7 +14,7 @@ interface TextProps extends HTMLAttributes<HTMLElement> {
   type?: TextType;
   strong?: boolean;
   underline?: boolean;
-  size?: 'small' | 'medium' | 'large';
+  size?: 'xs' | 'small' | 'medium' | 'large';
   keyboard?: boolean;
   className?: string;
   wrap?: boolean;
