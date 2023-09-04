@@ -368,15 +368,15 @@ def test_escalation_step_notify_if_num_alerts_in_window(
     )
 
     escalation_policy_snapshot = get_escalation_policy_snapshot_from_model(notify_if_3_alerts_per_1_minute)
-    expected_eta = timezone.now() + timezone.timedelta(seconds=NEXT_ESCALATION_DELAY)
+    expected_eta = None  # eta is None if escalation was paused
     result = escalation_policy_snapshot.execute(alert_group, reason)
     expected_result = EscalationPolicySnapshot.StepExecutionResultData(
-        eta=result.eta,
+        eta=expected_eta,
         stop_escalation=False,
         pause_escalation=True,
         start_from_beginning=False,
     )
-    assert expected_eta + timezone.timedelta(seconds=15) > result.eta > expected_eta - timezone.timedelta(seconds=15)
+    assert result.eta == expected_eta
     assert result == expected_result
     assert notify_if_3_alerts_per_1_minute.log_records.filter(
         type=AlertGroupLogRecord.TYPE_ESCALATION_TRIGGERED

@@ -131,9 +131,13 @@ export class AlertReceiveChannelStore extends BaseStore {
     return results;
   }
 
-  async updatePaginatedItems(query: any = '', page = 1) {
+  async updatePaginatedItems(query: any = '', page = 1, updateCounters = false, invalidateFn = undefined) {
     const filters = typeof query === 'string' ? { search: query } : query;
     const { count, results } = await makeRequest(this.path, { params: { ...filters, page } });
+
+    if (invalidateFn?.()) {
+      return undefined;
+    }
 
     this.items = {
       ...this.items,
@@ -153,7 +157,9 @@ export class AlertReceiveChannelStore extends BaseStore {
       results: results.map((item: AlertReceiveChannel) => item.id),
     };
 
-    this.updateCounters();
+    if (updateCounters) {
+      this.updateCounters();
+    }
 
     return results;
   }
@@ -297,7 +303,7 @@ export class AlertReceiveChannelStore extends BaseStore {
       method: 'DELETE',
     });
 
-    this.updateChannelFilters(channelFilter.alert_receive_channel, true);
+    return this.updateChannelFilters(channelFilter.alert_receive_channel, true);
   }
 
   @action
@@ -497,6 +503,21 @@ export class AlertReceiveChannelStore extends BaseStore {
     });
 
     this.counters = counters;
+  }
+
+  async updateCountersForIntegration(id: AlertReceiveChannel['id']): Promise<any> {
+    const counters = await makeRequest(`${this.path}${id}/counters`, {
+      method: 'GET',
+    });
+
+    this.counters = {
+      ...this.counters,
+      [id]: {
+        ...counters[id],
+      },
+    };
+
+    return counters;
   }
 
   startMaintenanceMode = (id: AlertReceiveChannel['id'], mode: MaintenanceMode, duration: number): Promise<void> =>

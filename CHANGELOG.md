@@ -7,6 +7,58 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Fixed
+
+- Fix for Cloud plugin install not refreshing page after completion ([2974](https://github.com/grafana/oncall/issues/2874))
+
+## v1.3.30 (2023-08-31)
+
+### Added
+
+- Add optional param to expand user details in shift swaps internal endpoints ([#2923](https://github.com/grafana/oncall/pull/2923))
+
+### Changed
+
+- Update Shift Swap Request Slack message formatting by @joeyorlando ([#2918](https://github.com/grafana/oncall/pull/2918))
+- Performance and UX tweaks to integrations page ([#2869](https://github.com/grafana/oncall/pull/2869))
+- Expand users details in filter swaps internal endpoint ([#2921](https://github.com/grafana/oncall/pull/2921))
+- Truncate exported final shifts to match the requested period ([#2924](https://github.com/grafana/oncall/pull/2924))
+
+### Fixed
+
+- Fix issue with helm chart when specifying `broker.type=rabbitmq` where Redis environment variables
+  were not longer being injected by @joeyorlando ([#2927](https://github.com/grafana/oncall/pull/2927))
+- Fix silence for alert groups with empty escalation chain @Ferril ([#2929](https://github.com/grafana/oncall/pull/2929))
+- Fixed NPE when migrating legacy Grafana Alerting integrations ([#2908](https://github.com/grafana/oncall/issues/2908))
+- Fix `IntegrityError` exceptions that occasionally would occur when trying to create `ResolutionNoteSlackMessage`
+  objects by @joeyorlando ([#2933](https://github.com/grafana/oncall/pull/2933))
+
+## v1.3.29 (2023-08-29)
+
+### Fixed
+
+- Fix metrics calculation and OnCall dashboard, rename dashboard @Ferril ([#2895](https://github.com/grafana/oncall/pull/2895))
+- Fix slack schedule notification settings dialog ([#2902](https://github.com/grafana/oncall/pull/2902))
+
+## v1.3.28 (2023-08-29)
+
+### Changed
+
+- Switch engine to alpine base image ([2872](https://github.com/grafana/oncall/pull/2872))
+
+### Added
+
+- Visualization of shift swap requests in Overrides and swaps section ([#2844](https://github.com/grafana/oncall/issues/2844))
+
+### Fixed
+
+- Address bug when a Shift Swap Request is accepted either via the web or mobile UI, and the Slack message is not
+  updated to reflect the latest state by @joeyorlando ([#2886](https://github.com/grafana/oncall/pull/2886))
+- Fix issue where Grafana integration would fail to parse alerting config for routes without receivers @mderynck
+  ([#2894](https://github.com/grafana/oncall/pull/2894))
+
+## v1.3.27 (2023-08-25)
+
 ### Added
 
 - Public API for webhooks @mderynck ([#2790](https://github.com/grafana/oncall/pull/2790))
@@ -19,6 +71,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Allow mobile app to access status endpoint @mderynck ([#2791](https://github.com/grafana/oncall/pull/2791))
 - Enable shifts export endpoint for all schedule types ([#2863](https://github.com/grafana/oncall/pull/2863))
 - Use priority field to track primary/overrides calendar in schedule iCal export ([#2871](https://github.com/grafana/oncall/pull/2871))
+
+### Fixed
+
+- Fix public api docs for escalation policies by @Ferril ([#2830](https://github.com/grafana/oncall/pull/2830))
 
 ## v1.3.26 (2023-08-22)
 

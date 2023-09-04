@@ -27,7 +27,6 @@ import Incident from 'pages/incident/Incident';
 import Incidents from 'pages/incidents/Incidents';
 import Integration from 'pages/integration/Integration';
 import Integrations from 'pages/integrations/Integrations';
-import Maintenance from 'pages/maintenance/Maintenance';
 import OutgoingWebhooks from 'pages/outgoing_webhooks/OutgoingWebhooks';
 import Schedule from 'pages/schedule/Schedule';
 import Schedules from 'pages/schedules/Schedules';
@@ -74,7 +73,7 @@ export const Root = observer((props: AppRootProps) => {
   const [basicDataLoaded, setBasicDataLoaded] = useState(false);
 
   useEffect(() => {
-    updateBasicData();
+    runQueuedUpdateData(0);
   }, []);
 
   const location = useLocation();
@@ -98,11 +97,6 @@ export const Root = observer((props: AppRootProps) => {
       head.removeChild(styleEl); // remove on unmount
     };
   }, []);
-
-  const updateBasicData = async () => {
-    await store.updateBasicData();
-    setBasicDataLoaded(true);
-  };
 
   const page = getMatchedPage(location.pathname);
   const pagePermissionAction = pages[page]?.action;
@@ -157,9 +151,6 @@ export const Root = observer((props: AppRootProps) => {
               <Route path={getRoutesForPage('outgoing_webhooks')} exact>
                 <OutgoingWebhooks query={query} />
               </Route>
-              <Route path={getRoutesForPage('maintenance')} exact>
-                <Maintenance />
-              </Route>
               <Route path={getRoutesForPage('settings')} exact>
                 <SettingsPage />
               </Route>
@@ -210,4 +201,17 @@ export const Root = observer((props: AppRootProps) => {
       </div>
     </DefaultPageLayout>
   );
+
+  async function runQueuedUpdateData(attemptCount: number) {
+    if (attemptCount === 10) {
+      return;
+    }
+
+    try {
+      await store.updateBasicData();
+      setBasicDataLoaded(true);
+    } catch {
+      setTimeout(() => runQueuedUpdateData(attemptCount + 1), 1000);
+    }
+  }
 });

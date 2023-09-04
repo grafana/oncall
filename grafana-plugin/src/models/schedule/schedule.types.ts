@@ -103,6 +103,8 @@ export interface Event {
     swap_request?: SwapRequest;
   }>;
   is_override: boolean;
+
+  shiftSwapId?: ShiftSwap['id']; // if event is acually shift swap request (filled out by frontend)
 }
 
 export interface Events {
@@ -120,7 +122,7 @@ export interface Layer {
 export interface ShiftEvents {
   shiftId: string;
   events: Event[];
-  priority: number;
+  priority?: number;
   isPreview?: boolean;
 }
 

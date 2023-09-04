@@ -5,7 +5,6 @@ import typing
 import humanize
 from django.utils import timezone
 
-from apps.slack.constants import DIVIDER
 from apps.slack.models import SlackMessage
 from apps.slack.scenarios import scenario_step
 from apps.slack.types import Block, BlockActionType, EventPayload, PayloadType, ScenarioRoute
@@ -21,17 +20,26 @@ logger.setLevel(logging.DEBUG)
 SHIFT_SWAP_PK_ACTION_KEY = "shift_swap_request_pk"
 
 
+def _schedule_slack_url(shift_swap_request) -> str:
+    schedule = shift_swap_request.schedule
+    return f"<{schedule.web_detail_page_link}|{schedule.name}>"
+
+
 class BaseShiftSwapRequestStep(scenario_step.ScenarioStep):
     def _generate_blocks(self, shift_swap_request: "ShiftSwapRequest") -> Block.AnyBlocks:
         pk = shift_swap_request.pk
 
-        main_message_text = f"Your teammate {shift_swap_request.beneficiary.get_username_with_slack_verbal()} has submitted a shift swap request."
+        main_message_text = (
+            f"*New shift swap request for {_schedule_slack_url(shift_swap_request)}*\n"
+            f"Your teammate {shift_swap_request.beneficiary.get_username_with_slack_verbal()} has submitted a shift swap request."
+        )
 
         datetime_format = SlackDateFormat.DATE_LONG_PRETTY
         time_format = SlackDateFormat.TIME
 
         shift_details = ""
-        for shift in shift_swap_request.shifts():
+        shifts = shift_swap_request.shifts()
+        for shift in shifts:
             shift_start = shift["start"]
             shift_start_posix = shift_start.timestamp()
             shift_end = shift["end"]
@@ -58,17 +66,21 @@ class BaseShiftSwapRequestStep(scenario_step.ScenarioStep):
                     },
                 },
             ),
-            typing.cast(
-                Block.Section,
-                {
-                    "type": "section",
-                    "text": {
-                        "type": "mrkdwn",
-                        "text": f"*📅 Shift Details*:\n\n{shift_details}",
-                    },
-                },
-            ),
         ]
+
+        if shifts:
+            blocks.append(
+                typing.cast(
+                    Block.Section,
+                    {
+                        "type": "section",
+                        "text": {
+                            "type": "mrkdwn",
+                            "text": f"*Shift detail{'s' if len(shifts) > 1 else ''}*\n{shift_details}",
+                        },
+                    },
+                ),
+            )
 
         if description := shift_swap_request.description:
             blocks.append(
@@ -78,7 +90,7 @@ class BaseShiftSwapRequestStep(scenario_step.ScenarioStep):
                         "type": "section",
                         "text": {
                             "type": "mrkdwn",
-                            "text": f"*📝 Description*: {description}",
+                            "text": f"*Description*\n{description}",
                         },
                     },
                 )
@@ -92,7 +104,7 @@ class BaseShiftSwapRequestStep(scenario_step.ScenarioStep):
                         "type": "section",
                         "text": {
                             "type": "mrkdwn",
-                            "text": "*Update*: this shift swap request has been deleted.",
+                            "text": "❌ this shift swap request has been deleted",
                         },
                     },
                 ),
@@ -105,7 +117,7 @@ class BaseShiftSwapRequestStep(scenario_step.ScenarioStep):
                         "type": "section",
                         "text": {
                             "type": "mrkdwn",
-                            "text": f"*Update*: {shift_swap_request.benefactor.get_username_with_slack_verbal()} has taken the shift swap.",
+                            "text": f"✅ {shift_swap_request.benefactor.get_username_with_slack_verbal()} has accepted the shift swap request",
                         },
                     },
                 ),
@@ -124,10 +136,9 @@ class BaseShiftSwapRequestStep(scenario_step.ScenarioStep):
                         "elements": [
                             {
                                 "type": "button",
-                                "style": "primary",
                                 "text": {
                                     "type": "plain_text",
-                                    "text": "✔️ Accept Shift Swap Request",
+                                    "text": "Accept",
                                     "emoji": True,
                                 },
                                 "value": json.dumps(value),
@@ -137,24 +148,6 @@ class BaseShiftSwapRequestStep(scenario_step.ScenarioStep):
                     },
                 )
             )
-
-        blocks.extend(
-            [
-                DIVIDER,
-                typing.cast(
-                    Block.Context,
-                    {
-                        "type": "context",
-                        "elements": [
-                            {
-                                "type": "mrkdwn",
-                                "text": f"👀 View the shift swap within Grafana OnCall by clicking <{shift_swap_request.web_link}|here>.",
-                            },
-                        ],
-                    },
-                ),
-            ]
-        )
 
         return blocks
 
@@ -226,8 +219,9 @@ class ShiftSwapRequestFollowUp(scenario_step.ScenarioStep):
                     "text": {
                         "type": "mrkdwn",
                         "text": (
-                            f":exclamation: This shift swap request is still open and will start in {delta}.\n"
-                            "Jump back into the thread and accept it if you're available!"
+                            f"⚠️ This shift swap request for {_schedule_slack_url(shift_swap_request)} is "
+                            f"still open and will start in {delta}. Jump back into the thread and accept it if "
+                            "you're available!"
                         ),
                     },
                 },

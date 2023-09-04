@@ -55,7 +55,7 @@ blog post.
     mozallowfullscreen
     allowfullscreen
     style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"
-  />
+  /></iframe>
 </div>
 
 Sometimes you may need someone to cover your scheduled on-call shifts (e.g. you are going on vacation

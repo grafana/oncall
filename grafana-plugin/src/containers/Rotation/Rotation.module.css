@@ -12,14 +12,6 @@
   width: 100%;
 }
 
-.root:first-child {
-  padding-top: 26px;
-}
-
-.root:last-child {
-  padding-bottom: 26px;
-}
-
 .root:hover {
   background: var(--secondary-background);
 }
