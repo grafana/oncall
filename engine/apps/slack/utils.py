@@ -64,7 +64,7 @@ def post_message_to_channel(organization: "Organization", channel_id: str, text:
     if organization.slack_team_identity:
         slack_client = SlackClientWithErrorHandling(organization.slack_team_identity.bot_access_token)
         try:
-            slack_client.api_call("chat.postMessage", channel=channel_id, text=text)
+            slack_client.chat_postMessage(channel=channel_id, text=text)
         except SlackAPIException as e:
             if e.response["error"] == "channel_not_found":
                 pass

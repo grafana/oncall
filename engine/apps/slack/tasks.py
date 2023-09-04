@@ -371,9 +371,7 @@ def populate_slack_usergroups_for_team(slack_team_identity_id):
     usergroups_list = None
     bot_access_token_accepted = True
     try:
-        usergroups_list = sc.api_call(
-            "usergroups.list",
-        )
+        usergroups_list = sc.usergroups_list()
     except SlackAPITokenException as e:
         logger.info(f"token revoked\n{e}")
     except SlackAPIException as e:
@@ -382,9 +380,7 @@ def populate_slack_usergroups_for_team(slack_team_identity_id):
                 # Trying same request with access token. It is required due to migration to granular permissions
                 # and can be removed after clients reinstall their bots
                 sc_with_access_token = SlackClientWithErrorHandling(slack_team_identity.access_token)
-                usergroups_list = sc_with_access_token.api_call(
-                    "usergroups.list",
-                )
+                usergroups_list = sc_with_access_token.usergroups_list()
                 bot_access_token_accepted = False
             except SlackAPIException as err:
                 handle_usergroups_list_slack_api_exception(err)
@@ -402,16 +398,10 @@ def populate_slack_usergroups_for_team(slack_team_identity_id):
                 continue
             try:
                 if bot_access_token_accepted:
-                    usergroups_users = sc.api_call(
-                        "usergroups.users.list",
-                        usergroup=usergroup["id"],
-                    )
+                    usergroups_users = sc.usergroups_users_list(usergroup=usergroup["id"])
                 else:
                     sc_with_access_token = SlackClientWithErrorHandling(slack_team_identity.access_token)
-                    usergroups_users = sc_with_access_token.api_call(
-                        "usergroups.users.list",
-                        usergroup=usergroup["id"],
-                    )
+                    usergroups_users = sc_with_access_token.usergroups_users_list(usergroup=usergroup["id"])
             except SlackAPIException as e:
                 if e.response["error"] == "no_such_subteam":
                     logger.info("User group does not exist")
@@ -550,10 +540,12 @@ def populate_slack_channels_for_team(slack_team_identity_id: int, cursor: Option
     try:
         response, cursor, rate_limited = sc.paginated_api_call_with_ratelimit(
             "conversations.list",
-            types="public_channel,private_channel",
             paginated_key="channels",
-            limit=1000,
-            cursor=cursor,
+            json={
+                "types": "public_channel,private_channel",
+                "limit": 1000,
+                "cursor": cursor,
+            },
         )
     except SlackAPITokenException as e:
         logger.info(f"token revoked\n{e}")

@@ -41,8 +41,7 @@ class AlertGroupSlackService:
         blocks = alert_group.render_slack_blocks()
         logger.info(f"Update message for alert_group {alert_group.pk}")
         try:
-            self._slack_client.api_call(
-                "chat.update",
+            self._slack_client.chat_update(
                 channel=slack_message.channel_id,
                 ts=slack_message.slack_id,
                 attachments=attachments,
@@ -63,8 +62,8 @@ class AlertGroupSlackService:
         except SlackAPIException as e:
             if e.response["error"] == "message_not_found":
                 logger.info(f"message_not_found for alert_group {alert_group.pk}, trying to post new message")
-                result = self._slack_client.api_call(
-                    "chat.postMessage", channel=slack_message.channel_id, attachments=attachments, blocks=blocks
+                result = self._slack_client.chat_postMessage(
+                    channel=slack_message.channel_id, attachments=attachments, blocks=blocks
                 )
                 slack_message_updated = SlackMessage(
                     slack_id=result["ts"],
@@ -100,8 +99,7 @@ class AlertGroupSlackService:
         slack_message = alert_group.get_slack_message()
         channel_id = slack_message.channel_id
         try:
-            result = self._slack_client.api_call(
-                "chat.postMessage",
+            result = self._slack_client.chat_postMessage(
                 channel=channel_id,
                 text=text,
                 attachments=attachments,

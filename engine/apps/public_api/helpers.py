@@ -6,9 +6,7 @@ def team_has_slack_token_for_deleting(alert_group):
     if alert_group.slack_message and alert_group.slack_message.slack_team_identity:
         sc = SlackClientWithErrorHandling(alert_group.slack_message.slack_team_identity.bot_access_token)
         try:
-            sc.api_call(
-                "auth.test",
-            )
+            sc.auth_test()
         except SlackAPITokenException:
             return False
     return True

@@ -151,8 +151,7 @@ def notify_ical_schedule_shift(schedule_pk):
             report_blocks = step.get_report_blocks_ical(new_shifts, upcoming_shifts, schedule, schedule.empty_oncall)
 
             try:
-                slack_client.api_call(
-                    "chat.postMessage",
+                slack_client.chat_postMessage(
                     channel=schedule.channel,
                     blocks=report_blocks,
                     text=f"On-call shift for schedule {schedule.name} has changed",

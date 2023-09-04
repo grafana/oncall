@@ -77,8 +77,4 @@ class ScenarioStep(object):
                 },
             ],
         }
-        self._slack_client.api_call(
-            "views.open",
-            trigger_id=payload["trigger_id"],
-            view=view,
-        )
+        self._slack_client.views_open(trigger_id=payload["trigger_id"], view=view)

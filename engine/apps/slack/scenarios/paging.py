@@ -147,8 +147,7 @@ class StartDirectPaging(scenario_step.ScenarioStep):
         }
         initial_payload = {"view": {"private_metadata": json.dumps(private_metadata)}}
         view = render_dialog(slack_user_identity, slack_team_identity, initial_payload, initial=True)
-        self._slack_client.api_call(
-            "views.open",
+        self._slack_client.views_open(
             trigger_id=payload["trigger_id"],
             view=view,
         )
@@ -203,16 +202,14 @@ class FinishDirectPaging(scenario_step.ScenarioStep):
         text = ":white_check_mark: Alert group *{}* created: {}".format(title, alert_group.web_link)
 
         try:
-            self._slack_client.api_call(
-                "chat.postEphemeral",
+            self._slack_client.chat_postEphemeral(
                 channel=channel_id,
                 user=slack_user_identity.slack_id,
                 text=text,
             )
         except SlackAPIException as e:
             if e.response["error"] == "channel_not_found":
-                self._slack_client.api_call(
-                    "chat.postEphemeral",
+                self._slack_client.chat_postEphemeral(
                     channel=slack_user_identity.im_channel_id,
                     user=slack_user_identity.slack_id,
                     text=text,
@@ -235,8 +232,7 @@ class OnPagingOrgChange(scenario_step.ScenarioStep):
     ) -> None:
         updated_payload = reset_items(payload)
         view = render_dialog(slack_user_identity, slack_team_identity, updated_payload)
-        self._slack_client.api_call(
-            "views.update",
+        self._slack_client.views_update(
             trigger_id=updated_payload["trigger_id"],
             view=view,
             view_id=updated_payload["view"]["id"],
@@ -253,8 +249,7 @@ class OnPagingTeamChange(scenario_step.ScenarioStep):
         payload: EventPayload,
     ) -> None:
         view = render_dialog(slack_user_identity, slack_team_identity, payload)
-        self._slack_client.api_call(
-            "views.update",
+        self._slack_client.views_update(
             trigger_id=payload["trigger_id"],
             view=view,
             view_id=payload["view"]["id"],
@@ -290,11 +285,7 @@ class OnPagingUserChange(scenario_step.ScenarioStep):
         if availability_warnings:
             # display warnings and require additional confirmation
             view = _display_availability_warnings(payload, availability_warnings, selected_organization, selected_user)
-            self._slack_client.api_call(
-                "views.push",
-                trigger_id=payload["trigger_id"],
-                view=view,
-            )
+            self._slack_client.views_push(trigger_id=payload["trigger_id"], view=view)
         else:
             # user is available to be paged
             error_msg = None
@@ -304,8 +295,7 @@ class OnPagingUserChange(scenario_step.ScenarioStep):
                 updated_payload = payload
                 error_msg = "Cannot add user, maximum responders exceeded"
             view = render_dialog(slack_user_identity, slack_team_identity, updated_payload, error_msg=error_msg)
-            self._slack_client.api_call(
-                "views.update",
+            self._slack_client.views_update(
                 trigger_id=payload["trigger_id"],
                 view=view,
                 view_id=payload["view"]["id"],
@@ -338,12 +328,7 @@ class OnPagingItemActionChange(scenario_step.ScenarioStep):
                 error_msg = "Cannot update policy, maximum responders exceeded"
 
         view = render_dialog(slack_user_identity, slack_team_identity, updated_payload, error_msg=error_msg)
-        self._slack_client.api_call(
-            "views.update",
-            trigger_id=payload["trigger_id"],
-            view=view,
-            view_id=payload["view"]["id"],
-        )
+        self._slack_client.views_update(trigger_id=payload["trigger_id"], view=view, view_id=payload["view"]["id"])
 
 
 class OnPagingConfirmUserChange(scenario_step.ScenarioStep):
@@ -380,8 +365,7 @@ class OnPagingConfirmUserChange(scenario_step.ScenarioStep):
             updated_payload = payload
             error_msg = "Cannot add user, maximum responders exceeded"
         view = render_dialog(slack_user_identity, slack_team_identity, updated_payload, error_msg=error_msg)
-        self._slack_client.api_call(
-            "views.update",
+        self._slack_client.views_update(
             trigger_id=payload["trigger_id"],
             view=view,
             view_id=payload["view"]["previous_view_id"],
@@ -412,12 +396,7 @@ class OnPagingScheduleChange(scenario_step.ScenarioStep):
             updated_payload = payload
             error_msg = "Cannot add schedule, maximum responders exceeded"
         view = render_dialog(slack_user_identity, slack_team_identity, updated_payload, error_msg=error_msg)
-        self._slack_client.api_call(
-            "views.update",
-            trigger_id=payload["trigger_id"],
-            view=view,
-            view_id=payload["view"]["id"],
-        )
+        self._slack_client.views_update(trigger_id=payload["trigger_id"], view=view, view_id=payload["view"]["id"])
 
 
 # slack view/blocks rendering helpers

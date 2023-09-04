@@ -89,14 +89,13 @@ def make_slack_payload(
 def test_initial_state(
     make_organization_and_user_with_slack_identities,
 ):
-    organization, user, slack_team_identity, slack_user_identity = make_organization_and_user_with_slack_identities()
+    _, _, slack_team_identity, slack_user_identity = make_organization_and_user_with_slack_identities()
     payload = {"channel_id": "123", "trigger_id": "111"}
 
     step = StartDirectPaging(slack_team_identity)
-    with patch.object(step._slack_client, "api_call") as mock_slack_api_call:
+    with patch.object(step._slack_client, "views_open") as mock_slack_api_call:
         step.process_scenario(slack_user_identity, slack_team_identity, payload)
 
-    assert mock_slack_api_call.call_args.args == ("views.open",)
     metadata = json.loads(mock_slack_api_call.call_args.kwargs["view"]["private_metadata"])
     assert metadata[DataKey.USERS] == {}
     assert metadata[DataKey.SCHEDULES] == {}
@@ -138,10 +137,9 @@ def test_add_user_no_warning(
     payload = make_slack_payload(organization=organization, user=user)
 
     step = OnPagingUserChange(slack_team_identity)
-    with patch.object(step._slack_client, "api_call") as mock_slack_api_call:
+    with patch.object(step._slack_client, "views_update") as mock_slack_api_call:
         step.process_scenario(slack_user_identity, slack_team_identity, payload)
 
-    assert mock_slack_api_call.call_args.args == ("views.update",)
     metadata = json.loads(mock_slack_api_call.call_args.kwargs["view"]["private_metadata"])
     assert metadata[DataKey.USERS] == {str(user.pk): Policy.DEFAULT}
 
@@ -183,10 +181,9 @@ def test_add_user_maximum_exceeded(
 
     step = OnPagingUserChange(slack_team_identity)
     with patch("apps.slack.scenarios.paging.PRIVATE_METADATA_MAX_LENGTH", 100):
-        with patch.object(step._slack_client, "api_call") as mock_slack_api_call:
+        with patch.object(step._slack_client, "views_update") as mock_slack_api_call:
             step.process_scenario(slack_user_identity, slack_team_identity, payload)
 
-    assert mock_slack_api_call.call_args.args == ("views.update",)
     view_data = mock_slack_api_call.call_args.kwargs["view"]
     metadata = json.loads(view_data["private_metadata"])
     # metadata unchanged, ignoring the prefix
@@ -210,10 +207,9 @@ def test_add_user_raise_warning(make_organization_and_user_with_slack_identities
     payload = make_slack_payload(organization=organization, user=user)
 
     step = OnPagingUserChange(slack_team_identity)
-    with patch.object(step._slack_client, "api_call") as mock_slack_api_call:
+    with patch.object(step._slack_client, "views_push") as mock_slack_api_call:
         step.process_scenario(slack_user_identity, slack_team_identity, payload)
 
-    assert mock_slack_api_call.call_args.args == ("views.push",)
     assert mock_slack_api_call.call_args.kwargs["view"]["callback_id"] == "OnPagingConfirmUserChange"
     text_from_blocks = "".join(
         b["text"]["text"] for b in mock_slack_api_call.call_args.kwargs["view"]["blocks"] if b["type"] == "section"
@@ -232,10 +228,9 @@ def test_change_user_policy(make_organization_and_user_with_slack_identities):
     )
 
     step = OnPagingItemActionChange(slack_team_identity)
-    with patch.object(step._slack_client, "api_call") as mock_slack_api_call:
+    with patch.object(step._slack_client, "views_update") as mock_slack_api_call:
         step.process_scenario(slack_user_identity, slack_team_identity, payload)
 
-    assert mock_slack_api_call.call_args.args == ("views.update",)
     metadata = json.loads(mock_slack_api_call.call_args.kwargs["view"]["private_metadata"])
     assert metadata[DataKey.USERS] == {str(user.pk): Policy.IMPORTANT}
 
@@ -249,10 +244,9 @@ def test_remove_user(make_organization_and_user_with_slack_identities):
     )
 
     step = OnPagingItemActionChange(slack_team_identity)
-    with patch.object(step._slack_client, "api_call") as mock_slack_api_call:
+    with patch.object(step._slack_client, "views_update") as mock_slack_api_call:
         step.process_scenario(slack_user_identity, slack_team_identity, payload)
 
-    assert mock_slack_api_call.call_args.args == ("views.update",)
     metadata = json.loads(mock_slack_api_call.call_args.kwargs["view"]["private_metadata"])
     assert metadata[DataKey.USERS] == {}
 
@@ -324,10 +318,9 @@ def test_add_schedule(make_organization_and_user_with_slack_identities, make_sch
     )
 
     step = OnPagingScheduleChange(slack_team_identity)
-    with patch.object(step._slack_client, "api_call") as mock_slack_api_call:
+    with patch.object(step._slack_client, "views_update") as mock_slack_api_call:
         step.process_scenario(slack_user_identity, slack_team_identity, payload)
 
-    assert mock_slack_api_call.call_args.args == ("views.update",)
     metadata = json.loads(mock_slack_api_call.call_args.kwargs["view"]["private_metadata"])
     assert metadata[DataKey.SCHEDULES] == {str(schedule.pk): Policy.DEFAULT}
     assert metadata[DataKey.USERS] == {str(user.pk): Policy.IMPORTANT}
@@ -345,10 +338,9 @@ def test_add_schedule_responders_exceeded(make_organization_and_user_with_slack_
 
     step = OnPagingScheduleChange(slack_team_identity)
     with patch("apps.slack.scenarios.paging.PRIVATE_METADATA_MAX_LENGTH", 100):
-        with patch.object(step._slack_client, "api_call") as mock_slack_api_call:
+        with patch.object(step._slack_client, "views_update") as mock_slack_api_call:
             step.process_scenario(slack_user_identity, slack_team_identity, payload)
 
-    assert mock_slack_api_call.call_args.args == ("views.update",)
     view_data = mock_slack_api_call.call_args.kwargs["view"]
     metadata = json.loads(view_data["private_metadata"])
     # metadata unchanged, ignoring the prefix
@@ -376,10 +368,9 @@ def test_change_schedule_policy(make_organization_and_user_with_slack_identities
     )
 
     step = OnPagingItemActionChange(slack_team_identity)
-    with patch.object(step._slack_client, "api_call") as mock_slack_api_call:
+    with patch.object(step._slack_client, "views_update") as mock_slack_api_call:
         step.process_scenario(slack_user_identity, slack_team_identity, payload)
 
-    assert mock_slack_api_call.call_args.args == ("views.update",)
     metadata = json.loads(mock_slack_api_call.call_args.kwargs["view"]["private_metadata"])
     assert metadata[DataKey.SCHEDULES] == {str(schedule.pk): Policy.IMPORTANT}
     assert metadata[DataKey.USERS] == {str(user.pk): Policy.DEFAULT}
@@ -396,10 +387,9 @@ def test_remove_schedule(make_organization_and_user_with_slack_identities, make_
     )
 
     step = OnPagingItemActionChange(slack_team_identity)
-    with patch.object(step._slack_client, "api_call") as mock_slack_api_call:
+    with patch.object(step._slack_client, "views_update") as mock_slack_api_call:
         step.process_scenario(slack_user_identity, slack_team_identity, payload)
 
-    assert mock_slack_api_call.call_args.args == ("views.update",)
     metadata = json.loads(mock_slack_api_call.call_args.kwargs["view"]["private_metadata"])
     assert metadata[DataKey.SCHEDULES] == {}
     assert metadata[DataKey.USERS] == {str(user.pk): Policy.DEFAULT}

@@ -194,10 +194,7 @@ class SlackEventApiEndpointView(APIView):
         if slack_team_identity.detected_token_revoked is not None:
             # check if token is still invalid
             try:
-                sc.api_call(
-                    "auth.test",
-                    team=slack_team_identity,
-                )
+                sc.auth_test(team=slack_team_identity)
             except SlackAPITokenException:
                 logger.info(f"Team {slack_team_identity.slack_id} has revoked token, dropping request.")
                 return Response(status=200)
@@ -222,7 +219,7 @@ class SlackEventApiEndpointView(APIView):
             elif (
                 payload_event_bot_id and slack_team_identity and payload_event_channel_type == EventType.MESSAGE_CHANNEL
             ):
-                response = sc.api_call("bots.info", bot=payload_event_bot_id)
+                response = sc.bots_info(bot=payload_event_bot_id)
                 bot_user_id = response.get("bot", {}).get("user_id", "")
 
                 # Don't react on own bot's messages.
@@ -535,11 +532,7 @@ class SlackEventApiEndpointView(APIView):
                 "text": "One more step!",
             },
         }
-        slack_client.api_call(
-            "views.open",
-            trigger_id=payload["trigger_id"],
-            view=view,
-        )
+        slack_client.views_open(trigger_id=payload["trigger_id"], view=view)
 
 
 class ResetSlackView(APIView):

@@ -72,8 +72,7 @@ class NotificationDeliveryStep(scenario_step.ScenarioStep):
         ]
         try:
             # TODO: slack-onprem, check exceptions
-            self._slack_client.api_call(
-                "chat.postMessage",
+            self._slack_client.chat_postMessage(
                 channel=channel,
                 text=text,
                 blocks=blocks,

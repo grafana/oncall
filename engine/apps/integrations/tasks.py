@@ -158,8 +158,6 @@ def notify_about_integration_ratelimit_in_slack(organization_id, text, **kwargs)
         if slack_team_identity is not None:
             try:
                 sc = SlackClientWithErrorHandling(slack_team_identity.bot_access_token)
-                sc.api_call(
-                    "chat.postMessage", channel=organization.general_log_channel_id, text=text, team=slack_team_identity
-                )
+                sc.chat_postMessage(channel=organization.general_log_channel_id, text=text, team=slack_team_identity)
             except SlackAPIException as e:
                 logger.warning(f"Slack exception {e} while sending message for organization {organization_id}")

@@ -809,9 +809,14 @@ def test_step_format_alert(
     assert mock_slack_api_call.call_args.args == ("views.open",)
 
 
+@patch("apps.slack.models.SlackTeamIdentity.get_conversation_members")
 @pytest.mark.django_db
 def test_step_resolution_note(
-    make_organization_and_user_with_slack_identities, make_alert_receive_channel, make_alert_group, make_alert
+    mock_get_conversation_members,
+    make_organization_and_user_with_slack_identities,
+    make_alert_receive_channel,
+    make_alert_group,
+    make_alert,
 ):
     organization, user, slack_team_identity, slack_user_identity = make_organization_and_user_with_slack_identities()
 
@@ -819,6 +824,7 @@ def test_step_resolution_note(
     alert_group = make_alert_group(alert_receive_channel)
     make_alert(alert_group, raw_request_data={})
 
+    channel_id = "RANDOM_CHANNEL_ID"
     payload = {
         "trigger_id": "RANDOM_TRIGGER_ID",
         "actions": [
@@ -833,14 +839,15 @@ def test_step_resolution_note(
                 ),
             }
         ],
-        "channel": {"id": "RANDOM_CHANNEL_ID"},
+        "channel": {"id": channel_id},
         "message": {"ts": "RANDOM_MESSAGE_TS"},
     }
 
     step_class = ScenarioStep.get_step("resolution_note", "ResolutionNoteModalStep")
     step = step_class(organization=organization, user=user, slack_team_identity=slack_team_identity)
 
-    with patch.object(step._slack_client, "api_call") as mock_slack_api_call:
+    with patch.object(step._slack_client, "views_open") as mock_slack_api_call:
         step.process_scenario(slack_user_identity, slack_team_identity, payload)
 
-    assert mock_slack_api_call.call_args.args == ("views.open",)
+    mock_slack_api_call.assert_called_once()
+    mock_get_conversation_members.assert_called_once_with(step._slack_client, channel_id)

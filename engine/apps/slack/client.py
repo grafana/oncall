@@ -2,7 +2,8 @@ import logging
 from typing import Optional, Tuple
 
 from django.utils import timezone
-from slackclient import SlackClient
+from slack_sdk.errors import SlackApiError
+from slack_sdk.web import WebClient
 
 from apps.slack.constants import SLACK_RATE_LIMIT_DELAY
 
@@ -29,14 +30,10 @@ class SlackAPIRateLimitException(SlackAPIException):
     pass
 
 
-class SlackClientException(Exception):
-    pass
-
-
-class SlackClientWithErrorHandling(SlackClient):
+class SlackClientWithErrorHandling(WebClient):
     def paginated_api_call(self, *args, **kwargs):
         # It's a key from response which is paginated. For example "users" or "channels"
-        listed_key = kwargs["paginated_key"]
+        listed_key = kwargs.pop("paginated_key")
 
         response = self.api_call(*args, **kwargs)
         cumulative_response = response
@@ -59,9 +56,9 @@ class SlackClientWithErrorHandling(SlackClient):
         instead of next cursor to avoid data loss during delay time
         """
         # It's a key from response which is paginated. For example "users" or "channels"
-        listed_key = kwargs["paginated_key"]
+        listed_key = kwargs.pop("paginated_key")
         cumulative_response = {}
-        cursor = kwargs.get("cursor")
+        cursor = kwargs["json"]["cursor"]
         rate_limited = False
 
         try:
@@ -75,7 +72,7 @@ class SlackClientWithErrorHandling(SlackClient):
                 and response["response_metadata"]["next_cursor"] != ""
             ):
                 next_cursor = response["response_metadata"]["next_cursor"]
-                kwargs["cursor"] = next_cursor
+                kwargs["json"]["cursor"] = next_cursor
                 response = self.api_call(*args, **kwargs)
                 cumulative_response[listed_key] += response[listed_key]
                 cursor = next_cursor
@@ -86,7 +83,10 @@ class SlackClientWithErrorHandling(SlackClient):
         return cumulative_response, cursor, rate_limited
 
     def api_call(self, *args, **kwargs):
-        response = super(SlackClientWithErrorHandling, self).api_call(*args, **kwargs)
+        try:
+            response = super(SlackClientWithErrorHandling, self).api_call(*args, **kwargs)
+        except SlackApiError as err:
+            response = err.response
 
         if not response["ok"]:
             exception_text = "Slack API Call Error: {} \nArgs: {} \nKwargs: {} \nResponse: {}".format(

@@ -68,11 +68,7 @@ class StartCreateIncidentFromSlashCommand(scenario_step.ScenarioStep):
             FinishCreateIncidentFromSlashCommand.routing_uid(), blocks, json.dumps(private_metadata)
         )
 
-        self._slack_client.api_call(
-            "views.open",
-            trigger_id=payload["trigger_id"],
-            view=view,
-        )
+        self._slack_client.views_open(trigger_id=payload["trigger_id"], view=view)
 
 
 class FinishCreateIncidentFromSlashCommand(scenario_step.ScenarioStep):
@@ -115,16 +111,14 @@ class FinishCreateIncidentFromSlashCommand(scenario_step.ScenarioStep):
         author_username = slack_user_identity.slack_verbal
 
         try:
-            self._slack_client.api_call(
-                "chat.postEphemeral",
+            self._slack_client.chat_postEphemeral(
                 channel=channel_id,
                 user=slack_user_identity.slack_id,
                 text=":white_check_mark: Alert *{}* successfully submitted".format(title),
             )
         except SlackAPIException as e:
             if e.response["error"] == "channel_not_found":
-                self._slack_client.api_call(
-                    "chat.postEphemeral",
+                self._slack_client.chat_postEphemeral(
                     channel=slack_user_identity.im_channel_id,
                     user=slack_user_identity.slack_id,
                     text=":white_check_mark: Alert *{}* successfully submitted".format(title),
@@ -201,8 +195,7 @@ class OnOrgChange(scenario_step.ScenarioStep):
         if with_title_and_message_inputs:
             blocks.extend([_get_title_input(payload), _get_message_input(payload)])
         view = _get_manual_incident_form_view(submit_routing_uid, blocks, json.dumps(new_private_metadata))
-        self._slack_client.api_call(
-            "views.update",
+        self._slack_client.views_update(
             trigger_id=payload["trigger_id"],
             view=view,
             view_id=payload["view"]["id"],
@@ -249,8 +242,7 @@ class OnTeamChange(scenario_step.ScenarioStep):
         if with_title_and_message_inputs:
             blocks.extend([_get_title_input(payload), _get_message_input(payload)])
         view = _get_manual_incident_form_view(submit_routing_uid, blocks, json.dumps(new_private_metadata))
-        self._slack_client.api_call(
-            "views.update",
+        self._slack_client.views_update(
             trigger_id=payload["trigger_id"],
             view=view,
             view_id=payload["view"]["id"],

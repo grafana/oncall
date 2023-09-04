@@ -95,10 +95,9 @@ def test_initial_state(manage_responders_setup):
     organization, user, slack_team_identity, slack_user_identity = manage_responders_setup
 
     step = StartManageResponders(slack_team_identity, organization, user)
-    with patch.object(step._slack_client, "api_call") as mock_slack_api_call:
+    with patch.object(step._slack_client, "views_open") as mock_slack_api_call:
         step.process_scenario(slack_user_identity, slack_team_identity, payload)
 
-    assert mock_slack_api_call.call_args.args == ("views.open",)
     metadata = json.loads(mock_slack_api_call.call_args.kwargs["view"]["private_metadata"])
     assert metadata[ALERT_GROUP_DATA_KEY] == ALERT_GROUP_ID
 
@@ -138,10 +137,8 @@ def test_add_user_no_warning(manage_responders_setup, make_schedule, make_on_cal
     payload = make_slack_payload(user=user)
 
     step = ManageRespondersUserChange(slack_team_identity, organization, user)
-    with patch.object(step._slack_client, "api_call") as mock_slack_api_call:
+    with patch.object(step._slack_client, "views_update") as mock_slack_api_call:
         step.process_scenario(slack_user_identity, slack_team_identity, payload)
-
-    assert mock_slack_api_call.call_args.args == ("views.update",)
 
     # check there's a delete button for the user
     assert mock_slack_api_call.call_args.kwargs["view"]["blocks"][0]["accessory"]["value"] == str(user.pk)
@@ -154,10 +151,9 @@ def test_add_user_raise_warning(manage_responders_setup):
     payload = make_slack_payload(user=user)
 
     step = ManageRespondersUserChange(slack_team_identity, organization, user)
-    with patch.object(step._slack_client, "api_call") as mock_slack_api_call:
+    with patch.object(step._slack_client, "views_push") as mock_slack_api_call:
         step.process_scenario(slack_user_identity, slack_team_identity, payload)
 
-    assert mock_slack_api_call.call_args.args == ("views.push",)
     assert mock_slack_api_call.call_args.kwargs["view"]["callback_id"] == "ManageRespondersConfirmUserChange"
     text_from_blocks = "".join(
         b["text"]["text"] for b in mock_slack_api_call.call_args.kwargs["view"]["blocks"] if b["type"] == "section"
@@ -189,10 +185,9 @@ def test_add_schedule(manage_responders_setup, make_schedule, make_on_call_shift
     payload = make_slack_payload(schedule=schedule)
 
     step = ManageRespondersScheduleChange(slack_team_identity, organization, user)
-    with patch.object(step._slack_client, "api_call") as mock_slack_api_call:
+    with patch.object(step._slack_client, "views_update") as mock_slack_api_call:
         step.process_scenario(slack_user_identity, slack_team_identity, payload)
 
-    assert mock_slack_api_call.call_args.args == ("views.update",)
     assert mock_slack_api_call.call_args.kwargs["view"]["blocks"][0]["accessory"]["value"] == str(user.pk)
 
 
@@ -222,10 +217,9 @@ def test_add_schedule_alert_group_resolved(
     payload = make_slack_payload(schedule=schedule)
 
     step = ManageRespondersScheduleChange(slack_team_identity, organization, user)
-    with patch.object(step._slack_client, "api_call") as mock_slack_api_call:
+    with patch.object(step._slack_client, "views_update") as mock_slack_api_call:
         step.process_scenario(slack_user_identity, slack_team_identity, payload)
 
-    assert mock_slack_api_call.call_args.args == ("views.update",)
     assert (
         DirectPagingAlertGroupResolvedError.DETAIL
         in mock_slack_api_call.call_args.kwargs["view"]["blocks"][0]["text"]["text"]
@@ -238,10 +232,9 @@ def test_remove_user(manage_responders_setup):
 
     payload = make_slack_payload(actions=[{"value": user.pk}])
     step = ManageRespondersRemoveUser(slack_team_identity, organization, user)
-    with patch.object(step._slack_client, "api_call") as mock_slack_api_call:
+    with patch.object(step._slack_client, "views_update") as mock_slack_api_call:
         step.process_scenario(slack_user_identity, slack_team_identity, payload)
 
-    assert mock_slack_api_call.call_args.args == ("views.update",)
     # check there's no list of users in the view
     assert mock_slack_api_call.call_args.kwargs["view"]["blocks"][0]["accessory"]["type"] != "button"
 
