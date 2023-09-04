@@ -1786,15 +1786,17 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
         return self.slack_message and self.channel.organization.slack_team_identity
 
     @property
-    def slack_channel_id(self):
-        slack_channel_id = None
-        if self.channel.organization.slack_team_identity is not None:
-            slack_message = self.slack_message
-            if slack_message is not None:
-                slack_channel_id = slack_message.channel_id
-            elif self.channel_filter is not None:
-                slack_channel_id = self.channel_filter.slack_channel_id_or_general_log_id
-        return slack_channel_id
+    def slack_channel_id(self) -> str | None:
+        if self.channel.organization.slack_team_identity is None:
+            return None
+
+        if self.slack_message:
+            return self.slack_message.channel_id
+
+        if self.channel_filter:
+            return self.channel_filter.slack_channel_id_or_general_log_id
+
+        return None
 
     @property
     def slack_message(self) -> typing.Optional["SlackMessage"]:
