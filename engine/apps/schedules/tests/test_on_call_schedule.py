@@ -2619,15 +2619,24 @@ def test_shifts_for_user_only_two_users_with_shifts(
     for shift in upcoming_shifts:
         users = {u["pk"] for u in shift["users"]}
         assert current_user.public_primary_key in users
+        assert shift["start"] > now
 
     passed_shifts, current_shifts, upcoming_shifts = schedule.shifts_for_user(user2, start_date, days)
     assert len(passed_shifts) > 0
     assert len(current_shifts) > 0
     assert len(upcoming_shifts) > 0
-    for shifts in (passed_shifts, current_shifts, upcoming_shifts):
-        for shift in shifts:
-            users = {u["pk"] for u in shift["users"]}
-            assert user2.public_primary_key in users
+    for shift in passed_shifts:
+        users = {u["pk"] for u in shift["users"]}
+        assert user2.public_primary_key in users
+        assert shift["end"] < now
+    for shift in current_shifts:
+        users = {u["pk"] for u in shift["users"]}
+        assert user2.public_primary_key in users
+        assert shift["start"] <= now < shift["end"]
+    for shift in upcoming_shifts:
+        users = {u["pk"] for u in shift["users"]}
+        assert user2.public_primary_key in users
+        assert shift["start"] > now
 
 
 @pytest.mark.django_db
