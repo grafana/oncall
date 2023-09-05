@@ -173,6 +173,15 @@ export class RootBaseStore {
       return this.setupPluginError('🚫 Plugin has not been initialized');
     }
 
+    if (this.isOpenSource() && !meta.secureJsonFields?.onCallApiToken) {
+      // Reinstall plugin if onCallApiToken is missing
+      const errorMsg = await PluginState.selfHostedInstallPlugin(process.env.ONCALL_API_URL, true);
+      if (errorMsg) {
+        return this.setupPluginError(errorMsg);
+      }
+      location.reload();
+    }
+
     // at this point we know the plugin is provisioned
     const pluginConnectionStatus = await PluginState.updatePluginStatus(this.onCallApiUrl);
     if (typeof pluginConnectionStatus === 'string') {

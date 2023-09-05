@@ -39,8 +39,8 @@ docker_build(
 # Build the plugin in the background
 local_resource('build-ui',
 				labels=['OnCallUI'],
-				cmd='cd grafana-plugin && yarn install && yarn build:dev',
-				serve_cmd='cd grafana-plugin && yarn watch',
+				cmd='cd grafana-plugin && yarn install  && yarn build:dev',
+				serve_cmd='cd grafana-plugin && ONCALL_API_URL=http://oncall-dev-engine:8080 yarn watch',
 				allow_parallel=True)
 
 yaml = helm(
