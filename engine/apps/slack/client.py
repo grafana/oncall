@@ -38,7 +38,7 @@ class SlackClientWithErrorHandling(WebClient):
         api_method = getattr(self, method)
 
         response = api_method(**kwargs)
-        cumulative_response = response
+        cumulative_response = response.data
 
         while (
             "response_metadata" in response
@@ -46,7 +46,7 @@ class SlackClientWithErrorHandling(WebClient):
             and response["response_metadata"]["next_cursor"] != ""
         ):
             kwargs["cursor"] = response["response_metadata"]["next_cursor"]
-            response = api_method(**kwargs)
+            response = api_method(**kwargs).data
             cumulative_response[paginated_key] += response[paginated_key]
 
         return cumulative_response
@@ -69,7 +69,7 @@ class SlackClientWithErrorHandling(WebClient):
         rate_limited = False
 
         try:
-            response = api_method(**kwargs)
+            response = api_method(**kwargs).data
             cumulative_response = response
             cursor = response["response_metadata"]["next_cursor"]
 
@@ -80,7 +80,7 @@ class SlackClientWithErrorHandling(WebClient):
             ):
                 next_cursor = response["response_metadata"]["next_cursor"]
                 kwargs["cursor"] = next_cursor
-                response = api_method(**kwargs)
+                response = api_method(**kwargs).data
                 cumulative_response[paginated_key] += response[paginated_key]
                 cursor = next_cursor
 
