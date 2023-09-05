@@ -5,11 +5,11 @@ import uuid
 
 from django.db import models
 
-from apps.slack.slack_client import SlackClientWithErrorHandling
-from apps.slack.slack_client.exceptions import (
+from apps.slack.client import (
     SlackAPIChannelArchivedException,
     SlackAPIException,
     SlackAPITokenException,
+    SlackClientWithErrorHandling,
 )
 
 if typing.TYPE_CHECKING:
@@ -83,11 +83,7 @@ class SlackMessage(models.Model):
             sc = SlackClientWithErrorHandling(self.slack_team_identity.bot_access_token)
             result = None
             try:
-                result = sc.api_call(
-                    "chat.getPermalink",
-                    channel=self.channel_id,
-                    message_ts=self.slack_id,
-                )
+                result = sc.chat_getPermalink(channel=self.channel_id, message_ts=self.slack_id)
             except SlackAPIException as e:
                 if e.response["error"] == "message_not_found":
                     return "https://slack.com/resources/using-slack/page/404"
@@ -143,8 +139,7 @@ class SlackMessage(models.Model):
         channel_id = slack_message.channel_id
 
         try:
-            result = sc.api_call(
-                "chat.postMessage",
+            result = sc.chat_postMessage(
                 channel=channel_id,
                 text=text,
                 blocks=blocks,
@@ -190,7 +185,7 @@ class SlackMessage(models.Model):
             if slack_user_identity:
                 channel_members = []
                 try:
-                    channel_members = sc.api_call("conversations.members", channel=channel_id)["members"]
+                    channel_members = sc.conversations_members(channel=channel_id)["members"]
                 except SlackAPIException as e:
                     if e.response["error"] == "fetch_members_failed":
                         logger.warning(

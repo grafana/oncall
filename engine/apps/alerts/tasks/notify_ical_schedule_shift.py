@@ -6,9 +6,8 @@ from typing import TYPE_CHECKING
 from django.utils import timezone
 
 from apps.schedules.ical_utils import calculate_shift_diff, parse_event_uid
+from apps.slack.client import SlackAPIException, SlackAPITokenException, SlackClientWithErrorHandling
 from apps.slack.scenarios import scenario_step
-from apps.slack.slack_client import SlackClientWithErrorHandling
-from apps.slack.slack_client.exceptions import SlackAPIException, SlackAPITokenException
 from common.custom_celery_tasks import shared_dedicated_queue_retry_task
 
 from .task_logger import task_logger
@@ -152,8 +151,7 @@ def notify_ical_schedule_shift(schedule_pk):
             report_blocks = step.get_report_blocks_ical(new_shifts, upcoming_shifts, schedule, schedule.empty_oncall)
 
             try:
-                slack_client.api_call(
-                    "chat.postMessage",
+                slack_client.chat_postMessage(
                     channel=schedule.channel,
                     blocks=report_blocks,
                     text=f"On-call shift for schedule {schedule.name} has changed",

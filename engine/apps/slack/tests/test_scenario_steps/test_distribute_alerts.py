@@ -3,9 +3,9 @@ from unittest.mock import patch
 import pytest
 
 from apps.alerts.models import AlertGroup
+from apps.slack.client import SlackAPIException
 from apps.slack.models import SlackMessage
 from apps.slack.scenarios.scenario_step import ScenarioStep
-from apps.slack.slack_client.exceptions import SlackAPIException
 
 
 @pytest.mark.django_db

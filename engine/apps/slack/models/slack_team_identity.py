@@ -5,9 +5,8 @@ from django.db import models
 from django.db.models import JSONField
 
 from apps.api.permissions import RBACPermission
+from apps.slack.client import SlackAPIException, SlackAPITokenException, SlackClientWithErrorHandling
 from apps.slack.constants import SLACK_INVALID_AUTH_RESPONSE, SLACK_WRONG_TEAM_NAMES
-from apps.slack.slack_client import SlackClientWithErrorHandling
-from apps.slack.slack_client.exceptions import SlackAPIException, SlackAPITokenException
 from apps.user_management.models.user import User
 from common.insight_log.chatops_insight_logs import ChatOpsEvent, ChatOpsTypePlug, write_chatops_insight_log
 
@@ -87,7 +86,7 @@ class SlackTeamIdentity(models.Model):
     def bot_id(self):
         if self.cached_bot_id is None:
             sc = SlackClientWithErrorHandling(self.bot_access_token)
-            auth = sc.api_call("auth.test")
+            auth = sc.auth_test()
             self.cached_bot_id = auth.get("bot_id")
             self.save(update_fields=["cached_bot_id"])
         return self.cached_bot_id
@@ -99,7 +98,7 @@ class SlackTeamIdentity(models.Model):
         next_cursor = None
         members = []
         while next_cursor != "" or next_cursor is None:
-            result = sc.api_call("users.list", cursor=next_cursor, team=self)
+            result = sc.users_list(cursor=next_cursor, team=self)
             next_cursor = result["response_metadata"]["next_cursor"]
             members += result["members"]
 
@@ -110,7 +109,7 @@ class SlackTeamIdentity(models.Model):
         if self.cached_name is None or self.cached_name in SLACK_WRONG_TEAM_NAMES:
             try:
                 sc = SlackClientWithErrorHandling(self.bot_access_token)
-                result = sc.api_call("team.info")
+                result = sc.team_info()
                 self.cached_name = result["team"]["name"]
                 self.save()
             except SlackAPIException as e:
@@ -125,7 +124,7 @@ class SlackTeamIdentity(models.Model):
     def app_id(self):
         if not self.cached_app_id:
             sc = SlackClientWithErrorHandling(self.bot_access_token)
-            result = sc.api_call("bots.info", bot=self.bot_id)
+            result = sc.bots_info(bot=self.bot_id)
             app_id = result["bot"]["app_id"]
             self.cached_app_id = app_id
             self.save(update_fields=["cached_app_id"])
@@ -140,10 +139,10 @@ class SlackTeamIdentity(models.Model):
             **User.build_permissions_query(RBACPermission.Permissions.CHATOPS_WRITE, organization),
         )
 
-    def get_conversation_members(self, slack_client, channel_id):
+    def get_conversation_members(self, slack_client: SlackClientWithErrorHandling, channel_id: str):
         try:
             members = slack_client.paginated_api_call(
-                "conversations.members", channel=channel_id, paginated_key="members"
+                "conversations_members", paginated_key="members", channel=channel_id
             )["members"]
         except SlackAPITokenException as e:
             logger.warning(
