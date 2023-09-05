@@ -48,7 +48,6 @@ RUN mkdir -p /tmp/prometheus_django_metrics;
 RUN chown -R ${APP_USER}:${APP_USER} /tmp/prometheus_django_metrics
 ENV prometheus_multiproc_dir "/tmp/prometheus_django_metrics"
 
-CMD [ "uwsgi", "--ini", "uwsgi.ini" ]
 
 FROM base AS dev
 RUN apk add sqlite mysql-client postgresql-client
