@@ -983,15 +983,15 @@ class UpdateLogReportMessageStep(scenario_step.ScenarioStep):
             logger.info(f"Cannot post log message for alert_group {alert_group.pk} because SlackMessage doesn't exist")
             return None
 
-        text = ("Building escalation plan... :thinking_face:",)
-
         slack_log_message = alert_group.slack_log_message
 
         if slack_log_message is None:
             logger.debug(f"Start posting new log message for alert_group {alert_group.pk}")
             try:
                 result = self._slack_client.chat_postMessage(
-                    channel=slack_message.channel_id, thread_ts=slack_message.slack_id, text=text
+                    channel=slack_message.channel_id,
+                    thread_ts=slack_message.slack_id,
+                    text="Building escalation plan... :thinking_face:",
                 )
             except SlackAPITokenException as e:
                 print(e)
