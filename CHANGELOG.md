@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## v1.3.35 (2023-09-05)
+
+### Fixed
+
+- Fix issue in `SlackClientWithErrorHandling` paginted API calls by @joeyorlando
+
 ## v1.3.34 (2023-09-05)
 
 ### Fixed
