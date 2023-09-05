@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add option to create new contact point for existing integrations ([#2909](https://github.com/grafana/oncall/issues/2909))
 
+### Changed
+
+- Handle slack resolution note errors consistently ([#2976](https://github.com/grafana/oncall/pull/2976))
+
 ## v1.3.35 (2023-09-05)
 
 ### Fixed
