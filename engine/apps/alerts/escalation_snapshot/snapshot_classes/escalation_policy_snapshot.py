@@ -411,11 +411,11 @@ class EscalationPolicySnapshot:
 
         last_alert = alert_group.alerts.last()
 
-        time_delta = datetime.timedelta(minutes=self.escalation_policy.num_minutes_in_window)
+        time_delta = datetime.timedelta(minutes=self.num_minutes_in_window)
         num_alerts_in_window = alert_group.alerts.filter(created_at__gte=last_alert.created_at - time_delta).count()
 
         # pause escalation if there are not enough alerts in time window
-        if num_alerts_in_window <= self.escalation_policy.num_alerts_in_window:
+        if num_alerts_in_window <= self.num_alerts_in_window:
             self.pause_escalation = True
             return self._get_result_tuple(pause_escalation=True)
         return None
