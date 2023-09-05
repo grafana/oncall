@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Changed
+
+- Enable email notification step by default on Helm by @vadimkerr ([#2975](https://github.com/grafana/oncall/pull/2975))
+
 ## v1.3.35 (2023-09-05)
 
 ### Fixed
