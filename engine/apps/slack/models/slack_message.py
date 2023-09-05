@@ -5,11 +5,11 @@ import uuid
 
 from django.db import models
 
-from apps.slack.slack_client import SlackClientWithErrorHandling
-from apps.slack.slack_client.exceptions import (
+from apps.slack.client import (
     SlackAPIChannelArchivedException,
     SlackAPIException,
     SlackAPITokenException,
+    SlackClientWithErrorHandling,
 )
 
 if typing.TYPE_CHECKING:
@@ -77,28 +77,13 @@ class SlackMessage(models.Model):
             self.save()
         return self._slack_team_identity
 
-    def get_alert_group(self) -> "AlertGroup":
-        try:
-            return self._alert_group
-        except SlackMessage._alert_group.RelatedObjectDoesNotExist:
-            if self.alert_group:
-                self.alert_group.slack_message = self
-                self.alert_group.save(update_fields=["slack_message"])
-                return self.alert_group
-            else:
-                raise
-
     @property
     def permalink(self):
         if self.slack_team_identity is not None and self.cached_permalink is None:
             sc = SlackClientWithErrorHandling(self.slack_team_identity.bot_access_token)
             result = None
             try:
-                result = sc.api_call(
-                    "chat.getPermalink",
-                    channel=self.channel_id,
-                    message_ts=self.slack_id,
-                )
+                result = sc.chat_getPermalink(channel=self.channel_id, message_ts=self.slack_id)
             except SlackAPIException as e:
                 if e.response["error"] == "message_not_found":
                     return "https://slack.com/resources/using-slack/page/404"
@@ -118,7 +103,7 @@ class SlackMessage(models.Model):
     def send_slack_notification(self, user, alert_group, notification_policy):
         from apps.base.models import UserNotificationPolicyLogRecord
 
-        slack_message = alert_group.get_slack_message()
+        slack_message = alert_group.slack_message
         user_verbal = user.get_username_with_slack_verbal(mention=True)
 
         slack_user_identity = user.slack_user_identity
@@ -154,8 +139,7 @@ class SlackMessage(models.Model):
         channel_id = slack_message.channel_id
 
         try:
-            result = sc.api_call(
-                "chat.postMessage",
+            result = sc.chat_postMessage(
                 channel=channel_id,
                 text=text,
                 blocks=blocks,
@@ -189,20 +173,19 @@ class SlackMessage(models.Model):
             ).save()
             return
         else:
-            SlackMessage(
+            alert_group.slack_messages.create(
                 slack_id=result["ts"],
                 organization=self.organization,
                 _slack_team_identity=self.slack_team_identity,
                 channel_id=channel_id,
-                alert_group=alert_group,
-            ).save()
+            )
 
         # Check if escalated user is in channel. Otherwise send notification and request to invite him.
         try:
             if slack_user_identity:
                 channel_members = []
                 try:
-                    channel_members = sc.api_call("conversations.members", channel=channel_id)["members"]
+                    channel_members = sc.conversations_members(channel=channel_id)["members"]
                 except SlackAPIException as e:
                     if e.response["error"] == "fetch_members_failed":
                         logger.warning(

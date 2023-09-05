@@ -46,11 +46,7 @@ class StartManageResponders(AlertGroupActionsMixin, scenario_step.ScenarioStep):
             return
 
         view = render_dialog(alert_group)
-        self._slack_client.api_call(
-            "views.open",
-            trigger_id=payload["trigger_id"],
-            view=view,
-        )
+        self._slack_client.views_open(trigger_id=payload["trigger_id"], view=view)
 
 
 class ManageRespondersUserChange(scenario_step.ScenarioStep):
@@ -77,11 +73,7 @@ class ManageRespondersUserChange(scenario_step.ScenarioStep):
                 ManageRespondersConfirmUserChange.routing_uid(),
                 json.dumps({USER_DATA_KEY: selected_user.id, ALERT_GROUP_DATA_KEY: alert_group.pk}),
             )
-            self._slack_client.api_call(
-                "views.push",
-                trigger_id=payload["trigger_id"],
-                view=view,
-            )
+            self._slack_client.views_push(trigger_id=payload["trigger_id"], view=view)
         else:
             try:
                 # no warnings, proceed with paging
@@ -96,8 +88,7 @@ class ManageRespondersUserChange(scenario_step.ScenarioStep):
             except DirectPagingAlertGroupResolvedError:
                 view = render_dialog(alert_group, alert_group_resolved_warning=True)
 
-            self._slack_client.api_call(
-                "views.update",
+            self._slack_client.views_update(
                 trigger_id=payload["trigger_id"],
                 view=view,
                 view_id=payload["view"]["id"],
@@ -129,8 +120,7 @@ class ManageRespondersConfirmUserChange(scenario_step.ScenarioStep):
         except DirectPagingAlertGroupResolvedError:
             view = render_dialog(alert_group, alert_group_resolved_warning=True)
 
-        self._slack_client.api_call(
-            "views.update",
+        self._slack_client.views_update(
             trigger_id=payload["trigger_id"],
             view=view,
             view_id=payload["view"]["previous_view_id"],
@@ -162,8 +152,7 @@ class ManageRespondersScheduleChange(scenario_step.ScenarioStep):
         except DirectPagingAlertGroupResolvedError:
             view = render_dialog(alert_group, alert_group_resolved_warning=True)
 
-        self._slack_client.api_call(
-            "views.update",
+        self._slack_client.views_update(
             trigger_id=payload["trigger_id"],
             view=view,
             view_id=payload["view"]["id"],
@@ -185,8 +174,7 @@ class ManageRespondersRemoveUser(scenario_step.ScenarioStep):
 
         unpage_user(alert_group, selected_user, from_user)
         view = render_dialog(alert_group)
-        self._slack_client.api_call(
-            "views.update",
+        self._slack_client.views_update(
             trigger_id=payload["trigger_id"],
             view=view,
             view_id=payload["view"]["id"],

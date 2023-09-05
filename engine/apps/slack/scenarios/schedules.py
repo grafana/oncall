@@ -61,11 +61,7 @@ class EditScheduleShiftNotifyStep(scenario_step.ScenarioStep):
             "private_metadata": json.dumps(private_metadata),
         }
 
-        self._slack_client.api_call(
-            "views.open",
-            trigger_id=payload["trigger_id"],
-            view=view,
-        )
+        self._slack_client.views_open(trigger_id=payload["trigger_id"], view=view)
 
     def set_selected_value(self, slack_user_identity: "SlackUserIdentity", payload: EventPayload) -> None:
         action = payload["actions"][0]

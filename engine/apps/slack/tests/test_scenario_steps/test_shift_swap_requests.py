@@ -146,13 +146,13 @@ class TestBaseShiftSwapRequestStep:
         step = scenarios.BaseShiftSwapRequestStep(slack_team_identity, organization)
 
         with patch.object(step, "_slack_client") as mock_slack_client:
-            mock_slack_client.api_call.return_value = {"ts": ts}
+            mock_slack_client.chat_postMessage.return_value = {"ts": ts}
 
             slack_message = step.create_message(ssr)
 
             mock_generate_blocks.assert_called_once_with(ssr)
-            mock_slack_client.api_call.assert_called_once_with(
-                "chat.postMessage", channel=ssr.slack_channel_id, blocks=mock_generate_blocks.return_value
+            mock_slack_client.chat_postMessage.assert_called_once_with(
+                channel=ssr.slack_channel_id, blocks=mock_generate_blocks.return_value
             )
 
         assert slack_message.slack_id == ts
@@ -179,8 +179,8 @@ class TestBaseShiftSwapRequestStep:
             step.update_message(ssr)
 
             mock_generate_blocks.assert_called_once_with(ssr)
-            mock_slack_client.api_call.assert_called_once_with(
-                "chat.update", channel=ssr.slack_channel_id, ts=ts, blocks=mock_generate_blocks.return_value
+            mock_slack_client.chat_update.assert_called_once_with(
+                channel=ssr.slack_channel_id, ts=ts, blocks=mock_generate_blocks.return_value
             )
 
 

@@ -231,6 +231,31 @@ def test_get_alert_group_from_slack_message_in_db(
     assert alert_group == result
 
 
+@pytest.mark.django_db
+def test_get_alert_group_from_slack_message_in_db_no_alert_group(
+    make_organization_and_user_with_slack_identities,
+    make_alert_receive_channel,
+    make_alert_group,
+    make_slack_channel,
+    make_slack_message,
+):
+    organization, user, slack_team_identity, _ = make_organization_and_user_with_slack_identities()
+
+    slack_channel = make_slack_channel(slack_team_identity)
+    slack_message = make_slack_message(alert_group=None, organization=organization, channel_id=slack_channel.slack_id)
+
+    payload = {
+        "message_ts": slack_message.slack_id,
+        "channel": {"id": slack_channel.slack_id},
+        "actions": [{"type": "button", "value": "RANDOM_VALUE"}],
+    }
+
+    step = TestScenario(organization=organization, user=user, slack_team_identity=slack_team_identity)
+
+    with pytest.raises(AssertionError):
+        step.get_alert_group(slack_team_identity, payload)
+
+
 @pytest.mark.parametrize(
     "payload",
     [
@@ -267,10 +292,7 @@ def test_step_acknowledge(
     alert_group = make_alert_group(alert_receive_channel, acknowledged=False, pk=ALERT_GROUP_ID)
     make_alert(alert_group, raw_request_data={})
 
-    slack_message = make_slack_message(
-        alert_group=alert_group, channel_id=slack_channel.slack_id, slack_id=SLACK_MESSAGE_TS
-    )
-    slack_message.get_alert_group()  # fix FKs
+    make_slack_message(alert_group=alert_group, channel_id=slack_channel.slack_id, slack_id=SLACK_MESSAGE_TS)
 
     step_class = ScenarioStep.get_step("distribute_alerts", "AcknowledgeGroupStep")
     step = step_class(organization=organization, user=user, slack_team_identity=slack_team_identity)
@@ -316,10 +338,7 @@ def test_step_unacknowledge(
     alert_group = make_alert_group(alert_receive_channel, acknowledged=True, pk=ALERT_GROUP_ID)
     make_alert(alert_group, raw_request_data={})
 
-    slack_message = make_slack_message(
-        alert_group=alert_group, channel_id=slack_channel.slack_id, slack_id=SLACK_MESSAGE_TS
-    )
-    slack_message.get_alert_group()  # fix FKs
+    make_slack_message(alert_group=alert_group, channel_id=slack_channel.slack_id, slack_id=SLACK_MESSAGE_TS)
 
     step_class = ScenarioStep.get_step("distribute_alerts", "UnAcknowledgeGroupStep")
     step = step_class(organization=organization, user=user, slack_team_identity=slack_team_identity)
@@ -365,10 +384,7 @@ def test_step_resolve(
     alert_group = make_alert_group(alert_receive_channel, resolved=False, pk=ALERT_GROUP_ID)
     make_alert(alert_group, raw_request_data={})
 
-    slack_message = make_slack_message(
-        alert_group=alert_group, channel_id=slack_channel.slack_id, slack_id=SLACK_MESSAGE_TS
-    )
-    slack_message.get_alert_group()  # fix FKs
+    make_slack_message(alert_group=alert_group, channel_id=slack_channel.slack_id, slack_id=SLACK_MESSAGE_TS)
 
     step_class = ScenarioStep.get_step("distribute_alerts", "ResolveGroupStep")
     step = step_class(organization=organization, user=user, slack_team_identity=slack_team_identity)
@@ -414,10 +430,7 @@ def test_step_unresolve(
     alert_group = make_alert_group(alert_receive_channel, resolved=True, pk=ALERT_GROUP_ID)
     make_alert(alert_group, raw_request_data={})
 
-    slack_message = make_slack_message(
-        alert_group=alert_group, channel_id=slack_channel.slack_id, slack_id=SLACK_MESSAGE_TS
-    )
-    slack_message.get_alert_group()  # fix FKs
+    make_slack_message(alert_group=alert_group, channel_id=slack_channel.slack_id, slack_id=SLACK_MESSAGE_TS)
 
     step_class = ScenarioStep.get_step("distribute_alerts", "UnResolveGroupStep")
     step = step_class(organization=organization, user=user, slack_team_identity=slack_team_identity)
@@ -469,10 +482,7 @@ def test_step_invite(
     alert_group = make_alert_group(alert_receive_channel, resolved=True, pk=ALERT_GROUP_ID)
     make_alert(alert_group, raw_request_data={})
 
-    slack_message = make_slack_message(
-        alert_group=alert_group, channel_id=slack_channel.slack_id, slack_id=SLACK_MESSAGE_TS
-    )
-    slack_message.get_alert_group()  # fix FKs
+    make_slack_message(alert_group=alert_group, channel_id=slack_channel.slack_id, slack_id=SLACK_MESSAGE_TS)
 
     step_class = ScenarioStep.get_step("distribute_alerts", "InviteOtherPersonToIncident")
     step = step_class(organization=organization, user=user, slack_team_identity=slack_team_identity)
@@ -530,10 +540,7 @@ def test_step_stop_invite(
     alert_group = make_alert_group(alert_receive_channel, resolved=True, pk=ALERT_GROUP_ID)
     make_alert(alert_group, raw_request_data={})
 
-    slack_message = make_slack_message(
-        alert_group=alert_group, channel_id=slack_channel.slack_id, slack_id=SLACK_MESSAGE_TS
-    )
-    slack_message.get_alert_group()  # fix FKs
+    make_slack_message(alert_group=alert_group, channel_id=slack_channel.slack_id, slack_id=SLACK_MESSAGE_TS)
 
     invitation = make_invitation(alert_group, user, second_user, pk=INVITATION_ID)
 
@@ -586,10 +593,7 @@ def test_step_silence(
     alert_group = make_alert_group(alert_receive_channel, silenced=False, pk=ALERT_GROUP_ID)
     make_alert(alert_group, raw_request_data={})
 
-    slack_message = make_slack_message(
-        alert_group=alert_group, channel_id=slack_channel.slack_id, slack_id=SLACK_MESSAGE_TS
-    )
-    slack_message.get_alert_group()  # fix FKs
+    make_slack_message(alert_group=alert_group, channel_id=slack_channel.slack_id, slack_id=SLACK_MESSAGE_TS)
 
     step_class = ScenarioStep.get_step("distribute_alerts", "SilenceGroupStep")
     step = step_class(organization=organization, user=user, slack_team_identity=slack_team_identity)
@@ -640,10 +644,7 @@ def test_step_unsilence(
     alert_group = make_alert_group(alert_receive_channel, silenced=True, pk=ALERT_GROUP_ID)
     make_alert(alert_group, raw_request_data={})
 
-    slack_message = make_slack_message(
-        alert_group=alert_group, channel_id=slack_channel.slack_id, slack_id=SLACK_MESSAGE_TS
-    )
-    slack_message.get_alert_group()  # fix FKs
+    make_slack_message(alert_group=alert_group, channel_id=slack_channel.slack_id, slack_id=SLACK_MESSAGE_TS)
 
     step_class = ScenarioStep.get_step("distribute_alerts", "UnSilenceGroupStep")
     step = step_class(organization=organization, user=user, slack_team_identity=slack_team_identity)
@@ -683,10 +684,7 @@ def test_step_select_attach(
     alert_group = make_alert_group(alert_receive_channel, pk=ALERT_GROUP_ID)
     make_alert(alert_group, raw_request_data={})
 
-    slack_message = make_slack_message(
-        alert_group=alert_group, channel_id=slack_channel.slack_id, slack_id=SLACK_MESSAGE_TS
-    )
-    slack_message.get_alert_group()  # fix FKs
+    make_slack_message(alert_group=alert_group, channel_id=slack_channel.slack_id, slack_id=SLACK_MESSAGE_TS)
 
     step_class = ScenarioStep.get_step("distribute_alerts", "SelectAttachGroupStep")
     step = step_class(organization=organization, user=user, slack_team_identity=slack_team_identity)
@@ -740,10 +738,7 @@ def test_step_unattach(
     alert_group = make_alert_group(alert_receive_channel, root_alert_group=root_alert_group, pk=ALERT_GROUP_ID)
     make_alert(alert_group, raw_request_data={})
 
-    slack_message = make_slack_message(
-        alert_group=alert_group, channel_id=slack_channel.slack_id, slack_id=SLACK_MESSAGE_TS
-    )
-    slack_message.get_alert_group()  # fix FKs
+    make_slack_message(alert_group=alert_group, channel_id=slack_channel.slack_id, slack_id=SLACK_MESSAGE_TS)
 
     step_class = ScenarioStep.get_step("distribute_alerts", "UnAttachGroupStep")
     step = step_class(organization=organization, user=user, slack_team_identity=slack_team_identity)
@@ -795,10 +790,7 @@ def test_step_format_alert(
     alert_group = make_alert_group(alert_receive_channel, pk=ALERT_GROUP_ID)
     make_alert(alert_group, raw_request_data={})
 
-    slack_message = make_slack_message(
-        alert_group=alert_group, channel_id=slack_channel.slack_id, slack_id=SLACK_MESSAGE_TS
-    )
-    slack_message.get_alert_group()  # fix FKs
+    make_slack_message(alert_group=alert_group, channel_id=slack_channel.slack_id, slack_id=SLACK_MESSAGE_TS)
 
     step_class = ScenarioStep.get_step("alertgroup_appearance", "OpenAlertAppearanceDialogStep")
     step = step_class(organization=organization, user=user, slack_team_identity=slack_team_identity)
@@ -809,9 +801,14 @@ def test_step_format_alert(
     assert mock_slack_api_call.call_args.args == ("views.open",)
 
 
+@patch("apps.slack.models.SlackTeamIdentity.get_conversation_members")
 @pytest.mark.django_db
 def test_step_resolution_note(
-    make_organization_and_user_with_slack_identities, make_alert_receive_channel, make_alert_group, make_alert
+    mock_get_conversation_members,
+    make_organization_and_user_with_slack_identities,
+    make_alert_receive_channel,
+    make_alert_group,
+    make_alert,
 ):
     organization, user, slack_team_identity, slack_user_identity = make_organization_and_user_with_slack_identities()
 
@@ -819,6 +816,7 @@ def test_step_resolution_note(
     alert_group = make_alert_group(alert_receive_channel)
     make_alert(alert_group, raw_request_data={})
 
+    channel_id = "RANDOM_CHANNEL_ID"
     payload = {
         "trigger_id": "RANDOM_TRIGGER_ID",
         "actions": [
@@ -833,14 +831,15 @@ def test_step_resolution_note(
                 ),
             }
         ],
-        "channel": {"id": "RANDOM_CHANNEL_ID"},
+        "channel": {"id": channel_id},
         "message": {"ts": "RANDOM_MESSAGE_TS"},
     }
 
     step_class = ScenarioStep.get_step("resolution_note", "ResolutionNoteModalStep")
     step = step_class(organization=organization, user=user, slack_team_identity=slack_team_identity)
 
-    with patch.object(step._slack_client, "api_call") as mock_slack_api_call:
+    with patch.object(step._slack_client, "views_open") as mock_slack_api_call:
         step.process_scenario(slack_user_identity, slack_team_identity, payload)
 
-    assert mock_slack_api_call.call_args.args == ("views.open",)
+    mock_slack_api_call.assert_called_once()
+    mock_get_conversation_members.assert_called_once_with(step._slack_client, channel_id)

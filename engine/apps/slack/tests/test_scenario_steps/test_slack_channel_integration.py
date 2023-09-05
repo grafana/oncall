@@ -1,4 +1,4 @@
-from unittest.mock import Mock, call, patch
+from unittest.mock import Mock, patch
 
 import pytest
 
@@ -237,7 +237,7 @@ class TestSlackChannelMessageEventStep:
 
         step = SlackChannelMessageEventStep(slack_team_identity, organization, user)
         step._slack_client = Mock()
-        step._slack_client.api_call.side_effect = [{"permalink": mock_permalink}, None]
+        step._slack_client.chat_getPermalink.return_value = {"permalink": mock_permalink}
 
         payload = {
             "event": {
@@ -250,21 +250,15 @@ class TestSlackChannelMessageEventStep:
 
         step.save_thread_message_for_resolution_note(slack_user_identity, payload)
 
-        step._slack_client.api_call.assert_has_calls(
-            [
-                call(
-                    "chat.getPermalink",
-                    channel=payload["event"]["channel"],
-                    message_ts=payload["event"]["ts"],
-                ),
-                call(
-                    "chat.postEphemeral",
-                    channel=payload["event"]["channel"],
-                    user=slack_user_identity.slack_id,
-                    text=":warning: Unable to show the <{}|message> in Resolution Note: the message is too long ({}). "
-                    "Max length - 2900 symbols.".format(mock_permalink, len(payload["event"]["text"])),
-                ),
-            ]
+        step._slack_client.chat_getPermalink.assert_called_once_with(
+            channel=payload["event"]["channel"],
+            message_ts=payload["event"]["ts"],
+        )
+        step._slack_client.chat_postEphemeral.assert_called_once_with(
+            channel=payload["event"]["channel"],
+            user=slack_user_identity.slack_id,
+            text=":warning: Unable to show the <{}|message> in Resolution Note: the message is too long ({}). "
+            "Max length - 2900 symbols.".format(mock_permalink, len(payload["event"]["text"])),
         )
         MockResolutionNoteSlackMessage.objects.get_or_create.assert_not_called()
 
@@ -306,7 +300,7 @@ class TestSlackChannelMessageEventStep:
 
         step = SlackChannelMessageEventStep(slack_team_identity, organization, user)
         step._slack_client = Mock()
-        step._slack_client.api_call.side_effect = [{"permalink": mock_permalink}, None]
+        step._slack_client.chat_getPermalink.side_effect = [{"permalink": mock_permalink}, None]
 
         payload = {
             "event": {
@@ -319,14 +313,9 @@ class TestSlackChannelMessageEventStep:
 
         step.save_thread_message_for_resolution_note(slack_user_identity, payload)
 
-        step._slack_client.api_call.assert_has_calls(
-            [
-                call(
-                    "chat.getPermalink",
-                    channel=payload["event"]["channel"],
-                    message_ts=payload["event"]["ts"],
-                ),
-            ]
+        step._slack_client.chat_getPermalink.assert_called_once_with(
+            channel=payload["event"]["channel"],
+            message_ts=payload["event"]["ts"],
         )
 
         if resolution_note_slack_message_already_exists:

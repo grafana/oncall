@@ -10,10 +10,9 @@ from django.utils import timezone
 
 from apps.alerts.tasks.compare_escalations import compare_escalations
 from apps.slack.alert_group_slack_service import AlertGroupSlackService
+from apps.slack.client import SlackAPIException, SlackAPITokenException, SlackClientWithErrorHandling
 from apps.slack.constants import CACHE_UPDATE_INCIDENT_SLACK_MESSAGE_LIFETIME, SLACK_BOT_ID
 from apps.slack.scenarios.scenario_step import ScenarioStep
-from apps.slack.slack_client import SlackClientWithErrorHandling
-from apps.slack.slack_client.exceptions import SlackAPIException, SlackAPITokenException
 from apps.slack.utils import (
     get_cache_key_update_incident_slack_message,
     get_populate_slack_channel_task_id_key,
@@ -97,9 +96,8 @@ def check_slack_message_exists_before_post_message_to_thread(
         )
         return
     retry_timeout_hours = 24
-    slack_message = alert_group.get_slack_message()
 
-    if slack_message is not None:
+    if alert_group.slack_message:
         AlertGroupSlackService(slack_team_identity).publish_message_to_alert_group_thread(alert_group, text=text)
 
     # check how much time has passed since alert group was created
@@ -372,9 +370,7 @@ def populate_slack_usergroups_for_team(slack_team_identity_id):
     usergroups_list = None
     bot_access_token_accepted = True
     try:
-        usergroups_list = sc.api_call(
-            "usergroups.list",
-        )
+        usergroups_list = sc.usergroups_list()
     except SlackAPITokenException as e:
         logger.info(f"token revoked\n{e}")
     except SlackAPIException as e:
@@ -383,9 +379,7 @@ def populate_slack_usergroups_for_team(slack_team_identity_id):
                 # Trying same request with access token. It is required due to migration to granular permissions
                 # and can be removed after clients reinstall their bots
                 sc_with_access_token = SlackClientWithErrorHandling(slack_team_identity.access_token)
-                usergroups_list = sc_with_access_token.api_call(
-                    "usergroups.list",
-                )
+                usergroups_list = sc_with_access_token.usergroups_list()
                 bot_access_token_accepted = False
             except SlackAPIException as err:
                 handle_usergroups_list_slack_api_exception(err)
@@ -403,16 +397,10 @@ def populate_slack_usergroups_for_team(slack_team_identity_id):
                 continue
             try:
                 if bot_access_token_accepted:
-                    usergroups_users = sc.api_call(
-                        "usergroups.users.list",
-                        usergroup=usergroup["id"],
-                    )
+                    usergroups_users = sc.usergroups_users_list(usergroup=usergroup["id"])
                 else:
                     sc_with_access_token = SlackClientWithErrorHandling(slack_team_identity.access_token)
-                    usergroups_users = sc_with_access_token.api_call(
-                        "usergroups.users.list",
-                        usergroup=usergroup["id"],
-                    )
+                    usergroups_users = sc_with_access_token.usergroups_users_list(usergroup=usergroup["id"])
             except SlackAPIException as e:
                 if e.response["error"] == "no_such_subteam":
                     logger.info("User group does not exist")
@@ -550,11 +538,13 @@ def populate_slack_channels_for_team(slack_team_identity_id: int, cursor: Option
         return start_populate_slack_channels_for_team(slack_team_identity_id, delay)
     try:
         response, cursor, rate_limited = sc.paginated_api_call_with_ratelimit(
-            "conversations.list",
-            types="public_channel,private_channel",
+            "conversations_list",
             paginated_key="channels",
-            limit=1000,
-            cursor=cursor,
+            json={
+                "types": "public_channel,private_channel",
+                "limit": 1000,
+                "cursor": cursor,
+            },
         )
     except SlackAPITokenException as e:
         logger.info(f"token revoked\n{e}")

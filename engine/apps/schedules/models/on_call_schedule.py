@@ -505,33 +505,32 @@ class OnCallSchedule(PolymorphicModel):
         self.cached_ical_final_schedule = ical_data
         self.save(update_fields=["cached_ical_final_schedule"])
 
-    def upcoming_shift_for_user(self, user, days=7):
+    def shifts_for_user(
+        self, user: User, datetime_start: datetime.datetime, days: int = 7
+    ) -> typing.Tuple[ScheduleEvents, ScheduleEvents, ScheduleEvents]:
         now = timezone.now()
-        # consider an extra day before to include events from UTC yesterday
-        datetime_start = now - datetime.timedelta(days=1)
         datetime_end = datetime_start + datetime.timedelta(days=days)
-
-        current_shift = upcoming_shift = None
+        passed_shifts: ScheduleEvents = []
+        current_shifts: ScheduleEvents = []
+        upcoming_shifts: ScheduleEvents = []
 
         if self.cached_ical_final_schedule is None:
             # no final schedule info available
-            return None, None
+            return passed_shifts, current_shifts, upcoming_shifts
 
         events = self.filter_events(datetime_start, datetime_end, all_day_datetime=True, from_cached_final=True)
-        for e in events:
-            if e["end"] < now:
-                # shift is finished, ignore
-                continue
-            users = {u["pk"] for u in e["users"]}
+        events.sort(key=lambda e: e["start"])
+        for event in events:
+            users = {u["pk"] for u in event["users"]}
             if user.public_primary_key in users:
-                if e["start"] < now and e["end"] > now:
-                    # shift is in progress
-                    current_shift = e
-                    continue
-                upcoming_shift = e
-                break
+                if event["end"] <= now:
+                    passed_shifts.append(event)
+                elif event["start"] <= now < event["end"]:
+                    current_shifts.append(event)
+                else:
+                    upcoming_shifts.append(event)
 
-        return current_shift, upcoming_shift
+        return passed_shifts, current_shifts, upcoming_shifts
 
     def quality_report(self, date: typing.Optional[datetime.datetime], days: typing.Optional[int]) -> QualityReport:
         """

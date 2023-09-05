@@ -6,9 +6,9 @@ import typing
 from django.db.models import Q
 
 from apps.api.permissions import RBACPermission
+from apps.slack.client import SlackAPIException
 from apps.slack.constants import DIVIDER
 from apps.slack.scenarios import scenario_step
-from apps.slack.slack_client.exceptions import SlackAPIException
 from apps.slack.types import (
     Block,
     BlockActionType,
@@ -66,26 +66,21 @@ class AddToResolutionNoteStep(scenario_step.ScenarioStep):
             self.open_warning_window(payload, warning_text)
             return
 
-        try:
-            alert_group = slack_message.get_alert_group()
-        except SlackMessage.alert.RelatedObjectDoesNotExist as e:
+        alert_group = slack_message.alert_group
+        if not alert_group:
             self.open_warning_window(payload, warning_text)
-            print(
+            logger.exception(
                 f"Exception: tried to add message from thread to Resolution Note: "
                 f"Slack Team Identity pk: {self.slack_team_identity.pk}, "
                 f"Slack Message id: {slack_message.slack_id}"
             )
-            raise e
+            return
 
         if payload["message"]["type"] == "message" and "user" in payload["message"]:
             message_ts = payload["message_ts"]
             thread_ts = payload["message"]["thread_ts"]
 
-            result = self._slack_client.api_call(
-                "chat.getPermalink",
-                channel=channel_id,
-                message_ts=message_ts,
-            )
+            result = self._slack_client.chat_getPermalink(channel=channel_id, message_ts=message_ts)
             permalink = None
             if result["permalink"] is not None:
                 permalink = result["permalink"]
@@ -119,7 +114,7 @@ class AddToResolutionNoteStep(scenario_step.ScenarioStep):
                         _slack_team_identity=slack_team_identity,
                         channel_id=channel_id,
                     )
-                    alert_group = slack_message.get_alert_group()
+                    alert_group = slack_message.alert_group
                     try:
                         author_slack_user_identity = SlackUserIdentity.objects.get(
                             slack_id=payload["message"]["user"], slack_team_identity=slack_team_identity
@@ -156,8 +151,7 @@ class AddToResolutionNoteStep(scenario_step.ScenarioStep):
                 else:
                     resolution_note.recreate()
                 try:
-                    self._slack_client.api_call(
-                        "reactions.add",
+                    self._slack_client.reactions_add(
                         channel=channel_id,
                         name="memo",
                         timestamp=resolution_note_slack_message.ts,
@@ -190,8 +184,7 @@ class UpdateResolutionNoteStep(scenario_step.ScenarioStep):
             resolution_note_slack_message.save(update_fields=["added_to_resolution_note"])
             if resolution_note_slack_message.posted_by_bot:
                 try:
-                    self._slack_client.api_call(
-                        "chat.delete",
+                    self._slack_client.chat_delete(
                         channel=resolution_note_slack_message.slack_channel_id,
                         ts=resolution_note_slack_message.ts,
                     )
@@ -241,8 +234,7 @@ class UpdateResolutionNoteStep(scenario_step.ScenarioStep):
 
         if resolution_note_slack_message is None:
             try:
-                result = self._slack_client.api_call(
-                    "chat.postMessage",
+                result = self._slack_client.chat_postMessage(
                     channel=alert_group_slack_message.channel_id,
                     thread_ts=alert_group_slack_message.slack_id,
                     text=resolution_note.text,
@@ -271,8 +263,7 @@ class UpdateResolutionNoteStep(scenario_step.ScenarioStep):
                     raise e
             else:
                 message_ts = result["message"]["ts"]
-                result_permalink = self._slack_client.api_call(
-                    "chat.getPermalink",
+                result_permalink = self._slack_client.chat_getPermalink(
                     channel=alert_group_slack_message.channel_id,
                     message_ts=message_ts,
                 )
@@ -296,8 +287,7 @@ class UpdateResolutionNoteStep(scenario_step.ScenarioStep):
                 resolution_note.save(update_fields=["resolution_note_slack_message"])
         elif resolution_note_slack_message.posted_by_bot:
             try:
-                self._slack_client.api_call(
-                    "chat.update",
+                self._slack_client.chat_update(
                     channel=alert_group_slack_message.channel_id,
                     ts=resolution_note_slack_message.ts,
                     text=resolution_note_slack_message.text,
@@ -346,25 +336,23 @@ class UpdateResolutionNoteStep(scenario_step.ScenarioStep):
 
     def add_resolution_note_reaction(self, slack_thread_message: "ResolutionNoteSlackMessage"):
         try:
-            self._slack_client.api_call(
-                "reactions.add",
+            self._slack_client.reactions_add(
                 channel=slack_thread_message.slack_channel_id,
                 name="memo",
                 timestamp=slack_thread_message.ts,
             )
         except SlackAPIException as e:
-            print(e)  # TODO:770: log instead of print
+            logger.exception(e)
 
     def remove_resolution_note_reaction(self, slack_thread_message: "ResolutionNoteSlackMessage") -> None:
         try:
-            self._slack_client.api_call(
-                "reactions.remove",
+            self._slack_client.reactions_remove(
                 channel=slack_thread_message.slack_channel_id,
                 name="memo",
                 timestamp=slack_thread_message.ts,
             )
         except SlackAPIException as e:
-            print(e)
+            logger.exception(e)
 
     def get_resolution_note_blocks(self, resolution_note: "ResolutionNote") -> Block.AnyBlocks:
         blocks: Block.AnyBlocks = []
@@ -454,8 +442,7 @@ class ResolutionNoteModalStep(AlertGroupActionsMixin, scenario_step.ScenarioStep
 
         if "update" in resolution_note_window_action:
             try:
-                self._slack_client.api_call(
-                    "views.update",
+                self._slack_client.views_update(
                     trigger_id=payload["trigger_id"],
                     view=view,
                     view_id=payload["view"]["id"],
@@ -471,11 +458,7 @@ class ResolutionNoteModalStep(AlertGroupActionsMixin, scenario_step.ScenarioStep
                 else:
                     raise
         else:
-            self._slack_client.api_call(
-                "views.open",
-                trigger_id=payload["trigger_id"],
-                view=view,
-            )
+            self._slack_client.views_open(trigger_id=payload["trigger_id"], view=view)
 
     def get_resolution_notes_blocks(
         self, alert_group: "AlertGroup", resolution_note_window_action: str, action_resolve: bool
