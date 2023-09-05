@@ -74,8 +74,7 @@ def manage_responders_setup(
     make_alert(alert_group, raw_request_data={})
 
     slack_channel = make_slack_channel(slack_team_identity, slack_id=CHANNEL_ID)
-    slack_message = make_slack_message(alert_group=alert_group, channel_id=slack_channel.slack_id, slack_id=MESSAGE_TS)
-    slack_message.get_alert_group()  # fix FKs
+    make_slack_message(alert_group=alert_group, channel_id=slack_channel.slack_id, slack_id=MESSAGE_TS)
 
     return organization, user, slack_team_identity, slack_user_identity
 

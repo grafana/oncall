@@ -486,15 +486,16 @@ class SlackEventApiEndpointView(APIView):
         if not (channel_id and message_ts):
             return None
 
-        with suppress(ObjectDoesNotExist):
+        try:
             slack_message = SlackMessage.objects.get(
                 _slack_team_identity=slack_team_identity,
                 slack_id=message_ts,
                 channel_id=channel_id,
             )
-            return slack_message.get_alert_group().channel.organization
+        except SlackMessage.DoesNotExist:
+            return None
 
-        return None
+        return slack_message.alert_group.channel.organization if slack_message.alert_group else None
 
     def _open_warning_window_if_needed(
         self, payload: EventPayload, slack_team_identity: SlackTeamIdentity, warning_text: str

@@ -66,16 +66,15 @@ class AddToResolutionNoteStep(scenario_step.ScenarioStep):
             self.open_warning_window(payload, warning_text)
             return
 
-        try:
-            alert_group = slack_message.get_alert_group()
-        except SlackMessage.alert.RelatedObjectDoesNotExist as e:
+        alert_group = slack_message.alert_group
+        if not alert_group:
             self.open_warning_window(payload, warning_text)
             logger.exception(
                 f"Exception: tried to add message from thread to Resolution Note: "
                 f"Slack Team Identity pk: {self.slack_team_identity.pk}, "
                 f"Slack Message id: {slack_message.slack_id}"
             )
-            raise e
+            return
 
         if payload["message"]["type"] == "message" and "user" in payload["message"]:
             message_ts = payload["message_ts"]
@@ -115,7 +114,7 @@ class AddToResolutionNoteStep(scenario_step.ScenarioStep):
                         _slack_team_identity=slack_team_identity,
                         channel_id=channel_id,
                     )
-                    alert_group = slack_message.get_alert_group()
+                    alert_group = slack_message.alert_group
                     try:
                         author_slack_user_identity = SlackUserIdentity.objects.get(
                             slack_id=payload["message"]["user"], slack_team_identity=slack_team_identity

@@ -7,9 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+
+- Add internal API endpoint for getting schedules shifts for current user by @Ferril([#2928](https://github.com/grafana/oncall/pull/2928))
+
+### Changed
+
+- Make Slack integration not post an alert group message if it's already deleted + refactor AlertGroup and
+  SlackMessage foreign key relationship by @vadimkerr ([#2957](https://github.com/grafana/oncall/pull/2957))
+
+### Fixed
+
+- Reject file uploads when POSTing to an integration endpoint ([#2958](https://github.com/grafana/oncall/pull/2958))
+
+## v1.3.31 (2023-09-04)
+
 ### Fixed
 
 - Fix for Cloud plugin install not refreshing page after completion ([2974](https://github.com/grafana/oncall/issues/2874))
+- Fix escalation snapshot building if user was deleted @Ferril ([#2954](https://github.com/grafana/oncall/pull/2954))
 
 ## v1.3.30 (2023-08-31)
 

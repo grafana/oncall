@@ -1,8 +1,6 @@
 import logging
 import typing
 
-from django.core.exceptions import ObjectDoesNotExist
-
 from apps.slack.scenarios import scenario_step
 from apps.slack.types import EventPayload, EventType, MessageEventSubtype, PayloadType, ScenarioRoute
 
@@ -73,9 +71,7 @@ class SlackChannelMessageEventStep(scenario_step.ScenarioStep):
         except SlackMessage.DoesNotExist:
             return
 
-        try:
-            alert_group = slack_message.get_alert_group()
-        except ObjectDoesNotExist:
+        if not slack_message.alert_group:
             # SlackMessage instances without alert_group set (e.g., SSR Slack messages)
             return
 
@@ -96,7 +92,7 @@ class SlackChannelMessageEventStep(scenario_step.ScenarioStep):
         slack_thread_message, created = ResolutionNoteSlackMessage.objects.get_or_create(
             ts=message_ts,
             thread_ts=thread_ts,
-            alert_group=alert_group,
+            alert_group=slack_message.alert_group,
             defaults={
                 "user": self.user,
                 "added_by_user": self.user,
