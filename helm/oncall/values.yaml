@@ -198,7 +198,7 @@ oncall:
     # The key in the secret containing Telegram token
     tokenKey: ""
   smtp:
-    enabled: false
+    enabled: true
     host: ~
     port: ~
     username: ~
