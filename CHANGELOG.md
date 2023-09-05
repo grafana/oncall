@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## v1.3.34 (2023-09-05)
+
+### Fixed
+
+- Fix issue in `apps.slack.tasks.populate_slack_channels_for_team` task by @joeyorlando ([#2969](https://github.com/grafana/oncall/pull/2969))
+
 ## v1.3.33 (2023-09-05)
 
 ### Fixed
