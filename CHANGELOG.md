@@ -7,11 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## v1.3.33 (2023-09-05)
+
+### Fixed
+
+- Fix issue in `apps.slack.tasks.post_or_update_log_report_message_task` task related to passing tuple to `text` arg
+  for `SlackClient.chat_postMessage` method by @joeyorlando ([#2966](https://github.com/grafana/oncall/pull/2966))
+
 ## v1.3.32 (2023-09-05)
 
 ### Added
 
-- Add internal API endpoint for getting schedules shifts for current user by @Ferril([#2928](https://github.com/grafana/oncall/pull/2928))
+- Add internal API endpoint for getting schedules shifts for current user by @Ferril ([#2928](https://github.com/grafana/oncall/pull/2928))
 
 ### Changed
 
