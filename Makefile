@@ -71,7 +71,7 @@ define _DEPRECATION_MESSAGE
 NOTE: docker-compose based make commands will be deprecated on (or around) October 1, 2023, in favour of
 tilt/k8s based commands. Please familirize yourself with the tilt/k8s commands.
 
-See https://github.com/grafana/oncall/pull/2751 for instructions on how to use tilt helm/k8s commands.
+See https://github.com/grafana/oncall/tree/dev/dev for instructions on how to use tilt helm/k8s commands.
 ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️
 
 
