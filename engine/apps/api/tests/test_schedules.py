@@ -2009,6 +2009,36 @@ def test_schedule_mention_options_permissions(
 
 
 @pytest.mark.django_db
+@pytest.mark.parametrize(
+    "role,expected_status",
+    [
+        (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
+        (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
+        (LegacyAccessControlRole.VIEWER, status.HTTP_200_OK),
+    ],
+)
+def test_current_user_events_permissions(
+    make_organization_and_user_with_plugin_token,
+    make_user_auth_headers,
+    role,
+    expected_status,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token(role)
+    client = APIClient()
+    url = reverse("api-internal:schedule-current-user-events")
+
+    with patch(
+        "apps.api.views.schedule.ScheduleView.current_user_events",
+        return_value=Response(
+            status=status.HTTP_200_OK,
+        ),
+    ):
+        response = client.get(url, format="json", **make_user_auth_headers(user, token))
+
+    assert response.status_code == expected_status
+
+
+@pytest.mark.django_db
 def test_get_schedule_from_other_team_with_flag(
     make_organization_and_user_with_plugin_token,
     make_team,
@@ -2065,3 +2095,172 @@ def test_get_schedule_on_call_now(
             "avatar_full": "https://example.com/avatar/test123",
         }
     ]
+
+
+@pytest.mark.django_db
+def test_current_user_events(
+    make_organization_and_user_with_plugin_token,
+    make_user_auth_headers,
+    make_user_for_organization,
+    make_schedule,
+    make_on_call_shift,
+):
+    organization, current_user, token = make_organization_and_user_with_plugin_token()
+    other_user = make_user_for_organization(organization)
+    client = APIClient()
+    url = reverse("api-internal:schedule-current-user-events")
+
+    schedule_with_current_user = make_schedule(organization, schedule_class=OnCallScheduleWeb)
+    other_schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
+
+    shifts = (
+        # schedule, user, priority, start time (h), duration (seconds)
+        (schedule_with_current_user, current_user, 1, 0, (24 * 60 * 60) - 1),  # r1-1: 0-23:59:59
+        (other_schedule, other_user, 1, 0, (24 * 60 * 60) - 1),  # r1-1: 0-23:59:59
+    )
+    now = timezone.now()
+    today = now.replace(hour=0, minute=0, second=0, microsecond=0)
+    for schedule, user, priority, start_h, duration in shifts:
+        data = {
+            "start": today + timezone.timedelta(hours=start_h),
+            "rotation_start": today + timezone.timedelta(hours=start_h),
+            "duration": timezone.timedelta(seconds=duration),
+            "priority_level": priority,
+            "frequency": CustomOnCallShift.FREQUENCY_DAILY,
+            "schedule": schedule,
+        }
+        on_call_shift = make_on_call_shift(
+            organization=organization, shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT, **data
+        )
+        on_call_shift.add_rolling_users([[user]])
+
+        schedule.refresh_ical_file()
+        schedule.refresh_ical_final_schedule()
+
+    response = client.get(url, format="json", **make_user_auth_headers(current_user, token))
+    result = response.json()
+
+    assert response.status_code == status.HTTP_200_OK
+    assert result["is_oncall"] is True
+    assert len(result["schedules"]) == 1
+    assert result["schedules"][0]["id"] == schedule_with_current_user.public_primary_key
+    assert result["schedules"][0]["name"] == schedule_with_current_user.name
+    assert len(result["schedules"][0]["events"]) > 0
+
+
+@pytest.mark.django_db
+def test_current_user_events_out_of_range(
+    make_organization_and_user_with_plugin_token,
+    make_user_auth_headers,
+    make_schedule,
+    make_on_call_shift,
+):
+    organization, current_user, token = make_organization_and_user_with_plugin_token()
+    client = APIClient()
+
+    schedule_with_current_user = make_schedule(organization, schedule_class=OnCallScheduleWeb)
+
+    shifts = (
+        # schedule, user, priority, start time (h), duration (seconds)
+        (schedule_with_current_user, current_user, 1, 0, (24 * 60 * 60) - 1),  # r1-1: 0-23:59:59
+    )
+    now = timezone.now()
+    today = now.replace(hour=0, minute=0, second=0, microsecond=0)
+    days = 3
+    start_date = today + timezone.timedelta(days=days)
+    for schedule, user, priority, start_h, duration in shifts:
+        data = {
+            "start": start_date + timezone.timedelta(hours=start_h),
+            "rotation_start": start_date + timezone.timedelta(hours=start_h),
+            "duration": timezone.timedelta(seconds=duration),
+            "priority_level": priority,
+            "frequency": CustomOnCallShift.FREQUENCY_DAILY,
+            "schedule": schedule,
+        }
+        on_call_shift = make_on_call_shift(
+            organization=organization, shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT, **data
+        )
+        on_call_shift.add_rolling_users([[user]])
+
+        schedule.refresh_ical_file()
+        schedule.refresh_ical_final_schedule()
+
+    url = reverse("api-internal:schedule-current-user-events") + f"?days={days}"
+    response = client.get(url, format="json", **make_user_auth_headers(current_user, token))
+    result = response.json()
+
+    assert response.status_code == status.HTTP_200_OK
+    assert result["is_oncall"] is False
+    assert len(result["schedules"]) == 0
+
+
+@pytest.mark.django_db
+def test_current_user_events_no_schedules(
+    make_organization_and_user_with_plugin_token,
+    make_user_auth_headers,
+    make_schedule,
+    make_on_call_shift,
+):
+    organization, current_user, token = make_organization_and_user_with_plugin_token()
+    client = APIClient()
+
+    url = reverse("api-internal:schedule-current-user-events")
+    response = client.get(url, format="json", **make_user_auth_headers(current_user, token))
+    result = response.json()
+
+    assert response.status_code == status.HTTP_200_OK
+    assert result["is_oncall"] is False
+    assert len(result["schedules"]) == 0
+
+
+@pytest.mark.django_db
+def test_current_user_events_multiple_schedules(
+    make_organization_and_user_with_plugin_token,
+    make_user_auth_headers,
+    make_schedule,
+    make_on_call_shift,
+):
+    organization, current_user, token = make_organization_and_user_with_plugin_token()
+    client = APIClient()
+    url = reverse("api-internal:schedule-current-user-events")
+
+    schedule_1 = make_schedule(organization, schedule_class=OnCallScheduleWeb)
+    schedule_2 = make_schedule(organization, schedule_class=OnCallScheduleWeb)
+
+    shifts = (
+        # schedule, user, priority, start time (h), duration (seconds)
+        (schedule_1, current_user, 1, 0, (24 * 60 * 60) - 1),  # r1-1: 0-23:59:59
+        (schedule_2, current_user, 1, 0, (24 * 60 * 60) - 1),  # r1-1: 0-23:59:59
+    )
+    now = timezone.now()
+    today = now.replace(hour=0, minute=0, second=0, microsecond=0)
+    for schedule, user, priority, start_h, duration in shifts:
+        data = {
+            "start": today + timezone.timedelta(hours=start_h),
+            "rotation_start": today + timezone.timedelta(hours=start_h),
+            "duration": timezone.timedelta(seconds=duration),
+            "priority_level": priority,
+            "frequency": CustomOnCallShift.FREQUENCY_DAILY,
+            "schedule": schedule,
+        }
+        on_call_shift = make_on_call_shift(
+            organization=organization, shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT, **data
+        )
+        on_call_shift.add_rolling_users([[user]])
+
+        schedule.refresh_ical_file()
+        schedule.refresh_ical_final_schedule()
+
+    response = client.get(url, format="json", **make_user_auth_headers(current_user, token))
+    result = response.json()
+
+    assert response.status_code == status.HTTP_200_OK
+    assert result["is_oncall"] is True
+    assert len(result["schedules"]) == 2
+    assert result["schedules"][0]["id"] != result["schedules"][1]["id"]
+    assert result["schedules"][0]["id"] in (schedule_1.public_primary_key, schedule_2.public_primary_key)
+    assert result["schedules"][0]["name"] in (schedule_1.name, schedule_2.name)
+    assert result["schedules"][1]["id"] in (schedule_1.public_primary_key, schedule_2.public_primary_key)
+    assert result["schedules"][1]["name"] in (schedule_1.name, schedule_2.name)
+    assert len(result["schedules"][0]["events"]) > 0
+    assert len(result["schedules"][1]["events"]) > 0

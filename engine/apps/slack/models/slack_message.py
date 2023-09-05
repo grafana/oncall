@@ -77,17 +77,6 @@ class SlackMessage(models.Model):
             self.save()
         return self._slack_team_identity
 
-    def get_alert_group(self) -> "AlertGroup":
-        try:
-            return self._alert_group
-        except SlackMessage._alert_group.RelatedObjectDoesNotExist:
-            if self.alert_group:
-                self.alert_group.slack_message = self
-                self.alert_group.save(update_fields=["slack_message"])
-                return self.alert_group
-            else:
-                raise
-
     @property
     def permalink(self):
         if self.slack_team_identity is not None and self.cached_permalink is None:
@@ -118,7 +107,7 @@ class SlackMessage(models.Model):
     def send_slack_notification(self, user, alert_group, notification_policy):
         from apps.base.models import UserNotificationPolicyLogRecord
 
-        slack_message = alert_group.get_slack_message()
+        slack_message = alert_group.slack_message
         user_verbal = user.get_username_with_slack_verbal(mention=True)
 
         slack_user_identity = user.slack_user_identity
@@ -189,13 +178,12 @@ class SlackMessage(models.Model):
             ).save()
             return
         else:
-            SlackMessage(
+            alert_group.slack_messages.create(
                 slack_id=result["ts"],
                 organization=self.organization,
                 _slack_team_identity=self.slack_team_identity,
                 channel_id=channel_id,
-                alert_group=alert_group,
-            ).save()
+            )
 
         # Check if escalated user is in channel. Otherwise send notification and request to invite him.
         try:

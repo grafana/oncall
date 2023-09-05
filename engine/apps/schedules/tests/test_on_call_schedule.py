@@ -1571,49 +1571,6 @@ def test_user_related_schedules_only_username(
 
 
 @pytest.mark.django_db
-def test_upcoming_shift_for_user(
-    make_organization,
-    make_user_for_organization,
-    make_schedule,
-    make_on_call_shift,
-):
-    organization = make_organization()
-    admin = make_user_for_organization(organization)
-    other_user = make_user_for_organization(organization)
-
-    schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
-    shifts = (
-        # user, priority, start time (h), duration (seconds)
-        (admin, 1, 0, (24 * 60 * 60) - 1),  # r1-1: 0-23:59:59
-    )
-    today = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
-    for user, priority, start_h, duration in shifts:
-        data = {
-            "start": today + timezone.timedelta(hours=start_h),
-            "rotation_start": today + timezone.timedelta(hours=start_h),
-            "duration": timezone.timedelta(seconds=duration),
-            "priority_level": priority,
-            "frequency": CustomOnCallShift.FREQUENCY_DAILY,
-            "schedule": schedule,
-        }
-        on_call_shift = make_on_call_shift(
-            organization=organization, shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT, **data
-        )
-        on_call_shift.add_rolling_users([[user]])
-    schedule.refresh_ical_file()
-    schedule.refresh_ical_final_schedule()
-
-    current_shift, upcoming_shift = schedule.upcoming_shift_for_user(admin)
-    assert current_shift is not None and current_shift["start"] == on_call_shift.start
-    next_shift_start = on_call_shift.start + timezone.timedelta(days=1)
-    assert upcoming_shift is not None and upcoming_shift["start"] == next_shift_start
-
-    current_shift, upcoming_shift = schedule.upcoming_shift_for_user(other_user)
-    assert current_shift is None
-    assert upcoming_shift is None
-
-
-@pytest.mark.django_db
 def test_refresh_ical_final_schedule_ok(
     make_organization,
     make_user_for_organization,
@@ -2552,3 +2509,174 @@ def test_filter_events_ical_duplicated_uid(make_organization, make_user_for_orga
     assert len(events) == 2
     assert events[0]["shift"]["pk"] == "eventuid@google.com_1"
     assert events[1]["shift"]["pk"] == "eventuid@google.com_2_1970-01-01T01:00:00+01:00"
+
+
+@pytest.mark.django_db
+def test_shifts_for_user(
+    make_organization,
+    make_user_for_organization,
+    make_schedule,
+    make_on_call_shift,
+):
+    organization = make_organization()
+    admin = make_user_for_organization(organization)
+    other_user = make_user_for_organization(organization)
+
+    schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
+    shifts = (
+        # user, priority, start time (h), duration (seconds)
+        (admin, 1, 0, (24 * 60 * 60) - 1),  # r1-1: 0-23:59:59
+    )
+    now = timezone.now()
+    today = now.replace(hour=0, minute=0, second=0, microsecond=0)
+    for user, priority, start_h, duration in shifts:
+        data = {
+            "start": today + timezone.timedelta(hours=start_h),
+            "rotation_start": today + timezone.timedelta(hours=start_h),
+            "duration": timezone.timedelta(seconds=duration),
+            "priority_level": priority,
+            "frequency": CustomOnCallShift.FREQUENCY_DAILY,
+            "schedule": schedule,
+        }
+        on_call_shift = make_on_call_shift(
+            organization=organization, shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT, **data
+        )
+        on_call_shift.add_rolling_users([[user]])
+    schedule.refresh_ical_file()
+    schedule.refresh_ical_final_schedule()
+
+    passed_shifts, current_shifts, upcoming_shifts = schedule.shifts_for_user(admin, now)
+    assert len(passed_shifts) == 0
+    assert len(current_shifts) == 1
+    assert len(upcoming_shifts) == 7
+
+    current_shift = current_shifts[0]
+    assert current_shift is not None and current_shift["start"] == on_call_shift.start
+    next_shift_start = on_call_shift.start + timezone.timedelta(days=1)
+    upcoming_shift = upcoming_shifts[0]
+    assert upcoming_shift is not None and upcoming_shift["start"] == next_shift_start
+    for shifts in (passed_shifts, current_shifts, upcoming_shifts):
+        for shift in shifts:
+            users = {u["pk"] for u in shift["users"]}
+            assert admin.public_primary_key in users
+
+    passed_shifts, current_shifts, upcoming_shifts = schedule.shifts_for_user(other_user, now)
+    assert len(passed_shifts) == 0
+    assert len(current_shifts) == 0
+    assert len(upcoming_shifts) == 0
+
+
+@pytest.mark.django_db
+def test_shifts_for_user_only_two_users_with_shifts(
+    make_organization,
+    make_user_for_organization,
+    make_schedule,
+    make_on_call_shift,
+):
+    organization = make_organization()
+    current_user = make_user_for_organization(organization)
+    user2 = make_user_for_organization(organization)
+    schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
+
+    now = timezone.now()
+    today = now.replace(hour=0, minute=0, second=0, microsecond=0)
+    start_date = today - timezone.timedelta(days=2)
+    days = 7
+
+    data = {
+        "start": now + timezone.timedelta(hours=1),
+        "rotation_start": now + timezone.timedelta(hours=1),
+        "duration": timezone.timedelta(hours=2),
+        "priority_level": 1,
+        "frequency": CustomOnCallShift.FREQUENCY_DAILY,
+        "schedule": schedule,
+    }
+    on_call_shift = make_on_call_shift(
+        organization=organization, shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT, **data
+    )
+    on_call_shift.add_rolling_users([[current_user]])
+
+    # shift with another user
+    data = {
+        "start": start_date + timezone.timedelta(hours=10),
+        "rotation_start": start_date + timezone.timedelta(hours=10),
+        "duration": timezone.timedelta(hours=24),
+        "priority_level": 1,
+        "frequency": CustomOnCallShift.FREQUENCY_DAILY,
+        "schedule": schedule,
+    }
+    on_call_shift = make_on_call_shift(
+        organization=organization, shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT, **data
+    )
+    on_call_shift.add_rolling_users([[user2]])
+
+    schedule.refresh_ical_final_schedule()
+
+    passed_shifts, current_shifts, upcoming_shifts = schedule.shifts_for_user(current_user, start_date, days)
+    assert len(passed_shifts) == 0
+    assert len(current_shifts) == 0
+    assert len(upcoming_shifts) == 5
+    for shift in upcoming_shifts:
+        users = {u["pk"] for u in shift["users"]}
+        assert current_user.public_primary_key in users
+        assert shift["start"] > now
+
+    passed_shifts, current_shifts, upcoming_shifts = schedule.shifts_for_user(user2, start_date, days)
+    assert len(passed_shifts) > 0
+    assert len(current_shifts) > 0
+    assert len(upcoming_shifts) > 0
+    for shift in passed_shifts:
+        users = {u["pk"] for u in shift["users"]}
+        assert user2.public_primary_key in users
+        assert shift["end"] < now
+    for shift in current_shifts:
+        users = {u["pk"] for u in shift["users"]}
+        assert user2.public_primary_key in users
+        assert shift["start"] <= now < shift["end"]
+    for shift in upcoming_shifts:
+        users = {u["pk"] for u in shift["users"]}
+        assert user2.public_primary_key in users
+        assert shift["start"] > now
+
+
+@pytest.mark.django_db
+def test_shifts_for_user_no_events(
+    make_organization,
+    make_user_for_organization,
+    make_schedule,
+    make_on_call_shift,
+):
+    organization = make_organization()
+    current_user = make_user_for_organization(organization)
+    schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
+
+    now = timezone.now()
+    today = now.replace(hour=0, minute=0, second=0, microsecond=0)
+    start_date = today - timezone.timedelta(days=2)
+    days = 7
+
+    passed_shifts, current_shifts, upcoming_shifts = schedule.shifts_for_user(current_user, start_date, days)
+    assert len(passed_shifts) == 0
+    assert len(current_shifts) == 0
+    assert len(upcoming_shifts) == 0
+
+
+@pytest.mark.django_db
+def test_shifts_for_user_without_final_ical(
+    make_organization,
+    make_user_for_organization,
+    make_schedule,
+    make_on_call_shift,
+):
+    organization = make_organization()
+    user = make_user_for_organization(organization)
+    schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
+
+    today = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    start_date = today - timezone.timedelta(days=2)
+    days = 7
+
+    passed_shifts, current_shifts, upcoming_shifts = schedule.shifts_for_user(user, start_date, days)
+    assert len(passed_shifts) == 0
+    assert len(current_shifts) == 0
+    assert len(upcoming_shifts) == 0
