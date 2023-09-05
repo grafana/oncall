@@ -12,7 +12,6 @@ if not running_under_parent_tiltfile:
        ref='main',
        url='https://github.com/grafana/tilt-extensions')
 v1alpha1.extension(name='grafana', repo_name='grafana-tilt-extensions', repo_path='grafana')
-v1alpha1.extension(name='post_build', repo_name='grafana-tilt-extensions', repo_path='post_build')
 
 load('ext://grafana', 'grafana')
 load('ext://configmap', 'configmap_create')
