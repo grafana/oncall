@@ -66,11 +66,7 @@ class OpenAlertAppearanceDialogStep(AlertGroupActionsMixin, scenario_step.Scenar
             "private_metadata": json.dumps(private_metadata),
         }
 
-        self._slack_client.api_call(
-            "views.open",
-            trigger_id=payload["trigger_id"],
-            view=view,
-        )
+        self._slack_client.views_open(trigger_id=payload["trigger_id"], view=view)
 
 
 class UpdateAppearanceStep(scenario_step.ScenarioStep):
@@ -90,8 +86,7 @@ class UpdateAppearanceStep(scenario_step.ScenarioStep):
         attachments = alert_group.render_slack_attachments()
         blocks = alert_group.render_slack_blocks()
 
-        self._slack_client.api_call(
-            "chat.update",
+        self._slack_client.chat_update(
             channel=alert_group.slack_message.channel_id,
             ts=alert_group.slack_message.slack_id,
             attachments=attachments,

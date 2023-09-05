@@ -1,14 +1,14 @@
 import logging
 import typing
 
-from apps.slack.constants import SLACK_RATE_LIMIT_DELAY
-from apps.slack.slack_client import SlackClientWithErrorHandling
-from apps.slack.slack_client.exceptions import (
+from apps.slack.client import (
     SlackAPIChannelArchivedException,
     SlackAPIException,
     SlackAPIRateLimitException,
     SlackAPITokenException,
+    SlackClientWithErrorHandling,
 )
+from apps.slack.constants import SLACK_RATE_LIMIT_DELAY
 
 if typing.TYPE_CHECKING:
     from apps.alerts.models import AlertGroup
@@ -36,8 +36,7 @@ class AlertGroupSlackService:
 
         logger.info(f"Update message for alert_group {alert_group.pk}")
         try:
-            self._slack_client.api_call(
-                "chat.update",
+            self._slack_client.chat_update(
                 channel=alert_group.slack_message.channel_id,
                 ts=alert_group.slack_message.slack_id,
                 attachments=alert_group.render_slack_attachments(),
@@ -77,8 +76,7 @@ class AlertGroupSlackService:
             return
 
         try:
-            result = self._slack_client.api_call(
-                "chat.postMessage",
+            result = self._slack_client.chat_postMessage(
                 channel=alert_group.slack_message.channel_id,
                 text=text,
                 attachments=attachments,

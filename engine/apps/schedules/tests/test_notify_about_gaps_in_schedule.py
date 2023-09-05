@@ -48,7 +48,7 @@ def test_no_gaps_no_triggering_notification(
 
     gaps_report_sent_at = schedule.gaps_report_sent_at
 
-    with patch("apps.slack.slack_client.SlackClientWithErrorHandling.api_call") as mock_slack_api_call:
+    with patch("apps.slack.client.SlackClientWithErrorHandling.chat_postMessage") as mock_slack_api_call:
         notify_about_gaps_in_schedule(schedule.pk)
 
     assert not mock_slack_api_call.called
@@ -113,7 +113,7 @@ def test_gaps_in_the_past_no_triggering_notification(
 
     gaps_report_sent_at = schedule.gaps_report_sent_at
 
-    with patch("apps.slack.slack_client.SlackClientWithErrorHandling.api_call") as mock_slack_api_call:
+    with patch("apps.slack.client.SlackClientWithErrorHandling.chat_postMessage") as mock_slack_api_call:
         notify_about_gaps_in_schedule(schedule.pk)
 
     assert not mock_slack_api_call.called
@@ -165,7 +165,7 @@ def test_gaps_now_trigger_notification(
 
     assert schedule.has_gaps is False
 
-    with patch("apps.slack.slack_client.SlackClientWithErrorHandling.api_call") as mock_slack_api_call:
+    with patch("apps.slack.client.SlackClientWithErrorHandling.chat_postMessage") as mock_slack_api_call:
         notify_about_gaps_in_schedule(schedule.pk)
 
     assert mock_slack_api_call.called
@@ -219,7 +219,7 @@ def test_gaps_near_future_trigger_notification(
 
     assert schedule.has_gaps is False
 
-    with patch("apps.slack.slack_client.SlackClientWithErrorHandling.api_call") as mock_slack_api_call:
+    with patch("apps.slack.client.SlackClientWithErrorHandling.chat_postMessage") as mock_slack_api_call:
         notify_about_gaps_in_schedule(schedule.pk)
 
     assert mock_slack_api_call.called
@@ -271,7 +271,7 @@ def test_gaps_later_than_7_days_no_triggering_notification(
 
     gaps_report_sent_at = schedule.gaps_report_sent_at
 
-    with patch("apps.slack.slack_client.SlackClientWithErrorHandling.api_call") as mock_slack_api_call:
+    with patch("apps.slack.client.SlackClientWithErrorHandling.chat_postMessage") as mock_slack_api_call:
         notify_about_gaps_in_schedule(schedule.pk)
 
     assert not mock_slack_api_call.called

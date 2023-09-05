@@ -9,8 +9,7 @@ from django.db.models import JSONField
 from django.utils import timezone
 
 from apps.api.permissions import RBACPermission
-from apps.slack.slack_client import SlackClientWithErrorHandling
-from apps.slack.slack_client.exceptions import SlackAPIException
+from apps.slack.client import SlackAPIException, SlackClientWithErrorHandling
 from apps.user_management.models.user import User
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
 
@@ -69,10 +68,10 @@ class SlackUserGroup(models.Model):
 
     @property
     def can_be_updated(self) -> bool:
-        sc = SlackClientWithErrorHandling(self.slack_team_identity.bot_access_token)
+        sc = SlackClientWithErrorHandling(self.slack_team_identity.bot_access_token, timeout=5)
 
         try:
-            sc.api_call("usergroups.update", usergroup=self.slack_id, timeout=5)
+            sc.usergroups_update(usergroup=self.slack_id)
             return True
         except (SlackAPIException, requests.exceptions.Timeout):
             return False
@@ -112,11 +111,7 @@ class SlackUserGroup(models.Model):
     def update_members(self, slack_ids):
         sc = SlackClientWithErrorHandling(self.slack_team_identity.bot_access_token)
 
-        sc.api_call(
-            "usergroups.users.update",
-            usergroup=self.slack_id,
-            users=slack_ids,
-        )
+        sc.usergroups_users_update(usergroup=self.slack_id, users=slack_ids)
 
         self.members = slack_ids
         self.save(update_fields=("members",))
@@ -132,18 +127,14 @@ class SlackUserGroup(models.Model):
         sc = SlackClientWithErrorHandling(slack_team_identity.bot_access_token)
         bot_access_token_accepted = True
         try:
-            usergroups_list = sc.api_call(
-                "usergroups.list",
-            )
+            usergroups_list = sc.usergroups_list()
         except SlackAPIException as e:
             if e.response["error"] == "not_allowed_token_type":
                 # Trying same request with access token. It is required due to migration to granular permissions
                 # and can be removed after clients reinstall their bots
                 try:
                     sc_with_access_token = SlackClientWithErrorHandling(slack_team_identity.access_token)
-                    usergroups_list = sc_with_access_token.api_call(
-                        "usergroups.list",
-                    )
+                    usergroups_list = sc_with_access_token.usergroups_list()
                     bot_access_token_accepted = False
                 except SlackAPIException as err:
                     if err.response["error"] == "missing_scope":
@@ -159,16 +150,10 @@ class SlackUserGroup(models.Model):
             if usergroup["id"] == slack_id:
                 try:
                     if bot_access_token_accepted:
-                        usergroups_users = sc.api_call(
-                            "usergroups.users.list",
-                            usergroup=usergroup["id"],
-                        )
+                        usergroups_users = sc.usergroups_users_list(usergroup=usergroup["id"])
                     else:
                         sc_with_access_token = SlackClientWithErrorHandling(slack_team_identity.access_token)
-                        usergroups_users = sc_with_access_token.api_call(
-                            "usergroups.users.list",
-                            usergroup=usergroup["id"],
-                        )
+                        usergroups_users = sc_with_access_token.usergroups_users_list(usergroup=usergroup["id"])
                 except SlackAPIException as e:
                     if e.response["error"] == "no_such_subteam":
                         logger.info("User group does not exist")
