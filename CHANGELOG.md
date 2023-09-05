@@ -16,6 +16,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Make Slack integration not post an alert group message if it's already deleted + refactor AlertGroup and
   SlackMessage foreign key relationship by @vadimkerr ([#2957](https://github.com/grafana/oncall/pull/2957))
 
+### Fixed
+
+- Reject file uploads when POSTing to an integration endpoint ([#2958](https://github.com/grafana/oncall/pull/2958))
+
 ## v1.3.31 (2023-09-04)
 
 ### Fixed

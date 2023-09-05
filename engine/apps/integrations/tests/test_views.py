@@ -1,6 +1,7 @@
 from unittest.mock import call, patch
 
 import pytest
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
@@ -149,3 +150,37 @@ def test_integration_grafana_endpoint_has_alerts(
             call((alert_receive_channel.pk, data["alerts"][1])),
         ]
     )
+
+
+@patch("apps.integrations.views.create_alert")
+@pytest.mark.parametrize(
+    "integration_type",
+    [
+        arc_type
+        for arc_type in AlertReceiveChannel.INTEGRATION_TYPES
+        if arc_type not in ["amazon_sns", "grafana", "alertmanager", "grafana_alerting", "maintenance"]
+    ],
+)
+@pytest.mark.django_db
+def test_integration_universal_endpoint_not_allow_files(
+    mock_create_alert, make_organization_and_user, make_alert_receive_channel, integration_type
+):
+    organization, user = make_organization_and_user()
+    alert_receive_channel = make_alert_receive_channel(
+        organization=organization,
+        author=user,
+        integration=integration_type,
+    )
+
+    client = APIClient()
+    url = reverse(
+        "integrations:universal",
+        kwargs={"integration_type": integration_type, "alert_channel_key": alert_receive_channel.token},
+    )
+
+    test_file = SimpleUploadedFile("testing", b"file_content")
+    data = {"foo": "bar", "f": test_file}
+    response = client.post(url, data)
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    assert not mock_create_alert.apply_async.called
