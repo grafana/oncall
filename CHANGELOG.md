@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+
+- Add option to create new contact point for existing integrations ([#2909](https://github.com/grafana/oncall/issues/2909))
+
 ### Changed
 
 - Enable email notification step by default on Helm by @vadimkerr ([#2975](https://github.com/grafana/oncall/pull/2975))

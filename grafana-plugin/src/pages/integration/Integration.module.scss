@@ -225,6 +225,9 @@ $LARGE-MARGIN: 24px;
     border: var(--border-weak);
     border-radius: var(--border-radius);
   }
+  &__connect-toggler {
+    width: 100%;
+  }
   &__connect-toggler:hover {
     cursor: pointer;
   }
