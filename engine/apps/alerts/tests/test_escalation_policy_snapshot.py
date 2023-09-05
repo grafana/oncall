@@ -408,6 +408,46 @@ def test_escalation_step_notify_if_num_alerts_in_window(
     assert not mocked_execute_tasks.called
 
 
+@pytest.mark.django_db
+def test_escalation_step_notify_if_num_alerts_in_window_deleted_escalation_policy(
+    escalation_step_test_setup, make_escalation_policy, make_alert
+):
+    _, _, _, channel_filter, alert_group, reason = escalation_step_test_setup
+
+    make_alert(alert_group=alert_group, raw_request_data={})
+
+    notify_if_2_alerts_per_1_minute = make_escalation_policy(
+        escalation_chain=channel_filter.escalation_chain,
+        escalation_policy_step=EscalationPolicy.STEP_NOTIFY_IF_NUM_ALERTS_IN_TIME_WINDOW,
+        num_alerts_in_window=2,
+        num_minutes_in_window=1,
+    )
+
+    escalation_policy_snapshot = get_escalation_policy_snapshot_from_model(notify_if_2_alerts_per_1_minute)
+    notify_if_2_alerts_per_1_minute.delete()
+
+    with pytest.raises(EscalationPolicy.DoesNotExist):
+        notify_if_2_alerts_per_1_minute.refresh_from_db()
+
+    assert not alert_group.log_records.filter(
+        type=AlertGroupLogRecord.TYPE_ESCALATION_TRIGGERED,
+        escalation_policy_step=EscalationPolicy.STEP_NOTIFY_IF_NUM_ALERTS_IN_TIME_WINDOW,
+    ).exists()
+
+    result = escalation_policy_snapshot.execute(alert_group, reason)
+    expected_result = EscalationPolicySnapshot.StepExecutionResultData(
+        eta=None,
+        stop_escalation=False,
+        pause_escalation=True,
+        start_from_beginning=False,
+    )
+    assert result == expected_result
+    assert alert_group.log_records.filter(
+        type=AlertGroupLogRecord.TYPE_ESCALATION_TRIGGERED,
+        escalation_policy_step=EscalationPolicy.STEP_NOTIFY_IF_NUM_ALERTS_IN_TIME_WINDOW,
+    ).exists()
+
+
 @patch("apps.alerts.escalation_snapshot.snapshot_classes.EscalationPolicySnapshot._execute_tasks", return_value=None)
 @pytest.mark.django_db
 def test_escalation_step_trigger_custom_button(
