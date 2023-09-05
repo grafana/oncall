@@ -540,11 +540,9 @@ def populate_slack_channels_for_team(slack_team_identity_id: int, cursor: Option
         response, cursor, rate_limited = sc.paginated_api_call_with_ratelimit(
             "conversations_list",
             paginated_key="channels",
-            json={
-                "types": "public_channel,private_channel",
-                "limit": 1000,
-                "cursor": cursor,
-            },
+            types="public_channel,private_channel",
+            limit=1000,
+            cursor=cursor,
         )
     except SlackAPITokenException as e:
         logger.info(f"token revoked\n{e}")
