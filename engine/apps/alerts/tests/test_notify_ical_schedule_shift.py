@@ -100,7 +100,7 @@ def test_next_shift_notification_long_shifts(
 
     with patch("apps.alerts.tasks.notify_ical_schedule_shift.datetime", Mock(wraps=datetime)) as mock_datetime:
         mock_datetime.datetime.now.return_value = datetime.datetime(2021, 9, 29, 12, 0, tzinfo=pytz.UTC)
-        with patch("apps.slack.slack_client.SlackClientWithErrorHandling.api_call") as mock_slack_api_call:
+        with patch("apps.slack.client.SlackClientWithErrorHandling.chat_postMessage") as mock_slack_api_call:
             notify_ical_schedule_shift(ical_schedule.pk)
 
     slack_blocks = mock_slack_api_call.call_args_list[0][1]["blocks"]
@@ -203,7 +203,7 @@ def test_overrides_changes_no_current_no_triggering_notification(
     schedule.prev_ical_file_overrides = ical_before
     schedule.save()
 
-    with patch("apps.slack.slack_client.SlackClientWithErrorHandling.api_call") as mock_slack_api_call:
+    with patch("apps.slack.client.SlackClientWithErrorHandling.chat_postMessage") as mock_slack_api_call:
         notify_ical_schedule_shift(schedule.pk)
 
     assert not mock_slack_api_call.called
@@ -251,7 +251,7 @@ def test_no_changes_no_triggering_notification(
     schedule.empty_oncall = False
     schedule.save()
 
-    with patch("apps.slack.slack_client.SlackClientWithErrorHandling.api_call") as mock_slack_api_call:
+    with patch("apps.slack.client.SlackClientWithErrorHandling.chat_postMessage") as mock_slack_api_call:
         notify_ical_schedule_shift(schedule.pk)
 
     assert not mock_slack_api_call.called
@@ -299,7 +299,7 @@ def test_current_shift_changes_trigger_notification(
     schedule.empty_oncall = False
     schedule.save()
 
-    with patch("apps.slack.slack_client.SlackClientWithErrorHandling.api_call") as mock_slack_api_call:
+    with patch("apps.slack.client.SlackClientWithErrorHandling.chat_postMessage") as mock_slack_api_call:
         notify_ical_schedule_shift(schedule.pk)
 
     assert mock_slack_api_call.called
@@ -363,7 +363,7 @@ def test_current_shift_changes_swap_split(
     schedule.empty_oncall = False
     schedule.save()
 
-    with patch("apps.slack.slack_client.SlackClientWithErrorHandling.api_call") as mock_slack_api_call:
+    with patch("apps.slack.client.SlackClientWithErrorHandling.chat_postMessage") as mock_slack_api_call:
         notify_ical_schedule_shift(schedule.pk)
 
     text_block = mock_slack_api_call.call_args_list[0][1]["blocks"][0]["text"]["text"]
@@ -432,7 +432,7 @@ def test_next_shift_changes_no_triggering_notification(
     on_call_shift_2.add_rolling_users([[user2]])
     schedule.refresh_ical_file()
 
-    with patch("apps.slack.slack_client.SlackClientWithErrorHandling.api_call") as mock_slack_api_call:
+    with patch("apps.slack.client.SlackClientWithErrorHandling.chat_postMessage") as mock_slack_api_call:
         notify_ical_schedule_shift(schedule.pk)
 
     assert not mock_slack_api_call.called
@@ -499,7 +499,7 @@ def test_lower_priority_changes_no_triggering_notification(
     on_call_shift_2.add_rolling_users([[user2]])
     schedule.refresh_ical_file()
 
-    with patch("apps.slack.slack_client.SlackClientWithErrorHandling.api_call") as mock_slack_api_call:
+    with patch("apps.slack.client.SlackClientWithErrorHandling.chat_postMessage") as mock_slack_api_call:
         notify_ical_schedule_shift(schedule.pk)
 
     assert not mock_slack_api_call.called
@@ -629,7 +629,7 @@ def test_vtimezone_changes_no_triggering_notification(
     schedule.cached_ical_file_primary = ical_after
     schedule.save()
 
-    with patch("apps.slack.slack_client.SlackClientWithErrorHandling.api_call") as mock_slack_api_call:
+    with patch("apps.slack.client.SlackClientWithErrorHandling.chat_postMessage") as mock_slack_api_call:
         notify_ical_schedule_shift(schedule.pk)
 
     assert not mock_slack_api_call.called
@@ -686,7 +686,7 @@ def test_no_changes_no_triggering_notification_from_old_to_new_task_version(
     schedule.empty_oncall = False
     schedule.save()
 
-    with patch("apps.slack.slack_client.SlackClientWithErrorHandling.api_call") as mock_slack_api_call:
+    with patch("apps.slack.client.SlackClientWithErrorHandling.chat_postMessage") as mock_slack_api_call:
         notify_ical_schedule_shift(schedule.pk)
 
     assert not mock_slack_api_call.called
@@ -748,7 +748,7 @@ def test_current_shift_changes_trigger_notification_from_old_to_new_task_version
     on_call_shift.add_rolling_users([[user2]])
     schedule.refresh_ical_file()
 
-    with patch("apps.slack.slack_client.SlackClientWithErrorHandling.api_call") as mock_slack_api_call:
+    with patch("apps.slack.client.SlackClientWithErrorHandling.chat_postMessage") as mock_slack_api_call:
         notify_ical_schedule_shift(schedule.pk)
 
     assert mock_slack_api_call.called
@@ -813,7 +813,7 @@ def test_next_shift_notification_long_and_short_shifts(
     schedule.empty_oncall = False
     schedule.save()
 
-    with patch("apps.slack.slack_client.SlackClientWithErrorHandling.api_call") as mock_slack_api_call:
+    with patch("apps.slack.client.SlackClientWithErrorHandling.chat_postMessage") as mock_slack_api_call:
         notify_ical_schedule_shift(schedule.pk)
 
     assert mock_slack_api_call.called

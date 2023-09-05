@@ -3,9 +3,8 @@ from unittest.mock import patch
 
 import pytest
 
+from apps.slack.client import SlackAPIException, SlackClientWithErrorHandling
 from apps.slack.scenarios.scenario_step import ScenarioStep
-from apps.slack.slack_client import SlackClientWithErrorHandling
-from apps.slack.slack_client.exceptions import SlackAPIException
 from common.api_helpers.utils import create_engine_url
 
 

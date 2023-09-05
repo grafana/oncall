@@ -3,8 +3,8 @@ from unittest.mock import PropertyMock, patch
 import pytest
 
 from apps.schedules.models.on_call_schedule import OnCallScheduleQuerySet
+from apps.slack.client import SlackClientWithErrorHandling
 from apps.slack.models import SlackUserGroup
-from apps.slack.slack_client import SlackClientWithErrorHandling
 
 
 @pytest.mark.django_db

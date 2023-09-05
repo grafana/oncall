@@ -75,18 +75,13 @@ class SlackChannelMessageEventStep(scenario_step.ScenarioStep):
             # SlackMessage instances without alert_group set (e.g., SSR Slack messages)
             return
 
-        result = self._slack_client.api_call(
-            "chat.getPermalink",
-            channel=channel,
-            message_ts=message_ts,
-        )
+        result = self._slack_client.chat_getPermalink(channel=channel, message_ts=message_ts)
         permalink = None
         if result["permalink"] is not None:
             permalink = result["permalink"]
 
         if len(text) > 2900:
-            self._slack_client.api_call(
-                "chat.postEphemeral",
+            self._slack_client.chat_postEphemeral(
                 channel=channel,
                 user=slack_user_identity.slack_id,
                 text=":warning: Unable to show the <{}|message> in Resolution Note: the message is too long ({}). "
