@@ -3,6 +3,7 @@ from unittest.mock import Mock, patch
 import pytest
 
 from apps.alerts.models import ResolutionNoteSlackMessage
+from apps.slack.client import SlackAPIException
 from apps.slack.scenarios.slack_channel_integration import SlackChannelMessageEventStep
 
 
@@ -259,6 +260,53 @@ class TestSlackChannelMessageEventStep:
             user=slack_user_identity.slack_id,
             text=":warning: Unable to show the <{}|message> in Resolution Note: the message is too long ({}). "
             "Max length - 2900 symbols.".format(mock_permalink, len(payload["event"]["text"])),
+        )
+        MockResolutionNoteSlackMessage.objects.get_or_create.assert_not_called()
+
+    @patch("apps.alerts.models.ResolutionNoteSlackMessage")
+    def test_save_thread_message_for_resolution_note_api_errors(
+        self,
+        MockResolutionNoteSlackMessage,
+        make_organization_and_user_with_slack_identities,
+        make_alert_receive_channel,
+        make_alert_group,
+        make_slack_message,
+    ) -> None:
+        (
+            organization,
+            user,
+            slack_team_identity,
+            slack_user_identity,
+        ) = make_organization_and_user_with_slack_identities()
+        integration = make_alert_receive_channel(organization)
+        alert_group = make_alert_group(integration)
+
+        channel = "potato"
+        ts = 88945.4849
+        thread_ts = 16789.123
+
+        make_slack_message(alert_group, slack_id=thread_ts, channel_id=channel)
+
+        step = SlackChannelMessageEventStep(slack_team_identity, organization, user)
+        step._slack_client = Mock()
+        step._slack_client.chat_getPermalink.side_effect = [
+            SlackAPIException("error!", response={"ok": False, "error": "message_not_found"})
+        ]
+
+        payload = {
+            "event": {
+                "channel": channel,
+                "ts": ts,
+                "thread_ts": thread_ts,
+                "text": "h" * 2901,
+            },
+        }
+
+        step.save_thread_message_for_resolution_note(slack_user_identity, payload)
+
+        step._slack_client.chat_getPermalink.assert_called_once_with(
+            channel=payload["event"]["channel"],
+            message_ts=payload["event"]["ts"],
         )
         MockResolutionNoteSlackMessage.objects.get_or_create.assert_not_called()
 
