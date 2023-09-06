@@ -626,12 +626,9 @@ def clean_slack_integration_leftovers(organization_id, *args, **kwargs):
     from apps.alerts.models import ChannelFilter
     from apps.schedules.models import OnCallSchedule
 
-    logger.info(f"Start clean slack leftovers for organization {organization_id}")
+    logger.info(f"Cleaning up for organization {organization_id}")
     ChannelFilter.objects.filter(alert_receive_channel__organization_id=organization_id).update(slack_channel_id=None)
-    logger.info(f"Cleaned ChannelFilters slack_channel_id for organization {organization_id}")
-    OnCallSchedule.objects.filter(organization_id=organization_id).update(channel=None)
-    logger.info(f"Cleaned OnCallSchedule slack_channel_id for organization {organization_id}")
-    logger.info(f"Finish clean slack leftovers for organization {organization_id}")
+    OnCallSchedule.objects.filter(organization_id=organization_id).update(channel=None, user_group=None)
 
 
 @shared_dedicated_queue_retry_task(autoretry_for=(Exception,), retry_backoff=True, max_retries=10)
