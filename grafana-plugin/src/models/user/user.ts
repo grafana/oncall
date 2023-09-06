@@ -17,7 +17,7 @@ import { User } from './user.types';
 
 export class UserStore extends BaseStore {
   @observable.shallow
-  searchResult: { count?: number; results?: Array<User['pk']> } = {};
+  searchResult: { count?: number; results?: any[] } = {};
 
   @observable.shallow
   items: { [pk: string]: User } = {};

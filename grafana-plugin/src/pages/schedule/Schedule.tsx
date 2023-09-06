@@ -173,7 +173,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
                     <HorizontalGroup justify="space-between">
                       <div className={cx('title')}>
                         <PluginLink query={{ page: 'schedules', ...query }}>
-                          <IconButton style={{ marginTop: '5px' }} name="arrow-left" size="xl" />
+                          <IconButton aria-label="Back" style={{ marginTop: '5px' }} name="arrow-left" size="xl" />
                         </PluginLink>
                         <Text.Title
                           editable={false}

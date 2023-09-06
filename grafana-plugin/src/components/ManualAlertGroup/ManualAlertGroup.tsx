@@ -151,6 +151,7 @@ const ManualAlertGroup: FC<ManualAlertGroupProps> = (props) => {
                     <HorizontalGroup>
                       <PluginLink target="_blank" query={{ page: 'integrations', id: selectedTeamDirectPaging.id }}>
                         <IconButton
+                          aria-label=""
                           tooltip="Open integration in new tab"
                           style={{ color: 'var(--always-gray)' }}
                           name="external-link-alt"

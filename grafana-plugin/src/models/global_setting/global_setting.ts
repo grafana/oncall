@@ -10,7 +10,7 @@ export class GlobalSettingStore extends BaseStore {
   items: { [id: string]: GlobalSetting } = {};
 
   @observable.shallow
-  searchResult: { [key: string]: Array<GlobalSetting['id']> } = {};
+  searchResult: { [key: string]: any[] } = {};
 
   constructor(rootStore: RootStore) {
     super(rootStore);

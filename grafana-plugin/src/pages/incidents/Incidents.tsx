@@ -55,7 +55,7 @@ function withSkeleton(fn: (alert: AlertType) => ReactElement | ReactElement[]) {
 interface IncidentsPageProps extends WithStoreProps, PageProps, RouteComponentProps {}
 
 interface IncidentsPageState {
-  selectedIncidentIds: Array<Alert['pk']>;
+  selectedIncidentIds: any[];
   affectedRows: { [key: string]: boolean };
   filters?: IncidentsFiltersType;
   pagination: Pagination;
@@ -96,7 +96,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
     store.alertGroupStore.updateSilenceOptions();
   }
 
-  private pollingIntervalId: NodeJS.Timer = undefined;
+  private pollingIntervalId: NodeJS.Timeout = undefined;
 
   componentWillUnmount(): void {
     this.clearPollingInterval();
@@ -546,7 +546,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
     );
   }
 
-  handleSelectedIncidentIdsChange = (ids: Array<Alert['pk']>) => {
+  handleSelectedIncidentIdsChange = (ids: any[]) => {
     this.setState({ selectedIncidentIds: ids }, () => {
       ids.length > 0 ? this.clearPollingInterval() : this.setPollingInterval();
     });

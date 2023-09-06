@@ -46,7 +46,7 @@ interface SchedulesPageState {
   startMoment: dayjs.Dayjs;
   filters: RemoteFiltersType;
   showNewScheduleSelector: boolean;
-  expandedRowKeys: Array<Schedule['id']>;
+  expandedRowKeys: any[];
   scheduleIdToEdit?: Schedule['id'];
   page: number;
 }
@@ -403,11 +403,21 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
       <div onClick={(event: SyntheticEvent) => event.stopPropagation()}>
         <HorizontalGroup>
           <WithPermissionControlTooltip key="edit" userAction={UserActions.SchedulesWrite}>
-            <IconButton tooltip="Settings" name="cog" onClick={this.getEditScheduleClickHandler(item.id)} />
+            <IconButton
+              aria-label=""
+              tooltip="Settings"
+              name="cog"
+              onClick={this.getEditScheduleClickHandler(item.id)}
+            />
           </WithPermissionControlTooltip>
           <WithPermissionControlTooltip key="edit" userAction={UserActions.SchedulesWrite}>
             <WithConfirm>
-              <IconButton tooltip="Delete" name="trash-alt" onClick={this.getDeleteScheduleClickHandler(item.id)} />
+              <IconButton
+                aria-label=""
+                tooltip="Delete"
+                name="trash-alt"
+                onClick={this.getDeleteScheduleClickHandler(item.id)}
+              />
             </WithConfirm>
           </WithPermissionControlTooltip>
         </HorizontalGroup>

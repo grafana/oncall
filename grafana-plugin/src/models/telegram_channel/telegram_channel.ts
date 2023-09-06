@@ -11,10 +11,10 @@ export class TelegramChannelStore extends BaseStore {
   items: { [id: string]: TelegramChannel } = {};
 
   @observable
-  currentTeamToTelegramChannel?: Array<TelegramChannel['id']>;
+  currentTeamToTelegramChannel?: any[];
 
   @observable.shallow
-  searchResult: { [key: string]: Array<TelegramChannel['id']> } = {};
+  searchResult: { [key: string]: any[] } = {};
 
   private autoUpdateTimer?: ReturnType<typeof setTimeout>;
 

@@ -8,7 +8,7 @@ import { UserGroup } from './user_group.types';
 
 export class UserGroupStore extends BaseStore {
   @observable.shallow
-  searchResult: { [key: string]: Array<UserGroup['id']> } = {};
+  searchResult: { [key: string]: any[] } = {};
 
   @observable.shallow
   items?: { [id: string]: UserGroup[] } = {};

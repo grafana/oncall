@@ -13,7 +13,7 @@ export interface EscalationPolicy {
   wait_delay: string | null;
   is_final: boolean;
   escalation_chain: EscalationChain['id'];
-  notify_to_users_queue: Array<User['pk']>;
+  notify_to_users_queue: any[];
   from_time: string | null;
   to_time: string | null;
   notify_to_channel: Channel['id'] | null;

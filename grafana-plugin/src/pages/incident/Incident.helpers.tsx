@@ -72,9 +72,25 @@ export function renderRelatedUsers(incident: Alert, isFull = false) {
   function renderUser(user: User) {
     let badge = undefined;
     if (incident.resolved_by_user && user.pk === incident.resolved_by_user.pk) {
-      badge = <IconButton tooltipPlacement="top" tooltip="Resolved" name="check-circle" style={{ color: '#52c41a' }} />;
+      badge = (
+        <IconButton
+          aria-label=""
+          tooltipPlacement="top"
+          tooltip="Resolved"
+          name="check-circle"
+          style={{ color: '#52c41a' }}
+        />
+      );
     } else if (incident.acknowledged_by_user && user.pk === incident.acknowledged_by_user.pk) {
-      badge = <IconButton tooltipPlacement="top" tooltip="Acknowledged" name="eye" style={{ color: '#f2c94c' }} />;
+      badge = (
+        <IconButton
+          aria-label=""
+          tooltipPlacement="top"
+          tooltip="Acknowledged"
+          name="eye"
+          style={{ color: '#f2c94c' }}
+        />
+      );
     }
 
     return (

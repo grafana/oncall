@@ -106,7 +106,12 @@ class IncidentsFilters extends Component<IncidentsFiltersProps, IncidentsFilters
         {filters.map((filterOption: FilterOption) => (
           <div key={filterOption.name} className={cx('filter')}>
             <Text type="secondary">{capitalCase(filterOption.name)}:</Text> {this.renderFilterOption(filterOption)}
-            <IconButton size="sm" name="times" onClick={this.getDeleteFilterClickHandler(filterOption.name)} />
+            <IconButton
+              aria-label=""
+              size="sm"
+              name="times"
+              onClick={this.getDeleteFilterClickHandler(filterOption.name)}
+            />
           </div>
         ))}
         <Select

@@ -63,7 +63,7 @@ export const fillGaps = (events: Event[]) => {
 };
 
 export const splitToShiftsAndFillGaps = (events: Event[]) => {
-  const shifts: Array<{ shiftId: Shift['id']; priority: Shift['priority_level']; events: Event[] }> = [];
+  const shifts: any[] = [];
 
   for (const [_i, event] of events.entries()) {
     if (event.shift?.pk) {
@@ -232,9 +232,7 @@ export const getOverridesFromStore = (
     : (store.scheduleStore.events[scheduleId]?.['override']?.[getFromString(startMoment)] as ShiftEvents[]);
 };
 
-export const splitToLayers = (
-  shifts: Array<{ shiftId: Shift['id']; priority: Shift['priority_level']; events: Event[] }>
-) => {
+export const splitToLayers = (shifts: any[]) => {
   return shifts
     .reduce((memo, shift) => {
       let layer = memo.find((level) => level.priority === shift.priority);
@@ -317,11 +315,7 @@ export const enrichLayers = (
   return layers;
 };
 
-export const enrichOverrides = (
-  overrides: Array<{ shiftId: Shift['id']; events: Event[] }>,
-  newEvents: Event[],
-  shiftId: Shift['id']
-) => {
+export const enrichOverrides = (overrides: any[], newEvents: Event[], shiftId: Shift['id']) => {
   let shiftIdFromEvent = shiftId;
   if (shiftId === 'new') {
     const event = newEvents.find((event) => !event.is_gap);

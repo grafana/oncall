@@ -246,12 +246,14 @@ const UserResponder = ({ important, data, onImportantChange, handleDelete }) => 
         <HorizontalGroup>
           <PluginLink className={cx('hover-button')} target="_blank" query={{ page: 'users', id: data.pk }}>
             <IconButton
+              aria-label=""
               tooltip="Open user profile in new tab"
               style={{ color: 'var(--always-gray)' }}
               name="external-link-alt"
             />
           </PluginLink>
           <IconButton
+            aria-label=""
             tooltip="Remove responder"
             className={cx('hover-button')}
             name="trash-alt"
@@ -297,12 +299,14 @@ const ScheduleResponder = ({ important, data, onImportantChange, handleDelete })
         <HorizontalGroup>
           <PluginLink className={cx('hover-button')} target="_blank" query={{ page: 'schedules', id: data.id }}>
             <IconButton
+              aria-label=""
               tooltip="Open schedule in new tab"
               style={{ color: 'var(--always-gray)' }}
               name="external-link-alt"
             />
           </PluginLink>
           <IconButton
+            aria-label=""
             className={cx('hover-button')}
             tooltip="Remove responder"
             name="trash-alt"

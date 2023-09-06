@@ -14,7 +14,7 @@ export class EscalationChainStore extends BaseStore {
   details: { [id: string]: EscalationChainDetails[] } = {};
 
   @observable.shallow
-  searchResult: { [key: string]: Array<EscalationChain['id']> } = {};
+  searchResult: { [key: string]: any[] } = {};
 
   @observable
   loading = false;

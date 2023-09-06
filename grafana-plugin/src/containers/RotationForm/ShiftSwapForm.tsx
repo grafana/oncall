@@ -155,6 +155,7 @@ const ShiftSwapForm = (props: ShiftSwapFormProps) => {
                 <WithPermissionControlTooltip userAction={UserActions.SchedulesWrite}>
                   <WithConfirm title="Are you sure to delete shift swap request?" confirmText="Delete">
                     <IconButton
+                      aria-label=""
                       variant="secondary"
                       tooltip="Delete"
                       name="trash-alt"
@@ -164,8 +165,8 @@ const ShiftSwapForm = (props: ShiftSwapFormProps) => {
                   </WithConfirm>
                 </WithPermissionControlTooltip>
               )}
-              <IconButton variant="secondary" className={cx('drag-handler')} name="draggabledots" />
-              <IconButton name="times" variant="secondary" tooltip="Close" onClick={handleHide} />
+              <IconButton aria-label="" variant="secondary" className={cx('drag-handler')} name="draggabledots" />
+              <IconButton aria-label="" name="times" variant="secondary" tooltip="Close" onClick={handleHide} />
             </HorizontalGroup>
           </HorizontalGroup>
 

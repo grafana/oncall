@@ -8,7 +8,7 @@ import { Cloud } from './cloud.types';
 
 export class CloudStore extends BaseStore {
   @observable.shallow
-  searchResult: { matched_users_count?: number; results?: Array<Cloud['id']> } = {};
+  searchResult: { matched_users_count?: number; results?: any[] } = {};
 
   @observable.shallow
   items: { [id: string]: Cloud } = {};

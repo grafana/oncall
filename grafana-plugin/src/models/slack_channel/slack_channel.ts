@@ -11,7 +11,7 @@ export class SlackChannelStore extends BaseStore {
   items: { [id: string]: SlackChannel } = {};
 
   @observable.shallow
-  searchResult: { [key: string]: Array<SlackChannel['id']> } = {};
+  searchResult: { [key: string]: any[] } = {};
 
   constructor(rootStore: RootStore) {
     super(rootStore);

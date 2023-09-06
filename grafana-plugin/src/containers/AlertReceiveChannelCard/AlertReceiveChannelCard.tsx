@@ -66,6 +66,7 @@ const AlertReceiveChannelCard = observer((props: AlertReceiveChannelCardProps) =
             </Text>
             <CopyToClipboard text={alertReceiveChannel.id}>
               <IconButton
+                aria-label=""
                 variant="primary"
                 tooltip={
                   <div>

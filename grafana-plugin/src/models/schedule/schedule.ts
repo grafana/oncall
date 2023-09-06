@@ -33,7 +33,7 @@ import {
 
 export class ScheduleStore extends BaseStore {
   @observable
-  searchResult: { count?: number; results?: Array<Schedule['id']> } = {};
+  searchResult: { count?: number; results?: any[] } = {};
 
   @observable.shallow
   items: { [id: string]: Schedule } = {};
@@ -70,7 +70,7 @@ export class ScheduleStore extends BaseStore {
   } = {};
 
   @observable
-  finalPreview?: { [fromString: string]: Array<{ shiftId: Shift['id']; events: Event[] }> };
+  finalPreview?: { [fromString: string]: any[] };
 
   @observable
   rotationPreview?: { [fromString: string]: Layer[] };
@@ -255,7 +255,7 @@ export class ScheduleStore extends BaseStore {
 
     if (isOverride) {
       const overridePreview = enrichOverrides(
-        [...(this.events[scheduleId]?.['override']?.[fromString] as Array<{ shiftId: string; events: Event[] }>)],
+        [...(this.events[scheduleId]?.['override']?.[fromString] as any[])],
         response.rotation,
         shiftId
       );

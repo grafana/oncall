@@ -299,6 +299,7 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
             <HorizontalGroup>
               <WithPermissionControlTooltip userAction={UserActions.EscalationChainsWrite}>
                 <IconButton
+                  aria-label=""
                   tooltip="Edit"
                   tooltipPlacement="top"
                   name="cog"
@@ -311,6 +312,7 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
               </WithPermissionControlTooltip>
               <WithPermissionControlTooltip userAction={UserActions.EscalationChainsWrite}>
                 <IconButton
+                  aria-label=""
                   tooltip="Copy"
                   tooltipPlacement="top"
                   name="copy"
@@ -324,6 +326,7 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
               <WithPermissionControlTooltip userAction={UserActions.EscalationChainsWrite}>
                 <WithConfirm title={`Are you sure to remove "${escalationChain.name}"?`} confirmText="Remove">
                   <IconButton
+                    aria-label=""
                     disabled={escalationChain.number_of_integrations > 0}
                     tooltip="Remove"
                     tooltipPlacement="top"

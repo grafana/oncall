@@ -19,9 +19,9 @@ import { useStore } from 'state/useStore';
 import styles from './UsersTimezones.module.css';
 
 interface UsersTimezonesProps {
-  userIds: Array<User['pk']>;
+  userIds: any[];
   tz: Timezone;
-  onCallNow: Array<Partial<User>>;
+  onCallNow: any[];
   scheduleId: Schedule['id'];
   startMoment: dayjs.Dayjs;
 
@@ -158,7 +158,7 @@ interface UserAvatarsProps {
   startMoment: dayjs.Dayjs;
   scheduleId: Schedule['id'];
   onTzChange: (timezone: Timezone) => void;
-  onCallNow: Array<Partial<User>>;
+  onCallNow: any[];
 }
 
 const UserAvatars = (props: UserAvatarsProps) => {
@@ -228,7 +228,7 @@ interface AvatarGroupProps {
   onSetActiveUtcOffset: (utcOffset: number | undefined) => void;
   activeUtcOffset: number;
   onTzChange?: (timezone: Timezone) => void;
-  onCallNow: Array<Partial<User>>;
+  onCallNow: any[];
 }
 
 const LIMIT = 3;

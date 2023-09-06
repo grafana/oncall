@@ -16,7 +16,7 @@ export class EscalationPolicyStore extends BaseStore {
 
   @observable
   escalationChainToEscalationPolicy: {
-    [id: string]: Array<EscalationPolicy['id']>;
+    [id: string]: any[];
   } = {};
 
   @observable

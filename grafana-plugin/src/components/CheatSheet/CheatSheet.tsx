@@ -27,7 +27,7 @@ const CheatSheet = (props: CheatSheetProps) => {
         <VerticalGroup>
           <HorizontalGroup justify="space-between">
             <Text strong>{cheatSheetName} cheatsheet</Text>
-            <IconButton name="times" onClick={onClose} />
+            <IconButton aria-label="" name="times" onClick={onClose} />
           </HorizontalGroup>
           <Text type="secondary">{cheatSheetData.description}</Text>
           <div className={cx('u-width-100')}>
@@ -70,7 +70,7 @@ const CheatSheetListItem = (props: CheatSheetListItemProps) => {
                         {item.codeExample}
                       </Text>
                       <CopyToClipboard text={item.codeExample} onCopy={() => openNotification('Example copied')}>
-                        <IconButton name="copy" />
+                        <IconButton aria-label="" name="copy" />
                       </CopyToClipboard>
                     </HorizontalGroup>
                   </Block>

@@ -392,7 +392,7 @@ class Users extends React.Component<UsersProps, UsersState> {
     );
   };
 
-  getTableColumns(): Array<{ width: string; key: string; title?: string; render }> {
+  getTableColumns(): any[] {
     return [
       {
         width: '25%',

@@ -105,6 +105,7 @@ const Text: TextInterface = (props) => {
       {hidden ? PLACEHOLDER : children}
       {editable && (
         <IconButton
+          aria-label=""
           onClick={handleEditClick}
           className={cx('icon-button')}
           tooltip="Edit"
@@ -120,6 +121,7 @@ const Text: TextInterface = (props) => {
           }}
         >
           <IconButton
+            aria-label=""
             variant="primary"
             className={cx('icon-button')}
             tooltip="Copy to clipboard"

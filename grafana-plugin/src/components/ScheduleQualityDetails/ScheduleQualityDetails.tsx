@@ -106,7 +106,7 @@ export const ScheduleQualityDetails: FC<ScheduleQualityDetailsProps> = ({ qualit
                 Calculation methodology
               </Text>
             </HorizontalGroup>
-            <IconButton name={expanded ? 'arrow-down' : 'arrow-right'} onClick={handleExpandClick} />
+            <IconButton aria-label="" name={expanded ? 'arrow-down' : 'arrow-right'} onClick={handleExpandClick} />
           </HorizontalGroup>
           {expanded && (
             <Text type="primary" className={cx('text')}>

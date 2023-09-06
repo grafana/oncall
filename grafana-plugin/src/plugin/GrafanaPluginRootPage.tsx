@@ -124,50 +124,49 @@ export const Root = observer((props: AppRootProps) => {
             <LoadingPlaceholder text="Loading..." />
           ) : (
             <Switch>
-              <Route path={getRoutesForPage('alert-groups')} exact>
+              <Route path={getRoutesForPage('alert-groups')}>
                 <Incidents query={query} />
               </Route>
-              <Route path={getRoutesForPage('alert-group')} exact>
+              <Route path={getRoutesForPage('alert-group')}>
                 <Incident query={query} />
               </Route>
-              <Route path={getRoutesForPage('users')} exact>
+              <Route path={getRoutesForPage('users')}>
                 <Users query={query} />
               </Route>
-              <Route path={getRoutesForPage('integrations')} exact>
+              <Route path={getRoutesForPage('integrations')}>
                 <Integrations query={query} />
               </Route>
-              <Route path={getRoutesForPage('integration')} exact>
+              <Route path={getRoutesForPage('integration')}>
                 <Integration query={query} />
               </Route>
-              <Route path={getRoutesForPage('escalations')} exact>
+              <Route path={getRoutesForPage('escalations')}>
                 <EscalationChains query={query} />
               </Route>
-              <Route path={getRoutesForPage('schedules')} exact>
+              <Route path={getRoutesForPage('schedules')}>
                 <Schedules query={query} />
               </Route>
-              <Route path={getRoutesForPage('schedule')} exact>
+              <Route path={getRoutesForPage('schedule')}>
                 <Schedule query={query} />
               </Route>
-              <Route path={getRoutesForPage('outgoing_webhooks')} exact>
+              <Route path={getRoutesForPage('outgoing_webhooks')}>
                 <OutgoingWebhooks query={query} />
               </Route>
-              <Route path={getRoutesForPage('settings')} exact>
+              <Route path={getRoutesForPage('settings')}>
                 <SettingsPage />
               </Route>
-              <Route path={getRoutesForPage('chat-ops')} exact>
+              <Route path={getRoutesForPage('chat-ops')}>
                 <ChatOps query={query} />
               </Route>
-              <Route path={getRoutesForPage('live-settings')} exact>
+              <Route path={getRoutesForPage('live-settings')}>
                 <LiveSettings />
               </Route>
-              <Route path={getRoutesForPage('cloud')} exact>
+              <Route path={getRoutesForPage('cloud')}>
                 <CloudPage />
               </Route>
 
               {/* Backwards compatibility redirect routes */}
               <Route
                 path={getRoutesForPage('incident')}
-                exact
                 render={({ location }) => (
                   <Redirect
                     to={{
@@ -179,7 +178,6 @@ export const Root = observer((props: AppRootProps) => {
               ></Route>
               <Route
                 path={getRoutesForPage('incidents')}
-                exact
                 render={({ location }) => (
                   <Redirect
                     to={{

@@ -63,7 +63,7 @@ export interface Shift {
   id: string;
   interval: number;
   priority_level: number;
-  rolling_users: Array<Array<User['pk']>>;
+  rolling_users: any[];
   rotation_start: string;
   schedule: Schedule['id'];
   shift_end: string;
@@ -92,16 +92,12 @@ export interface Event {
   end: string;
   is_empty: boolean;
   is_gap: boolean;
-  missing_users: Array<{ display_name: User['username']; pk: User['pk'] }>;
+  missing_users: any[];
   priority_level: number;
   shift: { pk: Shift['id'] | null };
   source: string;
   start: string;
-  users: Array<{
-    display_name: User['username'];
-    pk: User['pk'];
-    swap_request?: SwapRequest;
-  }>;
+  users: any[];
   is_override: boolean;
 
   shiftSwapId?: ShiftSwap['id']; // if event is acually shift swap request (filled out by frontend)
@@ -116,7 +112,7 @@ export interface Events {
 
 export interface Layer {
   priority: Shift['priority_level'];
-  shifts: Array<{ shiftId: Shift['id']; isPreview?: boolean; events: Event[] }>;
+  shifts: any[];
 }
 
 export interface ShiftEvents {
@@ -128,8 +124,8 @@ export interface ShiftEvents {
 
 export interface ScheduleScoreQualityResponse {
   total_score: number;
-  comments: Array<{ type: 'warning' | 'info'; text: string }>;
-  overloaded_users: Array<{ id: string; username: string; score: number }>;
+  comments: any[];
+  overloaded_users: any[];
 }
 
 export interface ShiftSwap {

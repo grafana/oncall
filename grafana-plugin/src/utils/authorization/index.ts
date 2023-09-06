@@ -66,7 +66,7 @@ type Actions =
   | 'OtherSettingsWrite'
   | 'TeamsWrite';
 
-const roleMapping: Record<OrgRole, number> = {
+const roleMapping: Partial<Record<OrgRole, number>> = {
   [OrgRole.Admin]: 0,
   [OrgRole.Editor]: 1,
   [OrgRole.Viewer]: 2,

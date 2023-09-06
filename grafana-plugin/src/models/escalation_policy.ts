@@ -14,7 +14,7 @@ export interface EscalationPolicyType {
   wait_delay: string | null;
   is_final: boolean;
   channel_filter: ChannelFilter['id'];
-  notify_to_users_queue: Array<User['pk']>;
+  notify_to_users_queue: any[];
   from_time: string | null;
   to_time: string | null;
   notify_to_schedule: ScheduleDTO['id'] | null;

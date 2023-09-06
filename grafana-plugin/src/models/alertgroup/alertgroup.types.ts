@@ -80,7 +80,7 @@ export interface Alert {
   short?: boolean;
   root_alert_group?: Alert;
   alert_receive_channel: Partial<AlertReceiveChannel>;
-  paged_users: Array<Pick<User, 'pk' | 'username' | 'avatar'>>;
+  paged_users: any[];
   team: GrafanaTeam['id'];
 
   // set by client

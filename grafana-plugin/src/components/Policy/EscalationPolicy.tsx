@@ -82,6 +82,7 @@ export class EscalationPolicy extends React.Component<EscalationPolicyProps, any
         {is_final || isDisabled ? null : (
           <WithPermissionControlTooltip className={cx('delete')} userAction={UserActions.EscalationChainsWrite}>
             <IconButton
+              aria-label=""
               name="trash-alt"
               className={cx('delete', 'control')}
               onClick={this._handleDelete}

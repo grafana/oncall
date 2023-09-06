@@ -319,7 +319,13 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
             >
               <WithPermissionControlTooltip key={'delete_action'} userAction={UserActions.OutgoingWebhooksWrite}>
                 <HorizontalGroup spacing="xs">
-                  <IconButton tooltip="Remove" tooltipPlacement="top" variant="destructive" name="trash-alt" />
+                  <IconButton
+                    aria-label=""
+                    tooltip="Remove"
+                    tooltipPlacement="top"
+                    variant="destructive"
+                    name="trash-alt"
+                  />
                   <Text type="danger">Delete Webhook</Text>
                 </HorizontalGroup>
               </WithPermissionControlTooltip>

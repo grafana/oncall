@@ -12,7 +12,7 @@ export class ApiTokenStore extends BaseStore {
   items: { [id: number]: ApiToken } = {};
 
   @observable.shallow
-  searchResult: { [key: string]: Array<ApiToken['id']> } = {};
+  searchResult: { [key: string]: any[] } = {};
 
   constructor(rootStore: RootStore) {
     super(rootStore);

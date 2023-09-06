@@ -12,9 +12,6 @@ export interface EscalationChain {
 export interface EscalationChainDetails {
   id: string;
   display_name: string;
-  channel_filters: Array<{
-    id: string;
-    display_name: string;
-  }>;
+  channel_filters: any[];
   team: string;
 }

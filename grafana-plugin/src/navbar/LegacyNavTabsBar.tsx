@@ -1,6 +1,5 @@
 import React from 'react';
 
-import { IconName } from '@grafana/data';
 import { Tab, TabsBar } from '@grafana/ui';
 import cn from 'classnames/bind';
 
@@ -24,7 +23,7 @@ export default function LegacyNavTabsBar({ currentPage }: { currentPage: string 
         {navigationPages.map((page, index) => (
           <Tab
             key={index}
-            icon={page.icon as IconName}
+            icon={page.icon as any}
             label={page.text}
             href={page.path}
             active={

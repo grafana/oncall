@@ -3,7 +3,6 @@
   Any change to this file needs to be done in the oncall-private also
 */
 
-import { IconName } from '@grafana/ui';
 import dayjs from 'dayjs';
 
 import { AlertReceiveChannel, MaintenanceMode } from 'models/alert_receive_channel/alert_receive_channel.types';
@@ -78,8 +77,8 @@ const IntegrationHelper = {
     return hasSlack || hasTelegram;
   },
 
-  getChatOpsChannels(channelFilter: ChannelFilter, store: RootStore): Array<{ name: string; icon: IconName }> {
-    const channels: Array<{ name: string; icon: IconName }> = [];
+  getChatOpsChannels(channelFilter: ChannelFilter, store: RootStore): any[] {
+    const channels: any[] = [];
 
     if (store.hasFeature(AppFeature.Slack) && channelFilter.notify_in_slack) {
       const matchingSlackChannel = store.organizationStore.currentOrganization?.slack_channel?.id

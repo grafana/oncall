@@ -33,7 +33,13 @@ const SourceCode: FC<SourceCodeProps> = (props) => {
         >
           {showClipboardIconOnly ? (
             <Tooltip placement="top" content="Copy to Clipboard">
-              <IconButton className={cx('copyIcon')} size={'lg'} name="copy" data-testid="test__copyIcon" />
+              <IconButton
+                aria-label=""
+                className={cx('copyIcon')}
+                size={'lg'}
+                name="copy"
+                data-testid="test__copyIcon"
+              />
             </Tooltip>
           ) : (
             <Button

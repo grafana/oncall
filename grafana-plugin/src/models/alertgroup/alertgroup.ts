@@ -24,7 +24,7 @@ export class AlertGroupStore extends BaseStore {
   items: { [id: string]: Alert } = {};
 
   @observable.shallow
-  searchResult: { [key: string]: Array<Alert['pk']> } = {};
+  searchResult: { [key: string]: any[] } = {};
 
   @observable
   alertGroupsLoading = false;

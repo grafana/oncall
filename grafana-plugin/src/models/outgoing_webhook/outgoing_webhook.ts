@@ -11,7 +11,7 @@ export class OutgoingWebhookStore extends BaseStore {
   items: { [id: string]: OutgoingWebhook } = {};
 
   @observable.shallow
-  searchResult: { [key: string]: Array<OutgoingWebhook['id']> } = {};
+  searchResult: { [key: string]: any[] } = {};
 
   constructor(rootStore: RootStore) {
     super(rootStore);

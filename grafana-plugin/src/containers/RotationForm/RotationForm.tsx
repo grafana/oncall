@@ -444,14 +444,16 @@ const RotationForm = observer((props: RotationFormProps) => {
               <HorizontalGroup>
                 {shiftId !== 'new' && (
                   <IconButton
+                    aria-label=""
                     variant="secondary"
                     tooltip="Delete"
                     name="trash-alt"
                     onClick={() => setShowDeleteRotationConfirmation(true)}
                   />
                 )}
-                <IconButton variant="secondary" className={cx('drag-handler')} name="draggabledots" />
+                <IconButton aria-label="" variant="secondary" className={cx('drag-handler')} name="draggabledots" />
                 <IconButton
+                  aria-label=""
                   name="times"
                   variant="secondary"
                   tooltip={shiftId === 'new' ? 'Cancel' : 'Close'}

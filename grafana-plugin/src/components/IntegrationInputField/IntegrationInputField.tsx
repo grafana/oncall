@@ -35,13 +35,13 @@ const IntegrationInputField: React.FC<IntegrationInputFieldProps> = ({
 
       <div className={cx('icons')}>
         <HorizontalGroup spacing={'xs'}>
-          {showEye && <IconButton name={'eye'} size={'xs'} onClick={onInputReveal} />}
+          {showEye && <IconButton aria-label="" name={'eye'} size={'xs'} onClick={onInputReveal} />}
           {showCopy && (
             <CopyToClipboard text={value} onCopy={onCopy}>
-              <IconButton name={'copy'} size={'xs'} />
+              <IconButton aria-label="" name={'copy'} size={'xs'} />
             </CopyToClipboard>
           )}
-          {showExternal && <IconButton name={'external-link-alt'} size={'xs'} onClick={onOpen} />}
+          {showExternal && <IconButton aria-label="" name={'external-link-alt'} size={'xs'} onClick={onOpen} />}
         </HorizontalGroup>
       </div>
     </div>

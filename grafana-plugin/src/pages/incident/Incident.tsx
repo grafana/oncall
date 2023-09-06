@@ -256,10 +256,9 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
           <HorizontalGroup justify="space-between">
             <HorizontalGroup className={cx('title')}>
               <PluginLink query={{ page: 'alert-groups', ...query }}>
-                <IconButton name="arrow-left" size="xl" />
+                <IconButton aria-label="Back" name="arrow-left" size="xl" />
               </PluginLink>
-              {/* @ts-ignore*/}
-              <HorizontalGroup align="baseline">
+              <HorizontalGroup align={'baseline' as any}>
                 <Text.Title level={3} data-testid="incident-title">
                   #{incident.inside_organization_number} {incident.render_for_web.title}
                 </Text.Title>
@@ -288,6 +287,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
               <Text>
                 {showLinkTo && (
                   <IconButton
+                    aria-label=""
                     name="code-branch"
                     onClick={this.showAttachIncidentForm}
                     tooltip="Attach to another Alert Group"
@@ -297,6 +297,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
                 )}
                 <a href={incident.slack_permalink} target="_blank" rel="noreferrer">
                   <IconButton
+                    aria-label=""
                     name="slack"
                     tooltip="View in Slack"
                     className={cx('title-icon')}
@@ -310,6 +311,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
                   }}
                 >
                   <IconButton
+                    aria-label=""
                     name="copy"
                     tooltip="Copy link"
                     className={cx('title-icon')}
@@ -756,7 +758,12 @@ function GroupedIncident({
           <div className={cx('incident-row-right')}>
             <HorizontalGroup wrap={false} justify={'flex-end'}>
               <Tooltip placement="top" content="Alert Payload">
-                <IconButton name="arrow" onClick={() => openIncidentResponse(incident)} disabled={disabled} />
+                <IconButton
+                  aria-label="Open Incident"
+                  name="arrow"
+                  onClick={() => openIncidentResponse(incident)}
+                  disabled={disabled}
+                />
               </Tooltip>
             </HorizontalGroup>
           </div>

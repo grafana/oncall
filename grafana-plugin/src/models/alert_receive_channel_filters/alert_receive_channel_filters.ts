@@ -7,7 +7,7 @@ import { SelectOption } from 'state/types';
 
 export class AlertReceiveChannelFiltersStore extends BaseStore {
   @observable.shallow
-  searchResult: Array<SelectOption['value']>;
+  searchResult: any[];
 
   @observable.shallow
   items: { [id: string]: SelectOption } = {};

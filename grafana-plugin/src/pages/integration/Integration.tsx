@@ -182,7 +182,7 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
 
             <div className={cx('integration__heading-container')}>
               <PluginLink query={{ page: 'integrations', ...query }} className={cx('back-arrow')}>
-                <IconButton name="arrow-left" size="xl" />
+                <IconButton aria-label="Back" name="arrow-left" size="xl" />
               </PluginLink>
               <h2 className={cx('integration__name')}>
                 <Emoji text={alertReceiveChannel.verbal_name} />

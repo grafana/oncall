@@ -125,7 +125,12 @@ class RemoteFilters extends Component<RemoteFiltersProps, RemoteFiltersState> {
               </Tooltip>
             )}
             <Text type="secondary">:</Text> {this.renderFilterOption(filterOption)}
-            <IconButton size="sm" name="times" onClick={this.getDeleteFilterClickHandler(filterOption.name)} />
+            <IconButton
+              aria-label=""
+              size="sm"
+              name="times"
+              onClick={this.getDeleteFilterClickHandler(filterOption.name)}
+            />
           </div>
         ))}
         <Select

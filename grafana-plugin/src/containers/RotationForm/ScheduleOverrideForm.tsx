@@ -215,11 +215,18 @@ const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
           <HorizontalGroup>
             {shiftId !== 'new' && (
               <WithConfirm>
-                <IconButton variant="secondary" tooltip="Delete" name="trash-alt" onClick={handleDeleteClick} />
+                <IconButton
+                  aria-label=""
+                  variant="secondary"
+                  tooltip="Delete"
+                  name="trash-alt"
+                  onClick={handleDeleteClick}
+                />
               </WithConfirm>
             )}
-            <IconButton variant="secondary" className={cx('drag-handler')} name="draggabledots" />
+            <IconButton aria-label="" variant="secondary" className={cx('drag-handler')} name="draggabledots" />
             <IconButton
+              aria-label=""
               name="times"
               variant="secondary"
               tooltip={shiftId === 'new' ? 'Cancel' : 'Close'}

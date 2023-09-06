@@ -25,10 +25,10 @@ import {
 
 export class AlertReceiveChannelStore extends BaseStore {
   @observable.shallow
-  searchResult: Array<AlertReceiveChannel['id']>;
+  searchResult: any[];
 
   @observable.shallow
-  paginatedSearchResult: { count?: number; results?: Array<AlertReceiveChannel['id']> } = {};
+  paginatedSearchResult: { count?: number; results?: any[] } = {};
 
   @observable.shallow
   items: { [id: string]: AlertReceiveChannel } = {};
@@ -37,7 +37,7 @@ export class AlertReceiveChannelStore extends BaseStore {
   counters: { [id: string]: AlertReceiveChannelCounters } = {};
 
   @observable
-  channelFilterIds: { [id: string]: Array<ChannelFilter['id']> } = {};
+  channelFilterIds: { [id: string]: any[] } = {};
 
   @observable.shallow
   channelFilters: { [id: string]: ChannelFilter } = {};

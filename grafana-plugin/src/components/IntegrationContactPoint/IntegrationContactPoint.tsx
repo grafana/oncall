@@ -256,6 +256,7 @@ const IntegrationContactPoint: React.FC<{
     return (
       <HorizontalGroup spacing="md">
         <IconButton
+          aria-label=""
           name="external-link-alt"
           onClick={() => {
             window.open(
@@ -277,6 +278,7 @@ const IntegrationContactPoint: React.FC<{
           }
         >
           <IconButton
+            aria-label=""
             name="trash-alt"
             onClick={() => {
               alertReceiveChannelStore
@@ -365,7 +367,7 @@ const IntegrationContactPoint: React.FC<{
     setState({ selectedContactPoint: option.value });
   }
 
-  function getTableColumns(): Array<{ width: string; key: string; title?: string; render }> {
+  function getTableColumns(): any[] {
     return [
       {
         width: '40%',

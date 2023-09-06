@@ -7,7 +7,7 @@ import { RootStore } from 'state';
 
 export class GrafanaTeamStore extends BaseStore {
   @observable
-  searchResult: { [key: string]: Array<GrafanaTeam['id']> } = {};
+  searchResult: { [key: string]: any[] } = {};
 
   @observable.shallow
   items: { [id: string]: GrafanaTeam } = {};

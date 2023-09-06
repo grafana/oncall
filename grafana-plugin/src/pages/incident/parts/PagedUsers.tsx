@@ -81,6 +81,7 @@ const PagedUsers = observer((props: PagedUsersProps) => {
                     query={{ page: 'users', id: pagedUser.pk }}
                   >
                     <IconButton
+                      aria-label=""
                       tooltip="Open user profile in new tab"
                       style={{ color: 'var(--always-gray)' }}
                       name="external-link-alt"
@@ -92,6 +93,7 @@ const PagedUsers = observer((props: PagedUsersProps) => {
                       confirmText="Remove"
                     >
                       <IconButton
+                        aria-label=""
                         className={cx('hover-button')}
                         onClick={getPagedUserRemoveHandler(pagedUser.pk)}
                         tooltip="Remove from responders"

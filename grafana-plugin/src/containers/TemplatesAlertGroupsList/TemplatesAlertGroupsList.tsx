@@ -143,7 +143,7 @@ const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) => {
               <Text>Edit custom payload</Text>
 
               <HorizontalGroup>
-                <IconButton name="times" onClick={returnToListView} />
+                <IconButton aria-label="" name="times" onClick={returnToListView} />
               </HorizontalGroup>
             </HorizontalGroup>
           </div>
@@ -263,7 +263,7 @@ const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) => {
             <Text>Edit custom payload</Text>
 
             <HorizontalGroup>
-              <IconButton name="times" onClick={() => returnToListView()} />
+              <IconButton aria-label="" name="times" onClick={() => returnToListView()} />
             </HorizontalGroup>
           </HorizontalGroup>
         </div>
@@ -292,8 +292,8 @@ const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) => {
               <Text>{selectedTitle}</Text>
             </div>
             <div className={cx('title-action-icons')}>
-              <IconButton name="edit" onClick={() => setIsEditMode(true)} />
-              <IconButton name="times" onClick={() => returnToListView()} />
+              <IconButton aria-label="" name="edit" onClick={() => setIsEditMode(true)} />
+              <IconButton aria-label="" name="times" onClick={() => returnToListView()} />
             </div>
           </div>
         </div>

@@ -1,7 +1,5 @@
-import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
-
 const CommonIntegrationHelper = {
-  getRouteConditionWording(channelFilters: Array<ChannelFilter['id']>, routeIndex: number): 'Default' | 'Else' | 'If' {
+  getRouteConditionWording(channelFilters: any[], routeIndex: number): 'Default' | 'Else' | 'If' {
     const totalCount = Object.keys(channelFilters).length;
 
     if (routeIndex === totalCount - 1) {
@@ -10,7 +8,7 @@ const CommonIntegrationHelper = {
     return routeIndex ? 'Else' : 'If';
   },
 
-  getRouteConditionTooltipWording(channelFilters: Array<ChannelFilter['id']>, routeIndex: number) {
+  getRouteConditionTooltipWording(channelFilters: any[], routeIndex: number) {
     const totalCount = Object.keys(channelFilters).length;
 
     if (routeIndex === totalCount - 1) {
