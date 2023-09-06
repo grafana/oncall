@@ -162,17 +162,13 @@ def unpopulate_slack_user_identities(organization_pk, force=False, ts=None):
 
     organization = Organization.objects.get(pk=organization_pk)
 
-    users_to_update = []
-    for user in organization.users.filter(slack_user_identity__isnull=False):
-        user.slack_user_identity = None
-        users_to_update.append(user)
-
-    User.objects.bulk_update(users_to_update, ["slack_user_identity"], batch_size=5000)
+    # Reset slack_user_identity for organization users (make sure to include deleted users in the queryset)
+    User.objects.filter_with_deleted(organization=organization).update(slack_user_identity=None)
 
     if force:
         organization.slack_team_identity = None
         organization.general_log_channel_id = None
-        organization.save()
+        organization.save(update_fields=["slack_team_identity", "general_log_channel_id"])
 
 
 @shared_dedicated_queue_retry_task(autoretry_for=(Exception,), retry_backoff=True, max_retries=0)
