@@ -4,6 +4,7 @@ from .going_oncall_notification import (  # noqa:F401
 )
 from .new_alert_group import notify_user_about_new_alert_group  # noqa:F401
 from .new_shift_swap_request import (  # noqa:F401
+    notify_beneficiary_about_taken_shift_swap_request,
     notify_shift_swap_request,
     notify_shift_swap_requests,
     notify_user_about_shift_swap_request,

@@ -18,7 +18,11 @@ from apps.auth_token.auth import PluginAuthentication
 from apps.mobile_app.auth import MobileAppAuthTokenAuthentication
 from apps.schedules import exceptions
 from apps.schedules.models import ShiftSwapRequest
-from apps.schedules.tasks.shift_swaps import create_shift_swap_request_message, update_shift_swap_request_message
+from apps.schedules.tasks.shift_swaps import (
+    create_shift_swap_request_message,
+    notify_beneficiary_about_taken_shift_swap_request,
+    update_shift_swap_request_message,
+)
 from apps.user_management.models import User
 from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.mixins import PublicPrimaryKeyMixin
@@ -50,7 +54,10 @@ class BaseShiftSwapViewSet(ModelViewSet):
         except exceptions.BeneficiaryCannotTakeOwnShiftSwapRequest:
             raise BadRequest(detail="A shift swap request cannot be created and taken by the same user")
 
-        update_shift_swap_request_message.apply_async((shift_swap.pk,))
+        ssr_pk = shift_swap.pk
+
+        update_shift_swap_request_message.apply_async((ssr_pk,))
+        notify_beneficiary_about_taken_shift_swap_request.apply_async((ssr_pk,))
 
         return ShiftSwapRequestSerializer(shift_swap).data
 

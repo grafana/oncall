@@ -19,6 +19,9 @@ CELERY_TASK_ROUTES = {
     "apps.mobile_app.tasks.new_shift_swap_request.notify_shift_swap_requests": {"queue": "default"},
     "apps.mobile_app.tasks.new_shift_swap_request.notify_shift_swap_request": {"queue": "default"},
     "apps.mobile_app.tasks.new_shift_swap_request.notify_user_about_shift_swap_request": {"queue": "default"},
+    "apps.mobile_app.tasks.new_shift_swap_request.notify_beneficiary_about_taken_shift_swap_request": {
+        "queue": "default"
+    },
     "apps.schedules.tasks.refresh_ical_files.refresh_ical_file": {"queue": "default"},
     "apps.schedules.tasks.refresh_ical_files.start_refresh_ical_files": {"queue": "default"},
     "apps.schedules.tasks.refresh_ical_files.refresh_ical_final_schedule": {"queue": "default"},
@@ -48,6 +51,9 @@ CELERY_TASK_ROUTES = {
     },
     "apps.schedules.tasks.shift_swaps.slack_messages.create_shift_swap_request_message": {"queue": "default"},
     "apps.schedules.tasks.shift_swaps.slack_messages.update_shift_swap_request_message": {"queue": "default"},
+    "apps.schedules.tasks.shift_swaps.notify_when_taken.notify_beneficiary_about_taken_shift_swap_request": {
+        "queue": "default"
+    },
     "apps.schedules.tasks.shift_swaps.slack_followups.send_shift_swap_request_slack_followups": {"queue": "default"},
     "apps.schedules.tasks.shift_swaps.slack_followups.send_shift_swap_request_slack_followup": {"queue": "default"},
     "apps.migration_tool.tasks.start_migration_from_old_amixr": {"queue": "default"},

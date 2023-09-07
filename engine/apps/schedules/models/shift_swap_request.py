@@ -167,6 +167,18 @@ class ShiftSwapRequest(models.Model):
         return self.schedule.channel
 
     @property
+    def beneficiary_slack_verbal(self) -> str:
+        return self.beneficiary.get_username_with_slack_verbal(True)
+
+    @property
+    def benefactor_slack_verbal(self) -> str | None:
+        return self.benefactor.get_username_with_slack_verbal(True) if self.benefactor else None
+
+    @property
+    def schedule_slack_url(self) -> str:
+        return f"<{self.schedule.web_detail_page_link}|{self.schedule.name}>"
+
+    @property
     def organization(self) -> "Organization":
         return self.schedule.organization
 
