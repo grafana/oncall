@@ -67,6 +67,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - ([Use Tilt for local development](https://github.com/grafana/oncall/pull/1396))
 
+### Changed
+
+- Update slack schedule shift-changed notification ([#2949](https://github.com/grafana/oncall/pull/2949))
+
 ## v1.3.30 (2023-08-31)
 
 ### Added
