@@ -7,12 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+
+- Notify user via Slack/mobile push-notification when their shift swap request is taken by @joeyorlando ([#2992](https://github.com/grafana/oncall/pull/2992))
+
 ## v1.3.36 (2023-09-07)
 
 ### Added
 
 - Add option to create new contact point for existing integrations ([#2909](https://github.com/grafana/oncall/issues/2909))
-- Notify user via Slack/mobile push-notification when their shift swap request is taken by @joeyorlando ([#2992](https://github.com/grafana/oncall/pull/2992))
 
 ### Changed
 
