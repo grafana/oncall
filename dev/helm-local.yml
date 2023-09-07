@@ -4,7 +4,7 @@ env:
   - name: GRAFANA_CLOUD_NOTIFICATIONS_ENABLED
     value: "False"
 image:
-  repository: oncall/engine
+  repository: localhost:63628/oncall/engine
   tag: dev
   pullPolicy: IfNotPresent
 broker:
@@ -14,6 +14,8 @@ redis:
   image:
     repository: redis # the default, bitnami/redis does not support ARM64
     tag: 7.0.5
+  auth:
+    password: oncallpassword
 rabbitmq:
   enabled: false
 oncall:
@@ -24,12 +26,22 @@ celery:
   replicaCount: 1
 
 ui:
-  enabled: true
+  enabled: false
+  image:
+    repository: localhost:63628/oncall/ui
   env:
-    ONCALL_API_URL: http://oncall-dev-engine-external:8080
+    ONCALL_API_URL: http://oncall-dev-engine:8080
     MOBILE_APP_QR_INTERVAL_QUEUE: 290000 # 4 minutes and 50 seconds
 
+externalGrafana:
+  url: http://grafana:3000
+
 grafana:
+  enabled: false
+  grafana.ini:
+    server:
+      domain: localhost:3000
+      root_url: "%(protocol)s://%(domain)s"
   replicas: 1
   image:
     tag: 10.0.2
@@ -50,10 +62,7 @@ grafana:
         - name: DATABASE_USER
           value: root
         - name: DATABASE_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: oncall-dev-mariadb
-              key: mariadb-root-password
+          value: oncallpassword
   env:
     GF_FEATURE_TOGGLES_ENABLE: topnav
     GF_SECURITY_ADMIN_PASSWORD: oncall
@@ -63,11 +72,7 @@ grafana:
     GF_DATABASE_HOST: oncall-dev-mariadb:3306
     GF_DATABASE_USER: root
     GF_DATABASE_SSL_MODE: disable
-  envValueFrom:
-    GF_DATABASE_PASSWORD:
-      secretKeyRef:
-        name: oncall-dev-mariadb
-        key: mariadb-root-password
+    GF_DATABASE_PASSWORD: oncallpassword
   # by settings grafana.plugins to [] and configuring grafana.extraVolumeMounts we are using the locally built
   # OnCall plugin rather than the latest published version
   plugins: []
@@ -112,6 +117,8 @@ mariadb:
         value: utf8mb4
       - name: MARIADB_COLLATE
         value: utf8mb4_unicode_ci
+  auth:
+    rootPassword: oncallpassword
 
 ingress:
   enabled: false

@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: oncall-ui
-          image: "oncall/ui:dev"
+          image: "{{ .Values.ui.image.repository }}:{{ .Values.ui.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: IfNotPresent
           env:
             {{- include "ui.env" . | nindent 12 }}

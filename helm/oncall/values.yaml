@@ -198,7 +198,7 @@ oncall:
     # The key in the secret containing Telegram token
     tokenKey: ""
   smtp:
-    enabled: false
+    enabled: true
     host: ~
     port: ~
     username: ~
@@ -513,5 +513,8 @@ ui:
   # this is intended to be used for local development. In short, it will spin up an additional container
   # running the plugin frontend, such that hot reloading can be enabled
   enabled: false
+  image:
+    repository: oncall/ui
+    tag: dev
   # Additional env vars for the ui container
   env: {}
