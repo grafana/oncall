@@ -156,7 +156,7 @@ class BaseShiftSwapRequestStep(scenario_step.ScenarioStep):
         organization = self.organization
 
         blocks = self._generate_blocks(shift_swap_request)
-        result = self._slack_client.api_call("chat.postMessage", channel=channel_id, blocks=blocks)
+        result = self._slack_client.chat_postMessage(channel=channel_id, blocks=blocks)
 
         return SlackMessage.objects.create(
             slack_id=result["ts"],
@@ -166,9 +166,7 @@ class BaseShiftSwapRequestStep(scenario_step.ScenarioStep):
         )
 
     def update_message(self, shift_swap_request: "ShiftSwapRequest") -> None:
-        # TODO: better error handling here...
-        self._slack_client.api_call(
-            "chat.update",
+        self._slack_client.chat_update(
             channel=shift_swap_request.slack_channel_id,
             ts=shift_swap_request.slack_message.slack_id,
             blocks=self._generate_blocks(shift_swap_request),
@@ -229,8 +227,7 @@ class ShiftSwapRequestFollowUp(scenario_step.ScenarioStep):
         ]
 
     def post_message(self, shift_swap_request: "ShiftSwapRequest") -> None:
-        self._slack_client.api_call(
-            "chat.postMessage",
+        self._slack_client.chat_postMessage(
             channel=shift_swap_request.slack_message.channel_id,
             thread_ts=shift_swap_request.slack_message.slack_id,
             reply_broadcast=True,

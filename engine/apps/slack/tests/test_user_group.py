@@ -2,9 +2,11 @@ from unittest.mock import PropertyMock, patch
 
 import pytest
 
-from apps.schedules.models.on_call_schedule import OnCallScheduleQuerySet
+from apps.schedules.models.on_call_schedule import OnCallScheduleQuerySet, OnCallScheduleWeb
+from apps.slack.client import SlackClientWithErrorHandling
 from apps.slack.models import SlackUserGroup
-from apps.slack.slack_client import SlackClientWithErrorHandling
+from apps.slack.tasks import start_update_slack_user_group_for_schedules, update_slack_user_group_for_schedules
+from apps.user_management.models import Organization
 
 
 @pytest.mark.django_db
@@ -67,3 +69,25 @@ def test_update_oncall_members(
         with patch.object(SlackUserGroup, "update_members") as update_members_mock:
             user_group.update_oncall_members()
             update_members_mock.assert_called()
+
+
+@pytest.mark.django_db
+def test_start_update_slack_user_group_for_schedules_organization_deleted(
+    make_organization_with_slack_team_identity, make_slack_user_group, make_schedule
+):
+    organization, slack_team_identity = make_organization_with_slack_team_identity()
+    user_group = make_slack_user_group(slack_team_identity)
+    make_schedule(organization, schedule_class=OnCallScheduleWeb, user_group=user_group)
+
+    # check user group is updated
+    with patch.object(update_slack_user_group_for_schedules, "delay") as mock:
+        start_update_slack_user_group_for_schedules()
+        mock.assert_called_once_with(user_group_pk=user_group.pk)
+
+    # soft delete the organization
+    Organization.objects.filter(pk=organization.pk).delete()
+
+    # check user group is not updated for deleted organization
+    with patch.object(update_slack_user_group_for_schedules, "delay") as mock:
+        start_update_slack_user_group_for_schedules()
+        mock.assert_not_called()

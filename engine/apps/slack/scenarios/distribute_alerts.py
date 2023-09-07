@@ -15,17 +15,16 @@ from apps.alerts.models import Alert, AlertGroup, AlertGroupLogRecord, AlertRece
 from apps.alerts.tasks import custom_button_result
 from apps.alerts.utils import render_curl_command
 from apps.api.permissions import RBACPermission
-from apps.slack.constants import CACHE_UPDATE_INCIDENT_SLACK_MESSAGE_LIFETIME, SLACK_RATE_LIMIT_DELAY
-from apps.slack.models import SlackMessage
-from apps.slack.scenarios import scenario_step
-from apps.slack.scenarios.slack_renderer import AlertGroupLogSlackRenderer
-from apps.slack.slack_client import SlackClientWithErrorHandling
-from apps.slack.slack_client.exceptions import (
+from apps.slack.client import (
     SlackAPIChannelArchivedException,
     SlackAPIException,
     SlackAPIRateLimitException,
     SlackAPITokenException,
+    SlackClientWithErrorHandling,
 )
+from apps.slack.constants import CACHE_UPDATE_INCIDENT_SLACK_MESSAGE_LIFETIME, SLACK_RATE_LIMIT_DELAY
+from apps.slack.scenarios import scenario_step
+from apps.slack.scenarios.slack_renderer import AlertGroupLogSlackRenderer
 from apps.slack.slack_formatter import SlackFormatter
 from apps.slack.tasks import (
     post_or_update_log_report_message_task,
@@ -134,38 +133,30 @@ class AlertShootingStep(scenario_step.ScenarioStep):
             return
 
         try:
-            result = self._slack_client.api_call(
-                "chat.postMessage", channel=channel_id, attachments=attachments, blocks=blocks
-            )
+            result = self._slack_client.chat_postMessage(channel=channel_id, attachments=attachments, blocks=blocks)
 
-            slack_message = SlackMessage.objects.create(
+            alert_group.slack_messages.create(
                 slack_id=result["ts"],
                 organization=alert_group.channel.organization,
                 _slack_team_identity=slack_team_identity,
                 channel_id=channel_id,
-                alert_group=alert_group,
             )
-
-            alert_group.slack_message = slack_message
-            alert_group.save(update_fields=["slack_message"])
 
             # If alert was made out of a message:
             if alert_group.channel.integration == AlertReceiveChannel.INTEGRATION_SLACK_CHANNEL:
                 channel = json.loads(alert.integration_unique_data)["channel"]
-                result = self._slack_client.api_call(
-                    "chat.postMessage",
+                result = self._slack_client.chat_postMessage(
                     channel=channel,
                     thread_ts=json.loads(alert.integration_unique_data)["ts"],
                     text=":rocket: <{}|Incident registered!>".format(alert_group.slack_message.permalink),
                     team=slack_team_identity,
                 )
-                SlackMessage(
+                alert_group.slack_messages.create(
                     slack_id=result["ts"],
                     organization=alert_group.channel.organization,
                     _slack_team_identity=self.slack_team_identity,
                     channel_id=channel,
-                    alert_group=alert_group,
-                ).save()
+                )
 
             alert.delivered = True
         except SlackAPITokenException:
@@ -206,8 +197,7 @@ class AlertShootingStep(scenario_step.ScenarioStep):
         blocks: Block.AnyBlocks = []
         text = "Escalations are silenced due to Debug mode"
         blocks.append({"type": "section", "text": {"type": "mrkdwn", "text": text}})
-        self._slack_client.api_call(
-            "chat.postMessage",
+        self._slack_client.chat_postMessage(
             channel=channel_id,
             text=text,
             attachments=[],
@@ -400,11 +390,7 @@ class SelectAttachGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
                         },
                     }
                 )
-        self._slack_client.api_call(
-            "views.open",
-            trigger_id=payload["trigger_id"],
-            view=view,
-        )
+        self._slack_client.views_open(trigger_id=payload["trigger_id"], view=view)
 
     def get_select_incidents_blocks(self, alert_group: AlertGroup) -> Block.AnyBlocks:
         collected_options: typing.List[CompositionObjectOption] = []
@@ -488,8 +474,7 @@ class AttachGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
             slack_user_identity = log_record.author.slack_user_identity
 
             if slack_user_identity:
-                self._slack_client.api_call(
-                    "chat.postEphemeral",
+                self._slack_client.chat_postEphemeral(
                     user=slack_user_identity.slack_id,
                     channel=alert_group.slack_message.channel_id,
                     text="{}{}".format(ephemeral_text[:1].upper(), ephemeral_text[1:]),
@@ -763,8 +748,7 @@ class UnAcknowledgeGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep)
             )
             if alert_group.slack_message.ack_reminder_message_ts:
                 try:
-                    self._slack_client.api_call(
-                        "chat.update",
+                    self._slack_client.chat_update(
                         channel=channel_id,
                         ts=alert_group.slack_message.ack_reminder_message_ts,
                         text=text,
@@ -809,17 +793,11 @@ class AcknowledgeConfirmationStep(AcknowledgeGroupStep):
                 if self.user == alert_group.acknowledged_by_user:
                     user_verbal = alert_group.acknowledged_by_user.get_username_with_slack_verbal()
                     text = f"{user_verbal} confirmed that the Alert Group is still acknowledged."
-                    self._slack_client.api_call(
-                        "chat.update",
-                        channel=channel,
-                        ts=message_ts,
-                        text=text,
-                    )
+                    self._slack_client.chat_update(channel=channel, ts=message_ts, text=text)
                     alert_group.acknowledged_by_confirmed = datetime.utcnow()
                     alert_group.save(update_fields=["acknowledged_by_confirmed"])
                 else:
-                    self._slack_client.api_call(
-                        "chat.postEphemeral",
+                    self._slack_client.chat_postEphemeral(
                         channel=channel,
                         user=slack_user_identity.slack_id,
                         text="This Alert Group is acknowledged by another user. Acknowledge it yourself first.",
@@ -827,29 +805,18 @@ class AcknowledgeConfirmationStep(AcknowledgeGroupStep):
             elif alert_group.acknowledged_by == AlertGroup.SOURCE:
                 user_verbal = self.user.get_username_with_slack_verbal()
                 text = f"{user_verbal} confirmed that the Alert Group is still acknowledged."
-                self._slack_client.api_call(
-                    "chat.update",
-                    channel=channel,
-                    ts=message_ts,
-                    text=text,
-                )
+                self._slack_client.chat_update(channel=channel, ts=message_ts, text=text)
                 alert_group.acknowledged_by_confirmed = datetime.utcnow()
                 alert_group.save(update_fields=["acknowledged_by_confirmed"])
         else:
-            self._slack_client.api_call(
-                "chat.delete",
-                channel=channel,
-                ts=message_ts,
-            )
-            self._slack_client.api_call(
-                "chat.postEphemeral",
+            self._slack_client.chat_delete(channel=channel, ts=message_ts)
+            self._slack_client.chat_postEphemeral(
                 channel=channel,
                 user=slack_user_identity.slack_id,
                 text="This Alert Group is already unacknowledged.",
             )
 
     def process_signal(self, log_record: AlertGroupLogRecord) -> None:
-        from apps.slack.models import SlackMessage
         from apps.user_management.models import Organization
 
         alert_group = log_record.alert_group
@@ -884,8 +851,7 @@ class AcknowledgeConfirmationStep(AcknowledgeGroupStep):
                 }
             ]
             try:
-                response = self._slack_client.api_call(
-                    "chat.postMessage",
+                response = self._slack_client.chat_postMessage(
                     channel=channel_id,
                     text=text,
                     attachments=attachments,
@@ -913,13 +879,12 @@ class AcknowledgeConfirmationStep(AcknowledgeGroupStep):
                 else:
                     raise e
             else:
-                SlackMessage(
+                alert_group.slack_messages.create(
                     slack_id=response["ts"],
                     organization=alert_group.channel.organization,
                     _slack_team_identity=self.slack_team_identity,
                     channel_id=channel_id,
-                    alert_group=alert_group,
-                ).save()
+                )
 
                 alert_group.slack_message.ack_reminder_message_ts = response["ts"]
                 alert_group.slack_message.save(update_fields=["ack_reminder_message_ts"])
@@ -952,11 +917,7 @@ class DeleteGroupStep(scenario_step.ScenarioStep):
 
         for message_ts in bot_messages_ts:
             try:
-                self._slack_client.api_call(
-                    "chat.delete",
-                    channel=channel_id,
-                    ts=message_ts,
-                )
+                self._slack_client.chat_delete(channel=channel_id, ts=message_ts)
             except SlackAPITokenException as e:
                 logger.error(
                     f"Unable to delete messages in slack. Message ts: {message_ts}"
@@ -989,11 +950,7 @@ class DeleteGroupStep(scenario_step.ScenarioStep):
                     sc_with_access_token = SlackClientWithErrorHandling(
                         self.slack_team_identity.access_token
                     )  # used access_token instead of bot_access_token
-                    sc_with_access_token.api_call(
-                        "chat.delete",
-                        channel=channel_id,
-                        ts=message_ts,
-                    )
+                    sc_with_access_token.chat_delete(channel=channel_id, ts=message_ts)
                 else:
                     raise e
 
@@ -1002,12 +959,7 @@ class DeleteGroupStep(scenario_step.ScenarioStep):
             message.added_to_resolution_note = False
             message.save(update_fields=["added_to_resolution_note"])
             try:
-                self._slack_client.api_call(
-                    "reactions.remove",
-                    channel=message.slack_channel_id,
-                    name="memo",
-                    timestamp=message.ts,
-                )
+                self._slack_client.reactions_remove(channel=message.slack_channel_id, name="memo", timestamp=message.ts)
             except SlackAPITokenException as e:
                 logger.warning(
                     f"Unable to delete resolution note reaction in slack. "
@@ -1026,23 +978,20 @@ class UpdateLogReportMessageStep(scenario_step.ScenarioStep):
         self.update_log_message(alert_group)
 
     def post_log_message(self, alert_group: AlertGroup) -> None:
-        from apps.slack.models import SlackMessage
-
-        slack_message = alert_group.get_slack_message()
-
+        slack_message = alert_group.slack_message
         if slack_message is None:
             logger.info(f"Cannot post log message for alert_group {alert_group.pk} because SlackMessage doesn't exist")
             return None
-
-        text = ("Building escalation plan... :thinking_face:",)
 
         slack_log_message = alert_group.slack_log_message
 
         if slack_log_message is None:
             logger.debug(f"Start posting new log message for alert_group {alert_group.pk}")
             try:
-                result = self._slack_client.api_call(
-                    "chat.postMessage", channel=slack_message.channel_id, thread_ts=slack_message.slack_id, text=text
+                result = self._slack_client.chat_postMessage(
+                    channel=slack_message.channel_id,
+                    thread_ts=slack_message.slack_id,
+                    text="Building escalation plan... :thinking_face:",
                 )
             except SlackAPITokenException as e:
                 print(e)
@@ -1064,15 +1013,13 @@ class UpdateLogReportMessageStep(scenario_step.ScenarioStep):
                     raise e
             else:
                 logger.debug(f"Create new slack_log_message for alert_group {alert_group.pk}")
-                slack_log_message = SlackMessage(
+                slack_log_message = alert_group.slack_messages.create(
                     slack_id=result["ts"],
                     organization=self.organization,
                     _slack_team_identity=self.slack_team_identity,
                     channel_id=slack_message.channel_id,
                     last_updated=timezone.now(),
-                    alert_group=alert_group,
                 )
-                slack_log_message.save()
 
                 alert_group.slack_log_message = slack_log_message
                 alert_group.save(update_fields=["slack_log_message"])
@@ -1084,8 +1031,7 @@ class UpdateLogReportMessageStep(scenario_step.ScenarioStep):
             self.update_log_message(alert_group)
 
     def update_log_message(self, alert_group: AlertGroup) -> None:
-        slack_message = alert_group.get_slack_message()
-
+        slack_message = alert_group.slack_message
         if slack_message is None:
             logger.info(
                 f"Cannot update log message for alert_group {alert_group.pk} because SlackMessage doesn't exist"
@@ -1104,8 +1050,7 @@ class UpdateLogReportMessageStep(scenario_step.ScenarioStep):
                 f"Update log message for alert_group {alert_group.pk}, slack_log_message {slack_log_message.pk}"
             )
             try:
-                self._slack_client.api_call(
-                    "chat.update",
+                self._slack_client.chat_update(
                     channel=slack_message.channel_id,
                     text="Alert Group log",
                     ts=slack_log_message.slack_id,

@@ -3,7 +3,7 @@ from unittest.mock import patch
 import pytest
 from django.utils import timezone
 
-from apps.slack.slack_client import SlackClientWithErrorHandling
+from apps.slack.client import SlackClientWithErrorHandling
 from apps.slack.tasks import populate_slack_channels_for_team
 
 

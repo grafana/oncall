@@ -1,14 +1,14 @@
 import logging
 import typing
 
-from apps.slack.constants import SLACK_RATE_LIMIT_DELAY
-from apps.slack.slack_client import SlackClientWithErrorHandling
-from apps.slack.slack_client.exceptions import (
+from apps.slack.client import (
     SlackAPIChannelArchivedException,
     SlackAPIException,
     SlackAPIRateLimitException,
     SlackAPITokenException,
+    SlackClientWithErrorHandling,
 )
+from apps.slack.constants import SLACK_RATE_LIMIT_DELAY
 
 if typing.TYPE_CHECKING:
     from apps.alerts.models import AlertGroup
@@ -32,21 +32,15 @@ class AlertGroupSlackService:
             self._slack_client = SlackClientWithErrorHandling(slack_team_identity.bot_access_token)
 
     def update_alert_group_slack_message(self, alert_group: "AlertGroup") -> None:
-        logger.info(f"Started _update_slack_message for alert_group {alert_group.pk}")
         from apps.alerts.models import AlertReceiveChannel
-        from apps.slack.models import SlackMessage
 
-        slack_message = alert_group.slack_message
-        attachments = alert_group.render_slack_attachments()
-        blocks = alert_group.render_slack_blocks()
         logger.info(f"Update message for alert_group {alert_group.pk}")
         try:
-            self._slack_client.api_call(
-                "chat.update",
-                channel=slack_message.channel_id,
-                ts=slack_message.slack_id,
-                attachments=attachments,
-                blocks=blocks,
+            self._slack_client.chat_update(
+                channel=alert_group.slack_message.channel_id,
+                ts=alert_group.slack_message.slack_id,
+                attachments=alert_group.render_slack_attachments(),
+                blocks=alert_group.render_slack_blocks(),
             )
             logger.info(f"Message has been updated for alert_group {alert_group.pk}")
         except SlackAPIRateLimitException as e:
@@ -61,22 +55,8 @@ class AlertGroupSlackService:
                 raise e
 
         except SlackAPIException as e:
-            if e.response["error"] == "message_not_found":
-                logger.info(f"message_not_found for alert_group {alert_group.pk}, trying to post new message")
-                result = self._slack_client.api_call(
-                    "chat.postMessage", channel=slack_message.channel_id, attachments=attachments, blocks=blocks
-                )
-                slack_message_updated = SlackMessage(
-                    slack_id=result["ts"],
-                    organization=slack_message.organization,
-                    _slack_team_identity=slack_message.slack_team_identity,
-                    channel_id=slack_message.channel_id,
-                    alert_group=alert_group,
-                )
-                slack_message_updated.save()
-                alert_group.slack_message = slack_message_updated
-                alert_group.save(update_fields=["slack_message"])
-                logger.info(f"Message has been posted for alert_group {alert_group.pk}")
+            if e.response["error"] == "message_not_found":  # message deleted from channel
+                logger.info(f"Skip updating slack message for alert_group {alert_group.pk} due message_not_found")
             elif e.response["error"] == "is_inactive":  # deleted channel error
                 logger.info(f"Skip updating slack message for alert_group {alert_group.pk} due to is_inactive")
             elif e.response["error"] == "account_inactive":
@@ -95,17 +75,12 @@ class AlertGroupSlackService:
         if alert_group.channel.is_rate_limited_in_slack:
             return
 
-        from apps.slack.models import SlackMessage
-
-        slack_message = alert_group.get_slack_message()
-        channel_id = slack_message.channel_id
         try:
-            result = self._slack_client.api_call(
-                "chat.postMessage",
-                channel=channel_id,
+            result = self._slack_client.chat_postMessage(
+                channel=alert_group.slack_message.channel_id,
                 text=text,
                 attachments=attachments,
-                thread_ts=slack_message.slack_id,
+                thread_ts=alert_group.slack_message.slack_id,
                 mrkdwn=mrkdwn,
                 unfurl_links=unfurl_links,
             )
@@ -137,10 +112,9 @@ class AlertGroupSlackService:
             else:
                 raise e
         else:
-            SlackMessage(
+            alert_group.slack_messages.create(
                 slack_id=result["ts"],
                 organization=alert_group.channel.organization,
                 _slack_team_identity=self.slack_team_identity,
-                channel_id=channel_id,
-                alert_group=alert_group,
-            ).save()
+                channel_id=alert_group.slack_message.channel_id,
+            )

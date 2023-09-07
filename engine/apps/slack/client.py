@@ -2,45 +2,43 @@ import logging
 from typing import Optional, Tuple
 
 from django.utils import timezone
-from slackclient import SlackClient
-from slackclient.exceptions import TokenRefreshError
+from slack_sdk.errors import SlackApiError
+from slack_sdk.web import WebClient
 
 from apps.slack.constants import SLACK_RATE_LIMIT_DELAY
-
-from .exceptions import (
-    SlackAPIChannelArchivedException,
-    SlackAPIException,
-    SlackAPIRateLimitException,
-    SlackAPITokenException,
-)
-from .slack_client_server import SlackClientServer
 
 logger = logging.getLogger(__name__)
 
 
-class SlackClientWithErrorHandling(SlackClient):
-    def __init__(self, token=None, **kwargs):
+class SlackAPIException(Exception):
+    def __init__(self, *args, **kwargs):
+        self.response = {}
+        if "response" in kwargs:
+            self.response = kwargs["response"]
+        super().__init__(*args)
+
+
+class SlackAPITokenException(SlackAPIException):
+    pass
+
+
+class SlackAPIChannelArchivedException(SlackAPIException):
+    pass
+
+
+class SlackAPIRateLimitException(SlackAPIException):
+    pass
+
+
+class SlackClientWithErrorHandling(WebClient):
+    def paginated_api_call(self, method: str, paginated_key: str, **kwargs):
         """
-        This method is rewritten because we want to use custom server SlackClientServer for SlackClient
+        `paginated_key` represents a key from the response which is paginated. For example "users" or "channels"
         """
-        super().__init__(token=token, **kwargs)
+        api_method = getattr(self, method)
 
-        proxies = kwargs.get("proxies")
-
-        if self.refresh_token:
-            if callable(self.token_update_callback):
-                token = None
-            else:
-                raise TokenRefreshError("Token refresh callback function is required when using refresh token.")
-        # Slack app configs
-        self.server = SlackClientServer(token=token, connect=False, proxies=proxies)
-
-    def paginated_api_call(self, *args, **kwargs):
-        # It's a key from response which is paginated. For example "users" or "channels"
-        listed_key = kwargs["paginated_key"]
-
-        response = self.api_call(*args, **kwargs)
-        cumulative_response = response
+        response = api_method(**kwargs)
+        cumulative_response = response.data
 
         while (
             "response_metadata" in response
@@ -48,25 +46,30 @@ class SlackClientWithErrorHandling(SlackClient):
             and response["response_metadata"]["next_cursor"] != ""
         ):
             kwargs["cursor"] = response["response_metadata"]["next_cursor"]
-            response = self.api_call(*args, **kwargs)
-            cumulative_response[listed_key] += response[listed_key]
+            response = api_method(**kwargs).data
+            cumulative_response[paginated_key] += response[paginated_key]
 
         return cumulative_response
 
-    def paginated_api_call_with_ratelimit(self, *args, **kwargs) -> Tuple[dict, Optional[str], bool]:
+    def paginated_api_call_with_ratelimit(
+        self, method: str, paginated_key: str, **kwargs
+    ) -> Tuple[dict, Optional[str], bool]:
         """
-        This method do paginated api call and handle slack rate limit error in order to return collected data and have
-        ability to continue doing paginated requests from the last successful cursor. Return last successful cursor
-        instead of next cursor to avoid data loss during delay time
+        This method does paginated api calls and handle slack rate limit errors in order to return collected data
+        and have the ability to continue doing paginated requests from the last successful cursor.
+
+        Return last successful cursor instead of next cursor to avoid data loss during delay time.
+
+        `paginated_key` represents a key from the response which is paginated. For example "users" or "channels"
         """
-        # It's a key from response which is paginated. For example "users" or "channels"
-        listed_key = kwargs["paginated_key"]
+        api_method = getattr(self, method)
+
         cumulative_response = {}
-        cursor = kwargs.get("cursor")
+        cursor = kwargs["cursor"]
         rate_limited = False
 
         try:
-            response = self.api_call(*args, **kwargs)
+            response = api_method(**kwargs).data
             cumulative_response = response
             cursor = response["response_metadata"]["next_cursor"]
 
@@ -77,8 +80,8 @@ class SlackClientWithErrorHandling(SlackClient):
             ):
                 next_cursor = response["response_metadata"]["next_cursor"]
                 kwargs["cursor"] = next_cursor
-                response = self.api_call(*args, **kwargs)
-                cumulative_response[listed_key] += response[listed_key]
+                response = api_method(**kwargs).data
+                cumulative_response[paginated_key] += response[paginated_key]
                 cursor = next_cursor
 
         except SlackAPIRateLimitException:
@@ -87,7 +90,10 @@ class SlackClientWithErrorHandling(SlackClient):
         return cumulative_response, cursor, rate_limited
 
     def api_call(self, *args, **kwargs):
-        response = super(SlackClientWithErrorHandling, self).api_call(*args, **kwargs)
+        try:
+            response = super(SlackClientWithErrorHandling, self).api_call(*args, **kwargs)
+        except SlackApiError as err:
+            response = err.response
 
         if not response["ok"]:
             exception_text = "Slack API Call Error: {} \nArgs: {} \nKwargs: {} \nResponse: {}".format(

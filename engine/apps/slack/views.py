@@ -15,6 +15,7 @@ from rest_framework.views import APIView
 from apps.api.permissions import RBACPermission
 from apps.auth_token.auth import PluginAuthentication
 from apps.base.utils import live_settings
+from apps.slack.client import SlackAPIException, SlackAPITokenException, SlackClientWithErrorHandling
 from apps.slack.scenarios.alertgroup_appearance import STEPS_ROUTING as ALERTGROUP_APPEARANCE_ROUTING
 
 # Importing routes from scenarios
@@ -34,8 +35,6 @@ from apps.slack.scenarios.shift_swap_requests import STEPS_ROUTING as SHIFT_SWAP
 from apps.slack.scenarios.slack_channel import STEPS_ROUTING as CHANNEL_ROUTING
 from apps.slack.scenarios.slack_channel_integration import STEPS_ROUTING as SLACK_CHANNEL_INTEGRATION_ROUTING
 from apps.slack.scenarios.slack_usergroup import STEPS_ROUTING as SLACK_USERGROUP_UPDATE_ROUTING
-from apps.slack.slack_client import SlackClientWithErrorHandling
-from apps.slack.slack_client.exceptions import SlackAPIException, SlackAPITokenException
 from apps.slack.tasks import clean_slack_integration_leftovers, unpopulate_slack_user_identities
 from apps.slack.types import EventPayload, EventType, MessageEventSubtype, PayloadType, ScenarioRoute
 from apps.user_management.models import Organization
@@ -195,10 +194,7 @@ class SlackEventApiEndpointView(APIView):
         if slack_team_identity.detected_token_revoked is not None:
             # check if token is still invalid
             try:
-                sc.api_call(
-                    "auth.test",
-                    team=slack_team_identity,
-                )
+                sc.auth_test(team=slack_team_identity)
             except SlackAPITokenException:
                 logger.info(f"Team {slack_team_identity.slack_id} has revoked token, dropping request.")
                 return Response(status=200)
@@ -223,7 +219,7 @@ class SlackEventApiEndpointView(APIView):
             elif (
                 payload_event_bot_id and slack_team_identity and payload_event_channel_type == EventType.MESSAGE_CHANNEL
             ):
-                response = sc.api_call("bots.info", bot=payload_event_bot_id)
+                response = sc.bots_info(bot=payload_event_bot_id)
                 bot_user_id = response.get("bot", {}).get("user_id", "")
 
                 # Don't react on own bot's messages.
@@ -490,15 +486,16 @@ class SlackEventApiEndpointView(APIView):
         if not (channel_id and message_ts):
             return None
 
-        with suppress(ObjectDoesNotExist):
+        try:
             slack_message = SlackMessage.objects.get(
                 _slack_team_identity=slack_team_identity,
                 slack_id=message_ts,
                 channel_id=channel_id,
             )
-            return slack_message.get_alert_group().channel.organization
+        except SlackMessage.DoesNotExist:
+            return None
 
-        return None
+        return slack_message.alert_group.channel.organization if slack_message.alert_group else None
 
     def _open_warning_window_if_needed(
         self, payload: EventPayload, slack_team_identity: SlackTeamIdentity, warning_text: str
@@ -536,11 +533,7 @@ class SlackEventApiEndpointView(APIView):
                 "text": "One more step!",
             },
         }
-        slack_client.api_call(
-            "views.open",
-            trigger_id=payload["trigger_id"],
-            view=view,
-        )
+        slack_client.views_open(trigger_id=payload["trigger_id"], view=view)
 
 
 class ResetSlackView(APIView):

@@ -7,9 +7,59 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+
+- Add option to create new contact point for existing integrations ([#2909](https://github.com/grafana/oncall/issues/2909))
+
+### Changed
+
+- Enable email notification step by default on Helm by @vadimkerr ([#2975](https://github.com/grafana/oncall/pull/2975))
+- Handle slack resolution note errors consistently ([#2976](https://github.com/grafana/oncall/pull/2976))
+
+### Fixed
+
+- Don't update Slack user groups for deleted organizations by @vadimkerr ([#2985](https://github.com/grafana/oncall/pull/2985))
+
+## v1.3.35 (2023-09-05)
+
+### Fixed
+
+- Fix issue in `SlackClientWithErrorHandling` paginted API calls by @joeyorlando
+
+## v1.3.34 (2023-09-05)
+
+### Fixed
+
+- Fix issue in `apps.slack.tasks.populate_slack_channels_for_team` task by @joeyorlando ([#2969](https://github.com/grafana/oncall/pull/2969))
+
+## v1.3.33 (2023-09-05)
+
+### Fixed
+
+- Fix issue in `apps.slack.tasks.post_or_update_log_report_message_task` task related to passing tuple to `text` arg
+  for `SlackClient.chat_postMessage` method by @joeyorlando ([#2966](https://github.com/grafana/oncall/pull/2966))
+
+## v1.3.32 (2023-09-05)
+
+### Added
+
+- Add internal API endpoint for getting schedules shifts for current user by @Ferril ([#2928](https://github.com/grafana/oncall/pull/2928))
+
+### Changed
+
+- Make Slack integration not post an alert group message if it's already deleted + refactor AlertGroup and
+  SlackMessage foreign key relationship by @vadimkerr ([#2957](https://github.com/grafana/oncall/pull/2957))
+
+### Fixed
+
+- Reject file uploads when POSTing to an integration endpoint ([#2958](https://github.com/grafana/oncall/pull/2958))
+
+## v1.3.31 (2023-09-04)
+
 ### Fixed
 
 - Fix for Cloud plugin install not refreshing page after completion ([2974](https://github.com/grafana/oncall/issues/2874))
+- Fix escalation snapshot building if user was deleted @Ferril ([#2954](https://github.com/grafana/oncall/pull/2954))
 
 ### Added
 

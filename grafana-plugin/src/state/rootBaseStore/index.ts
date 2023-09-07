@@ -133,7 +133,6 @@ export class RootBaseStore {
       this.escalationPolicyStore.updateWebEscalationPolicyOptions(),
       this.escalationPolicyStore.updateEscalationPolicyOptions(),
       this.escalationPolicyStore.updateNumMinutesInWindowOptions(),
-      this.alertGroupStore.fetchIRMPlan(),
     ]);
   }
 

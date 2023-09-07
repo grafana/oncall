@@ -3,8 +3,8 @@ from datetime import timedelta
 import pytest
 from django.utils import timezone
 
+from apps.slack.client import SlackClientWithErrorHandling
 from apps.slack.scenarios.distribute_alerts import AlertShootingStep
-from apps.slack.slack_client import SlackClientWithErrorHandling
 
 
 @pytest.fixture()

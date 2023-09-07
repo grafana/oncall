@@ -8,8 +8,7 @@ from django.core.cache import cache
 
 from apps.alerts.models.alert_group_counter import ConcurrentUpdateError
 from apps.alerts.tasks import resolve_alert_group_by_source_if_needed
-from apps.slack.slack_client import SlackClientWithErrorHandling
-from apps.slack.slack_client.exceptions import SlackAPIException
+from apps.slack.client import SlackAPIException, SlackClientWithErrorHandling
 from common.custom_celery_tasks import shared_dedicated_queue_retry_task
 from common.custom_celery_tasks.create_alert_base_task import CreateAlertBaseTask
 
@@ -159,8 +158,6 @@ def notify_about_integration_ratelimit_in_slack(organization_id, text, **kwargs)
         if slack_team_identity is not None:
             try:
                 sc = SlackClientWithErrorHandling(slack_team_identity.bot_access_token)
-                sc.api_call(
-                    "chat.postMessage", channel=organization.general_log_channel_id, text=text, team=slack_team_identity
-                )
+                sc.chat_postMessage(channel=organization.general_log_channel_id, text=text, team=slack_team_identity)
             except SlackAPIException as e:
                 logger.warning(f"Slack exception {e} while sending message for organization {organization_id}")
