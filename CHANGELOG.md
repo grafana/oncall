@@ -63,6 +63,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix for Cloud plugin install not refreshing page after completion ([2974](https://github.com/grafana/oncall/issues/2874))
 - Fix escalation snapshot building if user was deleted @Ferril ([#2954](https://github.com/grafana/oncall/pull/2954))
 
+### Added
+
+- ([Use Tilt for local development](https://github.com/grafana/oncall/pull/1396))
+
 ## v1.3.30 (2023-08-31)
 
 ### Added
