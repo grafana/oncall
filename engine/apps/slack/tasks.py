@@ -451,7 +451,12 @@ def start_update_slack_user_group_for_schedules():
     from apps.slack.models import SlackUserGroup
 
     user_group_pks = (
-        SlackUserGroup.objects.filter(oncall_schedules__isnull=False).distinct().values_list("pk", flat=True)
+        SlackUserGroup.objects.filter(
+            oncall_schedules__isnull=False,  # has oncall schedules connected
+            oncall_schedules__organization__deleted_at__isnull=True,  # organization is not deleted
+        )
+        .distinct()
+        .values_list("pk", flat=True)
     )
 
     for user_group_pk in user_group_pks:
