@@ -154,7 +154,7 @@ def test_create_requires_beneficiary(
     make_organization_and_user_with_token,
     make_schedule,
 ):
-    organization, user, token = make_organization_and_user_with_token()
+    organization, _, token = make_organization_and_user_with_token()
 
     schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
     today = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
@@ -331,14 +331,16 @@ def test_delete(
 
 
 @patch("apps.api.views.shift_swap.update_shift_swap_request_message")
+@patch("apps.api.views.shift_swap.notify_beneficiary_about_taken_shift_swap_request")
 @pytest.mark.django_db
 def test_take(
+    mock_notify_beneficiary_about_taken_shift_swap_request,
     mock_update_shift_swap_request_message,
     make_organization_and_user_with_token,
     make_user_for_organization,
     setup_swap,
 ):
-    organization, user, token = make_organization_and_user_with_token()
+    organization, _, token = make_organization_and_user_with_token()
     another_user = make_user_for_organization(organization)
     swap = setup_swap(organization)
 
@@ -355,16 +357,19 @@ def test_take(
     assert swap.benefactor == another_user
 
     mock_update_shift_swap_request_message.apply_async.assert_called_once_with((swap.pk,))
+    mock_notify_beneficiary_about_taken_shift_swap_request.apply_async.assert_called_once_with((swap.pk,))
 
 
 @patch("apps.api.views.shift_swap.update_shift_swap_request_message")
+@patch("apps.api.views.shift_swap.notify_beneficiary_about_taken_shift_swap_request")
 @pytest.mark.django_db
 def test_take_requires_benefactor(
+    mock_notify_beneficiary_about_taken_shift_swap_request,
     mock_update_shift_swap_request_message,
     make_organization_and_user_with_token,
     setup_swap,
 ):
-    organization, user, token = make_organization_and_user_with_token()
+    organization, _, token = make_organization_and_user_with_token()
     swap = setup_swap(organization)
 
     client = APIClient()
@@ -379,11 +384,14 @@ def test_take_requires_benefactor(
     assert swap.benefactor is None
 
     mock_update_shift_swap_request_message.apply_async.assert_not_called()
+    mock_notify_beneficiary_about_taken_shift_swap_request.apply_async.assert_not_called()
 
 
 @patch("apps.api.views.shift_swap.update_shift_swap_request_message")
+@patch("apps.api.views.shift_swap.notify_beneficiary_about_taken_shift_swap_request")
 @pytest.mark.django_db
 def test_take_errors(
+    mock_notify_beneficiary_about_taken_shift_swap_request,
     mock_update_shift_swap_request_message,
     make_organization_and_user_with_token,
     make_user_for_organization,
@@ -423,3 +431,4 @@ def test_take_errors(
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 
     mock_update_shift_swap_request_message.apply_async.assert_not_called()
+    mock_notify_beneficiary_about_taken_shift_swap_request.apply_async.assert_not_called()

@@ -185,7 +185,7 @@ def notify_user_about_shift_swap_request(shift_swap_request_pk: int, user_pk: in
     """
     Send a push notification about a shift swap request to an individual user.
     """
-    shift_swap_request = _get_shift_swap_request(shift_swap_request_pk, user_pk)
+    shift_swap_request = _get_shift_swap_request(shift_swap_request_pk)
     if not shift_swap_request:
         return
 
@@ -199,21 +199,6 @@ def notify_user_about_shift_swap_request(shift_swap_request_pk: int, user_pk: in
         logger.info(f"Shift swap request {shift_swap_request_pk} is not open anymore")
         return
 
-    message = _get_fcm_message(shift_swap_request, user, device_to_notify, mobile_app_user_settings)
-    send_push_notification(device_to_notify, message)
-
-
-@shared_dedicated_queue_retry_task(autoretry_for=(Exception,), retry_backoff=True, max_retries=MAX_RETRIES)
-def notify_beneficiary_about_taken_shift_swap_request(shift_swap_request_pk: int) -> None:
-    shift_swap_request = _get_shift_swap_request(shift_swap_request_pk)
-    if not shift_swap_request:
-        return
-
-    user_and_device = _get_user_and_device(shift_swap_request.beneficiary.pk)
-    if not user_and_device:
-        return
-
-    user, device_to_notify, mobile_app_user_settings = user_and_device
     message = _get_fcm_message(shift_swap_request, user, device_to_notify, mobile_app_user_settings)
     send_push_notification(device_to_notify, message)
 
@@ -243,3 +228,18 @@ def notify_shift_swap_requests() -> None:
     """
     for shift_swap_request, timeout in _get_shift_swap_requests_to_notify(timezone.now()):
         notify_shift_swap_request.delay(shift_swap_request.pk, timeout)
+
+
+@shared_dedicated_queue_retry_task(autoretry_for=(Exception,), retry_backoff=True, max_retries=MAX_RETRIES)
+def notify_beneficiary_about_taken_shift_swap_request(shift_swap_request_pk: int) -> None:
+    shift_swap_request = _get_shift_swap_request(shift_swap_request_pk)
+    if not shift_swap_request:
+        return
+
+    user_and_device = _get_user_and_device(shift_swap_request.beneficiary.pk)
+    if not user_and_device:
+        return
+
+    user, device_to_notify, mobile_app_user_settings = user_and_device
+    message = _get_fcm_message(shift_swap_request, user, device_to_notify, mobile_app_user_settings)
+    send_push_notification(device_to_notify, message)
