@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Don't update Slack user groups for deleted organizations by @vadimkerr ([#2985](https://github.com/grafana/oncall/pull/2985))
 - Fix Slack integration leftovers after disconnecting by @vadimkerr ([#2986](https://github.com/grafana/oncall/pull/2986))
+- Fix handling Slack rate limits by @vadimkerr ([#2991](https://github.com/grafana/oncall/pull/2991))
 
 ## v1.3.35 (2023-09-05)
 
