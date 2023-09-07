@@ -229,7 +229,7 @@ class AcceptShiftSwapRequestStep(BaseShiftSwapRequestStep):
         )
 
 
-class ShiftSwapRequestFollowUp(scenario_step.ScenarioStep):
+class ShiftSwapRequestFollowUp(BaseShiftSwapRequestStep):
     @staticmethod
     def _generate_blocks(shift_swap_request: "ShiftSwapRequest") -> Block.AnyBlocks:
         # Time until shift swap starts (example: "14 days", "2 hours")
