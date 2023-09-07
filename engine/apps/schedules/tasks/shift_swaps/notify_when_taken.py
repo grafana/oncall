@@ -23,6 +23,8 @@ def notify_beneficiary_about_taken_shift_swap_request(shift_swap_request_pk: str
         )
         return
 
+    notify_beneficiary_about_taken_shift_swap_request_via_push_notification.apply_async((shift_swap_request_pk,))
+
     if shift_swap_request.slack_channel_id is None:
         task_logger.info(
             f"Skipping notify_beneficiary_about_taken_shift_swap_request for shift_swap_request {shift_swap_request_pk} because channel_id is None"
@@ -32,5 +34,3 @@ def notify_beneficiary_about_taken_shift_swap_request(shift_swap_request_pk: str
     organization = shift_swap_request.organization
     step = AcceptShiftSwapRequestStep(organization.slack_team_identity, organization)
     step.post_request_taken_message_to_thread(shift_swap_request)
-
-    notify_beneficiary_about_taken_shift_swap_request_via_push_notification.apply_async((shift_swap_request_pk,))
