@@ -31,7 +31,6 @@ docker_build(
 			 	sync('./engine/', '/etc/app'),
 				run('cd /etc/app && pip install -r requirements.txt',
 					trigger='./engine/requirements.txt'),
-				run('OnCall backend is updated')
 			 ]
 )
 
