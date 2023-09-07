@@ -5,6 +5,7 @@ import pytest
 from apps.alerts.models import ResolutionNoteSlackMessage
 from apps.slack.client import SlackAPIException
 from apps.slack.scenarios.slack_channel_integration import SlackChannelMessageEventStep
+from apps.slack.tests.conftest import build_slack_response
 
 
 @pytest.mark.django_db
@@ -290,7 +291,7 @@ class TestSlackChannelMessageEventStep:
         step = SlackChannelMessageEventStep(slack_team_identity, organization, user)
         step._slack_client = Mock()
         step._slack_client.chat_getPermalink.side_effect = [
-            SlackAPIException("error!", response={"ok": False, "error": "message_not_found"})
+            SlackAPIException("error!", response=build_slack_response({"ok": False, "error": "message_not_found"}))
         ]
 
         payload = {
