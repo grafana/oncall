@@ -209,7 +209,7 @@ class TestBaseShiftSwapRequestStep:
         ssr.refresh_from_db()
 
         with patch.object(step, "_slack_client") as mock_slack_client:
-            step.post_message_to_thread(ssr, blocks)
+            step.post_message_to_thread(ssr, blocks, True)
 
             mock_slack_client.chat_postMessage.assert_called_once_with(
                 channel=channel_id,

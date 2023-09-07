@@ -167,14 +167,16 @@ class BaseShiftSwapRequestStep(scenario_step.ScenarioStep):
             blocks=self._generate_blocks(shift_swap_request),
         )
 
-    def post_message_to_thread(self, shift_swap_request: "ShiftSwapRequest", blocks: Block.AnyBlocks) -> None:
+    def post_message_to_thread(
+        self, shift_swap_request: "ShiftSwapRequest", blocks: Block.AnyBlocks, reply_broadcast=False
+    ) -> None:
         if not shift_swap_request.slack_message:
             return
 
         self._slack_client.chat_postMessage(
             channel=shift_swap_request.slack_message.channel_id,
             thread_ts=shift_swap_request.slack_message.slack_id,
-            reply_broadcast=True,
+            reply_broadcast=reply_broadcast,
             blocks=blocks,
         )
 
@@ -253,7 +255,7 @@ class ShiftSwapRequestFollowUp(BaseShiftSwapRequestStep):
         ]
 
     def post_message(self, shift_swap_request: "ShiftSwapRequest") -> None:
-        self.post_message_to_thread(shift_swap_request, self._generate_blocks(shift_swap_request))
+        self.post_message_to_thread(shift_swap_request, self._generate_blocks(shift_swap_request), True)
 
 
 STEPS_ROUTING: ScenarioRoute.RoutingSteps = [

@@ -18,11 +18,7 @@ from apps.auth_token.auth import PluginAuthentication
 from apps.mobile_app.auth import MobileAppAuthTokenAuthentication
 from apps.schedules import exceptions
 from apps.schedules.models import ShiftSwapRequest
-from apps.schedules.tasks.shift_swaps import (
-    create_shift_swap_request_message,
-    notify_beneficiary_about_taken_shift_swap_request,
-    update_shift_swap_request_message,
-)
+from apps.schedules.tasks.shift_swaps import create_shift_swap_request_message, update_shift_swap_request_message
 from apps.user_management.models import User
 from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.mixins import PublicPrimaryKeyMixin
@@ -55,11 +51,6 @@ class BaseShiftSwapViewSet(ModelViewSet):
         except exceptions.BeneficiaryCannotTakeOwnShiftSwapRequest:
             raise BadRequest(detail="A shift swap request cannot be created and taken by the same user")
 
-        ssr_pk = shift_swap.pk
-
-        update_shift_swap_request_message.apply_async((ssr_pk,))
-        notify_beneficiary_about_taken_shift_swap_request.apply_async((ssr_pk,))
-
         write_resource_insight_log(
             instance=shift_swap,
             author=self.request.user,
@@ -85,8 +76,6 @@ class BaseShiftSwapViewSet(ModelViewSet):
         return self.serializer_class.setup_eager_loading(queryset)
 
     def perform_destroy(self, instance: ShiftSwapRequest) -> None:
-        # TODO: should we allow deleting a taken request?
-
         super().perform_destroy(instance)
         write_resource_insight_log(instance=instance, author=self.request.user, event=EntityEvent.DELETED)
 

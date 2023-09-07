@@ -214,6 +214,11 @@ class ShiftSwapRequest(models.Model):
         return related_shifts
 
     def take(self, benefactor: "User") -> None:
+        from apps.schedules.tasks.shift_swaps import (
+            notify_beneficiary_about_taken_shift_swap_request,
+            update_shift_swap_request_message,
+        )
+
         if benefactor == self.beneficiary:
             raise exceptions.BeneficiaryCannotTakeOwnShiftSwapRequest()
         if self.status != self.Statuses.OPEN:
@@ -221,6 +226,9 @@ class ShiftSwapRequest(models.Model):
 
         self.benefactor = benefactor
         self.save()
+
+        update_shift_swap_request_message.apply_async((self.pk,))
+        notify_beneficiary_about_taken_shift_swap_request.apply_async((self.pk,))
 
         # make sure final schedule ical representation is updated
         refresh_ical_final_schedule.apply_async((self.schedule.pk,))
