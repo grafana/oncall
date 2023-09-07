@@ -314,6 +314,8 @@ class TestAcceptShiftSwapRequestStep:
 
         organization = ssr.organization
         slack_team_identity = organization.slack_team_identity
+        ssr.benefactor = benefactor
+        ssr.save()
 
         step = scenarios.AcceptShiftSwapRequestStep(slack_team_identity, organization, benefactor)
         step.post_request_taken_message_to_thread(ssr)
@@ -326,8 +328,8 @@ class TestAcceptShiftSwapRequestStep:
                     "text": {
                         "type": "mrkdwn",
                         "text": (
-                            f"{ssr.beneficiary_slack_verbal} your teammate "
-                            f"{ssr.benefactor_slack_verbal} has taken the shift swap request"
+                            f"{ssr.beneficiary.get_username_with_slack_verbal(True)} your teammate "
+                            f"{ssr.benefactor.get_username_with_slack_verbal()} has taken the shift swap request"
                         ),
                     },
                 },

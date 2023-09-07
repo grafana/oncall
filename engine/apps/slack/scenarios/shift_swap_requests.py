@@ -26,7 +26,8 @@ class BaseShiftSwapRequestStep(scenario_step.ScenarioStep):
 
         main_message_text = (
             f"*New shift swap request for {shift_swap_request.schedule_slack_url}*\n"
-            f"Your teammate {shift_swap_request.beneficiary_slack_verbal} has submitted a shift swap request."
+            f"Your teammate {shift_swap_request.beneficiary.get_username_with_slack_verbal(True)} has submitted "
+            "a shift swap request."
         )
 
         datetime_format = SlackDateFormat.DATE_LONG_PRETTY
@@ -112,7 +113,10 @@ class BaseShiftSwapRequestStep(scenario_step.ScenarioStep):
                         "type": "section",
                         "text": {
                             "type": "mrkdwn",
-                            "text": f"✅ {shift_swap_request.benefactor_slack_verbal} has accepted the shift swap request",
+                            "text": (
+                                f"✅ {shift_swap_request.benefactor.get_username_with_slack_verbal()} has "
+                                "accepted the shift swap request"
+                            ),
                         },
                     },
                 ),
@@ -221,8 +225,8 @@ class AcceptShiftSwapRequestStep(BaseShiftSwapRequestStep):
                         "text": {
                             "type": "mrkdwn",
                             "text": (
-                                f"{shift_swap_request.beneficiary_slack_verbal} your teammate "
-                                f"{shift_swap_request.benefactor_slack_verbal} has taken the shift swap request"
+                                f"{shift_swap_request.beneficiary.get_username_with_slack_verbal(True)} your teammate "
+                                f"{shift_swap_request.benefactor.get_username_with_slack_verbal(False)} has taken the shift swap request"
                             ),
                         },
                     },
