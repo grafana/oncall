@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## v1.3.36 (2023-09-07)
+
 ### Added
 
 - Add option to create new contact point for existing integrations ([#2909](https://github.com/grafana/oncall/issues/2909))
@@ -67,6 +69,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - ([Use Tilt for local development](https://github.com/grafana/oncall/pull/1396))
+
+### Changed
+
+- Update slack schedule shift-changed notification ([#2949](https://github.com/grafana/oncall/pull/2949))
 
 ## v1.3.30 (2023-08-31)
 
