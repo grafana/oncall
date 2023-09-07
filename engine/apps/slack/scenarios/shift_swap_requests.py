@@ -226,7 +226,7 @@ class AcceptShiftSwapRequestStep(BaseShiftSwapRequestStep):
                             "type": "mrkdwn",
                             "text": (
                                 f"{shift_swap_request.beneficiary.get_username_with_slack_verbal(True)} your teammate "
-                                f"{shift_swap_request.benefactor.get_username_with_slack_verbal(False)} has taken the shift swap request"
+                                f"{shift_swap_request.benefactor.get_username_with_slack_verbal()} has taken the shift swap request"
                             ),
                         },
                     },
