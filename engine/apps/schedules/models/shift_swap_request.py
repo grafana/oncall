@@ -247,4 +247,12 @@ class ShiftSwapRequest(models.Model):
 
     @property
     def insight_logs_metadata(self):
-        return {}
+        result = {}
+        if self.schedule.team:
+            result["team"] = self.schedule.team.name
+            result["team_id"] = self.schedule.team.public_primary_key
+        else:
+            result["team"] = "General"
+        result["schedule"] = self.schedule.insight_logs_verbal
+        result["schedule_id"] = self.schedule.public_primary_key
+        return result

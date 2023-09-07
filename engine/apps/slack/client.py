@@ -3,7 +3,7 @@ from typing import Optional, Tuple
 
 from django.utils import timezone
 from slack_sdk.errors import SlackApiError
-from slack_sdk.web import WebClient
+from slack_sdk.web import SlackResponse, WebClient
 
 from apps.slack.constants import SLACK_RATE_LIMIT_DELAY
 
@@ -11,11 +11,9 @@ logger = logging.getLogger(__name__)
 
 
 class SlackAPIException(Exception):
-    def __init__(self, *args, **kwargs):
-        self.response = {}
-        if "response" in kwargs:
-            self.response = kwargs["response"]
-        super().__init__(*args)
+    def __init__(self, msg: str, response: SlackResponse):
+        super().__init__(msg)
+        self.response = response
 
 
 class SlackAPITokenException(SlackAPIException):
@@ -27,7 +25,9 @@ class SlackAPIChannelArchivedException(SlackAPIException):
 
 
 class SlackAPIRateLimitException(SlackAPIException):
-    pass
+    def __init__(self, msg: str, response: SlackResponse, retry_after: int):
+        super().__init__(msg, response)
+        self.retry_after = retry_after
 
 
 class SlackClientWithErrorHandling(WebClient):
@@ -103,18 +103,10 @@ class SlackClientWithErrorHandling(WebClient):
             if response["error"] == "is_archived":
                 raise SlackAPIChannelArchivedException(exception_text, response=response)
 
-            if (
-                response["error"] == "rate_limited"
-                or response["error"] == "ratelimited"
-                or response["error"] == "message_limit_exceeded"
+            if response["error"] in ("rate_limited", "ratelimited", "message_limit_exceeded"):
                 # "message_limit_exceeded" is related to the limit on post messages for free Slack workspace
-            ):
-                if "headers" in response and response["headers"].get("Retry-After") is not None:
-                    delay = int(response["headers"]["Retry-After"])
-                else:
-                    delay = SLACK_RATE_LIMIT_DELAY
-                response["rate_limit_delay"] = delay
-                raise SlackAPIRateLimitException(exception_text, response=response)
+                retry_after = int(response.headers.get("Retry-After", SLACK_RATE_LIMIT_DELAY))
+                raise SlackAPIRateLimitException(exception_text, response, retry_after)
 
             if response["error"] == "code_already_used":
                 return response

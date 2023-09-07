@@ -32,6 +32,15 @@
    ```
 
 6. Clean up
+   If you happen to `helm uninstall helm-testing` be sure to delete all the Persistent Volume Claims, as Postgres stores
+   the auto-generated password on disk, and the next `helm install` will fail.
+
+   ```bash
+   kubectl delete pvc --all
+   kubectl delete pv --all
+   ```
+
+   This, of course, will delete all the PVs and PVCs also :-)
 
    ```bash
    kind delete cluster

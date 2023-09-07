@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Don't update Slack user groups for deleted organizations by @vadimkerr ([#2985](https://github.com/grafana/oncall/pull/2985))
 - Fix Slack integration leftovers after disconnecting by @vadimkerr ([#2986](https://github.com/grafana/oncall/pull/2986))
+- Fix handling Slack rate limits by @vadimkerr ([#2991](https://github.com/grafana/oncall/pull/2991))
 
 ## v1.3.35 (2023-09-05)
 
@@ -62,6 +63,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fix for Cloud plugin install not refreshing page after completion ([2974](https://github.com/grafana/oncall/issues/2874))
 - Fix escalation snapshot building if user was deleted @Ferril ([#2954](https://github.com/grafana/oncall/pull/2954))
+
+### Added
+
+- ([Use Tilt for local development](https://github.com/grafana/oncall/pull/1396))
 
 ## v1.3.30 (2023-08-31)
 

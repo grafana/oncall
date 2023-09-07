@@ -69,7 +69,7 @@ class OnCallShiftView(TeamFilteringMixin, PublicPrimaryKeyMixin, UpdateSerialize
         write_resource_insight_log(
             instance=serializer.instance,
             author=self.request.user,
-            event=EntityEvent.DELETED,
+            event=EntityEvent.CREATED,
         )
 
     def perform_update(self, serializer):

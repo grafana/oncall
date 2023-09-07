@@ -22,7 +22,7 @@ from apps.slack.client import (
     SlackAPITokenException,
     SlackClientWithErrorHandling,
 )
-from apps.slack.constants import CACHE_UPDATE_INCIDENT_SLACK_MESSAGE_LIFETIME, SLACK_RATE_LIMIT_DELAY
+from apps.slack.constants import CACHE_UPDATE_INCIDENT_SLACK_MESSAGE_LIFETIME
 from apps.slack.scenarios import scenario_step
 from apps.slack.scenarios.slack_renderer import AlertGroupLogSlackRenderer
 from apps.slack.slack_formatter import SlackFormatter
@@ -172,8 +172,7 @@ class AlertShootingStep(scenario_step.ScenarioStep):
             if alert_group.channel.integration != AlertReceiveChannel.INTEGRATION_MAINTENANCE:
                 alert_group.reason_to_skip_escalation = AlertGroup.RATE_LIMITED
                 alert_group.save(update_fields=["reason_to_skip_escalation"])
-                delay = e.response.get("rate_limit_delay") or SLACK_RATE_LIMIT_DELAY
-                alert_group.channel.start_send_rate_limit_message_task(delay)
+                alert_group.channel.start_send_rate_limit_message_task(e.retry_after)
                 logger.info("Not delivering alert due to slack rate limit.")
             else:
                 raise e
@@ -997,8 +996,7 @@ class UpdateLogReportMessageStep(scenario_step.ScenarioStep):
                 print(e)
             except SlackAPIRateLimitException as e:
                 if not alert_group.channel.is_rate_limited_in_slack:
-                    delay = e.response.get("rate_limit_delay") or SLACK_RATE_LIMIT_DELAY
-                    alert_group.channel.start_send_rate_limit_message_task(delay)
+                    alert_group.channel.start_send_rate_limit_message_task(e.retry_after)
                     logger.info(
                         f"Log message has not been posted for alert_group {alert_group.pk} due to slack rate limit."
                     )
@@ -1060,8 +1058,7 @@ class UpdateLogReportMessageStep(scenario_step.ScenarioStep):
                 print(e)
             except SlackAPIRateLimitException as e:
                 if not alert_group.channel.is_rate_limited_in_slack:
-                    delay = e.response.get("rate_limit_delay") or SLACK_RATE_LIMIT_DELAY
-                    alert_group.channel.start_send_rate_limit_message_task(delay)
+                    alert_group.channel.start_send_rate_limit_message_task(e.retry_after)
                     logger.info(
                         f"Log message has not been updated for alert_group {alert_group.pk} due to slack rate limit."
                     )
