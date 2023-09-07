@@ -142,6 +142,7 @@ class Webhook(models.Model):
     is_webhook_enabled = models.BooleanField(null=True, default=True)
     integration_filter = models.JSONField(default=None, null=True, blank=True)
     is_legacy = models.BooleanField(null=True, default=False)
+    preset = models.CharField(max_length=100, null=True, default=None)
 
     class Meta:
         unique_together = ("name", "organization")

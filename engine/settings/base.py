@@ -723,6 +723,10 @@ INSTALLED_ONCALL_INTEGRATIONS = [
     "config_integrations.direct_paging",
 ]
 
+INSTALLED_WEBHOOK_PRESETS = [
+    "apps.webhooks.presets.custom_webhook",
+]
+
 if IS_OPEN_SOURCE:
     INSTALLED_APPS += ["apps.oss_installation", "apps.zvonok"]  # noqa
 

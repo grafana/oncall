@@ -14,6 +14,7 @@ from apps.api.permissions import RBACPermission
 from apps.api.serializers.webhook import WebhookResponseSerializer, WebhookSerializer
 from apps.auth_token.auth import PluginAuthentication
 from apps.webhooks.models import Webhook, WebhookResponse
+from apps.webhooks.presets.preset_options import WebhookPresetOptions
 from apps.webhooks.utils import apply_jinja_template_for_json
 from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.filters import ByTeamModelFieldFilterMixin, ModelFieldFilterMixin, TeamModelMultipleChoiceFilter
@@ -52,6 +53,8 @@ class WebhooksView(TeamFilteringMixin, PublicPrimaryKeyMixin, ModelViewSet):
         "destroy": [RBACPermission.Permissions.OUTGOING_WEBHOOKS_WRITE],
         "responses": [RBACPermission.Permissions.OUTGOING_WEBHOOKS_READ],
         "preview_template": [RBACPermission.Permissions.OUTGOING_WEBHOOKS_WRITE],
+        "preset_options": [RBACPermission.Permissions.OUTGOING_WEBHOOKS_READ],
+        "preset": [RBACPermission.Permissions.OUTGOING_WEBHOOKS_WRITE],
     }
 
     model = Webhook
@@ -179,3 +182,27 @@ class WebhooksView(TeamFilteringMixin, PublicPrimaryKeyMixin, ModelViewSet):
 
         response = {"preview": result}
         return Response(response, status=status.HTTP_200_OK)
+
+    @action(methods=["get"], detail=False)
+    def preset_options(self, request):
+        choices = []
+        for webhook_preset_id, webhook_preset_title in WebhookPresetOptions.WEBHOOK_PRESET_CHOICES:
+            choices.append(
+                {
+                    "value": webhook_preset_id,
+                    "display_name": webhook_preset_title,
+                }
+            )
+        return Response(choices)
+
+    @action(methods=["get"], detail=False)
+    def preset(self, request):
+        preset_id = request.query_params.get("id", None)
+        if not preset_id:
+            raise BadRequest(detail="id query parameter is required")
+        if preset_id not in WebhookPresetOptions.WEBHOOK_PRESET_FACTORIES:
+            raise NotFound
+
+        webhook = WebhookPresetOptions.WEBHOOK_PRESET_FACTORIES[preset_id](self.request.auth.organization)
+        serializer = WebhookSerializer(webhook)
+        return Response(serializer.data)
