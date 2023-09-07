@@ -8,7 +8,6 @@ from apps.slack.client import (
     SlackAPITokenException,
     SlackClientWithErrorHandling,
 )
-from apps.slack.constants import SLACK_RATE_LIMIT_DELAY
 
 if typing.TYPE_CHECKING:
     from apps.alerts.models import AlertGroup
@@ -46,8 +45,7 @@ class AlertGroupSlackService:
         except SlackAPIRateLimitException as e:
             if alert_group.channel.integration != AlertReceiveChannel.INTEGRATION_MAINTENANCE:
                 if not alert_group.channel.is_rate_limited_in_slack:
-                    delay = e.response.get("rate_limit_delay") or SLACK_RATE_LIMIT_DELAY
-                    alert_group.channel.start_send_rate_limit_message_task(delay)
+                    alert_group.channel.start_send_rate_limit_message_task(e.retry_after)
                     logger.info(
                         f"Message has not been updated for alert_group {alert_group.pk} due to slack rate limit."
                     )
