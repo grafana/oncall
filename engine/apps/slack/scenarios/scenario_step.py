@@ -20,7 +20,7 @@ class ScenarioStep(object):
         organization: typing.Optional["Organization"] = None,
         user: typing.Optional["User"] = None,
     ):
-        self._slack_client = SlackClientWithErrorHandling(slack_team_identity.bot_access_token)
+        self._slack_client = SlackClientWithErrorHandling(slack_team_identity)
         self.slack_team_identity = slack_team_identity
         self.organization = organization
         self.user = user
