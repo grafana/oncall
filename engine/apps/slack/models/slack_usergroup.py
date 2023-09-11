@@ -134,7 +134,7 @@ class SlackUserGroup(models.Model):
         except SlackAPIError:
             return
 
-        return SlackUserGroup.objects.update_or_create(
+        SlackUserGroup.objects.update_or_create(
             slack_id=usergroup["id"],
             slack_team_identity=slack_team_identity,
             defaults={
