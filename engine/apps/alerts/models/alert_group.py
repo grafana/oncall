@@ -62,6 +62,22 @@ def generate_public_primary_key_for_alert_group():
     return new_public_primary_key
 
 
+class LogRecordUser(typing.TypedDict):
+    username: str
+    pk: str
+    avatar: str
+    avatar_full: str
+
+
+class LogRecords(typing.TypedDict):
+    time: str  # humanized delta relative to now
+    action: str  # human-friendly description
+    realm: typing.Literal["user_notification", "alert_group", "resolution_note"]
+    type: int  # depending on realm, check type choices
+    created_at: str  # timestamp
+    author: LogRecordUser
+
+
 class Permalinks(typing.TypedDict):
     slack: typing.Optional[str]
     telegram: typing.Optional[str]
@@ -1741,7 +1757,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
         else:
             return "Acknowledged"
 
-    def render_after_resolve_report_json(self):
+    def render_after_resolve_report_json(self) -> list[LogRecords]:
         from apps.alerts.models import AlertGroupLogRecord, ResolutionNote
         from apps.base.models import UserNotificationPolicyLogRecord
 
