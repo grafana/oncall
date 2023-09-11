@@ -354,6 +354,66 @@ class AlertGroupView(
         obj = self.enrich([obj])[0]
         return obj
 
+    def retrieve(self, request, pk, *args, **kwargs):
+        """Return alert group details.
+
+        It is worth mentioning that `render_after_resolve_report_json` property will return a list
+        of log entries including actions involving the alert group, notifications triggered for a user
+        and resolution notes updates.
+
+        A few additional notes about the possible values for each key in the logs:
+
+        - `time`: humanized time delta respect to now when the action took place
+        - `action`: human-readable description of the action
+        - `realm`: resource involved in the action; one of three possible values:
+        `alert_group`, `user_notification`, `resolution_note`
+        - `type`: integer value indicating the type of action (see below)
+        - `created_at`: timestamp corresponding to when the action happened
+        - `author`: details about the user performing the action
+
+        Possible `type` values depending on the realm value:
+
+        For `alert_group`:
+        - 0: Acknowledged
+        - 1: Unacknowledged
+        - 2: Invite
+        - 3: Stop invitation
+        - 4: Re-invite
+        - 5: Escalation triggered
+        - 6: Invitation triggered
+        - 7: Silenced
+        - 8: Attached
+        - 9: Unattached
+        - 10: Custom button triggered
+        - 11: Unacknowledged by timeout
+        - 12: Failed attachment
+        - 13: Incident resolved
+        - 14: Incident unresolved
+        - 15: Unsilenced
+        - 16: Escalation finished
+        - 17: Escalation failed
+        - 18: Acknowledge reminder triggered
+        - 19: Wiped
+        - 20: Deleted
+        - 21: Incident registered
+        - 22: A route is assigned to the incident
+        - 23: Trigger direct paging escalation
+        - 24: Unpage a user
+        - 25: Restricted
+
+        For `user_notification`:
+        - 0: Personal notification triggered
+        - 1: Personal notification finished
+        - 2: Personal notification success,
+        - 3: Personal notification failed
+
+        For `resolution_note`:
+        - 0: slack
+        - 1: web
+
+        """
+        return super().retrieve(request, pk, *args, **kwargs)
+
     def enrich(self, alert_groups):
         """
         This method performs select_related and prefetch_related (using setup_eager_loading) as well as in-memory joins

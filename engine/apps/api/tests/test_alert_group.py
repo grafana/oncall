@@ -1374,7 +1374,7 @@ def test_invalid_bulk_action(
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 
 
-@patch("apps.alerts.tasks.send_alert_group_signal.send_alert_group_signal.apply_async", return_value=None)
+@patch("apps.alerts.tasks.send_alert_group_signal.send_alert_group_signal.delay", return_value=None)
 @patch("apps.alerts.tasks.send_update_log_report_signal.send_update_log_report_signal.apply_async", return_value=None)
 @patch("apps.alerts.models.AlertGroup.start_escalation_if_needed", return_value=None)
 @pytest.mark.django_db
@@ -1384,6 +1384,7 @@ def test_bulk_action_restart(
     mocked_start_escalate_alert,
     make_user_auth_headers,
     alert_group_internal_api_setup,
+    django_capture_on_commit_callbacks,
 ):
     client = APIClient()
     user, token, alert_groups = alert_group_internal_api_setup
@@ -1406,18 +1407,20 @@ def test_bulk_action_restart(
         author=user,
     ).exists()
 
-    # restart alert groups
-    response = client.post(
-        url,
-        data={
-            "alert_group_pks": [alert_group.public_primary_key for alert_group in alert_groups],
-            "action": AlertGroup.RESTART,
-        },
-        format="json",
-        **make_user_auth_headers(user, token),
-    )
+    with django_capture_on_commit_callbacks(execute=True) as callbacks:
+        # restart alert groups
+        response = client.post(
+            url,
+            data={
+                "alert_group_pks": [alert_group.public_primary_key for alert_group in alert_groups],
+                "action": AlertGroup.RESTART,
+            },
+            format="json",
+            **make_user_auth_headers(user, token),
+        )
 
     assert response.status_code == status.HTTP_200_OK
+    assert len(callbacks) == 3
 
     assert resolved_alert_group.log_records.filter(
         type=AlertGroupLogRecord.TYPE_UN_RESOLVED,
@@ -1439,7 +1442,7 @@ def test_bulk_action_restart(
     assert mocked_start_escalate_alert.called
 
 
-@patch("apps.alerts.tasks.send_alert_group_signal.send_alert_group_signal.apply_async", return_value=None)
+@patch("apps.alerts.tasks.send_alert_group_signal.send_alert_group_signal.delay", return_value=None)
 @patch("apps.alerts.tasks.send_update_log_report_signal.send_update_log_report_signal.apply_async", return_value=None)
 @pytest.mark.django_db
 def test_bulk_action_acknowledge(
@@ -1447,6 +1450,7 @@ def test_bulk_action_acknowledge(
     mocked_log_report_signal_task,
     make_user_auth_headers,
     alert_group_internal_api_setup,
+    django_capture_on_commit_callbacks,
 ):
     client = APIClient()
     user, token, alert_groups = alert_group_internal_api_setup
@@ -1459,18 +1463,20 @@ def test_bulk_action_acknowledge(
         author=user,
     ).exists()
 
-    # acknowledge alert groups
-    response = client.post(
-        url,
-        data={
-            "alert_group_pks": [alert_group.public_primary_key for alert_group in alert_groups],
-            "action": AlertGroup.ACKNOWLEDGE,
-        },
-        format="json",
-        **make_user_auth_headers(user, token),
-    )
+    with django_capture_on_commit_callbacks(execute=True) as callbacks:
+        # acknowledge alert groups
+        response = client.post(
+            url,
+            data={
+                "alert_group_pks": [alert_group.public_primary_key for alert_group in alert_groups],
+                "action": AlertGroup.ACKNOWLEDGE,
+            },
+            format="json",
+            **make_user_auth_headers(user, token),
+        )
 
     assert response.status_code == status.HTTP_200_OK
+    assert len(callbacks) == 3
 
     assert new_alert_group.log_records.filter(
         type=AlertGroupLogRecord.TYPE_ACK,
@@ -1496,7 +1502,7 @@ def test_bulk_action_acknowledge(
     assert mocked_log_report_signal_task.called
 
 
-@patch("apps.alerts.tasks.send_alert_group_signal.send_alert_group_signal.apply_async", return_value=None)
+@patch("apps.alerts.tasks.send_alert_group_signal.send_alert_group_signal.delay", return_value=None)
 @patch("apps.alerts.tasks.send_update_log_report_signal.send_update_log_report_signal.apply_async", return_value=None)
 @pytest.mark.django_db
 def test_bulk_action_resolve(
@@ -1504,6 +1510,7 @@ def test_bulk_action_resolve(
     mocked_log_report_signal_task,
     make_user_auth_headers,
     alert_group_internal_api_setup,
+    django_capture_on_commit_callbacks,
 ):
     client = APIClient()
     user, token, alert_groups = alert_group_internal_api_setup
@@ -1516,18 +1523,20 @@ def test_bulk_action_resolve(
         author=user,
     ).exists()
 
-    # resolve alert groups
-    response = client.post(
-        url,
-        data={
-            "alert_group_pks": [alert_group.public_primary_key for alert_group in alert_groups],
-            "action": AlertGroup.RESOLVE,
-        },
-        format="json",
-        **make_user_auth_headers(user, token),
-    )
+    with django_capture_on_commit_callbacks(execute=True) as callbacks:
+        # resolve alert groups
+        response = client.post(
+            url,
+            data={
+                "alert_group_pks": [alert_group.public_primary_key for alert_group in alert_groups],
+                "action": AlertGroup.RESOLVE,
+            },
+            format="json",
+            **make_user_auth_headers(user, token),
+        )
 
     assert response.status_code == status.HTTP_200_OK
+    assert len(callbacks) == 3
 
     assert new_alert_group.log_records.filter(
         type=AlertGroupLogRecord.TYPE_RESOLVED,
@@ -1548,7 +1557,7 @@ def test_bulk_action_resolve(
     assert mocked_log_report_signal_task.called
 
 
-@patch("apps.alerts.tasks.send_alert_group_signal.send_alert_group_signal.apply_async", return_value=None)
+@patch("apps.alerts.tasks.send_alert_group_signal.send_alert_group_signal.delay", return_value=None)
 @patch("apps.alerts.tasks.send_update_log_report_signal.send_update_log_report_signal.apply_async", return_value=None)
 @patch("apps.alerts.models.AlertGroup.start_unsilence_task", return_value=None)
 @pytest.mark.django_db
@@ -1558,6 +1567,7 @@ def test_bulk_action_silence(
     mocked_start_unsilence_task,
     make_user_auth_headers,
     alert_group_internal_api_setup,
+    django_capture_on_commit_callbacks,
 ):
     client = APIClient()
     user, token, alert_groups = alert_group_internal_api_setup
@@ -1570,19 +1580,21 @@ def test_bulk_action_silence(
         author=user,
     ).exists()
 
-    # silence alert groups
-    response = client.post(
-        url,
-        data={
-            "alert_group_pks": [alert_group.public_primary_key for alert_group in alert_groups],
-            "action": AlertGroup.SILENCE,
-            "delay": 180,
-        },
-        format="json",
-        **make_user_auth_headers(user, token),
-    )
+    with django_capture_on_commit_callbacks(execute=True) as callbacks:
+        # silence alert groups
+        response = client.post(
+            url,
+            data={
+                "alert_group_pks": [alert_group.public_primary_key for alert_group in alert_groups],
+                "action": AlertGroup.SILENCE,
+                "delay": 180,
+            },
+            format="json",
+            **make_user_auth_headers(user, token),
+        )
 
     assert response.status_code == status.HTTP_200_OK
+    assert len(callbacks) == 4
 
     assert new_alert_group.log_records.filter(
         type=AlertGroupLogRecord.TYPE_SILENCE,
