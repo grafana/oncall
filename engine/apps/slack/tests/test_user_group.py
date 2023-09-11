@@ -5,7 +5,11 @@ import pytest
 from apps.schedules.models.on_call_schedule import OnCallScheduleQuerySet, OnCallScheduleWeb
 from apps.slack.client import SlackClientWithErrorHandling
 from apps.slack.models import SlackUserGroup
-from apps.slack.tasks import start_update_slack_user_group_for_schedules, update_slack_user_group_for_schedules
+from apps.slack.tasks import (
+    populate_slack_usergroups_for_team,
+    start_update_slack_user_group_for_schedules,
+    update_slack_user_group_for_schedules,
+)
 from apps.slack.tests.conftest import build_slack_response
 from apps.user_management.models import Organization
 
@@ -114,10 +118,38 @@ def test_update_or_create_slack_usergroup_from_slack(
     mock_usergroups_list, mock_usergroups_users_list, make_organization_with_slack_team_identity
 ):
     organization, slack_team_identity = make_organization_with_slack_team_identity()
-
     SlackUserGroup.update_or_create_slack_usergroup_from_slack("test_slack_id", slack_team_identity)
 
-    usergroup = SlackUserGroup.objects.get(slack_id="test_slack_id")
+    usergroup = SlackUserGroup.objects.get()
+    assert usergroup.name == "test_name"
+    assert usergroup.handle == "test_handle"
+    assert usergroup.members == ["test_user_1", "test_user_2"]
+    assert usergroup.is_active
+
+
+@patch.object(
+    SlackClientWithErrorHandling,
+    "usergroups_users_list",
+    return_value=build_slack_response({"ok": True, "users": ["test_user_1", "test_user_2"]}),
+)
+@patch.object(
+    SlackClientWithErrorHandling,
+    "usergroups_list",
+    return_value=build_slack_response(
+        {
+            "ok": True,
+            "usergroups": [{"id": "test_slack_id", "name": "test_name", "handle": "test_handle", "date_delete": 0}],
+        }
+    ),
+)
+@pytest.mark.django_db
+def test_populate_slack_usergroups_for_team(
+    mock_usergroups_list, mock_usergroups_users_list, make_organization_with_slack_team_identity
+):
+    organization, slack_team_identity = make_organization_with_slack_team_identity()
+    populate_slack_usergroups_for_team(slack_team_identity.pk)
+
+    usergroup = SlackUserGroup.objects.get()
     assert usergroup.name == "test_name"
     assert usergroup.handle == "test_handle"
     assert usergroup.members == ["test_user_1", "test_user_2"]

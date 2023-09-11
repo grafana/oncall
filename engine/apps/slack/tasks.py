@@ -342,9 +342,9 @@ def populate_slack_usergroups_for_team(slack_team_identity_id):
 
     slack_team_identity = SlackTeamIdentity.objects.get(pk=slack_team_identity_id)
     sc = SlackClientWithErrorHandling(slack_team_identity)
-    # TODO: tests
+
     try:
-        usergroups_list = sc.usergroups_list()
+        usergroups = sc.usergroups_list()["usergroups"]
     except SlackAPIRatelimitError as e:
         populate_slack_usergroups_for_team.apply_async((slack_team_identity_id,), countdown=e.retry_after)
         return
@@ -356,32 +356,27 @@ def populate_slack_usergroups_for_team(slack_team_identity_id):
         "slack_id", flat=True
     )
 
-    for usergroup in usergroups_list["usergroups"]:
+    for usergroup in usergroups:
         # skip groups that were recently populated
         if usergroup["id"] in populated_user_groups_ids:
             continue
 
         try:
-            usergroups_users = sc.usergroups_users_list(usergroup=usergroup["id"])
+            members = sc.usergroups_users_list(usergroup=usergroup["id"])["users"]
         except SlackAPIRatelimitError as e:
             populate_slack_usergroups_for_team.apply_async((slack_team_identity_id,), countdown=e.retry_after)
             return
         except (SlackAPIUsergroupNotFoundError, SlackAPIInvalidAuthError):
             return
 
-        usergroup_name = usergroup["name"]
-        usergroup_handle = usergroup["handle"]
-        usergroup_members = usergroups_users["users"]
-        usergroup_is_active = usergroup["date_delete"] == 0
-
         SlackUserGroup.objects.update_or_create(
             slack_id=usergroup["id"],
             slack_team_identity=slack_team_identity,
             defaults={
-                "name": usergroup_name,
-                "handle": usergroup_handle,
-                "members": usergroup_members,
-                "is_active": usergroup_is_active,
+                "name": usergroup["name"],
+                "handle": usergroup["handle"],
+                "members": members,
+                "is_active": usergroup["date_delete"] == 0,
                 "last_populated": today,
             },
         )
