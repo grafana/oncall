@@ -18,10 +18,10 @@ from apps.api.permissions import RBACPermission
 from apps.slack.constants import CACHE_UPDATE_INCIDENT_SLACK_MESSAGE_LIFETIME
 from apps.slack.errors import (
     SlackAPIChannelArchivedError,
+    SlackAPIChannelInactiveError,
     SlackAPIChannelNotFoundError,
     SlackAPIError,
     SlackAPIInvalidAuthError,
-    SlackApiIsInactiveError,
     SlackAPIMessageNotFoundError,
     SlackAPIRatelimitError,
     SlackAPIRestrictedActionError,
@@ -1001,7 +1001,7 @@ class UpdateLogReportMessageStep(scenario_step.ScenarioStep):
                 SlackAPITokenError,
                 SlackAPIChannelNotFoundError,
                 SlackAPIChannelArchivedError,
-                SlackApiIsInactiveError,
+                SlackAPIChannelInactiveError,
                 SlackAPIInvalidAuthError,
             ):
                 pass

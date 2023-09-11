@@ -63,7 +63,7 @@ class SlackAPIUserNotFoundError(SlackAPIError):
     errors = ("user_not_found",)
 
 
-class SlackApiIsInactiveError(SlackAPIError):
+class SlackAPIChannelInactiveError(SlackAPIError):
     errors = ("is_inactive",)
 
 

@@ -9,10 +9,10 @@ from apps.api.permissions import RBACPermission
 from apps.slack.constants import DIVIDER
 from apps.slack.errors import (
     SlackAPIChannelArchivedError,
+    SlackAPIChannelInactiveError,
     SlackAPIChannelNotFoundError,
     SlackAPIError,
     SlackAPIInvalidAuthError,
-    SlackApiIsInactiveError,
     SlackAPIMessageNotFoundError,
     SlackAPITokenError,
     SlackAPIViewNotFoundError,
@@ -45,7 +45,7 @@ RESOLUTION_NOTE_EXCEPTIONS = (
     SlackAPIChannelArchivedError,
     SlackAPIInvalidAuthError,
     SlackAPITokenError,
-    SlackApiIsInactiveError,
+    SlackAPIChannelInactiveError,
 )
 
 
