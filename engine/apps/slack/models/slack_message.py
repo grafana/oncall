@@ -8,9 +8,8 @@ from django.db import models
 from apps.slack.client import SlackClientWithErrorHandling
 from apps.slack.errors import (
     SlackAPIChannelArchivedError,
-    SlackAPIChannelNotFoundError,
+    SlackAPIError,
     SlackAPIFetchMembersFailedError,
-    SlackAPIMessageNotFoundError,
     SlackAPIMethodNotSupportedForChannelTypeError,
     SlackAPITokenError,
 )
@@ -81,23 +80,21 @@ class SlackMessage(models.Model):
         return self._slack_team_identity
 
     @property
-    def permalink(self):
-        if self.slack_team_identity is not None and self.cached_permalink is None:
-            sc = SlackClientWithErrorHandling(self.slack_team_identity)
-            try:
-                result = sc.chat_getPermalink(channel=self.channel_id, message_ts=self.slack_id)
-            except (SlackAPIMessageNotFoundError, SlackAPIChannelNotFoundError):
-                return "https://slack.com/resources/using-slack/page/404"
-
-            if result["permalink"] is not None:
-                # Reconnect to DB in case we use read-only DB here.
-                _self = SlackMessage.objects.get(pk=self.pk)
-                _self.cached_permalink = result["permalink"]
-                _self.save()
-                self.cached_permalink = _self.cached_permalink
-
-        if self.cached_permalink is not None:
+    def permalink(self) -> typing.Optional[str]:
+        if self.cached_permalink or not self.slack_team_identity:
             return self.cached_permalink
+
+        try:
+            result = SlackClientWithErrorHandling(self.slack_team_identity).chat_getPermalink(
+                channel=self.channel_id, message_ts=self.slack_id
+            )
+        except SlackAPIError:
+            return None
+
+        self.cached_permalink = result["permalink"]
+        self.save(update_fields=["cached_permalink"])
+
+        return self.cached_permalink
 
     def send_slack_notification(self, user, alert_group, notification_policy):
         from apps.base.models import UserNotificationPolicyLogRecord
