@@ -63,7 +63,7 @@ class SlackDateFormat(enum.StrEnum):
 
 def post_message_to_channel(organization: "Organization", channel_id: str, text: str) -> None:
     if not organization.slack_team_identity:
-        return None
+        return
 
     slack_client = SlackClientWithErrorHandling(organization.slack_team_identity)
     try:
