@@ -11,6 +11,7 @@ from django.utils import timezone
 from apps.api.permissions import RBACPermission
 from apps.slack.client import SlackClientWithErrorHandling
 from apps.slack.errors import SlackAPIError, SlackAPIPermissionDeniedError
+from apps.slack.models import SlackTeamIdentity
 from apps.user_management.models.user import User
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
 
@@ -123,32 +124,24 @@ class SlackUserGroup(models.Model):
         )
 
     @classmethod
-    def update_or_create_slack_usergroup_from_slack(cls, slack_id, slack_team_identity):
+    def update_or_create_slack_usergroup_from_slack(cls, slack_id: str, slack_team_identity: SlackTeamIdentity) -> None:
         sc = SlackClientWithErrorHandling(slack_team_identity)
-        usergroups_list = sc.usergroups_list()
+        usergroups = sc.usergroups_list()["usergroups"]
 
-        for usergroup in usergroups_list["usergroups"]:
-            if usergroup["id"] != slack_id:
-                continue
+        usergroup = [ug for ug in usergroups if ug["id"] == slack_id][0]
+        try:
+            members = sc.usergroups_users_list(usergroup=usergroup["id"])["users"]
+        except SlackAPIError:
+            return
 
-            try:
-                usergroups_users = sc.usergroups_users_list(usergroup=usergroup["id"])
-            except SlackAPIError:
-                pass
-            else:
-                usergroup_name = usergroup["name"]
-                usergroup_handle = usergroup["handle"]
-                usergroup_members = usergroups_users["users"]
-                usergroup_is_active = usergroup["date_delete"] == 0
-
-                return SlackUserGroup.objects.update_or_create(
-                    slack_id=usergroup["id"],
-                    slack_team_identity=slack_team_identity,
-                    defaults={
-                        "name": usergroup_name,
-                        "handle": usergroup_handle,
-                        "members": usergroup_members,
-                        "is_active": usergroup_is_active,
-                        "last_populated": timezone.now().date(),
-                    },
-                )
+        return SlackUserGroup.objects.update_or_create(
+            slack_id=usergroup["id"],
+            slack_team_identity=slack_team_identity,
+            defaults={
+                "name": usergroup["name"],
+                "handle": usergroup["handle"],
+                "members": members,
+                "is_active": usergroup["date_delete"] == 0,
+                "last_populated": timezone.now().date(),
+            },
+        )

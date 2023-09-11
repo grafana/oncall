@@ -2,6 +2,7 @@ from unittest.mock import patch
 
 import pytest
 
+from apps.slack.client import SlackClientWithErrorHandling
 from apps.slack.errors import SlackAPIError
 from apps.slack.tests.conftest import build_slack_response
 
@@ -25,8 +26,9 @@ def slack_message_setup(
     return _slack_message_setup
 
 
-@patch(
-    "apps.slack.client.SlackClientWithErrorHandling.chat_getPermalink",
+@patch.object(
+    SlackClientWithErrorHandling,
+    "chat_getPermalink",
     return_value=build_slack_response({"ok": True, "permalink": "test_permalink"}),
 )
 @pytest.mark.django_db
@@ -36,8 +38,9 @@ def test_slack_message_permalink(mock_slack_api_call, slack_message_setup):
     mock_slack_api_call.assert_called_once()
 
 
-@patch(
-    "apps.slack.client.SlackClientWithErrorHandling.chat_getPermalink",
+@patch.object(
+    SlackClientWithErrorHandling,
+    "chat_getPermalink",
     side_effect=SlackAPIError(response=build_slack_response({"ok": False, "error": "message_not_found"})),
 )
 @pytest.mark.django_db
@@ -47,8 +50,9 @@ def test_slack_message_permalink_error(mock_slack_api_call, slack_message_setup)
     mock_slack_api_call.assert_called_once()
 
 
-@patch(
-    "apps.slack.client.SlackClientWithErrorHandling.chat_getPermalink",
+@patch.object(
+    SlackClientWithErrorHandling,
+    "chat_getPermalink",
     return_value=build_slack_response({"ok": True, "permalink": "test_permalink"}),
 )
 @pytest.mark.django_db

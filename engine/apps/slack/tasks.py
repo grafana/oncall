@@ -488,59 +488,59 @@ def populate_slack_channels_for_team(slack_team_identity_id: int, cursor: Option
             limit=1000,
             cursor=cursor,
         )
-    except (SlackAPITokenError, SlackAPIInvalidAuthError):  # TODO: tests
+    except (SlackAPITokenError, SlackAPIInvalidAuthError):
         return
-
-    today = timezone.now().date()
-
-    slack_channels = {channel["id"]: channel for channel in response["channels"]}
-    collected_channels.update(slack_channels.keys())
-
-    existing_channels = slack_team_identity.cached_channels.all()
-    existing_channel_ids = set(existing_channels.values_list("slack_id", flat=True))
-
-    # create missing channels
-    channels_to_create = tuple(
-        SlackChannel(
-            slack_team_identity=slack_team_identity,
-            slack_id=channel["id"],
-            name=channel["name"],
-            is_archived=channel["is_archived"],
-            is_shared=channel["is_shared"],
-            last_populated=today,
-        )
-        for channel in slack_channels.values()
-        if channel["id"] not in existing_channel_ids
-    )
-    SlackChannel.objects.bulk_create(channels_to_create, batch_size=5000)
-
-    # update existing channels
-    channels_to_update = existing_channels.filter(slack_id__in=slack_channels.keys()).exclude(last_populated=today)
-    for channel in channels_to_update:
-        slack_channel = slack_channels[channel.slack_id]
-        channel.name = slack_channel["name"]
-        channel.is_archived = slack_channel["is_archived"]
-        channel.is_shared = slack_channel["is_shared"]
-        channel.last_populated = today
-
-    SlackChannel.objects.bulk_update(
-        channels_to_update, fields=("name", "is_archived", "is_shared", "last_populated"), batch_size=5000
-    )
-    if rate_limited:
-        # save collected channels ids to cache and restart the task with the current pagination cursor
-        cache.set(collected_channels_key, collected_channels, timeout=3600)
-        delay = random.randint(1, 3) * 60
-        logger.warning(
-            f"'conversations.list' slack api error: rate_limited. SlackTeamIdentity pk: {slack_team_identity_id}. "
-            f"Delay populate_slack_channels_for_team task for {delay//60} min."
-        )
-        start_populate_slack_channels_for_team(slack_team_identity_id, delay, cursor)
     else:
-        # delete excess channels
-        assert collected_channels
-        channel_ids_to_delete = existing_channel_ids - collected_channels
-        slack_team_identity.cached_channels.filter(slack_id__in=channel_ids_to_delete).delete()
-        cache.delete(collected_channels_key)
+        today = timezone.now().date()
+
+        slack_channels = {channel["id"]: channel for channel in response["channels"]}
+        collected_channels.update(slack_channels.keys())
+
+        existing_channels = slack_team_identity.cached_channels.all()
+        existing_channel_ids = set(existing_channels.values_list("slack_id", flat=True))
+
+        # create missing channels
+        channels_to_create = tuple(
+            SlackChannel(
+                slack_team_identity=slack_team_identity,
+                slack_id=channel["id"],
+                name=channel["name"],
+                is_archived=channel["is_archived"],
+                is_shared=channel["is_shared"],
+                last_populated=today,
+            )
+            for channel in slack_channels.values()
+            if channel["id"] not in existing_channel_ids
+        )
+        SlackChannel.objects.bulk_create(channels_to_create, batch_size=5000)
+
+        # update existing channels
+        channels_to_update = existing_channels.filter(slack_id__in=slack_channels.keys()).exclude(last_populated=today)
+        for channel in channels_to_update:
+            slack_channel = slack_channels[channel.slack_id]
+            channel.name = slack_channel["name"]
+            channel.is_archived = slack_channel["is_archived"]
+            channel.is_shared = slack_channel["is_shared"]
+            channel.last_populated = today
+
+        SlackChannel.objects.bulk_update(
+            channels_to_update, fields=("name", "is_archived", "is_shared", "last_populated"), batch_size=5000
+        )
+        if rate_limited:
+            # save collected channels ids to cache and restart the task with the current pagination cursor
+            cache.set(collected_channels_key, collected_channels, timeout=3600)
+            delay = random.randint(1, 3) * 60
+            logger.warning(
+                f"'conversations.list' slack api error: rate_limited. SlackTeamIdentity pk: {slack_team_identity_id}. "
+                f"Delay populate_slack_channels_for_team task for {delay//60} min."
+            )
+            start_populate_slack_channels_for_team(slack_team_identity_id, delay, cursor)
+        else:
+            # delete excess channels
+            assert collected_channels
+            channel_ids_to_delete = existing_channel_ids - collected_channels
+            slack_team_identity.cached_channels.filter(slack_id__in=channel_ids_to_delete).delete()
+            cache.delete(collected_channels_key)
 
 
 @shared_dedicated_queue_retry_task(autoretry_for=(Exception,), retry_backoff=True, max_retries=0)
