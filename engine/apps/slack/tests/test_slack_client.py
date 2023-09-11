@@ -45,8 +45,13 @@ def test_slack_client_ok(mock_request, monkeypatch, make_organization_with_slack
 
 
 @pytest.mark.parametrize("status", [500, 503, 504])
+@patch.object(
+    server_error_retry_handler.interval_calculator,
+    "calculate_sleep_duration",
+    return_value=0,  # speed up the retries
+)
 @pytest.mark.django_db
-def test_slack_client_unexpected_response(monkeypatch, status, make_organization_with_slack_team_identity):
+def test_slack_client_unexpected_response(_, monkeypatch, status, make_organization_with_slack_team_identity):
     monkeypatch.undo()  # undo engine.conftest.mock_slack_api_call
 
     _, slack_team_identity = make_organization_with_slack_team_identity()
@@ -64,8 +69,13 @@ def test_slack_client_unexpected_response(monkeypatch, status, make_organization
 
 
 @pytest.mark.parametrize("error", ["internal_error", "fatal_error"])
+@patch.object(
+    server_error_retry_handler.interval_calculator,
+    "calculate_sleep_duration",
+    return_value=0,  # speed up the retries
+)
 @pytest.mark.django_db
-def test_slack_client_slack_server_error(monkeypatch, error, make_organization_with_slack_team_identity):
+def test_slack_client_slack_server_error(_, monkeypatch, error, make_organization_with_slack_team_identity):
     monkeypatch.undo()  # undo engine.conftest.mock_slack_api_call
 
     _, slack_team_identity = make_organization_with_slack_team_identity()
@@ -127,8 +137,13 @@ def test_slack_client_generic_error(mock_request, monkeypatch, make_organization
         ("user_not_found", SlackAPIUserNotFoundError),
     ],
 )
+@patch.object(
+    server_error_retry_handler.interval_calculator,
+    "calculate_sleep_duration",
+    return_value=0,  # speed up the retries if any
+)
 @pytest.mark.django_db
-def test_slack_client_specific_error(error, error_class, monkeypatch, make_organization_with_slack_team_identity):
+def test_slack_client_specific_error(_, error, error_class, monkeypatch, make_organization_with_slack_team_identity):
     monkeypatch.undo()  # undo engine.conftest.mock_slack_api_call
 
     _, slack_team_identity = make_organization_with_slack_team_identity()
