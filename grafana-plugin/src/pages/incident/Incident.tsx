@@ -38,6 +38,7 @@ import AttachIncidentForm from 'containers/AttachIncidentForm/AttachIncidentForm
 import EscalationVariants from 'containers/EscalationVariants/EscalationVariants';
 import { prepareForEdit, prepareForUpdate } from 'containers/EscalationVariants/EscalationVariants.helpers';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
+import { PageContext } from 'contexts/PageContext';
 import {
   Alert as AlertType,
   Alert,
@@ -75,6 +76,9 @@ interface IncidentPageState extends PageBaseState {
 
 @observer
 class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState> {
+  static contextType = PageContext;
+  context: React.ContextType<typeof PageContext>;
+
   state: IncidentPageState = {
     timelineFilter: 'all',
     resolutionNoteText: '',
@@ -87,6 +91,12 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
     this.update();
 
     store.alertGroupStore.updateSilenceOptions();
+  }
+
+  componentWillUnmount(): void {
+    const { setPageTitle } = this.context;
+
+    setPageTitle(undefined);
   }
 
   componentDidUpdate(prevProps: IncidentPageProps) {
@@ -105,8 +115,13 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
       },
     } = this.props;
 
+    const { setPageTitle } = this.context;
+
     store.alertGroupStore
       .getAlert(id)
+      .then((alertGroup) => {
+        setPageTitle(`#${alertGroup.inside_organization_number} ${alertGroup.render_for_web.title}`);
+      })
       .catch((error) => this.setState({ errorData: { ...getWrongTeamResponseInfo(error) } }));
   };
 
@@ -261,7 +276,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
               {/* @ts-ignore*/}
               <HorizontalGroup align="baseline">
                 <Text.Title level={3} data-testid="incident-title">
-                  #{incident.inside_organization_number} {incident.render_for_web.title}
+                  {this.context.pageTitle}
                 </Text.Title>
                 {incident.root_alert_group && (
                   <Text type="secondary">

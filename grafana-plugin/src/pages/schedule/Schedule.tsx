@@ -26,6 +26,7 @@ import ScheduleForm from 'containers/ScheduleForm/ScheduleForm';
 import ScheduleICalSettings from 'containers/ScheduleIcalLink/ScheduleIcalLink';
 import UsersTimezones from 'containers/UsersTimezones/UsersTimezones';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
+import { PageContext } from 'contexts/PageContext';
 import { Event, Schedule, ScheduleType, Shift, ShiftSwap } from 'models/schedule/schedule.types';
 import { Timezone } from 'models/timezone/timezone.types';
 import { PageProps, WithStoreProps } from 'state/types';
@@ -60,6 +61,9 @@ interface SchedulePageState extends PageBaseState {
 
 @observer
 class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState> {
+  static contextType = PageContext;
+  context: React.ContextType<typeof PageContext>;
+
   highlightMyShiftsWasToggled = false;
 
   constructor(props: SchedulePageProps) {
@@ -101,8 +105,11 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
 
   componentWillUnmount() {
     const { store } = this.props;
+    const { setPageTitle } = this.context;
 
     store.scheduleStore.clearPreview();
+
+    setPageTitle(undefined);
   }
 
   render() {
@@ -181,7 +188,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
                           level={2}
                           onTextChange={this.handleNameChange}
                         >
-                          {schedule?.name}
+                          {this.context.pageTitle}
                         </Text.Title>
                         {schedule && <ScheduleQuality schedule={schedule} lastUpdated={this.state.lastUpdated} />}
                       </div>
@@ -360,9 +367,13 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
         params: { id: scheduleId },
       },
     } = this.props;
+    const { setPageTitle } = this.context;
+
     const { scheduleStore } = store;
 
-    return scheduleStore.loadItem(scheduleId);
+    return scheduleStore.loadItem(scheduleId).then((schedule) => {
+      setPageTitle(schedule?.name);
+    });
   };
 
   handleShowForm = async (shiftId: Shift['id'] | 'new') => {
@@ -399,11 +410,16 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
       },
     } = this.props;
 
+    const { setPageTitle } = this.context;
+
     const schedule = store.scheduleStore.items[scheduleId];
 
     store.scheduleStore
       .update(scheduleId, { type: schedule.type, name: value })
-      .then(() => store.scheduleStore.loadItem(scheduleId));
+      .then(() => store.scheduleStore.loadItem(scheduleId))
+      .then((schedule) => {
+        setPageTitle(schedule?.name);
+      });
   };
 
   updateEvents = () => {
@@ -414,6 +430,8 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
       },
     } = this.props;
 
+    const { setPageTitle } = this.context;
+
     const { startMoment } = this.state;
 
     this.setState((prevState) => ({
@@ -423,6 +441,9 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
 
     store.scheduleStore
       .loadItem(scheduleId) // to refresh current oncall users
+      .then((schedule) => {
+        setPageTitle(schedule?.name);
+      })
       .catch((error) => this.setState({ errorData: { ...getWrongTeamResponseInfo(error) } }));
     store.scheduleStore.updateRelatedUsers(scheduleId); // to refresh related users
 
