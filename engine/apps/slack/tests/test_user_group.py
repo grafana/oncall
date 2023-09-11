@@ -3,7 +3,7 @@ from unittest.mock import PropertyMock, patch
 import pytest
 
 from apps.schedules.models.on_call_schedule import OnCallScheduleQuerySet, OnCallScheduleWeb
-from apps.slack.client import SlackClientWithErrorHandling
+from apps.slack.client import SlackClient
 from apps.slack.models import SlackUserGroup
 from apps.slack.tasks import (
     populate_slack_usergroups_for_team,
@@ -21,7 +21,7 @@ def test_update_members(make_organization_with_slack_team_identity, make_slack_u
 
     slack_ids = ["slack_id_1", "slack_id_2"]
 
-    with patch.object(SlackClientWithErrorHandling, "api_call") as mock:
+    with patch.object(SlackClient, "api_call") as mock:
         user_group.update_members(slack_ids)
         mock.assert_called()
 
@@ -99,12 +99,12 @@ def test_start_update_slack_user_group_for_schedules_organization_deleted(
 
 
 @patch.object(
-    SlackClientWithErrorHandling,
+    SlackClient,
     "usergroups_users_list",
     return_value=build_slack_response({"ok": True, "users": ["test_user_1", "test_user_2"]}),
 )
 @patch.object(
-    SlackClientWithErrorHandling,
+    SlackClient,
     "usergroups_list",
     return_value=build_slack_response(
         {
@@ -128,12 +128,12 @@ def test_update_or_create_slack_usergroup_from_slack(
 
 
 @patch.object(
-    SlackClientWithErrorHandling,
+    SlackClient,
     "usergroups_users_list",
     return_value=build_slack_response({"ok": True, "users": ["test_user_1", "test_user_2"]}),
 )
 @patch.object(
-    SlackClientWithErrorHandling,
+    SlackClient,
     "usergroups_list",
     return_value=build_slack_response(
         {

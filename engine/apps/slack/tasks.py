@@ -10,7 +10,7 @@ from django.utils import timezone
 
 from apps.alerts.tasks.compare_escalations import compare_escalations
 from apps.slack.alert_group_slack_service import AlertGroupSlackService
-from apps.slack.client import SlackClientWithErrorHandling
+from apps.slack.client import SlackClient
 from apps.slack.constants import CACHE_UPDATE_INCIDENT_SLACK_MESSAGE_LIFETIME, SLACK_BOT_ID
 from apps.slack.errors import (
     SlackAPIInvalidAuthError,
@@ -154,7 +154,7 @@ def send_message_to_thread_if_bot_not_in_channel(alert_group_pk, slack_team_iden
     slack_team_identity = SlackTeamIdentity.objects.get(pk=slack_team_identity_pk)
     alert_group = AlertGroup.objects.get(pk=alert_group_pk)
 
-    sc = SlackClientWithErrorHandling(slack_team_identity)
+    sc = SlackClient(slack_team_identity)
 
     bot_user_id = slack_team_identity.bot_user_id
     members = slack_team_identity.get_conversation_members(sc, channel_id)
@@ -341,7 +341,7 @@ def populate_slack_usergroups_for_team(slack_team_identity_id):
     from apps.slack.models import SlackTeamIdentity, SlackUserGroup
 
     slack_team_identity = SlackTeamIdentity.objects.get(pk=slack_team_identity_id)
-    sc = SlackClientWithErrorHandling(slack_team_identity)
+    sc = SlackClient(slack_team_identity)
 
     try:
         usergroups = sc.usergroups_list()["usergroups"]
@@ -454,7 +454,7 @@ def populate_slack_channels_for_team(slack_team_identity_id: int, cursor: Option
     from apps.slack.models import SlackChannel, SlackTeamIdentity
 
     slack_team_identity = SlackTeamIdentity.objects.get(pk=slack_team_identity_id)
-    sc = SlackClientWithErrorHandling(slack_team_identity)
+    sc = SlackClient(slack_team_identity)
 
     active_task_id_key = get_populate_slack_channel_task_id_key(slack_team_identity_id)
     active_task_id = cache.get(active_task_id_key)

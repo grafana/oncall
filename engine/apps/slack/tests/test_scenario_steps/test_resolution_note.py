@@ -3,7 +3,7 @@ from unittest.mock import patch
 
 import pytest
 
-from apps.slack.client import SlackClientWithErrorHandling
+from apps.slack.client import SlackClient
 from apps.slack.errors import SlackAPIViewNotFoundError
 from apps.slack.scenarios.scenario_step import ScenarioStep
 from apps.slack.tests.conftest import build_slack_response
@@ -185,7 +185,7 @@ def test_get_resolution_notes_blocks_latest_limit(
 
 @pytest.mark.django_db
 @patch.object(
-    SlackClientWithErrorHandling,
+    SlackClient,
     "api_call",
     side_effect=SlackAPIViewNotFoundError(response=build_slack_response({"ok": False, "error": "not_found"})),
 )

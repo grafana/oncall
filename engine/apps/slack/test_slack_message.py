@@ -2,7 +2,7 @@ from unittest.mock import patch
 
 import pytest
 
-from apps.slack.client import SlackClientWithErrorHandling
+from apps.slack.client import SlackClient
 from apps.slack.errors import SlackAPIError
 from apps.slack.tests.conftest import build_slack_response
 
@@ -27,7 +27,7 @@ def slack_message_setup(
 
 
 @patch.object(
-    SlackClientWithErrorHandling,
+    SlackClient,
     "chat_getPermalink",
     return_value=build_slack_response({"ok": True, "permalink": "test_permalink"}),
 )
@@ -39,7 +39,7 @@ def test_slack_message_permalink(mock_slack_api_call, slack_message_setup):
 
 
 @patch.object(
-    SlackClientWithErrorHandling,
+    SlackClient,
     "chat_getPermalink",
     side_effect=SlackAPIError(response=build_slack_response({"ok": False, "error": "message_not_found"})),
 )
@@ -51,7 +51,7 @@ def test_slack_message_permalink_error(mock_slack_api_call, slack_message_setup)
 
 
 @patch.object(
-    SlackClientWithErrorHandling,
+    SlackClient,
     "chat_getPermalink",
     return_value=build_slack_response({"ok": True, "permalink": "test_permalink"}),
 )

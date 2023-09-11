@@ -2,7 +2,7 @@ import enum
 import typing
 from datetime import datetime
 
-from apps.slack.client import SlackClientWithErrorHandling
+from apps.slack.client import SlackClient
 from apps.slack.errors import SlackAPIChannelNotFoundError
 
 if typing.TYPE_CHECKING:
@@ -65,7 +65,7 @@ def post_message_to_channel(organization: "Organization", channel_id: str, text:
     if not organization.slack_team_identity:
         return
 
-    slack_client = SlackClientWithErrorHandling(organization.slack_team_identity)
+    slack_client = SlackClient(organization.slack_team_identity)
     try:
         slack_client.chat_postMessage(channel=channel_id, text=text)
     except SlackAPIChannelNotFoundError:

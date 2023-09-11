@@ -5,7 +5,7 @@ import uuid
 
 from django.db import models
 
-from apps.slack.client import SlackClientWithErrorHandling
+from apps.slack.client import SlackClient
 from apps.slack.errors import (
     SlackAPIChannelArchivedError,
     SlackAPIError,
@@ -85,7 +85,7 @@ class SlackMessage(models.Model):
             return self.cached_permalink
 
         try:
-            result = SlackClientWithErrorHandling(self.slack_team_identity).chat_getPermalink(
+            result = SlackClient(self.slack_team_identity).chat_getPermalink(
                 channel=self.channel_id, message_ts=self.slack_id
             )
         except SlackAPIError:
@@ -131,7 +131,7 @@ class SlackMessage(models.Model):
                 },
             }
         ]
-        sc = SlackClientWithErrorHandling(self.slack_team_identity)
+        sc = SlackClient(self.slack_team_identity)
         channel_id = slack_message.channel_id
 
         try:

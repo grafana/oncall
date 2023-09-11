@@ -6,7 +6,7 @@ import pytest
 from django.utils import timezone
 from slack_sdk.web import SlackResponse
 
-from apps.slack.client import SlackClientWithErrorHandling, server_error_retry_handler
+from apps.slack.client import SlackClient, server_error_retry_handler
 from apps.slack.errors import (
     SlackAPICannotDMBotError,
     SlackAPIChannelArchivedError,
@@ -38,7 +38,7 @@ def test_slack_client_ok(mock_request, monkeypatch, make_organization_with_slack
     monkeypatch.undo()  # undo engine.conftest.mock_slack_api_call
 
     _, slack_team_identity = make_organization_with_slack_team_identity()
-    client = SlackClientWithErrorHandling(slack_team_identity)
+    client = SlackClient(slack_team_identity)
     client.api_call("auth.test")
 
     mock_request.assert_called_once()
@@ -50,7 +50,7 @@ def test_slack_client_unexpected_response(monkeypatch, status, make_organization
     monkeypatch.undo()  # undo engine.conftest.mock_slack_api_call
 
     _, slack_team_identity = make_organization_with_slack_team_identity()
-    client = SlackClientWithErrorHandling(slack_team_identity)
+    client = SlackClient(slack_team_identity)
 
     return_value = {"status": status, "body": "non-json", "headers": {}}
     with patch(
@@ -69,7 +69,7 @@ def test_slack_client_slack_server_error(monkeypatch, error, make_organization_w
     monkeypatch.undo()  # undo engine.conftest.mock_slack_api_call
 
     _, slack_team_identity = make_organization_with_slack_team_identity()
-    client = SlackClientWithErrorHandling(slack_team_identity)
+    client = SlackClient(slack_team_identity)
 
     return_value = {"status": 200, "body": json.dumps({"ok": False, "error": error}), "headers": {}}
     with patch(
@@ -91,7 +91,7 @@ def test_slack_client_generic_error(mock_request, monkeypatch, make_organization
     monkeypatch.undo()  # undo engine.conftest.mock_slack_api_call
 
     _, slack_team_identity = make_organization_with_slack_team_identity()
-    client = SlackClientWithErrorHandling(slack_team_identity)
+    client = SlackClient(slack_team_identity)
 
     with pytest.raises(SlackAPIError) as exc_info:
         client.api_call("auth.test")
@@ -132,7 +132,7 @@ def test_slack_client_specific_error(error, error_class, monkeypatch, make_organ
     monkeypatch.undo()  # undo engine.conftest.mock_slack_api_call
 
     _, slack_team_identity = make_organization_with_slack_team_identity()
-    client = SlackClientWithErrorHandling(slack_team_identity)
+    client = SlackClient(slack_team_identity)
 
     with patch(
         "slack_sdk.web.base_client.BaseClient._perform_urllib_http_request_internal",
@@ -150,7 +150,7 @@ def test_slack_client_ratelimit(monkeypatch, error, make_organization_with_slack
     monkeypatch.undo()  # undo engine.conftest.mock_slack_api_call
 
     _, slack_team_identity = make_organization_with_slack_team_identity()
-    client = SlackClientWithErrorHandling(slack_team_identity)
+    client = SlackClient(slack_team_identity)
 
     return_value = {"status": 429, "body": json.dumps({"ok": False, "error": error}), "headers": {"Retry-After": "42"}}
     with patch(
@@ -169,7 +169,7 @@ def test_slack_client_mark_token_revoked(error, monkeypatch, make_organization_w
     monkeypatch.undo()  # undo engine.conftest.mock_slack_api_call
 
     _, slack_team_identity = make_organization_with_slack_team_identity()
-    client = SlackClientWithErrorHandling(slack_team_identity)
+    client = SlackClient(slack_team_identity)
     assert slack_team_identity.detected_token_revoked is None
 
     with patch(
@@ -191,7 +191,7 @@ def test_slack_client_cant_unmark_token_revoked(error, monkeypatch, make_organiz
 
     now = timezone.now()
     _, slack_team_identity = make_organization_with_slack_team_identity(detected_token_revoked=now)
-    client = SlackClientWithErrorHandling(slack_team_identity)
+    client = SlackClient(slack_team_identity)
     assert slack_team_identity.detected_token_revoked == now
 
     with patch(
@@ -213,7 +213,7 @@ def test_slack_client_unmark_token_revoked(body, monkeypatch, make_organization_
 
     now = timezone.now()
     _, slack_team_identity = make_organization_with_slack_team_identity(detected_token_revoked=now)
-    client = SlackClientWithErrorHandling(slack_team_identity)
+    client = SlackClient(slack_team_identity)
     assert slack_team_identity.detected_token_revoked == now
 
     with patch(

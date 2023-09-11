@@ -9,7 +9,7 @@ from django.db.models import JSONField
 from django.utils import timezone
 
 from apps.api.permissions import RBACPermission
-from apps.slack.client import SlackClientWithErrorHandling
+from apps.slack.client import SlackClient
 from apps.slack.errors import SlackAPIError, SlackAPIPermissionDeniedError
 from apps.slack.models import SlackTeamIdentity
 from apps.user_management.models.user import User
@@ -70,7 +70,7 @@ class SlackUserGroup(models.Model):
 
     @property
     def can_be_updated(self) -> bool:
-        sc = SlackClientWithErrorHandling(self.slack_team_identity, timeout=5)
+        sc = SlackClient(self.slack_team_identity, timeout=5)
 
         try:
             sc.usergroups_update(usergroup=self.slack_id)
@@ -110,7 +110,7 @@ class SlackUserGroup(models.Model):
             pass
 
     def update_members(self, slack_ids):
-        sc = SlackClientWithErrorHandling(self.slack_team_identity)
+        sc = SlackClient(self.slack_team_identity)
 
         sc.usergroups_users_update(usergroup=self.slack_id, users=slack_ids)
 
@@ -125,7 +125,7 @@ class SlackUserGroup(models.Model):
 
     @classmethod
     def update_or_create_slack_usergroup_from_slack(cls, slack_id: str, slack_team_identity: SlackTeamIdentity) -> None:
-        sc = SlackClientWithErrorHandling(slack_team_identity)
+        sc = SlackClient(slack_team_identity)
         usergroups = sc.usergroups_list()["usergroups"]
 
         usergroup = [ug for ug in usergroups if ug["id"] == slack_id][0]

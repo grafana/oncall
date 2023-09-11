@@ -51,7 +51,7 @@ class SlackServerErrorRetryHandler(RetryHandler):
 server_error_retry_handler = SlackServerErrorRetryHandler(max_retry_count=2)
 
 
-class SlackClientWithErrorHandling(WebClient):
+class SlackClient(WebClient):
     def __init__(self, slack_team_identity: "SlackTeamIdentity", timeout: int = 30) -> None:
         super().__init__(
             token=slack_team_identity.bot_access_token,

@@ -14,7 +14,7 @@ class UnexpectedResponse(typing.TypedDict):
 class SlackAPIError(Exception):
     """
     Base class for Slack API errors. To add a new error class, add a new subclass of SlackAPIError in this file.
-    See apps.slack.client.SlackClientWithErrorHandling._get_error_class for more details on how these are raised.
+    See apps.slack.client.SlackClient._get_error_class for more details on how these are raised.
     """
 
     errors: tuple[str, ...]

@@ -1,7 +1,7 @@
 import logging
 import typing
 
-from apps.slack.client import SlackClientWithErrorHandling
+from apps.slack.client import SlackClient
 from apps.slack.errors import (
     SlackAPIChannelArchivedError,
     SlackAPIChannelInactiveError,
@@ -20,18 +20,18 @@ logger = logging.getLogger(__name__)
 
 
 class AlertGroupSlackService:
-    _slack_client: SlackClientWithErrorHandling
+    _slack_client: SlackClient
 
     def __init__(
         self,
         slack_team_identity: "SlackTeamIdentity",
-        slack_client: typing.Optional[SlackClientWithErrorHandling] = None,
+        slack_client: typing.Optional[SlackClient] = None,
     ):
         self.slack_team_identity = slack_team_identity
         if slack_client is not None:
             self._slack_client = slack_client
         else:
-            self._slack_client = SlackClientWithErrorHandling(slack_team_identity)
+            self._slack_client = SlackClient(slack_team_identity)
 
     def update_alert_group_slack_message(self, alert_group: "AlertGroup") -> None:
         from apps.alerts.models import AlertReceiveChannel

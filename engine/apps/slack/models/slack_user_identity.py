@@ -4,7 +4,7 @@ import typing
 import requests
 from django.db import models
 
-from apps.slack.client import SlackClientWithErrorHandling
+from apps.slack.client import SlackClient
 from apps.slack.constants import SLACK_BOT_ID
 from apps.slack.errors import (
     SlackAPICannotDMBotError,
@@ -139,7 +139,7 @@ class SlackUserIdentity(models.Model):
             },
         ]
 
-        sc = SlackClientWithErrorHandling(self.slack_team_identity)
+        sc = SlackClient(self.slack_team_identity)
         return sc.chat_postMessage(
             channel=self.im_channel_id,
             text="You are invited to look at an alert group!",
@@ -160,7 +160,7 @@ class SlackUserIdentity(models.Model):
     @property
     def slack_login(self):
         if self.cached_slack_login is None or self.cached_slack_login == "slack_token_revoked_unable_to_cache_login":
-            sc = SlackClientWithErrorHandling(self.slack_team_identity)
+            sc = SlackClient(self.slack_team_identity)
             try:
                 result = sc.users_info(user=self.slack_id, team=self.slack_team_identity)
                 self.cached_slack_login = result["user"]["name"]
@@ -180,7 +180,7 @@ class SlackUserIdentity(models.Model):
     @property
     def timezone(self):
         if self.cached_timezone is None or self.cached_timezone == "None":
-            sc = SlackClientWithErrorHandling(self.slack_team_identity)
+            sc = SlackClient(self.slack_team_identity)
             try:
                 result = sc.users_info(user=self.slack_id)
                 tz_from_slack = result["user"].get("tz", "UTC")
@@ -199,7 +199,7 @@ class SlackUserIdentity(models.Model):
     @property
     def im_channel_id(self):
         if self.cached_im_channel_id is None:
-            sc = SlackClientWithErrorHandling(self.slack_team_identity)
+            sc = SlackClient(self.slack_team_identity)
             try:
                 result = sc.conversations_open(users=self.slack_id, return_im=True)
                 self.cached_im_channel_id = result["channel"]["id"]
@@ -210,7 +210,7 @@ class SlackUserIdentity(models.Model):
         return self.cached_im_channel_id
 
     def update_profile_info(self):
-        sc = SlackClientWithErrorHandling(self.slack_team_identity)
+        sc = SlackClient(self.slack_team_identity)
         logger.info("Update user profile info")
         try:
             result = sc.users_info(user=self.slack_id, team=self.slack_team_identity)

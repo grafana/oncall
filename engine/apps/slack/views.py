@@ -15,7 +15,7 @@ from rest_framework.views import APIView
 from apps.api.permissions import RBACPermission
 from apps.auth_token.auth import PluginAuthentication
 from apps.base.utils import live_settings
-from apps.slack.client import SlackClientWithErrorHandling
+from apps.slack.client import SlackClient
 from apps.slack.errors import SlackAPIError
 from apps.slack.scenarios.alertgroup_appearance import STEPS_ROUTING as ALERTGROUP_APPEARANCE_ROUTING
 
@@ -191,7 +191,7 @@ class SlackEventApiEndpointView(APIView):
             logger.info(f"Team {slack_team_identity.slack_id} has no keys, dropping request.")
             return Response()
 
-        sc = SlackClientWithErrorHandling(slack_team_identity)
+        sc = SlackClient(slack_team_identity)
 
         if slack_team_identity.detected_token_revoked:
             try:
@@ -509,9 +509,7 @@ class SlackEventApiEndpointView(APIView):
                     f"Failed to open pop-up for unpopulated SlackTeamIdentity {slack_team_identity.pk}\n" f"Error: {e}"
                 )
 
-    def _open_warning_for_unconnected_user(
-        self, slack_client: SlackClientWithErrorHandling, payload: EventPayload
-    ) -> None:
+    def _open_warning_for_unconnected_user(self, slack_client: SlackClient, payload: EventPayload) -> None:
         if payload.get("trigger_id") is None:
             return
 

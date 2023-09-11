@@ -5,7 +5,7 @@ from django.db import models
 from django.db.models import JSONField
 
 from apps.api.permissions import RBACPermission
-from apps.slack.client import SlackClientWithErrorHandling
+from apps.slack.client import SlackClient
 from apps.slack.constants import SLACK_INVALID_AUTH_RESPONSE, SLACK_WRONG_TEAM_NAMES
 from apps.slack.errors import (
     SlackAPIChannelNotFoundError,
@@ -91,7 +91,7 @@ class SlackTeamIdentity(models.Model):
     @property
     def bot_id(self):
         if self.cached_bot_id is None:
-            sc = SlackClientWithErrorHandling(self)
+            sc = SlackClient(self)
             auth = sc.auth_test()
             self.cached_bot_id = auth.get("bot_id")
             self.save(update_fields=["cached_bot_id"])
@@ -99,7 +99,7 @@ class SlackTeamIdentity(models.Model):
 
     @property
     def members(self):
-        sc = SlackClientWithErrorHandling(self)
+        sc = SlackClient(self)
 
         next_cursor = None
         members = []
@@ -114,7 +114,7 @@ class SlackTeamIdentity(models.Model):
     def name(self):
         if self.cached_name is None or self.cached_name in SLACK_WRONG_TEAM_NAMES:
             try:
-                sc = SlackClientWithErrorHandling(self)
+                sc = SlackClient(self)
                 result = sc.team_info()
                 self.cached_name = result["team"]["name"]
                 self.save()
@@ -126,7 +126,7 @@ class SlackTeamIdentity(models.Model):
     @property
     def app_id(self):
         if not self.cached_app_id:
-            sc = SlackClientWithErrorHandling(self)
+            sc = SlackClient(self)
             result = sc.bots_info(bot=self.bot_id)
             app_id = result["bot"]["app_id"]
             self.cached_app_id = app_id
@@ -134,7 +134,7 @@ class SlackTeamIdentity(models.Model):
         return self.cached_app_id
 
     def get_users_from_slack_conversation_for_organization(self, channel_id, organization):
-        sc = SlackClientWithErrorHandling(self)
+        sc = SlackClient(self)
         members = self.get_conversation_members(sc, channel_id)
 
         return organization.users.filter(
@@ -142,7 +142,7 @@ class SlackTeamIdentity(models.Model):
             **User.build_permissions_query(RBACPermission.Permissions.CHATOPS_WRITE, organization),
         )
 
-    def get_conversation_members(self, slack_client: SlackClientWithErrorHandling, channel_id: str):
+    def get_conversation_members(self, slack_client: SlackClient, channel_id: str):
         try:
             return slack_client.paginated_api_call(
                 "conversations_members", paginated_key="members", channel=channel_id
