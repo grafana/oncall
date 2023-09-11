@@ -1,4 +1,5 @@
 import logging
+import typing
 from typing import Optional, Tuple
 
 from django.utils import timezone
@@ -14,6 +15,9 @@ from apps.slack.errors import (
     SlackAPITokenError,
     UnexpectedResponse,
 )
+
+if typing.TYPE_CHECKING:
+    from apps.slack.models import SlackTeamIdentity
 
 logger = logging.getLogger(__name__)
 
@@ -44,7 +48,7 @@ server_error_retry_handler = SlackServerErrorRetryHandler(max_retry_count=2)
 
 
 class SlackClientWithErrorHandling(WebClient):
-    def __init__(self, slack_team_identity, timeout: int = 30):
+    def __init__(self, slack_team_identity: "SlackTeamIdentity", timeout: int = 30) -> None:
         super().__init__(
             token=slack_team_identity.bot_access_token,
             timeout=timeout,
@@ -110,14 +114,15 @@ class SlackClientWithErrorHandling(WebClient):
 
         return cumulative_response, cursor, rate_limited
 
-    def api_call(self, *args, **kwargs):
+    def api_call(self, *args, **kwargs) -> SlackResponse:
         try:
             response = super().api_call(*args, **kwargs)
             self._unmark_token_revoked()  # unmark token as revoked if the API call was successful
             return response
         except SlackSDKApiError as e:
             logger.error(
-                "Slack API error! args={} kwargs={} status={} error={} response={}".format(
+                "Slack API call error! slack_team_identity={} args={} kwargs={} status={} error={} response={}".format(
+                    self.slack_team_identity.pk,
                     args,
                     kwargs,
                     e.response["status"] if isinstance(e.response, dict) else e.response.status_code,
@@ -139,7 +144,7 @@ class SlackClientWithErrorHandling(WebClient):
             raise error_class(e.response) from e
 
     @staticmethod
-    def _get_error_class(response: UnexpectedResponse | SlackResponse):
+    def _get_error_class(response: UnexpectedResponse | SlackResponse) -> typing.Type[SlackAPIError]:
         if isinstance(response, dict):  # UnexpectedResponse
             return SlackAPIServerError
 
@@ -149,12 +154,12 @@ class SlackClientWithErrorHandling(WebClient):
 
         return SlackAPIError
 
-    def _mark_token_revoked(self):
+    def _mark_token_revoked(self) -> None:
         if not self.slack_team_identity.detected_token_revoked:
             self.slack_team_identity.detected_token_revoked = timezone.now()
             self.slack_team_identity.save(update_fields=["detected_token_revoked"])
 
-    def _unmark_token_revoked(self):
+    def _unmark_token_revoked(self) -> None:
         if self.slack_team_identity.detected_token_revoked:
             self.slack_team_identity.detected_token_revoked = None
             self.slack_team_identity.save(update_fields=["detected_token_revoked"])

@@ -60,7 +60,7 @@ class AlertGroupSlackService:
             SlackAPITokenError,
             SlackAPIChannelNotFoundError,
         ):
-            return
+            pass
 
     def publish_message_to_alert_group_thread(
         self, alert_group: "AlertGroup", attachments=[], mrkdwn=True, unfurl_links=True, text=None
