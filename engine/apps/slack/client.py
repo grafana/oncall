@@ -23,6 +23,8 @@ logger = logging.getLogger(__name__)
 
 
 class SlackServerErrorRetryHandler(RetryHandler):
+    """Retry failed Slack API calls on Slack server errors"""
+
     def _can_retry(
         self,
         *,
@@ -31,14 +33,16 @@ class SlackServerErrorRetryHandler(RetryHandler):
         response: Optional[HttpResponse] = None,
         error: Optional[Exception] = None,
     ) -> bool:
-        if response and response.body and response.body.get("error") in SlackAPIServerError.errors:
-            return True
-
+        # Retry Slack API call on 5xx errors
         if response and response.status_code in [
             status.HTTP_500_INTERNAL_SERVER_ERROR,
             status.HTTP_503_SERVICE_UNAVAILABLE,
             status.HTTP_504_GATEWAY_TIMEOUT,
         ]:
+            return True
+
+        # Retry Slack API call on "internal_error" and "fatal_error" errors
+        if response and response.body and response.body.get("error") in SlackAPIServerError.errors:
             return True
 
         return False
@@ -115,6 +119,8 @@ class SlackClientWithErrorHandling(WebClient):
         return cumulative_response, cursor, rate_limited
 
     def api_call(self, *args, **kwargs) -> SlackResponse:
+        """Wrap Slack SDK api_call with more granular error handling and logging"""
+
         try:
             response = super().api_call(*args, **kwargs)
             self._unmark_token_revoked()  # unmark token as revoked if the API call was successful
@@ -145,6 +151,8 @@ class SlackClientWithErrorHandling(WebClient):
 
     @staticmethod
     def _get_error_class(response: UnexpectedResponse | SlackResponse) -> typing.Type[SlackAPIError]:
+        """Get an appropriate error class for the response"""
+
         if isinstance(response, dict):  # UnexpectedResponse
             return SlackAPIServerError
 
