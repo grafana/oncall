@@ -288,7 +288,6 @@ steps:
     privileged: true
     settings:
       repo: grafana/oncall-base
-      tags: latest,${DRONE_TAG}
       platforms: linux/arm64/v8,linux/amd64
       dockerfile: engine/Dockerfile.base
       context: engine/
