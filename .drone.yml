@@ -267,6 +267,38 @@ trigger:
     - refs/tags/v*.*.*
 
 ---
+kind: pipeline
+type: docker
+name: OSS engine base image release
+
+steps:
+  - name: set oncall base image version
+    image: alpine
+    commands:
+      # Tag image with the version located in the base-image-version file.
+      # Ignore lines that start with #.
+      - grep -v '^#' base-image-version > .tags
+
+  - name: build and push oncall base docker image
+    image: plugins/docker
+    settings:
+      repo: grafana/oncall-base
+      tags: latest
+      platform: linux/arm64/v8,linux/amd64
+      dockerfile: engine/Dockerfile.base
+      context: engine/
+      password:
+        from_secret: docker_password
+      username:
+        from_secret: docker_username
+trigger:
+  ref:
+    include:
+      - refs/heads/main
+      - refs/heads/dev
+      - refs/tags/v*.*.*
+
+---
 # Secret for pulling docker images.
 kind: secret
 name: dockerconfigjson
