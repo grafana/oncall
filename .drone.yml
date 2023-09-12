@@ -277,7 +277,7 @@ steps:
     commands:
       # Tag image with the version located in the base-image-version file.
       # Ignore lines that start with #.
-      - grep -v '^#' base-image-version > .tags
+      - grep -v '^#' ./engine/base-image-version > .tags
 
   - name: build and push oncall base docker image
     image: plugins/docker
