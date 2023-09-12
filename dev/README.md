@@ -28,7 +28,9 @@
 
 Related: [How to develop integrations](/engine/config_integrations/README.md)
 
-## Developing using kubernetes (beta)
+## Developing using kubernetes and tilt (beta)
+
+> It is recommended to use [docker-compose environment](#running-the-project-with-docker-compose)
 
 ### Install
 
@@ -37,22 +39,25 @@ This project uses:
 - [Tilt | Kubernetes for Prod, Tilt for Dev](https://tilt.dev/)
 - [tilt-dev/ctlptl: Making local Kubernetes clusters fun and easy to set up](https://github.com/tilt-dev/ctlptl)
 - [Kind](https://kind.sigs.k8s.io)
+- Yarn](https://classic.yarnpkg.com/lang/en/docs/install/#mac-stable)
 
 ### Quick Start
 
-Create local k8s cluster:
+1. Create local k8s cluster:
 
 ```bash
 make cluster/up
 ```
 
-Deploy the project:
+2. Deploy the project:
 
 ```bash
 tilt up
 ```
 
-Clean up the project by deleting the local k8s cluster:
+3. Wait until all resources are green and open http://localhost:3000/a/grafana-oncall-app
+
+4. Clean up the project by deleting the local k8s cluster:
 
 ```bash
 make cluster/down
