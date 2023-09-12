@@ -18,7 +18,7 @@ import { KeyValuePair } from 'utils';
 import { UserActions } from 'utils/authorization';
 import { PLUGIN_ROOT } from 'utils/consts';
 
-import { form } from './OutgoingWebhookForm.config';
+import { createForm } from './OutgoingWebhookForm.config';
 
 import styles from 'containers/OutgoingWebhookForm/OutgoingWebhookForm.module.css';
 
@@ -46,9 +46,10 @@ const OutgoingWebhookForm = observer((props: OutgoingWebhookFormProps) => {
     action === WebhookFormActionType.EDIT_SETTINGS ? WebhookTabs.Settings.key : WebhookTabs.LastRun.key
   );
 
-  const { outgoingWebhookStore } = useStore();
+  const { outgoingWebhookStore, outgoingWebhookPresetsStore } = useStore();
   const isNew = action === WebhookFormActionType.NEW;
   const isNewOrCopy = isNew || action === WebhookFormActionType.COPY;
+  const form = createForm(outgoingWebhookPresetsStore);
 
   const handleSubmit = useCallback(
     (data: Partial<OutgoingWebhook>) => {
@@ -251,7 +252,8 @@ const WebhookTabsContent: React.FC<WebhookTabsProps> = ({
   formElement,
 }) => {
   const [confirmationModal, setConfirmationModal] = useState<ConfirmModalProps>(undefined);
-
+  const { outgoingWebhookPresetsStore } = useStore();
+  const form = createForm(outgoingWebhookPresetsStore);
   return (
     <div className={cx('tabs__content')}>
       {confirmationModal && (

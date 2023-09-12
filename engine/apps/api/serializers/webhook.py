@@ -31,7 +31,7 @@ class WebhookSerializer(serializers.ModelSerializer):
     organization = serializers.HiddenField(default=CurrentOrganizationDefault())
     team = TeamPrimaryKeyRelatedField(allow_null=True, default=CurrentTeamDefault())
     user = serializers.HiddenField(default=CurrentUserDefault())
-    trigger_type = serializers.CharField(required=True)
+    trigger_type = serializers.CharField(allow_null=True, required=False)
     forward_all = serializers.BooleanField(allow_null=True, required=False)
     last_response_log = serializers.SerializerMethodField()
     trigger_type_name = serializers.SerializerMethodField()
@@ -59,10 +59,10 @@ class WebhookSerializer(serializers.ModelSerializer):
             "trigger_type_name",
             "last_response_log",
             "integration_filter",
+            "preset",
         ]
         extra_kwargs = {
             "name": {"required": True, "allow_null": False, "allow_blank": False},
-            "url": {"required": True, "allow_null": False, "allow_blank": False},
         }
 
         validators = [UniqueTogetherValidator(queryset=Webhook.objects.all(), fields=["name", "organization"])]

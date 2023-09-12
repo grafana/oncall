@@ -724,7 +724,7 @@ INSTALLED_ONCALL_INTEGRATIONS = [
 ]
 
 INSTALLED_WEBHOOK_PRESETS = [
-    "apps.webhooks.presets.custom_webhook",
+    "apps.webhooks.presets.simple",
 ]
 
 if IS_OPEN_SOURCE:

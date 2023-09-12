@@ -20,7 +20,7 @@ import { GlobalSettingStore } from 'models/global_setting/global_setting';
 import { GrafanaTeamStore } from 'models/grafana_team/grafana_team';
 import { HeartbeatStore } from 'models/heartbeat/heartbeat';
 import { OrganizationStore } from 'models/organization/organization';
-import { OutgoingWebhookStore } from 'models/outgoing_webhook/outgoing_webhook';
+import { OutgoingWebhookPresetStore, OutgoingWebhookStore } from 'models/outgoing_webhook/outgoing_webhook';
 import { ResolutionNotesStore } from 'models/resolution_note/resolution_note';
 import { ScheduleStore } from 'models/schedule/schedule';
 import { SlackStore } from 'models/slack/slack';
@@ -93,6 +93,7 @@ export class RootBaseStore {
   grafanaTeamStore = new GrafanaTeamStore(this);
   alertReceiveChannelStore = new AlertReceiveChannelStore(this);
   outgoingWebhookStore = new OutgoingWebhookStore(this);
+  outgoingWebhookPresetsStore = new OutgoingWebhookPresetStore(this);
   alertReceiveChannelFiltersStore = new AlertReceiveChannelFiltersStore(this);
   escalationChainStore = new EscalationChainStore(this);
   escalationPolicyStore = new EscalationPolicyStore(this);

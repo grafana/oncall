@@ -4,7 +4,7 @@ import BaseStore from 'models/base_store';
 import { makeRequest } from 'network';
 import { RootStore } from 'state';
 
-import { OutgoingWebhook } from './outgoing_webhook.types';
+import { OutgoingWebhook, OutgoingWebhookPreset } from './outgoing_webhook.types';
 
 export class OutgoingWebhookStore extends BaseStore {
   @observable.shallow
@@ -96,5 +96,48 @@ export class OutgoingWebhookStore extends BaseStore {
       method: 'POST',
       data: { template_name, template_body, payload },
     });
+  }
+}
+
+export class OutgoingWebhookPresetStore extends BaseStore {
+  @observable.shallow
+  items: { [id: string]: OutgoingWebhookPreset } = {};
+
+  @observable.shallow
+  searchResult: { [key: string]: Array<OutgoingWebhookPreset['id']> } = {};
+
+  constructor(rootStore: RootStore) {
+    super(rootStore);
+
+    this.path = '/webhooks/preset_options';
+  }
+
+  @action
+  async updateItems(query = '') {
+    const results = await this.getAll();
+
+    this.items = {
+      ...this.items,
+      ...results.reduce(
+        (acc: { [key: number]: OutgoingWebhookPreset }, item: OutgoingWebhookPreset) => ({
+          ...acc,
+          [item.id]: item,
+        }),
+        {}
+      ),
+    };
+
+    this.searchResult = {
+      ...this.searchResult,
+      [query]: results.map((item: OutgoingWebhookPreset) => item.id),
+    };
+  }
+
+  getSearchResult(query = '') {
+    if (!this.searchResult[query]) {
+      return undefined;
+    }
+
+    return this.searchResult[query].map((id: OutgoingWebhookPreset['id']) => this.items[id]);
   }
 }

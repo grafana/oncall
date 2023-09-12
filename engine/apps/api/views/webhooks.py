@@ -185,24 +185,5 @@ class WebhooksView(TeamFilteringMixin, PublicPrimaryKeyMixin, ModelViewSet):
 
     @action(methods=["get"], detail=False)
     def preset_options(self, request):
-        choices = []
-        for webhook_preset_id, webhook_preset_title in WebhookPresetOptions.WEBHOOK_PRESET_CHOICES:
-            choices.append(
-                {
-                    "value": webhook_preset_id,
-                    "display_name": webhook_preset_title,
-                }
-            )
-        return Response(choices)
-
-    @action(methods=["get"], detail=False)
-    def preset(self, request):
-        preset_id = request.query_params.get("id", None)
-        if not preset_id:
-            raise BadRequest(detail="id query parameter is required")
-        if preset_id not in WebhookPresetOptions.WEBHOOK_PRESET_FACTORIES:
-            raise NotFound
-
-        webhook = WebhookPresetOptions.WEBHOOK_PRESET_FACTORIES[preset_id](self.request.auth.organization)
-        serializer = WebhookSerializer(webhook)
-        return Response(serializer.data)
+        result = list(WebhookPresetOptions.WEBHOOK_PRESET_CHOICES)
+        return Response(result)
