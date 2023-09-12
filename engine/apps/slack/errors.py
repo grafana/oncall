@@ -14,7 +14,7 @@ class UnexpectedResponse(typing.TypedDict):
 class SlackAPIError(Exception):
     """
     Base class for Slack API errors. To add a new error class, add a new subclass of SlackAPIError in this file.
-    See apps.slack.client.SlackClient._get_error_class for more details on how these are raised.
+    See get_error_class at the end of this file for more details on how these are raised.
     """
 
     errors: tuple[str, ...]
@@ -94,3 +94,17 @@ class SlackAPICannotDMBotError(SlackAPIError):
 
 class SlackAPIMethodNotSupportedForChannelTypeError(SlackAPIError):
     errors = ("method_not_supported_for_channel_type",)
+
+
+_error_to_error_class = {
+    error: error_class for error_class in SlackAPIError.__subclasses__() for error in error_class.errors
+}
+
+
+def get_error_class(response: UnexpectedResponse | SlackResponse) -> typing.Type[SlackAPIError]:
+    """Get an appropriate error class for the response"""
+
+    if isinstance(response, dict):  # UnexpectedResponse
+        return SlackAPIServerError
+
+    return _error_to_error_class.get(response["error"], SlackAPIError)

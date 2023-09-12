@@ -8,13 +8,7 @@ from slack_sdk.errors import SlackApiError as SlackSDKApiError
 from slack_sdk.http_retry import HttpRequest, HttpResponse, RetryHandler, RetryState, default_retry_handlers
 from slack_sdk.web import SlackResponse, WebClient
 
-from apps.slack.errors import (
-    SlackAPIError,
-    SlackAPIRatelimitError,
-    SlackAPIServerError,
-    SlackAPITokenError,
-    UnexpectedResponse,
-)
+from apps.slack.errors import SlackAPIRatelimitError, SlackAPIServerError, SlackAPITokenError, get_error_class
 
 if typing.TYPE_CHECKING:
     from apps.slack.models import SlackTeamIdentity
@@ -138,7 +132,7 @@ class SlackClient(WebClient):
             )
 
             # narrow down the error
-            error_class = self._get_error_class(e.response)
+            error_class = get_error_class(e.response)
 
             # mark / unmark token as revoked
             if error_class is SlackAPITokenError:
@@ -148,19 +142,6 @@ class SlackClient(WebClient):
 
             # raise the narrowed down error class
             raise error_class(e.response) from e
-
-    @staticmethod
-    def _get_error_class(response: UnexpectedResponse | SlackResponse) -> typing.Type[SlackAPIError]:
-        """Get an appropriate error class for the response"""
-
-        if isinstance(response, dict):  # UnexpectedResponse
-            return SlackAPIServerError
-
-        for error_class in SlackAPIError.__subclasses__():
-            if response["error"] in error_class.errors:
-                return error_class
-
-        return SlackAPIError
 
     def _mark_token_revoked(self) -> None:
         if not self.slack_team_identity.detected_token_revoked:
