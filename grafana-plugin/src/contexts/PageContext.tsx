@@ -5,4 +5,4 @@ interface PageContextInterface {
   setPageTitle?: (title: string) => void;
 }
 
-export const PageContext = createContext<PageContextInterface>({ pageTitle: '' });
+export const PageContext = createContext<PageContextInterface>({ pageTitle: undefined });
