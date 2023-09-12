@@ -293,6 +293,7 @@ steps:
 trigger:
   ref:
     include:
+      - refs/heads/iskhakov/add-base-image
       - refs/heads/main
       - refs/heads/dev
       - refs/tags/v*.*.*
