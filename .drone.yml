@@ -279,28 +279,26 @@ steps:
       # Ignore lines that start with #.
       - grep -v '^#' ./engine/base-image-version > .tags
 
-  - name: build and push oncall base docker image for arm64
-    image: plugins/docker
+  - name: build and push oncall base docker image
+    image: thegeeklab/drone-docker-buildx:24.1.0
+    # From the docs (https://drone-plugin-index.geekdocs.de/plugins/drone-docker-buildx/) regarding privileged=true:
+    #
+    # Be aware that the this plugin requires privileged capabilities, otherwise the integrated
+    # Docker daemon is not able to start.
+    privileged: true
     settings:
       repo: grafana/oncall-base
-      platform: linux/arm64
+      tags: latest,${DRONE_TAG}
+      platforms: linux/arm64/v8,linux/amd64
       dockerfile: engine/Dockerfile.base
       context: engine/
       password:
         from_secret: docker_password
       username:
         from_secret: docker_username
-  - name: build and push oncall base docker image for amd64
-    image: plugins/docker
-    settings:
-      repo: grafana/oncall-base
-      platform: linux/amd64
-      dockerfile: engine/Dockerfile.base
-      context: engine/
-      password:
-        from_secret: docker_password
-      username:
-        from_secret: docker_username
+    depends_on:
+      - set oncall base image version
+
 trigger:
   ref:
     include:
