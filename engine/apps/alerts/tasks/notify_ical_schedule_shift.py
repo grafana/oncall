@@ -6,7 +6,13 @@ from typing import TYPE_CHECKING
 from django.utils import timezone
 
 from apps.schedules.ical_utils import calculate_shift_diff, parse_event_uid
-from apps.slack.client import SlackAPIException, SlackAPITokenException, SlackClientWithErrorHandling
+from apps.slack.client import SlackClient
+from apps.slack.errors import (
+    SlackAPIChannelArchivedError,
+    SlackAPIChannelNotFoundError,
+    SlackAPIInvalidAuthError,
+    SlackAPITokenError,
+)
 from apps.slack.scenarios import scenario_step
 from common.custom_celery_tasks import shared_dedicated_queue_retry_task
 
@@ -146,7 +152,7 @@ def notify_ical_schedule_shift(schedule_pk):
     if len(new_shifts) > 0 or schedule.empty_oncall:
         task_logger.info(f"new_shifts: {new_shifts}")
         if schedule.notify_oncall_shift_freq != OnCallSchedule.NotifyOnCallShiftFreq.NEVER:
-            slack_client = SlackClientWithErrorHandling(schedule.organization.slack_team_identity.bot_access_token)
+            slack_client = SlackClient(schedule.organization.slack_team_identity)
             step = scenario_step.ScenarioStep.get_step("schedules", "EditScheduleShiftNotifyStep")
             report_blocks = step.get_report_blocks_ical(new_shifts, upcoming_shifts, schedule, schedule.empty_oncall)
 
@@ -156,11 +162,10 @@ def notify_ical_schedule_shift(schedule_pk):
                     blocks=report_blocks,
                     text=f"On-call shift for schedule {schedule.name} has changed",
                 )
-            except SlackAPITokenException:
+            except (
+                SlackAPITokenError,
+                SlackAPIChannelNotFoundError,
+                SlackAPIChannelArchivedError,
+                SlackAPIInvalidAuthError,
+            ):
                 pass
-            except SlackAPIException as e:
-                expected_exceptions = ["channel_not_found", "is_archived", "invalid_auth"]
-                if e.response["error"] in expected_exceptions:
-                    print(e)
-                else:
-                    raise e

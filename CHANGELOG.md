@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Notify user via Slack/mobile push-notification when their shift swap request is taken by @joeyorlando ([#2992](https://github.com/grafana/oncall/pull/2992))
 
+### Changed
+
+- Improve Slack error handling by @vadimkerr ([#3000](https://github.com/grafana/oncall/pull/3000))
+
 ### Fixed
 
 - Avoid task retries because of missing AlertGroupLogRecord on send_alert_group_signal ([#3001](https://github.com/grafana/oncall/pull/3001))

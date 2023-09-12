@@ -69,7 +69,7 @@ from apps.schedules.tests.factories import (
     OnCallScheduleICalFactory,
     ShiftSwapRequestFactory,
 )
-from apps.slack.client import SlackClientWithErrorHandling
+from apps.slack.client import SlackClient
 from apps.slack.tests.factories import (
     SlackChannelFactory,
     SlackMessageFactory,
@@ -144,7 +144,7 @@ def mock_slack_api_call(monkeypatch):
             "team": {"name": "TEST_TEAM"},
         }
 
-    monkeypatch.setattr(SlackClientWithErrorHandling, "api_call", mock_api_call)
+    monkeypatch.setattr(SlackClient, "api_call", mock_api_call)
 
 
 @pytest.fixture(autouse=True)
