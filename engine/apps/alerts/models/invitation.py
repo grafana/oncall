@@ -1,5 +1,6 @@
 import datetime
 import logging
+from functools import partial
 
 from django.db import models, transaction
 
@@ -92,8 +93,8 @@ class Invitation(models.Model):
             f"log record {log_record.pk} with type '{log_record.get_type_display()}'"
         )
 
-        tasks.send_alert_group_signal.apply_async((log_record.pk,))
-        tasks.invite_user_to_join_incident.apply_async((invitation.pk,))
+        transaction.on_commit(partial(tasks.send_alert_group_signal.delay, log_record.pk))
+        transaction.on_commit(partial(tasks.invite_user_to_join_incident.delay, invitation.pk))
 
     @staticmethod
     def stop_invitation(invitation_pk, user):
@@ -119,4 +120,4 @@ class Invitation(models.Model):
             f"call send_alert_group_signal for alert_group {invitation.alert_group.pk}, "
             f"log record {log_record.pk} with type '{log_record.get_type_display()}'"
         )
-        tasks.send_alert_group_signal.apply_async((log_record.pk,))
+        transaction.on_commit(partial(tasks.send_alert_group_signal.delay, log_record.pk))

@@ -256,7 +256,7 @@ class User(models.Model):
     def is_notification_allowed(self):
         return user_is_authorized(self, [RBACPermission.Permissions.NOTIFICATIONS_READ])
 
-    def get_username_with_slack_verbal(self, mention=False):
+    def get_username_with_slack_verbal(self, mention=False) -> str:
         slack_verbal = None
 
         if self.slack_user_identity:

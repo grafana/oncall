@@ -59,8 +59,6 @@ class BaseShiftSwapViewSet(ModelViewSet):
             new_state=shift_swap.insight_logs_serialized,
         )
 
-        update_shift_swap_request_message.apply_async((shift_swap.pk,))
-
         return ShiftSwapRequestSerializer(shift_swap).data
 
     def get_serializer_class(self):
@@ -78,8 +76,6 @@ class BaseShiftSwapViewSet(ModelViewSet):
         return self.serializer_class.setup_eager_loading(queryset)
 
     def perform_destroy(self, instance: ShiftSwapRequest) -> None:
-        # TODO: should we allow deleting a taken request?
-
         super().perform_destroy(instance)
         write_resource_insight_log(instance=instance, author=self.request.user, event=EntityEvent.DELETED)
 
