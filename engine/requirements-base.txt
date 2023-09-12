@@ -1,0 +1,17 @@
+# These dependencies are pre-installed into base image to increase build speed for different platforms
+cffi==1.15.1
+django-mirage-field==1.3.0
+django-redis-cache @ git+https://github.com/grafana/django-redis-cache.git@37fd75814b34775c657598fcb2309caafbcc4c59
+django-sns-view==0.1.2
+emoji==2.4.0
+fcm-django @ https://github.com/grafana/fcm-django/archive/refs/tags/v1.0.12r1.tar.gz#sha256=7ec7cd9d353fc9edf19a4acd4fa14090a31d83d02ac986c5e5e081dea29f564f
+grpcio==1.57.0
+grpcio-status==1.57.0
+hiredis==1.0.0
+humanize==0.5.1
+psutil==5.9.4
+psycopg2==2.9.3
+recurring-ical-events==0.1.16b0
+regex==2021.11.2
+slack-export-viewer==1.1.4
+twilio==6.37.0

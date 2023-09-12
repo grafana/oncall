@@ -1,0 +1,2 @@
+# This is the version of the base image grafana/oncall-base 
+python3.11.4-alpine3.18-1

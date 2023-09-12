@@ -1,0 +1,17 @@
+FROM python:3.11.4-alpine3.18 AS base
+
+RUN apk add \
+            python3-dev \
+            build-base \
+            linux-headers \
+            pcre-dev \
+            libffi-dev \
+            mariadb-connector-c-dev \
+            git \
+            postgresql-dev 
+
+COPY ./requirements-base.txt ./
+RUN pip install --upgrade pip setuptools wheel
+RUN pip install --no-cache-dir -r requirements-base.txt \
+  # Clean up
+  && rm requirements-base.txt
