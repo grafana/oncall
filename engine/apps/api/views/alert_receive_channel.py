@@ -18,6 +18,7 @@ from apps.api.serializers.alert_receive_channel import (
     FilterAlertReceiveChannelSerializer,
 )
 from apps.api.throttlers import DemoAlertThrottler
+from apps.api.views.labels import LabelsAssociatingMixin
 from apps.auth_token.auth import PluginAuthentication
 from apps.integrations.legacy_prefix import has_legacy_prefix, remove_legacy_prefix
 from common.api_helpers.exceptions import BadRequest
@@ -71,6 +72,7 @@ class AlertReceiveChannelView(
     FilterSerializerMixin,
     UpdateSerializerMixin,
     ModelViewSet,
+    LabelsAssociatingMixin,
 ):
     authentication_classes = (PluginAuthentication,)
     permission_classes = (IsAuthenticated, RBACPermission)
@@ -110,6 +112,9 @@ class AlertReceiveChannelView(
         "connect_contact_point": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
         "create_contact_point": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
         "disconnect_contact_point": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
+        "labels": [RBACPermission.Permissions.INTEGRATIONS_READ],
+        "associate_label": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
+        "remove_label": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
     }
 
     def perform_update(self, serializer):
@@ -148,6 +153,8 @@ class AlertReceiveChannelView(
 
         if not ignore_filtering_by_available_teams:
             queryset = queryset.filter(*self.available_teams_lookup_args).distinct()
+
+        queryset = self.filter_by_labels(queryset)
 
         return queryset
 

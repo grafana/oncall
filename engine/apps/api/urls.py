@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.urls import include, path, re_path
 
 from common.api_helpers.optional_slash_router import OptionalSlashRouter, optional_slash_path
@@ -13,6 +14,7 @@ from .views.escalation_chain import EscalationChainViewSet
 from .views.escalation_policy import EscalationPolicyView
 from .views.features import FeaturesAPIView
 from .views.integration_heartbeat import IntegrationHeartBeatView
+from .views.labels import LabelsCRUDView
 from .views.live_setting import LiveSettingViewSet
 from .views.on_call_shifts import OnCallShiftView
 from .views.organization import (
@@ -110,3 +112,6 @@ urlpatterns += [
     path(r"login/<backend>/", auth.overridden_login_slack_auth, name="slack-auth"),
     path(r"complete/<backend>/", auth.overridden_complete_slack_auth, name="complete-slack-auth"),
 ]
+
+if settings.FEATURE_LABELS_ENABLED:
+    urlpatterns += [path(r"labels", LabelsCRUDView.as_view(), name="labels")]
