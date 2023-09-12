@@ -66,6 +66,7 @@ def test_get_list_webhooks(webhook_internal_api_setup, make_user_auth_headers):
             "trigger_template": None,
             "trigger_type": "0",
             "trigger_type_name": "Escalation step",
+            "preset": None,
         }
     ]
 
@@ -108,6 +109,7 @@ def test_get_detail_webhook(webhook_internal_api_setup, make_user_auth_headers):
         "trigger_template": None,
         "trigger_type": "0",
         "trigger_type_name": "Escalation step",
+        "preset": None,
     }
 
     response = client.get(url, format="json", **make_user_auth_headers(user, token))
@@ -153,6 +155,7 @@ def test_create_webhook(webhook_internal_api_setup, make_user_auth_headers):
         },
         "trigger_template": None,
         "trigger_type_name": "Alert Group Created",
+        "preset": None,
     }
     assert response.status_code == status.HTTP_201_CREATED
     assert response.json() == expected_response
@@ -210,6 +213,7 @@ def test_create_valid_templated_field(webhook_internal_api_setup, make_user_auth
         },
         "trigger_template": None,
         "trigger_type_name": "Alert Group Created",
+        "preset": None,
     }
     # update expected value for changed field
     expected_response[field_name] = value
@@ -580,6 +584,7 @@ def test_webhook_field_masking(webhook_internal_api_setup, make_user_auth_header
         },
         "trigger_template": None,
         "trigger_type_name": "Alert Group Created",
+        "preset": None,
     }
 
     assert response.status_code == status.HTTP_201_CREATED
@@ -636,6 +641,7 @@ def test_webhook_copy(webhook_internal_api_setup, make_user_auth_headers):
         },
         "trigger_template": None,
         "trigger_type_name": "Alert Group Created",
+        "preset": None,
     }
 
     assert response3.status_code == status.HTTP_201_CREATED
