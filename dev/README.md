@@ -1,6 +1,6 @@
 # Developer quickstart
 
-- [Developing using kubernetes (beta)](#developing-using-kubernetes-beta)
+- [Developing using kubernetes and tilt (beta)](#developing-using-kubernetes-and-tilt-beta)
 - [Running the project with docker-compose](#running-the-project-with-docker-compose)
   - [`COMPOSE_PROFILES`](#compose_profiles)
   - [`GRAFANA_IMAGE`](#grafana_image)
@@ -45,25 +45,25 @@ This project uses:
 
 1. Create local k8s cluster:
 
-```bash
-make cluster/up
-```
+    ```bash
+    make cluster/up
+    ```
 
 2. Deploy the project:
 
-```bash
-tilt up
-```
+    ```bash
+    tilt up
+    ```
 
-3. Wait until all resources are green and open http://localhost:3000/a/grafana-oncall-app
+3. Wait until all resources are green and open <http://localhost:3000/a/grafana-oncall-app>
 
 4. Modify source code, backend and frontend will be hot reloaded
 
 5. Clean up the project by deleting the local k8s cluster:
 
-```bash
-make cluster/down
-```
+    ```bash
+    make cluster/down
+    ```
 
 ## Running the project with docker-compose
 
