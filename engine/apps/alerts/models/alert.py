@@ -1,11 +1,12 @@
 import hashlib
 import logging
 import typing
+from functools import partial
 from uuid import uuid4
 
 from django.conf import settings
 from django.core.validators import MinLengthValidator
-from django.db import models
+from django.db import models, transaction
 from django.db.models import JSONField
 
 from apps.alerts import tasks
@@ -163,7 +164,7 @@ class Alert(models.Model):
                         f"log record {log_record_for_root_incident.pk} with type "
                         f"'{log_record_for_root_incident.get_type_display()}'"
                     )
-                    tasks.send_alert_group_signal.apply_async((log_record_for_root_incident.pk,))
+                    transaction.on_commit(partial(tasks.send_alert_group_signal.delay, log_record_for_root_incident.pk))
                 except AlertGroup.DoesNotExist:
                     pass
 

@@ -20,18 +20,14 @@ logger.setLevel(logging.DEBUG)
 SHIFT_SWAP_PK_ACTION_KEY = "shift_swap_request_pk"
 
 
-def _schedule_slack_url(shift_swap_request) -> str:
-    schedule = shift_swap_request.schedule
-    return f"<{schedule.web_detail_page_link}|{schedule.name}>"
-
-
 class BaseShiftSwapRequestStep(scenario_step.ScenarioStep):
     def _generate_blocks(self, shift_swap_request: "ShiftSwapRequest") -> Block.AnyBlocks:
         pk = shift_swap_request.pk
 
         main_message_text = (
-            f"*New shift swap request for {_schedule_slack_url(shift_swap_request)}*\n"
-            f"Your teammate {shift_swap_request.beneficiary.get_username_with_slack_verbal()} has submitted a shift swap request."
+            f"*New shift swap request for {shift_swap_request.schedule_slack_url}*\n"
+            f"Your teammate {shift_swap_request.beneficiary.get_username_with_slack_verbal(True)} has submitted "
+            "a shift swap request."
         )
 
         datetime_format = SlackDateFormat.DATE_LONG_PRETTY
@@ -117,7 +113,10 @@ class BaseShiftSwapRequestStep(scenario_step.ScenarioStep):
                         "type": "section",
                         "text": {
                             "type": "mrkdwn",
-                            "text": f"✅ {shift_swap_request.benefactor.get_username_with_slack_verbal()} has accepted the shift swap request",
+                            "text": (
+                                f"✅ {shift_swap_request.benefactor.get_username_with_slack_verbal()} has "
+                                "accepted the shift swap request"
+                            ),
                         },
                     },
                 ),
@@ -172,6 +171,19 @@ class BaseShiftSwapRequestStep(scenario_step.ScenarioStep):
             blocks=self._generate_blocks(shift_swap_request),
         )
 
+    def post_message_to_thread(
+        self, shift_swap_request: "ShiftSwapRequest", blocks: Block.AnyBlocks, reply_broadcast=False
+    ) -> None:
+        if not shift_swap_request.slack_message:
+            return
+
+        self._slack_client.chat_postMessage(
+            channel=shift_swap_request.slack_message.channel_id,
+            thread_ts=shift_swap_request.slack_message.slack_id,
+            reply_broadcast=reply_broadcast,
+            blocks=blocks,
+        )
+
 
 class AcceptShiftSwapRequestStep(BaseShiftSwapRequestStep):
     def process_scenario(
@@ -202,8 +214,28 @@ class AcceptShiftSwapRequestStep(BaseShiftSwapRequestStep):
 
         self.update_message(shift_swap_request)
 
+    def post_request_taken_message_to_thread(self, shift_swap_request: "ShiftSwapRequest") -> None:
+        self.post_message_to_thread(
+            shift_swap_request,
+            [
+                typing.cast(
+                    Block.Section,
+                    {
+                        "type": "section",
+                        "text": {
+                            "type": "mrkdwn",
+                            "text": (
+                                f"{shift_swap_request.beneficiary.get_username_with_slack_verbal(True)} your teammate "
+                                f"{shift_swap_request.benefactor.get_username_with_slack_verbal()} has taken the shift swap request"
+                            ),
+                        },
+                    },
+                )
+            ],
+        )
 
-class ShiftSwapRequestFollowUp(scenario_step.ScenarioStep):
+
+class ShiftSwapRequestFollowUp(BaseShiftSwapRequestStep):
     @staticmethod
     def _generate_blocks(shift_swap_request: "ShiftSwapRequest") -> Block.AnyBlocks:
         # Time until shift swap starts (example: "14 days", "2 hours")
@@ -217,7 +249,7 @@ class ShiftSwapRequestFollowUp(scenario_step.ScenarioStep):
                     "text": {
                         "type": "mrkdwn",
                         "text": (
-                            f"⚠️ This shift swap request for {_schedule_slack_url(shift_swap_request)} is "
+                            f"⚠️ This shift swap request for {shift_swap_request.schedule_slack_url} is "
                             f"still open and will start in {delta}. Jump back into the thread and accept it if "
                             "you're available!"
                         ),
@@ -227,12 +259,7 @@ class ShiftSwapRequestFollowUp(scenario_step.ScenarioStep):
         ]
 
     def post_message(self, shift_swap_request: "ShiftSwapRequest") -> None:
-        self._slack_client.chat_postMessage(
-            channel=shift_swap_request.slack_message.channel_id,
-            thread_ts=shift_swap_request.slack_message.slack_id,
-            reply_broadcast=True,
-            blocks=self._generate_blocks(shift_swap_request),
-        )
+        self.post_message_to_thread(shift_swap_request, self._generate_blocks(shift_swap_request), True)
 
 
 STEPS_ROUTING: ScenarioRoute.RoutingSteps = [

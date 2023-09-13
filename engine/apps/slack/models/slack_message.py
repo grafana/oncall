@@ -5,11 +5,13 @@ import uuid
 
 from django.db import models
 
-from apps.slack.client import (
-    SlackAPIChannelArchivedException,
-    SlackAPIException,
-    SlackAPITokenException,
-    SlackClientWithErrorHandling,
+from apps.slack.client import SlackClient
+from apps.slack.errors import (
+    SlackAPIChannelArchivedError,
+    SlackAPIError,
+    SlackAPIFetchMembersFailedError,
+    SlackAPIMethodNotSupportedForChannelTypeError,
+    SlackAPITokenError,
 )
 
 if typing.TYPE_CHECKING:
@@ -78,27 +80,21 @@ class SlackMessage(models.Model):
         return self._slack_team_identity
 
     @property
-    def permalink(self):
-        if self.slack_team_identity is not None and self.cached_permalink is None:
-            sc = SlackClientWithErrorHandling(self.slack_team_identity.bot_access_token)
-            result = None
-            try:
-                result = sc.chat_getPermalink(channel=self.channel_id, message_ts=self.slack_id)
-            except SlackAPIException as e:
-                if e.response["error"] == "message_not_found":
-                    return "https://slack.com/resources/using-slack/page/404"
-                elif e.response["error"] == "channel_not_found":
-                    return "https://slack.com/resources/using-slack/page/404"
-
-            if result is not None and result["permalink"] is not None:
-                # Reconnect to DB in case we use read-only DB here.
-                _self = SlackMessage.objects.get(pk=self.pk)
-                _self.cached_permalink = result["permalink"]
-                _self.save()
-                self.cached_permalink = _self.cached_permalink
-
-        if self.cached_permalink is not None:
+    def permalink(self) -> typing.Optional[str]:
+        if self.cached_permalink or not self.slack_team_identity:
             return self.cached_permalink
+
+        try:
+            result = SlackClient(self.slack_team_identity).chat_getPermalink(
+                channel=self.channel_id, message_ts=self.slack_id
+            )
+        except SlackAPIError:
+            return None
+
+        self.cached_permalink = result["permalink"]
+        self.save(update_fields=["cached_permalink"])
+
+        return self.cached_permalink
 
     def send_slack_notification(self, user, alert_group, notification_policy):
         from apps.base.models import UserNotificationPolicyLogRecord
@@ -135,7 +131,7 @@ class SlackMessage(models.Model):
                 },
             }
         ]
-        sc = SlackClientWithErrorHandling(self.slack_team_identity.bot_access_token)
+        sc = SlackClient(self.slack_team_identity)
         channel_id = slack_message.channel_id
 
         try:
@@ -146,8 +142,7 @@ class SlackMessage(models.Model):
                 thread_ts=slack_message.slack_id,
                 unfurl_links=True,
             )
-        except SlackAPITokenException as e:
-            print(e)
+        except SlackAPITokenError:
             UserNotificationPolicyLogRecord(
                 author=user,
                 type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED,
@@ -159,8 +154,7 @@ class SlackMessage(models.Model):
                 notification_error_code=UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_IN_SLACK_TOKEN_ERROR,
             ).save()
             return
-        except SlackAPIChannelArchivedException as e:
-            print(e)
+        except SlackAPIChannelArchivedError:
             UserNotificationPolicyLogRecord(
                 author=user,
                 type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED,
@@ -186,24 +180,11 @@ class SlackMessage(models.Model):
                 channel_members = []
                 try:
                     channel_members = sc.conversations_members(channel=channel_id)["members"]
-                except SlackAPIException as e:
-                    if e.response["error"] == "fetch_members_failed":
-                        logger.warning(
-                            f"Unable to get members from slack conversation: 'fetch_members_failed'. "
-                            f"Slack team identity pk: {self.slack_team_identity.pk}.\n"
-                            f"{e}"
-                        )
-                    else:
-                        raise e
+                except SlackAPIFetchMembersFailedError:
+                    pass
 
                 if slack_user_identity.slack_id not in channel_members:
                     time.sleep(5)  # 2 messages in the same moment are ratelimited by Slack. Dirty hack.
                     slack_user_identity.send_link_to_slack_message(slack_message)
-        except SlackAPITokenException as e:
-            print(e)
-        except SlackAPIException as e:
-            if e.response["error"] == "method_not_supported_for_channel_type":
-                # It's ok, just a private channel. Passing
-                pass
-            else:
-                raise e
+        except (SlackAPITokenError, SlackAPIMethodNotSupportedForChannelTypeError):
+            pass

@@ -9,7 +9,9 @@ from django.db.models import JSONField
 from django.utils import timezone
 
 from apps.api.permissions import RBACPermission
-from apps.slack.client import SlackAPIException, SlackClientWithErrorHandling
+from apps.slack.client import SlackClient
+from apps.slack.errors import SlackAPIError, SlackAPIPermissionDeniedError
+from apps.slack.models import SlackTeamIdentity
 from apps.user_management.models.user import User
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
 
@@ -68,12 +70,12 @@ class SlackUserGroup(models.Model):
 
     @property
     def can_be_updated(self) -> bool:
-        sc = SlackClientWithErrorHandling(self.slack_team_identity.bot_access_token, timeout=5)
+        sc = SlackClient(self.slack_team_identity, timeout=5)
 
         try:
             sc.usergroups_update(usergroup=self.slack_id)
             return True
-        except (SlackAPIException, requests.exceptions.Timeout):
+        except (SlackAPIError, requests.exceptions.Timeout):
             return False
 
     @property
@@ -104,12 +106,11 @@ class SlackUserGroup(models.Model):
 
         try:
             self.update_members(slack_ids)
-        except SlackAPIException as e:
-            if e.response["error"] == "permission_denied":
-                logger.warning(f"Could not update usergroup {self.slack_id} due to permission_denied")
+        except SlackAPIPermissionDeniedError:
+            pass
 
     def update_members(self, slack_ids):
-        sc = SlackClientWithErrorHandling(self.slack_team_identity.bot_access_token)
+        sc = SlackClient(self.slack_team_identity)
 
         sc.usergroups_users_update(usergroup=self.slack_id, users=slack_ids)
 
@@ -123,59 +124,24 @@ class SlackUserGroup(models.Model):
         )
 
     @classmethod
-    def update_or_create_slack_usergroup_from_slack(cls, slack_id, slack_team_identity):
-        sc = SlackClientWithErrorHandling(slack_team_identity.bot_access_token)
-        bot_access_token_accepted = True
+    def update_or_create_slack_usergroup_from_slack(cls, slack_id: str, slack_team_identity: SlackTeamIdentity) -> None:
+        sc = SlackClient(slack_team_identity)
+        usergroups = sc.usergroups_list()["usergroups"]
+
+        usergroup = [ug for ug in usergroups if ug["id"] == slack_id][0]
         try:
-            usergroups_list = sc.usergroups_list()
-        except SlackAPIException as e:
-            if e.response["error"] == "not_allowed_token_type":
-                # Trying same request with access token. It is required due to migration to granular permissions
-                # and can be removed after clients reinstall their bots
-                try:
-                    sc_with_access_token = SlackClientWithErrorHandling(slack_team_identity.access_token)
-                    usergroups_list = sc_with_access_token.usergroups_list()
-                    bot_access_token_accepted = False
-                except SlackAPIException as err:
-                    if err.response["error"] == "missing_scope":
-                        return None, False
-                    else:
-                        raise err
-            elif e.response["error"] == "missing_scope":
-                return None, False
-            else:
-                raise e
+            members = sc.usergroups_users_list(usergroup=usergroup["id"])["users"]
+        except SlackAPIError:
+            return
 
-        for usergroup in usergroups_list["usergroups"]:
-            if usergroup["id"] == slack_id:
-                try:
-                    if bot_access_token_accepted:
-                        usergroups_users = sc.usergroups_users_list(usergroup=usergroup["id"])
-                    else:
-                        sc_with_access_token = SlackClientWithErrorHandling(slack_team_identity.access_token)
-                        usergroups_users = sc_with_access_token.usergroups_users_list(usergroup=usergroup["id"])
-                except SlackAPIException as e:
-                    if e.response["error"] == "no_such_subteam":
-                        logger.info("User group does not exist")
-                    else:
-                        logger.error(
-                            f"'usergroups.users.list' slack api error. "
-                            f"SlackTeamIdentity pk: {slack_team_identity.pk}\n{e}"
-                        )
-                else:
-                    usergroup_name = usergroup["name"]
-                    usergroup_handle = usergroup["handle"]
-                    usergroup_members = usergroups_users["users"]
-                    usergroup_is_active = usergroup["date_delete"] == 0
-
-                    return SlackUserGroup.objects.update_or_create(
-                        slack_id=usergroup["id"],
-                        slack_team_identity=slack_team_identity,
-                        defaults={
-                            "name": usergroup_name,
-                            "handle": usergroup_handle,
-                            "members": usergroup_members,
-                            "is_active": usergroup_is_active,
-                            "last_populated": timezone.now().date(),
-                        },
-                    )
+        SlackUserGroup.objects.update_or_create(
+            slack_id=usergroup["id"],
+            slack_team_identity=slack_team_identity,
+            defaults={
+                "name": usergroup["name"],
+                "handle": usergroup["handle"],
+                "members": members,
+                "is_active": usergroup["date_delete"] == 0,
+                "last_populated": timezone.now().date(),
+            },
+        )

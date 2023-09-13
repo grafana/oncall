@@ -2,6 +2,7 @@ import logging
 import typing
 
 from apps.slack.scenarios import scenario_step
+from apps.slack.scenarios.resolution_note import RESOLUTION_NOTE_EXCEPTIONS
 from apps.slack.types import EventPayload, EventType, MessageEventSubtype, PayloadType, ScenarioRoute
 
 if typing.TYPE_CHECKING:
@@ -75,7 +76,11 @@ class SlackChannelMessageEventStep(scenario_step.ScenarioStep):
             # SlackMessage instances without alert_group set (e.g., SSR Slack messages)
             return
 
-        result = self._slack_client.chat_getPermalink(channel=channel, message_ts=message_ts)
+        try:
+            result = self._slack_client.chat_getPermalink(channel=channel, message_ts=message_ts)
+        except RESOLUTION_NOTE_EXCEPTIONS:
+            return
+
         permalink = None
         if result["permalink"] is not None:
             permalink = result["permalink"]

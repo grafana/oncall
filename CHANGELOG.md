@@ -7,9 +7,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## v1.3.37 (2023-09-12)
+
+### Added
+
+- Notify user via Slack/mobile push-notification when their shift swap request is taken by @joeyorlando ([#2992](https://github.com/grafana/oncall/pull/2992))
+
+### Changed
+
+- Improve Slack error handling by @vadimkerr ([#3000](https://github.com/grafana/oncall/pull/3000))
+
+### Fixed
+
+- Avoid task retries because of missing AlertGroupLogRecord on send_alert_group_signal ([#3001](https://github.com/grafana/oncall/pull/3001))
+- Update escalation policies public API to handle new webhooks ([#2999](https://github.com/grafana/oncall/pull/2999))
+
+## v1.3.36 (2023-09-07)
+
 ### Added
 
 - Add option to create new contact point for existing integrations ([#2909](https://github.com/grafana/oncall/issues/2909))
+
+### Changed
+
+- Enable email notification step by default on Helm by @vadimkerr ([#2975](https://github.com/grafana/oncall/pull/2975))
+- Handle slack resolution note errors consistently ([#2976](https://github.com/grafana/oncall/pull/2976))
+
+### Fixed
+
+- Don't update Slack user groups for deleted organizations by @vadimkerr ([#2985](https://github.com/grafana/oncall/pull/2985))
+- Fix Slack integration leftovers after disconnecting by @vadimkerr ([#2986](https://github.com/grafana/oncall/pull/2986))
+- Fix handling Slack rate limits by @vadimkerr ([#2991](https://github.com/grafana/oncall/pull/2991))
 
 ## v1.3.35 (2023-09-05)
 
@@ -51,6 +79,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fix for Cloud plugin install not refreshing page after completion ([2974](https://github.com/grafana/oncall/issues/2874))
 - Fix escalation snapshot building if user was deleted @Ferril ([#2954](https://github.com/grafana/oncall/pull/2954))
+
+### Added
+
+- ([Use Tilt for local development](https://github.com/grafana/oncall/pull/1396))
+
+### Changed
+
+- Update slack schedule shift-changed notification ([#2949](https://github.com/grafana/oncall/pull/2949))
 
 ## v1.3.30 (2023-08-31)
 

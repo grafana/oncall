@@ -4,10 +4,11 @@ from datetime import timedelta
 from django.utils.functional import cached_property
 from rest_framework import fields, serializers
 
-from apps.alerts.models import CustomButton, EscalationChain, EscalationPolicy
+from apps.alerts.models import EscalationChain, EscalationPolicy
 from apps.schedules.models import OnCallSchedule
 from apps.slack.models import SlackUserGroup
 from apps.user_management.models import User
+from apps.webhooks.models import Webhook
 from common.api_helpers.custom_fields import (
     CustomTimeField,
     OrganizationFilteredPrimaryKeyRelatedField,
@@ -36,6 +37,15 @@ class EscalationPolicyTypeField(fields.CharField):
         return step_type
 
 
+class WebhookTransitionField(OrganizationFilteredPrimaryKeyRelatedField):
+    def get_attribute(self, instance):
+        value = super().get_attribute(instance)
+        if value is None:
+            # fallback to the custom button old value
+            value = instance.custom_button_trigger
+        return value
+
+
 class EscalationPolicySerializer(EagerLoadingMixin, OrderedModelSerializer):
     id = serializers.CharField(read_only=True, source="public_primary_key")
     escalation_chain_id = OrganizationFilteredPrimaryKeyRelatedField(
@@ -62,10 +72,10 @@ class EscalationPolicySerializer(EagerLoadingMixin, OrderedModelSerializer):
         source="notify_to_group",
         filter_field="slack_team_identity__organizations",
     )
-    action_to_trigger = OrganizationFilteredPrimaryKeyRelatedField(
-        queryset=CustomButton.objects,
+    action_to_trigger = WebhookTransitionField(
+        queryset=Webhook.objects,
         required=False,
-        source="custom_button_trigger",
+        source="custom_webhook",
     )
     important = serializers.BooleanField(required=False)
     notify_if_time_from = CustomTimeField(required=False, source="from_time")
@@ -163,7 +173,7 @@ class EscalationPolicySerializer(EagerLoadingMixin, OrderedModelSerializer):
             fields_to_remove.remove("persons_to_notify_next_each_time")
         elif step in [EscalationPolicy.STEP_NOTIFY_GROUP, EscalationPolicy.STEP_NOTIFY_GROUP_IMPORTANT]:
             fields_to_remove.remove("group_to_notify")
-        elif step == EscalationPolicy.STEP_TRIGGER_CUSTOM_BUTTON:
+        elif step in (EscalationPolicy.STEP_TRIGGER_CUSTOM_BUTTON, EscalationPolicy.STEP_TRIGGER_CUSTOM_WEBHOOK):
             fields_to_remove.remove("action_to_trigger")
         elif step == EscalationPolicy.STEP_NOTIFY_IF_TIME:
             fields_to_remove.remove("notify_if_time_from")
@@ -189,6 +199,7 @@ class EscalationPolicySerializer(EagerLoadingMixin, OrderedModelSerializer):
             "notify_schedule",
             "notify_to_group",
             "custom_button_trigger",
+            "custom_webhook",
             "from_time",
             "to_time",
             "num_alerts_in_window",
@@ -196,6 +207,10 @@ class EscalationPolicySerializer(EagerLoadingMixin, OrderedModelSerializer):
         ]
         step = validated_data.get("step")
         important = validated_data.pop("important", None)
+
+        if step == EscalationPolicy.STEP_TRIGGER_CUSTOM_BUTTON and validated_data.get("custom_webhook"):
+            # migrate step to webhook
+            step = validated_data["step"] = EscalationPolicy.STEP_TRIGGER_CUSTOM_WEBHOOK
 
         if step in [EscalationPolicy.STEP_NOTIFY_SCHEDULE, EscalationPolicy.STEP_NOTIFY_SCHEDULE_IMPORTANT]:
             validated_data_fields_to_remove.remove("notify_schedule")
@@ -211,6 +226,8 @@ class EscalationPolicySerializer(EagerLoadingMixin, OrderedModelSerializer):
             validated_data_fields_to_remove.remove("notify_to_group")
         elif step == EscalationPolicy.STEP_TRIGGER_CUSTOM_BUTTON:
             validated_data_fields_to_remove.remove("custom_button_trigger")
+        elif step == EscalationPolicy.STEP_TRIGGER_CUSTOM_WEBHOOK:
+            validated_data_fields_to_remove.remove("custom_webhook")
         elif step == EscalationPolicy.STEP_NOTIFY_IF_TIME:
             validated_data_fields_to_remove.remove("from_time")
             validated_data_fields_to_remove.remove("to_time")
@@ -262,6 +279,8 @@ class EscalationPolicyUpdateSerializer(EscalationPolicySerializer):
                     instance.notify_to_group = None
                 if step != EscalationPolicy.STEP_TRIGGER_CUSTOM_BUTTON:
                     instance.custom_button_trigger = None
+                if step != EscalationPolicy.STEP_TRIGGER_CUSTOM_WEBHOOK:
+                    instance.custom_webhook = None
                 if step != EscalationPolicy.STEP_NOTIFY_IF_TIME:
                     instance.from_time = None
                     instance.to_time = None

@@ -78,16 +78,27 @@ def test_status_deleted(shift_swap_request_setup) -> None:
     assert ssr.is_deleted is True
 
 
+@patch("apps.schedules.tasks.shift_swaps.update_shift_swap_request_message")
+@patch("apps.schedules.tasks.shift_swaps.notify_beneficiary_about_taken_shift_swap_request")
+@patch("apps.schedules.models.shift_swap_request.refresh_ical_final_schedule")
 @pytest.mark.django_db
-def test_take(shift_swap_request_setup) -> None:
+def test_take(
+    mock_refresh_final,
+    mock_notify_beneficiary_about_taken_shift_swap_request,
+    mock_update_shift_swap_request_message,
+    shift_swap_request_setup,
+) -> None:
     ssr, _, benefactor = shift_swap_request_setup()
     original_updated_at = ssr.updated_at
 
-    with patch("apps.schedules.models.shift_swap_request.refresh_ical_final_schedule") as mock_refresh_final:
-        ssr.take(benefactor)
+    ssr.take(benefactor)
 
     assert ssr.benefactor == benefactor
     assert ssr.updated_at != original_updated_at
+
+    mock_update_shift_swap_request_message.apply_async.assert_called_once_with((ssr.pk,))
+    mock_notify_beneficiary_about_taken_shift_swap_request.apply_async.assert_called_once_with((ssr.pk,))
+
     # final schedule refresh was triggered
     assert mock_refresh_final.apply_async.called_with((ssr.schedule.pk,))
 

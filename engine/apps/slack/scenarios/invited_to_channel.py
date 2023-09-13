@@ -3,7 +3,7 @@ import typing
 
 from django.utils import timezone
 
-from apps.slack.client import SlackClientWithErrorHandling
+from apps.slack.client import SlackClient
 from apps.slack.scenarios import scenario_step
 from apps.slack.types import EventPayload, EventType, PayloadType, ScenarioRoute
 
@@ -23,7 +23,7 @@ class InvitedToChannelStep(scenario_step.ScenarioStep):
     ) -> None:
         if payload["event"]["user"] == slack_team_identity.bot_user_id:
             channel_id = payload["event"]["channel"]
-            slack_client = SlackClientWithErrorHandling(slack_team_identity.bot_access_token)
+            slack_client = SlackClient(slack_team_identity)
             channel = slack_client.conversations_info(channel=channel_id)["channel"]
 
             slack_team_identity.cached_channels.update_or_create(

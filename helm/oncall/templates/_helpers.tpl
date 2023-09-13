@@ -85,23 +85,6 @@ Create the name of the service account to use
 {{- printf "%s-%s" .Release.Name "redis" | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
-{{- define "oncall.volumes" -}}
-{{- if .Values.oncall.devMode }}
-volumes:
-  - name: dev-reloaded-engine
-    hostPath:
-      path: /engine
-{{- end }}
-{{- end }}
-
-{{- define "oncall.volumeMounts" -}}
-{{- if .Values.oncall.devMode }}
-volumeMounts:
-  - mountPath: /etc/app
-    name: dev-reloaded-engine
-{{- end }}
-{{- end }}
-
 {{- define "oncall.initContainer" }}
 - name: wait-for-db
   image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
@@ -116,7 +99,6 @@ volumeMounts:
     {{- include "snippet.db.env" . | nindent 4 }}
     {{- include "snippet.broker.env" . | nindent 4 }}
     {{- include "oncall.extraEnvs" . | nindent 4 }}
-  {{- include "oncall.volumeMounts" . | nindent 2 }}
 {{- end }}
 
 {{- define "oncall.extraEnvs" -}}

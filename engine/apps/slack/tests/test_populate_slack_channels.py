@@ -3,7 +3,7 @@ from unittest.mock import patch
 import pytest
 from django.utils import timezone
 
-from apps.slack.client import SlackClientWithErrorHandling
+from apps.slack.client import SlackClient
 from apps.slack.tasks import populate_slack_channels_for_team
 
 
@@ -35,9 +35,7 @@ def test_populate_slack_channels_for_team(make_organization_with_slack_team_iden
         False,
     )
 
-    with patch.object(
-        SlackClientWithErrorHandling, "paginated_api_call_with_ratelimit", return_value=(response, cursor, rate_limited)
-    ):
+    with patch.object(SlackClient, "paginated_api_call_with_ratelimit", return_value=(response, cursor, rate_limited)):
         populate_slack_channels_for_team(slack_team_identity.pk)
 
     channels = slack_team_identity.cached_channels.all()
@@ -110,7 +108,7 @@ def test_populate_slack_channels_for_team_ratelimit(
     expected_channel_ids = {"C111111111", "C222222222", "C333333333"}
 
     with patch.object(
-        SlackClientWithErrorHandling,
+        SlackClient,
         "paginated_api_call_with_ratelimit",
         return_value=(response_1, cursor_1, rate_limited_1),
     ):
@@ -131,7 +129,7 @@ def test_populate_slack_channels_for_team_ratelimit(
     assert mocked_start_populate_slack_channels_for_team.call_count == 1
 
     with patch.object(
-        SlackClientWithErrorHandling,
+        SlackClient,
         "paginated_api_call_with_ratelimit",
         return_value=(response_2, cursor_2, rate_limited_2),
     ):
@@ -152,7 +150,7 @@ def test_populate_slack_channels_for_team_ratelimit(
     assert mocked_start_populate_slack_channels_for_team.call_count == 2
 
     with patch.object(
-        SlackClientWithErrorHandling,
+        SlackClient,
         "paginated_api_call_with_ratelimit",
         return_value=(response_3, cursor_3, rate_limited_3),
     ):

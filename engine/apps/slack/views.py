@@ -15,7 +15,8 @@ from rest_framework.views import APIView
 from apps.api.permissions import RBACPermission
 from apps.auth_token.auth import PluginAuthentication
 from apps.base.utils import live_settings
-from apps.slack.client import SlackAPIException, SlackAPITokenException, SlackClientWithErrorHandling
+from apps.slack.client import SlackClient
+from apps.slack.errors import SlackAPIError
 from apps.slack.scenarios.alertgroup_appearance import STEPS_ROUTING as ALERTGROUP_APPEARANCE_ROUTING
 
 # Importing routes from scenarios
@@ -41,6 +42,7 @@ from apps.user_management.models import Organization
 from common.insight_log import ChatOpsEvent, ChatOpsTypePlug, write_chatops_insight_log
 from common.oncall_gateway import delete_slack_connector
 
+from .errors import SlackAPITokenError
 from .models import SlackMessage, SlackTeamIdentity, SlackUserIdentity
 
 SCENARIOS_ROUTES: ScenarioRoute.RoutingSteps = []
@@ -189,14 +191,12 @@ class SlackEventApiEndpointView(APIView):
             logger.info(f"Team {slack_team_identity.slack_id} has no keys, dropping request.")
             return Response()
 
-        sc = SlackClientWithErrorHandling(slack_team_identity.bot_access_token)
+        sc = SlackClient(slack_team_identity)
 
-        if slack_team_identity.detected_token_revoked is not None:
-            # check if token is still invalid
+        if slack_team_identity.detected_token_revoked:
             try:
-                sc.auth_test(team=slack_team_identity)
-            except SlackAPITokenException:
-                logger.info(f"Team {slack_team_identity.slack_id} has revoked token, dropping request.")
+                sc.auth_test()  # check if token is still invalid
+            except SlackAPITokenError:
                 return Response(status=200)
 
         Step = None
@@ -504,14 +504,12 @@ class SlackEventApiEndpointView(APIView):
             step = ScenarioStep(slack_team_identity)
             try:
                 step.open_warning_window(payload, warning_text)
-            except SlackAPIException as e:
+            except SlackAPIError as e:
                 logger.info(
                     f"Failed to open pop-up for unpopulated SlackTeamIdentity {slack_team_identity.pk}\n" f"Error: {e}"
                 )
 
-    def _open_warning_for_unconnected_user(
-        self, slack_client: SlackClientWithErrorHandling, payload: EventPayload
-    ) -> None:
+    def _open_warning_for_unconnected_user(self, slack_client: SlackClient, payload: EventPayload) -> None:
         if payload.get("trigger_id") is None:
             return
 
