@@ -94,6 +94,8 @@ class Webhook(models.Model):
         (TRIGGER_UNACKNOWLEDGE, "Unacknowledged"),
     )
 
+    ALL_TRIGGER_TYPES = [i[0] for i in TRIGGER_TYPES]
+
     PUBLIC_TRIGGER_TYPES_MAP = {
         TRIGGER_ESCALATION_STEP: "escalation",
         TRIGGER_ALERT_GROUP_CREATED: "alert group created",

@@ -13,6 +13,7 @@ class WebhookPresetOptions:
     )
 
     WEBHOOK_PRESET_CHOICES = [webhook_preset.metadata for webhook_preset in _config]
+    WEBHOOK_PRESET_METADATA = {webhook_preset.metadata["id"]: webhook_preset.metadata for webhook_preset in _config}
     WEBHOOK_PRESET_OVERRIDE = {
         webhook_preset.metadata["id"]: webhook_preset.override_webhook_parameters for webhook_preset in _config
     }

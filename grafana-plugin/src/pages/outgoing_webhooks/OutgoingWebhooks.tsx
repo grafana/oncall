@@ -186,7 +186,7 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
                       >
                         <WithPermissionControlTooltip userAction={UserActions.OutgoingWebhooksWrite}>
                           <Button variant="primary" icon="plus">
-                            Create
+                            New Webhook
                           </Button>
                         </WithPermissionControlTooltip>
                       </PluginLink>

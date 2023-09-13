@@ -3,7 +3,8 @@ from apps.webhooks.models import Webhook
 metadata = {
     "id": "simple_webhook",
     "name": "Simple",
-    "description": "A simple webhook which POSTs the alert group data to a given URL.  Triggered as an escalation step and hiding advanced webhook parameters",
+    "logo": "webhook",
+    "description": "A simple webhook which sends the alert group data to a given URL. Triggered as an escalation step.",
     "ignored_fields": [
         "trigger_type",
         "http_method",

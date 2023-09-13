@@ -4,7 +4,8 @@ from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
 
 from apps.webhooks.models import Webhook, WebhookResponse
-from apps.webhooks.models.webhook import WEBHOOK_FIELD_PLACEHOLDER
+from apps.webhooks.models.webhook import PUBLIC_WEBHOOK_HTTP_METHODS, WEBHOOK_FIELD_PLACEHOLDER
+from apps.webhooks.presets.preset_options import WebhookPresetOptions
 from common.api_helpers.custom_fields import TeamPrimaryKeyRelatedField
 from common.api_helpers.utils import CurrentOrganizationDefault, CurrentTeamDefault, CurrentUserDefault
 from common.jinja_templater import apply_jinja_template
@@ -31,7 +32,6 @@ class WebhookSerializer(serializers.ModelSerializer):
     organization = serializers.HiddenField(default=CurrentOrganizationDefault())
     team = TeamPrimaryKeyRelatedField(allow_null=True, default=CurrentTeamDefault())
     user = serializers.HiddenField(default=CurrentUserDefault())
-    trigger_type = serializers.CharField(allow_null=True, required=False)
     forward_all = serializers.BooleanField(allow_null=True, required=False)
     last_response_log = serializers.SerializerMethodField()
     trigger_type_name = serializers.SerializerMethodField()
@@ -111,9 +111,25 @@ class WebhookSerializer(serializers.ModelSerializer):
         return self._validate_template_field(headers)
 
     def validate_url(self, url):
-        if not url:
+        if self.is_field_ignored("url"):
             return None
+        if not url:
+            raise serializers.ValidationError(detail="is required")
         return self._validate_template_field(url)
+
+    def validate_http_method(self, http_method):
+        if self.is_field_ignored("http_method"):
+            return None
+        if http_method not in PUBLIC_WEBHOOK_HTTP_METHODS:
+            raise serializers.ValidationError(detail=f"must be one of {PUBLIC_WEBHOOK_HTTP_METHODS}")
+        return http_method
+
+    def validate_trigger_type(self, trigger_type):
+        if self.is_field_ignored("trigger_type"):
+            return None
+        if trigger_type not in Webhook.ALL_TRIGGER_TYPES:
+            raise serializers.ValidationError(detail="is required")
+        return trigger_type
 
     def validate_data(self, data):
         if not data:
@@ -133,3 +149,12 @@ class WebhookSerializer(serializers.ModelSerializer):
         if obj.trigger_type is not None:
             trigger_type_name = Webhook.TRIGGER_TYPES[int(obj.trigger_type)][1]
         return trigger_type_name
+
+    def is_field_ignored(self, field_name):
+        preset_id = self.initial_data["preset"]
+        if preset_id:
+            preset_metadata = WebhookPresetOptions.WEBHOOK_PRESET_METADATA[preset_id]
+            ignored_fields = preset_metadata["ignored_fields"]
+            if field_name not in ignored_fields:
+                return False
+        return True

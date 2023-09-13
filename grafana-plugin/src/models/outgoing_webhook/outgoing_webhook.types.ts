@@ -36,5 +36,6 @@ export interface OutgoingWebhookPreset {
   id: string;
   name: string;
   description: string;
+  logo: string;
   ignored_fields: string[];
 }

@@ -4,7 +4,7 @@ import { SelectableValue } from '@grafana/data';
 import Emoji from 'react-emoji-render';
 
 import { FormItem, FormItemType } from 'components/GForm/GForm.types';
-import { OutgoingWebhookPresetStore } from 'models/outgoing_webhook/outgoing_webhook';
+import { OutgoingWebhookPreset } from 'models/outgoing_webhook/outgoing_webhook.types';
 import { KeyValuePair } from 'utils';
 import { generateAssignToTeamInputDescription } from 'utils/consts';
 
@@ -19,7 +19,7 @@ export const WebhookTriggerType = {
   Unacknowledged: new KeyValuePair('7', 'Unacknowledged'),
 };
 
-export function createForm(store: OutgoingWebhookPresetStore): { name: string; fields: FormItem[] } {
+export function createForm(presets: OutgoingWebhookPreset[]): { name: string; fields: FormItem[] } {
   return {
     name: 'OutgoingWebhook',
     fields: [
@@ -33,18 +33,6 @@ export function createForm(store: OutgoingWebhookPresetStore): { name: string; f
         label: 'Enabled',
         normalize: (value) => Boolean(value),
         type: FormItemType.Switch,
-      },
-      {
-        name: 'preset',
-        label: 'Preset',
-        type: FormItemType.GSelect,
-        extra: {
-          modelName: 'outgoingWebhookPresetsStore',
-          displayField: 'name',
-          valueField: 'id',
-          showSearch: true,
-          allowClear: true,
-        },
       },
       {
         name: 'team',
@@ -103,7 +91,7 @@ export function createForm(store: OutgoingWebhookPresetStore): { name: string; f
           ],
         },
         isVisible: (data) => {
-          return isPresetFieldVisible(store, data.preset, 'trigger_type');
+          return isPresetFieldVisible(data.preset, presets, 'trigger_type');
         },
         normalize: (value) => value,
       },
@@ -135,7 +123,7 @@ export function createForm(store: OutgoingWebhookPresetStore): { name: string; f
             },
           ],
         },
-        isVisible: (data) => isPresetFieldVisible(store, data.preset, 'http_method'),
+        isVisible: (data) => isPresetFieldVisible(data.preset, presets, 'http_method'),
         normalize: (value) => value,
       },
       {
@@ -144,7 +132,7 @@ export function createForm(store: OutgoingWebhookPresetStore): { name: string; f
         type: FormItemType.MultiSelect,
         isVisible: (data) => {
           return (
-            isPresetFieldVisible(store, data.preset, 'integration_filter') &&
+            isPresetFieldVisible(data.preset, presets, 'integration_filter') &&
             data.trigger_type !== WebhookTriggerType.EscalationStep.key
           );
         },
@@ -166,7 +154,7 @@ export function createForm(store: OutgoingWebhookPresetStore): { name: string; f
           height: 30,
         },
         isVisible: (data) => {
-          return isPresetFieldVisible(store, data.preset, 'url');
+          return isPresetFieldVisible(data.preset, presets, 'url');
         },
       },
       {
@@ -178,21 +166,21 @@ export function createForm(store: OutgoingWebhookPresetStore): { name: string; f
           rows: 3,
         },
         isVisible: (data) => {
-          return isPresetFieldVisible(store, data.preset, 'headers');
+          return isPresetFieldVisible(data.preset, presets, 'headers');
         },
       },
       {
         name: 'username',
         type: FormItemType.Input,
         isVisible: (data) => {
-          return isPresetFieldVisible(store, data.preset, 'username');
+          return isPresetFieldVisible(data.preset, presets, 'username');
         },
       },
       {
         name: 'password',
         type: FormItemType.Password,
         isVisible: (data) => {
-          return isPresetFieldVisible(store, data.preset, 'password');
+          return isPresetFieldVisible(data.preset, presets, 'password');
         },
       },
       {
@@ -201,7 +189,7 @@ export function createForm(store: OutgoingWebhookPresetStore): { name: string; f
           'Value of the Authorization header, do not need to prefix with "Authorization:". For example: Bearer AbCdEf123456',
         type: FormItemType.Password,
         isVisible: (data) => {
-          return isPresetFieldVisible(store, data.preset, 'authorization_header');
+          return isPresetFieldVisible(data.preset, presets, 'authorization_header');
         },
       },
       {
@@ -213,7 +201,7 @@ export function createForm(store: OutgoingWebhookPresetStore): { name: string; f
           rows: 2,
         },
         isVisible: (data) => {
-          return isPresetFieldVisible(store, data.preset, 'trigger_template');
+          return isPresetFieldVisible(data.preset, presets, 'trigger_template');
         },
       },
       {
@@ -222,7 +210,7 @@ export function createForm(store: OutgoingWebhookPresetStore): { name: string; f
         type: FormItemType.Switch,
         description: "Forwards whole payload of the alert group and context data to the webhook's url as POST/PUT data",
         isVisible: (data) => {
-          return isPresetFieldVisible(store, data.preset, 'forward_all');
+          return isPresetFieldVisible(data.preset, presets, 'forward_all');
         },
       },
       {
@@ -233,19 +221,19 @@ export function createForm(store: OutgoingWebhookPresetStore): { name: string; f
           'Available variables: {{ event }}, {{ user }}, {{ alert_group }}, {{ alert_group_id }}, {{ alert_payload }}, {{ integration }}, {{ notified_users }}, {{ users_to_be_notified }}, {{ responses }}',
         extra: {},
         isVisible: (data) => {
-          return isPresetFieldVisible(store, data.preset, 'data');
+          return isPresetFieldVisible(data.preset, presets, 'data');
         },
       },
     ],
   };
 }
 
-function isPresetFieldVisible(store: OutgoingWebhookPresetStore, presetId: string, fieldName: string) {
-  if (!presetId) {
+function isPresetFieldVisible(presetId: string, presets: OutgoingWebhookPreset[], fieldName: string) {
+  if (presetId == null) {
     return true;
   }
-  const preset = store.items[presetId];
-  if (preset && preset.ignored_fields.includes(fieldName)) {
+  const selectedPreset = presets.find((item) => item.id === presetId);
+  if (selectedPreset && selectedPreset.ignored_fields.includes(fieldName)) {
     return false;
   }
   return true;
