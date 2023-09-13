@@ -54,7 +54,6 @@ class WebhooksView(TeamFilteringMixin, PublicPrimaryKeyMixin, ModelViewSet):
         "responses": [RBACPermission.Permissions.OUTGOING_WEBHOOKS_READ],
         "preview_template": [RBACPermission.Permissions.OUTGOING_WEBHOOKS_WRITE],
         "preset_options": [RBACPermission.Permissions.OUTGOING_WEBHOOKS_READ],
-        "preset": [RBACPermission.Permissions.OUTGOING_WEBHOOKS_WRITE],
     }
 
     model = Webhook
