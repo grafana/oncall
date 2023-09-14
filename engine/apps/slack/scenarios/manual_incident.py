@@ -5,8 +5,8 @@ from uuid import uuid4
 from django.conf import settings
 
 from apps.alerts.models import AlertReceiveChannel, ChannelFilter
-from apps.slack.client import SlackAPIException
 from apps.slack.constants import DIVIDER
+from apps.slack.errors import SlackAPIChannelNotFoundError
 from apps.slack.scenarios import scenario_step
 from apps.slack.types import (
     Block,
@@ -116,15 +116,12 @@ class FinishCreateIncidentFromSlashCommand(scenario_step.ScenarioStep):
                 user=slack_user_identity.slack_id,
                 text=":white_check_mark: Alert *{}* successfully submitted".format(title),
             )
-        except SlackAPIException as e:
-            if e.response["error"] == "channel_not_found":
-                self._slack_client.chat_postEphemeral(
-                    channel=slack_user_identity.im_channel_id,
-                    user=slack_user_identity.slack_id,
-                    text=":white_check_mark: Alert *{}* successfully submitted".format(title),
-                )
-            else:
-                raise e
+        except SlackAPIChannelNotFoundError:
+            self._slack_client.chat_postEphemeral(
+                channel=slack_user_identity.im_channel_id,
+                user=slack_user_identity.slack_id,
+                text=":white_check_mark: Alert *{}* successfully submitted".format(title),
+            )
 
         # Deprecated, use custom oncall property instead.
         # Update private metadata to use it in rendering:

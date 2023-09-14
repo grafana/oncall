@@ -4,8 +4,14 @@ import typing
 import requests
 from django.db import models
 
-from apps.slack.client import SlackAPIException, SlackAPITokenException, SlackClientWithErrorHandling
+from apps.slack.client import SlackClient
 from apps.slack.constants import SLACK_BOT_ID
+from apps.slack.errors import (
+    SlackAPICannotDMBotError,
+    SlackAPIInvalidAuthError,
+    SlackAPITokenError,
+    SlackAPIUserNotFoundError,
+)
 from apps.slack.scenarios.notified_user_not_in_channel import NotifiedUserNotInChannelStep
 from apps.user_management.models import Organization, User
 
@@ -133,7 +139,7 @@ class SlackUserIdentity(models.Model):
             },
         ]
 
-        sc = SlackClientWithErrorHandling(self.slack_team_identity.bot_access_token)
+        sc = SlackClient(self.slack_team_identity)
         return sc.chat_postMessage(
             channel=self.im_channel_id,
             text="You are invited to look at an alert group!",
@@ -154,32 +160,27 @@ class SlackUserIdentity(models.Model):
     @property
     def slack_login(self):
         if self.cached_slack_login is None or self.cached_slack_login == "slack_token_revoked_unable_to_cache_login":
-            sc = SlackClientWithErrorHandling(self.slack_team_identity.bot_access_token)
+            sc = SlackClient(self.slack_team_identity)
             try:
                 result = sc.users_info(user=self.slack_id, team=self.slack_team_identity)
                 self.cached_slack_login = result["user"]["name"]
                 self.save()
-            except SlackAPITokenException as e:
-                logger.warning("Unable to get slack login: token revoked\n" + str(e))
+            except SlackAPITokenError:
                 self.cached_slack_login = "slack_token_revoked_unable_to_cache_login"
                 self.save()
                 return "slack_token_revoked_unable_to_cache_login"
-            except SlackAPIException as e:
-                if e.response["error"] == "user_not_found":
-                    logger.warning("user_not_found " + str(e))
-                    self.cached_slack_login = "user_not_found"
-                    self.save()
-                elif e.response["error"] == "invalid_auth":
-                    return "no_enough_permissions_to_retrieve"
-                else:
-                    raise e
+            except SlackAPIUserNotFoundError:
+                self.cached_slack_login = "user_not_found"
+                self.save()
+            except SlackAPIInvalidAuthError:
+                return "no_enough_permissions_to_retrieve"
 
         return str(self.cached_slack_login)
 
     @property
     def timezone(self):
         if self.cached_timezone is None or self.cached_timezone == "None":
-            sc = SlackClientWithErrorHandling(self.slack_team_identity.bot_access_token)
+            sc = SlackClient(self.slack_team_identity)
             try:
                 result = sc.users_info(user=self.slack_id)
                 tz_from_slack = result["user"].get("tz", "UTC")
@@ -187,8 +188,8 @@ class SlackUserIdentity(models.Model):
                     tz_from_slack = "UTC"
                 self.cached_timezone = tz_from_slack
                 self.save(update_fields=["cached_timezone"])
-            except SlackAPITokenException as e:
-                print("Token revoked: " + str(e))
+            except SlackAPITokenError:
+                pass
             except requests.exceptions.Timeout:
                 # Do not save tz in case of timeout to try to load it later again
                 return "UTC"
@@ -198,25 +199,22 @@ class SlackUserIdentity(models.Model):
     @property
     def im_channel_id(self):
         if self.cached_im_channel_id is None:
-            sc = SlackClientWithErrorHandling(self.slack_team_identity.bot_access_token)
+            sc = SlackClient(self.slack_team_identity)
             try:
                 result = sc.conversations_open(users=self.slack_id, return_im=True)
                 self.cached_im_channel_id = result["channel"]["id"]
                 self.save()
-            except SlackAPIException as e:
-                if e.response["error"] == "cannot_dm_bot":
-                    logger.warning("Trying to DM bot " + str(e))
-                else:
-                    raise e
+            except SlackAPICannotDMBotError:
+                pass
 
         return self.cached_im_channel_id
 
     def update_profile_info(self):
-        sc = SlackClientWithErrorHandling(self.slack_team_identity.bot_access_token)
+        sc = SlackClient(self.slack_team_identity)
         logger.info("Update user profile info")
         try:
             result = sc.users_info(user=self.slack_id, team=self.slack_team_identity)
-        except SlackAPITokenException as e:
+        except SlackAPITokenError as e:
             logger.warning(f"Unable to get user info due token revoked or account inactive: {e}")
             result = None
         else:
