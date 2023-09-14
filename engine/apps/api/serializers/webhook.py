@@ -141,6 +141,11 @@ class WebhookSerializer(serializers.ModelSerializer):
             return False
         return data
 
+    def validate_preset(self, preset):
+        if self.instance and self.instance.preset != preset:
+            raise serializers.ValidationError(detail="once set cannot be modified")
+        return preset
+
     def get_last_response_log(self, obj):
         return WebhookResponseSerializer(obj.responses.all().last()).data
 
