@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+
+- Presets for webhooks @mderynck ([#2996](https://github.com/grafana/oncall/pull/2996))
+
 ### Fixed
 
 - Fix Slack access token length issue by @toolchainX ([#3016](https://github.com/grafana/oncall/pull/3016))

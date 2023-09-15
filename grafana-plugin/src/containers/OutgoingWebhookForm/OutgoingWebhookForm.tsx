@@ -190,14 +190,16 @@ const OutgoingWebhookForm = observer((props: OutgoingWebhookFormProps) => {
                   starting point to customize these connections.
                 </Text>
 
-                <div className={cx('search-integration')}>
-                  <Input
-                    autoFocus
-                    value={filterValue}
-                    placeholder="Search webhook presets ..."
-                    onChange={(e: ChangeEvent<HTMLInputElement>) => setFilterValue(e.currentTarget.value)}
-                  />
-                </div>
+                {presets.length > 8 && (
+                  <div className={cx('search-integration')}>
+                    <Input
+                      autoFocus
+                      value={filterValue}
+                      placeholder="Search webhook presets ..."
+                      onChange={(e: ChangeEvent<HTMLInputElement>) => setFilterValue(e.currentTarget.value)}
+                    />
+                  </div>
+                )}
 
                 <WebhookPresetBlocks presets={presets} onBlockClick={onBlockClick} />
               </VerticalGroup>
