@@ -123,6 +123,15 @@ DATABASE_PASSWORD = os.getenv("DATABASE_PASSWORD") or os.getenv("MYSQL_PASSWORD"
 DATABASE_HOST = os.getenv("DATABASE_HOST") or os.getenv("MYSQL_HOST")
 DATABASE_PORT = os.getenv("DATABASE_PORT") or os.getenv("MYSQL_PORT")
 
+DATABASE_OPTIONS = os.getenv("DATABASE_OPTIONS") or os.getenv("MYSQL_OPTIONS")
+if DATABASE_OPTIONS:
+    try:
+        DATABASE_OPTIONS = dict([ tuple(i.split("=")) for i in str(DATABASE_OPTIONS).split(" ")])
+    except:
+        raise Exception('Bad database options. Check DATABASE_OPTIONS variable')
+else:
+    DATABASE_OPTIONS = {}
+
 DATABASE_TYPE = os.getenv("DATABASE_TYPE", DatabaseTypes.MYSQL).lower()
 assert DATABASE_TYPE in {DatabaseTypes.MYSQL, DatabaseTypes.POSTGRESQL, DatabaseTypes.SQLITE3}
 
@@ -142,7 +151,7 @@ DATABASE_CONFIGS: DatabaseConfig = {
         "PASSWORD": DATABASE_PASSWORD,
         "HOST": DATABASE_HOST,
         "PORT": DATABASE_PORT,
-        "OPTIONS": {
+        "OPTIONS": DATABASE_OPTIONS | {
             "charset": "utf8mb4",
             "connect_timeout": 1,
         },
@@ -154,6 +163,7 @@ DATABASE_CONFIGS: DatabaseConfig = {
         "PASSWORD": DATABASE_PASSWORD,
         "HOST": DATABASE_HOST,
         "PORT": DATABASE_PORT,
+        "OPTIONS": DATABASE_OPTIONS,
     },
 }
 
@@ -172,11 +182,34 @@ REDIS_USERNAME = os.getenv("REDIS_USERNAME", "")
 REDIS_PASSWORD = os.getenv("REDIS_PASSWORD")
 REDIS_HOST = os.getenv("REDIS_HOST")
 REDIS_PORT = os.getenv("REDIS_PORT", 6379)
+REDIS_DATABASE = os.getenv("REDIS_DATABASE", 0)
 REDIS_PROTOCOL = os.getenv("REDIS_PROTOCOL", "redis")
 
 REDIS_URI = os.getenv("REDIS_URI")
 if not REDIS_URI:
-    REDIS_URI = f"{REDIS_PROTOCOL}://{REDIS_USERNAME}:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}"
+    REDIS_URI = f"{REDIS_PROTOCOL}://{REDIS_USERNAME}:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}/{REDIS_DATABASE}"
+
+REDIS_USE_SSL = os.getenv("REDIS_USE_SSL")
+if REDIS_USE_SSL:
+    import ssl
+
+    REDIS_SSL_CONFIG = {}
+
+    REDIS_SSL_CA_CERTS = os.getenv("REDIS_SSL_CA_CERTS")
+    if REDIS_SSL_CA_CERTS:
+        REDIS_SSL_CONFIG['ssl_ca_certs'] = REDIS_SSL_CA_CERTS
+
+    REDIS_SSL_CERTFILE = os.getenv("REDIS_SSL_CERTFILE")
+    if REDIS_SSL_CERTFILE:
+        REDIS_SSL_CONFIG['ssl_certfile'] = REDIS_SSL_CERTFILE
+
+    REDIS_SSL_KEYFILE = os.getenv("REDIS_SSL_KEYFILE")
+    if REDIS_SSL_KEYFILE:
+        REDIS_SSL_CONFIG['ssl_keyfile'] = REDIS_SSL_KEYFILE
+
+    REDIS_SSL_CERT_REQS = os.getenv("REDIS_SSL_CERT_REQS") # CERT_NONE, CERT_OPTIONAL, or CERT_REQUIRED
+    if REDIS_SSL_CERT_REQS:
+        REDIS_SSL_CONFIG['ssl_cert_reqs'] = getattr(ssl, str(REDIS_SSL_CERT_REQS).upper())
 
 # Cache
 CACHES = {
@@ -186,10 +219,10 @@ CACHES = {
             REDIS_URI,
         ],
         "OPTIONS": {
-            "DB": 1,
+            "DB": REDIS_DATABASE,
             "PARSER_CLASS": "redis.connection.HiredisParser",
             "CONNECTION_POOL_CLASS": "redis.BlockingConnectionPool",
-            "CONNECTION_POOL_CLASS_KWARGS": {
+            "CONNECTION_POOL_CLASS_KWARGS": REDIS_SSL_CONFIG | {
                 "max_connections": 50,
                 "timeout": 20,
             },
@@ -418,6 +451,8 @@ if BROKER_TYPE == BrokerTypes.RABBITMQ:
     CELERY_BROKER_URL = RABBITMQ_URI
 elif BROKER_TYPE == BrokerTypes.REDIS:
     CELERY_BROKER_URL = REDIS_URI
+    if REDIS_USE_SSL:
+        CELERY_BROKER_USE_SSL = REDIS_SSL_CONFIG
 else:
     raise ValueError(f"Invalid BROKER_TYPE env variable: {BROKER_TYPE}")
 
@@ -442,6 +477,10 @@ ESCALATION_AUDITOR_ENABLED = getenv_boolean("ESCALATION_AUDITOR_ENABLED", defaul
 ALERT_GROUP_ESCALATION_AUDITOR_CELERY_TASK_HEARTBEAT_URL = os.getenv(
     "ALERT_GROUP_ESCALATION_AUDITOR_CELERY_TASK_HEARTBEAT_URL", None
 )
+
+SCHEDULE_FILENAME = os.getenv("SCHEDULE_FILENAME")
+if SCHEDULE_FILENAME:
+    CELERY_BEAT_SCHEDULE_FILENAME = SCHEDULE_FILENAME
 
 CELERY_BEAT_SCHEDULE = {
     "start_refresh_ical_final_schedules": {

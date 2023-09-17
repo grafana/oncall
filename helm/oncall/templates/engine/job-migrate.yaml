@@ -89,7 +89,19 @@ spec:
           {{- include "oncall.extraEnvs" . | nindent 12 }}
         resources:
           {{- toYaml .Values.migrate.resources | nindent 12 }}
+        volumeMounts:
+          - mountPath: /tmp
+            name: tempdir
+          {{- with .Values.migrate.extraVolumeMounts }}
+          {{- . | toYaml | nindent 10 }}
+          {{- end }}
       {{- with .Values.migrate.extraContainers }}
       {{- tpl . $ | nindent 6 }}
       {{- end }}
+      volumes:
+        - name: tempdir
+          emptyDir: {}
+        {{- with .Values.migrate.extraVolumes }}
+        {{- . | toYaml | nindent 8 }}
+        {{- end }}
 {{- end }}

@@ -10,9 +10,41 @@ tests:
       oncall:
         devMode: false
     asserts:
-      - notExists:
+      - lengthEqual:
           path: spec.template.spec.containers[0].volumeMounts
-      - notExists:
-          path: spec.template.spec.initContainers[0].volumeMounts
-      - notExists:
+          count: 2
+        template: celery/deployment.yaml
+      - lengthEqual:
+          path: spec.template.spec.containers[0].volumeMounts
+          count: 1
+        template: engine/deployment.yaml
+      - contains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            mountPath: /tmp
+            name: tempdir
+      - contains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            mountPath: /var/run/celery
+            name: celery
+        template: celery/deployment.yaml
+      - lengthEqual:
           path: spec.template.spec.volumes
+          count: 2
+        template: celery/deployment.yaml
+      - lengthEqual:
+          path: spec.template.spec.volumes
+          count: 1
+        template: engine/deployment.yaml
+      - contains:
+          path: spec.template.spec.volumes
+          content:
+            name: tempdir
+            emptyDir: {}
+      - contains:
+          path: spec.template.spec.volumes
+          content:
+            name: celery
+            emptyDir: {}
+        template: celery/deployment.yaml
