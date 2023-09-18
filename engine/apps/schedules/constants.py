@@ -18,6 +18,7 @@ ICAL_STATUS = "STATUS"
 ICAL_STATUS_CANCELLED = "CANCELLED"
 ICAL_COMPONENT_VEVENT = "VEVENT"
 RE_PRIORITY = re.compile(r"^\[L(\d+)\]")
+RE_EVENT_UID_EXPORT = re.compile(r"([\w\d]+)-(\d+)-([\w\d]+)")
 RE_EVENT_UID_V1 = re.compile(r"amixr-([\w\d-]+)-U(\d+)-E(\d+)-S(\d+)")
 RE_EVENT_UID_V2 = re.compile(r"oncall-([\w\d-]+)-PK([\w\d]+)-U(\d+)-E(\d+)-S(\d+)")
 
