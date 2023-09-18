@@ -56,7 +56,7 @@ const ScheduleUserDetails: FC<ScheduleUserDetailsProps> = (props) => {
             <Text type="primary">{user.username}</Text>
           </div>
           <HorizontalGroup spacing="xs">
-            {isOncall && <Badge text="OnCall" color="green" />}
+            {isOncall && <Badge text="On-call now" color="green" />}
             {isInWH ? (
               <Badge text="Inside working hours" color="blue" />
             ) : (

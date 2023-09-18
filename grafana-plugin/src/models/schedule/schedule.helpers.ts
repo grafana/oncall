@@ -1,5 +1,6 @@
 import dayjs from 'dayjs';
 
+import { User } from 'models/user/user.types';
 import { RootStore } from 'state';
 
 import { Event, Layer, Schedule, ScheduleType, Shift, ShiftEvents, ShiftSwap } from './schedule.types';
@@ -81,6 +82,14 @@ export const splitToShiftsAndFillGaps = (events: Event[]) => {
   });
 
   return shifts;
+};
+
+export const getPersonalShiftsFromStore = (
+  store: RootStore,
+  userPk: User['pk'],
+  startMoment: dayjs.Dayjs
+): ShiftEvents[] => {
+  return store.scheduleStore.personalEvents[userPk]?.[getFromString(startMoment)] as any;
 };
 
 export const getShiftsFromStore = (

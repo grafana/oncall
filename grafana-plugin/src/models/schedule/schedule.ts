@@ -4,6 +4,7 @@ import { action, observable } from 'mobx';
 import { RemoteFiltersType } from 'containers/RemoteFilters/RemoteFilters.types';
 import BaseStore from 'models/base_store';
 import { EscalationChain } from 'models/escalation_chain/escalation_chain.types';
+import { User } from 'models/user/user.types';
 import { makeRequest } from 'network';
 import { RootStore } from 'state';
 import { SelectOption } from 'state/types';
@@ -67,6 +68,18 @@ export class ScheduleStore extends BaseStore {
         [startMoment: string]: ShiftEvents[] | Layer[];
       };
     };
+  } = {};
+
+  @observable.shallow
+  personalEvents: {
+    [userPk: string]: {
+      [startMoment: string]: ShiftEvents[];
+    };
+  } = {};
+
+  @observable.shallow
+  onCallNow: {
+    [userPk: string]: boolean;
   } = {};
 
   @observable
@@ -509,6 +522,39 @@ export class ScheduleStore extends BaseStore {
         ...this.scheduleAndDateToShiftSwaps[scheduleId],
         [fromString]: shiftEventsListFlattened,
       },
+    };
+  }
+
+  async updatePersonalEvents(userPk: User['pk'], startMoment: dayjs.Dayjs, days = 9) {
+    const fromString = getFromString(startMoment);
+
+    const dayBefore = startMoment.subtract(1, 'day');
+
+    const { is_oncall, schedules } = await makeRequest(`/schedules/current_user_events/`, {
+      method: 'GET',
+      params: {
+        date: getFromString(dayBefore),
+        days,
+      },
+    });
+
+    const shiftEventsList = schedules.reduce((acc, schedule) => {
+      return [...acc, ...splitToShiftsAndFillGaps(schedule.events)];
+    }, []);
+
+    const shiftEventsListFlattened = flattenShiftEvents(shiftEventsList);
+
+    this.personalEvents = {
+      ...this.personalEvents,
+      [userPk]: {
+        ...this.personalEvents[userPk],
+        [fromString]: shiftEventsListFlattened,
+      },
+    };
+
+    this.onCallNow = {
+      ...this.onCallNow,
+      [userPk]: is_oncall,
     };
   }
 }
