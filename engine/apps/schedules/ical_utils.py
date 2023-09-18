@@ -366,18 +366,18 @@ def list_users_to_notify_from_ical_for_period(
 
 
 def get_oncall_users_for_multiple_schedules(
-    schedules: "OnCallScheduleQuerySet", events_datetime=None
+    schedules: typing.List["OnCallSchedule"], events_datetime=None
 ) -> typing.Dict["OnCallSchedule", UserQuerySet]:
     if events_datetime is None:
         events_datetime = datetime.datetime.now(timezone.utc)
 
     # Exit early if there are no schedules
-    if not schedules.exists():
+    if not schedules:
         return {}
 
     # Get on-call users
     oncall_users = {}
-    for schedule in schedules.all():
+    for schedule in schedules:
         # pass user list to list_users_to_notify_from_ical
         schedule_oncall_users = list_users_to_notify_from_ical(schedule, events_datetime=events_datetime)
         oncall_users.update({schedule.pk: schedule_oncall_users})
