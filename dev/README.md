@@ -1,6 +1,7 @@
 # Developer quickstart
 
-- [Running the project](#running-the-project)
+- [Developing using kubernetes and tilt (beta)](#developing-using-kubernetes-and-tilt-beta)
+- [Running the project with docker-compose](#running-the-project-with-docker-compose)
   - [`COMPOSE_PROFILES`](#compose_profiles)
   - [`GRAFANA_IMAGE`](#grafana_image)
   - [Configuring Grafana](#configuring-grafana)
@@ -27,7 +28,44 @@
 
 Related: [How to develop integrations](/engine/config_integrations/README.md)
 
-## Running the project
+## Developing using kubernetes and tilt (beta)
+
+> It is recommended to use alternative [docker-compose environment](#running-the-project-with-docker-compose).
+
+### Install
+
+This project uses:
+
+- [Tilt | Kubernetes for Prod, Tilt for Dev](https://tilt.dev/)
+- [tilt-dev/ctlptl: Making local Kubernetes clusters fun and easy to set up](https://github.com/tilt-dev/ctlptl)
+- [Kind](https://kind.sigs.k8s.io)
+- [Yarn](https://classic.yarnpkg.com/lang/en/docs/install/#mac-stable)
+
+### Quick Start
+
+1. Create local k8s cluster:
+
+    ```bash
+    make cluster/up
+    ```
+
+2. Deploy the project:
+
+    ```bash
+    tilt up
+    ```
+
+3. Wait until all resources are green and open <http://localhost:3000/a/grafana-oncall-app>
+
+4. Modify source code, backend and frontend will be hot reloaded
+
+5. Clean up the project by deleting the local k8s cluster:
+
+    ```bash
+    make cluster/down
+    ```
+
+## Running the project with docker-compose
 
 By default everything runs inside Docker. These options can be modified via the [`COMPOSE_PROFILES`](#compose_profiles)
 environment variable.

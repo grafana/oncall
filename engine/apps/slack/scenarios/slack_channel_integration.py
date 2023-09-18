@@ -1,9 +1,8 @@
 import logging
 import typing
 
-from apps.slack.client import SlackAPIException
 from apps.slack.scenarios import scenario_step
-from apps.slack.scenarios.resolution_note import handle_resolution_note_message_exception
+from apps.slack.scenarios.resolution_note import RESOLUTION_NOTE_EXCEPTIONS
 from apps.slack.types import EventPayload, EventType, MessageEventSubtype, PayloadType, ScenarioRoute
 
 if typing.TYPE_CHECKING:
@@ -79,8 +78,7 @@ class SlackChannelMessageEventStep(scenario_step.ScenarioStep):
 
         try:
             result = self._slack_client.chat_getPermalink(channel=channel, message_ts=message_ts)
-        except SlackAPIException as e:
-            handle_resolution_note_message_exception(self, "save thread message", e)
+        except RESOLUTION_NOTE_EXCEPTIONS:
             return
 
         permalink = None

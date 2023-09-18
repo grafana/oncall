@@ -85,6 +85,23 @@ def _should_notify_user_about_shift_swap_request(
     )
 
 
+def _get_notification_title_and_subtitle(shift_swap_request: ShiftSwapRequest) -> typing.Tuple[str, str]:
+    notification_title: str
+    notification_subtitle: str
+
+    beneficiary_name = shift_swap_request.beneficiary.name or shift_swap_request.beneficiary.username
+    schedule_name = shift_swap_request.schedule.name
+
+    if shift_swap_request.is_taken:
+        notification_title = "Your shift swap request has been taken"
+        notification_subtitle = schedule_name
+    else:
+        notification_title = "New shift swap request"
+        notification_subtitle = f"{beneficiary_name}, {schedule_name}"
+
+    return (notification_title, notification_subtitle)
+
+
 def _get_fcm_message(
     shift_swap_request: ShiftSwapRequest,
     user: User,
@@ -92,9 +109,8 @@ def _get_fcm_message(
     mobile_app_user_settings: "MobileAppUserSettings",
 ) -> Message:
     thread_id = f"{shift_swap_request.public_primary_key}:{user.public_primary_key}:ssr"
-    notification_title = "New shift swap request"
-    beneficiary_name = shift_swap_request.beneficiary.name or shift_swap_request.beneficiary.username
-    notification_subtitle = f"{beneficiary_name}, {shift_swap_request.schedule.name}"
+
+    notification_title, notification_subtitle = _get_notification_title_and_subtitle(shift_swap_request)
 
     # The mobile app will use this route to open the shift swap request
     route = f"/schedules/{shift_swap_request.schedule.public_primary_key}/ssrs/{shift_swap_request.public_primary_key}"
@@ -128,19 +144,17 @@ def _get_fcm_message(
     return construct_fcm_message(MessageType.INFO, device_to_notify, thread_id, data, apns_payload)
 
 
-@shared_dedicated_queue_retry_task(autoretry_for=(Exception,), retry_backoff=True, max_retries=MAX_RETRIES)
-def notify_user_about_shift_swap_request(shift_swap_request_pk: int, user_pk: int) -> None:
-    """
-    Send a push notification about a shift swap request to an individual user.
-    """
-    # avoid circular import
-    from apps.mobile_app.models import FCMDevice, MobileAppUserSettings
-
+def _get_shift_swap_request(shift_swap_request_pk: int) -> typing.Optional[ShiftSwapRequest]:
     try:
-        shift_swap_request = ShiftSwapRequest.objects.get(pk=shift_swap_request_pk)
+        return ShiftSwapRequest.objects.get(pk=shift_swap_request_pk)
     except ShiftSwapRequest.DoesNotExist:
         logger.info(f"ShiftSwapRequest {shift_swap_request_pk} does not exist")
         return
+
+
+def _get_user_and_device(user_pk: int) -> typing.Optional[typing.Tuple[User, "FCMDevice", "MobileAppUserSettings"]]:
+    # avoid circular import
+    from apps.mobile_app.models import FCMDevice, MobileAppUserSettings
 
     try:
         user = User.objects.get(pk=user_pk)
@@ -162,6 +176,24 @@ def notify_user_about_shift_swap_request(shift_swap_request_pk: int, user_pk: in
     if not mobile_app_user_settings.info_notifications_enabled:
         logger.info(f"Info notifications are not enabled for user {user_pk}")
         return
+
+    return (user, device_to_notify, mobile_app_user_settings)
+
+
+@shared_dedicated_queue_retry_task(autoretry_for=(Exception,), retry_backoff=True, max_retries=MAX_RETRIES)
+def notify_user_about_shift_swap_request(shift_swap_request_pk: int, user_pk: int) -> None:
+    """
+    Send a push notification about a shift swap request to an individual user.
+    """
+    shift_swap_request = _get_shift_swap_request(shift_swap_request_pk)
+    if not shift_swap_request:
+        return
+
+    user_and_device = _get_user_and_device(user_pk)
+    if not user_and_device:
+        return
+
+    user, device_to_notify, mobile_app_user_settings = user_and_device
 
     if not shift_swap_request.is_open:
         logger.info(f"Shift swap request {shift_swap_request_pk} is not open anymore")
@@ -196,3 +228,18 @@ def notify_shift_swap_requests() -> None:
     """
     for shift_swap_request, timeout in _get_shift_swap_requests_to_notify(timezone.now()):
         notify_shift_swap_request.delay(shift_swap_request.pk, timeout)
+
+
+@shared_dedicated_queue_retry_task(autoretry_for=(Exception,), retry_backoff=True, max_retries=MAX_RETRIES)
+def notify_beneficiary_about_taken_shift_swap_request(shift_swap_request_pk: int) -> None:
+    shift_swap_request = _get_shift_swap_request(shift_swap_request_pk)
+    if not shift_swap_request:
+        return
+
+    user_and_device = _get_user_and_device(shift_swap_request.beneficiary.pk)
+    if not user_and_device:
+        return
+
+    user, device_to_notify, mobile_app_user_settings = user_and_device
+    message = _get_fcm_message(shift_swap_request, user, device_to_notify, mobile_app_user_settings)
+    send_push_notification(device_to_notify, message)

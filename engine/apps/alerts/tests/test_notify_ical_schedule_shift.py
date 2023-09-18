@@ -100,13 +100,14 @@ def test_next_shift_notification_long_shifts(
 
     with patch("apps.alerts.tasks.notify_ical_schedule_shift.datetime", Mock(wraps=datetime)) as mock_datetime:
         mock_datetime.datetime.now.return_value = datetime.datetime(2021, 9, 29, 12, 0, tzinfo=pytz.UTC)
-        with patch("apps.slack.client.SlackClientWithErrorHandling.chat_postMessage") as mock_slack_api_call:
+        with patch("apps.slack.client.SlackClient.chat_postMessage") as mock_slack_api_call:
             notify_ical_schedule_shift(ical_schedule.pk)
 
     slack_blocks = mock_slack_api_call.call_args_list[0][1]["blocks"]
-    notification = slack_blocks[0]["text"]["text"]
-    assert "*New on-call shift:*\nuser2" in notification
-    assert "*Next on-call shift:*\nuser1" in notification
+    notification = slack_blocks[1]["text"]["text"]
+    assert "*New on-call shift*\nuser2" in notification
+    notification = slack_blocks[2]["text"]["text"]
+    assert "*Next on-call shift*\nuser1" in notification
 
 
 @pytest.mark.django_db
@@ -203,7 +204,7 @@ def test_overrides_changes_no_current_no_triggering_notification(
     schedule.prev_ical_file_overrides = ical_before
     schedule.save()
 
-    with patch("apps.slack.client.SlackClientWithErrorHandling.chat_postMessage") as mock_slack_api_call:
+    with patch("apps.slack.client.SlackClient.chat_postMessage") as mock_slack_api_call:
         notify_ical_schedule_shift(schedule.pk)
 
     assert not mock_slack_api_call.called
@@ -251,7 +252,7 @@ def test_no_changes_no_triggering_notification(
     schedule.empty_oncall = False
     schedule.save()
 
-    with patch("apps.slack.client.SlackClientWithErrorHandling.chat_postMessage") as mock_slack_api_call:
+    with patch("apps.slack.client.SlackClient.chat_postMessage") as mock_slack_api_call:
         notify_ical_schedule_shift(schedule.pk)
 
     assert not mock_slack_api_call.called
@@ -299,7 +300,7 @@ def test_current_shift_changes_trigger_notification(
     schedule.empty_oncall = False
     schedule.save()
 
-    with patch("apps.slack.client.SlackClientWithErrorHandling.chat_postMessage") as mock_slack_api_call:
+    with patch("apps.slack.client.SlackClient.chat_postMessage") as mock_slack_api_call:
         notify_ical_schedule_shift(schedule.pk)
 
     assert mock_slack_api_call.called
@@ -363,10 +364,10 @@ def test_current_shift_changes_swap_split(
     schedule.empty_oncall = False
     schedule.save()
 
-    with patch("apps.slack.client.SlackClientWithErrorHandling.chat_postMessage") as mock_slack_api_call:
+    with patch("apps.slack.client.SlackClient.chat_postMessage") as mock_slack_api_call:
         notify_ical_schedule_shift(schedule.pk)
 
-    text_block = mock_slack_api_call.call_args_list[0][1]["blocks"][0]["text"]["text"]
+    text_block = mock_slack_api_call.call_args_list[0][1]["blocks"][1]["text"]["text"]
     assert "user2" in text_block if swap_taken else "user1" in text_block
 
 
@@ -432,7 +433,7 @@ def test_next_shift_changes_no_triggering_notification(
     on_call_shift_2.add_rolling_users([[user2]])
     schedule.refresh_ical_file()
 
-    with patch("apps.slack.client.SlackClientWithErrorHandling.chat_postMessage") as mock_slack_api_call:
+    with patch("apps.slack.client.SlackClient.chat_postMessage") as mock_slack_api_call:
         notify_ical_schedule_shift(schedule.pk)
 
     assert not mock_slack_api_call.called
@@ -499,7 +500,7 @@ def test_lower_priority_changes_no_triggering_notification(
     on_call_shift_2.add_rolling_users([[user2]])
     schedule.refresh_ical_file()
 
-    with patch("apps.slack.client.SlackClientWithErrorHandling.chat_postMessage") as mock_slack_api_call:
+    with patch("apps.slack.client.SlackClient.chat_postMessage") as mock_slack_api_call:
         notify_ical_schedule_shift(schedule.pk)
 
     assert not mock_slack_api_call.called
@@ -629,7 +630,7 @@ def test_vtimezone_changes_no_triggering_notification(
     schedule.cached_ical_file_primary = ical_after
     schedule.save()
 
-    with patch("apps.slack.client.SlackClientWithErrorHandling.chat_postMessage") as mock_slack_api_call:
+    with patch("apps.slack.client.SlackClient.chat_postMessage") as mock_slack_api_call:
         notify_ical_schedule_shift(schedule.pk)
 
     assert not mock_slack_api_call.called
@@ -686,7 +687,7 @@ def test_no_changes_no_triggering_notification_from_old_to_new_task_version(
     schedule.empty_oncall = False
     schedule.save()
 
-    with patch("apps.slack.client.SlackClientWithErrorHandling.chat_postMessage") as mock_slack_api_call:
+    with patch("apps.slack.client.SlackClient.chat_postMessage") as mock_slack_api_call:
         notify_ical_schedule_shift(schedule.pk)
 
     assert not mock_slack_api_call.called
@@ -748,7 +749,7 @@ def test_current_shift_changes_trigger_notification_from_old_to_new_task_version
     on_call_shift.add_rolling_users([[user2]])
     schedule.refresh_ical_file()
 
-    with patch("apps.slack.client.SlackClientWithErrorHandling.chat_postMessage") as mock_slack_api_call:
+    with patch("apps.slack.client.SlackClient.chat_postMessage") as mock_slack_api_call:
         notify_ical_schedule_shift(schedule.pk)
 
     assert mock_slack_api_call.called
@@ -813,13 +814,13 @@ def test_next_shift_notification_long_and_short_shifts(
     schedule.empty_oncall = False
     schedule.save()
 
-    with patch("apps.slack.client.SlackClientWithErrorHandling.chat_postMessage") as mock_slack_api_call:
+    with patch("apps.slack.client.SlackClient.chat_postMessage") as mock_slack_api_call:
         notify_ical_schedule_shift(schedule.pk)
 
     assert mock_slack_api_call.called
-    notification = mock_slack_api_call.call_args[1]["blocks"][0]["text"]["text"]
-    new_shift_notification, next_shift_notification = notification.split("\n\n")
+    new_shift_notification = mock_slack_api_call.call_args[1]["blocks"][1]["text"]["text"]
+    next_shift_notification = mock_slack_api_call.call_args[1]["blocks"][2]["text"]["text"]
 
-    assert "*New on-call shift:*\n[L1] user1" in new_shift_notification
+    assert "*New on-call shift*\n[L1] user1" in new_shift_notification
     assert "[L1] user3" in new_shift_notification
-    assert "*Next on-call shift:*\n[L1] user2" in notification
+    assert "*Next on-call shift*\n[L1] user2" in next_shift_notification

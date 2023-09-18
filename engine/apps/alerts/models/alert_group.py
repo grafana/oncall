@@ -3,6 +3,7 @@ import logging
 import typing
 import urllib
 from collections import namedtuple
+from functools import partial
 from urllib.parse import urljoin
 
 from celery import uuid as celery_uuid
@@ -60,6 +61,22 @@ def generate_public_primary_key_for_alert_group():
         failure_counter += 1
 
     return new_public_primary_key
+
+
+class LogRecordUser(typing.TypedDict):
+    username: str
+    pk: str
+    avatar: str
+    avatar_full: str
+
+
+class LogRecords(typing.TypedDict):
+    time: str  # humanized delta relative to now
+    action: str  # human-friendly description
+    realm: typing.Literal["user_notification", "alert_group", "resolution_note"]
+    type: int  # depending on realm, check type choices
+    created_at: str  # timestamp
+    author: LogRecordUser
 
 
 class Permalinks(typing.TypedDict):
@@ -1215,7 +1232,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
             alert_group.start_ack_reminder_if_needed()
 
             log_record = alert_group.log_records.create(type=AlertGroupLogRecord.TYPE_ACK, author=user)
-            send_alert_group_signal.apply_async((log_record.pk,))
+            transaction.on_commit(partial(send_alert_group_signal.delay, log_record.pk))
 
     @staticmethod
     def bulk_acknowledge(user: User, alert_groups: "QuerySet[AlertGroup]") -> None:
@@ -1287,7 +1304,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
                 state=AlertGroupState.RESOLVED,
             )
             log_record = alert_group.log_records.create(type=AlertGroupLogRecord.TYPE_RESOLVED, author=user)
-            send_alert_group_signal.apply_async((log_record.pk,))
+            transaction.on_commit(partial(send_alert_group_signal.delay, log_record.pk))
 
     @staticmethod
     def bulk_resolve(user: User, alert_groups: "QuerySet[AlertGroup]") -> None:
@@ -1360,7 +1377,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
             if alert_group.is_root_alert_group:
                 alert_group.start_escalation_if_needed()
 
-            send_alert_group_signal.apply_async((log_record.pk,))
+            transaction.on_commit(partial(send_alert_group_signal.delay, log_record.pk))
 
     @staticmethod
     def _bulk_restart_unresolve(user: User, alert_groups_to_restart_unresolve: "QuerySet[AlertGroup]") -> None:
@@ -1403,7 +1420,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
             if alert_group.is_root_alert_group:
                 alert_group.start_escalation_if_needed()
 
-            send_alert_group_signal.apply_async((log_record.pk,))
+            transaction.on_commit(partial(send_alert_group_signal.delay, log_record.pk))
 
     @staticmethod
     def _bulk_restart_unsilence(user: User, alert_groups_to_restart_unsilence: "QuerySet[AlertGroup]") -> None:
@@ -1442,7 +1459,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
             )
             alert_group.start_escalation_if_needed()
 
-            send_alert_group_signal.apply_async((log_record.pk,))
+            transaction.on_commit(partial(send_alert_group_signal.delay, log_record.pk))
 
     @staticmethod
     def bulk_restart(user: User, alert_groups: "QuerySet[AlertGroup]") -> None:
@@ -1578,7 +1595,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
                 reason="Bulk action silence",
             )
 
-            send_alert_group_signal.apply_async((log_record.pk,))
+            transaction.on_commit(partial(send_alert_group_signal.delay, log_record.pk))
             if silence_for_period and alert_group.is_root_alert_group:
                 alert_group.start_unsilence_task(countdown=silence_delay)
 
@@ -1741,7 +1758,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
         else:
             return "Acknowledged"
 
-    def render_after_resolve_report_json(self):
+    def render_after_resolve_report_json(self) -> list[LogRecords]:
         from apps.alerts.models import AlertGroupLogRecord, ResolutionNote
         from apps.base.models import UserNotificationPolicyLogRecord
 
