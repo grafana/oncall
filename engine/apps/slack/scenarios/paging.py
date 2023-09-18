@@ -433,7 +433,7 @@ def render_dialog(
 
     # widgets
     team_select_blocks = _get_team_select_blocks(
-        slack_user_identity, selected_organization, is_team_selected, selected_team, new_input_id_prefix
+        slack_user_identity, selected_organization, selected_team, new_input_id_prefix
     )
     additional_responders_blocks = _get_additional_responders_blocks(
         payload, selected_organization, new_input_id_prefix, is_additional_responders_checked, error_msg
@@ -545,7 +545,6 @@ def _get_selected_org_from_payload(
 def _get_team_select_blocks(
     slack_user_identity: "SlackUserIdentity",
     organization: "Organization",
-    is_selected: bool,
     value: "Team",
     input_id_prefix: str,
 ) -> Block.AnyBlocks:
@@ -594,10 +593,6 @@ def _get_team_select_blocks(
         },
         "dispatch_action": True,
     }
-
-    # No context block if no team selected
-    if not is_selected:
-        return [team_select]
 
     team_select["element"]["initial_option"] = team_options[initial_option_idx]
     return [team_select, _get_team_select_context(organization, value)]

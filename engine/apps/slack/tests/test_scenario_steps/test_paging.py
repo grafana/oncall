@@ -7,6 +7,7 @@ from django.utils import timezone
 from apps.base.models import UserNotificationPolicy
 from apps.schedules.models import CustomOnCallShift, OnCallScheduleWeb
 from apps.slack.scenarios.paging import (
+    DEFAULT_TEAM_VALUE,
     DIRECT_PAGING_ADDITIONAL_RESPONDERS_INPUT_ID,
     DIRECT_PAGING_MESSAGE_INPUT_ID,
     DIRECT_PAGING_ORG_SELECT_ID,
@@ -99,6 +100,10 @@ def test_initial_state(
     metadata = json.loads(mock_slack_api_call.call_args.kwargs["view"]["private_metadata"])
     assert metadata[DataKey.USERS] == {}
     assert metadata[DataKey.SCHEDULES] == {}
+    initial_blocks = mock_slack_api_call.call_args.kwargs["view"]["blocks"]
+    # title, message, team, ...
+    team_select = initial_blocks[2]
+    assert team_select["element"]["initial_option"]["value"] == DEFAULT_TEAM_VALUE
 
 
 @pytest.mark.django_db
