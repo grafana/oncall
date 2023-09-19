@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## v1.3.38 (2023-09-19)
+
 ### Fixed
 
 - Fix Slack access token length issue by @toolchainX ([#3016](https://github.com/grafana/oncall/pull/3016))
