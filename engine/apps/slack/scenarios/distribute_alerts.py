@@ -880,34 +880,38 @@ class DeleteGroupStep(scenario_step.ScenarioStep):
     def process_signal(self, log_record: AlertGroupLogRecord) -> None:
         alert_group = log_record.alert_group
 
-        self.remove_resolution_note_reaction(alert_group)
-
-        bot_messages_ts: typing.List[str] = []
-        bot_messages_ts.extend(alert_group.slack_messages.values_list("slack_id", flat=True))
-        bot_messages_ts.extend(
-            alert_group.resolution_note_slack_messages.filter(posted_by_bot=True).values_list("ts", flat=True)
-        )
-        channel_id = alert_group.slack_message.channel_id
-
-        for message_ts in bot_messages_ts:
-            try:
-                self._slack_client.chat_delete(channel=channel_id, ts=message_ts)
-            except (
-                SlackAPITokenError,
-                SlackAPIChannelNotFoundError,
-                SlackAPIMessageNotFoundError,
-                SlackAPIChannelArchivedError,
-            ):
-                pass
-
-    def remove_resolution_note_reaction(self, alert_group: AlertGroup) -> None:
+        # Remove "memo" emoji from resolution note messages
         for message in alert_group.resolution_note_slack_messages.filter(added_to_resolution_note=True):
-            message.added_to_resolution_note = False
-            message.save(update_fields=["added_to_resolution_note"])
             try:
                 self._slack_client.reactions_remove(channel=message.slack_channel_id, name="memo", timestamp=message.ts)
+            except SlackAPIRatelimitError:
+                # retries on ratelimit are handled in apps.alerts.tasks.delete_alert_group.delete_alert_group
+                raise
             except SlackAPIError:
                 pass
+            message.delete()
+
+        # Remove resolution note messages posted by OnCall bot
+        for message in alert_group.resolution_note_slack_messages.filter(posted_by_bot=True):
+            try:
+                self._slack_client.chat_delete(channel=message.slack_channel_id, ts=message.ts)
+            except SlackAPIRatelimitError:
+                # retries on ratelimit are handled in apps.alerts.tasks.delete_alert_group.delete_alert_group
+                raise
+            except SlackAPIError:
+                pass
+            message.delete()
+
+        # Remove alert group Slack messages
+        for message in alert_group.slack_messages.all():
+            try:
+                self._slack_client.chat_delete(channel=message.channel_id, ts=message.slack_id)
+            except SlackAPIRatelimitError:
+                # retries on ratelimit are handled in apps.alerts.tasks.delete_alert_group.delete_alert_group
+                raise
+            except SlackAPIError:
+                pass
+            message.delete()
 
 
 class UpdateLogReportMessageStep(scenario_step.ScenarioStep):
