@@ -12,6 +12,8 @@ from common.api_helpers.utils import CurrentOrganizationDefault, CurrentTeamDefa
 from common.jinja_templater import apply_jinja_template
 from common.jinja_templater.apply_jinja_template import JinjaTemplateError, JinjaTemplateWarning
 
+PRESET_VALIDATION_MESSAGE = "Preset webhooks must be modified through web UI"
+
 INTEGRATION_FILTER_MESSAGE = "integration_filter must be a list of valid integration ids"
 
 
@@ -73,6 +75,7 @@ class WebhookCreateSerializer(serializers.ModelSerializer):
             "http_method",
             "trigger_type",
             "integration_filter",
+            "preset",
         ]
         extra_kwargs = {
             "name": {"required": True, "allow_null": False, "allow_blank": False},
@@ -148,6 +151,14 @@ class WebhookCreateSerializer(serializers.ModelSerializer):
             if len(integrations) != len(integration_filter):
                 raise serializers.ValidationError(INTEGRATION_FILTER_MESSAGE)
         return integration_filter
+
+    def validate_preset(self, preset):
+        raise serializers.ValidationError(PRESET_VALIDATION_MESSAGE)
+
+    def validate(self, data):
+        if self.instance and self.instance.preset:
+            raise serializers.ValidationError(PRESET_VALIDATION_MESSAGE)
+        return data
 
 
 class WebhookUpdateSerializer(WebhookCreateSerializer):

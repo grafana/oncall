@@ -139,7 +139,7 @@ class Webhook(models.Model):
     url = models.TextField(null=True, default=None)
     data = models.TextField(null=True, default=None)
     forward_all = models.BooleanField(default=True)
-    http_method = models.CharField(max_length=32, default="POST")
+    http_method = models.CharField(max_length=32, default="POST", null=True)
     trigger_type = models.IntegerField(choices=TRIGGER_TYPES, default=TRIGGER_ESCALATION_STEP, null=True)
     is_webhook_enabled = models.BooleanField(null=True, default=True)
     integration_filter = models.JSONField(default=None, null=True, blank=True)

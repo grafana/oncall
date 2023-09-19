@@ -64,7 +64,7 @@ def test_get_list_webhooks(webhook_internal_api_setup, make_user_auth_headers):
                 "event_data": "",
             },
             "trigger_template": None,
-            "trigger_type": 0,
+            "trigger_type": "0",
             "trigger_type_name": "Escalation step",
             "preset": None,
         }
@@ -107,7 +107,7 @@ def test_get_detail_webhook(webhook_internal_api_setup, make_user_auth_headers):
             "event_data": "",
         },
         "trigger_template": None,
-        "trigger_type": 0,
+        "trigger_type": "0",
         "trigger_type_name": "Escalation step",
         "preset": None,
     }
@@ -155,6 +155,7 @@ def test_create_webhook(webhook_internal_api_setup, make_user_auth_headers):
             "event_data": "",
         },
         "trigger_template": None,
+        "trigger_type": str(data["trigger_type"]),
         "trigger_type_name": "Alert Group Created",
         "preset": None,
     }
@@ -214,6 +215,7 @@ def test_create_valid_templated_field(webhook_internal_api_setup, make_user_auth
             "event_data": "",
         },
         "trigger_template": None,
+        "trigger_type": str(data["trigger_type"]),
         "trigger_type_name": "Alert Group Created",
         "preset": None,
     }
@@ -588,6 +590,7 @@ def test_webhook_field_masking(webhook_internal_api_setup, make_user_auth_header
             "event_data": "",
         },
         "trigger_template": None,
+        "trigger_type": str(data["trigger_type"]),
         "trigger_type_name": "Alert Group Created",
         "preset": None,
     }
@@ -646,6 +649,7 @@ def test_webhook_copy(webhook_internal_api_setup, make_user_auth_headers):
             "event_data": "",
         },
         "trigger_template": None,
+        "trigger_type": str(data["trigger_type"]),
         "trigger_type_name": "Alert Group Created",
         "preset": None,
     }
@@ -686,7 +690,7 @@ def test_create_invalid_missing_fields(webhook_internal_api_setup, make_user_aut
     }
     response = client.post(url, data, format="json", **make_user_auth_headers(user, token))
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert response.json()["http_method"][0] == "This field may not be null."
+    assert response.json()["http_method"][0] == "This field must be one of ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']."
 
     data = {
         "name": "test webhook 3",
@@ -701,4 +705,4 @@ def test_create_invalid_missing_fields(webhook_internal_api_setup, make_user_aut
     data = {"name": "test webhook 3", "url": TEST_URL, "trigger_type": 2000000, "http_method": "POST"}
     response = client.post(url, data, format="json", **make_user_auth_headers(user, token))
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert response.json()["trigger_type"][0] == '"2000000" is not a valid choice.'
+    assert response.json()["trigger_type"][0] == "This field is required."

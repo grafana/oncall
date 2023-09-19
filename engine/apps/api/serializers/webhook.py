@@ -34,6 +34,7 @@ class WebhookSerializer(serializers.ModelSerializer):
     user = serializers.HiddenField(default=CurrentUserDefault())
     forward_all = serializers.BooleanField(allow_null=True, required=False)
     last_response_log = serializers.SerializerMethodField()
+    trigger_type = serializers.CharField(allow_null=True)
     trigger_type_name = serializers.SerializerMethodField()
 
     class Meta:
@@ -61,9 +62,6 @@ class WebhookSerializer(serializers.ModelSerializer):
             "integration_filter",
             "preset",
         ]
-        extra_kwargs = {
-            "name": {"required": True, "allow_null": False, "allow_blank": False},
-        }
 
         validators = [UniqueTogetherValidator(queryset=Webhook.objects.all(), fields=["name", "organization"])]
 
@@ -79,9 +77,14 @@ class WebhookSerializer(serializers.ModelSerializer):
         webhook = self.instance
 
         # Some fields are conditionally required, add none values for missing required fields
+        if webhook and webhook.preset and "preset" not in data:
+            data["preset"] = webhook.preset
         for key in ["url", "http_method", "trigger_type"]:
             if key not in data:
-                data[key] = None
+                if self.instance:
+                    data[key] = getattr(self.instance, key)
+                else:
+                    data[key] = None
 
         # If webhook is being copied instance won't exist to copy values from
         if not webhook and "id" in data:
@@ -135,7 +138,7 @@ class WebhookSerializer(serializers.ModelSerializer):
         if self.is_field_ignored("trigger_type"):
             return trigger_type
 
-        if trigger_type not in Webhook.ALL_TRIGGER_TYPES:
+        if not trigger_type or int(trigger_type) not in Webhook.ALL_TRIGGER_TYPES:
             raise serializers.ValidationError(detail="This field is required.")
         return trigger_type
 
@@ -152,6 +155,23 @@ class WebhookSerializer(serializers.ModelSerializer):
     def validate_preset(self, preset):
         if self.instance and self.instance.preset != preset:
             raise serializers.ValidationError(detail="This field once set cannot be modified.")
+
+        if preset:
+            if preset not in WebhookPresetOptions.WEBHOOK_PRESET_METADATA:
+                raise serializers.ValidationError(detail=f"{preset} is not a valid preset id.")
+
+            preset_metadata = WebhookPresetOptions.WEBHOOK_PRESET_METADATA[preset]
+            ignored_fields = preset_metadata["ignored_fields"]
+            for ignored in ignored_fields:
+                if ignored in self.initial_data:
+                    if self.instance:
+                        if self.initial_data[ignored] != getattr(self.instance, ignored):
+                            raise serializers.ValidationError(
+                                detail=f"{ignored} is controlled by preset, cannot update"
+                            )
+                    elif self.initial_data[ignored] is not None:
+                        raise serializers.ValidationError(detail=f"{ignored} is controlled by preset, cannot create")
+
         return preset
 
     def get_last_response_log(self, obj):
@@ -164,10 +184,13 @@ class WebhookSerializer(serializers.ModelSerializer):
         return trigger_type_name
 
     def is_field_ignored(self, field_name):
-        if "preset" not in self.initial_data:
+        if self.instance:
+            if not self.instance.preset:
+                return False
+        elif "preset" not in self.initial_data:
             return False
 
-        preset_id = self.initial_data["preset"]
+        preset_id = self.instance.preset if self.instance else self.initial_data["preset"]
         if preset_id:
             if preset_id not in WebhookPresetOptions.WEBHOOK_PRESET_METADATA:
                 raise serializers.ValidationError(detail=f"unknown preset {preset_id} referenced")

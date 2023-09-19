@@ -47,6 +47,7 @@ export function createForm(presets: OutgoingWebhookPreset[]): { name: string; fi
           valueField: 'id',
           showSearch: true,
           allowClear: true,
+          placeholder: 'Choose (Optional)',
         },
       },
       {
@@ -55,6 +56,7 @@ export function createForm(presets: OutgoingWebhookPreset[]): { name: string; fi
         description: 'The type of event which will cause this webhook to execute.',
         type: FormItemType.Select,
         extra: {
+          placeholder: 'Choose (Required)',
           options: [
             {
               value: WebhookTriggerType.EscalationStep.key,
@@ -100,6 +102,7 @@ export function createForm(presets: OutgoingWebhookPreset[]): { name: string; fi
         label: 'HTTP Method',
         type: FormItemType.Select,
         extra: {
+          placeholder: 'Choose (Required)',
           options: [
             {
               value: 'GET',
@@ -137,6 +140,7 @@ export function createForm(presets: OutgoingWebhookPreset[]): { name: string; fi
           );
         },
         extra: {
+          placeholder: 'Choose (Optional)',
           modelName: 'alertReceiveChannelStore',
           displayField: 'verbal_name',
           valueField: 'id',
@@ -206,7 +210,7 @@ export function createForm(presets: OutgoingWebhookPreset[]): { name: string; fi
       },
       {
         name: 'forward_all',
-        normalize: (value) => Boolean(value),
+        normalize: (value) => (value ? Boolean(value) : value),
         type: FormItemType.Switch,
         description: "Forwards whole payload of the alert group and context data to the webhook's url as POST/PUT data",
         isVisible: (data) => {
