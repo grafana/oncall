@@ -126,9 +126,9 @@ DATABASE_PORT = os.getenv("DATABASE_PORT") or os.getenv("MYSQL_PORT")
 DATABASE_OPTIONS = os.getenv("DATABASE_OPTIONS") or os.getenv("MYSQL_OPTIONS")
 if DATABASE_OPTIONS:
     try:
-        DATABASE_OPTIONS = dict([ tuple(i.split("=")) for i in str(DATABASE_OPTIONS).split(" ")])
-    except:
-        raise Exception('Bad database options. Check DATABASE_OPTIONS variable')
+        DATABASE_OPTIONS = dict([tuple(i.split("=")) for i in str(DATABASE_OPTIONS).split(" ")])
+    except Exception:
+        raise Exception("Bad database options. Check DATABASE_OPTIONS variable")
 else:
     DATABASE_OPTIONS = {}
 
@@ -151,7 +151,8 @@ DATABASE_CONFIGS: DatabaseConfig = {
         "PASSWORD": DATABASE_PASSWORD,
         "HOST": DATABASE_HOST,
         "PORT": DATABASE_PORT,
-        "OPTIONS": DATABASE_OPTIONS | {
+        "OPTIONS": DATABASE_OPTIONS
+        | {
             "charset": "utf8mb4",
             "connect_timeout": 1,
         },
@@ -190,26 +191,26 @@ if not REDIS_URI:
     REDIS_URI = f"{REDIS_PROTOCOL}://{REDIS_USERNAME}:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}/{REDIS_DATABASE}"
 
 REDIS_USE_SSL = os.getenv("REDIS_USE_SSL")
+REDIS_SSL_CONFIG = {}
+
 if REDIS_USE_SSL:
     import ssl
 
-    REDIS_SSL_CONFIG = {}
-
     REDIS_SSL_CA_CERTS = os.getenv("REDIS_SSL_CA_CERTS")
     if REDIS_SSL_CA_CERTS:
-        REDIS_SSL_CONFIG['ssl_ca_certs'] = REDIS_SSL_CA_CERTS
+        REDIS_SSL_CONFIG["ssl_ca_certs"] = REDIS_SSL_CA_CERTS
 
     REDIS_SSL_CERTFILE = os.getenv("REDIS_SSL_CERTFILE")
     if REDIS_SSL_CERTFILE:
-        REDIS_SSL_CONFIG['ssl_certfile'] = REDIS_SSL_CERTFILE
+        REDIS_SSL_CONFIG["ssl_certfile"] = REDIS_SSL_CERTFILE
 
     REDIS_SSL_KEYFILE = os.getenv("REDIS_SSL_KEYFILE")
     if REDIS_SSL_KEYFILE:
-        REDIS_SSL_CONFIG['ssl_keyfile'] = REDIS_SSL_KEYFILE
+        REDIS_SSL_CONFIG["ssl_keyfile"] = REDIS_SSL_KEYFILE
 
-    REDIS_SSL_CERT_REQS = os.getenv("REDIS_SSL_CERT_REQS") # CERT_NONE, CERT_OPTIONAL, or CERT_REQUIRED
+    REDIS_SSL_CERT_REQS = os.getenv("REDIS_SSL_CERT_REQS")  # CERT_NONE, CERT_OPTIONAL, or CERT_REQUIRED
     if REDIS_SSL_CERT_REQS:
-        REDIS_SSL_CONFIG['ssl_cert_reqs'] = getattr(ssl, str(REDIS_SSL_CERT_REQS).upper())
+        REDIS_SSL_CONFIG["ssl_cert_reqs"] = getattr(ssl, str(REDIS_SSL_CERT_REQS).upper())
 
 # Cache
 CACHES = {
@@ -222,7 +223,8 @@ CACHES = {
             "DB": REDIS_DATABASE,
             "PARSER_CLASS": "redis.connection.HiredisParser",
             "CONNECTION_POOL_CLASS": "redis.BlockingConnectionPool",
-            "CONNECTION_POOL_CLASS_KWARGS": REDIS_SSL_CONFIG | {
+            "CONNECTION_POOL_CLASS_KWARGS": REDIS_SSL_CONFIG
+            | {
                 "max_connections": 50,
                 "timeout": 20,
             },
