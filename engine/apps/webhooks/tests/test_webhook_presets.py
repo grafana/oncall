@@ -5,8 +5,8 @@ from conftest import TEST_WEBHOOK_PRESET_ID, TEST_WEBHOOK_PRESET_URL
 
 
 @pytest.mark.django_db
-def test_create_webhook_from_preset(webhook_preset_api_setup, make_user_auth_headers, make_custom_webhook):
-    user, token, organization = webhook_preset_api_setup
+def test_create_webhook_from_preset(make_organization, webhook_preset_api_setup, make_custom_webhook):
+    organization = make_organization()
     webhook = make_custom_webhook(
         name="the_webhook",
         organization=organization,
