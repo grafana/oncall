@@ -85,7 +85,6 @@ class ScheduleFinal extends Component<ScheduleFinalProps> {
                     <CSSTransition key={index} timeout={DEFAULT_TRANSITION_TIMEOUT} classNames={{ ...styles }}>
                       <Rotation
                         key={index}
-                        scheduleId={scheduleId}
                         events={events}
                         startMoment={startMoment}
                         currentTimezone={currentTimezone}
@@ -102,12 +101,7 @@ class ScheduleFinal extends Component<ScheduleFinalProps> {
                 })
               ) : (
                 <CSSTransition key={0} timeout={DEFAULT_TRANSITION_TIMEOUT} classNames={{ ...styles }}>
-                  <Rotation
-                    scheduleId={scheduleId}
-                    events={[]}
-                    startMoment={startMoment}
-                    currentTimezone={currentTimezone}
-                  />
+                  <Rotation events={[]} startMoment={startMoment} currentTimezone={currentTimezone} />
                 </CSSTransition>
               )}
             </TransitionGroup>

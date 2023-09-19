@@ -490,7 +490,7 @@ export class ScheduleStore extends BaseStore {
   }
 
   async loadShiftSwap(id: ShiftSwap['id']) {
-    const result = await makeRequest(`/shift_swaps/${id}`, {});
+    const result = await makeRequest(`/shift_swaps/${id}`, { params: { expand_users: true } });
 
     this.shiftSwaps = { ...this.shiftSwaps, [id]: result };
 

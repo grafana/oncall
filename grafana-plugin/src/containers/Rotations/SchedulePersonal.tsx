@@ -102,13 +102,13 @@ class SchedulePersonal extends Component<SchedulePersonalProps> {
                       <Rotation
                         simplified
                         key={index}
-                        scheduleId={undefined}
                         events={events}
                         startMoment={startMoment}
                         currentTimezone={currentTimezone}
                         getColor={getColor}
                         onSlotClick={onSlotClick}
                         handleOpenSchedule={this.openSchedule}
+                        showScheduleNameAsSlotTitle
                       />
                     </CSSTransition>
                   );
@@ -116,10 +116,10 @@ class SchedulePersonal extends Component<SchedulePersonalProps> {
               ) : (
                 <CSSTransition key={0} timeout={DEFAULT_TRANSITION_TIMEOUT} classNames={{ ...styles }}>
                   <Rotation
-                    scheduleId={undefined}
                     events={[]}
                     startMoment={startMoment}
                     currentTimezone={currentTimezone}
+                    emptyText="There are no schedules relevant to user"
                   />
                 </CSSTransition>
               )}

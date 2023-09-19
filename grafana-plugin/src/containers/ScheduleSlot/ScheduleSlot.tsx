@@ -10,7 +10,7 @@ import { ScheduleFiltersType } from 'components/ScheduleFilters/ScheduleFilters.
 import Text from 'components/Text/Text';
 import WorkingHours from 'components/WorkingHours/WorkingHours';
 import { getShiftName, SHIFT_SWAP_COLOR } from 'models/schedule/schedule.helpers';
-import { Event, Schedule, ShiftSwap } from 'models/schedule/schedule.types';
+import { Event, ShiftSwap } from 'models/schedule/schedule.types';
 import { getTzOffsetString } from 'models/timezone/timezone.helpers';
 import { Timezone } from 'models/timezone/timezone.types';
 import { User } from 'models/user/user.types';
@@ -22,7 +22,6 @@ import styles from './ScheduleSlot.module.css';
 
 interface ScheduleSlotProps {
   event: Event;
-  scheduleId: Schedule['id'];
   startMoment: dayjs.Dayjs;
   currentTimezone: Timezone;
   handleAddOverride: (event: React.MouseEvent<HTMLDivElement>) => void;
@@ -32,6 +31,7 @@ interface ScheduleSlotProps {
   color?: string;
   filters?: ScheduleFiltersType;
   onClick: (event: React.MouseEvent<HTMLDivElement>) => void;
+  showScheduleNameAsSlotTitle?: boolean;
 }
 
 const cx = cn.bind(styles);
@@ -39,7 +39,6 @@ const cx = cn.bind(styles);
 const ScheduleSlot: FC<ScheduleSlotProps> = observer((props) => {
   const {
     event,
-    scheduleId,
     currentTimezone,
     color,
     handleAddOverride,
@@ -48,6 +47,7 @@ const ScheduleSlot: FC<ScheduleSlotProps> = observer((props) => {
     onShiftSwapClick,
     filters,
     onClick,
+    showScheduleNameAsSlotTitle,
   } = props;
 
   const start = dayjs(event.start);
@@ -88,7 +88,6 @@ const ScheduleSlot: FC<ScheduleSlotProps> = observer((props) => {
     return (
       <RegularEvent
         event={event}
-        scheduleId={scheduleId}
         handleAddOverride={handleAddOverride}
         handleAddShiftSwap={handleAddShiftSwap}
         handleOpenSchedule={handleOpenSchedule}
@@ -99,6 +98,7 @@ const ScheduleSlot: FC<ScheduleSlotProps> = observer((props) => {
         currentTimezone={currentTimezone}
         color={color}
         currentMoment={currentMoment}
+        showScheduleNameAsSlotTitle={showScheduleNameAsSlotTitle}
       />
     );
   };
@@ -125,28 +125,31 @@ const ShiftSwapEvent = (props: ShiftSwapEventProps) => {
 
   const shiftSwap = store.scheduleStore.shiftSwaps[event.shiftSwapId];
 
+  const beneficiary = shiftSwap?.beneficiary;
+  const benefactor = shiftSwap?.benefactor;
+
   useEffect(() => {
-    if (shiftSwap?.beneficiary && !store.userStore.items[shiftSwap.beneficiary]) {
-      store.userStore.updateItem(shiftSwap.beneficiary);
+    if (shiftSwap?.beneficiary && !store.userStore.items[shiftSwap.beneficiary.pk]) {
+      store.userStore.updateItem(shiftSwap.beneficiary.pk);
     }
   }, [shiftSwap?.beneficiary]);
 
   useEffect(() => {
-    if (shiftSwap?.benefactor && !store.userStore.items[shiftSwap.benefactor]) {
-      store.userStore.updateItem(shiftSwap.benefactor);
+    if (shiftSwap?.benefactor && !store.userStore.items[shiftSwap.benefactor.pk]) {
+      store.userStore.updateItem(shiftSwap.benefactor.pk);
     }
   }, [shiftSwap?.benefactor]);
 
-  const beneficiary = store.userStore.items[shiftSwap?.beneficiary];
-  const benefactor = store.userStore.items[shiftSwap?.benefactor];
+  const beneficiaryStoreUser = store.userStore.items[shiftSwap?.beneficiary?.pk];
+  const benefactorStoreUser = store.userStore.items[shiftSwap?.benefactor?.pk];
 
   const scheduleSlotContent = (
     <div className={cx('root', { 'root__type_shift-swap': true })}>
       {shiftSwap && (
         <HorizontalGroup spacing="xs">
-          {beneficiary && <Avatar size="xs" src={beneficiary.avatar} />}
+          {beneficiary && <Avatar size="xs" src={beneficiary.avatar_full} />}
           {benefactor ? (
-            <Avatar size="xs" src={benefactor.avatar} />
+            <Avatar size="xs" src={benefactor.avatar_full} />
           ) : (
             <div className={cx('no-user')}>
               <Text size="xs" type="primary">
@@ -169,9 +172,9 @@ const ShiftSwapEvent = (props: ShiftSwapEventProps) => {
       content={
         <ScheduleSlotDetails
           isShiftSwap
-          beneficiaryName={beneficiary?.name}
-          user={benefactor || beneficiary}
-          benefactorName={benefactor?.name}
+          beneficiaryName={beneficiary?.display_name}
+          user={benefactorStoreUser || beneficiaryStoreUser}
+          benefactorName={benefactor?.display_name}
           currentTimezone={currentTimezone}
           event={event}
           color={SHIFT_SWAP_COLOR}
@@ -186,7 +189,6 @@ const ShiftSwapEvent = (props: ShiftSwapEventProps) => {
 
 interface RegularEventProps {
   event: Event;
-  scheduleId: Schedule['id'];
   currentTimezone: Timezone;
   handleAddOverride: (event: React.MouseEvent<HTMLDivElement>) => void;
   handleAddShiftSwap: (event: React.MouseEvent<HTMLDivElement>) => void;
@@ -197,12 +199,12 @@ interface RegularEventProps {
   start: dayjs.Dayjs;
   duration: number;
   currentMoment: dayjs.Dayjs;
+  showScheduleNameAsSlotTitle: boolean;
 }
 
 const RegularEvent = (props: RegularEventProps) => {
   const {
     event,
-    scheduleId,
     onShiftSwapClick,
     filters,
     color,
@@ -213,6 +215,7 @@ const RegularEvent = (props: RegularEventProps) => {
     handleAddShiftSwap,
     handleOpenSchedule,
     currentMoment,
+    showScheduleNameAsSlotTitle,
   } = props;
   const store = useStore();
 
@@ -229,10 +232,6 @@ const RegularEvent = (props: RegularEventProps) => {
     [onShiftSwapClick]
   );
 
-  const onCallNow = store.scheduleStore.items[scheduleId]?.on_call_now;
-
-  const enableWebOverrides = store.scheduleStore.items[scheduleId]?.enable_web_overrides;
-
   return (
     <>
       {users.map(({ display_name, pk: userPk, swap_request }) => {
@@ -241,11 +240,7 @@ const RegularEvent = (props: RegularEventProps) => {
         const isCurrentUserSlot = userPk === store.userStore.currentUserPk;
         const inactive = filters && filters.users.length && !filters.users.includes(userPk);
 
-        const title = storeUser ? getTitle(storeUser) : display_name;
-
-        const isOncall = Boolean(
-          storeUser && onCallNow && onCallNow.some((onCallUser) => storeUser.pk === onCallUser.pk)
-        );
+        const userTitle = storeUser ? getTitle(storeUser) : display_name;
 
         const isShiftSwap = Boolean(swap_request);
 
@@ -272,7 +267,7 @@ const RegularEvent = (props: RegularEventProps) => {
               />
             )}
             <div className={cx('title')}>
-              {swap_request && !swap_request.user ? <Icon name="user-arrows" /> : title}
+              {swap_request && !swap_request.user ? <Icon name="user-arrows" /> : userTitle}
             </div>
           </div>
         );
@@ -287,21 +282,17 @@ const RegularEvent = (props: RegularEventProps) => {
             key={userPk}
             content={
               <ScheduleSlotDetails
+                showScheduleNameAsSlotTitle={showScheduleNameAsSlotTitle}
                 isShiftSwap={isShiftSwap}
                 beneficiaryName={
                   isShiftSwap ? (swap_request.user ? swap_request.user.display_name : display_name) : undefined
                 }
                 benefactorName={isShiftSwap ? (swap_request.user ? display_name : undefined) : undefined}
                 user={storeUser}
-                isOncall={isOncall}
                 currentTimezone={currentTimezone}
                 event={event}
                 handleAddOverride={
-                  !handleAddOverride ||
-                  !enableWebOverrides ||
-                  event.is_override ||
-                  isShiftSwap ||
-                  currentMoment.isAfter(dayjs(event.end))
+                  !handleAddOverride || event.is_override || isShiftSwap || currentMoment.isAfter(dayjs(event.end))
                     ? undefined
                     : handleAddOverride
                 }
@@ -337,6 +328,7 @@ interface ScheduleSlotDetailsProps {
   beneficiaryName?: string;
   benefactorName?: string;
   currentMoment: dayjs.Dayjs;
+  showScheduleNameAsSlotTitle?: boolean;
 }
 
 const ScheduleSlotDetails = (props: ScheduleSlotDetailsProps) => {
@@ -352,20 +344,34 @@ const ScheduleSlotDetails = (props: ScheduleSlotDetailsProps) => {
     beneficiaryName,
     benefactorName,
     currentMoment,
+    showScheduleNameAsSlotTitle,
   } = props;
 
-  const store = useStore();
-  const { scheduleStore } = store;
+  const { scheduleStore } = useStore();
 
   const shiftId = event.shift?.pk;
-
   const shift = scheduleStore.shifts[shiftId];
+
+  const schedule = scheduleStore.items[shift?.schedule];
+
+  const enableWebOverrides = schedule?.enable_web_overrides;
 
   useEffect(() => {
     if (shiftId && !scheduleStore.shifts[shiftId]) {
       scheduleStore.updateOncallShift(shiftId);
     }
   }, [shiftId]);
+
+  useEffect(() => {
+    if (shift && !scheduleStore.items[shift.schedule]) {
+      scheduleStore.loadItem(shift.schedule);
+    }
+  }, [shift]);
+
+  const title = isShiftSwap ? 'Shift swap' : showScheduleNameAsSlotTitle ? schedule?.name : getShiftName(shift);
+
+  // const onCallNow = schedule?.on_call_now;
+  // const isOncall = Boolean(storeUser && onCallNow && onCallNow.some((onCallUser) => storeUser.pk === onCallUser.pk));
 
   return (
     <div className={cx('details')}>
@@ -375,7 +381,7 @@ const ScheduleSlotDetails = (props: ScheduleSlotDetailsProps) => {
             <div className={cx('badge')} style={{ backgroundColor: color }} />
           </div>
           <Text type="primary" maxWidth="222px">
-            {isShiftSwap ? 'Shift swap' : getShiftName(shift)}
+            {title}
           </Text>
         </HorizontalGroup>
         <HorizontalGroup align="flex-start">
@@ -445,7 +451,7 @@ const ScheduleSlotDetails = (props: ScheduleSlotDetailsProps) => {
               Request shift swap
             </Button>
           )}
-          {handleAddOverride && (
+          {handleAddOverride && enableWebOverrides && (
             <Button size="sm" variant="secondary" onClick={handleAddOverride}>
               + Override
             </Button>

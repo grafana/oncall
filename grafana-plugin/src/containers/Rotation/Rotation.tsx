@@ -6,8 +6,9 @@ import dayjs from 'dayjs';
 import hash from 'object-hash';
 
 import { ScheduleFiltersType } from 'components/ScheduleFilters/ScheduleFilters.types';
+import Text from 'components/Text/Text';
 import ScheduleSlot from 'containers/ScheduleSlot/ScheduleSlot';
-import { Schedule, Event, RotationFormLiveParams, Shift, ShiftSwap } from 'models/schedule/schedule.types';
+import { Event, RotationFormLiveParams, Shift, ShiftSwap } from 'models/schedule/schedule.types';
 import { Timezone } from 'models/timezone/timezone.types';
 
 import RotationTutorial from './RotationTutorial';
@@ -17,7 +18,6 @@ import styles from './Rotation.module.css';
 const cx = cn.bind(styles);
 
 interface RotationProps {
-  scheduleId: Schedule['id'];
   startMoment: dayjs.Dayjs;
   currentTimezone: Timezone;
   layerIndex?: number;
@@ -36,12 +36,13 @@ interface RotationProps {
   filters?: ScheduleFiltersType;
   getColor?: (shiftId: Shift['id']) => string;
   onSlotClick?: (event: Event) => void;
+  emptyText?: string;
+  showScheduleNameAsSlotTitle?: boolean;
 }
 
 const Rotation: FC<RotationProps> = (props) => {
   const {
     events,
-    scheduleId,
     startMoment,
     currentTimezone,
     color: propsColor,
@@ -57,6 +58,8 @@ const Rotation: FC<RotationProps> = (props) => {
     filters,
     getColor,
     onSlotClick,
+    emptyText,
+    showScheduleNameAsSlotTitle,
   } = props;
 
   const [animate, _setAnimate] = useState<boolean>(true);
@@ -149,7 +152,6 @@ const Rotation: FC<RotationProps> = (props) => {
               {events.map((event) => {
                 return (
                   <ScheduleSlot
-                    scheduleId={scheduleId}
                     key={hash(event)}
                     event={event}
                     startMoment={startMoment}
@@ -161,12 +163,13 @@ const Rotation: FC<RotationProps> = (props) => {
                     onShiftSwapClick={onShiftSwapClick}
                     filters={filters}
                     onClick={getSlotClickHandler(event)}
+                    showScheduleNameAsSlotTitle={showScheduleNameAsSlotTitle}
                   />
                 );
               })}
             </div>
           ) : (
-            <Empty />
+            <Empty text={emptyText} />
           )
         ) : (
           <HorizontalGroup align="center" justify="center">
@@ -178,8 +181,12 @@ const Rotation: FC<RotationProps> = (props) => {
   );
 };
 
-const Empty = () => {
-  return <div className={cx('empty')} />;
+const Empty = ({ text }: { text: string }) => {
+  return (
+    <div className={cx('empty')}>
+      <Text type="secondary">{text}</Text>
+    </div>
+  );
 };
 
 export default Rotation;
