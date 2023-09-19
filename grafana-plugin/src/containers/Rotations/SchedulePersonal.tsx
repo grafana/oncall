@@ -4,18 +4,20 @@ import { Badge, HorizontalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
+import { RouteComponentProps, withRouter } from 'react-router-dom';
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
 
 import Avatar from 'components/Avatar/Avatar';
 import Text from 'components/Text/Text';
 import TimelineMarks from 'components/TimelineMarks/TimelineMarks';
 import Rotation from 'containers/Rotation/Rotation';
-import { getPersonalShiftsFromStore } from 'models/schedule/schedule.helpers';
+import { getColorForSchedule, getPersonalShiftsFromStore } from 'models/schedule/schedule.helpers';
 import { Shift, Event } from 'models/schedule/schedule.types';
 import { Timezone } from 'models/timezone/timezone.types';
 import { User } from 'models/user/user.types';
 import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
+import { PLUGIN_ROOT } from 'utils/consts';
 
 import { DEFAULT_TRANSITION_TIMEOUT } from './Rotations.config';
 
@@ -23,7 +25,7 @@ import styles from './Rotations.module.css';
 
 const cx = cn.bind(styles);
 
-interface SchedulePersonalProps extends WithStoreProps {
+interface SchedulePersonalProps extends WithStoreProps, RouteComponentProps {
   startMoment: dayjs.Dayjs;
   currentTimezone: Timezone;
   userPk: User['pk'];
@@ -38,6 +40,14 @@ class SchedulePersonal extends Component<SchedulePersonalProps> {
     store.scheduleStore.updatePersonalEvents(store.userStore.currentUserPk, startMoment);
   }
 
+  componentDidUpdate(prevProps: Readonly<SchedulePersonalProps>): void {
+    const { store, startMoment } = this.props;
+
+    if (prevProps.startMoment !== this.props.startMoment) {
+      store.scheduleStore.updatePersonalEvents(store.userStore.currentUserPk, startMoment);
+    }
+  }
+
   render() {
     const { userPk, startMoment, currentTimezone, store, onSlotClick } = this.props;
 
@@ -50,7 +60,18 @@ class SchedulePersonal extends Component<SchedulePersonalProps> {
 
     const currentTimeHidden = currentTimeX < 0 || currentTimeX > 1;
 
-    const getColor = (_shiftId: Shift['id']) => '#377277';
+    const getColor = (shiftId: Shift['id']) => {
+      const shift = store.scheduleStore.shifts[shiftId];
+
+      if (!shift) {
+        if (shiftId) {
+          store.scheduleStore.updateOncallShift(shiftId);
+        }
+        return;
+      }
+
+      return getColorForSchedule(shift.schedule);
+    };
 
     const isOncall = store.scheduleStore.onCallNow[userPk];
 
@@ -79,18 +100,15 @@ class SchedulePersonal extends Component<SchedulePersonalProps> {
                   return (
                     <CSSTransition key={index} timeout={DEFAULT_TRANSITION_TIMEOUT} classNames={{ ...styles }}>
                       <Rotation
+                        simplified
                         key={index}
                         scheduleId={undefined}
                         events={events}
                         startMoment={startMoment}
                         currentTimezone={currentTimezone}
-                        //handleAddOverride={this.handleShowOverrideForm}
-                        //handleAddShiftSwap={onShowShiftSwapForm}
-                        //onShiftSwapClick={onShowShiftSwapForm}
-                        //simplified={simplified}
-                        //filters={filters}
                         getColor={getColor}
                         onSlotClick={onSlotClick}
+                        handleOpenSchedule={this.openSchedule}
                       />
                     </CSSTransition>
                   );
@@ -111,6 +129,15 @@ class SchedulePersonal extends Component<SchedulePersonalProps> {
       </>
     );
   }
+
+  openSchedule = (event: Event) => {
+    const { store, history } = this.props;
+
+    const shiftId = event.shift?.pk;
+    const shift = store.scheduleStore.shifts[shiftId];
+
+    history.push(`${PLUGIN_ROOT}/schedules/${shift.schedule}`);
+  };
 }
 
-export default withMobXProviderContext(SchedulePersonal);
+export default withRouter(withMobXProviderContext(SchedulePersonal));

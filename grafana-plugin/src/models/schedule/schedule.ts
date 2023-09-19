@@ -42,6 +42,8 @@ export class ScheduleStore extends BaseStore {
   @observable.shallow
   shifts: { [id: string]: Shift } = {};
 
+  shiftsCurrentlyUpdating = {};
+
   @observable.shallow
   relatedEscalationChains: { [id: string]: EscalationChain[] } = {};
 
@@ -398,12 +400,20 @@ export class ScheduleStore extends BaseStore {
 
   @action
   async updateOncallShift(shiftId: Shift['id']) {
+    if (this.shiftsCurrentlyUpdating[shiftId]) {
+      return;
+    }
+
+    this.shiftsCurrentlyUpdating[shiftId] = true;
+
     const response = await makeRequest(`/oncall_shifts/${shiftId}`, {});
 
     this.shifts = {
       ...this.shifts,
       [shiftId]: response,
     };
+
+    delete this.shiftsCurrentlyUpdating[shiftId];
 
     return response;
   }

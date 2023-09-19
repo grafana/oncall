@@ -27,6 +27,7 @@ interface RotationProps {
   onClick?: (start: dayjs.Dayjs, end: dayjs.Dayjs) => void;
   handleAddOverride?: (start: dayjs.Dayjs, end: dayjs.Dayjs) => void;
   handleAddShiftSwap?: (id: 'new', params: Partial<ShiftSwap>) => void;
+  handleOpenSchedule?: (event: Event) => void;
   onShiftSwapClick?: (swapId: ShiftSwap['id']) => void;
   days?: number;
   transparent?: boolean;
@@ -50,6 +51,7 @@ const Rotation: FC<RotationProps> = (props) => {
     onClick,
     handleAddOverride,
     handleAddShiftSwap,
+    handleOpenSchedule,
     onShiftSwapClick,
     simplified,
     filters,
@@ -73,6 +75,10 @@ const Rotation: FC<RotationProps> = (props) => {
   };
 
   const getAddOverrideClickHandler = (scheduleEvent: Event) => {
+    if (simplified) {
+      return undefined;
+    }
+
     return (event: React.MouseEvent<HTMLDivElement>) => {
       event.stopPropagation();
 
@@ -81,6 +87,10 @@ const Rotation: FC<RotationProps> = (props) => {
   };
 
   const getAddShiftSwapClickHandler = (scheduleEvent: Event) => {
+    if (simplified) {
+      return undefined;
+    }
+
     return (event: React.MouseEvent<HTMLDivElement>) => {
       event.stopPropagation();
 
@@ -88,6 +98,18 @@ const Rotation: FC<RotationProps> = (props) => {
         swap_start: scheduleEvent.start,
         swap_end: scheduleEvent.end,
       });
+    };
+  };
+
+  const getOpenScheduleClickHandler = (scheduleEvent: Event) => {
+    if (!handleOpenSchedule) {
+      return undefined;
+    }
+
+    return (event: React.MouseEvent<HTMLDivElement>) => {
+      event.stopPropagation();
+
+      handleOpenSchedule(scheduleEvent);
     };
   };
 
@@ -135,8 +157,8 @@ const Rotation: FC<RotationProps> = (props) => {
                     color={propsColor || getColor(event.shift?.pk)}
                     handleAddOverride={getAddOverrideClickHandler(event)}
                     handleAddShiftSwap={getAddShiftSwapClickHandler(event)}
+                    handleOpenSchedule={getOpenScheduleClickHandler(event)}
                     onShiftSwapClick={onShiftSwapClick}
-                    simplified={simplified}
                     filters={filters}
                     onClick={getSlotClickHandler(event)}
                   />

@@ -364,6 +364,25 @@ export const SHIFT_SWAP_COLOR = '#C69B06';
 
 const COLORS = [L1_COLORS, L2_COLORS, L3_COLORS];
 
+const scheduleToColor = {};
+
+export const getColorForSchedule = (scheduleId: Schedule['id']) => {
+  if (scheduleToColor[scheduleId]) {
+    return scheduleToColor[scheduleId];
+  }
+
+  const colors = [...L1_COLORS, ...L2_COLORS, ...L3_COLORS];
+
+  const index = Object.keys(scheduleToColor).length;
+  const normalizedIndex = index % colors.length;
+
+  const color = colors[normalizedIndex];
+
+  scheduleToColor[scheduleId] = color;
+
+  return color;
+};
+
 export const getColor = (layerIndex: number, rotationIndex: number) => {
   const normalizedLayerIndex = layerIndex % COLORS.length;
   const normalizedRotationIndex = rotationIndex % COLORS[normalizedLayerIndex]?.length;

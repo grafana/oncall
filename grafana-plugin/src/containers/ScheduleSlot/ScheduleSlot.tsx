@@ -27,9 +27,9 @@ interface ScheduleSlotProps {
   currentTimezone: Timezone;
   handleAddOverride: (event: React.MouseEvent<HTMLDivElement>) => void;
   handleAddShiftSwap: (event: React.MouseEvent<HTMLDivElement>) => void;
+  handleOpenSchedule: (event: React.MouseEvent<HTMLDivElement>) => void;
   onShiftSwapClick: (id: ShiftSwap['id']) => void;
   color?: string;
-  simplified?: boolean;
   filters?: ScheduleFiltersType;
   onClick: (event: React.MouseEvent<HTMLDivElement>) => void;
 }
@@ -44,8 +44,8 @@ const ScheduleSlot: FC<ScheduleSlotProps> = observer((props) => {
     color,
     handleAddOverride,
     handleAddShiftSwap,
+    handleOpenSchedule,
     onShiftSwapClick,
-    simplified,
     filters,
     onClick,
   } = props;
@@ -63,14 +63,7 @@ const ScheduleSlot: FC<ScheduleSlotProps> = observer((props) => {
 
   const renderEvent = (event): React.ReactElement | React.ReactElement[] => {
     if (event.shiftSwapId) {
-      return (
-        <ShiftSwapEvent
-          currentMoment={currentMoment}
-          event={event}
-          simplified={simplified}
-          currentTimezone={currentTimezone}
-        />
-      );
+      return <ShiftSwapEvent currentMoment={currentMoment} event={event} currentTimezone={currentTimezone} />;
     }
 
     if (event.is_gap) {
@@ -98,12 +91,12 @@ const ScheduleSlot: FC<ScheduleSlotProps> = observer((props) => {
         scheduleId={scheduleId}
         handleAddOverride={handleAddOverride}
         handleAddShiftSwap={handleAddShiftSwap}
+        handleOpenSchedule={handleOpenSchedule}
         onShiftSwapClick={onShiftSwapClick}
         filters={filters}
         start={start}
         duration={duration}
         currentTimezone={currentTimezone}
-        simplified={simplified}
         color={color}
         currentMoment={currentMoment}
       />
@@ -122,12 +115,11 @@ export default ScheduleSlot;
 interface ShiftSwapEventProps {
   event: Event;
   currentTimezone: Timezone;
-  simplified: boolean;
   currentMoment: dayjs.Dayjs;
 }
 
 const ShiftSwapEvent = (props: ShiftSwapEventProps) => {
-  const { event, currentTimezone, simplified, currentMoment } = props;
+  const { event, currentTimezone, currentMoment } = props;
 
   const store = useStore();
 
@@ -182,7 +174,6 @@ const ShiftSwapEvent = (props: ShiftSwapEventProps) => {
           benefactorName={benefactor?.name}
           currentTimezone={currentTimezone}
           event={event}
-          simplified={simplified}
           color={SHIFT_SWAP_COLOR}
           currentMoment={currentMoment}
         />
@@ -199,8 +190,8 @@ interface RegularEventProps {
   currentTimezone: Timezone;
   handleAddOverride: (event: React.MouseEvent<HTMLDivElement>) => void;
   handleAddShiftSwap: (event: React.MouseEvent<HTMLDivElement>) => void;
+  handleOpenSchedule: (event: React.MouseEvent<HTMLDivElement>) => void;
   onShiftSwapClick: (id: ShiftSwap['id']) => void;
-  simplified: boolean;
   color?: string;
   filters?: ScheduleFiltersType;
   start: dayjs.Dayjs;
@@ -216,11 +207,11 @@ const RegularEvent = (props: RegularEventProps) => {
     filters,
     color,
     currentTimezone,
-    simplified,
     start,
     duration,
     handleAddOverride,
     handleAddShiftSwap,
+    handleOpenSchedule,
     currentMoment,
   } = props;
   const store = useStore();
@@ -306,8 +297,8 @@ const RegularEvent = (props: RegularEventProps) => {
                 currentTimezone={currentTimezone}
                 event={event}
                 handleAddOverride={
+                  !handleAddOverride ||
                   !enableWebOverrides ||
-                  simplified ||
                   event.is_override ||
                   isShiftSwap ||
                   currentMoment.isAfter(dayjs(event.end))
@@ -315,11 +306,11 @@ const RegularEvent = (props: RegularEventProps) => {
                     : handleAddOverride
                 }
                 handleAddShiftSwap={
-                  simplified || isShiftSwap || !isCurrentUserSlot || currentMoment.isAfter(dayjs(event.start))
+                  !handleAddShiftSwap || isShiftSwap || !isCurrentUserSlot || currentMoment.isAfter(dayjs(event.start))
                     ? undefined
                     : handleAddShiftSwap
                 }
-                simplified={simplified}
+                handleOpenSchedule={handleOpenSchedule}
                 color={backgroundColor}
                 currentMoment={currentMoment}
               />
@@ -340,7 +331,7 @@ interface ScheduleSlotDetailsProps {
   event: Event;
   handleAddOverride?: (event: React.SyntheticEvent) => void;
   handleAddShiftSwap?: (event: React.SyntheticEvent) => void;
-  simplified?: boolean;
+  handleOpenSchedule?: (event: React.SyntheticEvent) => void;
   color: string;
   isShiftSwap?: boolean;
   beneficiaryName?: string;
@@ -355,6 +346,7 @@ const ScheduleSlotDetails = (props: ScheduleSlotDetailsProps) => {
     event,
     handleAddOverride,
     handleAddShiftSwap,
+    handleOpenSchedule,
     color,
     isShiftSwap,
     beneficiaryName,
@@ -365,7 +357,15 @@ const ScheduleSlotDetails = (props: ScheduleSlotDetailsProps) => {
   const store = useStore();
   const { scheduleStore } = store;
 
-  const shift = scheduleStore.shifts[event.shift?.pk];
+  const shiftId = event.shift?.pk;
+
+  const shift = scheduleStore.shifts[shiftId];
+
+  useEffect(() => {
+    if (shiftId && !scheduleStore.shifts[shiftId]) {
+      scheduleStore.updateOncallShift(shiftId);
+    }
+  }, [shiftId]);
 
   return (
     <div className={cx('details')}>
@@ -448,6 +448,11 @@ const ScheduleSlotDetails = (props: ScheduleSlotDetailsProps) => {
           {handleAddOverride && (
             <Button size="sm" variant="secondary" onClick={handleAddOverride}>
               + Override
+            </Button>
+          )}
+          {handleOpenSchedule && (
+            <Button size="sm" variant="secondary" onClick={handleOpenSchedule}>
+              Open schedule
             </Button>
           )}
         </HorizontalGroup>
