@@ -4,11 +4,12 @@ from telegram import error
 from apps.alerts.models import AlertGroup
 from apps.base.models import UserNotificationPolicy, UserNotificationPolicyLogRecord
 from apps.telegram.client import TelegramClient
+from apps.telegram.decorators import ignore_reply_to_message_deleted
 from apps.telegram.models import TelegramMessage, TelegramToOrganizationConnector
 from apps.telegram.tasks import send_link_to_channel_message_or_fallback_to_full_alert_group
 from apps.user_management.models import User
 
-ONE_MORE_NOTIFICATION = "One more notification about this ☝"
+ONE_MORE_NOTIFICATION = "One more notification about this 👆"
 ALERT_CANT_BE_RENDERED = (
     "You have a new alert group, but Telegram can't render its content! Please check it out: {link}"
 )
@@ -123,11 +124,7 @@ class TelegramToUserConnector(models.Model):
                 else:
                     raise e
         else:
-            telegram_client.send_raw_message(
-                chat_id=old_alert_group_message.chat_id,
-                text=ONE_MORE_NOTIFICATION,
-                reply_to_message_id=old_alert_group_message.message_id,
-            )
+            self._nudge_about_alert_group_message(telegram_client, old_alert_group_message)
 
     # send DM message with the link to the alert group post in channel
     def send_link_to_channel_message(self, alert_group: AlertGroup, notification_policy: UserNotificationPolicy):
@@ -172,3 +169,11 @@ class TelegramToUserConnector(models.Model):
                 )
             else:
                 raise e
+
+    @staticmethod
+    @ignore_reply_to_message_deleted
+    def _nudge_about_alert_group_message(telegram_client: TelegramClient, message: TelegramMessage) -> None:
+        """Nudge the user about existing alert group message, without sending the full alert group content again."""
+        telegram_client.send_raw_message(
+            chat_id=message.chat_id, reply_to_message_id=message.message_id, text=ONE_MORE_NOTIFICATION
+        )

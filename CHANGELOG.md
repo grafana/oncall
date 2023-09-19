@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## v1.3.38 (2023-09-19)
+
+### Fixed
+
+- Fix Slack access token length issue by @toolchainX ([#3016](https://github.com/grafana/oncall/pull/3016))
+- Fix shifts for current user internal endpoint to return the right shift PK ([#3036](https://github.com/grafana/oncall/pull/3036))
+- Handle Slack ratelimit on alert group deletion by @vadimkerr ([#3038](https://github.com/grafana/oncall/pull/3038))
+
 ## v1.3.37 (2023-09-12)
 
 ### Added
