@@ -5,7 +5,32 @@ from rest_framework.test import APIClient
 
 from apps.webhooks.models import Webhook
 from apps.webhooks.models.webhook import WEBHOOK_FIELD_PLACEHOLDER
-from conftest import TEST_WEBHOOK_PRESET_ID, TEST_WEBHOOK_PRESET_URL
+from conftest import (
+    TEST_WEBHOOK_LOGO,
+    TEST_WEBHOOK_PRESET_DESCRIPTION,
+    TEST_WEBHOOK_PRESET_ID,
+    TEST_WEBHOOK_PRESET_IGNORED_FIELDS,
+    TEST_WEBHOOK_PRESET_NAME,
+    TEST_WEBHOOK_PRESET_URL,
+)
+
+
+@pytest.mark.django_db
+def test_get_webhook_preset_options(
+    make_organization_and_user_with_plugin_token, webhook_preset_api_setup, make_user_auth_headers
+):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+    client = APIClient()
+    url = reverse("api-internal:webhooks-preset-options")
+
+    response = client.get(url, format="json", **make_user_auth_headers(user, token))
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data[0]["id"] == TEST_WEBHOOK_PRESET_ID
+    assert response.data[0]["name"] == TEST_WEBHOOK_PRESET_NAME
+    assert response.data[0]["logo"] == TEST_WEBHOOK_LOGO
+    assert response.data[0]["description"] == TEST_WEBHOOK_PRESET_DESCRIPTION
+    assert response.data[0]["ignored_fields"] == TEST_WEBHOOK_PRESET_IGNORED_FIELDS
 
 
 @pytest.mark.django_db
