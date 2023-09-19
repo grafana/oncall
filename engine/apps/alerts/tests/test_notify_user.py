@@ -2,6 +2,7 @@ from unittest.mock import patch
 
 import pytest
 
+from apps.alerts.models import UserHasNotification
 from apps.alerts.tasks.notify_user import notify_user_task, perform_notification
 from apps.api.permissions import LegacyAccessControlRole
 from apps.base.models.user_notification_policy import UserNotificationPolicy
@@ -178,3 +179,54 @@ def test_notify_user_error_if_viewer(
     assert error_log_record.type == UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED
     assert error_log_record.reason == NOTIFICATION_UNAUTHORIZED_MSG
     assert error_log_record.notification_error_code == UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_FORBIDDEN
+
+
+@pytest.mark.django_db
+def test_notify_user_without_policy_organization_none_channel_fallback(
+    make_organization,
+    make_user,
+    make_alert_receive_channel,
+    make_alert_group,
+):
+    organization = make_organization()
+    assert organization.default_notification_channel is None
+    user_1 = make_user(organization=organization)
+    # user without a notification policy set
+    assert user_1.notification_policies.count() == 0
+    alert_receive_channel = make_alert_receive_channel(organization=organization)
+    alert_group = make_alert_group(alert_receive_channel=alert_receive_channel)
+
+    notify_user_task(user_1.pk, alert_group.pk)
+
+    # no new logs
+    assert UserNotificationPolicyLogRecord.objects.count() == 0
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("user_already_notified", (False, True))
+def test_notify_user_without_policy_organization_channel_fallback(
+    make_organization,
+    make_user,
+    make_alert_receive_channel,
+    make_alert_group,
+    user_already_notified,
+):
+    organization = make_organization(default_notification_channel=UserNotificationPolicy.NotificationChannel.TESTONLY)
+    user_1 = make_user(organization=organization)
+    # user without a notification policy set
+    assert user_1.notification_policies.count() == 0
+    alert_receive_channel = make_alert_receive_channel(organization=organization)
+    alert_group = make_alert_group(alert_receive_channel=alert_receive_channel)
+    if user_already_notified:
+        UserHasNotification.objects.create(user=user_1, alert_group=alert_group)
+
+    notify_user_task(user_1.pk, alert_group.pk)
+
+    if user_already_notified:
+        # no new logs
+        assert UserNotificationPolicyLogRecord.objects.count() == 0
+    else:
+        log_record = UserNotificationPolicyLogRecord.objects.last()
+        assert log_record.notification_policy is None
+        assert log_record.type == UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_TRIGGERED
+        assert log_record.notification_channel == UserNotificationPolicy.NotificationChannel.TESTONLY

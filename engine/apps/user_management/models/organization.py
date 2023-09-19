@@ -10,6 +10,7 @@ from django.utils import timezone
 from mirage import fields as mirage_fields
 
 from apps.alerts.models import MaintainableObject
+from apps.base.models.user_notification_policy import UserNotificationPolicy
 from apps.user_management.subscription_strategy import FreePublicBetaSubscriptionStrategy
 from common.insight_log import ChatOpsEvent, ChatOpsTypePlug, write_chatops_insight_log
 from common.oncall_gateway import create_oncall_connector, delete_oncall_connector, delete_slack_connector
@@ -164,6 +165,12 @@ class Organization(MaintainableObject):
     last_time_synced = models.DateTimeField(null=True, default=None)
 
     is_resolution_note_required = models.BooleanField(default=False)
+
+    default_notification_channel = models.IntegerField(
+        choices=UserNotificationPolicy.NotificationChannel.choices,
+        default=getattr(UserNotificationPolicy.NotificationChannel, "EMAIL", None),
+        null=True,
+    )
 
     # TODO: this field is specific to slack and will be moved to a different model
     slack_team_identity = models.ForeignKey(
