@@ -317,6 +317,15 @@ def test_shifts_dict_from_cached_final(
     assert shifts == expected_events
 
 
+def test_parse_event_uid_from_export():
+    shift_pk = "OUCE6WAHL35PP"
+    user_pk = "UHZ38D6AQXXBY"
+    event_uid = f"{shift_pk}-202309200300-{user_pk}"
+    pk, source = parse_event_uid(event_uid)
+    assert pk == shift_pk
+    assert source is None
+
+
 def test_parse_event_uid_v1():
     uuid = uuid4()
     event_uid = f"amixr-{uuid}-U1-E2-S1"
