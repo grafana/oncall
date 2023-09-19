@@ -12,7 +12,7 @@ from conftest import TEST_WEBHOOK_PRESET_ID, TEST_WEBHOOK_PRESET_URL
 def test_create_webhook_from_preset(
     make_organization_and_user_with_plugin_token, webhook_preset_api_setup, make_user_auth_headers
 ):
-    user, token, organization = make_organization_and_user_with_plugin_token
+    organization, user, token = make_organization_and_user_with_plugin_token()
     client = APIClient()
     url = reverse("api-internal:webhooks-list")
 
@@ -51,6 +51,7 @@ def test_create_webhook_from_preset(
             "event_data": "",
         },
         "trigger_template": None,
+        "trigger_type": str(data["trigger_type"]),
         "trigger_type_name": "Alert Group Created",
     }
 
@@ -64,7 +65,7 @@ def test_create_webhook_from_preset(
 def test_invalid_create_webhook_with_preset(
     make_organization_and_user_with_plugin_token, webhook_preset_api_setup, make_user_auth_headers
 ):
-    user, token, organization = make_organization_and_user_with_plugin_token
+    organization, user, token = make_organization_and_user_with_plugin_token()
     client = APIClient()
     url = reverse("api-internal:webhooks-list")
 
@@ -83,7 +84,7 @@ def test_invalid_create_webhook_with_preset(
 def test_update_webhook_from_preset(
     make_organization_and_user_with_plugin_token, webhook_preset_api_setup, make_user_auth_headers, make_custom_webhook
 ):
-    user, token, organization = make_organization_and_user_with_plugin_token
+    organization, user, token = make_organization_and_user_with_plugin_token()
     webhook = make_custom_webhook(
         name="the_webhook",
         organization=organization,
@@ -112,7 +113,7 @@ def test_update_webhook_from_preset(
 def test_invalid_update_webhook_from_preset(
     make_organization_and_user_with_plugin_token, webhook_preset_api_setup, make_user_auth_headers, make_custom_webhook
 ):
-    user, token, organization = make_organization_and_user_with_plugin_token
+    organization, user, token = make_organization_and_user_with_plugin_token()
     webhook = make_custom_webhook(
         name="the_webhook",
         organization=organization,
