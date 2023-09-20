@@ -1,4 +1,4 @@
-# from django.apps import apps
+from django.apps import apps  # noqa: I251
 from django.db import models
 from django.utils import timezone
 
@@ -6,11 +6,9 @@ ASSOCIATED_MODEL_NAME = "AssociatedLabel"
 
 
 def get_associating_label_model(model):
-    # todo
-    pass
-    # class_name = model.__name__ + ASSOCIATED_MODEL_NAME
-    # label_model = apps.get_model(model._meta.app_label, class_name)
-    # return label_model
+    class_name = model.__name__ + ASSOCIATED_MODEL_NAME
+    label_model = apps.get_model(model._meta.app_label, class_name)
+    return label_model
 
 
 class LabelKeyCache(models.Model):
