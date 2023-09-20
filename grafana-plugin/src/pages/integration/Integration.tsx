@@ -30,6 +30,7 @@ import IntegrationHowToConnect from 'components/IntegrationHowToConnect/Integrat
 import IntegrationLogo from 'components/IntegrationLogo/IntegrationLogo';
 import IntegrationSendDemoAlertModal from 'components/IntegrationSendDemoAlertModal/IntegrationSendDemoAlertModal';
 import IntegrationBlock from 'components/Integrations/IntegrationBlock';
+import Labels from 'components/Labels/Labels';
 import PageErrorHandlingWrapper, { PageBaseState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
 import { initErrorDataState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper.helpers';
 import PluginLink from 'components/PluginLink/PluginLink';
@@ -192,6 +193,10 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
                 changeIsTemplateSettingsOpen={() => this.setState({ isTemplateSettingsOpen: true })}
                 isLegacyIntegration={isLegacyIntegration}
               />
+            </div>
+
+            <div style={{ width: '500px' }}>
+              <Labels />
             </div>
 
             <div className={cx('integration__subheading-container')}>
