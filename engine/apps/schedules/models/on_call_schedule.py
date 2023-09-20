@@ -151,7 +151,7 @@ def generate_public_primary_key_for_oncall_schedule_channel():
 
 class OnCallScheduleQuerySet(PolymorphicQuerySet):
     def get_oncall_users(self, events_datetime=None):
-        return get_oncall_users_for_multiple_schedules(self, events_datetime)
+        return get_oncall_users_for_multiple_schedules(self.all(), events_datetime)
 
     def related_to_user(self, user):
         username_regex = RE_ICAL_SEARCH_USERNAME.format(user.username)

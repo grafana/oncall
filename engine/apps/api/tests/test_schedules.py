@@ -2081,7 +2081,7 @@ def test_get_schedule_on_call_now(
     client = APIClient()
     url = reverse("api-internal:schedule-list")
     with patch(
-        "apps.schedules.models.on_call_schedule.OnCallScheduleQuerySet.get_oncall_users",
+        "apps.api.views.schedule.get_oncall_users_for_multiple_schedules",
         return_value={schedule.pk: [user]},
     ):
         response = client.get(url, format="json", **make_user_auth_headers(user, token))

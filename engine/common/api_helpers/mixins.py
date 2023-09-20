@@ -150,9 +150,11 @@ _MT = typing.TypeVar("_MT", bound=models.Model)
 
 
 class PublicPrimaryKeyMixin(typing.Generic[_MT]):
-    def get_object(self) -> _MT:
+    def get_object(self, queryset_kwargs=None) -> _MT:
         pk = self.kwargs["pk"]
-        queryset = self.filter_queryset(self.get_queryset())
+        if queryset_kwargs is None:
+            queryset_kwargs = {}
+        queryset = self.filter_queryset(self.get_queryset(**queryset_kwargs))
 
         try:
             obj = queryset.get(public_primary_key=pk)
