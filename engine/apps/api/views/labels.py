@@ -24,10 +24,12 @@ class LabelsCRUDView(APIView):
         organization = self.request.auth.organization
         key_id = self.request.query_params.get("keyID")
         if key_id:
-            result = LabelsAPIClient(organization).get_labels_keys()
-        else:
             result = LabelsAPIClient(organization).get_label_key_values(key_id)
-        return Response(result)
+            # todo: update cache
+        else:
+            result = LabelsAPIClient(organization).get_labels_keys()
+            # todo: update cache
+        return Response(result.data, status=result.status_code)
 
     def post(self, request):  # todo
         organization = self.request.auth.organization
@@ -70,7 +72,7 @@ class LabelsAssociatingMixin:  # use for labelable objects views (ex. AlertRecei
 
     def filter_by_labels(self, queryset):
         """Call this method in `get_queryset()` to add filtering by labels"""
-        labels = self.request.query_params.getlist("label")  # ["key1,value1", "key2,value2"]
+        labels = self.request.query_params.getlist("label")  # ["key1:value1", "key2:value2"]
         if not labels:
             return queryset
         keys = []
