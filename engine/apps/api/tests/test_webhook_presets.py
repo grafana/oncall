@@ -46,7 +46,6 @@ def test_create_webhook_from_preset(
         "trigger_type": Webhook.TRIGGER_ALERT_GROUP_CREATED,
         "team": None,
         "password": "secret_password",
-        "authorization_header": "auth 1234",
         "preset": TEST_WEBHOOK_PRESET_ID,
     }
     response = client.post(url, data, format="json", **make_user_auth_headers(user, token))
@@ -58,7 +57,7 @@ def test_create_webhook_from_preset(
         "data": organization.org_title,
         "username": None,
         "password": WEBHOOK_FIELD_PLACEHOLDER,
-        "authorization_header": WEBHOOK_FIELD_PLACEHOLDER,
+        "authorization_header": None,
         "forward_all": True,
         "headers": None,
         "http_method": "GET",
@@ -83,7 +82,6 @@ def test_create_webhook_from_preset(
     assert response.status_code == status.HTTP_201_CREATED
     assert response.json() == expected_response
     assert webhook.password == data["password"]
-    assert webhook.authorization_header == data["authorization_header"]
 
 
 @pytest.mark.django_db
