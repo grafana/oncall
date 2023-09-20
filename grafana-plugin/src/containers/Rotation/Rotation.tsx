@@ -6,8 +6,9 @@ import dayjs from 'dayjs';
 import hash from 'object-hash';
 
 import { ScheduleFiltersType } from 'components/ScheduleFilters/ScheduleFilters.types';
+import Text from 'components/Text/Text';
 import ScheduleSlot from 'containers/ScheduleSlot/ScheduleSlot';
-import { Schedule, Event, RotationFormLiveParams, Shift, ShiftSwap } from 'models/schedule/schedule.types';
+import { Event, RotationFormLiveParams, Shift, ShiftSwap } from 'models/schedule/schedule.types';
 import { Timezone } from 'models/timezone/timezone.types';
 
 import RotationTutorial from './RotationTutorial';
@@ -17,7 +18,6 @@ import styles from './Rotation.module.css';
 const cx = cn.bind(styles);
 
 interface RotationProps {
-  scheduleId: Schedule['id'];
   startMoment: dayjs.Dayjs;
   currentTimezone: Timezone;
   layerIndex?: number;
@@ -27,6 +27,7 @@ interface RotationProps {
   onClick?: (start: dayjs.Dayjs, end: dayjs.Dayjs) => void;
   handleAddOverride?: (start: dayjs.Dayjs, end: dayjs.Dayjs) => void;
   handleAddShiftSwap?: (id: 'new', params: Partial<ShiftSwap>) => void;
+  handleOpenSchedule?: (event: Event) => void;
   onShiftSwapClick?: (swapId: ShiftSwap['id']) => void;
   days?: number;
   transparent?: boolean;
@@ -35,12 +36,13 @@ interface RotationProps {
   filters?: ScheduleFiltersType;
   getColor?: (shiftId: Shift['id']) => string;
   onSlotClick?: (event: Event) => void;
+  emptyText?: string;
+  showScheduleNameAsSlotTitle?: boolean;
 }
 
 const Rotation: FC<RotationProps> = (props) => {
   const {
     events,
-    scheduleId,
     startMoment,
     currentTimezone,
     color: propsColor,
@@ -50,11 +52,14 @@ const Rotation: FC<RotationProps> = (props) => {
     onClick,
     handleAddOverride,
     handleAddShiftSwap,
+    handleOpenSchedule,
     onShiftSwapClick,
     simplified,
     filters,
     getColor,
     onSlotClick,
+    emptyText,
+    showScheduleNameAsSlotTitle,
   } = props;
 
   const [animate, _setAnimate] = useState<boolean>(true);
@@ -73,6 +78,10 @@ const Rotation: FC<RotationProps> = (props) => {
   };
 
   const getAddOverrideClickHandler = (scheduleEvent: Event) => {
+    if (simplified) {
+      return undefined;
+    }
+
     return (event: React.MouseEvent<HTMLDivElement>) => {
       event.stopPropagation();
 
@@ -81,6 +90,10 @@ const Rotation: FC<RotationProps> = (props) => {
   };
 
   const getAddShiftSwapClickHandler = (scheduleEvent: Event) => {
+    if (simplified) {
+      return undefined;
+    }
+
     return (event: React.MouseEvent<HTMLDivElement>) => {
       event.stopPropagation();
 
@@ -88,6 +101,18 @@ const Rotation: FC<RotationProps> = (props) => {
         swap_start: scheduleEvent.start,
         swap_end: scheduleEvent.end,
       });
+    };
+  };
+
+  const getOpenScheduleClickHandler = (scheduleEvent: Event) => {
+    if (!handleOpenSchedule) {
+      return undefined;
+    }
+
+    return (event: React.MouseEvent<HTMLDivElement>) => {
+      event.stopPropagation();
+
+      handleOpenSchedule(scheduleEvent);
     };
   };
 
@@ -127,7 +152,6 @@ const Rotation: FC<RotationProps> = (props) => {
               {events.map((event) => {
                 return (
                   <ScheduleSlot
-                    scheduleId={scheduleId}
                     key={hash(event)}
                     event={event}
                     startMoment={startMoment}
@@ -135,16 +159,17 @@ const Rotation: FC<RotationProps> = (props) => {
                     color={propsColor || getColor(event.shift?.pk)}
                     handleAddOverride={getAddOverrideClickHandler(event)}
                     handleAddShiftSwap={getAddShiftSwapClickHandler(event)}
+                    handleOpenSchedule={getOpenScheduleClickHandler(event)}
                     onShiftSwapClick={onShiftSwapClick}
-                    simplified={simplified}
                     filters={filters}
                     onClick={getSlotClickHandler(event)}
+                    showScheduleNameAsSlotTitle={showScheduleNameAsSlotTitle}
                   />
                 );
               })}
             </div>
           ) : (
-            <Empty />
+            <Empty text={emptyText} />
           )
         ) : (
           <HorizontalGroup align="center" justify="center">
@@ -156,8 +181,12 @@ const Rotation: FC<RotationProps> = (props) => {
   );
 };
 
-const Empty = () => {
-  return <div className={cx('empty')} />;
+const Empty = ({ text }: { text: string }) => {
+  return (
+    <div className={cx('empty')}>
+      <Text type="secondary">{text}</Text>
+    </div>
+  );
 };
 
 export default Rotation;
