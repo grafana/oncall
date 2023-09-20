@@ -175,7 +175,7 @@ def execute_webhook(webhook_pk, alert_group_id, user_id, escalation_policy_id):
     try:
         webhook = Webhook.objects.get(pk=webhook_pk)
     except Webhook.DoesNotExist:
-        logger.warn(f"Webhook {webhook_pk} does not exist")
+        logger.warning(f"Webhook {webhook_pk} does not exist")
         return
 
     try:
