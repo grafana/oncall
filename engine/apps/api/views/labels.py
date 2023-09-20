@@ -2,7 +2,7 @@ from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.views import APIView
+from rest_framework.viewsets import ViewSet
 
 from apps.auth_token.auth import PluginAuthentication
 from apps.labels.client import LabelsAPIClient
@@ -11,7 +11,7 @@ from apps.labels.utils import is_labels_enabled
 from common.api_helpers.exceptions import BadRequest
 
 
-class LabelsCRUDView(APIView):
+class LabelsCRUDView(ViewSet):
     authentication_classes = (PluginAuthentication,)
     permission_classes = (IsAuthenticated,)
     # todo: permissions on create/update labels
@@ -21,50 +21,32 @@ class LabelsCRUDView(APIView):
     #     if not is_labels_enabled(self.request.auth.organization):
     #         raise NotFound
 
-    def get(self, request):  # todo
+    def get_keys(self, request):  # todo
         organization = self.request.auth.organization
-        key_id = self.request.query_params.get("keyID")
-        if key_id:
-            result, _ = LabelsAPIClient(organization.grafana_url, organization.api_token).get_label_key_values(key_id)
-            # todo: update cache
-        else:
-            result, _ = LabelsAPIClient(organization.grafana_url, organization.api_token).get_labels_keys()
-            # todo: update cache
+        result, _ = LabelsAPIClient(organization.grafana_url, organization.api_token).get_labels_keys()
+        # todo: update cache
         return Response(result)
 
-    def post(self, request):  # todo
+    def get_key(self, request, key_id):  # todo
         organization = self.request.auth.organization
-        # {
-        #     "key": {"repr": "severity"},
-        #     "values": [{"repr": "critical"}]  # []
-        # }
+        result, _ = LabelsAPIClient(organization.grafana_url, organization.api_token).get_label_key_values(key_id)
+        # todo: update cache
+        return Response(result)
+
+    def create_label(self, request):
+        organization = self.request.auth.organization
         label_data = self.request.data
         if not label_data:
             raise BadRequest()
-        key_id = self.request.query_params.get("keyID")
-        if key_id:
-            # {"repr": "warning"}
-            result, _ = LabelsAPIClient(organization.grafana_url, organization.api_token).add_value(key_id, label_data)
-        else:
-            result, _ = LabelsAPIClient(organization.grafana_url, organization.api_token).create_label(label_data)
+        result, _ = LabelsAPIClient(organization.grafana_url, organization.api_token).create_label(label_data)
         return Response()
 
-    def put(self, request):  # todo
+    def add_value(self, request, key_id):
         organization = self.request.auth.organization
-        key_id = self.request.query_params.get("keyID")
-        value_id = self.request.query_params.get("valueID")
         label_data = self.request.data
-        if not key_id or not label_data:
+        if not label_data:
             raise BadRequest()
-        if value_id:
-            result, _ = LabelsAPIClient(organization.grafana_url, organization.api_token).update_label_value(
-                key_id, value_id, label_data
-            )
-        else:
-            result, _ = LabelsAPIClient(organization.grafana_url, organization.api_token).update_label_key(
-                key_id, label_data
-            )
-        # result.raise_for_status()
+        result, _ = LabelsAPIClient(organization.grafana_url, organization.api_token).add_value(key_id, label_data)
         return Response()
 
 

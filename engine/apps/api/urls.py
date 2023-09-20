@@ -1,4 +1,4 @@
-from django.conf import settings
+# from django.conf import settings
 from django.urls import include, path, re_path
 
 from common.api_helpers.optional_slash_router import OptionalSlashRouter, optional_slash_path
@@ -113,5 +113,9 @@ urlpatterns += [
     path(r"complete/<backend>/", auth.overridden_complete_slack_auth, name="complete-slack-auth"),
 ]
 
-if settings.FEATURE_LABELS_ENABLED:
-    urlpatterns += [path(r"labels", LabelsCRUDView.as_view(), name="labels")]
+urlpatterns += [
+    re_path(r"^labels/keys/?$", LabelsCRUDView.as_view({"get": "get_keys"}), name="get_keys"),
+    re_path(r"^labels/(?P<key_id>[\w\-]+)/?$", LabelsCRUDView.as_view({"get": "get_key"}), name="get_key"),
+    re_path(r"^labels/?$", LabelsCRUDView.as_view({"post": "create_label"}), name="create_label"),
+    re_path(r"^labels/(?P<key_id>[\w\-]+)/value/?$", LabelsCRUDView.as_view({"post": "add_value"}), name="add_value"),
+]
