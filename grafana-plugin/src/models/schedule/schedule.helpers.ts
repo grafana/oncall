@@ -1,5 +1,6 @@
 import dayjs from 'dayjs';
 
+import { User } from 'models/user/user.types';
 import { RootStore } from 'state';
 
 import { Event, Layer, Schedule, ScheduleType, Shift, ShiftEvents, ShiftSwap } from './schedule.types';
@@ -81,6 +82,14 @@ export const splitToShiftsAndFillGaps = (events: Event[]) => {
   });
 
   return shifts;
+};
+
+export const getPersonalShiftsFromStore = (
+  store: RootStore,
+  userPk: User['pk'],
+  startMoment: dayjs.Dayjs
+): ShiftEvents[] => {
+  return store.scheduleStore.personalEvents[userPk]?.[getFromString(startMoment)] as any;
 };
 
 export const getShiftsFromStore = (
@@ -354,6 +363,25 @@ const OVERRIDE_COLORS = ['#C69B06', '#C2C837'];
 export const SHIFT_SWAP_COLOR = '#C69B06';
 
 const COLORS = [L1_COLORS, L2_COLORS, L3_COLORS];
+
+const scheduleToColor = {};
+
+export const getColorForSchedule = (scheduleId: Schedule['id']) => {
+  if (scheduleToColor[scheduleId]) {
+    return scheduleToColor[scheduleId];
+  }
+
+  const colors = [...L1_COLORS, ...L2_COLORS, ...L3_COLORS];
+
+  const index = Object.keys(scheduleToColor).length;
+  const normalizedIndex = index % colors.length;
+
+  const color = colors[normalizedIndex];
+
+  scheduleToColor[scheduleId] = color;
+
+  return color;
+};
 
 export const getColor = (layerIndex: number, rotationIndex: number) => {
   const normalizedLayerIndex = layerIndex % COLORS.length;
