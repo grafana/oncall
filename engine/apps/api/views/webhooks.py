@@ -1,4 +1,5 @@
 import json
+from dataclasses import asdict
 
 from django.core.exceptions import ObjectDoesNotExist
 from django_filters import rest_framework as filters
@@ -184,5 +185,5 @@ class WebhooksView(TeamFilteringMixin, PublicPrimaryKeyMixin, ModelViewSet):
 
     @action(methods=["get"], detail=False)
     def preset_options(self, request):
-        result = list(WebhookPresetOptions.WEBHOOK_PRESET_CHOICES)
+        result = [asdict(preset) for preset in WebhookPresetOptions.WEBHOOK_PRESET_CHOICES]
         return Response(result)

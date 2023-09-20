@@ -86,9 +86,9 @@ from apps.telegram.tests.factories import (
 )
 from apps.user_management.models.user import User, listen_for_user_model_save
 from apps.user_management.tests.factories import OrganizationFactory, RegionFactory, TeamFactory, UserFactory
-from apps.webhooks.models import Webhook
 from apps.webhooks.presets.preset_options import WebhookPresetOptions
 from apps.webhooks.tests.factories import CustomWebhookFactory, WebhookResponseFactory
+from apps.webhooks.tests.test_webhook_presets import TEST_WEBHOOK_PRESET_ID, TestWebhookPreset
 
 register(OrganizationFactory)
 register(UserFactory)
@@ -911,32 +911,9 @@ def shift_swap_request_setup(
     return _shift_swap_request_setup
 
 
-TEST_WEBHOOK_PRESET_URL = "https://test123.com"
-TEST_WEBHOOK_PRESET_NAME = "Test Webhook"
-TEST_WEBHOOK_PRESET_ID = "test_webhook"
-TEST_WEBHOOK_LOGO = "test_logo"
-TEST_WEBHOOK_PRESET_DESCRIPTION = "Description of test webhook preset"
-TEST_WEBHOOK_PRESET_IGNORED_FIELDS = ["url", "http_method", "data"]
-
-
-def webhook_preset_override(instance: Webhook):
-    instance.data = instance.organization.org_title
-    instance.url = TEST_WEBHOOK_PRESET_URL
-    instance.http_method = "GET"
-
-
 @pytest.fixture()
 def webhook_preset_api_setup():
+    WebhookPresetOptions.WEBHOOK_PRESETS = {TEST_WEBHOOK_PRESET_ID: TestWebhookPreset()}
     WebhookPresetOptions.WEBHOOK_PRESET_CHOICES = [
-        {
-            "id": TEST_WEBHOOK_PRESET_ID,
-            "name": TEST_WEBHOOK_PRESET_NAME,
-            "logo": TEST_WEBHOOK_LOGO,
-            "description": TEST_WEBHOOK_PRESET_DESCRIPTION,
-            "ignored_fields": TEST_WEBHOOK_PRESET_IGNORED_FIELDS,
-        }
-    ]
-    WebhookPresetOptions.WEBHOOK_PRESET_OVERRIDE[TEST_WEBHOOK_PRESET_ID] = webhook_preset_override
-    WebhookPresetOptions.WEBHOOK_PRESET_METADATA[TEST_WEBHOOK_PRESET_ID] = WebhookPresetOptions.WEBHOOK_PRESET_CHOICES[
-        0
+        preset.metadata for preset in WebhookPresetOptions.WEBHOOK_PRESETS.values()
     ]

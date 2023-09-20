@@ -1,7 +1,33 @@
 import pytest
 
 from apps.webhooks.models import Webhook
-from conftest import TEST_WEBHOOK_PRESET_ID, TEST_WEBHOOK_PRESET_URL
+from apps.webhooks.presets.preset import WebhookPreset, WebhookPresetMetadata
+
+TEST_WEBHOOK_PRESET_URL = "https://test123.com"
+TEST_WEBHOOK_PRESET_NAME = "Test Webhook"
+TEST_WEBHOOK_PRESET_ID = "test_webhook"
+TEST_WEBHOOK_LOGO = "test_logo"
+TEST_WEBHOOK_PRESET_DESCRIPTION = "Description of test webhook preset"
+TEST_WEBHOOK_PRESET_IGNORED_FIELDS = ["url", "http_method", "data"]
+
+
+class TestWebhookPreset(WebhookPreset):
+    def _metadata(self) -> WebhookPresetMetadata:
+        return WebhookPresetMetadata(
+            id=TEST_WEBHOOK_PRESET_ID,
+            name=TEST_WEBHOOK_PRESET_NAME,
+            logo=TEST_WEBHOOK_LOGO,
+            description=TEST_WEBHOOK_PRESET_DESCRIPTION,
+            controlled_fields=TEST_WEBHOOK_PRESET_IGNORED_FIELDS,
+        )
+
+    def override_parameters_before_save(self, webhook: Webhook):
+        webhook.data = webhook.organization.org_title
+        webhook.url = TEST_WEBHOOK_PRESET_URL
+        webhook.http_method = "GET"
+
+    def override_parameters_at_runtime(self, webhook: Webhook):
+        pass
 
 
 @pytest.mark.django_db

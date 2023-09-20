@@ -119,7 +119,7 @@ class WebhookSerializer(serializers.ModelSerializer):
         return self._validate_template_field(headers)
 
     def validate_url(self, url):
-        if self.is_field_ignored("url"):
+        if self.is_field_controlled("url"):
             return url
 
         if not url:
@@ -127,7 +127,7 @@ class WebhookSerializer(serializers.ModelSerializer):
         return self._validate_template_field(url)
 
     def validate_http_method(self, http_method):
-        if self.is_field_ignored("http_method"):
+        if self.is_field_controlled("http_method"):
             return http_method
 
         if http_method not in PUBLIC_WEBHOOK_HTTP_METHODS:
@@ -135,7 +135,7 @@ class WebhookSerializer(serializers.ModelSerializer):
         return http_method
 
     def validate_trigger_type(self, trigger_type):
-        if self.is_field_ignored("trigger_type"):
+        if self.is_field_controlled("trigger_type"):
             return trigger_type
 
         if not trigger_type or int(trigger_type) not in Webhook.ALL_TRIGGER_TYPES:
@@ -157,20 +157,21 @@ class WebhookSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(detail="This field once set cannot be modified.")
 
         if preset:
-            if preset not in WebhookPresetOptions.WEBHOOK_PRESET_METADATA:
+            if preset not in WebhookPresetOptions.WEBHOOK_PRESETS:
                 raise serializers.ValidationError(detail=f"{preset} is not a valid preset id.")
 
-            preset_metadata = WebhookPresetOptions.WEBHOOK_PRESET_METADATA[preset]
-            ignored_fields = preset_metadata["ignored_fields"]
-            for ignored in ignored_fields:
-                if ignored in self.initial_data:
+            preset_metadata = WebhookPresetOptions.WEBHOOK_PRESETS[preset].metadata
+            for controlled_field in preset_metadata.controlled_fields:
+                if controlled_field in self.initial_data:
                     if self.instance:
-                        if self.initial_data[ignored] != getattr(self.instance, ignored):
+                        if self.initial_data[controlled_field] != getattr(self.instance, controlled_field):
                             raise serializers.ValidationError(
-                                detail=f"{ignored} is controlled by preset, cannot update"
+                                detail=f"{controlled_field} is controlled by preset, cannot update"
                             )
-                    elif self.initial_data[ignored] is not None:
-                        raise serializers.ValidationError(detail=f"{ignored} is controlled by preset, cannot create")
+                    elif self.initial_data[controlled_field] is not None:
+                        raise serializers.ValidationError(
+                            detail=f"{controlled_field} is controlled by preset, cannot create"
+                        )
 
         return preset
 
@@ -183,7 +184,7 @@ class WebhookSerializer(serializers.ModelSerializer):
             trigger_type_name = Webhook.TRIGGER_TYPES[int(obj.trigger_type)][1]
         return trigger_type_name
 
-    def is_field_ignored(self, field_name):
+    def is_field_controlled(self, field_name):
         if self.instance:
             if not self.instance.preset:
                 return False
@@ -192,11 +193,10 @@ class WebhookSerializer(serializers.ModelSerializer):
 
         preset_id = self.instance.preset if self.instance else self.initial_data["preset"]
         if preset_id:
-            if preset_id not in WebhookPresetOptions.WEBHOOK_PRESET_METADATA:
+            if preset_id not in WebhookPresetOptions.WEBHOOK_PRESETS:
                 raise serializers.ValidationError(detail=f"unknown preset {preset_id} referenced")
 
-            preset_metadata = WebhookPresetOptions.WEBHOOK_PRESET_METADATA[preset_id]
-            ignored_fields = preset_metadata["ignored_fields"]
-            if field_name not in ignored_fields:
+            preset = WebhookPresetOptions.WEBHOOK_PRESETS[preset_id]
+            if field_name not in preset.metadata.controlled_fields:
                 return False
         return True

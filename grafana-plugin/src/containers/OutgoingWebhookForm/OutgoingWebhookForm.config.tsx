@@ -237,7 +237,7 @@ function isPresetFieldVisible(presetId: string, presets: OutgoingWebhookPreset[]
     return true;
   }
   const selectedPreset = presets.find((item) => item.id === presetId);
-  if (selectedPreset && selectedPreset.ignored_fields.includes(fieldName)) {
+  if (selectedPreset && selectedPreset.controlled_fields.includes(fieldName)) {
     return false;
   }
   return true;

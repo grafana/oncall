@@ -5,7 +5,7 @@ from rest_framework.test import APIClient
 
 from apps.webhooks.models import Webhook
 from apps.webhooks.models.webhook import WEBHOOK_FIELD_PLACEHOLDER
-from conftest import (
+from apps.webhooks.tests.test_webhook_presets import (
     TEST_WEBHOOK_LOGO,
     TEST_WEBHOOK_PRESET_DESCRIPTION,
     TEST_WEBHOOK_PRESET_ID,
@@ -30,7 +30,7 @@ def test_get_webhook_preset_options(
     assert response.data[0]["name"] == TEST_WEBHOOK_PRESET_NAME
     assert response.data[0]["logo"] == TEST_WEBHOOK_LOGO
     assert response.data[0]["description"] == TEST_WEBHOOK_PRESET_DESCRIPTION
-    assert response.data[0]["ignored_fields"] == TEST_WEBHOOK_PRESET_IGNORED_FIELDS
+    assert response.data[0]["controlled_fields"] == TEST_WEBHOOK_PRESET_IGNORED_FIELDS
 
 
 @pytest.mark.django_db

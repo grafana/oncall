@@ -24,12 +24,6 @@
   background-size: 100% !important;
 }
 
-.bg_GrafanaSift,
-.bg_GrafanaMachineLearning {
-  background: url(../../assets/img/grafana_ml_icon.svg);
-  background-size: 100% !important;
-}
-
 .bg_InboundEmail {
   background: url(../../assets/img/inbound-email.png);
   background-size: 100% !important;

@@ -11,6 +11,7 @@ from apps.base.models import UserNotificationPolicyLogRecord
 from apps.user_management.models import User
 from apps.webhooks.models import Webhook, WebhookResponse
 from apps.webhooks.models.webhook import WEBHOOK_FIELD_PLACEHOLDER
+from apps.webhooks.presets.preset_options import WebhookPresetOptions
 from apps.webhooks.utils import (
     InvalidWebhookData,
     InvalidWebhookHeaders,
@@ -116,6 +117,12 @@ def make_request(webhook, alert_group, data):
 
     exception = error = None
     try:
+        if webhook.preset:
+            if webhook.preset not in WebhookPresetOptions.WEBHOOK_PRESETS:
+                raise Exception(f"Invalid preset {webhook.preset}")
+            else:
+                WebhookPresetOptions.WEBHOOK_PRESETS[webhook.preset].override_parameters_at_runtime(webhook)
+
         if not webhook.check_integration_filter(alert_group):
             status["request_trigger"] = NOT_FROM_SELECTED_INTEGRATION
             return False, status, None, None
