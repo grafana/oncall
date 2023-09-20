@@ -77,6 +77,7 @@ export const pages: { [id: string]: PageDefinition } = [
     icon: 'calendar-alt',
     id: 'schedules',
     text: 'Schedules',
+    hideTitle: true,
     hideFromBreadcrumbs: true,
     path: getPath('schedules'),
     action: UserActions.SchedulesRead,

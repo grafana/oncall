@@ -155,7 +155,6 @@ class ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverri
                 ? shiftSwaps.map(({ isPreview, events }, index) => (
                     <CSSTransition key={index} timeout={DEFAULT_TRANSITION_TIMEOUT} classNames={{ ...styles }}>
                       <Rotation
-                        scheduleId={scheduleId}
                         events={events}
                         color={SHIFT_SWAP_COLOR}
                         startMoment={startMoment}
@@ -178,7 +177,6 @@ class ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverri
                 shifts.map(({ shiftId, isPreview, events }, index) => (
                   <CSSTransition key={index} timeout={DEFAULT_TRANSITION_TIMEOUT} classNames={{ ...styles }}>
                     <Rotation
-                      scheduleId={scheduleId}
                       events={events}
                       color={getOverrideColor(index)}
                       startMoment={startMoment}
@@ -196,7 +194,6 @@ class ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverri
                   <Rotation
                     key={0}
                     events={[]}
-                    scheduleId={scheduleId}
                     startMoment={startMoment}
                     currentTimezone={currentTimezone}
                     onClick={(shiftStart, shiftEnd) => {

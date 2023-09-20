@@ -1,6 +1,11 @@
 import typing
 
-from apps.slack.client import SlackAPIException, SlackAPITokenException
+from apps.slack.errors import (
+    SlackAPIChannelArchivedError,
+    SlackAPIChannelNotFoundError,
+    SlackAPIInvalidAuthError,
+    SlackAPITokenError,
+)
 from apps.slack.scenarios import scenario_step
 from apps.slack.types import Block
 
@@ -70,22 +75,18 @@ class NotificationDeliveryStep(scenario_step.ScenarioStep):
                 },
             },
         ]
+
         try:
-            # TODO: slack-onprem, check exceptions
             self._slack_client.chat_postMessage(
                 channel=channel,
                 text=text,
                 blocks=blocks,
                 unfurl_links=True,
             )
-        except SlackAPITokenException as e:
-            print(e)
-        except SlackAPIException as e:
-            if e.response["error"] == "channel_not_found":
-                pass
-            elif e.response["error"] == "is_archived":
-                pass
-            elif e.response["error"] == "invalid_auth":
-                print(e)
-            else:
-                raise e
+        except (
+            SlackAPITokenError,
+            SlackAPIChannelNotFoundError,
+            SlackAPIChannelArchivedError,
+            SlackAPIInvalidAuthError,
+        ):
+            pass

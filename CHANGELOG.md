@@ -7,10 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## v1.3.38 (2023-09-19)
+
+### Fixed
+
+- Fix Slack access token length issue by @toolchainX ([#3016](https://github.com/grafana/oncall/pull/3016))
+- Fix shifts for current user internal endpoint to return the right shift PK ([#3036](https://github.com/grafana/oncall/pull/3036))
+- Handle Slack ratelimit on alert group deletion by @vadimkerr ([#3038](https://github.com/grafana/oncall/pull/3038))
+
+## v1.3.37 (2023-09-12)
+
 ### Added
 
 - Notify user via Slack/mobile push-notification when their shift swap request is taken by @joeyorlando ([#2992](https://github.com/grafana/oncall/pull/2992))
 - Unify breadcrumbs behaviour with other Grafana Apps and main core# ([1906](https://github.com/grafana/oncall/issues/1906))
+
+### Changed
+
+- Improve Slack error handling by @vadimkerr ([#3000](https://github.com/grafana/oncall/pull/3000))
+
+### Fixed
+
+- Avoid task retries because of missing AlertGroupLogRecord on send_alert_group_signal ([#3001](https://github.com/grafana/oncall/pull/3001))
+- Update escalation policies public API to handle new webhooks ([#2999](https://github.com/grafana/oncall/pull/2999))
 
 ## v1.3.36 (2023-09-07)
 

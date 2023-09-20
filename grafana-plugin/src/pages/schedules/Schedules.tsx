@@ -21,6 +21,7 @@ import WithConfirm from 'components/WithConfirm/WithConfirm';
 import RemoteFilters from 'containers/RemoteFilters/RemoteFilters';
 import { RemoteFiltersType } from 'containers/RemoteFilters/RemoteFilters.types';
 import ScheduleFinal from 'containers/Rotations/ScheduleFinal';
+import SchedulePersonal from 'containers/Rotations/SchedulePersonal';
 import ScheduleForm from 'containers/ScheduleForm/ScheduleForm';
 import TeamName from 'containers/TeamName/TeamName';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
@@ -68,31 +69,19 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
     };
   }
 
-  /* async componentDidMount() {
+  componentDidMount(): void {
     const {
-      store,
-      query: { p },
+      store: { userStore },
     } = this.props;
 
-    const { filters, page } = this.state;
+    userStore.updateItems();
+  }
 
-    await store.scheduleStore.updateItems(filters, page, () => filters === this.state.filters);
-
-    this.setState({ page: p ? Number(p) : 1 }, this.updateSchedules);
-  } */
-
-  /* updateSchedules = async () => {
-    const { store } = this.props;
-    const { filters, page } = this.state;
-
-    await store.scheduleStore.updateItems(filters, page);
-  };
- */
   render() {
     const { store, query } = this.props;
 
     const { grafanaTeamStore } = store;
-    const { showNewScheduleSelector, expandedRowKeys, scheduleIdToEdit, page } = this.state;
+    const { showNewScheduleSelector, expandedRowKeys, scheduleIdToEdit, page, startMoment } = this.state;
 
     const { results, count } = store.scheduleStore.getSearchResult();
 
@@ -149,14 +138,9 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
     return (
       <>
         <div className={cx('root')}>
-          <VerticalGroup>
-            <div className={cx('schedules__filters-container')}>
-              <RemoteFilters
-                query={query}
-                page={PAGE.Schedules}
-                grafanaTeamStore={store.grafanaTeamStore}
-                onChange={this.handleSchedulesFiltersChange}
-              />
+          <div className={cx('title')}>
+            <HorizontalGroup justify="space-between">
+              <Text.Title level={3}>Schedules</Text.Title>
               <div className={cx('schedules__actions')}>
                 {users && (
                   <UserTimezoneSelect
@@ -171,22 +155,40 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
                   </Button>
                 </WithPermissionControlTooltip>
               </div>
-            </div>
-            <Table
-              columns={columns}
-              data={results}
-              loading={!results}
-              pagination={{ page, total: Math.ceil((count || 0) / ITEMS_PER_PAGE), onChange: this.handlePageChange }}
-              rowKey="id"
-              expandable={{
-                expandedRowKeys: expandedRowKeys,
-                onExpand: this.handleExpandRow,
-                expandedRowRender: this.renderSchedule,
-                expandRowByClick: true,
+            </HorizontalGroup>
+          </div>
+          <div className={cx('schedule', 'schedule-personal')}>
+            <SchedulePersonal
+              userPk={store.userStore.currentUserPk}
+              currentTimezone={store.currentTimezone}
+              startMoment={startMoment}
+              onSlotClick={(...rest) => {
+                console.log(rest);
               }}
-              emptyText={this.renderNotFound()}
             />
-          </VerticalGroup>
+          </div>
+          <div className={cx('schedules__filters-container')}>
+            <RemoteFilters
+              query={query}
+              page={PAGE.Schedules}
+              grafanaTeamStore={store.grafanaTeamStore}
+              onChange={this.handleSchedulesFiltersChange}
+            />
+          </div>
+          <Table
+            columns={columns}
+            data={results}
+            loading={!results}
+            pagination={{ page, total: Math.ceil((count || 0) / ITEMS_PER_PAGE), onChange: this.handlePageChange }}
+            rowKey="id"
+            expandable={{
+              expandedRowKeys: expandedRowKeys,
+              onExpand: this.handleExpandRow,
+              expandedRowRender: this.renderSchedule,
+              expandRowByClick: true,
+            }}
+            emptyText={this.renderNotFound()}
+          />
         </div>
         {showNewScheduleSelector && (
           <NewScheduleSelector
@@ -274,7 +276,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
             scheduleId={data.id}
             currentTimezone={store.currentTimezone}
             startMoment={startMoment}
-            onClick={this.getScheduleClickHandler(data.id)}
+            onSlotClick={this.getScheduleClickHandler(data.id)}
           />
         </div>
       </div>
@@ -451,7 +453,9 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
 
   update = () => {
     const { store } = this.props;
-    const { page } = this.state;
+    const { page, startMoment } = this.state;
+
+    store.scheduleStore.updatePersonalEvents(store.userStore.currentUserPk, startMoment);
 
     // For removal we need to check if count is 1
     // which means we should change the page to the previous one

@@ -139,9 +139,9 @@ export interface ShiftSwap {
   schedule: Schedule['id'];
   swap_start: string;
   swap_end: string;
-  beneficiary: User['pk'];
+  beneficiary: Partial<User>;
   status: 'open' | 'taken' | 'past_due';
-  benefactor: User['pk'];
+  benefactor: Partial<User>;
   description: string;
 }
 

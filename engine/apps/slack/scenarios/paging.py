@@ -15,8 +15,8 @@ from apps.alerts.paging import (
     check_user_availability,
     direct_paging,
 )
-from apps.slack.client import SlackAPIException
 from apps.slack.constants import DIVIDER, PRIVATE_METADATA_MAX_LENGTH
+from apps.slack.errors import SlackAPIChannelNotFoundError
 from apps.slack.scenarios import scenario_step
 from apps.slack.types import (
     Block,
@@ -207,15 +207,12 @@ class FinishDirectPaging(scenario_step.ScenarioStep):
                 user=slack_user_identity.slack_id,
                 text=text,
             )
-        except SlackAPIException as e:
-            if e.response["error"] == "channel_not_found":
-                self._slack_client.chat_postEphemeral(
-                    channel=slack_user_identity.im_channel_id,
-                    user=slack_user_identity.slack_id,
-                    text=text,
-                )
-            else:
-                raise e
+        except SlackAPIChannelNotFoundError:
+            self._slack_client.chat_postEphemeral(
+                channel=slack_user_identity.im_channel_id,
+                user=slack_user_identity.slack_id,
+                text=text,
+            )
 
 
 # OnChange steps, responsible for rerendering form on changed values
