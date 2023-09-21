@@ -39,7 +39,10 @@ import styles from './Schedule.module.css';
 
 const cx = cn.bind(styles);
 
-interface SchedulePageProps extends PageProps, WithStoreProps, RouteComponentProps<{ id: string }> {}
+interface SchedulePageProps extends PageProps, WithStoreProps, RouteComponentProps<{ id: string }> {
+  pageTitle: string;
+  setPageTitle: (value: string) => void;
+}
 
 interface SchedulePageState extends PageBaseState {
   startMoment: dayjs.Dayjs;
@@ -100,9 +103,11 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
   }
 
   componentWillUnmount() {
-    const { store } = this.props;
+    const { store, setPageTitle } = this.props;
 
     store.scheduleStore.clearPreview();
+
+    setPageTitle(undefined);
   }
 
   render() {
@@ -181,7 +186,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
                           level={2}
                           onTextChange={this.handleNameChange}
                         >
-                          {schedule?.name}
+                          {pageTitle}
                         </Text.Title>
                         {schedule && <ScheduleQuality schedule={schedule} lastUpdated={this.state.lastUpdated} />}
                       </div>
@@ -359,10 +364,14 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
       match: {
         params: { id: scheduleId },
       },
+      setPageTitle,
     } = this.props;
+
     const { scheduleStore } = store;
 
-    return scheduleStore.loadItem(scheduleId);
+    return scheduleStore.loadItem(scheduleId).then((schedule) => {
+      setPageTitle(schedule?.name);
+    });
   };
 
   handleShowForm = async (shiftId: Shift['id'] | 'new') => {
@@ -397,13 +406,17 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
       match: {
         params: { id: scheduleId },
       },
+      setPageTitle,
     } = this.props;
 
     const schedule = store.scheduleStore.items[scheduleId];
 
     store.scheduleStore
       .update(scheduleId, { type: schedule.type, name: value })
-      .then(() => store.scheduleStore.loadItem(scheduleId));
+      .then(() => store.scheduleStore.loadItem(scheduleId))
+      .then((schedule) => {
+        setPageTitle(schedule?.name);
+      });
   };
 
   updateEvents = () => {
@@ -412,6 +425,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
       match: {
         params: { id: scheduleId },
       },
+      setPageTitle,
     } = this.props;
 
     const { startMoment } = this.state;
@@ -423,6 +437,9 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
 
     store.scheduleStore
       .loadItem(scheduleId) // to refresh current oncall users
+      .then((schedule) => {
+        setPageTitle(schedule?.name);
+      })
       .catch((error) => this.setState({ errorData: { ...getWrongTeamResponseInfo(error) } }));
     store.scheduleStore.updateRelatedUsers(scheduleId); // to refresh related users
 
