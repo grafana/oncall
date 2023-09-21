@@ -9,7 +9,7 @@ from common.api_helpers.utils import CurrentTeamDefault
 
 class ActionCreateSerializer(WebhookCreateSerializer):
     team_id = TeamPrimaryKeyRelatedField(allow_null=True, default=CurrentTeamDefault(), source="team")
-    user = serializers.CharField(required=False, source="username")
+    user = serializers.CharField(required=False, source="username", allow_null=True, allow_blank=True)
     trigger_type = WebhookTriggerTypeField(required=False)
     forward_whole_payload = serializers.BooleanField(required=False, source="forward_all")
 
