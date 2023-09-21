@@ -20,7 +20,6 @@ import { AppRootProps } from 'types';
 
 import Unauthorized from 'components/Unauthorized';
 import DefaultPageLayout from 'containers/DefaultPageLayout/DefaultPageLayout';
-import { PageContext } from 'contexts/PageContext';
 import { getMatchedPage, getRoutesForPage, pages } from 'pages';
 import NoMatch from 'pages/NoMatch';
 import EscalationChains from 'pages/escalation-chains/EscalationChains';
@@ -112,104 +111,102 @@ export const Root = observer((props: AppRootProps) => {
   };
 
   return (
-    <PageContext.Provider value={{ pageTitle, setPageTitle }}>
-      <DefaultPageLayout {...props} page={page} pageNav={getPageNav()}>
-        {!isTopNavbar() && (
-          <>
-            <Header />
-            <LegacyNavTabsBar currentPage={page} />
-          </>
-        )}
+    <DefaultPageLayout {...props} page={page} pageNav={getPageNav()}>
+      {!isTopNavbar() && (
+        <>
+          <Header />
+          <LegacyNavTabsBar currentPage={page} />
+        </>
+      )}
 
-        <div
-          className={classnames('u-position-relative', 'u-flex-grow-1', {
-            'u-overflow-x-auto': !isTopNavbar(),
-            'page-body': !isTopNavbar(),
-          })}
-        >
-          {userHasAccess ? (
-            // Otherwise we'll run into concurrency issues
-            !basicDataLoaded ? (
-              <LoadingPlaceholder text="Loading..." />
-            ) : (
-              <Switch>
-                <Route path={getRoutesForPage('alert-groups')} exact>
-                  <Incidents query={query} />
-                </Route>
-                <Route path={getRoutesForPage('alert-group')} exact>
-                  <Incident query={query} />
-                </Route>
-                <Route path={getRoutesForPage('users')} exact>
-                  <Users query={query} />
-                </Route>
-                <Route path={getRoutesForPage('integrations')} exact>
-                  <Integrations query={query} />
-                </Route>
-                <Route path={getRoutesForPage('integration')} exact>
-                  <Integration query={query} />
-                </Route>
-                <Route path={getRoutesForPage('escalations')} exact>
-                  <EscalationChains query={query} />
-                </Route>
-                <Route path={getRoutesForPage('schedules')} exact>
-                  <Schedules query={query} />
-                </Route>
-                <Route path={getRoutesForPage('schedule')} exact>
-                  <Schedule query={query} />
-                </Route>
-                <Route path={getRoutesForPage('outgoing_webhooks')} exact>
-                  <OutgoingWebhooks query={query} />
-                </Route>
-                <Route path={getRoutesForPage('settings')} exact>
-                  <SettingsPage />
-                </Route>
-                <Route path={getRoutesForPage('chat-ops')} exact>
-                  <ChatOps query={query} />
-                </Route>
-                <Route path={getRoutesForPage('live-settings')} exact>
-                  <LiveSettings />
-                </Route>
-                <Route path={getRoutesForPage('cloud')} exact>
-                  <CloudPage />
-                </Route>
-
-                {/* Backwards compatibility redirect routes */}
-                <Route
-                  path={getRoutesForPage('incident')}
-                  exact
-                  render={({ location }) => (
-                    <Redirect
-                      to={{
-                        ...location,
-                        pathname: location.pathname.replace(/incident/, 'alert-group'),
-                      }}
-                    ></Redirect>
-                  )}
-                ></Route>
-                <Route
-                  path={getRoutesForPage('incidents')}
-                  exact
-                  render={({ location }) => (
-                    <Redirect
-                      to={{
-                        ...location,
-                        pathname: location.pathname.replace(/incidents/, 'alert-groups'),
-                      }}
-                    ></Redirect>
-                  )}
-                ></Route>
-
-                <Route path="*">
-                  <NoMatch />
-                </Route>
-              </Switch>
-            )
+      <div
+        className={classnames('u-position-relative', 'u-flex-grow-1', {
+          'u-overflow-x-auto': !isTopNavbar(),
+          'page-body': !isTopNavbar(),
+        })}
+      >
+        {userHasAccess ? (
+          // Otherwise we'll run into concurrency issues
+          !basicDataLoaded ? (
+            <LoadingPlaceholder text="Loading..." />
           ) : (
-            <Unauthorized requiredUserAction={pagePermissionAction} />
-          )}
-        </div>
-      </DefaultPageLayout>
-    </PageContext.Provider>
+            <Switch>
+              <Route path={getRoutesForPage('alert-groups')} exact>
+                <Incidents query={query} />
+              </Route>
+              <Route path={getRoutesForPage('alert-group')} exact>
+                <Incident query={query} pageTitle={pageTitle} setPageTitle={setPageTitle} />
+              </Route>
+              <Route path={getRoutesForPage('users')} exact>
+                <Users query={query} />
+              </Route>
+              <Route path={getRoutesForPage('integrations')} exact>
+                <Integrations query={query} />
+              </Route>
+              <Route path={getRoutesForPage('integration')} exact>
+                <Integration query={query} />
+              </Route>
+              <Route path={getRoutesForPage('escalations')} exact>
+                <EscalationChains query={query} />
+              </Route>
+              <Route path={getRoutesForPage('schedules')} exact>
+                <Schedules query={query} />
+              </Route>
+              <Route path={getRoutesForPage('schedule')} exact>
+                <Schedule query={query} pageTitle={pageTitle} setPageTitle={setPageTitle} />
+              </Route>
+              <Route path={getRoutesForPage('outgoing_webhooks')} exact>
+                <OutgoingWebhooks query={query} />
+              </Route>
+              <Route path={getRoutesForPage('settings')} exact>
+                <SettingsPage />
+              </Route>
+              <Route path={getRoutesForPage('chat-ops')} exact>
+                <ChatOps query={query} />
+              </Route>
+              <Route path={getRoutesForPage('live-settings')} exact>
+                <LiveSettings />
+              </Route>
+              <Route path={getRoutesForPage('cloud')} exact>
+                <CloudPage />
+              </Route>
+
+              {/* Backwards compatibility redirect routes */}
+              <Route
+                path={getRoutesForPage('incident')}
+                exact
+                render={({ location }) => (
+                  <Redirect
+                    to={{
+                      ...location,
+                      pathname: location.pathname.replace(/incident/, 'alert-group'),
+                    }}
+                  ></Redirect>
+                )}
+              ></Route>
+              <Route
+                path={getRoutesForPage('incidents')}
+                exact
+                render={({ location }) => (
+                  <Redirect
+                    to={{
+                      ...location,
+                      pathname: location.pathname.replace(/incidents/, 'alert-groups'),
+                    }}
+                  ></Redirect>
+                )}
+              ></Route>
+
+              <Route path="*">
+                <NoMatch />
+              </Route>
+            </Switch>
+          )
+        ) : (
+          <Unauthorized requiredUserAction={pagePermissionAction} />
+        )}
+      </div>
+    </DefaultPageLayout>
   );
 
   async function runQueuedUpdateData(attemptCount: number) {

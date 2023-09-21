@@ -26,7 +26,6 @@ import ScheduleForm from 'containers/ScheduleForm/ScheduleForm';
 import ScheduleICalSettings from 'containers/ScheduleIcalLink/ScheduleIcalLink';
 import UsersTimezones from 'containers/UsersTimezones/UsersTimezones';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
-import { PageContext } from 'contexts/PageContext';
 import { Event, Schedule, ScheduleType, Shift, ShiftSwap } from 'models/schedule/schedule.types';
 import { Timezone } from 'models/timezone/timezone.types';
 import { PageProps, WithStoreProps } from 'state/types';
@@ -40,7 +39,10 @@ import styles from './Schedule.module.css';
 
 const cx = cn.bind(styles);
 
-interface SchedulePageProps extends PageProps, WithStoreProps, RouteComponentProps<{ id: string }> {}
+interface SchedulePageProps extends PageProps, WithStoreProps, RouteComponentProps<{ id: string }> {
+  pageTitle: string;
+  setPageTitle: (value: string) => void;
+}
 
 interface SchedulePageState extends PageBaseState {
   startMoment: dayjs.Dayjs;
@@ -61,9 +63,6 @@ interface SchedulePageState extends PageBaseState {
 
 @observer
 class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState> {
-  static contextType = PageContext;
-  context: React.ContextType<typeof PageContext>;
-
   highlightMyShiftsWasToggled = false;
 
   constructor(props: SchedulePageProps) {
@@ -104,8 +103,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
   }
 
   componentWillUnmount() {
-    const { store } = this.props;
-    const { setPageTitle } = this.context;
+    const { store, setPageTitle } = this.props;
 
     store.scheduleStore.clearPreview();
 
@@ -188,7 +186,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
                           level={2}
                           onTextChange={this.handleNameChange}
                         >
-                          {this.context.pageTitle}
+                          {pageTitle}
                         </Text.Title>
                         {schedule && <ScheduleQuality schedule={schedule} lastUpdated={this.state.lastUpdated} />}
                       </div>
@@ -366,8 +364,8 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
       match: {
         params: { id: scheduleId },
       },
+      setPageTitle,
     } = this.props;
-    const { setPageTitle } = this.context;
 
     const { scheduleStore } = store;
 
@@ -408,9 +406,8 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
       match: {
         params: { id: scheduleId },
       },
+      setPageTitle,
     } = this.props;
-
-    const { setPageTitle } = this.context;
 
     const schedule = store.scheduleStore.items[scheduleId];
 
@@ -428,9 +425,8 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
       match: {
         params: { id: scheduleId },
       },
+      setPageTitle,
     } = this.props;
-
-    const { setPageTitle } = this.context;
 
     const { startMoment } = this.state;
 

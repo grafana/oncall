@@ -38,7 +38,6 @@ import AttachIncidentForm from 'containers/AttachIncidentForm/AttachIncidentForm
 import EscalationVariants from 'containers/EscalationVariants/EscalationVariants';
 import { prepareForEdit, prepareForUpdate } from 'containers/EscalationVariants/EscalationVariants.helpers';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
-import { PageContext } from 'contexts/PageContext';
 import {
   Alert as AlertType,
   Alert,
@@ -65,7 +64,10 @@ import PagedUsers from './parts/PagedUsers';
 const cx = cn.bind(styles);
 const INTEGRATION_NAME_LENGTH_LIMIT = 30;
 
-interface IncidentPageProps extends WithStoreProps, PageProps, RouteComponentProps<{ id: string }> {}
+interface IncidentPageProps extends WithStoreProps, PageProps, RouteComponentProps<{ id: string }> {
+  pageTitle: string;
+  setPageTitle: (value: string) => void;
+}
 
 interface IncidentPageState extends PageBaseState {
   showIntegrationSettings?: boolean;
@@ -76,9 +78,6 @@ interface IncidentPageState extends PageBaseState {
 
 @observer
 class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState> {
-  static contextType = PageContext;
-  context: React.ContextType<typeof PageContext>;
-
   state: IncidentPageState = {
     timelineFilter: 'all',
     resolutionNoteText: '',
@@ -94,7 +93,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
   }
 
   componentWillUnmount(): void {
-    const { setPageTitle } = this.context;
+    const { setPageTitle } = this.props;
 
     setPageTitle(undefined);
   }
@@ -113,9 +112,8 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
       match: {
         params: { id },
       },
+      setPageTitle,
     } = this.props;
-
-    const { setPageTitle } = this.context;
 
     store.alertGroupStore
       .getAlert(id)
@@ -253,6 +251,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
       match: {
         params: { id },
       },
+      pageTitle,
     } = this.props;
 
     const { alerts } = store.alertGroupStore;
@@ -276,7 +275,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
               {/* @ts-ignore*/}
               <HorizontalGroup align="baseline">
                 <Text.Title level={3} data-testid="incident-title">
-                  {this.context.pageTitle}
+                  {pageTitle}
                 </Text.Title>
                 {incident.root_alert_group && (
                   <Text type="secondary">
