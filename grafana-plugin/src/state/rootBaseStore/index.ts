@@ -19,6 +19,7 @@ import { FiltersStore } from 'models/filters/filters';
 import { GlobalSettingStore } from 'models/global_setting/global_setting';
 import { GrafanaTeamStore } from 'models/grafana_team/grafana_team';
 import { HeartbeatStore } from 'models/heartbeat/heartbeat';
+import { LabelStore } from 'models/label/label';
 import { OrganizationStore } from 'models/organization/organization';
 import { OutgoingWebhookStore } from 'models/outgoing_webhook/outgoing_webhook';
 import { ResolutionNotesStore } from 'models/resolution_note/resolution_note';
@@ -108,6 +109,7 @@ export class RootBaseStore {
   apiTokenStore = new ApiTokenStore(this);
   globalSettingStore = new GlobalSettingStore(this);
   filtersStore = new FiltersStore(this);
+  labelsStore = new LabelStore(this);
 
   // stores
 
