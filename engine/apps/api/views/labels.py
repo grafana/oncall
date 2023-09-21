@@ -4,9 +4,10 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ViewSet
 
+from apps.api.serializers.labels import LabelDataSerializer
 from apps.auth_token.auth import PluginAuthentication
 from apps.labels.client import LabelsAPIClient
-from apps.labels.models import Label, get_associating_label_model
+from apps.labels.models import Label
 from apps.labels.utils import is_labels_enabled
 from common.api_helpers.exceptions import BadRequest
 
@@ -69,35 +70,40 @@ class LabelsAssociatingMixin:  # use for labelable objects views (ex. AlertRecei
             values.append(value_id)
         return queryset.filter(labels__key_id__in=keys, labels__value_id__in=values)
 
-    @action(methods=["get"], detail=False)
-    def labels_filter(self, request):  # todo
+    @action(methods=["get"], detail=True)
+    def labels(self, request, pk):  # todo
         self.check_if_label_feature_enabled()
-        associating_labels_class = get_associating_label_model(self.model)  # todo
-        associated_labels_pk = (
-            associating_labels_class.objects.filter(alert_receive_channel__organization=self.request.auth.organization)
-            .values_list("label_id", flat=True)
-            .distinct()
-        )
-        labels = Label.objects.filter(pk__in=associated_labels_pk)
-        result = [{"key_id": label.key_id, "value_id": label.value_id} for label in labels]
+        obj = self.get_object()
+        labels = obj.labels.all().select_related("key", "value")
+        result = [
+            {
+                "key": {"id": label.key_id, "repr": label.key.key_repr},
+                "value": {"id": label.value_id, "repr": label.value.value_repr},
+            }
+            for label in labels
+        ]
         return Response(result)
 
     @action(methods=["post"], detail=True)
     def associate_label(self, request, pk):
         self.check_if_label_feature_enabled()
         organization = self.request.auth.organization
-        key_id = request.data.get("key_id")
-        value_id = request.data.get("value_id")
+        # {"key": {"id": key_id, "repr": "severity"}, "value": {"id": value_id, "repr": "critical"}}
+        serializer = LabelDataSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
         obj = self.get_object()
-        Label.associate(key_id, value_id, obj, organization)
+        Label.associate(request.data, obj, organization)
         return Response(status=200)
 
     @action(methods=["post"], detail=True)
     def remove_label(self, request, pk):
         self.check_if_label_feature_enabled()
-        organization = self.request.auth.organization
-        key_id = request.data.get("key_id")
-        value_id = request.data.get("value_id")
+        # organization = self.request.auth.organization
+        # {"key": {"id": key_id, "repr": "severity"}, "value": {"id": value_id, "repr": "critical"}}
+        serializer = LabelDataSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
         obj = self.get_object()
-        Label.remove(key_id, value_id, obj, organization)
+        Label.remove(request.data, obj)
         return Response(status=200)

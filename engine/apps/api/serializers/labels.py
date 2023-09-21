@@ -13,3 +13,13 @@ class LabelSerializer(serializers.ModelSerializer):
             "key_id",
             "value_id",
         )
+
+
+class LabelParamsSerializer(serializers.Serializer):
+    id = serializers.CharField()
+    repr = serializers.CharField()
+
+
+class LabelDataSerializer(serializers.Serializer):
+    key = LabelParamsSerializer()
+    value = LabelParamsSerializer()

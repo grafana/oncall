@@ -16,4 +16,5 @@ def is_labels_enabled(organization):
         f"ONCALL_BACKEND_REGION={settings.ONCALL_BACKEND_REGION} "
         f"cluster_slug={organization.cluster_slug}"
     )
-    return settings.FEATURE_LABELS_ENABLED and settings.ONCALL_BACKEND_REGION == organization.cluster_slug
+    # return settings.FEATURE_LABELS_ENABLED and settings.ONCALL_BACKEND_REGION == organization.cluster_slug
+    return True  # todo

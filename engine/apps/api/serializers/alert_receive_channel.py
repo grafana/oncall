@@ -21,7 +21,6 @@ from common.jinja_templater import apply_jinja_template, jinja_template_env
 from common.jinja_templater.apply_jinja_template import JinjaTemplateWarning
 
 from .integration_heartbeat import IntegrationHeartBeatSerializer
-from .labels import LabelSerializer
 
 
 def valid_jinja_template_for_serializer_method_field(template):
@@ -55,7 +54,6 @@ class AlertReceiveChannelSerializer(EagerLoadingMixin, serializers.ModelSerializ
     connected_escalations_chains_count = serializers.SerializerMethodField()
     inbound_email = serializers.CharField(required=False)
     is_legacy = serializers.SerializerMethodField()
-    labels = LabelSerializer(many=True, read_only=True)
 
     # integration heartbeat is in PREFETCH_RELATED not by mistake.
     # With using of select_related ORM builds strange join

@@ -36,7 +36,7 @@ class Migration(migrations.Migration):
             name='AlertReceiveChannelAssociatedLabel',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('alert_receive_channel', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='alerts.alertreceivechannel')),
+                ('alert_receive_channel', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='labels', to='alerts.alertreceivechannel')),
                 ('key', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='labels.labelkeycache')),
                 ('organization', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='labels', to='user_management.organization')),
                 ('value', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='labels.labelvaluecache')),

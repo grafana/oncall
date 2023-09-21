@@ -1,8 +1,24 @@
+import typing
+
 from django.apps import apps  # noqa: I251
 from django.db import models
 from django.utils import timezone
 
+if typing.TYPE_CHECKING:
+    from apps.user_management.models import Organization
+
+
 ASSOCIATED_MODEL_NAME = "AssociatedLabel"
+
+
+class LabelParams(typing.TypedDict):
+    id: str
+    repr: str
+
+
+class LabelData(typing.TypedDict):
+    key: LabelParams
+    value: LabelParams
 
 
 def get_associating_label_model(model):
@@ -45,21 +61,32 @@ class Label(models.Model):
         abstract = True
 
     @staticmethod
-    def associate(key_id, value_id, instance, organization):
-        # todo: if already associated
-        label, _ = Label.objects.get_or_create(key_id=key_id, value_id=value_id, organization=organization)
-        instance.labels.add(label)
+    def associate(label_data: LabelData, instance: models.Model, organization: "Organization"):
+        # todo: if already associated?
+        key_id = label_data["key"]["id"]
+        key_repr = label_data["key"]["repr"]
+        value_id = label_data["value"]["id"]
+        value_repr = label_data["value"]["repr"]
+
+        label_key, _ = LabelKeyCache.objects.get_or_create(
+            key_id=key_id, organization=organization, defaults={"key_repr": key_repr}
+        )
+        label_value, _ = label_key.values.get_or_create(value_id=value_id, defaults={"value_repr": value_repr})
+        label, _ = instance.labels.get_or_create(key=label_key, value=label_value, organization=organization)
 
     @staticmethod
-    def remove(key_id, value_id, instance, organization):
-        # todo: if not associated
-        label = Label.objects.filter(key_id=key_id, value_id=value_id, organization=organization).first()
-        if label:
-            instance.labels.remove(label)
+    def remove(label_data, instance):
+        # todo: if not associated?
+        key_id = label_data["key"]["id"]
+        value_id = label_data["value"]["id"]
+        instance.labels.get(key_id=key_id, value_id=value_id).delete()
+        # todo: delete unused cache
 
 
 class AlertReceiveChannelAssociatedLabel(Label):
-    alert_receive_channel = models.ForeignKey("alerts.AlertReceiveChannel", on_delete=models.CASCADE)
+    alert_receive_channel = models.ForeignKey(
+        "alerts.AlertReceiveChannel", on_delete=models.CASCADE, related_name="labels"
+    )
 
     class Meta:
         indexes = [
