@@ -169,6 +169,12 @@ class User(models.Model):
         # Including is_active to unique_together and setting is_active to None allows to
         # have multiple deleted users with the same user_id, but user_id is unique among active users
         unique_together = ("user_id", "organization", "is_active")
+        indexes = [
+            models.Index(fields=["organization", "is_active", "username", "role"]),
+            models.Index(fields=["organization", "is_active", "email", "role"]),
+            models.Index(fields=["username", "organization", "is_active", "permissions"]),
+            models.Index(fields=["email", "organization", "is_active", "permissions"]),
+        ]
 
     public_primary_key = models.CharField(
         max_length=20,
