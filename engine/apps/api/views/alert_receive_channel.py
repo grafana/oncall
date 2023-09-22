@@ -20,6 +20,7 @@ from apps.api.serializers.alert_receive_channel import (
 from apps.api.throttlers import DemoAlertThrottler
 from apps.auth_token.auth import PluginAuthentication
 from apps.integrations.legacy_prefix import has_legacy_prefix, remove_legacy_prefix
+from apps.mobile_app.auth import MobileAppAuthTokenAuthentication
 from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.filters import ByTeamModelFieldFilterMixin, TeamModelMultipleChoiceFilter
 from common.api_helpers.mixins import (
@@ -72,7 +73,10 @@ class AlertReceiveChannelView(
     UpdateSerializerMixin,
     ModelViewSet,
 ):
-    authentication_classes = (PluginAuthentication,)
+    authentication_classes = (
+        MobileAppAuthTokenAuthentication,
+        PluginAuthentication,
+    )
     permission_classes = (IsAuthenticated, RBACPermission)
 
     model = AlertReceiveChannel
