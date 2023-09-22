@@ -23,7 +23,6 @@ class ActionCreateSerializer(WebhookCreateSerializer):
             "team_id",
             "user",
             "data",
-            "user",
             "password",
             "authorization_header",
             "trigger_template",
@@ -37,6 +36,12 @@ class ActionCreateSerializer(WebhookCreateSerializer):
         extra_kwargs = {
             "name": {"required": True, "allow_null": False, "allow_blank": False},
             "url": {"required": True, "allow_null": False, "allow_blank": False},
+            "data": {"required": False, "allow_null": True, "allow_blank": True},
+            "password": {"required": False, "allow_null": True, "allow_blank": True},
+            "authorization_header": {"required": False, "allow_null": True, "allow_blank": True},
+            "trigger_template": {"required": False, "allow_null": True, "allow_blank": True},
+            "headers": {"required": False, "allow_null": True, "allow_blank": True},
+            "integration_filter": {"required": False, "allow_null": True},
         }
 
         validators = [UniqueTogetherValidator(queryset=Webhook.objects.all(), fields=["name", "organization"])]
@@ -51,13 +56,13 @@ class ActionUpdateSerializer(ActionCreateSerializer):
         extra_kwargs = {
             "name": {"required": False, "allow_null": False, "allow_blank": False},
             "is_webhook_enabled": {"required": False, "allow_null": False},
-            "user": {"required": False, "allow_null": True, "allow_blank": False},
-            "password": {"required": False, "allow_null": True, "allow_blank": False},
-            "authorization_header": {"required": False, "allow_null": True, "allow_blank": False},
-            "trigger_template": {"required": False, "allow_null": True, "allow_blank": False},
-            "headers": {"required": False, "allow_null": True, "allow_blank": False},
+            "user": {"required": False, "allow_null": True, "allow_blank": True},
+            "password": {"required": False, "allow_null": True, "allow_blank": True},
+            "authorization_header": {"required": False, "allow_null": True, "allow_blank": True},
+            "trigger_template": {"required": False, "allow_null": True, "allow_blank": True},
+            "headers": {"required": False, "allow_null": True, "allow_blank": True},
             "url": {"required": False, "allow_null": False, "allow_blank": False},
-            "data": {"required": False, "allow_null": True, "allow_blank": False},
+            "data": {"required": False, "allow_null": True, "allow_blank": True},
             "forward_whole_payload": {"required": False, "allow_null": False},
             "http_method": {"required": False, "allow_null": False, "allow_blank": False},
             "integration_filter": {"required": False, "allow_null": True},

@@ -175,6 +175,19 @@ def test_get_custom_action(
                 "url": "https://example.com",
                 "user": None,
                 "password": None,
+                "data": None,
+                "authorization_header": None,
+                "forward_whole_payload": True,
+            }
+        ),
+        (
+            {
+                "name": "Test outgoing webhook",
+                "url": "https://example.com",
+                "user": "",
+                "password": "",
+                "data": "",
+                "authorization_header": "",
                 "forward_whole_payload": True,
             }
         ),
