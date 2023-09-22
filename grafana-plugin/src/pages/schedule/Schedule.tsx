@@ -114,6 +114,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
     const {
       store,
       query,
+      pageTitle,
       match: {
         params: { id: scheduleId },
       },
