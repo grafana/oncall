@@ -93,7 +93,6 @@ class AlertReceiveChannelSerializer(EagerLoadingMixin, serializers.ModelSerializ
             "is_based_on_alertmanager",
             "inbound_email",
             "is_legacy",
-            "labels",
         ]
         read_only_fields = [
             "created_at",
@@ -110,7 +109,6 @@ class AlertReceiveChannelSerializer(EagerLoadingMixin, serializers.ModelSerializ
             "is_based_on_alertmanager",
             "inbound_email",
             "is_legacy",
-            "labels",
         ]
         extra_kwargs = {"integration": {"required": True}}
 

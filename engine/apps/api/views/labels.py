@@ -1,3 +1,4 @@
+from django.db.models import Q
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound
 from rest_framework.permissions import IsAuthenticated
@@ -59,16 +60,14 @@ class LabelsAssociatingMixin:  # use for labelable objects views (ex. AlertRecei
 
     def filter_by_labels(self, queryset):
         """Call this method in `get_queryset()` to add filtering by labels"""
+        q_objects = Q()
         labels = self.request.query_params.getlist("label")  # ["key1:value1", "key2:value2"]
         if not labels:
             return queryset
-        keys = []
-        values = []
         for label in labels:
             key_id, value_id = label.split(":")
-            keys.append(key_id)
-            values.append(value_id)
-        return queryset.filter(labels__key_id__in=keys, labels__value_id__in=values)
+            q_objects &= Q(labels__key_id=key_id, labels__value_id=value_id)
+        return queryset.filter(q_objects)
 
     @action(methods=["get"], detail=True)
     def labels(self, request, pk):  # todo

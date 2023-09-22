@@ -278,6 +278,12 @@ class AlertReceiveChannelView(
                 "type": "options",
                 "href": api_root + "alert_receive_channels/integration_options/",
             },
+            {
+                "name": "labels",
+                "display_name": "labels",
+                "type": "options",
+                "href": api_root + "labels/",  # todo
+            },
         ]
 
         if filter_name is not None:
