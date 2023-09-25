@@ -1,4 +1,3 @@
-from django.db.models import Q
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound
 from rest_framework.permissions import IsAuthenticated
@@ -60,24 +59,23 @@ class LabelsAssociatingMixin:  # use for labelable objects views (ex. AlertRecei
 
     def filter_by_labels(self, queryset):
         """Call this method in `get_queryset()` to add filtering by labels"""
-        q_objects = Q()
         labels = self.request.query_params.getlist("label")  # ["key1:value1", "key2:value2"]
         if not labels:
             return queryset
         for label in labels:
             key_id, value_id = label.split(":")
-            q_objects &= Q(labels__key_id=key_id, labels__value_id=value_id)
-        return queryset.filter(q_objects)
+            queryset &= queryset.filter(labels__key_id=key_id, labels__value_id=value_id)
+        return queryset
 
     @action(methods=["get"], detail=True)
     def labels(self, request, pk):  # todo
         self.check_if_label_feature_enabled()
         obj = self.get_object()
-        labels = obj.labels.all().select_related("key", "value")
+        labels = obj.labels.all().select_related("key_cache", "value_cache")
         result = [
             {
-                "key": {"id": label.key_id, "repr": label.key.key_repr},
-                "value": {"id": label.value_id, "repr": label.value.value_repr},
+                "key": {"id": label.key_id, "repr": label.key_cache.key_repr},
+                "value": {"id": label.value_id, "repr": label.value_cache.value_repr},
             }
             for label in labels
         ]
