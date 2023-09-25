@@ -230,10 +230,26 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
             defaults = getattr(self, f"INTEGRATION_TO_DEFAULT_WEB_{attr_name.upper()}_TEMPLATE", {})
         return defaults.get(self.integration)
 
+    class DuplicateDirectPagingError(Exception):
+        """Only one Direct Paging integration is allowed per team."""
+
+        DETAIL = "Direct paging integration already exists for this team"  # Returned in BadRequest responses
+
+
     @classmethod
     def create(cls, **kwargs):
+        organization = kwargs["organization"]
+        team = kwargs["team"]
+        integration = kwargs["integration"]
+        if (
+            integration == AlertReceiveChannel.INTEGRATION_DIRECT_PAGING
+            and AlertReceiveChannel.objects.filter(
+                organization=organization, team=team, integration=integration
+            ).exists()
+        ):
+            raise cls.DuplicateDirectPagingError
         with transaction.atomic():
-            other_channels = cls.objects_with_deleted.select_for_update().filter(organization=kwargs["organization"])
+            other_channels = cls.objects_with_deleted.select_for_update().filter(organization=organization)
             channel = cls(**kwargs)
             smile_code = number_to_smiles_translator(other_channels.count())
             verbal_name = (
@@ -250,25 +266,6 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
 
     def hard_delete(self):
         super(AlertReceiveChannel, self).delete()
-
-    class DuplicateDirectPagingError(Exception):
-        """Only one Direct Paging integration is allowed per team."""
-
-        DETAIL = "Direct paging integration already exists for this team"  # Returned in BadRequest responses
-
-    def save(self, *args, **kwargs):
-        # Don't allow multiple Direct Paging integrations per team
-        if (
-            self.integration == AlertReceiveChannel.INTEGRATION_DIRECT_PAGING
-            and AlertReceiveChannel.objects.filter(
-                organization=self.organization, team=self.team, integration=self.integration
-            )
-            .exclude(pk=self.pk)
-            .exists()
-        ):
-            raise self.DuplicateDirectPagingError
-
-        return super().save(*args, **kwargs)
 
     def change_team(self, team_id, user):
         if team_id == self.team_id:

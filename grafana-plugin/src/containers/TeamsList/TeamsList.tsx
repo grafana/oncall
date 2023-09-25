@@ -10,6 +10,8 @@ import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/W
 import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
 import { useStore } from 'state/useStore';
 import { UserActions } from 'utils/authorization';
+import WithConfirm from 'components/WithConfirm/WithConfirm';
+import PluginLink from 'components/PluginLink/PluginLink';
 
 const TeamsList = observer(() => {
   const store = useStore();
@@ -53,13 +55,11 @@ const TeamsList = observer(() => {
   const renderActionButtons = (record: GrafanaTeam) => {
     const editButton = (
       <HorizontalGroup justify="flex-end">
-        <Tooltip content="Default team will be selected when creating new resources">
+        {/* Keep  "Make default" here for backwards compatibility, can be removed in november 2023 */}
+        <Tooltip content="This button is moved to your User Profile">
           <Button
-            onClick={async () => {
-              await userStore.updateCurrentUser({ current_team: record.id });
-              store.grafanaTeamStore.updateItems();
-            }}
-            disabled={isTeamDefault(record)}
+            onClick={() => {}}
+            disabled={true}
             fill="text"
           >
             Make default

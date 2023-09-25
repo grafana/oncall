@@ -44,34 +44,39 @@ export interface NotificationPolicyProps {
   number: number;
   userAction: UserAction;
   store: RootStore;
+  isDisabled: boolean;
 }
 
 export class NotificationPolicy extends React.Component<NotificationPolicyProps, any> {
   render() {
-    const { data, notificationChoices, number, color, userAction } = this.props;
+    const { data, notificationChoices, number, color, userAction, isDisabled } = this.props;
     const { id, step } = data;
 
     return (
       <Timeline.Item className={cx('root')} number={number} backgroundColor={color}>
         <div className={cx('step')}>
+          {!isDisabled && (
           <WithPermissionControlTooltip disableByPaywall userAction={userAction}>
             <DragHandle />
           </WithPermissionControlTooltip>
+          )}
           <WithPermissionControlTooltip disableByPaywall userAction={userAction}>
             <Select
               className={cx('select', 'control')}
               onChange={this._getOnChangeHandler('step')}
               value={step}
               options={notificationChoices.map((option: any) => ({ label: option.display_name, value: option.value }))}
+              disabled={isDisabled}
             />
           </WithPermissionControlTooltip>
-          {this._renderControls()}
+          {this._renderControls(isDisabled)}
           <WithPermissionControlTooltip userAction={userAction}>
             <IconButton
               className={cx('control')}
               name="trash-alt"
               onClick={this._getDeleteClickHandler(id)}
               variant="secondary"
+              disabled={isDisabled}
             />
           </WithPermissionControlTooltip>
           {this._renderNote()}
@@ -80,16 +85,16 @@ export class NotificationPolicy extends React.Component<NotificationPolicyProps,
     );
   }
 
-  _renderControls() {
+  _renderControls(disabled: boolean) {
     const { data } = this.props;
     const { step } = data;
 
     switch (step) {
       case 0:
-        return <>{this._renderWaitDelays()}</>;
+        return <>{this._renderWaitDelays(disabled)}</>;
 
       case 1:
-        return <>{this._renderNotifyBy()}</>;
+        return <>{this._renderNotifyBy(disabled)}</>;
 
       default:
         return null;
@@ -165,7 +170,7 @@ export class NotificationPolicy extends React.Component<NotificationPolicyProps,
     );
   }
 
-  private _renderWaitDelays() {
+  private _renderWaitDelays(disabled: boolean) {
     const { data, waitDelays = [], userAction } = this.props;
     const { wait_delay } = data;
 
@@ -177,6 +182,7 @@ export class NotificationPolicy extends React.Component<NotificationPolicyProps,
           className={cx('select', 'control')}
           // @ts-ignore
           value={wait_delay}
+          disabled={disabled}
           onChange={this._getOnChangeHandler('wait_delay')}
           options={waitDelays.map((waitDelay: WaitDelay) => ({
             label: waitDelay.display_name,
@@ -187,7 +193,7 @@ export class NotificationPolicy extends React.Component<NotificationPolicyProps,
     );
   }
 
-  private _renderNotifyBy() {
+  private _renderNotifyBy(disabled: boolean) {
     const { data, notifyByOptions = [], userAction } = this.props;
     const { notify_by } = data;
 
@@ -199,6 +205,7 @@ export class NotificationPolicy extends React.Component<NotificationPolicyProps,
           className={cx('select', 'control')}
           // @ts-ignore
           value={notify_by}
+          disabled={disabled}
           onChange={this._getOnChangeHandler('notify_by')}
           options={notifyByOptions.map((notifyByOption: NotifyBy) => ({
             label: notifyByOption.display_name,

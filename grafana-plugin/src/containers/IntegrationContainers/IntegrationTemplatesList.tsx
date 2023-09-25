@@ -66,19 +66,10 @@ const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = ({
           onDismiss={() => onDismiss()}
         />
       )}
-
-      <IntegrationBlockItem>
-        <Text type="secondary">
-          Set templates to interpret monitoring alerts and minimize noise. Group alerts, enable auto-resolution,
-          customize visualizations and notifications by extracting data from alerts.
-        </Text>
-      </IntegrationBlockItem>
-
       {templatesToRender.map((template, key) => (
         <IntegrationBlockItem key={key}>
           <VerticalBlock>
             {template.name && <Text type={'primary'}>{template.name}</Text>}
-
             {template.contents.map((contents, innerKey) => (
               <IntegrationTemplateBlock
                 key={innerKey}

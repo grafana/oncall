@@ -164,14 +164,8 @@ class UserNotificationPolicy(OrderedModel):
 
     @classmethod
     def get_short_verbals_for_user(cls, user: User) -> Tuple[Tuple[str, ...], Tuple[str, ...]]:
-        is_wait_step = Q(step=cls.Step.WAIT)
-        is_wait_step_configured = Q(wait_delay__isnull=False)
-
-        policies = cls.objects.filter(Q(user=user, step__isnull=False) & (~is_wait_step | is_wait_step_configured))
-
-        default = tuple(str(policy.short_verbal) for policy in policies if policy.important is False)
-        important = tuple(str(policy.short_verbal) for policy in policies if policy.important is True)
-
+        default = tuple(str(policy.short_verbal) for policy in user.get_notification_policies_or_default(important=False))
+        important = tuple(str(policy.short_verbal) for policy in user.get_notification_policies_or_default(important=True))
         return default, important
 
     @property
@@ -191,10 +185,10 @@ class UserNotificationPolicy(OrderedModel):
             return "Not set"
 
     def delete(self):
-        if UserNotificationPolicy.objects.filter(important=self.important, user=self.user).count() == 1:
-            raise UserNotificationPolicyCouldNotBeDeleted("Can't delete last user notification policy")
-        else:
-            super().delete()
+        # if UserNotificationPolicy.objects.filter(important=self.important, user=self.user).count() == 1:
+        #     raise UserNotificationPolicyCouldNotBeDeleted("Can't delete last user notification policy")
+        # else:
+        super().delete()
 
 
 class NotificationChannelOptions:

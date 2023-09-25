@@ -67,17 +67,16 @@ class UserNotificationPolicyView(UpdateSerializerMixin, OrderedModelViewSet):
         except ValueError:
             raise BadRequest(detail="Invalid user param")
         if user_id is None or user_id == self.request.user.public_primary_key:
-            queryset = self.model.objects.filter(user=self.request.user, important=important)
+            target_user = self.request.user
         else:
             try:
                 target_user = User.objects.get(public_primary_key=user_id)
             except User.DoesNotExist:
                 raise BadRequest(detail="User does not exist")
+        queryset = target_user.get_notification_policies_or_default(important=important)
 
-            queryset = self.model.objects.filter(user=target_user, important=important)
-
-        return self.serializer_class.setup_eager_loading(queryset)
-
+        return queryset
+    
     def get_object(self):
         # we need overriden get object, because original one call get_queryset first and raise 404 trying to access
         # other user policies

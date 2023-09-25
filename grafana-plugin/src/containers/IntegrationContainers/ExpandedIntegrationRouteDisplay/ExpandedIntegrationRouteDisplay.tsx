@@ -149,20 +149,17 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
             </HorizontalGroup>
           }
           content={
-            <VerticalGroup spacing="xs">
-              {routeIndex !== channelFiltersTotal.length - 1 && (
-                <IntegrationBlockItem>
-                  <VerticalGroup>
+            <VerticalGroup>
+              {isDefault ? (
+                    <Text type="secondary">
+                      All unmatched alerts are directed to this route, grouped using the Grouping Template, sent to messengers, and trigger the escalation chain
+                    </Text>
+              ) : (
+                <VerticalGroup>
                     <Text type="secondary">
                       If the Routing Template is True, group alerts with the Grouping Template, send them to messengers,
                       and trigger the escalation chain.
                     </Text>
-                  </VerticalGroup>
-                </IntegrationBlockItem>
-              )}
-              {/* Show Routing Template only for If/Else Routes, not for Default */}
-              {!isDefault && (
-                <IntegrationBlockItem>
                   <HorizontalGroup spacing="xs">
                     <InlineLabel
                       width={20}
@@ -187,19 +184,16 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
                       onClick={() => handleEditRoutingTemplate(channelFilter, channelFilterId)}
                     />
                   </HorizontalGroup>
-                </IntegrationBlockItem>
+                </VerticalGroup>
               )}
 
               {IntegrationHelper.hasChatopsInstalled(store) && (
-                <IntegrationBlockItem>
                   <VerticalGroup spacing="md">
                     <Text type="primary">Publish to ChatOps</Text>
                     <ChatOpsConnectors channelFilterId={channelFilterId} showLineNumber={false} />
                   </VerticalGroup>
-                </IntegrationBlockItem>
               )}
 
-              <IntegrationBlockItem>
                 <VerticalGroup>
                   <HorizontalGroup spacing={'xs'}>
                     <InlineLabel
@@ -270,7 +264,6 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
                     <ReadOnlyEscalationChain escalationChainId={channelFilter.escalation_chain} />
                   )}
                 </VerticalGroup>
-              </IntegrationBlockItem>
             </VerticalGroup>
           }
         />
@@ -294,6 +287,7 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
     }
 
     function onEscalationChainChange({ id }) {
+      console.log("here")
       alertReceiveChannelStore
         .saveChannelFilter(channelFilterId, {
           escalation_chain: id,

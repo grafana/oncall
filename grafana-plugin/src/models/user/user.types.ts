@@ -49,4 +49,8 @@ export interface User {
   hidden_fields?: boolean;
   timezone: Timezone;
   working_hours: { [key: string]: [] };
+  is_notification_chain_default: {
+    default: boolean;
+    important: boolean;
+  };
 }

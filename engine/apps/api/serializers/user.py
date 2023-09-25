@@ -39,6 +39,7 @@ class UserSerializer(DynamicFieldsModelSerializer, EagerLoadingMixin):
     avatar = serializers.URLField(source="avatar_url", read_only=True)
     avatar_full = serializers.URLField(source="avatar_full_url", read_only=True)
     notification_chain_verbal = serializers.SerializerMethodField()
+    is_notification_chain_default = serializers.SerializerMethodField()
     cloud_connection_status = serializers.SerializerMethodField()
 
     SELECT_RELATED = ["telegram_verification_code", "telegram_connection", "organization", "slack_user_identity"]
@@ -65,6 +66,7 @@ class UserSerializer(DynamicFieldsModelSerializer, EagerLoadingMixin):
             "notification_chain_verbal",
             "cloud_connection_status",
             "hide_phone_number",
+            "is_notification_chain_default",
         ]
         read_only_fields = [
             "email",
@@ -72,6 +74,7 @@ class UserSerializer(DynamicFieldsModelSerializer, EagerLoadingMixin):
             "name",
             "role",
             "verified_phone_number",
+            "is_notification_chain_default",
         ]
 
     def validate_working_hours(self, working_hours):
@@ -130,6 +133,11 @@ class UserSerializer(DynamicFieldsModelSerializer, EagerLoadingMixin):
     def get_notification_chain_verbal(self, obj):
         default, important = UserNotificationPolicy.get_short_verbals_for_user(user=obj)
         return {"default": " - ".join(default), "important": " - ".join(important)}
+    
+    def get_is_notification_chain_default(self, user):
+        default_notification_chain_not_set = not bool(user.notification_policies.filter(important=False))
+        important_notification_chain_not_set = not bool(user.notification_policies.filter(important=True))
+        return {"default": default_notification_chain_not_set, "important": important_notification_chain_not_set}
 
     def get_cloud_connection_status(self, obj):
         if settings.IS_OPEN_SOURCE and live_settings.GRAFANA_CLOUD_NOTIFICATIONS_ENABLED:

@@ -1,6 +1,6 @@
 import React, { useCallback } from 'react';
 
-import { Button, HorizontalGroup, Icon, LoadingPlaceholder, Tooltip } from '@grafana/ui';
+import { Alert, Button, HorizontalGroup, Icon, LoadingPlaceholder, Tooltip } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { get } from 'lodash-es';
 import { observer } from 'mobx-react';
@@ -20,6 +20,7 @@ import { getColor } from './PersonalNotificationSettings.helpers';
 import img from './img/default-step.png';
 
 import styles from './PersonalNotificationSettings.module.css';
+import WithConfirm from 'components/WithConfirm/WithConfirm';
 
 const cx = cn.bind(styles);
 
@@ -105,6 +106,7 @@ const PersonalNotificationSettings = observer((props: PersonalNotificationSettin
 
   const user = userStore.items[userPk];
 
+  const isDisabled = user.is_notification_chain_default[isImportant ? 'important' : 'default']
   const userAction = isCurrent ? UserActions.UserSettingsWrite : UserActions.NotificationSettingsWrite;
   const getPhoneStatus = () => {
     if (store.hasFeature(AppFeature.CloudNotifications)) {
@@ -117,7 +119,6 @@ const PersonalNotificationSettings = observer((props: PersonalNotificationSettin
   const isMobileAppConnected = user.messaging_backends['MOBILE_APP']?.connected;
   const showCloudConnectionWarning =
     store.hasFeature(AppFeature.CloudConnection) && !store.cloudStore.cloudConnectionStatus.cloud_connection_status;
-
   return (
     <div className={cx('root')}>
       {title}
@@ -137,6 +138,7 @@ const PersonalNotificationSettings = observer((props: PersonalNotificationSettin
             key={notificationPolicy.id}
             index={index}
             number={index + 1}
+            isDisabled={isDisabled}
             telegramVerified={Boolean(user.telegram_configuration)}
             phoneStatus={getPhoneStatus()}
             isMobileAppConnected={isMobileAppConnected}
@@ -157,9 +159,18 @@ const PersonalNotificationSettings = observer((props: PersonalNotificationSettin
           <div className={cx('step')}>
             <WithPermissionControlTooltip userAction={userAction}>
               <Button icon="plus" variant="secondary" fill="text" onClick={getAddNotificationPolicyHandler()}>
-                Add Notification Step
+                {isDisabled ? "Customize notification steps" : "Add notification step"}
               </Button>
             </WithPermissionControlTooltip>
+            {!isDisabled && 
+            <WithPermissionControlTooltip userAction={userAction}>
+              <WithConfirm title="Delete all notification policies one by one to reset to default policies">
+              <Button variant="destructive" fill="text" onClick={() => {}}>
+                Reset to default
+              </Button>
+              </WithConfirm>
+            </WithPermissionControlTooltip>
+            }
           </div>
         </Timeline.Item>
       </SortableList>

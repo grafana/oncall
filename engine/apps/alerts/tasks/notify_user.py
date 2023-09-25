@@ -69,7 +69,7 @@ def notify_user_task(
         user_has_notification = UserHasNotification.objects.filter(pk=user_has_notification.pk).select_for_update()[0]
 
         if previous_notification_policy_pk is None:
-            notification_policy = UserNotificationPolicy.objects.filter(user=user, important=important).first()
+            notification_policy = user.get_notification_policies_or_default(important=important)[0]
             if notification_policy is None:
                 task_logger.info(
                     f"notify_user_task: Failed to notify. No notification policies. user_id={user_pk} alert_group_id={alert_group_pk} important={important}"

@@ -2,11 +2,12 @@ import typing
 
 from django.conf import settings
 from django.core.validators import MinLengthValidator
-from django.db import models
+from django.db import models, transaction
 
 from apps.metrics_exporter.helpers import metrics_bulk_update_team_label_cache
 from apps.metrics_exporter.metrics_cache_manager import MetricsCacheManager
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
+from apps.alerts.models import AlertReceiveChannel, ChannelFilter
 
 if typing.TYPE_CHECKING:
     from django.db.models.manager import RelatedManager
@@ -39,6 +40,7 @@ class TeamManager(models.Manager["Team"]):
         grafana_teams = {team["id"]: team for team in api_teams}
         existing_team_ids: typing.Set[int] = set(organization.teams.all().values_list("team_id", flat=True))
 
+        print("______")
         # create missing teams
         teams_to_create = tuple(
             Team(
@@ -52,6 +54,30 @@ class TeamManager(models.Manager["Team"]):
             if team["id"] not in existing_team_ids
         )
         organization.teams.bulk_create(teams_to_create, batch_size=5000)
+
+        # create direct paging integrations for new teams
+        # TODO: decide what to do with analytics as bulk_create doesn't emit signal:
+        # @receiver(post_save, sender=AlertReceiveChannel)
+        direct_paging_integrations_to_create = []
+        default_channel_filters_to_create = []
+        for team in teams_to_create:
+            alert_receive_channel = AlertReceiveChannel(
+                organization=organization,
+                team=team,
+                integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING,
+                verbal_name=f"Direct paging ({team.name if team else 'No'} team)",
+            )
+            channel_filter = ChannelFilter(
+                alert_receive_channel=alert_receive_channel,
+                filtering_term=None,
+                is_default=True,
+                order=0,
+            )
+            direct_paging_integrations_to_create.append(alert_receive_channel)
+            default_channel_filters_to_create.append(channel_filter)
+        with transaction.atomic():
+            AlertReceiveChannel.objects.bulk_create(direct_paging_integrations_to_create, batch_size=5000)
+            ChannelFilter.objects.bulk_create(default_channel_filters_to_create, batch_size=5000)
 
         # delete excess teams
         team_ids_to_delete = existing_team_ids - grafana_teams.keys()

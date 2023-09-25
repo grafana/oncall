@@ -152,7 +152,7 @@ class User(models.Model):
     current_team: typing.Optional["Team"]
     escalation_policy_notify_queues: "RelatedManager['EscalationPolicy']"
     last_notified_in_escalation_policies: "RelatedManager['EscalationPolicy']"
-    notification_policies: "RelatedManager['UserNotificationPolicy']"
+    # notification_policies: "RelatedManager['UserNotificationPolicy']"
     organization: "Organization"
     resolved_alert_groups: "RelatedManager['AlertGroup']"
     schedule_export_token: "RelatedManager['ScheduleExportAuthToken']"
@@ -208,6 +208,14 @@ class User(models.Model):
     # is_active = None is used to be able to have multiple deleted users with the same user_id
     is_active = models.BooleanField(null=True, default=True)
     permissions = models.JSONField(null=False, default=list)
+
+    def get_notification_policies_or_default(self, important=False):
+        from apps.base.models import UserNotificationPolicy
+
+        notification_policies = self.notification_policies.filter(important=important)
+        if not notification_policies:
+            notification_policies = UserNotificationPolicy(user=self, step=UserNotificationPolicy.Step.NOTIFY, notify_by=8, order=0, important=important),
+        return notification_policies
 
     def __str__(self):
         return f"{self.pk}: {self.username}"
