@@ -242,7 +242,7 @@
     secretKeyRef:
       name: {{ include "snippet.mysql.password.secret.name" . }}
       key: {{ include "snippet.mysql.password.secret.key" . | quote }}
-{{- if and (not .Values.mariadb.enabled) }}
+{{- if not .Values.mariadb.enabled }}
 {{- with .Values.externalMysql.options }}
 - name: MYSQL_OPTIONS
   value: {{ . | quote }}
@@ -322,7 +322,7 @@
     secretKeyRef:
       name: {{ include "snippet.postgresql.password.secret.name" . }}
       key: {{ include "snippet.postgresql.password.secret.key" . | quote }}
-{{- if and (not .Values.postgresql.enabled) }}
+{{- if not .Values.postgresql.enabled }}
 {{- with .Values.externalPostgresql.options }}
 - name: DATABASE_OPTIONS
   value: {{ . | quote }}
@@ -394,7 +394,7 @@
 {{- end }}
 
 {{- define "snippet.postgresql.user" -}}
-{{ if and (not .Values.postgresql.enabled) -}}
+{{ if not .Values.postgresql.enabled -}}
   {{ .Values.externalPostgresql.user | default "postgres" }}
 {{- else -}}
   {{ .Values.postgresql.auth.username | default "postgres" }}
@@ -561,16 +561,14 @@
   value: {{ include "snippet.redis.port" . }}
 - name: REDIS_DATABASE
   value: {{ include "snippet.redis.database" . }}
-{{- with .Values.externalRedis.username }}
 - name: REDIS_USERNAME
-  value: {{ . | quote }}
-{{- end }}
+  value: {{ default "" .Values.externalRedis.username | quote }}
 - name: REDIS_PASSWORD
   valueFrom:
     secretKeyRef:
       name: {{ include "snippet.redis.password.secret.name" . }}
       key: {{ include "snippet.redis.password.secret.key" . | quote}}
-{{- if and (not .Values.postgresql.enabled) .Values.externalRedis.ssl_options.enabled }}
+{{- if and (not .Values.redis.enabled) .Values.externalRedis.ssl_options.enabled }}
 - name: REDIS_USE_SSL
   value: "true"
 {{- with .Values.externalRedis.ssl_options.ca_certs }}

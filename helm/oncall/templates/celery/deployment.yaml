@@ -68,7 +68,7 @@ spec:
             {{- include "snippet.db.env" . | nindent 12 }}
             {{- include "snippet.broker.env" . | nindent 12 }}
             {{- include "oncall.extraEnvs" . | nindent 12 }}
-            - name: BEAT_SCHEDULE_DB_FILENAME
+            - name: CELERY_BEAT_SCHEDULE_FILENAME
               value: /var/run/celery/celerybeat.db
           {{- if .Values.celery.livenessProbe.enabled }}
           livenessProbe:

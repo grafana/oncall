@@ -143,8 +143,6 @@ tests:
           content:
             name: REDIS_DATABASE
             value: "15"
-      - notExists:
-          path: spec.template.spec.containers[0].env[?(@.name=="REDIS_USERNAME")]
       - contains:
           path: spec.template.spec.containers[0].env
           content:

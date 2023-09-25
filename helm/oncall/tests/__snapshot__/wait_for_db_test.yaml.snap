@@ -52,6 +52,8 @@ database.type=mysql -> should create initContainer for MySQL database (default):
           value: "6379"
         - name: REDIS_DATABASE
           value: "0"
+        - name: REDIS_USERNAME
+          value: ""
         - name: REDIS_PASSWORD
           valueFrom:
             secretKeyRef:
@@ -136,6 +138,8 @@ database.type=mysql -> should create initContainer for MySQL database (default):
           value: "6379"
         - name: REDIS_DATABASE
           value: "0"
+        - name: REDIS_USERNAME
+          value: ""
         - name: REDIS_PASSWORD
           valueFrom:
             secretKeyRef:
@@ -220,6 +224,8 @@ database.type=mysql -> should create initContainer for MySQL database (default):
           value: "6379"
         - name: REDIS_DATABASE
           value: "0"
+        - name: REDIS_USERNAME
+          value: ""
         - name: REDIS_PASSWORD
           valueFrom:
             secretKeyRef:
@@ -307,6 +313,8 @@ database.type=postgresql -> should create initContainer for PostgreSQL database:
           value: "6379"
         - name: REDIS_DATABASE
           value: "0"
+        - name: REDIS_USERNAME
+          value: ""
         - name: REDIS_PASSWORD
           valueFrom:
             secretKeyRef:
@@ -393,6 +401,8 @@ database.type=postgresql -> should create initContainer for PostgreSQL database:
           value: "6379"
         - name: REDIS_DATABASE
           value: "0"
+        - name: REDIS_USERNAME
+          value: ""
         - name: REDIS_PASSWORD
           valueFrom:
             secretKeyRef:
@@ -479,6 +489,8 @@ database.type=postgresql -> should create initContainer for PostgreSQL database:
           value: "6379"
         - name: REDIS_DATABASE
           value: "0"
+        - name: REDIS_USERNAME
+          value: ""
         - name: REDIS_PASSWORD
           valueFrom:
             secretKeyRef:

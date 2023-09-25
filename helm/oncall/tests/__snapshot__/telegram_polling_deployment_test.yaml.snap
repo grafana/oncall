@@ -60,6 +60,8 @@ telegramPolling.enabled=true -> should create telegram polling deployment:
           value: "6379"
         - name: REDIS_DATABASE
           value: "0"
+        - name: REDIS_USERNAME
+          value: ""
         - name: REDIS_PASSWORD
           valueFrom:
             secretKeyRef:
