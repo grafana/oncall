@@ -24,13 +24,12 @@ class LabelsCRUDView(ViewSet):
 
     def get_keys(self, request):  # todo
         organization = self.request.auth.organization
-        result, _ = LabelsAPIClient(organization.grafana_url, organization.api_token).get_labels_keys()
-        # todo: update cache
+        result, _ = LabelsAPIClient(organization.grafana_url, organization.api_token).get_keys()
         return Response(result)
 
     def get_key(self, request, key_id):  # todo
         organization = self.request.auth.organization
-        result, _ = LabelsAPIClient(organization.grafana_url, organization.api_token).get_label_key_values(key_id)
+        result, _ = LabelsAPIClient(organization.grafana_url, organization.api_token).get_values(key_id)
         # todo: update cache
         return Response(result)
 
