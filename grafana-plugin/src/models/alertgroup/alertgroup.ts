@@ -312,9 +312,11 @@ export class AlertGroupStore extends BaseStore {
   }
 
   @action
-  getAlert(pk: Alert['pk']) {
-    return makeRequest(`${this.path}${pk}`, {}).then((alert: Alert) => {
+  async getAlert(pk: Alert['pk']) {
+    return await makeRequest(`${this.path}${pk}`, {}).then((alert: Alert) => {
       this.alerts.set(pk, alert);
+
+      return alert;
     });
   }
 
