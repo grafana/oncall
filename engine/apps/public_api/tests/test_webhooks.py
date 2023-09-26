@@ -7,7 +7,7 @@ from rest_framework.test import APIClient
 
 from apps.public_api.serializers.webhooks import PRESET_VALIDATION_MESSAGE
 from apps.webhooks.models import Webhook
-from conftest import TEST_WEBHOOK_PRESET_ID
+from apps.webhooks.tests.test_webhook_presets import TEST_WEBHOOK_PRESET_ID
 
 
 def _get_expected_result(webhook):
