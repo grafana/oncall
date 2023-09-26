@@ -407,12 +407,13 @@ const WebhookPresetBlocks: React.FC<{
       {presets.length ? (
         presets.map((preset) => {
           let tmpIcons = webhookPresetIcons;
-          let logo = <>?</>;
+          let logo = <IntegrationLogo integration={{ value: 'webhook', display_name: preset.name }} scale={0.2} />;
           if (preset.logo in logoCoors) {
             logo = <IntegrationLogo integration={{ value: preset.logo, display_name: preset.name }} scale={0.2} />;
           } else if (preset.logo in tmpIcons) {
             logo = tmpIcons[preset.logo]();
           }
+
           return (
             <Block bordered hover shadowed onClick={() => onBlockClick(preset)} key={preset.id} className={cx('card')}>
               <div className={cx('card-bg')}>{logo}</div>
