@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Unify breadcrumbs behaviour with other Grafana Apps and main core ([#1906](https://github.com/grafana/oncall/issues/1906))
 
+### Fixed
+
+- Fix regression in public actions endpoint handling user field by @mderynck ([#3053](https://github.com/grafana/oncall/pull/3053))
+
 ## v1.3.38 (2023-09-19)
 
 ### Fixed

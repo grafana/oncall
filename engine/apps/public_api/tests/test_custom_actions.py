@@ -160,17 +160,44 @@ def test_get_custom_action(
 
 
 @pytest.mark.django_db
-def test_create_custom_action(make_organization_and_user_with_token):
+@pytest.mark.parametrize(
+    "data",
+    [
+        (
+            {
+                "name": "Test outgoing webhook",
+                "url": "https://example.com",
+            }
+        ),
+        (
+            {
+                "name": "Test outgoing webhook",
+                "url": "https://example.com",
+                "user": None,
+                "password": None,
+                "data": None,
+                "authorization_header": None,
+                "forward_whole_payload": True,
+            }
+        ),
+        (
+            {
+                "name": "Test outgoing webhook",
+                "url": "https://example.com",
+                "user": "",
+                "password": "",
+                "data": "",
+                "authorization_header": "",
+                "forward_whole_payload": True,
+            }
+        ),
+    ],
+)
+def test_create_custom_action(make_organization_and_user_with_token, data):
     organization, user, token = make_organization_and_user_with_token()
     client = APIClient()
 
     url = reverse("api-public:actions-list")
-
-    data = {
-        "name": "Test outgoing webhook",
-        "url": "https://example.com",
-    }
-
     response = client.post(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
 
     custom_action = Webhook.objects.get(public_primary_key=response.data["id"])
