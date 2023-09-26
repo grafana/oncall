@@ -4,10 +4,13 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ViewSet
 
-from apps.api.serializers.labels import LabelDataSerializer
+from apps.alerts.models import AlertReceiveChannel
+from apps.api.serializers.labels import LabelSerializer
 from apps.auth_token.auth import PluginAuthentication
 from apps.labels.client import LabelsAPIClient
-from apps.labels.models import Label
+from apps.labels.models import AssociatedLabel
+
+# from apps.labels.tasks import update_labels_cache
 from apps.labels.utils import is_labels_enabled
 from common.api_helpers.exceptions import BadRequest
 
@@ -30,7 +33,7 @@ class LabelsCRUDView(ViewSet):
     def get_key(self, request, key_id):  # todo
         organization = self.request.auth.organization
         result, _ = LabelsAPIClient(organization.grafana_url, organization.api_token).get_values(key_id)
-        # todo: update cache
+        # update_labels_cache.apply_async((organization, result,),)
         return Response(result)
 
     def create_label(self, request):
@@ -63,7 +66,9 @@ class LabelsAssociatingMixin:  # use for labelable objects views (ex. AlertRecei
             return queryset
         for label in labels:
             key_id, value_id = label.split(":")
-            queryset &= queryset.filter(labels__key_id=key_id, labels__value_id=value_id)
+            queryset &= AlertReceiveChannel.objects_with_deleted.filter(
+                labels__key_id=key_id, labels__value_id=value_id
+            ).distinct()
         return queryset
 
     @action(methods=["get"], detail=True)
@@ -78,6 +83,7 @@ class LabelsAssociatingMixin:  # use for labelable objects views (ex. AlertRecei
             }
             for label in labels
         ]
+        # todo: check labels last sync dt
         return Response(result)
 
     @action(methods=["post"], detail=True)
@@ -85,11 +91,11 @@ class LabelsAssociatingMixin:  # use for labelable objects views (ex. AlertRecei
         self.check_if_label_feature_enabled()
         organization = self.request.auth.organization
         # {"key": {"id": key_id, "repr": "severity"}, "value": {"id": value_id, "repr": "critical"}}
-        serializer = LabelDataSerializer(data=request.data)
+        serializer = LabelSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
         obj = self.get_object()
-        Label.associate(request.data, obj, organization)
+        AssociatedLabel.associate(request.data, obj, organization)
         return Response(status=200)
 
     @action(methods=["post"], detail=True)
@@ -97,9 +103,9 @@ class LabelsAssociatingMixin:  # use for labelable objects views (ex. AlertRecei
         self.check_if_label_feature_enabled()
         # organization = self.request.auth.organization
         # {"key": {"id": key_id, "repr": "severity"}, "value": {"id": value_id, "repr": "critical"}}
-        serializer = LabelDataSerializer(data=request.data)
+        serializer = LabelSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
         obj = self.get_object()
-        Label.remove(request.data, obj)
+        AssociatedLabel.remove(request.data, obj)
         return Response(status=200)
