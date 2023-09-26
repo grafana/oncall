@@ -78,12 +78,13 @@ class LabelsAssociatingMixin:  # use for labelable objects views (ex. AlertRecei
         labels = obj.labels.all().select_related("key_cache", "value_cache")
         result = [
             {
-                "key": {"id": label.key_id, "repr": label.key_cache.key_repr},
-                "value": {"id": label.value_id, "repr": label.value_cache.value_repr},
+                "key": {"id": label.key_id, "repr": label.key.key_repr},
+                "value": {"id": label.value_id, "repr": label.value.value_repr},
             }
             for label in labels
         ]
         # todo: check labels last sync dt
+        # update_outdated_labels_cache.apply_async((result,),)
         return Response(result)
 
     @action(methods=["post"], detail=True)

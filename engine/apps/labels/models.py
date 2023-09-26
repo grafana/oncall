@@ -28,16 +28,10 @@ def get_associating_label_model(model):
 
 
 class LabelKeyCache(models.Model):
-    key_id = models.CharField(max_length=36)
+    key_id = models.CharField(primary_key=True, editable=False, max_length=36)
     key_repr = models.CharField(max_length=200)
     organization = models.ForeignKey("user_management.Organization", on_delete=models.CASCADE)
     last_synced = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        unique_together = [
-            "key_id",
-            "organization_id",
-        ]
 
     @property
     def is_outdated(self):
@@ -45,28 +39,20 @@ class LabelKeyCache(models.Model):
 
 
 class LabelValueCache(models.Model):
-    value_id = models.CharField(max_length=36)
+    value_id = models.CharField(primary_key=True, editable=False, max_length=36)
     value_repr = models.CharField(max_length=200)
     key = models.ForeignKey("labels.LabelKeyCache", on_delete=models.CASCADE, related_name="values")
     last_synced = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        unique_together = [
-            "value_id",
-            "key_id",
-        ]
 
     @property
     def is_outdated(self):
         return timezone.now() - self.last_synced > timezone.timedelta(minutes=5)
 
 
-class Label(models.Model):
-    key_cache = models.ForeignKey(LabelKeyCache, on_delete=models.CASCADE)
-    value_cache = models.ForeignKey(LabelValueCache, on_delete=models.CASCADE)
+class AssociatedLabel(models.Model):
+    key = models.ForeignKey(LabelKeyCache, on_delete=models.CASCADE)
+    value = models.ForeignKey(LabelValueCache, on_delete=models.CASCADE)
     organization = models.ForeignKey("user_management.Organization", on_delete=models.CASCADE, related_name="labels")
-    key_id = models.CharField(max_length=36)
-    value_id = models.CharField(max_length=36)
 
     class Meta:
         abstract = True
@@ -83,13 +69,7 @@ class Label(models.Model):
             key_id=key_id, organization=organization, defaults={"key_repr": key_repr}
         )
         label_value, _ = label_key.values.update_or_create(value_id=value_id, defaults={"value_repr": value_repr})
-        label, _ = instance.labels.get_or_create(
-            key_cache=label_key,
-            value_cache=label_value,
-            key_id=key_id,
-            value_id=value_id,
-            organization=organization,
-        )
+        label, _ = instance.labels.get_or_create(key=label_key, value=label_value, organization=organization)
 
     @staticmethod
     def remove(label_data, instance):
@@ -100,7 +80,7 @@ class Label(models.Model):
         # todo: delete unused cache
 
 
-class AlertReceiveChannelAssociatedLabel(Label):
+class AlertReceiveChannelAssociatedLabel(AssociatedLabel):
     alert_receive_channel = models.ForeignKey(
         "alerts.AlertReceiveChannel", on_delete=models.CASCADE, related_name="labels"
     )
