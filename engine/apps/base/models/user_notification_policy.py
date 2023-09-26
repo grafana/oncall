@@ -76,7 +76,7 @@ class UserNotificationPolicyQuerySet(models.QuerySet):
             model(
                 user=user,
                 step=model.Step.NOTIFY,
-                notify_by=settings.EMAIL_BACKED_INTERNAL_ID,
+                notify_by=settings.EMAIL_BACKEND_INTERNAL_ID,
                 order=0,
             ),
         )
@@ -95,7 +95,7 @@ class UserNotificationPolicyQuerySet(models.QuerySet):
             model(
                 user=user,
                 step=model.Step.NOTIFY,
-                notify_by=settings.EMAIL_BACKED_INTERNAL_ID,
+                notify_by=settings.EMAIL_BACKEND_INTERNAL_ID,
                 important=True,
                 order=0,
             ),
