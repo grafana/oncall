@@ -67,11 +67,10 @@ IcalEvents = typing.List[IcalEvent]
 def users_in_ical(
     usernames_from_ical: typing.List[str],
     organization: "Organization",
-) -> "UserQuerySet":
+) -> typing.List["User"]:
     """
     This method returns a sequence of `User` objects, filtered by users whose username, or case-insensitive e-mail,
-    is present in `usernames_from_ical`. If `include_viewers` is set to `True`, users are further filtered down
-    based on their granted permissions.
+    is present in `usernames_from_ical`.
 
     Parameters
     ----------
@@ -80,24 +79,26 @@ def users_in_ical(
     organization : apps.user_management.models.organization.Organization
         The organization in question
     """
-    from apps.user_management.models import User
+    required_permission = RBACPermission.Permissions.SCHEDULES_WRITE
 
     emails_from_ical = [username.lower() for username in usernames_from_ical]
 
-    # users_found_in_ical = organization.users
     users_found_in_ical = organization.users.filter(
-        **User.build_permissions_query(RBACPermission.Permissions.SCHEDULES_WRITE, organization)
-    )
-
-    users_found_in_ical = users_found_in_ical.filter(
         (Q(username__in=usernames_from_ical) | Q(email__lower__in=emails_from_ical))
     ).distinct()
 
-    return users_found_in_ical
+    if organization.is_rbac_permissions_enabled:
+        # it is more efficient to check permissions on the subset of users filtered above
+        # than performing a regex query for the required permission
+        users_found_in_ical = [u for u in users_found_in_ical if {"action": required_permission.value} in u.permissions]
+    else:
+        users_found_in_ical = users_found_in_ical.filter(role__lte=required_permission.fallback_role.value)
+
+    return list(users_found_in_ical)
 
 
 @timed_lru_cache(timeout=100)
-def memoized_users_in_ical(usernames_from_ical: typing.List[str], organization: "Organization") -> UserQuerySet:
+def memoized_users_in_ical(usernames_from_ical: typing.List[str], organization: "Organization") -> typing.List["User"]:
     # using in-memory cache instead of redis to avoid pickling python objects
     return users_in_ical(usernames_from_ical, organization)
 
@@ -354,7 +355,7 @@ def list_users_to_notify_from_ical_for_period(
     schedule: "OnCallSchedule",
     start_datetime: datetime.datetime,
     end_datetime: datetime.datetime,
-) -> UserQuerySet:
+) -> typing.List["User"]:
     users_found_in_ical: typing.Sequence["User"] = []
     events = schedule.final_events(start_datetime, end_datetime)
     usernames = []
