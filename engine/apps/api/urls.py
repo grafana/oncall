@@ -115,7 +115,15 @@ urlpatterns += [
 
 urlpatterns += [
     re_path(r"^labels/keys/?$", LabelsCRUDView.as_view({"get": "get_keys"}), name="get_keys"),
-    re_path(r"^labels/(?P<key_id>[\w\-]+)/?$", LabelsCRUDView.as_view({"get": "get_key"}), name="get_key"),
+    re_path(r"^labels/id/(?P<key_id>[\w\-]+)/?$", LabelsCRUDView.as_view({"get": "get_key"}), name="get_key"),
+    re_path(r"^labels/id/(?P<key_id>[\w\-]+)/?$", LabelsCRUDView.as_view({"put": "rename_key"}), name="rename_key"),
+    re_path(
+        r"^labels/id/(?P<key_id>[\w\-]+)/values/?$", LabelsCRUDView.as_view({"post": "add_value"}), name="add_value"
+    ),
+    re_path(
+        r"^labels/id/(?P<key_id>[\w\-]+)/values/(?P<value_id>[\w\-]+)/?$",
+        LabelsCRUDView.as_view({"put": "rename_value"}),
+        name="rename_value",
+    ),
     re_path(r"^labels/?$", LabelsCRUDView.as_view({"post": "create_label"}), name="create_label"),
-    re_path(r"^labels/(?P<key_id>[\w\-]+)/value/?$", LabelsCRUDView.as_view({"post": "add_value"}), name="add_value"),
 ]
