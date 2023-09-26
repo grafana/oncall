@@ -238,7 +238,7 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
     @classmethod
     def create(cls, **kwargs):
         organization = kwargs["organization"]
-        team = kwargs["team"] if kwargs["team"] else None
+        team = kwargs["team"] if "team" in kwargs else None
         integration = kwargs["integration"]
         if (
             integration == AlertReceiveChannel.INTEGRATION_DIRECT_PAGING

@@ -16,6 +16,8 @@ redis:
     tag: 7.0.5
   auth:
     password: oncallpassword
+  master:
+    disableCommands: []
 rabbitmq:
   enabled: false
 oncall:
