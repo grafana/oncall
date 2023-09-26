@@ -16,6 +16,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fix regression in public actions endpoint handling user field by @mderynck ([#3053](https://github.com/grafana/oncall/pull/3053))
 
+### Changed
+
+- Rework how users are fetched from DB when getting users from schedules ical representation ([#3067](https://github.com/grafana/oncall/pull/3067))
+
 ## v1.3.38 (2023-09-19)
 
 ### Fixed
