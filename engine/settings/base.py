@@ -123,7 +123,7 @@ DATABASE_PASSWORD = os.getenv("DATABASE_PASSWORD") or os.getenv("MYSQL_PASSWORD"
 DATABASE_HOST = os.getenv("DATABASE_HOST") or os.getenv("MYSQL_HOST")
 DATABASE_PORT = os.getenv("DATABASE_PORT") or os.getenv("MYSQL_PORT")
 
-DATABASE_OPTIONS = os.getenv("DATABASE_OPTIONS") or os.getenv("MYSQL_OPTIONS")
+DATABASE_OPTIONS = os.getenv("DATABASE_OPTIONS")
 if DATABASE_OPTIONS:
     try:
         DATABASE_OPTIONS = dict([tuple(i.split("=")) for i in str(DATABASE_OPTIONS).split(" ")])
