@@ -28,5 +28,5 @@ class LabelValueSerializer(serializers.ModelSerializer):
 
 
 class LabelSerializer(serializers.Serializer):
-    key = LabelKeySerializer(source="key_cache")
-    value = LabelValueSerializer(source="value_cache")
+    key = LabelKeySerializer()
+    value = LabelValueSerializer()

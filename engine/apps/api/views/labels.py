@@ -36,6 +36,14 @@ class LabelsCRUDView(ViewSet):
         # update_labels_cache.apply_async((organization, result,),)
         return Response(result)
 
+    def rename_key(self, request, key_id):
+        organization = self.request.auth.organization
+        label_data = self.request.data
+        if not label_data:
+            raise BadRequest()
+        result, _ = LabelsAPIClient(organization.grafana_url, organization.api_token).rename_key(key_id, label_data)
+        return Response(result)
+
     def create_label(self, request):
         organization = self.request.auth.organization
         label_data = self.request.data
@@ -50,6 +58,16 @@ class LabelsCRUDView(ViewSet):
         if not label_data:
             raise BadRequest()
         result, _ = LabelsAPIClient(organization.grafana_url, organization.api_token).add_value(key_id, label_data)
+        return Response()
+
+    def rename_value(self, request, key_id, value_id):
+        organization = self.request.auth.organization
+        label_data = self.request.data
+        if not label_data:
+            raise BadRequest()
+        result, _ = LabelsAPIClient(organization.grafana_url, organization.api_token).rename_value(
+            key_id, value_id, label_data
+        )
         return Response()
 
 
