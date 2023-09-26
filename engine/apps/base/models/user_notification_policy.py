@@ -76,11 +76,9 @@ class UserNotificationPolicyQuerySet(models.QuerySet):
             model(
                 user=user,
                 step=model.Step.NOTIFY,
-                notify_by=NotificationChannelOptions.DEFAULT_NOTIFICATION_CHANNEL,
+                notify_by=settings.EMAIL_BACKED_INTERNAL_ID,
                 order=0,
             ),
-            model(user=user, step=model.Step.WAIT, wait_delay=datetime.timedelta(minutes=15), order=1),
-            model(user=user, step=model.Step.NOTIFY, notify_by=model.NotificationChannel.PHONE_CALL, order=2),
         )
 
         try:
@@ -97,7 +95,7 @@ class UserNotificationPolicyQuerySet(models.QuerySet):
             model(
                 user=user,
                 step=model.Step.NOTIFY,
-                notify_by=model.NotificationChannel.PHONE_CALL,
+                notify_by=settings.EMAIL_BACKED_INTERNAL_ID,
                 important=True,
                 order=0,
             ),

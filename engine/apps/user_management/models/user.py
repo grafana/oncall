@@ -7,7 +7,7 @@ from urllib.parse import urljoin
 import pytz
 from django.conf import settings
 from django.core.validators import MinLengthValidator
-from django.db import models
+from django.db import models, transaction
 from django.db.models import Q
 from django.db.models.signals import post_save
 from django.dispatch import receiver
@@ -75,25 +75,46 @@ class UserManager(models.Manager["User"]):
 
     @staticmethod
     def sync_for_organization(organization, api_users: list[dict]):
+        from apps.base.models import UserNotificationPolicy
+
         grafana_users = {user["userId"]: user for user in api_users}
         existing_user_ids = set(organization.users.all().values_list("user_id", flat=True))
 
-        # create missing users
-        users_to_create = tuple(
-            User(
-                organization_id=organization.pk,
-                user_id=user["userId"],
-                email=user["email"],
-                name=user["name"],
-                username=user["login"],
-                role=LegacyAccessControlRole[user["role"].upper()],
-                avatar_url=user["avatarUrl"],
-                permissions=user["permissions"],
-            )
-            for user in grafana_users.values()
-            if user["userId"] not in existing_user_ids
-        )
-        organization.users.bulk_create(users_to_create, batch_size=5000)
+        users_to_create = []
+        policies_to_create = []
+        for user in grafana_users.values():
+            if user["userId"] not in existing_user_ids:
+                user = User(
+                    organization_id=organization.pk,
+                    user_id=user["userId"],
+                    email=user["email"],
+                    name=user["name"],
+                    username=user["login"],
+                    role=LegacyAccessControlRole[user["role"].upper()],
+                    avatar_url=user["avatarUrl"],
+                    permissions=user["permissions"],
+                )
+                users_to_create.append(user)
+                policies_to_create.append(
+                    UserNotificationPolicy(
+                        user=user,
+                        step=UserNotificationPolicy.Step.NOTIFY,
+                        notify_by=settings.EMAIL_BACKEND_INTERNAL_ID,
+                        order=0,
+                    ),
+                )
+                policies_to_create.append(
+                    UserNotificationPolicy(
+                        user=user,
+                        step=UserNotificationPolicy.Step.NOTIFY,
+                        notify_by=settings.EMAIL_BACKEND_INTERNAL_ID,
+                        order=0,
+                        important=True,
+                    ),
+                )
+        with transaction.atomic():
+            organization.users.bulk_create(users_to_create, batch_size=5000)
+            UserNotificationPolicy.objects.bulk_create(policies_to_create, batch_size=5000)
 
         # delete excess users
         user_ids_to_delete = existing_user_ids - grafana_users.keys()
@@ -379,6 +400,15 @@ class User(models.Model):
             # https://stackoverflow.com/a/50251879
             return PermissionsRegexQuery(permissions__regex=r".*{0}.*".format(permission.value))
         return RoleInQuery(role__lte=permission.fallback_role.value)
+
+    def get_or_create_notification_policies(self, important=False):
+        if not self.notification_policies.filter(important=important).exists():
+            if important:
+                self.notification_policies.create_important_policies_for_user(self)
+            else:
+                self.notification_policies.create_default_policies_for_user(self)
+        notification_policies = self.notification_policies.filter(important=important)
+        return notification_policies
 
 
 # TODO: check whether this signal can be moved to save method of the model
