@@ -121,6 +121,7 @@
     "circular-dependency-plugin": "^5.2.2",
     "dayjs": "^1.11.5",
     "eslint-plugin-import": "^2.25.4",
+    "gops-labels": "0.0.1",
     "mobx": "5.13.0",
     "mobx-react": "6.1.1",
     "object-hash": "^3.0.0",

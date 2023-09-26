@@ -1,4 +1,4 @@
-import React, { useState, ChangeEvent, useEffect, useReducer } from 'react';
+import React, { useState, ChangeEvent, useEffect, useReducer, useRef } from 'react';
 
 import { SelectableValue } from '@grafana/data';
 import {
@@ -25,6 +25,7 @@ import GForm from 'components/GForm/GForm';
 import { FormItem } from 'components/GForm/GForm.types';
 import IntegrationLogo from 'components/IntegrationLogo/IntegrationLogo';
 import Text from 'components/Text/Text';
+import Labels from 'containers/Labels/Labels';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import {
   AlertReceiveChannel,
@@ -52,6 +53,8 @@ interface IntegrationFormProps {
 const IntegrationForm = observer((props: IntegrationFormProps) => {
   const store = useStore();
   const history = useHistory();
+
+  const labelsRef = useRef(null);
 
   const { id, onHide, onSubmit, isTableView = true } = props;
   const {
@@ -128,6 +131,10 @@ const IntegrationForm = observer((props: IntegrationFormProps) => {
             <VerticalGroup>
               <GForm form={form} data={data} onSubmit={handleSubmit} {...extraGFormProps} />
 
+              <div className={cx('labels')}>
+                <Labels ref={labelsRef} />
+              </div>
+
               {isTableView && <HowTheIntegrationWorks selectedOption={selectedOption} />}
 
               <HorizontalGroup justify="flex-end">
@@ -162,6 +169,10 @@ const IntegrationForm = observer((props: IntegrationFormProps) => {
 
   async function handleSubmit(data): Promise<void> {
     const { alert_manager, contact_point, is_existing: isExisting } = data;
+
+    //const labels = labelsRef.current?.getValue();
+    //console.log(labels);
+    //labels.map((label) => alertReceiveChannelStore.addLabel(id, label));
 
     const matchingAlertManager = allContactPoints.find((cp) => cp.uid === alert_manager);
     const hasContactPointInput = alert_manager && contact_point;
