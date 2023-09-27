@@ -95,6 +95,17 @@ class UserManager(models.Manager["User"]):
                     permissions=user["permissions"],
                 )
                 users_to_create.append(user)
+
+        with transaction.atomic():
+            organization.users.bulk_create(users_to_create, batch_size=5000)
+            # Retrieve primary keys for the newly created users
+            #
+            # If the model’s primary key is an AutoField, the primary key attribute can only be retrieved
+            # on certain databases (currently PostgreSQL, MariaDB 10.5+, and SQLite 3.35+).
+            # On other databases, it will not be set.
+            # https://docs.djangoproject.com/en/4.1/ref/models/querysets/#django.db.models.query.QuerySet.bulk_create
+            created_users = organization.users.exclude(pk__in=existing_user_ids)
+            for user in created_users:
                 policies_to_create.append(
                     UserNotificationPolicy(
                         user=user,
@@ -112,17 +123,6 @@ class UserManager(models.Manager["User"]):
                         important=True,
                     ),
                 )
-        with transaction.atomic():
-            organization.users.bulk_create(users_to_create, batch_size=5000)
-            # Retrieve primary keys for the newly created users
-            #
-            # If the model’s primary key is an AutoField, the primary key attribute can only be retrieved
-            # on certain databases (currently PostgreSQL, MariaDB 10.5+, and SQLite 3.35+).
-            # On other databases, it will not be set.
-            # https://docs.djangoproject.com/en/4.1/ref/models/querysets/#django.db.models.query.QuerySet.bulk_create
-            organization.users.exclude(pk__in=existing_user_ids)
-            # for policy in policies_to_create:
-            #     policy.user_id = policy.user.pk
             UserNotificationPolicy.objects.bulk_create(policies_to_create, batch_size=5000)
 
         # delete excess users
