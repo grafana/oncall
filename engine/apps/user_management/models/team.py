@@ -80,17 +80,16 @@ class TeamManager(models.Manager["Team"]):
             ).exclude(team__in=existing_team_ids)
             for integration in created_direct_paging_integrations:
                 channel_filter = ChannelFilter(
-                    alert_receive_channel=alert_receive_channel,
+                    alert_receive_channel=integration,
                     filtering_term=None,
                     is_default=True,
                     order=0,
                 )
                 default_channel_filters_to_create.append(channel_filter)
             ChannelFilter.objects.bulk_create(default_channel_filters_to_create, batch_size=5000)
-
-        # Add direct paging integrations to metrics cache
-        for integration in direct_paging_integrations_to_create:
-            metrics_add_integration_to_cache(integration)
+            # Add direct paging integrations to metrics cache
+            for integration in direct_paging_integrations_to_create:
+                metrics_add_integration_to_cache(integration)
 
         # delete excess teams
         team_ids_to_delete = existing_team_ids - grafana_teams.keys()
