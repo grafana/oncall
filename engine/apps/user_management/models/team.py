@@ -61,10 +61,8 @@ class TeamManager(models.Manager["Team"]):
             # on certain databases (currently PostgreSQL, MariaDB 10.5+, and SQLite 3.35+).
             # On other databases, it will not be set.
             # https://docs.djangoproject.com/en/4.1/ref/models/querysets/#django.db.models.query.QuerySet.bulk_create
-            created_teams = organization.teams.exclude(pk__in=existing_team_ids)
-
+            created_teams = organization.teams.exclude(team_id__in=existing_team_ids)
             direct_paging_integrations_to_create = []
-            default_channel_filters_to_create = []
             for team in created_teams:
                 alert_receive_channel = AlertReceiveChannel(
                     organization=organization,
@@ -77,7 +75,8 @@ class TeamManager(models.Manager["Team"]):
             created_direct_paging_integrations = AlertReceiveChannel.objects.filter(
                 organization=organization,
                 integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING,
-            ).exclude(team__in=existing_team_ids)
+            ).exclude(team__team_id__in=existing_team_ids)
+            default_channel_filters_to_create = []
             for integration in created_direct_paging_integrations:
                 channel_filter = ChannelFilter(
                     alert_receive_channel=integration,
@@ -87,6 +86,7 @@ class TeamManager(models.Manager["Team"]):
                 )
                 default_channel_filters_to_create.append(channel_filter)
             ChannelFilter.objects.bulk_create(default_channel_filters_to_create, batch_size=5000)
+
             # Add direct paging integrations to metrics cache
             for integration in direct_paging_integrations_to_create:
                 metrics_add_integration_to_cache(integration)

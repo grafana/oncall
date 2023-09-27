@@ -104,7 +104,7 @@ class UserManager(models.Manager["User"]):
             # on certain databases (currently PostgreSQL, MariaDB 10.5+, and SQLite 3.35+).
             # On other databases, it will not be set.
             # https://docs.djangoproject.com/en/4.1/ref/models/querysets/#django.db.models.query.QuerySet.bulk_create
-            created_users = organization.users.exclude(pk__in=existing_user_ids)
+            created_users = organization.users.exclude(user_id__in=existing_user_ids)
 
             policies_to_create = ()
             for user in created_users:
@@ -409,6 +409,8 @@ class User(models.Model):
     @property
     def default_notification_policies_defaults(self):
         from apps.base.models import UserNotificationPolicy
+
+        print(self)
 
         return (
             UserNotificationPolicy(
