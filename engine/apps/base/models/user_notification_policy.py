@@ -71,15 +71,7 @@ class UserNotificationPolicyQuerySet(models.QuerySet):
         if user.notification_policies.filter(important=False).exists():
             return
 
-        model = self.model
-        policies_to_create = (
-            model(
-                user=user,
-                step=model.Step.NOTIFY,
-                notify_by=settings.EMAIL_BACKEND_INTERNAL_ID,
-                order=0,
-            ),
-        )
+        policies_to_create = user.default_notification_policies_defaults
 
         try:
             super().bulk_create(policies_to_create)
@@ -90,16 +82,7 @@ class UserNotificationPolicyQuerySet(models.QuerySet):
         if user.notification_policies.filter(important=True).exists():
             return
 
-        model = self.model
-        policies_to_create = (
-            model(
-                user=user,
-                step=model.Step.NOTIFY,
-                notify_by=settings.EMAIL_BACKEND_INTERNAL_ID,
-                important=True,
-                order=0,
-            ),
-        )
+        policies_to_create = user.important_notification_policies_defaults
 
         try:
             super().bulk_create(policies_to_create)

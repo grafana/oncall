@@ -106,25 +106,10 @@ class UserManager(models.Manager["User"]):
             # https://docs.djangoproject.com/en/4.1/ref/models/querysets/#django.db.models.query.QuerySet.bulk_create
             created_users = organization.users.exclude(pk__in=existing_user_ids)
 
-            policies_to_create = []
+            policies_to_create = ()
             for user in created_users:
-                policies_to_create.append(
-                    UserNotificationPolicy(
-                        user=user,
-                        step=UserNotificationPolicy.Step.NOTIFY,
-                        notify_by=settings.EMAIL_BACKEND_INTERNAL_ID,
-                        order=0,
-                    ),
-                )
-                policies_to_create.append(
-                    UserNotificationPolicy(
-                        user=user,
-                        step=UserNotificationPolicy.Step.NOTIFY,
-                        notify_by=settings.EMAIL_BACKEND_INTERNAL_ID,
-                        order=0,
-                        important=True,
-                    ),
-                )
+                policies_to_create = policies_to_create + user.default_notification_policies_defaults
+                policies_to_create = policies_to_create + user.important_notification_policies_defaults
             UserNotificationPolicy.objects.bulk_create(policies_to_create, batch_size=5000)
 
         # delete excess users
@@ -420,6 +405,29 @@ class User(models.Model):
                 self.notification_policies.create_default_policies_for_user(self)
         notification_policies = self.notification_policies.filter(important=important)
         return notification_policies
+
+    @property
+    def default_notification_policies_defaults(self):
+        return (
+            UserNotificationPolicy(
+                user=self,
+                step=UserNotificationPolicy.Step.NOTIFY,
+                notify_by=settings.EMAIL_BACKEND_INTERNAL_ID,
+                order=0,
+            ),
+        )
+
+    @property
+    def important_notification_policies_defaults(self):
+        return (
+            UserNotificationPolicy(
+                user=self,
+                step=UserNotificationPolicy.Step.NOTIFY,
+                notify_by=settings.EMAIL_BACKEND_INTERNAL_ID,
+                important=True,
+                order=0,
+            ),
+        )
 
 
 # TODO: check whether this signal can be moved to save method of the model
