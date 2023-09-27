@@ -22,6 +22,7 @@ import { FormItem, FormItemType } from 'components/GForm/GForm.types';
 import IntegrationLogo from 'components/IntegrationLogo/IntegrationLogo';
 import { logoCoors } from 'components/IntegrationLogo/IntegrationLogo.config';
 import Text from 'components/Text/Text';
+import { webhookPresetIcons } from 'containers/OutgoingWebhookForm/WebhookPresetIcons.config';
 import OutgoingWebhookStatus from 'containers/OutgoingWebhookStatus/OutgoingWebhookStatus';
 import WebhooksTemplateEditor from 'containers/WebhooksTemplateEditor/WebhooksTemplateEditor';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
@@ -33,7 +34,6 @@ import { UserActions } from 'utils/authorization';
 import { PLUGIN_ROOT } from 'utils/consts';
 
 import { createForm } from './OutgoingWebhookForm.config';
-import { webhookPresetIcons } from './WebhookPresetIcons.config';
 
 import styles from 'containers/OutgoingWebhookForm/OutgoingWebhookForm.module.css';
 
@@ -406,14 +406,12 @@ const WebhookPresetBlocks: React.FC<{
     <div className={cx('cards')} data-testid="create-outgoing-webhook-modal">
       {presets.length ? (
         presets.map((preset) => {
-          let tmpIcons = webhookPresetIcons;
           let logo = <IntegrationLogo integration={{ value: 'webhook', display_name: preset.name }} scale={0.2} />;
           if (preset.logo in logoCoors) {
             logo = <IntegrationLogo integration={{ value: preset.logo, display_name: preset.name }} scale={0.2} />;
-          } else if (preset.logo in tmpIcons) {
-            logo = tmpIcons[preset.logo]();
+          } else if (preset.logo in webhookPresetIcons) {
+            logo = webhookPresetIcons[preset.logo]();
           }
-
           return (
             <Block bordered hover shadowed onClick={() => onBlockClick(preset)} key={preset.id} className={cx('card')}>
               <div className={cx('card-bg')}>{logo}</div>
