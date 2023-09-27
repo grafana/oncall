@@ -7,7 +7,7 @@ from urllib.parse import urljoin
 import pytz
 from django.conf import settings
 from django.core.validators import MinLengthValidator
-from django.db import models, transaction
+from django.db import models
 from django.db.models import Q
 from django.db.models.signals import post_save
 from django.dispatch import receiver
@@ -112,11 +112,11 @@ class UserManager(models.Manager["User"]):
                         important=True,
                     ),
                 )
-        with transaction.atomic():
-            organization.users.bulk_create(users_to_create, batch_size=5000)
-            for policy in policies_to_create:
-                policy.user_id = policy.user.pk
-            UserNotificationPolicy.objects.bulk_create(policies_to_create, batch_size=5000)
+
+        organization.users.bulk_create(users_to_create, batch_size=5000)
+        for policy in policies_to_create:
+            policy.user_id = policy.user.pk
+        UserNotificationPolicy.objects.bulk_create(policies_to_create, batch_size=5000)
 
         # delete excess users
         user_ids_to_delete = existing_user_ids - grafana_users.keys()

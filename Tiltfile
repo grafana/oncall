@@ -31,17 +31,17 @@ def plugin_json():
 
 allow_k8s_contexts(["kind-kind"])
 
-local_resource("download-cache", cmd="docker pull grafana/oncall")
+local_resource("download-cache", cmd="docker pull grafana/oncall:latest; docker tag grafana/oncall localhost:63628/grafana/oncall:latest")
 
 # Build the image including frontend folder for pytest
 docker_build_sub(
     "localhost:63628/oncall/engine:dev",
     context="./engine",
-    cache_from="grafana/oncall",
+    cache_from="localhost:63628/grafana/oncall:latest",
     # only=["./engine", "./grafana-plugin"],
     child_context=".",
     target="dev",
-    extra_cmds=["ADD ./grafana-plugin/src/plugin.json /etc/grafana-plugin/src"],
+    extra_cmds=["ADD ./grafana-plugin/src/plugin.json /etc/grafana-plugin/src/plugin.json"],
     live_update=[
         sync("./engine/", "/etc/app"),
         sync("./grafana-plugin/", "/etc/grafana-plugin"),
@@ -49,7 +49,6 @@ docker_build_sub(
             "cd /etc/app && pip install -r requirements.txt",
             trigger="./engine/requirements.txt",
         ),
-        run("DJANGO_SETTINGS_MODULE=settings.dev"),
     ],
 )
 
