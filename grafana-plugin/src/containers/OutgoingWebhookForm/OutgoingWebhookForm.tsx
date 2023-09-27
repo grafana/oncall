@@ -1,24 +1,39 @@
-import React, { useCallback, useState } from 'react';
+import React, { ChangeEvent, useCallback, useState } from 'react';
 
-import { Button, ConfirmModal, ConfirmModalProps, Drawer, HorizontalGroup, Tab, TabsBar } from '@grafana/ui';
+import {
+  Button,
+  ConfirmModal,
+  ConfirmModalProps,
+  Drawer,
+  EmptySearchResult,
+  HorizontalGroup,
+  Input,
+  Tab,
+  TabsBar,
+  VerticalGroup,
+} from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 import { useHistory } from 'react-router-dom';
 
+import Block from 'components/GBlock/Block';
 import GForm from 'components/GForm/GForm';
 import { FormItem, FormItemType } from 'components/GForm/GForm.types';
+import IntegrationLogo from 'components/IntegrationLogo/IntegrationLogo';
+import { logoCoors } from 'components/IntegrationLogo/IntegrationLogo.config';
 import Text from 'components/Text/Text';
+import { webhookPresetIcons } from 'containers/OutgoingWebhookForm/WebhookPresetIcons.config';
 import OutgoingWebhookStatus from 'containers/OutgoingWebhookStatus/OutgoingWebhookStatus';
 import WebhooksTemplateEditor from 'containers/WebhooksTemplateEditor/WebhooksTemplateEditor';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
-import { OutgoingWebhook } from 'models/outgoing_webhook/outgoing_webhook.types';
+import { OutgoingWebhook, OutgoingWebhookPreset } from 'models/outgoing_webhook/outgoing_webhook.types';
 import { WebhookFormActionType } from 'pages/outgoing_webhooks/OutgoingWebhooks.types';
 import { useStore } from 'state/useStore';
 import { KeyValuePair } from 'utils';
 import { UserActions } from 'utils/authorization';
 import { PLUGIN_ROOT } from 'utils/consts';
 
-import { form } from './OutgoingWebhookForm.config';
+import { createForm } from './OutgoingWebhookForm.config';
 
 import styles from 'containers/OutgoingWebhookForm/OutgoingWebhookForm.module.css';
 
@@ -45,10 +60,15 @@ const OutgoingWebhookForm = observer((props: OutgoingWebhookFormProps) => {
   const [activeTab, setActiveTab] = useState<string>(
     action === WebhookFormActionType.EDIT_SETTINGS ? WebhookTabs.Settings.key : WebhookTabs.LastRun.key
   );
+  const [showPresetsListDrawer, setShowPresetsListDrawer] = useState(id === 'new');
+  const [showCreateWebhookDrawer, setShowCreateWebhookDrawer] = useState(false);
+  const [selectedPreset, setSelectedPreset] = useState<OutgoingWebhookPreset>(undefined);
+  const [filterValue, setFilterValue] = useState('');
 
   const { outgoingWebhookStore } = useStore();
   const isNew = action === WebhookFormActionType.NEW;
   const isNewOrCopy = isNew || action === WebhookFormActionType.COPY;
+  const form = createForm(outgoingWebhookStore.outgoingWebhookPresets);
 
   const handleSubmit = useCallback(
     (data: Partial<OutgoingWebhook>) => {
@@ -104,10 +124,17 @@ const OutgoingWebhookForm = observer((props: OutgoingWebhookFormProps) => {
     | {
         is_webhook_enabled: boolean;
         is_legacy: boolean;
+        preset: string;
       };
 
   if (isNew) {
-    data = { is_webhook_enabled: true, is_legacy: false };
+    data = {
+      is_webhook_enabled: true,
+      is_legacy: false,
+      preset: selectedPreset?.id,
+      trigger_type: null,
+      http_method: 'POST',
+    };
   } else if (isNewOrCopy) {
     data = { ...outgoingWebhookStore.items[id], is_legacy: false, name: '' };
   } else {
@@ -123,27 +150,69 @@ const OutgoingWebhookForm = observer((props: OutgoingWebhookFormProps) => {
   }
 
   const formElement = <GForm form={form} data={data} onSubmit={handleSubmit} onFieldRender={enrchField} />;
+  const createWebhookParameters = (
+    <>
+      <Drawer scrollableContent title={'New Outgoing Webhook'} onClose={onHide} closeOnMaskClick={false}>
+        <div className="webhooks__drawerContent">{renderWebhookForm()}</div>
+      </Drawer>
+      {templateToEdit && (
+        <WebhooksTemplateEditor
+          id={id}
+          handleSubmit={(value) => {
+            onFormChangeFn?.fn(value);
+            setTemplateToEdit(undefined);
+          }}
+          onHide={() => setTemplateToEdit(undefined)}
+          template={templateToEdit}
+        />
+      )}
+    </>
+  );
 
-  if (action === WebhookFormActionType.NEW || action === WebhookFormActionType.COPY) {
-    // show just the creation form, not the tabs
+  const presets = outgoingWebhookStore.outgoingWebhookPresets.filter((preset: OutgoingWebhookPreset) =>
+    preset.name.toLowerCase().includes(filterValue.toLowerCase())
+  );
+
+  if (action === WebhookFormActionType.NEW) {
     return (
       <>
-        <Drawer scrollableContent title={'Create Outgoing Webhook'} onClose={onHide} closeOnMaskClick={false}>
-          <div className="webhooks__drawerContent">{renderWebhookForm()}</div>
-        </Drawer>
-        {templateToEdit && (
-          <WebhooksTemplateEditor
-            id={id}
-            handleSubmit={(value) => {
-              onFormChangeFn?.fn(value);
-              setTemplateToEdit(undefined);
-            }}
-            onHide={() => setTemplateToEdit(undefined)}
-            template={templateToEdit}
-          />
+        {showPresetsListDrawer && (
+          <Drawer
+            scrollableContent
+            title="New Outgoing Webhook"
+            onClose={onHide}
+            closeOnMaskClick={false}
+            width="640px"
+          >
+            <div className={cx('content')}>
+              <VerticalGroup>
+                <Text type="secondary">
+                  Outgoing webhooks can send alert data to other systems. They can be triggered by various conditions
+                  and can use templates to transform data to fit the recipient system. Presets listed below provide a
+                  starting point to customize these connections.
+                </Text>
+
+                {presets.length > 8 && (
+                  <div className={cx('search-integration')}>
+                    <Input
+                      autoFocus
+                      value={filterValue}
+                      placeholder="Search webhook presets ..."
+                      onChange={(e: ChangeEvent<HTMLInputElement>) => setFilterValue(e.currentTarget.value)}
+                    />
+                  </div>
+                )}
+
+                <WebhookPresetBlocks presets={presets} onBlockClick={onBlockClick} />
+              </VerticalGroup>
+            </div>
+          </Drawer>
         )}
+        {(showCreateWebhookDrawer || !showPresetsListDrawer) && createWebhookParameters}
       </>
     );
+  } else if (action === WebhookFormActionType.COPY) {
+    return createWebhookParameters;
   }
 
   return (
@@ -200,6 +269,12 @@ const OutgoingWebhookForm = observer((props: OutgoingWebhookFormProps) => {
     </>
   );
 
+  function onBlockClick(preset: OutgoingWebhookPreset) {
+    setSelectedPreset(preset);
+    setShowCreateWebhookDrawer(true);
+    setShowPresetsListDrawer(false);
+  }
+
   function renderWebhookForm() {
     return (
       <>
@@ -207,9 +282,21 @@ const OutgoingWebhookForm = observer((props: OutgoingWebhookFormProps) => {
           <GForm form={form} data={data} onSubmit={handleSubmit} onFieldRender={enrchField} />
           <div className={cx('buttons')}>
             <HorizontalGroup justify={'flex-end'}>
-              <Button variant="secondary" onClick={onHide}>
-                Cancel
-              </Button>
+              {id === 'new' ? (
+                <Button
+                  variant="secondary"
+                  onClick={() => {
+                    setShowCreateWebhookDrawer(false);
+                    setShowPresetsListDrawer(true);
+                  }}
+                >
+                  Back
+                </Button>
+              ) : (
+                <Button variant="secondary" onClick={onHide}>
+                  Cancel
+                </Button>
+              )}
               <WithPermissionControlTooltip userAction={UserActions.OutgoingWebhooksWrite}>
                 <Button form={form.name} type="submit" disabled={data.is_legacy}>
                   {isNewOrCopy ? 'Create' : 'Update'} Webhook
@@ -232,6 +319,7 @@ interface WebhookTabsProps {
     | {
         is_webhook_enabled: boolean;
         is_legacy: boolean;
+        preset: string;
       };
   onHide: () => void;
   onUpdate: () => void;
@@ -251,7 +339,8 @@ const WebhookTabsContent: React.FC<WebhookTabsProps> = ({
   formElement,
 }) => {
   const [confirmationModal, setConfirmationModal] = useState<ConfirmModalProps>(undefined);
-
+  const { outgoingWebhookStore } = useStore();
+  const form = createForm(outgoingWebhookStore.outgoingWebhookPresets);
   return (
     <div className={cx('tabs__content')}>
       {confirmationModal && (
@@ -305,6 +394,45 @@ const WebhookTabsContent: React.FC<WebhookTabsProps> = ({
         </>
       )}
       {activeTab === WebhookTabs.LastRun.key && <OutgoingWebhookStatus id={id} onUpdate={onUpdate} />}
+    </div>
+  );
+};
+
+const WebhookPresetBlocks: React.FC<{
+  presets: OutgoingWebhookPreset[];
+  onBlockClick: (preset: OutgoingWebhookPreset) => void;
+}> = ({ presets, onBlockClick }) => {
+  return (
+    <div className={cx('cards')} data-testid="create-outgoing-webhook-modal">
+      {presets.length ? (
+        presets.map((preset) => {
+          let logo = <IntegrationLogo integration={{ value: 'webhook', display_name: preset.name }} scale={0.2} />;
+          if (preset.logo in logoCoors) {
+            logo = <IntegrationLogo integration={{ value: preset.logo, display_name: preset.name }} scale={0.2} />;
+          } else if (preset.logo in webhookPresetIcons) {
+            logo = webhookPresetIcons[preset.logo]();
+          }
+          return (
+            <Block bordered hover shadowed onClick={() => onBlockClick(preset)} key={preset.id} className={cx('card')}>
+              <div className={cx('card-bg')}>{logo}</div>
+              <div className={cx('title')}>
+                <VerticalGroup spacing="xs">
+                  <HorizontalGroup>
+                    <Text strong data-testid="webhook-preset-display-name">
+                      {preset.name}
+                    </Text>
+                  </HorizontalGroup>
+                  <Text type="secondary" size="small">
+                    {preset.description}
+                  </Text>
+                </VerticalGroup>
+              </div>
+            </Block>
+          );
+        })
+      ) : (
+        <EmptySearchResult>Could not find anything matching your query</EmptySearchResult>
+      )}
     </div>
   );
 };

@@ -38,6 +38,7 @@ import Users from 'pages/users/Users';
 import { rootStore } from 'state';
 import { useStore } from 'state/useStore';
 import { isUserActionAllowed } from 'utils/authorization';
+import { DEFAULT_PAGE } from 'utils/consts';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -72,6 +73,8 @@ export const Root = observer((props: AppRootProps) => {
 
   const [basicDataLoaded, setBasicDataLoaded] = useState(false);
 
+  const [pageTitle, setPageTitle] = useState('');
+
   useEffect(() => {
     runQueuedUpdateData(0);
   }, []);
@@ -103,8 +106,12 @@ export const Root = observer((props: AppRootProps) => {
   const userHasAccess = pagePermissionAction ? isUserActionAllowed(pagePermissionAction) : true;
   const query = getQueryParams();
 
+  const getPageNav = () => {
+    return (pages[page] || pages[DEFAULT_PAGE]).getPageNav(pageTitle);
+  };
+
   return (
-    <DefaultPageLayout {...props} page={page}>
+    <DefaultPageLayout {...props} page={page} pageNav={getPageNav()}>
       {!isTopNavbar() && (
         <>
           <Header />
@@ -128,7 +135,7 @@ export const Root = observer((props: AppRootProps) => {
                 <Incidents query={query} />
               </Route>
               <Route path={getRoutesForPage('alert-group')} exact>
-                <Incident query={query} />
+                <Incident query={query} pageTitle={pageTitle} setPageTitle={setPageTitle} />
               </Route>
               <Route path={getRoutesForPage('users')} exact>
                 <Users query={query} />
@@ -146,7 +153,7 @@ export const Root = observer((props: AppRootProps) => {
                 <Schedules query={query} />
               </Route>
               <Route path={getRoutesForPage('schedule')} exact>
-                <Schedule query={query} />
+                <Schedule query={query} pageTitle={pageTitle} setPageTitle={setPageTitle} />
               </Route>
               <Route path={getRoutesForPage('outgoing_webhooks')} exact>
                 <OutgoingWebhooks query={query} />
