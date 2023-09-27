@@ -13,6 +13,7 @@ from apps.alerts.models import AlertReceiveChannel
 from apps.alerts.models.channel_filter import ChannelFilter
 from apps.base.messaging import get_messaging_backends
 from apps.integrations.legacy_prefix import has_legacy_prefix
+from apps.labels.models import AssociatedLabel
 from common.api_helpers.custom_fields import TeamPrimaryKeyRelatedField
 from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.mixins import APPEARANCE_TEMPLATE_NAMES, EagerLoadingMixin
@@ -21,6 +22,7 @@ from common.jinja_templater import apply_jinja_template, jinja_template_env
 from common.jinja_templater.apply_jinja_template import JinjaTemplateWarning
 
 from .integration_heartbeat import IntegrationHeartBeatSerializer
+from .labels import LabelSerializer
 
 
 def valid_jinja_template_for_serializer_method_field(template):
@@ -54,11 +56,12 @@ class AlertReceiveChannelSerializer(EagerLoadingMixin, serializers.ModelSerializ
     connected_escalations_chains_count = serializers.SerializerMethodField()
     inbound_email = serializers.CharField(required=False)
     is_legacy = serializers.SerializerMethodField()
+    labels = LabelSerializer(many=True, required=False)  # todo: test
 
     # integration heartbeat is in PREFETCH_RELATED not by mistake.
     # With using of select_related ORM builds strange join
     # which leads to incorrect heartbeat-alert_receive_channel binding in result
-    PREFETCH_RELATED = ["channel_filters", "integration_heartbeat"]
+    PREFETCH_RELATED = ["channel_filters", "integration_heartbeat", "labels"]
     SELECT_RELATED = ["organization", "author"]
 
     class Meta:
@@ -93,6 +96,7 @@ class AlertReceiveChannelSerializer(EagerLoadingMixin, serializers.ModelSerializ
             "is_based_on_alertmanager",
             "inbound_email",
             "is_legacy",
+            "labels",
         ]
         read_only_fields = [
             "created_at",
@@ -125,6 +129,7 @@ class AlertReceiveChannelSerializer(EagerLoadingMixin, serializers.ModelSerializ
             if _integration.slug == integration:
                 is_able_to_autoresolve = _integration.is_able_to_autoresolve
 
+        labels = validated_data.pop("labels", None)
         try:
             instance = AlertReceiveChannel.create(
                 **validated_data,
@@ -134,12 +139,16 @@ class AlertReceiveChannelSerializer(EagerLoadingMixin, serializers.ModelSerializ
             )
         except AlertReceiveChannel.DuplicateDirectPagingError:
             raise BadRequest(detail=AlertReceiveChannel.DuplicateDirectPagingError.DETAIL)
-
+        if labels:
+            AssociatedLabel.associate(labels, instance, organization)
         return instance
 
-    def update(self, *args, **kwargs):
+    def update(self, instance, validated_data):
+        labels = validated_data.pop("labels", None)
+        organization = self.context["request"].auth.organization
+        AssociatedLabel.update_association(labels, instance, organization)
         try:
-            return super().update(*args, **kwargs)
+            return super().update(instance, validated_data)
         except AlertReceiveChannel.DuplicateDirectPagingError:
             raise BadRequest(detail=AlertReceiveChannel.DuplicateDirectPagingError.DETAIL)
 

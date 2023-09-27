@@ -4,8 +4,7 @@ from apps.labels.models import LabelKeyCache, LabelValueCache
 
 
 class LabelKeySerializer(serializers.ModelSerializer):
-    id = serializers.CharField(source="key_id")
-    repr = serializers.CharField(source="key_repr")
+    id = serializers.CharField()
 
     class Meta:
         model = LabelKeyCache
@@ -16,8 +15,7 @@ class LabelKeySerializer(serializers.ModelSerializer):
 
 
 class LabelValueSerializer(serializers.ModelSerializer):
-    id = serializers.CharField(source="value_id")
-    repr = serializers.CharField(source="value_repr")
+    id = serializers.CharField()
 
     class Meta:
         model = LabelValueCache

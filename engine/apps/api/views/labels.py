@@ -93,7 +93,7 @@ class LabelsAssociatingMixin:  # use for labelable objects views (ex. AlertRecei
     def labels(self, request, pk):  # todo
         self.check_if_label_feature_enabled()
         obj = self.get_object()
-        labels = obj.labels.all().select_related("key_cache", "value_cache")
+        labels = obj.labels.all().select_related("key", "value")
         result = [
             {
                 "key": {"id": label.key_id, "repr": label.key.key_repr},
