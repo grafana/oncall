@@ -40,20 +40,32 @@ class TeamManager(models.Manager["Team"]):
         grafana_teams = {team["id"]: team for team in api_teams}
         existing_team_ids: typing.Set[int] = set(organization.teams.all().values_list("team_id", flat=True))
 
-        # create new teams, direct paging integration and default route
-        teams_to_create = []
-        direct_paging_integrations_to_create = []
-        default_channel_filters_to_create = []
-        for team in grafana_teams.values():
-            if team["id"] not in existing_team_ids:
-                team = Team(
-                    organization_id=organization.pk,
-                    team_id=team["id"],
-                    name=team["name"],
-                    email=team["email"],
-                    avatar_url=team["avatarUrl"],
-                )
-                teams_to_create.append(team)
+        # create missing teams
+        teams_to_create = tuple(
+            Team(
+                organization_id=organization.pk,
+                team_id=team["id"],
+                name=team["name"],
+                email=team["email"],
+                avatar_url=team["avatarUrl"],
+            )
+            for team in grafana_teams.values()
+            if team["id"] not in existing_team_ids
+        )
+
+        with transaction.atomic():
+            organization.teams.bulk_create(teams_to_create, batch_size=5000)
+            # Retrieve primary keys for the newly created users
+            #
+            # If the model’s primary key is an AutoField, the primary key attribute can only be retrieved
+            # on certain databases (currently PostgreSQL, MariaDB 10.5+, and SQLite 3.35+).
+            # On other databases, it will not be set.
+            # https://docs.djangoproject.com/en/4.1/ref/models/querysets/#django.db.models.query.QuerySet.bulk_create
+            created_teams = organization.teams.exclude(pk__in=existing_team_ids)
+
+            direct_paging_integrations_to_create = []
+            default_channel_filters_to_create = []
+            for team in created_teams:
                 alert_receive_channel = AlertReceiveChannel(
                     organization=organization,
                     team=team,
@@ -61,6 +73,12 @@ class TeamManager(models.Manager["Team"]):
                     verbal_name=f"Direct paging ({team.name if team else 'No'} team)",
                 )
                 direct_paging_integrations_to_create.append(alert_receive_channel)
+            AlertReceiveChannel.objects.bulk_create(direct_paging_integrations_to_create, batch_size=5000)
+            created_direct_paging_integrations = AlertReceiveChannel.objects.filter(
+                organization=organization,
+                integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING,
+            ).exclude(team__in=existing_team_ids)
+            for integration in created_direct_paging_integrations:
                 channel_filter = ChannelFilter(
                     alert_receive_channel=alert_receive_channel,
                     filtering_term=None,
@@ -68,9 +86,6 @@ class TeamManager(models.Manager["Team"]):
                     order=0,
                 )
                 default_channel_filters_to_create.append(channel_filter)
-        with transaction.atomic():
-            organization.teams.bulk_create(teams_to_create, batch_size=5000)
-            AlertReceiveChannel.objects.bulk_create(direct_paging_integrations_to_create, batch_size=5000)
             ChannelFilter.objects.bulk_create(default_channel_filters_to_create, batch_size=5000)
 
         # Add direct paging integrations to metrics cache

@@ -80,21 +80,21 @@ class UserManager(models.Manager["User"]):
         grafana_users = {user["userId"]: user for user in api_users}
         existing_user_ids = set(organization.users.all().values_list("user_id", flat=True))
 
-        users_to_create = []
-        policies_to_create = []
-        for user in grafana_users.values():
-            if user["userId"] not in existing_user_ids:
-                user = User(
-                    organization_id=organization.pk,
-                    user_id=user["userId"],
-                    email=user["email"],
-                    name=user["name"],
-                    username=user["login"],
-                    role=LegacyAccessControlRole[user["role"].upper()],
-                    avatar_url=user["avatarUrl"],
-                    permissions=user["permissions"],
-                )
-                users_to_create.append(user)
+        # create missing users
+        users_to_create = tuple(
+            User(
+                organization_id=organization.pk,
+                user_id=user["userId"],
+                email=user["email"],
+                name=user["name"],
+                username=user["login"],
+                role=LegacyAccessControlRole[user["role"].upper()],
+                avatar_url=user["avatarUrl"],
+                permissions=user["permissions"],
+            )
+            for user in grafana_users.values()
+            if user["userId"] not in existing_user_ids
+        )
 
         with transaction.atomic():
             organization.users.bulk_create(users_to_create, batch_size=5000)
@@ -105,6 +105,8 @@ class UserManager(models.Manager["User"]):
             # On other databases, it will not be set.
             # https://docs.djangoproject.com/en/4.1/ref/models/querysets/#django.db.models.query.QuerySet.bulk_create
             created_users = organization.users.exclude(pk__in=existing_user_ids)
+
+            policies_to_create = []
             for user in created_users:
                 policies_to_create.append(
                     UserNotificationPolicy(
