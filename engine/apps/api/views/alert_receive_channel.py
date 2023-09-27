@@ -279,10 +279,9 @@ class AlertReceiveChannelView(
                 "href": api_root + "alert_receive_channels/integration_options/",
             },
             {
-                "name": "labels",
-                "display_name": "labels",
-                "type": "options",
-                "href": api_root + "labels/",  # todo
+                "name": "label",
+                "display_name": "Label",
+                "type": "labels",
             },
         ]
 
