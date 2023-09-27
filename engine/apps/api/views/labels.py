@@ -10,7 +10,7 @@ from apps.auth_token.auth import PluginAuthentication
 from apps.labels.client import LabelsAPIClient
 from apps.labels.models import AssociatedLabel
 
-# from apps.labels.tasks import update_labels_cache
+# from apps.labels.tasks import update_labels_cache_for_key
 from apps.labels.utils import is_labels_enabled
 from common.api_helpers.exceptions import BadRequest
 
@@ -27,48 +27,56 @@ class LabelsCRUDView(ViewSet):
 
     def get_keys(self, request):  # todo
         organization = self.request.auth.organization
-        result, _ = LabelsAPIClient(organization.grafana_url, organization.api_token).get_keys()
-        return Response(result)
+        result, response_info = LabelsAPIClient(organization.grafana_url, organization.api_token).get_keys()
+        return Response(result, status=response_info["status_code"])
 
     def get_key(self, request, key_id):  # todo
         organization = self.request.auth.organization
-        result, _ = LabelsAPIClient(organization.grafana_url, organization.api_token).get_values(key_id)
-        # update_labels_cache.apply_async((organization, result,),)
-        return Response(result)
+        result, response_info = LabelsAPIClient(organization.grafana_url, organization.api_token).get_values(key_id)
+        # update_labels_cache_for_key.apply_async((organization, result,),)
+        return Response(result, status=response_info["status_code"])
 
     def rename_key(self, request, key_id):
         organization = self.request.auth.organization
         label_data = self.request.data
         if not label_data:
             raise BadRequest()
-        result, _ = LabelsAPIClient(organization.grafana_url, organization.api_token).rename_key(key_id, label_data)
-        return Response(result)
+        result, response_info = LabelsAPIClient(organization.grafana_url, organization.api_token).rename_key(
+            key_id, label_data
+        )
+        # todo: if response 200 update cache
+        return Response(result, status=response_info["status_code"])
 
     def create_label(self, request):
         organization = self.request.auth.organization
         label_data = self.request.data
         if not label_data:
             raise BadRequest()
-        result, _ = LabelsAPIClient(organization.grafana_url, organization.api_token).create_label(label_data)
-        return Response()
+        result, response_info = LabelsAPIClient(organization.grafana_url, organization.api_token).create_label(
+            label_data
+        )
+        return Response(result, status=response_info["status_code"])
 
     def add_value(self, request, key_id):
         organization = self.request.auth.organization
         label_data = self.request.data
         if not label_data:
             raise BadRequest()
-        result, _ = LabelsAPIClient(organization.grafana_url, organization.api_token).add_value(key_id, label_data)
-        return Response()
+        result, response_info = LabelsAPIClient(organization.grafana_url, organization.api_token).add_value(
+            key_id, label_data
+        )
+        return Response(result, status=response_info["status_code"])
 
     def rename_value(self, request, key_id, value_id):
         organization = self.request.auth.organization
         label_data = self.request.data
         if not label_data:
             raise BadRequest()
-        result, _ = LabelsAPIClient(organization.grafana_url, organization.api_token).rename_value(
+        result, response_info = LabelsAPIClient(organization.grafana_url, organization.api_token).rename_value(
             key_id, value_id, label_data
         )
-        return Response()
+        # todo: if response 200 update cache
+        return Response(result, status=response_info["status_code"])
 
 
 class LabelsAssociatingMixin:  # use for labelable objects views (ex. AlertReceiveChannelView)
