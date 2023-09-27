@@ -2081,7 +2081,7 @@ def test_get_schedule_on_call_now(
     client = APIClient()
     url = reverse("api-internal:schedule-list")
     with patch(
-        "apps.schedules.models.on_call_schedule.OnCallScheduleQuerySet.get_oncall_users",
+        "apps.api.views.schedule.get_oncall_users_for_multiple_schedules",
         return_value={schedule.pk: [user]},
     ):
         response = client.get(url, format="json", **make_user_auth_headers(user, token))
@@ -2115,8 +2115,8 @@ def test_current_user_events(
 
     shifts = (
         # schedule, user, priority, start time (h), duration (seconds)
-        (schedule_with_current_user, current_user, 1, 0, (24 * 60 * 60) - 1),  # r1-1: 0-23:59:59
         (other_schedule, other_user, 1, 0, (24 * 60 * 60) - 1),  # r1-1: 0-23:59:59
+        (schedule_with_current_user, current_user, 1, 0, (24 * 60 * 60) - 1),  # r1-1: 0-23:59:59
     )
     now = timezone.now()
     today = now.replace(hour=0, minute=0, second=0, microsecond=0)
@@ -2146,6 +2146,9 @@ def test_current_user_events(
     assert result["schedules"][0]["id"] == schedule_with_current_user.public_primary_key
     assert result["schedules"][0]["name"] == schedule_with_current_user.name
     assert len(result["schedules"][0]["events"]) > 0
+    for event in result["schedules"][0]["events"]:
+        # check the current user shift pk is set in the event
+        assert event["shift"]["pk"] == on_call_shift.public_primary_key
 
 
 @pytest.mark.django_db

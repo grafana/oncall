@@ -180,14 +180,12 @@ class IntegrationRateLimitMixin(RateLimitMixin, View):
         "because too many alerts were sent from your {integration} integration. "
         "Rate-limiting is activated so you will continue to receive alerts from other integrations. "
         "Read more about rate limits in our docs. "
-        "To increase your capacity, reach out to our support team."
     )
 
     TEXT_WORKSPACE = (
         "Rate-limiting has been applied to your account "
         "because too many alerts were sent from multiple integrations. "
         "Read more about rate limits in our docs. "
-        "To increase your capacity, reach out to our support team."
     )
 
     @ratelimit(

@@ -94,6 +94,7 @@ def test_get_calendar_schedule(
             "user_group_id": None,
         },
         "ical_url_overrides": None,
+        "enable_web_overrides": False,
     }
 
     assert response.status_code == status.HTTP_200_OK
@@ -130,6 +131,7 @@ def test_create_calendar_schedule(make_organization_and_user_with_token):
             "user_group_id": None,
         },
         "ical_url_overrides": None,
+        "enable_web_overrides": False,
     }
 
     assert response.status_code == status.HTTP_201_CREATED
@@ -180,6 +182,7 @@ def test_create_calendar_schedule_with_shifts(make_organization_and_user_with_to
             "user_group_id": None,
         },
         "ical_url_overrides": None,
+        "enable_web_overrides": False,
     }
 
     assert response.status_code == status.HTTP_201_CREATED
@@ -227,12 +230,52 @@ def test_update_calendar_schedule(
             "user_group_id": None,
         },
         "ical_url_overrides": None,
+        "enable_web_overrides": False,
     }
 
     assert response.status_code == status.HTTP_200_OK
     schedule.refresh_from_db()
     assert schedule.name == data["name"]
     assert schedule.time_zone == data["time_zone"]
+    assert response.json() == result
+
+
+@pytest.mark.django_db
+def test_update_calendar_schedule_enable_web_overrides(
+    make_organization_and_user_with_token,
+    make_schedule,
+):
+    organization, user, token = make_organization_and_user_with_token()
+    client = APIClient()
+
+    schedule = make_schedule(
+        organization,
+        schedule_class=OnCallScheduleCalendar,
+    )
+
+    url = reverse("api-public:schedules-detail", kwargs={"pk": schedule.public_primary_key})
+
+    data = {
+        "enable_web_overrides": True,
+    }
+    response = client.put(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
+
+    result = {
+        "id": schedule.public_primary_key,
+        "team_id": None,
+        "name": schedule.name,
+        "type": "calendar",
+        "time_zone": "UTC",
+        "on_call_now": [],
+        "shifts": [],
+        "slack": {"channel_id": None, "user_group_id": None},
+        "ical_url_overrides": None,
+        "enable_web_overrides": True,
+    }
+
+    assert response.status_code == status.HTTP_200_OK
+    schedule.refresh_from_db()
+    assert schedule.enable_web_overrides
     assert response.json() == result
 
 
@@ -363,6 +406,7 @@ def test_update_ical_url_overrides_calendar_schedule(
                 "user_group_id": None,
             },
             "ical_url_overrides": ICAL_URL,
+            "enable_web_overrides": False,
         }
 
         assert response.status_code == status.HTTP_200_OK
@@ -418,6 +462,7 @@ def test_update_calendar_schedule_with_custom_event(
             "user_group_id": None,
         },
         "ical_url_overrides": None,
+        "enable_web_overrides": False,
     }
 
     assert response.status_code == status.HTTP_200_OK
@@ -732,6 +777,7 @@ def test_get_schedule_list(
                 "shifts": [],
                 "slack": {"channel_id": slack_channel_id, "user_group_id": user_group_id},
                 "ical_url_overrides": None,
+                "enable_web_overrides": False,
             },
             {
                 "id": schedule_ical.public_primary_key,

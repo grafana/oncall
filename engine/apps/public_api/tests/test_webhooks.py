@@ -164,6 +164,45 @@ def test_create_webhook(make_organization_and_user_with_token):
 
 
 @pytest.mark.django_db
+@pytest.mark.parametrize(
+    "optional_value",
+    [
+        None,
+        "",
+    ],
+)
+def test_create_webhook_optional_fields(make_organization_and_user_with_token, optional_value):
+    organization, user, token = make_organization_and_user_with_token()
+    client = APIClient()
+
+    url = reverse("api-public:webhooks-list")
+
+    data = {
+        "name": "Test outgoing webhook with nested data",
+        "url": "https://example.com",
+        "http_method": "POST",
+        "trigger_type": "acknowledge",
+        "data": optional_value,
+        "username": optional_value,
+        "password": optional_value,
+        "authorization_header": optional_value,
+        "trigger_template": optional_value,
+        "headers": optional_value,
+        "forward_all": True,
+        "is_webhook_enabled": True,
+        "integration_filter": optional_value,
+    }
+
+    response = client.post(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
+    webhook = Webhook.objects.get(public_primary_key=response.data["id"])
+
+    expected_result = _get_expected_result(webhook)
+
+    assert response.status_code == status.HTTP_201_CREATED
+    assert response.json() == expected_result
+
+
+@pytest.mark.django_db
 def test_create_webhook_nested_data(make_organization_and_user_with_token):
     organization, user, token = make_organization_and_user_with_token()
     client = APIClient()

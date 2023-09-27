@@ -64,7 +64,10 @@ import PagedUsers from './parts/PagedUsers';
 const cx = cn.bind(styles);
 const INTEGRATION_NAME_LENGTH_LIMIT = 30;
 
-interface IncidentPageProps extends WithStoreProps, PageProps, RouteComponentProps<{ id: string }> {}
+interface IncidentPageProps extends WithStoreProps, PageProps, RouteComponentProps<{ id: string }> {
+  pageTitle: string;
+  setPageTitle: (value: string) => void;
+}
 
 interface IncidentPageState extends PageBaseState {
   showIntegrationSettings?: boolean;
@@ -89,6 +92,12 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
     store.alertGroupStore.updateSilenceOptions();
   }
 
+  componentWillUnmount(): void {
+    const { setPageTitle } = this.props;
+
+    setPageTitle(undefined);
+  }
+
   componentDidUpdate(prevProps: IncidentPageProps) {
     if (this.props.match.params.id !== prevProps.match.params.id) {
       this.update();
@@ -103,10 +112,14 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
       match: {
         params: { id },
       },
+      setPageTitle,
     } = this.props;
 
     store.alertGroupStore
       .getAlert(id)
+      .then((alertGroup) => {
+        setPageTitle(`#${alertGroup.inside_organization_number} ${alertGroup.render_for_web.title}`);
+      })
       .catch((error) => this.setState({ errorData: { ...getWrongTeamResponseInfo(error) } }));
   };
 
@@ -238,6 +251,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
       match: {
         params: { id },
       },
+      pageTitle,
     } = this.props;
 
     const { alerts } = store.alertGroupStore;
@@ -261,7 +275,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
               {/* @ts-ignore*/}
               <HorizontalGroup align="baseline">
                 <Text.Title level={3} data-testid="incident-title">
-                  #{incident.inside_organization_number} {incident.render_for_web.title}
+                  {pageTitle}
                 </Text.Title>
                 {incident.root_alert_group && (
                   <Text type="secondary">

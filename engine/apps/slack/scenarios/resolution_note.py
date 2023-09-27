@@ -6,8 +6,17 @@ import typing
 from django.db.models import Q
 
 from apps.api.permissions import RBACPermission
-from apps.slack.client import SlackAPIException
 from apps.slack.constants import DIVIDER
+from apps.slack.errors import (
+    SlackAPIChannelArchivedError,
+    SlackAPIChannelInactiveError,
+    SlackAPIChannelNotFoundError,
+    SlackAPIError,
+    SlackAPIInvalidAuthError,
+    SlackAPIMessageNotFoundError,
+    SlackAPITokenError,
+    SlackAPIViewNotFoundError,
+)
 from apps.slack.scenarios import scenario_step
 from apps.slack.types import (
     Block,
@@ -30,46 +39,14 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 
-def handle_resolution_note_message_exception(step, action_name, exc):
-    """Check common API errors when updating a resolution note message."""
-    if exc.response["error"] == "channel_not_found":
-        logger.warning(
-            f"Unable to {action_name} resolution note message in slack. "
-            f"Slack team identity pk: {step.slack_team_identity.pk}.\n"
-            f"Reason: 'channel_not_found'"
-        )
-    elif exc.response["error"] == "message_not_found":
-        logger.warning(
-            f"Unable to {action_name} resolution note message in slack. "
-            f"Slack team identity pk: {step.slack_team_identity.pk}.\n"
-            f"Reason: 'message_not_found'"
-        )
-    elif exc.response["error"] == "is_archived":
-        logger.warning(
-            f"Unable to {action_name} resolution note message in slack. "
-            f"Slack team identity pk: {step.slack_team_identity.pk}.\n"
-            f"Reason: 'is_archived'"
-        )
-    elif exc.response["error"] == "invalid_auth":
-        logger.warning(
-            f"Unable to {action_name} resolution note message in slack. "
-            f"Slack team identity pk: {step.slack_team_identity.pk}.\n"
-            f"Reason: 'invalid_auth'"
-        )
-    elif exc.response["error"] == "account_inactive":
-        logger.warning(
-            f"Unable to {action_name} resolution note message in slack. "
-            f"Slack team identity pk: {step.slack_team_identity.pk}.\n"
-            f"Reason: 'account_inactive'"
-        )
-    elif exc.response["error"] == "is_inactive":
-        logger.warning(
-            f"Unable to {action_name} resolution note message in slack. "
-            f"Slack team identity pk: {step.slack_team_identity.pk}.\n"
-            f"Reason: 'is_inactive'"
-        )
-    else:
-        raise exc
+RESOLUTION_NOTE_EXCEPTIONS = (
+    SlackAPIChannelNotFoundError,
+    SlackAPIMessageNotFoundError,
+    SlackAPIChannelArchivedError,
+    SlackAPIInvalidAuthError,
+    SlackAPITokenError,
+    SlackAPIChannelInactiveError,
+)
 
 
 class AddToResolutionNoteStep(scenario_step.ScenarioStep):
@@ -198,7 +175,7 @@ class AddToResolutionNoteStep(scenario_step.ScenarioStep):
                         name="memo",
                         timestamp=resolution_note_slack_message.ts,
                     )
-                except SlackAPIException:
+                except SlackAPIError:
                     pass
 
                 self.alert_group_slack_service.update_alert_group_slack_message(alert_group)
@@ -230,8 +207,8 @@ class UpdateResolutionNoteStep(scenario_step.ScenarioStep):
                         channel=resolution_note_slack_message.slack_channel_id,
                         ts=resolution_note_slack_message.ts,
                     )
-                except SlackAPIException as e:
-                    handle_resolution_note_message_exception(self, "delete", e)
+                except RESOLUTION_NOTE_EXCEPTIONS:
+                    pass
             else:
                 self.remove_resolution_note_reaction(resolution_note_slack_message)
 
@@ -251,8 +228,8 @@ class UpdateResolutionNoteStep(scenario_step.ScenarioStep):
                     text=resolution_note.text,
                     blocks=blocks,
                 )
-            except SlackAPIException as e:
-                handle_resolution_note_message_exception(self, "post", e)
+            except RESOLUTION_NOTE_EXCEPTIONS:
+                pass
             else:
                 message_ts = result["message"]["ts"]
                 result_permalink = self._slack_client.chat_getPermalink(
@@ -285,8 +262,8 @@ class UpdateResolutionNoteStep(scenario_step.ScenarioStep):
                     text=resolution_note_slack_message.text,
                     blocks=blocks,
                 )
-            except SlackAPIException as e:
-                handle_resolution_note_message_exception(self, "update", e)
+            except RESOLUTION_NOTE_EXCEPTIONS:
+                pass
             else:
                 resolution_note_slack_message.text = resolution_note.text
                 resolution_note_slack_message.save(update_fields=["text"])
@@ -302,8 +279,8 @@ class UpdateResolutionNoteStep(scenario_step.ScenarioStep):
                 name="memo",
                 timestamp=slack_thread_message.ts,
             )
-        except SlackAPIException as e:
-            logger.exception(e)
+        except SlackAPIError:
+            pass
 
     def remove_resolution_note_reaction(self, slack_thread_message: "ResolutionNoteSlackMessage") -> None:
         try:
@@ -312,8 +289,8 @@ class UpdateResolutionNoteStep(scenario_step.ScenarioStep):
                 name="memo",
                 timestamp=slack_thread_message.ts,
             )
-        except SlackAPIException as e:
-            logger.exception(e)
+        except SlackAPIError:
+            pass
 
     def get_resolution_note_blocks(self, resolution_note: "ResolutionNote") -> Block.AnyBlocks:
         blocks: Block.AnyBlocks = []
@@ -408,16 +385,8 @@ class ResolutionNoteModalStep(AlertGroupActionsMixin, scenario_step.ScenarioStep
                     view=view,
                     view_id=payload["view"]["id"],
                 )
-            except SlackAPIException as e:
-                if e.response["error"] == "not_found":
-                    # Ignore "not_found" error, it means that the view was closed by user before the update request.
-                    # It doesn't disrupt the user experience.
-                    logger.debug(
-                        f"API call to views.update failed for alert group {alert_group.pk}, error: not_found. "
-                        f"Most likely the view was closed by user before the request was processed. "
-                    )
-                else:
-                    raise
+            except SlackAPIViewNotFoundError:
+                pass
         else:
             self._slack_client.views_open(trigger_id=payload["trigger_id"], view=view)
 

@@ -1,11 +1,14 @@
-from unittest.mock import patch
+from unittest.mock import call, patch
 
 import pytest
 
 from apps.alerts.incident_appearance.renderers.phone_call_renderer import AlertGroupPhoneCallRenderer
 from apps.alerts.models import AlertGroup, AlertGroupLogRecord
 from apps.alerts.tasks.delete_alert_group import delete_alert_group
+from apps.slack.client import SlackClient
+from apps.slack.errors import SlackAPIMessageNotFoundError, SlackAPIRatelimitError
 from apps.slack.models import SlackMessage
+from apps.slack.tests.conftest import build_slack_response
 
 
 @pytest.mark.django_db
@@ -46,55 +49,179 @@ def test_render_for_phone_call(
     assert expected_verbose_name in rendered_text
 
 
+@patch.object(SlackClient, "reactions_remove")
+@patch.object(SlackClient, "chat_delete")
 @pytest.mark.django_db
 def test_delete(
+    mock_chat_delete,
+    mock_reactions_remove,
     make_organization_with_slack_team_identity,
     make_user,
-    make_slack_channel,
     make_alert_receive_channel,
     make_alert_group,
     make_alert,
+    make_slack_message,
+    make_resolution_note_slack_message,
 ):
     """test alert group deleting"""
 
     organization, slack_team_identity = make_organization_with_slack_team_identity()
-    slack_channel = make_slack_channel(slack_team_identity, name="general", slack_id="CWER1ASD")
     user = make_user(organization=organization)
 
     alert_receive_channel = make_alert_receive_channel(organization)
 
     alert_group = make_alert_group(alert_receive_channel)
-    SlackMessage.objects.create(channel_id="CWER1ASD", alert_group=alert_group)
+    make_alert(alert_group, raw_request_data={})
 
-    make_alert(
-        alert_group,
-        raw_request_data={
-            "evalMatches": [
-                {"value": 100, "metric": "High value", "tags": None},
-                {"value": 200, "metric": "Higher Value", "tags": None},
-            ],
-            "message": "Someone is testing the alert notification within grafana.",
-            "ruleId": 0,
-            "ruleName": "Test notification",
-            "ruleUrl": "http://localhost:3000/",
-            "state": "alerting",
-            "title": f"Incident for channel <#{slack_channel.slack_id}> Where a > b & c < d",
-        },
+    # Create Slack messages
+    slack_message = make_slack_message(alert_group=alert_group, channel_id="test_channel_id", slack_id="test_slack_id")
+    resolution_note_1 = make_resolution_note_slack_message(
+        alert_group=alert_group,
+        user=user,
+        added_by_user=user,
+        posted_by_bot=True,
+        slack_channel_id="test1_channel_id",
+        ts="test1_ts",
+    )
+    resolution_note_2 = make_resolution_note_slack_message(
+        alert_group=alert_group,
+        user=user,
+        added_by_user=user,
+        added_to_resolution_note=True,
+        slack_channel_id="test2_channel_id",
+        ts="test2_ts",
     )
 
-    alerts = alert_group.alerts
-    slack_messages = alert_group.slack_messages
-
-    assert alerts.count() > 0
-    assert slack_messages.count() > 0
+    assert alert_group.alerts.count() == 1
+    assert alert_group.slack_messages.count() == 1
+    assert alert_group.resolution_note_slack_messages.count() == 2
 
     delete_alert_group(alert_group.pk, user.pk)
 
-    assert alerts.count() == 0
-    assert slack_messages.count() == 0
+    assert not alert_group.alerts.exists()
+    assert not alert_group.slack_messages.exists()
+    assert not alert_group.resolution_note_slack_messages.exists()
 
     with pytest.raises(AlertGroup.DoesNotExist):
         alert_group.refresh_from_db()
+
+    # Check that appropriate Slack API calls are made
+    assert mock_chat_delete.call_count == 2
+    assert mock_chat_delete.call_args_list[0] == call(
+        channel=resolution_note_1.slack_channel_id, ts=resolution_note_1.ts
+    )
+    assert mock_chat_delete.call_args_list[1] == call(channel=slack_message.channel_id, ts=slack_message.slack_id)
+    mock_reactions_remove.assert_called_once_with(
+        channel=resolution_note_2.slack_channel_id, name="memo", timestamp=resolution_note_2.ts
+    )
+
+
+@pytest.mark.parametrize("api_method", ["reactions_remove", "chat_delete"])
+@patch.object(delete_alert_group, "apply_async")
+@pytest.mark.django_db
+def test_delete_slack_ratelimit(
+    mock_delete_alert_group,
+    api_method,
+    make_organization_with_slack_team_identity,
+    make_user,
+    make_alert_receive_channel,
+    make_alert_group,
+    make_alert,
+    make_slack_message,
+    make_resolution_note_slack_message,
+):
+    organization, slack_team_identity = make_organization_with_slack_team_identity()
+    user = make_user(organization=organization)
+
+    alert_receive_channel = make_alert_receive_channel(organization)
+
+    alert_group = make_alert_group(alert_receive_channel)
+    make_alert(alert_group, raw_request_data={})
+
+    # Create Slack messages
+    make_slack_message(alert_group=alert_group, channel_id="test_channel_id", slack_id="test_slack_id")
+    make_resolution_note_slack_message(
+        alert_group=alert_group,
+        user=user,
+        added_by_user=user,
+        posted_by_bot=True,
+        slack_channel_id="test1_channel_id",
+        ts="test1_ts",
+    )
+    make_resolution_note_slack_message(
+        alert_group=alert_group,
+        user=user,
+        added_by_user=user,
+        added_to_resolution_note=True,
+        slack_channel_id="test2_channel_id",
+        ts="test2_ts",
+    )
+
+    with patch.object(
+        SlackClient,
+        api_method,
+        side_effect=SlackAPIRatelimitError(
+            response=build_slack_response({"ok": False, "error": "ratelimited"}, headers={"Retry-After": 42})
+        ),
+    ):
+        delete_alert_group(alert_group.pk, user.pk)
+
+    # Check task is retried gracefully
+    mock_delete_alert_group.assert_called_once_with((alert_group.pk, user.pk), countdown=42)
+
+
+@pytest.mark.parametrize("api_method", ["reactions_remove", "chat_delete"])
+@patch.object(delete_alert_group, "apply_async")
+@pytest.mark.django_db
+def test_delete_slack_api_error_other_than_ratelimit(
+    mock_delete_alert_group,
+    api_method,
+    make_organization_with_slack_team_identity,
+    make_user,
+    make_alert_receive_channel,
+    make_alert_group,
+    make_alert,
+    make_slack_message,
+    make_resolution_note_slack_message,
+):
+    organization, slack_team_identity = make_organization_with_slack_team_identity()
+    user = make_user(organization=organization)
+
+    alert_receive_channel = make_alert_receive_channel(organization)
+
+    alert_group = make_alert_group(alert_receive_channel)
+    make_alert(alert_group, raw_request_data={})
+
+    # Create Slack messages
+    make_slack_message(alert_group=alert_group, channel_id="test_channel_id", slack_id="test_slack_id")
+    make_resolution_note_slack_message(
+        alert_group=alert_group,
+        user=user,
+        added_by_user=user,
+        posted_by_bot=True,
+        slack_channel_id="test1_channel_id",
+        ts="test1_ts",
+    )
+    make_resolution_note_slack_message(
+        alert_group=alert_group,
+        user=user,
+        added_by_user=user,
+        added_to_resolution_note=True,
+        slack_channel_id="test2_channel_id",
+        ts="test2_ts",
+    )
+
+    with patch.object(
+        SlackClient,
+        api_method,
+        side_effect=SlackAPIMessageNotFoundError(
+            response=build_slack_response({"ok": False, "error": "message_not_found"})
+        ),
+    ):
+        delete_alert_group(alert_group.pk, user.pk)  # check no exception is raised
+
+    # Check task is not retried
+    mock_delete_alert_group.assert_not_called()
 
 
 @pytest.mark.django_db
