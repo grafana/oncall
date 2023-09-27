@@ -114,6 +114,8 @@ class UserManager(models.Manager["User"]):
                 )
         with transaction.atomic():
             organization.users.bulk_create(users_to_create, batch_size=5000)
+            for policy in policies_to_create:
+                policy.user_id = policy.user.pk
             UserNotificationPolicy.objects.bulk_create(policies_to_create, batch_size=5000)
 
         # delete excess users
