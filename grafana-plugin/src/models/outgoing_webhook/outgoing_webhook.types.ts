@@ -18,6 +18,7 @@ export interface OutgoingWebhook {
   last_response_log?: OutgoingWebhookResponse;
   is_webhook_enabled: boolean;
   is_legacy: boolean;
+  preset: string;
 }
 
 export interface OutgoingWebhookResponse {
@@ -29,4 +30,12 @@ export interface OutgoingWebhookResponse {
   status_code: string;
   content: string;
   event_data: string;
+}
+
+export interface OutgoingWebhookPreset {
+  id: string;
+  name: string;
+  description: string;
+  logo: string;
+  controlled_fields: string[];
 }

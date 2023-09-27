@@ -3,7 +3,7 @@
 }
 
 .title {
-  margin: 16px 0 0 16px;
+  margin: 0 0 0 16px;
 }
 
 .content {
@@ -27,4 +27,32 @@
 /* TODO: figure out why this is not picked */
 .webhooks__drawerContent .cursor.monaco-mouse-cursor-text {
   display: none !important;
+}
+
+.cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  overflow: auto;
+  scroll-snap-type: y mandatory;
+  width: 100%;
+}
+
+.card {
+  width: 100%;
+  height: 106px;
+  scroll-snap-align: start;
+  scroll-snap-stop: normal;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  cursor: pointer;
+  position: relative;
+  gap: 20px;
+}
+
+.search-integration {
+  width: 100%;
+  margin-bottom: 24px;
 }

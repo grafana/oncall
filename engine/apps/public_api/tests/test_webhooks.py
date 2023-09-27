@@ -5,7 +5,9 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
 
+from apps.public_api.serializers.webhooks import PRESET_VALIDATION_MESSAGE
 from apps.webhooks.models import Webhook
+from apps.webhooks.tests.test_webhook_presets import TEST_WEBHOOK_PRESET_ID
 
 
 def _get_expected_result(webhook):
@@ -25,6 +27,7 @@ def _get_expected_result(webhook):
         "http_method": webhook.http_method,
         "trigger_type": Webhook.PUBLIC_TRIGGER_TYPES_MAP[webhook.trigger_type],
         "integration_filter": webhook.integration_filter,
+        "preset": webhook.preset,
     }
 
 
@@ -357,3 +360,70 @@ def test_webhook_validate_integration_filters(
     assert response.status_code == 200
     assert response.data["integration_filter"] == data["integration_filter"]
     assert webhook.integration_filter == data["integration_filter"]
+
+
+@pytest.mark.django_db
+def test_get_webhook_with_preset(
+    make_organization_and_user_with_token,
+    make_custom_webhook,
+    webhook_preset_api_setup,
+):
+    organization, user, token = make_organization_and_user_with_token()
+    client = APIClient()
+
+    webhook = make_custom_webhook(organization=organization, preset=TEST_WEBHOOK_PRESET_ID)
+    url = reverse("api-public:webhooks-list")
+    response = client.get(url, format="json", HTTP_AUTHORIZATION=f"{token}")
+
+    expected_payload = {
+        "count": 1,
+        "next": None,
+        "previous": None,
+        "results": [_get_expected_result(webhook)],
+        "current_page_number": 1,
+        "page_size": 50,
+        "total_pages": 1,
+    }
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data == expected_payload
+
+
+@pytest.mark.django_db
+def test_webhook_block_preset_create(
+    make_organization_and_user_with_token,
+    webhook_preset_api_setup,
+):
+    organization, user, token = make_organization_and_user_with_token()
+    client = APIClient()
+    url = reverse("api-public:webhooks-list")
+
+    data = {
+        "name": "Test outgoing webhook with nested data",
+        "trigger_type": "acknowledge",
+        "preset": TEST_WEBHOOK_PRESET_ID,
+    }
+
+    response = client.post(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json()["preset"][0] == PRESET_VALIDATION_MESSAGE
+
+
+@pytest.mark.django_db
+def test_webhook_block_preset_update(
+    make_organization_and_user_with_token,
+    make_custom_webhook,
+    webhook_preset_api_setup,
+):
+    organization, user, token = make_organization_and_user_with_token()
+    client = APIClient()
+    webhook = make_custom_webhook(organization=organization, preset=TEST_WEBHOOK_PRESET_ID)
+    webhook.refresh_from_db()
+
+    url = reverse("api-public:webhooks-detail", kwargs={"pk": webhook.public_primary_key})
+    data = {
+        "name": "Test rename preset webhook",
+    }
+    response = client.put(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json()["non_field_errors"][0] == PRESET_VALIDATION_MESSAGE
