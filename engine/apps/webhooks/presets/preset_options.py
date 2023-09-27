@@ -20,7 +20,7 @@ class WebhookPresetOptions:
 
 @receiver(pre_save, sender=Webhook)
 def listen_for_webhook_save(sender: Webhook, instance: Webhook, raw: bool, *args, **kwargs) -> None:
-    if instance.preset:
+    if instance.preset and not instance.deleted_at:
         if instance.preset in WebhookPresetOptions.WEBHOOK_PRESETS:
             WebhookPresetOptions.WEBHOOK_PRESETS[instance.preset].override_parameters_before_save(instance)
         else:
