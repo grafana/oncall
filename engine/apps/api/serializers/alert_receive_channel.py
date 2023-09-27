@@ -139,14 +139,15 @@ class AlertReceiveChannelSerializer(EagerLoadingMixin, serializers.ModelSerializ
             )
         except AlertReceiveChannel.DuplicateDirectPagingError:
             raise BadRequest(detail=AlertReceiveChannel.DuplicateDirectPagingError.DETAIL)
-        if labels:
+        if labels is not None:
             AssociatedLabel.associate(labels, instance, organization)
         return instance
 
     def update(self, instance, validated_data):
         labels = validated_data.pop("labels", None)
         organization = self.context["request"].auth.organization
-        AssociatedLabel.update_association(labels, instance, organization)
+        if labels is not None:
+            AssociatedLabel.update_association(labels, instance, organization)
         try:
             return super().update(instance, validated_data)
         except AlertReceiveChannel.DuplicateDirectPagingError:
