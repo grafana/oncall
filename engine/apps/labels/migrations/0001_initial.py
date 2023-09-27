@@ -17,8 +17,8 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='LabelKeyCache',
             fields=[
-                ('key_id', models.CharField(editable=False, max_length=36, primary_key=True, serialize=False)),
-                ('key_repr', models.CharField(max_length=200)),
+                ('id', models.CharField(editable=False, max_length=36, primary_key=True, serialize=False)),
+                ('repr', models.CharField(max_length=200)),
                 ('last_synced', models.DateTimeField(auto_now=True)),
                 ('organization', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='user_management.organization')),
             ],
@@ -26,8 +26,8 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='LabelValueCache',
             fields=[
-                ('value_id', models.CharField(editable=False, max_length=36, primary_key=True, serialize=False)),
-                ('value_repr', models.CharField(max_length=200)),
+                ('id', models.CharField(editable=False, max_length=36, primary_key=True, serialize=False)),
+                ('repr', models.CharField(max_length=200)),
                 ('last_synced', models.DateTimeField(auto_now=True)),
                 ('key', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='values', to='labels.labelkeycache')),
             ],
