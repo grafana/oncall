@@ -408,6 +408,8 @@ class User(models.Model):
 
     @property
     def default_notification_policies_defaults(self):
+        from apps.base.models import UserNotificationPolicy
+
         return (
             UserNotificationPolicy(
                 user=self,
@@ -419,6 +421,8 @@ class User(models.Model):
 
     @property
     def important_notification_policies_defaults(self):
+        from apps.base.models import UserNotificationPolicy
+
         return (
             UserNotificationPolicy(
                 user=self,
