@@ -7,7 +7,7 @@ from urllib.parse import urljoin
 import pytz
 from django.conf import settings
 from django.core.validators import MinLengthValidator
-from django.db import models
+from django.db import models, transaction
 from django.db.models import Q
 from django.db.models.signals import post_save
 from django.dispatch import receiver
@@ -112,11 +112,18 @@ class UserManager(models.Manager["User"]):
                         important=True,
                     ),
                 )
-
-        organization.users.bulk_create(users_to_create, batch_size=5000)
-        for policy in policies_to_create:
-            policy.user_id = policy.user.pk
-        UserNotificationPolicy.objects.bulk_create(policies_to_create, batch_size=5000)
+        with transaction.atomic():
+            organization.users.bulk_create(users_to_create, batch_size=5000)
+            # Retrieve primary keys for the newly created users
+            #
+            # If the model’s primary key is an AutoField, the primary key attribute can only be retrieved
+            # on certain databases (currently PostgreSQL, MariaDB 10.5+, and SQLite 3.35+).
+            # On other databases, it will not be set.
+            # https://docs.djangoproject.com/en/4.1/ref/models/querysets/#django.db.models.query.QuerySet.bulk_create
+            organization.users.exclude(pk__in=existing_user_ids)
+            # for policy in policies_to_create:
+            #     policy.user_id = policy.user.pk
+            UserNotificationPolicy.objects.bulk_create(policies_to_create, batch_size=5000)
 
         # delete excess users
         user_ids_to_delete = existing_user_ids - grafana_users.keys()
