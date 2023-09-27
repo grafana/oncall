@@ -73,12 +73,9 @@ spec:
             timeoutSeconds: 3
           resources:
             {{- toYaml .Values.engine.resources | nindent 12 }}
-          volumeMounts:
-            - mountPath: /tmp
-              name: tempdir
-            {{- with .Values.engine.extraVolumeMounts }}
-            {{- . | toYaml | nindent 12 }}
-            {{- end }}
+          {{- with .Values.engine.extraVolumeMounts }}
+          volumeMounts: {{- . | toYaml | nindent 12 }}
+          {{- end }}
       {{- with .Values.engine.extraContainers }}
         {{- tpl . $ | nindent 8 }}
       {{- end }}
@@ -101,9 +98,6 @@ spec:
       {{- with .Values.engine.priorityClassName }}
       priorityClassName: {{ . }}
       {{- end }}
-      volumes:
-        - name: tempdir
-          emptyDir: {}
-        {{- with .Values.engine.extraVolumes }}
-        {{- . | toYaml | nindent 8 }}
-        {{- end }}
+      {{- with .Values.engine.extraVolumes }}
+      volumes: {{- . | toYaml | nindent 8 }}
+      {{- end }}

@@ -68,8 +68,6 @@ spec:
             {{- include "snippet.db.env" . | nindent 12 }}
             {{- include "snippet.broker.env" . | nindent 12 }}
             {{- include "oncall.extraEnvs" . | nindent 12 }}
-            - name: CELERY_BEAT_SCHEDULE_FILENAME
-              value: /var/run/celery/celerybeat.db
           {{- if .Values.celery.livenessProbe.enabled }}
           livenessProbe:
             exec:
@@ -84,22 +82,12 @@ spec:
           {{- end }}
           resources:
             {{- toYaml .Values.celery.resources | nindent 12 }}
-          volumeMounts:
-            - mountPath: /tmp
-              name: tempdir
-            - mountPath: /var/run/celery
-              name: celery
-            {{- with .Values.celery.extraVolumeMounts }}
-            {{- . | toYaml | nindent 12 }}
-            {{- end }}
+          {{- with .Values.celery.extraVolumeMounts }}
+          volumeMounts: {{- . | toYaml | nindent 12 }}
+          {{- end }}
       {{- with .Values.celery.extraContainers }}
         {{- tpl . $ | nindent 8 }}
       {{- end }}
-      volumes:
-        - name: tempdir
-          emptyDir: {}
-        - name: celery
-          emptyDir: {}
-        {{- with .Values.celery.extraVolumes }}
-        {{- . | toYaml | nindent 8 }}
-        {{- end }}
+      {{- with .Values.celery.extraVolumes }}
+      volumes: {{- . | toYaml | nindent 8 }}
+      {{- end }}

@@ -86,6 +86,3 @@ telegramPolling.enabled=true -> should create telegram polling deployment:
       imagePullPolicy: Always
       name: telegram-polling
       securityContext: {}
-      volumeMounts:
-        - mountPath: /tmp
-          name: tempdir
