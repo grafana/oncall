@@ -9,11 +9,16 @@ keywords:
   - Notifications
   - on-call
   - fabric
+labels:
+  products:
+    - cloud
 title: Fabric
 weight: 500
 ---
 
 # Fabric integration for Grafana OnCall
+
+> This integration is not available in OSS version
 
 The Fabric integration for Grafana OnCall handles ticket events sent from Fabric webhooks.
 The integration provides grouping, auto-acknowledge and auto-resolve logic via customizable alert templates.

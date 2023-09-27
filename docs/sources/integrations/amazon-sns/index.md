@@ -9,11 +9,16 @@ keywords:
   - Notifications
   - on-call
   - amazon-sns
+labels:
+  products:
+    - cloud
 title: Amazon SNS
 weight: 500
 ---
 
 # Amazon SNS integration for Grafana OnCall
+
+> This integration is not available in OSS version
 
 The Amazon SNS integration for Grafana OnCall handles ticket events sent from Amazon SNS webhooks.
 The integration provides grouping, auto-acknowledge and auto-resolve logic via customizable alert templates.

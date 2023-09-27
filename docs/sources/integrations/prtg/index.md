@@ -9,11 +9,16 @@ keywords:
   - Notifications
   - on-call
   - prtg
+labels:
+  products:
+    - cloud
 title: PRTG
 weight: 500
 ---
 
 # PRTG integration for Grafana OnCall
+
+> This integration is not available in OSS version
 
 The PRTG integration for Grafana OnCall handles ticket events sent from PRTG webhooks.
 The integration provides grouping, auto-acknowledge and auto-resolve logic via customizable alert templates.

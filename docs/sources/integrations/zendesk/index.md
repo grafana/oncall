@@ -10,11 +10,16 @@ keywords:
   - on-call
   - webhooks
   - Zendesk
+labels:
+  products:
+    - cloud
 title: Zendesk
 weight: 500
 ---
 
 # Zendesk integration for Grafana OnCall
+
+> This integration is not available in OSS version
 
 The Zendesk integration for Grafana OnCall handles ticket events sent from Zendesk webhooks.
 The integration provides grouping, auto-acknowledge and auto-resolve logic via customizable alert templates.
