@@ -195,69 +195,70 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
 
               <VerticalGroup>
                 <HorizontalGroup spacing={'xs'}>
-                  <InlineLabel
-                    width={20}
-                    tooltip="The escalation chain determines who and when to notify when an alert group starts."
-                  >
-                    Escalation chain
-                  </InlineLabel>
-                  <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
-                    <Select
-                      isSearchable
-                      width={'auto'}
-                      menuShouldPortal
-                      className={cx('select', 'control')}
-                      placeholder="Select escalation chain"
-                      isLoading={isRefreshingEscalationChains}
-                      onChange={onEscalationChainChange}
-                      options={Object.keys(escalationChainStore.items).map(
-                        (eschalationChainId: EscalationChain['id']) => ({
-                          id: escalationChainStore.items[eschalationChainId].id,
-                          value: escalationChainStore.items[eschalationChainId].name,
-                          label: escalationChainStore.items[eschalationChainId].name,
-                        })
-                      )}
-                      value={escChainDisplayName}
-                      getOptionLabel={(item: SelectableValue) => {
-                        return (
-                          <>
-                            <Text>{item.label} </Text>
-                            <TeamName
-                              team={grafanaTeamStore.items[escalationChainStore.items[item.id].team]}
-                              size="small"
-                            />
-                          </>
-                        );
-                      }}
-                      data-testid="escalation-chain-select"
-                    ></Select>
-                  </WithPermissionControlTooltip>
-
-                  <Tooltip placement={'top'} content={'Reload list'}>
-                    <Button variant={'secondary'} icon={'sync'} size={'md'} onClick={onEscalationChainsRefresh} />
-                  </Tooltip>
-
-                  <PluginLink className={cx('hover-button')} target="_blank" query={escalationChainRedirectObj}>
-                    <Tooltip
-                      placement={'top'}
-                      content={channelFilter.escalation_chain ? 'Edit escalation chain' : 'Add an escalation chain'}
+                  <div data-testid="escalation-chain-select">
+                    <InlineLabel
+                      width={20}
+                      tooltip="The escalation chain determines who and when to notify when an alert group starts."
                     >
-                      <Button variant={'secondary'} icon={'external-link-alt'} size={'md'} />
+                      Escalation chain
+                    </InlineLabel>
+                    <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
+                      <Select
+                        isSearchable
+                        width={'auto'}
+                        menuShouldPortal
+                        className={cx('select', 'control')}
+                        placeholder="Select escalation chain"
+                        isLoading={isRefreshingEscalationChains}
+                        onChange={onEscalationChainChange}
+                        options={Object.keys(escalationChainStore.items).map(
+                          (eschalationChainId: EscalationChain['id']) => ({
+                            id: escalationChainStore.items[eschalationChainId].id,
+                            value: escalationChainStore.items[eschalationChainId].name,
+                            label: escalationChainStore.items[eschalationChainId].name,
+                          })
+                        )}
+                        value={escChainDisplayName}
+                        getOptionLabel={(item: SelectableValue) => {
+                          return (
+                            <>
+                              <Text>{item.label} </Text>
+                              <TeamName
+                                team={grafanaTeamStore.items[escalationChainStore.items[item.id].team]}
+                                size="small"
+                              />
+                            </>
+                          );
+                        }}
+                      ></Select>
+                    </WithPermissionControlTooltip>
+
+                    <Tooltip placement={'top'} content={'Reload list'}>
+                      <Button variant={'secondary'} icon={'sync'} size={'md'} onClick={onEscalationChainsRefresh} />
                     </Tooltip>
-                  </PluginLink>
 
-                  {channelFilter.escalation_chain && (
-                    <Button
-                      variant={'secondary'}
-                      onClick={() => setState({ isEscalationCollapsed: !isEscalationCollapsed })}
-                    >
-                      <HorizontalGroup>
-                        <Text type="link">{isEscalationCollapsed ? 'Show' : 'Hide'} escalation chain</Text>
-                        {isEscalationCollapsed && <Icon name={'angle-right'} />}
-                        {!isEscalationCollapsed && <Icon name={'angle-up'} />}
-                      </HorizontalGroup>
-                    </Button>
-                  )}
+                    <PluginLink className={cx('hover-button')} target="_blank" query={escalationChainRedirectObj}>
+                      <Tooltip
+                        placement={'top'}
+                        content={channelFilter.escalation_chain ? 'Edit escalation chain' : 'Add an escalation chain'}
+                      >
+                        <Button variant={'secondary'} icon={'external-link-alt'} size={'md'} />
+                      </Tooltip>
+                    </PluginLink>
+
+                    {channelFilter.escalation_chain && (
+                      <Button
+                        variant={'secondary'}
+                        onClick={() => setState({ isEscalationCollapsed: !isEscalationCollapsed })}
+                      >
+                        <HorizontalGroup>
+                          <Text type="link">{isEscalationCollapsed ? 'Show' : 'Hide'} escalation chain</Text>
+                          {isEscalationCollapsed && <Icon name={'angle-right'} />}
+                          {!isEscalationCollapsed && <Icon name={'angle-up'} />}
+                        </HorizontalGroup>
+                      </Button>
+                    )}
+                  </div>
                 </HorizontalGroup>
 
                 {!isEscalationCollapsed && (

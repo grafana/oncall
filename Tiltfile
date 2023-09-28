@@ -39,12 +39,12 @@ docker_build_sub(
     context="./engine",
     cache_from="localhost:63628/grafana/oncall:latest",
     # only=["./engine", "./grafana-plugin"],
+    ignore=["./grafana-plugin/test-results/", "./grafana-plugin/dist/", "./grafana-plugin/e2e-tests/"],
     child_context=".",
     target="dev",
     extra_cmds=["ADD ./grafana-plugin/src/plugin.json /etc/grafana-plugin/src/plugin.json"],
     live_update=[
         sync("./engine/", "/etc/app"),
-        sync("./grafana-plugin/", "/etc/grafana-plugin"),
         run(
             "cd /etc/app && pip install -r requirements.txt",
             trigger="./engine/requirements.txt",
@@ -56,7 +56,7 @@ docker_build_sub(
 local_resource(
     "build-ui",
     labels=["OnCallUI"],
-    cmd="cd grafana-plugin && yarn install  && yarn build:dev",
+    cmd="cd grafana-plugin && yarn install && yarn build:dev",
     serve_cmd="cd grafana-plugin && ONCALL_API_URL=http://oncall-dev-engine:8080 yarn watch",
     allow_parallel=True,
 )
