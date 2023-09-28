@@ -28,6 +28,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix shifts for current user internal endpoint to return the right shift PK ([#3036](https://github.com/grafana/oncall/pull/3036))
 - Handle Slack ratelimit on alert group deletion by @vadimkerr ([#3038](https://github.com/grafana/oncall/pull/3038))
 
+### Added
+
+- Create Direct Paging integration by default for every team, create default E-Mail notification policy for every user ([#3064](https://github.com/grafana/oncall/pull/3064))
+
 ## v1.3.37 (2023-09-12)
 
 ### Added

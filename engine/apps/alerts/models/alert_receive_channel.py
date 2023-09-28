@@ -232,8 +232,9 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
 
     @classmethod
     def create(cls, **kwargs):
+        organization = kwargs["organization"]
         with transaction.atomic():
-            other_channels = cls.objects_with_deleted.select_for_update().filter(organization=kwargs["organization"])
+            other_channels = cls.objects_with_deleted.select_for_update().filter(organization=organization)
             channel = cls(**kwargs)
             smile_code = number_to_smiles_translator(other_channels.count())
             verbal_name = (

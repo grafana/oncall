@@ -17,10 +17,7 @@ RUN apk add bash \
 
 WORKDIR /etc/app
 COPY ./requirements.txt ./
-COPY ./pip/cache ./pip/cache
-RUN if uname -m | grep -q "aarch64" ; then pip install pip/cache/grpcio-1.57.0-cp311-cp311-linux_aarch64.whl ; else echo "skip"  ; fi
-RUN pip install --upgrade pip
-RUN pip install --upgrade setuptools wheel
+COPY ./pip/cache /root/.cache/pip/wheels/
 RUN pip install -r requirements.txt
 
 # we intentionally have two COPY commands, this is to have the requirements.txt in a separate build step

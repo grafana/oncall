@@ -18,7 +18,6 @@ import CopyToClipboard from 'react-copy-to-clipboard';
 
 import HamburgerMenu from 'components/HamburgerMenu/HamburgerMenu';
 import IntegrationBlock from 'components/Integrations/IntegrationBlock';
-import IntegrationBlockItem from 'components/Integrations/IntegrationBlockItem';
 import MonacoEditor from 'components/MonacoEditor/MonacoEditor';
 import { MONACO_READONLY_CONFIG } from 'components/MonacoEditor/MonacoEditor.config';
 import PluginLink from 'components/PluginLink/PluginLink';
@@ -102,7 +101,6 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
     }, []);
 
     const channelFilter = alertReceiveChannelStore.channelFilters[channelFilterId];
-    const channelFiltersTotal = Object.keys(alertReceiveChannelStore.channelFilters);
     if (!channelFilter) {
       return null;
     }
@@ -149,20 +147,18 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
             </HorizontalGroup>
           }
           content={
-            <VerticalGroup spacing="xs">
-              {routeIndex !== channelFiltersTotal.length - 1 && (
-                <IntegrationBlockItem>
-                  <VerticalGroup>
-                    <Text type="secondary">
-                      If the Routing Template is True, group alerts with the Grouping Template, send them to messengers,
-                      and trigger the escalation chain.
-                    </Text>
-                  </VerticalGroup>
-                </IntegrationBlockItem>
-              )}
-              {/* Show Routing Template only for If/Else Routes, not for Default */}
-              {!isDefault && (
-                <IntegrationBlockItem>
+            <VerticalGroup>
+              {isDefault ? (
+                <Text type="secondary">
+                  All unmatched alerts are directed to this route, grouped using the Grouping Template, sent to
+                  messengers, and trigger the escalation chain
+                </Text>
+              ) : (
+                <VerticalGroup>
+                  <Text type="secondary">
+                    If the Routing Template is True, group alerts with the Grouping Template, send them to messengers,
+                    and trigger the escalation chain.
+                  </Text>
                   <HorizontalGroup spacing="xs">
                     <InlineLabel
                       width={20}
@@ -187,21 +183,19 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
                       onClick={() => handleEditRoutingTemplate(channelFilter, channelFilterId)}
                     />
                   </HorizontalGroup>
-                </IntegrationBlockItem>
+                </VerticalGroup>
               )}
 
               {IntegrationHelper.hasChatopsInstalled(store) && (
-                <IntegrationBlockItem>
-                  <VerticalGroup spacing="md">
-                    <Text type="primary">Publish to ChatOps</Text>
-                    <ChatOpsConnectors channelFilterId={channelFilterId} showLineNumber={false} />
-                  </VerticalGroup>
-                </IntegrationBlockItem>
+                <VerticalGroup spacing="md">
+                  <Text type="primary">Publish to ChatOps</Text>
+                  <ChatOpsConnectors channelFilterId={channelFilterId} showLineNumber={false} />
+                </VerticalGroup>
               )}
 
-              <IntegrationBlockItem>
-                <VerticalGroup>
-                  <HorizontalGroup spacing={'xs'}>
+              <VerticalGroup>
+                <HorizontalGroup spacing={'xs'}>
+                  <div data-testid="escalation-chain-select">
                     <InlineLabel
                       width={20}
                       tooltip="The escalation chain determines who and when to notify when an alert group starts."
@@ -264,13 +258,13 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
                         </HorizontalGroup>
                       </Button>
                     )}
-                  </HorizontalGroup>
+                  </div>
+                </HorizontalGroup>
 
-                  {!isEscalationCollapsed && (
-                    <ReadOnlyEscalationChain escalationChainId={channelFilter.escalation_chain} />
-                  )}
-                </VerticalGroup>
-              </IntegrationBlockItem>
+                {!isEscalationCollapsed && (
+                  <ReadOnlyEscalationChain escalationChainId={channelFilter.escalation_chain} />
+                )}
+              </VerticalGroup>
             </VerticalGroup>
           }
         />

@@ -1,0 +1,6 @@
+# Ignore everything
+*
+
+# Allow directories
+!/engine
+!/grafana-plugin

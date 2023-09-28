@@ -7,7 +7,7 @@ from urllib.parse import urljoin
 import pytz
 from django.conf import settings
 from django.core.validators import MinLengthValidator
-from django.db import models
+from django.db import models, transaction
 from django.db.models import Q
 from django.db.models.signals import post_save
 from django.dispatch import receiver
@@ -75,6 +75,8 @@ class UserManager(models.Manager["User"]):
 
     @staticmethod
     def sync_for_organization(organization, api_users: list[dict]):
+        from apps.base.models import UserNotificationPolicy
+
         grafana_users = {user["userId"]: user for user in api_users}
         existing_user_ids = set(organization.users.all().values_list("user_id", flat=True))
 
@@ -93,7 +95,22 @@ class UserManager(models.Manager["User"]):
             for user in grafana_users.values()
             if user["userId"] not in existing_user_ids
         )
-        organization.users.bulk_create(users_to_create, batch_size=5000)
+
+        with transaction.atomic():
+            organization.users.bulk_create(users_to_create, batch_size=5000)
+            # Retrieve primary keys for the newly created users
+            #
+            # If the model’s primary key is an AutoField, the primary key attribute can only be retrieved
+            # on certain databases (currently PostgreSQL, MariaDB 10.5+, and SQLite 3.35+).
+            # On other databases, it will not be set.
+            # https://docs.djangoproject.com/en/4.1/ref/models/querysets/#django.db.models.query.QuerySet.bulk_create
+            created_users = organization.users.exclude(user_id__in=existing_user_ids)
+
+            policies_to_create = ()
+            for user in created_users:
+                policies_to_create = policies_to_create + user.default_notification_policies_defaults
+                policies_to_create = policies_to_create + user.important_notification_policies_defaults
+            UserNotificationPolicy.objects.bulk_create(policies_to_create, batch_size=5000)
 
         # delete excess users
         user_ids_to_delete = existing_user_ids - grafana_users.keys()
@@ -383,6 +400,44 @@ class User(models.Model):
             # https://stackoverflow.com/a/50251879
             return PermissionsRegexQuery(permissions__regex=r".*{0}.*".format(permission.value))
         return RoleInQuery(role__lte=permission.fallback_role.value)
+
+    def get_or_create_notification_policies(self, important=False):
+        if not self.notification_policies.filter(important=important).exists():
+            if important:
+                self.notification_policies.create_important_policies_for_user(self)
+            else:
+                self.notification_policies.create_default_policies_for_user(self)
+        notification_policies = self.notification_policies.filter(important=important)
+        return notification_policies
+
+    @property
+    def default_notification_policies_defaults(self):
+        from apps.base.models import UserNotificationPolicy
+
+        print(self)
+
+        return (
+            UserNotificationPolicy(
+                user=self,
+                step=UserNotificationPolicy.Step.NOTIFY,
+                notify_by=settings.EMAIL_BACKEND_INTERNAL_ID,
+                order=0,
+            ),
+        )
+
+    @property
+    def important_notification_policies_defaults(self):
+        from apps.base.models import UserNotificationPolicy
+
+        return (
+            UserNotificationPolicy(
+                user=self,
+                step=UserNotificationPolicy.Step.NOTIFY,
+                notify_by=settings.EMAIL_BACKEND_INTERNAL_ID,
+                important=True,
+                order=0,
+            ),
+        )
 
 
 # TODO: check whether this signal can be moved to save method of the model
