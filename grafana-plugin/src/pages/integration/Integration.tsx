@@ -1061,6 +1061,23 @@ const IntegrationHeader: React.FC<IntegrationHeaderProps> = ({
       )}
 
       <TooltipBadge
+        tooltipTitle=""
+        borderType="secondary"
+        icon="tag-alt"
+        addPadding
+        text={alertReceiveChannel.labels.length}
+        tooltipContent={
+          <VerticalGroup spacing="sm">
+            {alertReceiveChannel.labels.map((label) => (
+              <Tag key={label.key.id}>
+                {label.key.repr}:{label.value.repr}
+              </Tag>
+            ))}
+          </VerticalGroup>
+        }
+      />
+
+      <TooltipBadge
         borderType="success"
         icon="link"
         text={`${alertReceiveChannel.connected_escalations_chains_count}/${alertReceiveChannel.routes_count}`}

@@ -18,6 +18,7 @@ import {
   initErrorDataState,
 } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper.helpers';
 import PluginLink from 'components/PluginLink/PluginLink';
+import Tag from 'components/Tag/Tag';
 import Text from 'components/Text/Text';
 import TooltipBadge from 'components/TooltipBadge/TooltipBadge';
 import { WithContextMenu } from 'components/WithContextMenu/WithContextMenu';
@@ -358,6 +359,27 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
     return null;
   }
 
+  renderLabels(item: AlertReceiveChannel) {
+    return (
+      <TooltipBadge
+        tooltipTitle=""
+        borderType="secondary"
+        icon="tag-alt"
+        addPadding
+        text={item.labels.length}
+        tooltipContent={
+          <VerticalGroup spacing="sm">
+            {item.labels.map((label) => (
+              <Tag key={label.key.id}>
+                {label.key.repr}:{label.value.repr}
+              </Tag>
+            ))}
+          </VerticalGroup>
+        }
+      />
+    );
+  }
+
   renderTeam(item: AlertReceiveChannel, teams: any) {
     return <TeamName team={teams[item.team]} />;
   }
@@ -428,7 +450,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
 
     return [
       {
-        width: '35%',
+        width: '30%',
         title: 'Name',
         key: 'name',
         render: this.renderName,
@@ -441,7 +463,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
         render: (item: AlertReceiveChannel) => this.renderIntegrationStatus(item, alertReceiveChannelStore),
       },
       {
-        width: '20%',
+        width: '15%',
         title: 'Type',
         key: 'datasource',
         render: (item: AlertReceiveChannel) => this.renderDatasource(item, alertReceiveChannelStore),
@@ -457,6 +479,11 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
         title: 'Heartbeat',
         key: 'heartbeat',
         render: (item: AlertReceiveChannel) => this.renderHeartbeat(item),
+      },
+      {
+        width: '10%',
+        title: 'Labels',
+        render: (item: AlertReceiveChannel) => this.renderLabels(item),
       },
       {
         width: '15%',

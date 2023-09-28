@@ -1,22 +1,26 @@
-import React, { forwardRef, useImperativeHandle, useState } from 'react';
+import React, { forwardRef, useImperativeHandle, useMemo, useState } from 'react';
 
 // import cn from 'classnames/bind';
-import ServiceLabels from 'gops-labels';
+import ServiceLabels from '@grafana/labels';
+import '@grafana/labels/dist/theme.css';
 import { observer } from 'mobx-react';
 
+import { LabelKeyValue } from 'models/label/label.types';
 import { useStore } from 'state/useStore';
 
 // import styles from './Labels.module.css';
 
 // const cx = cn.bind(styles);
 
-interface LabelsProps {}
+interface LabelsProps {
+  value: LabelKeyValue[];
+}
 
 const Labels = observer(
   forwardRef(function Labels(props: LabelsProps, ref) {
-    const {} = props;
+    const { value: defaultValue } = props;
 
-    const [value, setValue] = useState([]);
+    const [value, setValue] = useState(defaultValue);
 
     const { labelsStore } = useStore();
 
@@ -31,6 +35,10 @@ const Labels = observer(
       },
       [value]
     );
+
+    const selectedOptions = useMemo(() => {
+      return value.map((v) => ({ id: v.value.id, key: v.key.repr, value: v.value.repr }));
+    }, [value]);
 
     const allOptions = labelsStore.keys.reduce((memo, key) => {
       memo[key.repr] = { id: key.id, values: [] };
@@ -54,28 +62,20 @@ const Labels = observer(
     };
 
     const onUpdate = (pairs) => {
-      const labels = pairs
-        .filter((pair) => Boolean(pair.value))
-        .map((pair) => {
-          const values = labelsStore.values[pair.id];
-
-          const valueId = values.find((v) => v.repr === pair.value)?.id;
-
-          const label = { key: { id: pair.id, repr: pair.key }, value: { id: valueId, repr: pair.value } };
-
-          return label;
-        });
-
-      setValue(labels);
+      setValue(pairs);
     };
 
     const onRowItemRemoval = (_pair, rowIndex) => {
-      setValue(value.splice(rowIndex, 1));
+      console.log(rowIndex);
+      setValue([...value.splice(rowIndex, 1)]);
     };
+
+    console.log('selectedOptions', selectedOptions);
+    console.log('allOptions', allOptions);
 
     return (
       <ServiceLabels
-        selectedOptions={[]}
+        selectedOptions={selectedOptions}
         allOptions={allOptions}
         onNewKeyAdd={onNewKeyAdd}
         onRowItemRemoval={onRowItemRemoval}

@@ -76,7 +76,7 @@ const IntegrationForm = observer((props: IntegrationFormProps) => {
 
   const data =
     id === 'new'
-      ? { integration: selectedOption?.value, team: user?.current_team }
+      ? { integration: selectedOption?.value, team: user?.current_team, labels: [] }
       : prepareForEdit(alertReceiveChannelStore.items[id]);
 
   const { alertReceiveChannelOptions } = alertReceiveChannelStore;
@@ -132,7 +132,7 @@ const IntegrationForm = observer((props: IntegrationFormProps) => {
               <GForm form={form} data={data} onSubmit={handleSubmit} {...extraGFormProps} />
 
               <div className={cx('labels')}>
-                <Labels ref={labelsRef} />
+                <Labels ref={labelsRef} value={data.labels} />
               </div>
 
               {isTableView && <HowTheIntegrationWorks selectedOption={selectedOption} />}
@@ -170,9 +170,12 @@ const IntegrationForm = observer((props: IntegrationFormProps) => {
   async function handleSubmit(data): Promise<void> {
     const { alert_manager, contact_point, is_existing: isExisting } = data;
 
-    //const labels = labelsRef.current?.getValue();
-    //console.log(labels);
-    //labels.map((label) => alertReceiveChannelStore.addLabel(id, label));
+    const labels = labelsRef.current?.getValue();
+    console.log(labels);
+
+    data = { ...data, labels };
+
+    console.log(data);
 
     const matchingAlertManager = allContactPoints.find((cp) => cp.uid === alert_manager);
     const hasContactPointInput = alert_manager && contact_point;

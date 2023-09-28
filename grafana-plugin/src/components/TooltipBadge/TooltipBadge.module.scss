@@ -9,6 +9,13 @@
     border: 1px solid var(--tag-border-primary);
     color: var(--tag-text-primary);
   }
+
+  &--secondary {
+    background: var(--background-secondary);
+    border: var(--border);
+    color: var(--primary-text-color);
+  }
+
   &--warning {
     background: var(--tag-background-warning);
     border: 1px solid var(--tag-border-warning);
