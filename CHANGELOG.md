@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## v1.3.40 (2023-08-28)
+
+### Added
+
+- Create Direct Paging integration by default for every team, create default E-Mail notification policy for every user ([#3064](https://github.com/grafana/oncall/pull/3064))
+
 ## v1.3.39 (2023-09-27)
 
 ### Added
@@ -27,10 +33,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix Slack access token length issue by @toolchainX ([#3016](https://github.com/grafana/oncall/pull/3016))
 - Fix shifts for current user internal endpoint to return the right shift PK ([#3036](https://github.com/grafana/oncall/pull/3036))
 - Handle Slack ratelimit on alert group deletion by @vadimkerr ([#3038](https://github.com/grafana/oncall/pull/3038))
-
-### Added
-
-- Create Direct Paging integration by default for every team, create default E-Mail notification policy for every user ([#3064](https://github.com/grafana/oncall/pull/3064))
 
 ## v1.3.37 (2023-09-12)
 
