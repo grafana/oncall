@@ -4,6 +4,7 @@ import pytest
 from django.conf import settings
 from django.test import override_settings
 
+from apps.alerts.models import AlertReceiveChannel
 from apps.grafana_plugin.helpers.client import GcomAPIClient, GrafanaAPIClient
 from apps.user_management.models import Team, User
 from apps.user_management.sync import check_grafana_incident_is_enabled, cleanup_organization, sync_organization
@@ -48,6 +49,18 @@ def test_sync_users_for_organization(make_organization, make_user_for_organizati
     assert created_user.name == api_users[1]["name"]
     assert created_user.avatar_full_url == "https://test.test/test/1234"
 
+    assert created_user.notification_policies.filter(important=False).count() == 1
+    assert (
+        created_user.notification_policies.filter(important=False).first().notify_by
+        == settings.EMAIL_BACKEND_INTERNAL_ID
+    )
+
+    assert created_user.notification_policies.filter(important=True).count() == 1
+    assert (
+        created_user.notification_policies.filter(important=True).first().notify_by
+        == settings.EMAIL_BACKEND_INTERNAL_ID
+    )
+
 
 @pytest.mark.django_db
 def test_sync_teams_for_organization(make_organization, make_team):
@@ -76,6 +89,15 @@ def test_sync_teams_for_organization(make_organization, make_team):
     assert created_team is not None
     assert created_team.team_id == api_teams[1]["id"]
     assert created_team.name == api_teams[1]["name"]
+
+    direct_paging_integration = AlertReceiveChannel.objects.get(
+        organization=organization,
+        integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING,
+        team=created_team,
+    )
+    assert direct_paging_integration.channel_filters.count() == 1
+    assert direct_paging_integration.channel_filters.first().order == 0
+    assert direct_paging_integration.channel_filters.first().is_default
 
 
 @pytest.mark.django_db

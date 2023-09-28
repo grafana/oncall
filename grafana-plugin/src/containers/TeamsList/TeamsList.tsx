@@ -14,7 +14,6 @@ import { UserActions } from 'utils/authorization';
 const TeamsList = observer(() => {
   const store = useStore();
   const [teamIdToShowModal, setTeamIdToShowModal] = useState<GrafanaTeam['id']>();
-  const { userStore } = store;
 
   const isTeamDefault = (record: GrafanaTeam) => {
     return (
@@ -53,15 +52,9 @@ const TeamsList = observer(() => {
   const renderActionButtons = (record: GrafanaTeam) => {
     const editButton = (
       <HorizontalGroup justify="flex-end">
-        <Tooltip content="Default team will be selected when creating new resources">
-          <Button
-            onClick={async () => {
-              await userStore.updateCurrentUser({ current_team: record.id });
-              store.grafanaTeamStore.updateItems();
-            }}
-            disabled={isTeamDefault(record)}
-            fill="text"
-          >
+        {/* Keep  "Make default" here for backwards compatibility, can be removed in November 2023 */}
+        <Tooltip content="This button is moved to your User Profile">
+          <Button onClick={() => {}} disabled={true} fill="text">
             Make default
           </Button>
         </Tooltip>
