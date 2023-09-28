@@ -769,7 +769,7 @@ INSTALLED_WEBHOOK_PRESETS = [
 ]
 
 if IS_OPEN_SOURCE:
-    INSTALLED_APPS += ["apps.oss_installation", "apps.zvonok"]  # noqa
+    INSTALLED_APPS += ["apps.oss_installation", "apps.zvonok", "apps.aliyun_dyvms"]  # noqa
 
     CELERY_BEAT_SCHEDULE["send_usage_stats"] = {  # noqa
         "task": "apps.oss_installation.tasks.send_usage_stats_report",
@@ -816,6 +816,7 @@ PHONE_PROVIDERS = {
 
 if IS_OPEN_SOURCE:
     PHONE_PROVIDERS["zvonok"] = "apps.zvonok.phone_provider.ZvonokPhoneProvider"
+    PHONE_PROVIDERS["aliyun"] = "apps.aliyun_dyvms.phone_provider.AliyunDyvmsPhoneProvider"
 
 PHONE_PROVIDER = os.environ.get("PHONE_PROVIDER", default=DEFAULT_PHONE_PROVIDER)
 
@@ -828,3 +829,12 @@ ZVONOK_POSTBACK_CAMPAIGN_ID = os.getenv("ZVONOK_POSTBACK_CAMPAIGN_ID", "campaign
 ZVONOK_POSTBACK_STATUS = os.getenv("ZVONOK_POSTBACK_STATUS", "status")
 ZVONOK_POSTBACK_USER_CHOICE = os.getenv("ZVONOK_POSTBACK_USER_CHOICE", None)
 ZVONOK_POSTBACK_USER_CHOICE_ACK = os.getenv("ZVONOK_POSTBACK_USER_CHOICE_ACK", None)
+
+ALIYUN_DYVMS_ACCESS_KEY_ID = os.getenv("ALIYUN_DYVMS_ACCESS_KEY_ID", None)
+ALIYUN_DYVMS_ACCESS_KEY_SECRET = os.getenv("ALIYUN_DYVMS_ACCESS_KEY_SECRET", None)
+ALIYUN_DYVMS_TTS_CODE = os.getenv("ALIYUN_DYVMS_TTS_CODE", None)
+ALIYUN_DYVMS_VERIFY_TTS_CODE = os.getenv("ALIYUN_DYVMS_VERIFY_TTS_CODE", None)
+ALIYUN_DYVMS_CALLED_SHOW_NUMBER = os.getenv("ALIYUN_DYVMS_CALLED_SHOW_NUMBER", None)
+ALIYUN_DYVMS_NOTIFICATION_PROD_ID = os.getenv("ALIYUN_DYVMS_NOTIFICATION_PROD_ID", None)
+ALIYUN_DYVMS_VERIFY_PROD_ID = os.getenv("ALIYUN_DYVMS_VERIFY_PROD_ID", None)
+

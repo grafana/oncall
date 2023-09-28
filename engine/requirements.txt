@@ -59,3 +59,6 @@ lxml==4.9.2
 babel==2.12.1
 drf-spectacular==0.26.2
 grpcio==1.57.0
+aliyun-python-sdk-core==2.13.36
+aliyun-python-sdk-dyvmsapi==3.2.0
+dataclasses_json==0.6.0

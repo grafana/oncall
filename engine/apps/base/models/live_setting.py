@@ -70,6 +70,13 @@ class LiveSetting(models.Model):
         "ZVONOK_POSTBACK_STATUS",
         "ZVONOK_POSTBACK_USER_CHOICE",
         "ZVONOK_POSTBACK_USER_CHOICE_ACK",
+        "ALIYUN_DYVMS_ACCESS_KEY_ID",
+        "ALIYUN_DYVMS_ACCESS_KEY_SECRET",
+        "ALIYUN_DYVMS_TTS_CODE",
+        "ALIYUN_DYVMS_VERIFY_TTS_CODE",
+        "ALIYUN_DYVMS_CALLED_SHOW_NUMBER",
+        "ALIYUN_DYVMS_NOTIFICATION_PROD_ID",
+        "ALIYUN_DYVMS_VERIFY_PROD_ID",
     )
 
     DESCRIPTIONS = {
@@ -167,6 +174,13 @@ class LiveSetting(models.Model):
         "ZVONOK_POSTBACK_STATUS": "'Postback' status (ct_status) query parameter name to validate a postback request.",
         "ZVONOK_POSTBACK_USER_CHOICE": "'Postback' user choice (ct_user_choice) query parameter name (optional).",
         "ZVONOK_POSTBACK_USER_CHOICE_ACK": "'Postback' user choice (ct_user_choice) query parameter value for acknowledge alert group (optional).",
+        "ALIYUN_DYVMS_ACCESS_KEY_ID":"Aliyun API AccessKey ID",
+        "ALIYUN_DYVMS_ACCESS_KEY_SECRET":"Aliyun API AccessKey Secret",
+        "ALIYUN_DYVMS_TTS_CODE": "Aliyun DYVMS TTS template code",
+        "ALIYUN_DYVMS_VERIFY_TTS_CODE": "Aliyun DYVMS verification TTS template code",
+        "ALIYUN_DYVMS_CALLED_SHOW_NUMBER": "Aliyun DYVMS called show number",
+        "ALIYUN_DYVMS_NOTIFICATION_PROD_ID": "Aliyun DYVMS notification prod id",
+        "ALIYUN_DYVMS_VERIFY_PROD_ID": "Aliyun DYVMS verification prod id",
     }
 
     SECRET_SETTING_NAMES = (
@@ -183,6 +197,8 @@ class LiveSetting(models.Model):
         "TELEGRAM_TOKEN",
         "GRAFANA_CLOUD_ONCALL_TOKEN",
         "ZVONOK_API_KEY",
+        "ALIYUN_DYVMS_ACCESS_KEY_ID",
+        "ALIYUN_DYVMS_ACCESS_KEY_SECRET"
     )
 
     def __str__(self):

@@ -165,4 +165,7 @@ CELERY_TASK_ROUTES = {
     "apps.webhooks.tasks.trigger_webhook.send_webhook_event": {"queue": "webhook"},
     "apps.webhooks.tasks.alert_group_status.alert_group_created": {"queue": "webhook"},
     "apps.webhooks.tasks.alert_group_status.alert_group_status_change": {"queue": "webhook"},
+
+    # aliyun_dyvms tasks
+    "apps.aliyun_dyvms.tasks.record_call_status_async": {"queue": "critical"},
 }
