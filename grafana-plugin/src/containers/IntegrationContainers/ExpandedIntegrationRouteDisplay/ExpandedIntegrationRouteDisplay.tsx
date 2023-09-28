@@ -229,6 +229,7 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
                           </>
                         );
                       }}
+                      data-testid="escalation-chain-select"
                     ></Select>
                   </WithPermissionControlTooltip>
 
