@@ -86,7 +86,9 @@ from apps.telegram.tests.factories import (
 )
 from apps.user_management.models.user import User, listen_for_user_model_save
 from apps.user_management.tests.factories import OrganizationFactory, RegionFactory, TeamFactory, UserFactory
+from apps.webhooks.presets.preset_options import WebhookPresetOptions
 from apps.webhooks.tests.factories import CustomWebhookFactory, WebhookResponseFactory
+from apps.webhooks.tests.test_webhook_presets import TEST_WEBHOOK_PRESET_ID, TestWebhookPreset
 
 register(OrganizationFactory)
 register(UserFactory)
@@ -907,3 +909,11 @@ def shift_swap_request_setup(
         return ssr, beneficiary, benefactor
 
     return _shift_swap_request_setup
+
+
+@pytest.fixture()
+def webhook_preset_api_setup():
+    WebhookPresetOptions.WEBHOOK_PRESETS = {TEST_WEBHOOK_PRESET_ID: TestWebhookPreset()}
+    WebhookPresetOptions.WEBHOOK_PRESET_CHOICES = [
+        preset.metadata for preset in WebhookPresetOptions.WEBHOOK_PRESETS.values()
+    ]

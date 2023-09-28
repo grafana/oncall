@@ -94,6 +94,8 @@ class Webhook(models.Model):
         (TRIGGER_UNACKNOWLEDGE, "Unacknowledged"),
     )
 
+    ALL_TRIGGER_TYPES = [i[0] for i in TRIGGER_TYPES]
+
     PUBLIC_TRIGGER_TYPES_MAP = {
         TRIGGER_ESCALATION_STEP: "escalation",
         TRIGGER_ALERT_GROUP_CREATED: "alert group created",
@@ -137,11 +139,12 @@ class Webhook(models.Model):
     url = models.TextField(null=True, default=None)
     data = models.TextField(null=True, default=None)
     forward_all = models.BooleanField(default=True)
-    http_method = models.CharField(max_length=32, default="POST")
+    http_method = models.CharField(max_length=32, default="POST", null=True)
     trigger_type = models.IntegerField(choices=TRIGGER_TYPES, default=TRIGGER_ESCALATION_STEP, null=True)
     is_webhook_enabled = models.BooleanField(null=True, default=True)
     integration_filter = models.JSONField(default=None, null=True, blank=True)
     is_legacy = models.BooleanField(null=True, default=False)
+    preset = models.CharField(max_length=100, null=True, blank=True, default=None)
 
     class Meta:
         unique_together = ("name", "organization")
