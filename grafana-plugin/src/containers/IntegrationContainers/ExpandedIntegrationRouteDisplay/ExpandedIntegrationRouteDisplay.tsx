@@ -194,8 +194,8 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
               )}
 
               <VerticalGroup>
-                <HorizontalGroup spacing={'xs'}>
-                  <div data-testid="escalation-chain-select">
+                <div data-testid="escalation-chain-select">
+                  <HorizontalGroup spacing={'xs'}>
                     <InlineLabel
                       width={20}
                       tooltip="The escalation chain determines who and when to notify when an alert group starts."
@@ -258,9 +258,8 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
                         </HorizontalGroup>
                       </Button>
                     )}
-                  </div>
-                </HorizontalGroup>
-
+                  </HorizontalGroup>
+                </div>
                 {!isEscalationCollapsed && (
                   <ReadOnlyEscalationChain escalationChainId={channelFilter.escalation_chain} />
                 )}
