@@ -38,7 +38,6 @@ Related: [How to develop integrations](/engine/config_integrations/README.md)
 - [tilt-dev/ctlptl: Making local Kubernetes clusters fun and easy to set up](https://github.com/tilt-dev/ctlptl)
 - [Kind](https://kind.sigs.k8s.io)
 - [Yarn](https://classic.yarnpkg.com/lang/en/docs/install/#mac-stable)
-- Enable Kubernetes at your local Docker (in settings)
 
 ### Launch the environment
 
