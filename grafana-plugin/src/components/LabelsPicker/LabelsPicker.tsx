@@ -53,18 +53,14 @@ const LabelsPicker: FC<LabelsPickerProps> = (props) => {
     });
   }, [propsValue]);
 
-  console.log('value', value);
-
   const loadKeysHandler = (search) => {
-    console.log('loadKeysHandler', search);
     return loadKeys(search).then((keys) => keys.map((key) => ({ label: key[labelField], value: key[valueField] })));
   };
 
   const loadValuesHandler = (key: SelectableValue['value'], search) => {
-    console.log('loadKeysHandler', search);
-    return loadValuesForKey(key, search).then((values) =>
-      values.map((value) => ({ label: value[labelField], value: value[valueField] }))
-    );
+    return loadValuesForKey(key, search).then((values) => {
+      return values.map((value) => ({ label: value[labelField], value: value[valueField] }));
+    });
   };
 
   const onKeyChange = (index, value) => {
@@ -162,6 +158,7 @@ const LabelsPicker: FC<LabelsPickerProps> = (props) => {
             <HorizontalGroup key={index} spacing="xs">
               <div className="pair-selector">
                 <AsyncSelect
+                  // key={keyValue.key.value}
                   width={256 / 8}
                   value={keyValue.key.value ? keyValue.key : undefined} // to show placeholder correctly
                   loadOptions={loadKeysHandler}
@@ -171,6 +168,7 @@ const LabelsPicker: FC<LabelsPickerProps> = (props) => {
                   autoFocus
                   allowCustomValue
                   onCreateOption={(value) => onKeyAdd(index, value.trim())}
+                  cacheOptions={false}
                   formatOptionLabel={(item) => (
                     <HorizontalGroup>
                       {item.label}
@@ -194,7 +192,7 @@ const LabelsPicker: FC<LabelsPickerProps> = (props) => {
 
               <div className="pair-selector">
                 <AsyncSelect
-                  key={keyValue.key.value}
+                  //key={keyValue.value.value}
                   width={256 / 8}
                   disabled={!keyValue.key.value}
                   value={keyValue.value.value ? keyValue.value : undefined} // to show placeholder correctly
@@ -205,6 +203,7 @@ const LabelsPicker: FC<LabelsPickerProps> = (props) => {
                   onCreateOption={(value) => onValueAdd(index, value.trim())}
                   placeholder={keyValue.key.value ? 'Select value' : 'Select key first'}
                   autoFocus
+                  cacheOptions={false}
                   formatOptionLabel={(item) => (
                     <HorizontalGroup>
                       {item.label}

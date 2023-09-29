@@ -25,7 +25,7 @@ export class LabelStore extends BaseStore {
       await makeRequest(`${this.path}keys/`, {
         params: { search },
       })
-    ).filter((k) => k.repr.includes(search)); // TODO remove after backend search implementation
+    ).filter((k) => k.repr.toLowerCase().includes(search.toLowerCase())); // TODO remove after backend search implementation
 
     this.keys = result;
 
@@ -40,14 +40,14 @@ export class LabelStore extends BaseStore {
       params: { search },
     });
 
-    const filteredValues = result.values.filter((v) => v.repr.includes(search)); // TODO remove after backend search implementation
+    const filteredValues = result.values.filter((v) => v.repr.toLowerCase().includes(search.toLowerCase())); // TODO remove after backend search implementation
 
     this.values = {
       ...this.values,
       [key]: filteredValues,
     };
 
-    console.log('loadValuesForKey', key, search, result);
+    console.log('loadValuesForKey', key, search, filteredValues);
 
     return filteredValues;
   }
