@@ -25,7 +25,7 @@ import GForm from 'components/GForm/GForm';
 import { FormItem } from 'components/GForm/GForm.types';
 import IntegrationLogo from 'components/IntegrationLogo/IntegrationLogo';
 import Text from 'components/Text/Text';
-import Labels from 'containers/Labels/Labels';
+import Labels2 from 'containers/Labels2/Labels2';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import {
   AlertReceiveChannel,
@@ -132,7 +132,7 @@ const IntegrationForm = observer((props: IntegrationFormProps) => {
               <GForm form={form} data={data} onSubmit={handleSubmit} {...extraGFormProps} />
 
               <div className={cx('labels')}>
-                <Labels ref={labelsRef} value={data.labels} />
+                <Labels2 ref={labelsRef} value={data.labels} />
               </div>
 
               {isTableView && <HowTheIntegrationWorks selectedOption={selectedOption} />}

@@ -113,7 +113,6 @@
     "@grafana/data": "^9.2.4",
     "@grafana/faro-web-sdk": "^1.0.0-beta4",
     "@grafana/faro-web-tracing": "^1.0.0-beta4",
-    "@grafana/labels": "^0.0.1-beta.0",
     "@grafana/runtime": "9.3.0-beta1",
     "@grafana/ui": "^9.4.7",
     "@opentelemetry/api": "^1.3.0",

@@ -11,6 +11,7 @@ import {
   ConfirmModal,
   Drawer,
   Alert,
+  Tag as GrafanaTag,
 } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { get } from 'lodash-es';
@@ -1068,11 +1069,15 @@ const IntegrationHeader: React.FC<IntegrationHeaderProps> = ({
         text={alertReceiveChannel.labels.length}
         tooltipContent={
           <VerticalGroup spacing="sm">
-            {alertReceiveChannel.labels.map((label) => (
-              <Tag key={label.key.id}>
-                {label.key.repr}:{label.value.repr}
-              </Tag>
-            ))}
+            {alertReceiveChannel.labels.length
+              ? alertReceiveChannel.labels.map((label) => (
+                  <GrafanaTag
+                    name={`${label.key.repr}:${label.value.repr}`}
+                    colorIndex={Math.floor(Math.random() * 28)}
+                    key={label.key.id}
+                  />
+                ))
+              : 'No labels attached'}
           </VerticalGroup>
         }
       />

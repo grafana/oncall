@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { HorizontalGroup, Button, VerticalGroup, Icon, ConfirmModal, Tooltip } from '@grafana/ui';
+import { HorizontalGroup, Button, VerticalGroup, Icon, ConfirmModal, Tooltip, Tag } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { debounce } from 'lodash-es';
 import { observer } from 'mobx-react';
@@ -18,7 +18,6 @@ import {
   initErrorDataState,
 } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper.helpers';
 import PluginLink from 'components/PluginLink/PluginLink';
-import Tag from 'components/Tag/Tag';
 import Text from 'components/Text/Text';
 import TooltipBadge from 'components/TooltipBadge/TooltipBadge';
 import { WithContextMenu } from 'components/WithContextMenu/WithContextMenu';
@@ -369,11 +368,15 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
         text={item.labels.length}
         tooltipContent={
           <VerticalGroup spacing="sm">
-            {item.labels.map((label) => (
-              <Tag key={label.key.id}>
-                {label.key.repr}:{label.value.repr}
-              </Tag>
-            ))}
+            {item.labels.length
+              ? item.labels.map((label) => (
+                  <Tag
+                    name={`${label.key.repr}:${label.value.repr}`}
+                    colorIndex={Math.floor(Math.random() * 28)}
+                    key={label.key.id}
+                  />
+                ))
+              : 'No labels attached'}
           </VerticalGroup>
         }
       />

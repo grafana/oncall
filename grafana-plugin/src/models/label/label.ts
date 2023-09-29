@@ -17,21 +17,85 @@ export class LabelStore extends BaseStore {
     super(rootStore);
 
     this.path = '/labels/';
-
-    this.updateKeys();
   }
 
   @action
-  public async updateKeys() {
-    const result = await makeRequest(`${this.path}keys/`, {
-      params: {},
-    });
-
-    console.log('keys', result);
+  public async loadKeys(search = '') {
+    const result = (
+      await makeRequest(`${this.path}keys/`, {
+        params: { search },
+      })
+    ).filter((k) => k.repr.includes(search)); // TODO remove after backend search implementation
 
     this.keys = result;
 
+    console.log('loadKeys', search, result);
+
     return result;
+  }
+
+  @action
+  public async loadValuesForKey(key: LabelKey['id'], search = '') {
+    const result = await makeRequest(`${this.path}id/${key}`, {
+      params: { search },
+    });
+
+    const filteredValues = result.values.filter((v) => v.repr.includes(search)); // TODO remove after backend search implementation
+
+    this.values = {
+      ...this.values,
+      [key]: filteredValues,
+    };
+
+    console.log('loadValuesForKey', key, search, result);
+
+    return filteredValues;
+  }
+
+  public async createKey(name: string) {
+    const { key } = await makeRequest(`${this.path}`, {
+      method: 'POST',
+      data: { key: { repr: name }, values: [] },
+    });
+
+    console.log('createKey', name, key);
+
+    return key;
+  }
+
+  public async createValue(keyId: LabelKey['id'], value: string) {
+    const result = await makeRequest(`${this.path}id/${keyId}/values`, {
+      method: 'POST',
+      data: { repr: value },
+    });
+
+    console.log('createValue', result);
+
+    return result.values.find((v) => v.repr === value); // TODO remove after backend API change
+  }
+
+  @action
+  public async updateKey(keyId: LabelKey['id'], name: string) {
+    const result = await makeRequest(`${this.path}id/${keyId}`, {
+      method: 'PUT',
+      data: { repr: name },
+    });
+
+    console.log('updateKey', result);
+
+    return result.key;
+  }
+
+  @action
+  public async updateKeyValue(keyId: LabelKey['id'], valueId: LabelValue['id'], name: string) {
+    const result = await makeRequest(`${this.path}id/${keyId}/values/${valueId}`, {
+      method: 'PUT',
+      data: { repr: name },
+    });
+
+    console.log('updateKeyValue', result);
+
+    return result.values.find((v) => v.repr === name);
   }
 
   @action
@@ -46,17 +110,6 @@ export class LabelStore extends BaseStore {
     };
 
     console.log('getValuesForKey', keyId, toJS(this.values));
-
-    return result;
-  }
-
-  public async createKey(key: string) {
-    const result = await makeRequest(`${this.path}`, {
-      method: 'POST',
-      data: { key: { repr: key }, values: [] },
-    });
-
-    console.log('create key', key, result);
 
     return result;
   }
