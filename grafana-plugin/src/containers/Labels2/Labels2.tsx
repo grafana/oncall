@@ -23,8 +23,6 @@ const Labels2 = observer(
 
     const { labelsStore } = useStore();
 
-    const store = useStore();
-
     useImperativeHandle(
       ref,
       () => {
@@ -36,8 +34,6 @@ const Labels2 = observer(
       },
       [value]
     );
-
-    const {} = store;
 
     return (
       <div className={cx('root')}>

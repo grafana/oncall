@@ -192,7 +192,7 @@ const LabelsPicker: FC<LabelsPickerProps> = (props) => {
 
               <div className="pair-selector">
                 <AsyncSelect
-                  //key={keyValue.value.value}
+                  key={keyValue.key.value}
                   width={256 / 8}
                   disabled={!keyValue.key.value}
                   value={keyValue.value.value ? keyValue.value : undefined} // to show placeholder correctly
