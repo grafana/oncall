@@ -5,12 +5,11 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ViewSet
 
 from apps.alerts.models import AlertReceiveChannel
-from apps.api.serializers.labels import LabelSerializer
+from apps.api.serializers.labels import LabelKeyValuesSerializer, LabelSerializer
 from apps.auth_token.auth import PluginAuthentication
 from apps.labels.client import LabelsAPIClient
 from apps.labels.models import AssociatedLabel
-
-# from apps.labels.tasks import update_labels_cache_for_key
+from apps.labels.tasks import update_instances_labels_cache, update_labels_cache_for_key
 from apps.labels.utils import is_labels_enabled
 from common.api_helpers.exceptions import BadRequest
 
@@ -33,7 +32,7 @@ class LabelsCRUDView(ViewSet):
     def get_key(self, request, key_id):  # todo
         organization = self.request.auth.organization
         result, response_info = LabelsAPIClient(organization.grafana_url, organization.api_token).get_values(key_id)
-        # update_labels_cache_for_key.apply_async((organization, result,),)
+        self._update_labels_cache(result)
         return Response(result, status=response_info["status_code"])
 
     def rename_key(self, request, key_id):
@@ -44,7 +43,7 @@ class LabelsCRUDView(ViewSet):
         result, response_info = LabelsAPIClient(organization.grafana_url, organization.api_token).rename_key(
             key_id, label_data
         )
-        # todo: if response 200 update cache
+        self._update_labels_cache(result)
         return Response(result, status=response_info["status_code"])
 
     def create_label(self, request):
@@ -75,8 +74,18 @@ class LabelsCRUDView(ViewSet):
         result, response_info = LabelsAPIClient(organization.grafana_url, organization.api_token).rename_value(
             key_id, value_id, label_data
         )
-        # todo: if response 200 update cache
+        self._update_labels_cache(result)
         return Response(result, status=response_info["status_code"])
+
+    def _update_labels_cache(self, label_data):
+        if not label_data:
+            return
+        serializer = LabelKeyValuesSerializer(data=label_data)
+        if serializer.is_valid():
+            # update_labels_cache_for_key.apply_async((label_data,),)
+            update_labels_cache_for_key(
+                label_data,
+            )  # todo: async
 
 
 class LabelsAssociatingMixin:  # use for labelable objects views (ex. AlertReceiveChannelView)
@@ -96,6 +105,13 @@ class LabelsAssociatingMixin:  # use for labelable objects views (ex. AlertRecei
                 labels__key_id=key_id, labels__value_id=value_id
             ).distinct()
         return queryset
+
+    def paginate_queryset(self, queryset):
+        organization = self.request.auth.organization
+        data = super().paginate_queryset(queryset)
+        ids = [d.id for d in data]
+        update_instances_labels_cache(organization.id, ids, self.model.__name__)
+        return data
 
     @action(methods=["get"], detail=True)
     def labels(self, request, pk):  # todo

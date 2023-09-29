@@ -28,3 +28,8 @@ class LabelValueSerializer(serializers.ModelSerializer):
 class LabelSerializer(serializers.Serializer):
     key = LabelKeySerializer()
     value = LabelValueSerializer()
+
+
+class LabelKeyValuesSerializer(serializers.Serializer):
+    key = LabelKeySerializer()
+    values = LabelValueSerializer(many=True)

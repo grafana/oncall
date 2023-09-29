@@ -71,8 +71,8 @@ class AlertReceiveChannelView(
     PublicPrimaryKeyMixin,
     FilterSerializerMixin,
     UpdateSerializerMixin,
-    ModelViewSet,
     LabelsAssociatingMixin,
+    ModelViewSet,
 ):
     authentication_classes = (PluginAuthentication,)
     permission_classes = (IsAuthenticated, RBACPermission)

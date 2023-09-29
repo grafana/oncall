@@ -4,6 +4,8 @@ from django.conf import settings
 
 logger = logging.getLogger(__name__)
 
+LABEL_OUTDATED_TIMEOUT_MINUTES = 30
+
 
 def is_labels_enabled(organization):
     """

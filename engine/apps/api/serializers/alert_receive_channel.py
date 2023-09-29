@@ -56,12 +56,12 @@ class AlertReceiveChannelSerializer(EagerLoadingMixin, serializers.ModelSerializ
     connected_escalations_chains_count = serializers.SerializerMethodField()
     inbound_email = serializers.CharField(required=False)
     is_legacy = serializers.SerializerMethodField()
-    labels = LabelSerializer(many=True, required=False)  # todo: test
+    labels = LabelSerializer(many=True, required=False)
 
     # integration heartbeat is in PREFETCH_RELATED not by mistake.
     # With using of select_related ORM builds strange join
     # which leads to incorrect heartbeat-alert_receive_channel binding in result
-    PREFETCH_RELATED = ["channel_filters", "integration_heartbeat", "labels"]
+    PREFETCH_RELATED = ["channel_filters", "integration_heartbeat", "labels", "labels__key", "labels__value"]
     SELECT_RELATED = ["organization", "author"]
 
     class Meta:
@@ -140,7 +140,7 @@ class AlertReceiveChannelSerializer(EagerLoadingMixin, serializers.ModelSerializ
         except AlertReceiveChannel.DuplicateDirectPagingError:
             raise BadRequest(detail=AlertReceiveChannel.DuplicateDirectPagingError.DETAIL)
         if labels is not None:
-            AssociatedLabel.associate(labels, instance, organization)
+            AssociatedLabel.update_association(labels, instance, organization)
         return instance
 
     def update(self, instance, validated_data):
