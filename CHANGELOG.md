@@ -10,8 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Unify breadcrumbs behaviour with other Grafana Apps and main core ([#1906](https://github.com/grafana/oncall/issues/1906))
-- Added index on multiple columns in `user_management_user` table. This substantially speeds up queries used for showing the schedules of users.
-  By @Red_M ([#3054](https://github.com/grafana/oncall/pull/3054)).
+- Added index on multiple columns in `user_management_user` table. This substantially speeds up queries used for showing the
+  schedules of users. By @Red_M ([#3054](https://github.com/grafana/oncall/pull/3054)).
 
 ## v1.3.38 (2023-09-19)
 
