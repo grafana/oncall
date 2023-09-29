@@ -2,9 +2,10 @@ import typing
 
 from django.conf import settings
 from django.core.validators import MinLengthValidator
-from django.db import models
+from django.db import models, transaction
 
-from apps.metrics_exporter.helpers import metrics_bulk_update_team_label_cache
+from apps.alerts.models import AlertReceiveChannel, ChannelFilter
+from apps.metrics_exporter.helpers import metrics_add_integration_to_cache, metrics_bulk_update_team_label_cache
 from apps.metrics_exporter.metrics_cache_manager import MetricsCacheManager
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
 
@@ -51,7 +52,48 @@ class TeamManager(models.Manager["Team"]):
             for team in grafana_teams.values()
             if team["id"] not in existing_team_ids
         )
-        organization.teams.bulk_create(teams_to_create, batch_size=5000)
+
+        with transaction.atomic():
+            organization.teams.bulk_create(teams_to_create, batch_size=5000)
+            # Retrieve primary keys for the newly created users
+            #
+            # If the model’s primary key is an AutoField, the primary key attribute can only be retrieved
+            # on certain databases (currently PostgreSQL, MariaDB 10.5+, and SQLite 3.35+).
+            # On other databases, it will not be set.
+            # https://docs.djangoproject.com/en/4.1/ref/models/querysets/#django.db.models.query.QuerySet.bulk_create
+            created_teams = organization.teams.exclude(team_id__in=existing_team_ids)
+            direct_paging_integrations_to_create = []
+            for team in created_teams:
+                alert_receive_channel = AlertReceiveChannel(
+                    organization=organization,
+                    team=team,
+                    integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING,
+                    verbal_name=f"Direct paging ({team.name if team else 'No'} team)",
+                )
+                direct_paging_integrations_to_create.append(alert_receive_channel)
+            AlertReceiveChannel.objects.bulk_create(direct_paging_integrations_to_create, batch_size=5000)
+            created_direct_paging_integrations = (
+                AlertReceiveChannel.objects.filter(
+                    organization=organization,
+                    integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING,
+                )
+                .exclude(team__team_id__in=existing_team_ids)
+                .exclude(team__isnull=True)
+            )
+            default_channel_filters_to_create = []
+            for integration in created_direct_paging_integrations:
+                channel_filter = ChannelFilter(
+                    alert_receive_channel=integration,
+                    filtering_term=None,
+                    is_default=True,
+                    order=0,
+                )
+                default_channel_filters_to_create.append(channel_filter)
+            ChannelFilter.objects.bulk_create(default_channel_filters_to_create, batch_size=5000)
+
+            # Add direct paging integrations to metrics cache
+            for integration in direct_paging_integrations_to_create:
+                metrics_add_integration_to_cache(integration)
 
         # delete excess teams
         team_ids_to_delete = existing_team_ids - grafana_teams.keys()

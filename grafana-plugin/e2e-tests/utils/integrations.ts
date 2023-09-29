@@ -40,7 +40,7 @@ export const assignEscalationChainToIntegration = async (page: Page, escalationC
     selectType: 'grafanaSelect',
     placeholderText: 'Select Escalation Chain',
     value: escalationChainName,
-    startingLocator: page.getByTestId('integration-block-item'),
+    startingLocator: page.getByTestId('escalation-chain-select'),
   });
 };
 

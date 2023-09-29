@@ -76,10 +76,8 @@ def notify_group_task(alert_group_pk, escalation_policy_snapshot_order=None):
             if not user.is_notification_allowed:
                 continue
 
-            notification_policies = UserNotificationPolicy.objects.filter(
-                user=user,
-                important=escalation_policy_step == EscalationPolicy.STEP_NOTIFY_GROUP_IMPORTANT,
-            )
+            important = escalation_policy_step == EscalationPolicy.STEP_NOTIFY_GROUP_IMPORTANT
+            notification_policies = user.get_or_create_notification_policies(important=important)
 
             if notification_policies:
                 usergroup_notification_plan += "\n_{} (".format(

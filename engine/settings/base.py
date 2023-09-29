@@ -696,8 +696,9 @@ EMAIL_USE_TLS = getenv_boolean("EMAIL_USE_TLS", True)
 EMAIL_FROM_ADDRESS = os.getenv("EMAIL_FROM_ADDRESS")
 EMAIL_NOTIFICATIONS_LIMIT = getenv_integer("EMAIL_NOTIFICATIONS_LIMIT", 200)
 
+EMAIL_BACKEND_INTERNAL_ID = 8
 if FEATURE_EMAIL_INTEGRATION_ENABLED:
-    EXTRA_MESSAGING_BACKENDS += [("apps.email.backend.EmailBackend", 8)]
+    EXTRA_MESSAGING_BACKENDS += [("apps.email.backend.EmailBackend", EMAIL_BACKEND_INTERNAL_ID)]
 
 # Inbound email settings
 INBOUND_EMAIL_ESP = os.getenv("INBOUND_EMAIL_ESP")
@@ -721,6 +722,11 @@ INSTALLED_ONCALL_INTEGRATIONS = [
     "config_integrations.slack_channel",
     "config_integrations.zabbix",
     "config_integrations.direct_paging",
+]
+
+INSTALLED_WEBHOOK_PRESETS = [
+    "apps.webhooks.presets.simple.SimpleWebhookPreset",
+    "apps.webhooks.presets.advanced.AdvancedWebhookPreset",
 ]
 
 if IS_OPEN_SOURCE:

@@ -1,4 +1,5 @@
 import json
+from dataclasses import asdict
 
 from django.core.exceptions import ObjectDoesNotExist
 from django_filters import rest_framework as filters
@@ -14,6 +15,7 @@ from apps.api.permissions import RBACPermission
 from apps.api.serializers.webhook import WebhookResponseSerializer, WebhookSerializer
 from apps.auth_token.auth import PluginAuthentication
 from apps.webhooks.models import Webhook, WebhookResponse
+from apps.webhooks.presets.preset_options import WebhookPresetOptions
 from apps.webhooks.utils import apply_jinja_template_for_json
 from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.filters import ByTeamModelFieldFilterMixin, ModelFieldFilterMixin, TeamModelMultipleChoiceFilter
@@ -52,6 +54,7 @@ class WebhooksView(TeamFilteringMixin, PublicPrimaryKeyMixin, ModelViewSet):
         "destroy": [RBACPermission.Permissions.OUTGOING_WEBHOOKS_WRITE],
         "responses": [RBACPermission.Permissions.OUTGOING_WEBHOOKS_READ],
         "preview_template": [RBACPermission.Permissions.OUTGOING_WEBHOOKS_WRITE],
+        "preset_options": [RBACPermission.Permissions.OUTGOING_WEBHOOKS_READ],
     }
 
     model = Webhook
@@ -179,3 +182,8 @@ class WebhooksView(TeamFilteringMixin, PublicPrimaryKeyMixin, ModelViewSet):
 
         response = {"preview": result}
         return Response(response, status=status.HTTP_200_OK)
+
+    @action(methods=["get"], detail=False)
+    def preset_options(self, request):
+        result = [asdict(preset) for preset in WebhookPresetOptions.WEBHOOK_PRESET_CHOICES]
+        return Response(result)

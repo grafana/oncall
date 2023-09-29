@@ -6,11 +6,15 @@ from apps.alerts.tasks import send_update_resolution_note_signal
 from apps.api.permissions import RBACPermission
 from apps.api.serializers.resolution_note import ResolutionNoteSerializer, ResolutionNoteUpdateSerializer
 from apps.auth_token.auth import PluginAuthentication
+from apps.mobile_app.auth import MobileAppAuthTokenAuthentication
 from common.api_helpers.mixins import PublicPrimaryKeyMixin, TeamFilteringMixin, UpdateSerializerMixin
 
 
 class ResolutionNoteView(TeamFilteringMixin, PublicPrimaryKeyMixin, UpdateSerializerMixin, ModelViewSet):
-    authentication_classes = (PluginAuthentication,)
+    authentication_classes = (
+        MobileAppAuthTokenAuthentication,
+        PluginAuthentication,
+    )
     permission_classes = (IsAuthenticated, RBACPermission)
 
     rbac_permissions = {

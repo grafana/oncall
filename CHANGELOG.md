@@ -5,13 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Unreleased
+## v1.3.40 (2023-08-28)
 
 ### Added
 
-- Unify breadcrumbs behaviour with other Grafana Apps and main core ([#1906](https://github.com/grafana/oncall/issues/1906))
 - Added index on multiple columns in `user_management_user` table. This substantially speeds up queries used for showing the
   schedules of users. By @Red_M ([#3054](https://github.com/grafana/oncall/pull/3054)).
+- Create Direct Paging integration by default for every team, create default E-Mail notification policy for every user ([#3064](https://github.com/grafana/oncall/pull/3064))
+
+## v1.3.39 (2023-09-27)
+
+### Added
+
+- Presets for webhooks @mderynck ([#2996](https://github.com/grafana/oncall/pull/2996))
+- Add `enable_web_overrides` option to schedules public API ([#3062](https://github.com/grafana/oncall/pull/3062))
+
+### Fixed
+
+- Fix regression in public actions endpoint handling user field by @mderynck ([#3053](https://github.com/grafana/oncall/pull/3053))
+
+### Changed
+
+- Rework how users are fetched from DB when getting users from schedules ical representation ([#3067](https://github.com/grafana/oncall/pull/3067))
 
 ## v1.3.38 (2023-09-19)
 

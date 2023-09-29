@@ -80,7 +80,7 @@ engine:
 # Celery workers pods configuration
 celery:
   replicaCount: 1
-  worker_queue: "default,critical,long,slack,telegram,webhook,celery"
+  worker_queue: "default,critical,long,slack,telegram,webhook,celery,grafana"
   worker_concurrency: "1"
   worker_max_tasks_per_child: "100"
   worker_beat_enabled: "True"
