@@ -354,9 +354,44 @@ def test_create_custom_action_valid_after_render_use_all_data(make_organization_
 
 
 @pytest.mark.django_db
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "data",
+    [
+        (
+            {
+                "name": "RENAMED",
+                "url": "https://example.com",
+            }
+        ),
+        (
+            {
+                "name": "RENAMED",
+                "url": "https://example.com",
+                "user": None,
+                "password": None,
+                "data": None,
+                "authorization_header": None,
+                "forward_whole_payload": True,
+            }
+        ),
+        (
+            {
+                "name": "RENAMED",
+                "url": "https://example.com",
+                "user": "",
+                "password": "",
+                "data": "",
+                "authorization_header": "",
+                "forward_whole_payload": True,
+            }
+        ),
+    ],
+)
 def test_update_custom_action(
     make_organization_and_user_with_token,
     make_custom_webhook,
+    data,
 ):
     organization, user, token = make_organization_and_user_with_token()
     client = APIClient()
@@ -364,11 +399,6 @@ def test_update_custom_action(
     custom_action = make_custom_webhook(organization=organization)
 
     url = reverse("api-public:actions-detail", kwargs={"pk": custom_action.public_primary_key})
-
-    data = {
-        "name": "RENAMED",
-    }
-
     assert custom_action.name != data["name"]
 
     response = client.put(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
@@ -377,12 +407,16 @@ def test_update_custom_action(
         "id": custom_action.public_primary_key,
         "name": data["name"],
         "team_id": None,
-        "url": custom_action.url,
-        "data": custom_action.data,
-        "user": custom_action.username,
-        "password": custom_action.password,
-        "authorization_header": custom_action.authorization_header,
-        "forward_whole_payload": custom_action.forward_all,
+        "url": data["url"],
+        "data": data["data"] if "data" in data else custom_action.data,
+        "user": data["username"] if "username" in data else custom_action.username,
+        "password": data["password"] if "password" in data else custom_action.password,
+        "authorization_header": data["authorization_header"]
+        if "authorization_header" in data
+        else custom_action.authorization_header,
+        "forward_whole_payload": data["forward_whole_payload"]
+        if "forward_whole_payload" in data
+        else custom_action.forward_whole_payload,
         "is_webhook_enabled": custom_action.is_webhook_enabled,
         "trigger_template": custom_action.trigger_template,
         "headers": custom_action.headers,

@@ -48,7 +48,7 @@ class ActionCreateSerializer(WebhookCreateSerializer):
 
 
 class ActionUpdateSerializer(ActionCreateSerializer):
-    user = serializers.CharField(required=False, source="username")
+    user = serializers.CharField(required=False, source="username", allow_null=True, allow_blank=True)
     trigger_type = WebhookTriggerTypeField(required=False)
     forward_whole_payload = serializers.BooleanField(required=False, source="forward_all")
 
