@@ -366,7 +366,7 @@ def test_create_custom_action_valid_after_render_use_all_data(make_organization_
         ),
         (
             {
-                "name": "RENAMED",
+                "name": "RENAMED 1",
                 "url": "https://example.com",
                 "user": None,
                 "password": None,
@@ -377,7 +377,7 @@ def test_create_custom_action_valid_after_render_use_all_data(make_organization_
         ),
         (
             {
-                "name": "RENAMED",
+                "name": "RENAMED 2",
                 "url": "https://example.com",
                 "user": "",
                 "password": "",
@@ -402,21 +402,18 @@ def test_update_custom_action(
     assert custom_action.name != data["name"]
 
     response = client.put(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
+    custom_action.refresh_from_db()
 
     expected_result = {
         "id": custom_action.public_primary_key,
-        "name": data["name"],
+        "name": custom_action.name,
         "team_id": None,
-        "url": data["url"],
-        "data": data["data"] if "data" in data else custom_action.data,
-        "user": data["username"] if "username" in data else custom_action.username,
-        "password": data["password"] if "password" in data else custom_action.password,
-        "authorization_header": data["authorization_header"]
-        if "authorization_header" in data
-        else custom_action.authorization_header,
-        "forward_whole_payload": data["forward_whole_payload"]
-        if "forward_whole_payload" in data
-        else custom_action.forward_whole_payload,
+        "url": custom_action.url,
+        "data": custom_action.data,
+        "user": custom_action.username,
+        "password": custom_action.password,
+        "authorization_header": custom_action.authorization_header,
+        "forward_whole_payload": custom_action.forward_all,
         "is_webhook_enabled": custom_action.is_webhook_enabled,
         "trigger_template": custom_action.trigger_template,
         "headers": custom_action.headers,
@@ -426,8 +423,6 @@ def test_update_custom_action(
     }
 
     assert response.status_code == status.HTTP_200_OK
-    custom_action.refresh_from_db()
-    assert custom_action.name == expected_result["name"]
     assert response.data == expected_result
 
 

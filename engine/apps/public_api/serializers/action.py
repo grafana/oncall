@@ -63,7 +63,6 @@ class ActionUpdateSerializer(ActionCreateSerializer):
             "headers": {"required": False, "allow_null": True, "allow_blank": True},
             "url": {"required": False, "allow_null": False, "allow_blank": False},
             "data": {"required": False, "allow_null": True, "allow_blank": True},
-            "forward_whole_payload": {"required": False, "allow_null": False},
             "http_method": {"required": False, "allow_null": False, "allow_blank": False},
             "integration_filter": {"required": False, "allow_null": True},
         }
