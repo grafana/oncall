@@ -104,6 +104,7 @@ export interface Event {
   }>;
   is_override: boolean;
 
+  schedule?: Partial<Schedule>; // populated by frontend for personal schedule to display schedule name instead of user name
   shiftSwapId?: ShiftSwap['id']; // if event is acually shift swap request (filled out by frontend)
 }
 

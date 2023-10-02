@@ -11,6 +11,7 @@ import { SelectOption } from 'state/types';
 
 import {
   createShiftSwapEventFromShiftSwap,
+  enrichEventsWithScheduleData,
   enrichLayers,
   enrichOverrides,
   flattenShiftEvents,
@@ -548,8 +549,8 @@ export class ScheduleStore extends BaseStore {
       },
     });
 
-    const shiftEventsList = schedules.reduce((acc, schedule) => {
-      return [...acc, ...splitToShiftsAndFillGaps(schedule.events)];
+    const shiftEventsList = schedules.reduce((acc, { events, id, name }) => {
+      return [...acc, ...splitToShiftsAndFillGaps(enrichEventsWithScheduleData(events, { id, name }))];
     }, []);
 
     const shiftEventsListFlattened = flattenShiftEvents(shiftEventsList);

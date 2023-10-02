@@ -77,6 +77,8 @@ class SchedulePersonal extends Component<SchedulePersonalProps> {
 
     const storeUser = store.userStore.items[userPk];
 
+    console.log('storeUser', storeUser);
+
     return (
       <>
         <div className={cx('root')}>
@@ -84,7 +86,7 @@ class SchedulePersonal extends Component<SchedulePersonalProps> {
             <div className={cx('title')}>
               <HorizontalGroup>
                 <Text type="secondary">
-                  On-call schedule <Avatar src={storeUser.avatar} size="small" /> {store.userStore.currentUser.name}
+                  On-call schedule <Avatar src={storeUser.avatar} size="small" /> {storeUser.username}
                 </Text>
                 {/*  @ts-ignore */}
                 {isOncall ? <Badge text="On-call now" color="green" /> : <Badge text="Not on-call now" color="gray" />}

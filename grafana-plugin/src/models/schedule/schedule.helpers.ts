@@ -84,6 +84,10 @@ export const splitToShiftsAndFillGaps = (events: Event[]) => {
   return shifts;
 };
 
+export const enrichEventsWithScheduleData = (events: Event[], schedule: Partial<Schedule>) => {
+  return events.map((event) => ({ ...event, schedule }));
+};
+
 export const getPersonalShiftsFromStore = (
   store: RootStore,
   userPk: User['pk'],
