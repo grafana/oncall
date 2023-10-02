@@ -4,7 +4,7 @@ from apps.grafana_plugin.helpers.client import APIClient
 
 
 class LabelsAPIClient(APIClient):
-    LABELS_API_URL = "/api/plugins/grafana-irm-labels-repo-app/resources/v1/labels/"  # todo
+    LABELS_API_URL = "/api/plugins/grafana-labels/resources/v1/labels/"
 
     def __init__(self, api_url: str, api_token: str) -> None:
         super().__init__(api_url, api_token)
