@@ -100,4 +100,4 @@ def update_instances_labels_cache(organization_id, instance_ids, instance_model_
     for key_id in keys_ids:
         label_data, _ = client.get_values(key_id)
         if label_data:
-            update_labels_cache_for_key.apply_async(label_data)
+            update_labels_cache_for_key.apply_async((label_data,))
