@@ -9,11 +9,16 @@ keywords:
   - Notifications
   - on-call
   - uptimerobot
+labels:
+  products:
+    - cloud
 title: UptimeRobot
 weight: 500
 ---
 
 # UptimeRobot integration for Grafana OnCall
+
+> This integration is not available in OSS version
 
 The UptimeRobot integration for Grafana OnCall handles ticket events sent from UptimeRobot webhooks.
 The integration provides grouping, auto-acknowledge and auto-resolve logic via customizable alert templates.
