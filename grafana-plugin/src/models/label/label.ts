@@ -1,4 +1,4 @@
-import { action, observable, toJS } from 'mobx';
+import { action, observable } from 'mobx';
 
 import BaseStore from 'models/base_store';
 import { makeRequest } from 'network';
@@ -29,7 +29,7 @@ export class LabelStore extends BaseStore {
 
     this.keys = result;
 
-    console.log('loadKeys', search, result);
+    console.log('loadKeys - checked', search, result);
 
     return result;
   }
@@ -47,7 +47,7 @@ export class LabelStore extends BaseStore {
       [key]: filteredValues,
     };
 
-    console.log('loadValuesForKey', key, search, filteredValues);
+    console.log('loadValuesForKey - checked', key, search, filteredValues);
 
     return filteredValues;
   }
@@ -58,7 +58,7 @@ export class LabelStore extends BaseStore {
       data: { key: { repr: name }, values: [] },
     });
 
-    console.log('createKey', name, key);
+    console.log('createKey - checked', name, key);
 
     return key;
   }
@@ -69,7 +69,7 @@ export class LabelStore extends BaseStore {
       data: { repr: value },
     });
 
-    console.log('createValue', result);
+    console.log('createValue - checked', result);
 
     return result.values.find((v) => v.repr === value); // TODO remove after backend API change
   }
@@ -81,7 +81,7 @@ export class LabelStore extends BaseStore {
       data: { repr: name },
     });
 
-    console.log('updateKey', result);
+    console.log('updateKey - checked', result);
 
     return result.key;
   }
@@ -93,35 +93,8 @@ export class LabelStore extends BaseStore {
       data: { repr: name },
     });
 
-    console.log('updateKeyValue', result);
+    console.log('updateKeyValue - checked', result);
 
     return result.values.find((v) => v.repr === name);
-  }
-
-  @action
-  public async getValuesForKey(keyId: string) {
-    const result = await makeRequest(`${this.path}id/${keyId}`, {
-      params: {},
-    });
-
-    this.values = {
-      ...this.values,
-      [result.key.repr]: result.values,
-    };
-
-    console.log('getValuesForKey', keyId, toJS(this.values));
-
-    return result;
-  }
-
-  public async addValue(keyId: LabelKey['id'], value: string) {
-    const result = await makeRequest(`${this.path}id/${keyId}/values`, {
-      method: 'POST',
-      data: { repr: value },
-    });
-
-    console.log('addValue', keyId, value, result);
-
-    return result;
   }
 }
