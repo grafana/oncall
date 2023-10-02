@@ -25,7 +25,7 @@ import GForm from 'components/GForm/GForm';
 import { FormItem } from 'components/GForm/GForm.types';
 import IntegrationLogo from 'components/IntegrationLogo/IntegrationLogo';
 import Text from 'components/Text/Text';
-import Labels2 from 'containers/Labels2/Labels2';
+import Labels from 'containers/Labels/Labels';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import {
   AlertReceiveChannel,
@@ -67,6 +67,7 @@ const IntegrationForm = observer((props: IntegrationFormProps) => {
   const [selectedOption, setSelectedOption] = useState<AlertReceiveChannelOption>(undefined);
   const [showIntegrarionsListDrawer, setShowIntegrarionsListDrawer] = useState(id === 'new');
   const [allContactPoints, setAllContactPoints] = useState([]);
+  const [errors, setErrors] = useState<Record<string, any>>();
 
   useEffect(() => {
     (async function () {
@@ -132,7 +133,7 @@ const IntegrationForm = observer((props: IntegrationFormProps) => {
               <GForm form={form} data={data} onSubmit={handleSubmit} {...extraGFormProps} />
 
               <div className={cx('labels')}>
-                <Labels2 ref={labelsRef} value={data.labels} />
+                <Labels ref={labelsRef} errors={errors?.labels} value={data.labels} />
               </div>
 
               {isTableView && <HowTheIntegrationWorks selectedOption={selectedOption} />}
@@ -171,11 +172,8 @@ const IntegrationForm = observer((props: IntegrationFormProps) => {
     const { alert_manager, contact_point, is_existing: isExisting } = data;
 
     const labels = labelsRef.current?.getValue();
-    console.log(labels);
 
     data = { ...data, labels };
-
-    console.log(data);
 
     const matchingAlertManager = allContactPoints.find((cp) => cp.uid === alert_manager);
     const hasContactPointInput = alert_manager && contact_point;
@@ -189,16 +187,17 @@ const IntegrationForm = observer((props: IntegrationFormProps) => {
       return;
     }
 
-    let apiResponseData: void | AlertReceiveChannel;
     const isCreate = id === 'new';
 
-    if (isCreate) {
-      apiResponseData = await createNewIntegration();
-    } else {
-      apiResponseData = await alertReceiveChannelStore.update(id, data);
-    }
+    try {
+      if (isCreate) {
+        await createNewIntegration();
+      } else {
+        await alertReceiveChannelStore.update(id, data);
+      }
+    } catch (error) {
+      setErrors(error.response.data);
 
-    if (!apiResponseData) {
       openErrorNotification(
         `There was an issue ${isCreate ? 'creating' : 'updating'} the integration. Please try again.`
       );

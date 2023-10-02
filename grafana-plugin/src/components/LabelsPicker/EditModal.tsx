@@ -2,14 +2,16 @@ import React, { useState } from 'react';
 
 import { Alert, Button, Field, HorizontalGroup, Input, Modal, VerticalGroup } from '@grafana/ui';
 
+import './styles.css';
+
 interface EditModalProps {
   isInUse;
   onDismiss(): void;
   isKeyEdit: boolean;
   keyString: string;
-  valueString: string;
-  onKeyUpdate(newKey: string): void;
-  onValueUpdate(value: string): void;
+  onKeyUpdate?(newKey: string): void;
+  valueString?: string;
+  onValueUpdate?(value: string): void;
 }
 
 const EditModal: React.FC<EditModalProps> = ({
@@ -25,11 +27,7 @@ const EditModal: React.FC<EditModalProps> = ({
   const [valueField, setValueField] = useState<string>(valueString);
 
   return (
-    <Modal
-      isOpen
-      title={<h2 className="pair-heading">{isKeyEdit ? 'Edit Key' : 'Edit Value'}</h2>}
-      onDismiss={onDismiss}
-    >
+    <Modal className="labels-edit-modal" isOpen title={isKeyEdit ? 'Edit Key' : 'Edit Value'} onDismiss={onDismiss}>
       {isKeyEdit ? renderKeyEdit() : renderValueEdit()}
     </Modal>
   );
@@ -41,7 +39,7 @@ const EditModal: React.FC<EditModalProps> = ({
           <Alert severity="warning" title="This label is in use. The change will impact all other implementations." />
         )}
 
-        <Field label="Key" className="pair-width-100">
+        <Field label="Key">
           <Input
             value={keyField}
             onChange={(ev: React.ChangeEvent<HTMLInputElement>) => setKeyField(ev.target.value)}
@@ -69,11 +67,11 @@ const EditModal: React.FC<EditModalProps> = ({
   function renderValueEdit() {
     return (
       <VerticalGroup spacing="md">
-        <div className="pair-flex">
-          <Field label="Key" className="pair-width-100">
+        <div>
+          <Field label="Key">
             <Input value={keyField} disabled />
           </Field>
-          <Field label="Value" className="pair-width-100">
+          <Field label="Value">
             <Input
               value={valueField}
               placeholder="Type in the value for this key"

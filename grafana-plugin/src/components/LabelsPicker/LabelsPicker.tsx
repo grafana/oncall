@@ -1,7 +1,7 @@
 import React, { FC, useMemo, useState } from 'react';
 
 import { SelectableValue } from '@grafana/data';
-import { AsyncSelect, Button, HorizontalGroup, IconButton, VerticalGroup } from '@grafana/ui';
+import { AsyncSelect, Button, Field, HorizontalGroup, IconButton, VerticalGroup } from '@grafana/ui';
 
 import EditModal from './EditModal';
 
@@ -25,6 +25,7 @@ interface LabelsPickerProps {
   labelField: string;
   valueField: string;
   onChange: (value) => void;
+  errors: Record<string, any>;
 }
 
 const LabelsPicker: FC<LabelsPickerProps> = (props) => {
@@ -39,6 +40,7 @@ const LabelsPicker: FC<LabelsPickerProps> = (props) => {
     labelField,
     valueField,
     onChange,
+    errors,
   } = props;
 
   const [indexToShowKeyEditModal, setIndexToShowKeyEditModal] = useState<number>(undefined);
@@ -121,6 +123,7 @@ const LabelsPicker: FC<LabelsPickerProps> = (props) => {
       onChange(newPropsValue);
     });
   };
+
   const onValueAdd = (index, value) => {
     const keyId = propsValue[index].key[valueField];
     createValue(keyId, value).then((data) => {
@@ -152,13 +155,12 @@ const LabelsPicker: FC<LabelsPickerProps> = (props) => {
 
   return (
     <>
-      <div>
+      <div className="labels-list">
         <VerticalGroup>
           {value.map((keyValue, index) => (
-            <HorizontalGroup key={index} spacing="xs">
-              <div className="pair-selector">
+            <HorizontalGroup key={index} spacing="xs" align="flex-start">
+              <Field className="label-field" invalid={errors[index]?.key} error={errors[index]?.key?.[valueField]}>
                 <AsyncSelect
-                  // key={keyValue.key.value}
                   width={256 / 8}
                   value={keyValue.key.value ? keyValue.key : undefined} // to show placeholder correctly
                   loadOptions={loadKeysHandler}
@@ -169,28 +171,37 @@ const LabelsPicker: FC<LabelsPickerProps> = (props) => {
                   allowCustomValue
                   onCreateOption={(value) => onKeyAdd(index, value.trim())}
                   cacheOptions={false}
-                  formatOptionLabel={(item) => (
-                    <HorizontalGroup>
-                      {item.label}
-                      {keyValue.key.value === item.value && (
-                        <IconButton
-                          className="pair-edit"
-                          size="xs"
-                          name="pen"
-                          aria-label="Edit Key"
-                          onClick={(event: React.SyntheticEvent) => {
-                            event.stopPropagation();
+                  // @ts-ignore actually it works
+                  isOptionDisabled={(item) => {
+                    return index === value.length - 1 && value.some((v) => v.key.value === item.value);
+                  }}
+                  filterOption={(item) => {
+                    return index !== value.length - 1 || !value.some((v) => v.key.value === item.value);
+                  }}
+                  formatOptionLabel={(item) => {
+                    return (
+                      <HorizontalGroup>
+                        {item.label}
+                        {keyValue.key.value === item.value && (
+                          <IconButton
+                            className="pair-edit"
+                            size="xs"
+                            name="pen"
+                            aria-label="Edit Key"
+                            onClick={(event: React.SyntheticEvent) => {
+                              event.stopPropagation();
 
-                            setIndexToShowKeyEditModal(index);
-                          }}
-                        />
-                      )}
-                    </HorizontalGroup>
-                  )}
+                              setIndexToShowKeyEditModal(index);
+                            }}
+                          />
+                        )}
+                      </HorizontalGroup>
+                    );
+                  }}
                 />
-              </div>
+              </Field>
 
-              <div className="pair-selector">
+              <Field className="label-field" invalid={errors[index]?.value} error={errors[index]?.key?.[valueField]}>
                 <AsyncSelect
                   key={keyValue.key.value}
                   width={256 / 8}
@@ -223,24 +234,27 @@ const LabelsPicker: FC<LabelsPickerProps> = (props) => {
                     </HorizontalGroup>
                   )}
                 />
-              </div>
-              <Button
-                disabled={false}
-                tooltip="Remove label"
-                variant="secondary"
-                icon="times"
-                size="sm"
-                onClick={() => handleLabelRemove(index)}
-              />
-              {index === value.length - 1 && (
+              </Field>
+
+              <Field className="label-field">
                 <Button
                   disabled={false}
-                  size="sm"
-                  tooltip="Add label"
+                  tooltip="Remove label"
                   variant="secondary"
-                  icon="plus"
-                  onClick={handleLabelAdd}
+                  icon="times"
+                  onClick={() => handleLabelRemove(index)}
                 />
+              </Field>
+              {index === value.length - 1 && (
+                <Field className="label-field">
+                  <Button
+                    disabled={false}
+                    tooltip="Add label"
+                    variant="secondary"
+                    icon="plus"
+                    onClick={handleLabelAdd}
+                  />
+                </Field>
               )}
             </HorizontalGroup>
           ))}
@@ -253,7 +267,6 @@ const LabelsPicker: FC<LabelsPickerProps> = (props) => {
         </VerticalGroup>
       </div>
       {indexToShowKeyEditModal !== undefined && (
-        /*   @ts-ignore */
         <EditModal
           isKeyEdit
           keyString={propsValue[indexToShowKeyEditModal].key[labelField]}
@@ -263,8 +276,8 @@ const LabelsPicker: FC<LabelsPickerProps> = (props) => {
         />
       )}
       {indexToShowValueEditModal !== undefined && (
-        /*   @ts-ignore */
         <EditModal
+          isKeyEdit={false}
           keyString={propsValue[indexToShowValueEditModal].key[labelField]}
           valueString={propsValue[indexToShowValueEditModal].value[labelField]}
           onDismiss={() => setIndexToShowValueEditModal(undefined)}
