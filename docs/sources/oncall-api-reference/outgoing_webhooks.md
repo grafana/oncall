@@ -10,7 +10,7 @@ weight: 700
 > endpoint remains available and is compatible with previous callers but under the hood it will interact with the
 > new webhooks objects.  It is recommended to use the /webhooks endpoint going forward which has more features.
 
-For more details about specific fields of a webhook see [outgoing webhooks][outgoing-webhooks] documentation.
+For more details about specific fields of a webhook see [outgoing webhooks](../../outgoing-webhooks) documentation.
 
 ## List webhooks
 
