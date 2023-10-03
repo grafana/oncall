@@ -7,7 +7,9 @@ import 'components/LatestLabelsPicker/components/ServiceLabels/ServiceLabels.css
 import EditModal, { BaseEditModal } from 'components/LatestLabelsPicker/components/EditModal/EditModal';
 
 interface KeyValueProps {
+  inputWidth?: number;
   selectedOptions: ItemSelected[];
+  loadById: boolean;
 
   onLoadKeys: () => Promise<ItemRepresentation[]>;
   onLoadValuesForKey: (key: string) => Promise<ItemRepresentation[]>;
@@ -23,6 +25,8 @@ const FieldId = 'id';
 const FieldName = 'repr';
 
 const ServiceLabels: FC<KeyValueProps> = ({
+  loadById,
+  inputWidth = 256,
   selectedOptions: selectedOptionsProps,
 
   onLoadKeys,
@@ -37,22 +41,7 @@ const ServiceLabels: FC<KeyValueProps> = ({
   const [loadingKeys, setLoadingKeys] = useState<string[]>([]);
   const [selectedOptions, setSelectedOptions] = useState<ItemSelected[]>(selectedOptionsProps);
   const [allOptions, setAllOptions] = useState<ItemGroup[]>(getInitialAllOptions());
-
   const [modalInfo, setModalInfo] = useState<BaseEditModal>(initModalInfo());
-
-  const getAllKeys = () =>
-    allOptions.map((option) => ({
-      label: option.key[FieldName],
-      value: option.key[FieldName],
-    }));
-
-  const getAllValues = (option: ItemSelected) =>
-    allOptions
-      .find((opt) => opt.key[FieldName] === option.key[FieldName])
-      ?.values.map((val) => ({
-        label: val[FieldName],
-        value: val[FieldName],
-      }));
 
   return (
     <div>
@@ -70,7 +59,7 @@ const ServiceLabels: FC<KeyValueProps> = ({
           <HorizontalGroup key={index} spacing="xs">
             <div className="pair-selector">
               <Select
-                width={256 / 8}
+                width={inputWidth / 8}
                 value={option.key[FieldName]}
                 options={getAllKeys()}
                 onChange={(value) => onKeyChange(value.value, index)}
@@ -85,20 +74,20 @@ const ServiceLabels: FC<KeyValueProps> = ({
                   size="xs"
                   name="pen"
                   aria-label="Edit Key"
-                  onClick={(event: React.SyntheticEvent) => onKeyEdit(event, option, index)}
+                  onClick={(event: React.SyntheticEvent) => onOpenKeyEditModal(event, option, index)}
                 />
               )}
             </div>
 
             <div className="pair-selector">
               <Select
-                width={256 / 8}
-                disabled={!option.key[FieldName] || loadingKeys.indexOf(option.key[FieldId]) !== -1}
+                width={inputWidth / 8}
+                disabled={!option.key[FieldName] || loadingKeys.indexOf(option.key[getLookoutMethod()]) !== -1}
                 value={option.value[FieldName]}
                 options={getAllValues(option)}
                 onChange={(value) => onValueChange(option.key[FieldName], value.value, index)}
                 allowCustomValue
-                onCreateOption={(value) => onValueAdd(option.key[FieldId], value.trim(), index)}
+                onCreateOption={(value) => onValueAdd(option.key[getLookoutMethod()], value.trim(), index)}
                 placeholder={option.key ? 'Select value' : 'Select key first'}
                 autoFocus
               />
@@ -108,7 +97,7 @@ const ServiceLabels: FC<KeyValueProps> = ({
                   name="pen"
                   size="xs"
                   aria-label="Edit Value"
-                  onClick={(event: React.SyntheticEvent) => onValueEdit(event, option, index)}
+                  onClick={(event: React.SyntheticEvent) => onOpenValueEditModal(event, option, index)}
                 />
               )}
             </div>
@@ -144,6 +133,26 @@ const ServiceLabels: FC<KeyValueProps> = ({
       </VerticalGroup>
     </div>
   );
+
+  function getLookoutMethod() {
+    return loadById ? FieldId : FieldName;
+  }
+
+  function getAllKeys() {
+    return allOptions.map((option) => ({
+      label: option.key[FieldName],
+      value: option.key[FieldName],
+    }));
+  }
+
+  function getAllValues(option: ItemSelected) {
+    return allOptions
+      .find((opt) => opt.key[FieldName] === option.key[FieldName])
+      ?.values.map((val) => ({
+        label: val[FieldName],
+        value: val[FieldName],
+      }));
+  }
 
   function getInitialAllOptions() {
     let allOpt: ItemGroup[] = [];
@@ -234,7 +243,7 @@ const ServiceLabels: FC<KeyValueProps> = ({
       onLoadValuesForKey(keyId)
         .then((valuesForKey) => {
           const newAllOptions = [...allOptions];
-          const found = newAllOptions.find((o) => o.key[FieldId] === keyId);
+          const found = newAllOptions.find((o) => o.key[getLookoutMethod()] === keyId);
           found.values = valuesForKey;
 
           updateSelectedOptions(newSelectedOptions);
@@ -258,15 +267,15 @@ const ServiceLabels: FC<KeyValueProps> = ({
     );
 
     updateSelectedOptions(newSelectedOptions);
-    appendLoadingKey(found.key[FieldId]);
+    appendLoadingKey(found.key[getLookoutMethod()]);
 
-    await onLoadValuesForKey(found.key[FieldId])
+    await onLoadValuesForKey(found.key[getLookoutMethod()])
       .then((valuesResponse) => {
         found.values = valuesResponse;
         const newAllOptions = allOptions.map((opt) => (opt.key[FieldName] === key ? found : opt));
         setAllOptions(newAllOptions);
       })
-      .finally(() => removeLoadingKey(found.key[FieldId]));
+      .finally(() => removeLoadingKey(found.key[getLookoutMethod()]));
   }
 
   async function onKeyAdd(key: string, rowIndex: number) {
@@ -299,19 +308,21 @@ const ServiceLabels: FC<KeyValueProps> = ({
 
       appendLoadingKey(keyId);
 
-      onLoadValuesForKey(keyId).then((valuesResponse) => {
-        const newAllOptions = allOptions.map((opt) =>
-          opt.key[FieldId] === keyId
-            ? {
-                key: opt.key,
-                values: valuesResponse,
-              }
-            : opt
-        );
+      onLoadValuesForKey(keyId)
+        .then((valuesResponse) => {
+          const newAllOptions = allOptions.map((opt) =>
+            opt.key[getLookoutMethod()] === keyId
+              ? {
+                  key: opt.key,
+                  values: valuesResponse,
+                }
+              : opt
+          );
 
-        updateSelectedOptions(newSelectedOptions);
-        setAllOptions(newAllOptions);
-      }).finally(() => removeLoadingKey(keyId));
+          updateSelectedOptions(newSelectedOptions);
+          setAllOptions(newAllOptions);
+        })
+        .finally(() => removeLoadingKey(keyId));
     });
   }
 
@@ -353,7 +364,7 @@ const ServiceLabels: FC<KeyValueProps> = ({
     };
   }
 
-  function onKeyEdit(e: React.SyntheticEvent, option: ItemSelected, rowIndex: number) {
+  function onOpenKeyEditModal(e: React.SyntheticEvent, option: ItemSelected, rowIndex: number) {
     e.stopPropagation();
 
     setModalInfo({
@@ -365,7 +376,7 @@ const ServiceLabels: FC<KeyValueProps> = ({
     });
   }
 
-  function onValueEdit(event: React.SyntheticEvent, option: ItemSelected, rowIndex: number) {
+  function onOpenValueEditModal(event: React.SyntheticEvent, option: ItemSelected, rowIndex: number) {
     event.stopPropagation();
 
     setModalInfo({

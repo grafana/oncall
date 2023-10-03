@@ -65,6 +65,7 @@ const Labels = observer(
         /> */}
 
         <ServiceLabels
+          loadById
           selectedOptions={value}
           onLoadKeys={labelsStore.loadKeys.bind(labelsStore)}
           onLoadValuesForKey={labelsStore.loadValuesForKey.bind(labelsStore)}
