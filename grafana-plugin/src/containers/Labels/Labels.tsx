@@ -7,7 +7,9 @@ import { LabelKeyValue } from 'models/label/label.types';
 import { useStore } from 'state/useStore';
 
 import styles from './Labels.module.css';
-import ServiceLabels from 'components/LatestLabelsPicker/components/ServiceLabels/ServiceLabels';
+
+import ServiceLabels from '@grafana/labels';
+import '@grafana/labels/dist/theme.css';
 
 const cx = cn.bind(styles);
 
@@ -27,7 +29,6 @@ const Labels = observer(
     // propsErrors are 'external' caused by attaching/detaching labels to oncall entities,
     // state errors are errors caused by CRUD operations on labels storage
 
-    // @ts-ignore
     const [value, setValue] = useState<LabelKeyValue[]>(defaultValue);
 
     const { labelsStore } = useStore();
@@ -43,8 +44,6 @@ const Labels = observer(
       },
       [value]
     );
-
-    console.log({ value });
 
     return (
       <div className={cx('root')}>
