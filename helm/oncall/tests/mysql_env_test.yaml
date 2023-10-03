@@ -69,6 +69,23 @@ tests:
             name: MYSQL_HOST
             value: test-host
 
+  - it: externalMysql -> use external MySQL custom settings with additional options
+    set:
+      telegramPolling.enabled: true
+      mariadb.enabled: false
+      externalMysql:
+        host: test-host
+        port: 5555
+        db_name: grafana_oncall
+        user: test_user
+        options: "ssl_ca=/mnt/ssl/ca.crt ssl_key=/mnt/ssl/client.key ssl_cert=/mnt/ssl/client.crt"
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: MYSQL_OPTIONS
+            value: "ssl_ca=/mnt/ssl/ca.crt ssl_key=/mnt/ssl/client.key ssl_cert=/mnt/ssl/client.crt"
+
   - it: mariadb.enabled=true -> internal MySQL default settings
     set:
       telegramPolling.enabled: true
