@@ -9,11 +9,16 @@ keywords:
   - Notifications
   - on-call
   - sentry
+labels:
+  products:
+    - cloud
 title: Sentry
 weight: 500
 ---
 
 # Sentry integration for Grafana OnCall
+
+> This integration is not available in OSS version
 
 The Sentry integration for Grafana OnCall handles ticket events sent from Sentry webhooks.
 The integration provides grouping, auto-acknowledge and auto-resolve logic via customizable alert templates.
