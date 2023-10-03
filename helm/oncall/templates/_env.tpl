@@ -489,11 +489,7 @@
 {{- end }}
 
 {{- define "snippet.redis.protocol" -}}
-{{ if not .Values.redis.enabled -}}
-  {{ default "redis" .Values.externalRedis.protocol | quote }}
-{{- else -}}
-  "redis"
-{{- end }}
+{{ default "redis" .Values.externalRedis.protocol | quote }}
 {{- end }}
 
 {{- define "snippet.redis.host" -}}
@@ -505,19 +501,11 @@
 {{- end }}
 
 {{- define "snippet.redis.port" -}}
-{{ if not .Values.redis.enabled -}}
-  {{ default 6379 .Values.externalRedis.port | quote }}
-{{- else -}}
-  "6379"
-{{- end }}
+{{ default 6379 .Values.externalRedis.port | quote }}
 {{- end }}
 
 {{- define "snippet.redis.database" -}}
-{{ if not .Values.redis.enabled -}}
-  {{ default 0 .Values.externalRedis.database | quote }}
-{{- else -}}
-  "0"
-{{- end }}
+{{ default 0 .Values.externalRedis.database | quote }}
 {{- end }}
 
 {{- define "snippet.redis.password.secret.name" -}}
