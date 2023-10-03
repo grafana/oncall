@@ -10,6 +10,7 @@ from django.dispatch import receiver
 from rest_framework.fields import DateTimeField
 
 from apps.alerts import tasks
+from apps.alerts.constants import ActionSource
 from apps.alerts.utils import render_relative_timeline
 from apps.slack.slack_formatter import SlackFormatter
 from common.utils import clean_markup
@@ -154,6 +155,9 @@ class AlertGroupLogRecord(models.Model):
     ) = range(18)
 
     type = models.IntegerField(choices=TYPE_CHOICES)
+
+    # Where the action was performed (e.g. web UI, Slack, API, etc.)
+    action_source = models.PositiveSmallIntegerField(ActionSource.choices, null=True, default=None)
 
     author = models.ForeignKey(
         "user_management.User",
