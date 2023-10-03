@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Accept empty and null user when updating webhook via API @mderynck ([#3094](https://github.com/grafana/oncall/pull/3094)))
 - Fix slack notification for a shift which end is affected by a taken swap ([#3092](https://github.com/grafana/oncall/pull/3092))
 
 ## v1.3.40 (2023-08-28)
