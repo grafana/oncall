@@ -1,5 +1,5 @@
 // @ts-ignore
-import { Button, HorizontalGroup, IconButton, Select, VerticalGroup } from '@grafana/ui';
+import { Button, Field, HorizontalGroup, IconButton, Select, VerticalGroup } from '@grafana/ui';
 import React, { FC, useState } from 'react';
 import { ItemGroup, ItemRepresentation, ItemSelected } from 'components/LatestLabelsPicker/core/types';
 
@@ -8,8 +8,13 @@ import EditModal, { BaseEditModal } from 'components/LatestLabelsPicker/componen
 
 interface KeyValueProps {
   inputWidth?: number;
-  selectedOptions: ItemSelected[];
+  value: ItemSelected[];
   loadById: boolean;
+
+  valueField?: string;
+  labelField?: string;
+
+  errors: Record<string, any>;
 
   onLoadKeys: () => Promise<ItemRepresentation[]>;
   onLoadValuesForKey: (key: string) => Promise<ItemRepresentation[]>;
@@ -17,17 +22,18 @@ interface KeyValueProps {
   onUpdateKey: (keyId: string, keyName: string) => Promise<ItemRepresentation>;
   onCreateValue: (keyId: string, value: string) => Promise<ItemRepresentation>;
   onUpdateValue: (keyId: string, valueId: string, value: string) => Promise<ItemRepresentation>;
-  onRowItemRemoval: (pair: ItemSelected, index: number) => any;
+  onRowItemRemoval?: (pair: ItemSelected, index: number) => any;
   onDataUpdate: (result: ItemSelected[]) => any;
 }
-
-const FieldId = 'id';
-const FieldName = 'repr';
 
 const ServiceLabels: FC<KeyValueProps> = ({
   loadById,
   inputWidth = 256,
-  selectedOptions: selectedOptionsProps,
+  value: selectedOptions,
+  errors,
+
+  valueField: FieldId = 'id',
+  labelField: FieldName = 'repr',
 
   onLoadKeys,
   onLoadValuesForKey,
@@ -39,7 +45,6 @@ const ServiceLabels: FC<KeyValueProps> = ({
   onDataUpdate,
 }) => {
   const [loadingKeys, setLoadingKeys] = useState<string[]>([]);
-  const [selectedOptions, setSelectedOptions] = useState<ItemSelected[]>(selectedOptionsProps);
   const [allOptions, setAllOptions] = useState<ItemGroup[]>(getInitialAllOptions());
   const [modalInfo, setModalInfo] = useState<BaseEditModal>(initModalInfo());
 
@@ -57,50 +62,56 @@ const ServiceLabels: FC<KeyValueProps> = ({
       <VerticalGroup>
         {selectedOptions.map((option, index) => (
           <HorizontalGroup key={index} spacing="xs">
-            <div className="pair-selector">
-              <Select
-                width={inputWidth / 8}
-                value={option.key[FieldName]}
-                options={getAllKeys()}
-                onChange={(value) => onKeyChange(value.value, index)}
-                placeholder="Select key"
-                autoFocus
-                allowCustomValue
-                onCreateOption={(key) => onKeyAdd(key.trim(), index)}
-              />
-              {option.key[FieldName] && (
-                <IconButton
-                  className="pair-edit"
-                  size="xs"
-                  name="pen"
-                  aria-label="Edit Key"
-                  onClick={(event: React.SyntheticEvent) => onOpenKeyEditModal(event, option, index)}
+            <Field invalid={errors[index]?.key} error={errors[index]?.key?.[FieldId]}>
+              <div className="pair-selector">
+                <Select
+                  width={inputWidth / 8}
+                  value={option.key[FieldName]}
+                  options={getAllKeys()}
+                  onChange={(value) => onKeyChange(value.value, index)}
+                  placeholder="Select key"
+                  autoFocus
+                  allowCustomValue
+                  onCreateOption={(key) => onKeyAdd(key.trim(), index)}
+                  virtualized
                 />
-              )}
-            </div>
+                {option.key[FieldName] && (
+                  <IconButton
+                    className="pair-edit"
+                    size="xs"
+                    name="pen"
+                    aria-label="Edit Key"
+                    onClick={(event: React.SyntheticEvent) => onOpenKeyEditModal(event, option, index)}
+                  />
+                )}
+              </div>
+            </Field>
 
-            <div className="pair-selector">
-              <Select
-                width={inputWidth / 8}
-                disabled={!option.key[FieldName] || loadingKeys.indexOf(option.key[getLookoutMethod()]) !== -1}
-                value={option.value[FieldName]}
-                options={getAllValues(option)}
-                onChange={(value) => onValueChange(option.key[FieldName], value.value, index)}
-                allowCustomValue
-                onCreateOption={(value) => onValueAdd(option.key[getLookoutMethod()], value.trim(), index)}
-                placeholder={option.key ? 'Select value' : 'Select key first'}
-                autoFocus
-              />
-              {option.value?.[FieldName] && (
-                <IconButton
-                  className="pair-edit"
-                  name="pen"
-                  size="xs"
-                  aria-label="Edit Value"
-                  onClick={(event: React.SyntheticEvent) => onOpenValueEditModal(event, option, index)}
+            <Field invalid={errors[index]?.value} error={errors[index]?.key?.[FieldName]}>
+              <div className="pair-selector">
+                <Select
+                  width={inputWidth / 8}
+                  disabled={!option.key[FieldName] || loadingKeys.indexOf(option.key[getLookoutMethod()]) !== -1}
+                  value={option.value[FieldName]}
+                  options={getAllValues(option)}
+                  onChange={(value) => onValueChange(option.key[FieldName], value.value, index)}
+                  allowCustomValue
+                  onCreateOption={(value) => onValueAdd(option.key[getLookoutMethod()], value.trim(), index)}
+                  placeholder={option.key ? 'Select value' : 'Select key first'}
+                  autoFocus
+                  virtualized
                 />
-              )}
-            </div>
+                {option.value?.[FieldName] && (
+                  <IconButton
+                    className="pair-edit"
+                    name="pen"
+                    size="xs"
+                    aria-label="Edit Value"
+                    onClick={(event: React.SyntheticEvent) => onOpenValueEditModal(event, option, index)}
+                  />
+                )}
+              </div>
+            </Field>
 
             <HorizontalGroup spacing="md">
               <Button
@@ -167,7 +178,6 @@ const ServiceLabels: FC<KeyValueProps> = ({
   }
 
   function updateSelectedOptions(selectedOptions: ItemSelected[]) {
-    setSelectedOptions(selectedOptions);
     onDataUpdate(selectedOptions);
   }
 
@@ -204,8 +214,9 @@ const ServiceLabels: FC<KeyValueProps> = ({
     });
   }
 
-  async function onEditKeyUpdate(keyId: string, keyName: string, rowIndex: number) {
-    onUpdateKey(keyId, keyName).then((keyResponse) => {
+  async function onEditKeyUpdate(keyId: string, keyName: string, rowIndex: number): Promise<void> {
+    try {
+      const keyResponse = await onUpdateKey(keyId, keyName);
       const newSelectedOptions = [...selectedOptions];
       newSelectedOptions[rowIndex] = {
         key: keyResponse,
@@ -214,24 +225,24 @@ const ServiceLabels: FC<KeyValueProps> = ({
 
       appendLoadingKey(keyId);
 
-      onLoadValuesForKey(keyId)
-        .then((valuesResponse) => {
-          const newAllOptions = [...allOptions];
-          newAllOptions.push({
-            key: keyResponse,
-            values: valuesResponse,
-          });
+      const valuesResponse = await onLoadValuesForKey(keyId);
+      const newAllOptions = [...allOptions];
+      newAllOptions.push({
+        key: keyResponse,
+        values: valuesResponse,
+      });
 
-          setAllOptions(newAllOptions);
-          updateSelectedOptions(newSelectedOptions);
-          setModalInfo(initModalInfo());
-        })
-        .finally(() => removeLoadingKey(keyId));
-    });
+      setAllOptions(newAllOptions);
+      updateSelectedOptions(newSelectedOptions);
+      setModalInfo(initModalInfo());
+    } finally {
+      removeLoadingKey(keyId);
+    }
   }
 
-  async function onEditValueUpdate(keyId: string, valueId: string, value: string, rowIndex: number) {
-    onUpdateValue(keyId, valueId, value).then((valueResponse) => {
+  async function onEditValueUpdate(keyId: string, valueId: string, value: string, rowIndex: number): Promise<void> {
+    try {
+      const valueResponse = await onUpdateValue(keyId, valueId, value);
       const newSelectedOptions = [...selectedOptions];
       newSelectedOptions[rowIndex] = {
         key: newSelectedOptions[rowIndex].key,
@@ -240,21 +251,23 @@ const ServiceLabels: FC<KeyValueProps> = ({
 
       appendLoadingKey(keyId);
 
-      onLoadValuesForKey(keyId)
-        .then((valuesForKey) => {
-          const newAllOptions = [...allOptions];
-          const found = newAllOptions.find((o) => o.key[getLookoutMethod()] === keyId);
-          found.values = valuesForKey;
+      const valuesForKey = await onLoadValuesForKey(keyId);
+      const newAllOptions = [...allOptions];
+      const found = newAllOptions.find((o) => o.key[getLookoutMethod()] === keyId);
+      found.values = valuesForKey;
 
-          updateSelectedOptions(newSelectedOptions);
-          setAllOptions(newAllOptions);
-          setModalInfo(initModalInfo());
-        })
-        .finally(() => removeLoadingKey(keyId));
-    });
+      updateSelectedOptions(newSelectedOptions);
+      setAllOptions(newAllOptions);
+      setModalInfo(initModalInfo());
+    } finally {
+      removeLoadingKey(keyId);
+    }
   }
 
   async function onKeyChange(key: string, rowIndex: number) {
+    // prevent duplicates
+    if (selectedOptions.find((o) => o.key[FieldName] === key)) return;
+
     const found = allOptions.find((o) => o.key[FieldName] === key);
 
     const newSelectedOptions = selectedOptions.map((opt, index) =>
@@ -327,7 +340,7 @@ const ServiceLabels: FC<KeyValueProps> = ({
   }
 
   function onValueChange(key: string, value: string, rowIndex: number) {
-    // check for duplicate
+    // prevent duplicates
     if (selectedOptions.find((option) => option.key[FieldName] === key && option.value[FieldName] === value)) return;
 
     const option = allOptions.find((k) => k.key[FieldName] === key);

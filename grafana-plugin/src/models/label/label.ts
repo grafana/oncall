@@ -29,8 +29,6 @@ export class LabelStore extends BaseStore {
 
     this.keys = result;
 
-    console.log('loadKeys - checked', search, result);
-
     return result;
   }
 
@@ -47,8 +45,6 @@ export class LabelStore extends BaseStore {
       [key]: filteredValues,
     };
 
-    console.log('loadValuesForKey - checked', key, search, filteredValues);
-
     return filteredValues;
   }
 
@@ -58,8 +54,6 @@ export class LabelStore extends BaseStore {
       data: { key: { repr: name }, values: [] },
     });
 
-    console.log('createKey - checked', name, key);
-
     return key;
   }
 
@@ -68,8 +62,6 @@ export class LabelStore extends BaseStore {
       method: 'POST',
       data: { repr: value },
     });
-
-    console.log('createValue - checked', result);
 
     return result.values.find((v) => v.repr === value); // TODO remove after backend API change
   }
@@ -81,8 +73,6 @@ export class LabelStore extends BaseStore {
       data: { repr: name },
     });
 
-    console.log('updateKey - checked', result);
-
     return result.key;
   }
 
@@ -92,8 +82,6 @@ export class LabelStore extends BaseStore {
       method: 'PUT',
       data: { repr: name },
     });
-
-    console.log('updateKeyValue - checked', result);
 
     return result.values.find((v) => v.repr === name);
   }

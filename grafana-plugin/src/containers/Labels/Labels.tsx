@@ -66,7 +66,8 @@ const Labels = observer(
 
         <ServiceLabels
           loadById
-          selectedOptions={value}
+          // @ts-ignore
+          value={value}
           onLoadKeys={labelsStore.loadKeys.bind(labelsStore)}
           onLoadValuesForKey={labelsStore.loadValuesForKey.bind(labelsStore)}
           onCreateKey={labelsStore.createKey.bind(labelsStore)}
@@ -74,6 +75,8 @@ const Labels = observer(
           onCreateValue={labelsStore.createValue.bind(labelsStore)}
           onUpdateValue={labelsStore.updateKeyValue.bind(labelsStore)}
           onRowItemRemoval={(_pair, _index) => {}}
+          errors={{ ...propsErrors, ...errors }}
+          // @ts-ignore
           onDataUpdate={setValue}
         />
       </div>

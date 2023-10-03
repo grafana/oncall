@@ -1,6 +1,7 @@
 import { Alert, Button, Field, HorizontalGroup, Input, Modal, VerticalGroup } from '@grafana/ui';
 import React, { useState } from 'react';
 import { ItemSelected } from 'components/LatestLabelsPicker/core/types';
+import { openErrorNotification } from 'utils';
 
 export interface BaseEditModal {
   isKeyEdit: boolean;
@@ -12,8 +13,8 @@ export interface BaseEditModal {
 
 export interface EditModalProps extends BaseEditModal {
   onDismiss(): void;
-  onKeyUpdate(keyId: string, keyName: string, rowIndex: number): void;
-  onValueUpdate(keyId: string, valueId: string, value: string, rowIndex: number): void;
+  onKeyUpdate(keyId: string, keyName: string, rowIndex: number): Promise<void>;
+  onValueUpdate(keyId: string, valueId: string, value: string, rowIndex: number): Promise<void>;
 }
 
 const FieldId = 'id';
@@ -60,7 +61,10 @@ const EditModal: React.FC<EditModalProps> = ({
           <Button variant="secondary" onClick={onDismiss}>
             Cancel
           </Button>
-          <Button variant="primary" onClick={() => onKeyUpdate(option.key[FieldId], keyField, rowIndex)}>
+          <Button
+            variant="primary"
+            onClick={() => onKeyUpdate(option.key[FieldId], keyField, rowIndex).catch(onSaveError)}
+          >
             Update
           </Button>
         </HorizontalGroup>
@@ -90,13 +94,21 @@ const EditModal: React.FC<EditModalProps> = ({
           </Button>
           <Button
             variant="primary"
-            onClick={() => onValueUpdate(option.key[FieldId], option.value[FieldId], valueField, rowIndex)}
+            onClick={() =>
+              onValueUpdate(option.key[FieldId], option.value[FieldId], valueField, rowIndex).catch(onSaveError)
+            }
           >
             Update
           </Button>
         </HorizontalGroup>
       </VerticalGroup>
     );
+  }
+
+  function onSaveError(res) {
+    if (res?.response?.status === 409) {
+      openErrorNotification(`Duplicate values are not allowed`);
+    }
   }
 };
 

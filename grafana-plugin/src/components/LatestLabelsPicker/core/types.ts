@@ -1,6 +1,4 @@
-export interface ItemRepresentation {
-  id: string;
-  repr: string;
+export interface ItemRepresentation extends Record<string, string> {
 }
 
 export interface ItemGroup {
