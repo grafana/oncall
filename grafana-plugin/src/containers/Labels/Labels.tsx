@@ -73,6 +73,7 @@ const Labels = observer(
           onCreateValue={labelsStore.createValue.bind(labelsStore)}
           onUpdateValue={labelsStore.updateKeyValue.bind(labelsStore)}
           onRowItemRemoval={(_pair, _index) => {}}
+          onDataUpdate={setValue}
         />
       </div>
     );

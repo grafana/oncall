@@ -16,25 +16,12 @@ interface KeyValueProps {
   onCreateValue: (keyId: string, value: string) => Promise<ItemRepresentation>;
   onUpdateValue: (keyId: string, valueId: string, value: string) => Promise<ItemRepresentation>;
   onRowItemRemoval: (pair: ItemSelected, index: number) => any;
+  onDataUpdate: (result: ItemSelected[]) => any;
 }
 
 const FieldId = 'id';
 const FieldName = 'repr';
 
-/**
- * ServiceLabel component for rendering key-value pairs
- * @param {object} props.selectedOptions Existing rendered options
- * @param {object} props.allOptions A list of all existing key-value pairs stored in the database
- * @param {(key) => void} props.loadLabelsForKeys Promise for loading labels for a given key
- * @param {(pair, rowIndex) => void} props.onRowItemRemoval Callback for when a row is being removed
- * @param {(list) => void} props.onUpdate Callback for when the data changes
- * @param {(key) => any} props.onNewKeyAdd Callback for when adding a new key to the list
- * @param {(key, value) => any} props.onNewValueAdd Callback for when adding a new value to the list
- * @param {(reason) => any} props.onLabelsLoadError Callback for handling any errors thrown by loadLabelsForKeys
- * @param {(old, newItem) => any} props.onKeyEdit Callback for when a key was edited
- * @param {(old, newItem) => any} props.onValueEdit Callback for when a value was edited
- * @returns
- */
 const ServiceLabels: FC<KeyValueProps> = ({
   selectedOptions: selectedOptionsProps,
 
@@ -45,8 +32,9 @@ const ServiceLabels: FC<KeyValueProps> = ({
   onCreateValue,
   onUpdateValue,
   onRowItemRemoval,
+  onDataUpdate,
 }) => {
-  // const [loadingRowNum, setLoadingRowNum] = useState<string[]>([]);
+  const [loadingKeys, setLoadingKeys] = useState<string[]>([]);
   const [selectedOptions, setSelectedOptions] = useState<ItemSelected[]>(selectedOptionsProps);
   const [allOptions, setAllOptions] = useState<ItemGroup[]>(getInitialAllOptions());
 
@@ -105,7 +93,7 @@ const ServiceLabels: FC<KeyValueProps> = ({
             <div className="pair-selector">
               <Select
                 width={256 / 8}
-                // disabled={!option.key[FieldName] || loadingRowNum.indexOf(option.key[FieldId]) !== -1}
+                disabled={!option.key[FieldName] || loadingKeys.indexOf(option.key[FieldId]) !== -1}
                 value={option.value[FieldName]}
                 options={getAllValues(option)}
                 onChange={(value) => onValueChange(option.key[FieldName], value.value, index)}
@@ -169,6 +157,25 @@ const ServiceLabels: FC<KeyValueProps> = ({
     return allOpt;
   }
 
+  function updateSelectedOptions(selectedOptions: ItemSelected[]) {
+    setSelectedOptions(selectedOptions);
+    onDataUpdate(selectedOptions);
+  }
+
+  function isAddDisabled() {
+    if (!selectedOptions.length) return false;
+    const lastItem = selectedOptions[selectedOptions.length - 1];
+    return !lastItem.key[FieldName] || !lastItem.value[FieldName];
+  }
+
+  function appendLoadingKey(keyId: string) {
+    setLoadingKeys([...loadingKeys, keyId]);
+  }
+
+  function removeLoadingKey(keyId: string) {
+    setLoadingKeys(loadingKeys.filter((n) => n !== keyId));
+  }
+
   async function handleLabelAdd() {
     await onLoadKeys().then((res) => {
       setAllOptions(
@@ -178,7 +185,7 @@ const ServiceLabels: FC<KeyValueProps> = ({
         }))
       );
 
-      setSelectedOptions([
+      updateSelectedOptions([
         ...selectedOptions,
         {
           key: { [FieldId]: undefined, [FieldName]: undefined },
@@ -188,13 +195,7 @@ const ServiceLabels: FC<KeyValueProps> = ({
     });
   }
 
-  function isAddDisabled() {
-    if (!selectedOptions.length) return false;
-    const lastItem = selectedOptions[selectedOptions.length - 1];
-    return !lastItem.key[FieldName] || !lastItem.value[FieldName];
-  }
-
-  function onEditKeyUpdate(keyId: string, keyName: string, rowIndex: number) {
+  async function onEditKeyUpdate(keyId: string, keyName: string, rowIndex: number) {
     onUpdateKey(keyId, keyName).then((keyResponse) => {
       const newSelectedOptions = [...selectedOptions];
       newSelectedOptions[rowIndex] = {
@@ -202,21 +203,25 @@ const ServiceLabels: FC<KeyValueProps> = ({
         value: newSelectedOptions[rowIndex].value,
       };
 
-      onLoadValuesForKey(keyId).then((valuesResponse) => {
-        const newAllOptions = [...allOptions];
-        newAllOptions.push({
-          key: keyResponse,
-          values: valuesResponse,
-        });
+      appendLoadingKey(keyId);
 
-        setAllOptions(newAllOptions);
-        setSelectedOptions(newSelectedOptions);
-        setModalInfo(initModalInfo());
-      });
+      onLoadValuesForKey(keyId)
+        .then((valuesResponse) => {
+          const newAllOptions = [...allOptions];
+          newAllOptions.push({
+            key: keyResponse,
+            values: valuesResponse,
+          });
+
+          setAllOptions(newAllOptions);
+          updateSelectedOptions(newSelectedOptions);
+          setModalInfo(initModalInfo());
+        })
+        .finally(() => removeLoadingKey(keyId));
     });
   }
 
-  function onEditValueUpdate(keyId: string, valueId: string, value: string, rowIndex: number) {
+  async function onEditValueUpdate(keyId: string, valueId: string, value: string, rowIndex: number) {
     onUpdateValue(keyId, valueId, value).then((valueResponse) => {
       const newSelectedOptions = [...selectedOptions];
       newSelectedOptions[rowIndex] = {
@@ -224,16 +229,118 @@ const ServiceLabels: FC<KeyValueProps> = ({
         value: valueResponse,
       };
 
-      onLoadValuesForKey(keyId).then((valuesForKey) => {
-        const newAllOptions = [...allOptions];
-        const found = newAllOptions.find((o) => o.key[FieldId] === keyId);
-        found.values = valuesForKey;
+      appendLoadingKey(keyId);
 
-        setSelectedOptions(newSelectedOptions);
-        setAllOptions(newAllOptions);
-        setModalInfo(initModalInfo());
-      });
+      onLoadValuesForKey(keyId)
+        .then((valuesForKey) => {
+          const newAllOptions = [...allOptions];
+          const found = newAllOptions.find((o) => o.key[FieldId] === keyId);
+          found.values = valuesForKey;
+
+          updateSelectedOptions(newSelectedOptions);
+          setAllOptions(newAllOptions);
+          setModalInfo(initModalInfo());
+        })
+        .finally(() => removeLoadingKey(keyId));
     });
+  }
+
+  async function onKeyChange(key: string, rowIndex: number) {
+    const found = allOptions.find((o) => o.key[FieldName] === key);
+
+    const newSelectedOptions = selectedOptions.map((opt, index) =>
+      index === rowIndex
+        ? {
+            key: found.key,
+            value: { [FieldId]: null, [FieldName]: null },
+          }
+        : opt
+    );
+
+    updateSelectedOptions(newSelectedOptions);
+    appendLoadingKey(found.key[FieldId]);
+
+    await onLoadValuesForKey(found.key[FieldId])
+      .then((valuesResponse) => {
+        found.values = valuesResponse;
+        const newAllOptions = allOptions.map((opt) => (opt.key[FieldName] === key ? found : opt));
+        setAllOptions(newAllOptions);
+      })
+      .finally(() => removeLoadingKey(found.key[FieldId]));
+  }
+
+  async function onKeyAdd(key: string, rowIndex: number) {
+    if (!key) return;
+
+    onCreateKey(key).then((res) => {
+      const newKey = {
+        key: { [FieldId]: res[FieldId], [FieldName]: res[FieldName] },
+        value: { [FieldId]: undefined, [FieldName]: undefined },
+      };
+
+      const newSelectedOptions = [...selectedOptions];
+      newSelectedOptions[rowIndex] = newKey;
+      const newAllOptions = [...allOptions, { key: newKey.key, values: [] }];
+
+      updateSelectedOptions(newSelectedOptions);
+      setAllOptions(newAllOptions);
+    });
+  }
+
+  async function onValueAdd(keyId: string, value: string, rowIndex: number) {
+    if (!value) return;
+
+    onCreateValue(keyId, value).then((valueResponse) => {
+      const newSelectedOptions = [...selectedOptions];
+      newSelectedOptions[rowIndex] = {
+        key: newSelectedOptions[rowIndex].key,
+        value: valueResponse,
+      };
+
+      appendLoadingKey(keyId);
+
+      onLoadValuesForKey(keyId).then((valuesResponse) => {
+        const newAllOptions = allOptions.map((opt) =>
+          opt.key[FieldId] === keyId
+            ? {
+                key: opt.key,
+                values: valuesResponse,
+              }
+            : opt
+        );
+
+        updateSelectedOptions(newSelectedOptions);
+        setAllOptions(newAllOptions);
+      }).finally(() => removeLoadingKey(keyId));
+    });
+  }
+
+  function onValueChange(key: string, value: string, rowIndex: number) {
+    // check for duplicate
+    if (selectedOptions.find((option) => option.key[FieldName] === key && option.value[FieldName] === value)) return;
+
+    const option = allOptions.find((k) => k.key[FieldName] === key);
+    const foundValue = option.values.find((v) => v[FieldName] === value);
+    const newSelectedOptions = selectedOptions.map((opt, index) =>
+      index === rowIndex
+        ? {
+            key: opt.key,
+            value: foundValue,
+          }
+        : opt
+    );
+
+    updateSelectedOptions(newSelectedOptions);
+  }
+
+  function onRowRemoval(option: ItemSelected, rowIndex: number) {
+    const newSelectedOptions = [...selectedOptions];
+    newSelectedOptions.splice(rowIndex, 1);
+    updateSelectedOptions(newSelectedOptions);
+
+    if (onRowItemRemoval) {
+      onRowItemRemoval(option, rowIndex);
+    }
   }
 
   function initModalInfo(): BaseEditModal {
@@ -267,96 +374,6 @@ const ServiceLabels: FC<KeyValueProps> = ({
       option,
       rowIndex,
     });
-  }
-
-  async function onKeyChange(key: string, rowIndex: number) {
-    const found = allOptions.find((o) => o.key[FieldName] === key);
-
-    const newSelectedOptions = selectedOptions.map((opt, index) =>
-      index === rowIndex
-        ? {
-            key: found.key,
-            value: { [FieldId]: null, [FieldName]: null },
-          }
-        : opt
-    );
-
-    setSelectedOptions(newSelectedOptions);
-
-    await onLoadValuesForKey(found.key[FieldId]).then((valuesResponse) => {
-      found.values = valuesResponse;
-      const newAllOptions = allOptions.map((opt) => (opt.key[FieldName] === key ? found : opt));
-      setAllOptions(newAllOptions);
-    });
-  }
-
-  function onKeyAdd(key: string, rowIndex: number) {
-    if (!key) return;
-
-    onCreateKey(key).then((res) => {
-      const newKey = {
-        key: { [FieldId]: res[FieldId], [FieldName]: res[FieldName] },
-        value: { [FieldId]: undefined, [FieldName]: undefined },
-      };
-
-      const newSelectedOptions = [...selectedOptions];
-      newSelectedOptions[rowIndex] = newKey;
-      const newAllOptions = [...allOptions, { key: newKey.key, values: [] }];
-
-      setSelectedOptions(newSelectedOptions);
-      setAllOptions(newAllOptions);
-    });
-  }
-
-  function onValueAdd(keyId: string, value: string, rowIndex: number) {
-    if (!value) return;
-
-    onCreateValue(keyId, value).then((valueResponse) => {
-      const newSelectedOptions = [...selectedOptions];
-      newSelectedOptions[rowIndex] = {
-        key: newSelectedOptions[rowIndex].key,
-        value: valueResponse,
-      };
-
-      onLoadValuesForKey(keyId).then((valuesResponse) => {
-        const newAllOptions = allOptions.map((opt) =>
-          opt.key[FieldId] === keyId
-            ? {
-                key: opt.key,
-                values: valuesResponse,
-              }
-            : opt
-        );
-
-        setSelectedOptions(newSelectedOptions);
-        setAllOptions(newAllOptions);
-      });
-    });
-  }
-
-  function onValueChange(key: string, value: string, rowIndex: number) {
-    const option = allOptions.find((k) => k.key[FieldName] === key);
-    const foundValue = option.values.find((v) => v[FieldName] === value);
-    const newSelectedOptions = selectedOptions.map((opt, index) =>
-      index === rowIndex
-        ? {
-            key: opt.key,
-            value: foundValue,
-          }
-        : opt
-    );
-
-    setSelectedOptions(newSelectedOptions);
-  }
-
-  function onRowRemoval(option: ItemSelected, rowIndex: number) {
-    const newSelectedOptions = [...selectedOptions];
-    newSelectedOptions.splice(rowIndex, 1);
-    setSelectedOptions(newSelectedOptions);
-
-    if (onRowItemRemoval) {
-      onRowItemRemoval(option, rowIndex);
-    }
   }
 };
 
