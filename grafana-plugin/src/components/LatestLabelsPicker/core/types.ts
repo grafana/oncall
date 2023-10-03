@@ -1,12 +1,9 @@
-export interface ItemRepresentation extends Record<string, string> {
-}
-
 export interface ItemGroup {
-  key: ItemRepresentation;
-  values: ItemRepresentation[];
+  key: any;
+  values: any[];
 }
 
 export interface ItemSelected {
-  key: ItemRepresentation;
-  value: ItemRepresentation;
+  key: any;
+  value: any;
 }

@@ -8,7 +8,6 @@ export interface BaseEditModal {
   isOpen: boolean;
   option: ItemSelected;
   rowIndex: number;
-  isInUse?: boolean;
 }
 
 export interface EditModalProps extends BaseEditModal {
@@ -25,7 +24,6 @@ const EditModal: React.FC<EditModalProps> = ({
   isOpen,
   option,
   onDismiss,
-  isInUse,
   rowIndex,
   onKeyUpdate,
   onValueUpdate,
@@ -46,9 +44,7 @@ const EditModal: React.FC<EditModalProps> = ({
   function renderKeyEdit() {
     return (
       <VerticalGroup>
-        {isInUse && (
-          <Alert severity="warning" title="This label is in use. The change will impact all other implementations." />
-        )}
+        {<Alert severity="warning" title="This label is in use. The change will impact all other implementations." />}
 
         <Field label="Key" className="pair-width-100">
           <Input

@@ -1,7 +1,6 @@
-// @ts-ignore
-import { Button, Field, HorizontalGroup, IconButton, Select, VerticalGroup } from '@grafana/ui';
+import { AsyncSelect, Button, Field, HorizontalGroup, IconButton, VerticalGroup } from '@grafana/ui';
 import React, { FC, useState } from 'react';
-import { ItemGroup, ItemRepresentation, ItemSelected } from 'components/LatestLabelsPicker/core/types';
+import { ItemSelected } from 'components/LatestLabelsPicker/core/types';
 
 import 'components/LatestLabelsPicker/components/ServiceLabels/ServiceLabels.css';
 import EditModal, { BaseEditModal } from 'components/LatestLabelsPicker/components/EditModal/EditModal';
@@ -16,12 +15,12 @@ interface KeyValueProps {
 
   errors: Record<string, any>;
 
-  onLoadKeys: () => Promise<ItemRepresentation[]>;
-  onLoadValuesForKey: (key: string) => Promise<ItemRepresentation[]>;
-  onCreateKey: (key: string) => Promise<{ key: ItemRepresentation; values: ItemRepresentation[] }>;
-  onUpdateKey: (keyId: string, keyName: string) => Promise<ItemRepresentation>;
-  onCreateValue: (keyId: string, value: string) => Promise<ItemRepresentation>;
-  onUpdateValue: (keyId: string, valueId: string, value: string) => Promise<ItemRepresentation>;
+  onLoadKeys: (search: string) => Promise<any[]>;
+  onLoadValuesForKey: (key: string, search: string) => Promise<any[]>;
+  onCreateKey: (key: string) => Promise<{ key: any; values: any[] }>;
+  onUpdateKey: (keyId: string, keyName: string) => Promise<any>;
+  onCreateValue: (keyId: string, value: string) => Promise<any>;
+  onUpdateValue: (keyId: string, valueId: string, value: string) => Promise<any>;
   onRowItemRemoval?: (pair: ItemSelected, index: number) => any;
   onDataUpdate: (result: ItemSelected[]) => any;
 }
@@ -45,7 +44,6 @@ const ServiceLabels: FC<KeyValueProps> = ({
   onDataUpdate,
 }) => {
   const [loadingKeys, setLoadingKeys] = useState<string[]>([]);
-  const [allOptions, setAllOptions] = useState<ItemGroup[]>(getInitialAllOptions());
   const [modalInfo, setModalInfo] = useState<BaseEditModal>(initModalInfo());
 
   return (
@@ -64,16 +62,19 @@ const ServiceLabels: FC<KeyValueProps> = ({
           <HorizontalGroup key={index} spacing="xs">
             <Field invalid={errors[index]?.key} error={errors[index]?.key?.[FieldId]}>
               <div className="pair-selector">
-                <Select
+                <AsyncSelect
                   width={inputWidth / 8}
-                  value={option.key[FieldName]}
-                  options={getAllKeys()}
-                  onChange={(value) => onKeyChange(value.value, index)}
+                  value={option.key[FieldId] ? { value: option.key[FieldId], label: option.key[FieldName] } : undefined}
+                  defaultOptions
+                  loadOptions={loadOptionsKeys}
+                  onChange={(value) => onKeyChange(value, index)}
                   placeholder="Select key"
                   autoFocus
                   allowCustomValue
+                  cacheOptions={false}
                   onCreateOption={(key) => onKeyAdd(key.trim(), index)}
-                  virtualized
+                  noOptionsMessage="No labels found"
+                  menuShouldPortal
                 />
                 {option.key[FieldName] && (
                   <IconButton
@@ -89,17 +90,29 @@ const ServiceLabels: FC<KeyValueProps> = ({
 
             <Field invalid={errors[index]?.value} error={errors[index]?.key?.[FieldName]}>
               <div className="pair-selector">
-                <Select
+                <AsyncSelect
+                  key={`${option.key[FieldName]}-${option.value[FieldName]}`}
                   width={inputWidth / 8}
                   disabled={!option.key[FieldName] || loadingKeys.indexOf(option.key[getLookoutMethod()]) !== -1}
-                  value={option.value[FieldName]}
-                  options={getAllValues(option)}
-                  onChange={(value) => onValueChange(option.key[FieldName], value.value, index)}
+                  value={
+                    option.value[FieldId] ? { value: option.value[FieldId], label: option.value[FieldName] } : undefined
+                  }
+                  defaultOptions
+                  loadOptions={(search) =>
+                    onLoadValuesForKey(option.key[getLookoutMethod()], search).then((values) =>
+                      values.map((value) => ({ label: value[FieldName], value: value[FieldId] }))
+                    )
+                  }
+                  onChange={(value) => {
+                    onValueChange(option.key[FieldName], value, index);
+                  }}
                   allowCustomValue
+                  cacheOptions={false}
                   onCreateOption={(value) => onValueAdd(option.key[getLookoutMethod()], value.trim(), index)}
                   placeholder={option.key ? 'Select value' : 'Select key first'}
                   autoFocus
-                  virtualized
+                  noOptionsMessage="No values found"
+                  menuShouldPortal
                 />
                 {option.value?.[FieldName] && (
                   <IconButton
@@ -113,26 +126,28 @@ const ServiceLabels: FC<KeyValueProps> = ({
               </div>
             </Field>
 
-            <HorizontalGroup spacing="md">
-              <Button
-                disabled={false}
-                tooltip="Remove label"
-                variant="secondary"
-                icon="times"
-                size="sm"
-                onClick={() => onRowRemoval(option, index)}
-              />
-              {index === selectedOptions.length - 1 && (
+            <Field>
+              <HorizontalGroup spacing="md">
                 <Button
-                  disabled={isAddDisabled()}
-                  size="sm"
-                  tooltip="Add label"
+                  disabled={false}
+                  tooltip="Remove label"
                   variant="secondary"
-                  icon="plus"
-                  onClick={handleLabelAdd}
+                  icon="times"
+                  size="sm"
+                  onClick={() => onRowRemoval(option, index)}
                 />
-              )}
-            </HorizontalGroup>
+                {index === selectedOptions.length - 1 && (
+                  <Button
+                    disabled={isAddDisabled()}
+                    size="sm"
+                    tooltip="Add label"
+                    variant="secondary"
+                    icon="plus"
+                    onClick={handleLabelAdd}
+                  />
+                )}
+              </HorizontalGroup>
+            </Field>
           </HorizontalGroup>
         ))}
 
@@ -145,36 +160,12 @@ const ServiceLabels: FC<KeyValueProps> = ({
     </div>
   );
 
+  function loadOptionsKeys(search) {
+    return onLoadKeys(search).then((keys) => keys.map((key) => ({ label: key[FieldName], value: key[FieldId] })));
+  }
+
   function getLookoutMethod() {
     return loadById ? FieldId : FieldName;
-  }
-
-  function getAllKeys() {
-    return allOptions.map((option) => ({
-      label: option.key[FieldName],
-      value: option.key[FieldName],
-    }));
-  }
-
-  function getAllValues(option: ItemSelected) {
-    return allOptions
-      .find((opt) => opt.key[FieldName] === option.key[FieldName])
-      ?.values.map((val) => ({
-        label: val[FieldName],
-        value: val[FieldName],
-      }));
-  }
-
-  function getInitialAllOptions() {
-    let allOpt: ItemGroup[] = [];
-    selectedOptions.forEach((option) =>
-      allOpt.push({
-        key: option.key,
-        values: [option.value],
-      })
-    );
-
-    return allOpt;
   }
 
   function updateSelectedOptions(selectedOptions: ItemSelected[]) {
@@ -196,14 +187,7 @@ const ServiceLabels: FC<KeyValueProps> = ({
   }
 
   async function handleLabelAdd() {
-    await onLoadKeys().then((res) => {
-      setAllOptions(
-        res.map((responseKey) => ({
-          key: responseKey,
-          values: [],
-        }))
-      );
-
+    await onLoadKeys('').then((_res) => {
       updateSelectedOptions([
         ...selectedOptions,
         {
@@ -225,14 +209,6 @@ const ServiceLabels: FC<KeyValueProps> = ({
 
       appendLoadingKey(keyId);
 
-      const valuesResponse = await onLoadValuesForKey(keyId);
-      const newAllOptions = [...allOptions];
-      newAllOptions.push({
-        key: keyResponse,
-        values: valuesResponse,
-      });
-
-      setAllOptions(newAllOptions);
       updateSelectedOptions(newSelectedOptions);
       setModalInfo(initModalInfo());
     } finally {
@@ -251,44 +227,27 @@ const ServiceLabels: FC<KeyValueProps> = ({
 
       appendLoadingKey(keyId);
 
-      const valuesForKey = await onLoadValuesForKey(keyId);
-      const newAllOptions = [...allOptions];
-      const found = newAllOptions.find((o) => o.key[getLookoutMethod()] === keyId);
-      found.values = valuesForKey;
-
       updateSelectedOptions(newSelectedOptions);
-      setAllOptions(newAllOptions);
       setModalInfo(initModalInfo());
     } finally {
       removeLoadingKey(keyId);
     }
   }
 
-  async function onKeyChange(key: string, rowIndex: number) {
+  async function onKeyChange(option: any, rowIndex: number) {
     // prevent duplicates
-    if (selectedOptions.find((o) => o.key[FieldName] === key)) return;
-
-    const found = allOptions.find((o) => o.key[FieldName] === key);
+    if (selectedOptions.find((o) => o.key[FieldName] === option.value)) return;
 
     const newSelectedOptions = selectedOptions.map((opt, index) =>
       index === rowIndex
         ? {
-            key: found.key,
+            key: { [FieldId]: option.value, [FieldName]: option.label },
             value: { [FieldId]: null, [FieldName]: null },
           }
         : opt
     );
 
     updateSelectedOptions(newSelectedOptions);
-    appendLoadingKey(found.key[getLookoutMethod()]);
-
-    await onLoadValuesForKey(found.key[getLookoutMethod()])
-      .then((valuesResponse) => {
-        found.values = valuesResponse;
-        const newAllOptions = allOptions.map((opt) => (opt.key[FieldName] === key ? found : opt));
-        setAllOptions(newAllOptions);
-      })
-      .finally(() => removeLoadingKey(found.key[getLookoutMethod()]));
   }
 
   async function onKeyAdd(key: string, rowIndex: number) {
@@ -302,10 +261,8 @@ const ServiceLabels: FC<KeyValueProps> = ({
 
       const newSelectedOptions = [...selectedOptions];
       newSelectedOptions[rowIndex] = newKey;
-      const newAllOptions = [...allOptions, { key: newKey.key, values: [] }];
 
       updateSelectedOptions(newSelectedOptions);
-      setAllOptions(newAllOptions);
     });
   }
 
@@ -319,37 +276,19 @@ const ServiceLabels: FC<KeyValueProps> = ({
         value: valueResponse,
       };
 
-      appendLoadingKey(keyId);
-
-      onLoadValuesForKey(keyId)
-        .then((valuesResponse) => {
-          const newAllOptions = allOptions.map((opt) =>
-            opt.key[getLookoutMethod()] === keyId
-              ? {
-                  key: opt.key,
-                  values: valuesResponse,
-                }
-              : opt
-          );
-
-          updateSelectedOptions(newSelectedOptions);
-          setAllOptions(newAllOptions);
-        })
-        .finally(() => removeLoadingKey(keyId));
+      updateSelectedOptions(newSelectedOptions);
     });
   }
 
-  function onValueChange(key: string, value: string, rowIndex: number) {
+  function onValueChange(key: string, option: any, rowIndex: number) {
     // prevent duplicates
-    if (selectedOptions.find((option) => option.key[FieldName] === key && option.value[FieldName] === value)) return;
+    if (selectedOptions.find((opt) => opt.key[FieldName] === key && opt.value[FieldName] === option.value)) return;
 
-    const option = allOptions.find((k) => k.key[FieldName] === key);
-    const foundValue = option.values.find((v) => v[FieldName] === value);
     const newSelectedOptions = selectedOptions.map((opt, index) =>
       index === rowIndex
         ? {
             key: opt.key,
-            value: foundValue,
+            value: { [FieldId]: option.value, [FieldName]: option.label },
           }
         : opt
     );
@@ -372,7 +311,6 @@ const ServiceLabels: FC<KeyValueProps> = ({
       isKeyEdit: false,
       isOpen: false,
       option: undefined,
-      isInUse: false,
       rowIndex: -1,
     };
   }
@@ -384,7 +322,6 @@ const ServiceLabels: FC<KeyValueProps> = ({
       isKeyEdit: true,
       isOpen: true,
       option,
-      isInUse: !!allOptions[option.key[FieldName]],
       rowIndex,
     });
   }

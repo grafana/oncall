@@ -3,13 +3,11 @@ import React, { forwardRef, useImperativeHandle, useState } from 'react';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
-// import LabelsPicker from 'components/LabelsPicker/LabelsPicker';
 import { LabelKeyValue } from 'models/label/label.types';
 import { useStore } from 'state/useStore';
 
 import styles from './Labels.module.css';
 import ServiceLabels from 'components/LatestLabelsPicker/components/ServiceLabels/ServiceLabels';
-// import ServiceLabels from 'components/LatestLabelsPicker/components/ServiceLabels/ServiceLabels';
 
 const cx = cn.bind(styles);
 
@@ -50,23 +48,8 @@ const Labels = observer(
 
     return (
       <div className={cx('root')}>
-        {/* <LabelsPicker
-          errors={{ ...propsErrors, ...errors }}
-          value={value}
-          labelField="repr"
-          valueField="id"
-          loadKeys={labelsStore.loadKeys.bind(labelsStore)}
-          loadValuesForKey={labelsStore.loadValuesForKey.bind(labelsStore)}
-          onChange={setValue}
-          createKey={labelsStore.createKey.bind(labelsStore)}
-          createValue={labelsStore.createValue.bind(labelsStore)}
-          onKeyNameChange={labelsStore.updateKey.bind(labelsStore)}
-          onKeyValueNameChange={labelsStore.updateKeyValue.bind(labelsStore)}
-        /> */}
-
         <ServiceLabels
           loadById
-          // @ts-ignore
           value={value}
           onLoadKeys={labelsStore.loadKeys.bind(labelsStore)}
           onLoadValuesForKey={labelsStore.loadValuesForKey.bind(labelsStore)}
@@ -76,7 +59,6 @@ const Labels = observer(
           onUpdateValue={labelsStore.updateKeyValue.bind(labelsStore)}
           onRowItemRemoval={(_pair, _index) => {}}
           errors={{ ...propsErrors, ...errors }}
-          // @ts-ignore
           onDataUpdate={setValue}
         />
       </div>
