@@ -873,7 +873,7 @@ def test_oncall_shifts_request_validation(
     organization, _, token = make_organization_and_user_with_token()
     web_schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
 
-    valid_date_msg = "Date has wrong format. Use one of these formats instead: YYYY-MM-DD."
+    valid_date_msg = "Date has wrong format. Use one of these formats instead: YYYY-MM-DD hh:mm, YYYY-MM-DD."
 
     client = APIClient()
 

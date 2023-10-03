@@ -75,8 +75,8 @@ class ScheduleBaseSerializer(serializers.ModelSerializer):
 
 
 class FinalShiftQueryParamsSerializer(serializers.Serializer):
-    start_date = serializers.DateField(required=True)
-    end_date = serializers.DateField(required=True)
+    start_date = serializers.DateTimeField(required=True,input_formats=["%Y-%m-%dT%H:%M", "%Y-%m-%d"])
+    end_date = serializers.DateTimeField(required=True,input_formats=["%Y-%m-%dT%H:%M", "%Y-%m-%d"])
 
     def validate(self, attrs):
         if attrs["start_date"] > attrs["end_date"]:
