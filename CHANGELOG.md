@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - New RBAC action `grafana-oncall-app.alert-groups:direct-paging` and role "Alert Groups Direct Paging" by @joeyorlando
-  ([#TBD](https://github.com/grafana/oncall/pull/TBD))
+  ([#3107](https://github.com/grafana/oncall/pull/3107))
 
 ### Fixed
 
