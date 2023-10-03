@@ -52,10 +52,16 @@ telegramPolling.enabled=true -> should create telegram polling deployment:
             secretKeyRef:
               key: mariadb-root-password
               name: oncall-mariadb
+        - name: REDIS_PROTOCOL
+          value: redis
         - name: REDIS_HOST
           value: oncall-redis-master
         - name: REDIS_PORT
           value: "6379"
+        - name: REDIS_DATABASE
+          value: "0"
+        - name: REDIS_USERNAME
+          value: ""
         - name: REDIS_PASSWORD
           valueFrom:
             secretKeyRef:

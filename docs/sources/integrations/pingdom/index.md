@@ -9,11 +9,16 @@ keywords:
   - Notifications
   - on-call
   - pingdom
+labels:
+  products:
+    - cloud
 title: Pingdom
 weight: 500
 ---
 
 # Pingdom integration for Grafana OnCall
+
+> This integration is not available in OSS version
 
 The Pingdom integration for Grafana OnCall handles ticket events sent from Pingdom webhooks.
 The integration provides grouping, auto-acknowledge and auto-resolve logic via customizable alert templates.

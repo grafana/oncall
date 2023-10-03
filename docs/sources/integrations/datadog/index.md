@@ -9,11 +9,16 @@ keywords:
   - Notifications
   - on-call
   - datadog
+labels:
+  products:
+    - cloud
 title: Datadog
 weight: 500
 ---
 
 # Datadog integration for Grafana OnCall
+
+> This integration is not available in OSS version
 
 The Datadog integration for Grafana OnCall handles ticket events sent from Datadog webhooks.
 The integration provides grouping, auto-acknowledge and auto-resolve logic via customizable alert templates.
