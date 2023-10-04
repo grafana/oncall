@@ -157,7 +157,7 @@ class AlertGroupLogRecord(models.Model):
     type = models.IntegerField(choices=TYPE_CHOICES)
 
     # Where the action was performed (e.g. web UI, Slack, API, etc.)
-    action_source = models.PositiveSmallIntegerField(ActionSource.choices, null=True, default=None)
+    action_source = models.SmallIntegerField(ActionSource.choices, null=True, default=None)
 
     author = models.ForeignKey(
         "user_management.User",
