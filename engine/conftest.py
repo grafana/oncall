@@ -57,6 +57,7 @@ from apps.base.tests.factories import (
 )
 from apps.email.tests.factories import EmailMessageFactory
 from apps.heartbeat.tests.factories import IntegrationHeartBeatFactory
+from apps.labels.tests.factories import AlertReceiveChannelAssociatedLabelFactory, LabelKeyFactory, LabelValueFactory
 from apps.mobile_app.models import MobileAppAuthToken, MobileAppVerificationToken
 from apps.phone_notifications.phone_backend import PhoneBackend
 from apps.phone_notifications.tests.factories import PhoneCallRecordFactory, SMSRecordFactory
@@ -125,6 +126,10 @@ register(EmailMessageFactory)
 
 register(IntegrationHeartBeatFactory)
 register(LiveSettingFactory)
+
+register(LabelKeyFactory)
+register(LabelValueFactory)
+register(AlertReceiveChannelAssociatedLabelFactory)
 
 IS_RBAC_ENABLED = os.getenv("ONCALL_TESTING_RBAC_ENABLED", "True") == "True"
 
@@ -907,3 +912,40 @@ def shift_swap_request_setup(
         return ssr, beneficiary, benefactor
 
     return _shift_swap_request_setup
+
+
+@pytest.fixture
+def make_label_key():
+    def _make_label_key(organization, **kwargs):
+        return LabelKeyFactory(organization=organization, **kwargs)
+
+    return _make_label_key
+
+
+@pytest.fixture
+def make_label_value():
+    def _make_label_value(key, **kwargs):
+        return LabelValueFactory(key=key, **kwargs)
+
+    return _make_label_value
+
+
+@pytest.fixture
+def make_label_key_and_value(make_label_key, make_label_value):
+    def _make_label_key_and_value(organization):
+        key = make_label_key(organization=organization)
+        value = make_label_value(key=key)
+        return key, value
+
+    return _make_label_key_and_value
+
+
+@pytest.fixture
+def make_integration_label_association(make_label_key_and_value):
+    def _make_integration_label_association(organization, alert_receive_channel, **kwargs):
+        key, value = make_label_key_and_value(organization)
+        return AlertReceiveChannelAssociatedLabelFactory(
+            alert_receive_channel=alert_receive_channel, organization=organization, key=key, value=value, **kwargs
+        )
+
+    return _make_integration_label_association
