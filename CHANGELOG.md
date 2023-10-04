@@ -5,7 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Unreleased
+## v1.3.42 (2023-10-04)
+
+### Added
+
+- Add additional shift info in schedule filter_events internal API ([#3110](https://github.com/grafana/oncall/pull/3110))
+
+## v1.3.41 (2023-10-04)
+
+### Added
+
+- New RBAC action `grafana-oncall-app.alert-groups:direct-paging` and role "Alert Groups Direct Paging" by @joeyorlando
+  ([#3107](https://github.com/grafana/oncall/pull/3107))
 
 ### Added
 
@@ -13,9 +24,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Accept empty and null user when updating webhook via API @mderynck ([#3094](https://github.com/grafana/oncall/pull/3094))
 - Fix slack notification for a shift which end is affected by a taken swap ([#3092](https://github.com/grafana/oncall/pull/3092))
 
-## v1.3.40 (2023-08-28)
+## v1.3.40 (2023-09-28)
 
 ### Added
 

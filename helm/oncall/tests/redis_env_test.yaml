@@ -97,10 +97,10 @@ tests:
       broker.type: redis
       rabbitmq.enabled: false
       redis.enabled: false
-      asserts:
-        - failedTemplate:
-            errorMessage: externalRedis.password is required if not redis.enabled
-          template: secrets.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: externalRedis.host is required if not redis.enabled
+        template: engine/job-migrate.yaml
 
   - it: redis.enabled=false -> should use internal custom values
     templates:
@@ -112,7 +112,10 @@ tests:
       rabbitmq.enabled: false
       redis.enabled: false
       externalRedis:
+        protocol: rediss
         host: custom-host
+        port: 6380
+        database: 15
         password: custom-password
     asserts:
       - contains:
@@ -123,8 +126,23 @@ tests:
       - contains:
           path: spec.template.spec.containers[0].env
           content:
+            name: REDIS_PROTOCOL
+            value: rediss
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
             name: REDIS_HOST
             value: custom-host
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: REDIS_PORT
+            value: "6380"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: REDIS_DATABASE
+            value: "15"
       - contains:
           path: spec.template.spec.containers[0].env
           content:
@@ -136,7 +154,7 @@ tests:
       - containsDocument:
           kind: Secret
           apiVersion: v1
-          name: oncall-redis-external
+          metadata.name: oncall-redis-external
         template: secrets.yaml
       - equal:
           path: data.redis-password
@@ -144,3 +162,109 @@ tests:
           decodeBase64: true
         documentIndex: 1
         template: secrets.yaml
+
+  - it: redis.enabled=false and Redis ACL -> should use internal custom values with username
+    templates:
+      - engine/deployment.yaml
+      - engine/job-migrate.yaml
+      - celery/deployment.yaml
+    set:
+      broker.type: redis
+      rabbitmq.enabled: false
+      redis.enabled: false
+      externalRedis:
+        host: custom-host
+        username: custom-username
+        password: custom-password
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: BROKER_TYPE
+            value: redis
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: REDIS_PROTOCOL
+            value: redis
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: REDIS_HOST
+            value: custom-host
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: REDIS_PORT
+            value: "6379"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: REDIS_DATABASE
+            value: "0"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: REDIS_USERNAME
+            value: "custom-username"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: REDIS_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                key: redis-password
+                name: oncall-redis-external
+      - containsDocument:
+          kind: Secret
+          apiVersion: v1
+          metadata.name: oncall-redis-external
+        template: secrets.yaml
+      - equal:
+          path: data.redis-password
+          value: custom-password
+          decodeBase64: true
+        documentIndex: 1
+        template: secrets.yaml
+
+  - it: redis.enabled=false and redis.externalRedis.ssl_options.enabled=true -> should set SSL-related variables
+    templates:
+      - engine/deployment.yaml
+      - engine/job-migrate.yaml
+      - celery/deployment.yaml
+    set:
+      broker.type: redis
+      rabbitmq.enabled: false
+      redis.enabled: false
+      externalRedis:
+        protocol: rediss
+        host: custom-host
+        port: 6380
+        password: custom-password
+        ssl_options:
+          enabled: true
+          ca_certs: /mnt/ssl/ca.crt
+          certfile: /mnt/ssl/client.crt
+          keyfile: /mnt/ssl/client.key
+          cert_reqs: cert_required
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: REDIS_SSL_CA_CERTS
+            value: "/mnt/ssl/ca.crt"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: REDIS_SSL_CERTFILE
+            value: "/mnt/ssl/client.crt"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: REDIS_SSL_KEYFILE
+            value: "/mnt/ssl/client.key"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: REDIS_SSL_CERT_REQS
+            value: "cert_required"
