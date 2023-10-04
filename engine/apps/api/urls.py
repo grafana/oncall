@@ -13,7 +13,7 @@ from .views.escalation_chain import EscalationChainViewSet
 from .views.escalation_policy import EscalationPolicyView
 from .views.features import FeaturesAPIView
 from .views.integration_heartbeat import IntegrationHeartBeatView
-from .views.labels import LabelsCRUDView
+from .views.labels import LabelsViewSet
 from .views.live_setting import LiveSettingViewSet
 from .views.on_call_shifts import OnCallShiftView
 from .views.organization import (
@@ -113,19 +113,19 @@ urlpatterns += [
 ]
 
 urlpatterns += [
-    re_path(r"^labels/keys/?$", LabelsCRUDView.as_view({"get": "get_keys"}), name="get_keys"),
+    re_path(r"^labels/keys/?$", LabelsViewSet.as_view({"get": "get_keys"}), name="get_keys"),
     re_path(
         r"^labels/id/(?P<key_id>[\w\-]+)/?$",
-        LabelsCRUDView.as_view({"get": "get_key", "put": "rename_key"}),
+        LabelsViewSet.as_view({"get": "get_key", "put": "rename_key"}),
         name="get_update_key",
     ),
     re_path(
-        r"^labels/id/(?P<key_id>[\w\-]+)/values/?$", LabelsCRUDView.as_view({"post": "add_value"}), name="add_value"
+        r"^labels/id/(?P<key_id>[\w\-]+)/values/?$", LabelsViewSet.as_view({"post": "add_value"}), name="add_value"
     ),
     re_path(
         r"^labels/id/(?P<key_id>[\w\-]+)/values/(?P<value_id>[\w\-]+)/?$",
-        LabelsCRUDView.as_view({"put": "rename_value"}),
+        LabelsViewSet.as_view({"put": "rename_value"}),
         name="rename_value",
     ),
-    re_path(r"^labels/?$", LabelsCRUDView.as_view({"post": "create_label"}), name="create_label"),
+    re_path(r"^labels/?$", LabelsViewSet.as_view({"post": "create_label"}), name="create_label"),
 ]

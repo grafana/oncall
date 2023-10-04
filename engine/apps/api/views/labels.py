@@ -17,7 +17,7 @@ from common.api_helpers.exceptions import BadRequest
 logger = logging.getLogger(__name__)
 
 
-class LabelsCRUDView(ViewSet):
+class LabelsViewSet(ViewSet):
     """
     Proxy requests to labels-app to create/update labels
     """
