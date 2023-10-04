@@ -6,6 +6,7 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
 
+from apps.alerts.constants import ActionSource
 from apps.alerts.models import AlertGroup, AlertReceiveChannel
 
 
@@ -328,6 +329,11 @@ def test_alert_group_acknowledge(
     response = client.post(url, HTTP_AUTHORIZATION=token)
     assert response.status_code == status_code
 
+    if status_code == status.HTTP_200_OK:
+        alert_group.refresh_from_db()
+        assert alert_group.acknowledged is True
+        assert alert_group.log_records.last().action_source == ActionSource.API
+
 
 @pytest.mark.parametrize(
     "acknowledged,resolved,attached,maintenance,status_code",
@@ -366,6 +372,11 @@ def test_alert_group_unacknowledge(
     response = client.post(url, HTTP_AUTHORIZATION=token)
     assert response.status_code == status_code
 
+    if status_code == status.HTTP_200_OK:
+        alert_group.refresh_from_db()
+        assert alert_group.acknowledged is False
+        assert alert_group.log_records.last().action_source == ActionSource.API
+
 
 @pytest.mark.parametrize(
     "resolved,attached,maintenance,status_code",
@@ -401,6 +412,11 @@ def test_alert_group_resolve(
     response = client.post(url, HTTP_AUTHORIZATION=token)
     assert response.status_code == status_code
 
+    if status_code == status.HTTP_200_OK and not maintenance:
+        alert_group.refresh_from_db()
+        assert alert_group.resolved is True
+        assert alert_group.log_records.last().action_source == ActionSource.API
+
 
 @pytest.mark.parametrize(
     "resolved,attached,maintenance,status_code",
@@ -435,3 +451,8 @@ def test_alert_group_unresolve(
     url = reverse("api-public:alert_groups-unresolve", kwargs={"pk": alert_group.public_primary_key})
     response = client.post(url, HTTP_AUTHORIZATION=token)
     assert response.status_code == status_code
+
+    if status_code == status.HTTP_200_OK:
+        alert_group.refresh_from_db()
+        assert alert_group.resolved is False
+        assert alert_group.log_records.last().action_source == ActionSource.API
