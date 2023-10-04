@@ -419,29 +419,32 @@ def parse_event_uid(string: str, sequence: str = None, recurrence_id: str = None
     source = None
     source_verbal = None
 
-    match = RE_EVENT_UID_V2.match(string)
-    if match:
-        _, pk, _, _, source = match.groups()
+    match = None
+    if string.startswith("oncall"):
+        match = RE_EVENT_UID_V2.match(string)
+        if match:
+            _, pk, _, _, source = match.groups()
+    elif string.startswith("amixr"):
+        # eventually this path would be automatically deprecated
+        # once all ical representations are refreshed
+        match = RE_EVENT_UID_V1.match(string)
+        if match:
+            _, _, _, source = match.groups()
     else:
         match = RE_EVENT_UID_EXPORT.match(string)
         if match:
             pk, _, _ = match.groups()
-        else:
-            # eventually this path would be automatically deprecated
-            # once all ical representations are refreshed
-            match = RE_EVENT_UID_V1.match(string)
-            if match:
-                _, _, _, source = match.groups()
-            else:
-                # fallback to use the UID string as the rotation ID
-                pk = string
-                # in ical imported calendars, sequence and/or recurrence_id
-                # distinguish main recurring event vs instance modification
-                # (see https://icalendar.org/iCalendar-RFC-5545/3-8-4-4-recurrence-id.html)
-                if sequence:
-                    pk = f"{pk}_{sequence}"
-                if recurrence_id:
-                    pk = f"{pk}_{recurrence_id}"
+
+    if not match:
+        # fallback to use the UID string as the rotation ID
+        pk = string
+        # in ical imported calendars, sequence and/or recurrence_id
+        # distinguish main recurring event vs instance modification
+        # (see https://icalendar.org/iCalendar-RFC-5545/3-8-4-4-recurrence-id.html)
+        if sequence:
+            pk = f"{pk}_{sequence}"
+        if recurrence_id:
+            pk = f"{pk}_{recurrence_id}"
 
     if source is not None:
         source = int(source)

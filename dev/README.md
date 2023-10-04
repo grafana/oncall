@@ -1,6 +1,6 @@
 # Developer quickstart
 
-- [Developing using kubernetes and tilt (beta)](#developing-using-kubernetes-and-tilt-beta)
+- [Quick Start using Kubernetes and Tilt (beta)](#quick-start-using-kubernetes-and-tilt-beta)
 - [Running the project with docker-compose](#running-the-project-with-docker-compose)
   - [`COMPOSE_PROFILES`](#compose_profiles)
   - [`GRAFANA_IMAGE`](#grafana_image)
@@ -28,20 +28,18 @@
 
 Related: [How to develop integrations](/engine/config_integrations/README.md)
 
-## Developing using kubernetes and tilt (beta)
+## Quick Start using Kubernetes and Tilt (beta)
 
-> It is recommended to use alternative [docker-compose environment](#running-the-project-with-docker-compose).
+> If you are experiencing issues, please check "Running the project with docker-compose".
 
-### Install
-
-This project uses:
+### Install dependencies
 
 - [Tilt | Kubernetes for Prod, Tilt for Dev](https://tilt.dev/)
 - [tilt-dev/ctlptl: Making local Kubernetes clusters fun and easy to set up](https://github.com/tilt-dev/ctlptl)
 - [Kind](https://kind.sigs.k8s.io)
 - [Yarn](https://classic.yarnpkg.com/lang/en/docs/install/#mac-stable)
 
-### Quick Start
+### Launch the environment
 
 1. Create local k8s cluster:
 
@@ -55,7 +53,7 @@ This project uses:
     tilt up
     ```
 
-3. Wait until all resources are green and open <http://localhost:3000/a/grafana-oncall-app>
+3. Wait until all resources are green and open <http://localhost:3000/a/grafana-oncall-app> (user: oncall, password: oncall)
 
 4. Modify source code, backend and frontend will be hot reloaded
 
