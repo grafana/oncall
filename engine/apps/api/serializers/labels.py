@@ -37,3 +37,14 @@ class LabelKeyValuesSerializer(serializers.Serializer):
 
 class LabelReprSerializer(serializers.Serializer):
     repr = serializers.CharField()
+
+
+class LabelsSerializerMixin(serializers.Serializer):
+    labels = LabelSerializer(many=True, required=False)
+
+    def validate_labels(self, labels):
+        if labels:
+            keys = {label["key"]["id"] for label in labels}
+            if len(keys) != len(labels):
+                raise serializers.ValidationError(detail="Duplicate label key")
+        return labels
