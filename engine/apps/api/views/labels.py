@@ -11,7 +11,7 @@ from apps.api.serializers.labels import LabelKeySerializer, LabelKeyValuesSerial
 from apps.auth_token.auth import PluginAuthentication
 from apps.labels.client import LabelsAPIClient
 from apps.labels.tasks import update_instances_labels_cache, update_labels_cache_for_key
-from apps.labels.utils import is_labels_enabled
+from apps.labels.utils import is_labels_feature_enabled
 from common.api_helpers.exceptions import BadRequest
 
 logger = logging.getLogger(__name__)
@@ -28,7 +28,7 @@ class LabelsCRUDView(ViewSet):
 
     def initial(self, request, *args, **kwargs):
         super().initial(request, *args, **kwargs)
-        if not is_labels_enabled(self.request.auth.organization):
+        if not is_labels_feature_enabled(self.request.auth.organization):
             raise NotFound
 
     @extend_schema(responses=LabelKeySerializer(many=True))
@@ -114,7 +114,7 @@ class LabelsCRUDView(ViewSet):
 class LabelsAssociatingMixin:  # use for labelable objects views (ex. AlertReceiveChannelView)
     def filter_by_labels(self, queryset):
         """Call this method in `get_queryset()` to add filtering by labels"""
-        if not is_labels_enabled(self.request.auth.organization):
+        if not is_labels_feature_enabled(self.request.auth.organization):
             return queryset
         labels = self.request.query_params.getlist("label")  # ["key1:value1", "key2:value2"]
         if not labels:
@@ -132,7 +132,7 @@ class LabelsAssociatingMixin:  # use for labelable objects views (ex. AlertRecei
     def paginate_queryset(self, queryset):
         organization = self.request.auth.organization
         data = super().paginate_queryset(queryset)
-        if not is_labels_enabled(self.request.auth.organization):
+        if not is_labels_feature_enabled(self.request.auth.organization):
             return data
         ids = [d.id for d in data]
         logger.info(f"start update_instances_labels_cache for ids: {ids}")

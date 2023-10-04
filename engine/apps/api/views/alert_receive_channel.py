@@ -21,6 +21,7 @@ from apps.api.throttlers import DemoAlertThrottler
 from apps.api.views.labels import LabelsAssociatingMixin
 from apps.auth_token.auth import PluginAuthentication
 from apps.integrations.legacy_prefix import has_legacy_prefix, remove_legacy_prefix
+from apps.labels.utils import is_labels_feature_enabled
 from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.filters import ByTeamModelFieldFilterMixin, TeamModelMultipleChoiceFilter
 from common.api_helpers.mixins import (
@@ -262,6 +263,7 @@ class AlertReceiveChannelView(
 
     @action(methods=["get"], detail=False)
     def filters(self, request):
+        organization = self.request.auth.organization
         filter_name = request.query_params.get("search", None)
         api_root = "/api/internal/v1/"
 
@@ -278,12 +280,16 @@ class AlertReceiveChannelView(
                 "type": "options",
                 "href": api_root + "alert_receive_channels/integration_options/",
             },
-            {
-                "name": "label",
-                "display_name": "Label",
-                "type": "labels",
-            },
         ]
+
+        if is_labels_feature_enabled(organization):
+            filter_options.append(
+                {
+                    "name": "label",
+                    "display_name": "Label",
+                    "type": "labels",
+                }
+            )
 
         if filter_name is not None:
             filter_options = list(filter(lambda f: filter_name in f["name"], filter_options))

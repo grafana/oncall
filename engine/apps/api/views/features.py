@@ -6,7 +6,7 @@ from rest_framework.views import APIView
 
 from apps.auth_token.auth import PluginAuthentication
 from apps.base.utils import live_settings
-from apps.labels.utils import is_labels_enabled
+from apps.labels.utils import is_labels_feature_enabled
 
 FEATURE_SLACK = "slack"
 FEATURE_TELEGRAM = "telegram"
@@ -59,7 +59,7 @@ class FeaturesAPIView(APIView):
         if settings.FEATURE_GRAFANA_ALERTING_V2_ENABLED:
             enabled_features.append(FEATURE_GRAFANA_ALERTING_V2)
 
-        if is_labels_enabled(self.request.auth.organization):
+        if is_labels_feature_enabled(self.request.auth.organization):
             enabled_features.append(FEATURE_LABELS)
 
         return enabled_features

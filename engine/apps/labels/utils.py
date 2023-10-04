@@ -3,6 +3,7 @@ import typing
 
 from django.apps import apps  # noqa: I251
 from django.conf import settings
+from django.db import models
 
 logger = logging.getLogger(__name__)
 
@@ -33,22 +34,19 @@ LabelsData = typing.List[LabelData]
 LabelsKeysData = typing.List[LabelParams]
 
 
-def get_associating_label_model(obj_model_name):
+def get_associating_label_model(obj_model_name: str) -> models.Model:
     associating_label_model_name = obj_model_name + ASSOCIATED_MODEL_NAME
     label_model = apps.get_model("labels", associating_label_model_name)
     return label_model
 
 
-def is_labels_enabled(organization):
-    """
-    is_labels_enabled checks if oncall is deployed on same cluster that its grafana instance.
-    Replace with feature flag when cross cluster requests are available for labels plugin
-    """
+def is_labels_feature_enabled(organization) -> bool:
+    # check FEATURE_LABELS_ENABLED in settings
+    # checking labels feature flag per organization will be added later
+
     logger.info(
-        "is_labels_enabled: "
+        "is_labels_feature_enabled: "
         f"FEATURE_LABELS_ENABLED={settings.FEATURE_LABELS_ENABLED} "
-        f"ONCALL_BACKEND_REGION={settings.ONCALL_BACKEND_REGION} "
-        f"cluster_slug={organization.cluster_slug}"
+        f"organization={organization.id}"
     )
-    # return settings.FEATURE_LABELS_ENABLED and settings.ONCALL_BACKEND_REGION == organization.cluster_slug
-    return True  # todo
+    return settings.FEATURE_LABELS_ENABLED

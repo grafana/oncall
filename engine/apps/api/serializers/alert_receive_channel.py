@@ -13,7 +13,6 @@ from apps.alerts.models import AlertReceiveChannel
 from apps.alerts.models.channel_filter import ChannelFilter
 from apps.base.messaging import get_messaging_backends
 from apps.integrations.legacy_prefix import has_legacy_prefix
-from apps.labels.models import AssociatedLabel
 from common.api_helpers.custom_fields import TeamPrimaryKeyRelatedField
 from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.mixins import APPEARANCE_TEMPLATE_NAMES, EagerLoadingMixin
@@ -138,15 +137,13 @@ class AlertReceiveChannelSerializer(EagerLoadingMixin, LabelsSerializerMixin, se
             )
         except AlertReceiveChannel.DuplicateDirectPagingError:
             raise BadRequest(detail=AlertReceiveChannel.DuplicateDirectPagingError.DETAIL)
-        if labels is not None:
-            AssociatedLabel.update_association(labels, instance, organization)
+        self.update_labels_association_if_needed(labels, instance, organization)
         return instance
 
     def update(self, instance, validated_data):
         labels = validated_data.pop("labels", None)
         organization = self.context["request"].auth.organization
-        if labels is not None:
-            AssociatedLabel.update_association(labels, instance, organization)
+        self.update_labels_association_if_needed(labels, instance, organization)
         try:
             return super().update(instance, validated_data)
         except AlertReceiveChannel.DuplicateDirectPagingError:

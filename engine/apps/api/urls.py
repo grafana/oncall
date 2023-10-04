@@ -1,4 +1,3 @@
-# from django.conf import settings
 from django.urls import include, path, re_path
 
 from common.api_helpers.optional_slash_router import OptionalSlashRouter, optional_slash_path

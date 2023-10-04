@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
-from apps.labels.models import LabelKeyCache, LabelValueCache
+from apps.labels.models import AssociatedLabel, LabelKeyCache, LabelValueCache
+from apps.labels.utils import is_labels_feature_enabled
 
 
 class LabelKeySerializer(serializers.ModelSerializer):
@@ -48,3 +49,7 @@ class LabelsSerializerMixin(serializers.Serializer):
             if len(keys) != len(labels):
                 raise serializers.ValidationError(detail="Duplicate label key")
         return labels
+
+    def update_labels_association_if_needed(self, labels, instance, organization):
+        if labels is not None and is_labels_feature_enabled(organization):
+            AssociatedLabel.update_association(labels, instance, organization)
