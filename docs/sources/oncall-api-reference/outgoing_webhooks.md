@@ -105,7 +105,7 @@ curl "{{API_URL}}/api/v1/webhooks/" \
 
 ### Trigger Types
 
-See [here](outgoing-webhooks#event-types) for details
+For more detail, refer to [Event types](../../outgoing-webhooks#event-types).
 
 - `escalation`
 - `alert group created`
