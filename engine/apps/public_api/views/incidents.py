@@ -1,11 +1,13 @@
 from django.db.models import Q
 from django_filters import rest_framework as filters
 from rest_framework import mixins, status
+from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
+from apps.alerts.constants import ActionSource
 from apps.alerts.models import AlertGroup
 from apps.alerts.tasks import delete_alert_group, wipe
 from apps.auth_token.auth import ApiTokenAuthentication
@@ -112,3 +114,74 @@ class IncidentView(RateLimitHeadersMixin, mixins.ListModelMixin, mixins.DestroyM
             wipe.apply_async((instance.pk, request.user.pk))
 
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(methods=["post"], detail=True)
+    def acknowledge(self, request, pk):
+        alert_group = self.get_object()
+
+        if alert_group.acknowledged:
+            raise BadRequest(detail="Can't acknowledge an acknowledged alert group")
+
+        if alert_group.resolved:
+            raise BadRequest(detail="Can't acknowledge a resolved alert group")
+
+        if alert_group.root_alert_group:
+            raise BadRequest(detail="Can't acknowledge an attached alert group")
+
+        if alert_group.is_maintenance_incident:
+            raise BadRequest(detail="Can't acknowledge a maintenance alert group")
+
+        alert_group.acknowledge_by_user(self.request.user, action_source=ActionSource.WEB)
+        return Response(status=status.HTTP_200_OK)
+
+    @action(methods=["post"], detail=True)
+    def unacknowledge(self, request, pk):
+        alert_group = self.get_object()
+
+        if not alert_group.acknowledged:
+            raise BadRequest(detail="Can't unacknowledge an unacknowledged alert group")
+
+        if alert_group.resolved:
+            raise BadRequest(detail="Can't unacknowledge a resolved alert group")
+
+        if alert_group.root_alert_group:
+            raise BadRequest(detail="Can't unacknowledge an attached alert group")
+
+        if alert_group.is_maintenance_incident:
+            raise BadRequest(detail="Can't unacknowledge a maintenance alert group")
+
+        alert_group.un_acknowledge_by_user(self.request.user, action_source=ActionSource.WEB)
+        return Response(status=status.HTTP_200_OK)
+
+    @action(methods=["post"], detail=True)
+    def resolve(self, request, pk):
+        alert_group = self.get_object()
+
+        if alert_group.resolved:
+            raise BadRequest(detail="Can't resolve a resolved alert group")
+
+        if alert_group.root_alert_group:
+            raise BadRequest(detail="Can't resolve an attached alert group")
+
+        if alert_group.is_maintenance_incident:
+            alert_group.stop_maintenance(self.request.user)
+        else:
+            alert_group.resolve_by_user(self.request.user, action_source=ActionSource.WEB)
+
+        return Response(status=status.HTTP_200_OK)
+
+    @action(methods=["post"], detail=True)
+    def unresolve(self, request, pk):
+        alert_group = self.get_object()
+
+        if not alert_group.resolved:
+            raise BadRequest(detail="Can't unresolve an unresolved alert group")
+
+        if alert_group.root_alert_group:
+            raise BadRequest(detail="Can't unresolve an attached alert group")
+
+        if alert_group.is_maintenance_incident:
+            raise BadRequest(detail="Can't unresolve a maintenance alert group")
+
+        alert_group.un_resolve_by_user(self.request.user, action_source=ActionSource.WEB)
+        return Response(status=status.HTTP_200_OK)
