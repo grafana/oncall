@@ -1,47 +1,13 @@
 import typing
 
-from django.apps import apps  # noqa: I251
 from django.db import models
 from django.utils import timezone
 
 from apps.labels.tasks import update_labels_cache
-from apps.labels.utils import LABEL_OUTDATED_TIMEOUT_MINUTES
+from apps.labels.utils import LABEL_OUTDATED_TIMEOUT_MINUTES, LabelsData
 
 if typing.TYPE_CHECKING:
     from apps.user_management.models import Organization
-
-
-ASSOCIATED_MODEL_NAME = "AssociatedLabel"
-
-
-class LabelParams(typing.TypedDict):
-    id: str
-    repr: str
-
-
-class LabelData(typing.TypedDict):
-    key: LabelParams
-    value: LabelParams
-
-
-LabelsData = typing.List[LabelData]
-
-
-class LabelKeyData(typing.TypedDict):
-    key: LabelParams
-    values: typing.List[LabelParams]
-
-
-# def get_associating_label_model(model_name):
-#     class_name = model.__name__ + ASSOCIATED_MODEL_NAME
-#     label_model = apps.get_model(model._meta.app_label, class_name)
-#     return label_model
-
-
-def get_associating_label_model(obj_model_name):
-    associating_label_model_name = obj_model_name + ASSOCIATED_MODEL_NAME
-    label_model = apps.get_model("labels", associating_label_model_name)
-    return label_model
 
 
 class LabelKeyCache(models.Model):
@@ -51,7 +17,7 @@ class LabelKeyCache(models.Model):
     last_synced = models.DateTimeField(auto_now=True)
 
     @property
-    def is_outdated(self):
+    def is_outdated(self) -> bool:
         return timezone.now() - self.last_synced > timezone.timedelta(minutes=LABEL_OUTDATED_TIMEOUT_MINUTES)
 
 
@@ -62,7 +28,7 @@ class LabelValueCache(models.Model):
     last_synced = models.DateTimeField(auto_now=True)
 
     @property
-    def is_outdated(self):
+    def is_outdated(self) -> bool:
         return timezone.now() - self.last_synced > timezone.timedelta(minutes=LABEL_OUTDATED_TIMEOUT_MINUTES)
 
 
@@ -75,21 +41,7 @@ class AssociatedLabel(models.Model):
         abstract = True
 
     @staticmethod
-    def associate(labels_data: LabelsData, instance: models.Model, organization: "Organization"):
-        for label_data in labels_data:
-            key_id = label_data["key"]["id"]
-            key_repr = label_data["key"]["repr"]
-            value_id = label_data["value"]["id"]
-            value_repr = label_data["value"]["repr"]
-
-            label_key, _ = LabelKeyCache.objects.update_or_create(
-                id=key_id, organization=organization, defaults={"repr": key_repr}
-            )
-            label_value, _ = label_key.values.update_or_create(id=value_id, defaults={"repr": value_repr})
-            label, _ = instance.labels.get_or_create(key=label_key, value=label_value, organization=organization)
-
-    @staticmethod
-    def update_association(labels_data: LabelsData, instance: models.Model, organization: "Organization"):
+    def update_association(labels_data: "LabelsData", instance: models.Model, organization: "Organization") -> None:
         labels_data_keys = {label["key"]["id"]: label["key"]["repr"] for label in labels_data}
         labels_data_values = {label["value"]["id"]: label["value"]["repr"] for label in labels_data}
 
@@ -122,17 +74,7 @@ class AssociatedLabel(models.Model):
         LabelValueCache.objects.bulk_create(labels_values, ignore_conflicts=True, batch_size=5000)
         instance.labels.model.objects.bulk_create(labels_associations, ignore_conflicts=True, batch_size=5000)
 
-        # todo: update cache
-        # update_labels_cache.apply_async((organization, labels_data),)
-        update_labels_cache(labels_data)
-
-    @staticmethod
-    def remove(label_data, instance):
-        # todo: if not associated?
-        key_id = label_data["key"]["id"]
-        value_id = label_data["value"]["id"]
-        instance.labels.filter(key_id=key_id, value_id=value_id).delete()
-        # todo: delete unused cache
+        update_labels_cache.apply_async((labels_data,))
 
 
 class AlertReceiveChannelAssociatedLabel(AssociatedLabel):

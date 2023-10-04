@@ -1,15 +1,17 @@
+import logging
 import typing
 
+from celery.utils.log import get_task_logger
 from django.conf import settings
 from django.utils import timezone
 
 from apps.labels.client import LabelsAPIClient
-from apps.labels.utils import LABEL_OUTDATED_TIMEOUT_MINUTES
+from apps.labels.utils import LABEL_OUTDATED_TIMEOUT_MINUTES, LabelKeyData, LabelsData, get_associating_label_model
 from apps.user_management.models import Organization
 from common.custom_celery_tasks import shared_dedicated_queue_retry_task
 
-if typing.TYPE_CHECKING:
-    from apps.labels.models import LabelKeyData, LabelsData
+logger = get_task_logger(__name__)
+logger.setLevel(logging.DEBUG)
 
 
 @shared_dedicated_queue_retry_task(
@@ -18,10 +20,6 @@ if typing.TYPE_CHECKING:
 def update_labels_cache_for_key(label_data: "LabelKeyData"):
     from apps.labels.models import LabelKeyCache, LabelValueCache
 
-    # {
-    #  	"key":{"id":"746982e688e3","repr":"severity"},
-    #   "values":[{"id":"106a01295d2f","repr":"critical"}, {"id":"8c77ce0e8a77","repr":"warning"}]
-    # }
     label_key = LabelKeyCache.objects.filter(id=label_data["key"]["id"]).first()
     if not label_key:
         # there is no associations with this key
@@ -29,7 +27,7 @@ def update_labels_cache_for_key(label_data: "LabelKeyData"):
 
     now = timezone.now()
     label_key.repr = label_data["key"]["repr"]
-    label_key.save(update_fields=["repr"])
+    label_key.save(update_fields=["repr", "last_synced"])
 
     values_data = {v["id"]: v["repr"] for v in label_data["values"]}
 
@@ -47,16 +45,12 @@ def update_labels_cache_for_key(label_data: "LabelKeyData"):
 def update_labels_cache(labels_data: "LabelsData"):
     from apps.labels.models import LabelKeyCache, LabelValueCache
 
-    # [{"key":{"id":"746982e688e3","repr":"severity"}, "value":{"id":"106a01295d2f","repr":"critical"}}]
     now = timezone.now()
     values_data = {
         label["value"]["id"]: {"value_repr": label["value"]["repr"], "key_repr": label["key"]["repr"]}
         for label in labels_data
     }
-    outdated_last_synced = now - timezone.timedelta(minutes=LABEL_OUTDATED_TIMEOUT_MINUTES)
-    values = LabelValueCache.objects.filter(id__in=values_data, last_synced__lte=outdated_last_synced).select_related(
-        "key"
-    )
+    values = LabelValueCache.objects.filter(id__in=values_data).select_related("key")
 
     if not values:
         return
@@ -69,7 +63,7 @@ def update_labels_cache(labels_data: "LabelsData"):
         value.last_synced = now
 
         if value.key.repr != values_data[value.id]["key_repr"]:
-            value.repr = values_data[value.id]["key_repr"]
+            value.key.repr = values_data[value.id]["key_repr"]
         value.key.last_synced = now
         keys_to_update.add(value.key)
 
@@ -80,8 +74,8 @@ def update_labels_cache(labels_data: "LabelsData"):
 @shared_dedicated_queue_retry_task(
     autoretry_for=(Exception,), retry_backoff=True, max_retries=1 if settings.DEBUG else None
 )
-def update_instances_labels_cache(organization_id, instance_ids, instance_model_name):
-    from apps.labels.models import LabelValueCache, get_associating_label_model
+def update_instances_labels_cache(organization_id: int, instance_ids: typing.List[int], instance_model_name: str):
+    from apps.labels.models import LabelValueCache
 
     now = timezone.now()
     model = get_associating_label_model(instance_model_name)
