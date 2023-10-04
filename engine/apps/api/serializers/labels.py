@@ -33,3 +33,7 @@ class LabelSerializer(serializers.Serializer):
 class LabelKeyValuesSerializer(serializers.Serializer):
     key = LabelKeySerializer()
     values = LabelValueSerializer(many=True)
+
+
+class LabelReprSerializer(serializers.Serializer):
+    repr = serializers.CharField()
