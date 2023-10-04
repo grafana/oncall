@@ -63,6 +63,7 @@ class OnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer):
         }
 
     SELECT_RELATED = ["schedule", "updated_shift"]
+    PREFETCH_RELATED = ["schedules"]
 
     def get_shift_end(self, obj):
         return obj.start + obj.duration
@@ -72,8 +73,9 @@ class OnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer):
         ret["week_start"] = CustomOnCallShift.ICAL_WEEKDAY_MAP[instance.week_start]
         if ret["schedule"] is None:
             # for terraform based schedules, related schedule comes from M2M field
-            related_schedule = instance.schedules.last()
-            ret["schedule"] = related_schedule.public_primary_key
+            # TODO: migrate terraform schedules to use FK instead
+            related_schedules = instance.schedules.all()
+            ret["schedule"] = related_schedules[0].public_primary_key if related_schedules else None
         return ret
 
     def to_internal_value(self, data):
