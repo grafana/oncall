@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+### Added
+
+- Changed the data type from `DateField` to `DateTimeField` on the `final_shifts` API endpoint. This endpoint now accepts either a date or a datetime for the start_date and end_date parameters (e.g. 2021-01-01 or 2021-01-01T01:00) ([#3103](https://github.com/grafana/oncall/pull/3103))
+
 ## v1.3.42 (2023-10-04)
 
 ### Added
@@ -18,9 +24,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - New RBAC action `grafana-oncall-app.alert-groups:direct-paging` and role "Alert Groups Direct Paging" by @joeyorlando
   ([#3107](https://github.com/grafana/oncall/pull/3107))
 
-### Added
-
-- Changed the data type from `DateField` to `DateTimeField` on the `final_shifts` API endpoint. This endpoint now accepts either a date or a datetime for the start_date and end_date parameters (e.g. 2021-01-01 or 2021-01-01T01:00) ([#3103](https://github.com/grafana/oncall/pull/3103))
 
 ### Fixed
 
