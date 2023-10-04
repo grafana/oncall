@@ -63,7 +63,7 @@ export const fillGaps = (events: Event[]) => {
   return newEvents;
 };
 
-export const splitToShiftsAndFillGaps = (events: Event[]) => {
+export const splitToShifts = (events: Event[]) => {
   const shifts: Array<{ shiftId: Shift['id']; priority: Shift['priority_level']; events: Event[] }> = [];
 
   for (const [_i, event] of events.entries()) {
@@ -77,11 +77,14 @@ export const splitToShiftsAndFillGaps = (events: Event[]) => {
     }
   }
 
-  shifts.forEach((shift) => {
-    shift.events = fillGaps(shift.events);
-  });
-
   return shifts;
+};
+
+export const fillGapsInShifts = (shifts: ShiftEvents[]) => {
+  return shifts.map((shift) => ({
+    ...shift,
+    events: fillGaps(shift.events),
+  }));
 };
 
 export const enrichEventsWithScheduleData = (events: Event[], schedule: Partial<Schedule>) => {
@@ -104,6 +107,44 @@ export const getShiftsFromStore = (
   return store.scheduleStore.finalPreview
     ? store.scheduleStore.finalPreview[getFromString(startMoment)]
     : (store.scheduleStore.events[scheduleId]?.['final']?.[getFromString(startMoment)] as any);
+};
+
+export const unFlattenShiftEvents = (shifts: ShiftEvents[]) => {
+  for (let i = 0; i < shifts.length; i++) {
+    const shift = shifts[i];
+
+    for (let j = 0; j < shift.events.length - 1; j++) {
+      for (let k = j + 1; k < shift.events.length; k++) {
+        const event1 = shift.events[j];
+        const event2 = shift.events[k];
+
+        const event1Start = dayjs(event1.start);
+        const event1End = dayjs(event1.end);
+
+        const event2Start = dayjs(event2.start);
+        const event2End = dayjs(event2.end);
+
+        if (
+          (event1Start.isBefore(event2Start) && event1End.isAfter(event2Start)) ||
+          (event1End.isAfter(event2End) && event1Start.isBefore(event2End))
+        ) {
+          const firstEvent = event1Start.isBefore(event2Start) ? event1 : event2;
+          const secondEvent = firstEvent === event1 ? event2 : event1;
+
+          const oldShift = { ...shift, events: shift.events.filter((event) => event !== secondEvent) };
+
+          const newShift = { ...shift, events: [secondEvent] };
+
+          shifts[i] = oldShift;
+          shifts.push(newShift);
+
+          return unFlattenShiftEvents(shifts);
+        }
+      }
+    }
+  }
+
+  return shifts;
 };
 
 export const flattenShiftEvents = (shifts: ShiftEvents[]) => {
@@ -245,9 +286,7 @@ export const getOverridesFromStore = (
     : (store.scheduleStore.events[scheduleId]?.['override']?.[getFromString(startMoment)] as ShiftEvents[]);
 };
 
-export const splitToLayers = (
-  shifts: Array<{ shiftId: Shift['id']; priority: Shift['priority_level']; events: Event[] }>
-) => {
+export const splitToLayers = (shifts: ShiftEvents[]) => {
   return shifts
     .reduce((memo, shift) => {
       let layer = memo.find((level) => level.priority === shift.priority);

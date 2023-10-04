@@ -77,8 +77,6 @@ class SchedulePersonal extends Component<SchedulePersonalProps> {
 
     const storeUser = store.userStore.items[userPk];
 
-    console.log('storeUser', storeUser);
-
     return (
       <>
         <div className={cx('root')}>

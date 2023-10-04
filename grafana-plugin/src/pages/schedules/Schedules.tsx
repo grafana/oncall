@@ -25,7 +25,7 @@ import SchedulePersonal from 'containers/Rotations/SchedulePersonal';
 import ScheduleForm from 'containers/ScheduleForm/ScheduleForm';
 import TeamName from 'containers/TeamName/TeamName';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
-import { Schedule, ScheduleType } from 'models/schedule/schedule.types';
+import { Schedule } from 'models/schedule/schedule.types';
 import { getSlackChannelName } from 'models/slack_channel/slack_channel.helpers';
 import { Timezone } from 'models/timezone/timezone.types';
 import { getStartOfWeek } from 'pages/schedule/Schedule.helpers';
@@ -234,9 +234,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
   handleCreateSchedule = (data: Schedule) => {
     const { history, query } = this.props;
 
-    if (data.type === ScheduleType.API) {
-      history.push(`${PLUGIN_ROOT}/schedules/${data.id}?${qs.stringify(query)}`);
-    }
+    history.push(`${PLUGIN_ROOT}/schedules/${data.id}?${qs.stringify(query)}`);
   };
 
   handleExpandRow = (expanded: boolean, data: Schedule) => {

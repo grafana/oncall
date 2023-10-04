@@ -57,7 +57,7 @@ const ScheduleSlot: FC<ScheduleSlotProps> = observer((props) => {
 
   const base = 60 * 60 * 24 * 7;
 
-  const width = duration / base;
+  const width = Math.max(duration / base, 0);
 
   const currentMoment = useMemo(() => dayjs(), []);
 

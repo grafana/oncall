@@ -14,10 +14,12 @@ import {
   enrichEventsWithScheduleData,
   enrichLayers,
   enrichOverrides,
+  fillGapsInShifts,
   flattenShiftEvents,
   getFromString,
   splitToLayers,
-  splitToShiftsAndFillGaps,
+  splitToShifts,
+  unFlattenShiftEvents,
 } from './schedule.helpers';
 import {
   Rotation,
@@ -288,7 +290,7 @@ export class ScheduleStore extends BaseStore {
       this.rotationPreview = { ...this.rotationPreview, [fromString]: layers };
     }
 
-    this.finalPreview = { ...this.finalPreview, [fromString]: splitToShiftsAndFillGaps(response.final) };
+    this.finalPreview = { ...this.finalPreview, [fromString]: fillGapsInShifts(splitToShifts(response.final)) };
   }
 
   @action
@@ -451,7 +453,9 @@ export class ScheduleStore extends BaseStore {
     });
 
     const fromString = getFromString(startMoment);
-    const shifts = splitToShiftsAndFillGaps(response.events);
+    const shiftsRaw = splitToShifts(response.events);
+    const shiftsUnflattened = unFlattenShiftEvents(shiftsRaw);
+    const shifts = fillGapsInShifts(shiftsUnflattened);
     const layers = type === 'rotation' ? splitToLayers(shifts) : undefined;
 
     this.events = {
@@ -550,7 +554,7 @@ export class ScheduleStore extends BaseStore {
     });
 
     const shiftEventsList = schedules.reduce((acc, { events, id, name }) => {
-      return [...acc, ...splitToShiftsAndFillGaps(enrichEventsWithScheduleData(events, { id, name }))];
+      return [...acc, ...fillGapsInShifts(splitToShifts(enrichEventsWithScheduleData(events, { id, name })))];
     }, []);
 
     const shiftEventsListFlattened = flattenShiftEvents(shiftEventsList);
