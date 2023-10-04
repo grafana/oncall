@@ -82,6 +82,12 @@ spec:
           {{- end }}
           resources:
             {{- toYaml .Values.celery.resources | nindent 12 }}
+          {{- with .Values.celery.extraVolumeMounts }}
+          volumeMounts: {{- . | toYaml | nindent 12 }}
+          {{- end }}
       {{- with .Values.celery.extraContainers }}
         {{- tpl . $ | nindent 8 }}
+      {{- end }}
+      {{- with .Values.celery.extraVolumes }}
+      volumes: {{- . | toYaml | nindent 8 }}
       {{- end }}

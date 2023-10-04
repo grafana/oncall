@@ -73,6 +73,7 @@ class Actions(enum.Enum):
     TEST = "test"
     EXPORT = "export"
     UPDATE_SETTINGS = "update-settings"
+    DIRECT_PAGING = "direct-paging"
 
 
 class LegacyAccessControlRole(enum.IntEnum):
@@ -126,6 +127,9 @@ class RBACPermission(permissions.BasePermission):
         )
         ALERT_GROUPS_WRITE = LegacyAccessControlCompatiblePermission(
             Resources.ALERT_GROUPS, Actions.WRITE, LegacyAccessControlRole.EDITOR
+        )
+        ALERT_GROUPS_DIRECT_PAGING = LegacyAccessControlCompatiblePermission(
+            Resources.ALERT_GROUPS, Actions.DIRECT_PAGING, LegacyAccessControlRole.EDITOR
         )
 
         INTEGRATIONS_READ = LegacyAccessControlCompatiblePermission(

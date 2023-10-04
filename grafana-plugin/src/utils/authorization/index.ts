@@ -34,11 +34,13 @@ export enum Action {
   TEST = 'test',
   EXPORT = 'export',
   UPDATE_SETTINGS = 'update-settings',
+  DIRECT_PAGING = 'direct-paging',
 }
 
 type Actions =
   | 'AlertGroupsRead'
   | 'AlertGroupsWrite'
+  | 'AlertGroupsDirectPaging'
   | 'IntegrationsRead'
   | 'IntegrationsWrite'
   | 'IntegrationsTest'
@@ -122,6 +124,7 @@ const constructAction = (
 export const UserActions: { [action in Actions]: UserAction } = {
   AlertGroupsRead: constructAction(Resource.ALERT_GROUPS, Action.READ, OrgRole.Viewer),
   AlertGroupsWrite: constructAction(Resource.ALERT_GROUPS, Action.WRITE, OrgRole.Editor),
+  AlertGroupsDirectPaging: constructAction(Resource.ALERT_GROUPS, Action.DIRECT_PAGING, OrgRole.Editor),
 
   IntegrationsRead: constructAction(Resource.INTEGRATIONS, Action.READ, OrgRole.Viewer),
   IntegrationsWrite: constructAction(Resource.INTEGRATIONS, Action.WRITE, OrgRole.Admin),
