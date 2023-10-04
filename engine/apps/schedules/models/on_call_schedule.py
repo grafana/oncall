@@ -537,7 +537,9 @@ class OnCallSchedule(PolymorphicModel):
             # no final schedule info available
             return passed_shifts, current_shifts, upcoming_shifts
 
-        events = self.filter_events(datetime_start, datetime_end, all_day_datetime=True, from_cached_final=True)
+        events = self.filter_events(
+            datetime_start, datetime_end, all_day_datetime=True, from_cached_final=True, include_shift_info=True
+        )
         events.sort(key=lambda e: e["start"])
         for event in events:
             users = {u["pk"] for u in event["users"]}
