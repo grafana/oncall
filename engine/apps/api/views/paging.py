@@ -15,7 +15,7 @@ class DirectPagingAPIView(APIView):
     permission_classes = (IsAuthenticated, RBACPermission)
 
     rbac_permissions = {
-        "post": [RBACPermission.Permissions.ALERT_GROUPS_WRITE],
+        "post": [RBACPermission.Permissions.ALERT_GROUPS_DIRECT_PAGING],
     }
 
     def post(self, request):
