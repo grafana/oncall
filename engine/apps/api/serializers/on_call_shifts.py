@@ -70,6 +70,10 @@ class OnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer):
     def to_representation(self, instance):
         ret = super().to_representation(instance)
         ret["week_start"] = CustomOnCallShift.ICAL_WEEKDAY_MAP[instance.week_start]
+        if ret["schedule"] is None:
+            # for terraform based schedules, related schedule comes from M2M field
+            related_schedule = instance.schedules.last()
+            ret["schedule"] = related_schedule.public_primary_key
         return ret
 
     def to_internal_value(self, data):
