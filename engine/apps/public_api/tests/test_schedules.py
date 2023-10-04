@@ -914,13 +914,23 @@ def test_oncall_shifts_request_validation(
         ]
     }
 
-    ## datetime validation
+    # datetime validation
+    # invalid request (doesnt match pattern YYYY-MM-DDThh:mm)
     response = _make_request(web_schedule, "?start_date=2021-01-01 01:00")
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert response.json()["start_date"][0] == "Datetime has wrong format. Use one of these formats instead: YYYY-MM-DDThh:mm, YYYY-MM-DD."
+    assert (
+        response.json()["start_date"][0]
+        == "Datetime has wrong format. Use one of these formats instead: YYYY-MM-DDThh:mm, YYYY-MM-DD."
+    )
 
+    # valid request both parameters using datetime
     response = _make_request(web_schedule, "?start_date=2021-01-01T01:00&end_date=2021-01-02T01:00")
     assert response.status_code == status.HTTP_200_OK
+
+    # valid request combination of date and datetime
+    response = _make_request(web_schedule, "?start_date=2021-01-01&end_date=2021-01-02T01:00")
+    assert response.status_code == status.HTTP_200_OK
+
 
 @pytest.mark.django_db
 def test_oncall_shifts_export(
@@ -962,7 +972,9 @@ def test_oncall_shifts_export(
     client = APIClient()
 
     url = reverse("api-public:schedules-final-shifts", kwargs={"pk": schedule.public_primary_key})
-    response = client.get(f"{url}?start_date=2023-01-01T18:00&end_date=2023-02-01", format="json", HTTP_AUTHORIZATION=token)
+    response = client.get(
+        f"{url}?start_date=2023-01-01T18:00&end_date=2023-02-01", format="json", HTTP_AUTHORIZATION=token
+    )
     assert response.status_code == status.HTTP_200_OK
 
     expected_on_call_times = {
@@ -1022,7 +1034,9 @@ def test_oncall_shifts_export_from_ical_schedule(
     client = APIClient()
 
     url = reverse("api-public:schedules-final-shifts", kwargs={"pk": schedule.public_primary_key})
-    response = client.get(f"{url}?start_date=2023-07-01T09:00&end_date=2023-07-31T21:00", format="json", HTTP_AUTHORIZATION=token)
+    response = client.get(
+        f"{url}?start_date=2023-07-01T09:00&end_date=2023-07-31T21:00", format="json", HTTP_AUTHORIZATION=token
+    )
     assert response.status_code == status.HTTP_200_OK
 
     expected_on_call_times = {
@@ -1059,7 +1073,9 @@ def test_oncall_shifts_export_from_api_schedule(
     client = APIClient()
 
     url = reverse("api-public:schedules-final-shifts", kwargs={"pk": schedule.public_primary_key})
-    response = client.get(f"{url}?start_date=2023-07-01T09:00&end_date=2023-07-31T11:00", format="json", HTTP_AUTHORIZATION=token)
+    response = client.get(
+        f"{url}?start_date=2023-07-01T09:00&end_date=2023-07-31T11:00", format="json", HTTP_AUTHORIZATION=token
+    )
     assert response.status_code == status.HTTP_200_OK
 
     expected_on_call_times = {
@@ -1102,7 +1118,9 @@ def test_oncall_shifts_export_truncate_events(
 
     # request shifts on a Tu (ie. 00:00 - 09:00)
     url = reverse("api-public:schedules-final-shifts", kwargs={"pk": schedule.public_primary_key})
-    response = client.get(f"{url}?start_date=2023-01-03T09:00&end_date=2023-01-03T09:00", format="json", HTTP_AUTHORIZATION=token)
+    response = client.get(
+        f"{url}?start_date=2023-01-03&end_date=2023-01-03T09:00", format="json", HTTP_AUTHORIZATION=token
+    )
     assert response.status_code == status.HTTP_200_OK
 
     expected_on_call_times = {user1_public_primary_key: 9}

@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+
+- Changed the data type from `DateField` to `DateTimeField` on the `final_shifts` API endpoint. This endpoint now accepts either a date or a datetime for the start_date and end_date parameters (e.g. 2021-01-01 or 2021-01-01T01:00) ([#3103](https://github.com/grafana/oncall/pull/3103))
+
 ### Fixed
 
 - Fix slack notification for a shift which end is affected by a taken swap ([#3092](https://github.com/grafana/oncall/pull/3092))
