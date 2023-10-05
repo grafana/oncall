@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Fixed
+
+- Fix plugin status to always return URL with trailing / @mderynck ([#3122](https://github.com/grafana/oncall/pull/3122))
+
 ## v1.3.43 (2023-10-05)
 
 ### Added
