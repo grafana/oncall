@@ -5,6 +5,7 @@ import { makeRequest } from 'network';
 import { RootStore } from 'state';
 
 import { LabelKey, LabelValue } from './label.types';
+import { noop } from 'lodash-es';
 
 export class LabelStore extends BaseStore {
   @observable.shallow
@@ -20,8 +21,8 @@ export class LabelStore extends BaseStore {
   }
 
   @action
-  public async loadKeys() {
-    const result = await makeRequest(`${this.path}keys/`, {});
+  public async loadKeys(errorFn) {
+    const result = await makeRequest(`${this.path}keys/`, {}).catch(errorFn);
 
     this.keys = result;
 
@@ -29,12 +30,12 @@ export class LabelStore extends BaseStore {
   }
 
   @action
-  public async loadValuesForKey(key: LabelKey['id'], search = '') {
+  public async loadValuesForKey(key: LabelKey['id'], search = '', errorFn = noop) {
     if (!key) return [];
 
     const result = await makeRequest(`${this.path}id/${key}`, {
       params: { search },
-    });
+    }).catch(errorFn);
 
     const filteredValues = result.values.filter((v) => v.repr.toLowerCase().includes(search.toLowerCase())); // TODO remove after backend search implementation
 

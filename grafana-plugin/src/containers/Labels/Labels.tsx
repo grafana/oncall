@@ -48,7 +48,9 @@ const Labels = observer(
       let result = undefined;
       return async (search?: string) => {
         if (!result) {
-          result = await labelsStore.loadKeys();
+          result = await labelsStore.loadKeys(() =>
+            openErrorNotification('There was an error processing your request. Please try again')
+          );
         }
 
         return result.filter((k) => k.repr.toLowerCase().includes(search.toLowerCase()));
@@ -59,7 +61,9 @@ const Labels = observer(
       let result = undefined;
       return async (key: string, search?: string) => {
         if (!result) {
-          result = await labelsStore.loadValuesForKey(key, search);
+          result = await labelsStore.loadValuesForKey(key, search, () =>
+            openErrorNotification('There was an error processing your request. Please try again')
+          );
         }
 
         return result.filter((k) => k.repr.toLowerCase().includes(search.toLowerCase()));
