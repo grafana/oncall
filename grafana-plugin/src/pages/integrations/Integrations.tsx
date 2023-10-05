@@ -41,7 +41,7 @@ import styles from './Integrations.module.scss';
 const cx = cn.bind(styles);
 const FILTERS_DEBOUNCE_MS = 500;
 const ITEMS_PER_PAGE = 15;
-const MAX_LINE_LENGTH = 40;
+const MAX_LINE_LENGTH = 50;
 
 interface IntegrationsState extends PageBaseState {
   integrationsFilters: Filters;
@@ -227,16 +227,20 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
           ...query,
         }}
       >
-        <Text type="link" size="medium">
-          <Emoji
-            className={cx('title')}
-            text={
-              item.verbal_name?.length > MAX_LINE_LENGTH
-                ? item.verbal_name?.substring(0, MAX_LINE_LENGTH) + '...'
-                : item.verbal_name
-            }
-          />
-        </Text>
+        <Tooltip content={item.verbal_name?.length > MAX_LINE_LENGTH ? item.verbal_name : undefined} placement="top">
+          <span>
+            <Text type="link" size="medium">
+              <Emoji
+                className={cx('title')}
+                text={
+                  item.verbal_name?.length > MAX_LINE_LENGTH
+                    ? item.verbal_name?.substring(0, MAX_LINE_LENGTH) + '...'
+                    : item.verbal_name
+                }
+              />
+            </Text>
+          </span>
+        </Tooltip>
       </PluginLink>
     );
   };

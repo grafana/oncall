@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Make it possible to acknowledge/unacknowledge and resolve/unresolve alert groups via API by @vadimkerr ([#3108](https://github.com/grafana/oncall/pull/3108))
 
+### Changed
+
+- Increase Integrations Name max characters limit and added a tooltip to show what's beyond the limit
+
 ## v1.3.42 (2023-10-04)
 
 ### Added
