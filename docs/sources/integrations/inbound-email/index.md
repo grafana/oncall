@@ -1,7 +1,7 @@
 ---
 aliases:
   - inbound-email/
-canonical: https://grafana.com/docs/oncall/latest/integrations/available-integrations/configure-inbound-email/
+canonical: https://grafana.com/docs/oncall/latest/integrations/inbound-email/
 keywords:
   - Grafana Cloud
   - Alerts

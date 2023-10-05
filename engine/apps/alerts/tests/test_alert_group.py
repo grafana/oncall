@@ -2,6 +2,7 @@ from unittest.mock import call, patch
 
 import pytest
 
+from apps.alerts.constants import ActionSource
 from apps.alerts.incident_appearance.renderers.phone_call_renderer import AlertGroupPhoneCallRenderer
 from apps.alerts.models import AlertGroup, AlertGroupLogRecord
 from apps.alerts.tasks.delete_alert_group import delete_alert_group
@@ -403,3 +404,59 @@ def test_bulk_silence_forever(
     assert alert_group.silenced
     assert alert_group.raw_escalation_snapshot["next_step_eta"] == raw_next_step_eta
     assert not mocked_start_unsilence_task.called
+
+
+@pytest.mark.parametrize("action_source", ActionSource)
+@pytest.mark.django_db
+def test_alert_group_log_record_action_source(
+    make_organization_and_user,
+    make_alert_receive_channel,
+    make_alert_group,
+    action_source,
+):
+    """Test that action source is saved in alert group log record"""
+    organization, user = make_organization_and_user()
+    alert_receive_channel = make_alert_receive_channel(organization)
+
+    alert_group = make_alert_group(alert_receive_channel)
+    root_alert_group = make_alert_group(alert_receive_channel)
+
+    # Silence alert group
+    alert_group.silence_by_user(user, 42, action_source=action_source)
+    log_record = alert_group.log_records.last()
+    assert (log_record.type, log_record.action_source) == (AlertGroupLogRecord.TYPE_SILENCE, action_source)
+
+    # Unsilence alert group
+    alert_group.un_silence_by_user(user, action_source=action_source)
+    log_record = alert_group.log_records.last()
+    assert (log_record.type, log_record.action_source) == (AlertGroupLogRecord.TYPE_UN_SILENCE, action_source)
+
+    # Acknowledge alert group
+    alert_group.acknowledge_by_user(user, action_source=action_source)
+    log_record = alert_group.log_records.last()
+    assert (log_record.type, log_record.action_source) == (AlertGroupLogRecord.TYPE_ACK, action_source)
+
+    # Unacknowledge alert group
+    alert_group.un_acknowledge_by_user(user, action_source=action_source)
+    log_record = alert_group.log_records.last()
+    assert (log_record.type, log_record.action_source) == (AlertGroupLogRecord.TYPE_UN_ACK, action_source)
+
+    # Resolve alert group
+    alert_group.resolve_by_user(user, action_source=action_source)
+    log_record = alert_group.log_records.last()
+    assert (log_record.type, log_record.action_source) == (AlertGroupLogRecord.TYPE_RESOLVED, action_source)
+
+    # Unresolve alert group
+    alert_group.un_resolve_by_user(user, action_source=action_source)
+    log_record = alert_group.log_records.last()
+    assert (log_record.type, log_record.action_source) == (AlertGroupLogRecord.TYPE_UN_RESOLVED, action_source)
+
+    # Attach alert group
+    alert_group.attach_by_user(user, root_alert_group, action_source=action_source)
+    log_record = alert_group.log_records.last()
+    assert (log_record.type, log_record.action_source) == (AlertGroupLogRecord.TYPE_ATTACHED, action_source)
+
+    # Unattach alert group
+    alert_group.un_attach_by_user(user, action_source=action_source)
+    log_record = alert_group.log_records.last()
+    assert (log_record.type, log_record.action_source) == (AlertGroupLogRecord.TYPE_UNATTACHED, action_source)

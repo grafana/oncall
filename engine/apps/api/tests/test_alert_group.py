@@ -8,6 +8,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.test import APIClient
 
+from apps.alerts.constants import ActionSource
 from apps.alerts.models import AlertGroup, AlertGroupLogRecord
 from apps.api.errors import AlertGroupAPIError
 from apps.api.permissions import LegacyAccessControlRole
@@ -1862,3 +1863,31 @@ def test_alert_group_resolve_resolution_note(
 
         assert new_alert_group.has_resolution_notes
         assert mock_signal.called
+
+
+@pytest.mark.django_db
+def test_timeline_api_action(
+    make_organization_and_user_with_plugin_token,
+    make_alert_receive_channel,
+    make_channel_filter,
+    make_alert_group,
+    make_alert,
+    make_user_auth_headers,
+):
+    """Check that the timeline API returns the correct actions when using AlertSource.WEB vs ActionSource.API"""
+    organization, user, token = make_organization_and_user_with_plugin_token()
+    alert_receive_channel = make_alert_receive_channel(organization)
+    channel_filter = make_channel_filter(alert_receive_channel, is_default=True)
+    alert_group = make_alert_group(alert_receive_channel, channel_filter=channel_filter)
+    make_alert(alert_group=alert_group, raw_request_data=alert_raw_request_data)
+
+    alert_group.acknowledge_by_user(user, action_source=ActionSource.WEB)
+    alert_group.resolve_by_user(user, action_source=ActionSource.API)
+
+    client = APIClient()
+    url = reverse("api-internal:alertgroup-detail", kwargs={"pk": alert_group.public_primary_key})
+    response = client.get(url, **make_user_auth_headers(user, token))
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()["render_after_resolve_report_json"][0]["action"] == "acknowledged by {{author}}"
+    assert response.json()["render_after_resolve_report_json"][1]["action"] == "resolved by API"

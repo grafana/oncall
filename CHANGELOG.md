@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Make it possible to acknowledge/unacknowledge and resolve/unresolve alert groups via API by @vadimkerr ([#3108](https://github.com/grafana/oncall/pull/3108))
+
+## v1.3.42 (2023-10-04)
+
+### Added
+
 - Add additional shift info in schedule filter_events internal API ([#3110](https://github.com/grafana/oncall/pull/3110))
 
 ## v1.3.41 (2023-10-04)
