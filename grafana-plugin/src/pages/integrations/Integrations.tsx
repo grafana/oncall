@@ -227,22 +227,36 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
           ...query,
         }}
       >
-        <Tooltip content={item.verbal_name?.length > MAX_LINE_LENGTH ? item.verbal_name : undefined} placement="top">
-          <span>
-            <Text type="link" size="medium">
-              <Emoji
-                className={cx('title')}
-                text={
-                  item.verbal_name?.length > MAX_LINE_LENGTH
-                    ? item.verbal_name?.substring(0, MAX_LINE_LENGTH) + '...'
-                    : item.verbal_name
-                }
-              />
-            </Text>
-          </span>
-        </Tooltip>
+        {renderIntegrationName()}
       </PluginLink>
     );
+
+    function renderIntegrationName() {
+      const content = (
+        <Text type="link" size="medium">
+          <Emoji
+            className={cx('title')}
+            text={
+              item.verbal_name?.length > MAX_LINE_LENGTH
+                ? item.verbal_name?.substring(0, MAX_LINE_LENGTH) + '...'
+                : item.verbal_name
+            }
+          />
+        </Text>
+      );
+
+      return (
+        <>
+          {item.verbal_name?.length > MAX_LINE_LENGTH ? (
+            <Tooltip content={item?.verbal_name} placement="top">
+              <span>{content}</span>
+            </Tooltip>
+          ) : (
+            content
+          )}
+        </>
+      );
+    }
   };
 
   renderDatasource(item: AlertReceiveChannel, alertReceiveChannelStore: AlertReceiveChannelStore) {
@@ -282,6 +296,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
           <PluginLink query={{ page: 'incidents', integration: item.id }} className={cx('alertsInfoText')}>
             <TooltipBadge
               borderType="primary"
+              placement="top"
               text={alertReceiveChannelCounter?.alerts_count + '/' + alertReceiveChannelCounter?.alert_groups_count}
               tooltipTitle=""
               tooltipContent={
@@ -302,6 +317,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
             icon="link"
             text={`${connectedEscalationsChainsCount}/${routesCounter}`}
             tooltipContent={undefined}
+            placement="top"
             tooltipTitle={
               connectedEscalationsChainsCount +
               ' connected escalation chain' +
@@ -332,6 +348,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
           <TooltipBadge
             text={undefined}
             className={cx('heartbeat-badge')}
+            placement="top"
             borderType={heartbeatStatus ? 'success' : 'danger'}
             customIcon={heartbeatStatus ? <HeartIcon /> : <HeartRedIcon />}
             tooltipTitle={`Last heartbeat: ${heartbeat?.last_heartbeat_time_verbal}`}
@@ -351,6 +368,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
           <TooltipBadge
             borderType="primary"
             icon="pause"
+            placement="top"
             text={IntegrationHelper.getMaintenanceText(item.maintenance_till)}
             tooltipTitle={IntegrationHelper.getMaintenanceText(item.maintenance_till, maintenanceMode)}
             tooltipContent={undefined}
