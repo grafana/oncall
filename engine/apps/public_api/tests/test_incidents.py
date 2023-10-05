@@ -6,6 +6,7 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
 
+from apps.alerts.constants import ActionSource
 from apps.alerts.models import AlertGroup, AlertReceiveChannel
 
 
@@ -291,14 +292,167 @@ def test_pagination(settings, incident_public_api_setup):
     assert result["next"].startswith("https://test.com/test/prefixed/urls")
 
 
-# This is test from old django-based tests
-# TODO: uncomment with date checking in delete mode
-# def test_delete_incident_invalid_date(self):
-#     not_valid_creation_date = VALID_DATE_FOR_DELETE_INCIDENT - timezone.timedelta(days=1)
-#     self.grafana_second_alert_group.started_at = not_valid_creation_date
-#     self.grafana_second_alert_group.save()
-#
-#     url = reverse("api-public:alert_groups-detail", kwargs={'pk': self.grafana_second_alert_group.public_primary_key})
-#     data = {"mode": "delete"}
-#     response = self.client.delete(url, data=data, format="json", HTTP_AUTHORIZATION=f"{self.token}")
-#     self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+@pytest.mark.parametrize(
+    "acknowledged,resolved,attached,maintenance,status_code",
+    [
+        (False, False, False, False, status.HTTP_200_OK),
+        (True, False, False, False, status.HTTP_400_BAD_REQUEST),
+        (False, True, False, False, status.HTTP_400_BAD_REQUEST),
+        (False, False, True, False, status.HTTP_400_BAD_REQUEST),
+        (False, False, False, True, status.HTTP_400_BAD_REQUEST),
+    ],
+)
+@pytest.mark.django_db
+def test_alert_group_acknowledge(
+    make_organization_and_user_with_token,
+    make_alert_receive_channel,
+    make_alert_group,
+    acknowledged,
+    resolved,
+    attached,
+    maintenance,
+    status_code,
+):
+    organization, _, token = make_organization_and_user_with_token()
+    alert_receive_channel = make_alert_receive_channel(organization)
+    root_alert_group = make_alert_group(alert_receive_channel)
+    alert_group = make_alert_group(
+        alert_receive_channel,
+        acknowledged=acknowledged,
+        resolved=resolved,
+        root_alert_group=root_alert_group if attached else None,
+        maintenance_uuid="test_maintenance_uuid" if maintenance else None,
+    )
+
+    client = APIClient()
+    url = reverse("api-public:alert_groups-acknowledge", kwargs={"pk": alert_group.public_primary_key})
+    response = client.post(url, HTTP_AUTHORIZATION=token)
+    assert response.status_code == status_code
+
+    if status_code == status.HTTP_200_OK:
+        alert_group.refresh_from_db()
+        assert alert_group.acknowledged is True
+        assert alert_group.log_records.last().action_source == ActionSource.API
+
+
+@pytest.mark.parametrize(
+    "acknowledged,resolved,attached,maintenance,status_code",
+    [
+        (True, False, False, False, status.HTTP_200_OK),
+        (True, True, False, False, status.HTTP_400_BAD_REQUEST),
+        (True, False, True, False, status.HTTP_400_BAD_REQUEST),
+        (True, False, False, True, status.HTTP_400_BAD_REQUEST),
+        (False, False, False, False, status.HTTP_400_BAD_REQUEST),
+    ],
+)
+@pytest.mark.django_db
+def test_alert_group_unacknowledge(
+    make_organization_and_user_with_token,
+    make_alert_receive_channel,
+    make_alert_group,
+    acknowledged,
+    resolved,
+    attached,
+    maintenance,
+    status_code,
+):
+    organization, _, token = make_organization_and_user_with_token()
+    alert_receive_channel = make_alert_receive_channel(organization)
+    root_alert_group = make_alert_group(alert_receive_channel)
+    alert_group = make_alert_group(
+        alert_receive_channel,
+        acknowledged=acknowledged,
+        resolved=resolved,
+        root_alert_group=root_alert_group if attached else None,
+        maintenance_uuid="test_maintenance_uuid" if maintenance else None,
+    )
+
+    client = APIClient()
+    url = reverse("api-public:alert_groups-unacknowledge", kwargs={"pk": alert_group.public_primary_key})
+    response = client.post(url, HTTP_AUTHORIZATION=token)
+    assert response.status_code == status_code
+
+    if status_code == status.HTTP_200_OK:
+        alert_group.refresh_from_db()
+        assert alert_group.acknowledged is False
+        assert alert_group.log_records.last().action_source == ActionSource.API
+
+
+@pytest.mark.parametrize(
+    "resolved,attached,maintenance,status_code",
+    [
+        (False, False, False, status.HTTP_200_OK),
+        (False, False, True, status.HTTP_200_OK),
+        (True, False, False, status.HTTP_400_BAD_REQUEST),
+        (False, True, False, status.HTTP_400_BAD_REQUEST),
+    ],
+)
+@pytest.mark.django_db
+def test_alert_group_resolve(
+    make_organization_and_user_with_token,
+    make_alert_receive_channel,
+    make_alert_group,
+    resolved,
+    attached,
+    maintenance,
+    status_code,
+):
+    organization, _, token = make_organization_and_user_with_token()
+    alert_receive_channel = make_alert_receive_channel(organization)
+    root_alert_group = make_alert_group(alert_receive_channel)
+    alert_group = make_alert_group(
+        alert_receive_channel,
+        resolved=resolved,
+        root_alert_group=root_alert_group if attached else None,
+        maintenance_uuid="test_maintenance_uuid" if maintenance else None,
+    )
+
+    client = APIClient()
+    url = reverse("api-public:alert_groups-resolve", kwargs={"pk": alert_group.public_primary_key})
+    response = client.post(url, HTTP_AUTHORIZATION=token)
+    assert response.status_code == status_code
+
+    if status_code == status.HTTP_200_OK and not maintenance:
+        alert_group.refresh_from_db()
+        assert alert_group.resolved is True
+        assert alert_group.log_records.last().action_source == ActionSource.API
+
+
+@pytest.mark.parametrize(
+    "resolved,attached,maintenance,status_code",
+    [
+        (True, False, False, status.HTTP_200_OK),
+        (True, True, False, status.HTTP_400_BAD_REQUEST),
+        (True, False, True, status.HTTP_400_BAD_REQUEST),
+        (False, False, False, status.HTTP_400_BAD_REQUEST),
+    ],
+)
+@pytest.mark.django_db
+def test_alert_group_unresolve(
+    make_organization_and_user_with_token,
+    make_alert_receive_channel,
+    make_alert_group,
+    resolved,
+    attached,
+    maintenance,
+    status_code,
+):
+    organization, _, token = make_organization_and_user_with_token()
+    alert_receive_channel = make_alert_receive_channel(organization)
+    root_alert_group = make_alert_group(alert_receive_channel)
+    alert_group = make_alert_group(
+        alert_receive_channel,
+        resolved=resolved,
+        root_alert_group=root_alert_group if attached else None,
+        maintenance_uuid="test_maintenance_uuid" if maintenance else None,
+    )
+
+    client = APIClient()
+    url = reverse("api-public:alert_groups-unresolve", kwargs={"pk": alert_group.public_primary_key})
+    response = client.post(url, HTTP_AUTHORIZATION=token)
+    assert response.status_code == status_code
+
+    if status_code == status.HTTP_200_OK:
+        alert_group.refresh_from_db()
+        assert alert_group.resolved is False
+        assert alert_group.log_records.last().action_source == ActionSource.API

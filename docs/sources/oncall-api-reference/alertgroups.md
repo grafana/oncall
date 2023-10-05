@@ -54,6 +54,54 @@ These available filter parameters should be provided as `GET` arguments:
 
 `GET {{API_URL}}/api/v1/alert_groups/`
 
+# Acknowledge alert groups
+
+```shell
+curl "{{API_URL}}/api/v1/alert_groups/I68T24C13IFW1/acknowledge" \
+  --request POST \
+  --header "Authorization: meowmeowmeow"
+```
+
+**HTTP request**
+
+`POST {{API_URL}}/api/v1/alert_groups/<ALERT_GROUP_ID>/acknowledge`
+
+# Unacknowledge alert groups
+
+```shell
+curl "{{API_URL}}/api/v1/alert_groups/I68T24C13IFW1/unacknowledge" \
+  --request POST \
+  --header "Authorization: meowmeowmeow"
+```
+
+**HTTP request**
+
+`POST {{API_URL}}/api/v1/alert_groups/<ALERT_GROUP_ID>/unacknowledge`
+
+# Resolve alert groups
+
+```shell
+curl "{{API_URL}}/api/v1/alert_groups/I68T24C13IFW1/resolve" \
+  --request POST \
+  --header "Authorization: meowmeowmeow"
+```
+
+**HTTP request**
+
+`POST {{API_URL}}/api/v1/alert_groups/<ALERT_GROUP_ID>/resolve`
+
+# Unresolve alert groups
+
+```shell
+curl "{{API_URL}}/api/v1/alert_groups/I68T24C13IFW1/unresolve" \
+  --request POST \
+  --header "Authorization: meowmeowmeow"
+```
+
+**HTTP request**
+
+`POST {{API_URL}}/api/v1/alert_groups/<ALERT_GROUP_ID>/unresolve`
+
 # Delete alert groups
 
 ```shell
