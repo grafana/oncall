@@ -5,6 +5,7 @@ import pytest
 from apps.alerts.constants import ActionSource
 from apps.alerts.incident_appearance.renderers.phone_call_renderer import AlertGroupPhoneCallRenderer
 from apps.alerts.models import AlertGroup, AlertGroupLogRecord
+from apps.alerts.tasks import wipe
 from apps.alerts.tasks.delete_alert_group import delete_alert_group
 from apps.slack.client import SlackClient
 from apps.slack.errors import SlackAPIMessageNotFoundError, SlackAPIRatelimitError
@@ -48,6 +49,27 @@ def test_render_for_phone_call(
     )
     rendered_text = AlertGroupPhoneCallRenderer(alert_group).render()
     assert expected_verbose_name in rendered_text
+
+
+@pytest.mark.django_db
+def test_wipe(
+    make_organization_and_user,
+    make_alert_receive_channel,
+    make_alert_group,
+    make_alert,
+):
+    organization, user = make_organization_and_user()
+    alert_receive_channel = make_alert_receive_channel(organization)
+    alert_group = make_alert_group(alert_receive_channel)
+    alert = make_alert(alert_group, raw_request_data={"test": 42})
+
+    wipe(alert_group.pk, user.pk)
+
+    alert_group.refresh_from_db()
+    alert.refresh_from_db()
+    assert alert_group.wiped_at is not None
+    assert alert_group.wiped_by == user
+    assert alert.raw_request_data == {}
 
 
 @patch.object(SlackClient, "reactions_remove")

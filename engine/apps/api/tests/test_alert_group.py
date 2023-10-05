@@ -2,6 +2,7 @@ import datetime
 from unittest.mock import patch
 
 import pytest
+from django.core.cache import cache
 from django.urls import reverse
 from django.utils import timezone
 from rest_framework import status
@@ -10,8 +11,11 @@ from rest_framework.test import APIClient
 
 from apps.alerts.constants import ActionSource
 from apps.alerts.models import AlertGroup, AlertGroupLogRecord
+from apps.alerts.tasks import wipe
 from apps.api.errors import AlertGroupAPIError
 from apps.api.permissions import LegacyAccessControlRole
+from apps.api.serializers.alert import AlertFieldsCacheSerializerMixin
+from apps.api.serializers.alert_group import AlertGroupFieldsCacheSerializerMixin
 from apps.base.models import UserNotificationPolicyLogRecord
 
 alert_raw_request_data = {
@@ -1891,3 +1895,43 @@ def test_timeline_api_action(
     assert response.status_code == status.HTTP_200_OK
     assert response.json()["render_after_resolve_report_json"][0]["action"] == "acknowledged by {{author}}"
     assert response.json()["render_after_resolve_report_json"][1]["action"] == "resolved by API"
+
+
+@pytest.mark.django_db
+def test_wipe_clears_cache(
+    make_organization_and_user_with_plugin_token,
+    make_alert_receive_channel,
+    make_channel_filter,
+    make_alert_group,
+    make_alert,
+    make_user_auth_headers,
+):
+    """Check that internal API cache is cleared when wiping an alert group"""
+    organization, user, token = make_organization_and_user_with_plugin_token()
+    alert_receive_channel = make_alert_receive_channel(organization)
+    channel_filter = make_channel_filter(alert_receive_channel, is_default=True)
+    alert_group = make_alert_group(alert_receive_channel, channel_filter=channel_filter)
+    alert = make_alert(alert_group=alert_group, raw_request_data=alert_raw_request_data)
+
+    # Populate cache
+    client = APIClient()
+    url = reverse("api-internal:alertgroup-detail", kwargs={"pk": alert_group.public_primary_key})
+    response = client.get(url, **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_200_OK
+
+    # Wipe alert group
+    wipe(alert_group.pk, user.pk)
+
+    # Check that cache is cleared for alert group
+    alert_group_cache_keys = [
+        AlertGroupFieldsCacheSerializerMixin.calculate_cache_key(field_name, alert_group)
+        for field_name in AlertGroupFieldsCacheSerializerMixin.ALL_FIELD_NAMES
+    ]
+    assert not any([cache.get(key) for key in alert_group_cache_keys])
+
+    # Check that cache is cleared for alert
+    alert_cache_keys = [
+        AlertFieldsCacheSerializerMixin.calculate_cache_key(field_name, alert)
+        for field_name in AlertFieldsCacheSerializerMixin.ALL_FIELD_NAMES
+    ]
+    assert not any([cache.get(key) for key in alert_cache_keys])
