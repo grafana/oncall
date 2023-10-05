@@ -1911,3 +1911,52 @@ def test_upcoming_shifts_multiple_schedules(
             assert returned_data[i]["is_oncall"] is False
             assert returned_data[i]["current_shift"] is None
             assert returned_data[i]["next_shift"]["start"] == expected_start
+
+
+@pytest.mark.django_db
+def test_users_is_currently_oncall_attribute_works_properly(
+    make_organization,
+    make_user_for_organization,
+    make_token_for_organization,
+    make_user_auth_headers,
+    make_schedule,
+    make_on_call_shift,
+):
+    organization = make_organization()
+    user1 = make_user_for_organization(organization)
+    user2 = make_user_for_organization(organization)
+    _, token = make_token_for_organization(organization)
+
+    schedule = make_schedule(
+        organization,
+        schedule_class=OnCallScheduleWeb,
+    )
+
+    today = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+
+    on_call_shift = make_on_call_shift(
+        organization=organization,
+        shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT,
+        start=today,
+        rotation_start=today,
+        duration=timezone.timedelta(seconds=24 * 60 * 60),
+        priority_level=1,
+        frequency=CustomOnCallShift.FREQUENCY_DAILY,
+        schedule=schedule,
+    )
+    on_call_shift.add_rolling_users([[user1]])
+    schedule.refresh_ical_file()
+    schedule.refresh_ical_final_schedule()
+
+    client = APIClient()
+    url = reverse("api-internal:user-list")
+
+    response = client.get(url, format="json", **make_user_auth_headers(user1, token))
+
+    oncall_statuses = {
+        user1.public_primary_key: True,
+        user2.public_primary_key: False,
+    }
+
+    for user in response.json()["results"]:
+        assert user["is_currently_oncall"] == oncall_statuses[user["pk"]]

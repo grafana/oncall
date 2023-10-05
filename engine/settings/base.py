@@ -311,6 +311,8 @@ if SWAGGER_UI_SETTINGS_URL:
 SPECTACULAR_INCLUDED_PATHS = [
     "/features",
     "/alertgroups",
+    "/teams",
+    # "/users",
 ]
 
 MIDDLEWARE = [

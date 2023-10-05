@@ -1,10 +1,11 @@
 import pytest
 from django.urls import reverse
+from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APIClient
 
 from apps.api.permissions import LegacyAccessControlRole
-from apps.schedules.models import OnCallScheduleCalendar
+from apps.schedules.models import CustomOnCallShift, OnCallScheduleCalendar, OnCallScheduleWeb
 from apps.user_management.models import Team
 
 GENERAL_TEAM = Team(public_primary_key="null", name="No team", email=None, avatar_url=None)
@@ -43,6 +44,74 @@ def test_list_teams(
 
     assert response.status_code == status.HTTP_200_OK
     assert response.json() == expected_payload
+
+
+@pytest.mark.django_db
+def test_teams_number_of_users_currently_oncall_attribute_works_properly(
+    make_organization,
+    make_team,
+    make_user_for_organization,
+    make_token_for_organization,
+    make_user_auth_headers,
+    make_schedule,
+    make_on_call_shift,
+):
+    organization = make_organization()
+    user1 = make_user_for_organization(organization)
+    user2 = make_user_for_organization(organization)
+    user3 = make_user_for_organization(organization)
+    _, token = make_token_for_organization(organization)
+
+    today = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+
+    team1 = make_team(organization)
+    team2 = make_team(organization)
+    team3 = make_team(organization)
+
+    team1.users.set([user1, user2, user3])
+    team2.users.set([user1])
+    team3.users.set([user3])
+
+    def _make_schedule(team=None, oncall_users=[]):
+        schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
+
+        if team:
+            schedule.team = team
+            schedule.save()
+
+        if oncall_users:
+            on_call_shift = make_on_call_shift(
+                organization=organization,
+                shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT,
+                start=today,
+                rotation_start=today,
+                duration=timezone.timedelta(seconds=24 * 60 * 60),
+                priority_level=1,
+                frequency=CustomOnCallShift.FREQUENCY_DAILY,
+                schedule=schedule,
+            )
+            on_call_shift.add_rolling_users([oncall_users])
+            schedule.refresh_ical_file()
+            schedule.refresh_ical_final_schedule()
+
+    _make_schedule(team=team1, oncall_users=[user1, user2])
+    _make_schedule(team=team2, oncall_users=[user1])
+    _make_schedule(team=team3, oncall_users=[])
+
+    client = APIClient()
+    url = reverse("api-internal:team-list")
+
+    response = client.get(url, format="json", **make_user_auth_headers(user1, token))
+
+    number_of_oncall_users = {
+        team1.public_primary_key: 2,
+        team2.public_primary_key: 1,
+        team3.public_primary_key: 0,
+        "null": 0,  # this covers the case of "No team"
+    }
+
+    for team in response.json():
+        assert team["number_of_users_currently_oncall"] == number_of_oncall_users[team["id"]]
 
 
 @pytest.mark.django_db

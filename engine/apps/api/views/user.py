@@ -6,6 +6,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db.utils import IntegrityError
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.functional import cached_property
 from django_filters import rest_framework as filters
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
@@ -57,6 +58,7 @@ from apps.phone_notifications.exceptions import (
     ProviderNotSupports,
 )
 from apps.phone_notifications.phone_backend import PhoneBackend
+from apps.schedules.ical_utils import get_oncall_users_for_multiple_schedules
 from apps.schedules.models import OnCallSchedule
 from apps.telegram.client import TelegramClient
 from apps.telegram.models import TelegramVerificationCode
@@ -219,9 +221,23 @@ class UserView(
         "^username",
         "^slack_user_identity__cached_slack_login",
         "^slack_user_identity__cached_name",
+        "^teams__name",
     )
 
     filterset_class = UserFilter
+
+    @cached_property
+    def schedules_with_oncall_users(self):
+        """
+        The result of this method is cached and is reused for the whole lifetime of a request,
+        since self.get_serializer_context() is called multiple times for every instance in the queryset.
+        """
+        return get_oncall_users_for_multiple_schedules(self.request.user.organization.oncall_schedules.all())
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context.update({"schedules_with_oncall_users": self.schedules_with_oncall_users})
+        return context
 
     def get_serializer_class(self):
         request = self.request
@@ -255,7 +271,8 @@ class UserView(
         queryset = self.filter_queryset(self.get_queryset())
         page = self.paginate_queryset(queryset)
         if page is not None:
-            context = {"request": self.request, "format": self.format_kwarg, "view": self}
+            context = self.get_serializer_context()
+
             if settings.IS_OPEN_SOURCE:
                 if live_settings.GRAFANA_CLOUD_NOTIFICATIONS_ENABLED:
                     from apps.oss_installation.models import CloudConnector, CloudUserIdentity
@@ -274,7 +291,8 @@ class UserView(
         return Response(serializer.data)
 
     def retrieve(self, request, *args, **kwargs) -> Response:
-        context = {"request": self.request, "format": self.format_kwarg, "view": self}
+        context = self.get_serializer_context()
+
         try:
             instance = self.get_object()
         except NotFound:

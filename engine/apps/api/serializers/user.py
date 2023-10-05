@@ -1,5 +1,6 @@
 import math
 import time
+import typing
 
 from django.conf import settings
 from rest_framework import serializers
@@ -9,6 +10,7 @@ from apps.base.messaging import get_messaging_backends
 from apps.base.models import UserNotificationPolicy
 from apps.base.utils import live_settings
 from apps.oss_installation.utils import cloud_user_identity_status
+from apps.schedules.ical_utils import SchedulesOnCallUsers
 from apps.user_management.models import User
 from apps.user_management.models.user import default_working_hours
 from common.api_helpers.custom_fields import TeamPrimaryKeyRelatedField, TimeZoneField
@@ -20,11 +22,17 @@ from .organization import FastOrganizationSerializer
 from .slack_user_identity import SlackUserIdentitySerializer
 
 
+class UserSerializerContext(typing.TypedDict):
+    schedules_with_oncall_users: SchedulesOnCallUsers
+
+
 class UserPermissionSerializer(serializers.Serializer):
     action = serializers.CharField(read_only=True)
 
 
 class UserSerializer(DynamicFieldsModelSerializer, EagerLoadingMixin):
+    context: UserSerializerContext
+
     pk = serializers.CharField(read_only=True, source="public_primary_key")
     slack_user_identity = SlackUserIdentitySerializer(read_only=True)
 
@@ -40,6 +48,8 @@ class UserSerializer(DynamicFieldsModelSerializer, EagerLoadingMixin):
     avatar_full = serializers.URLField(source="avatar_full_url", read_only=True)
     notification_chain_verbal = serializers.SerializerMethodField()
     cloud_connection_status = serializers.SerializerMethodField()
+
+    is_currently_oncall = serializers.SerializerMethodField()
 
     SELECT_RELATED = ["telegram_verification_code", "telegram_connection", "organization", "slack_user_identity"]
 
@@ -65,6 +75,7 @@ class UserSerializer(DynamicFieldsModelSerializer, EagerLoadingMixin):
             "notification_chain_verbal",
             "cloud_connection_status",
             "hide_phone_number",
+            "is_currently_oncall",
         ]
         read_only_fields = [
             "email",
@@ -120,18 +131,18 @@ class UserSerializer(DynamicFieldsModelSerializer, EagerLoadingMixin):
         else:
             return None
 
-    def get_messaging_backends(self, obj):
+    def get_messaging_backends(self, obj: User):
         serialized_data = {}
         supported_backends = get_messaging_backends()
         for backend_id, backend in supported_backends:
             serialized_data[backend_id] = backend.serialize_user(obj)
         return serialized_data
 
-    def get_notification_chain_verbal(self, obj):
+    def get_notification_chain_verbal(self, obj: User):
         default, important = UserNotificationPolicy.get_short_verbals_for_user(user=obj)
         return {"default": " - ".join(default), "important": " - ".join(important)}
 
-    def get_cloud_connection_status(self, obj):
+    def get_cloud_connection_status(self, obj: User):
         if settings.IS_OPEN_SOURCE and live_settings.GRAFANA_CLOUD_NOTIFICATIONS_ENABLED:
             connector = self.context.get("connector", None)
             identities = self.context.get("cloud_identities", {})
@@ -139,6 +150,13 @@ class UserSerializer(DynamicFieldsModelSerializer, EagerLoadingMixin):
             status, _ = cloud_user_identity_status(connector, identity)
             return status
         return None
+
+    def get_is_currently_oncall(self, obj: User) -> bool:
+        # Serializer context is set here: apps.api.views.user.UserView.get_serializer_context.
+        for users in self.context.get("schedules_with_oncall_users", {}).values():
+            if obj in users:
+                return True
+        return False
 
     def to_representation(self, instance):
         result = super().to_representation(instance)
