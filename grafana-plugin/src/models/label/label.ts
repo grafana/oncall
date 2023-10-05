@@ -20,12 +20,8 @@ export class LabelStore extends BaseStore {
   }
 
   @action
-  public async loadKeys(search = '') {
-    const result = (
-      await makeRequest(`${this.path}keys/`, {
-        params: { search },
-      })
-    ).filter((k) => k.repr.toLowerCase().includes(search.toLowerCase())); // TODO remove after backend search implementation
+  public async loadKeys() {
+    const result = await makeRequest(`${this.path}keys/`, {});
 
     this.keys = result;
 
@@ -34,6 +30,8 @@ export class LabelStore extends BaseStore {
 
   @action
   public async loadValuesForKey(key: LabelKey['id'], search = '') {
+    if (!key) return [];
+
     const result = await makeRequest(`${this.path}id/${key}`, {
       params: { search },
     });
