@@ -33,6 +33,14 @@ class LabelValueCache(models.Model):
 
 
 class AssociatedLabel(models.Model):
+    """
+    Abstract model, is used to keep information about label association with other instances
+    (integrations, schedules, etc.). To add ability to associate labels with a type of instances ,
+    inhere this model and add a foreign key to the instance model.
+
+    Attention: add `AssociatedLabel` to the end of the name of inheritor (example: AlertReceiveChannelAssociatedLabel)
+    """
+
     key = models.ForeignKey(LabelKeyCache, on_delete=models.CASCADE)
     value = models.ForeignKey(LabelValueCache, on_delete=models.CASCADE)
     organization = models.ForeignKey("user_management.Organization", on_delete=models.CASCADE, related_name="labels")
@@ -42,6 +50,11 @@ class AssociatedLabel(models.Model):
 
     @staticmethod
     def update_association(labels_data: "LabelsData", instance: models.Model, organization: "Organization") -> None:
+        """
+        Update label associations for selected instance: delete associations with labels that are not in `labels_data`,
+        create new associations and labels, if needed.
+        Then call celery task to update cache for labels from `labels_data`
+        """
         labels_data_keys = {label["key"]["id"]: label["key"]["repr"] for label in labels_data}
         labels_data_values = {label["value"]["id"]: label["value"]["repr"] for label in labels_data}
 
@@ -63,22 +76,33 @@ class AssociatedLabel(models.Model):
 
             label_value = LabelValueCache(id=value_id, repr=value_repr, key_id=key_id)
             labels_values.append(label_value)
-            associated_instance = {instance.labels.model.associated_instance_field: instance}
+            associated_instance = {instance.labels.field.name: instance}
             labels_associations.append(
                 instance.labels.model(
                     key_id=key_id, value_id=value_id, organization=organization, **associated_instance
                 )
             )
 
+        # create labels cache and associations that don't exist
         LabelKeyCache.objects.bulk_create(labels_keys, ignore_conflicts=True, batch_size=5000)
         LabelValueCache.objects.bulk_create(labels_values, ignore_conflicts=True, batch_size=5000)
         instance.labels.model.objects.bulk_create(labels_associations, ignore_conflicts=True, batch_size=5000)
 
         update_labels_cache.apply_async((labels_data,))
 
+    @classmethod
+    def get_associating_label_field_name(cls, obj_model_name: str) -> str:
+        """Returns ForeignKey field name for the associated model"""
+        field_name = ""
+        for field in cls._meta.get_fields():
+            if field.related_model and field.related_model.__name__ == obj_model_name:
+                field_name = field.name
+                break
+        return field_name
+
 
 class AlertReceiveChannelAssociatedLabel(AssociatedLabel):
-    associated_instance_field = "alert_receive_channel"
+    """Keeps information about label association with alert receive channel instances"""
 
     alert_receive_channel = models.ForeignKey(
         "alerts.AlertReceiveChannel", on_delete=models.CASCADE, related_name="labels"
