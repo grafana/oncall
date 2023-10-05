@@ -1297,7 +1297,7 @@ def test_get_oncall_users_for_empty_schedule(
     schedule = make_schedule(organization, schedule_class=OnCallScheduleCalendar)
     schedules = OnCallSchedule.objects.filter(pk=schedule.pk)
 
-    assert list(schedules.get_oncall_users()[schedule.pk]) == []
+    assert list(schedules.get_oncall_users()[schedule]) == []
 
 
 @pytest.mark.django_db
@@ -1413,7 +1413,7 @@ def test_get_oncall_users_for_multiple_schedules_emails_case_insensitive(
     oncall_users = schedules.get_oncall_users(events_datetime=events_datetime)
 
     assert len(oncall_users) == 1
-    assert list(oncall_users[schedule.pk]) == [user]
+    assert list(oncall_users[schedule]) == [user]
 
 
 @pytest.mark.django_db

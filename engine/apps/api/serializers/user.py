@@ -20,6 +20,7 @@ from common.api_helpers.utils import check_phone_number_is_valid
 from .custom_serializers import DynamicFieldsModelSerializer
 from .organization import FastOrganizationSerializer
 from .slack_user_identity import SlackUserIdentitySerializer
+from .team import FastTeamSerializer
 
 
 class UserSerializerContext(typing.TypedDict):
@@ -42,6 +43,7 @@ class UserSerializer(DynamicFieldsModelSerializer, EagerLoadingMixin):
 
     organization = FastOrganizationSerializer(read_only=True)
     current_team = TeamPrimaryKeyRelatedField(allow_null=True, required=False)
+    teams = FastTeamSerializer(read_only=True, many=True)
 
     timezone = TimeZoneField(allow_null=True, required=False)
     avatar = serializers.URLField(source="avatar_url", read_only=True)
@@ -59,6 +61,7 @@ class UserSerializer(DynamicFieldsModelSerializer, EagerLoadingMixin):
             "pk",
             "organization",
             "current_team",
+            "teams",
             "email",
             "username",
             "name",

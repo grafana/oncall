@@ -55,6 +55,8 @@ def test_current_user(make_organization_and_user_with_plugin_token, make_user_au
         "slack_user_identity": None,
         "avatar": user.avatar_url,
         "avatar_full": user.avatar_full_url,
+        "is_currently_oncall": False,
+        "teams": [],
     }
 
     response = client.get(url, format="json", **make_user_auth_headers(user, token))
@@ -140,6 +142,8 @@ def test_update_user_cant_change_email_and_username(
         "slack_user_identity": None,
         "avatar": admin.avatar_url,
         "avatar_full": admin.avatar_full_url,
+        "is_currently_oncall": False,
+        "teams": [],
     }
     response = client.put(url, data, format="json", **make_user_auth_headers(admin, token))
     assert response.status_code == status.HTTP_200_OK
@@ -191,6 +195,8 @@ def test_list_users(
                 "avatar": admin.avatar_url,
                 "avatar_full": admin.avatar_full_url,
                 "cloud_connection_status": None,
+                "is_currently_oncall": False,
+                "teams": [],
             },
             {
                 "pk": editor.public_primary_key,
@@ -216,6 +222,8 @@ def test_list_users(
                 "avatar": editor.avatar_url,
                 "avatar_full": editor.avatar_full_url,
                 "cloud_connection_status": None,
+                "is_currently_oncall": False,
+                "teams": [],
             },
         ],
         "current_page_number": 1,

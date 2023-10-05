@@ -10,6 +10,14 @@ class TeamSerializerContext(typing.TypedDict):
     schedules_with_oncall_users: SchedulesOnCallUsers
 
 
+class FastTeamSerializer(serializers.ModelSerializer):
+    id = serializers.CharField(read_only=True, source="public_primary_key")
+
+    class Meta:
+        model = Team
+        fields = ["id", "name", "email", "avatar_url"]
+
+
 class TeamSerializer(serializers.ModelSerializer):
     context: TeamSerializerContext
 

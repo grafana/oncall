@@ -18,6 +18,7 @@ def get_payload_from_team(team):
         "email": team.email,
         "avatar_url": team.avatar_url,
         "is_sharing_resources_to_all": team.is_sharing_resources_to_all,
+        "number_of_users_currently_oncall": 0,
     }
 
 
