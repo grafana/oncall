@@ -1879,10 +1879,10 @@
     "@opentelemetry/sdk-trace-web" "^1.8.0"
     "@opentelemetry/semantic-conventions" "^1.8.0"
 
-"@grafana/labels@^0.0.1-beta.9":
-  version "0.0.1-beta.9"
-  resolved "https://registry.yarnpkg.com/@grafana/labels/-/labels-0.0.1-beta.9.tgz#77f4bc803768b489732f8c0a4d8b88fe05c57f72"
-  integrity sha512-xTBXixINPGFRiMxpswEugtdoZfpVxiyCCmzBptM0TcLOymG6v0ICOSS5R4rWtYFtBycxy/sMxp0wgLaFlP6FOA==
+"@grafana/labels@^0.0.1-beta.12":
+  version "0.0.1-beta.12"
+  resolved "https://registry.yarnpkg.com/@grafana/labels/-/labels-0.0.1-beta.12.tgz#448d26c7d3a490b9487139fd9f3ca6bd4be28ed3"
+  integrity sha512-nuE2Y62BOe36wjJBTHirOcZubh0zuOzBN/ZIVFF7cuhpwZKSzeKJnsqgFTaNrVoJyNVoFVdEAQ/cXSgkyGR+kQ==
   dependencies:
     "@grafana/ui" "^10.0.0"
     change-case "^4.1.2"
