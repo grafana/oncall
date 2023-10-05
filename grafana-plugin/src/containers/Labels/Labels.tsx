@@ -1,5 +1,7 @@
 import React, { forwardRef, useImperativeHandle, useState } from 'react';
 
+import '@grafana/labels/dist/theme.css';
+import ServiceLabels from '@grafana/labels';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
@@ -7,9 +9,6 @@ import { LabelKeyValue } from 'models/label/label.types';
 import { useStore } from 'state/useStore';
 
 import styles from './Labels.module.css';
-
-import ServiceLabels from '@grafana/labels';
-import '@grafana/labels/dist/theme.css';
 
 const cx = cn.bind(styles);
 

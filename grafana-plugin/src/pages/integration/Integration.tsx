@@ -59,6 +59,7 @@ import { ChannelFilter } from 'models/channel_filter';
 import { INTEGRATION_TEMPLATES_LIST } from 'pages/integration/Integration.config';
 import IntegrationHelper from 'pages/integration/Integration.helper';
 import styles from 'pages/integration/Integration.module.scss';
+import { AppFeature } from 'state/features';
 import { PageProps, SelectOption, WithStoreProps } from 'state/types';
 import { useStore } from 'state/useStore';
 import { withMobXProviderContext } from 'state/withStore';
@@ -127,12 +128,14 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
       isTemplateSettingsOpen,
     } = this.state;
     const {
-      store: { alertReceiveChannelStore },
+      store,
       query,
       match: {
         params: { id },
       },
     } = this.props;
+
+    const { alertReceiveChannelStore } = store;
 
     const { isNotFoundError, isWrongTeamError } = errorData;
 
@@ -208,6 +211,7 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
                   alertReceiveChannel={alertReceiveChannel}
                   alertReceiveChannelCounter={alertReceiveChannelCounter}
                   integration={integration}
+                  renderLabels={store.hasFeature(AppFeature.Labels)}
                 />
               </div>
 
@@ -1035,12 +1039,14 @@ interface IntegrationHeaderProps {
   alertReceiveChannelCounter: AlertReceiveChannelCounters;
   alertReceiveChannel: AlertReceiveChannel;
   integration: SelectOption;
+  renderLabels: boolean;
 }
 
 const IntegrationHeader: React.FC<IntegrationHeaderProps> = ({
   integration,
   alertReceiveChannelCounter,
   alertReceiveChannel,
+  renderLabels,
 }) => {
   const { grafanaTeamStore, heartbeatStore, alertReceiveChannelStore } = useStore();
 
@@ -1061,26 +1067,28 @@ const IntegrationHeader: React.FC<IntegrationHeaderProps> = ({
         </PluginLink>
       )}
 
-      <TooltipBadge
-        tooltipTitle=""
-        borderType="secondary"
-        icon="tag-alt"
-        addPadding
-        text={alertReceiveChannel.labels.length}
-        tooltipContent={
-          <VerticalGroup spacing="sm">
-            {alertReceiveChannel.labels.length
-              ? alertReceiveChannel.labels.map((label) => (
-                  <GrafanaTag
-                    name={`${label.key.repr}:${label.value.repr}`}
-                    colorIndex={Math.floor(Math.random() * 28)}
-                    key={label.key.id}
-                  />
-                ))
-              : 'No labels attached'}
-          </VerticalGroup>
-        }
-      />
+      {renderLabels && (
+        <TooltipBadge
+          tooltipTitle=""
+          borderType="secondary"
+          icon="tag-alt"
+          addPadding
+          text={alertReceiveChannel.labels.length}
+          tooltipContent={
+            <VerticalGroup spacing="sm">
+              {alertReceiveChannel.labels.length
+                ? alertReceiveChannel.labels.map((label) => (
+                    <GrafanaTag
+                      name={`${label.key.repr}:${label.value.repr}`}
+                      colorIndex={Math.floor(Math.random() * 28)}
+                      key={label.key.id}
+                    />
+                  ))
+                : 'No labels attached'}
+            </VerticalGroup>
+          }
+        />
+      )}
 
       <TooltipBadge
         borderType="success"

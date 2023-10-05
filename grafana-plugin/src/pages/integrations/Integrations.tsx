@@ -29,6 +29,7 @@ import { HeartIcon, HeartRedIcon } from 'icons';
 import { AlertReceiveChannelStore } from 'models/alert_receive_channel/alert_receive_channel';
 import { AlertReceiveChannel, MaintenanceMode } from 'models/alert_receive_channel/alert_receive_channel.types';
 import IntegrationHelper from 'pages/integration/Integration.helper';
+import { AppFeature } from 'state/features';
 import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import { openNotification } from 'utils';
@@ -173,7 +174,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
               data-testid="integrations-table"
               rowKey="id"
               data={results}
-              columns={this.getTableColumns()}
+              columns={this.getTableColumns(store.hasFeature.bind(store))}
               className={cx('integrations-table')}
               rowClassName={cx('integrations-table-row')}
               pagination={{
@@ -365,10 +366,10 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
         borderType="secondary"
         icon="tag-alt"
         addPadding
-        text={item.labels.length}
+        text={item.labels?.length}
         tooltipContent={
           <VerticalGroup spacing="sm">
-            {item.labels.length
+            {item.labels?.length
               ? item.labels.map((label) => (
                   <Tag
                     name={`${label.key.repr}:${label.value.repr}`}
@@ -448,10 +449,10 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
     );
   };
 
-  getTableColumns = () => {
+  getTableColumns = (hasFeatureFn) => {
     const { grafanaTeamStore, alertReceiveChannelStore } = this.props.store;
 
-    return [
+    const columns = [
       {
         width: '30%',
         title: 'Name',
@@ -466,7 +467,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
         render: (item: AlertReceiveChannel) => this.renderIntegrationStatus(item, alertReceiveChannelStore),
       },
       {
-        width: '15%',
+        width: '25%',
         title: 'Type',
         key: 'datasource',
         render: (item: AlertReceiveChannel) => this.renderDatasource(item, alertReceiveChannelStore),
@@ -483,11 +484,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
         key: 'heartbeat',
         render: (item: AlertReceiveChannel) => this.renderHeartbeat(item),
       },
-      {
-        width: '10%',
-        title: 'Labels',
-        render: (item: AlertReceiveChannel) => this.renderLabels(item),
-      },
+
       {
         width: '15%',
         title: 'Team',
@@ -500,6 +497,17 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
         className: cx('buttons'),
       },
     ];
+
+    if (hasFeatureFn(AppFeature.Labels)) {
+      columns.splice(-2, 0, {
+        width: '10%',
+        title: 'Labels',
+        render: (item: AlertReceiveChannel) => this.renderLabels(item),
+      });
+      columns.find((column) => column.key === 'datasource').width = '15%';
+    }
+
+    return columns;
   };
 
   invalidateRequestFn = (requestedPage: number) => {

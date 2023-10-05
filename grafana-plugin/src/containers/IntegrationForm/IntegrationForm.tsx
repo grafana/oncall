@@ -32,6 +32,7 @@ import {
   AlertReceiveChannelOption,
 } from 'models/alert_receive_channel/alert_receive_channel.types';
 import IntegrationHelper from 'pages/integration/Integration.helper';
+import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
 import { openErrorNotification } from 'utils';
 import { UserActions } from 'utils/authorization';
@@ -132,9 +133,12 @@ const IntegrationForm = observer((props: IntegrationFormProps) => {
             <VerticalGroup>
               <GForm form={form} data={data} onSubmit={handleSubmit} {...extraGFormProps} />
 
-              <div className={cx('labels')}>
-                <Labels ref={labelsRef} errors={errors?.labels} value={data.labels} />
-              </div>
+              {store.hasFeature(AppFeature.Labels) && (
+                <div className={cx('labels')}>
+                  <Label>Labels</Label>
+                  <Labels ref={labelsRef} errors={errors?.labels} value={data.labels} />
+                </div>
+              )}
 
               {isTableView && <HowTheIntegrationWorks selectedOption={selectedOption} />}
 
@@ -193,7 +197,7 @@ const IntegrationForm = observer((props: IntegrationFormProps) => {
       if (isCreate) {
         await createNewIntegration();
       } else {
-        await alertReceiveChannelStore.update(id, data);
+        await alertReceiveChannelStore.update(id, data, undefined, true);
       }
     } catch (error) {
       setErrors(error.response.data);
