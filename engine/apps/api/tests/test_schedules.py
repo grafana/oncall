@@ -926,6 +926,8 @@ def test_filter_events_calendar(
                 "is_override": False,
                 "shift": {
                     "pk": on_call_shift.public_primary_key,
+                    "name": on_call_shift.name,
+                    "type": on_call_shift.type,
                 },
             },
             {
@@ -949,6 +951,8 @@ def test_filter_events_calendar(
                 "is_override": False,
                 "shift": {
                     "pk": on_call_shift.public_primary_key,
+                    "name": on_call_shift.name,
+                    "type": on_call_shift.type,
                 },
             },
         ],
@@ -1039,6 +1043,8 @@ def test_filter_events_range_calendar(
                 "is_override": False,
                 "shift": {
                     "pk": on_call_shift.public_primary_key,
+                    "name": on_call_shift.name,
+                    "type": on_call_shift.type,
                 },
             }
         ],
@@ -1128,6 +1134,8 @@ def test_filter_events_overrides(
                 "is_override": True,
                 "shift": {
                     "pk": override.public_primary_key,
+                    "name": override.name,
+                    "type": override.type,
                 },
             }
         ],
@@ -2147,8 +2155,12 @@ def test_current_user_events(
     assert result["schedules"][0]["name"] == schedule_with_current_user.name
     assert len(result["schedules"][0]["events"]) > 0
     for event in result["schedules"][0]["events"]:
-        # check the current user shift pk is set in the event
-        assert event["shift"]["pk"] == on_call_shift.public_primary_key
+        # check the current user shift is populated
+        assert event["shift"] == {
+            "pk": on_call_shift.public_primary_key,
+            "name": on_call_shift.name,
+            "type": on_call_shift.type,
+        }
 
 
 @pytest.mark.django_db

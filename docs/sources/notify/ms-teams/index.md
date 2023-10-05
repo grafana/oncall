@@ -1,7 +1,7 @@
 ---
 aliases:
   - ../../chat-options/configure-teams/
-canonical: https://grafana.com/docs/oncall/latest/integrations/chatops-integrations/configure-teams/
+canonical: https://grafana.com/docs/oncall/latest/notify/ms-teams/
 keywords:
   - Grafana Cloud
   - Alerts
