@@ -72,7 +72,7 @@ def update_labels_cache(labels_data: "LabelsData"):
 
 
 @shared_dedicated_queue_retry_task(
-    autoretry_for=(Exception,), retry_backoff=True, max_retries=1 if settings.DEBUG else None
+    autoretry_for=(Exception,), retry_backoff=True, max_retries=1 if settings.DEBUG else 10
 )
 def update_instances_labels_cache(organization_id: int, instance_ids: typing.List[int], instance_model_name: str):
     from apps.labels.models import LabelValueCache
