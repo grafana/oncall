@@ -346,6 +346,7 @@ class OnCallSchedule(PolymorphicModel):
         all_day_datetime: bool = False,
         ignore_untaken_swaps: bool = False,
         from_cached_final: bool = False,
+        include_shift_info: bool = False,
     ) -> ScheduleEvents:
         """Return filtered events from schedule."""
         shifts = (
@@ -360,6 +361,13 @@ class OnCallSchedule(PolymorphicModel):
             )
             or []
         )
+        shifts_data = {}
+        if include_shift_info:
+            pks = set(shift["shift_pk"] for shift in shifts)
+            shifts_from_db = CustomOnCallShift.objects.filter(
+                organization=self.organization, public_primary_key__in=pks
+            )
+            shifts_data = {s.public_primary_key: {"name": s.name, "type": s.type} for s in shifts_from_db}
         events: ScheduleEvents = []
         for shift in shifts:
             start = shift["start"]
@@ -396,6 +404,15 @@ class OnCallSchedule(PolymorphicModel):
                     "pk": shift["shift_pk"],
                 },
             }
+            if include_shift_info and not is_gap:
+                no_data = {
+                    "name": None,
+                    "type": CustomOnCallShift.TYPE_OVERRIDE
+                    if shift["calendar_type"] == OnCallSchedule.TYPE_ICAL_OVERRIDES
+                    else None,
+                }
+                shift_data = shifts_data.get(shift["shift_pk"], no_data)
+                shift_json["shift"].update(shift_data)
             events.append(shift_json)
 
         # combine multiple-users same-shift events into one
@@ -415,6 +432,7 @@ class OnCallSchedule(PolymorphicModel):
         with_empty: bool = True,
         with_gap: bool = True,
         ignore_untaken_swaps: bool = False,
+        include_shift_info: bool = False,
     ) -> ScheduleEvents:
         """Return schedule final events, after resolving shifts and overrides."""
         events = self.filter_events(
@@ -424,6 +442,7 @@ class OnCallSchedule(PolymorphicModel):
             with_gap=with_gap,
             all_day_datetime=True,
             ignore_untaken_swaps=ignore_untaken_swaps,
+            include_shift_info=include_shift_info,
         )
         events = self._resolve_schedule(events, datetime_start, datetime_end)
         return events
@@ -518,7 +537,9 @@ class OnCallSchedule(PolymorphicModel):
             # no final schedule info available
             return passed_shifts, current_shifts, upcoming_shifts
 
-        events = self.filter_events(datetime_start, datetime_end, all_day_datetime=True, from_cached_final=True)
+        events = self.filter_events(
+            datetime_start, datetime_end, all_day_datetime=True, from_cached_final=True, include_shift_info=True
+        )
         events.sort(key=lambda e: e["start"])
         for event in events:
             users = {u["pk"] for u in event["users"]}
