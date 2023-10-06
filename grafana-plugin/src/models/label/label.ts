@@ -1,4 +1,3 @@
-import { noop } from 'lodash-es';
 import { action, observable } from 'mobx';
 
 import BaseStore from 'models/base_store';
@@ -21,8 +20,8 @@ export class LabelStore extends BaseStore {
   }
 
   @action
-  public async loadKeys(errorFn) {
-    const result = await makeRequest(`${this.path}keys/`, {}).catch(errorFn);
+  public async loadKeys() {
+    const result = await makeRequest(`${this.path}keys/`, {});
 
     this.keys = result;
 
@@ -30,14 +29,14 @@ export class LabelStore extends BaseStore {
   }
 
   @action
-  public async loadValuesForKey(key: LabelKey['id'], search = '', errorFn = noop) {
+  public async loadValuesForKey(key: LabelKey['id'], search = '') {
     if (!key) {
       return [];
     }
 
     const result = await makeRequest(`${this.path}id/${key}`, {
       params: { search },
-    }).catch(errorFn);
+    });
 
     const filteredValues = result.values.filter((v) => v.repr.toLowerCase().includes(search.toLowerCase())); // TODO remove after backend search implementation
 
@@ -46,7 +45,7 @@ export class LabelStore extends BaseStore {
       [key]: filteredValues,
     };
 
-    return filteredValues;
+    return { ...result, values: filteredValues };
   }
 
   public async createKey(name: string) {
