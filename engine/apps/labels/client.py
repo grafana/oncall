@@ -23,6 +23,9 @@ class LabelsAPIClient(APIClient):
     def get_values(self, key_id: str) -> typing.Tuple[typing.Optional["LabelKeyData"], dict]:
         return self.api_get(f"id/{key_id}")
 
+    def get_value(self, key_id: str, value_id: str) -> typing.Tuple[typing.Optional["LabelKeyData"], dict]:
+        return self.api_get(f"id/{key_id}/values/{value_id}")
+
     def add_value(
         self, key_id: str, label_data: "LabelUpdateParam"
     ) -> typing.Tuple[typing.Optional["LabelKeyData"], dict]:

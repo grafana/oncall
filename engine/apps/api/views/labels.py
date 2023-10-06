@@ -7,7 +7,12 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ViewSet
 
 from apps.alerts.models import AlertReceiveChannel
-from apps.api.serializers.labels import LabelKeySerializer, LabelKeyValuesSerializer, LabelReprSerializer
+from apps.api.serializers.labels import (
+    LabelKeySerializer,
+    LabelKeyValuesSerializer,
+    LabelReprSerializer,
+    LabelValueSerializer,
+)
 from apps.auth_token.auth import PluginAuthentication
 from apps.labels.client import LabelsAPIClient
 from apps.labels.tasks import update_instances_labels_cache, update_labels_cache_for_key
@@ -43,6 +48,16 @@ class LabelsViewSet(ViewSet):
         """Key with the list of values"""
         organization = self.request.auth.organization
         result, response_info = LabelsAPIClient(organization.grafana_url, organization.api_token).get_values(key_id)
+        self._update_labels_cache(result)
+        return Response(result, status=response_info["status_code"])
+
+    @extend_schema(responses=LabelValueSerializer)
+    def get_value(self, request, key_id, value_id):
+        """Value repr"""
+        organization = self.request.auth.organization
+        result, response_info = LabelsAPIClient(organization.grafana_url, organization.api_token).get_value(
+            key_id, value_id
+        )
         self._update_labels_cache(result)
         return Response(result, status=response_info["status_code"])
 

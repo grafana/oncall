@@ -124,8 +124,8 @@ urlpatterns += [
     ),
     re_path(
         r"^labels/id/(?P<key_id>[\w\-]+)/values/(?P<value_id>[\w\-]+)/?$",
-        LabelsViewSet.as_view({"put": "rename_value"}),
-        name="rename_value",
+        LabelsViewSet.as_view({"put": "rename_value", "get": "get_value"}),
+        name="get_update_value",
     ),
     re_path(r"^labels/?$", LabelsViewSet.as_view({"post": "create_label"}), name="create_label"),
 ]
