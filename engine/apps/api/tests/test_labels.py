@@ -121,12 +121,37 @@ def test_rename_value(
 ):
     organization, user, token = make_organization_and_user_with_plugin_token()
     client = APIClient()
-    url = reverse("api-internal:rename_value", kwargs={"key_id": "keyid123", "value_id": "valueid123"})
+    url = reverse("api-internal:get_update_value", kwargs={"key_id": "keyid123", "value_id": "valueid123"})
     data = {"repr": "yolo"}
     response = client.put(url, format="json", **make_user_auth_headers(user, token), data=data)
     expected_result = {"key": {"id": "keyid123", "repr": "team"}, "values": [{"id": "valueid123", "repr": "yolo"}]}
 
     assert mocked_rename_value.called
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == expected_result
+
+
+@patch(
+    "apps.labels.client.LabelsAPIClient.get_value",
+    return_value=(
+        {"id": "valueid123", "repr": "yolo"},
+        {"status_code": status.HTTP_200_OK},
+    ),
+)
+@pytest.mark.django_db
+def test_get_value(
+    mocked_get_value,
+    make_organization_and_user_with_plugin_token,
+    make_user_auth_headers,
+    make_alert_receive_channel,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+    client = APIClient()
+    url = reverse("api-internal:get_update_value", kwargs={"key_id": "keyid123", "value_id": "valueid123"})
+    response = client.get(url, format="json", **make_user_auth_headers(user, token))
+    expected_result = {"id": "valueid123", "repr": "yolo"}
+
+    assert mocked_get_value.called
     assert response.status_code == status.HTTP_200_OK
     assert response.json() == expected_result
 

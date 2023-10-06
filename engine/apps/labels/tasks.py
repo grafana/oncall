@@ -72,15 +72,17 @@ def update_labels_cache(labels_data: "LabelsData"):
 
 
 @shared_dedicated_queue_retry_task(
-    autoretry_for=(Exception,), retry_backoff=True, max_retries=1 if settings.DEBUG else None
+    autoretry_for=(Exception,), retry_backoff=True, max_retries=1 if settings.DEBUG else 10
 )
 def update_instances_labels_cache(organization_id: int, instance_ids: typing.List[int], instance_model_name: str):
     from apps.labels.models import LabelValueCache
 
     now = timezone.now()
-    model = get_associating_label_model(instance_model_name)
     organization = Organization.objects.get(id=organization_id)
-    associated_instances = {f"{model.associated_instance_field}_id__in": instance_ids}
+
+    model = get_associating_label_model(instance_model_name)
+    field_name = model.get_associating_label_field_name(instance_model_name)
+    associated_instances = {f"{field_name}_id__in": instance_ids}
     values_ids = model.objects.filter(**associated_instances).values_list("value_id", flat=True)
     outdated_last_synced = now - timezone.timedelta(minutes=LABEL_OUTDATED_TIMEOUT_MINUTES)
     values = LabelValueCache.objects.filter(id__in=values_ids, last_synced__lte=outdated_last_synced)

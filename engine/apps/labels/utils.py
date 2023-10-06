@@ -3,7 +3,9 @@ import typing
 
 from django.apps import apps  # noqa: I251
 from django.conf import settings
-from django.db import models
+
+if typing.TYPE_CHECKING:
+    from apps.labels.models import AssociatedLabel
 
 logger = logging.getLogger(__name__)
 
@@ -34,7 +36,7 @@ LabelsData = typing.List[LabelData]
 LabelsKeysData = typing.List[LabelParams]
 
 
-def get_associating_label_model(obj_model_name: str) -> models.Model:
+def get_associating_label_model(obj_model_name: str) -> typing.Type["AssociatedLabel"]:
     associating_label_model_name = obj_model_name + ASSOCIATED_MODEL_NAME
     label_model = apps.get_model("labels", associating_label_model_name)
     return label_model
