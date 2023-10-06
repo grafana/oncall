@@ -41,7 +41,7 @@ const LabelsFilter = observer((props: LabelsFilterProps) => {
     fetchKeyValues().then((list) => {
       const value = list.map(({ key, values }, index) => ({
         key,
-        value: values.find((v) => v.id === keyValuePairs[index][1]),
+        value: values.find((v) => v.id === keyValuePairs[index][1]) || {},
       }));
 
       setValue(value);
