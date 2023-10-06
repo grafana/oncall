@@ -2,7 +2,7 @@
 aliases:
   - add-sentry/
   - /docs/oncall/latest/integrations/available-integrations/configure-Sentry/
-canonical: https://grafana.com/docs/oncall/latest/integrations/available-integrations/configure-sentry/
+canonical: https://grafana.com/docs/oncall/latest/integrations/sentry/
 keywords:
   - Grafana Cloud
   - Alerts

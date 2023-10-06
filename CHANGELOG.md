@@ -11,6 +11,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Changed the data type from `DateField` to `DateTimeField` on the `final_shifts` API endpoint. This endpoint now accepts either a date or a datetime for the start_date and end_date parameters (e.g. 2021-01-01 or 2021-01-01T01:00) ([#3103](https://github.com/grafana/oncall/pull/3103))
 
+## v1.3.43 (2023-10-05)
+
+### Added
+
+- Make it possible to acknowledge/unacknowledge and resolve/unresolve alert groups via API by @vadimkerr ([#3108](https://github.com/grafana/oncall/pull/3108))
+
+### Changed
+
+- Improve alert group deletion API by @vadimkerr ([#3124](https://github.com/grafana/oncall/pull/3124))
+
 ## v1.3.42 (2023-10-04)
 
 ### Added
