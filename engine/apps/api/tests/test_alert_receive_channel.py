@@ -1237,6 +1237,7 @@ def test_integration_filter_by_labels(
 
     assert response.status_code == status.HTTP_200_OK
     assert len(response.json()["results"]) == 1
+    assert response.json()["results"][0]["id"] == alert_receive_channel_1.public_primary_key
 
 
 @pytest.mark.django_db
