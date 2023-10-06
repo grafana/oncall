@@ -1,8 +1,9 @@
 import React, { FC } from 'react';
 
-import { HorizontalGroup, Icon, Select, IconButton } from '@grafana/ui';
+import { HorizontalGroup, Select, IconButton } from '@grafana/ui';
 import cn from 'classnames/bind';
 
+import Avatar from 'components/Avatar/Avatar';
 import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
 import styles from 'containers/EscalationVariants/EscalationVariants.module.scss';
@@ -20,7 +21,7 @@ const TeamResponder: FC<TeamResponderProps> = ({ important, data, onImportantCha
     <HorizontalGroup justify="space-between">
       <HorizontalGroup>
         <div className={cx('timeline-icon-background')}>
-          <Icon size="lg" name="calendar-alt" />
+          <Avatar size="medium" src={data?.avatar_url} />
         </div>
         <Text className={cx('responder-name')}>{data.name}</Text>
         <Text type="secondary">by</Text>

@@ -102,7 +102,7 @@ const EscalationVariantsPopup = observer((props: EscalationVariantsPopupProps) =
 
   const handleSearchTermChange = useDebouncedCallback(() => {
     if (activeOption === TabOptions.Teams) {
-      grafanaTeamStore.updateItems(searchTerm);
+      grafanaTeamStore.updateItems(searchTerm, false);
     } else {
       userStore.updateItems(searchTerm);
     }
@@ -153,14 +153,14 @@ const EscalationVariantsPopup = observer((props: EscalationVariantsPopupProps) =
     {
       width: 300,
       render: (user: User) => {
-        const { avatar, name, teams } = user;
+        const { avatar, name, username, teams } = user;
         const disabled = userIsSelected(user);
 
         return (
           <div onClick={() => (disabled ? undefined : addUserResponders(user))} className={cx('responder-item')}>
             <HorizontalGroup>
               <Avatar size="small" src={avatar} />
-              <Text type={disabled ? 'disabled' : undefined}>{name}</Text>
+              <Text type={disabled ? 'disabled' : undefined}>{name || username}</Text>
               {teams.length > 0 && <Text>{teams.map(({ name }) => name).join(', ')}</Text>}
             </HorizontalGroup>
           </div>
