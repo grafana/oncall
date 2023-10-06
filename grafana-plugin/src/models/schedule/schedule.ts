@@ -189,9 +189,6 @@ export class ScheduleStore extends BaseStore {
   }
 
   getSearchResult() {
-    if (!this.searchResult) {
-      return undefined;
-    }
     return {
       count: this.searchResult.count,
       results: this.searchResult.results?.map((scheduleId: Schedule['id']) => this.items[scheduleId]),

@@ -36,7 +36,7 @@ import SourceCode from 'components/SourceCode/SourceCode';
 import Text from 'components/Text/Text';
 import AttachIncidentForm from 'containers/AttachIncidentForm/AttachIncidentForm';
 import EscalationVariants from 'containers/EscalationVariants/EscalationVariants';
-import { prepareForEdit, prepareForUpdate } from 'containers/EscalationVariants/EscalationVariants.helpers';
+import { prepareForUpdate } from 'containers/EscalationVariants/EscalationVariants.helpers';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import {
   Alert as AlertType,
@@ -424,11 +424,10 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
 
             <HorizontalGroup>
               <EscalationVariants
-                variant="secondary"
                 hideSelected
-                value={prepareForEdit(incident.paged_users)}
-                disabled={incident.is_restricted}
-                onUpdateEscalationVariants={this.handleAddResponders}
+                // value={prepareForEdit(incident.paged_users)}
+                // disabled={incident.is_restricted}
+                // onUpdateEscalationVariants={this.handleAddResponders}
               />
 
               <Button

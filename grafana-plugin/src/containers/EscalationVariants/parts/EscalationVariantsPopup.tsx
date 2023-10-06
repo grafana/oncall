@@ -1,103 +1,142 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 
-import { Icon, Input, RadioButtonGroup } from '@grafana/ui';
+import { HorizontalGroup, Icon, Input, RadioButtonGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
+import { ColumnsType } from 'rc-table/lib/interface';
 
+import Avatar from 'components/Avatar/Avatar';
 import GTable from 'components/GTable/GTable';
 import Text from 'components/Text/Text';
-import { EscalationVariantsProps } from 'containers/EscalationVariants/EscalationVariants';
 import styles from 'containers/EscalationVariants/EscalationVariants.module.scss';
-import { ResponderType, UserAvailability } from 'containers/EscalationVariants/EscalationVariants.types';
-import { Schedule } from 'models/schedule/schedule.types';
+import {
+  TeamResponder,
+  UserAvailability,
+  UserResponders,
+} from 'containers/EscalationVariants/EscalationVariants.types';
+import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
 import { User } from 'models/user/user.types';
 import { useStore } from 'state/useStore';
 import { useDebouncedCallback, useOnClickOutside } from 'utils/hooks';
 
-interface EscalationVariantsPopupProps extends EscalationVariantsProps {
+type EscalationVariantsPopupProps = {
+  selectedTeamResponder: TeamResponder;
+  selectedUserResponders: UserResponders;
+  addSelectedUser: (user: User) => void;
+  updateSelectedTeam: (team: GrafanaTeam) => void;
+
   setShowEscalationVariants: (value: boolean) => void;
   setShowUserWarningModal: (value: boolean) => void;
-  setSelectedUser: (user: User) => void;
   setUserAvailability: (data: UserAvailability) => void;
-}
+};
 
 const cx = cn.bind(styles);
 
+enum TabOptions {
+  Teams = 'teams',
+  Users = 'users',
+}
+
+// TODO: filter out 'No team'
 const EscalationVariantsPopup = observer((props: EscalationVariantsPopupProps) => {
   const {
-    onUpdateEscalationVariants,
+    selectedTeamResponder,
+    selectedUserResponders,
     setShowEscalationVariants,
-    value,
-    setSelectedUser,
+    addSelectedUser,
+    updateSelectedTeam,
     setShowUserWarningModal,
     setUserAvailability,
   } = props;
 
-  const store = useStore();
+  const { grafanaTeamStore, userStore } = useStore();
 
-  const [activeOption, setActiveOption] = useState('schedules');
-  const [usersSearchTerm, setUsersSearchTerm] = useState('');
-  const [schedulesSearchTerm, setSchedulesSearchTerm] = useState('');
+  const [activeOption, setActiveOption] = useState<TabOptions>(TabOptions.Teams);
+  const [searchTerm, setSearchTerm] = useState('');
 
-  const handleSetSchedulesSearchTerm = useCallback((e) => {
-    setSchedulesSearchTerm(e.target.value);
-  }, []);
+  const ref = useRef();
+  const teamSearchResults = grafanaTeamStore.getSearchResult();
+  const userSearchResults = userStore.getSearchResult().results || [];
 
-  const handleSetUsersSearchTerm = useCallback((e) => {
-    setUsersSearchTerm(e.target.value);
-  }, []);
+  const usersCurrentlyOnCall = userSearchResults.filter(({ is_currently_oncall }) => is_currently_oncall);
+  const usersNotCurrentlyOnCall = userSearchResults.filter(({ is_currently_oncall }) => !is_currently_oncall);
 
-  const handleOptionChange = useCallback((option: string) => {
-    setActiveOption(option);
-  }, []);
+  useOnClickOutside(ref, () => {
+    setShowEscalationVariants(false);
+  });
 
-  const addUserResponders = (user: User) => {
-    store.userStore.checkUserAvailability(user.pk).then((res) => {
-      setSelectedUser(user);
-      setUserAvailability(res);
+  const handleSetSearchTerm = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setSearchTerm(e.target.value);
+    },
+    [setSearchTerm]
+  );
+
+  const handleOptionChange = useCallback(
+    (option: TabOptions) => {
+      setActiveOption(option);
+    },
+    [setActiveOption]
+  );
+
+  const addUserResponders = useCallback(
+    async (user: User) => {
+      const userAvailability = await userStore.checkUserAvailability(user.pk);
+
+      addSelectedUser(user);
+      setUserAvailability(userAvailability);
       setShowUserWarningModal(true);
-    });
 
-    setShowEscalationVariants(false);
-  };
+      setShowEscalationVariants(false);
+    },
+    [userStore, addSelectedUser, setUserAvailability, setShowUserWarningModal, setShowEscalationVariants]
+  );
 
-  const addSchedulesResponders = (schedule: Schedule) => {
-    setShowEscalationVariants(false);
-    onUpdateEscalationVariants({
-      ...value,
-      scheduleResponders: [
-        ...value.scheduleResponders,
-        { type: ResponderType.Schedule, data: schedule, important: false },
-      ],
-    });
-  };
+  const addTeamResponder = useCallback(
+    (team: GrafanaTeam) => {
+      setShowEscalationVariants(false);
+      updateSelectedTeam(team);
+    },
+    [setShowEscalationVariants, updateSelectedTeam]
+  );
 
-  const handleUsersSearchTermChange = useDebouncedCallback(() => {
-    store.userStore.updateItems(usersSearchTerm);
+  const handleSearchTermChange = useDebouncedCallback(() => {
+    if (activeOption === TabOptions.Teams) {
+      grafanaTeamStore.updateItems(searchTerm);
+    } else {
+      userStore.updateItems(searchTerm);
+    }
   }, 500);
 
-  useEffect(handleUsersSearchTermChange, [usersSearchTerm]);
+  useEffect(handleSearchTermChange, [searchTerm, activeOption]);
 
-  const handleSchedulesSearchTermChange = useDebouncedCallback(() => {
-    store.scheduleStore.updateItems(schedulesSearchTerm);
-  }, 500);
+  const teamIsSelected = useCallback(
+    (team: GrafanaTeam) => selectedTeamResponder?.data?.id === team.id,
+    [selectedTeamResponder]
+  );
+  const userIsSelected = useCallback(
+    (user: User) => selectedUserResponders.some((userResponder) => userResponder.data.pk === user.pk),
+    [selectedUserResponders]
+  );
 
-  useEffect(handleSchedulesSearchTermChange, [schedulesSearchTerm]);
-
-  const scheduleColumns = [
+  const teamColumns: ColumnsType<GrafanaTeam> = [
     {
       width: 300,
-      render: (schedule: Schedule) => {
-        const disabled = value.scheduleResponders.some(
-          (scheduleResponder) => scheduleResponder.data.id === schedule.id
-        );
+      render: (team: GrafanaTeam) => {
+        const { avatar_url, name, number_of_users_currently_oncall } = team;
+        const disabled = teamIsSelected(team);
 
         return (
-          <div
-            onClick={() => (disabled ? undefined : addSchedulesResponders(schedule))}
-            className={cx('responder-item')}
-          >
-            <Text type={disabled ? 'disabled' : undefined}>{schedule.name}</Text>
+          <div onClick={() => (disabled ? undefined : addTeamResponder(team))} className={cx('responder-item')}>
+            <HorizontalGroup>
+              <Avatar size="small" src={avatar_url} />
+              <Text type={disabled ? 'disabled' : undefined}>{name}</Text>
+              {number_of_users_currently_oncall > 0 && (
+                <Text>
+                  {number_of_users_currently_oncall} user{number_of_users_currently_oncall > 1 ? 's' : ''} on-call
+                </Text>
+              )}
+            </HorizontalGroup>
           </div>
         );
       },
@@ -105,24 +144,25 @@ const EscalationVariantsPopup = observer((props: EscalationVariantsPopupProps) =
     },
     {
       width: 40,
-      render: (item: Schedule) =>
-        value.scheduleResponders.some((scheduleResponder) => scheduleResponder.data.id === item.id) ? (
-          <Icon name="check" />
-        ) : null,
+      render: (team: GrafanaTeam) => (teamIsSelected(team) ? <Icon name="check" /> : null),
       key: 'Checked',
     },
   ];
 
-  const userColumns = [
+  const userColumns: ColumnsType<User> = [
     {
       width: 300,
       render: (user: User) => {
-        const disabled = value.userResponders.some((userResponder) => userResponder.data?.pk === user.pk);
+        const { avatar, name, teams } = user;
+        const disabled = userIsSelected(user);
+
         return (
           <div onClick={() => (disabled ? undefined : addUserResponders(user))} className={cx('responder-item')}>
-            <Text type={disabled ? 'disabled' : undefined}>
-              {user.username} ({user.timezone})
-            </Text>
+            <HorizontalGroup>
+              <Avatar size="small" src={avatar} />
+              <Text type={disabled ? 'disabled' : undefined}>{name}</Text>
+              {teams.length > 0 && <Text>{teams.map(({ name }) => name).join(', ')}</Text>}
+            </HorizontalGroup>
           </div>
         );
       },
@@ -130,72 +170,71 @@ const EscalationVariantsPopup = observer((props: EscalationVariantsPopupProps) =
     },
     {
       width: 40,
-      render: (item: User) =>
-        value.userResponders.some((userResponder) => userResponder.data?.pk === item.pk) ? <Icon name="check" /> : null,
+      render: (user: User) => (userIsSelected(user) ? <Icon name="check" /> : null),
       key: 'Checked',
     },
   ];
 
-  const ref = useRef();
-
-  useOnClickOutside(ref, () => {
-    setShowEscalationVariants(false);
-  });
-
   return (
     <div ref={ref} className={cx('escalation-variants-dropdown')}>
+      <Input
+        suffix={<Icon name="search" />}
+        key="search"
+        className={cx('responders-filters')}
+        value={searchTerm}
+        placeholder="Search"
+        // @ts-ignore
+        width={'unset'}
+        onChange={handleSetSearchTerm}
+      />
       <RadioButtonGroup
         options={[
-          { value: 'schedules', label: 'Schedules' },
-          { value: 'users', label: 'Users' },
+          { value: TabOptions.Teams, label: 'Teams' },
+          { value: TabOptions.Users, label: 'Users' },
         ]}
         className={cx('radio-buttons')}
         value={activeOption}
         onChange={handleOptionChange}
         fullWidth
       />
-      {activeOption === 'schedules' && (
-        <>
-          <Input
-            prefix={<Icon name="search" />}
-            key="schedules search"
-            className={cx('responders-filters')}
-            value={schedulesSearchTerm}
-            placeholder="Search schedules..."
-            // @ts-ignore
-            width={'unset'}
-            onChange={handleSetSchedulesSearchTerm}
-          />
-          <GTable
-            emptyText={store.scheduleStore.getSearchResult()?.results ? 'No schedules found' : 'Loading...'}
-            rowKey="id"
-            columns={scheduleColumns}
-            data={store.scheduleStore.getSearchResult()?.results}
-            className={cx('table')}
-            showHeader={false}
-          />
-        </>
+      {activeOption === TabOptions.Teams && (
+        <GTable<GrafanaTeam>
+          emptyText={teamSearchResults ? 'No teams found' : 'Loading...'}
+          rowKey="id"
+          columns={teamColumns}
+          data={teamSearchResults}
+          className={cx('table')}
+          showHeader={false}
+        />
       )}
-      {activeOption === 'users' && (
+      {activeOption === TabOptions.Users && (
         <>
-          <Input
-            prefix={<Icon name="search" />}
-            key="users search"
-            // @ts-ignore
-            width={'unset'}
-            className={cx('responders-filters')}
-            placeholder="Search users..."
-            value={usersSearchTerm}
-            onChange={handleSetUsersSearchTerm}
-          />
-          <GTable
-            emptyText={store.userStore.getSearchResult()?.results ? 'No users found' : 'Loading...'}
-            rowKey="id"
-            columns={userColumns}
-            data={store.userStore.getSearchResult()?.results}
-            className={cx('table')}
-            showHeader={false}
-          />
+          {usersCurrentlyOnCall.length > 0 && (
+            <>
+              <p>On-call now</p>
+              <GTable<User>
+                emptyText={usersCurrentlyOnCall ? 'No users found' : 'Loading...'}
+                rowKey="id"
+                columns={userColumns}
+                data={usersCurrentlyOnCall}
+                className={cx('table')}
+                showHeader={false}
+              />
+            </>
+          )}
+          {usersNotCurrentlyOnCall.length > 0 && (
+            <>
+              <p>Not on-call</p>
+              <GTable<User>
+                emptyText={usersNotCurrentlyOnCall ? 'No users found' : 'Loading...'}
+                rowKey="id"
+                columns={userColumns}
+                data={usersNotCurrentlyOnCall}
+                className={cx('table')}
+                showHeader={false}
+              />
+            </>
+          )}
         </>
       )}
     </div>

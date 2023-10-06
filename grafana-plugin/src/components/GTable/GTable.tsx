@@ -1,9 +1,10 @@
-import React, { FC, useCallback, useMemo, ChangeEvent } from 'react';
+import React, { useCallback, useMemo, ChangeEvent, ReactElement } from 'react';
 
 import { Pagination, Checkbox, Icon } from '@grafana/ui';
 import cn from 'classnames/bind';
 import Table from 'rc-table';
 import { TableProps } from 'rc-table/lib/Table';
+import { DefaultRecordType } from 'rc-table/lib/interface';
 
 import styles from './GTable.module.css';
 
@@ -31,7 +32,7 @@ export interface Props<RecordType = unknown> extends TableProps<RecordType> {
   showHeader?: boolean;
 }
 
-const GTable: FC<Props> = (props) => {
+const GTable = <RT extends DefaultRecordType = DefaultRecordType>(props: Props<RT>): ReactElement => {
   const {
     columns: columnsProp,
     data,
@@ -139,7 +140,7 @@ const GTable: FC<Props> = (props) => {
 
   return (
     <div className={cx('root')} data-testid="test__gTable">
-      <Table
+      <Table<RT>
         expandable={expandable}
         rowKey={rowKey}
         className={cx('filter-table', className)}

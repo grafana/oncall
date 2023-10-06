@@ -14,3 +14,7 @@
   background: var(--background-secondary);
   padding: 10px 12px;
 }
+
+.block {
+  width: 100%;
+}

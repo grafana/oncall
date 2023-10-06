@@ -1,3 +1,4 @@
+import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
 import { Timezone } from 'models/timezone/timezone.types';
 
 export interface MessagingBackends {
@@ -13,9 +14,7 @@ export interface User {
   avatar_full: string;
   name: string;
   display_name: string;
-  company: string;
   hide_phone_number: boolean;
-  role_in_company: string;
   username: string;
   slack_id: string;
   phone_verified: boolean;
@@ -36,14 +35,7 @@ export interface User {
     slack_id: string;
     slack_login: string;
   } | null;
-  post_onboarding_entry_allowed: any;
   current_team: string | null;
-  onboarding_conversation_data: {
-    image_link: string | null;
-    inviter_name: string | null;
-    video_conference_link: string | null;
-  };
-  trigger_video_call?: boolean;
   export_url?: string;
   status?: number;
   link?: string;
@@ -51,4 +43,6 @@ export interface User {
   hidden_fields?: boolean;
   timezone: Timezone;
   working_hours: { [key: string]: [] };
+  is_currently_oncall: boolean;
+  teams: GrafanaTeam[];
 }
