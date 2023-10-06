@@ -3,7 +3,7 @@
  */
 
 .u-flex {
-  display: flex;
+  display: flex !important;
   flex-direction: row;
 }
 
@@ -84,10 +84,6 @@
   position: relative;
 }
 
-.u-overflow-x-auto {
-  overflow-x: auto;
-}
-
 .u-break-word {
   word-break: break-word;
 }
@@ -128,4 +124,26 @@
 .loadingPlaceholder {
   margin-bottom: 0;
   margin-right: 4px;
+}
+
+/* -----
+ * Overflow
+ */
+
+.u-overflow-x-auto {
+  overflow-x: auto;
+}
+
+.overflow-parent {
+  /* width should be 4px less (margin) than max */
+  max-width: calc(100% - 4px);
+  display: inline-block;
+}
+
+.overflow-child {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: inline-block;
+  max-width: 100%;
 }

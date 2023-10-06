@@ -37,11 +37,11 @@ import { UserActions } from 'utils/authorization';
 import { PAGE } from 'utils/consts';
 
 import styles from './Integrations.module.scss';
+import TextEllipsisTooltip from 'components/TextEllipsisTooltip/TextEllipsisTooltip';
 
 const cx = cn.bind(styles);
 const FILTERS_DEBOUNCE_MS = 500;
 const ITEMS_PER_PAGE = 15;
-const MAX_LINE_LENGTH = 50;
 
 interface IntegrationsState extends PageBaseState {
   integrationsFilters: Filters;
@@ -227,36 +227,13 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
           ...query,
         }}
       >
-        {renderIntegrationName()}
+        <TextEllipsisTooltip placement="top" content={item.verbal_name}>
+          <Text type="link" size="medium">
+            <Emoji className={cx('title', 'overflow-child')} text={item.verbal_name} />
+          </Text>
+        </TextEllipsisTooltip>
       </PluginLink>
     );
-
-    function renderIntegrationName() {
-      const content = (
-        <Text type="link" size="medium">
-          <Emoji
-            className={cx('title')}
-            text={
-              item.verbal_name?.length > MAX_LINE_LENGTH
-                ? item.verbal_name?.substring(0, MAX_LINE_LENGTH) + '...'
-                : item.verbal_name
-            }
-          />
-        </Text>
-      );
-
-      return (
-        <>
-          {item.verbal_name?.length > MAX_LINE_LENGTH ? (
-            <Tooltip content={item?.verbal_name} placement="top">
-              <span>{content}</span>
-            </Tooltip>
-          ) : (
-            content
-          )}
-        </>
-      );
-    }
   };
 
   renderDatasource(item: AlertReceiveChannel, alertReceiveChannelStore: AlertReceiveChannelStore) {
@@ -454,6 +431,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
         title: 'Name',
         key: 'name',
         render: this.renderName,
+        ellipsis: true,
       },
 
       {

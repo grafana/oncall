@@ -1,6 +1,6 @@
 import React, { ReactElement, SyntheticEvent } from 'react';
 
-import { Button, HorizontalGroup, Icon, LoadingPlaceholder, Tooltip, VerticalGroup } from '@grafana/ui';
+import { Button, HorizontalGroup, Icon, LoadingPlaceholder, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { get } from 'lodash-es';
 import { observer } from 'mobx-react';
@@ -32,6 +32,7 @@ import { PAGE, PLUGIN_ROOT } from 'utils/consts';
 import styles from './Incidents.module.scss';
 import { IncidentDropdown } from './parts/IncidentDropdown';
 import { SilenceButtonCascader } from './parts/SilenceButtonCascader';
+import TextEllipsisTooltip from 'components/TextEllipsisTooltip/TextEllipsisTooltip';
 
 const cx = cn.bind(styles);
 
@@ -479,6 +480,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
         title: 'Title',
         key: 'title',
         render: withSkeleton(this.renderTitle),
+        ellipsis: true,
       },
       {
         width: '5%',
@@ -491,6 +493,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
         title: 'Integration',
         key: 'source',
         render: withSkeleton(this.renderSource),
+        ellipsis: true,
       },
       {
         width: '10%',
@@ -565,25 +568,25 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
     const { incidentsItemsPerPage, incidentsCursor } = store.alertGroupStore;
 
     return (
-      <VerticalGroup spacing="none" justify="center">
-        <div className={'table__wrap-column'}>
-          <PluginLink
-            query={{
-              page: 'alert-groups',
-              id: record.pk,
-              cursor: incidentsCursor,
-              perpage: incidentsItemsPerPage,
-              start,
-              ...query,
-            }}
-          >
-            <Tooltip placement="top" content={record.render_for_web.title}>
-              <span>{record.render_for_web.title}</span>
-            </Tooltip>
-          </PluginLink>
-          {Boolean(record.dependent_alert_groups.length) && ` + ${record.dependent_alert_groups.length} attached`}
-        </div>
-      </VerticalGroup>
+      <div className={cx('u-flex')}>
+        {/* <TextEllipsisTooltip placement="top" content={record.render_for_web.title}> */}
+          <Text type="link" size="medium" className={cx('overflow-parent')}>
+            <PluginLink
+              query={{
+                page: 'alert-groups',
+                id: record.pk,
+                cursor: incidentsCursor,
+                perpage: incidentsItemsPerPage,
+                start,
+                ...query,
+              }}
+            >
+              <Text className={cx('overflow-child')}>{record.render_for_web.title}</Text>
+            </PluginLink>
+          </Text>
+        {/* </TextEllipsisTooltip> */}
+        {Boolean(record.dependent_alert_groups.length) && ` + ${record.dependent_alert_groups.length} attached`}
+      </div>
     );
   };
 
@@ -598,10 +601,14 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
     const integration = alertReceiveChannelStore.getIntegration(record.alert_receive_channel);
 
     return (
-      <HorizontalGroup spacing="sm">
+      <TextEllipsisTooltip
+        className={cx('u-flex', 'u-flex-gap-xs', 'overflow-parent')}
+        placement="top"
+        content={record?.alert_receive_channel?.verbal_name || ''}
+      >
         <IntegrationLogo integration={integration} scale={0.1} />
-        <Emoji text={record.alert_receive_channel?.verbal_name || ''} />
-      </HorizontalGroup>
+        <Emoji className={cx('overflow-child')} text={record.alert_receive_channel?.verbal_name || ''} />
+      </TextEllipsisTooltip>
     );
   };
 
