@@ -64,6 +64,21 @@ class RemoteFilters extends Component<RemoteFiltersProps, RemoteFiltersState> {
 
   searchRef = React.createRef<HTMLInputElement>();
 
+  componentDidUpdate(prevProps: Readonly<RemoteFiltersProps>): void {
+    const { store, query } = this.props;
+    const { filtersStore } = store;
+
+    if (prevProps.query !== query && filtersStore.needToParseFilters) {
+      filtersStore.needToParseFilters = false;
+
+      const { filterOptions } = this.state;
+
+      let { filters, values } = parseFilters(query, filterOptions, query);
+
+      this.setState({ filterOptions, filters, values }, () => this.onChange());
+    }
+  }
+
   async componentDidMount() {
     const { query, page, store, defaultFilters } = this.props;
 

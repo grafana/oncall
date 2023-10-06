@@ -11,7 +11,6 @@ import { RouteComponentProps, withRouter } from 'react-router-dom';
 import GTable from 'components/GTable/GTable';
 import HamburgerMenu from 'components/HamburgerMenu/HamburgerMenu';
 import IntegrationLogo from 'components/IntegrationLogo/IntegrationLogo';
-import { Filters } from 'components/IntegrationsFilters/IntegrationsFilters';
 import { PageBaseState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
 import {
   getWrongTeamResponseInfo,
@@ -28,6 +27,7 @@ import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/W
 import { HeartIcon, HeartRedIcon } from 'icons';
 import { AlertReceiveChannelStore } from 'models/alert_receive_channel/alert_receive_channel';
 import { AlertReceiveChannel, MaintenanceMode } from 'models/alert_receive_channel/alert_receive_channel.types';
+import { LabelKeyValue } from 'models/label/label.types';
 import IntegrationHelper from 'pages/integration/Integration.helper';
 import { AppFeature } from 'state/features';
 import { PageProps, WithStoreProps } from 'state/types';
@@ -45,7 +45,7 @@ const ITEMS_PER_PAGE = 15;
 const MAX_LINE_LENGTH = 40;
 
 interface IntegrationsState extends PageBaseState {
-  integrationsFilters: Filters;
+  integrationsFilters: Record<string, any>;
   alertReceiveChannelId?: AlertReceiveChannel['id'] | 'new';
   confirmationModal: {
     isOpen: boolean;
@@ -371,11 +371,16 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
           <VerticalGroup spacing="sm">
             {item.labels?.length
               ? item.labels.map((label) => (
-                  <Tag
-                    name={`${label.key.repr}:${label.value.repr}`}
-                    colorIndex={Math.floor(Math.random() * 28)}
-                    key={label.key.id}
-                  />
+                  <HorizontalGroup spacing="sm" key={label.key.id}>
+                    <Tag name={`${label.key.repr}:${label.value.repr}`} colorIndex={Math.floor(Math.random() * 28)} />
+                    <Button
+                      size="sm"
+                      icon="filter"
+                      tooltip="Apply filter"
+                      variant="secondary"
+                      onClick={this.getApplyLabelFilterClickHandler(label)}
+                    />
+                  </HorizontalGroup>
                 ))
               : 'No labels attached'}
           </VerticalGroup>
@@ -535,8 +540,34 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
     this.setState({ confirmationModal: undefined });
   };
 
-  handleIntegrationsFiltersChange = (integrationsFilters: Filters, isOnMount: boolean) => {
+  handleIntegrationsFiltersChange = (
+    integrationsFilters: IntegrationsState['integrationsFilters'],
+    isOnMount: boolean
+  ) => {
     this.setState({ integrationsFilters }, () => this.debouncedUpdateIntegrations(isOnMount));
+  };
+
+  getApplyLabelFilterClickHandler = (label: LabelKeyValue) => {
+    const {
+      store: { filtersStore },
+    } = this.props;
+
+    const {
+      integrationsFilters: { label: oldLabelFilter = [] },
+    } = this.state;
+
+    return () => {
+      const labelToAddString = `${label.key.id}:${label.value.id}`;
+      if (oldLabelFilter.some((label) => label === labelToAddString)) {
+        return;
+      }
+
+      const newLabelFilter = [...oldLabelFilter, labelToAddString];
+
+      LocationHelper.update({ label: newLabelFilter }, 'partial');
+
+      filtersStore.needToParseFilters = true;
+    };
   };
 
   applyFilters = async (isOnMount: boolean) => {
