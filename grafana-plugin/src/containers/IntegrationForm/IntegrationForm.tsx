@@ -135,7 +135,6 @@ const IntegrationForm = observer((props: IntegrationFormProps) => {
 
               {store.hasFeature(AppFeature.Labels) && (
                 <div className={cx('labels')}>
-                  <Label>Labels</Label>
                   <Labels ref={labelsRef} errors={errors?.labels} value={data.labels} />
                 </div>
               )}

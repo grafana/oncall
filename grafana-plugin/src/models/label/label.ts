@@ -3,6 +3,7 @@ import { action, observable } from 'mobx';
 import BaseStore from 'models/base_store';
 import { makeRequest } from 'network';
 import { RootStore } from 'state';
+import { openNotification } from 'utils';
 
 import { LabelKey, LabelValue } from './label.types';
 
@@ -52,6 +53,10 @@ export class LabelStore extends BaseStore {
     const { key } = await makeRequest(`${this.path}`, {
       method: 'POST',
       data: { key: { repr: name }, values: [] },
+    }).then((data) => {
+      openNotification(`New key has been added`);
+
+      return data;
     });
 
     return key;
@@ -61,6 +66,10 @@ export class LabelStore extends BaseStore {
     const result = await makeRequest(`${this.path}id/${keyId}/values`, {
       method: 'POST',
       data: { repr: value },
+    }).then((data) => {
+      openNotification(`New value has been added`);
+
+      return data;
     });
 
     return result.values.find((v) => v.repr === value); // TODO remove after backend API change
@@ -71,6 +80,10 @@ export class LabelStore extends BaseStore {
     const result = await makeRequest(`${this.path}id/${keyId}`, {
       method: 'PUT',
       data: { repr: name },
+    }).then((data) => {
+      openNotification(`Key has been renamed`);
+
+      return data;
     });
 
     return result.key;
@@ -81,6 +94,10 @@ export class LabelStore extends BaseStore {
     const result = await makeRequest(`${this.path}id/${keyId}/values/${valueId}`, {
       method: 'PUT',
       data: { repr: name },
+    }).then((data) => {
+      openNotification(`Value has been renamed`);
+
+      return data;
     });
 
     return result.values.find((v) => v.repr === name);
