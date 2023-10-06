@@ -126,9 +126,8 @@ the "Firing" state and will re-launch Escalation Chain.
 re-launch Escalation Chain and move Alert Group
   to the "Firing" state.
 * **Resolved:** Similar to "Acknowledged".
-*
 
-* Possible transitions:
+* **Possible transitions**:
 * Firing -> Acknowledged
 * Firing -> Silenced
 * Firing -> Resolved
