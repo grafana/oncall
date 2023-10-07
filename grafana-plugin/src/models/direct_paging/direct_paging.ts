@@ -5,6 +5,10 @@ import { RootStore } from 'state';
 
 import { ManualAlertGroupPayload } from './direct_paging.types';
 
+type DirectPagingResponse = {
+  alert_group_id: string;
+};
+
 export class DirectPagingStore extends BaseStore {
   constructor(rootStore: RootStore) {
     super(rootStore);
@@ -12,15 +16,15 @@ export class DirectPagingStore extends BaseStore {
     this.path = '/direct_paging/';
   }
 
-  async createManualAlertRule(data: ManualAlertGroupPayload) {
-    return await makeRequest(`${this.path}`, {
+  async createManualAlertRule(data: ManualAlertGroupPayload): Promise<DirectPagingResponse | void> {
+    return await makeRequest<DirectPagingResponse>(this.path, {
       method: 'POST',
       data,
     }).catch(this.onApiError);
   }
 
-  async updateAlertGroup(alertId: Alert['pk'], data: ManualAlertGroupPayload) {
-    return await makeRequest(`${this.path}`, {
+  async updateAlertGroup(alertId: Alert['pk'], data: ManualAlertGroupPayload): Promise<DirectPagingResponse | void> {
+    return await makeRequest<DirectPagingResponse>(this.path, {
       method: 'POST',
       data: {
         alert_group_id: alertId,

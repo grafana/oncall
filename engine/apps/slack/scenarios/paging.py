@@ -7,10 +7,9 @@ from django.conf import settings
 from django.db.models import Model, QuerySet
 
 from apps.alerts.models import AlertReceiveChannel, EscalationChain
-from apps.alerts.paging import (
+from apps.alerts.paging import (  # TeamNotification,
     AvailabilityWarning,
     PagingError,
-    ScheduleNotifications,
     UserNotifications,
     check_user_availability,
     direct_paging,
@@ -170,12 +169,14 @@ class FinishDirectPaging(scenario_step.ScenarioStep):
         selected_organization = _get_selected_org_from_payload(
             payload, input_id_prefix, slack_team_identity, slack_user_identity
         )
+        # TODO: update selected_team
         _, selected_team = _get_selected_team_from_payload(payload, input_id_prefix)
         user = slack_user_identity.get_user(selected_organization)
 
-        # Only pass users/schedules if additional responders checkbox is checked
+        # Only pass users/team if additional responders checkbox is checked
         selected_users: UserNotifications | None = None
-        selected_schedules: ScheduleNotifications | None = None
+        # TODO:
+        # selected_team: TeamNotification | None = None
 
         is_additional_responders_checked = _get_additional_responders_checked_from_payload(payload, input_id_prefix)
         if is_additional_responders_checked:
@@ -183,20 +184,18 @@ class FinishDirectPaging(scenario_step.ScenarioStep):
                 (u, p == Policy.IMPORTANT)
                 for u, p in get_current_items(payload, DataKey.USERS, selected_organization.users)
             ]
-            selected_schedules = [
-                (s, p == Policy.IMPORTANT)
-                for s, p in get_current_items(payload, DataKey.SCHEDULES, selected_organization.oncall_schedules)
-            ]
+            # selected_schedules = [
+            #     (s, p == Policy.IMPORTANT)
+            #     for s, p in get_current_items(payload, DataKey.SCHEDULES, selected_organization.oncall_schedules)
+            # ]
 
         # trigger direct paging to selected team + users/schedules
         alert_group = direct_paging(
             selected_organization,
-            selected_team,
             user,
-            title,
             message,
+            selected_team,
             selected_users,
-            selected_schedules,
         )
 
         text = ":white_check_mark: Alert group *{}* created: {}".format(title, alert_group.web_link)

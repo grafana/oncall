@@ -4,6 +4,11 @@ import { ActionMeta } from '@grafana/ui';
 import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
 import { User } from 'models/user/user.types';
 
+export enum NotificationPolicyValue {
+  Default = 0,
+  Important = 1,
+}
+
 export interface UserAvailability {
   warnings: Array<{ error: string; data: any }>;
 }

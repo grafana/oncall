@@ -59,7 +59,7 @@ import sanitize from 'utils/sanitize';
 
 import { getActionButtons } from './Incident.helpers';
 import styles from './Incident.module.scss';
-import PagedUsers from './parts/PagedUsers';
+// import PagedUsers from './parts/PagedUsers';
 
 const cx = cn.bind(styles);
 const INTEGRATION_NAME_LENGTH_LIMIT = 30;
@@ -176,7 +176,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
                     />
                     <AttachedIncidentsList id={incident.pk} getUnattachClickHandler={this.getUnattachClickHandler} />
                   </div>
-                  <div className={cx('column')}>
+                  {/* <div className={cx('column')}>
                     <VerticalGroup>
                       <PagedUsers
                         pagedUsers={incident.paged_users}
@@ -185,7 +185,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
                       />
                       {this.renderTimeline()}
                     </VerticalGroup>
-                  </div>
+                  </div> */}
                 </div>
                 {showIntegrationSettings && (
                   <Modal
@@ -231,17 +231,19 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
     );
   }
 
-  handlePagedUserRemove = async (userId: User['pk']) => {
-    const {
-      store,
-      match: {
-        params: { id: alertId },
-      },
-    } = this.props;
+  handlePagedUserRemove = (userId: User['pk']) => {
+    return async () => {
+      const {
+        store,
+        match: {
+          params: { id: alertId },
+        },
+      } = this.props;
 
-    await store.alertGroupStore.unpageUser(alertId, userId);
+      await store.alertGroupStore.unpageUser(alertId, userId);
 
-    this.update();
+      this.update();
+    };
   };
 
   renderHeader = () => {
@@ -424,10 +426,9 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
 
             <HorizontalGroup>
               <EscalationVariants
-                hideSelected
-                // value={prepareForEdit(incident.paged_users)}
-                // disabled={incident.is_restricted}
-                // onUpdateEscalationVariants={this.handleAddResponders}
+                mode="update"
+                existingPagedUsers={incident.paged_users}
+                generateRemovePreviouslyPagedUserCallback={this.handlePagedUserRemove}
               />
 
               <Button
@@ -453,9 +454,10 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
       },
     } = this.props;
 
+    // TODO:
     await store.directPagingStore.updateAlertGroup(
       alertId,
-      prepareForUpdate(data.userResponders, data.scheduleResponders)
+      prepareForUpdate(data.userResponders, data.scheduleResponders, { message: '' })
     );
 
     this.update();

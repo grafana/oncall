@@ -3,7 +3,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from apps.alerts.paging import DirectPagingAlertGroupResolvedError, direct_paging
+from apps.alerts.paging import DirectPagingAlertGroupResolvedError, TeamNotification, direct_paging
 from apps.api.permissions import RBACPermission
 from apps.api.serializers.paging import DirectPagingSerializer
 from apps.auth_token.auth import PluginAuthentication
@@ -27,20 +27,17 @@ class DirectPagingAPIView(APIView):
         )
         serializer.is_valid(raise_exception=True)
 
-        users = [(user["instance"], user["important"]) for user in serializer.validated_data["users"]]
-        schedules = [
-            (schedule["instance"], schedule["important"]) for schedule in serializer.validated_data["schedules"]
-        ]
+        team: TeamNotification | None = None
+        if serialized_team := serializer.validated_data["team"]:
+            team = (serialized_team["instance"], serialized_team["important"])
+
         try:
             alert_group = direct_paging(
                 organization=organization,
-                team=serializer.validated_data["team"],
                 from_user=from_user,
-                title=serializer.validated_data["title"],
                 message=serializer.validated_data["message"],
-                users=users,
-                schedules=schedules,
-                escalation_chain=serializer.validated_data["escalation_chain"],
+                team=team,
+                users=[(user["instance"], user["important"]) for user in serializer.validated_data["users"]],
                 alert_group=serializer.validated_data["alert_group"],
             )
         except DirectPagingAlertGroupResolvedError:

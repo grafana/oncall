@@ -79,8 +79,8 @@ class ManageRespondersUserChange(scenario_step.ScenarioStep):
                 # no warnings, proceed with paging
                 direct_paging(
                     organization=organization,
-                    team=alert_group.channel.team,
                     from_user=slack_user_identity.get_user(organization),
+                    team=alert_group.channel.team,
                     users=[(selected_user, False)],
                     alert_group=alert_group,
                 )
@@ -111,8 +111,8 @@ class ManageRespondersConfirmUserChange(scenario_step.ScenarioStep):
         try:
             direct_paging(
                 organization=organization,
-                team=alert_group.channel.team,
                 from_user=slack_user_identity.get_user(organization),
+                team=alert_group.channel.team,
                 users=[(selected_user, False)],
                 alert_group=alert_group,
             )
@@ -143,8 +143,8 @@ class ManageRespondersScheduleChange(scenario_step.ScenarioStep):
         try:
             direct_paging(
                 organization=organization,
-                team=alert_group.channel.team,
                 from_user=slack_user_identity.get_user(organization),
+                team=alert_group.channel.team,
                 schedules=[(selected_schedule, False)],
                 alert_group=alert_group,
             )
@@ -189,18 +189,18 @@ def render_dialog(alert_group: "AlertGroup", alert_group_resolved_warning=False)
 
     # Show list of users that are currently paged
     paged_users = alert_group.get_paged_users()
-    for user in alert_group.get_paged_users():
+    for user in paged_users:
         blocks += [
             typing.cast(
                 Block.Section,
                 {
                     "type": "section",
-                    "text": {"type": "mrkdwn", "text": f":bust_in_silhouette: *{user.name or user.username}*"},
+                    "text": {"type": "mrkdwn", "text": f":bust_in_silhouette: *{user['name'] or user['username']}*"},
                     "accessory": {
                         "type": "button",
                         "text": {"type": "plain_text", "text": "Remove", "emoji": True},
                         "action_id": ManageRespondersRemoveUser.routing_uid(),
-                        "value": str(user.pk),
+                        "value": user["pk"],
                     },
                 },
             ),

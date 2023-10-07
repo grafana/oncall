@@ -1,5 +1,9 @@
 import { FormItem, FormItemType } from 'components/GForm/GForm.types';
 
+export type FormData = {
+  message: string;
+};
+
 export const manualAlertFormConfig: { name: string; fields: FormItem[] } = {
   name: 'Manual Alert Group',
   fields: [

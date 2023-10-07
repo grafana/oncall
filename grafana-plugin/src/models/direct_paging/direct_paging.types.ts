@@ -1,7 +1,6 @@
-import { Schedule } from 'models/schedule/schedule.types';
-import { User } from 'models/user/user.types';
+type Responder = { id: string; important: boolean };
 
-export interface ManualAlertGroupPayload {
-  users: Array<{ id: User['pk']; important: boolean }>;
-  schedules: Array<{ id: Schedule['id']; important: boolean }>;
-}
+export type ManualAlertGroupPayload = {
+  team: Responder | null;
+  users: Responder[];
+};

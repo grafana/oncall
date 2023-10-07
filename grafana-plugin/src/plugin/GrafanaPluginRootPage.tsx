@@ -36,6 +36,7 @@ import CloudPage from 'pages/settings/tabs/Cloud/CloudPage';
 import LiveSettings from 'pages/settings/tabs/LiveSettings/LiveSettingsPage';
 import Users from 'pages/users/Users';
 import { rootStore } from 'state';
+import { DirectPagingProvider } from 'state/context/directPaging';
 import { useStore } from 'state/useStore';
 import { isUserActionAllowed } from 'utils/authorization';
 import { DEFAULT_PAGE } from 'utils/consts';
@@ -63,7 +64,9 @@ import grafanaGlobalStyle from '!raw-loader!assets/style/grafanaGlobalStyles.css
 export const GrafanaPluginRootPage = (props: AppRootProps) => {
   return (
     <Provider store={rootStore}>
-      <PluginSetup InitializedComponent={Root} {...props} />
+      <DirectPagingProvider>
+        <PluginSetup InitializedComponent={Root} {...props} />
+      </DirectPagingProvider>
     </Provider>
   );
 };

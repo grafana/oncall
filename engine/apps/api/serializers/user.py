@@ -282,3 +282,14 @@ class UserShortSerializer(serializers.ModelSerializer):
             "avatar",
             "avatar_full",
         ]
+
+
+class PagedUserSerializer(serializers.Serializer):
+    class Meta:
+        fields = [
+            "username",
+            "pk",
+            "avatar",
+            "avatar_full",
+            "important",
+        ]

@@ -15,7 +15,7 @@ from common.api_helpers.mixins import EagerLoadingMixin
 from .alert import AlertSerializer
 from .alert_receive_channel import FastAlertReceiveChannelSerializer
 from .alerts_field_cache_buster_mixin import AlertsFieldCacheBusterMixin
-from .user import FastUserSerializer, UserShortSerializer
+from .user import FastUserSerializer, PagedUserSerializer, UserShortSerializer
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -242,8 +242,6 @@ class AlertGroupSerializer(AlertGroupListSerializer):
         alerts = obj.alerts.order_by("-pk")[:100]
         return AlertSerializer(alerts, many=True).data
 
-    @extend_schema_field(UserShortSerializer(many=True))
+    @extend_schema_field(PagedUserSerializer(many=True))
     def get_paged_users(self, obj):
-        paged_users = obj.get_paged_users()
-        serializer = UserShortSerializer(paged_users, many=True)
-        return serializer.data
+        return obj.get_paged_users()

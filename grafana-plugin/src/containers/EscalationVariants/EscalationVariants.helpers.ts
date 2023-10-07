@@ -1,47 +1,21 @@
-import { User } from 'models/user/user.types';
+// TODO: move this type somewhere more centralized
+import { FormData } from 'components/ManualAlertGroup/ManualAlertGroup.config';
 
-import { ResponderType } from './EscalationVariants.types';
+import { TeamResponder, UserResponders } from './EscalationVariants.types';
 
-export const deduplicate = (value) => {
-  const deduplicatedUserResponders = [];
-  value.userResponders.forEach((userResponder) => {
-    if (!deduplicatedUserResponders.some((responder) => responder.data.pk === userResponder.data.pk)) {
-      deduplicatedUserResponders.push(userResponder);
-    }
-  });
+export const prepareForUpdate = (selectedTeam: TeamResponder, selectedUsers: UserResponders, data: FormData) => ({
+  ...data,
+  team: selectedTeam === undefined ? null : { important: selectedTeam.important, id: selectedTeam.data.id },
+  users: selectedUsers.map(({ important, data: { pk } }) => ({ important, id: pk })),
+});
 
-  const deduplicatedScheduleResponders = [];
-  value.scheduleResponders.forEach((scheduleResponder) => {
-    if (!deduplicatedScheduleResponders.some((responder) => responder.data.id === scheduleResponder.data.id)) {
-      deduplicatedScheduleResponders.push(scheduleResponder);
-    }
-  });
-
-  return {
-    ...value,
-    scheduleResponders: deduplicatedScheduleResponders,
-    userResponders: deduplicatedUserResponders,
-  };
-};
-
-export function prepareForUpdate(userResponders, scheduleResponders, data?) {
-  return {
-    ...data,
-    users: userResponders.map((userResponder) => ({ important: userResponder.important, id: userResponder.data.pk })),
-    schedules: scheduleResponders.map((scheduleResponder) => ({
-      important: scheduleResponder.important,
-      id: scheduleResponder.data.id,
-    })),
-  };
-}
-
-export function prepareForEdit(userResponders) {
-  return {
-    userResponders: (userResponders || []).map(({ pk }: { pk: User['pk'] }) => ({
-      type: ResponderType.User,
-      data: { pk },
-      important: false,
-    })),
-    scheduleResponders: [],
-  };
-}
+export const prepareForEdit = (_selectedUsers: UserResponders) => ({
+  // users: (selectedUsers || []).map(({ pk }: { pk: User['pk'] }) => ({
+  //   type: ResponderType.User,
+  //   data: { pk },
+  //   important: false,
+  // })),
+  users: [],
+  // TODO:
+  team: null,
+});

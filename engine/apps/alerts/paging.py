@@ -19,15 +19,17 @@ from apps.schedules.ical_utils import list_users_to_notify_from_ical
 from apps.schedules.models import OnCallSchedule
 from apps.user_management.models import Organization, Team, User
 
+DIRECT_PAGING_ALERT_GROUP_TITLE = "Ohh noooo"  # TODO:
+
 
 class PagingError(enum.StrEnum):
     USER_HAS_NO_NOTIFICATION_POLICY = "USER_HAS_NO_NOTIFICATION_POLICY"
     USER_IS_NOT_ON_CALL = "USER_IS_NOT_ON_CALL"
 
 
-# notifications: (User|Schedule, important)
+# notifications: (User|Team, important)
 UserNotifications = list[tuple[User, bool]]
-ScheduleNotifications = list[tuple[OnCallSchedule, bool]]
+TeamNotification = tuple[Team, bool]
 
 
 class NoNotificationPolicyWarning(typing.TypedDict):
@@ -77,6 +79,7 @@ def _trigger_alert(
     escalation_chain: EscalationChain = None,
 ) -> AlertGroup:
     """Trigger manual integration alert from params."""
+    # TODO: what happens if Team is None?
     alert_receive_channel = AlertReceiveChannel.get_or_create_manual_integration(
         organization=organization,
         team=team,
@@ -177,30 +180,29 @@ def check_user_availability(user: User) -> typing.List[AvailabilityWarning]:
 
 def direct_paging(
     organization: Organization,
-    team: Team | None,
     from_user: User,
-    title: str = None,
     message: str = None,
+    team: TeamNotification | None = None,
     users: UserNotifications | None = None,
-    schedules: ScheduleNotifications | None = None,
-    escalation_chain: EscalationChain | None = None,
     alert_group: AlertGroup | None = None,
 ) -> AlertGroup | None:
-    """Trigger escalation targeting given users/schedules.
+    """Trigger escalation targeting given team/users.
 
     If an alert group is given, update escalation to include the specified users.
-    Otherwise, create a new alert using given title and message.
-
+    Otherwise, create a new alert using given message.
     """
+
+    title = DIRECT_PAGING_ALERT_GROUP_TITLE
+    escalation_chain = None  # TODO:
+
+    team_instance: Team | None = None
+    team_important: bool | None = None
+
+    if team:
+        team_instance, team_important = team
 
     if users is None:
         users = []
-
-    if schedules is None:
-        schedules = []
-
-    if escalation_chain is not None and alert_group is not None:
-        raise ValueError("Cannot change an existing alert group escalation chain")
 
     # Cannot add responders to a resolved alert group
     if alert_group and alert_group.resolved:
@@ -208,21 +210,24 @@ def direct_paging(
 
     # create alert group if needed
     if alert_group is None:
-        alert_group = _trigger_alert(organization, team, title, message, from_user, escalation_chain=escalation_chain)
+        alert_group = _trigger_alert(
+            organization, team_instance, title, message, from_user, escalation_chain=escalation_chain
+        )
 
     # initialize direct paged users (without a schedule)
     users = [(u, important, None) for u, important in users]
 
-    # get on call users, add log entry for each schedule
-    for s, important in schedules:
-        oncall_users = list_users_to_notify_from_ical(s)
-        users += [(u, important, s) for u in oncall_users]
-        alert_group.log_records.create(
-            type=AlertGroupLogRecord.TYPE_DIRECT_PAGING,
-            author=from_user,
-            reason=f"{from_user.username} paged schedule {s.name}",
-            step_specific_info={"schedule": s.public_primary_key},
-        )
+    # TODO: page the selected team
+    # # get on call users, add log entry for each schedule
+    # for s, important in schedules:
+    #     oncall_users = list_users_to_notify_from_ical(s)
+    #     users += [(u, important, s) for u in oncall_users]
+    #     alert_group.log_records.create(
+    #         type=AlertGroupLogRecord.TYPE_DIRECT_PAGING,
+    #         author=from_user,
+    #         reason=f"{from_user.username} paged schedule {s.name}",
+    #         step_specific_info={"schedule": s.public_primary_key},
+    #     )
 
     for u, important, schedule in users:
         reason = f"{from_user.username} paged user {u.username}"
