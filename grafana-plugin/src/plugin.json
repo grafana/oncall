@@ -317,12 +317,13 @@
     {
       "role": {
         "name": "OnCaller",
-        "description": "Grants read access to everything in OnCall. In addition, grants edit access to Alert Groups and Schedules",
+        "description": "Grants read access to everything in OnCall. In addition, grants edit access to Alert Groups, Schedules and own settings",
         "permissions": [
           { "action": "plugins.app:access", "scope": "plugins:id:grafana-oncall-app" },
 
           { "action": "grafana-oncall-app.alert-groups:read" },
           { "action": "grafana-oncall-app.alert-groups:write" },
+          { "action": "grafana-oncall-app.alert-groups:direct-paging" },
 
           { "action": "grafana-oncall-app.integrations:read" },
           { "action": "grafana-oncall-app.escalation-chains:read" },
@@ -336,6 +337,7 @@
           { "action": "grafana-oncall-app.notifications:read" },
           { "action": "grafana-oncall-app.notification-settings:read" },
           { "action": "grafana-oncall-app.user-settings:read" },
+          { "action": "grafana-oncall-app.user-settings:write" },
           { "action": "grafana-oncall-app.other-settings:read" }
         ]
       },
