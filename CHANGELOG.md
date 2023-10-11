@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+
+- Update plugin OnCaller role permissions ([#3145](https://github.com/grafana/oncall/pull/3145))
+
 ## v1.3.43 (2023-10-05)
 
 ### Added
