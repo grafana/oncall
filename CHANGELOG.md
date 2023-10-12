@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Update ical schedule creation/update to trigger final schedule refresh ([#3156](https://github.com/grafana/oncall/pull/3156))
+- Handle None role when syncing users from Grafana ([#3147](https://github.com/grafana/oncall/pull/3147))
 
 ### Changed
 
