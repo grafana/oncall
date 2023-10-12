@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Update plugin OnCaller role permissions ([#3145](https://github.com/grafana/oncall/pull/3145))
 
+### Changed
+
+- Remove redis replica by default @adinhodovic ([#3146](https://github.com/grafana/oncall/pull/3146))
+
 ## v1.3.43 (2023-10-05)
 
 ### Added

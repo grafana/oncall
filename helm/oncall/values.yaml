@@ -520,6 +520,7 @@ redis:
   enabled: true
   auth:
     existingSecret:
+  architecture: standalone
 
 externalRedis:
   protocol:
