@@ -88,7 +88,7 @@ class UserManager(models.Manager["User"]):
                 email=user["email"],
                 name=user["name"],
                 username=user["login"],
-                role=LegacyAccessControlRole[user["role"].upper()] if user["role"] else LegacyAccessControlRole.VIEWER,
+                role=getattr(LegacyAccessControlRole, user["role"].upper(), LegacyAccessControlRole.VIEWER),
                 avatar_url=user["avatarUrl"],
                 permissions=user["permissions"],
             )
@@ -120,11 +120,7 @@ class UserManager(models.Manager["User"]):
         users_to_update = []
         for user in organization.users.filter(user_id__in=existing_user_ids):
             grafana_user = grafana_users[user.user_id]
-            grafana_user_role = grafana_user["role"]
-            if grafana_user_role is None:
-                g_user_role = LegacyAccessControlRole.VIEWER
-            else:
-                g_user_role = LegacyAccessControlRole[grafana_user_role.upper()]
+            g_user_role = getattr(LegacyAccessControlRole, grafana_user["role"].upper(), LegacyAccessControlRole.VIEWER)
 
             if (
                 user.email != grafana_user["email"]

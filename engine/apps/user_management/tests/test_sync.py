@@ -74,7 +74,7 @@ def test_sync_users_for_organization_role_none(make_organization, make_user_for_
             "email": "test@test.test",
             "name": "Test",
             "login": "test",
-            "role": None,
+            "role": "None",
             "avatarUrl": "/test/1234",
             "permissions": [],
         }
