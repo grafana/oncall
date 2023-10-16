@@ -20,13 +20,14 @@ class ValueData(typing.TypedDict):
 
 
 def unify_labels_data(labels_data: LabelsData | LabelKeyData) -> typing.Dict[str, ValueData]:
+    values_data: typing.Dict[str, ValueData]
     if isinstance(labels_data, list):  # LabelsData
-        values_data: typing.Dict[str, ValueData] = {
+        values_data = {
             label["value"]["id"]: {"value_repr": label["value"]["repr"], "key_repr": label["key"]["repr"]}
             for label in labels_data
         }
     else:  # LabelKeyData
-        values_data: typing.Dict[str, ValueData] = {
+        values_data = {
             label["id"]: {"value_repr": label["repr"], "key_repr": labels_data["key"]["repr"]}
             for label in labels_data["values"]
         }
