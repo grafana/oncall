@@ -180,3 +180,44 @@ def test_labels_create_label(
     assert mocked_create_label.called
     assert response.status_code == status.HTTP_201_CREATED
     assert response.json() == expected_result
+
+
+@pytest.mark.django_db
+def test_labels_feature_false(
+    make_organization_and_user_with_plugin_token,
+    make_user_auth_headers,
+    make_alert_receive_channel,
+    settings,
+):
+    setattr(settings, "FEATURE_LABELS_ENABLED", False)
+
+    organization, user, token = make_organization_and_user_with_plugin_token()
+    client = APIClient()
+
+    url = reverse("api-internal:get_keys")
+    response = client.get(url, format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    url = reverse("api-internal:get_update_key", kwargs={"key_id": "keyid123"})
+    response = client.get(url, format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    url = reverse("api-internal:get_update_key", kwargs={"key_id": "keyid123"})
+    response = client.put(url, format="json", **make_user_auth_headers(user, token), data={})
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    url = reverse("api-internal:add_value", kwargs={"key_id": "keyid123"})
+    response = client.post(url, format="json", **make_user_auth_headers(user, token), data={})
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    url = reverse("api-internal:get_update_value", kwargs={"key_id": "keyid123", "value_id": "valueid123"})
+    response = client.get(url, format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    url = reverse("api-internal:get_update_value", kwargs={"key_id": "keyid123", "value_id": "valueid123"})
+    response = client.put(url, format="json", **make_user_auth_headers(user, token), data={})
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    url = reverse("api-internal:create_label")
+    response = client.post(url, format="json", data={}, **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_404_NOT_FOUND
