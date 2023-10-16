@@ -9,7 +9,75 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Update plugin OnCaller role permissions ([#3145](https://github.com/grafana/oncall/pull/3145))
+
+## v1.3.43 (2023-10-05)
+
+### Added
+
+- Make it possible to acknowledge/unacknowledge and resolve/unresolve alert groups via API by @vadimkerr ([#3108](https://github.com/grafana/oncall/pull/3108))
+
+### Changed
+
+- Improve alert group deletion API by @vadimkerr ([#3124](https://github.com/grafana/oncall/pull/3124))
+
+## v1.3.42 (2023-10-04)
+
+### Added
+
+- Add additional shift info in schedule filter_events internal API ([#3110](https://github.com/grafana/oncall/pull/3110))
+
+## v1.3.41 (2023-10-04)
+
+### Added
+
+- New RBAC action `grafana-oncall-app.alert-groups:direct-paging` and role "Alert Groups Direct Paging" by @joeyorlando
+  ([#3107](https://github.com/grafana/oncall/pull/3107))
+
+### Fixed
+
+- Accept empty and null user when updating webhook via API @mderynck ([#3094](https://github.com/grafana/oncall/pull/3094))
+- Fix slack notification for a shift which end is affected by a taken swap ([#3092](https://github.com/grafana/oncall/pull/3092))
+
+## v1.3.40 (2023-09-28)
+
+### Added
+
+- Create Direct Paging integration by default for every team, create default E-Mail notification policy for every user ([#3064](https://github.com/grafana/oncall/pull/3064))
+
+## v1.3.39 (2023-09-27)
+
+### Added
+
+- Presets for webhooks @mderynck ([#2996](https://github.com/grafana/oncall/pull/2996))
+- Add `enable_web_overrides` option to schedules public API ([#3062](https://github.com/grafana/oncall/pull/3062))
+
+### Fixed
+
+- Fix regression in public actions endpoint handling user field by @mderynck ([#3053](https://github.com/grafana/oncall/pull/3053))
+
+### Changed
+
+- Rework how users are fetched from DB when getting users from schedules ical representation ([#3067](https://github.com/grafana/oncall/pull/3067))
+
+## v1.3.38 (2023-09-19)
+
+### Fixed
+
+- Fix Slack access token length issue by @toolchainX ([#3016](https://github.com/grafana/oncall/pull/3016))
+- Fix shifts for current user internal endpoint to return the right shift PK ([#3036](https://github.com/grafana/oncall/pull/3036))
+- Handle Slack ratelimit on alert group deletion by @vadimkerr ([#3038](https://github.com/grafana/oncall/pull/3038))
+
+## v1.3.37 (2023-09-12)
+
+### Added
+
 - Notify user via Slack/mobile push-notification when their shift swap request is taken by @joeyorlando ([#2992](https://github.com/grafana/oncall/pull/2992))
+- Unify breadcrumbs behaviour with other Grafana Apps and main core# ([1906](https://github.com/grafana/oncall/issues/1906))
+
+### Changed
+
+- Improve Slack error handling by @vadimkerr ([#3000](https://github.com/grafana/oncall/pull/3000))
 
 ### Fixed
 

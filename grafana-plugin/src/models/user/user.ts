@@ -345,7 +345,7 @@ export class UserStore extends BaseStore {
   async deleteNotificationPolicy(userPk: User['pk'], id: NotificationPolicyType['id']) {
     Mixpanel.track('Delete NotificationPolicy', null);
 
-    await makeRequest(`/notification_policies/${id}`, { method: 'DELETE' });
+    await makeRequest(`/notification_policies/${id}`, { method: 'DELETE' }).catch(this.onApiError);
 
     this.updateNotificationPolicies(userPk);
 

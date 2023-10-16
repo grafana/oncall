@@ -9,11 +9,16 @@ keywords:
   - Notifications
   - on-call
   - stackdriver
+labels:
+  products:
+    - cloud
 title: Stackdriver
 weight: 500
 ---
 
 # Stackdriver integration for Grafana OnCall
+
+> This integration is not available in OSS version
 
 The Stackdriver integration for Grafana OnCall handles ticket events sent from Stackdriver webhooks.
 The integration provides grouping, auto-acknowledge and auto-resolve logic via customizable alert templates.

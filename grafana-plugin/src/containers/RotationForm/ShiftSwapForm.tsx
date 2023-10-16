@@ -86,7 +86,7 @@ const ShiftSwapForm = (props: ShiftSwapFormProps) => {
     if (id === 'new') {
       store.scheduleStore.updateShiftsSwapPreview(scheduleId, startMoment, {
         id: 'new',
-        beneficiary: currentUserPk,
+        beneficiary: { pk: currentUserPk },
         ...shiftSwap,
       });
     }
@@ -120,13 +120,7 @@ const ShiftSwapForm = (props: ShiftSwapFormProps) => {
     onUpdate();
   }, [id]);
 
-  useEffect(() => {
-    if (shiftSwap?.beneficiary && !store.userStore.items[shiftSwap.beneficiary]) {
-      store.userStore.updateItem(shiftSwap.beneficiary);
-    }
-  }, [shiftSwap?.beneficiary]);
-
-  const beneficiaryName = shiftSwap?.beneficiary && store.userStore.items[shiftSwap.beneficiary]?.name;
+  const beneficiaryName = shiftSwap?.beneficiary?.display_name;
 
   const isNew = id === 'new';
   const isPastDue = useMemo(() => shiftSwap && dayjs(shiftSwap.swap_start).isBefore(dayjs()), [shiftSwap]);
@@ -159,7 +153,7 @@ const ShiftSwapForm = (props: ShiftSwapFormProps) => {
                       tooltip="Delete"
                       name="trash-alt"
                       onClick={handleDelete}
-                      disabled={shiftSwap.beneficiary !== currentUserPk}
+                      disabled={shiftSwap.beneficiary?.pk !== currentUserPk}
                     />
                   </WithConfirm>
                 </WithPermissionControlTooltip>
@@ -204,7 +198,7 @@ const ShiftSwapForm = (props: ShiftSwapFormProps) => {
               <Field label="Swapped by">
                 {shiftSwap?.benefactor ? (
                   <UserItem
-                    pk={shiftSwap?.benefactor}
+                    pk={shiftSwap?.benefactor.pk}
                     shiftColor={SHIFT_SWAP_COLOR}
                     shiftStart={shiftSwap.swap_start}
                     shiftEnd={shiftSwap.swap_end}
@@ -228,7 +222,9 @@ const ShiftSwapForm = (props: ShiftSwapFormProps) => {
                   <Button
                     variant="primary"
                     onClick={handleTake}
-                    disabled={Boolean(isPastDue || shiftSwap?.benefactor || shiftSwap.beneficiary === currentUserPk)}
+                    disabled={Boolean(
+                      isPastDue || shiftSwap?.benefactor || shiftSwap.beneficiary?.pk === currentUserPk
+                    )}
                   >
                     Accept
                   </Button>

@@ -53,8 +53,9 @@ django-anymail==8.6
 django-deprecate-fields==0.1.1
 pymdown-extensions==10.0
 requests==2.31.0
-urllib3==1.26.15
+urllib3==1.26.17
 prometheus_client==0.16.0
 lxml==4.9.2
 babel==2.12.1
 drf-spectacular==0.26.2
+grpcio==1.57.0

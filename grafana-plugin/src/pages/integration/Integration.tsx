@@ -164,22 +164,16 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
                 width="75%"
                 scrollableContent
                 title="Template Settings"
+                subtitle="Set templates to interpret monitoring alerts and minimize noise. Group alerts, enable auto-resolution, customize visualizations and notifications by extracting data from alerts."
                 onClose={() => this.setState({ isTemplateSettingsOpen: false })}
                 closeOnMaskClick={false}
               >
-                <IntegrationBlock
-                  className={cx('template-drawer')}
-                  noContent
-                  heading={undefined}
-                  content={
-                    <IntegrationTemplateList
-                      alertReceiveChannelId={alertReceiveChannel.id}
-                      alertReceiveChannelIsBasedOnAlertManager={alertReceiveChannel.is_based_on_alertmanager}
-                      alertReceiveChannelAllowSourceBasedResolving={alertReceiveChannel.allow_source_based_resolving}
-                      openEditTemplateModal={this.openEditTemplateModal}
-                      templates={templates}
-                    />
-                  }
+                <IntegrationTemplateList
+                  alertReceiveChannelId={alertReceiveChannel.id}
+                  alertReceiveChannelIsBasedOnAlertManager={alertReceiveChannel.is_based_on_alertmanager}
+                  alertReceiveChannelAllowSourceBasedResolving={alertReceiveChannel.allow_source_based_resolving}
+                  openEditTemplateModal={this.openEditTemplateModal}
+                  templates={templates}
                 />
               </Drawer>
             )}
@@ -1134,10 +1128,12 @@ const IntegrationHeader: React.FC<IntegrationHeaderProps> = ({
           <Text type="secondary">Team:</Text>
           <TeamName team={grafanaTeamStore.items[alertReceiveChannel.team]} />
         </div>
-        <div className={cx('headerTop__item')}>
-          <Text type="secondary">Created by:</Text>
-          <UserDisplayWithAvatar id={alertReceiveChannel.author as any}></UserDisplayWithAvatar>
-        </div>
+        {alertReceiveChannel.author && (
+          <div className={cx('headerTop__item')}>
+            <Text type="secondary">Created by:</Text>
+            <UserDisplayWithAvatar id={alertReceiveChannel.author as any}></UserDisplayWithAvatar>
+          </div>
+        )}
       </div>
     </div>
   );

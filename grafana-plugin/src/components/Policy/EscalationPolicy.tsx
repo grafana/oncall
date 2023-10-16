@@ -73,9 +73,11 @@ export class EscalationPolicy extends React.Component<EscalationPolicyProps, any
         textColor={isDisabled ? getVar('--tag-text-success') : undefined}
         backgroundColor={backgroundColor}
       >
-        <WithPermissionControlTooltip disableByPaywall userAction={UserActions.EscalationChainsWrite}>
-          <DragHandle />
-        </WithPermissionControlTooltip>
+        {!isDisabled && (
+          <WithPermissionControlTooltip disableByPaywall userAction={UserActions.EscalationChainsWrite}>
+            <DragHandle />
+          </WithPermissionControlTooltip>
+        )}
         {escalationOption &&
           reactStringReplace(escalationOption.display_name, /\{\{([^}]+)\}\}/g, this.replacePlaceholder)}
         {this._renderNote()}

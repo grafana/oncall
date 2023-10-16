@@ -15,6 +15,7 @@ from apps.api.serializers.escalation_chain import (
     FilterEscalationChainSerializer,
 )
 from apps.auth_token.auth import PluginAuthentication
+from apps.mobile_app.auth import MobileAppAuthTokenAuthentication
 from apps.user_management.models import Team
 from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.filters import ByTeamModelFieldFilterMixin, ModelFieldFilterMixin, TeamModelMultipleChoiceFilter
@@ -38,7 +39,10 @@ class EscalationChainViewSet(
     ListSerializerMixin,
     viewsets.ModelViewSet,
 ):
-    authentication_classes = (PluginAuthentication,)
+    authentication_classes = (
+        MobileAppAuthTokenAuthentication,
+        PluginAuthentication,
+    )
     permission_classes = (IsAuthenticated, RBACPermission)
 
     rbac_permissions = {

@@ -160,17 +160,44 @@ def test_get_custom_action(
 
 
 @pytest.mark.django_db
-def test_create_custom_action(make_organization_and_user_with_token):
+@pytest.mark.parametrize(
+    "data",
+    [
+        (
+            {
+                "name": "Test outgoing webhook",
+                "url": "https://example.com",
+            }
+        ),
+        (
+            {
+                "name": "Test outgoing webhook",
+                "url": "https://example.com",
+                "user": None,
+                "password": None,
+                "data": None,
+                "authorization_header": None,
+                "forward_whole_payload": True,
+            }
+        ),
+        (
+            {
+                "name": "Test outgoing webhook",
+                "url": "https://example.com",
+                "user": "",
+                "password": "",
+                "data": "",
+                "authorization_header": "",
+                "forward_whole_payload": True,
+            }
+        ),
+    ],
+)
+def test_create_custom_action(make_organization_and_user_with_token, data):
     organization, user, token = make_organization_and_user_with_token()
     client = APIClient()
 
     url = reverse("api-public:actions-list")
-
-    data = {
-        "name": "Test outgoing webhook",
-        "url": "https://example.com",
-    }
-
     response = client.post(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
 
     custom_action = Webhook.objects.get(public_primary_key=response.data["id"])
@@ -327,9 +354,44 @@ def test_create_custom_action_valid_after_render_use_all_data(make_organization_
 
 
 @pytest.mark.django_db
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "data",
+    [
+        (
+            {
+                "name": "RENAMED",
+                "url": "https://example.com",
+            }
+        ),
+        (
+            {
+                "name": "RENAMED 1",
+                "url": "https://example.com",
+                "user": None,
+                "password": None,
+                "data": None,
+                "authorization_header": None,
+                "forward_whole_payload": True,
+            }
+        ),
+        (
+            {
+                "name": "RENAMED 2",
+                "url": "https://example.com",
+                "user": "",
+                "password": "",
+                "data": "",
+                "authorization_header": "",
+                "forward_whole_payload": True,
+            }
+        ),
+    ],
+)
 def test_update_custom_action(
     make_organization_and_user_with_token,
     make_custom_webhook,
+    data,
 ):
     organization, user, token = make_organization_and_user_with_token()
     client = APIClient()
@@ -337,18 +399,14 @@ def test_update_custom_action(
     custom_action = make_custom_webhook(organization=organization)
 
     url = reverse("api-public:actions-detail", kwargs={"pk": custom_action.public_primary_key})
-
-    data = {
-        "name": "RENAMED",
-    }
-
     assert custom_action.name != data["name"]
 
     response = client.put(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
+    custom_action.refresh_from_db()
 
     expected_result = {
         "id": custom_action.public_primary_key,
-        "name": data["name"],
+        "name": custom_action.name,
         "team_id": None,
         "url": custom_action.url,
         "data": custom_action.data,
@@ -365,8 +423,6 @@ def test_update_custom_action(
     }
 
     assert response.status_code == status.HTTP_200_OK
-    custom_action.refresh_from_db()
-    assert custom_action.name == expected_result["name"]
     assert response.data == expected_result
 
 

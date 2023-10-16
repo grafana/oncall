@@ -10,11 +10,16 @@ keywords:
   - on-call
   - webhooks
   - ServiceNow
+labels:
+  products:
+    - cloud
 title: ServiceNow
 weight: 500
 ---
 
 # Integrate Grafana OnCall with ServiceNow
+
+> This integration is not available in OSS version
 
 Grafana OnCall can automatically create, assign and resolve incidents in ServiceNow via [outgoing webhooks][outgoing-webhooks].
 This guide provides example webhook configurations for common use cases, as well as information on how to set up a user in ServiceNow to be used by Grafana OnCall.

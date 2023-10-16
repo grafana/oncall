@@ -30,8 +30,10 @@ Jinja2 templates to customize the request being sent.
 ## Creating an outgoing webhook
 
 To create an outgoing webhook navigate to **Outgoing Webhooks** and click **+ Create**. On this screen outgoing
-webhooks can be viewed, edited and deleted. To create the outgoing webhook populate the required fields and
-click **Create Webhook**
+webhooks can be viewed, edited and deleted. To create the outgoing webhook click **New Outgoing Webhook** and then
+select a preset based on what you want to do. A simple webhook will POST alert group data as a selectable escalation
+step to the specified url. If you require more customization use the advanced webhook which provides all of the
+fields described below.  
 
 ### Outgoing webhook fields
 

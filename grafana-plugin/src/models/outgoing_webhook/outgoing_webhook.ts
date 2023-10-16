@@ -4,7 +4,7 @@ import BaseStore from 'models/base_store';
 import { makeRequest } from 'network';
 import { RootStore } from 'state';
 
-import { OutgoingWebhook } from './outgoing_webhook.types';
+import { OutgoingWebhook, OutgoingWebhookPreset } from './outgoing_webhook.types';
 
 export class OutgoingWebhookStore extends BaseStore {
   @observable.shallow
@@ -12,6 +12,9 @@ export class OutgoingWebhookStore extends BaseStore {
 
   @observable.shallow
   searchResult: { [key: string]: Array<OutgoingWebhook['id']> } = {};
+
+  @observable.shallow
+  outgoingWebhookPresets: OutgoingWebhookPreset[] = [];
 
   constructor(rootStore: RootStore) {
     super(rootStore);
@@ -96,5 +99,11 @@ export class OutgoingWebhookStore extends BaseStore {
       method: 'POST',
       data: { template_name, template_body, payload },
     });
+  }
+
+  @action
+  async updateOutgoingWebhookPresets() {
+    const response = await makeRequest(`/webhooks/preset_options/`, {});
+    this.outgoingWebhookPresets = response;
   }
 }

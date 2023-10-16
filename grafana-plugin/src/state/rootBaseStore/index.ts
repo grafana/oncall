@@ -132,6 +132,7 @@ export class RootBaseStore {
       this.userStore.updateNotificationPolicyOptions(),
       this.userStore.updateNotifyByOptions(),
       this.alertReceiveChannelStore.updateAlertReceiveChannelOptions(),
+      this.outgoingWebhookStore.updateOutgoingWebhookPresets(),
       this.escalationPolicyStore.updateWebEscalationPolicyOptions(),
       this.escalationPolicyStore.updateEscalationPolicyOptions(),
       this.escalationPolicyStore.updateNumMinutesInWindowOptions(),
