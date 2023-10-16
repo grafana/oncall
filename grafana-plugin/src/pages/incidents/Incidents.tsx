@@ -464,7 +464,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
 
     const columns = [
       {
-        width: 140,
+        width: '140px',
         title: 'Status',
         key: 'time',
         render: withSkeleton(this.renderStatus),
@@ -480,7 +480,6 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
         title: 'Title',
         key: 'title',
         render: withSkeleton(this.renderTitle),
-        ellipsis: true,
       },
       {
         width: '5%',
@@ -493,7 +492,6 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
         title: 'Integration',
         key: 'source',
         render: withSkeleton(this.renderSource),
-        ellipsis: true,
       },
       {
         width: '10%',

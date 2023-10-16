@@ -15,11 +15,6 @@ interface TextEllipsisTooltipProps {
   children: JSX.Element | JSX.Element[];
 }
 
-/* NOTE: 
-   - If you use TextEllipsisTooltip inside rc-table
-     you also need to pass `ellipsis: true` to the column to apply truncation
- */
-
 const TextEllipsisTooltip: React.FC<TextEllipsisTooltipProps> = ({
   queryClassName = 'overflow-child',
   className,

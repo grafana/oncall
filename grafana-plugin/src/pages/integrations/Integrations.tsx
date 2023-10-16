@@ -431,7 +431,6 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
         title: 'Name',
         key: 'name',
         render: this.renderName,
-        ellipsis: true,
       },
 
       {
