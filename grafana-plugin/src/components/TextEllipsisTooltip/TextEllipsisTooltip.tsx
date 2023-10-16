@@ -1,5 +1,6 @@
-import { Tooltip } from '@grafana/ui';
 import React, { useEffect, useRef, useState } from 'react';
+
+import { Tooltip } from '@grafana/ui';
 import cn from 'classnames/bind';
 
 import styles from 'assets/style/utils.css';
@@ -30,14 +31,11 @@ const TextEllipsisTooltip: React.FC<TextEllipsisTooltipProps> = ({
   const elContentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const el = elContentRef?.current?.querySelector<HTMLElement>(`.${queryClassName}`);
-    if (!el) return;
-
-    setIsEllipsis(el.offsetHeight < el.scrollHeight);
+    setEllipsis();
   }, []);
 
   const elContent = (
-    <div className={cx(className)} ref={elContentRef}>
+    <div className={cx(className)} ref={elContentRef} onMouseOver={setEllipsis}>
       {children}
     </div>
   );
@@ -52,6 +50,15 @@ const TextEllipsisTooltip: React.FC<TextEllipsisTooltipProps> = ({
   }
 
   return elContent;
+
+  function setEllipsis() {
+    const el = elContentRef?.current?.querySelector<HTMLElement>(`.${queryClassName}`);
+    if (!el) {
+      return;
+    }
+
+    setIsEllipsis(el.offsetHeight < el.scrollHeight);
+  }
 };
 
 export default TextEllipsisTooltip;

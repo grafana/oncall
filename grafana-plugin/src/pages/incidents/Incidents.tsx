@@ -15,6 +15,7 @@ import IntegrationLogo from 'components/IntegrationLogo/IntegrationLogo';
 import ManualAlertGroup from 'components/ManualAlertGroup/ManualAlertGroup';
 import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
+import TextEllipsisTooltip from 'components/TextEllipsisTooltip/TextEllipsisTooltip';
 import Tutorial from 'components/Tutorial/Tutorial';
 import { TutorialStep } from 'components/Tutorial/Tutorial.types';
 import { IncidentsFiltersType } from 'containers/IncidentsFilters/IncidentFilters.types';
@@ -32,7 +33,6 @@ import { PAGE, PLUGIN_ROOT } from 'utils/consts';
 import styles from './Incidents.module.scss';
 import { IncidentDropdown } from './parts/IncidentDropdown';
 import { SilenceButtonCascader } from './parts/SilenceButtonCascader';
-import TextEllipsisTooltip from 'components/TextEllipsisTooltip/TextEllipsisTooltip';
 
 const cx = cn.bind(styles);
 

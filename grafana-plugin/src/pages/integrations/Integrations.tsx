@@ -19,6 +19,7 @@ import {
 } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper.helpers';
 import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
+import TextEllipsisTooltip from 'components/TextEllipsisTooltip/TextEllipsisTooltip';
 import TooltipBadge from 'components/TooltipBadge/TooltipBadge';
 import { WithContextMenu } from 'components/WithContextMenu/WithContextMenu';
 import IntegrationForm from 'containers/IntegrationForm/IntegrationForm';
@@ -37,7 +38,6 @@ import { UserActions } from 'utils/authorization';
 import { PAGE } from 'utils/consts';
 
 import styles from './Integrations.module.scss';
-import TextEllipsisTooltip from 'components/TextEllipsisTooltip/TextEllipsisTooltip';
 
 const cx = cn.bind(styles);
 const FILTERS_DEBOUNCE_MS = 500;

@@ -13,7 +13,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Increase Integrations Name max characters limit and added a tooltip to show what's beyond the limit
+- Removed Integrations Name max characters limit
+  ([#3123])(https://github.com/grafana/oncall/pull/3123)
+- Truncate long table rows (Integration Name/Alert Group) and show tooltip for the truncated content
   ([#3123])(https://github.com/grafana/oncall/pull/3123)
 
 ## v1.3.42 (2023-10-04)
