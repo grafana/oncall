@@ -21,9 +21,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Improve alert group deletion API by @vadimkerr ([#3124](https://github.com/grafana/oncall/pull/3124))
 - Removed Integrations Name max characters limit
-  ([#3123])(https://github.com/grafana/oncall/pull/3123)
+  ([#3123](https://github.com/grafana/oncall/pull/3123))
 - Truncate long table rows (Integration Name/Alert Group) and show tooltip for the truncated content
-  ([#3123])(https://github.com/grafana/oncall/pull/3123)
+  ([#3123](https://github.com/grafana/oncall/pull/3123))
 
 ## v1.3.42 (2023-10-04)
 
