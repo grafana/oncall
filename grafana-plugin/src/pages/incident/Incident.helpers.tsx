@@ -84,7 +84,7 @@ export function renderRelatedUsers(incident: Alert, isFull = false) {
           <MatchMediaTooltip placement="top" content={user.username} maxWidth={TABLE_COLUMN_MAX_WIDTH}>
             <span>{user.username}</span>
           </MatchMediaTooltip>{' '}
-          {badge}
+          <span className={cx('user-badge')}>{badge}</span>
         </Text>
       </PluginLink>
     );
