@@ -96,7 +96,7 @@ class IncidentView(RateLimitHeadersMixin, mixins.ListModelMixin, mixins.DestroyM
         instance = self.get_object()
         if not isinstance(request.data, dict):
             return Response(data="A dict with a `mode` key is expected", status=status.HTTP_400_BAD_REQUEST)
-        mode = request.data.get("mode")
+        mode = request.data.get("mode", "wipe")
         if mode == "delete":
             if not team_has_slack_token_for_deleting(instance):
                 raise BadRequest(
@@ -110,8 +110,10 @@ class IncidentView(RateLimitHeadersMixin, mixins.ListModelMixin, mixins.DestroyM
                 )
             else:
                 delete_alert_group.apply_async((instance.pk, request.user.pk))
-        else:
+        elif mode == "wipe":
             wipe.apply_async((instance.pk, request.user.pk))
+        else:
+            return Response(data="Invalid mode", status=status.HTTP_400_BAD_REQUEST)
 
         return Response(status=status.HTTP_204_NO_CONTENT)
 
