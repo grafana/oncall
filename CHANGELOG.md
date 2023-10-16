@@ -5,7 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Unreleased
+## v1.3.44 (2023-10-16)
+
+### Added
+
+- Update plugin OnCaller role permissions ([#3145](https://github.com/grafana/oncall/pull/3145))
+
+### Fixed
+
+- Fix plugin status to always return URL with trailing / @mderynck ([#3122](https://github.com/grafana/oncall/pull/3122))
 
 ## v1.3.43 (2023-10-05)
 
