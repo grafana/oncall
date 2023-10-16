@@ -117,9 +117,6 @@ class AlertReceiveChannelView(
         "connect_contact_point": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
         "create_contact_point": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
         "disconnect_contact_point": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
-        "labels": [RBACPermission.Permissions.INTEGRATIONS_READ],
-        "associate_label": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
-        "remove_label": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
     }
 
     def perform_update(self, serializer):
