@@ -14,43 +14,34 @@ logger = get_task_logger(__name__)
 logger.setLevel(logging.DEBUG)
 
 
-@shared_dedicated_queue_retry_task(
-    autoretry_for=(Exception,), retry_backoff=True, max_retries=1 if settings.DEBUG else None
-)
-def update_labels_cache_for_key(label_data: "LabelKeyData"):
-    from apps.labels.models import LabelKeyCache, LabelValueCache
+class ValueData(typing.TypedDict):
+    value_repr: str
+    key_repr: str
 
-    label_key = LabelKeyCache.objects.filter(id=label_data["key"]["id"]).first()
-    if not label_key:
-        # there is no associations with this key
-        return
 
-    now = timezone.now()
-    label_key.repr = label_data["key"]["repr"]
-    label_key.save(update_fields=["repr", "last_synced"])
-
-    values_data = {v["id"]: v["repr"] for v in label_data["values"]}
-
-    label_values = label_key.values.all()
-    for label_value in label_values:
-        if label_value.repr != values_data[label_value.id]:
-            label_value.repr = values_data[label_value.id]
-        label_value.last_synced = now
-    LabelValueCache.objects.bulk_update(label_values, fields=["repr", "last_synced"], batch_size=5000)
+def unify_labels_data(labels_data: LabelsData | LabelKeyData) -> typing.Dict[str, ValueData]:
+    if isinstance(labels_data, list):  # LabelsData
+        values_data: typing.Dict[str, ValueData] = {
+            label["value"]["id"]: {"value_repr": label["value"]["repr"], "key_repr": label["key"]["repr"]}
+            for label in labels_data
+        }
+    else:  # LabelKeyData
+        values_data: typing.Dict[str, ValueData] = {
+            label["id"]: {"value_repr": label["repr"], "key_repr": labels_data["key"]["repr"]}
+            for label in labels_data["values"]
+        }
+    return values_data
 
 
 @shared_dedicated_queue_retry_task(
     autoretry_for=(Exception,), retry_backoff=True, max_retries=1 if settings.DEBUG else None
 )
-def update_labels_cache(labels_data: "LabelsData"):
+def update_labels_cache(labels_data: LabelsData | LabelKeyData):
     from apps.labels.models import LabelKeyCache, LabelValueCache
 
-    now = timezone.now()
-    values_data = {
-        label["value"]["id"]: {"value_repr": label["value"]["repr"], "key_repr": label["key"]["repr"]}
-        for label in labels_data
-    }
+    values_data: typing.Dict[str, ValueData] = unify_labels_data(labels_data)
     values = LabelValueCache.objects.filter(id__in=values_data).select_related("key")
+    now = timezone.now()
 
     if not values:
         return
@@ -96,4 +87,4 @@ def update_instances_labels_cache(organization_id: int, instance_ids: typing.Lis
     for key_id in keys_ids:
         label_data, _ = client.get_values(key_id)
         if label_data:
-            update_labels_cache_for_key.apply_async((label_data,))
+            update_labels_cache.apply_async((label_data,))

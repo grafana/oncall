@@ -15,7 +15,7 @@ from apps.api.serializers.labels import (
 )
 from apps.auth_token.auth import PluginAuthentication
 from apps.labels.client import LabelsAPIClient
-from apps.labels.tasks import update_instances_labels_cache, update_labels_cache_for_key
+from apps.labels.tasks import update_instances_labels_cache, update_labels_cache
 from apps.labels.utils import is_labels_feature_enabled
 from common.api_helpers.exceptions import BadRequest
 
@@ -123,7 +123,7 @@ class LabelsViewSet(ViewSet):
             return
         serializer = LabelKeyValuesSerializer(data=label_data)
         if serializer.is_valid():
-            update_labels_cache_for_key.apply_async((label_data,))
+            update_labels_cache.apply_async((label_data,))
 
 
 class LabelsAssociatingMixin:  # use for labelable objects views (ex. AlertReceiveChannelView)
