@@ -5,7 +5,6 @@ import sys
 import typing
 import uuid
 from importlib import import_module, reload
-from unittest.mock import patch
 
 import pytest
 from celery import Task
@@ -180,9 +179,8 @@ def mock_apply_async(monkeypatch):
 
 
 @pytest.fixture(autouse=True)
-def mock_is_labels_feature_enabled():
-    with patch("apps.labels.utils.is_labels_feature_enabled", return_value=True) as mocked_is_labels_feature_enabled:
-        yield mocked_is_labels_feature_enabled
+def mock_is_labels_feature_enabled(settings):
+    setattr(settings, "FEATURE_LABELS_ENABLED", True)
 
 
 @pytest.fixture

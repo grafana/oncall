@@ -1205,7 +1205,6 @@ def test_integration_filter_by_labels(
     make_alert_receive_channel,
     make_integration_label_association,
     make_user_auth_headers,
-    mock_is_labels_feature_enabled,
 ):
     organization, user, token = make_organization_and_user_with_plugin_token()
     alert_receive_channel_1 = make_alert_receive_channel(organization)
@@ -1224,7 +1223,6 @@ def test_integration_filter_by_labels(
         **make_user_auth_headers(user, token),
     )
 
-    assert mock_is_labels_feature_enabled.called
     assert response.status_code == status.HTTP_200_OK
     assert len(response.json()["results"]) == 2
 
