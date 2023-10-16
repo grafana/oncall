@@ -464,7 +464,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
 
     const columns = [
       {
-        width: '5%',
+        width: 140,
         title: 'Status',
         key: 'time',
         render: withSkeleton(this.renderStatus),
@@ -568,8 +568,8 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
     const { incidentsItemsPerPage, incidentsCursor } = store.alertGroupStore;
 
     return (
-      <div className={cx('u-flex')}>
-        {/* <TextEllipsisTooltip placement="top" content={record.render_for_web.title}> */}
+      <div>
+        <TextEllipsisTooltip placement="top" content={record.render_for_web.title}>
           <Text type="link" size="medium" className={cx('overflow-parent')}>
             <PluginLink
               query={{
@@ -584,7 +584,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
               <Text className={cx('overflow-child')}>{record.render_for_web.title}</Text>
             </PluginLink>
           </Text>
-        {/* </TextEllipsisTooltip> */}
+        </TextEllipsisTooltip>
         {Boolean(record.dependent_alert_groups.length) && ` + ${record.dependent_alert_groups.length} attached`}
       </div>
     );

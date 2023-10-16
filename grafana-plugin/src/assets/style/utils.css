@@ -134,16 +134,10 @@
   overflow-x: auto;
 }
 
-.overflow-parent {
-  /* width should be 4px less (margin) than max */
-  max-width: calc(100% - 4px);
-  display: inline-block;
-}
-
 .overflow-child {
-  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  display: inline-block;
-  max-width: 100%;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
 }

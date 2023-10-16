@@ -33,22 +33,20 @@ const TextEllipsisTooltip: React.FC<TextEllipsisTooltipProps> = ({
     const el = elContentRef?.current?.querySelector<HTMLElement>(`.${queryClassName}`);
     if (!el) return;
 
-    setIsEllipsis(el.offsetWidth < el.scrollWidth);
-  }, [elContentRef?.current]);
+    setIsEllipsis(el.offsetHeight < el.scrollHeight);
+  }, []);
 
   const elContent = (
-    <div>
-      {/* Seems React has a problem setting ref if we don't pass a wrapping element */}
-      <div className={cx(className, 'overflow-parent')} ref={elContentRef}>
-        {children}
-      </div>
+    <div className={cx(className)} ref={elContentRef}>
+      {children}
     </div>
   );
 
   if (isEllipsis) {
     return (
       <Tooltip content={textContent} placement={placement as any}>
-        {elContent}
+        {/* The wrapping div is needed, otherwise the attached ref will be lost when <Tooltip /> mounts */}
+        <div>{elContent}</div>
       </Tooltip>
     );
   }
