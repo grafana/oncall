@@ -1,6 +1,6 @@
-import React, { useState, useCallback, useEffect, useRef, useContext } from 'react';
+import React, { useState, useCallback, useEffect, useRef, useContext, FC } from 'react';
 
-import { HorizontalGroup, Icon, Input, RadioButtonGroup } from '@grafana/ui';
+import { Alert, HorizontalGroup, Icon, Input, RadioButtonGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 import { ColumnsType } from 'rc-table/lib/interface';
@@ -8,23 +8,26 @@ import { ColumnsType } from 'rc-table/lib/interface';
 import Avatar from 'components/Avatar/Avatar';
 import GTable from 'components/GTable/GTable';
 import Text from 'components/Text/Text';
-import styles from 'containers/EscalationVariants/EscalationVariants.module.scss';
-import { UserAvailability } from 'containers/EscalationVariants/EscalationVariants.types';
-import { Alert } from 'models/alertgroup/alertgroup.types';
+import { UserAvailability } from 'containers/AddResponders/AddResponders.types';
+import { Alert as AlertType } from 'models/alertgroup/alertgroup.types';
 import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
 import { User } from 'models/user/user.types';
 import { DirectPagingContext } from 'state/context/directPaging';
 import { useStore } from 'state/useStore';
 import { useDebouncedCallback, useOnClickOutside } from 'utils/hooks';
 
-type EscalationVariantsPopupProps = {
+import styles from './AddRespondersPopup.module.scss';
+
+type Props = {
   mode: 'create' | 'update';
+  visible: boolean;
+  setVisible: (value: boolean) => void;
+
   setCurrentlyConsideredUser: (user: User) => void;
-  setShowEscalationVariants: (value: boolean) => void;
   setShowUserWarningModal: (value: boolean) => void;
   setUserAvailability: (data: UserAvailability) => void;
 
-  existingPagedUsers?: Alert['paged_users'];
+  existingPagedUsers?: AlertType['paged_users'];
 };
 
 const cx = cn.bind(styles);
@@ -34,17 +37,23 @@ enum TabOptions {
   Users = 'users',
 }
 
-// TODO: filter out 'No team'
-// TODO: if update mode, subtract out already selected users
-const EscalationVariantsPopup = observer(
+/**
+ * TODO: properly filter out 'No team'. Right now it shows up on first render and then shortly thereafter the component
+ * re-renders with 'No team' filtered out
+ *
+ * TODO: properly fetch/show loading state when fetching users. Right now it shows an empty list on the initial network
+ * request, we can probably have a better experience here
+ */
+const AddRespondersPopup = observer(
   ({
     mode,
+    visible,
+    setVisible,
     existingPagedUsers = [],
     setCurrentlyConsideredUser,
-    setShowEscalationVariants,
     setShowUserWarningModal,
     setUserAvailability,
-  }: EscalationVariantsPopupProps) => {
+  }: Props) => {
     const { grafanaTeamStore, userStore } = useStore();
 
     const { selectedTeamResponder, selectedUserResponders, addUserToSelectedUsers, updateSelectedTeam } =
@@ -73,7 +82,7 @@ const EscalationVariantsPopup = observer(
     const usersNotCurrentlyOnCall = userSearchResults.filter(({ is_currently_oncall }) => !is_currently_oncall);
 
     useOnClickOutside(ref, () => {
-      setShowEscalationVariants(false);
+      setVisible(false);
     });
 
     const handleSetSearchTerm = useCallback(
@@ -83,42 +92,35 @@ const EscalationVariantsPopup = observer(
       [setSearchTerm]
     );
 
-    const handleOptionChange = useCallback(
-      (option: TabOptions) => {
-        setActiveOption(option);
-      },
-      [setActiveOption]
-    );
-
     const onClickUser = useCallback(
       async (user: User) => {
         if (isCreateMode) {
           addUserToSelectedUsers(user);
         } else {
+          // TODO: do we need the "user availability" anymore? what is this used for?
           const userAvailability = await userStore.checkUserAvailability(user.pk);
 
           setCurrentlyConsideredUser(user);
           setUserAvailability(userAvailability);
           setShowUserWarningModal(true);
         }
-        setShowEscalationVariants(false);
+        setVisible(false);
       },
-      [
-        isCreateMode,
-        userStore,
-        addUserToSelectedUsers,
-        setUserAvailability,
-        setShowUserWarningModal,
-        setShowEscalationVariants,
-      ]
+      [isCreateMode, userStore, addUserToSelectedUsers, setUserAvailability, setShowUserWarningModal, setVisible]
     );
 
     const addTeamResponder = useCallback(
       (team: GrafanaTeam) => {
-        setShowEscalationVariants(false);
+        setVisible(false);
         updateSelectedTeam(team);
+
+        /**
+         * can't select more than one team so we mind as well auto-switch the selected tab
+         * to the users section in case the user wants to come back and user(s)
+         */
+        setActiveOption(TabOptions.Users);
       },
-      [setShowEscalationVariants, updateSelectedTeam]
+      [setVisible, updateSelectedTeam, setActiveOption]
     );
 
     const handleSearchTermChange = useDebouncedCallback(() => {
@@ -131,29 +133,27 @@ const EscalationVariantsPopup = observer(
 
     useEffect(handleSearchTermChange, [searchTerm, activeOption]);
 
-    const teamIsSelected = useCallback(
-      (team: GrafanaTeam) => selectedTeamResponder?.data?.id === team.id,
-      [selectedTeamResponder]
-    );
     const userIsSelected = useCallback(
       (user: User) => selectedUserResponders.some((userResponder) => userResponder.data.pk === user.pk),
       [selectedUserResponders]
     );
 
     const teamColumns: ColumnsType<GrafanaTeam> = [
+      // TODO: how to make the rows span full width properly?
       {
         width: 300,
         render: (team: GrafanaTeam) => {
           const { avatar_url, name, number_of_users_currently_oncall } = team;
-          const disabled = teamIsSelected(team);
 
           return (
-            <div onClick={() => (disabled ? undefined : addTeamResponder(team))} className={cx('responder-item')}>
-              <HorizontalGroup>
-                <Avatar size="small" src={avatar_url} />
-                <Text type={disabled ? 'disabled' : undefined}>{name}</Text>
+            <div onClick={() => addTeamResponder(team)} className={cx('responder-item')}>
+              <HorizontalGroup justify="space-between">
+                <HorizontalGroup>
+                  <Avatar size="small" src={avatar_url} />
+                  <Text>{name}</Text>
+                </HorizontalGroup>
                 {number_of_users_currently_oncall > 0 && (
-                  <Text>
+                  <Text type="secondary">
                     {number_of_users_currently_oncall} user{number_of_users_currently_oncall > 1 ? 's' : ''} on-call
                   </Text>
                 )}
@@ -163,14 +163,10 @@ const EscalationVariantsPopup = observer(
         },
         key: 'Title',
       },
-      {
-        width: 40,
-        render: (team: GrafanaTeam) => (teamIsSelected(team) ? <Icon name="check" /> : null),
-        key: 'Checked',
-      },
     ];
 
     const userColumns: ColumnsType<User> = [
+      // TODO: how to make the rows span full width properly?
       {
         width: 300,
         render: (user: User) => {
@@ -179,10 +175,12 @@ const EscalationVariantsPopup = observer(
 
           return (
             <div onClick={() => (disabled ? undefined : onClickUser(user))} className={cx('responder-item')}>
-              <HorizontalGroup>
-                <Avatar size="small" src={avatar} />
-                <Text type={disabled ? 'disabled' : undefined}>{name || username}</Text>
-                {teams.length > 0 && <Text>{teams.map(({ name }) => name).join(', ')}</Text>}
+              <HorizontalGroup justify="space-between">
+                <HorizontalGroup>
+                  <Avatar size="small" src={avatar} />
+                  <Text type={disabled ? 'disabled' : undefined}>{name || username}</Text>
+                </HorizontalGroup>
+                {teams.length > 0 && <Text type="secondary">{teams.map(({ name }) => name).join(', ')}</Text>}
               </HorizontalGroup>
             </div>
           );
@@ -196,73 +194,77 @@ const EscalationVariantsPopup = observer(
       },
     ];
 
-    return (
-      <div ref={ref} className={cx('escalation-variants-dropdown')}>
-        <Input
-          suffix={<Icon name="search" />}
-          key="search"
-          className={cx('responders-filters')}
-          value={searchTerm}
-          placeholder="Search"
-          // @ts-ignore
-          width={'unset'}
-          onChange={handleSetSearchTerm}
-        />
-        {isCreateMode && (
-          <RadioButtonGroup
-            options={[
-              { value: TabOptions.Teams, label: 'Teams' },
-              { value: TabOptions.Users, label: 'Users' },
-            ]}
-            className={cx('radio-buttons')}
-            value={activeOption}
-            onChange={handleOptionChange}
-            fullWidth
-          />
-        )}
-        {activeOption === TabOptions.Teams && (
-          <GTable<GrafanaTeam>
-            emptyText={teamSearchResults ? 'No teams found' : 'Loading...'}
-            rowKey="id"
-            columns={teamColumns}
-            data={teamSearchResults}
+    const UserResultsSection: FC<{ header: string; users: User[] }> = ({ header, users }) =>
+      users.length > 0 && (
+        <>
+          <Text type="secondary" className={cx('user-results-section-header')}>
+            {header}
+          </Text>
+          <GTable<User>
+            emptyText={users ? 'No users found' : 'Loading...'}
+            rowKey="pk"
+            columns={userColumns}
+            data={users}
             className={cx('table')}
             showHeader={false}
           />
-        )}
-        {activeOption === TabOptions.Users && (
-          <>
-            {usersCurrentlyOnCall.length > 0 && (
-              <>
-                <p>On-call now</p>
-                <GTable<User>
-                  emptyText={usersCurrentlyOnCall ? 'No users found' : 'Loading...'}
+        </>
+      );
+
+    return (
+      visible && (
+        <div ref={ref} className={cx('add-responders-dropdown')}>
+          <Input
+            suffix={<Icon name="search" />}
+            key="search"
+            className={cx('responders-filters')}
+            value={searchTerm}
+            placeholder="Search"
+            // @ts-ignore
+            width={'unset'}
+            onChange={handleSetSearchTerm}
+          />
+          {isCreateMode && (
+            <RadioButtonGroup
+              options={[
+                { value: TabOptions.Teams, label: 'Teams' },
+                { value: TabOptions.Users, label: 'Users' },
+              ]}
+              className={cx('radio-buttons')}
+              value={activeOption}
+              onChange={setActiveOption}
+              fullWidth
+            />
+          )}
+          {activeOption === TabOptions.Teams && (
+            <>
+              {selectedTeamResponder ? (
+                <Alert
+                  severity="info"
+                  title="You can add only one team per escalation. Please remove the existing team before adding a new one."
+                />
+              ) : (
+                <GTable<GrafanaTeam>
+                  emptyText={teamSearchResults ? 'No teams found' : 'Loading...'}
                   rowKey="id"
-                  columns={userColumns}
-                  data={usersCurrentlyOnCall}
+                  columns={teamColumns}
+                  data={teamSearchResults}
                   className={cx('table')}
                   showHeader={false}
                 />
-              </>
-            )}
-            {usersNotCurrentlyOnCall.length > 0 && (
-              <>
-                <p>Not on-call</p>
-                <GTable<User>
-                  emptyText={usersNotCurrentlyOnCall ? 'No users found' : 'Loading...'}
-                  rowKey="id"
-                  columns={userColumns}
-                  data={usersNotCurrentlyOnCall}
-                  className={cx('table')}
-                  showHeader={false}
-                />
-              </>
-            )}
-          </>
-        )}
-      </div>
+              )}
+            </>
+          )}
+          {activeOption === TabOptions.Users && (
+            <>
+              <UserResultsSection header="On-call now" users={usersCurrentlyOnCall} />
+              <UserResultsSection header="Not on-call" users={usersNotCurrentlyOnCall} />
+            </>
+          )}
+        </div>
+      )
     );
   }
 );
 
-export default EscalationVariantsPopup;
+export default AddRespondersPopup;

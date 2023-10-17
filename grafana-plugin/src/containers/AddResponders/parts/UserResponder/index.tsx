@@ -1,25 +1,24 @@
 import React, { FC } from 'react';
 
-import { HorizontalGroup, IconButton } from '@grafana/ui';
+import { SelectableValue } from '@grafana/data';
+import { ActionMeta, HorizontalGroup, IconButton } from '@grafana/ui';
 import cn from 'classnames/bind';
 
 import Avatar from 'components/Avatar/Avatar';
 import Text from 'components/Text/Text';
-import styles from 'containers/EscalationVariants/EscalationVariants.module.scss';
-import {
-  ResponderBaseProps,
-  UserResponder as UserResponderType,
-} from 'containers/EscalationVariants/EscalationVariants.types';
-import NotificationPoliciesSelect from 'containers/EscalationVariants/parts/NotificationPoliciesSelect';
+import styles from 'containers/AddResponders/AddResponders.module.scss';
+import { UserResponder as UserResponderType } from 'containers/AddResponders/AddResponders.types';
+import NotificationPoliciesSelect from 'containers/AddResponders/parts/NotificationPoliciesSelect';
 
 const cx = cn.bind(styles);
 
-type UserResponderProps = ResponderBaseProps &
-  Pick<UserResponderType, 'important' | 'data'> & {
-    disableNotificationPolicySelect?: boolean;
-  };
+type Props = Pick<UserResponderType, 'important' | 'data'> & {
+  onImportantChange: (value: SelectableValue<number>, actionMeta: ActionMeta) => void | {};
+  handleDelete: React.MouseEventHandler<HTMLButtonElement>;
+  disableNotificationPolicySelect?: boolean;
+};
 
-const UserResponder: FC<UserResponderProps> = ({
+const UserResponder: FC<Props> = ({
   important,
   data: { avatar, username },
   onImportantChange,

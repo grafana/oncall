@@ -5,7 +5,7 @@ import cn from 'classnames/bind';
 import dayjs from 'dayjs';
 
 import Text from 'components/Text/Text';
-import { UserAvailability } from 'containers/EscalationVariants/EscalationVariants.types';
+import { UserAvailability } from 'containers/AddResponders/AddResponders.types';
 import { getTzOffsetString } from 'models/timezone/timezone.helpers';
 import { User } from 'models/user/user.types';
 import { useStore } from 'state/useStore';

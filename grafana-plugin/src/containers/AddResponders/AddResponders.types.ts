@@ -1,7 +1,6 @@
 import { SelectableValue } from '@grafana/data';
 import { ActionMeta } from '@grafana/ui';
 
-import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
 import { User } from 'models/user/user.types';
 
 export enum NotificationPolicyValue {
@@ -18,15 +17,12 @@ export enum ResponderType {
   Team,
 }
 
-type Responder<DT> = {
+export type UserResponder = {
   type: ResponderType;
-  data: DT;
+  data: User;
   important: boolean;
 };
-
-export type TeamResponder = Responder<GrafanaTeam>;
-export type UserResponders = Array<Responder<User>>;
-export type UserResponder = UserResponders[0];
+export type UserResponders = UserResponder[];
 
 export type ResponderBaseProps = {
   onImportantChange: (value: SelectableValue<number>, actionMeta: ActionMeta) => void | {};

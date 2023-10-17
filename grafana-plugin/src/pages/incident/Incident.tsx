@@ -34,10 +34,10 @@ import { PluginBridge, SupportedPlugin } from 'components/PluginBridge/PluginBri
 import PluginLink from 'components/PluginLink/PluginLink';
 import SourceCode from 'components/SourceCode/SourceCode';
 import Text from 'components/Text/Text';
+import AddResponders from 'containers/AddResponders/AddResponders';
+import { prepareForUpdate } from 'containers/AddResponders/AddResponders.helpers';
+import { ResponderType, UserResponder } from 'containers/AddResponders/AddResponders.types';
 import AttachIncidentForm from 'containers/AttachIncidentForm/AttachIncidentForm';
-import EscalationVariants from 'containers/EscalationVariants/EscalationVariants';
-import { prepareForUpdate } from 'containers/EscalationVariants/EscalationVariants.helpers';
-import { ResponderType, UserResponder } from 'containers/EscalationVariants/EscalationVariants.types';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import {
   Alert as AlertType,
@@ -60,7 +60,6 @@ import sanitize from 'utils/sanitize';
 
 import { getActionButtons } from './Incident.helpers';
 import styles from './Incident.module.scss';
-// import PagedUsers from './parts/PagedUsers';
 
 const cx = cn.bind(styles);
 const INTEGRATION_NAME_LENGTH_LIMIT = 30;
@@ -177,16 +176,17 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
                     />
                     <AttachedIncidentsList id={incident.pk} getUnattachClickHandler={this.getUnattachClickHandler} />
                   </div>
-                  {/* <div className={cx('column')}>
+                  <div className={cx('column')}>
                     <VerticalGroup>
-                      <PagedUsers
-                        pagedUsers={incident.paged_users}
-                        onRemove={this.handlePagedUserRemove}
-                        disabled={incident.is_restricted}
+                      <AddResponders
+                        mode="update"
+                        existingPagedUsers={incident.paged_users}
+                        onAddNewParticipant={this.handleAddUserResponder}
+                        generateRemovePreviouslyPagedUserCallback={this.handlePagedUserRemove}
                       />
                       {this.renderTimeline()}
                     </VerticalGroup>
-                  </div> */}
+                  </div>
                 </div>
                 {showIntegrationSettings && (
                   <Modal
@@ -425,23 +425,14 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
               </PluginBridge>
             </HorizontalGroup>
 
-            <HorizontalGroup>
-              <EscalationVariants
-                mode="update"
-                existingPagedUsers={incident.paged_users}
-                onAddNewParticipant={this.handleAddUserResponder}
-                generateRemovePreviouslyPagedUserCallback={this.handlePagedUserRemove}
-              />
-
-              <Button
-                disabled={incident.alert_receive_channel.deleted || incident.is_restricted}
-                variant="secondary"
-                icon="edit"
-                onClick={this.showIntegrationSettings}
-              >
-                Edit templates
-              </Button>
-            </HorizontalGroup>
+            <Button
+              disabled={incident.alert_receive_channel.deleted || incident.is_restricted}
+              variant="secondary"
+              icon="edit"
+              onClick={this.showIntegrationSettings}
+            >
+              Edit templates
+            </Button>
           </HorizontalGroup>
         </VerticalGroup>
       </Block>
@@ -494,7 +485,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
     const { timelineFilter, resolutionNoteText } = this.state;
     const isResolutionNoteTextEmpty = resolutionNoteText === '';
     return (
-      <div>
+      <Block bordered>
         <Text.Title type="primary" level={4} className={cx('timeline-title')}>
           Timeline
         </Text.Title>
@@ -553,7 +544,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
             Add resolution note
           </ToolbarButton>
         </WithPermissionControlTooltip>
-      </div>
+      </Block>
     );
   };
 

@@ -1,6 +1,4 @@
-type Responder = { id: string; important: boolean };
-
 export type ManualAlertGroupPayload = {
-  team: Responder | null;
-  users: Responder[];
+  team: string | null;
+  users: Array<{ id: string; important: boolean }>;
 };

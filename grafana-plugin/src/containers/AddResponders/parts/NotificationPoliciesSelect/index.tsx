@@ -4,8 +4,9 @@ import { SelectableValue } from '@grafana/data';
 import { Select, ActionMeta } from '@grafana/ui';
 import cn from 'classnames/bind';
 
-import styles from 'containers/EscalationVariants/EscalationVariants.module.scss';
-import { NotificationPolicyValue } from 'containers/EscalationVariants/EscalationVariants.types';
+import { NotificationPolicyValue } from 'containers/AddResponders/AddResponders.types';
+
+import styles from './NotificationPoliciesSelect.module.scss';
 
 const cx = cn.bind(styles);
 

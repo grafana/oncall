@@ -5,7 +5,7 @@ import userEvent from '@testing-library/user-event';
 
 import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
 
-import TeamResponder from './';
+import TeamResponder from '.';
 
 describe('TeamResponder', () => {
   const team = {
@@ -14,16 +14,14 @@ describe('TeamResponder', () => {
   } as GrafanaTeam;
 
   test('it renders data properly', () => {
-    const component = render(
-      <TeamResponder important data={team} onImportantChange={() => {}} handleDelete={() => {}} />
-    );
+    const component = render(<TeamResponder team={team} handleDelete={() => {}} />);
     expect(component.container).toMatchSnapshot();
   });
 
   test('it calls the delete callback', async () => {
     const handleDelete = jest.fn();
 
-    render(<TeamResponder important data={team} onImportantChange={() => {}} handleDelete={handleDelete} />);
+    render(<TeamResponder team={team} handleDelete={handleDelete} />);
 
     const deleteIcon = await screen.findByTestId('team-responder-delete-icon');
     await userEvent.click(deleteIcon);

@@ -27,9 +27,7 @@ class PagingError(enum.StrEnum):
     USER_IS_NOT_ON_CALL = "USER_IS_NOT_ON_CALL"
 
 
-# notifications: (User|Team, important)
 UserNotifications = list[tuple[User, bool]]
-TeamNotification = tuple[Team, bool]
 
 
 class NoNotificationPolicyWarning(typing.TypedDict):
@@ -182,7 +180,7 @@ def direct_paging(
     organization: Organization,
     from_user: User,
     message: str = None,
-    team: TeamNotification | None = None,
+    team: Team | None = None,
     users: UserNotifications | None = None,
     alert_group: AlertGroup | None = None,
 ) -> AlertGroup | None:
@@ -195,12 +193,6 @@ def direct_paging(
     title = DIRECT_PAGING_ALERT_GROUP_TITLE
     escalation_chain = None  # TODO:
 
-    team_instance: Team | None = None
-    team_important: bool | None = None
-
-    if team:
-        team_instance, team_important = team
-
     if users is None:
         users = []
 
@@ -210,9 +202,7 @@ def direct_paging(
 
     # create alert group if needed
     if alert_group is None:
-        alert_group = _trigger_alert(
-            organization, team_instance, title, message, from_user, escalation_chain=escalation_chain
-        )
+        alert_group = _trigger_alert(organization, team, title, message, from_user, escalation_chain=escalation_chain)
 
     # initialize direct paged users (without a schedule)
     users = [(u, important, None) for u, important in users]

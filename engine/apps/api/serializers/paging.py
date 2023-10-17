@@ -5,13 +5,15 @@ from rest_framework import serializers
 
 from apps.alerts.models import AlertGroup
 from apps.user_management.models import Organization
+from common.api_helpers.custom_fields import TeamPrimaryKeyRelatedField
+from common.api_helpers.utils import CurrentTeamDefault
 
 
 class SerializerContext(typing.TypedDict):
     organization: Organization
 
 
-class ReferenceSerializer(serializers.Serializer):
+class UserReferenceSerializer(serializers.Serializer):
     context: SerializerContext
 
     id = serializers.CharField()
@@ -23,29 +25,18 @@ class ReferenceSerializer(serializers.Serializer):
         organization = self.context["organization"]
 
         try:
-            related_manager = getattr(organization, self.ORGANIZATION_REFERENCE_ATTR)
-            attrs["instance"] = related_manager.get(public_primary_key=id)
+            attrs["instance"] = organization.users.get(public_primary_key=id)
         except ObjectDoesNotExist:
-            raise serializers.ValidationError(f"{self.OBJECT_NOUN} {id} does not exist")
+            raise serializers.ValidationError(f"User {id} does not exist")
 
         return attrs
-
-
-class UserReferenceSerializer(ReferenceSerializer):
-    OBJECT_NOUN = "User"
-    ORGANIZATION_REFERENCE_ATTR = "users"
-
-
-class TeamReferenceSerializer(ReferenceSerializer):
-    OBJECT_NOUN = "Team"
-    ORGANIZATION_REFERENCE_ATTR = "teams"
 
 
 class DirectPagingSerializer(serializers.Serializer):
     context: SerializerContext
 
     users = UserReferenceSerializer(many=True, required=False, default=list)
-    team = TeamReferenceSerializer(required=False, allow_null=True, default=None)
+    team = TeamPrimaryKeyRelatedField(allow_null=True, default=CurrentTeamDefault())
 
     alert_group_id = serializers.CharField(required=False, default=None)
     alert_group = serializers.HiddenField(default=None)  # set in DirectPagingSerializer.validate
@@ -53,7 +44,8 @@ class DirectPagingSerializer(serializers.Serializer):
     message = serializers.CharField(required=False, default=None, allow_null=True)
 
     def validate(self, attrs):
-        # TODO: validate that either users or team is set (a minimum of one must be set)
+        if not attrs["users"] and not attrs["team"]:
+            raise serializers.ValidationError("Must specify at least one user or a team")
 
         organization = self.context["organization"]
         alert_group_id = attrs["alert_group_id"]

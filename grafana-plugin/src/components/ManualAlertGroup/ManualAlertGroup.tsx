@@ -3,8 +3,8 @@ import React, { FC, useCallback, useContext } from 'react';
 import { Button, Drawer, HorizontalGroup, VerticalGroup } from '@grafana/ui';
 
 import GForm from 'components/GForm/GForm';
-import EscalationVariants from 'containers/EscalationVariants/EscalationVariants';
-import { prepareForUpdate } from 'containers/EscalationVariants/EscalationVariants.helpers';
+import AddResponders from 'containers/AddResponders/AddResponders';
+import { prepareForUpdate } from 'containers/AddResponders/AddResponders.helpers';
 import { AlertReceiveChannelStore } from 'models/alert_receive_channel/alert_receive_channel';
 import { Alert as AlertType } from 'models/alertgroup/alertgroup.types';
 import { DirectPagingContext } from 'state/context/directPaging';
@@ -61,7 +61,7 @@ const ManualAlertGroup: FC<ManualAlertGroupProps> = ({ onCreate, onHide }) => {
       <VerticalGroup>
         {/* TODO: pass in generic form data here */}
         <GForm form={manualAlertFormConfig} data={data} onSubmit={handleFormSubmit} />
-        <EscalationVariants mode="create" />
+        <AddResponders mode="create" />
         <HorizontalGroup justify="flex-end">
           <Button variant="secondary" onClick={onHide}>
             Cancel

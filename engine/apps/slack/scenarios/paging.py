@@ -7,7 +7,7 @@ from django.conf import settings
 from django.db.models import Model, QuerySet
 
 from apps.alerts.models import AlertReceiveChannel, EscalationChain
-from apps.alerts.paging import (  # TeamNotification,
+from apps.alerts.paging import (
     AvailabilityWarning,
     PagingError,
     UserNotifications,
@@ -175,8 +175,6 @@ class FinishDirectPaging(scenario_step.ScenarioStep):
 
         # Only pass users/team if additional responders checkbox is checked
         selected_users: UserNotifications | None = None
-        # TODO:
-        # selected_team: TeamNotification | None = None
 
         is_additional_responders_checked = _get_additional_responders_checked_from_payload(payload, input_id_prefix)
         if is_additional_responders_checked:
@@ -189,7 +187,7 @@ class FinishDirectPaging(scenario_step.ScenarioStep):
             #     for s, p in get_current_items(payload, DataKey.SCHEDULES, selected_organization.oncall_schedules)
             # ]
 
-        # trigger direct paging to selected team + users/schedules
+        # trigger direct paging to selected team + users
         alert_group = direct_paging(
             selected_organization,
             user,

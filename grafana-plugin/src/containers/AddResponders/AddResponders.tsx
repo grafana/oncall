@@ -1,7 +1,7 @@
 import React, { useState, useContext, useCallback, useMemo } from 'react';
 
 import { SelectableValue } from '@grafana/data';
-import { HorizontalGroup, Button, Modal } from '@grafana/ui';
+import { HorizontalGroup, Button, Modal, Alert } from '@grafana/ui';
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
@@ -12,46 +12,35 @@ import Block from 'components/GBlock/Block';
 import Text from 'components/Text/Text';
 // import UserWarning from 'containers/UserWarningModal/UserWarning';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
-import { Alert } from 'models/alertgroup/alertgroup.types';
+import { Alert as AlertType } from 'models/alertgroup/alertgroup.types';
 import { getTimezone } from 'models/user/user.helpers';
 import { User } from 'models/user/user.types';
 import { DirectPagingContext } from 'state/context/directPaging';
 import { UserActions } from 'utils/authorization';
 
-import styles from './EscalationVariants.module.scss';
-// import { ResponderType, UserAvailability } from './EscalationVariants.types';
-import {
-  NotificationPolicyValue,
-  UserAvailability,
-  UserResponder as UserResponderType,
-} from './EscalationVariants.types';
-import EscalationVariantsPopup from './parts/EscalationVariantsPopup';
+import styles from './AddResponders.module.scss';
+// import { ResponderType, UserAvailability } from './AddResponders.types';
+import { NotificationPolicyValue, UserAvailability, UserResponder as UserResponderType } from './AddResponders.types';
+import AddRespondersPopup from './parts/AddRespondersPopup';
 import NotificationPoliciesSelect from './parts/NotificationPoliciesSelect';
 import TeamResponder from './parts/TeamResponder';
 import UserResponder from './parts/UserResponder';
 
 const cx = cn.bind(styles);
 
-type EscalationVariantsProps = {
+type Props = {
   mode: 'create' | 'update';
-  existingPagedUsers?: Alert['paged_users'];
+  existingPagedUsers?: AlertType['paged_users'];
   onAddNewParticipant?: (responder: Omit<UserResponderType, 'type'>) => Promise<void>;
   generateRemovePreviouslyPagedUserCallback?: (userId: string) => () => Promise<void>;
 };
 
-// TODO: rename this component...
-const EscalationVariants = observer(
-  ({
-    mode,
-    existingPagedUsers = [],
-    onAddNewParticipant,
-    generateRemovePreviouslyPagedUserCallback,
-  }: EscalationVariantsProps) => {
+const AddResponders = observer(
+  ({ mode, existingPagedUsers = [], onAddNewParticipant, generateRemovePreviouslyPagedUserCallback }: Props) => {
     const {
       selectedTeamResponder,
       selectedUserResponders,
       resetSelectedTeam,
-      updateSelectedTeamImportantStatus,
       generateRemoveSelectedUserHandler,
       generateUpdateSelectedUserImportantStatusHandler,
     } = useContext(DirectPagingContext);
@@ -62,7 +51,7 @@ const EscalationVariants = observer(
     const [currentlyConsideredUserNotificationPolicy, setCurrentlyConsideredUserNotificationPolicy] =
       useState<NotificationPolicyValue>(NotificationPolicyValue.Default);
 
-    const [showEscalationVariants, setShowEscalationVariants] = useState(false);
+    const [popupIsVisible, setPopupIsVisible] = useState(false);
     const [showUserWarningModal, setShowUserWarningModal] = useState(false);
     const [_userAvailability, setUserAvailability] = useState<UserAvailability | undefined>(undefined);
 
@@ -86,7 +75,7 @@ const EscalationVariants = observer(
     return (
       <>
         <div className={cx('body')}>
-          <Block bordered className={cx('block')}>
+          <Block bordered>
             <HorizontalGroup justify="space-between">
               <Text type="primary" size="medium">
                 Participants
@@ -96,7 +85,7 @@ const EscalationVariants = observer(
                   variant="secondary"
                   icon="plus"
                   onClick={() => {
-                    setShowEscalationVariants(true);
+                    setPopupIsVisible(true);
                   }}
                 >
                   {mode === 'create' ? 'Invite' : 'Add'}
@@ -107,11 +96,7 @@ const EscalationVariants = observer(
               <>
                 <ul className={cx('responders-list')}>
                   {selectedTeamResponder && (
-                    <TeamResponder
-                      onImportantChange={updateSelectedTeamImportantStatus}
-                      handleDelete={resetSelectedTeam}
-                      {...selectedTeamResponder}
-                    />
+                    <TeamResponder team={selectedTeamResponder} handleDelete={resetSelectedTeam} />
                   )}
                   {existingPagedUsers.map((user) => (
                     <UserResponder
@@ -132,20 +117,27 @@ const EscalationVariants = observer(
                       {...responder}
                     />
                   ))}
+                  {/* TODO: where should this link to? */}
+                  {selectedUserResponders.length > 0 && (
+                    <Alert
+                      severity="info"
+                      title="Learn more about user's Default and Important personal notification settings"
+                    />
+                  )}
                 </ul>
               </>
             )}
           </Block>
-          {showEscalationVariants && (
-            <EscalationVariantsPopup
-              mode={mode}
-              existingPagedUsers={existingPagedUsers}
-              setCurrentlyConsideredUser={setCurrentlyConsideredUser}
-              setShowUserWarningModal={setShowUserWarningModal}
-              setShowEscalationVariants={setShowEscalationVariants}
-              setUserAvailability={setUserAvailability}
-            />
-          )}
+          {/* TODO: how to (properly) get this to "float" right when it's open? */}
+          <AddRespondersPopup
+            mode={mode}
+            visible={popupIsVisible}
+            setVisible={setPopupIsVisible}
+            existingPagedUsers={existingPagedUsers}
+            setCurrentlyConsideredUser={setCurrentlyConsideredUser}
+            setShowUserWarningModal={setShowUserWarningModal}
+            setUserAvailability={setUserAvailability}
+          />
         </div>
         {showUserWarningModal && (
           <Modal
@@ -154,7 +146,7 @@ const EscalationVariants = observer(
             onDismiss={closeUserWarningModal}
             className={cx('modal')}
           >
-            {/* TODO: */}
+            {/* TODO: finish styling this */}
             <Text>
               {currentlyConsideredUser.name || currentlyConsideredUser.username} (local time{' '}
               {currentMoment.tz(getTimezone(currentlyConsideredUser)).format('HH:mm')}) will be notified using
@@ -163,7 +155,14 @@ const EscalationVariants = observer(
               important={Boolean(currentlyConsideredUserNotificationPolicy)}
               onChange={onChangeCurrentlyConsideredUserNotificationPolicy}
             />
+            {/* TODO: where should 'Learn more' link to? */}
             <Text>notification settings. Learn more</Text>
+            {!currentlyConsideredUser.is_currently_oncall && (
+              <Alert
+                severity="warning"
+                title="This user is not currently on-call. We don't recommend to page users outside on-call hours."
+              />
+            )}
             <HorizontalGroup justify="flex-end">
               <Button variant="secondary" onClick={closeUserWarningModal}>
                 Cancel
@@ -179,4 +178,4 @@ const EscalationVariants = observer(
   }
 );
 
-export default EscalationVariants;
+export default AddResponders;

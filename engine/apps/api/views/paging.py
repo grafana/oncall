@@ -3,10 +3,11 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from apps.alerts.paging import DirectPagingAlertGroupResolvedError, TeamNotification, direct_paging
+from apps.alerts.paging import DirectPagingAlertGroupResolvedError, direct_paging
 from apps.api.permissions import RBACPermission
 from apps.api.serializers.paging import DirectPagingSerializer
 from apps.auth_token.auth import PluginAuthentication
+from apps.user_management.models import Team
 from common.api_helpers.exceptions import BadRequest
 
 
@@ -27,9 +28,7 @@ class DirectPagingAPIView(APIView):
         )
         serializer.is_valid(raise_exception=True)
 
-        team: TeamNotification | None = None
-        if serialized_team := serializer.validated_data["team"]:
-            team = (serialized_team["instance"], serialized_team["important"])
+        team: Team | None = serializer.validated_data["team"]
 
         try:
             alert_group = direct_paging(
