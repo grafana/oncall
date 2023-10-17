@@ -10,6 +10,7 @@ from django.dispatch import receiver
 from rest_framework.fields import DateTimeField
 
 from apps.alerts import tasks
+from apps.alerts.constants import ActionSource
 from apps.alerts.utils import render_relative_timeline
 from apps.slack.slack_formatter import SlackFormatter
 from common.utils import clean_markup
@@ -155,6 +156,9 @@ class AlertGroupLogRecord(models.Model):
 
     type = models.IntegerField(choices=TYPE_CHOICES)
 
+    # Where the action was performed (e.g. web UI, Slack, API, etc.)
+    action_source = models.SmallIntegerField(ActionSource.choices, null=True, default=None)
+
     author = models.ForeignKey(
         "user_management.User",
         on_delete=models.SET_NULL,
@@ -248,7 +252,6 @@ class AlertGroupLogRecord(models.Model):
         from apps.alerts.models import EscalationPolicy
 
         result = ""
-        author_name = None
         invitee_name = None
         escalation_policy_step = None
         step_specific_info = self.get_step_specific_info()
@@ -258,13 +261,18 @@ class AlertGroupLogRecord(models.Model):
         elif self.escalation_policy is not None:
             escalation_policy_step = self.escalation_policy.step
 
-        if self.author is not None:
+        if self.action_source == ActionSource.API:
+            author_name = "API"
+        elif self.author:
             if substitute_author_with_tag:
                 author_name = "{{author}}"
             elif for_slack:
                 author_name = self.author.get_username_with_slack_verbal()
             else:
                 author_name = self.author.username
+        else:
+            author_name = None
+
         if self.invitation is not None:
             if for_slack:
                 invitee_name = self.invitation.invitee.get_username_with_slack_verbal()
@@ -479,7 +487,7 @@ class AlertGroupLogRecord(models.Model):
                     f"because it is already attached or resolved."
                 )
         elif self.type == AlertGroupLogRecord.TYPE_RESOLVED:
-            result += f"alert group resolved {f'by {author_name}'if author_name else ''}"
+            result += f"resolved {f'by {author_name}'if author_name else ''}"
         elif self.type == AlertGroupLogRecord.TYPE_UN_RESOLVED:
             result += f"unresolved by {author_name}"
         elif self.type == AlertGroupLogRecord.TYPE_WIPED:

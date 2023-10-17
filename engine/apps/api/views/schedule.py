@@ -337,9 +337,10 @@ class ScheduleView(
                 with_gap=resolve_schedule,
                 filter_by=filter_by,
                 all_day_datetime=True,
+                include_shift_info=True,
             )
         else:  # return final schedule
-            events = schedule.final_events(datetime_start, datetime_end)
+            events = schedule.final_events(datetime_start, datetime_end, include_shift_info=True)
 
         result = {
             "id": schedule.public_primary_key,

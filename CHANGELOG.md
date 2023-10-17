@@ -5,13 +5,45 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Unreleased
+## v1.3.44 (2023-10-16)
+
+### Added
+
+- Update plugin OnCaller role permissions ([#3145](https://github.com/grafana/oncall/pull/3145))
 
 ### Fixed
 
+- Fix plugin status to always return URL with trailing / @mderynck ([#3122](https://github.com/grafana/oncall/pull/3122))
+
+## v1.3.43 (2023-10-05)
+
+### Added
+
+- Make it possible to acknowledge/unacknowledge and resolve/unresolve alert groups via API by @vadimkerr ([#3108](https://github.com/grafana/oncall/pull/3108))
+
+### Changed
+
+- Improve alert group deletion API by @vadimkerr ([#3124](https://github.com/grafana/oncall/pull/3124))
+
+## v1.3.42 (2023-10-04)
+
+### Added
+
+- Add additional shift info in schedule filter_events internal API ([#3110](https://github.com/grafana/oncall/pull/3110))
+
+## v1.3.41 (2023-10-04)
+
+### Added
+
+- New RBAC action `grafana-oncall-app.alert-groups:direct-paging` and role "Alert Groups Direct Paging" by @joeyorlando
+  ([#3107](https://github.com/grafana/oncall/pull/3107))
+
+### Fixed
+
+- Accept empty and null user when updating webhook via API @mderynck ([#3094](https://github.com/grafana/oncall/pull/3094))
 - Fix slack notification for a shift which end is affected by a taken swap ([#3092](https://github.com/grafana/oncall/pull/3092))
 
-## v1.3.40 (2023-08-28)
+## v1.3.40 (2023-09-28)
 
 ### Added
 

@@ -77,6 +77,24 @@ tests:
             name: DATABASE_HOST
             value: test-host
 
+  - it: externalPostgresql -> should use external PostgreSQL custom settings with additional options
+    set:
+      telegramPolling.enabled: true
+      database.type: postgresql
+      postgresql.enabled: false
+      externalPostgresql:
+        host: test-host
+        port: 5555
+        db_name: grafana_oncall
+        user: test_user
+        options: "sslmode=verify-full sslrootcert=/mnt/ca.crt sslcert=/mnt/client.crt sslkey=/mnt/client.key"
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: DATABASE_OPTIONS
+            value: sslmode=verify-full sslrootcert=/mnt/ca.crt sslcert=/mnt/client.crt sslkey=/mnt/client.key
+
   - it: postgresql.enabled=true -> internal PostgreSQL default settings
     set:
       telegramPolling.enabled: true
