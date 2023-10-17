@@ -67,7 +67,7 @@ class LabelsViewSet(ViewSet):
         organization = self.request.auth.organization
         label_data = self.request.data
         if not label_data:
-            raise BadRequest()
+            raise BadRequest(detail="name is required")
         result, response_info = LabelsAPIClient(organization.grafana_url, organization.api_token).rename_key(
             key_id, label_data
         )
@@ -87,7 +87,7 @@ class LabelsViewSet(ViewSet):
         organization = self.request.auth.organization
         label_data = self.request.data
         if not label_data:
-            raise BadRequest()
+            raise BadRequest(detail="key data (name, values) is required")
         result, response_info = LabelsAPIClient(organization.grafana_url, organization.api_token).create_label(
             label_data
         )
@@ -99,7 +99,7 @@ class LabelsViewSet(ViewSet):
         organization = self.request.auth.organization
         label_data = self.request.data
         if not label_data:
-            raise BadRequest()
+            raise BadRequest(detail="name is required")
         result, response_info = LabelsAPIClient(organization.grafana_url, organization.api_token).add_value(
             key_id, label_data
         )
@@ -111,7 +111,7 @@ class LabelsViewSet(ViewSet):
         organization = self.request.auth.organization
         label_data = self.request.data
         if not label_data:
-            raise BadRequest()
+            raise BadRequest(detail="name is required")
         result, response_info = LabelsAPIClient(organization.grafana_url, organization.api_token).rename_value(
             key_id, value_id, label_data
         )
