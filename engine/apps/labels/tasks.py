@@ -73,7 +73,7 @@ def update_instances_labels_cache(organization_id: int, instance_ids: typing.Lis
     organization = Organization.objects.get(id=organization_id)
 
     model = get_associating_label_model(instance_model_name)
-    field_name = model.get_associating_label_field_name(instance_model_name)
+    field_name = model.get_associating_label_field_name()
     associated_instances = {f"{field_name}_id__in": instance_ids}
     values_ids = model.objects.filter(**associated_instances).values_list("value_id", flat=True)
     outdated_last_synced = now - timezone.timedelta(minutes=LABEL_OUTDATED_TIMEOUT_MINUTES)

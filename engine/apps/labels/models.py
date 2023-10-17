@@ -90,15 +90,10 @@ class AssociatedLabel(models.Model):
 
         update_labels_cache.apply_async((labels_data,))
 
-    @classmethod
-    def get_associating_label_field_name(cls, obj_model_name: str) -> str:
+    @staticmethod
+    def get_associating_label_field_name() -> str:
         """Returns ForeignKey field name for the associated model"""
-        field_name = ""
-        for field in cls._meta.get_fields():
-            if field.related_model and field.related_model.__name__ == obj_model_name:
-                field_name = field.name
-                break
-        return field_name
+        raise NotImplementedError
 
 
 class AlertReceiveChannelAssociatedLabel(AssociatedLabel):
@@ -110,3 +105,8 @@ class AlertReceiveChannelAssociatedLabel(AssociatedLabel):
 
     class Meta:
         unique_together = ["key_id", "value_id", "alert_receive_channel_id"]
+
+    @staticmethod
+    def get_associating_label_field_name() -> str:
+        """Returns ForeignKey field name for the associated model"""
+        return "alert_receive_channel"
