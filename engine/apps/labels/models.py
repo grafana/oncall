@@ -54,6 +54,8 @@ class AssociatedLabel(models.Model):
         Update label associations for selected instance: delete associations with labels that are not in `labels_data`,
         create new associations and labels, if needed.
         Then call celery task to update cache for labels from `labels_data`
+
+        instance: the model instance that the labels are associated with (e.g. AlertReceiveChannel instance)
         """
         labels_data_keys = {label["key"]["id"]: label["key"]["repr"] for label in labels_data}
         labels_data_values = {label["value"]["id"]: label["value"]["repr"] for label in labels_data}
