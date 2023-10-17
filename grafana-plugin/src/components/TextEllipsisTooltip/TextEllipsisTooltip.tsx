@@ -4,6 +4,7 @@ import { Tooltip } from '@grafana/ui';
 import cn from 'classnames/bind';
 
 import styles from 'assets/style/utils.css';
+import { TEXT_ELLIPSIS_CLASS } from 'utils/consts';
 
 const cx = cn.bind(styles);
 
@@ -16,7 +17,7 @@ interface TextEllipsisTooltipProps {
 }
 
 const TextEllipsisTooltip: React.FC<TextEllipsisTooltipProps> = ({
-  queryClassName = 'overflow-child',
+  queryClassName = TEXT_ELLIPSIS_CLASS,
   className,
   content: textContent,
   placement,

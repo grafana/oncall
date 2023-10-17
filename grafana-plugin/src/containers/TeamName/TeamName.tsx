@@ -14,11 +14,12 @@ const cx = cn.bind(styles);
 
 interface TeamNameProps {
   team: GrafanaTeam;
+  className?: string;
   size?: 'small' | 'medium' | 'large';
 }
 
 const TeamName = observer((props: TeamNameProps) => {
-  const { team, size = 'medium' } = props;
+  const { team, size = 'medium', className } = props;
   if (!team) {
     return null;
   }
@@ -26,7 +27,7 @@ const TeamName = observer((props: TeamNameProps) => {
     return <Badge text={team.name} color={'blue'} tooltip={'Resource is not assigned to any team (ex General team)'} />;
   }
   return (
-    <Text type="secondary" size={size}>
+    <Text type="secondary" size={size} className={className}>
       <Avatar size="small" src={team.avatar_url} className={cx('avatar')} />
       <Tooltip placement="top" content={'Resource is assigned to ' + team.name}>
         <Text type="primary">{team.name}</Text>

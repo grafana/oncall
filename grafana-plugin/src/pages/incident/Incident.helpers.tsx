@@ -15,6 +15,7 @@ import { SilenceButtonCascader } from 'pages/incidents/parts/SilenceButtonCascad
 import { move } from 'state/helpers';
 import { getVar } from 'utils/DOM';
 import { UserActions } from 'utils/authorization';
+import { TEXT_ELLIPSIS_CLASS } from 'utils/consts';
 
 import styles from './Incident.module.scss';
 
@@ -79,7 +80,7 @@ export function renderRelatedUsers(incident: Alert, isFull = false) {
     return (
       <PluginLink key={user.pk} query={{ page: 'users', id: user.pk }} wrap={false}>
         <TextEllipsisTooltip placement="top" content={user.username}>
-          <Text type="secondary" className={cx('overflow-child')}>
+          <Text type="secondary" className={cx(TEXT_ELLIPSIS_CLASS)}>
             <Avatar size="small" src={user.avatar} /> <span className={cx('break-word')}>{user.username}</span>
             <span className={cx('user-badge')}>{badge}</span>
           </Text>

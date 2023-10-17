@@ -51,3 +51,5 @@ export enum PAGE {
   Webhooks = 'webhooks',
   Schedules = 'schedules',
 }
+
+export const TEXT_ELLIPSIS_CLASS = 'overflow-child';

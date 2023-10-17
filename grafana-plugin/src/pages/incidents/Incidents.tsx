@@ -28,7 +28,7 @@ import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import LocationHelper from 'utils/LocationHelper';
 import { UserActions } from 'utils/authorization';
-import { PAGE, PLUGIN_ROOT } from 'utils/consts';
+import { PAGE, PLUGIN_ROOT, TEXT_ELLIPSIS_CLASS } from 'utils/consts';
 
 import styles from './Incidents.module.scss';
 import { IncidentDropdown } from './parts/IncidentDropdown';
@@ -554,7 +554,13 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
   };
 
   renderId(record: AlertType) {
-    return <Text type="secondary">#{record.inside_organization_number}</Text>;
+    return (
+      <TextEllipsisTooltip placement="top" content={`#${record.inside_organization_number}`}>
+        <Text type="secondary" className={cx(TEXT_ELLIPSIS_CLASS)}>
+          #{record.inside_organization_number}
+        </Text>
+      </TextEllipsisTooltip>
+    );
   }
 
   renderTitle = (record: AlertType) => {
@@ -579,7 +585,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
                 ...query,
               }}
             >
-              <Text className={cx('overflow-child')}>{record.render_for_web.title}</Text>
+              <Text className={cx(TEXT_ELLIPSIS_CLASS)}>{record.render_for_web.title}</Text>
             </PluginLink>
           </Text>
         </TextEllipsisTooltip>
@@ -605,7 +611,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
         content={record?.alert_receive_channel?.verbal_name || ''}
       >
         <IntegrationLogo integration={integration} scale={0.1} />
-        <Emoji className={cx('overflow-child')} text={record.alert_receive_channel?.verbal_name || ''} />
+        <Emoji className={cx(TEXT_ELLIPSIS_CLASS)} text={record.alert_receive_channel?.verbal_name || ''} />
       </TextEllipsisTooltip>
     );
   };
@@ -636,7 +642,11 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
   }
 
   renderTeam(record: AlertType, teams: any) {
-    return <TeamName team={teams[record.team]} />;
+    return (
+      <TextEllipsisTooltip placement="top" content={teams[record.team]?.name}>
+        <TeamName className={TEXT_ELLIPSIS_CLASS} team={teams[record.team]} />
+      </TextEllipsisTooltip>
+    );
   }
 
   getOnActionButtonClick = (incidentId: string, action: AlertAction): ((e: SyntheticEvent) => Promise<void>) => {

@@ -35,7 +35,7 @@ import { withMobXProviderContext } from 'state/withStore';
 import { openNotification } from 'utils';
 import LocationHelper from 'utils/LocationHelper';
 import { UserActions } from 'utils/authorization';
-import { PAGE } from 'utils/consts';
+import { PAGE, TEXT_ELLIPSIS_CLASS } from 'utils/consts';
 
 import styles from './Integrations.module.scss';
 
@@ -229,7 +229,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
       >
         <TextEllipsisTooltip placement="top" content={item.verbal_name}>
           <Text type="link" size="medium">
-            <Emoji className={cx('title', 'overflow-child')} text={item.verbal_name} />
+            <Emoji className={cx('title', TEXT_ELLIPSIS_CLASS)} text={item.verbal_name} />
           </Text>
         </TextEllipsisTooltip>
       </PluginLink>
@@ -358,7 +358,11 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
   }
 
   renderTeam(item: AlertReceiveChannel, teams: any) {
-    return <TeamName team={teams[item.team]} />;
+    return (
+      <TextEllipsisTooltip placement="top" content={teams[item.team]?.name}>
+        <TeamName className={TEXT_ELLIPSIS_CLASS} team={teams[item.team]} />
+      </TextEllipsisTooltip>
+    );
   }
 
   renderButtons = (item: AlertReceiveChannel) => {

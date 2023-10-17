@@ -33,7 +33,7 @@ import { WithStoreProps, PageProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import LocationHelper from 'utils/LocationHelper';
 import { UserActions } from 'utils/authorization';
-import { PAGE, PLUGIN_ROOT } from 'utils/consts';
+import { PAGE, PLUGIN_ROOT, TEXT_ELLIPSIS_CLASS } from 'utils/consts';
 
 import styles from './Schedules.module.css';
 
@@ -371,7 +371,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
                 <PluginLink key={user.pk} query={{ page: 'users', id: user.pk }} className="table__email-content">
                   <HorizontalGroup>
                     <TextEllipsisTooltip placement="top" content={user.username}>
-                      <Text type="secondary" className={cx('overflow-child')}>
+                      <Text type="secondary" className={cx(TEXT_ELLIPSIS_CLASS)}>
                         <Avatar size="small" src={user.avatar} />{' '}
                         <span className={cx('break-word')}>{user.username}</span>
                       </Text>
