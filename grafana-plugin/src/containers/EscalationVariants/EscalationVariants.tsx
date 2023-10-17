@@ -20,7 +20,11 @@ import { UserActions } from 'utils/authorization';
 
 import styles from './EscalationVariants.module.scss';
 // import { ResponderType, UserAvailability } from './EscalationVariants.types';
-import { NotificationPolicyValue, UserAvailability } from './EscalationVariants.types';
+import {
+  NotificationPolicyValue,
+  UserAvailability,
+  UserResponder as UserResponderType,
+} from './EscalationVariants.types';
 import EscalationVariantsPopup from './parts/EscalationVariantsPopup';
 import NotificationPoliciesSelect from './parts/NotificationPoliciesSelect';
 import TeamResponder from './parts/TeamResponder';
@@ -31,16 +35,22 @@ const cx = cn.bind(styles);
 type EscalationVariantsProps = {
   mode: 'create' | 'update';
   existingPagedUsers?: Alert['paged_users'];
+  onAddNewParticipant?: (responder: Omit<UserResponderType, 'type'>) => Promise<void>;
   generateRemovePreviouslyPagedUserCallback?: (userId: string) => () => Promise<void>;
 };
 
 // TODO: rename this component...
 const EscalationVariants = observer(
-  ({ mode, existingPagedUsers = [], generateRemovePreviouslyPagedUserCallback }: EscalationVariantsProps) => {
+  ({
+    mode,
+    existingPagedUsers = [],
+    onAddNewParticipant,
+    generateRemovePreviouslyPagedUserCallback,
+  }: EscalationVariantsProps) => {
     const {
       selectedTeamResponder,
       selectedUserResponders,
-      updateSelectedTeam,
+      resetSelectedTeam,
       updateSelectedTeamImportantStatus,
       generateRemoveSelectedUserHandler,
       generateUpdateSelectedUserImportantStatusHandler,
@@ -63,13 +73,15 @@ const EscalationVariants = observer(
       [setCurrentlyConsideredUserNotificationPolicy]
     );
 
-    const confirmCurrentlyConsideredUser = useCallback(() => {
-      console.log('yoooo');
-    }, []);
-
-    console.log('hellooooo', currentlyConsideredUser);
-
     const closeUserWarningModal = useCallback(() => setShowUserWarningModal(false), [showUserWarningModal]);
+
+    const confirmCurrentlyConsideredUser = useCallback(async () => {
+      await onAddNewParticipant({
+        important: Boolean(currentlyConsideredUserNotificationPolicy),
+        data: currentlyConsideredUser,
+      });
+      closeUserWarningModal();
+    }, [currentlyConsideredUserNotificationPolicy, currentlyConsideredUser, closeUserWarningModal]);
 
     return (
       <>
@@ -97,7 +109,7 @@ const EscalationVariants = observer(
                   {selectedTeamResponder && (
                     <TeamResponder
                       onImportantChange={updateSelectedTeamImportantStatus}
-                      handleDelete={() => updateSelectedTeam(undefined)}
+                      handleDelete={resetSelectedTeam}
                       {...selectedTeamResponder}
                     />
                   )}
@@ -127,6 +139,7 @@ const EscalationVariants = observer(
           {showEscalationVariants && (
             <EscalationVariantsPopup
               mode={mode}
+              existingPagedUsers={existingPagedUsers}
               setCurrentlyConsideredUser={setCurrentlyConsideredUser}
               setShowUserWarningModal={setShowUserWarningModal}
               setShowEscalationVariants={setShowEscalationVariants}

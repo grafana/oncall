@@ -26,7 +26,8 @@ const data: FormData = {
 const ManualAlertGroup: FC<ManualAlertGroupProps> = ({ onCreate, onHide }) => {
   const { directPagingStore } = useStore();
 
-  const { selectedTeamResponder, selectedUserResponders } = useContext(DirectPagingContext);
+  const { selectedTeamResponder, selectedUserResponders, resetSelectedUsers, resetSelectedTeam } =
+    useContext(DirectPagingContext);
 
   const hasSelectedEitherATeamOrAUser = selectedTeamResponder !== undefined || selectedUserResponders.length > 0;
 
@@ -37,10 +38,7 @@ const ManualAlertGroup: FC<ManualAlertGroupProps> = ({ onCreate, onHide }) => {
 
   const handleFormSubmit = useCallback(
     async (data: FormData) => {
-      console.log('SUBMITTING FORM', data);
-
-      const transformedData = prepareForUpdate(selectedTeamResponder, selectedUserResponders, data);
-      console.log('TRANSFORMED DATA IS', transformedData);
+      const transformedData = prepareForUpdate(selectedUserResponders, selectedTeamResponder, data);
 
       const resp = await directPagingStore.createManualAlertRule(transformedData);
 
@@ -49,10 +47,13 @@ const ManualAlertGroup: FC<ManualAlertGroupProps> = ({ onCreate, onHide }) => {
         return;
       }
 
+      resetSelectedUsers();
+      resetSelectedTeam();
+
       onCreate(resp.alert_group_id);
       onHide();
     },
-    [prepareForUpdate, selectedTeamResponder, selectedUserResponders]
+    [prepareForUpdate, selectedTeamResponder, selectedUserResponders, resetSelectedUsers, resetSelectedTeam]
   );
 
   return (

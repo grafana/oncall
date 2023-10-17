@@ -37,6 +37,7 @@ import Text from 'components/Text/Text';
 import AttachIncidentForm from 'containers/AttachIncidentForm/AttachIncidentForm';
 import EscalationVariants from 'containers/EscalationVariants/EscalationVariants';
 import { prepareForUpdate } from 'containers/EscalationVariants/EscalationVariants.helpers';
+import { ResponderType, UserResponder } from 'containers/EscalationVariants/EscalationVariants.types';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import {
   Alert as AlertType,
@@ -428,6 +429,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
               <EscalationVariants
                 mode="update"
                 existingPagedUsers={incident.paged_users}
+                onAddNewParticipant={this.handleAddUserResponder}
                 generateRemovePreviouslyPagedUserCallback={this.handlePagedUserRemove}
               />
 
@@ -446,7 +448,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
     );
   };
 
-  handleAddResponders = async (data) => {
+  handleAddUserResponder = async (user: Omit<UserResponder, 'type'>) => {
     const {
       store,
       match: {
@@ -454,11 +456,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
       },
     } = this.props;
 
-    // TODO:
-    await store.directPagingStore.updateAlertGroup(
-      alertId,
-      prepareForUpdate(data.userResponders, data.scheduleResponders, { message: '' })
-    );
+    await store.directPagingStore.updateAlertGroup(alertId, prepareForUpdate([{ type: ResponderType.User, ...user }]));
 
     this.update();
   };

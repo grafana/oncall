@@ -10,6 +10,7 @@ import GTable from 'components/GTable/GTable';
 import Text from 'components/Text/Text';
 import styles from 'containers/EscalationVariants/EscalationVariants.module.scss';
 import { UserAvailability } from 'containers/EscalationVariants/EscalationVariants.types';
+import { Alert } from 'models/alertgroup/alertgroup.types';
 import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
 import { User } from 'models/user/user.types';
 import { DirectPagingContext } from 'state/context/directPaging';
@@ -22,6 +23,8 @@ type EscalationVariantsPopupProps = {
   setShowEscalationVariants: (value: boolean) => void;
   setShowUserWarningModal: (value: boolean) => void;
   setUserAvailability: (data: UserAvailability) => void;
+
+  existingPagedUsers?: Alert['paged_users'];
 };
 
 const cx = cn.bind(styles);
@@ -32,9 +35,11 @@ enum TabOptions {
 }
 
 // TODO: filter out 'No team'
+// TODO: if update mode, subtract out already selected users
 const EscalationVariantsPopup = observer(
   ({
     mode,
+    existingPagedUsers = [],
     setCurrentlyConsideredUser,
     setShowEscalationVariants,
     setShowUserWarningModal,
@@ -52,7 +57,17 @@ const EscalationVariantsPopup = observer(
 
     const ref = useRef();
     const teamSearchResults = grafanaTeamStore.getSearchResult();
-    const userSearchResults = userStore.getSearchResult().results || [];
+
+    let userSearchResults = userStore.getSearchResult().results || [];
+
+    /**
+     * in the context where some user(s) have already been paged (ex. on a direct paging generated
+     * alert group detail page), we should filter out the search results to not include these users
+     */
+    if (existingPagedUsers.length > 0) {
+      const existingPagedUserIds = existingPagedUsers.map(({ pk }) => pk);
+      userSearchResults = userSearchResults.filter(({ pk }) => !existingPagedUserIds.includes(pk));
+    }
 
     const usersCurrentlyOnCall = userSearchResults.filter(({ is_currently_oncall }) => is_currently_oncall);
     const usersNotCurrentlyOnCall = userSearchResults.filter(({ is_currently_oncall }) => !is_currently_oncall);

@@ -10,7 +10,9 @@ type DirectPagingContextDefault = {
   selectedTeamResponder: TeamResponder;
   selectedUserResponders: UserResponders;
   addUserToSelectedUsers: (user: User) => void;
+  resetSelectedUsers: () => void;
   updateSelectedTeam: (team: GrafanaTeam) => void;
+  resetSelectedTeam: () => void;
   updateSelectedTeamImportantStatus: (value: SelectableValue<number>) => void;
   generateRemoveSelectedUserHandler: (index: number) => () => void;
   generateUpdateSelectedUserImportantStatusHandler: (index: number) => (value: SelectableValue<number>) => void;
@@ -20,7 +22,9 @@ export const DirectPagingContext = createContext<DirectPagingContextDefault>({
   selectedTeamResponder: undefined,
   selectedUserResponders: [],
   addUserToSelectedUsers: () => {},
+  resetSelectedUsers: () => {},
   updateSelectedTeam: () => {},
+  resetSelectedTeam: () => {},
   updateSelectedTeamImportantStatus: () => {},
   generateRemoveSelectedUserHandler: () => () => {},
   generateUpdateSelectedUserImportantStatusHandler: () => () => {},
@@ -44,17 +48,21 @@ export const DirectPagingProvider: FC<PropsWithChildren> = ({ children }) => {
     [setSelectedUserResponders]
   );
 
+  const resetSelectedUsers = useCallback(() => {
+    setSelectedUserResponders([]);
+  }, [setSelectedUserResponders]);
+
+  const resetSelectedTeam = useCallback(() => {
+    setSelectedTeamResponder(null);
+  }, [setSelectedTeamResponder]);
+
   const updateSelectedTeam = useCallback(
-    (team: GrafanaTeam | undefined) => {
-      setSelectedTeamResponder(
-        team === undefined
-          ? undefined
-          : {
-              type: ResponderType.Team,
-              data: team,
-              important: false,
-            }
-      );
+    (team: GrafanaTeam) => {
+      setSelectedTeamResponder({
+        type: ResponderType.Team,
+        data: team,
+        important: false,
+      });
     },
     [setSelectedTeamResponder]
   );
@@ -103,7 +111,9 @@ export const DirectPagingProvider: FC<PropsWithChildren> = ({ children }) => {
         selectedTeamResponder,
         selectedUserResponders,
         addUserToSelectedUsers,
+        resetSelectedUsers,
         updateSelectedTeam,
+        resetSelectedTeam,
         updateSelectedTeamImportantStatus,
         generateRemoveSelectedUserHandler,
         generateUpdateSelectedUserImportantStatusHandler,

@@ -45,7 +45,7 @@ class DirectPagingSerializer(serializers.Serializer):
     context: SerializerContext
 
     users = UserReferenceSerializer(many=True, required=False, default=list)
-    team = TeamReferenceSerializer(required=False)
+    team = TeamReferenceSerializer(required=False, allow_null=True, default=None)
 
     alert_group_id = serializers.CharField(required=False, default=None)
     alert_group = serializers.HiddenField(default=None)  # set in DirectPagingSerializer.validate
