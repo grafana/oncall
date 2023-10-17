@@ -15,20 +15,20 @@ logger.setLevel(logging.DEBUG)
 
 
 class ValueData(typing.TypedDict):
-    value_repr: str
-    key_repr: str
+    value_name: str
+    key_name: str
 
 
 def unify_labels_data(labels_data: LabelsData | LabelKeyData) -> typing.Dict[str, ValueData]:
     values_data: typing.Dict[str, ValueData]
     if isinstance(labels_data, list):  # LabelsData
         values_data = {
-            label["value"]["id"]: {"value_repr": label["value"]["repr"], "key_repr": label["key"]["repr"]}
+            label["value"]["id"]: {"value_name": label["value"]["name"], "key_name": label["key"]["name"]}
             for label in labels_data
         }
     else:  # LabelKeyData
         values_data = {
-            label["id"]: {"value_repr": label["repr"], "key_repr": labels_data["key"]["repr"]}
+            label["id"]: {"value_name": label["name"], "key_name": labels_data["key"]["name"]}
             for label in labels_data["values"]
         }
     return values_data
@@ -50,17 +50,17 @@ def update_labels_cache(labels_data: LabelsData | LabelKeyData):
     keys_to_update = set()
 
     for value in values:
-        if value.repr != values_data[value.id]["value_repr"]:
-            value.repr = values_data[value.id]["value_repr"]
+        if value.name != values_data[value.id]["value_name"]:
+            value.name = values_data[value.id]["value_name"]
         value.last_synced = now
 
-        if value.key.repr != values_data[value.id]["key_repr"]:
-            value.key.repr = values_data[value.id]["key_repr"]
+        if value.key.name != values_data[value.id]["key_name"]:
+            value.key.name = values_data[value.id]["key_name"]
         value.key.last_synced = now
         keys_to_update.add(value.key)
 
-    LabelKeyCache.objects.bulk_update(keys_to_update, fields=["repr", "last_synced"])
-    LabelValueCache.objects.bulk_update(values, fields=["repr", "last_synced"])
+    LabelKeyCache.objects.bulk_update(keys_to_update, fields=["name", "last_synced"])
+    LabelValueCache.objects.bulk_update(values, fields=["name", "last_synced"])
 
 
 @shared_dedicated_queue_retry_task(

@@ -11,7 +11,7 @@ class LabelKeySerializer(serializers.ModelSerializer):
         model = LabelKeyCache
         fields = (
             "id",
-            "repr",
+            "name",
         )
 
 
@@ -22,7 +22,7 @@ class LabelValueSerializer(serializers.ModelSerializer):
         model = LabelValueCache
         fields = (
             "id",
-            "repr",
+            "name",
         )
 
 
@@ -37,7 +37,7 @@ class LabelKeyValuesSerializer(serializers.Serializer):
 
 
 class LabelReprSerializer(serializers.Serializer):
-    repr = serializers.CharField()
+    name = serializers.CharField()
 
 
 class LabelsSerializerMixin(serializers.Serializer):

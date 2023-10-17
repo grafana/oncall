@@ -12,7 +12,7 @@ if typing.TYPE_CHECKING:
 
 class LabelKeyCache(models.Model):
     id = models.CharField(primary_key=True, editable=False, max_length=36)
-    repr = models.CharField(max_length=200)
+    name = models.CharField(max_length=200)
     organization = models.ForeignKey("user_management.Organization", on_delete=models.CASCADE)
     last_synced = models.DateTimeField(auto_now=True)
 
@@ -23,7 +23,7 @@ class LabelKeyCache(models.Model):
 
 class LabelValueCache(models.Model):
     id = models.CharField(primary_key=True, editable=False, max_length=36)
-    repr = models.CharField(max_length=200)
+    name = models.CharField(max_length=200)
     key = models.ForeignKey("labels.LabelKeyCache", on_delete=models.CASCADE, related_name="values")
     last_synced = models.DateTimeField(auto_now=True)
 
@@ -57,8 +57,8 @@ class AssociatedLabel(models.Model):
 
         instance: the model instance that the labels are associated with (e.g. AlertReceiveChannel instance)
         """
-        labels_data_keys = {label["key"]["id"]: label["key"]["repr"] for label in labels_data}
-        labels_data_values = {label["value"]["id"]: label["value"]["repr"] for label in labels_data}
+        labels_data_keys = {label["key"]["id"]: label["key"]["name"] for label in labels_data}
+        labels_data_values = {label["value"]["id"]: label["value"]["name"] for label in labels_data}
 
         # delete associations with labels that are not presented in labels_data
         instance.labels.exclude(key_id__in=labels_data_keys.keys(), value_id__in=labels_data_values.keys()).delete()
@@ -69,14 +69,14 @@ class AssociatedLabel(models.Model):
 
         for label_data in labels_data:
             key_id = label_data["key"]["id"]
-            key_repr = label_data["key"]["repr"]
+            key_name = label_data["key"]["name"]
             value_id = label_data["value"]["id"]
-            value_repr = label_data["value"]["repr"]
+            value_name = label_data["value"]["name"]
 
-            label_key = LabelKeyCache(id=key_id, repr=key_repr, organization=organization)
+            label_key = LabelKeyCache(id=key_id, name=key_name, organization=organization)
             labels_keys.append(label_key)
 
-            label_value = LabelValueCache(id=value_id, repr=value_repr, key_id=key_id)
+            label_value = LabelValueCache(id=value_id, name=value_name, key_id=key_id)
             labels_values.append(label_value)
             associated_instance = {instance.labels.field.name: instance}
             labels_associations.append(

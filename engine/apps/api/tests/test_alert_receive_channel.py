@@ -1252,7 +1252,7 @@ def test_update_alert_receive_channel_labels(
     url = reverse("api-internal:alert_receive_channel-detail", kwargs={"pk": alert_receive_channel.public_primary_key})
     key_id = "testkey"
     value_id = "testvalue"
-    data = {"labels": [{"key": {"id": key_id, "repr": "test"}, "value": {"id": value_id, "repr": "testv"}}]}
+    data = {"labels": [{"key": {"id": key_id, "name": "test"}, "value": {"id": value_id, "name": "testv"}}]}
     response = client.patch(
         url,
         data=json.dumps(data),
@@ -1296,8 +1296,8 @@ def test_update_alert_receive_channel_labels_duplicate_key(
     key_id = "testkey"
     data = {
         "labels": [
-            {"key": {"id": key_id, "repr": "test"}, "value": {"id": "testvalue1", "repr": "testv1"}},
-            {"key": {"id": key_id, "repr": "test"}, "value": {"id": "testvalue2", "repr": "testv2"}},
+            {"key": {"id": key_id, "name": "test"}, "value": {"id": "testvalue1", "name": "testv1"}},
+            {"key": {"id": key_id, "name": "test"}, "value": {"id": "testvalue2", "name": "testv2"}},
         ]
     }
     response = client.patch(

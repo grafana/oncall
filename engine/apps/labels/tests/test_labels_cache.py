@@ -13,17 +13,17 @@ def test_update_labels_cache_for_key(make_organization, make_label_key_and_value
     organization = make_organization()
     label_key, label_value1 = make_label_key_and_value(organization)
     label_value2 = make_label_value(label_key)
-    new_key_repr = "updatekeyrepr"
-    new_value1_repr = "updatevalue1repr"
-    old_value2_repr = label_value2.repr
+    new_key_name = "updatekeyname"
+    new_value1_name = "updatevalue1name"
+    old_value2_name = label_value2.name
     last_synced = label_key.last_synced
 
     label_data = {
-        "key": {"id": label_key.id, "repr": new_key_repr},
-        "values": [{"id": label_value1.id, "repr": new_value1_repr}, {"id": label_value2.id, "repr": old_value2_repr}],
+        "key": {"id": label_key.id, "name": new_key_name},
+        "values": [{"id": label_value1.id, "name": new_value1_name}, {"id": label_value2.id, "name": old_value2_name}],
     }
-    assert label_key.repr != new_key_repr
-    assert label_value1.repr != new_value1_repr
+    assert label_key.name != new_key_name
+    assert label_value1.name != new_value1_name
 
     update_labels_cache(label_data)
 
@@ -34,9 +34,9 @@ def test_update_labels_cache_for_key(make_organization, make_label_key_and_value
     for label_cache in (label_key, label_value1, label_value2):
         assert label_cache.last_synced > last_synced
 
-    assert label_key.repr == new_key_repr
-    assert label_value1.repr == new_value1_repr
-    assert label_value2.repr == old_value2_repr
+    assert label_key.name == new_key_name
+    assert label_value1.name == new_value1_name
+    assert label_value2.name == old_value2_name
 
 
 @pytest.mark.django_db
@@ -46,31 +46,31 @@ def test_update_labels_cache(make_organization, make_label_key_and_value, make_l
     label_key1, label_value1_1 = make_label_key_and_value(organization)
     label_key2, label_value2_1 = make_label_key_and_value(organization)
     label_value2_2 = make_label_value(label_key2)
-    new_key1_repr = "updatekey1repr"
-    new_value1_1_repr = "updatevalue11repr"
-    old_key2_repr = label_key2.repr
-    old_value2_1_repr = label_value2_1.repr
-    new_value2_2_repr = "updatevalue22repr"
+    new_key1_name = "updatekey1name"
+    new_value1_1_name = "updatevalue11name"
+    old_key2_name = label_key2.name
+    old_value2_1_name = label_value2_1.name
+    new_value2_2_name = "updatevalue22name"
     last_synced = label_key1.last_synced
 
     labels_data = [
         {
-            "key": {"id": label_key1.id, "repr": new_key1_repr},
-            "value": {"id": label_value1_1.id, "repr": new_value1_1_repr},
+            "key": {"id": label_key1.id, "name": new_key1_name},
+            "value": {"id": label_value1_1.id, "name": new_value1_1_name},
         },
         {
-            "key": {"id": label_key2.id, "repr": old_key2_repr},
-            "value": {"id": label_value2_1.id, "repr": old_value2_1_repr},
+            "key": {"id": label_key2.id, "name": old_key2_name},
+            "value": {"id": label_value2_1.id, "name": old_value2_1_name},
         },
         {
-            "key": {"id": label_key2.id, "repr": old_key2_repr},
-            "value": {"id": label_value2_2.id, "repr": new_value2_2_repr},
+            "key": {"id": label_key2.id, "name": old_key2_name},
+            "value": {"id": label_value2_2.id, "name": new_value2_2_name},
         },
     ]
 
-    assert label_key1.repr != new_key1_repr
-    assert label_value1_1.repr != new_value1_1_repr
-    assert label_value2_2.repr != new_value2_2_repr
+    assert label_key1.name != new_key1_name
+    assert label_value1_1.name != new_value1_1_name
+    assert label_value2_2.name != new_value2_2_name
 
     update_labels_cache(labels_data)
 
@@ -78,12 +78,12 @@ def test_update_labels_cache(make_organization, make_label_key_and_value, make_l
         label_cache.refresh_from_db()
         assert label_cache.last_synced > last_synced
 
-    assert label_key1.repr == new_key1_repr
-    assert label_value1_1.repr == new_value1_1_repr
+    assert label_key1.name == new_key1_name
+    assert label_value1_1.name == new_value1_1_name
 
-    assert label_key2.repr == old_key2_repr
-    assert label_value2_1.repr == old_value2_1_repr
-    assert label_value2_2.repr == new_value2_2_repr
+    assert label_key2.name == old_key2_name
+    assert label_value2_1.name == old_value2_1_name
+    assert label_value2_2.name == new_value2_2_name
 
 
 @pytest.mark.django_db
@@ -122,8 +122,8 @@ def test_update_instances_labels_cache_outdated(
     assert label_association.value.is_outdated
 
     label_data = {
-        "key": {"id": label_association.key.id, "repr": label_association.key.repr},
-        "values": [{"id": label_association.value.id, "repr": label_association.value.repr}],
+        "key": {"id": label_association.key.id, "name": label_association.key.name},
+        "values": [{"id": label_association.value.id, "name": label_association.value.name}],
     }
 
     with patch("apps.labels.client.LabelsAPIClient.get_values", return_value=(label_data, None)) as mock_get_values:

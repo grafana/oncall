@@ -53,7 +53,7 @@ class LabelsViewSet(ViewSet):
 
     @extend_schema(responses=LabelValueSerializer)
     def get_value(self, request, key_id, value_id):
-        """Value repr"""
+        """Value name"""
         organization = self.request.auth.organization
         result, response_info = LabelsAPIClient(organization.grafana_url, organization.api_token).get_value(
             key_id, value_id

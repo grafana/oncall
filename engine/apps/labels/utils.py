@@ -14,12 +14,12 @@ ASSOCIATED_MODEL_NAME = "AssociatedLabel"
 
 
 class LabelUpdateParam(typing.TypedDict):
-    repr: str
+    name: str
 
 
 class LabelParams(typing.TypedDict):
     id: str
-    repr: str
+    name: str
 
 
 class LabelData(typing.TypedDict):

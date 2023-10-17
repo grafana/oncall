@@ -6,7 +6,7 @@ from common.utils import UniqueFaker
 
 class LabelKeyFactory(factory.DjangoModelFactory):
     id = UniqueFaker("word")
-    repr = UniqueFaker("word")
+    name = UniqueFaker("word")
 
     class Meta:
         model = LabelKeyCache
@@ -14,7 +14,7 @@ class LabelKeyFactory(factory.DjangoModelFactory):
 
 class LabelValueFactory(factory.DjangoModelFactory):
     id = UniqueFaker("word")
-    repr = UniqueFaker("word")
+    name = UniqueFaker("word")
 
     class Meta:
         model = LabelValueCache
