@@ -464,7 +464,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
 
     const columns = [
       {
-        width: '5%',
+        width: '140px',
         title: 'Status',
         key: 'time',
         render: withSkeleton(this.renderStatus),

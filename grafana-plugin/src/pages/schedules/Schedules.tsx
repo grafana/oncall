@@ -9,11 +9,11 @@ import qs from 'query-string';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 
 import Avatar from 'components/Avatar/Avatar';
-import { MatchMediaTooltip } from 'components/MatchMediaTooltip/MatchMediaTooltip';
 import NewScheduleSelector from 'components/NewScheduleSelector/NewScheduleSelector';
 import PluginLink from 'components/PluginLink/PluginLink';
 import Table from 'components/Table/Table';
 import Text from 'components/Text/Text';
+import TextEllipsisTooltip from 'components/TextEllipsisTooltip/TextEllipsisTooltip';
 import TimelineMarks from 'components/TimelineMarks/TimelineMarks';
 import TooltipBadge from 'components/TooltipBadge/TooltipBadge';
 import UserTimezoneSelect from 'components/UserTimezoneSelect/UserTimezoneSelect';
@@ -33,7 +33,7 @@ import { WithStoreProps, PageProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import LocationHelper from 'utils/LocationHelper';
 import { UserActions } from 'utils/authorization';
-import { PAGE, PLUGIN_ROOT, TABLE_COLUMN_MAX_WIDTH } from 'utils/consts';
+import { PAGE, PLUGIN_ROOT } from 'utils/consts';
 
 import styles from './Schedules.module.css';
 
@@ -369,14 +369,14 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
             {item.on_call_now.map((user) => {
               return (
                 <PluginLink key={user.pk} query={{ page: 'users', id: user.pk }} className="table__email-content">
-                  <div className={cx('schedules__user-on-call')}>
-                    <div>
-                      <Avatar size="medium" src={user.avatar} />
-                    </div>
-                    <MatchMediaTooltip placement="top" content={user.username} maxWidth={TABLE_COLUMN_MAX_WIDTH}>
-                      <span className="table__email-content">{user.username}</span>
-                    </MatchMediaTooltip>
-                  </div>
+                  <HorizontalGroup>
+                    <TextEllipsisTooltip placement="top" content={user.username}>
+                      <Text type="secondary" className={cx('overflow-child')}>
+                        <Avatar size="small" src={user.avatar} />{' '}
+                        <span className={cx('break-word')}>{user.username}</span>
+                      </Text>
+                    </TextEllipsisTooltip>
+                  </HorizontalGroup>
                 </PluginLink>
               );
             })}
