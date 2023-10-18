@@ -53,7 +53,7 @@ const Labels = observer(
           }
         }
 
-        return result.filter((k) => k.repr.toLowerCase().includes(search.toLowerCase()));
+        return result.filter((k) => k.name.toLowerCase().includes(search.toLowerCase()));
       };
     }, []);
 
@@ -69,7 +69,7 @@ const Labels = observer(
           }
         }
 
-        return result.filter((k) => k.repr.toLowerCase().includes(search.toLowerCase()));
+        return result.filter((k) => k.name.toLowerCase().includes(search.toLowerCase()));
       };
     }, []);
 

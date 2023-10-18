@@ -39,7 +39,7 @@ export class LabelStore extends BaseStore {
       params: { search },
     });
 
-    const filteredValues = result.values.filter((v) => v.repr.toLowerCase().includes(search.toLowerCase())); // TODO remove after backend search implementation
+    const filteredValues = result.values.filter((v) => v.name.toLowerCase().includes(search.toLowerCase())); // TODO remove after backend search implementation
 
     this.values = {
       ...this.values,
@@ -52,7 +52,7 @@ export class LabelStore extends BaseStore {
   public async createKey(name: string) {
     const { key } = await makeRequest(`${this.path}`, {
       method: 'POST',
-      data: { key: { repr: name }, values: [] },
+      data: { key: { name }, values: [] },
     }).then((data) => {
       openNotification(`New key has been added`);
 
@@ -65,21 +65,21 @@ export class LabelStore extends BaseStore {
   public async createValue(keyId: LabelKey['id'], value: string) {
     const result = await makeRequest(`${this.path}id/${keyId}/values`, {
       method: 'POST',
-      data: { repr: value },
+      data: { name: value },
     }).then((data) => {
       openNotification(`New value has been added`);
 
       return data;
     });
 
-    return result.values.find((v) => v.repr === value); // TODO remove after backend API change
+    return result.values.find((v) => v.name === value); // TODO remove after backend API change
   }
 
   @action
   public async updateKey(keyId: LabelKey['id'], name: string) {
     const result = await makeRequest(`${this.path}id/${keyId}`, {
       method: 'PUT',
-      data: { repr: name },
+      data: { name },
     }).then((data) => {
       openNotification(`Key has been renamed`);
 
@@ -93,13 +93,13 @@ export class LabelStore extends BaseStore {
   public async updateKeyValue(keyId: LabelKey['id'], valueId: LabelValue['id'], name: string) {
     const result = await makeRequest(`${this.path}id/${keyId}/values/${valueId}`, {
       method: 'PUT',
-      data: { repr: name },
+      data: { name },
     }).then((data) => {
       openNotification(`Value has been renamed`);
 
       return data;
     });
 
-    return result.values.find((v) => v.repr === name);
+    return result.values.find((v) => v.name === name);
   }
 }

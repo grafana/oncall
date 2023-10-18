@@ -54,7 +54,7 @@ const LabelsFilter = observer((props: LabelsFilterProps) => {
     }
 
     return new Promise((resolve) => {
-      const keysFiltered = keys.filter((k) => k.repr.toLowerCase().includes(search.toLowerCase()));
+      const keysFiltered = keys.filter((k) => k.name.toLowerCase().includes(search.toLowerCase()));
 
       const promises = keysFiltered.map((key) => labelsStore.loadValuesForKey(key.id));
 
@@ -74,7 +74,7 @@ const LabelsFilter = observer((props: LabelsFilterProps) => {
     <div className={cx('root', className)}>
       <LabelsFilterComponent
         autoFocus={autoFocus}
-        labelField="repr"
+        labelField="name"
         value={value}
         onChange={onChange}
         onLoadOptions={handleLoadOptions}

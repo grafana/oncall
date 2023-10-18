@@ -1,17 +1,10 @@
 export interface Label {
   id: string;
-  repr: string;
+  name: string;
 }
 
-export interface LabelKey {
-  id: string;
-  repr: string;
-}
-
-export interface LabelValue {
-  id: string;
-  repr: string;
-}
+export interface LabelKey extends Label {}
+export interface LabelValue extends Label {}
 
 export interface LabelKeyValue {
   key: LabelKey;

@@ -1073,7 +1073,7 @@ const IntegrationHeader: React.FC<IntegrationHeaderProps> = ({
               {alertReceiveChannel.labels.length
                 ? alertReceiveChannel.labels.map((label) => (
                     <GrafanaTag
-                      name={`${label.key.repr}:${label.value.repr}`}
+                      name={`${label.key.name}:${label.value.name}`}
                       colorIndex={Math.floor(Math.random() * 28)}
                       key={label.key.id}
                     />
