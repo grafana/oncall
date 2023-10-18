@@ -91,13 +91,13 @@ def test_sync_users_for_organization_role_none(make_organization, make_user_for_
     # check that existing users are updated
     updated_user = organization.users.filter(pk=users[1].pk).first()
     assert updated_user is not None
-    assert updated_user.role == LegacyAccessControlRole.VIEWER
+    assert updated_user.role == LegacyAccessControlRole.NONE
 
     # check that missing users are created
     created_user = organization.users.filter(user_id=api_users[1]["userId"]).first()
     assert created_user is not None
     assert created_user.user_id == api_users[1]["userId"]
-    assert created_user.role == LegacyAccessControlRole.VIEWER
+    assert created_user.role == LegacyAccessControlRole.NONE
 
 
 @pytest.mark.django_db
