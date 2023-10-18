@@ -1398,7 +1398,15 @@ def test_next_shifts_per_user(
     )
 
     tomorrow = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0) + timezone.timedelta(days=1)
-    user_a, user_b, user_c, user_d = (make_user_for_organization(organization, username=i) for i in "ABCD")
+    users = (
+        ("A", "Europe/London"),
+        ("B", "UTC"),
+        ("C", None),
+        ("D", "America/Montevideo"),
+    )
+    user_a, user_b, user_c, user_d = (
+        make_user_for_organization(organization, username=i, _timezone=tz) for i, tz in users
+    )
     # clear users pks <-> organization cache (persisting between tests)
     memoized_users_in_ical.cache_clear()
 
@@ -1456,13 +1464,25 @@ def test_next_shifts_per_user(
     assert response.status_code == status.HTTP_200_OK
 
     expected = {
-        user_a.public_primary_key: (tomorrow + timezone.timedelta(hours=15), tomorrow + timezone.timedelta(hours=16)),
-        user_b.public_primary_key: (tomorrow + timezone.timedelta(hours=7), tomorrow + timezone.timedelta(hours=12)),
-        user_c.public_primary_key: (tomorrow + timezone.timedelta(hours=17), tomorrow + timezone.timedelta(hours=18)),
-        user_d.public_primary_key: None,
+        user_a.public_primary_key: (
+            tomorrow + timezone.timedelta(hours=15),
+            tomorrow + timezone.timedelta(hours=16),
+            user_a.timezone,
+        ),
+        user_b.public_primary_key: (
+            tomorrow + timezone.timedelta(hours=7),
+            tomorrow + timezone.timedelta(hours=12),
+            user_b.timezone,
+        ),
+        user_c.public_primary_key: (
+            tomorrow + timezone.timedelta(hours=17),
+            tomorrow + timezone.timedelta(hours=18),
+            user_c.timezone,
+        ),
+        user_d.public_primary_key: (None, None, user_d.timezone),
     }
     returned_data = {
-        u: (ev["start"], ev["end"]) if ev is not None else None for u, ev in response.data["users"].items()
+        u: (ev.get("start"), ev.get("end"), ev.get("user_timezone")) for u, ev in response.data["users"].items()
     }
     assert returned_data == expected
 

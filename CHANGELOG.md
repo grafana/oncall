@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Update ical schedule creation/update to trigger final schedule refresh ([#3156](https://github.com/grafana/oncall/pull/3156))
 
+### Changed
+
+- Add user TZ information to next shifts per user endpoint ([#3157](https://github.com/grafana/oncall/pull/3157))
+
 ## v1.3.44 (2023-10-16)
 
 ### Added
