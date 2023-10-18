@@ -601,25 +601,25 @@ def test_create_ical_schedule(schedule_internal_api_setup, make_user_auth_header
     user, token, _, _, _, _ = schedule_internal_api_setup
     client = APIClient()
     url = reverse("api-internal:schedule-list")
+    data = {
+        "ical_url_primary": ICAL_URL,
+        "ical_url_overrides": None,
+        "name": "created_ical_schedule",
+        "type": 1,
+        "slack_channel_id": None,
+        "user_group": None,
+        "team": None,
+        "warnings": [],
+        "on_call_now": [],
+        "has_gaps": False,
+        "mention_oncall_next": False,
+        "mention_oncall_start": True,
+        "notify_empty_oncall": 0,
+        "notify_oncall_shift_freq": 1,
+    }
     with patch(
         "apps.api.serializers.schedule_ical.ScheduleICalSerializer.validate_ical_url_primary", return_value=ICAL_URL
-    ):
-        data = {
-            "ical_url_primary": ICAL_URL,
-            "ical_url_overrides": None,
-            "name": "created_ical_schedule",
-            "type": 1,
-            "slack_channel_id": None,
-            "user_group": None,
-            "team": None,
-            "warnings": [],
-            "on_call_now": [],
-            "has_gaps": False,
-            "mention_oncall_next": False,
-            "mention_oncall_start": True,
-            "notify_empty_oncall": 0,
-            "notify_oncall_shift_freq": 1,
-        }
+    ), patch("apps.schedules.tasks.refresh_ical_final_schedule.apply_async") as mock_refresh_final:
         response = client.post(url, data, format="json", **make_user_auth_headers(user, token))
         # modify initial data by adding id and None for optional fields
         schedule = OnCallSchedule.objects.get(public_primary_key=response.data["id"])
@@ -628,6 +628,8 @@ def test_create_ical_schedule(schedule_internal_api_setup, make_user_auth_header
         data["enable_web_overrides"] = False
         assert response.status_code == status.HTTP_201_CREATED
         assert response.data == data
+        # check final schedule refresh triggered
+        mock_refresh_final.assert_called_once_with((schedule.pk,))
 
 
 @pytest.mark.django_db
@@ -736,12 +738,40 @@ def test_update_ical_schedule(schedule_internal_api_setup, make_user_auth_header
         "type": 1,
         "team": None,
     }
-    response = client.put(
-        url, data=json.dumps(data), content_type="application/json", **make_user_auth_headers(user, token)
-    )
+    with patch("apps.schedules.tasks.refresh_ical_final_schedule.apply_async") as mock_refresh_final:
+        response = client.put(
+            url, data=json.dumps(data), content_type="application/json", **make_user_auth_headers(user, token)
+        )
     updated_instance = OnCallSchedule.objects.get(public_primary_key=ical_schedule.public_primary_key)
     assert response.status_code == status.HTTP_200_OK
     assert updated_instance.name == "updated_ical_schedule"
+    # check refresh final is not triggered (url unchanged)
+    assert not mock_refresh_final.called
+
+
+@pytest.mark.django_db
+def test_update_ical_schedule_url(schedule_internal_api_setup, make_user_auth_headers):
+    user, token, _, ical_schedule, _, _ = schedule_internal_api_setup
+    client = APIClient()
+
+    url = reverse("api-internal:schedule-detail", kwargs={"pk": ical_schedule.public_primary_key})
+
+    updated_url = "another-url"
+    data = {
+        "name": ical_schedule.name,
+        "type": 1,
+        "ical_url_primary": updated_url,
+    }
+    with patch(
+        "apps.api.serializers.schedule_ical.ScheduleICalSerializer.validate_ical_url_primary", return_value=updated_url
+    ), patch("apps.schedules.tasks.refresh_ical_final_schedule.apply_async") as mock_refresh_final:
+        response = client.put(
+            url, data=json.dumps(data), content_type="application/json", **make_user_auth_headers(user, token)
+        )
+    updated_instance = OnCallSchedule.objects.get(public_primary_key=ical_schedule.public_primary_key)
+    assert response.status_code == status.HTTP_200_OK
+    # check refresh final triggered (changing url)
+    mock_refresh_final.assert_called_once_with((updated_instance.pk,))
 
 
 @pytest.mark.django_db
