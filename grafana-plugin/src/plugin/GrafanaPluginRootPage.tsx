@@ -53,7 +53,6 @@ dayjs.extend(customParseFormat);
 import 'assets/style/vars.css';
 import 'assets/style/global.css';
 import 'assets/style/utils.css';
-import 'assets/style/responsive.css';
 
 import { getQueryParams, isTopNavbar } from './GrafanaPluginRootPage.helpers';
 import PluginSetup from './PluginSetup';
