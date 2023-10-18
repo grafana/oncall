@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 
-import { Badge, HorizontalGroup } from '@grafana/ui';
+import { Badge, Button, HorizontalGroup, Icon } from '@grafana/ui';
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
@@ -15,6 +15,7 @@ import { getColorForSchedule, getPersonalShiftsFromStore } from 'models/schedule
 import { Event } from 'models/schedule/schedule.types';
 import { Timezone } from 'models/timezone/timezone.types';
 import { User } from 'models/user/user.types';
+import { getStartOfWeek } from 'pages/schedule/Schedule.helpers';
 import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import { PLUGIN_ROOT } from 'utils/consts';
@@ -32,24 +33,69 @@ interface SchedulePersonalProps extends WithStoreProps, RouteComponentProps {
   onSlotClick?: (event: Event) => void;
 }
 
+interface SchedulePersonalState {
+  startMoment?: dayjs.Dayjs;
+}
+
 @observer
-class SchedulePersonal extends Component<SchedulePersonalProps> {
+class SchedulePersonal extends Component<SchedulePersonalProps, SchedulePersonalState> {
+  state: SchedulePersonalState = {};
+
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      startMoment: props.startMoment,
+    };
+  }
+
   componentDidMount() {
-    const { store, startMoment } = this.props;
+    const { store } = this.props;
+    const { startMoment } = this.state;
 
     store.scheduleStore.updatePersonalEvents(store.userStore.currentUserPk, startMoment);
   }
 
-  componentDidUpdate(prevProps: Readonly<SchedulePersonalProps>): void {
-    const { store, startMoment } = this.props;
+  componentDidUpdate(prevProps: Readonly<SchedulePersonalProps>, prevState: Readonly<SchedulePersonalState>): void {
+    const { store } = this.props;
+    const { startMoment } = this.state;
 
-    if (prevProps.startMoment !== this.props.startMoment) {
+    if (prevProps.currentTimezone !== this.props.currentTimezone) {
+      const oldTimezone = prevProps.currentTimezone;
+
+      this.setState((oldState) => {
+        const wDiff = oldState.startMoment.diff(getStartOfWeek(oldTimezone), 'weeks');
+
+        return { ...oldState, startMoment: getStartOfWeek(this.props.currentTimezone).add(wDiff, 'weeks') };
+      });
+    }
+
+    if (prevState.startMoment !== startMoment) {
       store.scheduleStore.updatePersonalEvents(store.userStore.currentUserPk, startMoment);
     }
   }
 
+  handleTodayClick = () => {
+    const { store } = this.props;
+
+    this.setState({ startMoment: getStartOfWeek(store.currentTimezone) });
+  };
+
+  handleLeftClick = () => {
+    const { startMoment } = this.state;
+
+    this.setState({ startMoment: startMoment.add(-7, 'day') });
+  };
+
+  handleRightClick = () => {
+    const { startMoment } = this.state;
+
+    this.setState({ startMoment: startMoment.add(7, 'day') });
+  };
+
   render() {
-    const { userPk, startMoment, currentTimezone, store, onSlotClick } = this.props;
+    const { userPk, currentTimezone, store, onSlotClick } = this.props;
+    const { startMoment } = this.state;
 
     const base = 7 * 24 * 60; // in minutes
     const diff = dayjs().tz(currentTimezone).diff(startMoment, 'minutes');
@@ -71,12 +117,37 @@ class SchedulePersonal extends Component<SchedulePersonalProps> {
         <div className={cx('root')}>
           <div className={cx('header')}>
             <div className={cx('title')}>
-              <HorizontalGroup>
-                <Text type="secondary">
-                  On-call schedule <Avatar src={storeUser.avatar} size="small" /> {storeUser.username}
-                </Text>
-                {/*  @ts-ignore */}
-                {isOncall ? <Badge text="On-call now" color="green" /> : <Badge text="Not on-call now" color="gray" />}
+              <HorizontalGroup justify="space-between">
+                <HorizontalGroup>
+                  <Text type="secondary">
+                    On-call schedule <Avatar src={storeUser.avatar} size="small" /> {storeUser.username}
+                  </Text>
+
+                  {isOncall ? (
+                    <Badge text="On-call now" color="green" />
+                  ) : (
+                    /*  @ts-ignore */
+                    <Badge text="Not on-call now" color="gray" />
+                  )}
+                </HorizontalGroup>
+                <HorizontalGroup>
+                  <HorizontalGroup>
+                    <Text type="secondary">
+                      {startMoment.format('DD MMM')} - {startMoment.add(6, 'day').format('DD MMM')}
+                    </Text>
+                    <Button variant="secondary" size="sm" onClick={this.handleTodayClick}>
+                      Today
+                    </Button>
+                    <HorizontalGroup spacing="xs">
+                      <Button variant="secondary" size="sm" onClick={this.handleLeftClick}>
+                        <Icon name="angle-left" />
+                      </Button>
+                      <Button variant="secondary" size="sm" onClick={this.handleRightClick}>
+                        <Icon name="angle-right" />
+                      </Button>
+                    </HorizontalGroup>
+                  </HorizontalGroup>
+                </HorizontalGroup>
               </HorizontalGroup>
             </div>
           </div>
