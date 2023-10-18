@@ -450,7 +450,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
     const { store } = this.props;
     const { page, startMoment } = this.state;
 
-    store.scheduleStore.updatePersonalEvents(store.userStore.currentUserPk, startMoment);
+    store.scheduleStore.updatePersonalEvents(store.userStore.currentUserPk, startMoment, 9, true);
 
     // For removal we need to check if count is 1
     // which means we should change the page to the previous one
