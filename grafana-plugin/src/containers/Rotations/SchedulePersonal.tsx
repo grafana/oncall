@@ -12,7 +12,7 @@ import Text from 'components/Text/Text';
 import TimelineMarks from 'components/TimelineMarks/TimelineMarks';
 import Rotation from 'containers/Rotation/Rotation';
 import { getColorForSchedule, getPersonalShiftsFromStore } from 'models/schedule/schedule.helpers';
-import { Shift, Event } from 'models/schedule/schedule.types';
+import { Event } from 'models/schedule/schedule.types';
 import { Timezone } from 'models/timezone/timezone.types';
 import { User } from 'models/user/user.types';
 import { WithStoreProps } from 'state/types';
@@ -60,18 +60,7 @@ class SchedulePersonal extends Component<SchedulePersonalProps> {
 
     const currentTimeHidden = currentTimeX < 0 || currentTimeX > 1;
 
-    const getColor = (shiftId: Shift['id']) => {
-      const shift = store.scheduleStore.shifts[shiftId];
-
-      if (!shift) {
-        if (shiftId) {
-          store.scheduleStore.updateOncallShift(shiftId);
-        }
-        return;
-      }
-
-      return getColorForSchedule(shift.schedule);
-    };
+    const getColor = (event: Event) => getColorForSchedule(event.schedule?.id);
 
     const isOncall = store.scheduleStore.onCallNow[userPk];
 

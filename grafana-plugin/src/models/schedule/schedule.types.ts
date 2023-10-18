@@ -94,7 +94,7 @@ export interface Event {
   is_gap: boolean;
   missing_users: Array<{ display_name: User['username']; pk: User['pk'] }>;
   priority_level: number;
-  shift: { pk: Shift['id'] | null };
+  shift: Pick<Shift, 'name' | 'type'> & { pk: string };
   source: string;
   start: string;
   users: Array<{

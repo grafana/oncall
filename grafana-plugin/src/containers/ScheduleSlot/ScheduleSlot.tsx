@@ -238,14 +238,7 @@ const RegularEvent = (props: RegularEventProps) => {
       {users.map(({ display_name, pk: userPk, swap_request }) => {
         const storeUser = store.userStore.items[userPk];
 
-        const shiftId = event.shift?.pk;
-        const shift = store.scheduleStore.shifts[shiftId];
-
-        /* if (shiftId && !store.scheduleStore.shifts[shiftId]) {
-          store.scheduleStore.updateOncallShift(shiftId);
-        }
- */
-        const { schedule } = event;
+        const { schedule, shift } = event;
 
         const isCurrentUserSlot = userPk === store.userStore.currentUserPk;
         const inactive = filters && filters.users.length && !filters.users.includes(userPk);

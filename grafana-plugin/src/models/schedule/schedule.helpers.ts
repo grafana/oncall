@@ -438,7 +438,7 @@ export const getOverrideColor = (rotationIndex: number) => {
   return OVERRIDE_COLORS[normalizedRotationIndex];
 };
 
-export const getShiftName = (shift: Shift) => {
+export const getShiftName = (shift: Partial<Shift>) => {
   if (!shift) {
     return '';
   }
@@ -451,5 +451,5 @@ export const getShiftName = (shift: Shift) => {
     return 'Override';
   }
 
-  return `[L${shift.priority_level}] Rotation`;
+  return 'Rotation';
 };
