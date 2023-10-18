@@ -540,7 +540,7 @@ export class ScheduleStore extends BaseStore {
     };
   }
 
-  async updatePersonalEvents(userPk: User['pk'], startMoment: dayjs.Dayjs, days = 9) {
+  async updatePersonalEvents(userPk: User['pk'], startMoment: dayjs.Dayjs, days = 9, isUpdateOnCallNow = false) {
     const fromString = getFromString(startMoment);
 
     const dayBefore = startMoment.subtract(1, 'day');
@@ -567,9 +567,12 @@ export class ScheduleStore extends BaseStore {
       },
     };
 
-    this.onCallNow = {
-      ...this.onCallNow,
-      [userPk]: is_oncall,
-    };
+    if (isUpdateOnCallNow) {
+      // since current endpoint works incorrectly we are waiting for https://github.com/grafana/oncall/issues/3164
+      this.onCallNow = {
+        ...this.onCallNow,
+        [userPk]: is_oncall,
+      };
+    }
   }
 }

@@ -53,7 +53,7 @@ class SchedulePersonal extends Component<SchedulePersonalProps, SchedulePersonal
     const { store } = this.props;
     const { startMoment } = this.state;
 
-    store.scheduleStore.updatePersonalEvents(store.userStore.currentUserPk, startMoment);
+    store.scheduleStore.updatePersonalEvents(store.userStore.currentUserPk, startMoment, 9, true);
   }
 
   componentDidUpdate(prevProps: Readonly<SchedulePersonalProps>, prevState: Readonly<SchedulePersonalState>): void {
