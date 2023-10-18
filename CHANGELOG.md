@@ -22,6 +22,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add user TZ information to next shifts per user endpoint ([#3157](https://github.com/grafana/oncall/pull/3157))
 
+### Added
+
+- Update shifts public API to improve web shifts support ([#3165](https://github.com/grafana/oncall/pull/3165))
+
 ## v1.3.44 (2023-10-16)
 
 ### Added
