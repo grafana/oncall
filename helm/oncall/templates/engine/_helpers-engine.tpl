@@ -15,6 +15,9 @@ Engine common labels
 {{- define "oncall.engine.labels" -}}
 {{ include "oncall.labels" . }}
 app.kubernetes.io/component: engine
+{{- if .Values.engine.podLabels }}
+{{ toYaml .Values.engine.podLabels }}
+{{- end }}
 {{- end }}
 
 {{/*

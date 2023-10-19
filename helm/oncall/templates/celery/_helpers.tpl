@@ -15,6 +15,9 @@ Engine common labels
 {{- define "oncall.celery.labels" -}}
 {{ include "oncall.labels" . }}
 app.kubernetes.io/component: celery
+{{- if .Values.celery.podLabels }}
+{{ toYaml .Values.celery.podLabels }}
+{{- end }}
 {{- end }}
 
 {{/*

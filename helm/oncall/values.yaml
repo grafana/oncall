@@ -39,6 +39,9 @@ engine:
     #   cpu: 100m
     #   memory: 128Mi
 
+  # -- Labels for engine pods
+  podLabels: {}
+
   ## Deployment update strategy
   ## ref: https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#strategy
   updateStrategy:
@@ -122,6 +125,9 @@ celery:
     #   cpu: 100m
     #   memory: 128Mi
 
+  # -- Labels for celery pods
+  podLabels: {}
+
   ## Affinity for pod assignment
   ## ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity
   affinity: {}
@@ -180,6 +186,9 @@ telegramPolling:
     # requests:
     #   cpu: 100m
     #   memory: 128Mi
+  
+  # -- Labels for telegram-polling pods
+  podLabels: {}
 
   # Extra volume mounts for the main container
   extraVolumeMounts: []
