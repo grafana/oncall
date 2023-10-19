@@ -39,7 +39,7 @@ import styles from './Schedules.module.css';
 
 const cx = cn.bind(styles);
 const FILTERS_DEBOUNCE_MS = 500;
-const ITEMS_PER_PAGE = 10;
+const PAGE_SIZE_DEFAULT = 15;
 
 interface SchedulesPageProps extends WithStoreProps, RouteComponentProps, PageProps {}
 
@@ -83,7 +83,9 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
     const { grafanaTeamStore } = store;
     const { showNewScheduleSelector, expandedRowKeys, scheduleIdToEdit, page, startMoment } = this.state;
 
-    const { results, count } = store.scheduleStore.getSearchResult();
+    const { results, count, page_size } = store.scheduleStore.getSearchResult();
+
+    console.log('page_size', page_size);
 
     const columns = [
       {
@@ -176,7 +178,11 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
             columns={columns}
             data={results}
             loading={!results}
-            pagination={{ page, total: Math.ceil((count || 0) / ITEMS_PER_PAGE), onChange: this.handlePageChange }}
+            pagination={{
+              page,
+              total: Math.ceil((count || 0) / (page_size || PAGE_SIZE_DEFAULT)),
+              onChange: this.handlePageChange,
+            }}
             rowKey="id"
             expandable={{
               expandedRowKeys: expandedRowKeys,

@@ -37,7 +37,7 @@ import {
 
 export class ScheduleStore extends BaseStore {
   @observable
-  searchResult: { count?: number; results?: Array<Schedule['id']> } = {};
+  searchResult: { page_size?: number; count?: number; results?: Array<Schedule['id']> } = {};
 
   @observable.shallow
   items: { [id: string]: Schedule } = {};
@@ -140,7 +140,7 @@ export class ScheduleStore extends BaseStore {
     shouldUpdateFn: () => boolean = undefined
   ) {
     const filters = typeof f === 'string' ? { search: f } : f;
-    const { count, results } = await makeRequest(this.path, {
+    const { page_size, count, results } = await makeRequest(this.path, {
       method: 'GET',
       params: { ...filters, page },
     });
@@ -160,6 +160,7 @@ export class ScheduleStore extends BaseStore {
       ),
     };
     this.searchResult = {
+      page_size,
       count,
       results: results.map((item: Schedule) => item.id),
     };
@@ -196,6 +197,7 @@ export class ScheduleStore extends BaseStore {
       return undefined;
     }
     return {
+      page_size: this.searchResult.page_size,
       count: this.searchResult.count,
       results: this.searchResult.results?.map((scheduleId: Schedule['id']) => this.items[scheduleId]),
     };
