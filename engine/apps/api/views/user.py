@@ -269,9 +269,17 @@ class UserView(
     def list(self, request, *args, **kwargs) -> Response:
         queryset = self.filter_queryset(self.get_queryset())
 
-        if self.request.query_params.get("is_currently_oncall", "false") == "true":
-            oncall_user_ids = list({user.pk for _, users in self.schedules_with_oncall_users.items() for user in users})
-            queryset = queryset.filter(pk__in=oncall_user_ids)
+        is_currently_oncall_query_param = request.query_params.get("is_currently_oncall", "").lower()
+
+        def _get_oncall_user_ids():
+            return {user.pk for _, users in self.schedules_with_oncall_users.items() for user in users}
+
+        if is_currently_oncall_query_param == "true":
+            # client explicitly wants to filter out users that are on-call
+            queryset = queryset.filter(pk__in=_get_oncall_user_ids())
+        elif is_currently_oncall_query_param == "false":
+            # user explicitly wants to filter out on-call users
+            queryset = queryset.exclude(pk__in=_get_oncall_user_ids())
 
         page = self.paginate_queryset(queryset)
 

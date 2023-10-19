@@ -1981,7 +1981,7 @@ def test_list_users_filtered_by_is_currently_oncall(
 ):
     organization = make_organization()
     user1 = make_user_for_organization(organization)
-    _ = make_user_for_organization(organization)
+    user2 = make_user_for_organization(organization)
     _, token = make_token_for_organization(organization)
 
     schedule = make_schedule(
@@ -2011,6 +2011,11 @@ def test_list_users_filtered_by_is_currently_oncall(
     response = client.get(f"{url}?is_currently_oncall=true", format="json", **make_user_auth_headers(user1, token))
 
     response = response.json()["results"]
-
     assert len(response) == 1
     assert response[0]["pk"] == user1.public_primary_key
+
+    response = client.get(f"{url}?is_currently_oncall=false", format="json", **make_user_auth_headers(user1, token))
+
+    response = response.json()["results"]
+    assert len(response) == 1
+    assert response[0]["pk"] == user2.public_primary_key
