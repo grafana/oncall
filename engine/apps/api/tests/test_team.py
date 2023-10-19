@@ -37,14 +37,21 @@ def test_list_teams(
     team = make_team(organization)
     team.users.add(user)
 
+    general_team_payload = get_payload_from_team(GENERAL_TEAM)
+    team_payload = get_payload_from_team(team)
+
     client = APIClient()
     url = reverse("api-internal:team-list")
     response = client.get(url, format="json", **make_user_auth_headers(user, token))
 
-    expected_payload = [get_payload_from_team(GENERAL_TEAM), get_payload_from_team(team)]
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == [general_team_payload, team_payload]
+
+    url = reverse("api-internal:team-list")
+    response = client.get(f"{url}?include_no_team=false", format="json", **make_user_auth_headers(user, token))
 
     assert response.status_code == status.HTTP_200_OK
-    assert response.json() == expected_payload
+    assert response.json() == [team_payload]
 
 
 @pytest.mark.django_db

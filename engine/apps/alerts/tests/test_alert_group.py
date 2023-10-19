@@ -495,22 +495,29 @@ def test_alert_group_get_paged_users(
     other_user = make_user_for_organization(organization)
     alert_receive_channel = make_alert_receive_channel(organization)
 
-    def _make_log_record(alert_group, user, log_type):
+    def _make_log_record(alert_group, user, log_type, important=False):
         alert_group.log_records.create(
             type=log_type,
             author=user,
             reason="paged user",
-            step_specific_info={"user": user.public_primary_key},
+            step_specific_info={
+                "user": user.public_primary_key,
+                "important": important,
+            },
         )
 
-    # user was paged
+    # user was paged - also check that important is persisted/available
     alert_group = make_alert_group(alert_receive_channel)
     _make_log_record(alert_group, user, AlertGroupLogRecord.TYPE_DIRECT_PAGING)
-    _make_log_record(alert_group, other_user, AlertGroupLogRecord.TYPE_DIRECT_PAGING)
+    _make_log_record(alert_group, other_user, AlertGroupLogRecord.TYPE_DIRECT_PAGING, True)
 
-    paged_user_pks = [u["pk"] for u in alert_group.get_paged_users()]
-    assert user.public_primary_key in paged_user_pks
-    assert other_user.public_primary_key in paged_user_pks
+    paged_users = {u["pk"]: u["important"] for u in alert_group.get_paged_users()}
+
+    assert user.public_primary_key in paged_users
+    assert paged_users[user.public_primary_key] is False
+
+    assert other_user.public_primary_key in paged_users
+    assert paged_users[other_user.public_primary_key] is True
 
     # user was paged and then unpaged
     alert_group = make_alert_group(alert_receive_channel)

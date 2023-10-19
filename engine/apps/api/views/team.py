@@ -51,7 +51,6 @@ class TeamViewSet(PublicPrimaryKeyMixin, mixins.ListModelMixin, mixins.UpdateMod
         general_team = [Team(public_primary_key="null", name="No team", email=None, avatar_url=None)]
         teams = list(self.filter_queryset(self.get_queryset()))
 
-        # TODO: add integration test for this case
         if self.request.query_params.get("include_no_team", "true") != "false":
             # Adds general team to the queryset in a way that it always shows up first (even when not searched for).
             queryset = general_team + teams
