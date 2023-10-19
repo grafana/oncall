@@ -6,11 +6,8 @@ import cn from 'classnames/bind';
 import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
 
-// import Avatar from 'components/Avatar/Avatar';
 import Block from 'components/GBlock/Block';
-// import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
-// import UserWarning from 'containers/UserWarningModal/UserWarning';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { Alert as AlertType } from 'models/alertgroup/alertgroup.types';
 import { getTimezone } from 'models/user/user.helpers';
@@ -19,8 +16,7 @@ import { DirectPagingContext } from 'state/context/directPaging';
 import { UserActions } from 'utils/authorization';
 
 import styles from './AddResponders.module.scss';
-// import { ResponderType, UserAvailability } from './AddResponders.types';
-import { NotificationPolicyValue, UserAvailability, UserResponder as UserResponderType } from './AddResponders.types';
+import { NotificationPolicyValue, UserResponder as UserResponderType } from './AddResponders.types';
 import AddRespondersPopup from './parts/AddRespondersPopup';
 import NotificationPoliciesSelect from './parts/NotificationPoliciesSelect';
 import TeamResponder from './parts/TeamResponder';
@@ -38,6 +34,7 @@ type Props = {
 const AddResponders = observer(
   ({ mode, existingPagedUsers = [], onAddNewParticipant, generateRemovePreviouslyPagedUserCallback }: Props) => {
     const {
+      addUserToSelectedUsers,
       selectedTeamResponder,
       selectedUserResponders,
       resetSelectedTeam,
@@ -46,14 +43,14 @@ const AddResponders = observer(
     } = useContext(DirectPagingContext);
 
     const currentMoment = useMemo(() => dayjs(), []);
+    const isCreateMode = mode === 'create';
 
     const [currentlyConsideredUser, setCurrentlyConsideredUser] = useState<User>(null);
     const [currentlyConsideredUserNotificationPolicy, setCurrentlyConsideredUserNotificationPolicy] =
       useState<NotificationPolicyValue>(NotificationPolicyValue.Default);
 
     const [popupIsVisible, setPopupIsVisible] = useState(false);
-    const [showUserWarningModal, setShowUserWarningModal] = useState(false);
-    const [_userAvailability, setUserAvailability] = useState<UserAvailability | undefined>(undefined);
+    const [showUserConfirmationModal, setShowUserConfirmationModal] = useState(false);
 
     const onChangeCurrentlyConsideredUserNotificationPolicy = useCallback(
       ({ value }: SelectableValue<number>) => {
@@ -62,15 +59,35 @@ const AddResponders = observer(
       [setCurrentlyConsideredUserNotificationPolicy]
     );
 
-    const closeUserWarningModal = useCallback(() => setShowUserWarningModal(false), [showUserWarningModal]);
+    const closeUserConfirmationModal = useCallback(
+      () => setShowUserConfirmationModal(false),
+      [setShowUserConfirmationModal]
+    );
 
     const confirmCurrentlyConsideredUser = useCallback(async () => {
-      await onAddNewParticipant({
-        important: Boolean(currentlyConsideredUserNotificationPolicy),
-        data: currentlyConsideredUser,
-      });
-      closeUserWarningModal();
-    }, [currentlyConsideredUserNotificationPolicy, currentlyConsideredUser, closeUserWarningModal]);
+      /**
+       * if we're in create mode (ie. manually creating an alert group),
+       * we need to add the user to the array of selected users
+       * otherwise, as soon as the modal is confirmed, we add the user to the pre-existing list of "paged users"
+       * for the alert group
+       */
+      if (isCreateMode) {
+        addUserToSelectedUsers(currentlyConsideredUser);
+      } else {
+        await onAddNewParticipant({
+          important: Boolean(currentlyConsideredUserNotificationPolicy),
+          data: currentlyConsideredUser,
+        });
+      }
+
+      closeUserConfirmationModal();
+    }, [
+      isCreateMode,
+      addUserToSelectedUsers,
+      currentlyConsideredUser,
+      currentlyConsideredUserNotificationPolicy,
+      closeUserConfirmationModal,
+    ]);
 
     return (
       <>
@@ -88,7 +105,7 @@ const AddResponders = observer(
                     setPopupIsVisible(true);
                   }}
                 >
-                  {mode === 'create' ? 'Invite' : 'Add'}
+                  {isCreateMode ? 'Invite' : 'Add'}
                 </Button>
               </WithPermissionControlTooltip>
             </HorizontalGroup>
@@ -135,28 +152,31 @@ const AddResponders = observer(
             setVisible={setPopupIsVisible}
             existingPagedUsers={existingPagedUsers}
             setCurrentlyConsideredUser={setCurrentlyConsideredUser}
-            setShowUserWarningModal={setShowUserWarningModal}
-            setUserAvailability={setUserAvailability}
+            setShowUserConfirmationModal={setShowUserConfirmationModal}
           />
         </div>
-        {showUserWarningModal && (
+        {showUserConfirmationModal && (
           <Modal
             isOpen
             title="Confirm Participant Invitation"
-            onDismiss={closeUserWarningModal}
+            onDismiss={closeUserConfirmationModal}
             className={cx('modal')}
           >
             {/* TODO: finish styling this */}
-            <Text>
-              {currentlyConsideredUser.name || currentlyConsideredUser.username} (local time{' '}
-              {currentMoment.tz(getTimezone(currentlyConsideredUser)).format('HH:mm')}) will be notified using
-            </Text>
-            <NotificationPoliciesSelect
-              important={Boolean(currentlyConsideredUserNotificationPolicy)}
-              onChange={onChangeCurrentlyConsideredUserNotificationPolicy}
-            />
-            {/* TODO: where should 'Learn more' link to? */}
-            <Text>notification settings. Learn more</Text>
+            {!isCreateMode && (
+              <>
+                <Text>
+                  {currentlyConsideredUser.name || currentlyConsideredUser.username} (local time{' '}
+                  {currentMoment.tz(getTimezone(currentlyConsideredUser)).format('HH:mm')}) will be notified using
+                </Text>
+                <NotificationPoliciesSelect
+                  important={Boolean(currentlyConsideredUserNotificationPolicy)}
+                  onChange={onChangeCurrentlyConsideredUserNotificationPolicy}
+                />
+                {/* TODO: where should 'Learn more' link to? */}
+                <Text>notification settings. Learn more</Text>
+              </>
+            )}
             {!currentlyConsideredUser.is_currently_oncall && (
               <Alert
                 severity="warning"
@@ -164,7 +184,7 @@ const AddResponders = observer(
               />
             )}
             <HorizontalGroup justify="flex-end">
-              <Button variant="secondary" onClick={closeUserWarningModal}>
+              <Button variant="secondary" onClick={closeUserConfirmationModal}>
                 Cancel
               </Button>
               <Button variant="primary" onClick={confirmCurrentlyConsideredUser}>

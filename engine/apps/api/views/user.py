@@ -16,7 +16,6 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from apps.alerts.paging import check_user_availability
 from apps.api.permissions import (
     ALL_PERMISSION_CHOICES,
     IsOwnerOrHasRBACPermissions,
@@ -668,9 +667,8 @@ class UserView(
 
     @action(detail=True, methods=["get"])
     def check_availability(self, request, pk) -> Response:
-        user = self.get_object()
-        warnings = check_user_availability(user=user)
-        return Response(data={"warnings": warnings}, status=status.HTTP_200_OK)
+        # TODO: deprecated, remove in future release
+        return Response(data={"warnings": []}, status=status.HTTP_200_OK)
 
 
 def handle_phone_notificator_failed(exc: BaseFailed) -> Response:

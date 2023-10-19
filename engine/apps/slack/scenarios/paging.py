@@ -7,13 +7,7 @@ from django.conf import settings
 from django.db.models import Model, QuerySet
 
 from apps.alerts.models import AlertReceiveChannel, EscalationChain
-from apps.alerts.paging import (
-    AvailabilityWarning,
-    PagingError,
-    UserNotifications,
-    check_user_availability,
-    direct_paging,
-)
+from apps.alerts.paging import UserNotifications, direct_paging
 from apps.slack.constants import DIVIDER, PRIVATE_METADATA_MAX_LENGTH
 from apps.slack.errors import SlackAPIChannelNotFoundError
 from apps.slack.scenarios import scenario_step
@@ -267,19 +261,20 @@ class OnPagingUserChange(scenario_step.ScenarioStep):
         payload: EventPayload,
     ) -> None:
         private_metadata = json.loads(payload["view"]["private_metadata"])
-        selected_organization = _get_selected_org_from_payload(
-            payload, private_metadata["input_id_prefix"], slack_team_identity, slack_user_identity
-        )
+        # selected_organization = _get_selected_org_from_payload(
+        #     payload, private_metadata["input_id_prefix"], slack_team_identity, slack_user_identity
+        # )
         selected_user = _get_selected_user_from_payload(payload, private_metadata["input_id_prefix"])
         if selected_user is None:
             return
 
         # check availability
-        availability_warnings = check_user_availability(selected_user)
+        # TODO: update this
+        availability_warnings = False
         if availability_warnings:
             # display warnings and require additional confirmation
-            view = _display_availability_warnings(payload, availability_warnings, selected_organization, selected_user)
-            self._slack_client.views_push(trigger_id=payload["trigger_id"], view=view)
+            # view = _display_availability_warnings(payload, availability_warnings, selected_organization, selected_user)
+            self._slack_client.views_push(trigger_id=payload["trigger_id"], view={})
         else:
             # user is available to be paged
             error_msg = None
@@ -852,69 +847,70 @@ def _get_selected_entries_list(
     return current_entries
 
 
-def _display_availability_warnings(
-    payload: EventPayload, warnings: typing.List[AvailabilityWarning], organization: "Organization", user: "User"
-) -> ModalView:
-    metadata = json.loads(payload["view"]["private_metadata"])
-    return _get_availability_warnings_view(
-        warnings,
-        organization,
-        user,
-        OnPagingConfirmUserChange.routing_uid(),
-        json.dumps(
-            {
-                "state": payload["view"]["state"],
-                "input_id_prefix": metadata["input_id_prefix"],
-                "channel_id": metadata["channel_id"],
-                "submit_routing_uid": metadata["submit_routing_uid"],
-                DataKey.USERS: metadata[DataKey.USERS],
-                DataKey.SCHEDULES: metadata[DataKey.SCHEDULES],
-            }
-        ),
-    )
+# TODO: delete this
+# def _display_availability_warnings(
+#     payload: EventPayload, warnings: typing.List[AvailabilityWarning], organization: "Organization", user: "User"
+# ) -> ModalView:
+#     metadata = json.loads(payload["view"]["private_metadata"])
+#     return _get_availability_warnings_view(
+#         warnings,
+#         organization,
+#         user,
+#         OnPagingConfirmUserChange.routing_uid(),
+#         json.dumps(
+#             {
+#                 "state": payload["view"]["state"],
+#                 "input_id_prefix": metadata["input_id_prefix"],
+#                 "channel_id": metadata["channel_id"],
+#                 "submit_routing_uid": metadata["submit_routing_uid"],
+#                 DataKey.USERS: metadata[DataKey.USERS],
+#                 DataKey.SCHEDULES: metadata[DataKey.SCHEDULES],
+#             }
+#         ),
+#     )
 
 
-def _get_availability_warnings_view(
-    warnings: typing.List[AvailabilityWarning],
-    organization: "Organization",
-    user: "User",
-    callback_id: str,
-    private_metadata: str,
-) -> ModalView:
-    messages: typing.List[str] = []
-    for w in warnings:
-        if w["error"] == PagingError.USER_IS_NOT_ON_CALL:
-            messages.append(
-                f":warning: User *{user.name or user.username}* is not on-call.\nWe recommend you to select on-call users first."
-            )
-            schedules_available = w["data"].get("schedules", {})
-            if schedules_available:
-                messages.append(":information_source: Currently on-call from schedules:")
-            for schedule, users in schedules_available.items():
-                oncall_users = organization.users.filter(public_primary_key__in=users)
-                usernames = ", ".join(f"*{u.name or u.username}*" for u in oncall_users)
-                messages.append(f":spiral_calendar_pad: {schedule}: {usernames}")
-        elif w["error"] == PagingError.USER_HAS_NO_NOTIFICATION_POLICY:
-            messages.append(f":warning: User *{user.name or user.username}* has no notification policy setup.")
+# def _get_availability_warnings_view(
+#     warnings: typing.List[AvailabilityWarning],
+#     organization: "Organization",
+#     user: "User",
+#     callback_id: str,
+#     private_metadata: str,
+# ) -> ModalView:
+#     messages: typing.List[str] = []
+#     for w in warnings:
+#         if w["error"] == PagingError.USER_IS_NOT_ON_CALL:
+#             messages.append(
+#                 f":warning: User *{user.name or user.username}* is not on-call.\nWe recommend you to select on-call users first."
+#             )
+#             schedules_available = w["data"].get("schedules", {})
+#             if schedules_available:
+#                 messages.append(":information_source: Currently on-call from schedules:")
+#             for schedule, users in schedules_available.items():
+#                 oncall_users = organization.users.filter(public_primary_key__in=users)
+#                 usernames = ", ".join(f"*{u.name or u.username}*" for u in oncall_users)
+#                 messages.append(f":spiral_calendar_pad: {schedule}: {usernames}")
+#         elif w["error"] == PagingError.USER_HAS_NO_NOTIFICATION_POLICY:
+#             messages.append(f":warning: User *{user.name or user.username}* has no notification policy setup.")
 
-    view: ModalView = {
-        "type": "modal",
-        "callback_id": callback_id,
-        "title": {"type": "plain_text", "text": "Are you sure?"},
-        "submit": {"type": "plain_text", "text": "Confirm"},
-        "blocks": [
-            {
-                "type": "section",
-                "text": {
-                    "type": "mrkdwn",
-                    "text": message,
-                },
-            }
-            for message in messages
-        ],
-        "private_metadata": private_metadata,
-    }
-    return view
+#     view: ModalView = {
+#         "type": "modal",
+#         "callback_id": callback_id,
+#         "title": {"type": "plain_text", "text": "Are you sure?"},
+#         "submit": {"type": "plain_text", "text": "Confirm"},
+#         "blocks": [
+#             {
+#                 "type": "section",
+#                 "text": {
+#                     "type": "mrkdwn",
+#                     "text": message,
+#                 },
+#             }
+#             for message in messages
+#         ],
+#         "private_metadata": private_metadata,
+#     }
+#     return view
 
 
 def _get_selected_team_from_payload(

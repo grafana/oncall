@@ -1,9 +1,7 @@
-import enum
 import typing
 from uuid import uuid4
 
 from django.db import transaction
-from django.db.models import Q
 
 from apps.alerts.models import (
     Alert,
@@ -15,39 +13,12 @@ from apps.alerts.models import (
     UserHasNotification,
 )
 from apps.alerts.tasks.notify_user import notify_user_task
-from apps.schedules.ical_utils import list_users_to_notify_from_ical
-from apps.schedules.models import OnCallSchedule
 from apps.user_management.models import Organization, Team, User
 
 DIRECT_PAGING_ALERT_GROUP_TITLE = "Ohh noooo"  # TODO:
 
 
-class PagingError(enum.StrEnum):
-    USER_HAS_NO_NOTIFICATION_POLICY = "USER_HAS_NO_NOTIFICATION_POLICY"
-    USER_IS_NOT_ON_CALL = "USER_IS_NOT_ON_CALL"
-
-
 UserNotifications = list[tuple[User, bool]]
-
-
-class NoNotificationPolicyWarning(typing.TypedDict):
-    error: typing.Literal[PagingError.USER_HAS_NO_NOTIFICATION_POLICY]
-    data: typing.Dict
-
-
-ScheduleWarnings = typing.Dict[str, typing.List[str]]
-
-
-class _NotOnCallWarningData(typing.TypedDict):
-    schedules: ScheduleWarnings
-
-
-class NotOnCallWarning(typing.TypedDict):
-    error: typing.Literal[PagingError.USER_IS_NOT_ON_CALL]
-    data: _NotOnCallWarningData
-
-
-AvailabilityWarning = NoNotificationPolicyWarning | NotOnCallWarning
 
 
 class DirectPagingAlertGroupResolvedError(Exception):
@@ -133,47 +104,6 @@ def _trigger_alert(
         channel_filter=channel_filter,
     )
     return alert.group
-
-
-def check_user_availability(user: User) -> typing.List[AvailabilityWarning]:
-    """Check user availability to be paged.
-
-    Return a warnings list indicating `error` and any additional related `data`.
-    """
-    warnings: typing.List[AvailabilityWarning] = []
-    if not user.notification_policies.exists():
-        warnings.append(
-            {
-                "error": PagingError.USER_HAS_NO_NOTIFICATION_POLICY,
-                "data": {},
-            }
-        )
-
-    is_on_call = False
-    schedules = OnCallSchedule.objects.filter(
-        Q(cached_ical_file_primary__contains=user.username) | Q(cached_ical_file_primary__contains=user.email),
-        organization=user.organization,
-    )
-    schedules_data: ScheduleWarnings = {}
-    for s in schedules:
-        # keep track of schedules and on call users to suggest if needed
-        oncall_users = list_users_to_notify_from_ical(s)
-        schedules_data[s.name] = set(u.public_primary_key for u in oncall_users)
-        if user in oncall_users:
-            is_on_call = True
-            break
-
-    if not is_on_call:
-        # user is not on-call
-        # TODO: check working hours
-        warnings.append(
-            {
-                "error": PagingError.USER_IS_NOT_ON_CALL,
-                "data": {"schedules": schedules_data},
-            }
-        )
-
-    return warnings
 
 
 def direct_paging(

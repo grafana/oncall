@@ -1,14 +1,13 @@
 import json
 import typing
 
-from apps.alerts.paging import DirectPagingAlertGroupResolvedError, check_user_availability, direct_paging, unpage_user
+from apps.alerts.paging import DirectPagingAlertGroupResolvedError, direct_paging, unpage_user
 from apps.slack.constants import DIVIDER
 from apps.slack.scenarios import scenario_step
 from apps.slack.scenarios.paging import (
     DIRECT_PAGING_SCHEDULE_SELECT_ID,
     DIRECT_PAGING_USER_SELECT_ID,
     _generate_input_id_prefix,
-    _get_availability_warnings_view,
     _get_schedules_select,
     _get_select_field_value,
     _get_users_select,
@@ -63,17 +62,21 @@ class ManageRespondersUserChange(scenario_step.ScenarioStep):
         organization = alert_group.channel.organization
 
         # check availability
-        availability_warnings = check_user_availability(selected_user)
+        # TODO:
+        # availability_warnings = check_user_availability(selected_user)
+        availability_warnings = []
+
         if availability_warnings:
+            # TODO:
             # display warnings and require additional confirmation
-            view = _get_availability_warnings_view(
-                availability_warnings,
-                organization,
-                selected_user,
-                ManageRespondersConfirmUserChange.routing_uid(),
-                json.dumps({USER_DATA_KEY: selected_user.id, ALERT_GROUP_DATA_KEY: alert_group.pk}),
-            )
-            self._slack_client.views_push(trigger_id=payload["trigger_id"], view=view)
+            # view = _get_availability_warnings_view(
+            #     availability_warnings,
+            #     organization,
+            #     selected_user,
+            #     ManageRespondersConfirmUserChange.routing_uid(),
+            #     json.dumps({USER_DATA_KEY: selected_user.id, ALERT_GROUP_DATA_KEY: alert_group.pk}),
+            # )
+            self._slack_client.views_push(trigger_id=payload["trigger_id"], view={})
         else:
             try:
                 # no warnings, proceed with paging

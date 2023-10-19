@@ -8,10 +8,6 @@ export enum NotificationPolicyValue {
   Important = 1,
 }
 
-export interface UserAvailability {
-  warnings: Array<{ error: string; data: any }>;
-}
-
 export enum ResponderType {
   User,
   Team,

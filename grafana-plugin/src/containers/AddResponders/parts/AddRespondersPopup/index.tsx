@@ -8,7 +8,6 @@ import { ColumnsType } from 'rc-table/lib/interface';
 import Avatar from 'components/Avatar/Avatar';
 import GTable from 'components/GTable/GTable';
 import Text from 'components/Text/Text';
-import { UserAvailability } from 'containers/AddResponders/AddResponders.types';
 import { Alert as AlertType } from 'models/alertgroup/alertgroup.types';
 import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
 import { User } from 'models/user/user.types';
@@ -24,8 +23,7 @@ type Props = {
   setVisible: (value: boolean) => void;
 
   setCurrentlyConsideredUser: (user: User) => void;
-  setShowUserWarningModal: (value: boolean) => void;
-  setUserAvailability: (data: UserAvailability) => void;
+  setShowUserConfirmationModal: (value: boolean) => void;
 
   existingPagedUsers?: AlertType['paged_users'];
 };
@@ -51,8 +49,7 @@ const AddRespondersPopup = observer(
     setVisible,
     existingPagedUsers = [],
     setCurrentlyConsideredUser,
-    setShowUserWarningModal,
-    setUserAvailability,
+    setShowUserConfirmationModal,
   }: Props) => {
     const { grafanaTeamStore, userStore } = useStore();
 
@@ -94,19 +91,15 @@ const AddRespondersPopup = observer(
 
     const onClickUser = useCallback(
       async (user: User) => {
-        if (isCreateMode) {
+        if (isCreateMode && user.is_currently_oncall) {
           addUserToSelectedUsers(user);
         } else {
-          // TODO: do we need the "user availability" anymore? what is this used for?
-          const userAvailability = await userStore.checkUserAvailability(user.pk);
-
           setCurrentlyConsideredUser(user);
-          setUserAvailability(userAvailability);
-          setShowUserWarningModal(true);
+          setShowUserConfirmationModal(true);
         }
         setVisible(false);
       },
-      [isCreateMode, userStore, addUserToSelectedUsers, setUserAvailability, setShowUserWarningModal, setVisible]
+      [isCreateMode, userStore, addUserToSelectedUsers, setShowUserConfirmationModal, setVisible]
     );
 
     const addTeamResponder = useCallback(
