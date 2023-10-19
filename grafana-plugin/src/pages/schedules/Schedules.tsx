@@ -25,7 +25,7 @@ import SchedulePersonal from 'containers/Rotations/SchedulePersonal';
 import ScheduleForm from 'containers/ScheduleForm/ScheduleForm';
 import TeamName from 'containers/TeamName/TeamName';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
-import { Schedule, ScheduleType } from 'models/schedule/schedule.types';
+import { Schedule } from 'models/schedule/schedule.types';
 import { getSlackChannelName } from 'models/slack_channel/slack_channel.helpers';
 import { Timezone } from 'models/timezone/timezone.types';
 import { getStartOfWeek } from 'pages/schedule/Schedule.helpers';
@@ -39,7 +39,7 @@ import styles from './Schedules.module.css';
 
 const cx = cn.bind(styles);
 const FILTERS_DEBOUNCE_MS = 500;
-const ITEMS_PER_PAGE = 10;
+const PAGE_SIZE_DEFAULT = 15;
 
 interface SchedulesPageProps extends WithStoreProps, RouteComponentProps, PageProps {}
 
@@ -83,7 +83,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
     const { grafanaTeamStore } = store;
     const { showNewScheduleSelector, expandedRowKeys, scheduleIdToEdit, page, startMoment } = this.state;
 
-    const { results, count } = store.scheduleStore.getSearchResult();
+    const { results, count, page_size } = store.scheduleStore.getSearchResult();
 
     const columns = [
       {
@@ -162,9 +162,6 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
               userPk={store.userStore.currentUserPk}
               currentTimezone={store.currentTimezone}
               startMoment={startMoment}
-              onSlotClick={(...rest) => {
-                console.log(rest);
-              }}
             />
           </div>
           <div className={cx('schedules__filters-container')}>
@@ -179,7 +176,11 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
             columns={columns}
             data={results}
             loading={!results}
-            pagination={{ page, total: Math.ceil((count || 0) / ITEMS_PER_PAGE), onChange: this.handlePageChange }}
+            pagination={{
+              page,
+              total: Math.ceil((count || 0) / (page_size || PAGE_SIZE_DEFAULT)),
+              onChange: this.handlePageChange,
+            }}
             rowKey="id"
             expandable={{
               expandedRowKeys: expandedRowKeys,
@@ -234,9 +235,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
   handleCreateSchedule = (data: Schedule) => {
     const { history, query } = this.props;
 
-    if (data.type === ScheduleType.API) {
-      history.push(`${PLUGIN_ROOT}/schedules/${data.id}?${qs.stringify(query)}`);
-    }
+    history.push(`${PLUGIN_ROOT}/schedules/${data.id}?${qs.stringify(query)}`);
   };
 
   handleExpandRow = (expanded: boolean, data: Schedule) => {
@@ -455,7 +454,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
     const { store } = this.props;
     const { page, startMoment } = this.state;
 
-    store.scheduleStore.updatePersonalEvents(store.userStore.currentUserPk, startMoment);
+    store.scheduleStore.updatePersonalEvents(store.userStore.currentUserPk, startMoment, 9, true);
 
     // For removal we need to check if count is 1
     // which means we should change the page to the previous one
