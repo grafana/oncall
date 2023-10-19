@@ -601,25 +601,25 @@ def test_create_ical_schedule(schedule_internal_api_setup, make_user_auth_header
     user, token, _, _, _, _ = schedule_internal_api_setup
     client = APIClient()
     url = reverse("api-internal:schedule-list")
+    data = {
+        "ical_url_primary": ICAL_URL,
+        "ical_url_overrides": None,
+        "name": "created_ical_schedule",
+        "type": 1,
+        "slack_channel_id": None,
+        "user_group": None,
+        "team": None,
+        "warnings": [],
+        "on_call_now": [],
+        "has_gaps": False,
+        "mention_oncall_next": False,
+        "mention_oncall_start": True,
+        "notify_empty_oncall": 0,
+        "notify_oncall_shift_freq": 1,
+    }
     with patch(
         "apps.api.serializers.schedule_ical.ScheduleICalSerializer.validate_ical_url_primary", return_value=ICAL_URL
-    ):
-        data = {
-            "ical_url_primary": ICAL_URL,
-            "ical_url_overrides": None,
-            "name": "created_ical_schedule",
-            "type": 1,
-            "slack_channel_id": None,
-            "user_group": None,
-            "team": None,
-            "warnings": [],
-            "on_call_now": [],
-            "has_gaps": False,
-            "mention_oncall_next": False,
-            "mention_oncall_start": True,
-            "notify_empty_oncall": 0,
-            "notify_oncall_shift_freq": 1,
-        }
+    ), patch("apps.schedules.tasks.refresh_ical_final_schedule.apply_async") as mock_refresh_final:
         response = client.post(url, data, format="json", **make_user_auth_headers(user, token))
         # modify initial data by adding id and None for optional fields
         schedule = OnCallSchedule.objects.get(public_primary_key=response.data["id"])
@@ -628,6 +628,8 @@ def test_create_ical_schedule(schedule_internal_api_setup, make_user_auth_header
         data["enable_web_overrides"] = False
         assert response.status_code == status.HTTP_201_CREATED
         assert response.data == data
+        # check final schedule refresh triggered
+        mock_refresh_final.assert_called_once_with((schedule.pk,))
 
 
 @pytest.mark.django_db
@@ -736,12 +738,40 @@ def test_update_ical_schedule(schedule_internal_api_setup, make_user_auth_header
         "type": 1,
         "team": None,
     }
-    response = client.put(
-        url, data=json.dumps(data), content_type="application/json", **make_user_auth_headers(user, token)
-    )
+    with patch("apps.schedules.tasks.refresh_ical_final_schedule.apply_async") as mock_refresh_final:
+        response = client.put(
+            url, data=json.dumps(data), content_type="application/json", **make_user_auth_headers(user, token)
+        )
     updated_instance = OnCallSchedule.objects.get(public_primary_key=ical_schedule.public_primary_key)
     assert response.status_code == status.HTTP_200_OK
     assert updated_instance.name == "updated_ical_schedule"
+    # check refresh final is not triggered (url unchanged)
+    assert not mock_refresh_final.called
+
+
+@pytest.mark.django_db
+def test_update_ical_schedule_url(schedule_internal_api_setup, make_user_auth_headers):
+    user, token, _, ical_schedule, _, _ = schedule_internal_api_setup
+    client = APIClient()
+
+    url = reverse("api-internal:schedule-detail", kwargs={"pk": ical_schedule.public_primary_key})
+
+    updated_url = "another-url"
+    data = {
+        "name": ical_schedule.name,
+        "type": 1,
+        "ical_url_primary": updated_url,
+    }
+    with patch(
+        "apps.api.serializers.schedule_ical.ScheduleICalSerializer.validate_ical_url_primary", return_value=updated_url
+    ), patch("apps.schedules.tasks.refresh_ical_final_schedule.apply_async") as mock_refresh_final:
+        response = client.put(
+            url, data=json.dumps(data), content_type="application/json", **make_user_auth_headers(user, token)
+        )
+    updated_instance = OnCallSchedule.objects.get(public_primary_key=ical_schedule.public_primary_key)
+    assert response.status_code == status.HTTP_200_OK
+    # check refresh final triggered (changing url)
+    mock_refresh_final.assert_called_once_with((updated_instance.pk,))
 
 
 @pytest.mark.django_db
@@ -1368,7 +1398,15 @@ def test_next_shifts_per_user(
     )
 
     tomorrow = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0) + timezone.timedelta(days=1)
-    user_a, user_b, user_c, user_d = (make_user_for_organization(organization, username=i) for i in "ABCD")
+    users = (
+        ("A", "Europe/London"),
+        ("B", "UTC"),
+        ("C", None),
+        ("D", "America/Montevideo"),
+    )
+    user_a, user_b, user_c, user_d = (
+        make_user_for_organization(organization, username=i, _timezone=tz) for i, tz in users
+    )
     # clear users pks <-> organization cache (persisting between tests)
     memoized_users_in_ical.cache_clear()
 
@@ -1426,13 +1464,25 @@ def test_next_shifts_per_user(
     assert response.status_code == status.HTTP_200_OK
 
     expected = {
-        user_a.public_primary_key: (tomorrow + timezone.timedelta(hours=15), tomorrow + timezone.timedelta(hours=16)),
-        user_b.public_primary_key: (tomorrow + timezone.timedelta(hours=7), tomorrow + timezone.timedelta(hours=12)),
-        user_c.public_primary_key: (tomorrow + timezone.timedelta(hours=17), tomorrow + timezone.timedelta(hours=18)),
-        user_d.public_primary_key: None,
+        user_a.public_primary_key: (
+            tomorrow + timezone.timedelta(hours=15),
+            tomorrow + timezone.timedelta(hours=16),
+            user_a.timezone,
+        ),
+        user_b.public_primary_key: (
+            tomorrow + timezone.timedelta(hours=7),
+            tomorrow + timezone.timedelta(hours=12),
+            user_b.timezone,
+        ),
+        user_c.public_primary_key: (
+            tomorrow + timezone.timedelta(hours=17),
+            tomorrow + timezone.timedelta(hours=18),
+            user_c.timezone,
+        ),
+        user_d.public_primary_key: (None, None, user_d.timezone),
     }
     returned_data = {
-        u: (ev["start"], ev["end"]) if ev is not None else None for u, ev in response.data["users"].items()
+        u: (ev.get("start"), ev.get("end"), ev.get("user_timezone")) for u, ev in response.data["users"].items()
     }
     assert returned_data == expected
 
