@@ -85,8 +85,6 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
 
     const { results, count, page_size } = store.scheduleStore.getSearchResult();
 
-    console.log('page_size', page_size);
-
     const columns = [
       {
         width: '10%',
