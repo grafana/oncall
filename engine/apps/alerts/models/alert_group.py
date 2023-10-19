@@ -542,8 +542,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
         user_instances = User.objects.filter(public_primary_key__in=user_ids)
         user_map = {u.public_primary_key: u for u in user_instances}
 
-        # TODO: can we avoid needing to do this second loop here? mostly doing this to avoid
-        # having to query each user individually in the first loop
+        # mostly doing this second loop to avoid having to query each user individually in the first loop
         for log_record in log_records:
             # filter paging events, track still active escalations
             info = log_record.get_step_specific_info()
@@ -565,7 +564,6 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
                     )
                 else:
                     # user was unpaged at some point, remove them
-                    # TODO: is there a more efficient way to do this?
                     users = [u for u in users if u["pk"] != user_id]
 
         return users

@@ -482,3 +482,41 @@ def test_alert_group_log_record_action_source(
     alert_group.un_attach_by_user(user, action_source=action_source)
     log_record = alert_group.log_records.last()
     assert (log_record.type, log_record.action_source) == (AlertGroupLogRecord.TYPE_UNATTACHED, action_source)
+
+
+@pytest.mark.django_db
+def test_alert_group_get_paged_users(
+    make_organization_and_user,
+    make_user_for_organization,
+    make_alert_receive_channel,
+    make_alert_group,
+):
+    organization, user = make_organization_and_user()
+    other_user = make_user_for_organization(organization)
+    alert_receive_channel = make_alert_receive_channel(organization)
+
+    def _make_log_record(alert_group, user, log_type):
+        alert_group.log_records.create(
+            type=log_type,
+            author=user,
+            reason="paged user",
+            step_specific_info={"user": user.public_primary_key},
+        )
+
+    # user was paged
+    alert_group = make_alert_group(alert_receive_channel)
+    _make_log_record(alert_group, user, AlertGroupLogRecord.TYPE_DIRECT_PAGING)
+    _make_log_record(alert_group, other_user, AlertGroupLogRecord.TYPE_DIRECT_PAGING)
+
+    paged_user_pks = [u["pk"] for u in alert_group.get_paged_users()]
+    assert user.public_primary_key in paged_user_pks
+    assert other_user.public_primary_key in paged_user_pks
+
+    # user was paged and then unpaged
+    alert_group = make_alert_group(alert_receive_channel)
+    _make_log_record(alert_group, user, AlertGroupLogRecord.TYPE_DIRECT_PAGING)
+    _make_log_record(alert_group, user, AlertGroupLogRecord.TYPE_UNPAGE_USER)
+
+    _make_log_record(alert_group, other_user, AlertGroupLogRecord.TYPE_DIRECT_PAGING)
+
+    alert_group.get_paged_users()[0]["pk"] == other_user.public_primary_key
