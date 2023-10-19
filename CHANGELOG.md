@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Use shift data from event object
+- Update shifts public API to improve web shifts support ([#3165](https://github.com/grafana/oncall/pull/3165))
 
 ### Fixed
 
