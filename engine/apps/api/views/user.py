@@ -268,7 +268,13 @@ class UserView(
 
     def list(self, request, *args, **kwargs) -> Response:
         queryset = self.filter_queryset(self.get_queryset())
+
+        if self.request.query_params.get("is_currently_oncall", "false") == "true":
+            oncall_user_ids = list({user.pk for _, users in self.schedules_with_oncall_users.items() for user in users})
+            queryset = queryset.filter(pk__in=oncall_user_ids)
+
         page = self.paginate_queryset(queryset)
+
         if page is not None:
             context = self.get_serializer_context()
 
