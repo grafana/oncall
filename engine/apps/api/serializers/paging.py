@@ -44,9 +44,6 @@ class DirectPagingSerializer(serializers.Serializer):
     message = serializers.CharField(required=False, default=None, allow_null=True)
 
     def validate(self, attrs):
-        if not attrs["users"] and not attrs["team"]:
-            raise serializers.ValidationError("Must specify at least one user or a team")
-
         organization = self.context["organization"]
         alert_group_id = attrs["alert_group_id"]
         message = attrs["message"]

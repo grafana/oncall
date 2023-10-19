@@ -9,14 +9,10 @@ from apps.alerts.models import (
     AlertGroupLogRecord,
     AlertReceiveChannel,
     ChannelFilter,
-    EscalationChain,
     UserHasNotification,
 )
 from apps.alerts.tasks.notify_user import notify_user_task
 from apps.user_management.models import Organization, Team, User
-
-DIRECT_PAGING_ALERT_GROUP_TITLE = "Ohh noooo"  # TODO:
-
 
 UserNotifications = list[tuple[User, bool]]
 
@@ -25,6 +21,12 @@ class DirectPagingAlertGroupResolvedError(Exception):
     """Raised when trying to use direct paging for a resolved alert group."""
 
     DETAIL = "Cannot add responders for a resolved alert group"  # Returned in BadRequest responses and Slack warnings
+
+
+class DirectPagingUserTeamValidationError(Exception):
+    """Raised when trying to use direct paging and no team or user is specified."""
+
+    DETAIL = "No team or user(s) specified"  # Returned in BadRequest responses and Slack warnings
 
 
 class _OnCall(typing.TypedDict):
@@ -39,16 +41,8 @@ class DirectPagingAlertPayload(typing.TypedDict):
     oncall: _OnCall
 
 
-def _trigger_alert(
-    organization: Organization,
-    team: Team | None,
-    title: str,
-    message: str,
-    from_user: User,
-    escalation_chain: EscalationChain = None,
-) -> AlertGroup:
+def _trigger_alert(organization: Organization, team: Team | None, message: str, from_user: User) -> AlertGroup:
     """Trigger manual integration alert from params."""
-    # TODO: what happens if Team is None?
     alert_receive_channel = AlertReceiveChannel.get_or_create_manual_integration(
         organization=organization,
         team=team,
@@ -59,29 +53,16 @@ def _trigger_alert(
             "verbal_name": f"Direct paging ({team.name if team else 'No'} team)",
         },
     )
+
+    channel_filter = None
     if alert_receive_channel.default_channel_filter is None:
-        ChannelFilter.objects.create(
+        channel_filter = ChannelFilter.objects.create(
             alert_receive_channel=alert_receive_channel,
             notify_in_slack=True,
             is_default=True,
         )
 
-    channel_filter = None
-    if escalation_chain is not None:
-        channel_filter, _ = ChannelFilter.objects.get_or_create(
-            alert_receive_channel=alert_receive_channel,
-            escalation_chain=escalation_chain,
-            is_default=False,
-            defaults={
-                "filtering_term": f"escalate to {escalation_chain.name}",
-                "notify_in_slack": True,
-            },
-        )
-
-    permalink = None
-    if not title:
-        title = "Message from {}".format(from_user.username)
-
+    title = "Direct page from {}".format(from_user.username)
     payload: DirectPagingAlertPayload = {
         # Custom oncall property in payload to simplify rendering
         "oncall": {
@@ -89,7 +70,7 @@ def _trigger_alert(
             "message": message,
             "uid": str(uuid4()),  # avoid grouping
             "author_username": from_user.username,
-            "permalink": permalink,
+            "permalink": None,
         },
     }
 
@@ -109,7 +90,7 @@ def _trigger_alert(
 def direct_paging(
     organization: Organization,
     from_user: User,
-    message: str = None,
+    message: str,
     team: Team | None = None,
     users: UserNotifications | None = None,
     alert_group: AlertGroup | None = None,
@@ -119,12 +100,11 @@ def direct_paging(
     If an alert group is given, update escalation to include the specified users.
     Otherwise, create a new alert using given message.
     """
-
-    title = DIRECT_PAGING_ALERT_GROUP_TITLE
-    escalation_chain = None  # TODO:
-
     if users is None:
         users = []
+
+    if not users and team is None:
+        raise DirectPagingUserTeamValidationError
 
     # Cannot add responders to a resolved alert group
     if alert_group and alert_group.resolved:
@@ -132,34 +112,15 @@ def direct_paging(
 
     # create alert group if needed
     if alert_group is None:
-        alert_group = _trigger_alert(organization, team, title, message, from_user, escalation_chain=escalation_chain)
+        alert_group = _trigger_alert(organization, team, message, from_user)
 
-    # initialize direct paged users (without a schedule)
-    users = [(u, important, None) for u, important in users]
-
-    # TODO: page the selected team
-    # # get on call users, add log entry for each schedule
-    # for s, important in schedules:
-    #     oncall_users = list_users_to_notify_from_ical(s)
-    #     users += [(u, important, s) for u in oncall_users]
-    #     alert_group.log_records.create(
-    #         type=AlertGroupLogRecord.TYPE_DIRECT_PAGING,
-    #         author=from_user,
-    #         reason=f"{from_user.username} paged schedule {s.name}",
-    #         step_specific_info={"schedule": s.public_primary_key},
-    #     )
-
-    for u, important, schedule in users:
-        reason = f"{from_user.username} paged user {u.username}"
-        if schedule:
-            reason += f" (from schedule {schedule.name})"
+    for u, important in users:
         alert_group.log_records.create(
             type=AlertGroupLogRecord.TYPE_DIRECT_PAGING,
             author=from_user,
-            reason=reason,
+            reason=f"{from_user.username} paged user {u.username}",
             step_specific_info={
                 "user": u.public_primary_key,
-                "schedule": schedule.public_primary_key if schedule else None,
                 "important": important,
             },
         )
