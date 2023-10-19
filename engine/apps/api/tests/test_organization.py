@@ -1,3 +1,4 @@
+import os
 from unittest.mock import patch
 
 import pytest
@@ -10,12 +11,11 @@ from apps.api.permissions import LegacyAccessControlRole
 
 
 @pytest.mark.django_db
-@pytest.mark.parametrize("rbac_enabled", [True, False])
-def test_get_organization_rbac_enabled(
-    make_organization_and_user_with_plugin_token, make_user_auth_headers, rbac_enabled
-):
+def test_get_organization_rbac_enabled(make_organization_and_user_with_plugin_token, make_user_auth_headers):
+    is_rbac_enabled = os.getenv("ONCALL_TESTING_RBAC_ENABLED", "True") == "True"
     organization, user, token = make_organization_and_user_with_plugin_token()
-    organization.is_rbac_permissions_enabled = rbac_enabled
+    # set rbac enabled based on env variable (factories use this value)
+    organization.is_rbac_permissions_enabled = is_rbac_enabled
     organization.save()
 
     client = APIClient()
@@ -23,7 +23,7 @@ def test_get_organization_rbac_enabled(
 
     response = client.get(url, format="json", **make_user_auth_headers(user, token))
     assert response.status_code == status.HTTP_200_OK
-    assert response.json()["rbac_enabled"] == rbac_enabled
+    assert response.json()["rbac_enabled"] == organization.is_rbac_permissions_enabled
 
 
 @pytest.mark.django_db
@@ -49,6 +49,7 @@ def test_update_organization_settings(make_organization_and_user_with_plugin_tok
         (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
         (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
         (LegacyAccessControlRole.VIEWER, status.HTTP_200_OK),
+        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_organization_retrieve_permissions(
@@ -79,6 +80,7 @@ def test_organization_retrieve_permissions(
         (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
         (LegacyAccessControlRole.EDITOR, status.HTTP_403_FORBIDDEN),
         (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_organization_update_permissions(
@@ -110,6 +112,7 @@ def test_organization_update_permissions(
         (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
         (LegacyAccessControlRole.EDITOR, status.HTTP_403_FORBIDDEN),
         (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_organization_get_telegram_verification_code_permissions(
@@ -134,6 +137,7 @@ def test_organization_get_telegram_verification_code_permissions(
         (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
         (LegacyAccessControlRole.EDITOR, status.HTTP_403_FORBIDDEN),
         (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_organization_get_channel_verification_code_permissions(

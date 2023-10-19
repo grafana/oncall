@@ -41,9 +41,6 @@ export const FARO_ENDPOINT_PROD =
 export const DOCS_SLACK_SETUP = 'https://grafana.com/docs/oncall/latest/open-source/#slack-setup';
 export const DOCS_TELEGRAM_SETUP = 'https://grafana.com/docs/oncall/latest/notify/telegram/';
 
-// Make sure if you chage max-width here you also change it in responsive.css
-export const TABLE_COLUMN_MAX_WIDTH = 1500;
-
 export const generateAssignToTeamInputDescription = (objectName: string): string =>
   `Assigning to a team allows you to filter ${objectName} and configure their visibility. Go to OnCall -> Settings -> Team and Access Settings for more details.`;
 
@@ -54,3 +51,5 @@ export enum PAGE {
   Webhooks = 'webhooks',
   Schedules = 'schedules',
 }
+
+export const TEXT_ELLIPSIS_CLASS = 'overflow-child';

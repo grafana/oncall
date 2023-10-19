@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## v1.3.45 (2023-10-19)
+
+### Added
+
+- Use shift data from event object
+- Update shifts public API to improve web shifts support ([#3165](https://github.com/grafana/oncall/pull/3165))
+
+### Fixed
+
+- Update ical schedule creation/update to trigger final schedule refresh ([#3156](https://github.com/grafana/oncall/pull/3156))
+- Handle None role when syncing users from Grafana ([#3147](https://github.com/grafana/oncall/pull/3147))
+- Polish "Build 'When I am on-call' for web UI" [#2915](https://github.com/grafana/oncall/issues/2915)
+- Fix iCal schedule incorrect view [#2001](https://github.com/grafana/oncall-private/issues/2001)
+- Fix rotation name rendering issue [#2324](https://github.com/grafana/oncall/issues/2324)
+
+### Changed
+
+- Add user TZ information to next shifts per user endpoint ([#3157](https://github.com/grafana/oncall/pull/3157))
+
 ## v1.3.44 (2023-10-16)
 
 ### Added
@@ -24,6 +43,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Improve alert group deletion API by @vadimkerr ([#3124](https://github.com/grafana/oncall/pull/3124))
+- Removed Integrations Name max characters limit
+  ([#3123](https://github.com/grafana/oncall/pull/3123))
+- Truncate long table rows (Integration Name/Alert Group) and show tooltip for the truncated content
+  ([#3123](https://github.com/grafana/oncall/pull/3123))
 
 ## v1.3.42 (2023-10-04)
 
