@@ -7,9 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+
+- Use shift data from event object
+
 ### Fixed
 
 - Update ical schedule creation/update to trigger final schedule refresh ([#3156](https://github.com/grafana/oncall/pull/3156))
+- Polish "Build 'When I am on-call' for web UI" [#2915](https://github.com/grafana/oncall/issues/2915)
+- Fix iCal schedule incorrect view [#2001](https://github.com/grafana/oncall-private/issues/2001)
+- Fix rotation name rendering issue [#2324](https://github.com/grafana/oncall/issues/2324)
 
 ### Changed
 
