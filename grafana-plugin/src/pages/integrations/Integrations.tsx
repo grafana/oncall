@@ -372,7 +372,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
             {item.labels?.length
               ? item.labels.map((label) => (
                   <HorizontalGroup spacing="sm" key={label.key.id}>
-                    <Tag name={`${label.key.name}:${label.value.name}`} colorIndex={Math.floor(Math.random() * 28)} />
+                    <Tag name={`${label.key.name}:${label.value.name}`} />
                     <Button
                       size="sm"
                       icon="filter"

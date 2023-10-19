@@ -1072,11 +1072,7 @@ const IntegrationHeader: React.FC<IntegrationHeaderProps> = ({
             <VerticalGroup spacing="sm">
               {alertReceiveChannel.labels.length
                 ? alertReceiveChannel.labels.map((label) => (
-                    <GrafanaTag
-                      name={`${label.key.name}:${label.value.name}`}
-                      colorIndex={Math.floor(Math.random() * 28)}
-                      key={label.key.id}
-                    />
+                    <GrafanaTag name={`${label.key.name}:${label.value.name}`} key={label.key.id} />
                   ))
                 : 'No labels attached'}
             </VerticalGroup>
