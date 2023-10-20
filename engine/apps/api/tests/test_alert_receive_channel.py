@@ -1213,3 +1213,117 @@ def test_alert_receive_channel_contact_points_wrong_integration(
     else:
         response = client.post(url, format="json", data={}, **make_user_auth_headers(user, token))
     assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+@pytest.mark.django_db
+def test_integration_filter_by_labels(
+    make_organization_and_user_with_plugin_token,
+    make_alert_receive_channel,
+    make_integration_label_association,
+    make_user_auth_headers,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+    alert_receive_channel_1 = make_alert_receive_channel(organization)
+    alert_receive_channel_2 = make_alert_receive_channel(organization)
+    associated_label_1 = make_integration_label_association(organization, alert_receive_channel_1)
+    associated_label_2 = make_integration_label_association(organization, alert_receive_channel_1)
+    alert_receive_channel_2.labels.create(
+        key=associated_label_1.key, value=associated_label_1.value, organization=organization
+    )
+
+    client = APIClient()
+    url = reverse("api-internal:alert_receive_channel-list")
+    response = client.get(
+        f"{url}?label={associated_label_1.key_id}:{associated_label_1.value_id}",
+        content_type="application/json",
+        **make_user_auth_headers(user, token),
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.json()["results"]) == 2
+
+    response = client.get(
+        f"{url}?label={associated_label_1.key_id}:{associated_label_1.value_id}"
+        f"&label={associated_label_2.key_id}:{associated_label_2.value_id}",
+        content_type="application/json",
+        **make_user_auth_headers(user, token),
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.json()["results"]) == 1
+    assert response.json()["results"][0]["id"] == alert_receive_channel_1.public_primary_key
+
+
+@pytest.mark.django_db
+def test_update_alert_receive_channel_labels(
+    make_organization_and_user_with_plugin_token,
+    make_alert_receive_channel,
+    make_integration_label_association,
+    make_user_auth_headers,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+    alert_receive_channel = make_alert_receive_channel(organization)
+    client = APIClient()
+
+    url = reverse("api-internal:alert_receive_channel-detail", kwargs={"pk": alert_receive_channel.public_primary_key})
+    key_id = "testkey"
+    value_id = "testvalue"
+    data = {"labels": [{"key": {"id": key_id, "name": "test"}, "value": {"id": value_id, "name": "testv"}}]}
+    response = client.patch(
+        url,
+        data=json.dumps(data),
+        content_type="application/json",
+        **make_user_auth_headers(user, token),
+    )
+
+    alert_receive_channel.refresh_from_db()
+
+    assert response.status_code == status.HTTP_200_OK
+    assert alert_receive_channel.labels.count() == 1
+    label = alert_receive_channel.labels.first()
+    assert label.key_id == key_id
+    assert label.value_id == value_id
+
+    response = client.patch(
+        url,
+        data=json.dumps({"labels": []}),
+        content_type="application/json",
+        **make_user_auth_headers(user, token),
+    )
+
+    alert_receive_channel.refresh_from_db()
+
+    assert response.status_code == status.HTTP_200_OK
+    assert alert_receive_channel.labels.count() == 0
+
+
+@pytest.mark.django_db
+def test_update_alert_receive_channel_labels_duplicate_key(
+    make_organization_and_user_with_plugin_token,
+    make_alert_receive_channel,
+    make_integration_label_association,
+    make_user_auth_headers,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+    alert_receive_channel = make_alert_receive_channel(organization)
+    client = APIClient()
+
+    url = reverse("api-internal:alert_receive_channel-detail", kwargs={"pk": alert_receive_channel.public_primary_key})
+    key_id = "testkey"
+    data = {
+        "labels": [
+            {"key": {"id": key_id, "name": "test"}, "value": {"id": "testvalue1", "name": "testv1"}},
+            {"key": {"id": key_id, "name": "test"}, "value": {"id": "testvalue2", "name": "testv2"}},
+        ]
+    }
+    response = client.patch(
+        url,
+        data=json.dumps(data),
+        content_type="application/json",
+        **make_user_auth_headers(user, token),
+    )
+
+    alert_receive_channel.refresh_from_db()
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert alert_receive_channel.labels.count() == 0
