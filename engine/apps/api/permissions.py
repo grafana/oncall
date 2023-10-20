@@ -17,6 +17,7 @@ if typing.TYPE_CHECKING:
 ACTION_PREFIX = "grafana-oncall-app"
 RBAC_PERMISSIONS_ATTR = "rbac_permissions"
 RBAC_OBJECT_PERMISSIONS_ATTR = "rbac_object_permissions"
+BASIC_ROLE_PERMISSIONS_ATTR = "basic_role_permissions"
 
 ViewSetOrAPIView = typing.Union[ViewSet, APIView]
 
@@ -96,6 +97,16 @@ class LegacyAccessControlCompatiblePermission:
 LegacyAccessControlCompatiblePermissions = typing.List[LegacyAccessControlCompatiblePermission]
 RBACPermissionsAttribute = typing.Dict[str, LegacyAccessControlCompatiblePermissions]
 RBACObjectPermissionsAttribute = typing.Dict[permissions.BasePermission, typing.List[str]]
+BasicRolePermissionsAttribute = typing.Dict[str, LegacyAccessControlRole]
+
+
+def get_view_action(request: AuthenticatedRequest, view: ViewSetOrAPIView) -> str:
+    """
+    For right now this needs to support being used in both a ViewSet as well as APIView, we use both interchangably
+
+    Note: `request.method` is returned uppercase
+    """
+    return view.action if isinstance(view, ViewSetMixin) else (request.method or "").lower()
 
 
 def get_most_authorized_role(permissions: LegacyAccessControlCompatiblePermissions) -> LegacyAccessControlRole:
@@ -219,15 +230,6 @@ class RBACPermission(permissions.BasePermission):
             Resources.OTHER_SETTINGS, Actions.WRITE, LegacyAccessControlRole.ADMIN
         )
 
-    @staticmethod
-    def _get_view_action(request: AuthenticatedRequest, view: ViewSetOrAPIView) -> str:
-        """
-        For right now this needs to support being used in both a ViewSet as well as APIView, we use both interchangably
-
-        Note: `request.method` is returned uppercase
-        """
-        return view.action if isinstance(view, ViewSetMixin) else (request.method or "").lower()
-
     # mypy complains about "Liskov substitution principle" here because request is `AuthenticatedRequest` object
     # and not rest_framework.request.Request
     # https://mypy.readthedocs.io/en/stable/common_issues.html#incompatible-overrides
@@ -237,7 +239,7 @@ class RBACPermission(permissions.BasePermission):
         if settings.DEBUG and request.method == "OPTIONS":
             return True
 
-        action = self._get_view_action(request, view)
+        action = get_view_action(request, view)
 
         rbac_permissions: typing.Optional[RBACPermissionsAttribute] = getattr(view, RBAC_PERMISSIONS_ATTR, None)
 
@@ -265,7 +267,7 @@ class RBACPermission(permissions.BasePermission):
         )
 
         if rbac_object_permissions:
-            action = self._get_view_action(request, view)
+            action = get_view_action(request, view)
 
             for permission_class, actions in rbac_object_permissions.items():
                 if action in actions:
@@ -277,6 +279,48 @@ class RBACPermission(permissions.BasePermission):
         # has_object_permission is called after has_permission, so return True if in view there is not
         # RBAC_OBJECT_PERMISSIONS_ATTR attr which mean no additional check involving object required
         return True
+
+
+def user_is_authorized_basic_role(user: "User", required_permission: LegacyAccessControlRole) -> bool:
+    """
+    This function checks user basic role
+
+    user - The user to check permissions for
+    required_permission - A basic role that a user must have to be considered authorized
+    """
+    return user.role <= required_permission if user.role is not None else False
+
+
+class BasicRolePermission(permissions.BasePermission):
+    """Checks only basic user role permissions, regardless of whether RBAC is enabled for the organization"""
+
+    # mypy complains about "Liskov substitution principle" here because request is `AuthenticatedRequest` object
+    # and not rest_framework.request.Request
+    # https://mypy.readthedocs.io/en/stable/common_issues.html#incompatible-overrides
+    def has_permission(self, request: AuthenticatedRequest, view: ViewSetOrAPIView) -> bool:  # type: ignore[override]
+        # the django-debug-toolbar UI makes OPTIONS calls. Without this statement the debug UI can't gather the
+        # necessary info it needs to work properly
+        if settings.DEBUG and request.method == "OPTIONS":
+            return True
+        action = get_view_action(request, view)
+
+        basic_role_permissions: typing.Optional[BasicRolePermissionsAttribute] = getattr(
+            view, BASIC_ROLE_PERMISSIONS_ATTR, None
+        )
+
+        # first check that the basic_role_permissions dict attribute is defined
+        assert (
+            basic_role_permissions is not None
+        ), f"Must define a {BASIC_ROLE_PERMISSIONS_ATTR} dict on the ViewSet that is consuming the role class"
+
+        action_required_permissions: LegacyAccessControlRole = basic_role_permissions.get(action, None)
+
+        # next check that the action in question is defined within the basic_role_permissions dict attribute
+        assert (
+            action_required_permissions is not None
+        ), f"""Each action must be defined within the {BASIC_ROLE_PERMISSIONS_ATTR} dict on the ViewSet"""
+
+        return user_is_authorized_basic_role(request.user, action_required_permissions)
 
 
 ALL_PERMISSION_NAMES = [perm for perm in dir(RBACPermission.Permissions) if not perm.startswith("_")]
