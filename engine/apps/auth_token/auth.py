@@ -8,7 +8,7 @@ from rest_framework import exceptions
 from rest_framework.authentication import BaseAuthentication, get_authorization_header
 from rest_framework.request import Request
 
-from apps.api.permissions import RBACPermission, user_is_authorized, LegacyAccessControlRole
+from apps.api.permissions import LegacyAccessControlRole, RBACPermission, user_is_authorized
 from apps.grafana_plugin.helpers.gcom import check_token
 from apps.user_management.exceptions import OrganizationDeletedException, OrganizationMovedException
 from apps.user_management.models import User
@@ -269,8 +269,8 @@ class UserScheduleExportAuthentication(BaseAuthentication):
 X_GRAFANA_ORG_SLUG = "X-Grafana-Org-Slug"
 X_GRAFANA_INSTANCE_SLUG = "X-Grafana-Instance-Slug"
 
-class GrafanaServiceAccountAuthentication(BaseAuthentication):
 
+class GrafanaServiceAccountAuthentication(BaseAuthentication):
     def authenticate(self, request):
         organization = self.get_organization(request)
         if not organization:
@@ -312,12 +312,6 @@ class GrafanaServiceAccountAuthentication(BaseAuthentication):
             permissions=permissions,
         )
 
-        auth_token = ApiAuthToken(
-            organization=organization,
-            user=user,
-            name="Grafana Service Account"
-        )
+        auth_token = ApiAuthToken(organization=organization, user=user, name="Grafana Service Account")
 
         return user, auth_token
-
-

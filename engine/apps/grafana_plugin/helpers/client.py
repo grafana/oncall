@@ -275,10 +275,7 @@ class GrafanaAPIClient(APIClient):
         return self.api_get(f"api/serviceaccounts/search?query={login}")
 
     def create_service_account(self, name, role) -> APIClientResponse:
-        return self.api_post("api/serviceaccounts", {
-            "name": name,
-            "role": role
-        })
+        return self.api_post("api/serviceaccounts", {"name": name, "role": role})
 
     def create_service_account_token(self, service_account_id, name, seconds_to_live=None):
         token_config = {"name": name}
