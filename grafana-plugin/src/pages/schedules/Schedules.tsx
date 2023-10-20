@@ -111,9 +111,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
               userPk={store.userStore.currentUserPk}
               currentTimezone={store.currentTimezone}
               startMoment={startMoment}
-              onSlotClick={(...rest) => {
-                console.log(rest);
-              }}
+              onSlotClick={(..._rest) => {}}
             />
           </div>
           <div className={cx('schedules__filters-container')}>
