@@ -8,7 +8,7 @@ from rest_framework import exceptions
 from rest_framework.authentication import BaseAuthentication, get_authorization_header
 from rest_framework.request import Request
 
-from apps.api.permissions import LegacyAccessControlRole, RBACPermission, user_is_authorized
+from apps.api.permissions import GrafanaAPIPermission, LegacyAccessControlRole, RBACPermission, user_is_authorized
 from apps.grafana_plugin.helpers.gcom import check_token
 from apps.user_management.exceptions import OrganizationDeletedException, OrganizationMovedException
 from apps.user_management.models import User
@@ -268,10 +268,17 @@ class UserScheduleExportAuthentication(BaseAuthentication):
 
 X_GRAFANA_ORG_SLUG = "X-Grafana-Org-Slug"
 X_GRAFANA_INSTANCE_SLUG = "X-Grafana-Instance-Slug"
+GRAFANA_SA_PREFIX = "glsa_"
 
 
 class GrafanaServiceAccountAuthentication(BaseAuthentication):
     def authenticate(self, request):
+        auth = get_authorization_header(request).decode("utf-8")
+        if not auth:
+            raise exceptions.AuthenticationFailed("Invalid token.")
+        if not auth.startswith(GRAFANA_SA_PREFIX):
+            return None
+
         organization = self.get_organization(request)
         if not organization:
             raise exceptions.AuthenticationFailed("Invalid organization.")
@@ -279,10 +286,6 @@ class GrafanaServiceAccountAuthentication(BaseAuthentication):
             raise OrganizationMovedException(organization)
         if organization.deleted_at:
             raise OrganizationDeletedException(organization)
-
-        auth = get_authorization_header(request).decode("utf-8")
-        if not auth:
-            raise exceptions.AuthenticationFailed("Invalid token.")
 
         return self.authenticate_credentials(organization, auth)
 
@@ -309,7 +312,7 @@ class GrafanaServiceAccountAuthentication(BaseAuthentication):
             name="Grafana Service Account",
             username="grafana_service_account",
             role=LegacyAccessControlRole.ADMIN,
-            permissions=permissions,
+            permissions=[GrafanaAPIPermission(action=key) for key, _ in permissions.items()],
         )
 
         auth_token = ApiAuthToken(organization=organization, user=user, name="Grafana Service Account")

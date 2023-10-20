@@ -5,6 +5,7 @@ from rest_framework.viewsets import ModelViewSet
 
 from apps.alerts.models import ResolutionNote
 from apps.alerts.tasks import send_update_resolution_note_signal
+from apps.api.permissions import RBACPermission
 from apps.auth_token.auth import ApiTokenAuthentication, GrafanaServiceAccountAuthentication
 from apps.public_api.serializers.resolution_notes import ResolutionNoteSerializer, ResolutionNoteUpdateSerializer
 from apps.public_api.throttlers.user_throttle import UserThrottle
@@ -14,7 +15,17 @@ from common.api_helpers.paginators import FiftyPageSizePaginator
 
 class ResolutionNoteView(RateLimitHeadersMixin, UpdateSerializerMixin, ModelViewSet):
     authentication_classes = (GrafanaServiceAccountAuthentication, ApiTokenAuthentication)
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated, RBACPermission)
+
+    rbac_permissions = {
+        "metadata": [RBACPermission.Permissions.ALERT_GROUPS_READ],
+        "list": [RBACPermission.Permissions.ALERT_GROUPS_READ],
+        "retrieve": [RBACPermission.Permissions.ALERT_GROUPS_READ],
+        "create": [RBACPermission.Permissions.ALERT_GROUPS_WRITE],
+        "update": [RBACPermission.Permissions.ALERT_GROUPS_WRITE],
+        "partial_update": [RBACPermission.Permissions.ALERT_GROUPS_WRITE],
+        "destroy": [RBACPermission.Permissions.ALERT_GROUPS_WRITE],
+    }
 
     throttle_classes = [UserThrottle]
 
