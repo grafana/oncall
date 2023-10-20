@@ -34,8 +34,6 @@ const ManualAlertGroup: FC<ManualAlertGroupProps> = ({ onCreate, onHide }) => {
   // TODO: add a loading state while we're waiting to hear back from the API when submitting
   // const [directPagingLoading, setdirectPagingLoading] = useState<boolean>();
 
-  // const [chatOpsAvailableChannels, setChatopsAvailableChannels] = useState<any>();
-
   const handleFormSubmit = useCallback(
     async (data: FormData) => {
       const transformedData = prepareForUpdate(selectedUserResponders, selectedTeamResponder, data);
@@ -59,7 +57,6 @@ const ManualAlertGroup: FC<ManualAlertGroupProps> = ({ onCreate, onHide }) => {
   return (
     <Drawer scrollableContent title="New escalation" onClose={onHide} closeOnMaskClick={false} width="70%">
       <VerticalGroup>
-        {/* TODO: pass in generic form data here */}
         <GForm form={manualAlertFormConfig} data={data} onSubmit={handleFormSubmit} />
         <AddResponders mode="create" />
         <HorizontalGroup justify="flex-end">

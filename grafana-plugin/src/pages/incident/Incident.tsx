@@ -177,7 +177,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
                     <AttachedIncidentsList id={incident.pk} getUnattachClickHandler={this.getUnattachClickHandler} />
                   </div>
                   <div className={cx('column')}>
-                    <VerticalGroup>
+                    <VerticalGroup style={{ display: 'block' }}>
                       <AddResponders
                         mode="update"
                         existingPagedUsers={incident.paged_users}

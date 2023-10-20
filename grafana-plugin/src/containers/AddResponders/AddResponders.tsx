@@ -94,9 +94,9 @@ const AddResponders = observer(
         <div className={cx('body')}>
           <Block bordered>
             <HorizontalGroup justify="space-between">
-              <Text type="primary" size="medium">
+              <Text.Title type="primary" level={4}>
                 Participants
-              </Text>
+              </Text.Title>
               <WithPermissionControlTooltip userAction={UserActions.AlertGroupsDirectPaging}>
                 <Button
                   variant="secondary"

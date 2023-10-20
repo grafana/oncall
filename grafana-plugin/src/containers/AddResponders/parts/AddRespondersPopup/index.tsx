@@ -211,6 +211,7 @@ const AddRespondersPopup = observer(
             suffix={<Icon name="search" />}
             key="search"
             className={cx('responders-filters')}
+            data-test-id="add-responders-search-input"
             value={searchTerm}
             placeholder="Search"
             // @ts-ignore
