@@ -1749,7 +1749,7 @@ def test_week_start_changed_daily_shift(
     on_call_shift.add_rolling_users(rolling_users)
 
     ical_data = on_call_shift.convert_to_ical()
-    expected_start = "DTSTART;VALUE=DATE-TIME:{}T000000Z".format(last_sunday.strftime("%Y%m%d"))
+    expected_start = "DTSTART:{}T000000Z".format(last_sunday.strftime("%Y%m%d"))
     assert expected_start in ical_data
 
 
