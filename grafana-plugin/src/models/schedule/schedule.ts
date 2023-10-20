@@ -134,7 +134,7 @@ export class ScheduleStore extends BaseStore {
   async updateItems(
     f: RemoteFiltersType | string = { searchTerm: '', type: undefined, used: undefined },
     page = 1,
-    shouldUpdateFn: () => boolean = undefined
+    invalidateFn: () => boolean = undefined
   ) {
     const filters = typeof f === 'string' ? { search: f } : f;
     const { count, results } = await makeRequest(this.path, {
@@ -142,7 +142,7 @@ export class ScheduleStore extends BaseStore {
       params: { ...filters, page },
     });
 
-    if (shouldUpdateFn && !shouldUpdateFn()) {
+    if (invalidateFn && invalidateFn()) {
       return;
     }
 

@@ -38,7 +38,7 @@ const cx = cn.bind(styles);
 
 interface RemoteFiltersProps extends WithStoreProps {
   value: RemoteFiltersType;
-  onChange: (filters: { [key: string]: any }, isOnMount: boolean) => void;
+  onChange: (filters: { [key: string]: any }, isOnMount: boolean, invalidateFn: () => boolean) => void;
   query: { [key: string]: any };
   page: PAGE;
   defaultFilters?: FiltersValues;
@@ -50,6 +50,7 @@ interface RemoteFiltersState {
   filters: FilterOption[];
   values: { [key: string]: any };
   hadInteraction: boolean;
+  lastRequestId: string;
 }
 
 @observer
@@ -59,6 +60,7 @@ class RemoteFilters extends Component<RemoteFiltersProps, RemoteFiltersState> {
     filters: undefined,
     values: {},
     hadInteraction: false,
+    lastRequestId: undefined,
   };
 
   searchRef = React.createRef<HTMLInputElement>();
@@ -378,10 +380,24 @@ class RemoteFilters extends Component<RemoteFiltersProps, RemoteFiltersState> {
       store.filtersStore.globalValues = newGlobalValues;
     }
 
-    LocationHelper.update({ ...values }, 'partial');
+    const currentRequestId = this.getNewRequestId();
 
-    onChange(values, isOnMount);
+    this.setState({
+      lastRequestId: currentRequestId,
+    });
+
+    LocationHelper.update({ ...values }, 'partial');
+    onChange(values, isOnMount, this.invalidateFn.bind(this, currentRequestId));
   };
+
+  invalidateFn = (id: string) => {
+    const { lastRequestId } = this.state;
+
+    // This will ensure that only the newest request will get to update the store data
+    return lastRequestId && id !== lastRequestId;
+  };
+
+  getNewRequestId = () => Math.random().toString(36).slice(-6);
 
   debouncedOnChange = debounce(this.onChange, 500);
 }
