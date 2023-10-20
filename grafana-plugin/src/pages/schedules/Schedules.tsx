@@ -124,28 +124,24 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
             />
           </div>
 
-          {results === undefined ? (
-            <LoadingPlaceholder text="Loading..." />
-          ) : (
-            <Table
-              columns={this.getTableColumns()}
-              data={results}
-              loading={!results}
-              pagination={{
-                page,
-                total: Math.ceil((count || 0) / (page_size || PAGE_SIZE_DEFAULT)),
-                onChange: this.handlePageChange,
-              }}
-              rowKey="id"
-              expandable={{
-                expandedRowKeys: expandedRowKeys,
-                onExpand: this.handleExpandRow,
-                expandedRowRender: this.renderSchedule,
-                expandRowByClick: true,
-              }}
-              emptyText={this.renderNotFound()}
-            />
-          )}
+          <Table
+            columns={this.getTableColumns()}
+            data={results}
+            loading={!results}
+            pagination={{
+              page,
+              total: Math.ceil((count || 0) / (page_size || PAGE_SIZE_DEFAULT)),
+              onChange: this.handlePageChange,
+            }}
+            rowKey="id"
+            expandable={{
+              expandedRowKeys: expandedRowKeys,
+              onExpand: this.handleExpandRow,
+              expandedRowRender: this.renderSchedule,
+              expandRowByClick: true,
+            }}
+            emptyText={results === undefined ? 'Loading...' : this.renderNotFound()}
+          />
         </div>
 
         {showNewScheduleSelector && (
