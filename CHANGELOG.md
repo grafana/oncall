@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Discard old pending network requests in the UI (Users/Schedules) [#3172](https://github.com/grafana/oncall/pull/3172)
 - Fix resolution note source for mobile app by @vadimkerr ([#3174](https://github.com/grafana/oncall/pull/3174))
+- Fix iCal imported schedules related users and next shifts per user ([#3178](https://github.com/grafana/oncall/pull/3178))
 
 ## v1.3.45 (2023-10-19)
 
