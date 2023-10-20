@@ -51,9 +51,10 @@ def on_create_alert_slack_representative_async(alert_pk):
 @shared_dedicated_queue_retry_task(
     autoretry_for=(Exception,), retry_backoff=True, max_retries=1 if settings.DEBUG else None
 )
-def on_alert_group_action_triggered_async(log_record_id):
+def on_alert_group_action_triggered_async(log_record_id, alert_group_id):
     from apps.alerts.models import AlertGroupLogRecord
 
+    logger.debug(f"on_alert_group_action_triggered_async for alert group {alert_group_id}")
     logger.debug(f"SLACK representative: get log record {log_record_id}")
 
     log_record = AlertGroupLogRecord.objects.get(pk=log_record_id)
@@ -153,9 +154,9 @@ class AlertGroupSlackRepresentative(AlertGroupAbstractRepresentative):
             log_record_id = log_record
 
         if action_source == ActionSource.SLACK or force_sync:
-            on_alert_group_action_triggered_async(log_record_id)
+            on_alert_group_action_triggered_async(log_record_id, alert_group_id)
         else:
-            on_alert_group_action_triggered_async.apply_async((log_record_id,))
+            on_alert_group_action_triggered_async.apply_async((log_record_id, alert_group_id))
 
     @classmethod
     def on_alert_group_update_log_report(cls, **kwargs):

@@ -271,6 +271,24 @@ class GrafanaAPIClient(APIClient):
     def get_grafana_plugin_settings(self, recipient: str) -> APIClientResponse:
         return self.api_get(f"api/plugins/{recipient}/settings")
 
+    def get_service_account(self, login: str) -> APIClientResponse:
+        return self.api_get(f"api/serviceaccounts/search?query={login}")
+
+    def create_service_account(self, name, role) -> APIClientResponse:
+        return self.api_post("api/serviceaccounts", {
+            "name": name,
+            "role": role
+        })
+
+    def create_service_account_token(self, service_account_id, name, seconds_to_live=None):
+        token_config = {"name": name}
+        if seconds_to_live:
+            token_config["secondsToLive"] = seconds_to_live
+        return self.api_post(f"api/serviceaccounts/{service_account_id}/tokens", token_config)
+
+    def get_service_account_token_permissions(self):
+        return self.api_get("api/access-control/user/permissions")
+
 
 class GcomAPIClient(APIClient):
     ACTIVE_INSTANCE_QUERY = "instances?status=active"

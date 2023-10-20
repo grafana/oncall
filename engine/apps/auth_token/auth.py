@@ -8,14 +8,16 @@ from rest_framework import exceptions
 from rest_framework.authentication import BaseAuthentication, get_authorization_header
 from rest_framework.request import Request
 
-from apps.api.permissions import RBACPermission, user_is_authorized
+from apps.api.permissions import RBACPermission, user_is_authorized, LegacyAccessControlRole
 from apps.grafana_plugin.helpers.gcom import check_token
 from apps.user_management.exceptions import OrganizationDeletedException, OrganizationMovedException
 from apps.user_management.models import User
 from apps.user_management.models.organization import Organization
+from settings.base import SELF_HOSTED_SETTINGS
 
 from .constants import SCHEDULE_EXPORT_TOKEN_NAME, SLACK_AUTH_TOKEN_NAME
 from .exceptions import InvalidToken
+from .grafana.grafana_auth_token import get_service_account_token_permissions
 from .models import ApiAuthToken, PluginAuthToken, ScheduleExportAuthToken, SlackAuthToken, UserScheduleExportAuthToken
 
 logger = logging.getLogger(__name__)
@@ -262,3 +264,60 @@ class UserScheduleExportAuthentication(BaseAuthentication):
             raise exceptions.AuthenticationFailed("Export token is deactivated")
 
         return auth_token.user, auth_token
+
+
+X_GRAFANA_ORG_SLUG = "X-Grafana-Org-Slug"
+X_GRAFANA_INSTANCE_SLUG = "X-Grafana-Instance-Slug"
+
+class GrafanaServiceAccountAuthentication(BaseAuthentication):
+
+    def authenticate(self, request):
+        organization = self.get_organization(request)
+        if not organization:
+            raise exceptions.AuthenticationFailed("Invalid organization.")
+        if organization.is_moved:
+            raise OrganizationMovedException(organization)
+        if organization.deleted_at:
+            raise OrganizationDeletedException(organization)
+
+        auth = get_authorization_header(request).decode("utf-8")
+        if not auth:
+            raise exceptions.AuthenticationFailed("Invalid token.")
+
+        return self.authenticate_credentials(organization, auth)
+
+    def get_organization(self, request):
+        org_slug = SELF_HOSTED_SETTINGS["ORG_SLUG"]
+        instance_slug = SELF_HOSTED_SETTINGS["STACK_SLUG"]
+        if settings.LICENSE == settings.CLOUD_LICENSE_NAME:
+            org_slug = request.headers.get(X_GRAFANA_ORG_SLUG)
+            if not org_slug:
+                raise exceptions.AuthenticationFailed(f"Missing {X_GRAFANA_ORG_SLUG}")
+            instance_slug = request.headers.get(X_GRAFANA_INSTANCE_SLUG)
+            if not instance_slug:
+                raise exceptions.AuthenticationFailed(f"Missing {X_GRAFANA_INSTANCE_SLUG}")
+
+        return Organization.objects.filter(org_slug=org_slug, stack_slug=instance_slug).first()
+
+    def authenticate_credentials(self, organization, token):
+        permissions = get_service_account_token_permissions(organization, token)
+        if not permissions:
+            raise exceptions.AuthenticationFailed("Invalid token.")
+
+        user = User(
+            organization_id=organization.pk,
+            name="Grafana Service Account",
+            username="grafana_service_account",
+            role=LegacyAccessControlRole.ADMIN,
+            permissions=permissions,
+        )
+
+        auth_token = ApiAuthToken(
+            organization=organization,
+            user=user,
+            name="Grafana Service Account"
+        )
+
+        return user, auth_token
+
+

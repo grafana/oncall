@@ -5,7 +5,7 @@ from rest_framework.viewsets import ModelViewSet
 
 from apps.alerts.models import ResolutionNote
 from apps.alerts.tasks import send_update_resolution_note_signal
-from apps.auth_token.auth import ApiTokenAuthentication
+from apps.auth_token.auth import ApiTokenAuthentication, GrafanaServiceAccountAuthentication
 from apps.public_api.serializers.resolution_notes import ResolutionNoteSerializer, ResolutionNoteUpdateSerializer
 from apps.public_api.throttlers.user_throttle import UserThrottle
 from common.api_helpers.mixins import RateLimitHeadersMixin, UpdateSerializerMixin
@@ -13,7 +13,7 @@ from common.api_helpers.paginators import FiftyPageSizePaginator
 
 
 class ResolutionNoteView(RateLimitHeadersMixin, UpdateSerializerMixin, ModelViewSet):
-    authentication_classes = (ApiTokenAuthentication,)
+    authentication_classes = (GrafanaServiceAccountAuthentication, ApiTokenAuthentication)
     permission_classes = (IsAuthenticated,)
 
     throttle_classes = [UserThrottle]
