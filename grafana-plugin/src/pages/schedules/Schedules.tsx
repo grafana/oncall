@@ -125,7 +125,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
           </div>
 
           {results === undefined ? (
-            <LoadingPlaceholder text="Loading Schedules..." />
+            <LoadingPlaceholder text="Loading..." />
           ) : (
             <Table
               columns={this.getTableColumns()}
