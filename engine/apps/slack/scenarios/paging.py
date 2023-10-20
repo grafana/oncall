@@ -6,8 +6,9 @@ from uuid import uuid4
 from django.conf import settings
 from django.db.models import Model, QuerySet
 
-from apps.alerts.models import AlertReceiveChannel, EscalationChain
+from apps.alerts.models import AlertReceiveChannel
 from apps.alerts.paging import UserNotifications, direct_paging
+from apps.schedules.ical_utils import get_oncall_users_for_multiple_schedules
 from apps.slack.constants import DIVIDER, PRIVATE_METADATA_MAX_LENGTH
 from apps.slack.errors import SlackAPIChannelNotFoundError
 from apps.slack.scenarios import scenario_step
@@ -25,7 +26,6 @@ from apps.slack.types import (
 if typing.TYPE_CHECKING:
     from django.db.models.manager import RelatedManager
 
-    from apps.schedules.models import OnCallSchedule
     from apps.slack.models import SlackTeamIdentity, SlackUserIdentity
     from apps.user_management.models import Organization, Team, User
 
@@ -33,12 +33,7 @@ if typing.TYPE_CHECKING:
 DIRECT_PAGING_TEAM_SELECT_ID = "paging_team_select"
 DIRECT_PAGING_ORG_SELECT_ID = "paging_org_select"
 DIRECT_PAGING_USER_SELECT_ID = "paging_user_select"
-DIRECT_PAGING_SCHEDULE_SELECT_ID = "paging_schedule_select"
-DIRECT_PAGING_TITLE_INPUT_ID = "paging_title_input"
 DIRECT_PAGING_MESSAGE_INPUT_ID = "paging_message_input"
-DIRECT_PAGING_ADDITIONAL_RESPONDERS_INPUT_ID = "paging_additional_responders_input"
-
-DEFAULT_TEAM_VALUE = "default_team"
 
 
 class Policy(enum.StrEnum):
@@ -62,7 +57,6 @@ ITEM_ACTIONS = (
 
 
 class DataKey(enum.StrEnum):
-    SCHEDULES = "schedules"
     USERS = "users"
 
 
@@ -90,7 +84,7 @@ def remove_item(payload: EventPayload, key: DataKey, item_pk: str) -> EventPaylo
 
 def reset_items(payload: EventPayload) -> EventPayload:
     metadata = json.loads(payload["view"]["private_metadata"])
-    for key in (DataKey.USERS, DataKey.SCHEDULES):
+    for key in (DataKey.USERS,):
         metadata[key] = {}
     payload["view"]["private_metadata"] = json.dumps(metadata)
     return payload
@@ -107,6 +101,9 @@ def get_current_items(
     for u, p in metadata[key].items():
         item = qs.filter(pk=u).first()
         items.append((item, p))
+
+    print("YOOO METADATA IS", metadata)
+    print("YOOO ITEMS IS", items)
     return items
 
 
@@ -136,7 +133,6 @@ class StartDirectPaging(scenario_step.ScenarioStep):
             "input_id_prefix": input_id_prefix,
             "submit_routing_uid": FinishDirectPaging.routing_uid(),
             DataKey.USERS: {},
-            DataKey.SCHEDULES: {},
         }
         initial_payload = {"view": {"private_metadata": json.dumps(private_metadata)}}
         view = render_dialog(slack_user_identity, slack_team_identity, initial_payload, initial=True)
@@ -155,7 +151,6 @@ class FinishDirectPaging(scenario_step.ScenarioStep):
         slack_team_identity: "SlackTeamIdentity",
         payload: EventPayload,
     ) -> None:
-        title = _get_title_from_payload(payload)
         message = _get_message_from_payload(payload)
         private_metadata = json.loads(payload["view"]["private_metadata"])
         channel_id = private_metadata["channel_id"]
@@ -163,23 +158,17 @@ class FinishDirectPaging(scenario_step.ScenarioStep):
         selected_organization = _get_selected_org_from_payload(
             payload, input_id_prefix, slack_team_identity, slack_user_identity
         )
-        # TODO: update selected_team
+
         _, selected_team = _get_selected_team_from_payload(payload, input_id_prefix)
         user = slack_user_identity.get_user(selected_organization)
 
-        # Only pass users/team if additional responders checkbox is checked
-        selected_users: UserNotifications | None = None
+        selected_users: UserNotifications = [
+            (u, p == Policy.IMPORTANT)
+            for u, p in get_current_items(payload, DataKey.USERS, selected_organization.users)
+        ]
 
-        is_additional_responders_checked = _get_additional_responders_checked_from_payload(payload, input_id_prefix)
-        if is_additional_responders_checked:
-            selected_users = [
-                (u, p == Policy.IMPORTANT)
-                for u, p in get_current_items(payload, DataKey.USERS, selected_organization.users)
-            ]
-            # selected_schedules = [
-            #     (s, p == Policy.IMPORTANT)
-            #     for s, p in get_current_items(payload, DataKey.SCHEDULES, selected_organization.oncall_schedules)
-            # ]
+        print("YOOO SELECTED TEAM", selected_team)
+        print("YOOO SELECTED USERS", selected_users)
 
         # trigger direct paging to selected team + users
         alert_group = direct_paging(
@@ -190,7 +179,7 @@ class FinishDirectPaging(scenario_step.ScenarioStep):
             selected_users,
         )
 
-        text = ":white_check_mark: Alert group *{}* created: {}".format(title, alert_group.web_link)
+        text = f":white_check_mark: Escalation created: {alert_group.web_link}"
 
         try:
             self._slack_client.chat_postEphemeral(
@@ -219,10 +208,9 @@ class OnPagingOrgChange(scenario_step.ScenarioStep):
         payload: EventPayload,
     ) -> None:
         updated_payload = reset_items(payload)
-        view = render_dialog(slack_user_identity, slack_team_identity, updated_payload)
         self._slack_client.views_update(
             trigger_id=updated_payload["trigger_id"],
-            view=view,
+            view=render_dialog(slack_user_identity, slack_team_identity, updated_payload),
             view_id=updated_payload["view"]["id"],
         )
 
@@ -236,16 +224,11 @@ class OnPagingTeamChange(scenario_step.ScenarioStep):
         slack_team_identity: "SlackTeamIdentity",
         payload: EventPayload,
     ) -> None:
-        view = render_dialog(slack_user_identity, slack_team_identity, payload)
         self._slack_client.views_update(
             trigger_id=payload["trigger_id"],
-            view=view,
+            view=render_dialog(slack_user_identity, slack_team_identity, payload),
             view_id=payload["view"]["id"],
         )
-
-
-class OnPagingCheckAdditionalResponders(OnPagingOrgChange):
-    """Check/uncheck additional responders checkbox."""
 
 
 class OnPagingUserChange(scenario_step.ScenarioStep):
@@ -261,15 +244,19 @@ class OnPagingUserChange(scenario_step.ScenarioStep):
         payload: EventPayload,
     ) -> None:
         private_metadata = json.loads(payload["view"]["private_metadata"])
+        # TODO:
         # selected_organization = _get_selected_org_from_payload(
         #     payload, private_metadata["input_id_prefix"], slack_team_identity, slack_user_identity
         # )
         selected_user = _get_selected_user_from_payload(payload, private_metadata["input_id_prefix"])
+
+        print("SELECTED_USERS IS", selected_user)
+
         if selected_user is None:
             return
 
         # check availability
-        # TODO: update this
+        # TODO: update this, if user is not currently on-call, show confirmation modal
         availability_warnings = False
         if availability_warnings:
             # display warnings and require additional confirmation
@@ -337,7 +324,6 @@ class OnPagingConfirmUserChange(scenario_step.ScenarioStep):
             "input_id_prefix": metadata["input_id_prefix"],
             "submit_routing_uid": metadata["submit_routing_uid"],
             DataKey.USERS: metadata[DataKey.USERS],
-            DataKey.SCHEDULES: metadata[DataKey.SCHEDULES],
         }
         previous_view_payload = {
             "view": {
@@ -359,33 +345,6 @@ class OnPagingConfirmUserChange(scenario_step.ScenarioStep):
             view=view,
             view_id=payload["view"]["previous_view_id"],
         )
-
-
-class OnPagingScheduleChange(scenario_step.ScenarioStep):
-    """Add selected to user to the list.
-
-    It will perform a user availability check, pushing a new modal for additional confirmation if needed.
-    """
-
-    def process_scenario(
-        self,
-        slack_user_identity: "SlackUserIdentity",
-        slack_team_identity: "SlackTeamIdentity",
-        payload: EventPayload,
-    ) -> None:
-        private_metadata = json.loads(payload["view"]["private_metadata"])
-        selected_schedule = _get_selected_schedule_from_payload(payload, private_metadata["input_id_prefix"])
-        if selected_schedule is None:
-            return
-
-        error_msg = None
-        try:
-            updated_payload = add_or_update_item(payload, DataKey.SCHEDULES, selected_schedule.pk, Policy.DEFAULT)
-        except ValueError:
-            updated_payload = payload
-            error_msg = "Cannot add schedule, maximum responders exceeded"
-        view = render_dialog(slack_user_identity, slack_team_identity, updated_payload, error_msg=error_msg)
-        self._slack_client.views_update(trigger_id=payload["trigger_id"], view=view, view_id=payload["view"]["id"])
 
 
 # slack view/blocks rendering helpers
@@ -411,7 +370,6 @@ def render_dialog(
         new_private_metadata["input_id_prefix"] = new_input_id_prefix
         selected_organization = available_organizations.first()
         is_team_selected, selected_team = False, None
-        is_additional_responders_checked = False
     else:
         # setup form using data/state
         old_input_id_prefix, new_input_id_prefix, new_private_metadata = _get_and_change_input_id_prefix_from_metadata(
@@ -421,18 +379,15 @@ def render_dialog(
             payload, old_input_id_prefix, slack_team_identity, slack_user_identity
         )
         is_team_selected, selected_team = _get_selected_team_from_payload(payload, old_input_id_prefix)
-        is_additional_responders_checked = _get_additional_responders_checked_from_payload(payload, old_input_id_prefix)
 
     # widgets
     team_select_blocks = _get_team_select_blocks(
         slack_user_identity, selected_organization, is_team_selected, selected_team, new_input_id_prefix
     )
-    additional_responders_blocks = _get_additional_responders_blocks(
-        payload, selected_organization, new_input_id_prefix, is_additional_responders_checked, error_msg
-    )
+    users_select_blocks = _get_users_select_blocks(payload, selected_organization, new_input_id_prefix, error_msg)
 
-    # Add title and message inputs
-    blocks: Block.AnyBlocks = [_get_title_input(payload), _get_message_input(payload)]
+    # Add message input
+    blocks: Block.AnyBlocks = [_get_message_input(payload)]
 
     # Add organization select if more than one organization available for user
     if len(available_organizations) > 1:
@@ -441,9 +396,8 @@ def render_dialog(
         )
         blocks.append(organization_select)
 
-    # Add team select and additional responders blocks
     blocks += team_select_blocks
-    blocks += additional_responders_blocks
+    blocks += users_select_blocks
 
     return _get_form_view(submit_routing_uid, blocks, json.dumps(new_private_metadata))
 
@@ -454,7 +408,7 @@ def _get_form_view(routing_uid: str, blocks: Block.AnyBlocks, private_metadata: 
         "callback_id": routing_uid,
         "title": {
             "type": "plain_text",
-            "text": "Create Alert Group",
+            "text": "Create Escalation",
         },
         "close": {
             "type": "plain_text",
@@ -545,19 +499,8 @@ def _get_team_select_blocks(
     teams = user.available_teams
 
     team_options: typing.List[CompositionObjectOption] = []
-    # Adding pseudo option for default team
     initial_option_idx = 0
-    team_options.append(
-        {
-            "text": {
-                "type": "plain_text",
-                "text": "No team",
-                "emoji": True,
-            },
-            "value": DEFAULT_TEAM_VALUE,
-        }
-    )
-    for idx, team in enumerate(teams, start=1):
+    for idx, team in enumerate(teams):
         if team == value:
             initial_option_idx = idx
         team_options.append(
@@ -576,7 +519,7 @@ def _get_team_select_blocks(
         "block_id": input_id_prefix + DIRECT_PAGING_TEAM_SELECT_ID,
         "label": {
             "type": "plain_text",
-            "text": "Team to notify",
+            "text": "Team",
         },
         "element": {
             "type": "static_select",
@@ -585,6 +528,7 @@ def _get_team_select_blocks(
             "options": team_options,
         },
         "dispatch_action": True,
+        "optional": True,
     }
 
     # No context block if no team selected
@@ -592,126 +536,32 @@ def _get_team_select_blocks(
         return [team_select]
 
     team_select["element"]["initial_option"] = team_options[initial_option_idx]
-    return [team_select, _get_team_select_context(organization, value)]
 
-
-def _get_team_select_context(organization: "Organization", team: "Team") -> Block.Context:
-    team_name = team.name if team else "No team"
+    # NOTE: we shouldn't need to worry about alert_receive_channel being None
+    # since we create a default one when we sync teams
     alert_receive_channel = AlertReceiveChannel.objects.filter(
         organization=organization,
         team=team,
         integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING,
     ).first()
 
-    escalation_chains_exist = EscalationChain.objects.filter(
-        channel_filters__alert_receive_channel=alert_receive_channel
-    ).exists()
-
-    if not alert_receive_channel:
-        context_text = (
-            ":warning: *Direct paging integration missing*\n"
-            "The selected team doesn't have a direct paging integration configured and will not be notified. "
-            "If you proceed with the alert group, an empty direct paging integration will be created automatically for the team. "
-            "<https://grafana.com/docs/oncall/latest/integrations/manual/#learn-the-flow-and-handle-warnings|Learn more.>"
-        )
-    elif not escalation_chains_exist:
-        context_text = (
-            ":warning: *Direct paging integration not configured*\n"
-            "The direct paging integration for the selected team has no escalation chains configured. "
-            "If you proceed with the alert group, the team likely will not be notified. "
-            "<https://grafana.com/docs/oncall/latest/integrations/manual/#learn-the-flow-and-handle-warnings|Learn more.>"
-        )
-    else:
-        context_text = f"Integration <{alert_receive_channel.web_link}|{alert_receive_channel.verbal_name} ({team_name})> will be used for notification."
-
-    context: Block.Context = {
-        "type": "context",
-        "elements": [
-            {
-                "type": "mrkdwn",
-                "text": context_text,
-            }
-        ],
-    }
-    return context
-
-
-def _get_additional_responders_blocks(
-    payload: EventPayload,
-    organization: "Organization",
-    input_id_prefix,
-    is_additional_responders_checked: bool,
-    error_msg: str | None,
-) -> Block.AnyBlocks:
-    checkbox_option: CompositionObjectOption = {
-        "text": {
-            "type": "plain_text",
-            "text": "Notify additional responders",
+    return [
+        team_select,
+        {
+            "type": "context",
+            "elements": [
+                {
+                    "type": "mrkdwn",
+                    "text": f"Integration <{alert_receive_channel.web_link}|{alert_receive_channel.verbal_name}> will be used for notification.",
+                },
+            ],
         },
-    }
-
-    blocks: Block.AnyBlocks = [
-        typing.cast(
-            Block.Input,
-            {
-                "type": "input",
-                "block_id": input_id_prefix + DIRECT_PAGING_ADDITIONAL_RESPONDERS_INPUT_ID,
-                "label": {
-                    "type": "plain_text",
-                    "text": "Additional responders",
-                },
-                "element": {
-                    "type": "checkboxes",
-                    "options": [checkbox_option],
-                    "action_id": OnPagingCheckAdditionalResponders.routing_uid(),
-                },
-                "optional": True,
-                "dispatch_action": True,
-            },
-        ),
     ]
 
-    if is_additional_responders_checked:
-        blocks[0]["element"]["initial_options"] = [checkbox_option]
 
-    if error_msg:
-        blocks += [
-            typing.cast(
-                Block.Section,
-                {
-                    "type": "section",
-                    "block_id": "error_message",
-                    "text": {
-                        "type": "mrkdwn",
-                        "text": f":warning: {error_msg}",
-                    },
-                },
-            ),
-        ]
-
-    if is_additional_responders_checked:
-        users_select = _get_users_select(organization, input_id_prefix, OnPagingUserChange.routing_uid())
-        schedules_select = _get_schedules_select(organization, input_id_prefix, OnPagingScheduleChange.routing_uid())
-
-        blocks += [users_select, schedules_select]
-        # selected items
-        selected_users = get_current_items(payload, DataKey.USERS, organization.users)
-        selected_schedules = get_current_items(payload, DataKey.SCHEDULES, organization.oncall_schedules)
-
-        if selected_users or selected_schedules:
-            blocks += [DIVIDER]
-            blocks += _get_selected_entries_list(input_id_prefix, DataKey.USERS, selected_users)
-            blocks += _get_selected_entries_list(input_id_prefix, DataKey.SCHEDULES, selected_schedules)
-            blocks += [DIVIDER]
-
-    return blocks
-
-
-def _get_users_select(
-    organization: "Organization", input_id_prefix: str, action_id: str, max_options_per_group=MAX_STATIC_SELECT_OPTIONS
-) -> Block.Context | Block.Section:
-    users = organization.users.all()
-
+def _create_user_options(
+    users: "RelatedManager['User']", option_group_label_text_prefix: str
+) -> typing.List[CompositionObjectOption]:
     user_options: typing.List[CompositionObjectOption] = [
         {
             "text": {
@@ -724,87 +574,93 @@ def _get_users_select(
         for user in users
     ]
 
-    if not user_options:
-        return typing.cast(
-            Block.Context, {"type": "context", "elements": [{"type": "mrkdwn", "text": "No users available"}]}
-        )
-
-    user_select: Block.Section = {
-        "type": "section",
-        "text": {"type": "mrkdwn", "text": "Notify user"},
-        "block_id": input_id_prefix + DIRECT_PAGING_USER_SELECT_ID,
-        "accessory": {
-            "type": "static_select",
-            "placeholder": {"type": "plain_text", "text": "Select user", "emoji": True},
-            "action_id": action_id,
-        },
-    }
-
-    if len(user_options) > max_options_per_group:
-        user_select["accessory"]["option_groups"] = _get_option_groups(user_options, max_options_per_group)
-    else:
-        user_select["accessory"]["options"] = user_options
-
-    return user_select
+    return _get_option_groups(user_options, MAX_STATIC_SELECT_OPTIONS, option_group_label_text_prefix)
 
 
-def _get_schedules_select(
-    organization: "Organization", input_id_prefix: str, action_id: str, max_options_per_group=MAX_STATIC_SELECT_OPTIONS
-) -> Block.Context | Block.Section:
-    schedules = organization.oncall_schedules.all()
+def _get_users_select_blocks(
+    payload: EventPayload,
+    organization: "Organization",
+    input_id_prefix,
+    error_msg: str | None,
+) -> Block.AnyBlocks:
+    schedules = get_oncall_users_for_multiple_schedules(organization.oncall_schedules.all())
+    oncall_user_pks = {user.pk for _, users in schedules.items() for user in users}
 
-    schedule_options: typing.List[CompositionObjectOption] = [
-        {
-            "text": {
+    oncall_user_options = _create_user_options(organization.users.filter(pk__in=oncall_user_pks), "On-call now")
+    not_oncall_user_options = _create_user_options(organization.users.exclude(pk__in=oncall_user_pks), "Not on-call")
+
+    if not oncall_user_options and not not_oncall_user_options:
+        return [{"type": "context", "elements": [{"type": "mrkdwn", "text": "No users available"}]}]
+
+    blocks: Block.AnyBlocks = []
+    user_select: Block.Input = {
+        "type": "input",
+        "element": {
+            "type": "multi_static_select",
+            "placeholder": {
                 "type": "plain_text",
-                "text": f"{schedule.name}",
+                "text": "Select users",
                 "emoji": True,
             },
-            "value": f"{schedule.pk}",
-        }
-        for schedule in schedules
-    ]
-
-    if not schedule_options:
-        return typing.cast(
-            Block.Context,
-            {
-                "type": "context",
-                "elements": [{"type": "mrkdwn", "text": "No schedules available"}],
-            },
-        )
-
-    schedule_select: Block.Section = {
-        "type": "section",
-        "text": {"type": "mrkdwn", "text": "Notify schedule"},
-        "block_id": input_id_prefix + DIRECT_PAGING_SCHEDULE_SELECT_ID,
-        "accessory": {
-            "type": "static_select",
-            "placeholder": {"type": "plain_text", "text": "Select schedule", "emoji": True},
-            "action_id": action_id,
+            "action_id": OnPagingUserChange.routing_uid(),
+            "option_groups": oncall_user_options + not_oncall_user_options,
         },
+        "label": {
+            "type": "plain_text",
+            "text": "Users",
+        },
+        "block_id": input_id_prefix + DIRECT_PAGING_USER_SELECT_ID,
+        "dispatch_action": True,
+        "optional": True,
     }
 
-    if len(schedule_options) > max_options_per_group:
-        schedule_select["accessory"]["option_groups"] = _get_option_groups(schedule_options, max_options_per_group)
-    else:
-        schedule_select["accessory"]["options"] = schedule_options
+    blocks.append(user_select)
 
-    return schedule_select
+    if error_msg:
+        blocks.append(
+            typing.cast(
+                Block.Section,
+                {
+                    "type": "section",
+                    "block_id": "error_message",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": f":warning: {error_msg}",
+                    },
+                },
+            )
+        )
+
+    # TODO: selected items
+    if selected_users := get_current_items(payload, DataKey.USERS, organization.users):
+        blocks += [
+            DIVIDER,
+            _get_selected_entries_list(input_id_prefix, DataKey.USERS, selected_users),
+            DIVIDER,
+        ]
+
+    return blocks
 
 
 def _get_option_groups(
-    options: typing.List[CompositionObjectOption], max_options_per_group: int
+    options: typing.List[CompositionObjectOption], max_options_per_group: int, option_group_label_text_prefix: str
 ) -> typing.List[CompositionObjectOptionGroup]:
     chunks = [options[x : x + max_options_per_group] for x in range(0, len(options), max_options_per_group)]
+    has_more_than_one_chunk = len(chunks) > 1
 
     option_groups: typing.List[CompositionObjectOptionGroup] = []
     for idx, group in enumerate(chunks):
         start = idx * max_options_per_group + 1
         end = idx * max_options_per_group + max_options_per_group
+
+        if has_more_than_one_chunk:
+            label_text = f"{option_group_label_text_prefix} ({start}-{end})"
+        else:
+            label_text = option_group_label_text_prefix
+
         option_groups.append(
             {
-                "label": {"type": "plain_text", "text": f"({start}-{end})"},
+                "label": {"type": "plain_text", "text": label_text},
                 "options": group,
             }
         )
@@ -821,11 +677,7 @@ def _get_selected_entries_list(
             icon = ":bust_in_silhouette:"
             name = entry.name or entry.username
             extra = entry.timezone
-        else:
-            # schedule
-            icon = ":spiral_calendar_pad:"
-            name = entry.name
-            extra = None
+
         current_entries.append(
             {
                 "type": "section",
@@ -864,7 +716,6 @@ def _get_selected_entries_list(
 #                 "channel_id": metadata["channel_id"],
 #                 "submit_routing_uid": metadata["submit_routing_uid"],
 #                 DataKey.USERS: metadata[DataKey.USERS],
-#                 DataKey.SCHEDULES: metadata[DataKey.SCHEDULES],
 #             }
 #         ),
 #     )
@@ -925,22 +776,8 @@ def _get_selected_team_from_payload(
     if selected_team_id is None:
         return None, None
 
-    if selected_team_id == DEFAULT_TEAM_VALUE:
-        return selected_team_id, None
-
     team = Team.objects.filter(pk=selected_team_id).first()
     return selected_team_id, team
-
-
-def _get_additional_responders_checked_from_payload(payload: EventPayload, input_id_prefix: str) -> bool:
-    try:
-        selected_options = payload["view"]["state"]["values"][
-            input_id_prefix + DIRECT_PAGING_ADDITIONAL_RESPONDERS_INPUT_ID
-        ][OnPagingCheckAdditionalResponders.routing_uid()]["selected_options"]
-    except KeyError:
-        return False
-
-    return len(selected_options) > 0
 
 
 def _get_selected_user_from_payload(payload: EventPayload, input_id_prefix: str) -> typing.Optional["User"]:
@@ -949,22 +786,12 @@ def _get_selected_user_from_payload(payload: EventPayload, input_id_prefix: str)
     selected_user_id = _get_select_field_value(
         payload, input_id_prefix, OnPagingUserChange.routing_uid(), DIRECT_PAGING_USER_SELECT_ID
     )
+
+    print("PAYLOAD IS", payload)
+
     if selected_user_id is not None:
         user = User.objects.filter(pk=selected_user_id).first()
         return user
-    return None
-
-
-def _get_selected_schedule_from_payload(
-    payload: EventPayload, input_id_prefix: str
-) -> typing.Optional["OnCallSchedule"]:
-    from apps.schedules.models import OnCallSchedule
-
-    selected_schedule_id = _get_select_field_value(
-        payload, input_id_prefix, OnPagingScheduleChange.routing_uid(), DIRECT_PAGING_SCHEDULE_SELECT_ID
-    )
-    if selected_schedule_id is not None:
-        return OnCallSchedule.objects.filter(pk=selected_schedule_id).first()
     return None
 
 
@@ -977,40 +804,13 @@ def _get_and_change_input_id_prefix_from_metadata(
     return old_input_id_prefix, new_input_id_prefix, metadata
 
 
-def _get_title_input(payload: EventPayload) -> Block.Input:
-    title_input_block: Block.Input = {
-        "type": "input",
-        "block_id": DIRECT_PAGING_TITLE_INPUT_ID,
-        "label": {
-            "type": "plain_text",
-            "text": "Title",
-        },
-        "element": {
-            "type": "plain_text_input",
-            "action_id": FinishDirectPaging.routing_uid(),
-            "placeholder": {
-                "type": "plain_text",
-                "text": " ",
-            },
-        },
-    }
-    if payload.get("text", None) is not None:
-        title_input_block["element"]["initial_value"] = payload["text"]
-    return title_input_block
-
-
-def _get_title_from_payload(payload: EventPayload) -> str:
-    title = payload["view"]["state"]["values"][DIRECT_PAGING_TITLE_INPUT_ID][FinishDirectPaging.routing_uid()]["value"]
-    return title
-
-
 def _get_message_input(payload: EventPayload) -> Block.Input:
     message_input_block: Block.Input = {
         "type": "input",
         "block_id": DIRECT_PAGING_MESSAGE_INPUT_ID,
         "label": {
             "type": "plain_text",
-            "text": "Message",
+            "text": "What is going on?",
         },
         "element": {
             "type": "plain_text_input",
@@ -1021,7 +821,7 @@ def _get_message_input(payload: EventPayload) -> Block.Input:
                 "text": " ",
             },
         },
-        "optional": True,
+        "optional": False,
     }
     if payload.get("message", {}).get("text") is not None:
         message_input_block["element"]["initial_value"] = payload["message"]["text"]
@@ -1045,9 +845,11 @@ def _get_available_organizations(
     )
 
 
-# _generate_input_id_prefix returns uniq str to not to preserve input's values between view update
-#  https://api.slack.com/methods/views.update#markdown
 def _generate_input_id_prefix() -> str:
+    """
+    Returns a unique string to not to preserve an input's values between view update
+    https://api.slack.com/methods/views.update#markdown
+    """
     return str(uuid4())
 
 
@@ -1066,13 +868,7 @@ STEPS_ROUTING: ScenarioRoute.RoutingSteps = [
     },
     {
         "payload_type": PayloadType.BLOCK_ACTIONS,
-        "block_action_type": BlockActionType.CHECKBOXES,
-        "block_action_id": OnPagingCheckAdditionalResponders.routing_uid(),
-        "step": OnPagingCheckAdditionalResponders,
-    },
-    {
-        "payload_type": PayloadType.BLOCK_ACTIONS,
-        "block_action_type": BlockActionType.STATIC_SELECT,
+        "block_action_type": BlockActionType.MULTI_STATIC_SELECT,
         "block_action_id": OnPagingUserChange.routing_uid(),
         "step": OnPagingUserChange,
     },
@@ -1080,12 +876,6 @@ STEPS_ROUTING: ScenarioRoute.RoutingSteps = [
         "payload_type": PayloadType.VIEW_SUBMISSION,
         "view_callback_id": OnPagingConfirmUserChange.routing_uid(),
         "step": OnPagingConfirmUserChange,
-    },
-    {
-        "payload_type": PayloadType.BLOCK_ACTIONS,
-        "block_action_type": BlockActionType.STATIC_SELECT,
-        "block_action_id": OnPagingScheduleChange.routing_uid(),
-        "step": OnPagingScheduleChange,
     },
     {
         "payload_type": PayloadType.BLOCK_ACTIONS,
