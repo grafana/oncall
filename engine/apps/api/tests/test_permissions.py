@@ -15,6 +15,7 @@ from apps.api.permissions import (
     RBACPermission,
     RBACPermissionsAttribute,
     get_most_authorized_role,
+    get_view_action,
     user_is_authorized,
 )
 
@@ -166,8 +167,8 @@ class TestRBACPermission:
         method = "APIVIEW_ACTION"
         request = MockedRequest(method=method)
 
-        assert RBACPermission._get_view_action(request, viewset) == viewset_action, "it works with a ViewSet"
-        assert RBACPermission._get_view_action(request, apiview) == method.lower(), "it works with an APIView"
+        assert get_view_action(request, viewset) == viewset_action, "it works with a ViewSet"
+        assert get_view_action(request, apiview) == method.lower(), "it works with an APIView"
 
     def test_has_permission_works_on_a_viewset_view(self) -> None:
         required_permission = RBACPermission.Permissions.ALERT_GROUPS_READ
