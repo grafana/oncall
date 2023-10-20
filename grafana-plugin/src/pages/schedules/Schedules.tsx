@@ -3,7 +3,6 @@ import React, { SyntheticEvent } from 'react';
 import { Button, HorizontalGroup, IconButton, LoadingPlaceholder, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
-import { debounce } from 'lodash-es';
 import { observer } from 'mobx-react';
 import qs from 'query-string';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
@@ -38,7 +37,6 @@ import { PAGE, PLUGIN_ROOT, TEXT_ELLIPSIS_CLASS } from 'utils/consts';
 import styles from './Schedules.module.css';
 
 const cx = cn.bind(styles);
-const FILTERS_DEBOUNCE_MS = 500;
 const PAGE_SIZE_DEFAULT = 15;
 
 interface SchedulesPageProps extends WithStoreProps, RouteComponentProps, PageProps {}
@@ -80,58 +78,9 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
   render() {
     const { store, query } = this.props;
 
-    const { grafanaTeamStore } = store;
     const { showNewScheduleSelector, expandedRowKeys, scheduleIdToEdit, page, startMoment } = this.state;
 
     const { results, count, page_size } = store.scheduleStore.getSearchResult();
-
-    const columns = [
-      {
-        width: '10%',
-        title: 'Type',
-        dataIndex: 'type',
-        render: this.renderType,
-      },
-      {
-        width: '10%',
-        title: 'Status',
-        key: 'name',
-        render: (item: Schedule) => this.renderStatus(item),
-      },
-      {
-        width: '25%',
-        title: 'Name',
-        key: 'name',
-        render: this.renderName,
-      },
-      {
-        width: '25%',
-        title: 'On-call now',
-        key: 'users',
-        render: this.renderOncallNow,
-      },
-      {
-        width: '10%',
-        title: 'Slack channel',
-        render: this.renderChannelName,
-      },
-      {
-        width: '10%',
-        title: 'Slack user group',
-        render: this.renderUserGroup,
-      },
-      {
-        width: '20%',
-        title: 'Team',
-        render: (item: Schedule) => this.renderTeam(item, grafanaTeamStore.items),
-      },
-      {
-        width: '50px',
-        key: 'buttons',
-        render: this.renderButtons,
-        className: cx('buttons'),
-      },
-    ];
 
     const users = store.userStore.getSearchResult().results;
 
@@ -169,28 +118,36 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
               query={query}
               page={PAGE.Schedules}
               grafanaTeamStore={store.grafanaTeamStore}
-              onChange={this.handleSchedulesFiltersChange}
+              onChange={(filters, isOnMount: boolean, invalidateFn: () => boolean) => {
+                this.handleSchedulesFiltersChange(filters, isOnMount, invalidateFn);
+              }}
             />
           </div>
-          <Table
-            columns={columns}
-            data={results}
-            loading={!results}
-            pagination={{
-              page,
-              total: Math.ceil((count || 0) / (page_size || PAGE_SIZE_DEFAULT)),
-              onChange: this.handlePageChange,
-            }}
-            rowKey="id"
-            expandable={{
-              expandedRowKeys: expandedRowKeys,
-              onExpand: this.handleExpandRow,
-              expandedRowRender: this.renderSchedule,
-              expandRowByClick: true,
-            }}
-            emptyText={this.renderNotFound()}
-          />
+
+          {results === undefined ? (
+            <LoadingPlaceholder text="Loading Schedules..." />
+          ) : (
+            <Table
+              columns={this.getTableColumns()}
+              data={results}
+              loading={!results}
+              pagination={{
+                page,
+                total: Math.ceil((count || 0) / (page_size || PAGE_SIZE_DEFAULT)),
+                onChange: this.handlePageChange,
+              }}
+              rowKey="id"
+              expandable={{
+                expandedRowKeys: expandedRowKeys,
+                onExpand: this.handleExpandRow,
+                expandedRowRender: this.renderSchedule,
+                expandRowByClick: true,
+              }}
+              emptyText={this.renderNotFound()}
+            />
+          )}
         </div>
+
         {showNewScheduleSelector && (
           <NewScheduleSelector
             onCreate={this.handleCreateSchedule}
@@ -431,20 +388,19 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
     };
   };
 
-  handleSchedulesFiltersChange = (filters: RemoteFiltersType, isOnMount) => {
-    this.setState({ filters, page: isOnMount ? this.state.page : 1 }, this.debouncedUpdateSchedules);
+  handleSchedulesFiltersChange = (filters: RemoteFiltersType, isOnMount: boolean, invalidateFn: () => boolean) => {
+    this.setState({ filters, page: isOnMount ? this.state.page : 1 }, () => {
+      this.applyFilters(invalidateFn);
+    });
   };
 
-  applyFilters = () => {
+  applyFilters = (invalidateFn?: () => boolean) => {
     const { scheduleStore } = this.props.store;
     const { page, filters } = this.state;
 
     LocationHelper.update({ p: page }, 'partial');
-
-    scheduleStore.updateItems(filters, page);
+    scheduleStore.updateItems(filters, page, invalidateFn);
   };
-
-  debouncedUpdateSchedules = debounce(this.applyFilters, FILTERS_DEBOUNCE_MS);
 
   handlePageChange = (page: number) => {
     this.setState({ page, expandedRowKeys: [] }, this.applyFilters);
@@ -456,8 +412,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
 
     store.scheduleStore.updatePersonalEvents(store.userStore.currentUserPk, startMoment, 9, true);
 
-    // For removal we need to check if count is 1
-    // which means we should change the page to the previous one
+    // For removal we need to check if count is 1, which means we should change the page to the previous one
     const { results } = store.scheduleStore.getSearchResult();
     const newPage = results.length === 1 ? Math.max(page - 1, 1) : page;
 
@@ -473,6 +428,58 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
         this.forceUpdate();
       });
     };
+  };
+
+  getTableColumns = () => {
+    const { grafanaTeamStore } = this.props.store;
+
+    return [
+      {
+        width: '10%',
+        title: 'Type',
+        dataIndex: 'type',
+        render: this.renderType,
+      },
+      {
+        width: '10%',
+        title: 'Status',
+        key: 'name',
+        render: (item: Schedule) => this.renderStatus(item),
+      },
+      {
+        width: '25%',
+        title: 'Name',
+        key: 'name',
+        render: this.renderName,
+      },
+      {
+        width: '25%',
+        title: 'On-call now',
+        key: 'users',
+        render: this.renderOncallNow,
+      },
+      {
+        width: '10%',
+        title: 'Slack channel',
+        render: this.renderChannelName,
+      },
+      {
+        width: '10%',
+        title: 'Slack user group',
+        render: this.renderUserGroup,
+      },
+      {
+        width: '20%',
+        title: 'Team',
+        render: (item: Schedule) => this.renderTeam(item, grafanaTeamStore.items),
+      },
+      {
+        width: '50px',
+        key: 'buttons',
+        render: this.renderButtons,
+        className: cx('buttons'),
+      },
+    ];
   };
 }
 

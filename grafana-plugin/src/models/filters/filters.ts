@@ -19,6 +19,9 @@ export class FiltersStore extends BaseStore {
 
   private _globalValues: FiltersValues = {};
 
+  @observable
+  public needToParseFilters = false;
+
   constructor(rootStore: RootStore) {
     super(rootStore);
 
