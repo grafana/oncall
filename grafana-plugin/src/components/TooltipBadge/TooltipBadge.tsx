@@ -67,7 +67,7 @@ const TooltipBadge: FC<TooltipBadgeProps> = (props) => {
       >
         <HorizontalGroup spacing="xs">
           {renderIcon()}
-          {text && (
+          {text !== undefined && (
             <Text
               className={cx('element__text', { [`element__text--${borderType}`]: true })}
               {...(testId ? { 'data-testid': `${testId}-text` } : {})}

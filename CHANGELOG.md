@@ -29,6 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Update plugin OnCaller role permissions ([#3145](https://github.com/grafana/oncall/pull/3145))
+- Add labels implementation for OnCall integrations under the feature flag ([#3014](https://github.com/grafana/oncall/pull/3014))
 
 ### Fixed
 

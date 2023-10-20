@@ -57,12 +57,14 @@ export default class BaseStore {
   }
 
   @action
-  async update<RT = any>(id: any, data: any, params: any = null): Promise<RT | void> {
+  async update<RT = any>(id: any, data: any, params: any = null, skipErrorHandling = false): Promise<RT | void> {
     const result = await makeRequest<RT>(`${this.path}${id}/`, {
       method: 'PUT',
       data,
       params: params,
-    }).catch(this.onApiError);
+    }).catch((error) => {
+      this.onApiError(error, skipErrorHandling);
+    });
 
     // Update env_status field for current team
     await this.rootStore.organizationStore.loadCurrentOrganization();
