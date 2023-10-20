@@ -35,8 +35,8 @@ def test_create_resolution_note(
         "id": resolution_note.public_primary_key,
         "alert_group": alert_group.public_primary_key,
         "source": {
-            "id": resolution_note.source,
-            "display_name": resolution_note.get_source_display(),
+            "id": ResolutionNote.Source.WEB.value,
+            "display_name": ResolutionNote.Source.WEB.label,
         },
         "author": {
             "pk": user.public_primary_key,
@@ -48,6 +48,31 @@ def test_create_resolution_note(
 
     assert response.status_code == status.HTTP_201_CREATED
     assert response.data == result
+
+
+@pytest.mark.django_db
+def test_create_resolution_note_mobile_app(
+    make_organization_and_user, make_mobile_app_auth_token_for_user, make_alert_receive_channel, make_alert_group
+):
+    organization, user = make_organization_and_user()
+    _, token = make_mobile_app_auth_token_for_user(user, organization)
+
+    alert_receive_channel = make_alert_receive_channel(organization)
+    alert_group = make_alert_group(alert_receive_channel)
+
+    client = APIClient()
+    url = reverse("api-internal:resolution_note-list")
+    data = {
+        "alert_group": alert_group.public_primary_key,
+        "text": "Test Message",
+    }
+
+    response = client.post(url, data=data, format="json", HTTP_AUTHORIZATION=token)
+    assert response.status_code == status.HTTP_201_CREATED
+    assert response.data["source"] == {
+        "id": ResolutionNote.Source.MOBILE_APP.value,
+        "display_name": ResolutionNote.Source.MOBILE_APP.label,
+    }
 
 
 @pytest.mark.django_db
