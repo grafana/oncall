@@ -2,7 +2,6 @@ import React, { Component } from 'react';
 
 import { SelectableValue, TimeRange } from '@grafana/data';
 import {
-  IconButton,
   InlineSwitch,
   MultiSelect,
   TimeRangeInput,
@@ -11,6 +10,7 @@ import {
   Input,
   Icon,
   Tooltip,
+  Button,
 } from '@grafana/ui';
 import { capitalCase } from 'change-case';
 import cn from 'classnames/bind';
@@ -20,6 +20,7 @@ import moment from 'moment-timezone';
 import Emoji from 'react-emoji-render';
 
 import Text from 'components/Text/Text';
+import LabelsFilter from 'containers/Labels/LabelsFilter';
 import RemoteSelect from 'containers/RemoteSelect/RemoteSelect';
 import TeamName from 'containers/TeamName/TeamName';
 import { FiltersValues } from 'models/filters/filters.types';
@@ -64,6 +65,21 @@ class RemoteFilters extends Component<RemoteFiltersProps, RemoteFiltersState> {
   };
 
   searchRef = React.createRef<HTMLInputElement>();
+
+  componentDidUpdate(prevProps: Readonly<RemoteFiltersProps>): void {
+    const { store, query } = this.props;
+    const { filtersStore } = store;
+
+    if (prevProps.query !== query && filtersStore.needToParseFilters) {
+      filtersStore.needToParseFilters = false;
+
+      const { filterOptions } = this.state;
+
+      let { filters, values } = parseFilters(query, filterOptions, query);
+
+      this.setState({ filterOptions, filters, values }, () => this.onChange());
+    }
+  }
 
   async componentDidMount() {
     const { query, page, store, defaultFilters } = this.props;
@@ -127,7 +143,13 @@ class RemoteFilters extends Component<RemoteFiltersProps, RemoteFiltersState> {
               </Tooltip>
             )}
             <Text type="secondary">:</Text> {this.renderFilterOption(filterOption)}
-            <IconButton size="sm" name="times" onClick={this.getDeleteFilterClickHandler(filterOption.name)} />
+            <Button
+              size="sm"
+              icon="times"
+              tooltip="Remove filter"
+              variant="secondary"
+              onClick={this.getDeleteFilterClickHandler(filterOption.name)}
+            />
           </div>
         ))}
         <Select
@@ -301,6 +323,16 @@ class RemoteFilters extends Component<RemoteFiltersProps, RemoteFiltersState> {
           />
         );
 
+      case 'labels':
+        return (
+          <LabelsFilter
+            autoFocus={autoFocus}
+            className={cx('filter-select')}
+            value={values[filter.name]}
+            onChange={this.getLabelsFilterChangeHandler(filter.name)}
+          />
+        );
+
       default:
         console.warn('Unknown type of filter:', filter.type, 'with name', filter.name);
         return null;
@@ -312,6 +344,15 @@ class RemoteFilters extends Component<RemoteFiltersProps, RemoteFiltersState> {
       this.onFiltersValueChange(
         name,
         options.map((option) => option.value)
+      );
+    };
+  };
+
+  getLabelsFilterChangeHandler = (name: FilterOption['name']) => {
+    return (options: Array<{ key: SelectableValue; value: SelectableValue }>) => {
+      this.onFiltersValueChange(
+        name,
+        options.map((option) => `${option.key.id}:${option.value.id}`)
       );
     };
   };
