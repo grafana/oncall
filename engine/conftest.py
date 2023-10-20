@@ -289,6 +289,7 @@ def get_user_permission_role_mapping_from_frontend_plugin_json() -> RoleMapping:
         plugin_json: PluginJSON = json.load(fp)
 
     role_mapping: RoleMapping = {
+        LegacyAccessControlRole.NONE: [],
         LegacyAccessControlRole.VIEWER: [],
         LegacyAccessControlRole.EDITOR: [],
         LegacyAccessControlRole.ADMIN: [],

@@ -35,9 +35,3 @@
   flex-grow: 1;
   gap: 8px;
 }
-
-.schedules__user-on-call {
-  display: flex;
-  flex-wrap: nowrap;
-  gap: 4px;
-}

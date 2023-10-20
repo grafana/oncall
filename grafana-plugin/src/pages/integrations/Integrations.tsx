@@ -18,6 +18,7 @@ import {
 } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper.helpers';
 import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
+import TextEllipsisTooltip from 'components/TextEllipsisTooltip/TextEllipsisTooltip';
 import TooltipBadge from 'components/TooltipBadge/TooltipBadge';
 import { WithContextMenu } from 'components/WithContextMenu/WithContextMenu';
 import IntegrationForm from 'containers/IntegrationForm/IntegrationForm';
@@ -35,14 +36,13 @@ import { withMobXProviderContext } from 'state/withStore';
 import { openNotification } from 'utils';
 import LocationHelper from 'utils/LocationHelper';
 import { UserActions } from 'utils/authorization';
-import { PAGE } from 'utils/consts';
+import { PAGE, TEXT_ELLIPSIS_CLASS } from 'utils/consts';
 
 import styles from './Integrations.module.scss';
 
 const cx = cn.bind(styles);
 const FILTERS_DEBOUNCE_MS = 500;
 const ITEMS_PER_PAGE = 15;
-const MAX_LINE_LENGTH = 40;
 
 interface IntegrationsState extends PageBaseState {
   integrationsFilters: Record<string, any>;
@@ -228,16 +228,11 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
           ...query,
         }}
       >
-        <Text type="link" size="medium">
-          <Emoji
-            className={cx('title')}
-            text={
-              item.verbal_name?.length > MAX_LINE_LENGTH
-                ? item.verbal_name?.substring(0, MAX_LINE_LENGTH) + '...'
-                : item.verbal_name
-            }
-          />
-        </Text>
+        <TextEllipsisTooltip placement="top" content={item.verbal_name}>
+          <Text type="link" size="medium">
+            <Emoji className={cx('title', TEXT_ELLIPSIS_CLASS)} text={item.verbal_name} />
+          </Text>
+        </TextEllipsisTooltip>
       </PluginLink>
     );
   };
@@ -279,6 +274,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
           <PluginLink query={{ page: 'incidents', integration: item.id }} className={cx('alertsInfoText')}>
             <TooltipBadge
               borderType="primary"
+              placement="top"
               text={alertReceiveChannelCounter?.alerts_count + '/' + alertReceiveChannelCounter?.alert_groups_count}
               tooltipTitle=""
               tooltipContent={
@@ -299,6 +295,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
             icon="link"
             text={`${connectedEscalationsChainsCount}/${routesCounter}`}
             tooltipContent={undefined}
+            placement="top"
             tooltipTitle={
               connectedEscalationsChainsCount +
               ' connected escalation chain' +
@@ -329,6 +326,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
           <TooltipBadge
             text={undefined}
             className={cx('heartbeat-badge')}
+            placement="top"
             borderType={heartbeatStatus ? 'success' : 'danger'}
             customIcon={heartbeatStatus ? <HeartIcon /> : <HeartRedIcon />}
             tooltipTitle={`Last heartbeat: ${heartbeat?.last_heartbeat_time_verbal}`}
@@ -348,6 +346,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
           <TooltipBadge
             borderType="primary"
             icon="pause"
+            placement="top"
             text={IntegrationHelper.getMaintenanceText(item.maintenance_till)}
             tooltipTitle={IntegrationHelper.getMaintenanceText(item.maintenance_till, maintenanceMode)}
             tooltipContent={undefined}
@@ -390,7 +389,11 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
   }
 
   renderTeam(item: AlertReceiveChannel, teams: any) {
-    return <TeamName team={teams[item.team]} />;
+    return (
+      <TextEllipsisTooltip placement="top" content={teams[item.team]?.name}>
+        <TeamName className={TEXT_ELLIPSIS_CLASS} team={teams[item.team]} />
+      </TextEllipsisTooltip>
+    );
   }
 
   renderButtons = (item: AlertReceiveChannel) => {
