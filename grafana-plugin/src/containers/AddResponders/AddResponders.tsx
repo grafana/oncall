@@ -1,7 +1,7 @@
 import React, { useState, useContext, useCallback, useMemo } from 'react';
 
 import { SelectableValue } from '@grafana/data';
-import { HorizontalGroup, Button, Modal, Alert } from '@grafana/ui';
+import { HorizontalGroup, Button, Modal, Alert, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
@@ -162,35 +162,38 @@ const AddResponders = observer(
             onDismiss={closeUserConfirmationModal}
             className={cx('modal')}
           >
-            {/* TODO: finish styling this */}
-            {!isCreateMode && (
-              <>
-                <Text>
-                  {currentlyConsideredUser.name || currentlyConsideredUser.username} (local time{' '}
-                  {currentMoment.tz(getTimezone(currentlyConsideredUser)).format('HH:mm')}) will be notified using
-                </Text>
-                <NotificationPoliciesSelect
-                  important={Boolean(currentlyConsideredUserNotificationPolicy)}
-                  onChange={onChangeCurrentlyConsideredUserNotificationPolicy}
+            <VerticalGroup spacing="md">
+              {!isCreateMode && (
+                <div>
+                  <Text>
+                    <Text strong>{currentlyConsideredUser.name || currentlyConsideredUser.username}</Text> (local time{' '}
+                    {currentMoment.tz(getTimezone(currentlyConsideredUser)).format('HH:mm')}) will be notified using
+                  </Text>
+                  <div className={cx('confirm-participant-invitation-modal-select')}>
+                    <NotificationPoliciesSelect
+                      important={Boolean(currentlyConsideredUserNotificationPolicy)}
+                      onChange={onChangeCurrentlyConsideredUserNotificationPolicy}
+                    />
+                  </div>
+                  {/* TODO: where should 'Learn more' link to? */}
+                  <Text>notification settings. Learn more</Text>
+                </div>
+              )}
+              {!currentlyConsideredUser.is_currently_oncall && (
+                <Alert
+                  severity="warning"
+                  title="This user is not currently on-call. We don't recommend to page users outside on-call hours."
                 />
-                {/* TODO: where should 'Learn more' link to? */}
-                <Text>notification settings. Learn more</Text>
-              </>
-            )}
-            {!currentlyConsideredUser.is_currently_oncall && (
-              <Alert
-                severity="warning"
-                title="This user is not currently on-call. We don't recommend to page users outside on-call hours."
-              />
-            )}
-            <HorizontalGroup justify="flex-end">
-              <Button variant="secondary" onClick={closeUserConfirmationModal}>
-                Cancel
-              </Button>
-              <Button variant="primary" onClick={confirmCurrentlyConsideredUser}>
-                Confirm
-              </Button>
-            </HorizontalGroup>
+              )}
+              <HorizontalGroup justify="flex-end">
+                <Button variant="secondary" onClick={closeUserConfirmationModal}>
+                  Cancel
+                </Button>
+                <Button variant="primary" onClick={confirmCurrentlyConsideredUser}>
+                  Confirm
+                </Button>
+              </HorizontalGroup>
+            </VerticalGroup>
           </Modal>
         )}
       </>

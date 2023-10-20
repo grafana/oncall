@@ -29,6 +29,12 @@ const ManualAlertGroup: FC<ManualAlertGroupProps> = ({ onCreate, onHide }) => {
   const { selectedTeamResponder, selectedUserResponders, resetSelectedUsers, resetSelectedTeam } =
     useContext(DirectPagingContext);
 
+  const onHideDrawer = useCallback(() => {
+    resetSelectedUsers();
+    resetSelectedTeam();
+    onHide();
+  }, [resetSelectedUsers, resetSelectedTeam, onHide]);
+
   const hasSelectedEitherATeamOrAUser = selectedTeamResponder !== undefined || selectedUserResponders.length > 0;
 
   // TODO: add a loading state while we're waiting to hear back from the API when submitting
@@ -55,12 +61,12 @@ const ManualAlertGroup: FC<ManualAlertGroupProps> = ({ onCreate, onHide }) => {
   );
 
   return (
-    <Drawer scrollableContent title="New escalation" onClose={onHide} closeOnMaskClick={false} width="70%">
+    <Drawer scrollableContent title="New escalation" onClose={onHideDrawer} closeOnMaskClick={false} width="70%">
       <VerticalGroup>
         <GForm form={manualAlertFormConfig} data={data} onSubmit={handleFormSubmit} />
         <AddResponders mode="create" />
         <HorizontalGroup justify="flex-end">
-          <Button variant="secondary" onClick={onHide}>
+          <Button variant="secondary" onClick={onHideDrawer}>
             Cancel
           </Button>
           {/* TODO: make the button be disabled if the form is not valid */}
