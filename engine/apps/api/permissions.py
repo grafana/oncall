@@ -80,6 +80,7 @@ class LegacyAccessControlRole(enum.IntEnum):
     ADMIN = 0
     EDITOR = 1
     VIEWER = 2
+    NONE = 3
 
     @classmethod
     def choices(cls):
@@ -99,9 +100,9 @@ RBACObjectPermissionsAttribute = typing.Dict[permissions.BasePermission, typing.
 
 def get_most_authorized_role(permissions: LegacyAccessControlCompatiblePermissions) -> LegacyAccessControlRole:
     if not permissions:
-        return LegacyAccessControlRole.VIEWER
+        return LegacyAccessControlRole.NONE
 
-    # ex. Admin is 0, Viewer is 2, thereby min makes sense here
+    # ex. Admin is 0, None is 3, thereby min makes sense here
     return min({p.fallback_role for p in permissions}, key=lambda r: r.value)
 
 
