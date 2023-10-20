@@ -288,7 +288,7 @@ def user_is_authorized_basic_role(user: "User", required_permission: LegacyAcces
     user - The user to check permissions for
     required_permission - A basic role that a user must have to be considered authorized
     """
-    return user.role <= required_permission if user.role is not None else False
+    return user.role <= required_permission
 
 
 class BasicRolePermission(permissions.BasePermission):
