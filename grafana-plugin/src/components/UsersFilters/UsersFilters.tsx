@@ -3,8 +3,9 @@ import React, { ChangeEvent, useCallback, useEffect, useRef } from 'react';
 import { Icon, Input } from '@grafana/ui';
 import cn from 'classnames/bind';
 
-import styles from './UsersFilters.module.css';
 import { useDebouncedCallback } from 'utils/hooks';
+
+import styles from './UsersFilters.module.css';
 
 const cx = cn.bind(styles);
 
