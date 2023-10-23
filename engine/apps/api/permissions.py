@@ -117,14 +117,24 @@ def get_most_authorized_role(permissions: LegacyAccessControlCompatiblePermissio
     return min({p.fallback_role for p in permissions}, key=lambda r: r.value)
 
 
-def user_is_authorized(user: "User", required_permissions: LegacyAccessControlCompatiblePermissions) -> bool:
+def user_is_authorized(
+    user: "User",
+    required_permissions: LegacyAccessControlCompatiblePermissions,
+    required_basic_role_permission: LegacyAccessControlRole = None,
+) -> bool:
     """
-    This function checks whether `user` has all permissions in `required_permissions`. RBAC permissions are used
-    if RBAC is enabled for the organization, otherwise the fallback basic role is checked.
+    This function checks whether `user` has all necessary permissions. If `required_basic_role_permission` is set,
+    it only checks the basic user role, otherwise it checks whether `user` has all permissions in
+    `required_permissions`.
+    RBAC permissions are used if RBAC is enabled for the organization, otherwise the fallback basic role is checked.
 
     user - The user to check permissions for
     required_permissions - A list of permissions that a user must have to be considered authorized
+    required_basic_role_permission - Min basic role user must have to be considered authorized (used in cases when
+    it's needed to check ONLY the basic user role, otherwise `required_permissions` should be used)
     """
+    if required_basic_role_permission is not None:
+        return user.role <= required_basic_role_permission.value
     if user.organization.is_rbac_permissions_enabled:
         user_permissions = [u["action"] for u in user.permissions]
         required_permission_values = [p.value for p in required_permissions]
@@ -281,16 +291,6 @@ class RBACPermission(permissions.BasePermission):
         return True
 
 
-def user_is_authorized_basic_role(user: "User", required_permission: LegacyAccessControlRole) -> bool:
-    """
-    This function checks user basic role
-
-    user - The user to check permissions for
-    required_permission - A basic role that a user must have to be considered authorized
-    """
-    return user.role <= required_permission
-
-
 class BasicRolePermission(permissions.BasePermission):
     """Checks only basic user role permissions, regardless of whether RBAC is enabled for the organization"""
 
@@ -320,7 +320,9 @@ class BasicRolePermission(permissions.BasePermission):
             action_required_permissions is not None
         ), f"""Each action must be defined within the {BASIC_ROLE_PERMISSIONS_ATTR} dict on the ViewSet"""
 
-        return user_is_authorized_basic_role(request.user, action_required_permissions)
+        return user_is_authorized(
+            request.user, required_permissions=[], required_basic_role_permission=action_required_permissions
+        )
 
 
 ALL_PERMISSION_NAMES = [perm for perm in dir(RBACPermission.Permissions) if not perm.startswith("_")]

@@ -21,7 +21,6 @@ from apps.api.permissions import (
     get_most_authorized_role,
     get_view_action,
     user_is_authorized,
-    user_is_authorized_basic_role,
 )
 
 
@@ -511,7 +510,7 @@ def test_user_is_authorized_basic_role(
     expected_result,
 ) -> None:
     user = MockedUser([], org_has_rbac_enabled=org_has_rbac_enabled, basic_role=role)
-    assert user_is_authorized_basic_role(user, required_role) == expected_result
+    assert user_is_authorized(user, [], required_role) == expected_result
 
 
 class TestBasicRolePermission:
