@@ -183,21 +183,21 @@ export class RootBaseStore {
       }
       location.reload();
     }
-    console.log('Not open source');
+    console.error('Not open source');
 
     // at this point we know the plugin is provisioned
     const pluginConnectionStatus = await PluginState.updatePluginStatus(this.onCallApiUrl);
     if (typeof pluginConnectionStatus === 'string') {
       return this.setupPluginError(pluginConnectionStatus);
     }
-    console.log('got status');
+    console.error('got status');
 
     // Check if the plugin is currently undergoing maintenance
     if (pluginConnectionStatus.currently_undergoing_maintenance_message) {
       this.currentlyUndergoingMaintenance = true;
       return this.setupPluginError(`🚧 ${pluginConnectionStatus.currently_undergoing_maintenance_message} 🚧`);
     }
-    console.log('not maintenance');
+    console.error('not maintenance');
 
     const { allow_signup, is_installed, is_user_anonymous, token_ok } = pluginConnectionStatus;
 
@@ -207,16 +207,16 @@ export class RootBaseStore {
         '😞 Grafana OnCall is available for authorized users only, please sign in to proceed.'
       );
     }
-    console.log('not anonymous');
+    console.error('not anonymous');
 
     // If the plugin is not installed in the OnCall backend, or token is not valid, then we need to install it
     if (!is_installed || !token_ok) {
-      console.log('status ' + is_installed + ' ' + token_ok);
+      console.error('status ' + is_installed + ' ' + token_ok);
 
       if (!allow_signup) {
         return this.setupPluginError('🚫 OnCall has temporarily disabled signup of new users. Please try again later.');
       }
-      console.log('signup is allowed');
+      console.error('signup is allowed');
 
       const missingPermissions = this.checkMissingSetupPermissions();
       if (missingPermissions.length === 0) {
