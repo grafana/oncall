@@ -1,4 +1,3 @@
-import { OrgRole } from '@grafana/data';
 import { locationService } from '@grafana/runtime';
 import { contextSrv } from 'grafana/app/core/core';
 import { action, observable } from 'mobx';
@@ -204,11 +203,13 @@ export class RootBaseStore {
         '😞 Grafana OnCall is available for authorized users only, please sign in to proceed.'
       );
     }
+
     // If the plugin is not installed in the OnCall backend, or token is not valid, then we need to install it
     if (!is_installed || !token_ok) {
       if (!allow_signup) {
         return this.setupPluginError('🚫 OnCall has temporarily disabled signup of new users. Please try again later.');
       }
+
       const missingPermissions = this.checkMissingSetupPermissions();
       if (missingPermissions.length === 0) {
         try {
@@ -225,7 +226,7 @@ export class RootBaseStore {
           );
         }
       } else {
-        if (contextSrv.accessControlEnabled()) {
+        if (contextSrv.licensedAccessControlEnabled()) {
           return this.setupPluginError(
             '🚫 User is missing permission(s) ' +
               missingPermissions.join(', ') +
@@ -254,7 +255,6 @@ export class RootBaseStore {
   }
 
   checkMissingSetupPermissions() {
-    const fallback = contextSrv.user.orgRole === OrgRole.Admin && !contextSrv.accessControlEnabled();
     const setupRequiredPermissions = [
       'plugins:write',
       'org.users:read',
@@ -263,7 +263,7 @@ export class RootBaseStore {
       'apikeys:delete',
     ];
     return setupRequiredPermissions.filter(function (permission) {
-      return !contextSrv.hasAccess(permission, fallback);
+      return !contextSrv.hasPermission(permission);
     });
   }
 
