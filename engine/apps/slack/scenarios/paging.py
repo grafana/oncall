@@ -228,10 +228,6 @@ class OnPagingTeamChange(scenario_step.ScenarioStep):
         )
 
 
-class OnPagingCheckAdditionalResponders(OnPagingOrgChange):
-    """Check/uncheck additional responders checkbox."""
-
-
 class OnPagingUserChange(scenario_step.ScenarioStep):
     """Add selected to user to the list.
 
@@ -413,7 +409,7 @@ def _get_form_view(routing_uid: str, blocks: Block.AnyBlocks, private_metadata: 
         "callback_id": routing_uid,
         "title": {
             "type": "plain_text",
-            "text": "Create Alert Group",
+            "text": "Create Escalation",
         },
         "close": {
             "type": "plain_text",
@@ -566,9 +562,9 @@ def _get_team_select_blocks(
     return blocks
 
 
-def _create_user_options(
-    users: "RelatedManager['User']", option_group_label_text_prefix: str
-) -> typing.List[CompositionObjectOption]:
+def _create_user_option_groups(
+    users: "RelatedManager['User']", max_options_per_group: int, option_group_label_text_prefix: str
+) -> typing.List[CompositionObjectOptionGroup]:
     user_options: typing.List[CompositionObjectOption] = [
         {
             "text": {
@@ -581,7 +577,27 @@ def _create_user_options(
         for user in users
     ]
 
-    return _get_option_groups(user_options, MAX_STATIC_SELECT_OPTIONS, option_group_label_text_prefix)
+    chunks = [user_options[x : x + max_options_per_group] for x in range(0, len(user_options), max_options_per_group)]
+    has_more_than_one_chunk = len(chunks) > 1
+
+    option_groups: typing.List[CompositionObjectOptionGroup] = []
+    for idx, group in enumerate(chunks):
+        start = idx * max_options_per_group + 1
+        end = idx * max_options_per_group + max_options_per_group
+
+        if has_more_than_one_chunk:
+            label_text = f"{option_group_label_text_prefix} ({start}-{end})"
+        else:
+            label_text = option_group_label_text_prefix
+
+        option_groups.append(
+            {
+                "label": {"type": "plain_text", "text": label_text},
+                "options": group,
+            }
+        )
+
+    return option_groups
 
 
 def _get_user_select_blocks(
@@ -624,10 +640,14 @@ def _get_users_select(
     schedules = get_oncall_users_for_multiple_schedules(organization.oncall_schedules.all())
     oncall_user_pks = {user.pk for _, users in schedules.items() for user in users}
 
-    oncall_user_options = _create_user_options(organization.users.filter(pk__in=oncall_user_pks), "On-call now")
-    not_oncall_user_options = _create_user_options(organization.users.exclude(pk__in=oncall_user_pks), "Not on-call")
+    oncall_user_option_groups = _create_user_option_groups(
+        organization.users.filter(pk__in=oncall_user_pks), max_options_per_group, "On-call now"
+    )
+    not_oncall_user_option_groups = _create_user_option_groups(
+        organization.users.exclude(pk__in=oncall_user_pks), max_options_per_group, "Not on-call"
+    )
 
-    if not oncall_user_options and not not_oncall_user_options:
+    if not oncall_user_option_groups and not not_oncall_user_option_groups:
         return {"type": "context", "elements": [{"type": "mrkdwn", "text": "No users available"}]}
     return {
         "type": "input",
@@ -640,37 +660,11 @@ def _get_users_select(
             "type": "static_select",
             "action_id": action_id,
             "placeholder": {"type": "plain_text", "text": "Select user", "emoji": True},
-            "option_groups": oncall_user_options + not_oncall_user_options,
+            "option_groups": oncall_user_option_groups + not_oncall_user_option_groups,
         },
         "dispatch_action": True,
         "optional": True,
     }
-
-
-def _get_option_groups(
-    options: typing.List[CompositionObjectOption], max_options_per_group: int, option_group_label_text_prefix: str
-) -> typing.List[CompositionObjectOptionGroup]:
-    chunks = [options[x : x + max_options_per_group] for x in range(0, len(options), max_options_per_group)]
-    has_more_than_one_chunk = len(chunks) > 1
-
-    option_groups: typing.List[CompositionObjectOptionGroup] = []
-    for idx, group in enumerate(chunks):
-        start = idx * max_options_per_group + 1
-        end = idx * max_options_per_group + max_options_per_group
-
-        if has_more_than_one_chunk:
-            label_text = f"{option_group_label_text_prefix} ({start}-{end})"
-        else:
-            label_text = option_group_label_text_prefix
-
-        option_groups.append(
-            {
-                "label": {"type": "plain_text", "text": label_text},
-                "options": group,
-            }
-        )
-
-    return option_groups
 
 
 def _get_selected_entries_list(
@@ -820,12 +814,6 @@ STEPS_ROUTING: ScenarioRoute.RoutingSteps = [
         "block_action_type": BlockActionType.STATIC_SELECT,
         "block_action_id": OnPagingTeamChange.routing_uid(),
         "step": OnPagingTeamChange,
-    },
-    {
-        "payload_type": PayloadType.BLOCK_ACTIONS,
-        "block_action_type": BlockActionType.CHECKBOXES,
-        "block_action_id": OnPagingCheckAdditionalResponders.routing_uid(),
-        "step": OnPagingCheckAdditionalResponders,
     },
     {
         "payload_type": PayloadType.BLOCK_ACTIONS,

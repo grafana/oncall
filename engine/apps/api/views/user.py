@@ -679,11 +679,6 @@ class UserView(
             return Response(status=status.HTTP_204_NO_CONTENT)
         return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
-    @action(detail=True, methods=["get"])
-    def check_availability(self, request, pk) -> Response:
-        # TODO: deprecated, remove in future release
-        return Response(data={"warnings": []}, status=status.HTTP_200_OK)
-
 
 def handle_phone_notificator_failed(exc: BaseFailed) -> Response:
     if exc.graceful_msg:

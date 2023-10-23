@@ -3,7 +3,7 @@ from unittest.mock import patch
 import pytest
 
 from apps.alerts.models import AlertGroup, AlertGroupLogRecord, UserHasNotification
-from apps.alerts.paging import direct_paging, unpage_user
+from apps.alerts.paging import DirectPagingUserTeamValidationError, direct_paging, unpage_user
 
 
 def _calculate_title(from_user) -> str:
@@ -42,7 +42,7 @@ def test_direct_paging_user(make_organization, make_user_for_organization):
         assert notify_task.apply_async.called_with(
             (u.pk, ag.pk), {"important": important, "notify_even_acknowledged": True, "notify_anyway": True}
         )
-        expected_info = {"user": u.public_primary_key, "schedule": None, "important": important}
+        expected_info = {"user": u.public_primary_key, "important": important}
         assert_log_record(ag, f"{from_user.username} paged user {u.username}", expected_info=expected_info)
 
 
@@ -71,9 +71,10 @@ def test_direct_paging_team(make_organization, make_team, make_user_for_organiza
 def test_direct_paging_no_team(make_organization, make_user_for_organization):
     organization = make_organization()
     from_user = make_user_for_organization(organization)
+    other_user = make_user_for_organization(organization)
     msg = "Fire"
 
-    direct_paging(organization, from_user, msg)
+    direct_paging(organization, from_user, msg, users=[(other_user, False)])
 
     # alert group created
     alert_groups = AlertGroup.objects.all()
@@ -85,6 +86,16 @@ def test_direct_paging_no_team(make_organization, make_user_for_organization):
 
     assert ag.channel.verbal_name == "Direct paging (No team)"
     assert ag.channel.team is None
+
+
+@pytest.mark.django_db
+def test_direct_paging_no_team_and_no_users(make_organization, make_user_for_organization):
+    organization = make_organization()
+    from_user = make_user_for_organization(organization)
+    msg = "Fire"
+
+    with pytest.raises(DirectPagingUserTeamValidationError):
+        direct_paging(organization, from_user, msg)
 
 
 @pytest.mark.django_db
