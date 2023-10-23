@@ -7,8 +7,17 @@ from django.db.models import Q
 
 from apps.api.permissions import RBACPermission
 from apps.slack.constants import DIVIDER
+from apps.slack.errors import (
+    SlackAPIChannelArchivedError,
+    SlackAPIChannelInactiveError,
+    SlackAPIChannelNotFoundError,
+    SlackAPIError,
+    SlackAPIInvalidAuthError,
+    SlackAPIMessageNotFoundError,
+    SlackAPITokenError,
+    SlackAPIViewNotFoundError,
+)
 from apps.slack.scenarios import scenario_step
-from apps.slack.slack_client.exceptions import SlackAPIException
 from apps.slack.types import (
     Block,
     BlockActionType,
@@ -28,6 +37,16 @@ if typing.TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
+
+
+RESOLUTION_NOTE_EXCEPTIONS = (
+    SlackAPIChannelNotFoundError,
+    SlackAPIMessageNotFoundError,
+    SlackAPIChannelArchivedError,
+    SlackAPIInvalidAuthError,
+    SlackAPITokenError,
+    SlackAPIChannelInactiveError,
+)
 
 
 class AddToResolutionNoteStep(scenario_step.ScenarioStep):
@@ -66,26 +85,21 @@ class AddToResolutionNoteStep(scenario_step.ScenarioStep):
             self.open_warning_window(payload, warning_text)
             return
 
-        try:
-            alert_group = slack_message.get_alert_group()
-        except SlackMessage.alert.RelatedObjectDoesNotExist as e:
+        alert_group = slack_message.alert_group
+        if not alert_group:
             self.open_warning_window(payload, warning_text)
-            print(
+            logger.exception(
                 f"Exception: tried to add message from thread to Resolution Note: "
                 f"Slack Team Identity pk: {self.slack_team_identity.pk}, "
                 f"Slack Message id: {slack_message.slack_id}"
             )
-            raise e
+            return
 
         if payload["message"]["type"] == "message" and "user" in payload["message"]:
             message_ts = payload["message_ts"]
             thread_ts = payload["message"]["thread_ts"]
 
-            result = self._slack_client.api_call(
-                "chat.getPermalink",
-                channel=channel_id,
-                message_ts=message_ts,
-            )
+            result = self._slack_client.chat_getPermalink(channel=channel_id, message_ts=message_ts)
             permalink = None
             if result["permalink"] is not None:
                 permalink = result["permalink"]
@@ -119,7 +133,7 @@ class AddToResolutionNoteStep(scenario_step.ScenarioStep):
                         _slack_team_identity=slack_team_identity,
                         channel_id=channel_id,
                     )
-                    alert_group = slack_message.get_alert_group()
+                    alert_group = slack_message.alert_group
                     try:
                         author_slack_user_identity = SlackUserIdentity.objects.get(
                             slack_id=payload["message"]["user"], slack_team_identity=slack_team_identity
@@ -156,13 +170,12 @@ class AddToResolutionNoteStep(scenario_step.ScenarioStep):
                 else:
                     resolution_note.recreate()
                 try:
-                    self._slack_client.api_call(
-                        "reactions.add",
+                    self._slack_client.reactions_add(
                         channel=channel_id,
                         name="memo",
                         timestamp=resolution_note_slack_message.ts,
                     )
-                except SlackAPIException:
+                except SlackAPIError:
                     pass
 
                 self.alert_group_slack_service.update_alert_group_slack_message(alert_group)
@@ -190,44 +203,12 @@ class UpdateResolutionNoteStep(scenario_step.ScenarioStep):
             resolution_note_slack_message.save(update_fields=["added_to_resolution_note"])
             if resolution_note_slack_message.posted_by_bot:
                 try:
-                    self._slack_client.api_call(
-                        "chat.delete",
+                    self._slack_client.chat_delete(
                         channel=resolution_note_slack_message.slack_channel_id,
                         ts=resolution_note_slack_message.ts,
                     )
-                except SlackAPIException as e:
-                    if e.response["error"] == "channel_not_found":
-                        logger.warning(
-                            f"Unable to delete resolution note message in slack. "
-                            f"Slack team identity pk: {self.slack_team_identity.pk}.\n"
-                            f"Reason: 'channel_not_found'"
-                        )
-                    elif e.response["error"] == "message_not_found":
-                        logger.warning(
-                            f"Unable to delete resolution note message in slack. "
-                            f"Slack team identity pk: {self.slack_team_identity.pk}.\n"
-                            f"Reason: 'message_not_found'"
-                        )
-                    elif e.response["error"] == "is_archived":
-                        logger.warning(
-                            f"Unable to delete resolution note message in slack. "
-                            f"Slack team identity pk: {self.slack_team_identity.pk}.\n"
-                            f"Reason: 'is_archived'"
-                        )
-                    elif e.response["error"] == "invalid_auth":
-                        logger.warning(
-                            f"Unable to delete resolution note message in slack. "
-                            f"Slack team identity pk: {self.slack_team_identity.pk}.\n"
-                            f"Reason: 'invalid_auth'"
-                        )
-                    elif e.response["error"] == "is_inactive":
-                        logger.warning(
-                            f"Unable to delete resolution note message in slack. "
-                            f"Slack team identity pk: {self.slack_team_identity.pk}.\n"
-                            f"Reason: 'is_inactive'"
-                        )
-                    else:
-                        raise e
+                except RESOLUTION_NOTE_EXCEPTIONS:
+                    pass
             else:
                 self.remove_resolution_note_reaction(resolution_note_slack_message)
 
@@ -241,38 +222,17 @@ class UpdateResolutionNoteStep(scenario_step.ScenarioStep):
 
         if resolution_note_slack_message is None:
             try:
-                result = self._slack_client.api_call(
-                    "chat.postMessage",
+                result = self._slack_client.chat_postMessage(
                     channel=alert_group_slack_message.channel_id,
                     thread_ts=alert_group_slack_message.slack_id,
                     text=resolution_note.text,
                     blocks=blocks,
                 )
-            except SlackAPIException as e:
-                if e.response["error"] == "channel_not_found":
-                    logger.warning(
-                        f"Unable to post resolution note message to slack. "
-                        f"Slack team identity pk: {self.slack_team_identity.pk}.\n"
-                        f"Reason: 'channel_not_found'"
-                    )
-                elif e.response["error"] == "is_archived":
-                    logger.warning(
-                        f"Unable to post resolution note message to slack. "
-                        f"Slack team identity pk: {self.slack_team_identity.pk}.\n"
-                        f"Reason: 'is_archived'"
-                    )
-                elif e.response["error"] == "invalid_auth":
-                    logger.warning(
-                        f"Unable to post resolution note message to slack. "
-                        f"Slack team identity pk: {self.slack_team_identity.pk}.\n"
-                        f"Reason: 'invalid_auth'"
-                    )
-                else:
-                    raise e
+            except RESOLUTION_NOTE_EXCEPTIONS:
+                pass
             else:
                 message_ts = result["message"]["ts"]
-                result_permalink = self._slack_client.api_call(
-                    "chat.getPermalink",
+                result_permalink = self._slack_client.chat_getPermalink(
                     channel=alert_group_slack_message.channel_id,
                     message_ts=message_ts,
                 )
@@ -296,46 +256,14 @@ class UpdateResolutionNoteStep(scenario_step.ScenarioStep):
                 resolution_note.save(update_fields=["resolution_note_slack_message"])
         elif resolution_note_slack_message.posted_by_bot:
             try:
-                self._slack_client.api_call(
-                    "chat.update",
+                self._slack_client.chat_update(
                     channel=alert_group_slack_message.channel_id,
                     ts=resolution_note_slack_message.ts,
                     text=resolution_note_slack_message.text,
                     blocks=blocks,
                 )
-            except SlackAPIException as e:
-                if e.response["error"] == "channel_not_found":
-                    logger.warning(
-                        f"Unable to update resolution note message in slack. "
-                        f"Slack team identity pk: {self.slack_team_identity.pk}.\n"
-                        f"Reason: 'channel_not_found'"
-                    )
-                elif e.response["error"] == "message_not_found":
-                    logger.warning(
-                        f"Unable to update resolution note message in slack. "
-                        f"Slack team identity pk: {self.slack_team_identity.pk}.\n"
-                        f"Reason: 'message_not_found'"
-                    )
-                elif e.response["error"] == "invalid_auth":
-                    logger.warning(
-                        f"Unable to update resolution note message in slack. "
-                        f"Slack team identity pk: {self.slack_team_identity.pk}.\n"
-                        f"Reason: 'invalid_auth'"
-                    )
-                elif e.response["error"] == "is_inactive":
-                    logger.warning(
-                        f"Unable to update resolution note message in slack. "
-                        f"Slack team identity pk: {self.slack_team_identity.pk}.\n"
-                        f"Reason: 'is_inactive'"
-                    )
-                elif e.response["error"] == "account_inactive":
-                    logger.warning(
-                        f"Unable to update resolution note message in slack. "
-                        f"Slack team identity pk: {self.slack_team_identity.pk}.\n"
-                        f"Reason: 'account_inactive'"
-                    )
-                else:
-                    raise e
+            except RESOLUTION_NOTE_EXCEPTIONS:
+                pass
             else:
                 resolution_note_slack_message.text = resolution_note.text
                 resolution_note_slack_message.save(update_fields=["text"])
@@ -346,25 +274,23 @@ class UpdateResolutionNoteStep(scenario_step.ScenarioStep):
 
     def add_resolution_note_reaction(self, slack_thread_message: "ResolutionNoteSlackMessage"):
         try:
-            self._slack_client.api_call(
-                "reactions.add",
+            self._slack_client.reactions_add(
                 channel=slack_thread_message.slack_channel_id,
                 name="memo",
                 timestamp=slack_thread_message.ts,
             )
-        except SlackAPIException as e:
-            print(e)  # TODO:770: log instead of print
+        except SlackAPIError:
+            pass
 
     def remove_resolution_note_reaction(self, slack_thread_message: "ResolutionNoteSlackMessage") -> None:
         try:
-            self._slack_client.api_call(
-                "reactions.remove",
+            self._slack_client.reactions_remove(
                 channel=slack_thread_message.slack_channel_id,
                 name="memo",
                 timestamp=slack_thread_message.ts,
             )
-        except SlackAPIException as e:
-            print(e)
+        except SlackAPIError:
+            pass
 
     def get_resolution_note_blocks(self, resolution_note: "ResolutionNote") -> Block.AnyBlocks:
         blocks: Block.AnyBlocks = []
@@ -454,28 +380,15 @@ class ResolutionNoteModalStep(AlertGroupActionsMixin, scenario_step.ScenarioStep
 
         if "update" in resolution_note_window_action:
             try:
-                self._slack_client.api_call(
-                    "views.update",
+                self._slack_client.views_update(
                     trigger_id=payload["trigger_id"],
                     view=view,
                     view_id=payload["view"]["id"],
                 )
-            except SlackAPIException as e:
-                if e.response["error"] == "not_found":
-                    # Ignore "not_found" error, it means that the view was closed by user before the update request.
-                    # It doesn't disrupt the user experience.
-                    logger.debug(
-                        f"API call to views.update failed for alert group {alert_group.pk}, error: not_found. "
-                        f"Most likely the view was closed by user before the request was processed. "
-                    )
-                else:
-                    raise
+            except SlackAPIViewNotFoundError:
+                pass
         else:
-            self._slack_client.api_call(
-                "views.open",
-                trigger_id=payload["trigger_id"],
-                view=view,
-            )
+            self._slack_client.views_open(trigger_id=payload["trigger_id"], view=view)
 
     def get_resolution_notes_blocks(
         self, alert_group: "AlertGroup", resolution_note_window_action: str, action_resolve: bool

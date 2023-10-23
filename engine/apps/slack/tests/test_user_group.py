@@ -2,9 +2,16 @@ from unittest.mock import PropertyMock, patch
 
 import pytest
 
-from apps.schedules.models.on_call_schedule import OnCallScheduleQuerySet
+from apps.schedules.models.on_call_schedule import OnCallScheduleQuerySet, OnCallScheduleWeb
+from apps.slack.client import SlackClient
 from apps.slack.models import SlackUserGroup
-from apps.slack.slack_client import SlackClientWithErrorHandling
+from apps.slack.tasks import (
+    populate_slack_usergroups_for_team,
+    start_update_slack_user_group_for_schedules,
+    update_slack_user_group_for_schedules,
+)
+from apps.slack.tests.conftest import build_slack_response
+from apps.user_management.models import Organization
 
 
 @pytest.mark.django_db
@@ -14,7 +21,7 @@ def test_update_members(make_organization_with_slack_team_identity, make_slack_u
 
     slack_ids = ["slack_id_1", "slack_id_2"]
 
-    with patch.object(SlackClientWithErrorHandling, "api_call") as mock:
+    with patch.object(SlackClient, "api_call") as mock:
         user_group.update_members(slack_ids)
         mock.assert_called()
 
@@ -67,3 +74,83 @@ def test_update_oncall_members(
         with patch.object(SlackUserGroup, "update_members") as update_members_mock:
             user_group.update_oncall_members()
             update_members_mock.assert_called()
+
+
+@pytest.mark.django_db
+def test_start_update_slack_user_group_for_schedules_organization_deleted(
+    make_organization_with_slack_team_identity, make_slack_user_group, make_schedule
+):
+    organization, slack_team_identity = make_organization_with_slack_team_identity()
+    user_group = make_slack_user_group(slack_team_identity)
+    make_schedule(organization, schedule_class=OnCallScheduleWeb, user_group=user_group)
+
+    # check user group is updated
+    with patch.object(update_slack_user_group_for_schedules, "delay") as mock:
+        start_update_slack_user_group_for_schedules()
+        mock.assert_called_once_with(user_group_pk=user_group.pk)
+
+    # soft delete the organization
+    Organization.objects.filter(pk=organization.pk).delete()
+
+    # check user group is not updated for deleted organization
+    with patch.object(update_slack_user_group_for_schedules, "delay") as mock:
+        start_update_slack_user_group_for_schedules()
+        mock.assert_not_called()
+
+
+@patch.object(
+    SlackClient,
+    "usergroups_users_list",
+    return_value=build_slack_response({"ok": True, "users": ["test_user_1", "test_user_2"]}),
+)
+@patch.object(
+    SlackClient,
+    "usergroups_list",
+    return_value=build_slack_response(
+        {
+            "ok": True,
+            "usergroups": [{"id": "test_slack_id", "name": "test_name", "handle": "test_handle", "date_delete": 0}],
+        }
+    ),
+)
+@pytest.mark.django_db
+def test_update_or_create_slack_usergroup_from_slack(
+    mock_usergroups_list, mock_usergroups_users_list, make_organization_with_slack_team_identity
+):
+    organization, slack_team_identity = make_organization_with_slack_team_identity()
+    SlackUserGroup.update_or_create_slack_usergroup_from_slack("test_slack_id", slack_team_identity)
+
+    usergroup = SlackUserGroup.objects.get()
+    assert usergroup.name == "test_name"
+    assert usergroup.handle == "test_handle"
+    assert usergroup.members == ["test_user_1", "test_user_2"]
+    assert usergroup.is_active
+
+
+@patch.object(
+    SlackClient,
+    "usergroups_users_list",
+    return_value=build_slack_response({"ok": True, "users": ["test_user_1", "test_user_2"]}),
+)
+@patch.object(
+    SlackClient,
+    "usergroups_list",
+    return_value=build_slack_response(
+        {
+            "ok": True,
+            "usergroups": [{"id": "test_slack_id", "name": "test_name", "handle": "test_handle", "date_delete": 0}],
+        }
+    ),
+)
+@pytest.mark.django_db
+def test_populate_slack_usergroups_for_team(
+    mock_usergroups_list, mock_usergroups_users_list, make_organization_with_slack_team_identity
+):
+    organization, slack_team_identity = make_organization_with_slack_team_identity()
+    populate_slack_usergroups_for_team(slack_team_identity.pk)
+
+    usergroup = SlackUserGroup.objects.get()
+    assert usergroup.name == "test_name"
+    assert usergroup.handle == "test_handle"
+    assert usergroup.members == ["test_user_1", "test_user_2"]
+    assert usergroup.is_active

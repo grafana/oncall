@@ -9,6 +9,7 @@ from apps.grafana_plugin.tasks.sync import plugin_sync_organization_async
 from apps.mobile_app.auth import MobileAppAuthTokenAuthentication
 from apps.user_management.models import Organization
 from common.api_helpers.mixins import GrafanaHeadersMixin
+from common.api_helpers.utils import create_engine_url
 
 
 class StatusView(GrafanaHeadersMixin, APIView):
@@ -35,14 +36,14 @@ class StatusView(GrafanaHeadersMixin, APIView):
         is_installed = False
         token_ok = False
         allow_signup = True
-        api_url = settings.BASE_URL
+        api_url = create_engine_url("")
 
         # Check if organization is in OnCall database
         if organization:
             is_installed = True
             token_ok = organization.api_token_status == Organization.API_TOKEN_STATUS_OK
             if organization.is_moved:
-                api_url = organization.migration_destination.oncall_backend_url
+                api_url = create_engine_url("", override_base=organization.migration_destination.oncall_backend_url)
         else:
             allow_signup = DynamicSetting.objects.get_or_create(
                 name="allow_plugin_organization_signup", defaults={"boolean_value": True}

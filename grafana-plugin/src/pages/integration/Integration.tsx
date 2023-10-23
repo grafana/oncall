@@ -11,9 +11,10 @@ import {
   ConfirmModal,
   Drawer,
   Alert,
+  Tag as GrafanaTag,
 } from '@grafana/ui';
 import cn from 'classnames/bind';
-import { get, noop } from 'lodash-es';
+import { get } from 'lodash-es';
 import { observer } from 'mobx-react';
 import CopyToClipboard from 'react-copy-to-clipboard';
 import Emoji from 'react-emoji-render';
@@ -58,6 +59,7 @@ import { ChannelFilter } from 'models/channel_filter';
 import { INTEGRATION_TEMPLATES_LIST } from 'pages/integration/Integration.config';
 import IntegrationHelper from 'pages/integration/Integration.helper';
 import styles from 'pages/integration/Integration.module.scss';
+import { AppFeature } from 'state/features';
 import { PageProps, SelectOption, WithStoreProps } from 'state/types';
 import { useStore } from 'state/useStore';
 import { withMobXProviderContext } from 'state/withStore';
@@ -112,7 +114,7 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
       this.openEditTemplateModal(query.template, query.routeId && query.routeId);
     }
 
-    await this.loadIntegration();
+    await this.loadData();
   }
 
   render() {
@@ -126,12 +128,14 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
       isTemplateSettingsOpen,
     } = this.state;
     const {
-      store: { alertReceiveChannelStore },
-      query: { p },
+      store,
+      query,
       match: {
         params: { id },
       },
     } = this.props;
+
+    const { alertReceiveChannelStore } = store;
 
     const { isNotFoundError, isWrongTeamError } = errorData;
 
@@ -160,28 +164,22 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
                 width="75%"
                 scrollableContent
                 title="Template Settings"
+                subtitle="Set templates to interpret monitoring alerts and minimize noise. Group alerts, enable auto-resolution, customize visualizations and notifications by extracting data from alerts."
                 onClose={() => this.setState({ isTemplateSettingsOpen: false })}
                 closeOnMaskClick={false}
               >
-                <IntegrationBlock
-                  className={cx('template-drawer')}
-                  noContent
-                  heading={undefined}
-                  content={
-                    <IntegrationTemplateList
-                      alertReceiveChannelId={alertReceiveChannel.id}
-                      alertReceiveChannelIsBasedOnAlertManager={alertReceiveChannel.is_based_on_alertmanager}
-                      alertReceiveChannelAllowSourceBasedResolving={alertReceiveChannel.allow_source_based_resolving}
-                      openEditTemplateModal={this.openEditTemplateModal}
-                      templates={templates}
-                    />
-                  }
+                <IntegrationTemplateList
+                  alertReceiveChannelId={alertReceiveChannel.id}
+                  alertReceiveChannelIsBasedOnAlertManager={alertReceiveChannel.is_based_on_alertmanager}
+                  alertReceiveChannelAllowSourceBasedResolving={alertReceiveChannel.allow_source_based_resolving}
+                  openEditTemplateModal={this.openEditTemplateModal}
+                  templates={templates}
                 />
               </Drawer>
             )}
 
             <div className={cx('integration__heading-container')}>
-              <PluginLink query={{ page: 'integrations', p }} className={cx('back-arrow')}>
+              <PluginLink query={{ page: 'integrations', ...query }} className={cx('back-arrow')}>
                 <IconButton name="arrow-left" size="xl" />
               </PluginLink>
               <h2 className={cx('integration__name')}>
@@ -200,13 +198,14 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
               {this.renderDescriptionMaybe(alertReceiveChannel)}
 
               {/* MobX seems to have issues updating contact points if we don't reference it here */}
-              {!contactPoints?.length && this.renderContactPointsWarningMaybe(alertReceiveChannel)}
+              {contactPoints && contactPoints.length === 0 && this.renderContactPointsWarningMaybe(alertReceiveChannel)}
 
               <div className={cx('no-wrap')}>
                 <IntegrationHeader
                   alertReceiveChannel={alertReceiveChannel}
                   alertReceiveChannelCounter={alertReceiveChannelCounter}
                   integration={integration}
+                  renderLabels={store.hasFeature(AppFeature.Labels)}
                 />
               </div>
 
@@ -286,7 +285,7 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
                   To ensure a smooth transition you can migrate now using "Migrate" button in the menu on the right.
                 </Text>
                 <Text type="secondary">
-                  Please, check{' '}
+                  Please check out the{' '}
                   <a
                     href={`https://grafana.com/docs/oncall/latest/integrations/${getIntegrationName()}`}
                     target="_blank"
@@ -325,7 +324,7 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
   }
 
   renderContactPointsWarningMaybe(alertReceiveChannel: AlertReceiveChannel) {
-    if (IntegrationHelper.isGrafanaAlerting(alertReceiveChannel)) {
+    if (IntegrationHelper.isSpecificIntegration(alertReceiveChannel, 'grafana_alerting')) {
       return (
         <div className={cx('u-padding-top-md')}>
           <Alert
@@ -356,9 +355,14 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
     } = this.props;
 
     const alertReceiveChannel = alertReceiveChannelStore.items[id];
+    const contactPoints = alertReceiveChannelStore.connectedContactPoints[id];
+
+    const isAlerting = IntegrationHelper.isSpecificIntegration(alertReceiveChannel, 'grafana_alerting');
+    const isLegacyAlerting = IntegrationHelper.isSpecificIntegration(alertReceiveChannel, 'legacy_grafana_alerting');
 
     return [
-      IntegrationHelper.isGrafanaAlerting(alertReceiveChannel) && {
+      (isAlerting || isLegacyAlerting) && {
+        isHidden: isLegacyAlerting || contactPoints === null || contactPoints === undefined,
         isCollapsible: false,
         customIcon: 'grafana',
         canHoverIcon: false,
@@ -482,7 +486,7 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
   };
 
   handleAddNewRoute = () => {
-    const { alertReceiveChannelStore, escalationPolicyStore } = this.props.store;
+    const { alertReceiveChannelStore } = this.props.store;
     const {
       params: { id },
     } = this.props.match;
@@ -499,12 +503,16 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
             filtering_term_type: 1, // non-regex
           })
           .then(async (channelFilter: ChannelFilter) => {
-            this.setState((prevState) => ({
-              isAddingRoute: false,
-              openRoutes: prevState.openRoutes.concat(channelFilter.id),
-            }));
-            await alertReceiveChannelStore.updateChannelFilters(id, true);
-            await escalationPolicyStore.updateEscalationPolicies(channelFilter.escalation_chain);
+            await alertReceiveChannelStore.updateChannelFilters(id);
+
+            this.setState(
+              (prevState) => ({
+                isAddingRoute: false,
+                openRoutes: prevState.openRoutes.concat(channelFilter.id),
+              }),
+              () => this.forceUpdate()
+            );
+
             openNotification('A new route has been added');
           })
           .catch((err) => {
@@ -530,7 +538,12 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
     const templates = alertReceiveChannelStore.templates[id];
     const channelFilterIds = alertReceiveChannelStore.channelFilterIds[id];
 
-    return channelFilterIds.map(
+    const onRouteDelete = async (routeId: string) => {
+      await alertReceiveChannelStore.deleteChannelFilter(routeId).then(() => this.forceUpdate());
+      openNotification('Route has been deleted');
+    };
+
+    return (channelFilterIds || []).map(
       (channelFilterId: ChannelFilter['id'], routeIndex: number) =>
         ({
           canHoverIcon: true,
@@ -550,8 +563,10 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
               channelFilterId={channelFilterId}
               routeIndex={routeIndex}
               toggle={toggle}
+              onItemMove={() => this.forceUpdate()}
               openEditTemplateModal={this.openEditTemplateModal}
               onEditRegexpTemplate={this.handleEditRegexpRouteTemplate}
+              onRouteDelete={onRouteDelete}
             />
           ),
           expandedView: () => (
@@ -562,6 +577,8 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
               templates={templates}
               openEditTemplateModal={this.openEditTemplateModal}
               onEditRegexpTemplate={this.handleEditRegexpRouteTemplate}
+              onItemMove={() => this.forceUpdate()}
+              onRouteDelete={onRouteDelete}
             />
           ),
         } as IntegrationCollapsibleItem)
@@ -655,7 +672,7 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
     alertReceiveChannelStore.deleteAlertReceiveChannel(id).then(() => history.push(`${PLUGIN_ROOT}/integrations/`));
   };
 
-  async loadIntegration() {
+  async loadData() {
     const {
       store,
       store: { alertReceiveChannelStore },
@@ -668,12 +685,9 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
     const promises = [];
 
     if (!alertReceiveChannelStore.items[id]) {
-      // See what happens if the request fails
-      promises.push(alertReceiveChannelStore.loadItem(id));
-    }
-
-    if (!alertReceiveChannelStore.counters[id]) {
-      promises.push(alertReceiveChannelStore.updateCounters());
+      promises.push(alertReceiveChannelStore.loadItem(id).then(() => this.loadExtraData(id)));
+    } else {
+      promises.push(this.loadExtraData(id));
     }
 
     if (!alertReceiveChannelStore.channelFilterIds[id]) {
@@ -681,12 +695,8 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
     }
 
     promises.push(alertReceiveChannelStore.updateTemplates(id));
-
     promises.push(IntegrationHelper.fetchChatOps(store));
-
-    // skip checking for grafana alerting so that we don't wait for the first request to complete
-    // at the cost of getting a failed network request for all other types other than alerting
-    promises.push(alertReceiveChannelStore.updateConnectedContactPoints(id).catch(noop));
+    promises.push(alertReceiveChannelStore.updateCountersForIntegration(id));
 
     await Promise.all(promises)
       .catch(() => {
@@ -696,6 +706,17 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
         }
       })
       .finally(() => this.setState({ isLoading: false }));
+  }
+
+  async loadExtraData(id: AlertReceiveChannel['id']) {
+    const { alertReceiveChannelStore } = this.props.store;
+
+    if (IntegrationHelper.isSpecificIntegration(alertReceiveChannelStore.items[id], 'grafana_alerting')) {
+      // this will be delayed and not awaitable so that we don't delay the whole page load
+      return await alertReceiveChannelStore.updateConnectedContactPoints(id);
+    }
+
+    return Promise.resolve();
   }
 }
 
@@ -1012,12 +1033,14 @@ interface IntegrationHeaderProps {
   alertReceiveChannelCounter: AlertReceiveChannelCounters;
   alertReceiveChannel: AlertReceiveChannel;
   integration: SelectOption;
+  renderLabels: boolean;
 }
 
 const IntegrationHeader: React.FC<IntegrationHeaderProps> = ({
   integration,
   alertReceiveChannelCounter,
   alertReceiveChannel,
+  renderLabels,
 }) => {
   const { grafanaTeamStore, heartbeatStore, alertReceiveChannelStore } = useStore();
 
@@ -1036,6 +1059,25 @@ const IntegrationHeader: React.FC<IntegrationHeaderProps> = ({
             text={alertReceiveChannelCounter?.alerts_count + '/' + alertReceiveChannelCounter?.alert_groups_count}
           />
         </PluginLink>
+      )}
+
+      {renderLabels && (
+        <TooltipBadge
+          tooltipTitle=""
+          borderType="secondary"
+          icon="tag-alt"
+          addPadding
+          text={alertReceiveChannel.labels.length}
+          tooltipContent={
+            <VerticalGroup spacing="sm">
+              {alertReceiveChannel.labels.length
+                ? alertReceiveChannel.labels.map((label) => (
+                    <GrafanaTag name={`${label.key.name}:${label.value.name}`} key={label.key.id} />
+                  ))
+                : 'No labels attached'}
+            </VerticalGroup>
+          }
+        />
       )}
 
       <TooltipBadge
@@ -1082,10 +1124,12 @@ const IntegrationHeader: React.FC<IntegrationHeaderProps> = ({
           <Text type="secondary">Team:</Text>
           <TeamName team={grafanaTeamStore.items[alertReceiveChannel.team]} />
         </div>
-        <div className={cx('headerTop__item')}>
-          <Text type="secondary">Created by:</Text>
-          <UserDisplayWithAvatar id={alertReceiveChannel.author as any}></UserDisplayWithAvatar>
-        </div>
+        {alertReceiveChannel.author && (
+          <div className={cx('headerTop__item')}>
+            <Text type="secondary">Created by:</Text>
+            <UserDisplayWithAvatar id={alertReceiveChannel.author as any}></UserDisplayWithAvatar>
+          </div>
+        )}
       </div>
     </div>
   );

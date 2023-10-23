@@ -1,4 +1,4 @@
-import React, { useState, ChangeEvent, useEffect, useReducer } from 'react';
+import React, { useState, ChangeEvent, useEffect, useReducer, useRef } from 'react';
 
 import { SelectableValue } from '@grafana/data';
 import {
@@ -25,12 +25,14 @@ import GForm from 'components/GForm/GForm';
 import { FormItem } from 'components/GForm/GForm.types';
 import IntegrationLogo from 'components/IntegrationLogo/IntegrationLogo';
 import Text from 'components/Text/Text';
+import Labels from 'containers/Labels/Labels';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import {
   AlertReceiveChannel,
   AlertReceiveChannelOption,
 } from 'models/alert_receive_channel/alert_receive_channel.types';
 import IntegrationHelper from 'pages/integration/Integration.helper';
+import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
 import { openErrorNotification } from 'utils';
 import { UserActions } from 'utils/authorization';
@@ -53,6 +55,8 @@ const IntegrationForm = observer((props: IntegrationFormProps) => {
   const store = useStore();
   const history = useHistory();
 
+  const labelsRef = useRef(null);
+
   const { id, onHide, onSubmit, isTableView = true } = props;
   const {
     alertReceiveChannelStore,
@@ -64,6 +68,7 @@ const IntegrationForm = observer((props: IntegrationFormProps) => {
   const [selectedOption, setSelectedOption] = useState<AlertReceiveChannelOption>(undefined);
   const [showIntegrarionsListDrawer, setShowIntegrarionsListDrawer] = useState(id === 'new');
   const [allContactPoints, setAllContactPoints] = useState([]);
+  const [errors, setErrors] = useState<Record<string, any>>();
 
   useEffect(() => {
     (async function () {
@@ -73,7 +78,7 @@ const IntegrationForm = observer((props: IntegrationFormProps) => {
 
   const data =
     id === 'new'
-      ? { integration: selectedOption?.value, team: user?.current_team }
+      ? { integration: selectedOption?.value, team: user?.current_team, labels: [] }
       : prepareForEdit(alertReceiveChannelStore.items[id]);
 
   const { alertReceiveChannelOptions } = alertReceiveChannelStore;
@@ -93,7 +98,7 @@ const IntegrationForm = observer((props: IntegrationFormProps) => {
 
   const extraGFormProps: { customFieldSectionRenderer?: React.FC<CustomFieldSectionRendererProps> } = {};
 
-  if (selectedOption && IntegrationHelper.isGrafanaAlerting(selectedOption.value)) {
+  if (selectedOption && IntegrationHelper.isSpecificIntegration(selectedOption.value, 'grafana_alerting')) {
     extraGFormProps.customFieldSectionRenderer = CustomFieldSectionRenderer;
   }
 
@@ -127,6 +132,12 @@ const IntegrationForm = observer((props: IntegrationFormProps) => {
           <div className={cx('content')}>
             <VerticalGroup>
               <GForm form={form} data={data} onSubmit={handleSubmit} {...extraGFormProps} />
+
+              {store.hasFeature(AppFeature.Labels) && (
+                <div className={cx('labels')}>
+                  <Labels ref={labelsRef} errors={errors?.labels} value={data.labels} />
+                </div>
+              )}
 
               {isTableView && <HowTheIntegrationWorks selectedOption={selectedOption} />}
 
@@ -163,6 +174,10 @@ const IntegrationForm = observer((props: IntegrationFormProps) => {
   async function handleSubmit(data): Promise<void> {
     const { alert_manager, contact_point, is_existing: isExisting } = data;
 
+    const labels = labelsRef.current?.getValue();
+
+    data = { ...data, labels };
+
     const matchingAlertManager = allContactPoints.find((cp) => cp.uid === alert_manager);
     const hasContactPointInput = alert_manager && contact_point;
 
@@ -175,16 +190,17 @@ const IntegrationForm = observer((props: IntegrationFormProps) => {
       return;
     }
 
-    let apiResponseData: void | AlertReceiveChannel;
     const isCreate = id === 'new';
 
-    if (isCreate) {
-      apiResponseData = await createNewIntegration();
-    } else {
-      apiResponseData = await alertReceiveChannelStore.update(id, data);
-    }
+    try {
+      if (isCreate) {
+        await createNewIntegration();
+      } else {
+        await alertReceiveChannelStore.update(id, data, undefined, true);
+      }
+    } catch (error) {
+      setErrors(error.response.data);
 
-    if (!apiResponseData) {
       openErrorNotification(
         `There was an issue ${isCreate ? 'creating' : 'updating'} the integration. Please try again.`
       );
@@ -205,7 +221,7 @@ const IntegrationForm = observer((props: IntegrationFormProps) => {
             return;
           }
 
-          if (!IntegrationHelper.isGrafanaAlerting(selectedOption.value)) {
+          if (!IntegrationHelper.isSpecificIntegration(selectedOption.value, 'grafana_alerting')) {
             return pushHistory(response.id);
           }
 

@@ -17,7 +17,7 @@ export type PageDefinition = {
   action?: UserAction;
   hideTitle: boolean; // dont't automatically render title above page content
 
-  getPageNav(): { text: string; description: string };
+  getPageNav: (pageTitle: string) => NavModelItem;
 };
 
 function getPath(name = '') {
@@ -32,6 +32,20 @@ export const pages: { [id: string]: PageDefinition } = [
     text: 'Alert groups',
     hideTitle: true,
     path: getPath('alert-groups'),
+    action: UserActions.AlertGroupsRead,
+  },
+  {
+    icon: 'bell',
+    id: 'alert-group',
+    text: '',
+    showOrgSwitcher: true,
+    getParentItem: (pageTitle: string) => ({
+      text: pageTitle,
+      url: `${PLUGIN_ROOT}/alert-groups`,
+    }),
+    hideFromBreadcrumbs: true,
+    hideFromTabs: true,
+    path: getPath('alert-group/:id?'),
     action: UserActions.AlertGroupsRead,
   },
   {
@@ -63,6 +77,7 @@ export const pages: { [id: string]: PageDefinition } = [
     icon: 'calendar-alt',
     id: 'schedules',
     text: 'Schedules',
+    hideTitle: true,
     hideFromBreadcrumbs: true,
     path: getPath('schedules'),
     action: UserActions.SchedulesRead,
@@ -71,10 +86,10 @@ export const pages: { [id: string]: PageDefinition } = [
     icon: 'calendar-alt',
     id: 'schedule',
     text: '',
-    parentItem: {
-      text: 'Schedule',
+    getParentItem: (pageTitle: string) => ({
+      text: pageTitle,
       url: `${PLUGIN_ROOT}/schedules`,
-    },
+    }),
     hideFromBreadcrumbs: true,
     hideFromTabs: true,
     path: getPath('schedule/:id?'),
@@ -96,14 +111,6 @@ export const pages: { [id: string]: PageDefinition } = [
     hideFromBreadcrumbs: true,
     hideFromTabs: isTopNavbar(),
     action: UserActions.ChatOpsRead,
-  },
-  {
-    icon: 'wrench',
-    id: 'maintenance',
-    text: 'Maintenance',
-    hideFromBreadcrumbs: true,
-    path: getPath('maintenance'),
-    action: UserActions.MaintenanceRead,
   },
   {
     icon: 'cog',
@@ -146,10 +153,10 @@ export const pages: { [id: string]: PageDefinition } = [
   if (!current.action || (current.action && isUserActionAllowed(current.action))) {
     prev[current.id] = {
       ...current,
-      getPageNav: () =>
+      getPageNav: (pageTitle: string) =>
         ({
           text: isTopNavbar() ? '' : current.text,
-          parentItem: current.parentItem,
+          parentItem: current.getParentItem ? current.getParentItem(pageTitle) : undefined,
           hideFromBreadcrumbs: current.hideFromBreadcrumbs,
           hideFromTabs: current.hideFromTabs,
         } as NavModelItem),
@@ -169,7 +176,6 @@ export const ROUTES = {
   schedules: ['schedules'],
   schedule: ['schedules/:id'],
   outgoing_webhooks: ['outgoing_webhooks', 'outgoing_webhooks/:id', 'outgoing_webhooks/:action/:id'],
-  maintenance: ['maintenance'],
   settings: ['settings'],
   'chat-ops': ['chat-ops'],
   'live-settings': ['live-settings'],

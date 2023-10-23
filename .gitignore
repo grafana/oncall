@@ -7,3 +7,6 @@ venv
 .idea
 .DS_Store
 .env
+
+yarn.lock
+node_modules

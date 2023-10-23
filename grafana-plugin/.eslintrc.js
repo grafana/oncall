@@ -6,7 +6,7 @@ module.exports = {
   plugins: ['rulesdir', 'import'],
   settings: {
     'import/internal-regex':
-      '^assets|^components|^containers|^icons|^models|^network|^pages|^services|^state|^utils|^plugin',
+      '^assets|^components|^containers|^contexts|^icons|^models|^network|^pages|^services|^state|^utils|^plugin',
   },
   rules: {
     eqeqeq: 'warn',
@@ -55,6 +55,7 @@ module.exports = {
      * https://github.com/jsx-eslint/eslint-plugin-react/issues/3325
      */
     'react/prop-types': 'off',
+    'react/no-unused-prop-types': 'off',
     'react/jsx-key': 'warn',
     'react/jsx-no-target-blank': 'warn',
     'react/no-unescaped-entities': 'off',

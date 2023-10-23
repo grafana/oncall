@@ -77,10 +77,28 @@ engine:
   #     - --port=5432
   #     - example:europe-west3:grafana-oncall-db
 
+  # Extra volume mounts for the main app container
+  extraVolumeMounts: []
+  # - name: postgres-tls
+  #   configMap:
+  #     name: my-postgres-tls
+  #     defaultMode: 0640
+  # - name: redis-tls
+  #   configMap:
+  #     name: my-redis-tls
+  #     defaultMode: 0640
+
+  # Extra volumes for the pod
+  extraVolumes: []
+  # - mountPath: /mnt/postgres-tls
+  #   name: postgres-tls
+  # - mountPath: /mnt/redis-tls
+  #   name: redis-tls
+
 # Celery workers pods configuration
 celery:
   replicaCount: 1
-  worker_queue: "default,critical,long,slack,telegram,webhook,celery"
+  worker_queue: "default,critical,long,slack,telegram,webhook,celery,grafana"
   worker_concurrency: "1"
   worker_max_tasks_per_child: "100"
   worker_beat_enabled: "True"
@@ -134,6 +152,24 @@ celery:
   #     - --port=5432
   #     - example:europe-west3:grafana-oncall-db
 
+  # Extra volume mounts for the main container
+  extraVolumeMounts: []
+  # - name: postgres-tls
+  #   configMap:
+  #     name: my-postgres-tls
+  #     defaultMode: 0640
+  # - name: redis-tls
+  #   configMap:
+  #     name: my-redis-tls
+  #     defaultMode: 0640
+
+  # Extra volumes for the pod
+  extraVolumes: []
+  # - mountPath: /mnt/postgres-tls
+  #   name: postgres-tls
+  # - mountPath: /mnt/redis-tls
+  #   name: redis-tls
+
 # Telegram polling pod configuration
 telegramPolling:
   enabled: false
@@ -144,6 +180,24 @@ telegramPolling:
     # requests:
     #   cpu: 100m
     #   memory: 128Mi
+
+  # Extra volume mounts for the main container
+  extraVolumeMounts: []
+  # - name: postgres-tls
+  #   configMap:
+  #     name: my-postgres-tls
+  #     defaultMode: 0640
+  # - name: redis-tls
+  #   configMap:
+  #     name: my-redis-tls
+  #     defaultMode: 0640
+
+  # Extra volumes for the pod
+  extraVolumes: []
+  # - mountPath: /mnt/postgres-tls
+  #   name: postgres-tls
+  # - mountPath: /mnt/redis-tls
+  #   name: redis-tls
 
 oncall:
   # this is intended to be used for local development. In short, it will mount the ./engine dir into
@@ -198,7 +252,7 @@ oncall:
     # The key in the secret containing Telegram token
     tokenKey: ""
   smtp:
-    enabled: false
+    enabled: true
     host: ~
     port: ~
     username: ~
@@ -278,6 +332,24 @@ migrate:
     # requests:
     #   cpu: 100m
     #   memory: 128Mi
+
+  # Extra volume mounts for the main container
+  extraVolumeMounts: []
+  # - name: postgres-tls
+  #   configMap:
+  #     name: my-postgres-tls
+  #     defaultMode: 0640
+  # - name: redis-tls
+  #   configMap:
+  #     name: my-redis-tls
+  #     defaultMode: 0640
+
+  # Extra volumes for the pod
+  extraVolumes: []
+  # - mountPath: /mnt/postgres-tls
+  #   name: postgres-tls
+  # - mountPath: /mnt/redis-tls
+  #   name: redis-tls
 
 # Sets environment variables with name capitalized and prefixed with UWSGI_,
 # and dashes are substituted with underscores.
@@ -377,6 +449,15 @@ externalMysql:
   usernameKey:
   # The key in the secret containing the mysql password
   passwordKey:
+  # Extra options (see example below)
+  # Reference: https://pymysql.readthedocs.io/en/latest/modules/connections.html
+  options:
+  # options: >-
+  #   ssl_verify_cert=true
+  #   ssl_verify_identity=true
+  #   ssl_ca=/mnt/mysql-tls/ca.crt
+  #   ssl_cert=/mnt/mysql-tls/client.crt
+  #   ssl_key=/mnt/mysql-tls/client.key
 
 # PostgreSQL is included into this release for the convenience.
 # It is recommended to host it separately from this release
@@ -399,6 +480,14 @@ externalPostgresql:
   existingSecret:
   # The key in the secret containing the database password
   passwordKey:
+  # Extra options (see example below)
+  # Reference: https://www.postgresql.org/docs/current/libpq-connect.html#LIBPQ-PARAMKEYWORDS
+  options:
+  # options: >-
+  #   sslmode=verify-full
+  #   sslrootcert=/mnt/postgres-tls/ca.crt
+  #   sslcert=/mnt/postgres-tls/client.crt
+  #   sslkey=/mnt/postgres-tls/client.key
 
 # RabbitMQ is included into this release for the convenience.
 # It is recommended to host it separately from this release
@@ -433,12 +522,27 @@ redis:
     existingSecret:
 
 externalRedis:
+  protocol:
   host:
+  port:
+  database:
+  username:
   password:
   # Use an existing secret for the redis password
   existingSecret:
   # The key in the secret containing the redis password
   passwordKey:
+
+  # SSL options
+  ssl_options:
+    enabled: false
+    # CA certificate
+    ca_certs:
+    # Client SSL certs
+    certfile:
+    keyfile:
+    # SSL verification mode: "cert_none" | "cert_optional" | "cert_required"
+    cert_reqs:
 
 # Grafana is included into this release for the convenience.
 # It is recommended to host it separately from this release
@@ -486,6 +590,7 @@ securityContext:
   #   - ALL
   # readOnlyRootFilesystem: true
   # runAsNonRoot: true
+  # runAsGroup: 2000
   # runAsUser: 1000
 
 init:
@@ -497,9 +602,9 @@ init:
     #   - ALL
     # privileged: false
     # readOnlyRootFilesystem: true
-    # runAsGroup: 1337
+    # runAsGroup: 2000
     # runAsNonRoot: true
-    # runAsUser: 1337
+    # runAsUser: 1000
   resources:
     {}
     # limits:
@@ -513,5 +618,8 @@ ui:
   # this is intended to be used for local development. In short, it will spin up an additional container
   # running the plugin frontend, such that hot reloading can be enabled
   enabled: false
+  image:
+    repository: oncall/ui
+    tag: dev
   # Additional env vars for the ui container
   env: {}

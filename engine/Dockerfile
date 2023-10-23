@@ -17,8 +17,7 @@ RUN apk add bash \
 
 WORKDIR /etc/app
 COPY ./requirements.txt ./
-RUN pip install --upgrade pip
-RUN pip install --upgrade setuptools wheel
+COPY ./pip/cache /root/.cache/pip/wheels/
 RUN pip install -r requirements.txt
 
 # we intentionally have two COPY commands, this is to have the requirements.txt in a separate build step
@@ -45,6 +44,7 @@ RUN chown -R ${APP_USER}:${APP_USER} /tmp/silk_profiles
 RUN mkdir -p /tmp/prometheus_django_metrics;
 RUN chown -R ${APP_USER}:${APP_USER} /tmp/prometheus_django_metrics
 ENV prometheus_multiproc_dir "/tmp/prometheus_django_metrics"
+
 
 FROM base AS dev
 RUN apk add sqlite mysql-client postgresql-client

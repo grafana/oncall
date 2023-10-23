@@ -1,6 +1,7 @@
 # Developer quickstart
 
-- [Running the project](#running-the-project)
+- [Quick Start using Kubernetes and Tilt (beta)](#quick-start-using-kubernetes-and-tilt-beta)
+- [Running the project with docker-compose](#running-the-project-with-docker-compose)
   - [`COMPOSE_PROFILES`](#compose_profiles)
   - [`GRAFANA_IMAGE`](#grafana_image)
   - [Configuring Grafana](#configuring-grafana)
@@ -8,6 +9,7 @@
   - [Django Silk Profiling](#django-silk-profiling)
   - [Running backend services outside Docker](#running-backend-services-outside-docker)
 - [UI E2E Tests](#ui-e2e-tests)
+- [Helm Unit Tests](#helm-unit-tests)
 - [Useful `make` commands](#useful-make-commands)
 - [Setting environment variables](#setting-environment-variables)
 - [Slack application setup](#slack-application-setup)
@@ -26,7 +28,42 @@
 
 Related: [How to develop integrations](/engine/config_integrations/README.md)
 
-## Running the project
+## Quick Start using Kubernetes and Tilt (beta)
+
+> If you are experiencing issues, please check "Running the project with docker-compose".
+
+### Install dependencies
+
+- [Tilt | Kubernetes for Prod, Tilt for Dev](https://tilt.dev/)
+- [tilt-dev/ctlptl: Making local Kubernetes clusters fun and easy to set up](https://github.com/tilt-dev/ctlptl)
+- [Kind](https://kind.sigs.k8s.io)
+- [Yarn](https://classic.yarnpkg.com/lang/en/docs/install/#mac-stable)
+
+### Launch the environment
+
+1. Create local k8s cluster:
+
+    ```bash
+    make cluster/up
+    ```
+
+2. Deploy the project:
+
+    ```bash
+    tilt up
+    ```
+
+3. Wait until all resources are green and open <http://localhost:3000/a/grafana-oncall-app> (user: oncall, password: oncall)
+
+4. Modify source code, backend and frontend will be hot reloaded
+
+5. Clean up the project by deleting the local k8s cluster:
+
+    ```bash
+    make cluster/down
+    ```
+
+## Running the project with docker-compose
 
 By default everything runs inside Docker. These options can be modified via the [`COMPOSE_PROFILES`](#compose_profiles)
 environment variable.
@@ -203,6 +240,19 @@ cp ./grafana-plugin/e2e-tests/.env.example ./grafana-plugin/e2e-tests/.env
 # you may need to tweak the values in ./grafana-plugin/.env according to your local setup
 cd grafana-plugin
 yarn test:e2e
+```
+
+## Helm unit tests
+
+To run the `helm` unit tests you will need the following dependencies installed:
+
+- `helm` - [installation instructions](https://helm.sh/docs/intro/install/)
+- `helm-unittest` plugin - [installation instructions](https://github.com/helm-unittest/helm-unittest#install)
+
+Then you can simply run
+
+```bash
+make test-helm
 ```
 
 ## Useful `make` commands
@@ -436,24 +486,25 @@ for the common mistakes and best practices
 > DO NOT USE THIS APPROACH FOR NON-NULLABLE FIELDS, IT CAN BREAK THINGS!
 
 1. Remove all usages of the field you want to remove. Make sure the field is not used anywhere, including filtering,
-querying, or explicit field referencing from views, models, forms, serializers, etc.
+   querying, or explicit field referencing from views, models, forms, serializers, etc.
 2. Remove the field from the model definition.
 3. Generate migrations using the following management command:
 
-    ```python
-    python manage.py remove_field <APP_LABEL> <MODEL_NAME> <FIELD_NAME>
-    ```
+   ```python
+   python manage.py remove_field <APP_LABEL> <MODEL_NAME> <FIELD_NAME>
+   ```
 
-    Example: `python manage.py remove_field alerts AlertReceiveChannel restricted_at`
+   Example: `python manage.py remove_field alerts AlertReceiveChannel restricted_at`
 
-    This command will generate two migrations that **MUST BE DEPLOYED IN TWO SEPARATE RELEASES**:
+   This command will generate two migrations that **MUST BE DEPLOYED IN TWO SEPARATE RELEASES**:
+
    - Migration #1 will remove the field from Django's state, but not from the database. Release #1 must include
-   migration #1, and must not include migration #2.
+     migration #1, and must not include migration #2.
    - Migration #2 will remove the field from the database. Stash this migration for use in a future release.
 
 4. Make release #1 (removal of the field + migration #1). Once released and deployed, Django will not be
-aware of this field anymore, but the field will be still present in the database. This allows for a gradual migration,
-where the field is no longer used in new code, but still exists in the database for backward compatibility with old code.
+   aware of this field anymore, but the field will be still present in the database. This allows for a gradual migration,
+   where the field is no longer used in new code, but still exists in the database for backward compatibility with old code.
 5. In any subsequent release, include migration #2 (the one that removes the field from the database).
 6. After releasing and deploying migration #2, the field will be removed both from the database and Django state,
-without backward compatibility issues or downtime 🎉
+   without backward compatibility issues or downtime 🎉

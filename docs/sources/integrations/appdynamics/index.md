@@ -9,11 +9,16 @@ keywords:
   - Notifications
   - on-call
   - AppDynamics
+labels:
+  products:
+    - cloud
 title: AppDynamics
 weight: 500
 ---
 
 # AppDynamics integration for Grafana OnCall
+
+> This integration is not available in OSS version
 
 The AppDynamics integration for Grafana OnCall handles health rule violation events sent from AppDynamics actions.
 The integration provides grouping and auto-resolve logic via customizable alert templates.

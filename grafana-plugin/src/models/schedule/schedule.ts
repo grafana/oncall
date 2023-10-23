@@ -4,16 +4,22 @@ import { action, observable } from 'mobx';
 import { RemoteFiltersType } from 'containers/RemoteFilters/RemoteFilters.types';
 import BaseStore from 'models/base_store';
 import { EscalationChain } from 'models/escalation_chain/escalation_chain.types';
+import { User } from 'models/user/user.types';
 import { makeRequest } from 'network';
 import { RootStore } from 'state';
 import { SelectOption } from 'state/types';
 
 import {
+  createShiftSwapEventFromShiftSwap,
+  enrichEventsWithScheduleData,
   enrichLayers,
   enrichOverrides,
+  fillGapsInShifts,
+  flattenShiftEvents,
   getFromString,
   splitToLayers,
-  splitToShiftsAndFillGaps,
+  splitToShifts,
+  unFlattenShiftEvents,
 } from './schedule.helpers';
 import {
   Rotation,
@@ -31,13 +37,15 @@ import {
 
 export class ScheduleStore extends BaseStore {
   @observable
-  searchResult: { count?: number; results?: Array<Schedule['id']> } = {};
+  searchResult: { page_size?: number; count?: number; results?: Array<Schedule['id']> } = {};
 
   @observable.shallow
   items: { [id: string]: Schedule } = {};
 
   @observable.shallow
   shifts: { [id: string]: Shift } = {};
+
+  shiftsCurrentlyUpdating = {};
 
   @observable.shallow
   relatedEscalationChains: { [id: string]: EscalationChain[] } = {};
@@ -47,6 +55,9 @@ export class ScheduleStore extends BaseStore {
 
   @observable.shallow
   shiftSwaps: { [id: string]: ShiftSwap } = {};
+
+  @observable.shallow
+  scheduleAndDateToShiftSwaps: { [scheduleId: string]: { [date: string]: ShiftEvents[] } } = {};
 
   @observable.shallow
   rotations: {
@@ -64,14 +75,31 @@ export class ScheduleStore extends BaseStore {
     };
   } = {};
 
-  @observable
-  finalPreview?: Array<{ shiftId: Shift['id']; events: Event[] }>;
+  @observable.shallow
+  personalEvents: {
+    [userPk: string]: {
+      [startMoment: string]: ShiftEvents[];
+    };
+  } = {};
+
+  @observable.shallow
+  onCallNow: {
+    [userPk: string]: boolean;
+  } = {};
 
   @observable
-  rotationPreview?: Layer[];
+  finalPreview?: { [fromString: string]: Array<{ shiftId: Shift['id']; events: Event[] }> };
 
   @observable
-  overridePreview?: Array<{ shiftId: Shift['id']; isPreview?: boolean; events: Event[] }>;
+  rotationPreview?: { [fromString: string]: Layer[] };
+
+  @observable
+  shiftSwapsPreview?: {
+    [fromString: string]: ShiftEvents[];
+  };
+
+  @observable
+  overridePreview?: { [fromString: string]: ShiftEvents[] };
 
   @observable
   rotationFormLiveParams: RotationFormLiveParams = undefined;
@@ -82,7 +110,7 @@ export class ScheduleStore extends BaseStore {
   } = {};
 
   @observable
-  byDayOptions: SelectOption[];
+  byDayOptions: SelectOption[] = [];
 
   @observable
   scheduleId: Schedule['id'];
@@ -106,36 +134,18 @@ export class ScheduleStore extends BaseStore {
   }
 
   @action
-  async updateScheduleEvents(
-    scheduleId: Schedule['id'],
-    withEmpty: boolean,
-    with_gap: boolean,
-    date: string,
-    user_tz: string
-  ) {
-    const { events } = await makeRequest(`/schedules/${scheduleId}/events/`, {
-      params: { date, user_tz, with_empty: withEmpty, with_gap: with_gap },
-    });
-
-    this.scheduleToScheduleEvents = {
-      ...this.scheduleToScheduleEvents,
-      [scheduleId]: events,
-    };
-  }
-
-  @action
   async updateItems(
     f: RemoteFiltersType | string = { searchTerm: '', type: undefined, used: undefined },
     page = 1,
-    shouldUpdateFn: () => boolean = undefined
+    invalidateFn: () => boolean = undefined
   ) {
     const filters = typeof f === 'string' ? { search: f } : f;
-    const { count, results } = await makeRequest(this.path, {
+    const { page_size, count, results } = await makeRequest(this.path, {
       method: 'GET',
       params: { ...filters, page },
     });
 
-    if (shouldUpdateFn && !shouldUpdateFn()) {
+    if (invalidateFn && invalidateFn()) {
       return;
     }
 
@@ -150,6 +160,7 @@ export class ScheduleStore extends BaseStore {
       ),
     };
     this.searchResult = {
+      page_size,
       count,
       results: results.map((item: Schedule) => item.id),
     };
@@ -186,6 +197,7 @@ export class ScheduleStore extends BaseStore {
       return undefined;
     }
     return {
+      page_size: this.searchResult.page_size,
       count: this.searchResult.count,
       results: this.searchResult.results?.map((scheduleId: Schedule['id']) => this.items[scheduleId]),
     };
@@ -280,7 +292,31 @@ export class ScheduleStore extends BaseStore {
       this.rotationPreview = { ...this.rotationPreview, [fromString]: layers };
     }
 
-    this.finalPreview = { ...this.finalPreview, [fromString]: splitToShiftsAndFillGaps(response.final) };
+    this.finalPreview = { ...this.finalPreview, [fromString]: fillGapsInShifts(splitToShifts(response.final)) };
+  }
+
+  @action
+  async updateShiftsSwapPreview(scheduleId: Schedule['id'], startMoment: dayjs.Dayjs, params: Partial<ShiftSwap>) {
+    const fromString = getFromString(startMoment);
+
+    const newShiftEvents: ShiftEvents = {
+      shiftId: 'new',
+      events: [createShiftSwapEventFromShiftSwap(params)],
+      isPreview: true,
+    };
+
+    if (!this.scheduleAndDateToShiftSwaps[scheduleId][fromString]) {
+      await this.updateShiftSwaps(scheduleId, startMoment);
+    }
+
+    const existingShiftEventsList: ShiftEvents[] = this.scheduleAndDateToShiftSwaps[scheduleId][fromString];
+
+    const shiftEventsListFlattened = flattenShiftEvents([...existingShiftEventsList, newShiftEvents]);
+
+    this.shiftSwapsPreview = {
+      ...this.shiftSwapsPreview,
+      [fromString]: shiftEventsListFlattened,
+    };
   }
 
   @action
@@ -288,6 +324,7 @@ export class ScheduleStore extends BaseStore {
     this.finalPreview = undefined;
     this.rotationPreview = undefined;
     this.overridePreview = undefined;
+    this.shiftSwapsPreview = undefined;
     this.rotationFormLiveParams = undefined;
   }
 
@@ -368,12 +405,20 @@ export class ScheduleStore extends BaseStore {
 
   @action
   async updateOncallShift(shiftId: Shift['id']) {
+    if (this.shiftsCurrentlyUpdating[shiftId]) {
+      return;
+    }
+
+    this.shiftsCurrentlyUpdating[shiftId] = true;
+
     const response = await makeRequest(`/oncall_shifts/${shiftId}`, {});
 
     this.shifts = {
       ...this.shifts,
       [shiftId]: response,
     };
+
+    delete this.shiftsCurrentlyUpdating[shiftId];
 
     return response;
   }
@@ -410,7 +455,9 @@ export class ScheduleStore extends BaseStore {
     });
 
     const fromString = getFromString(startMoment);
-    const shifts = splitToShiftsAndFillGaps(response.events);
+    const shiftsRaw = splitToShifts(response.events);
+    const shiftsUnflattened = unFlattenShiftEvents(shiftsRaw);
+    const shifts = fillGapsInShifts(shiftsUnflattened);
     const layers = type === 'rotation' ? splitToLayers(shifts) : undefined;
 
     this.events = {
@@ -450,10 +497,84 @@ export class ScheduleStore extends BaseStore {
   }
 
   async loadShiftSwap(id: ShiftSwap['id']) {
-    const result = await makeRequest(`/shift_swaps/${id}`, {});
+    const result = await makeRequest(`/shift_swaps/${id}`, { params: { expand_users: true } });
 
     this.shiftSwaps = { ...this.shiftSwaps, [id]: result };
 
     return result;
+  }
+
+  async updateShiftSwaps(scheduleId: Schedule['id'], startMoment: dayjs.Dayjs, days = 9) {
+    const fromString = getFromString(startMoment);
+
+    const dayBefore = startMoment.subtract(1, 'day');
+
+    const result = await makeRequest(`/schedules/${scheduleId}/filter_shift_swaps/`, {
+      method: 'GET',
+      params: {
+        date: getFromString(dayBefore),
+        days,
+      },
+    });
+
+    const shiftEventsList: ShiftEvents[] = result.shift_swaps.map((shiftSwap) => ({
+      shiftId: shiftSwap.id,
+      events: [createShiftSwapEventFromShiftSwap(shiftSwap)],
+      isPreview: false,
+    }));
+
+    const shiftEventsListFlattened = flattenShiftEvents(shiftEventsList);
+
+    this.shiftSwaps = result.shift_swaps.reduce(
+      (memo, shiftSwap) => ({
+        ...memo,
+        [shiftSwap.id]: shiftSwap,
+      }),
+      this.shiftSwaps
+    );
+
+    this.scheduleAndDateToShiftSwaps = {
+      ...this.scheduleAndDateToShiftSwaps,
+      [scheduleId]: {
+        ...this.scheduleAndDateToShiftSwaps[scheduleId],
+        [fromString]: shiftEventsListFlattened,
+      },
+    };
+  }
+
+  async updatePersonalEvents(userPk: User['pk'], startMoment: dayjs.Dayjs, days = 9, isUpdateOnCallNow = false) {
+    const fromString = getFromString(startMoment);
+
+    const dayBefore = startMoment.subtract(1, 'day');
+
+    const { is_oncall, schedules } = await makeRequest(`/schedules/current_user_events/`, {
+      method: 'GET',
+      params: {
+        date: getFromString(dayBefore),
+        days,
+      },
+    });
+
+    const shiftEventsList = schedules.reduce((acc, { events, id, name }) => {
+      return [...acc, ...fillGapsInShifts(splitToShifts(enrichEventsWithScheduleData(events, { id, name })))];
+    }, []);
+
+    const shiftEventsListFlattened = flattenShiftEvents(shiftEventsList);
+
+    this.personalEvents = {
+      ...this.personalEvents,
+      [userPk]: {
+        ...this.personalEvents[userPk],
+        [fromString]: shiftEventsListFlattened,
+      },
+    };
+
+    if (isUpdateOnCallNow) {
+      // since current endpoint works incorrectly we are waiting for https://github.com/grafana/oncall/issues/3164
+      this.onCallNow = {
+        ...this.onCallNow,
+        [userPk]: is_oncall,
+      };
+    }
   }
 }

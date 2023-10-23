@@ -111,35 +111,39 @@ export class UserStore extends BaseStore {
   }
 
   @action
-  async updateItems(f: any = { searchTerm: '' }, page = 1) {
-    return new Promise<void>(async (resolve) => {
-      const filters = typeof f === 'string' ? { searchTerm: f } : f; // for GSelect compatibility
-      const { searchTerm: search } = filters;
-      const { count, results } = await makeRequest(this.path, {
-        params: { search, page },
-      });
-
-      this.items = {
-        ...this.items,
-        ...results.reduce(
-          (acc: { [key: number]: User }, item: User) => ({
-            ...acc,
-            [item.pk]: {
-              ...item,
-              timezone: getTimezone(item),
-            },
-          }),
-          {}
-        ),
-      };
-
-      this.searchResult = {
-        count,
-        results: results.map((item: User) => item.pk),
-      };
-
-      resolve();
+  async updateItems(f: any = { searchTerm: '' }, page = 1, invalidateFn?: () => boolean): Promise<any> {
+    const filters = typeof f === 'string' ? { searchTerm: f } : f; // for GSelect compatibility
+    const { searchTerm: search } = filters;
+    const response = await makeRequest(this.path, {
+      params: { search, page },
     });
+
+    if (invalidateFn && invalidateFn()) {
+      return;
+    }
+
+    const { count, results } = response;
+
+    this.items = {
+      ...this.items,
+      ...results.reduce(
+        (acc: { [key: number]: User }, item: User) => ({
+          ...acc,
+          [item.pk]: {
+            ...item,
+            timezone: getTimezone(item),
+          },
+        }),
+        {}
+      ),
+    };
+
+    this.searchResult = {
+      count,
+      results: results.map((item: User) => item.pk),
+    };
+
+    return response;
   }
 
   getSearchResult() {
@@ -345,7 +349,7 @@ export class UserStore extends BaseStore {
   async deleteNotificationPolicy(userPk: User['pk'], id: NotificationPolicyType['id']) {
     Mixpanel.track('Delete NotificationPolicy', null);
 
-    await makeRequest(`/notification_policies/${id}`, { method: 'DELETE' });
+    await makeRequest(`/notification_policies/${id}`, { method: 'DELETE' }).catch(this.onApiError);
 
     this.updateNotificationPolicies(userPk);
 

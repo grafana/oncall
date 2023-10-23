@@ -10,7 +10,9 @@ export interface User {
   email: string;
   phone: string;
   avatar: string;
+  avatar_full: string;
   name: string;
+  display_name: string;
   company: string;
   hide_phone_number: boolean;
   role_in_company: string;

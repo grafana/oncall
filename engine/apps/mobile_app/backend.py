@@ -3,7 +3,7 @@ import json
 from django.conf import settings
 
 from apps.base.messaging import BaseMessagingBackend
-from apps.mobile_app.tasks import notify_user_async
+from apps.mobile_app.tasks.new_alert_group import notify_user_about_new_alert_group
 
 
 class MobileAppBackend(BaseMessagingBackend):
@@ -44,7 +44,7 @@ class MobileAppBackend(BaseMessagingBackend):
         return {"connected": MobileAppAuthToken.objects.filter(user=user).exists()}
 
     def notify_user(self, user, alert_group, notification_policy, critical=False):
-        notify_user_async.delay(
+        notify_user_about_new_alert_group.delay(
             user_pk=user.pk,
             alert_group_pk=alert_group.pk,
             notification_policy_pk=notification_policy.pk,

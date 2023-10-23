@@ -2,8 +2,8 @@ import enum
 import typing
 from datetime import datetime
 
-from apps.slack.slack_client import SlackClientWithErrorHandling
-from apps.slack.slack_client.exceptions import SlackAPIException
+from apps.slack.client import SlackClient
+from apps.slack.errors import SlackAPIChannelNotFoundError
 
 if typing.TYPE_CHECKING:
     from apps.user_management.models import Organization
@@ -62,15 +62,14 @@ class SlackDateFormat(enum.StrEnum):
 
 
 def post_message_to_channel(organization: "Organization", channel_id: str, text: str) -> None:
-    if organization.slack_team_identity:
-        slack_client = SlackClientWithErrorHandling(organization.slack_team_identity.bot_access_token)
-        try:
-            slack_client.api_call("chat.postMessage", channel=channel_id, text=text)
-        except SlackAPIException as e:
-            if e.response["error"] == "channel_not_found":
-                pass
-            else:
-                raise e
+    if not organization.slack_team_identity:
+        return
+
+    slack_client = SlackClient(organization.slack_team_identity)
+    try:
+        slack_client.chat_postMessage(channel=channel_id, text=text)
+    except SlackAPIChannelNotFoundError:
+        pass
 
 
 def _format_datetime_to_slack(timestamp: float, format: str) -> str:

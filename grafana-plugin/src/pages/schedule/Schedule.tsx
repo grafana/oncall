@@ -39,7 +39,10 @@ import styles from './Schedule.module.css';
 
 const cx = cn.bind(styles);
 
-interface SchedulePageProps extends PageProps, WithStoreProps, RouteComponentProps<{ id: string }> {}
+interface SchedulePageProps extends PageProps, WithStoreProps, RouteComponentProps<{ id: string }> {
+  pageTitle: string;
+  setPageTitle: (value: string) => void;
+}
 
 interface SchedulePageState extends PageBaseState {
   startMoment: dayjs.Dayjs;
@@ -100,15 +103,18 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
   }
 
   componentWillUnmount() {
-    const { store } = this.props;
+    const { store, setPageTitle } = this.props;
 
     store.scheduleStore.clearPreview();
+
+    setPageTitle(undefined);
   }
 
   render() {
     const {
       store,
       query,
+      pageTitle,
       match: {
         params: { id: scheduleId },
       },
@@ -140,13 +146,21 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
       !isUserActionAllowed(UserActions.SchedulesWrite) ||
       schedule?.type !== ScheduleType.API ||
       !!shiftIdToShowRotationForm ||
-      shiftIdToShowOverridesForm;
+      shiftIdToShowOverridesForm ||
+      shiftSwapIdToShowForm;
 
     const disabledOverrideForm =
       !isUserActionAllowed(UserActions.SchedulesWrite) ||
       !schedule?.enable_web_overrides ||
       !!shiftIdToShowOverridesForm ||
-      shiftIdToShowRotationForm;
+      shiftIdToShowRotationForm ||
+      shiftSwapIdToShowForm;
+
+    const disabledShiftSwaps =
+      !isUserActionAllowed(UserActions.SchedulesWrite) ||
+      !!shiftIdToShowOverridesForm ||
+      shiftIdToShowRotationForm ||
+      shiftSwapIdToShowForm;
 
     return (
       <PageErrorHandlingWrapper errorData={errorData} objectName="schedule" pageName="schedules">
@@ -179,7 +193,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
                           level={2}
                           onTextChange={this.handleNameChange}
                         >
-                          {schedule?.name}
+                          {pageTitle}
                         </Text.Title>
                         {schedule && <ScheduleQuality schedule={schedule} lastUpdated={this.state.lastUpdated} />}
                       </div>
@@ -272,7 +286,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
                       disabled={disabledRotationForm}
                       onShowOverrideForm={this.handleShowOverridesForm}
                       filters={filters}
-                      onShowShiftSwapForm={this.handleShowShiftSwapForm}
+                      onShowShiftSwapForm={!shiftSwapIdToShowForm ? this.handleShowShiftSwapForm : undefined}
                       onSlotClick={
                         shiftSwapIdToShowForm
                           ? this.adjustShiftSwapForm
@@ -293,7 +307,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
                       onShowOverrideForm={this.handleShowOverridesForm}
                       disabled={disabledRotationForm}
                       filters={filters}
-                      onShowShiftSwapForm={this.handleShowShiftSwapForm}
+                      onShowShiftSwapForm={!shiftSwapIdToShowForm ? this.handleShowShiftSwapForm : undefined}
                       onSlotClick={shiftSwapIdToShowForm ? this.adjustShiftSwapForm : undefined}
                     />
                     <ScheduleOverrides
@@ -306,8 +320,10 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
                       shiftIdToShowRotationForm={shiftIdToShowOverridesForm}
                       onShowRotationForm={this.handleShowOverridesForm}
                       disabled={disabledOverrideForm}
+                      disableShiftSwaps={disabledShiftSwaps}
                       shiftStartToShowOverrideForm={shiftStartToShowOverrideForm}
                       shiftEndToShowOverrideForm={shiftEndToShowOverrideForm}
+                      onShowShiftSwapForm={!shiftSwapIdToShowForm ? this.handleShowShiftSwapForm : undefined}
                       filters={filters}
                     />
                   </div>
@@ -337,10 +353,11 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
               <ShiftSwapForm
                 id={shiftSwapIdToShowForm}
                 scheduleId={scheduleId}
+                startMoment={startMoment}
                 currentTimezone={currentTimezone}
                 params={shiftSwapParamsToShowForm}
                 onHide={this.handleHideShiftSwapForm}
-                onUpdate={this.updateEvents}
+                onUpdate={this.handleUpdateShiftSwaps}
               />
             )}
           </>
@@ -355,10 +372,14 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
       match: {
         params: { id: scheduleId },
       },
+      setPageTitle,
     } = this.props;
+
     const { scheduleStore } = store;
 
-    return scheduleStore.loadItem(scheduleId);
+    return scheduleStore.loadItem(scheduleId).then((schedule) => {
+      setPageTitle(schedule?.name);
+    });
   };
 
   handleShowForm = async (shiftId: Shift['id'] | 'new') => {
@@ -393,13 +414,17 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
       match: {
         params: { id: scheduleId },
       },
+      setPageTitle,
     } = this.props;
 
     const schedule = store.scheduleStore.items[scheduleId];
 
     store.scheduleStore
       .update(scheduleId, { type: schedule.type, name: value })
-      .then(() => store.scheduleStore.loadItem(scheduleId));
+      .then(() => store.scheduleStore.loadItem(scheduleId))
+      .then((schedule) => {
+        setPageTitle(schedule?.name);
+      });
   };
 
   updateEvents = () => {
@@ -408,6 +433,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
       match: {
         params: { id: scheduleId },
       },
+      setPageTitle,
     } = this.props;
 
     const { startMoment } = this.state;
@@ -419,6 +445,9 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
 
     store.scheduleStore
       .loadItem(scheduleId) // to refresh current oncall users
+      .then((schedule) => {
+        setPageTitle(schedule?.name);
+      })
       .catch((error) => this.setState({ errorData: { ...getWrongTeamResponseInfo(error) } }));
     store.scheduleStore.updateRelatedUsers(scheduleId); // to refresh related users
 
@@ -426,6 +455,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
       store.scheduleStore.updateEvents(scheduleId, startMoment, 'rotation'),
       store.scheduleStore.updateEvents(scheduleId, startMoment, 'override'),
       store.scheduleStore.updateEvents(scheduleId, startMoment, 'final'),
+      store.scheduleStore.updateShiftSwaps(scheduleId, startMoment),
     ]);
   };
 
@@ -446,6 +476,14 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
   };
 
   handleUpdateRotation = () => {
+    const { store } = this.props;
+
+    this.updateEvents().then(() => {
+      store.scheduleStore.clearPreview();
+    });
+  };
+
+  handleUpdateShiftSwaps = () => {
     const { store } = this.props;
 
     this.updateEvents().then(() => {

@@ -27,7 +27,6 @@ import Incident from 'pages/incident/Incident';
 import Incidents from 'pages/incidents/Incidents';
 import Integration from 'pages/integration/Integration';
 import Integrations from 'pages/integrations/Integrations';
-import Maintenance from 'pages/maintenance/Maintenance';
 import OutgoingWebhooks from 'pages/outgoing_webhooks/OutgoingWebhooks';
 import Schedule from 'pages/schedule/Schedule';
 import Schedules from 'pages/schedules/Schedules';
@@ -39,6 +38,7 @@ import Users from 'pages/users/Users';
 import { rootStore } from 'state';
 import { useStore } from 'state/useStore';
 import { isUserActionAllowed } from 'utils/authorization';
+import { DEFAULT_PAGE } from 'utils/consts';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -53,7 +53,6 @@ dayjs.extend(customParseFormat);
 import 'assets/style/vars.css';
 import 'assets/style/global.css';
 import 'assets/style/utils.css';
-import 'assets/style/responsive.css';
 
 import { getQueryParams, isTopNavbar } from './GrafanaPluginRootPage.helpers';
 import PluginSetup from './PluginSetup';
@@ -73,8 +72,10 @@ export const Root = observer((props: AppRootProps) => {
 
   const [basicDataLoaded, setBasicDataLoaded] = useState(false);
 
+  const [pageTitle, setPageTitle] = useState('');
+
   useEffect(() => {
-    updateBasicData();
+    runQueuedUpdateData(0);
   }, []);
 
   const location = useLocation();
@@ -99,18 +100,17 @@ export const Root = observer((props: AppRootProps) => {
     };
   }, []);
 
-  const updateBasicData = async () => {
-    await store.updateBasicData();
-    setBasicDataLoaded(true);
-  };
-
   const page = getMatchedPage(location.pathname);
   const pagePermissionAction = pages[page]?.action;
   const userHasAccess = pagePermissionAction ? isUserActionAllowed(pagePermissionAction) : true;
   const query = getQueryParams();
 
+  const getPageNav = () => {
+    return (pages[page] || pages[DEFAULT_PAGE]).getPageNav(pageTitle);
+  };
+
   return (
-    <DefaultPageLayout {...props} page={page}>
+    <DefaultPageLayout {...props} page={page} pageNav={getPageNav()}>
       {!isTopNavbar() && (
         <>
           <Header />
@@ -134,7 +134,7 @@ export const Root = observer((props: AppRootProps) => {
                 <Incidents query={query} />
               </Route>
               <Route path={getRoutesForPage('alert-group')} exact>
-                <Incident query={query} />
+                <Incident query={query} pageTitle={pageTitle} setPageTitle={setPageTitle} />
               </Route>
               <Route path={getRoutesForPage('users')} exact>
                 <Users query={query} />
@@ -152,13 +152,10 @@ export const Root = observer((props: AppRootProps) => {
                 <Schedules query={query} />
               </Route>
               <Route path={getRoutesForPage('schedule')} exact>
-                <Schedule query={query} />
+                <Schedule query={query} pageTitle={pageTitle} setPageTitle={setPageTitle} />
               </Route>
               <Route path={getRoutesForPage('outgoing_webhooks')} exact>
                 <OutgoingWebhooks query={query} />
-              </Route>
-              <Route path={getRoutesForPage('maintenance')} exact>
-                <Maintenance />
               </Route>
               <Route path={getRoutesForPage('settings')} exact>
                 <SettingsPage />
@@ -210,4 +207,17 @@ export const Root = observer((props: AppRootProps) => {
       </div>
     </DefaultPageLayout>
   );
+
+  async function runQueuedUpdateData(attemptCount: number) {
+    if (attemptCount === 10) {
+      return;
+    }
+
+    try {
+      await store.updateBasicData();
+      setBasicDataLoaded(true);
+    } catch {
+      setTimeout(() => runQueuedUpdateData(attemptCount + 1), 1000);
+    }
+  }
 });

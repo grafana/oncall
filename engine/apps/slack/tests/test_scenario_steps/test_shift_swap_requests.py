@@ -40,25 +40,15 @@ class TestBaseShiftSwapRequestStep:
         step = scenarios.BaseShiftSwapRequestStep(ssr.organization.slack_team_identity, ssr.organization)
         blocks = step._generate_blocks(ssr)
 
-        assert (
-            blocks[0]["text"]["text"]
-            == f"Your teammate {beneficiary.get_username_with_slack_verbal()} has submitted a shift swap request."
+        assert blocks[0]["text"]["text"] == (
+            f"*New shift swap request for <{ssr.schedule.web_detail_page_link}|{ssr.schedule.name}>*\n"
+            f"Your teammate {beneficiary.get_username_with_slack_verbal()} has submitted a shift swap request."
         )
 
-        accept_button = blocks[2]
+        accept_button = blocks[1]
 
-        assert accept_button["elements"][0]["text"]["text"] == "✔️ Accept Shift Swap Request"
+        assert accept_button["elements"][0]["text"]["text"] == "Accept"
         assert accept_button["type"] == "actions"
-
-        assert blocks[3]["type"] == "divider"
-
-        context_section = blocks[4]
-
-        assert context_section["type"] == "context"
-        assert (
-            context_section["elements"][0]["text"]
-            == f"👀 View the shift swap within Grafana OnCall by clicking <{ssr.web_link}|here>."
-        )
 
     @patch("apps.schedules.models.ShiftSwapRequest.shifts")
     @pytest.mark.parametrize(
@@ -108,7 +98,7 @@ class TestBaseShiftSwapRequestStep:
         step = scenarios.BaseShiftSwapRequestStep(ssr.organization.slack_team_identity, ssr.organization)
         blocks = step._generate_blocks(ssr)
 
-        assert blocks[1]["text"]["text"] == f"*📅 Shift Details*:\n\n{expected_text}"
+        assert blocks[1]["text"]["text"] == f"*Shift details*\n{expected_text}"
 
     @pytest.mark.django_db
     def test_generate_blocks_ssr_has_description(self, setup) -> None:
@@ -118,7 +108,7 @@ class TestBaseShiftSwapRequestStep:
         step = scenarios.BaseShiftSwapRequestStep(ssr.organization.slack_team_identity, ssr.organization)
         blocks = step._generate_blocks(ssr)
 
-        assert blocks[2]["text"]["text"] == f"*📝 Description*: {description}"
+        assert blocks[1]["text"]["text"] == f"*Description*\n{description}"
 
     @pytest.mark.django_db
     def test_generate_blocks_ssr_is_deleted(self, setup) -> None:
@@ -128,7 +118,7 @@ class TestBaseShiftSwapRequestStep:
         step = scenarios.BaseShiftSwapRequestStep(ssr.organization.slack_team_identity, ssr.organization)
         blocks = step._generate_blocks(ssr)
 
-        assert blocks[2]["text"]["text"] == "*Update*: this shift swap request has been deleted."
+        assert blocks[1]["text"]["text"] == "❌ this shift swap request has been deleted"
 
     @pytest.mark.django_db
     def test_generate_blocks_ssr_is_taken(self, setup) -> None:
@@ -140,8 +130,8 @@ class TestBaseShiftSwapRequestStep:
         blocks = step._generate_blocks(ssr)
 
         assert (
-            blocks[2]["text"]["text"]
-            == f"*Update*: {benefactor.get_username_with_slack_verbal()} has taken the shift swap."
+            blocks[1]["text"]["text"]
+            == f"✅ {benefactor.get_username_with_slack_verbal()} has accepted the shift swap request"
         )
 
     @patch("apps.slack.scenarios.shift_swap_requests.BaseShiftSwapRequestStep._generate_blocks")
@@ -156,13 +146,13 @@ class TestBaseShiftSwapRequestStep:
         step = scenarios.BaseShiftSwapRequestStep(slack_team_identity, organization)
 
         with patch.object(step, "_slack_client") as mock_slack_client:
-            mock_slack_client.api_call.return_value = {"ts": ts}
+            mock_slack_client.chat_postMessage.return_value = {"ts": ts}
 
             slack_message = step.create_message(ssr)
 
             mock_generate_blocks.assert_called_once_with(ssr)
-            mock_slack_client.api_call.assert_called_once_with(
-                "chat.postMessage", channel=ssr.slack_channel_id, blocks=mock_generate_blocks.return_value
+            mock_slack_client.chat_postMessage.assert_called_once_with(
+                channel=ssr.slack_channel_id, blocks=mock_generate_blocks.return_value
             )
 
         assert slack_message.slack_id == ts
@@ -189,8 +179,43 @@ class TestBaseShiftSwapRequestStep:
             step.update_message(ssr)
 
             mock_generate_blocks.assert_called_once_with(ssr)
-            mock_slack_client.api_call.assert_called_once_with(
-                "chat.update", channel=ssr.slack_channel_id, ts=ts, blocks=mock_generate_blocks.return_value
+            mock_slack_client.chat_update.assert_called_once_with(
+                channel=ssr.slack_channel_id, ts=ts, blocks=mock_generate_blocks.return_value
+            )
+
+    @pytest.mark.django_db
+    def test_post_message_to_thread(self, setup, make_slack_message) -> None:
+        ts = "12345.67"
+        blocks = [{"foo": "bar"}]
+
+        ssr, _, _, _ = setup()
+        channel_id = "asdfadf"
+        organization = ssr.organization
+        slack_team_identity = organization.slack_team_identity
+
+        slack_message = make_slack_message(
+            alert_group=None, organization=organization, slack_id=ts, channel_id=channel_id
+        )
+
+        step = scenarios.BaseShiftSwapRequestStep(slack_team_identity, organization)
+
+        with patch.object(step, "_slack_client") as mock_slack_client:
+            step.post_message_to_thread(ssr, blocks)
+
+            mock_slack_client.chat_postMessage.assert_not_called()
+
+        ssr.slack_message = slack_message
+        ssr.save()
+        ssr.refresh_from_db()
+
+        with patch.object(step, "_slack_client") as mock_slack_client:
+            step.post_message_to_thread(ssr, blocks, True)
+
+            mock_slack_client.chat_postMessage.assert_called_once_with(
+                channel=channel_id,
+                thread_ts=ts,
+                reply_broadcast=True,
+                blocks=blocks,
             )
 
 
@@ -281,3 +306,32 @@ class TestAcceptShiftSwapRequestStep:
                     event_payload, "The shift swap request is not in a state which allows it to be taken"
                 )
                 mock_update_message.assert_not_called()
+
+    @patch("apps.slack.scenarios.shift_swap_requests.AcceptShiftSwapRequestStep.post_message_to_thread")
+    @pytest.mark.django_db
+    def test_post_request_taken_message_to_thread(self, mock_post_message_to_thread, setup) -> None:
+        ssr, _, benefactor, _ = setup()
+
+        organization = ssr.organization
+        slack_team_identity = organization.slack_team_identity
+        ssr.benefactor = benefactor
+        ssr.save()
+
+        step = scenarios.AcceptShiftSwapRequestStep(slack_team_identity, organization, benefactor)
+        step.post_request_taken_message_to_thread(ssr)
+
+        mock_post_message_to_thread.assert_called_once_with(
+            ssr,
+            [
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": (
+                            f"{ssr.beneficiary.get_username_with_slack_verbal(True)} your teammate "
+                            f"{ssr.benefactor.get_username_with_slack_verbal()} has taken the shift swap request"
+                        ),
+                    },
+                },
+            ],
+        )

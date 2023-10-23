@@ -151,7 +151,7 @@ def generate_public_primary_key_for_oncall_schedule_channel():
 
 class OnCallScheduleQuerySet(PolymorphicQuerySet):
     def get_oncall_users(self, events_datetime=None):
-        return get_oncall_users_for_multiple_schedules(self, events_datetime)
+        return get_oncall_users_for_multiple_schedules(self.all(), events_datetime)
 
     def related_to_user(self, user):
         username_regex = RE_ICAL_SEARCH_USERNAME.format(user.username)
@@ -346,6 +346,7 @@ class OnCallSchedule(PolymorphicModel):
         all_day_datetime: bool = False,
         ignore_untaken_swaps: bool = False,
         from_cached_final: bool = False,
+        include_shift_info: bool = False,
     ) -> ScheduleEvents:
         """Return filtered events from schedule."""
         shifts = (
@@ -360,6 +361,13 @@ class OnCallSchedule(PolymorphicModel):
             )
             or []
         )
+        shifts_data = {}
+        if include_shift_info:
+            pks = set(shift["shift_pk"] for shift in shifts)
+            shifts_from_db = CustomOnCallShift.objects.filter(
+                organization=self.organization, public_primary_key__in=pks
+            )
+            shifts_data = {s.public_primary_key: {"name": s.name, "type": s.type} for s in shifts_from_db}
         events: ScheduleEvents = []
         for shift in shifts:
             start = shift["start"]
@@ -396,6 +404,15 @@ class OnCallSchedule(PolymorphicModel):
                     "pk": shift["shift_pk"],
                 },
             }
+            if include_shift_info and not is_gap:
+                no_data = {
+                    "name": None,
+                    "type": CustomOnCallShift.TYPE_OVERRIDE
+                    if shift["calendar_type"] == OnCallSchedule.TYPE_ICAL_OVERRIDES
+                    else None,
+                }
+                shift_data = shifts_data.get(shift["shift_pk"], no_data)
+                shift_json["shift"].update(shift_data)
             events.append(shift_json)
 
         # combine multiple-users same-shift events into one
@@ -415,6 +432,7 @@ class OnCallSchedule(PolymorphicModel):
         with_empty: bool = True,
         with_gap: bool = True,
         ignore_untaken_swaps: bool = False,
+        include_shift_info: bool = False,
     ) -> ScheduleEvents:
         """Return schedule final events, after resolving shifts and overrides."""
         events = self.filter_events(
@@ -424,6 +442,7 @@ class OnCallSchedule(PolymorphicModel):
             with_gap=with_gap,
             all_day_datetime=True,
             ignore_untaken_swaps=ignore_untaken_swaps,
+            include_shift_info=include_shift_info,
         )
         events = self._resolve_schedule(events, datetime_start, datetime_end)
         return events
@@ -505,33 +524,34 @@ class OnCallSchedule(PolymorphicModel):
         self.cached_ical_final_schedule = ical_data
         self.save(update_fields=["cached_ical_final_schedule"])
 
-    def upcoming_shift_for_user(self, user, days=7):
+    def shifts_for_user(
+        self, user: User, datetime_start: datetime.datetime, days: int = 7
+    ) -> typing.Tuple[ScheduleEvents, ScheduleEvents, ScheduleEvents]:
         now = timezone.now()
-        # consider an extra day before to include events from UTC yesterday
-        datetime_start = now - datetime.timedelta(days=1)
         datetime_end = datetime_start + datetime.timedelta(days=days)
-
-        current_shift = upcoming_shift = None
+        passed_shifts: ScheduleEvents = []
+        current_shifts: ScheduleEvents = []
+        upcoming_shifts: ScheduleEvents = []
 
         if self.cached_ical_final_schedule is None:
             # no final schedule info available
-            return None, None
+            return passed_shifts, current_shifts, upcoming_shifts
 
-        events = self.filter_events(datetime_start, datetime_end, all_day_datetime=True, from_cached_final=True)
-        for e in events:
-            if e["end"] < now:
-                # shift is finished, ignore
-                continue
-            users = {u["pk"] for u in e["users"]}
+        events = self.filter_events(
+            datetime_start, datetime_end, all_day_datetime=True, from_cached_final=True, include_shift_info=True
+        )
+        events.sort(key=lambda e: e["start"])
+        for event in events:
+            users = {u["pk"] for u in event["users"]}
             if user.public_primary_key in users:
-                if e["start"] < now and e["end"] > now:
-                    # shift is in progress
-                    current_shift = e
-                    continue
-                upcoming_shift = e
-                break
+                if event["end"] <= now:
+                    passed_shifts.append(event)
+                elif event["start"] <= now < event["end"]:
+                    current_shifts.append(event)
+                else:
+                    upcoming_shifts.append(event)
 
-        return current_shift, upcoming_shift
+        return passed_shifts, current_shifts, upcoming_shifts
 
     def quality_report(self, date: typing.Optional[datetime.datetime], days: typing.Optional[int]) -> QualityReport:
         """

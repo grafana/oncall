@@ -411,11 +411,11 @@ class EscalationPolicySnapshot:
 
         last_alert = alert_group.alerts.last()
 
-        time_delta = datetime.timedelta(minutes=self.escalation_policy.num_minutes_in_window)
+        time_delta = datetime.timedelta(minutes=self.num_minutes_in_window)
         num_alerts_in_window = alert_group.alerts.filter(created_at__gte=last_alert.created_at - time_delta).count()
 
         # pause escalation if there are not enough alerts in time window
-        if num_alerts_in_window <= self.escalation_policy.num_alerts_in_window:
+        if num_alerts_in_window <= self.num_alerts_in_window:
             self.pause_escalation = True
             return self._get_result_tuple(pause_escalation=True)
         return None
@@ -518,6 +518,7 @@ class EscalationPolicySnapshot:
     def _get_result_tuple(
         self, eta=None, stop_escalation=False, start_from_beginning=False, pause_escalation=False
     ) -> StepExecutionResultData:
-        # use default delay for eta, if eta was not counted by step
-        eta = eta or timezone.now() + datetime.timedelta(seconds=NEXT_ESCALATION_DELAY)
+        # use default delay for eta, if eta was not counted by step and escalation was not paused
+        if not pause_escalation:
+            eta = eta or timezone.now() + datetime.timedelta(seconds=NEXT_ESCALATION_DELAY)
         return self.StepExecutionResultData(eta, stop_escalation, start_from_beginning, pause_escalation)

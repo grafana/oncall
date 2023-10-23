@@ -293,6 +293,9 @@ class GrafanaAPIView(
 
 class UniversalAPIView(BrowsableInstructionMixin, AlertChannelDefiningMixin, IntegrationRateLimitMixin, APIView):
     def post(self, request, *args, **kwargs):
+        if request.FILES:
+            # file-objects are not serializable when queuing the task
+            return HttpResponseBadRequest("File uploads are not allowed")
         alert_receive_channel = self.request.alert_receive_channel
         if not alert_receive_channel.config.slug == kwargs["integration_type"]:
             return HttpResponseBadRequest(

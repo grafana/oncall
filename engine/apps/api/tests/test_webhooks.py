@@ -66,6 +66,7 @@ def test_get_list_webhooks(webhook_internal_api_setup, make_user_auth_headers):
             "trigger_template": None,
             "trigger_type": "0",
             "trigger_type_name": "Escalation step",
+            "preset": None,
         }
     ]
 
@@ -108,6 +109,7 @@ def test_get_detail_webhook(webhook_internal_api_setup, make_user_auth_headers):
         "trigger_template": None,
         "trigger_type": "0",
         "trigger_type_name": "Escalation step",
+        "preset": None,
     }
 
     response = client.get(url, format="json", **make_user_auth_headers(user, token))
@@ -124,7 +126,8 @@ def test_create_webhook(webhook_internal_api_setup, make_user_auth_headers):
     data = {
         "name": "the_webhook",
         "url": TEST_URL,
-        "trigger_type": str(Webhook.TRIGGER_ALERT_GROUP_CREATED),
+        "trigger_type": Webhook.TRIGGER_ALERT_GROUP_CREATED,
+        "http_method": "POST",
         "team": None,
     }
     response = client.post(url, data, format="json", **make_user_auth_headers(user, token))
@@ -152,7 +155,9 @@ def test_create_webhook(webhook_internal_api_setup, make_user_auth_headers):
             "event_data": "",
         },
         "trigger_template": None,
+        "trigger_type": str(data["trigger_type"]),
         "trigger_type_name": "Alert Group Created",
+        "preset": None,
     }
     assert response.status_code == status.HTTP_201_CREATED
     assert response.json() == expected_response
@@ -179,7 +184,8 @@ def test_create_valid_templated_field(webhook_internal_api_setup, make_user_auth
         "name": "webhook_with_valid_data",
         "url": TEST_URL,
         field_name: value,
-        "trigger_type": str(Webhook.TRIGGER_ALERT_GROUP_CREATED),
+        "trigger_type": Webhook.TRIGGER_ALERT_GROUP_CREATED,
+        "http_method": "POST",
         "team": None,
     }
 
@@ -209,7 +215,9 @@ def test_create_valid_templated_field(webhook_internal_api_setup, make_user_auth
             "event_data": "",
         },
         "trigger_template": None,
+        "trigger_type": str(data["trigger_type"]),
         "trigger_type_name": "Alert Group Created",
+        "preset": None,
     }
     # update expected value for changed field
     expected_response[field_name] = value
@@ -236,7 +244,8 @@ def test_create_invalid_templated_field(webhook_internal_api_setup, make_user_au
         "name": "webhook_with_valid_data",
         "url": TEST_URL,
         field_name: value,
-        "trigger_type": str(Webhook.TRIGGER_ALERT_GROUP_CREATED),
+        "trigger_type": Webhook.TRIGGER_ALERT_GROUP_CREATED,
+        "http_method": "POST",
         "team": None,
     }
 
@@ -253,7 +262,8 @@ def test_update_webhook(webhook_internal_api_setup, make_user_auth_headers):
     data = {
         "name": "github_button_updated",
         "url": "https://github.com/",
-        "trigger_type": str(Webhook.TRIGGER_ALERT_GROUP_CREATED),
+        "trigger_type": Webhook.TRIGGER_ALERT_GROUP_CREATED,
+        "http_method": "POST",
         "team": None,
     }
     response = client.put(
@@ -281,6 +291,7 @@ def test_delete_webhook(webhook_internal_api_setup, make_user_auth_headers):
         (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
         (LegacyAccessControlRole.EDITOR, status.HTTP_403_FORBIDDEN),
         (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_webhook_create_permissions(
@@ -312,6 +323,7 @@ def test_webhook_create_permissions(
         (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
         (LegacyAccessControlRole.EDITOR, status.HTTP_403_FORBIDDEN),
         (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_webhook_update_permissions(
@@ -349,6 +361,7 @@ def test_webhook_update_permissions(
         (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
         (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
         (LegacyAccessControlRole.VIEWER, status.HTTP_200_OK),
+        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_webhook_list_permissions(
@@ -382,6 +395,7 @@ def test_webhook_list_permissions(
         (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
         (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
         (LegacyAccessControlRole.VIEWER, status.HTTP_200_OK),
+        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_webhook_retrieve_permissions(
@@ -415,6 +429,7 @@ def test_webhook_retrieve_permissions(
         (LegacyAccessControlRole.ADMIN, status.HTTP_204_NO_CONTENT),
         (LegacyAccessControlRole.EDITOR, status.HTTP_403_FORBIDDEN),
         (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_webhook_delete_permissions(
@@ -547,7 +562,8 @@ def test_webhook_field_masking(webhook_internal_api_setup, make_user_auth_header
     data = {
         "name": "the_webhook",
         "url": TEST_URL,
-        "trigger_type": str(Webhook.TRIGGER_ALERT_GROUP_CREATED),
+        "trigger_type": Webhook.TRIGGER_ALERT_GROUP_CREATED,
+        "http_method": "POST",
         "team": None,
         "password": "secret_password",
         "authorization_header": "auth 1234",
@@ -579,7 +595,9 @@ def test_webhook_field_masking(webhook_internal_api_setup, make_user_auth_header
             "event_data": "",
         },
         "trigger_template": None,
+        "trigger_type": str(data["trigger_type"]),
         "trigger_type_name": "Alert Group Created",
+        "preset": None,
     }
 
     assert response.status_code == status.HTTP_201_CREATED
@@ -598,7 +616,8 @@ def test_webhook_copy(webhook_internal_api_setup, make_user_auth_headers):
     data = {
         "name": "the_webhook",
         "url": TEST_URL,
-        "trigger_type": str(Webhook.TRIGGER_ALERT_GROUP_CREATED),
+        "trigger_type": Webhook.TRIGGER_ALERT_GROUP_CREATED,
+        "http_method": "POST",
         "team": None,
         "password": "secret_password",
         "authorization_header": "auth 1234",
@@ -635,7 +654,9 @@ def test_webhook_copy(webhook_internal_api_setup, make_user_auth_headers):
             "event_data": "",
         },
         "trigger_template": None,
+        "trigger_type": str(data["trigger_type"]),
         "trigger_type_name": "Alert Group Created",
+        "preset": None,
     }
 
     assert response3.status_code == status.HTTP_201_CREATED
@@ -644,3 +665,49 @@ def test_webhook_copy(webhook_internal_api_setup, make_user_auth_headers):
     assert webhook.authorization_header == data["authorization_header"]
     assert webhook.id != to_copy["id"]
     assert webhook.user == user
+
+
+@pytest.mark.django_db
+def test_create_invalid_missing_fields(webhook_internal_api_setup, make_user_auth_headers):
+    user, token, webhook = webhook_internal_api_setup
+    client = APIClient()
+    url = reverse("api-internal:webhooks-list")
+
+    data = {"url": TEST_URL, "trigger_type": Webhook.TRIGGER_ALERT_GROUP_CREATED, "http_method": "POST"}
+    response = client.post(url, data, format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json()["name"][0] == "This field is required."
+
+    data = {"name": "test webhook 1", "trigger_type": Webhook.TRIGGER_ALERT_GROUP_CREATED, "http_method": "POST"}
+    response = client.post(url, data, format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json()["url"][0] == "This field is required."
+
+    data = {"name": "test webhook 2", "url": TEST_URL, "http_method": "POST"}
+    response = client.post(url, data, format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json()["trigger_type"][0] == "This field is required."
+
+    data = {
+        "name": "test webhook 3",
+        "url": TEST_URL,
+        "trigger_type": Webhook.TRIGGER_ALERT_GROUP_CREATED,
+    }
+    response = client.post(url, data, format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json()["http_method"][0] == "This field must be one of ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']."
+
+    data = {
+        "name": "test webhook 3",
+        "url": TEST_URL,
+        "trigger_type": Webhook.TRIGGER_ALERT_GROUP_CREATED,
+        "http_method": "TOAST",
+    }
+    response = client.post(url, data, format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json()["http_method"][0] == "This field must be one of ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']."
+
+    data = {"name": "test webhook 3", "url": TEST_URL, "trigger_type": 2000000, "http_method": "POST"}
+    response = client.post(url, data, format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json()["trigger_type"][0] == "This field is required."

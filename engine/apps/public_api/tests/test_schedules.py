@@ -94,6 +94,7 @@ def test_get_calendar_schedule(
             "user_group_id": None,
         },
         "ical_url_overrides": None,
+        "enable_web_overrides": False,
     }
 
     assert response.status_code == status.HTTP_200_OK
@@ -130,6 +131,7 @@ def test_create_calendar_schedule(make_organization_and_user_with_token):
             "user_group_id": None,
         },
         "ical_url_overrides": None,
+        "enable_web_overrides": False,
     }
 
     assert response.status_code == status.HTTP_201_CREATED
@@ -180,6 +182,7 @@ def test_create_calendar_schedule_with_shifts(make_organization_and_user_with_to
             "user_group_id": None,
         },
         "ical_url_overrides": None,
+        "enable_web_overrides": False,
     }
 
     assert response.status_code == status.HTTP_201_CREATED
@@ -227,12 +230,52 @@ def test_update_calendar_schedule(
             "user_group_id": None,
         },
         "ical_url_overrides": None,
+        "enable_web_overrides": False,
     }
 
     assert response.status_code == status.HTTP_200_OK
     schedule.refresh_from_db()
     assert schedule.name == data["name"]
     assert schedule.time_zone == data["time_zone"]
+    assert response.json() == result
+
+
+@pytest.mark.django_db
+def test_update_calendar_schedule_enable_web_overrides(
+    make_organization_and_user_with_token,
+    make_schedule,
+):
+    organization, user, token = make_organization_and_user_with_token()
+    client = APIClient()
+
+    schedule = make_schedule(
+        organization,
+        schedule_class=OnCallScheduleCalendar,
+    )
+
+    url = reverse("api-public:schedules-detail", kwargs={"pk": schedule.public_primary_key})
+
+    data = {
+        "enable_web_overrides": True,
+    }
+    response = client.put(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
+
+    result = {
+        "id": schedule.public_primary_key,
+        "team_id": None,
+        "name": schedule.name,
+        "type": "calendar",
+        "time_zone": "UTC",
+        "on_call_now": [],
+        "shifts": [],
+        "slack": {"channel_id": None, "user_group_id": None},
+        "ical_url_overrides": None,
+        "enable_web_overrides": True,
+    }
+
+    assert response.status_code == status.HTTP_200_OK
+    schedule.refresh_from_db()
+    assert schedule.enable_web_overrides
     assert response.json() == result
 
 
@@ -350,23 +393,24 @@ def test_update_ical_url_overrides_calendar_schedule(
     with patch("common.api_helpers.utils.validate_ical_url", return_value=ICAL_URL):
         response = client.put(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
 
-        result = {
-            "id": schedule.public_primary_key,
-            "team_id": None,
-            "name": schedule.name,
-            "type": "calendar",
-            "time_zone": schedule.time_zone,
-            "on_call_now": [],
-            "shifts": [],
-            "slack": {
-                "channel_id": "SLACKCHANNELID",
-                "user_group_id": None,
-            },
-            "ical_url_overrides": ICAL_URL,
-        }
+    result = {
+        "id": schedule.public_primary_key,
+        "team_id": None,
+        "name": schedule.name,
+        "type": "calendar",
+        "time_zone": schedule.time_zone,
+        "on_call_now": [],
+        "shifts": [],
+        "slack": {
+            "channel_id": "SLACKCHANNELID",
+            "user_group_id": None,
+        },
+        "ical_url_overrides": ICAL_URL,
+        "enable_web_overrides": False,
+    }
 
-        assert response.status_code == status.HTTP_200_OK
-        assert response.json() == result
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == result
 
 
 @pytest.mark.django_db
@@ -418,6 +462,7 @@ def test_update_calendar_schedule_with_custom_event(
             "user_group_id": None,
         },
         "ical_url_overrides": None,
+        "enable_web_overrides": False,
     }
 
     assert response.status_code == status.HTTP_200_OK
@@ -588,7 +633,7 @@ def test_create_ical_schedule(make_organization_and_user_with_token):
     with patch(
         "apps.public_api.serializers.schedules_ical.ScheduleICalSerializer.validate_ical_url_primary",
         return_value=ICAL_URL,
-    ):
+    ), patch("apps.schedules.tasks.refresh_ical_final_schedule.apply_async") as mock_refresh_final:
         response = client.post(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
     schedule = OnCallSchedule.objects.get(public_primary_key=response.data["id"])
 
@@ -608,6 +653,7 @@ def test_create_ical_schedule(make_organization_and_user_with_token):
 
     assert response.status_code == status.HTTP_201_CREATED
     assert response.json() == result
+    mock_refresh_final.assert_called_once_with((schedule.pk,))
 
 
 @pytest.mark.django_db
@@ -635,7 +681,8 @@ def test_update_ical_schedule(
 
     assert schedule.name != data["name"]
 
-    response = client.put(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
+    with patch("apps.schedules.tasks.refresh_ical_final_schedule.apply_async") as mock_refresh_final:
+        response = client.put(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
 
     result = {
         "id": schedule.public_primary_key,
@@ -655,6 +702,7 @@ def test_update_ical_schedule(
     schedule.refresh_from_db()
     assert schedule.name == data["name"]
     assert response.json() == result
+    assert not mock_refresh_final.called
 
 
 @pytest.mark.django_db
@@ -732,6 +780,7 @@ def test_get_schedule_list(
                 "shifts": [],
                 "slack": {"channel_id": slack_channel_id, "user_group_id": user_group_id},
                 "ical_url_overrides": None,
+                "enable_web_overrides": False,
             },
             {
                 "id": schedule_ical.public_primary_key,
@@ -969,7 +1018,7 @@ def test_oncall_shifts_export_from_ical_schedule(
     client = APIClient()
 
     url = reverse("api-public:schedules-final-shifts", kwargs={"pk": schedule.public_primary_key})
-    response = client.get(f"{url}?start_date=2023-07-01&end_date=2023-08-01", format="json", HTTP_AUTHORIZATION=token)
+    response = client.get(f"{url}?start_date=2023-07-01&end_date=2023-07-31", format="json", HTTP_AUTHORIZATION=token)
     assert response.status_code == status.HTTP_200_OK
 
     expected_on_call_times = {
@@ -1006,7 +1055,7 @@ def test_oncall_shifts_export_from_api_schedule(
     client = APIClient()
 
     url = reverse("api-public:schedules-final-shifts", kwargs={"pk": schedule.public_primary_key})
-    response = client.get(f"{url}?start_date=2023-07-01&end_date=2023-08-01", format="json", HTTP_AUTHORIZATION=token)
+    response = client.get(f"{url}?start_date=2023-07-01&end_date=2023-07-31", format="json", HTTP_AUTHORIZATION=token)
     assert response.status_code == status.HTTP_200_OK
 
     expected_on_call_times = {
@@ -1014,3 +1063,43 @@ def test_oncall_shifts_export_from_api_schedule(
         user2.public_primary_key: 30,  # daily 2h * 15d
     }
     assert_expected_shifts_export_response(response, (user1, user2), expected_on_call_times)
+
+
+@pytest.mark.django_db
+def test_oncall_shifts_export_truncate_events(
+    make_organization_and_user_with_token,
+    make_user,
+    make_schedule,
+    make_on_call_shift,
+):
+    organization, _, token = make_organization_and_user_with_token()
+    user1 = make_user(organization=organization)
+
+    user1_public_primary_key = user1.public_primary_key
+    schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
+
+    # 24h shifts starting 9am on Mo, We and Fr
+    start_date = timezone.datetime(2023, 1, 1, 9, 0, 0, tzinfo=pytz.UTC)
+    make_on_call_shift(
+        organization=organization,
+        schedule=schedule,
+        shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT,
+        frequency=CustomOnCallShift.FREQUENCY_DAILY,
+        priority_level=1,
+        interval=1,
+        by_day=["MO", "WE", "FR"],
+        start=start_date,
+        rolling_users=[{user1.pk: user1_public_primary_key}],
+        rotation_start=start_date,
+        duration=timezone.timedelta(hours=24),
+    )
+
+    client = APIClient()
+
+    # request shifts on a Tu (ie. 00:00 - 09:00)
+    url = reverse("api-public:schedules-final-shifts", kwargs={"pk": schedule.public_primary_key})
+    response = client.get(f"{url}?start_date=2023-01-03&end_date=2023-01-03", format="json", HTTP_AUTHORIZATION=token)
+    assert response.status_code == status.HTTP_200_OK
+
+    expected_on_call_times = {user1_public_primary_key: 9}
+    assert_expected_shifts_export_response(response, (user1,), expected_on_call_times)

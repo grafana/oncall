@@ -3,7 +3,7 @@ import logging
 import typing
 
 from apps.slack.alert_group_slack_service import AlertGroupSlackService
-from apps.slack.slack_client import SlackClientWithErrorHandling
+from apps.slack.client import SlackClient
 
 if typing.TYPE_CHECKING:
     from apps.slack.models import SlackTeamIdentity, SlackUserIdentity
@@ -20,7 +20,7 @@ class ScenarioStep(object):
         organization: typing.Optional["Organization"] = None,
         user: typing.Optional["User"] = None,
     ):
-        self._slack_client = SlackClientWithErrorHandling(slack_team_identity.bot_access_token)
+        self._slack_client = SlackClient(slack_team_identity)
         self.slack_team_identity = slack_team_identity
         self.organization = organization
         self.user = user
@@ -77,8 +77,4 @@ class ScenarioStep(object):
                 },
             ],
         }
-        self._slack_client.api_call(
-            "views.open",
-            trigger_id=payload["trigger_id"],
-            view=view,
-        )
+        self._slack_client.views_open(trigger_id=payload["trigger_id"], view=view)

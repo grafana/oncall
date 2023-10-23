@@ -1,13 +1,14 @@
 from enum import Enum
 
+from django.db.models import IntegerChoices
 
-class ActionSource:
-    (
-        SLACK,
-        WEB,
-        PHONE,
-        TELEGRAM,
-    ) = range(4)
+
+class ActionSource(IntegerChoices):
+    SLACK = 0, "Slack"
+    WEB = 1, "Web"
+    PHONE = 2, "Phone"
+    TELEGRAM = 3, "Telegram"
+    API = 4, "API"
 
 
 TASK_DELAY_SECONDS = 1

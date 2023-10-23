@@ -242,6 +242,12 @@
     secretKeyRef:
       name: {{ include "snippet.mysql.password.secret.name" . }}
       key: {{ include "snippet.mysql.password.secret.key" . | quote }}
+{{- if not .Values.mariadb.enabled }}
+{{- with .Values.externalMysql.options }}
+- name: MYSQL_OPTIONS
+  value: {{ . | quote }}
+{{- end }}
+{{- end }}
 {{- end }}
 
 {{- define "snippet.mysql.password.secret.name" -}}
@@ -316,6 +322,12 @@
     secretKeyRef:
       name: {{ include "snippet.postgresql.password.secret.name" . }}
       key: {{ include "snippet.postgresql.password.secret.key" . | quote }}
+{{- if not .Values.postgresql.enabled }}
+{{- with .Values.externalPostgresql.options }}
+- name: DATABASE_OPTIONS
+  value: {{ . | quote }}
+{{- end }}
+{{- end }}
 {{- end }}
 
 {{- define "snippet.sqlite.env" -}}
@@ -382,7 +394,7 @@
 {{- end }}
 
 {{- define "snippet.postgresql.user" -}}
-{{ if and (not .Values.postgresql.enabled) -}}
+{{ if not .Values.postgresql.enabled -}}
   {{ .Values.externalPostgresql.user | default "postgres" }}
 {{- else -}}
   {{ .Values.postgresql.auth.username | default "postgres" }}
@@ -476,12 +488,24 @@
 {{- end }}
 {{- end }}
 
+{{- define "snippet.redis.protocol" -}}
+{{ default "redis" .Values.externalRedis.protocol | quote }}
+{{- end }}
+
 {{- define "snippet.redis.host" -}}
 {{ if not .Values.redis.enabled -}}
   {{ required "externalRedis.host is required if not redis.enabled" .Values.externalRedis.host | quote }}
 {{- else -}}
   {{ include "oncall.redis.fullname" . }}-master
 {{- end }}
+{{- end }}
+
+{{- define "snippet.redis.port" -}}
+{{ default 6379 .Values.externalRedis.port | quote }}
+{{- end }}
+
+{{- define "snippet.redis.database" -}}
+{{ default 0 .Values.externalRedis.database | quote }}
 {{- end }}
 
 {{- define "snippet.redis.password.secret.name" -}}
@@ -517,24 +541,50 @@
 {{- end }}
 
 {{- define "snippet.redis.env" -}}
+- name: REDIS_PROTOCOL
+  value: {{ include "snippet.redis.protocol" . }}
 - name: REDIS_HOST
   value: {{ include "snippet.redis.host" . }}
 - name: REDIS_PORT
-  value: "6379"
+  value: {{ include "snippet.redis.port" . }}
+- name: REDIS_DATABASE
+  value: {{ include "snippet.redis.database" . }}
+- name: REDIS_USERNAME
+  value: {{ default "" .Values.externalRedis.username | quote }}
 - name: REDIS_PASSWORD
   valueFrom:
     secretKeyRef:
       name: {{ include "snippet.redis.password.secret.name" . }}
       key: {{ include "snippet.redis.password.secret.key" . | quote}}
+{{- if and (not .Values.redis.enabled) .Values.externalRedis.ssl_options.enabled }}
+- name: REDIS_USE_SSL
+  value: "true"
+{{- with .Values.externalRedis.ssl_options.ca_certs }}
+- name: REDIS_SSL_CA_CERTS
+  value: {{ . | quote }}
+{{- end }}
+{{- with .Values.externalRedis.ssl_options.certfile }}
+- name: REDIS_SSL_CERTFILE
+  value: {{ . | quote }}
+{{- end }}
+{{- with .Values.externalRedis.ssl_options.keyfile }}
+- name: REDIS_SSL_KEYFILE
+  value: {{ . | quote }}
+{{- end }}
+{{- with .Values.externalRedis.ssl_options.cert_reqs }}
+- name: REDIS_SSL_CERT_REQS
+  value: {{ . | quote }}
+{{- end }}
+{{- end }}
 {{- end }}
 
+{{- /*
+when broker.type != rabbitmq, we do not need to include rabbitmq environment variables
+*/}}
 {{- define "snippet.broker.env" -}}
-{{- if eq .Values.broker.type "redis" }}
 {{- include "snippet.redis.env" . }}
-{{- else if eq .Values.broker.type "rabbitmq" }}
+{{- if eq .Values.broker.type "rabbitmq" -}}
 {{- include "snippet.rabbitmq.env" . }}
-{{- else -}}
-{{- fail "value for .Values.broker.type must be either 'redis' or 'rabbitmq'" }}
 {{- end }}
 {{- end }}
 

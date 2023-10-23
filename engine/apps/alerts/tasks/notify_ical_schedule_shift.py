@@ -6,15 +6,23 @@ from typing import TYPE_CHECKING
 from django.utils import timezone
 
 from apps.schedules.ical_utils import calculate_shift_diff, parse_event_uid
+from apps.slack.client import SlackClient
+from apps.slack.errors import (
+    SlackAPIChannelArchivedError,
+    SlackAPIChannelNotFoundError,
+    SlackAPIInvalidAuthError,
+    SlackAPITokenError,
+)
 from apps.slack.scenarios import scenario_step
-from apps.slack.slack_client import SlackClientWithErrorHandling
-from apps.slack.slack_client.exceptions import SlackAPIException, SlackAPITokenException
 from common.custom_celery_tasks import shared_dedicated_queue_retry_task
 
 from .task_logger import task_logger
 
 if TYPE_CHECKING:
     from apps.schedules.models import OnCallSchedule
+
+
+MIN_DAYS_TO_LOOKUP_FOR_THE_END_OF_EVENT = 3
 
 
 def convert_prev_shifts_to_new_format(prev_shifts: dict, schedule: "OnCallSchedule") -> list:
@@ -77,12 +85,6 @@ def notify_ical_schedule_shift(schedule_pk):
 
     task_logger.info(f"Notify ical schedule shift {schedule_pk}, organization {schedule.organization_id}")
 
-    MIN_DAYS_TO_LOOKUP_FOR_THE_END_OF_EVENT = 3
-
-    now = datetime.datetime.now(timezone.utc)
-
-    current_shifts = schedule.final_events(now, now, with_empty=False, with_gap=False, ignore_untaken_swaps=True)
-
     prev_shifts = json.loads(schedule.current_shifts) if not schedule.empty_oncall else []
     prev_shifts_updated = False
     # convert prev_shifts to new events format for compatibility with the previous version of this task
@@ -96,6 +98,33 @@ def notify_ical_schedule_shift(schedule_pk):
         prev_shift["start"] = datetime.datetime.strptime(prev_shift["start"], str_format)
         prev_shift["end"] = datetime.datetime.strptime(prev_shift["end"], str_format)
 
+    # get shifts in progress now
+    now = datetime.datetime.now(timezone.utc)
+    current_shifts = schedule.final_events(now, now, with_empty=False, with_gap=False, ignore_untaken_swaps=True)
+
+    # get days_to_lookup for next shifts (which may affect current shifts)
+    if len(current_shifts) != 0:
+        max_end_date = max([shift["end"].date() for shift in current_shifts])
+        days_to_lookup = (max_end_date - now.date()).days + 1
+        days_to_lookup = max([days_to_lookup, MIN_DAYS_TO_LOOKUP_FOR_THE_END_OF_EVENT])
+    else:
+        days_to_lookup = MIN_DAYS_TO_LOOKUP_FOR_THE_END_OF_EVENT
+
+    # get updated current and upcoming shifts
+    datetime_end = now + datetime.timedelta(days=days_to_lookup)
+    next_shifts_unfiltered = schedule.final_events(
+        now, datetime_end, with_empty=False, with_gap=False, ignore_untaken_swaps=True
+    )
+
+    # split current and next shifts
+    current_shifts = []
+    next_shifts = []
+    for shift in next_shifts_unfiltered:
+        if now < shift["start"]:
+            next_shifts.append(shift)
+        else:
+            current_shifts.append(shift)
+
     shift_changed, diff_shifts = calculate_shift_diff(current_shifts, prev_shifts)
 
     # Do not notify if there is no difference between current and previous shifts
@@ -108,25 +137,6 @@ def notify_ical_schedule_shift(schedule_pk):
         return
 
     new_shifts = sorted(diff_shifts, key=lambda shift: shift["start"])
-
-    # get days_to_lookup for next shifts
-    if len(new_shifts) != 0:
-        max_end_date = max([shift["end"].date() for shift in new_shifts])
-        days_to_lookup = (max_end_date - now.date()).days + 1
-        days_to_lookup = max([days_to_lookup, MIN_DAYS_TO_LOOKUP_FOR_THE_END_OF_EVENT])
-    else:
-        days_to_lookup = MIN_DAYS_TO_LOOKUP_FOR_THE_END_OF_EVENT
-
-    datetime_end = now + datetime.timedelta(days=days_to_lookup)
-
-    next_shifts_unfiltered = schedule.final_events(
-        now, datetime_end, with_empty=False, with_gap=False, ignore_untaken_swaps=True
-    )
-    # drop events that already started
-    next_shifts = []
-    for next_shift in next_shifts_unfiltered:
-        if now < next_shift["start"]:
-            next_shifts.append(next_shift)
 
     upcoming_shifts = []
     # Add the earliest next_shift
@@ -147,22 +157,20 @@ def notify_ical_schedule_shift(schedule_pk):
     if len(new_shifts) > 0 or schedule.empty_oncall:
         task_logger.info(f"new_shifts: {new_shifts}")
         if schedule.notify_oncall_shift_freq != OnCallSchedule.NotifyOnCallShiftFreq.NEVER:
-            slack_client = SlackClientWithErrorHandling(schedule.organization.slack_team_identity.bot_access_token)
+            slack_client = SlackClient(schedule.organization.slack_team_identity)
             step = scenario_step.ScenarioStep.get_step("schedules", "EditScheduleShiftNotifyStep")
             report_blocks = step.get_report_blocks_ical(new_shifts, upcoming_shifts, schedule, schedule.empty_oncall)
 
             try:
-                slack_client.api_call(
-                    "chat.postMessage",
+                slack_client.chat_postMessage(
                     channel=schedule.channel,
                     blocks=report_blocks,
                     text=f"On-call shift for schedule {schedule.name} has changed",
                 )
-            except SlackAPITokenException:
+            except (
+                SlackAPITokenError,
+                SlackAPIChannelNotFoundError,
+                SlackAPIChannelArchivedError,
+                SlackAPIInvalidAuthError,
+            ):
                 pass
-            except SlackAPIException as e:
-                expected_exceptions = ["channel_not_found", "is_archived", "invalid_auth"]
-                if e.response["error"] in expected_exceptions:
-                    print(e)
-                else:
-                    raise e

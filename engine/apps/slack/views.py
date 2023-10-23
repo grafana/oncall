@@ -15,6 +15,8 @@ from rest_framework.views import APIView
 from apps.api.permissions import RBACPermission
 from apps.auth_token.auth import PluginAuthentication
 from apps.base.utils import live_settings
+from apps.slack.client import SlackClient
+from apps.slack.errors import SlackAPIError
 from apps.slack.scenarios.alertgroup_appearance import STEPS_ROUTING as ALERTGROUP_APPEARANCE_ROUTING
 
 # Importing routes from scenarios
@@ -34,14 +36,13 @@ from apps.slack.scenarios.shift_swap_requests import STEPS_ROUTING as SHIFT_SWAP
 from apps.slack.scenarios.slack_channel import STEPS_ROUTING as CHANNEL_ROUTING
 from apps.slack.scenarios.slack_channel_integration import STEPS_ROUTING as SLACK_CHANNEL_INTEGRATION_ROUTING
 from apps.slack.scenarios.slack_usergroup import STEPS_ROUTING as SLACK_USERGROUP_UPDATE_ROUTING
-from apps.slack.slack_client import SlackClientWithErrorHandling
-from apps.slack.slack_client.exceptions import SlackAPIException, SlackAPITokenException
 from apps.slack.tasks import clean_slack_integration_leftovers, unpopulate_slack_user_identities
 from apps.slack.types import EventPayload, EventType, MessageEventSubtype, PayloadType, ScenarioRoute
 from apps.user_management.models import Organization
 from common.insight_log import ChatOpsEvent, ChatOpsTypePlug, write_chatops_insight_log
 from common.oncall_gateway import delete_slack_connector
 
+from .errors import SlackAPITokenError
 from .models import SlackMessage, SlackTeamIdentity, SlackUserIdentity
 
 SCENARIOS_ROUTES: ScenarioRoute.RoutingSteps = []
@@ -143,6 +144,11 @@ class SlackEventApiEndpointView(APIView):
         payload_user = payload.get("user")
         payload_user_id = payload.get("user_id")
 
+        edit_schedule_actions = {s["block_action_id"] for s in SCHEDULES_ROUTING}
+        payload_action_edit_schedule = (
+            payload_actions[0].get("action_id") in edit_schedule_actions if payload_actions else False
+        )
+
         payload_event = payload.get("event", {})
         payload_event_type = payload_event.get("type")
         payload_event_subtype = payload_event.get("subtype")
@@ -185,17 +191,12 @@ class SlackEventApiEndpointView(APIView):
             logger.info(f"Team {slack_team_identity.slack_id} has no keys, dropping request.")
             return Response()
 
-        sc = SlackClientWithErrorHandling(slack_team_identity.bot_access_token)
+        sc = SlackClient(slack_team_identity)
 
-        if slack_team_identity.detected_token_revoked is not None:
-            # check if token is still invalid
+        if slack_team_identity.detected_token_revoked:
             try:
-                sc.api_call(
-                    "auth.test",
-                    team=slack_team_identity,
-                )
-            except SlackAPITokenException:
-                logger.info(f"Team {slack_team_identity.slack_id} has revoked token, dropping request.")
+                sc.auth_test()  # check if token is still invalid
+            except SlackAPITokenError:
                 return Response(status=200)
 
         Step = None
@@ -218,7 +219,7 @@ class SlackEventApiEndpointView(APIView):
             elif (
                 payload_event_bot_id and slack_team_identity and payload_event_channel_type == EventType.MESSAGE_CHANNEL
             ):
-                response = sc.api_call("bots.info", bot=payload_event_bot_id)
+                response = sc.bots_info(bot=payload_event_bot_id)
                 bot_user_id = response.get("bot", {}).get("user_id", "")
 
                 # Don't react on own bot's messages.
@@ -272,8 +273,12 @@ class SlackEventApiEndpointView(APIView):
                 # Open pop-up to inform user why OnCall bot doesn't work if any action was triggered
                 self._open_warning_window_if_needed(payload, slack_team_identity, warning_text)
                 return Response(status=200)
-        # direct paging / manual incident dialogs don't require organization to be set
-        elif organization is None and payload_type_is_block_actions and not payload.get("view"):
+        # direct paging / manual incident / schedule update dialogs don't require organization to be set
+        elif (
+            organization is None
+            and payload_type_is_block_actions
+            and not (payload.get("view") or payload_action_edit_schedule)
+        ):
             # see this GitHub issue for more context on how this situation can arise
             # https://github.com/grafana/oncall-private/issues/1836
             warning_text = (
@@ -481,15 +486,16 @@ class SlackEventApiEndpointView(APIView):
         if not (channel_id and message_ts):
             return None
 
-        with suppress(ObjectDoesNotExist):
+        try:
             slack_message = SlackMessage.objects.get(
                 _slack_team_identity=slack_team_identity,
                 slack_id=message_ts,
                 channel_id=channel_id,
             )
-            return slack_message.get_alert_group().channel.organization
+        except SlackMessage.DoesNotExist:
+            return None
 
-        return None
+        return slack_message.alert_group.channel.organization if slack_message.alert_group else None
 
     def _open_warning_window_if_needed(
         self, payload: EventPayload, slack_team_identity: SlackTeamIdentity, warning_text: str
@@ -498,14 +504,12 @@ class SlackEventApiEndpointView(APIView):
             step = ScenarioStep(slack_team_identity)
             try:
                 step.open_warning_window(payload, warning_text)
-            except SlackAPIException as e:
+            except SlackAPIError as e:
                 logger.info(
                     f"Failed to open pop-up for unpopulated SlackTeamIdentity {slack_team_identity.pk}\n" f"Error: {e}"
                 )
 
-    def _open_warning_for_unconnected_user(
-        self, slack_client: SlackClientWithErrorHandling, payload: EventPayload
-    ) -> None:
+    def _open_warning_for_unconnected_user(self, slack_client: SlackClient, payload: EventPayload) -> None:
         if payload.get("trigger_id") is None:
             return
 
@@ -527,11 +531,7 @@ class SlackEventApiEndpointView(APIView):
                 "text": "One more step!",
             },
         }
-        slack_client.api_call(
-            "views.open",
-            trigger_id=payload["trigger_id"],
-            view=view,
-        )
+        slack_client.views_open(trigger_id=payload["trigger_id"], view=view)
 
 
 class ResetSlackView(APIView):

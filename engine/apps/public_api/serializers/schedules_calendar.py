@@ -28,9 +28,11 @@ class ScheduleCalendarSerializer(ScheduleBaseSerializer):
             "on_call_now",
             "shifts",
             "ical_url_overrides",
+            "enable_web_overrides",
         ]
         extra_kwargs = {
             "ical_url_overrides": {"required": False, "allow_null": True},
+            "enable_web_overrides": {"required": False, "allow_null": True},
         }
 
     def validate_shifts(self, shifts):
@@ -61,10 +63,12 @@ class ScheduleCalendarUpdateSerializer(ScheduleCalendarSerializer):
             "on_call_now",
             "shifts",
             "ical_url_overrides",
+            "enable_web_overrides",
         ]
         extra_kwargs = {
             "name": {"required": False},
             "ical_url_overrides": {"required": False, "allow_null": True},
+            "enable_web_overrides": {"required": False, "allow_null": True},
         }
 
     def update(self, instance, validated_data):

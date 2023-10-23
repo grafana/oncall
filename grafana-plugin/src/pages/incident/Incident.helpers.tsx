@@ -4,10 +4,10 @@ import { Button, HorizontalGroup, IconButton, Tooltip, VerticalGroup } from '@gr
 import cn from 'classnames/bind';
 
 import Avatar from 'components/Avatar/Avatar';
-import { MatchMediaTooltip } from 'components/MatchMediaTooltip/MatchMediaTooltip';
 import PluginLink from 'components/PluginLink/PluginLink';
 import Tag from 'components/Tag/Tag';
 import Text from 'components/Text/Text';
+import TextEllipsisTooltip from 'components/TextEllipsisTooltip/TextEllipsisTooltip';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { Alert as AlertType, Alert, IncidentStatus } from 'models/alertgroup/alertgroup.types';
 import { User } from 'models/user/user.types';
@@ -15,7 +15,7 @@ import { SilenceButtonCascader } from 'pages/incidents/parts/SilenceButtonCascad
 import { move } from 'state/helpers';
 import { getVar } from 'utils/DOM';
 import { UserActions } from 'utils/authorization';
-import { TABLE_COLUMN_MAX_WIDTH } from 'utils/consts';
+import { TEXT_ELLIPSIS_CLASS } from 'utils/consts';
 
 import styles from './Incident.module.scss';
 
@@ -78,14 +78,14 @@ export function renderRelatedUsers(incident: Alert, isFull = false) {
     }
 
     return (
-      <PluginLink key={user.pk} query={{ page: 'users', id: user.pk }} wrap={false} className="table__email-content">
-        <Text type="secondary">
-          <Avatar size="small" src={user.avatar} />{' '}
-          <MatchMediaTooltip placement="top" content={user.username} maxWidth={TABLE_COLUMN_MAX_WIDTH}>
-            <span>{user.username}</span>
-          </MatchMediaTooltip>{' '}
-          {badge}
-        </Text>
+      <PluginLink key={user.pk} query={{ page: 'users', id: user.pk }} wrap={false}>
+        <TextEllipsisTooltip placement="top" content={user.username}>
+          <Text type="secondary" className={cx(TEXT_ELLIPSIS_CLASS)}>
+            <Avatar size="small" src={user.avatar} />{' '}
+            <span className={cx('break-word', 'u-margin-right-xs')}>{user.username}</span>
+            <span className={cx('user-badge')}>{badge}</span>
+          </Text>
+        </TextEllipsisTooltip>
       </PluginLink>
     );
   }
@@ -117,32 +117,30 @@ export function renderRelatedUsers(incident: Alert, isFull = false) {
   }
 
   return (
-    <div className={'table__email-column'}>
-      <VerticalGroup spacing="xs">
-        {visibleUsers.map(renderUser)}
-        {Boolean(otherUsers.length) && (
-          <Tooltip
-            placement="top"
-            content={
-              <>
-                {otherUsers.map((user, index) => (
-                  <>
-                    {index ? ', ' : ''}
-                    {renderUser(user)}
-                  </>
-                ))}
-              </>
-            }
-          >
-            <span>
-              <Text type="secondary" underline size="small">
-                +{otherUsers.length} user{otherUsers.length > 1 ? 's' : ''}
-              </Text>
-            </span>
-          </Tooltip>
-        )}
-      </VerticalGroup>
-    </div>
+    <VerticalGroup spacing="xs">
+      {visibleUsers.map(renderUser)}
+      {Boolean(otherUsers.length) && (
+        <Tooltip
+          placement="top"
+          content={
+            <>
+              {otherUsers.map((user, index) => (
+                <>
+                  {index ? ', ' : ''}
+                  {renderUser(user)}
+                </>
+              ))}
+            </>
+          }
+        >
+          <span>
+            <Text type="secondary" underline size="small">
+              +{otherUsers.length} user{otherUsers.length > 1 ? 's' : ''}
+            </Text>
+          </span>
+        </Tooltip>
+      )}
+    </VerticalGroup>
   );
 }
 

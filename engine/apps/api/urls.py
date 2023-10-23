@@ -13,6 +13,7 @@ from .views.escalation_chain import EscalationChainViewSet
 from .views.escalation_policy import EscalationPolicyView
 from .views.features import FeaturesAPIView
 from .views.integration_heartbeat import IntegrationHeartBeatView
+from .views.labels import LabelsViewSet
 from .views.live_setting import LiveSettingViewSet
 from .views.on_call_shifts import OnCallShiftView
 from .views.organization import (
@@ -109,4 +110,22 @@ urlpatterns += [
     path(r"login/<backend>", auth.overridden_login_slack_auth, name="slack-auth-with-no-slash"),
     path(r"login/<backend>/", auth.overridden_login_slack_auth, name="slack-auth"),
     path(r"complete/<backend>/", auth.overridden_complete_slack_auth, name="complete-slack-auth"),
+]
+
+urlpatterns += [
+    re_path(r"^labels/keys/?$", LabelsViewSet.as_view({"get": "get_keys"}), name="get_keys"),
+    re_path(
+        r"^labels/id/(?P<key_id>[\w\-]+)/?$",
+        LabelsViewSet.as_view({"get": "get_key", "put": "rename_key"}),
+        name="get_update_key",
+    ),
+    re_path(
+        r"^labels/id/(?P<key_id>[\w\-]+)/values/?$", LabelsViewSet.as_view({"post": "add_value"}), name="add_value"
+    ),
+    re_path(
+        r"^labels/id/(?P<key_id>[\w\-]+)/values/(?P<value_id>[\w\-]+)/?$",
+        LabelsViewSet.as_view({"put": "rename_value", "get": "get_value"}),
+        name="get_update_value",
+    ),
+    re_path(r"^labels/?$", LabelsViewSet.as_view({"post": "create_label"}), name="create_label"),
 ]

@@ -83,6 +83,11 @@ class ResolutionNoteSlackMessage(models.Model):
     class Meta:
         unique_together = ("thread_ts", "ts")
 
+        indexes = [
+            models.Index(fields=["ts", "thread_ts", "alert_group_id"]),
+            models.Index(fields=["ts", "thread_ts", "slack_channel_id"]),
+        ]
+
     def get_resolution_note(self) -> typing.Optional["ResolutionNote"]:
         try:
             return self.resolution_note
@@ -115,8 +120,9 @@ class ResolutionNote(models.Model):
     objects_with_deleted = models.Manager()
 
     class Source(models.IntegerChoices):
-        SLACK = 0, "slack"
-        WEB = 1, "web"
+        SLACK = 0, "Slack"
+        WEB = 1, "Web"
+        MOBILE_APP = 2, "Mobile App"
 
     public_primary_key = models.CharField(
         max_length=20,

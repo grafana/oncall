@@ -3,6 +3,14 @@
   margin: 20px 0;
 }
 
+.schedule-personal {
+  position: relative;
+  margin: 20px 0;
+
+  --rotations-border: var(--border-weak);
+  --rotations-background: var(--background-secondary);
+}
+
 .title {
   margin-bottom: var(--title-marginBottom);
 }
@@ -18,6 +26,7 @@
   row-gap: 4px;
   column-gap: 8px;
   width: 100%;
+  margin-bottom: 20px;
 }
 
 .schedules__actions {
@@ -25,11 +34,4 @@
   justify-content: flex-end;
   flex-grow: 1;
   gap: 8px;
-  padding-top: 19px;
-}
-
-.schedules__user-on-call {
-  display: flex;
-  flex-wrap: nowrap;
-  gap: 4px;
 }

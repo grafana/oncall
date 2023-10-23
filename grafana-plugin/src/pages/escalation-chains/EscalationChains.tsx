@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Button, HorizontalGroup, Icon, IconButton, LoadingPlaceholder, Tooltip, VerticalGroup } from '@grafana/ui';
+import { Button, HorizontalGroup, Icon, IconButton, Tooltip, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
@@ -28,7 +28,7 @@ import { FiltersValues } from 'models/filters/filters.types';
 import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import { UserActions } from 'utils/authorization';
-import { PLUGIN_ROOT } from 'utils/consts';
+import { PAGE, PLUGIN_ROOT } from 'utils/consts';
 
 import styles from './EscalationChains.module.css';
 
@@ -176,7 +176,11 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
                           {(item) => <EscalationChainCard id={item.id} />}
                         </GList>
                       ) : (
-                        <LoadingPlaceholder className={cx('loading')} text="Loading..." />
+                        <VerticalGroup>
+                          <Text type="primary" className={cx('loading')}>
+                            Loading...
+                          </Text>
+                        </VerticalGroup>
                       )}
                     </div>
                   </div>
@@ -231,7 +235,7 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
       <div className={cx('filters')}>
         <RemoteFilters
           query={query}
-          page="escalation_chains"
+          page={PAGE.Escalations}
           grafanaTeamStore={store.grafanaTeamStore}
           onChange={this.handleFiltersChange}
         />

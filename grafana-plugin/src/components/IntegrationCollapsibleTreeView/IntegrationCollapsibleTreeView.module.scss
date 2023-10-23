@@ -27,6 +27,10 @@
 .integrationTree__group {
   position: relative;
   margin-bottom: 12px;
+
+  &--hidden {
+    display: none;
+  }
 }
 
 .integrationTree__icon {

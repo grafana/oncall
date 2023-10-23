@@ -11,7 +11,7 @@ import { SelectOption } from 'state/types';
 import { openErrorNotification, refreshPageError, showApiError } from 'utils';
 import LocationHelper from 'utils/LocationHelper';
 
-import { Alert, AlertAction, IncidentStatus, ResponseIRMPlan } from './alertgroup.types';
+import { Alert, AlertAction, IncidentStatus } from './alertgroup.types';
 
 export class AlertGroupStore extends BaseStore {
   @observable.shallow
@@ -69,9 +69,6 @@ export class AlertGroupStore extends BaseStore {
 
   @observable
   liveUpdatesPaused = false;
-
-  @observable
-  irmPlan: ResponseIRMPlan = undefined;
 
   constructor(rootStore: RootStore) {
     super(rootStore);
@@ -219,12 +216,6 @@ export class AlertGroupStore extends BaseStore {
     });
   }
 
-  async fetchIRMPlan() {
-    if (!this.rootStore.isOpenSource()) {
-      this.irmPlan = await makeRequest(`/usage-limits`, { method: 'GET' });
-    }
-  }
-
   // methods were moved from rootBaseStore.
   // TODO check if methods are dublicating existing ones
   @action
@@ -321,9 +312,11 @@ export class AlertGroupStore extends BaseStore {
   }
 
   @action
-  getAlert(pk: Alert['pk']) {
-    return makeRequest(`${this.path}${pk}`, {}).then((alert: Alert) => {
+  async getAlert(pk: Alert['pk']) {
+    return await makeRequest(`${this.path}${pk}`, {}).then((alert: Alert) => {
       this.alerts.set(pk, alert);
+
+      return alert;
     });
   }
 

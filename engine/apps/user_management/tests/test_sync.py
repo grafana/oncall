@@ -4,6 +4,8 @@ import pytest
 from django.conf import settings
 from django.test import override_settings
 
+from apps.alerts.models import AlertReceiveChannel
+from apps.api.permissions import LegacyAccessControlRole
 from apps.grafana_plugin.helpers.client import GcomAPIClient, GrafanaAPIClient
 from apps.user_management.models import Team, User
 from apps.user_management.sync import check_grafana_incident_is_enabled, cleanup_organization, sync_organization
@@ -48,6 +50,55 @@ def test_sync_users_for_organization(make_organization, make_user_for_organizati
     assert created_user.name == api_users[1]["name"]
     assert created_user.avatar_full_url == "https://test.test/test/1234"
 
+    assert created_user.notification_policies.filter(important=False).count() == 1
+    assert (
+        created_user.notification_policies.filter(important=False).first().notify_by
+        == settings.EMAIL_BACKEND_INTERNAL_ID
+    )
+
+    assert created_user.notification_policies.filter(important=True).count() == 1
+    assert (
+        created_user.notification_policies.filter(important=True).first().notify_by
+        == settings.EMAIL_BACKEND_INTERNAL_ID
+    )
+
+
+@pytest.mark.django_db
+def test_sync_users_for_organization_role_none(make_organization, make_user_for_organization):
+    organization = make_organization(grafana_url="https://test.test")
+    users = tuple(make_user_for_organization(organization, user_id=user_id) for user_id in (1, 2))
+
+    api_users = tuple(
+        {
+            "userId": user_id,
+            "email": "test@test.test",
+            "name": "Test",
+            "login": "test",
+            "role": "None",
+            "avatarUrl": "/test/1234",
+            "permissions": [],
+        }
+        for user_id in (2, 3)
+    )
+
+    User.objects.sync_for_organization(organization, api_users=api_users)
+
+    assert organization.users.count() == 2
+
+    # check that excess users are deleted
+    assert not organization.users.filter(pk=users[0].pk).exists()
+
+    # check that existing users are updated
+    updated_user = organization.users.filter(pk=users[1].pk).first()
+    assert updated_user is not None
+    assert updated_user.role == LegacyAccessControlRole.NONE
+
+    # check that missing users are created
+    created_user = organization.users.filter(user_id=api_users[1]["userId"]).first()
+    assert created_user is not None
+    assert created_user.user_id == api_users[1]["userId"]
+    assert created_user.role == LegacyAccessControlRole.NONE
+
 
 @pytest.mark.django_db
 def test_sync_teams_for_organization(make_organization, make_team):
@@ -76,6 +127,15 @@ def test_sync_teams_for_organization(make_organization, make_team):
     assert created_team is not None
     assert created_team.team_id == api_teams[1]["id"]
     assert created_team.name == api_teams[1]["name"]
+
+    direct_paging_integration = AlertReceiveChannel.objects.get(
+        organization=organization,
+        integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING,
+        team=created_team,
+    )
+    assert direct_paging_integration.channel_filters.count() == 1
+    assert direct_paging_integration.channel_filters.first().order == 0
+    assert direct_paging_integration.channel_filters.first().is_default
 
 
 @pytest.mark.django_db

@@ -29,6 +29,7 @@ from apps.schedules.constants import (
     ICAL_STATUS_CANCELLED,
     ICAL_SUMMARY,
     ICAL_UID,
+    RE_EVENT_UID_EXPORT,
     RE_EVENT_UID_V1,
     RE_EVENT_UID_V2,
     RE_PRIORITY,
@@ -66,11 +67,10 @@ IcalEvents = typing.List[IcalEvent]
 def users_in_ical(
     usernames_from_ical: typing.List[str],
     organization: "Organization",
-) -> "UserQuerySet":
+) -> typing.List["User"]:
     """
     This method returns a sequence of `User` objects, filtered by users whose username, or case-insensitive e-mail,
-    is present in `usernames_from_ical`. If `include_viewers` is set to `True`, users are further filtered down
-    based on their granted permissions.
+    is present in `usernames_from_ical`.
 
     Parameters
     ----------
@@ -79,24 +79,26 @@ def users_in_ical(
     organization : apps.user_management.models.organization.Organization
         The organization in question
     """
-    from apps.user_management.models import User
+    required_permission = RBACPermission.Permissions.SCHEDULES_WRITE
 
     emails_from_ical = [username.lower() for username in usernames_from_ical]
 
-    # users_found_in_ical = organization.users
     users_found_in_ical = organization.users.filter(
-        **User.build_permissions_query(RBACPermission.Permissions.SCHEDULES_WRITE, organization)
-    )
-
-    users_found_in_ical = users_found_in_ical.filter(
         (Q(username__in=usernames_from_ical) | Q(email__lower__in=emails_from_ical))
     ).distinct()
 
-    return users_found_in_ical
+    if organization.is_rbac_permissions_enabled:
+        # it is more efficient to check permissions on the subset of users filtered above
+        # than performing a regex query for the required permission
+        users_found_in_ical = [u for u in users_found_in_ical if {"action": required_permission.value} in u.permissions]
+    else:
+        users_found_in_ical = users_found_in_ical.filter(role__lte=required_permission.fallback_role.value)
+
+    return list(users_found_in_ical)
 
 
 @timed_lru_cache(timeout=100)
-def memoized_users_in_ical(usernames_from_ical: typing.List[str], organization: "Organization") -> UserQuerySet:
+def memoized_users_in_ical(usernames_from_ical: typing.List[str], organization: "Organization") -> typing.List["User"]:
     # using in-memory cache instead of redis to avoid pickling python objects
     return users_in_ical(usernames_from_ical, organization)
 
@@ -353,7 +355,7 @@ def list_users_to_notify_from_ical_for_period(
     schedule: "OnCallSchedule",
     start_datetime: datetime.datetime,
     end_datetime: datetime.datetime,
-) -> UserQuerySet:
+) -> typing.List["User"]:
     users_found_in_ical: typing.Sequence["User"] = []
     events = schedule.final_events(start_datetime, end_datetime)
     usernames = []
@@ -365,18 +367,18 @@ def list_users_to_notify_from_ical_for_period(
 
 
 def get_oncall_users_for_multiple_schedules(
-    schedules: "OnCallScheduleQuerySet", events_datetime=None
+    schedules: typing.List["OnCallSchedule"], events_datetime=None
 ) -> typing.Dict["OnCallSchedule", UserQuerySet]:
     if events_datetime is None:
         events_datetime = datetime.datetime.now(timezone.utc)
 
     # Exit early if there are no schedules
-    if not schedules.exists():
+    if not schedules:
         return {}
 
     # Get on-call users
     oncall_users = {}
-    for schedule in schedules.all():
+    for schedule in schedules:
         # pass user list to list_users_to_notify_from_ical
         schedule_oncall_users = list_users_to_notify_from_ical(schedule, events_datetime=events_datetime)
         oncall_users.update({schedule.pk: schedule_oncall_users})
@@ -417,25 +419,32 @@ def parse_event_uid(string: str, sequence: str = None, recurrence_id: str = None
     source = None
     source_verbal = None
 
-    match = RE_EVENT_UID_V2.match(string)
-    if match:
-        _, pk, _, _, source = match.groups()
-    else:
+    match = None
+    if string.startswith("oncall"):
+        match = RE_EVENT_UID_V2.match(string)
+        if match:
+            _, pk, _, _, source = match.groups()
+    elif string.startswith("amixr"):
         # eventually this path would be automatically deprecated
         # once all ical representations are refreshed
         match = RE_EVENT_UID_V1.match(string)
         if match:
             _, _, _, source = match.groups()
-        else:
-            # fallback to use the UID string as the rotation ID
-            pk = string
-            # in ical imported calendars, sequence and/or recurrence_id
-            # distinguish main recurring event vs instance modification
-            # (see https://icalendar.org/iCalendar-RFC-5545/3-8-4-4-recurrence-id.html)
-            if sequence:
-                pk = f"{pk}_{sequence}"
-            if recurrence_id:
-                pk = f"{pk}_{recurrence_id}"
+    else:
+        match = RE_EVENT_UID_EXPORT.match(string)
+        if match:
+            pk, _, _ = match.groups()
+
+    if not match:
+        # fallback to use the UID string as the rotation ID
+        pk = string
+        # in ical imported calendars, sequence and/or recurrence_id
+        # distinguish main recurring event vs instance modification
+        # (see https://icalendar.org/iCalendar-RFC-5545/3-8-4-4-recurrence-id.html)
+        if sequence:
+            pk = f"{pk}_{sequence}"
+        if recurrence_id:
+            pk = f"{pk}_{recurrence_id}"
 
     if source is not None:
         source = int(source)

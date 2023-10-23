@@ -94,7 +94,7 @@ export interface Event {
   is_gap: boolean;
   missing_users: Array<{ display_name: User['username']; pk: User['pk'] }>;
   priority_level: number;
-  shift: { pk: Shift['id'] | null };
+  shift: Pick<Shift, 'name' | 'type'> & { pk: string };
   source: string;
   start: string;
   users: Array<{
@@ -103,6 +103,9 @@ export interface Event {
     swap_request?: SwapRequest;
   }>;
   is_override: boolean;
+
+  schedule?: Partial<Schedule>; // populated by frontend for personal schedule to display schedule name instead of user name
+  shiftSwapId?: ShiftSwap['id']; // if event is acually shift swap request (filled out by frontend)
 }
 
 export interface Events {
@@ -120,7 +123,7 @@ export interface Layer {
 export interface ShiftEvents {
   shiftId: string;
   events: Event[];
-  priority: number;
+  priority?: number;
   isPreview?: boolean;
 }
 
@@ -137,9 +140,9 @@ export interface ShiftSwap {
   schedule: Schedule['id'];
   swap_start: string;
   swap_end: string;
-  beneficiary: User['pk'];
+  beneficiary: Partial<User>;
   status: 'open' | 'taken' | 'past_due';
-  benefactor: User['pk'];
+  benefactor: Partial<User>;
   description: string;
 }
 

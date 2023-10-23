@@ -14,7 +14,7 @@ from apps.slack.types import (
     PayloadType,
     ScenarioRoute,
 )
-from apps.slack.utils import format_datetime_to_slack_with_time
+from apps.slack.utils import SlackDateFormat, format_datetime_to_slack_with_time
 from common.insight_log import EntityEvent, write_resource_insight_log
 
 if typing.TYPE_CHECKING:
@@ -61,11 +61,7 @@ class EditScheduleShiftNotifyStep(scenario_step.ScenarioStep):
             "private_metadata": json.dumps(private_metadata),
         }
 
-        self._slack_client.api_call(
-            "views.open",
-            trigger_id=payload["trigger_id"],
-            view=view,
-        )
+        self._slack_client.views_open(trigger_id=payload["trigger_id"], view=view)
 
     def set_selected_value(self, slack_user_identity: "SlackUserIdentity", payload: EventPayload) -> None:
         action = payload["actions"][0]
@@ -187,7 +183,8 @@ class EditScheduleShiftNotifyStep(scenario_step.ScenarioStep):
                 user_ids_from_shift = [u["pk"] for u in users]
                 users = organization.users.filter(public_primary_key__in=user_ids_from_shift)
                 now_text += cls.get_ical_shift_notification_text(shift, schedule.mention_oncall_start, users)
-            now_text = "*New on-call shift:*\n" + now_text
+
+            now_text = "*New on-call shift*\n" + now_text
 
         if len(next_shifts) == 0:
             if len(new_shifts) == 0:
@@ -201,9 +198,8 @@ class EditScheduleShiftNotifyStep(scenario_step.ScenarioStep):
                 user_ids_from_shift = [u["pk"] for u in users]
                 users = organization.users.filter(public_primary_key__in=user_ids_from_shift)
                 next_text += cls.get_ical_shift_notification_text(shift, schedule.mention_oncall_next, users)
-            next_text = "\n*Next on-call shift:*\n" + next_text
+            next_text = "\n*Next on-call shift*\n" + next_text
 
-        text = f"{now_text}{next_text}"
         blocks: Block.AnyBlocks = [
             typing.cast(
                 Block.Section,
@@ -211,7 +207,29 @@ class EditScheduleShiftNotifyStep(scenario_step.ScenarioStep):
                     "type": "section",
                     "text": {
                         "type": "mrkdwn",
-                        "text": text,
+                        "text": f"On-call shifts update for schedule *<{schedule.web_detail_page_link}|{schedule.name}>*",
+                        "verbatim": True,
+                    },
+                },
+            ),
+            typing.cast(
+                Block.Section,
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": now_text,
+                        "verbatim": True,
+                    },
+                },
+            ),
+            typing.cast(
+                Block.Section,
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": next_text,
                         "verbatim": True,
                     },
                 },
@@ -230,18 +248,6 @@ class EditScheduleShiftNotifyStep(scenario_step.ScenarioStep):
                     ],
                 },
             ),
-            typing.cast(
-                Block.Context,
-                {
-                    "type": "context",
-                    "elements": [
-                        {
-                            "type": "mrkdwn",
-                            "text": f"On-call schedule *{schedule.name}*",
-                        },
-                    ],
-                },
-            ),
         ]
         return blocks
 
@@ -250,20 +256,20 @@ class EditScheduleShiftNotifyStep(scenario_step.ScenarioStep):
         notification = ""
         for user in users:
             if shift["all_day"]:
-                user_notification = user.get_username_with_slack_verbal(mention=mention)
+                user_notification = user.get_username_with_slack_verbal(mention=mention) + "\n"
                 if shift["start"].day == shift["end"].day:
                     all_day_text = shift["start"].strftime("%b %d")
                 else:
-                    all_day_text = f'From {shift["start"].strftime("%b %d")} to {shift["end"].strftime("%b %d")}'
+                    all_day_text = f'{shift["start"].strftime("%b %d")} - {shift["end"].strftime("%b %d")}'
                 user_notification += f' {all_day_text} _All-day event in timezone "UTC"_\n'
             else:
                 shift_start_timestamp = shift["start"].astimezone(pytz.UTC).timestamp()
                 shift_end_timestamp = shift["end"].astimezone(pytz.UTC).timestamp()
 
+                start_timestamp = format_datetime_to_slack_with_time(shift_start_timestamp, SlackDateFormat.DATE_LONG)
+                end_timestamp = format_datetime_to_slack_with_time(shift_end_timestamp, SlackDateFormat.DATE_LONG)
                 user_notification = (
-                    user.get_username_with_slack_verbal(mention=mention)
-                    + f" from {format_datetime_to_slack_with_time(shift_start_timestamp)}"
-                    f" to {format_datetime_to_slack_with_time(shift_end_timestamp)}\n"
+                    user.get_username_with_slack_verbal(mention=mention) + f"\n{start_timestamp} - {end_timestamp}\n"
                 )
             if not shift["is_override"]:
                 priority = shift.get("priority_level", 0) or 0

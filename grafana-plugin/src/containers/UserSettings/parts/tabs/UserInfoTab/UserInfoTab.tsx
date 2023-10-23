@@ -2,6 +2,7 @@ import React from 'react';
 
 import { InlineField, Input, Legend } from '@grafana/ui';
 
+import GrafanaTeamSelect from 'containers/GrafanaTeamSelect/GrafanaTeamSelect';
 import { UserSettingsTab } from 'containers/UserSettings/UserSettings.types';
 import { Connectors } from 'containers/UserSettings/parts/connectors';
 import { User } from 'models/user/user.types';
@@ -19,7 +20,7 @@ export const UserInfoTab = (props: UserInfoTabProps) => {
   const { userStore } = store;
 
   const storeUser = userStore.items[id];
-  let width = 12;
+  let width = 15;
 
   return (
     <>
@@ -38,6 +39,21 @@ export const UserInfoTab = (props: UserInfoTabProps) => {
       </InlineField>
       <InlineField label="Timezone" labelWidth={width} grow disabled>
         <Input value={storeUser.timezone || ''} />
+      </InlineField>
+      <InlineField
+        label="Default Team"
+        labelWidth={width}
+        grow
+        tooltip="Default team will be pre-selected when you create new resources, such as integrations, schedules, etc."
+      >
+        <GrafanaTeamSelect
+          withoutModal
+          defaultValue={storeUser.current_team}
+          onSelect={async (value) => {
+            await userStore.updateCurrentUser({ current_team: value });
+            store.grafanaTeamStore.updateItems();
+          }}
+        />
       </InlineField>
       <Legend>Notification channels</Legend>
       <Connectors {...props} />

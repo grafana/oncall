@@ -10,10 +10,16 @@ from django.utils import timezone
 
 from apps.alerts.tasks.compare_escalations import compare_escalations
 from apps.slack.alert_group_slack_service import AlertGroupSlackService
+from apps.slack.client import SlackClient
 from apps.slack.constants import CACHE_UPDATE_INCIDENT_SLACK_MESSAGE_LIFETIME, SLACK_BOT_ID
+from apps.slack.errors import (
+    SlackAPIInvalidAuthError,
+    SlackAPIPlanUpgradeRequiredError,
+    SlackAPIRatelimitError,
+    SlackAPITokenError,
+    SlackAPIUsergroupNotFoundError,
+)
 from apps.slack.scenarios.scenario_step import ScenarioStep
-from apps.slack.slack_client import SlackClientWithErrorHandling
-from apps.slack.slack_client.exceptions import SlackAPIException, SlackAPITokenException
 from apps.slack.utils import (
     get_cache_key_update_incident_slack_message,
     get_populate_slack_channel_task_id_key,
@@ -97,9 +103,8 @@ def check_slack_message_exists_before_post_message_to_thread(
         )
         return
     retry_timeout_hours = 24
-    slack_message = alert_group.get_slack_message()
 
-    if slack_message is not None:
+    if alert_group.slack_message:
         AlertGroupSlackService(slack_team_identity).publish_message_to_alert_group_thread(alert_group, text=text)
 
     # check how much time has passed since alert group was created
@@ -149,7 +154,7 @@ def send_message_to_thread_if_bot_not_in_channel(alert_group_pk, slack_team_iden
     slack_team_identity = SlackTeamIdentity.objects.get(pk=slack_team_identity_pk)
     alert_group = AlertGroup.objects.get(pk=alert_group_pk)
 
-    sc = SlackClientWithErrorHandling(slack_team_identity.bot_access_token)
+    sc = SlackClient(slack_team_identity)
 
     bot_user_id = slack_team_identity.bot_user_id
     members = slack_team_identity.get_conversation_members(sc, channel_id)
@@ -164,17 +169,13 @@ def unpopulate_slack_user_identities(organization_pk, force=False, ts=None):
 
     organization = Organization.objects.get(pk=organization_pk)
 
-    users_to_update = []
-    for user in organization.users.filter(slack_user_identity__isnull=False):
-        user.slack_user_identity = None
-        users_to_update.append(user)
-
-    User.objects.bulk_update(users_to_update, ["slack_user_identity"], batch_size=5000)
+    # Reset slack_user_identity for organization users (make sure to include deleted users in the queryset)
+    User.objects.filter_with_deleted(organization=organization).update(slack_user_identity=None)
 
     if force:
         organization.slack_team_identity = None
         organization.general_log_channel_id = None
-        organization.save()
+        organization.save(update_fields=["slack_team_identity", "general_log_channel_id"])
 
 
 @shared_dedicated_queue_retry_task(autoretry_for=(Exception,), retry_backoff=True, max_retries=0)
@@ -319,9 +320,7 @@ def post_slack_rate_limit_message(integration_id):
 def populate_slack_usergroups():
     from apps.slack.models import SlackTeamIdentity
 
-    slack_team_identities = SlackTeamIdentity.objects.filter(
-        detected_token_revoked__isnull=True,
-    )
+    slack_team_identities = SlackTeamIdentity.objects.filter(detected_token_revoked__isnull=True)
 
     delay = 0
     counter = 0
@@ -342,120 +341,45 @@ def populate_slack_usergroups_for_team(slack_team_identity_id):
     from apps.slack.models import SlackTeamIdentity, SlackUserGroup
 
     slack_team_identity = SlackTeamIdentity.objects.get(pk=slack_team_identity_id)
-    sc = SlackClientWithErrorHandling(slack_team_identity.bot_access_token)
+    sc = SlackClient(slack_team_identity)
 
-    def handle_usergroups_list_slack_api_exception(exception):
-        if exception.response["error"] == "plan_upgrade_required":
-            logger.info(f"SlackTeamIdentity with pk {slack_team_identity.pk} does not have access to User Groups")
-        elif exception.response["error"] == "invalid_auth":
-            logger.warning(f"invalid_auth, SlackTeamIdentity pk: {slack_team_identity.pk}")
-        # in some cases slack rate limit error looks like 'rate_limited', in some - 'ratelimited', be aware
-        elif exception.response["error"] == "rate_limited" or exception.response["error"] == "ratelimited":
-            delay = random.randint(5, 25) * 60
-            logger.warning(
-                f"'usergroups.list' slack api error: rate_limited. SlackTeamIdentity pk: {slack_team_identity.pk}."
-                f"Delay populate_slack_usergroups_for_team task by {delay // 60} min."
-            )
-            return populate_slack_usergroups_for_team.apply_async((slack_team_identity_id,), countdown=delay)
-        elif exception.response["error"] == "missing_scope":
-            logger.warning(
-                f"'usergroups.users.list' slack api error: missing_scope. "
-                f"SlackTeamIdentity pk: {slack_team_identity.pk}.\n{exception}"
-            )
-            return
-        else:
-            logger.error(
-                f"'usergroups.list' slack api error. SlackTeamIdentity pk: {slack_team_identity.pk}\n{exception}"
-            )
-            raise exception
-
-    usergroups_list = None
-    bot_access_token_accepted = True
     try:
-        usergroups_list = sc.api_call(
-            "usergroups.list",
-        )
-    except SlackAPITokenException as e:
-        logger.info(f"token revoked\n{e}")
-    except SlackAPIException as e:
-        if e.response["error"] == "not_allowed_token_type":
-            try:
-                # Trying same request with access token. It is required due to migration to granular permissions
-                # and can be removed after clients reinstall their bots
-                sc_with_access_token = SlackClientWithErrorHandling(slack_team_identity.access_token)
-                usergroups_list = sc_with_access_token.api_call(
-                    "usergroups.list",
-                )
-                bot_access_token_accepted = False
-            except SlackAPIException as err:
-                handle_usergroups_list_slack_api_exception(err)
-        else:
-            handle_usergroups_list_slack_api_exception(e)
-    if usergroups_list is not None:
-        today = timezone.now().date()
-        populated_user_groups_ids = slack_team_identity.usergroups.filter(last_populated=today).values_list(
-            "slack_id", flat=True
-        )
+        usergroups = sc.usergroups_list()["usergroups"]
+    except SlackAPIRatelimitError as e:
+        populate_slack_usergroups_for_team.apply_async((slack_team_identity_id,), countdown=e.retry_after)
+        return
+    except (SlackAPITokenError, SlackAPIInvalidAuthError, SlackAPIPlanUpgradeRequiredError):
+        return
 
-        for usergroup in usergroups_list["usergroups"]:
-            # skip groups that were recently populated
-            if usergroup["id"] in populated_user_groups_ids:
-                continue
-            try:
-                if bot_access_token_accepted:
-                    usergroups_users = sc.api_call(
-                        "usergroups.users.list",
-                        usergroup=usergroup["id"],
-                    )
-                else:
-                    sc_with_access_token = SlackClientWithErrorHandling(slack_team_identity.access_token)
-                    usergroups_users = sc_with_access_token.api_call(
-                        "usergroups.users.list",
-                        usergroup=usergroup["id"],
-                    )
-            except SlackAPIException as e:
-                if e.response["error"] == "no_such_subteam":
-                    logger.info("User group does not exist")
-                elif e.response["error"] == "missing_scope":
-                    logger.warning(
-                        f"'usergroups.users.list' slack api error: missing_scope. "
-                        f"SlackTeamIdentity pk: {slack_team_identity.pk}.\n{e}"
-                    )
-                    return
-                elif e.response["error"] == "invalid_auth":
-                    logger.warning(f"invalid_auth, SlackTeamIdentity pk: {slack_team_identity.pk}")
-                # in some cases slack rate limit error looks like 'rate_limited', in some - 'ratelimited', be aware
-                elif e.response["error"] == "rate_limited" or e.response["error"] == "ratelimited":
-                    delay = random.randint(5, 25) * 60
-                    logger.warning(
-                        f"'usergroups.users.list' slack api error: rate_limited. "
-                        f"SlackTeamIdentity pk: {slack_team_identity.pk}."
-                        f"Delay populate_slack_usergroups_for_team task by {delay // 60} min."
-                    )
-                    return populate_slack_usergroups_for_team.apply_async((slack_team_identity_id,), countdown=delay)
-                else:
-                    logger.error(
-                        f"'usergroups.users.list' slack api error. "
-                        f"SlackTeamIdentity pk: {slack_team_identity.pk}\n{e}"
-                    )
-                    raise e
-            else:
-                usergroup_name = usergroup["name"]
-                usergroup_handle = usergroup["handle"]
-                usergroup_members = usergroups_users["users"]
-                usergroup_is_active = usergroup["date_delete"] == 0
+    today = timezone.now().date()
+    populated_user_groups_ids = slack_team_identity.usergroups.filter(last_populated=today).values_list(
+        "slack_id", flat=True
+    )
 
-                SlackUserGroup.objects.update_or_create(
-                    slack_id=usergroup["id"],
-                    slack_team_identity=slack_team_identity,
-                    defaults={
-                        "name": usergroup_name,
-                        "handle": usergroup_handle,
-                        "members": usergroup_members,
-                        "is_active": usergroup_is_active,
-                        "last_populated": today,
-                    },
-                )
+    for usergroup in usergroups:
+        # skip groups that were recently populated
+        if usergroup["id"] in populated_user_groups_ids:
+            continue
+
+        try:
+            members = sc.usergroups_users_list(usergroup=usergroup["id"])["users"]
+        except SlackAPIRatelimitError as e:
+            populate_slack_usergroups_for_team.apply_async((slack_team_identity_id,), countdown=e.retry_after)
+            return
+        except (SlackAPIUsergroupNotFoundError, SlackAPIInvalidAuthError):
+            return
+
+        SlackUserGroup.objects.update_or_create(
+            slack_id=usergroup["id"],
+            slack_team_identity=slack_team_identity,
+            defaults={
+                "name": usergroup["name"],
+                "handle": usergroup["handle"],
+                "members": members,
+                "is_active": usergroup["date_delete"] == 0,
+                "last_populated": today,
+            },
+        )
 
 
 @shared_dedicated_queue_retry_task()
@@ -463,7 +387,12 @@ def start_update_slack_user_group_for_schedules():
     from apps.slack.models import SlackUserGroup
 
     user_group_pks = (
-        SlackUserGroup.objects.filter(oncall_schedules__isnull=False).distinct().values_list("pk", flat=True)
+        SlackUserGroup.objects.filter(
+            oncall_schedules__isnull=False,  # has oncall schedules connected
+            oncall_schedules__organization__deleted_at__isnull=True,  # organization is not deleted
+        )
+        .distinct()
+        .values_list("pk", flat=True)
     )
 
     for user_group_pk in user_group_pks:
@@ -489,9 +418,7 @@ def update_slack_user_group_for_schedules(user_group_pk):
 def populate_slack_channels():
     from apps.slack.models import SlackTeamIdentity
 
-    slack_team_identities = SlackTeamIdentity.objects.filter(
-        detected_token_revoked__isnull=True,
-    )
+    slack_team_identities = SlackTeamIdentity.objects.filter(detected_token_revoked__isnull=True)
 
     delay = 0
     counter = 0
@@ -527,7 +454,7 @@ def populate_slack_channels_for_team(slack_team_identity_id: int, cursor: Option
     from apps.slack.models import SlackChannel, SlackTeamIdentity
 
     slack_team_identity = SlackTeamIdentity.objects.get(pk=slack_team_identity_id)
-    sc = SlackClientWithErrorHandling(slack_team_identity.bot_access_token)
+    sc = SlackClient(slack_team_identity)
 
     active_task_id_key = get_populate_slack_channel_task_id_key(slack_team_identity_id)
     active_task_id = cache.get(active_task_id_key)
@@ -550,27 +477,14 @@ def populate_slack_channels_for_team(slack_team_identity_id: int, cursor: Option
         return start_populate_slack_channels_for_team(slack_team_identity_id, delay)
     try:
         response, cursor, rate_limited = sc.paginated_api_call_with_ratelimit(
-            "conversations.list",
-            types="public_channel,private_channel",
+            "conversations_list",
             paginated_key="channels",
+            types="public_channel,private_channel",
             limit=1000,
             cursor=cursor,
         )
-    except SlackAPITokenException as e:
-        logger.info(f"token revoked\n{e}")
-    except SlackAPIException as e:
-        if e.response["error"] == "invalid_auth":
-            logger.warning(
-                f"invalid_auth while populating slack channels, SlackTeamIdentity pk: {slack_team_identity.pk}"
-            )
-        elif e.response["error"] == "missing_scope":
-            logger.warning(
-                f"conversations.list' slack api error: missing_scope. "
-                f"SlackTeamIdentity pk: {slack_team_identity.pk}.\n{e}"
-            )
-        else:
-            logger.error(f"'conversations.list' slack api error. SlackTeamIdentity pk: {slack_team_identity.pk}\n{e}")
-            raise e
+    except (SlackAPITokenError, SlackAPIInvalidAuthError):
+        return
     else:
         today = timezone.now().date()
 
@@ -633,12 +547,9 @@ def clean_slack_integration_leftovers(organization_id, *args, **kwargs):
     from apps.alerts.models import ChannelFilter
     from apps.schedules.models import OnCallSchedule
 
-    logger.info(f"Start clean slack leftovers for organization {organization_id}")
+    logger.info(f"Cleaning up for organization {organization_id}")
     ChannelFilter.objects.filter(alert_receive_channel__organization_id=organization_id).update(slack_channel_id=None)
-    logger.info(f"Cleaned ChannelFilters slack_channel_id for organization {organization_id}")
-    OnCallSchedule.objects.filter(organization_id=organization_id).update(channel=None)
-    logger.info(f"Cleaned OnCallSchedule slack_channel_id for organization {organization_id}")
-    logger.info(f"Finish clean slack leftovers for organization {organization_id}")
+    OnCallSchedule.objects.filter(organization_id=organization_id).update(channel=None, user_group=None)
 
 
 @shared_dedicated_queue_retry_task(autoretry_for=(Exception,), retry_backoff=True, max_retries=10)

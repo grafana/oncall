@@ -44,6 +44,21 @@ database.type=mysql -> should create initContainer for MySQL database (default):
             secretKeyRef:
               key: mariadb-root-password
               name: oncall-mariadb
+        - name: REDIS_PROTOCOL
+          value: redis
+        - name: REDIS_HOST
+          value: oncall-redis-master
+        - name: REDIS_PORT
+          value: "6379"
+        - name: REDIS_DATABASE
+          value: "0"
+        - name: REDIS_USERNAME
+          value: ""
+        - name: REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: redis-password
+              name: oncall-redis
         - name: RABBITMQ_USERNAME
           value: user
         - name: RABBITMQ_PASSWORD
@@ -115,6 +130,21 @@ database.type=mysql -> should create initContainer for MySQL database (default):
             secretKeyRef:
               key: mariadb-root-password
               name: oncall-mariadb
+        - name: REDIS_PROTOCOL
+          value: redis
+        - name: REDIS_HOST
+          value: oncall-redis-master
+        - name: REDIS_PORT
+          value: "6379"
+        - name: REDIS_DATABASE
+          value: "0"
+        - name: REDIS_USERNAME
+          value: ""
+        - name: REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: redis-password
+              name: oncall-redis
         - name: RABBITMQ_USERNAME
           value: user
         - name: RABBITMQ_PASSWORD
@@ -186,6 +216,21 @@ database.type=mysql -> should create initContainer for MySQL database (default):
             secretKeyRef:
               key: mariadb-root-password
               name: oncall-mariadb
+        - name: REDIS_PROTOCOL
+          value: redis
+        - name: REDIS_HOST
+          value: oncall-redis-master
+        - name: REDIS_PORT
+          value: "6379"
+        - name: REDIS_DATABASE
+          value: "0"
+        - name: REDIS_USERNAME
+          value: ""
+        - name: REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: redis-password
+              name: oncall-redis
         - name: RABBITMQ_USERNAME
           value: user
         - name: RABBITMQ_PASSWORD
@@ -260,6 +305,21 @@ database.type=postgresql -> should create initContainer for PostgreSQL database:
             secretKeyRef:
               key: postgres-password
               name: oncall-postgresql-external
+        - name: REDIS_PROTOCOL
+          value: redis
+        - name: REDIS_HOST
+          value: oncall-redis-master
+        - name: REDIS_PORT
+          value: "6379"
+        - name: REDIS_DATABASE
+          value: "0"
+        - name: REDIS_USERNAME
+          value: ""
+        - name: REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: redis-password
+              name: oncall-redis
         - name: RABBITMQ_USERNAME
           value: user
         - name: RABBITMQ_PASSWORD
@@ -333,6 +393,21 @@ database.type=postgresql -> should create initContainer for PostgreSQL database:
             secretKeyRef:
               key: postgres-password
               name: oncall-postgresql-external
+        - name: REDIS_PROTOCOL
+          value: redis
+        - name: REDIS_HOST
+          value: oncall-redis-master
+        - name: REDIS_PORT
+          value: "6379"
+        - name: REDIS_DATABASE
+          value: "0"
+        - name: REDIS_USERNAME
+          value: ""
+        - name: REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: redis-password
+              name: oncall-redis
         - name: RABBITMQ_USERNAME
           value: user
         - name: RABBITMQ_PASSWORD
@@ -406,6 +481,21 @@ database.type=postgresql -> should create initContainer for PostgreSQL database:
             secretKeyRef:
               key: postgres-password
               name: oncall-postgresql-external
+        - name: REDIS_PROTOCOL
+          value: redis
+        - name: REDIS_HOST
+          value: oncall-redis-master
+        - name: REDIS_PORT
+          value: "6379"
+        - name: REDIS_DATABASE
+          value: "0"
+        - name: REDIS_USERNAME
+          value: ""
+        - name: REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: redis-password
+              name: oncall-redis
         - name: RABBITMQ_USERNAME
           value: user
         - name: RABBITMQ_PASSWORD

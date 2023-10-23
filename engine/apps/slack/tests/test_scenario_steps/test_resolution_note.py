@@ -3,9 +3,10 @@ from unittest.mock import patch
 
 import pytest
 
+from apps.slack.client import SlackClient
+from apps.slack.errors import SlackAPIViewNotFoundError
 from apps.slack.scenarios.scenario_step import ScenarioStep
-from apps.slack.slack_client import SlackClientWithErrorHandling
-from apps.slack.slack_client.exceptions import SlackAPIException
+from apps.slack.tests.conftest import build_slack_response
 from common.api_helpers.utils import create_engine_url
 
 
@@ -184,9 +185,9 @@ def test_get_resolution_notes_blocks_latest_limit(
 
 @pytest.mark.django_db
 @patch.object(
-    SlackClientWithErrorHandling,
+    SlackClient,
     "api_call",
-    side_effect=SlackAPIException(response={"ok": False, "error": "not_found"}),
+    side_effect=SlackAPIViewNotFoundError(response=build_slack_response({"ok": False, "error": "not_found"})),
 )
 def test_resolution_notes_modal_closed_before_update(
     mock_slack_api_call,
@@ -201,10 +202,7 @@ def test_resolution_notes_modal_closed_before_update(
 
     alert_receive_channel = make_alert_receive_channel(organization)
     alert_group = make_alert_group(alert_receive_channel)
-    slack_message = make_slack_message(
-        alert_group=alert_group, channel_id="RANDOM_CHANNEL_ID", slack_id="RANDOM_MESSAGE_ID"
-    )
-    slack_message.get_alert_group()  # fix FKs
+    make_slack_message(alert_group=alert_group, channel_id="RANDOM_CHANNEL_ID", slack_id="RANDOM_MESSAGE_ID")
 
     payload = {
         "trigger_id": "TEST",

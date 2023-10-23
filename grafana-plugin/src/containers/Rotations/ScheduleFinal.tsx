@@ -11,12 +11,12 @@ import Text from 'components/Text/Text';
 import TimelineMarks from 'components/TimelineMarks/TimelineMarks';
 import Rotation from 'containers/Rotation/Rotation';
 import {
-  flattenFinalShifs,
+  flattenShiftEvents,
   getLayersFromStore,
   getOverridesFromStore,
   getShiftsFromStore,
 } from 'models/schedule/schedule.helpers';
-import { Schedule, Shift, ShiftSwap, Event } from 'models/schedule/schedule.types';
+import { Schedule, ShiftSwap, Event } from 'models/schedule/schedule.types';
 import { Timezone } from 'models/timezone/timezone.types';
 import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
@@ -33,7 +33,6 @@ interface ScheduleFinalProps extends WithStoreProps {
   currentTimezone: Timezone;
   scheduleId: Schedule['id'];
   simplified?: boolean;
-  onClick: (shiftId: Shift['id']) => void;
   onShowOverrideForm: (shiftId: 'new', shiftStart: dayjs.Dayjs, shiftEnd: dayjs.Dayjs) => void;
   onShowShiftSwapForm: (id: ShiftSwap['id'] | 'new', params?: Partial<ShiftSwap>) => void;
   disabled?: boolean;
@@ -41,16 +40,8 @@ interface ScheduleFinalProps extends WithStoreProps {
   onSlotClick?: (event: Event) => void;
 }
 
-interface ScheduleOverridesState {
-  searchTerm: string;
-}
-
 @observer
-class ScheduleFinal extends Component<ScheduleFinalProps, ScheduleOverridesState> {
-  state: ScheduleOverridesState = {
-    searchTerm: '',
-  };
-
+class ScheduleFinal extends Component<ScheduleFinalProps> {
   render() {
     const { startMoment, currentTimezone, store, simplified, scheduleId, filters, onShowShiftSwapForm, onSlotClick } =
       this.props;
@@ -60,7 +51,7 @@ class ScheduleFinal extends Component<ScheduleFinalProps, ScheduleOverridesState
 
     const currentTimeX = diff / base;
 
-    const shifts = flattenFinalShifs(getShiftsFromStore(store, scheduleId, startMoment));
+    const shifts = flattenShiftEvents(getShiftsFromStore(store, scheduleId, startMoment));
 
     const layers = getLayersFromStore(store, scheduleId, startMoment);
 
@@ -68,7 +59,7 @@ class ScheduleFinal extends Component<ScheduleFinalProps, ScheduleOverridesState
 
     const currentTimeHidden = currentTimeX < 0 || currentTimeX > 1;
 
-    const getColor = (shiftId: Shift['id']) => findColor(shiftId, layers, overrides);
+    const getColor = (event: Event) => findColor(event.shift?.pk, layers, overrides);
 
     return (
       <>
@@ -94,7 +85,6 @@ class ScheduleFinal extends Component<ScheduleFinalProps, ScheduleOverridesState
                     <CSSTransition key={index} timeout={DEFAULT_TRANSITION_TIMEOUT} classNames={{ ...styles }}>
                       <Rotation
                         key={index}
-                        scheduleId={scheduleId}
                         events={events}
                         startMoment={startMoment}
                         currentTimezone={currentTimezone}
@@ -111,12 +101,7 @@ class ScheduleFinal extends Component<ScheduleFinalProps, ScheduleOverridesState
                 })
               ) : (
                 <CSSTransition key={0} timeout={DEFAULT_TRANSITION_TIMEOUT} classNames={{ ...styles }}>
-                  <Rotation
-                    scheduleId={scheduleId}
-                    events={[]}
-                    startMoment={startMoment}
-                    currentTimezone={currentTimezone}
-                  />
+                  <Rotation events={[]} startMoment={startMoment} currentTimezone={currentTimezone} />
                 </CSSTransition>
               )}
             </TransitionGroup>
@@ -125,8 +110,6 @@ class ScheduleFinal extends Component<ScheduleFinalProps, ScheduleOverridesState
       </>
     );
   }
-
-  onSearchTermChangeCallback = () => {};
 
   handleShowOverrideForm = (shiftStart: dayjs.Dayjs, shiftEnd: dayjs.Dayjs) => {
     const { onShowOverrideForm } = this.props;

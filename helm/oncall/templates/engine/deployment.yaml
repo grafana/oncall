@@ -73,7 +73,9 @@ spec:
             timeoutSeconds: 3
           resources:
             {{- toYaml .Values.engine.resources | nindent 12 }}
-          {{- include "oncall.volumeMounts" . | nindent 10 }}
+          {{- with .Values.engine.extraVolumeMounts }}
+          volumeMounts: {{- . | toYaml | nindent 12 }}
+          {{- end }}
       {{- with .Values.engine.extraContainers }}
         {{- tpl . $ | nindent 8 }}
       {{- end }}
@@ -96,4 +98,6 @@ spec:
       {{- with .Values.engine.priorityClassName }}
       priorityClassName: {{ . }}
       {{- end }}
-      {{- include "oncall.volumes" . | nindent 6 }}
+      {{- with .Values.engine.extraVolumes }}
+      volumes: {{- . | toYaml | nindent 8 }}
+      {{- end }}

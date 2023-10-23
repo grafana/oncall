@@ -1,8 +1,9 @@
 import dayjs from 'dayjs';
 
+import { User } from 'models/user/user.types';
 import { RootStore } from 'state';
 
-import { Event, Layer, Schedule, ScheduleType, Shift, ShiftEvents } from './schedule.types';
+import { Event, Layer, Schedule, ScheduleType, Shift, ShiftEvents, ShiftSwap } from './schedule.types';
 
 export const getFromString = (moment: dayjs.Dayjs) => {
   return moment.format('YYYY-MM-DD');
@@ -18,6 +19,25 @@ const createGap = (start, end) => {
     shift: null,
     missing_users: [],
     is_empty: true,
+    calendar_type: ScheduleType.API,
+    priority_level: null,
+    source: 'web',
+    is_override: false,
+  };
+};
+
+export const createShiftSwapEventFromShiftSwap = (shiftSwap: Partial<ShiftSwap>) => {
+  return {
+    shiftSwapId: shiftSwap.id,
+    start: shiftSwap.swap_start,
+    end: shiftSwap.swap_end,
+    is_gap: false,
+    users: [],
+    all_day: false,
+    shift: null,
+    missing_users: [],
+    is_empty: true,
+    is_shift_swap: true,
     calendar_type: ScheduleType.API,
     priority_level: null,
     source: 'web',
@@ -43,7 +63,7 @@ export const fillGaps = (events: Event[]) => {
   return newEvents;
 };
 
-export const splitToShiftsAndFillGaps = (events: Event[]) => {
+export const splitToShifts = (events: Event[]) => {
   const shifts: Array<{ shiftId: Shift['id']; priority: Shift['priority_level']; events: Event[] }> = [];
 
   for (const [_i, event] of events.entries()) {
@@ -57,11 +77,26 @@ export const splitToShiftsAndFillGaps = (events: Event[]) => {
     }
   }
 
-  shifts.forEach((shift) => {
-    shift.events = fillGaps(shift.events);
-  });
-
   return shifts;
+};
+
+export const fillGapsInShifts = (shifts: ShiftEvents[]) => {
+  return shifts.map((shift) => ({
+    ...shift,
+    events: fillGaps(shift.events),
+  }));
+};
+
+export const enrichEventsWithScheduleData = (events: Event[], schedule: Partial<Schedule>) => {
+  return events.map((event) => ({ ...event, schedule }));
+};
+
+export const getPersonalShiftsFromStore = (
+  store: RootStore,
+  userPk: User['pk'],
+  startMoment: dayjs.Dayjs
+): ShiftEvents[] => {
+  return store.scheduleStore.personalEvents[userPk]?.[getFromString(startMoment)] as any;
 };
 
 export const getShiftsFromStore = (
@@ -74,7 +109,45 @@ export const getShiftsFromStore = (
     : (store.scheduleStore.events[scheduleId]?.['final']?.[getFromString(startMoment)] as any);
 };
 
-export const flattenFinalShifs = (shifts: ShiftEvents[]) => {
+export const unFlattenShiftEvents = (shifts: ShiftEvents[]) => {
+  for (let i = 0; i < shifts.length; i++) {
+    const shift = shifts[i];
+
+    for (let j = 0; j < shift.events.length - 1; j++) {
+      for (let k = j + 1; k < shift.events.length; k++) {
+        const event1 = shift.events[j];
+        const event2 = shift.events[k];
+
+        const event1Start = dayjs(event1.start);
+        const event1End = dayjs(event1.end);
+
+        const event2Start = dayjs(event2.start);
+        const event2End = dayjs(event2.end);
+
+        if (
+          (event1Start.isBefore(event2Start) && event1End.isAfter(event2Start)) ||
+          (event1End.isAfter(event2End) && event1Start.isBefore(event2End))
+        ) {
+          const firstEvent = event1Start.isBefore(event2Start) ? event1 : event2;
+          const secondEvent = firstEvent === event1 ? event2 : event1;
+
+          const oldShift = { ...shift, events: shift.events.filter((event) => event !== secondEvent) };
+
+          const newShift = { ...shift, events: [secondEvent] };
+
+          shifts[i] = oldShift;
+          shifts.push(newShift);
+
+          return unFlattenShiftEvents(shifts);
+        }
+      }
+    }
+  }
+
+  return shifts;
+};
+
+export const flattenShiftEvents = (shifts: ShiftEvents[]) => {
   if (!shifts) {
     return undefined;
   }
@@ -193,6 +266,16 @@ export const getLayersFromStore = (store: RootStore, scheduleId: Schedule['id'],
     : (store.scheduleStore.events[scheduleId]?.['rotation']?.[getFromString(startMoment)] as Layer[]);
 };
 
+export const getShiftSwapsFromStore = (
+  store: RootStore,
+  scheduleId: Schedule['id'],
+  startMoment: dayjs.Dayjs
+): ShiftEvents[] => {
+  return store.scheduleStore.shiftSwapsPreview
+    ? store.scheduleStore.shiftSwapsPreview[getFromString(startMoment)]
+    : store.scheduleStore.scheduleAndDateToShiftSwaps[scheduleId]?.[getFromString(startMoment)];
+};
+
 export const getOverridesFromStore = (
   store: RootStore,
   scheduleId: Schedule['id'],
@@ -200,12 +283,10 @@ export const getOverridesFromStore = (
 ): ShiftEvents[] => {
   return store.scheduleStore.overridePreview
     ? store.scheduleStore.overridePreview[getFromString(startMoment)]
-    : (store.scheduleStore.events[scheduleId]?.['override']?.[getFromString(startMoment)] as Layer[]);
+    : (store.scheduleStore.events[scheduleId]?.['override']?.[getFromString(startMoment)] as ShiftEvents[]);
 };
 
-export const splitToLayers = (
-  shifts: Array<{ shiftId: Shift['id']; priority: Shift['priority_level']; events: Event[] }>
-) => {
+export const splitToLayers = (shifts: ShiftEvents[]) => {
   return shifts
     .reduce((memo, shift) => {
       let layer = memo.find((level) => level.priority === shift.priority);
@@ -326,6 +407,25 @@ export const SHIFT_SWAP_COLOR = '#C69B06';
 
 const COLORS = [L1_COLORS, L2_COLORS, L3_COLORS];
 
+const scheduleToColor = {};
+
+export const getColorForSchedule = (scheduleId: Schedule['id']) => {
+  if (scheduleToColor[scheduleId]) {
+    return scheduleToColor[scheduleId];
+  }
+
+  const colors = [...L1_COLORS, ...L2_COLORS, ...L3_COLORS];
+
+  const index = Object.keys(scheduleToColor).length;
+  const normalizedIndex = index % colors.length;
+
+  const color = colors[normalizedIndex];
+
+  scheduleToColor[scheduleId] = color;
+
+  return color;
+};
+
 export const getColor = (layerIndex: number, rotationIndex: number) => {
   const normalizedLayerIndex = layerIndex % COLORS.length;
   const normalizedRotationIndex = rotationIndex % COLORS[normalizedLayerIndex]?.length;
@@ -338,7 +438,7 @@ export const getOverrideColor = (rotationIndex: number) => {
   return OVERRIDE_COLORS[normalizedRotationIndex];
 };
 
-export const getShiftName = (shift: Shift) => {
+export const getShiftName = (shift: Partial<Shift>) => {
   if (!shift) {
     return '';
   }
@@ -351,5 +451,5 @@ export const getShiftName = (shift: Shift) => {
     return 'Override';
   }
 
-  return `[L${shift.priority_level}] Rotation`;
+  return 'Rotation';
 };

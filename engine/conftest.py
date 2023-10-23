@@ -57,6 +57,7 @@ from apps.base.tests.factories import (
 )
 from apps.email.tests.factories import EmailMessageFactory
 from apps.heartbeat.tests.factories import IntegrationHeartBeatFactory
+from apps.labels.tests.factories import AlertReceiveChannelAssociatedLabelFactory, LabelKeyFactory, LabelValueFactory
 from apps.mobile_app.models import MobileAppAuthToken, MobileAppVerificationToken
 from apps.phone_notifications.phone_backend import PhoneBackend
 from apps.phone_notifications.tests.factories import PhoneCallRecordFactory, SMSRecordFactory
@@ -69,7 +70,7 @@ from apps.schedules.tests.factories import (
     OnCallScheduleICalFactory,
     ShiftSwapRequestFactory,
 )
-from apps.slack.slack_client import SlackClientWithErrorHandling
+from apps.slack.client import SlackClient
 from apps.slack.tests.factories import (
     SlackChannelFactory,
     SlackMessageFactory,
@@ -86,7 +87,9 @@ from apps.telegram.tests.factories import (
 )
 from apps.user_management.models.user import User, listen_for_user_model_save
 from apps.user_management.tests.factories import OrganizationFactory, RegionFactory, TeamFactory, UserFactory
+from apps.webhooks.presets.preset_options import WebhookPresetOptions
 from apps.webhooks.tests.factories import CustomWebhookFactory, WebhookResponseFactory
+from apps.webhooks.tests.test_webhook_presets import TEST_WEBHOOK_PRESET_ID, TestWebhookPreset
 
 register(OrganizationFactory)
 register(UserFactory)
@@ -126,6 +129,10 @@ register(EmailMessageFactory)
 register(IntegrationHeartBeatFactory)
 register(LiveSettingFactory)
 
+register(LabelKeyFactory)
+register(LabelValueFactory)
+register(AlertReceiveChannelAssociatedLabelFactory)
+
 IS_RBAC_ENABLED = os.getenv("ONCALL_TESTING_RBAC_ENABLED", "True") == "True"
 
 
@@ -144,7 +151,7 @@ def mock_slack_api_call(monkeypatch):
             "team": {"name": "TEST_TEAM"},
         }
 
-    monkeypatch.setattr(SlackClientWithErrorHandling, "api_call", mock_api_call)
+    monkeypatch.setattr(SlackClient, "api_call", mock_api_call)
 
 
 @pytest.fixture(autouse=True)
@@ -169,6 +176,11 @@ def mock_apply_async(monkeypatch):
         return uuid.uuid4()
 
     monkeypatch.setattr(Task, "apply_async", mock_apply_async)
+
+
+@pytest.fixture(autouse=True)
+def mock_is_labels_feature_enabled(settings):
+    setattr(settings, "FEATURE_LABELS_ENABLED", True)
 
 
 @pytest.fixture
@@ -277,6 +289,7 @@ def get_user_permission_role_mapping_from_frontend_plugin_json() -> RoleMapping:
         plugin_json: PluginJSON = json.load(fp)
 
     role_mapping: RoleMapping = {
+        LegacyAccessControlRole.NONE: [],
         LegacyAccessControlRole.VIEWER: [],
         LegacyAccessControlRole.EDITOR: [],
         LegacyAccessControlRole.ADMIN: [],
@@ -907,3 +920,48 @@ def shift_swap_request_setup(
         return ssr, beneficiary, benefactor
 
     return _shift_swap_request_setup
+
+
+@pytest.fixture()
+def webhook_preset_api_setup():
+    WebhookPresetOptions.WEBHOOK_PRESETS = {TEST_WEBHOOK_PRESET_ID: TestWebhookPreset()}
+    WebhookPresetOptions.WEBHOOK_PRESET_CHOICES = [
+        preset.metadata for preset in WebhookPresetOptions.WEBHOOK_PRESETS.values()
+    ]
+
+
+@pytest.fixture
+def make_label_key():
+    def _make_label_key(organization, **kwargs):
+        return LabelKeyFactory(organization=organization, **kwargs)
+
+    return _make_label_key
+
+
+@pytest.fixture
+def make_label_value():
+    def _make_label_value(key, **kwargs):
+        return LabelValueFactory(key=key, **kwargs)
+
+    return _make_label_value
+
+
+@pytest.fixture
+def make_label_key_and_value(make_label_key, make_label_value):
+    def _make_label_key_and_value(organization):
+        key = make_label_key(organization=organization)
+        value = make_label_value(key=key)
+        return key, value
+
+    return _make_label_key_and_value
+
+
+@pytest.fixture
+def make_integration_label_association(make_label_key_and_value):
+    def _make_integration_label_association(organization, alert_receive_channel, **kwargs):
+        key, value = make_label_key_and_value(organization)
+        return AlertReceiveChannelAssociatedLabelFactory(
+            alert_receive_channel=alert_receive_channel, organization=organization, key=key, value=value, **kwargs
+        )
+
+    return _make_integration_label_association

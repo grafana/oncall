@@ -1,6 +1,6 @@
 import React, { ReactElement, SyntheticEvent } from 'react';
 
-import { Button, HorizontalGroup, Icon, LoadingPlaceholder, Tooltip, VerticalGroup } from '@grafana/ui';
+import { Button, HorizontalGroup, Icon, LoadingPlaceholder, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { get } from 'lodash-es';
 import { observer } from 'mobx-react';
@@ -15,6 +15,7 @@ import IntegrationLogo from 'components/IntegrationLogo/IntegrationLogo';
 import ManualAlertGroup from 'components/ManualAlertGroup/ManualAlertGroup';
 import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
+import TextEllipsisTooltip from 'components/TextEllipsisTooltip/TextEllipsisTooltip';
 import Tutorial from 'components/Tutorial/Tutorial';
 import { TutorialStep } from 'components/Tutorial/Tutorial.types';
 import { IncidentsFiltersType } from 'containers/IncidentsFilters/IncidentFilters.types';
@@ -27,7 +28,7 @@ import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import LocationHelper from 'utils/LocationHelper';
 import { UserActions } from 'utils/authorization';
-import { PLUGIN_ROOT } from 'utils/consts';
+import { PAGE, PLUGIN_ROOT, TEXT_ELLIPSIS_CLASS } from 'utils/consts';
 
 import styles from './Incidents.module.scss';
 import { IncidentDropdown } from './parts/IncidentDropdown';
@@ -98,10 +99,6 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
 
   private pollingIntervalId: NodeJS.Timer = undefined;
 
-  async componentDidMount() {
-    await this.props.store.alertGroupStore.fetchIRMPlan();
-  }
-
   componentWillUnmount(): void {
     this.clearPollingInterval();
   }
@@ -119,7 +116,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
           <div className={cx('title')}>
             <HorizontalGroup justify="space-between">
               <Text.Title level={3}>Alert Groups</Text.Title>
-              <WithPermissionControlTooltip userAction={UserActions.AlertGroupsWrite}>
+              <WithPermissionControlTooltip userAction={UserActions.AlertGroupsDirectPaging}>
                 <Button icon="plus" onClick={this.handleOnClickEscalateTo}>
                   New alert group
                 </Button>
@@ -264,7 +261,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
       <div className={cx('filters')}>
         <RemoteFilters
           query={query}
-          page="incidents"
+          page={PAGE.Incidents}
           onChange={this.handleFiltersChange}
           extraFilters={this.renderCards.bind(this)}
           grafanaTeamStore={store.grafanaTeamStore}
@@ -434,12 +431,15 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
 
   renderTable() {
     const { selectedIncidentIds, pagination } = this.state;
-    const { store } = this.props;
-    const { alertGroupsLoading } = store.alertGroupStore;
+    const {
+      store,
+      store: { alertGroupStore, filtersStore },
+    } = this.props;
 
-    const results = store.alertGroupStore.getAlertSearchResult('default');
-    const prev = get(store.alertGroupStore.alertsSearchResult, `default.prev`);
-    const next = get(store.alertGroupStore.alertsSearchResult, `default.next`);
+    const results = alertGroupStore.getAlertSearchResult('default');
+    const prev = get(alertGroupStore.alertsSearchResult, `default.prev`);
+    const next = get(alertGroupStore.alertsSearchResult, `default.next`);
+    const isLoading = alertGroupStore.alertGroupsLoading || filtersStore.options['incidents'] === undefined;
 
     if (results && !results.length) {
       return (
@@ -464,7 +464,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
 
     const columns = [
       {
-        width: '5%',
+        width: '140px',
         title: 'Status',
         key: 'time',
         render: withSkeleton(this.renderStatus),
@@ -517,8 +517,8 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
       <div className={cx('root')}>
         {this.renderBulkActions()}
         <GTable
-          emptyText={alertGroupsLoading ? 'Loading...' : 'No alert groups found'}
-          loading={alertGroupsLoading}
+          emptyText={isLoading ? 'Loading...' : 'No alert groups found'}
+          loading={isLoading}
           className={cx('incidents-table')}
           rowSelection={{
             selectedRowKeys: selectedIncidentIds,
@@ -531,7 +531,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
         <div className={cx('pagination')}>
           <CursorPagination
             current={`${pagination.start}-${pagination.end}`}
-            itemsPerPage={store.alertGroupStore.incidentsItemsPerPage}
+            itemsPerPage={alertGroupStore.incidentsItemsPerPage}
             itemsPerPageOptions={[
               { label: '25', value: 25 },
               { label: '50', value: 50 },
@@ -554,7 +554,13 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
   };
 
   renderId(record: AlertType) {
-    return <Text type="secondary">#{record.inside_organization_number}</Text>;
+    return (
+      <TextEllipsisTooltip placement="top" content={`#${record.inside_organization_number}`}>
+        <Text type="secondary" className={cx(TEXT_ELLIPSIS_CLASS)}>
+          #{record.inside_organization_number}
+        </Text>
+      </TextEllipsisTooltip>
+    );
   }
 
   renderTitle = (record: AlertType) => {
@@ -566,25 +572,25 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
     const { incidentsItemsPerPage, incidentsCursor } = store.alertGroupStore;
 
     return (
-      <VerticalGroup spacing="none" justify="center">
-        <div className={'table__wrap-column'}>
-          <PluginLink
-            query={{
-              page: 'alert-groups',
-              id: record.pk,
-              cursor: incidentsCursor,
-              perpage: incidentsItemsPerPage,
-              start,
-              ...query,
-            }}
-          >
-            <Tooltip placement="top" content={record.render_for_web.title}>
-              <span>{record.render_for_web.title}</span>
-            </Tooltip>
-          </PluginLink>
-          {Boolean(record.dependent_alert_groups.length) && ` + ${record.dependent_alert_groups.length} attached`}
-        </div>
-      </VerticalGroup>
+      <div>
+        <TextEllipsisTooltip placement="top" content={record.render_for_web.title}>
+          <Text type="link" size="medium" className={cx('overflow-parent')}>
+            <PluginLink
+              query={{
+                page: 'alert-groups',
+                id: record.pk,
+                cursor: incidentsCursor,
+                perpage: incidentsItemsPerPage,
+                start,
+                ...query,
+              }}
+            >
+              <Text className={cx(TEXT_ELLIPSIS_CLASS)}>{record.render_for_web.title}</Text>
+            </PluginLink>
+          </Text>
+        </TextEllipsisTooltip>
+        {Boolean(record.dependent_alert_groups.length) && ` + ${record.dependent_alert_groups.length} attached`}
+      </div>
     );
   };
 
@@ -599,10 +605,14 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
     const integration = alertReceiveChannelStore.getIntegration(record.alert_receive_channel);
 
     return (
-      <HorizontalGroup spacing="sm">
+      <TextEllipsisTooltip
+        className={cx('u-flex', 'u-flex-gap-xs', 'overflow-parent')}
+        placement="top"
+        content={record?.alert_receive_channel?.verbal_name || ''}
+      >
         <IntegrationLogo integration={integration} scale={0.1} />
-        <Emoji text={record.alert_receive_channel?.verbal_name || ''} />
-      </HorizontalGroup>
+        <Emoji className={cx(TEXT_ELLIPSIS_CLASS)} text={record.alert_receive_channel?.verbal_name || ''} />
+      </TextEllipsisTooltip>
     );
   };
 
@@ -632,7 +642,11 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
   }
 
   renderTeam(record: AlertType, teams: any) {
-    return <TeamName team={teams[record.team]} />;
+    return (
+      <TextEllipsisTooltip placement="top" content={teams[record.team]?.name}>
+        <TeamName className={TEXT_ELLIPSIS_CLASS} team={teams[record.team]} />
+      </TextEllipsisTooltip>
+    );
   }
 
   getOnActionButtonClick = (incidentId: string, action: AlertAction): ((e: SyntheticEvent) => Promise<void>) => {

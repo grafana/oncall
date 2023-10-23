@@ -167,6 +167,10 @@ class ShiftSwapRequest(models.Model):
         return self.schedule.channel
 
     @property
+    def schedule_slack_url(self) -> str:
+        return f"<{self.schedule.web_detail_page_link}|{self.schedule.name}>"
+
+    @property
     def organization(self) -> "Organization":
         return self.schedule.organization
 
@@ -202,6 +206,11 @@ class ShiftSwapRequest(models.Model):
         return related_shifts
 
     def take(self, benefactor: "User") -> None:
+        from apps.schedules.tasks.shift_swaps import (
+            notify_beneficiary_about_taken_shift_swap_request,
+            update_shift_swap_request_message,
+        )
+
         if benefactor == self.beneficiary:
             raise exceptions.BeneficiaryCannotTakeOwnShiftSwapRequest()
         if self.status != self.Statuses.OPEN:
@@ -209,6 +218,9 @@ class ShiftSwapRequest(models.Model):
 
         self.benefactor = benefactor
         self.save()
+
+        update_shift_swap_request_message.apply_async((self.pk,))
+        notify_beneficiary_about_taken_shift_swap_request.apply_async((self.pk,))
 
         # make sure final schedule ical representation is updated
         refresh_ical_final_schedule.apply_async((self.schedule.pk,))
@@ -235,4 +247,12 @@ class ShiftSwapRequest(models.Model):
 
     @property
     def insight_logs_metadata(self):
-        return {}
+        result = {}
+        if self.schedule.team:
+            result["team"] = self.schedule.team.name
+            result["team_id"] = self.schedule.team.public_primary_key
+        else:
+            result["team"] = "General"
+        result["schedule"] = self.schedule.insight_logs_verbal
+        result["schedule_id"] = self.schedule.public_primary_key
+        return result

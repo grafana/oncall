@@ -15,17 +15,20 @@ from apps.alerts.models import Alert, AlertGroup, AlertGroupLogRecord, AlertRece
 from apps.alerts.tasks import custom_button_result
 from apps.alerts.utils import render_curl_command
 from apps.api.permissions import RBACPermission
-from apps.slack.constants import CACHE_UPDATE_INCIDENT_SLACK_MESSAGE_LIFETIME, SLACK_RATE_LIMIT_DELAY
-from apps.slack.models import SlackMessage
+from apps.slack.constants import CACHE_UPDATE_INCIDENT_SLACK_MESSAGE_LIFETIME
+from apps.slack.errors import (
+    SlackAPIChannelArchivedError,
+    SlackAPIChannelInactiveError,
+    SlackAPIChannelNotFoundError,
+    SlackAPIError,
+    SlackAPIInvalidAuthError,
+    SlackAPIMessageNotFoundError,
+    SlackAPIRatelimitError,
+    SlackAPIRestrictedActionError,
+    SlackAPITokenError,
+)
 from apps.slack.scenarios import scenario_step
 from apps.slack.scenarios.slack_renderer import AlertGroupLogSlackRenderer
-from apps.slack.slack_client import SlackClientWithErrorHandling
-from apps.slack.slack_client.exceptions import (
-    SlackAPIChannelArchivedException,
-    SlackAPIException,
-    SlackAPIRateLimitException,
-    SlackAPITokenException,
-)
 from apps.slack.slack_formatter import SlackFormatter
 from apps.slack.tasks import (
     post_or_update_log_report_message_task,
@@ -75,9 +78,9 @@ class AlertShootingStep(scenario_step.ScenarioStep):
             try:
                 channel_id = alert.group.channel_filter.slack_channel_id_or_general_log_id
                 self._send_first_alert(alert, channel_id)
-            except SlackAPIException as e:
+            except SlackAPIError:
                 AlertGroup.objects.filter(pk=alert.group.pk).update(slack_message_sent=False)
-                raise e
+                raise
 
             if alert.group.channel.maintenance_mode == AlertReceiveChannel.DEBUG_MAINTENANCE:
                 self._send_debug_mode_notice(alert.group, channel_id)
@@ -134,71 +137,57 @@ class AlertShootingStep(scenario_step.ScenarioStep):
             return
 
         try:
-            result = self._slack_client.api_call(
-                "chat.postMessage", channel=channel_id, attachments=attachments, blocks=blocks
-            )
+            result = self._slack_client.chat_postMessage(channel=channel_id, attachments=attachments, blocks=blocks)
 
-            slack_message = SlackMessage.objects.create(
+            alert_group.slack_messages.create(
                 slack_id=result["ts"],
                 organization=alert_group.channel.organization,
                 _slack_team_identity=slack_team_identity,
                 channel_id=channel_id,
-                alert_group=alert_group,
             )
-
-            alert_group.slack_message = slack_message
-            alert_group.save(update_fields=["slack_message"])
 
             # If alert was made out of a message:
             if alert_group.channel.integration == AlertReceiveChannel.INTEGRATION_SLACK_CHANNEL:
                 channel = json.loads(alert.integration_unique_data)["channel"]
-                result = self._slack_client.api_call(
-                    "chat.postMessage",
+                result = self._slack_client.chat_postMessage(
                     channel=channel,
                     thread_ts=json.loads(alert.integration_unique_data)["ts"],
                     text=":rocket: <{}|Incident registered!>".format(alert_group.slack_message.permalink),
                     team=slack_team_identity,
                 )
-                SlackMessage(
+                alert_group.slack_messages.create(
                     slack_id=result["ts"],
                     organization=alert_group.channel.organization,
                     _slack_team_identity=self.slack_team_identity,
                     channel_id=channel,
-                    alert_group=alert_group,
-                ).save()
+                )
 
             alert.delivered = True
-        except SlackAPITokenException:
+        except SlackAPITokenError:
             alert_group.reason_to_skip_escalation = AlertGroup.ACCOUNT_INACTIVE
             alert_group.save(update_fields=["reason_to_skip_escalation"])
             logger.info("Not delivering alert due to account_inactive.")
-        except SlackAPIChannelArchivedException:
+        except SlackAPIChannelArchivedError:
             alert_group.reason_to_skip_escalation = AlertGroup.CHANNEL_ARCHIVED
             alert_group.save(update_fields=["reason_to_skip_escalation"])
             logger.info("Not delivering alert due to channel is archived.")
-        except SlackAPIRateLimitException as e:
+        except SlackAPIRatelimitError as e:
             # don't rate limit maintenance alert
             if alert_group.channel.integration != AlertReceiveChannel.INTEGRATION_MAINTENANCE:
                 alert_group.reason_to_skip_escalation = AlertGroup.RATE_LIMITED
                 alert_group.save(update_fields=["reason_to_skip_escalation"])
-                delay = e.response.get("rate_limit_delay") or SLACK_RATE_LIMIT_DELAY
-                alert_group.channel.start_send_rate_limit_message_task(delay)
+                alert_group.channel.start_send_rate_limit_message_task(e.retry_after)
                 logger.info("Not delivering alert due to slack rate limit.")
             else:
                 raise e
-        except SlackAPIException as e:
-            # TODO: slack-onprem check exceptions
-            if e.response["error"] == "channel_not_found":
-                alert_group.reason_to_skip_escalation = AlertGroup.CHANNEL_ARCHIVED
-                alert_group.save(update_fields=["reason_to_skip_escalation"])
-                logger.info("Not delivering alert due to channel is archived.")
-            elif e.response["error"] == "restricted_action":
-                # workspace settings prevent bot to post message (eg. bot is not a full member)
-                alert_group.reason_to_skip_escalation = AlertGroup.RESTRICTED_ACTION
-                alert_group.save(update_fields=["reason_to_skip_escalation"])
-                logger.info("Not delivering alert due to workspace restricted action.")
-            else:
-                raise e
+        except SlackAPIChannelNotFoundError:
+            alert_group.reason_to_skip_escalation = AlertGroup.CHANNEL_ARCHIVED
+            alert_group.save(update_fields=["reason_to_skip_escalation"])
+            logger.info("Not delivering alert due to channel is archived.")
+        except SlackAPIRestrictedActionError:
+            alert_group.reason_to_skip_escalation = AlertGroup.RESTRICTED_ACTION
+            alert_group.save(update_fields=["reason_to_skip_escalation"])
+            logger.info("Not delivering alert due to workspace restricted action.")
         finally:
             alert.save()
 
@@ -206,8 +195,7 @@ class AlertShootingStep(scenario_step.ScenarioStep):
         blocks: Block.AnyBlocks = []
         text = "Escalations are silenced due to Debug mode"
         blocks.append({"type": "section", "text": {"type": "mrkdwn", "text": text}})
-        self._slack_client.api_call(
-            "chat.postMessage",
+        self._slack_client.chat_postMessage(
             channel=channel_id,
             text=text,
             attachments=[],
@@ -400,11 +388,7 @@ class SelectAttachGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
                         },
                     }
                 )
-        self._slack_client.api_call(
-            "views.open",
-            trigger_id=payload["trigger_id"],
-            view=view,
-        )
+        self._slack_client.views_open(trigger_id=payload["trigger_id"], view=view)
 
     def get_select_incidents_blocks(self, alert_group: AlertGroup) -> Block.AnyBlocks:
         collected_options: typing.List[CompositionObjectOption] = []
@@ -488,8 +472,7 @@ class AttachGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
             slack_user_identity = log_record.author.slack_user_identity
 
             if slack_user_identity:
-                self._slack_client.api_call(
-                    "chat.postEphemeral",
+                self._slack_client.chat_postEphemeral(
                     user=slack_user_identity.slack_id,
                     channel=alert_group.slack_message.channel_id,
                     text="{}{}".format(ephemeral_text[:1].upper(), ephemeral_text[1:]),
@@ -763,25 +746,19 @@ class UnAcknowledgeGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep)
             )
             if alert_group.slack_message.ack_reminder_message_ts:
                 try:
-                    self._slack_client.api_call(
-                        "chat.update",
+                    self._slack_client.chat_update(
                         channel=channel_id,
                         ts=alert_group.slack_message.ack_reminder_message_ts,
                         text=text,
                         attachments=message_attachments,
                     )
-                except SlackAPIException as e:
+                except SlackAPIMessageNotFoundError:
                     # post to thread if ack reminder message was deleted in Slack
-                    if e.response["error"] == "message_not_found":
-                        self.alert_group_slack_service.publish_message_to_alert_group_thread(
-                            alert_group, attachments=message_attachments, text=text
-                        )
-                    elif e.response["error"] == "account_inactive":
-                        logger.info(
-                            f"Skip unacknowledge slack message for alert_group {alert_group.pk} due to account_inactive"
-                        )
-                    else:
-                        raise
+                    self.alert_group_slack_service.publish_message_to_alert_group_thread(
+                        alert_group, attachments=message_attachments, text=text
+                    )
+                except SlackAPITokenError:
+                    pass
             else:
                 self.alert_group_slack_service.publish_message_to_alert_group_thread(
                     alert_group, attachments=message_attachments, text=text
@@ -809,17 +786,11 @@ class AcknowledgeConfirmationStep(AcknowledgeGroupStep):
                 if self.user == alert_group.acknowledged_by_user:
                     user_verbal = alert_group.acknowledged_by_user.get_username_with_slack_verbal()
                     text = f"{user_verbal} confirmed that the Alert Group is still acknowledged."
-                    self._slack_client.api_call(
-                        "chat.update",
-                        channel=channel,
-                        ts=message_ts,
-                        text=text,
-                    )
+                    self._slack_client.chat_update(channel=channel, ts=message_ts, text=text)
                     alert_group.acknowledged_by_confirmed = datetime.utcnow()
                     alert_group.save(update_fields=["acknowledged_by_confirmed"])
                 else:
-                    self._slack_client.api_call(
-                        "chat.postEphemeral",
+                    self._slack_client.chat_postEphemeral(
                         channel=channel,
                         user=slack_user_identity.slack_id,
                         text="This Alert Group is acknowledged by another user. Acknowledge it yourself first.",
@@ -827,29 +798,18 @@ class AcknowledgeConfirmationStep(AcknowledgeGroupStep):
             elif alert_group.acknowledged_by == AlertGroup.SOURCE:
                 user_verbal = self.user.get_username_with_slack_verbal()
                 text = f"{user_verbal} confirmed that the Alert Group is still acknowledged."
-                self._slack_client.api_call(
-                    "chat.update",
-                    channel=channel,
-                    ts=message_ts,
-                    text=text,
-                )
+                self._slack_client.chat_update(channel=channel, ts=message_ts, text=text)
                 alert_group.acknowledged_by_confirmed = datetime.utcnow()
                 alert_group.save(update_fields=["acknowledged_by_confirmed"])
         else:
-            self._slack_client.api_call(
-                "chat.delete",
-                channel=channel,
-                ts=message_ts,
-            )
-            self._slack_client.api_call(
-                "chat.postEphemeral",
+            self._slack_client.chat_delete(channel=channel, ts=message_ts)
+            self._slack_client.chat_postEphemeral(
                 channel=channel,
                 user=slack_user_identity.slack_id,
                 text="This Alert Group is already unacknowledged.",
             )
 
     def process_signal(self, log_record: AlertGroupLogRecord) -> None:
-        from apps.slack.models import SlackMessage
         from apps.user_management.models import Organization
 
         alert_group = log_record.alert_group
@@ -884,42 +844,21 @@ class AcknowledgeConfirmationStep(AcknowledgeGroupStep):
                 }
             ]
             try:
-                response = self._slack_client.api_call(
-                    "chat.postMessage",
+                response = self._slack_client.chat_postMessage(
                     channel=channel_id,
                     text=text,
                     attachments=attachments,
                     thread_ts=alert_group.slack_message.slack_id,
                 )
-            except SlackAPITokenException as e:
-                logger.warning(
-                    f"Unable to post acknowledge reminder in slack. "
-                    f"Slack team identity pk: {self.slack_team_identity.pk}.\n"
-                    f"{e}"
-                )
-            except SlackAPIChannelArchivedException:
-                logger.warning(
-                    f"Unable to post acknowledge reminder in slack. "
-                    f"Slack team identity pk: {self.slack_team_identity.pk}.\n"
-                    f"Reason: 'is_archived'"
-                )
-            except SlackAPIException as e:
-                if e.response["error"] == "channel_not_found":
-                    logger.warning(
-                        f"Unable to post acknowledge reminder in slack. "
-                        f"Slack team identity pk: {self.slack_team_identity.pk}.\n"
-                        f"Reason: 'channel_not_found'"
-                    )
-                else:
-                    raise e
+            except (SlackAPITokenError, SlackAPIChannelArchivedError, SlackAPIChannelNotFoundError):
+                pass
             else:
-                SlackMessage(
+                alert_group.slack_messages.create(
                     slack_id=response["ts"],
                     organization=alert_group.channel.organization,
                     _slack_team_identity=self.slack_team_identity,
                     channel_id=channel_id,
-                    alert_group=alert_group,
-                ).save()
+                )
 
                 alert_group.slack_message.ack_reminder_message_ts = response["ts"]
                 alert_group.slack_message.save(update_fields=["ack_reminder_message_ts"])
@@ -941,81 +880,38 @@ class DeleteGroupStep(scenario_step.ScenarioStep):
     def process_signal(self, log_record: AlertGroupLogRecord) -> None:
         alert_group = log_record.alert_group
 
-        self.remove_resolution_note_reaction(alert_group)
-
-        bot_messages_ts: typing.List[str] = []
-        bot_messages_ts.extend(alert_group.slack_messages.values_list("slack_id", flat=True))
-        bot_messages_ts.extend(
-            alert_group.resolution_note_slack_messages.filter(posted_by_bot=True).values_list("ts", flat=True)
-        )
-        channel_id = alert_group.slack_message.channel_id
-
-        for message_ts in bot_messages_ts:
-            try:
-                self._slack_client.api_call(
-                    "chat.delete",
-                    channel=channel_id,
-                    ts=message_ts,
-                )
-            except SlackAPITokenException as e:
-                logger.error(
-                    f"Unable to delete messages in slack. Message ts: {message_ts}"
-                    f"Slack team identity pk: {self.slack_team_identity.pk}.\n"
-                    f"{e}"
-                )
-            except SlackAPIException as e:
-                if e.response["error"] == "channel_not_found":
-                    logger.warning(
-                        f"Unable to delete messages in slack. Message ts: {message_ts}"
-                        f"Slack team identity pk: {self.slack_team_identity.pk}.\n"
-                        f"Reason: 'channel_not_found'"
-                        f"{e}"
-                    )
-                elif e.response["error"] == "message_not_found":
-                    logger.warning(
-                        f"Unable to delete messages in slack. Message ts: {message_ts}"
-                        f"Slack team identity pk: {self.slack_team_identity.pk}.\n"
-                        f"Reason: 'message_not_found'"
-                        f"{e}"
-                    )
-                elif e.response["error"] == "is_archived":
-                    logger.warning(
-                        f"Unable to delete messages in slack. Message ts: {message_ts}"
-                        f"Slack team identity pk: {self.slack_team_identity.pk}.\n"
-                        f"Reason: 'is_archived'"
-                        f"{e}"
-                    )
-                elif e.response["error"] == "cant_delete_message":
-                    sc_with_access_token = SlackClientWithErrorHandling(
-                        self.slack_team_identity.access_token
-                    )  # used access_token instead of bot_access_token
-                    sc_with_access_token.api_call(
-                        "chat.delete",
-                        channel=channel_id,
-                        ts=message_ts,
-                    )
-                else:
-                    raise e
-
-    def remove_resolution_note_reaction(self, alert_group: AlertGroup) -> None:
+        # Remove "memo" emoji from resolution note messages
         for message in alert_group.resolution_note_slack_messages.filter(added_to_resolution_note=True):
-            message.added_to_resolution_note = False
-            message.save(update_fields=["added_to_resolution_note"])
             try:
-                self._slack_client.api_call(
-                    "reactions.remove",
-                    channel=message.slack_channel_id,
-                    name="memo",
-                    timestamp=message.ts,
-                )
-            except SlackAPITokenException as e:
-                logger.warning(
-                    f"Unable to delete resolution note reaction in slack. "
-                    f"Slack team identity pk: {self.slack_team_identity.pk}.\n"
-                    f"{e}"
-                )
-            except SlackAPIException as e:
-                logger.warning(f"Unable to delete resolution note reaction in slack.\n" f"{e}")
+                self._slack_client.reactions_remove(channel=message.slack_channel_id, name="memo", timestamp=message.ts)
+            except SlackAPIRatelimitError:
+                # retries on ratelimit are handled in apps.alerts.tasks.delete_alert_group.delete_alert_group
+                raise
+            except SlackAPIError:
+                pass
+            message.delete()
+
+        # Remove resolution note messages posted by OnCall bot
+        for message in alert_group.resolution_note_slack_messages.filter(posted_by_bot=True):
+            try:
+                self._slack_client.chat_delete(channel=message.slack_channel_id, ts=message.ts)
+            except SlackAPIRatelimitError:
+                # retries on ratelimit are handled in apps.alerts.tasks.delete_alert_group.delete_alert_group
+                raise
+            except SlackAPIError:
+                pass
+            message.delete()
+
+        # Remove alert group Slack messages
+        for message in alert_group.slack_messages.all():
+            try:
+                self._slack_client.chat_delete(channel=message.channel_id, ts=message.slack_id)
+            except SlackAPIRatelimitError:
+                # retries on ratelimit are handled in apps.alerts.tasks.delete_alert_group.delete_alert_group
+                raise
+            except SlackAPIError:
+                pass
+            message.delete()
 
 
 class UpdateLogReportMessageStep(scenario_step.ScenarioStep):
@@ -1026,53 +922,43 @@ class UpdateLogReportMessageStep(scenario_step.ScenarioStep):
         self.update_log_message(alert_group)
 
     def post_log_message(self, alert_group: AlertGroup) -> None:
-        from apps.slack.models import SlackMessage
-
-        slack_message = alert_group.get_slack_message()
-
+        slack_message = alert_group.slack_message
         if slack_message is None:
             logger.info(f"Cannot post log message for alert_group {alert_group.pk} because SlackMessage doesn't exist")
             return None
-
-        text = ("Building escalation plan... :thinking_face:",)
 
         slack_log_message = alert_group.slack_log_message
 
         if slack_log_message is None:
             logger.debug(f"Start posting new log message for alert_group {alert_group.pk}")
             try:
-                result = self._slack_client.api_call(
-                    "chat.postMessage", channel=slack_message.channel_id, thread_ts=slack_message.slack_id, text=text
+                result = self._slack_client.chat_postMessage(
+                    channel=slack_message.channel_id,
+                    thread_ts=slack_message.slack_id,
+                    text="Building escalation plan... :thinking_face:",
                 )
-            except SlackAPITokenException as e:
-                print(e)
-            except SlackAPIRateLimitException as e:
+            except SlackAPIRatelimitError as e:
                 if not alert_group.channel.is_rate_limited_in_slack:
-                    delay = e.response.get("rate_limit_delay") or SLACK_RATE_LIMIT_DELAY
-                    alert_group.channel.start_send_rate_limit_message_task(delay)
+                    alert_group.channel.start_send_rate_limit_message_task(e.retry_after)
                     logger.info(
                         f"Log message has not been posted for alert_group {alert_group.pk} due to slack rate limit."
                     )
-            except SlackAPIException as e:
-                if e.response["error"] == "channel_not_found":
-                    pass
-                elif e.response["error"] == "invalid_auth":
-                    pass
-                elif e.response["error"] == "is_archived":
-                    pass
-                else:
-                    raise e
+            except (
+                SlackAPITokenError,
+                SlackAPIChannelNotFoundError,
+                SlackAPIInvalidAuthError,
+                SlackAPIChannelArchivedError,
+            ):
+                pass
             else:
                 logger.debug(f"Create new slack_log_message for alert_group {alert_group.pk}")
-                slack_log_message = SlackMessage(
+                slack_log_message = alert_group.slack_messages.create(
                     slack_id=result["ts"],
                     organization=self.organization,
                     _slack_team_identity=self.slack_team_identity,
                     channel_id=slack_message.channel_id,
                     last_updated=timezone.now(),
-                    alert_group=alert_group,
                 )
-                slack_log_message.save()
 
                 alert_group.slack_log_message = slack_log_message
                 alert_group.save(update_fields=["slack_log_message"])
@@ -1084,8 +970,7 @@ class UpdateLogReportMessageStep(scenario_step.ScenarioStep):
             self.update_log_message(alert_group)
 
     def update_log_message(self, alert_group: AlertGroup) -> None:
-        slack_message = alert_group.get_slack_message()
-
+        slack_message = alert_group.slack_message
         if slack_message is None:
             logger.info(
                 f"Cannot update log message for alert_group {alert_group.pk} because SlackMessage doesn't exist"
@@ -1104,38 +989,26 @@ class UpdateLogReportMessageStep(scenario_step.ScenarioStep):
                 f"Update log message for alert_group {alert_group.pk}, slack_log_message {slack_log_message.pk}"
             )
             try:
-                self._slack_client.api_call(
-                    "chat.update",
+                self._slack_client.chat_update(
                     channel=slack_message.channel_id,
                     text="Alert Group log",
                     ts=slack_log_message.slack_id,
                     attachments=attachments,
                 )
-            except SlackAPITokenException as e:
-                print(e)
-            except SlackAPIRateLimitException as e:
+            except SlackAPIRatelimitError as e:
                 if not alert_group.channel.is_rate_limited_in_slack:
-                    delay = e.response.get("rate_limit_delay") or SLACK_RATE_LIMIT_DELAY
-                    alert_group.channel.start_send_rate_limit_message_task(delay)
-                    logger.info(
-                        f"Log message has not been updated for alert_group {alert_group.pk} due to slack rate limit."
-                    )
-            except SlackAPIException as e:
-                if e.response["error"] == "message_not_found":
-                    alert_group.slack_log_message = None
-                    alert_group.save(update_fields=["slack_log_message"])
-                elif e.response["error"] == "channel_not_found":
-                    pass
-                elif e.response["error"] == "is_archived":
-                    pass
-                elif e.response["error"] == "is_inactive":
-                    pass
-                elif e.response["error"] == "account_inactive":
-                    pass
-                elif e.response["error"] == "invalid_auth":
-                    pass
-                else:
-                    raise e
+                    alert_group.channel.start_send_rate_limit_message_task(e.retry_after)
+            except SlackAPIMessageNotFoundError:
+                alert_group.slack_log_message = None
+                alert_group.save(update_fields=["slack_log_message"])
+            except (
+                SlackAPITokenError,
+                SlackAPIChannelNotFoundError,
+                SlackAPIChannelArchivedError,
+                SlackAPIChannelInactiveError,
+                SlackAPIInvalidAuthError,
+            ):
+                pass
             else:
                 slack_log_message.last_updated = timezone.now()
                 slack_log_message.save(update_fields=["last_updated"])

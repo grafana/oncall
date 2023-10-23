@@ -29,6 +29,7 @@ class AlertGroupActionsMixin:
             or self._get_alert_group_from_message(payload)  # Try to use alert_group_pk from ANY button in message
             or self._get_alert_group_from_slack_message_in_db(slack_team_identity, payload)  # Fetch message from DB
         )
+        assert alert_group is not None, "AlertGroup not found"
 
         # Repair alert group if Slack message is orphaned
         if alert_group.slack_message is None:
@@ -68,16 +69,13 @@ class AlertGroupActionsMixin:
         except KeyError:
             message_id = payload["original_message"]["ts"]
 
-        slack_message = SlackMessage.objects.create(
+        SlackMessage.objects.create(
             slack_id=message_id,
             organization=alert_group.channel.organization,
             _slack_team_identity=slack_team_identity,
             channel_id=channel_id,
             alert_group=alert_group,
         )
-
-        alert_group.slack_message = slack_message
-        alert_group.save(update_fields=["slack_message"])
 
     def _get_alert_group_from_action(self, payload: EventPayload) -> AlertGroup | None:
         """
@@ -140,7 +138,7 @@ class AlertGroupActionsMixin:
 
     def _get_alert_group_from_slack_message_in_db(
         self, slack_team_identity: SlackTeamIdentity, payload: EventPayload
-    ) -> AlertGroup:
+    ) -> AlertGroup | None:
         """
         Get AlertGroup instance from SlackMessage instance.
         Old messages may not have alert_group_pk encoded into buttons, so we need to query SlackMessage to figure out
@@ -160,4 +158,4 @@ class AlertGroupActionsMixin:
             _slack_team_identity=slack_team_identity,
             channel_id=channel_id,
         )
-        return slack_message.get_alert_group()
+        return slack_message.alert_group

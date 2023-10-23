@@ -41,4 +41,10 @@ spec:
           resources:
             {{- toYaml . | nindent 12 }}
           {{- end }}
+          {{- with .Values.telegramPolling.extraVolumeMounts }}
+          volumeMounts: {{- . | toYaml | nindent 12 }}
+          {{- end }}
+      {{- with .Values.telegramPolling.extraVolumes }}
+      volumes: {{- . | toYaml | nindent 8 }}
+      {{- end }}
 {{- end -}}

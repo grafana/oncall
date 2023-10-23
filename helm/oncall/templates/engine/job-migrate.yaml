@@ -89,9 +89,13 @@ spec:
           {{- include "oncall.extraEnvs" . | nindent 12 }}
         resources:
           {{- toYaml .Values.migrate.resources | nindent 12 }}
-        {{- include "oncall.volumeMounts" . | nindent 8 }}
+        {{- with .Values.migrate.extraVolumeMounts }}
+        volumeMounts: {{- . | toYaml | nindent 10 }}
+        {{- end }}
       {{- with .Values.migrate.extraContainers }}
       {{- tpl . $ | nindent 6 }}
       {{- end }}
-      {{- include "oncall.volumes" . | nindent 6 }}
+      {{- with .Values.migrate.extraVolumes }}
+      volumes: {{- . | toYaml | nindent 8 }}
+      {{- end }}
 {{- end }}

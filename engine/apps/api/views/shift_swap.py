@@ -8,7 +8,12 @@ from rest_framework.serializers import BaseSerializer
 from rest_framework.viewsets import ModelViewSet
 
 from apps.api.permissions import AuthenticatedRequest, IsOwner, RBACPermission
-from apps.api.serializers.shift_swap import ShiftSwapRequestListSerializer, ShiftSwapRequestSerializer
+from apps.api.serializers.shift_swap import (
+    ShiftSwapRequestExpandedUsersListSerializer,
+    ShiftSwapRequestExpandedUsersSerializer,
+    ShiftSwapRequestListSerializer,
+    ShiftSwapRequestSerializer,
+)
 from apps.auth_token.auth import PluginAuthentication
 from apps.mobile_app.auth import MobileAppAuthTokenAuthentication
 from apps.schedules import exceptions
@@ -37,6 +42,7 @@ class BaseShiftSwapViewSet(ModelViewSet):
 
     def _do_take(self, benefactor: User) -> dict:
         shift_swap = self.get_object()
+        prev_state = shift_swap.insight_logs_serialized
 
         try:
             shift_swap.take(benefactor)
@@ -45,11 +51,24 @@ class BaseShiftSwapViewSet(ModelViewSet):
         except exceptions.BeneficiaryCannotTakeOwnShiftSwapRequest:
             raise BadRequest(detail="A shift swap request cannot be created and taken by the same user")
 
-        update_shift_swap_request_message.apply_async((shift_swap.pk,))
+        write_resource_insight_log(
+            instance=shift_swap,
+            author=self.request.user,
+            event=EntityEvent.UPDATED,
+            prev_state=prev_state,
+            new_state=shift_swap.insight_logs_serialized,
+        )
 
         return ShiftSwapRequestSerializer(shift_swap).data
 
     def get_serializer_class(self):
+        if self.request.query_params.get("expand_users", "false") == "true":
+            # return detailed benefactor/beneficiary user information
+            return (
+                ShiftSwapRequestExpandedUsersListSerializer
+                if self.action == "list"
+                else ShiftSwapRequestExpandedUsersSerializer
+            )
         return ShiftSwapRequestListSerializer if self.action == "list" else super().get_serializer_class()
 
     def get_queryset(self):
@@ -57,8 +76,6 @@ class BaseShiftSwapViewSet(ModelViewSet):
         return self.serializer_class.setup_eager_loading(queryset)
 
     def perform_destroy(self, instance: ShiftSwapRequest) -> None:
-        # TODO: should we allow deleting a taken request?
-
         super().perform_destroy(instance)
         write_resource_insight_log(instance=instance, author=self.request.user, event=EntityEvent.DELETED)
 

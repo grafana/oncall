@@ -28,12 +28,13 @@ from apps.api.serializers.schedule_polymorphic import (
     PolymorphicScheduleSerializer,
     PolymorphicScheduleUpdateSerializer,
 )
-from apps.api.serializers.shift_swap import ShiftSwapRequestSerializer
+from apps.api.serializers.shift_swap import ShiftSwapRequestExpandedUsersListSerializer
 from apps.api.serializers.user import ScheduleUserSerializer
 from apps.auth_token.auth import PluginAuthentication
 from apps.auth_token.constants import SCHEDULE_EXPORT_TOKEN_NAME
 from apps.auth_token.models import ScheduleExportAuthToken
 from apps.mobile_app.auth import MobileAppAuthTokenAuthentication
+from apps.schedules.ical_utils import get_oncall_users_for_multiple_schedules
 from apps.schedules.models import OnCallSchedule
 from apps.slack.models import SlackChannel
 from apps.slack.tasks import update_slack_user_group_for_schedules
@@ -92,6 +93,7 @@ class ScheduleView(
         "notify_oncall_shift_freq_options": [RBACPermission.Permissions.SCHEDULES_READ],
         "mention_options": [RBACPermission.Permissions.SCHEDULES_READ],
         "related_escalation_chains": [RBACPermission.Permissions.SCHEDULES_READ],
+        "current_user_events": [RBACPermission.Permissions.SCHEDULES_READ],
         "create": [RBACPermission.Permissions.SCHEDULES_WRITE],
         "update": [RBACPermission.Permissions.SCHEDULES_WRITE],
         "partial_update": [RBACPermission.Permissions.SCHEDULES_WRITE],
@@ -135,10 +137,8 @@ class ScheduleView(
         The result of this method is cached and is reused for the whole lifetime of a request,
         since self.get_serializer_context() is called multiple times for every instance in the queryset.
         """
-        current_page_schedules = self.paginate_queryset(self.filter_queryset(self.get_queryset()))
-        pks = [schedule.pk for schedule in current_page_schedules]
-        queryset = OnCallSchedule.objects.filter(pk__in=pks)
-        return queryset.get_oncall_users()
+        current_page_schedules = self.paginate_queryset(self.filter_queryset(self.get_queryset(annotate=False)))
+        return get_oncall_users_for_multiple_schedules(current_page_schedules)
 
     def get_serializer_context(self):
         context = super().get_serializer_context()
@@ -166,7 +166,7 @@ class ScheduleView(
         )
         return queryset
 
-    def get_queryset(self, ignore_filtering_by_available_teams=False):
+    def get_queryset(self, ignore_filtering_by_available_teams=False, annotate=True):
         is_short_request = self.request.query_params.get("short", "false") == "true"
         filter_by_type = self.request.query_params.getlist("type")
         mine = BooleanField(allow_null=True).to_internal_value(data=self.request.query_params.get("mine"))
@@ -180,7 +180,7 @@ class ScheduleView(
         )
         if not ignore_filtering_by_available_teams:
             queryset = queryset.filter(*self.available_teams_lookup_args).distinct()
-        if not is_short_request:
+        if not is_short_request or annotate:
             queryset = self._annotate_queryset(queryset)
             queryset = self.serializer_class.setup_eager_loading(queryset)
         if filter_by_type:
@@ -230,15 +230,16 @@ class ScheduleView(
         if instance.user_group is not None:
             update_slack_user_group_for_schedules.apply_async((instance.user_group.pk,))
 
-    def get_object(self) -> OnCallSchedule:
+    def get_object(self, annotate=True) -> OnCallSchedule:
         # get the object from the whole organization if there is a flag `get_from_organization=true`
         # otherwise get the object from the current team
         get_from_organization: bool = self.request.query_params.get("from_organization", "false") == "true"
         if get_from_organization:
-            return self.get_object_from_organization()
-        return super().get_object()
+            return self.get_object_from_organization(annotate=annotate)
+        queryset_kwargs = {"annotate": annotate}
+        return super().get_object(queryset_kwargs)
 
-    def get_object_from_organization(self, ignore_filtering_by_available_teams=False):
+    def get_object_from_organization(self, ignore_filtering_by_available_teams=False, annotate=True):
         # use this method to get the object from the whole organization instead of the current team
         pk = self.kwargs["pk"]
         organization = self.request.auth.organization
@@ -247,7 +248,10 @@ class ScheduleView(
         )
         if not ignore_filtering_by_available_teams:
             queryset = queryset.filter(*self.available_teams_lookup_args).distinct()
-        queryset = self._annotate_queryset(queryset)
+
+        if annotate:
+            queryset = self._annotate_queryset(queryset)
+            queryset = self.serializer_class.setup_eager_loading(queryset)
 
         try:
             obj = queryset.get()
@@ -282,7 +286,7 @@ class ScheduleView(
         with_empty = self.request.query_params.get("with_empty", False) == "true"
         with_gap = self.request.query_params.get("with_gap", False) == "true"
 
-        schedule = self.get_object()
+        schedule = self.get_object(annotate=False)
 
         pytz_tz = pytz.timezone(user_tz)
         datetime_start = datetime.datetime.combine(starting_date, datetime.time.min, tzinfo=pytz_tz)
@@ -318,7 +322,7 @@ class ScheduleView(
             raise BadRequest(detail="Invalid type value")
         resolve_schedule = filter_by is None or filter_by == EVENTS_FILTER_BY_FINAL
 
-        schedule = self.get_object()
+        schedule = self.get_object(annotate=False)
 
         pytz_tz = pytz.timezone(user_tz)
         datetime_start = datetime.datetime.combine(starting_date, datetime.time.min, tzinfo=pytz_tz)
@@ -333,9 +337,10 @@ class ScheduleView(
                 with_gap=resolve_schedule,
                 filter_by=filter_by,
                 all_day_datetime=True,
+                include_shift_info=True,
             )
         else:  # return final schedule
-            events = schedule.final_events(datetime_start, datetime_end)
+            events = schedule.final_events(datetime_start, datetime_end, include_shift_info=True)
 
         result = {
             "id": schedule.public_primary_key,
@@ -348,7 +353,7 @@ class ScheduleView(
     @action(detail=True, methods=["get"])
     def filter_shift_swaps(self, request: Request, pk: str) -> Response:
         user_tz, starting_date, days = get_date_range_from_request(self.request)
-        schedule = self.get_object()
+        schedule = self.get_object(annotate=False)
 
         pytz_tz = pytz.timezone(user_tz)
         datetime_start = datetime.datetime.combine(starting_date, datetime.time.min, tzinfo=pytz_tz)
@@ -356,7 +361,7 @@ class ScheduleView(
 
         swap_requests = schedule.filter_swap_requests(datetime_start, datetime_end)
 
-        serialized_swap_requests = ShiftSwapRequestSerializer(swap_requests, many=True)
+        serialized_swap_requests = ShiftSwapRequestExpandedUsersListSerializer(swap_requests, many=True)
         result = {"shift_swaps": serialized_swap_requests.data}
 
         return Response(result, status=status.HTTP_200_OK)
@@ -366,22 +371,25 @@ class ScheduleView(
         """Return next shift for users in schedule."""
         now = timezone.now()
         datetime_end = now + datetime.timedelta(days=30)
-        schedule = self.get_object()
+        schedule = self.get_object(annotate=False)
 
         events = schedule.final_events(now, datetime_end)
 
-        users = {u.public_primary_key: None for u in schedule.related_users()}
+        # include user TZ information for every user
+        users = {u.public_primary_key: {"user_timezone": u.timezone} for u in schedule.related_users()}
+        added_users = set()
         for e in events:
             user = e["users"][0]["pk"] if e["users"] else None
-            if user is not None and users.get(user) is None and e["end"] > now:
-                users[user] = e
+            if user is not None and user not in added_users and e["end"] > now:
+                users[user].update(e)
+                added_users.add(user)
 
         result = {"users": users}
         return Response(result, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=["get"])
     def related_users(self, request, pk):
-        schedule = self.get_object()
+        schedule = self.get_object(annotate=False)
         serializer = ScheduleUserSerializer(schedule.related_users(), many=True)
         result = {"users": serializer.data}
         return Response(result, status=status.HTTP_200_OK)
@@ -389,7 +397,7 @@ class ScheduleView(
     @action(detail=True, methods=["get"])
     def related_escalation_chains(self, request, pk):
         """Return escalation chains associated to schedule."""
-        schedule = self.get_object()
+        schedule = self.get_object(annotate=True)
         escalation_chains = EscalationChain.objects.filter(escalation_policies__notify_schedule=schedule).distinct()
 
         result = [{"name": e.name, "pk": e.public_primary_key} for e in escalation_chains]
@@ -397,7 +405,7 @@ class ScheduleView(
 
     @action(detail=True, methods=["get"])
     def quality(self, request, pk):
-        schedule = self.get_object()
+        schedule = self.get_object(annotate=False)
 
         _, date = self.get_request_timezone()
         datetime_start = datetime.datetime.combine(date, datetime.time.min, tzinfo=pytz.UTC)
@@ -405,6 +413,29 @@ class ScheduleView(
         days = int(days) if days else None
 
         return Response(schedule.quality_report(datetime_start, days))
+
+    @action(detail=False, methods=["get"])
+    def current_user_events(self, request):
+        user_tz, starting_date, days = get_date_range_from_request(self.request)
+        pytz_tz = pytz.timezone(user_tz)
+        datetime_start = datetime.datetime.combine(starting_date, datetime.time.min, tzinfo=pytz_tz)
+
+        schedules = OnCallSchedule.objects.related_to_user(self.request.user)
+        schedules_events = []
+        is_oncall = False
+        for schedule in schedules:
+            passed_shifts, current_shifts, upcoming_shifts = schedule.shifts_for_user(
+                user=self.request.user, datetime_start=datetime_start, days=days
+            )
+            all_shifts = passed_shifts + current_shifts + upcoming_shifts
+            if all_shifts:
+                schedules_events.append(
+                    {"id": schedule.public_primary_key, "name": schedule.name, "events": all_shifts}
+                )
+                if current_shifts and not is_oncall:
+                    is_oncall = True
+        result = {"schedules": schedules_events, "is_oncall": is_oncall}
+        return Response(result, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=["get"])
     def type_options(self, request):
@@ -416,7 +447,7 @@ class ScheduleView(
 
     @action(detail=True, methods=["post"])
     def reload_ical(self, request, pk):
-        schedule = self.get_object()
+        schedule = self.get_object(annotate=False)
         schedule.drop_cached_ical()
         schedule.check_empty_shifts_for_next_week()
         schedule.check_gaps_for_next_week()
@@ -428,7 +459,7 @@ class ScheduleView(
 
     @action(detail=True, methods=["get", "post", "delete"])
     def export_token(self, request, pk):
-        schedule = self.get_object()
+        schedule = self.get_object(annotate=False)
 
         if self.request.method == "GET":
             try:

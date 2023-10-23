@@ -69,7 +69,7 @@ def notify_user_task(
         user_has_notification = UserHasNotification.objects.filter(pk=user_has_notification.pk).select_for_update()[0]
 
         if previous_notification_policy_pk is None:
-            notification_policy = UserNotificationPolicy.objects.filter(user=user, important=important).first()
+            notification_policy = user.get_or_create_notification_policies(important=important).first()
             if notification_policy is None:
                 task_logger.info(
                     f"notify_user_task: Failed to notify. No notification policies. user_id={user_pk} alert_group_id={alert_group_pk} important={important}"
@@ -311,9 +311,8 @@ def perform_notification(log_record_pk):
                 return
 
             retry_timeout_hours = 1
-            slack_message = alert_group.get_slack_message()
-            if slack_message is not None:
-                slack_message.send_slack_notification(user, alert_group, notification_policy)
+            if alert_group.slack_message:
+                alert_group.slack_message.send_slack_notification(user, alert_group, notification_policy)
                 task_logger.debug(f"Finished send_slack_notification for alert_group {alert_group.pk}.")
             # check how much time has passed since log record was created
             # to prevent eternal loop of restarting perform_notification task
