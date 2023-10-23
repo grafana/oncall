@@ -26,13 +26,20 @@ const cx = cn.bind(styles);
 
 type Props = {
   mode: 'create' | 'update';
+  hideAddResponderButton?: boolean;
   existingPagedUsers?: AlertType['paged_users'];
   onAddNewParticipant?: (responder: Omit<UserResponderType, 'type'>) => Promise<void>;
   generateRemovePreviouslyPagedUserCallback?: (userId: string) => () => Promise<void>;
 };
 
 const AddResponders = observer(
-  ({ mode, existingPagedUsers = [], onAddNewParticipant, generateRemovePreviouslyPagedUserCallback }: Props) => {
+  ({
+    mode,
+    hideAddResponderButton,
+    existingPagedUsers = [],
+    onAddNewParticipant,
+    generateRemovePreviouslyPagedUserCallback,
+  }: Props) => {
     const {
       addUserToSelectedUsers,
       selectedTeamResponder,
@@ -97,17 +104,19 @@ const AddResponders = observer(
               <Text.Title type="primary" level={4}>
                 Participants
               </Text.Title>
-              <WithPermissionControlTooltip userAction={UserActions.AlertGroupsDirectPaging}>
-                <Button
-                  variant="secondary"
-                  icon="plus"
-                  onClick={() => {
-                    setPopupIsVisible(true);
-                  }}
-                >
-                  {isCreateMode ? 'Invite' : 'Add'}
-                </Button>
-              </WithPermissionControlTooltip>
+              {!hideAddResponderButton && (
+                <WithPermissionControlTooltip userAction={UserActions.AlertGroupsDirectPaging}>
+                  <Button
+                    variant="secondary"
+                    icon="plus"
+                    onClick={() => {
+                      setPopupIsVisible(true);
+                    }}
+                  >
+                    {isCreateMode ? 'Invite' : 'Add'}
+                  </Button>
+                </WithPermissionControlTooltip>
+              )}
             </HorizontalGroup>
             {(selectedTeamResponder || existingPagedUsers.length > 0 || selectedUserResponders.length > 0) && (
               <>

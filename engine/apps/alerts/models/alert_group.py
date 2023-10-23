@@ -71,6 +71,7 @@ class LogRecordUser(typing.TypedDict):
 
 
 class PagedUser(typing.TypedDict):
+    id: int
     username: str
     name: str
     pk: str
@@ -554,6 +555,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
                     # add the user
                     users.append(
                         {
+                            "id": user.pk,
                             "pk": user.public_primary_key,
                             "name": user.name,
                             "username": user.username,

@@ -2,6 +2,7 @@ import typing
 from uuid import uuid4
 
 from django.db import transaction
+from django.db.models import Q
 
 from apps.alerts.models import (
     Alert,
@@ -12,6 +13,8 @@ from apps.alerts.models import (
     UserHasNotification,
 )
 from apps.alerts.tasks.notify_user import notify_user_task
+from apps.schedules.ical_utils import get_oncall_users_for_multiple_schedules
+from apps.schedules.models import OnCallSchedule
 from apps.user_management.models import Organization, Team, User
 
 UserNotifications = list[tuple[User, bool]]
@@ -62,7 +65,7 @@ def _trigger_alert(organization: Organization, team: Team | None, message: str, 
             is_default=True,
         )
 
-    title = "Direct page from {}".format(from_user.username)
+    title = f"Direct page from {from_user.username}"
     payload: DirectPagingAlertPayload = {
         # Custom oncall property in payload to simplify rendering
         "oncall": {
@@ -85,6 +88,16 @@ def _trigger_alert(organization: Organization, team: Team | None, message: str, 
         channel_filter=channel_filter,
     )
     return alert.group
+
+
+def user_is_oncall(user: User) -> bool:
+    schedules = OnCallSchedule.objects.filter(
+        Q(cached_ical_file_primary__contains=user.username) | Q(cached_ical_file_primary__contains=user.email),
+        organization=user.organization,
+    )
+    schedules_with_oncall_users = get_oncall_users_for_multiple_schedules(schedules)
+
+    return user.pk in {user.pk for _, users in schedules_with_oncall_users.items() for user in users}
 
 
 def direct_paging(

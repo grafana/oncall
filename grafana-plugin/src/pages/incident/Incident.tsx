@@ -180,6 +180,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
                     <VerticalGroup style={{ display: 'block' }}>
                       <AddResponders
                         mode="update"
+                        hideAddResponderButton={incident.resolved}
                         existingPagedUsers={incident.paged_users}
                         onAddNewParticipant={this.handleAddUserResponder}
                         generateRemovePreviouslyPagedUserCallback={this.handlePagedUserRemove}
