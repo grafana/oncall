@@ -2,7 +2,6 @@ import React from 'react';
 
 import { Alert, Button, HorizontalGroup, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
-import { debounce } from 'lodash-es';
 import { observer } from 'mobx-react';
 import LegacyNavHeading from 'navbar/LegacyNavHeading';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
@@ -46,8 +45,6 @@ interface UsersState extends PageBaseState {
   usersFilters?: {
     searchTerm: string;
   };
-  initialUsersLoaded: boolean;
-  queuedUpdateUsers: boolean;
 }
 
 @observer
@@ -68,17 +65,14 @@ class Users extends React.Component<UsersProps, UsersState> {
       },
 
       errorData: initErrorDataState(),
-      initialUsersLoaded: false,
-      queuedUpdateUsers: false,
     };
   }
 
   async componentDidMount() {
-    this.updateUsers();
     this.parseParams();
   }
 
-  updateUsers = async () => {
+  updateUsers = async (invalidateFn?: () => boolean) => {
     const { store } = this.props;
     const { usersFilters, page } = this.state;
     const { userStore } = store;
@@ -88,14 +82,10 @@ class Users extends React.Component<UsersProps, UsersState> {
     }
 
     LocationHelper.update({ p: page }, 'partial');
-    await userStore.updateItems(usersFilters, page);
+    await userStore.updateItems(usersFilters, page, invalidateFn);
 
-    const { queuedUpdateUsers } = this.state;
-    this.setState({ initialUsersLoaded: true, queuedUpdateUsers: false }, () => {
-      if (queuedUpdateUsers) {
-        this.updateUsers();
-      }
-    });
+    // otherwise MobX doesn't update :(
+    this.forceUpdate();
   };
 
   componentDidUpdate(prevProps: UsersProps) {
@@ -184,7 +174,7 @@ class Users extends React.Component<UsersProps, UsersState> {
       store: { userStore },
     } = this.props;
 
-    const { usersFilters, page, initialUsersLoaded, userPkToEdit, queuedUpdateUsers } = this.state;
+    const { usersFilters, page, userPkToEdit } = this.state;
 
     const { count, results } = userStore.getSearchResult();
     const columns = this.getTableColumns();
@@ -202,7 +192,7 @@ class Users extends React.Component<UsersProps, UsersState> {
               <UsersFilters
                 className={cx('users-filters')}
                 value={usersFilters}
-                isLoading={queuedUpdateUsers}
+                isLoading={results === undefined}
                 onChange={this.handleUsersFiltersChange}
               />
               <Button variant="secondary" icon="times" onClick={handleClear} className={cx('searchIntegrationClear')}>
@@ -212,7 +202,7 @@ class Users extends React.Component<UsersProps, UsersState> {
 
             <GTable
               data-testid="users-table"
-              emptyText={initialUsersLoaded ? 'No users found' : 'Loading...'}
+              emptyText={results ? 'No users found' : 'Loading...'}
               rowKey="pk"
               data={results}
               columns={columns}
@@ -430,16 +420,9 @@ class Users extends React.Component<UsersProps, UsersState> {
     this.setState({ page }, this.updateUsers);
   };
 
-  debouncedUpdateUsers = debounce(this.updateUsers, 500);
-
-  handleUsersFiltersChange = (usersFilters: any) => {
+  handleUsersFiltersChange = (usersFilters: any, invalidateFn: () => boolean) => {
     this.setState({ usersFilters, page: 1 }, () => {
-      if (!this.state.initialUsersLoaded) {
-        // queue delayed users update
-        return this.setState({ queuedUpdateUsers: true });
-      }
-
-      this.debouncedUpdateUsers();
+      this.updateUsers(invalidateFn);
     });
   };
 

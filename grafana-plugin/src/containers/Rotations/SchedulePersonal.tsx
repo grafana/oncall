@@ -191,12 +191,9 @@ class SchedulePersonal extends Component<SchedulePersonalProps, SchedulePersonal
   }
 
   openSchedule = (event: Event) => {
-    const { store, history } = this.props;
+    const { history } = this.props;
 
-    const shiftId = event.shift?.pk;
-    const shift = store.scheduleStore.shifts[shiftId];
-
-    history.push(`${PLUGIN_ROOT}/schedules/${shift.schedule}`);
+    history.push(`${PLUGIN_ROOT}/schedules/${event.schedule?.id}`);
   };
 }
 

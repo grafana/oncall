@@ -5,5 +5,6 @@ export function prepareForEdit(item: AlertReceiveChannel) {
     verbal_name: item.verbal_name,
     description_short: item.description_short,
     team: item.team,
+    labels: item.labels,
   };
 }

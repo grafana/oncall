@@ -533,4 +533,11 @@ export class AlertReceiveChannelStore extends BaseStore {
     makeRequest<null>(`${this.path}${id}/stop_maintenance/`, {
       method: 'POST',
     });
+
+  addLabel = (id: AlertReceiveChannel['id'], data) => {
+    makeRequest(`${this.path}${id}/associate_label`, {
+      method: 'POST',
+      data,
+    });
+  };
 }
