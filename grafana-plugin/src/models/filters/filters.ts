@@ -3,7 +3,6 @@ import { action, observable } from 'mobx';
 import BaseStore from 'models/base_store';
 import { makeRequest } from 'network';
 import { RootStore } from 'state';
-import { getItem, setItem } from 'utils/localStorage';
 
 import { getApiPathByPage } from './filters.helpers';
 import { FilterOption, FiltersValues } from './filters.types';
@@ -16,6 +15,9 @@ export class FiltersStore extends BaseStore {
 
   @observable.shallow
   public values: { [page: string]: FiltersValues } = {};
+
+  @observable.shallow
+  public currentTablePageNum: { [page: string]: number } = {};
 
   private _globalValues: FiltersValues = {};
 

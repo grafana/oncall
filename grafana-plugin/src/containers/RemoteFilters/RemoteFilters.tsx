@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 
-import { SelectableValue, TimeRange } from '@grafana/data';
+import { KeyValue, SelectableValue, TimeRange } from '@grafana/data';
 import {
   InlineSwitch,
   MultiSelect,
@@ -14,7 +14,7 @@ import {
 } from '@grafana/ui';
 import { capitalCase } from 'change-case';
 import cn from 'classnames/bind';
-import { debounce, isEmpty, isUndefined, omitBy, pickBy } from 'lodash-es';
+import { debounce, isEmpty, isUndefined, omitBy } from 'lodash-es';
 import { observer } from 'mobx-react';
 import moment from 'moment-timezone';
 import Emoji from 'react-emoji-render';
@@ -31,16 +31,15 @@ import LocationHelper from 'utils/LocationHelper';
 import { PAGE } from 'utils/consts';
 
 import { parseFilters } from './RemoteFilters.helpers';
-import { FilterOption, RemoteFiltersType } from './RemoteFilters.types';
+import { FilterOption } from './RemoteFilters.types';
 
 import styles from './RemoteFilters.module.css';
 
 const cx = cn.bind(styles);
 
 interface RemoteFiltersProps extends WithStoreProps {
-  value: RemoteFiltersType;
   onChange: (filters: { [key: string]: any }, isOnMount: boolean, invalidateFn: () => boolean) => void;
-  query: { [key: string]: any };
+  query: KeyValue;
   page: PAGE;
   defaultFilters?: FiltersValues;
   extraFilters?: (state, setState, onFiltersValueChange) => React.ReactNode;
@@ -82,11 +81,18 @@ class RemoteFilters extends Component<RemoteFiltersProps, RemoteFiltersState> {
   }
 
   async componentDidMount() {
-    const { query, page, store, defaultFilters } = this.props;
-
-    const { filtersStore } = store;
+    const {
+      query,
+      page,
+      store: { filtersStore },
+      defaultFilters,
+    } = this.props;
 
     const filterOptions = await filtersStore.updateOptionsForPage(page);
+    const currentTablePageNum = parseInt(filtersStore.currentTablePageNum[page] || query.p || 1);
+
+    // set the current page from filters/query or default it to 1
+    filtersStore.currentTablePageNum[page] = currentTablePageNum;
 
     let { filters, values } = parseFilters({ ...query, ...filtersStore.globalValues }, filterOptions, query);
 
@@ -422,10 +428,7 @@ class RemoteFilters extends Component<RemoteFiltersProps, RemoteFiltersState> {
     }
 
     const currentRequestId = this.getNewRequestId();
-
-    this.setState({
-      lastRequestId: currentRequestId,
-    });
+    this.setState({ lastRequestId: currentRequestId });
 
     LocationHelper.update({ ...values }, 'partial');
     onChange(values, isOnMount, this.invalidateFn.bind(this, currentRequestId));
@@ -443,4 +446,6 @@ class RemoteFilters extends Component<RemoteFiltersProps, RemoteFiltersState> {
   debouncedOnChange = debounce(this.onChange, 500);
 }
 
-export default withMobXProviderContext(RemoteFilters);
+export default withMobXProviderContext(RemoteFilters) as unknown as React.ComponentClass<
+  Omit<RemoteFiltersProps, 'store'>
+>;
