@@ -7,6 +7,7 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ViewSet
 
 from apps.alerts.models import AlertReceiveChannel
+from apps.api.permissions import BasicRolePermission, LegacyAccessControlRole
 from apps.api.serializers.labels import (
     LabelKeySerializer,
     LabelKeyValuesSerializer,
@@ -27,9 +28,17 @@ class LabelsViewSet(ViewSet):
     Proxy requests to labels-app to create/update labels
     """
 
+    permission_classes = (IsAuthenticated, BasicRolePermission)
     authentication_classes = (PluginAuthentication,)
-    permission_classes = (IsAuthenticated,)
-    # todo: permissions on create/update labels
+    basic_role_permissions = {
+        "get_keys": LegacyAccessControlRole.VIEWER,
+        "get_key": LegacyAccessControlRole.VIEWER,
+        "get_value": LegacyAccessControlRole.VIEWER,
+        "rename_key": LegacyAccessControlRole.EDITOR,
+        "create_label": LegacyAccessControlRole.EDITOR,
+        "add_value": LegacyAccessControlRole.EDITOR,
+        "rename_value": LegacyAccessControlRole.EDITOR,
+    }
 
     def initial(self, request, *args, **kwargs):
         super().initial(request, *args, **kwargs)
