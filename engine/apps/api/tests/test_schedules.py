@@ -1,4 +1,5 @@
 import json
+import textwrap
 from unittest.mock import patch
 
 import pytest
@@ -1485,6 +1486,57 @@ def test_next_shifts_per_user(
         u: (ev.get("start"), ev.get("end"), ev.get("user_timezone")) for u, ev in response.data["users"].items()
     }
     assert returned_data == expected
+
+
+@pytest.mark.django_db
+def test_next_shifts_per_user_ical_schedule_using_emails(
+    make_organization_and_user_with_plugin_token, make_user_for_organization, make_user_auth_headers, make_schedule
+):
+    organization, admin, token = make_organization_and_user_with_plugin_token()
+    client = APIClient()
+
+    user = make_user_for_organization(organization, username="testing", email="testing@testing.com")
+    # ical file using emails as reference
+    cached_ical_primary_schedule = textwrap.dedent(
+        """
+        BEGIN:VCALENDAR
+        VERSION:2.0
+        PRODID:testing
+        CALSCALE:GREGORIAN
+        BEGIN:VEVENT
+        CREATED:20220316T121102Z
+        LAST-MODIFIED:20230127T151619Z
+        DTSTAMP:20230127T151619Z
+        UID:something
+        SUMMARY:testing@testing.com
+        RRULE:FREQ=WEEKLY
+        DTSTART;TZID=Europe/Madrid:20220309T130000
+        DTEND;TZID=Europe/Madrid:20220309T133000
+        END:VEVENT
+        BEGIN:VEVENT
+        CREATED:20220316T121102Z
+        LAST-MODIFIED:20230127T151619Z
+        DTSTAMP:20230127T151619Z
+        UID:something-else
+        SUMMARY:testing_unknown@testing.com
+        RRULE:FREQ=WEEKLY
+        DTSTART;TZID=Europe/Madrid:20220309T150000
+        DTEND;TZID=Europe/Madrid:20220309T153000
+        END:VEVENT
+        END:VCALENDAR
+    """
+    )
+    schedule = make_schedule(
+        organization,
+        schedule_class=OnCallScheduleICal,
+        cached_ical_file_primary=cached_ical_primary_schedule,
+    )
+
+    url = reverse("api-internal:schedule-next-shifts-per-user", kwargs={"pk": schedule.public_primary_key})
+    response = client.get(url, format="json", **make_user_auth_headers(admin, token))
+    assert response.status_code == status.HTTP_200_OK
+
+    assert set(response.data["users"].keys()) == {user.public_primary_key}
 
 
 @pytest.mark.django_db
