@@ -6,6 +6,7 @@ import { RootStore } from 'state';
 
 import { getApiPathByPage } from './filters.helpers';
 import { FilterOption, FiltersValues } from './filters.types';
+import { getItem, setItem } from 'utils/localStorage';
 
 const LOCAL_STORAGE_FILTERS_KEY = 'grafana.oncall.global-filters';
 

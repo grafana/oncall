@@ -14,7 +14,7 @@ import {
 } from '@grafana/ui';
 import { capitalCase } from 'change-case';
 import cn from 'classnames/bind';
-import { debounce, isEmpty, isUndefined, omitBy } from 'lodash-es';
+import { debounce, isEmpty, isUndefined, omitBy, pickBy } from 'lodash-es';
 import { observer } from 'mobx-react';
 import moment from 'moment-timezone';
 import Emoji from 'react-emoji-render';
