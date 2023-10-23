@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+
+- Check for basic role permissions on get/create/update labels @Ferril ([#3173](https://github.com/grafana/oncall/pull/3173))
+
 ### Fixed
 
 - Discard old pending network requests in the UI (Users/Schedules) [#3172](https://github.com/grafana/oncall/pull/3172)

@@ -3,7 +3,10 @@ from unittest.mock import patch
 import pytest
 from django.urls import reverse
 from rest_framework import status
+from rest_framework.response import Response
 from rest_framework.test import APIClient
+
+from apps.api.permissions import LegacyAccessControlRole
 
 
 @patch(
@@ -221,3 +224,78 @@ def test_labels_feature_false(
     url = reverse("api-internal:create_label")
     response = client.post(url, format="json", data={}, **make_user_auth_headers(user, token))
     assert response.status_code == status.HTTP_404_NOT_FOUND
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "role,expected_status",
+    [
+        (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
+        (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
+        (LegacyAccessControlRole.VIEWER, status.HTTP_200_OK),
+        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
+    ],
+)
+def test_labels_permissions_get_actions(
+    make_organization_and_user_with_plugin_token,
+    make_user_auth_headers,
+    make_alert_receive_channel,
+    role,
+    expected_status,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token(role)
+    client = APIClient()
+    with patch("apps.api.views.labels.LabelsViewSet.get_keys", return_value=Response(status=status.HTTP_200_OK)):
+        url = reverse("api-internal:get_keys")
+        response = client.get(url, format="json", **make_user_auth_headers(user, token))
+        assert response.status_code == expected_status
+
+    with patch("apps.api.views.labels.LabelsViewSet.get_key", return_value=Response(status=status.HTTP_200_OK)):
+        url = reverse("api-internal:get_update_key", kwargs={"key_id": "keyid123"})
+        response = client.get(url, format="json", **make_user_auth_headers(user, token))
+        assert response.status_code == expected_status
+
+    with patch("apps.api.views.labels.LabelsViewSet.get_value", return_value=Response(status=status.HTTP_200_OK)):
+        url = reverse("api-internal:get_update_value", kwargs={"key_id": "keyid123", "value_id": "valueid123"})
+        response = client.get(url, format="json", **make_user_auth_headers(user, token), data={})
+        assert response.status_code == expected_status
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "role,expected_status",
+    [
+        (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
+        (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
+        (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
+    ],
+)
+def test_labels_permissions_create_update_actions(
+    make_organization_and_user_with_plugin_token,
+    make_user_auth_headers,
+    make_alert_receive_channel,
+    role,
+    expected_status,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token(role)
+    client = APIClient()
+    with patch("apps.api.views.labels.LabelsViewSet.rename_key", return_value=Response(status=status.HTTP_200_OK)):
+        url = reverse("api-internal:get_update_key", kwargs={"key_id": "keyid123"})
+        response = client.put(url, format="json", **make_user_auth_headers(user, token), data={})
+        assert response.status_code == expected_status
+
+    with patch("apps.api.views.labels.LabelsViewSet.add_value", return_value=Response(status=status.HTTP_200_OK)):
+        url = reverse("api-internal:add_value", kwargs={"key_id": "keyid123"})
+        response = client.post(url, format="json", **make_user_auth_headers(user, token), data={})
+        assert response.status_code == expected_status
+
+    with patch("apps.api.views.labels.LabelsViewSet.rename_value", return_value=Response(status=status.HTTP_200_OK)):
+        url = reverse("api-internal:get_update_value", kwargs={"key_id": "keyid123", "value_id": "valueid123"})
+        response = client.put(url, format="json", **make_user_auth_headers(user, token), data={})
+        assert response.status_code == expected_status
+
+    with patch("apps.api.views.labels.LabelsViewSet.create_label", return_value=Response(status=status.HTTP_200_OK)):
+        url = reverse("api-internal:create_label")
+        response = client.post(url, format="json", data={}, **make_user_auth_headers(user, token))
+        assert response.status_code == expected_status
