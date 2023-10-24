@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Unreleased
+## v1.3.46 (2023-10-23)
 
 ### Added
 
@@ -15,6 +15,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Discard old pending network requests in the UI (Users/Schedules) [#3172](https://github.com/grafana/oncall/pull/3172)
 - Fix resolution note source for mobile app by @vadimkerr ([#3174](https://github.com/grafana/oncall/pull/3174))
+- Fix iCal imported schedules related users and next shifts per user ([#3178](https://github.com/grafana/oncall/pull/3178))
+- Fix references to removed access control functions in Grafana @mderynck ([#3184](https://github.com/grafana/oncall/pull/3184))
 
 ## v1.3.45 (2023-10-19)
 
