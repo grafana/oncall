@@ -264,7 +264,7 @@ def test_get_fcm_message(
             timezone.datetime(2022, 5, 2, 12, 5, 0),
             ONE_HOUR_IN_SECONDS,
             timezone.datetime(2022, 5, 2, 13, 12, 0),
-            None,
+            67 * 60,
         ),
         (
             False,
@@ -279,7 +279,7 @@ def test_get_fcm_message(
             timezone.datetime(2022, 5, 2, 12, 5, 0),
             ONE_HOUR_IN_SECONDS,
             timezone.datetime(2022, 5, 2, 12, 58, 0),
-            None,
+            53 * 60,
         ),
         (
             False,
