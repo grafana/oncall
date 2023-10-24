@@ -1,7 +1,6 @@
 import React from 'react';
 
 import { render } from '@testing-library/react';
-// import userEvent from '@testing-library/user-event';
 import { Provider } from 'mobx-react';
 
 import { DirectPagingContext } from 'state/context/directPaging';
@@ -122,45 +121,4 @@ describe('AddRespondersPopup', () => {
 
     expect(component.container).toMatchSnapshot();
   });
-
-  //   it('should switch between tabs', () => {
-  //     const mockContextValue = {
-  //       selectedTeamResponder: null,
-  //       selectedUserResponders: [],
-  //       addUserToSelectedUsers: jest.fn(),
-  //       updateSelectedTeam: jest.fn(),
-  //     };
-  //     const mockStoreValue = {
-  //       grafanaTeamStore: {
-  //         getSearchResult: jest.fn().mockReturnValue([]),
-  //       },
-  //       userStore: {
-  //         getSearchResult: jest.fn().mockReturnValue({ results: [] }),
-  //       },
-  //     };
-  //     render(
-  //       <DirectPagingContext.Provider value={mockContextValue}>
-  //         <useStore.Provider value={mockStoreValue}>
-  //           <AddRespondersPopup
-  //             mode="create"
-  //             visible={true}
-  //             setVisible={jest.fn()}
-  //             setCurrentlyConsideredUser={jest.fn()}
-  //             setShowUserConfirmationModal={jest.fn()}
-  //           />
-  //         </useStore.Provider>
-  //       </DirectPagingContext.Provider>
-  //     );
-  //     const teamsTab = screen.getByText('Teams');
-  //     const usersTab = screen.getByText('Users');
-  //     const addButton = screen.getByText('Add Responders');
-  //     expect(teamsTab).toHaveClass('active');
-  //     expect(usersTab).not.toHaveClass('active');
-  //     userEvent.click(usersTab);
-  //     expect(teamsTab).not.toHaveClass('active');
-  //     expect(usersTab).toHaveClass('active');
-  //     userEvent.click(teamsTab);
-  //     expect(teamsTab).toHaveClass('active');
-  //     expect(usersTab).not.toHaveClass('active');
-  //   });
 });

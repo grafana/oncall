@@ -147,7 +147,6 @@ const AddResponders = observer(
                       disableNotificationPolicySelect
                       handleDelete={generateRemovePreviouslyPagedUserCallback(user.pk)}
                       important={user.important}
-                      // TODO:
                       data={user as unknown as User}
                     />
                   ))}
