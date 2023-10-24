@@ -183,3 +183,42 @@ def test_direct_paging_no_user_or_team_specified(
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert response.json()["detail"] == DirectPagingUserTeamValidationError.DETAIL
+
+
+@pytest.mark.django_db
+def test_direct_paging_alert_group_id_and_message_or_title_are_mutually_exclusive(
+    make_organization_and_user_with_plugin_token,
+    make_team,
+    make_user_auth_headers,
+    make_alert_receive_channel,
+    make_alert_group,
+):
+    error_msg = "alert_group_id and (title, message) are mutually exclusive"
+
+    organization, user, token = make_organization_and_user_with_plugin_token(role=LegacyAccessControlRole.EDITOR)
+    team = make_team(organization=organization)
+
+    # user must be part of the team
+    user.teams.add(team)
+
+    alert_receive_channel = make_alert_receive_channel(organization)
+    alert_group = make_alert_group(alert_receive_channel, resolved=True)
+
+    client = APIClient()
+    url = reverse("api-internal:direct_paging")
+
+    base_data = {"team": team.public_primary_key, "alert_group_id": alert_group.public_primary_key}
+
+    response = client.post(
+        url, data={**base_data, "message": message}, format="json", **make_user_auth_headers(user, token)
+    )
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json()["non_field_errors"] == [error_msg]
+
+    response = client.post(
+        url, data={**base_data, "title": title}, format="json", **make_user_auth_headers(user, token)
+    )
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json()["non_field_errors"] == [error_msg]
