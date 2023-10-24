@@ -182,7 +182,7 @@ class FinishDirectPaging(scenario_step.ScenarioStep):
                     "type": "section",
                     "text": {
                         "type": "mrkdwn",
-                        "text": ":warning: At least one team or one user must be selected to directly page :warning:",
+                        "text": ":warning: At least one team or one user must be selected to directly page",
                     },
                 }
             ]
@@ -425,6 +425,18 @@ def render_dialog(
         slack_user_identity, selected_organization, is_team_selected, selected_team, new_input_id_prefix
     )
     blocks += _get_user_select_blocks(payload, selected_organization, new_input_id_prefix, error_msg)
+
+    blocks.append(
+        {
+            "type": "context",
+            "elements": [
+                {
+                    "type": "mrkdwn",
+                    "text": "*Note*: you *must* specify at least one team or one user to directly page.",
+                },
+            ],
+        }
+    )
 
     return _get_form_view(submit_routing_uid, blocks, json.dumps(new_private_metadata))
 

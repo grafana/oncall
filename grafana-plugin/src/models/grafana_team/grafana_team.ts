@@ -29,11 +29,12 @@ export class GrafanaTeamStore extends BaseStore {
   }
 
   @action
-  async updateItems(query = '', includeNoTeam = true) {
+  async updateItems(query = '', includeNoTeam = true, onlyIncludeNotifiableTeams = false) {
     const result = await makeRequest(`${this.path}`, {
       params: {
         search: query,
         include_no_team: includeNoTeam ? 'true' : 'false',
+        only_include_notifiable_teams: onlyIncludeNotifiableTeams ? 'true' : 'false',
       },
     });
 

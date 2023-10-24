@@ -195,3 +195,22 @@ def test_organization_hard_delete(
     for obj in cascading_objects:
         with pytest.raises(ObjectDoesNotExist):
             obj.refresh_from_db()
+
+
+@pytest.mark.django_db
+def test_slack_is_configured(make_organization, make_slack_team_identity):
+    organization = make_organization()
+
+    assert organization.slack_is_configured is False
+    slack_team_identity = make_slack_team_identity()
+    organization.slack_team_identity = slack_team_identity
+    organization.save()
+    assert organization.slack_is_configured is True
+
+
+@pytest.mark.django_db
+def test_telegram_is_configured(make_organization, make_telegram_channel):
+    organization = make_organization()
+    assert organization.telegram_is_configured is False
+    make_telegram_channel(organization)
+    assert organization.telegram_is_configured is True

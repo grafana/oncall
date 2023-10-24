@@ -220,3 +220,92 @@ def test_alertmanager_available_for_heartbeat(make_organization, make_alert_rece
     organization = make_organization()
     alert_receive_channel = make_alert_receive_channel(organization, integration=integration)
     assert alert_receive_channel.is_available_for_integration_heartbeat
+
+
+@pytest.mark.django_db
+def test_get_orgs_direct_paging_integrations(make_organization, make_team, make_alert_receive_channel):
+    org1 = make_organization()
+    org1_team1 = make_team(org1)
+    org1_team2 = make_team(org1)
+
+    org2 = make_organization()
+
+    org1_direct_paging_integration1 = make_alert_receive_channel(
+        org1, integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING, team=org1_team1
+    )
+    org1_direct_paging_integration2 = make_alert_receive_channel(
+        org1, integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING, team=org1_team2
+    )
+
+    make_alert_receive_channel(org1, integration=AlertReceiveChannel.INTEGRATION_ALERTMANAGER)
+    make_alert_receive_channel(org2, integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING)
+
+    org1_direct_paging_integrations = AlertReceiveChannel.get_orgs_direct_paging_integrations(org1)
+
+    assert len(org1_direct_paging_integrations) == 2
+    assert org1_direct_paging_integration1 in org1_direct_paging_integrations
+    assert org1_direct_paging_integration2 in org1_direct_paging_integrations
+
+
+@pytest.mark.django_db
+def test_is_contactable(
+    make_organization,
+    make_alert_receive_channel,
+    make_channel_filter,
+    make_escalation_chain,
+    make_slack_team_identity,
+    make_telegram_channel,
+):
+    organization = make_organization()
+
+    # integration has no default channel filter
+    arc = make_alert_receive_channel(organization)
+    make_channel_filter(arc, is_default=False)
+    assert arc.is_contactable is False
+
+    # integration has more than one channel filter
+    arc = make_alert_receive_channel(organization)
+    make_channel_filter(arc, is_default=False)
+    make_channel_filter(arc, is_default=False)
+    assert arc.is_contactable is True
+
+    # integration's default channel filter is setup to notify via slack but Slack is not configured for the org
+    arc = make_alert_receive_channel(organization)
+    make_channel_filter(arc, is_default=True, notify_in_slack=True)
+    assert arc.is_contactable is False
+
+    # integration's default channel filter is setup to notify via slack and Slack is configured for the org
+    arc = make_alert_receive_channel(organization)
+    slack_team_identity = make_slack_team_identity()
+    organization.slack_team_identity = slack_team_identity
+    organization.save()
+
+    make_channel_filter(arc, is_default=True, notify_in_slack=True)
+    assert arc.is_contactable is True
+
+    # integration's default channel filter is setup to notify via telegram but Telegram is not configured for the org
+    arc = make_alert_receive_channel(organization)
+    make_channel_filter(arc, is_default=True, notify_in_slack=False, notify_in_telegram=True)
+    assert arc.is_contactable is False
+
+    # integration's default channel filter is setup to notify via telegram and Telegram is configured for the org
+    arc = make_alert_receive_channel(organization)
+    make_channel_filter(arc, is_default=True, notify_in_slack=False, notify_in_telegram=True)
+    make_telegram_channel(organization)
+    assert arc.is_contactable is True
+
+    # integration's default channel filter is contactable via a custom messaging backend
+    arc = make_alert_receive_channel(organization)
+    make_channel_filter(
+        arc,
+        is_default=True,
+        notify_in_slack=False,
+        notification_backends={"MSTEAMS": {"channel": "test", "enabled": True}},
+    )
+    assert arc.is_contactable is True
+
+    # integration's default channel filter has an escalation chain attached to it
+    arc = make_alert_receive_channel(organization)
+    escalation_chain = make_escalation_chain(organization)
+    make_channel_filter(arc, is_default=True, notify_in_slack=False, escalation_chain=escalation_chain)
+    assert arc.is_contactable is True

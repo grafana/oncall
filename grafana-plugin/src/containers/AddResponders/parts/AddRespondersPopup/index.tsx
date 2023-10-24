@@ -118,7 +118,7 @@ const AddRespondersPopup = observer(
 
     const handleSearchTermChange = useDebouncedCallback(() => {
       if (isCreateMode && activeOption === TabOptions.Teams) {
-        grafanaTeamStore.updateItems(searchTerm, false);
+        grafanaTeamStore.updateItems(searchTerm, false, true);
       } else {
         userStore.updateItems(searchTerm);
       }
@@ -238,14 +238,40 @@ const AddRespondersPopup = observer(
                   title="You can add only one team per escalation. Please remove the existing team before adding a new one."
                 />
               ) : (
-                <GTable<GrafanaTeam>
-                  emptyText={teamSearchResults ? 'No teams found' : 'Loading...'}
-                  rowKey="id"
-                  columns={teamColumns}
-                  data={teamSearchResults}
-                  className={cx('table')}
-                  showHeader={false}
-                />
+                <>
+                  <Alert
+                    className={cx('team-direct-paging-info-alert')}
+                    severity="info"
+                    title={
+                      (
+                        <Text type="primary">
+                          You can only page teams which have a Direct Paging integration that is configured.{' '}
+                          <a
+                            className={cx('learn-more-link')}
+                            href="https://grafana.com/docs/oncall/latest/integrations/manual/#set-up-direct-paging-for-a-team"
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+                            <Text type="link">
+                              <HorizontalGroup spacing="xs">
+                                Learn more
+                                <Icon name="external-link-alt" />
+                              </HorizontalGroup>
+                            </Text>
+                          </a>
+                        </Text>
+                      ) as any
+                    }
+                  />
+                  <GTable<GrafanaTeam>
+                    emptyText={teamSearchResults ? 'No teams found' : 'Loading...'}
+                    rowKey="id"
+                    columns={teamColumns}
+                    data={teamSearchResults}
+                    className={cx('table')}
+                    showHeader={false}
+                  />
+                </>
               )}
             </>
           )}

@@ -1,9 +1,12 @@
+from unittest.mock import PropertyMock, patch
+
 import pytest
 from django.urls import reverse
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APIClient
 
+from apps.alerts.models import AlertReceiveChannel
 from apps.api.permissions import LegacyAccessControlRole
 from apps.schedules.models import CustomOnCallShift, OnCallScheduleCalendar, OnCallScheduleWeb
 from apps.user_management.models import Team
@@ -52,6 +55,44 @@ def test_list_teams(
 
     assert response.status_code == status.HTTP_200_OK
     assert response.json() == [team_payload]
+
+
+@pytest.mark.django_db
+def test_list_teams_only_include_notifiable_teams(
+    make_organization,
+    make_team,
+    make_user_for_organization,
+    make_token_for_organization,
+    make_user_auth_headers,
+    make_alert_receive_channel,
+):
+    organization = make_organization()
+    user = make_user_for_organization(organization)
+    _, token = make_token_for_organization(organization)
+
+    team1 = make_team(organization)
+    team2 = make_team(organization)
+
+    user.teams.set([team1, team2])
+
+    make_alert_receive_channel(organization, team=team1, integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING)
+    make_alert_receive_channel(organization, team=team2, integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING)
+
+    class CustomPropertyMock(PropertyMock):
+        def __get__(self, obj, obj_type=None):
+            return obj.id == team1.id
+
+    client = APIClient()
+    url = reverse("api-internal:team-list")
+
+    with patch("apps.api.views.team.AlertReceiveChannel.is_contactable", new_callable=CustomPropertyMock):
+        response = client.get(
+            f"{url}?only_include_notifiable_teams=true&include_no_team=false",
+            format="json",
+            **make_user_auth_headers(user, token),
+        )
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json() == [get_payload_from_team(team1)]
 
 
 @pytest.mark.django_db

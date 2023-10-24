@@ -18,6 +18,7 @@ from common.public_primary_keys import generate_public_primary_key, increase_pub
 if typing.TYPE_CHECKING:
     from django.db.models.manager import RelatedManager
 
+    from apps.alerts.models import AlertReceiveChannel
     from apps.auth_token.models import (
         ApiAuthToken,
         PluginAuthToken,
@@ -27,6 +28,7 @@ if typing.TYPE_CHECKING:
     from apps.mobile_app.models import MobileAppAuthToken
     from apps.schedules.models import CustomOnCallShift, OnCallSchedule
     from apps.slack.models import SlackTeamIdentity
+    from apps.telegram.models import TelegramToOrganizationConnector
     from apps.user_management.models import Region, Team, User
 
 logger = logging.getLogger(__name__)
@@ -77,6 +79,7 @@ class OrganizationManager(models.Manager):
 # this will remove the maintenance related columns that're no longer used on the organization object
 # class Organization(models.Model):
 class Organization(MaintainableObject):
+    alert_receive_channels: "RelatedManager['AlertReceiveChannel']"
     auth_tokens: "RelatedManager['ApiAuthToken']"
     custom_on_call_shifts: "RelatedManager['CustomOnCallShift']"
     migration_destination: typing.Optional["Region"]
@@ -86,6 +89,7 @@ class Organization(MaintainableObject):
     schedule_export_token: "RelatedManager['ScheduleExportAuthToken']"
     slack_team_identity: typing.Optional["SlackTeamIdentity"]
     teams: "RelatedManager['Team']"
+    telegram_channel: "RelatedManager['TelegramToOrganizationConnector']"
     user_schedule_export_token: "RelatedManager['UserScheduleExportAuthToken']"
     users: "RelatedManager['User']"
 
@@ -302,6 +306,14 @@ class Organization(MaintainableObject):
     def web_link_with_uuid(self):
         # It's a workaround to pass some unique identifier to the oncall gateway while proxying telegram requests
         return urljoin(self.grafana_url, f"a/grafana-oncall-app/?oncall-uuid={self.uuid}")
+
+    @property
+    def slack_is_configured(self) -> bool:
+        return self.slack_team_identity is not None
+
+    @property
+    def telegram_is_configured(self) -> bool:
+        return self.telegram_channel.count() > 0
 
     def __str__(self):
         return f"{self.pk}: {self.org_title}"

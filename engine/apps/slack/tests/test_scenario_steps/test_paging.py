@@ -225,7 +225,7 @@ def test_trigger_paging_no_team_or_user_selected(make_organization_and_user_with
     assert response["response_action"] == "update"
     assert (
         response["view"]["blocks"][0]["text"]["text"]
-        == ":warning: At least one team or one user must be selected to directly page :warning:"
+        == ":warning: At least one team or one user must be selected to directly page"
     )
 
 

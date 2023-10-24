@@ -245,6 +245,41 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
             channel.save()
         return channel
 
+    @classmethod
+    def get_orgs_direct_paging_integrations(
+        cls, organization: "Organization"
+    ) -> models.QuerySet["AlertReceiveChannel"]:
+        return cls.objects.filter(
+            organization=organization,
+            integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING,
+        )
+
+    @property
+    def is_contactable(self) -> bool:
+        """
+        Returns true if:
+        - the integration has more than one channel filter associated with it
+        - the default channel filter has at least one notification method specified or an escalation chain associated with it
+        """
+        if self.channel_filters.count() > 1:
+            return True
+
+        default_channel_filter = self.default_channel_filter
+        if not default_channel_filter:
+            return False
+
+        notify_via_slack = self.organization.slack_is_configured and default_channel_filter.notify_in_slack
+        notify_via_telegram = self.organization.telegram_is_configured and default_channel_filter.notify_in_telegram
+
+        notify_via_chatops = notify_via_slack or notify_via_telegram
+        custom_messaging_backend_configured = default_channel_filter.notification_backends is not None
+
+        return (
+            default_channel_filter.escalation_chain is not None
+            or notify_via_chatops
+            or custom_messaging_backend_configured
+        )
+
     def delete(self):
         self.deleted_at = timezone.now()
         self.save()

@@ -1,7 +1,7 @@
 import React, { useState, useContext, useCallback, useMemo } from 'react';
 
 import { SelectableValue } from '@grafana/data';
-import { HorizontalGroup, Button, Modal, Alert, VerticalGroup } from '@grafana/ui';
+import { HorizontalGroup, Button, Modal, Alert, VerticalGroup, Icon } from '@grafana/ui';
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
@@ -31,6 +31,22 @@ type Props = {
   onAddNewParticipant?: (responder: Omit<UserResponderType, 'type'>) => Promise<void>;
   generateRemovePreviouslyPagedUserCallback?: (userId: string) => () => Promise<void>;
 };
+
+const LearnMoreAboutNotificationPoliciesLink: React.FC = () => (
+  <a
+    className={cx('learn-more-link')}
+    href="https://grafana.com/docs/oncall/latest/notify/#configure-user-notification-policies"
+    target="_blank"
+    rel="noreferrer"
+  >
+    <Text type="link">
+      <HorizontalGroup spacing="xs">
+        Learn more
+        <Icon name="external-link-alt" />
+      </HorizontalGroup>
+    </Text>
+  </a>
+);
 
 const AddResponders = observer(
   ({
@@ -143,18 +159,23 @@ const AddResponders = observer(
                       {...responder}
                     />
                   ))}
-                  {/* TODO: where should this link to? */}
                   {selectedUserResponders.length > 0 && (
                     <Alert
                       severity="info"
-                      title="Learn more about user's Default and Important personal notification settings"
+                      title={
+                        (
+                          <Text type="primary">
+                            <LearnMoreAboutNotificationPoliciesLink /> about Default vs Important user personal
+                            notification settings
+                          </Text>
+                        ) as any
+                      }
                     />
                   )}
                 </ul>
               </>
             )}
           </Block>
-          {/* TODO: how to (properly) get this to "float" right when it's open? */}
           <AddRespondersPopup
             mode={mode}
             visible={popupIsVisible}
@@ -169,7 +190,7 @@ const AddResponders = observer(
             isOpen
             title="Confirm Participant Invitation"
             onDismiss={closeUserConfirmationModal}
-            className={cx('modal')}
+            className={cx('confirm-participant-invitation-modal')}
           >
             <VerticalGroup spacing="md">
               {!isCreateMode && (
@@ -184,8 +205,8 @@ const AddResponders = observer(
                       onChange={onChangeCurrentlyConsideredUserNotificationPolicy}
                     />
                   </div>
-                  {/* TODO: where should 'Learn more' link to? */}
-                  <Text>notification settings. Learn more</Text>
+                  <Text>notification settings. </Text>
+                  <LearnMoreAboutNotificationPoliciesLink />
                 </div>
               )}
               {!currentlyConsideredUser.is_currently_oncall && (
