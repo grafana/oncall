@@ -4,7 +4,6 @@ from unittest.mock import patch
 import pytest
 from django.utils import timezone
 
-from apps.base.models import UserNotificationPolicy
 from apps.schedules.models import CustomOnCallShift, OnCallScheduleWeb
 from apps.slack.scenarios.paging import (
     DIRECT_PAGING_MESSAGE_INPUT_ID,
@@ -75,9 +74,7 @@ def test_initial_state(
 
 
 @pytest.mark.django_db
-def test_add_user_no_warning(
-    make_organization_and_user_with_slack_identities, make_schedule, make_on_call_shift, make_user_notification_policy
-):
+def test_add_user_no_warning(make_organization_and_user_with_slack_identities, make_schedule, make_on_call_shift):
     organization, user, slack_team_identity, slack_user_identity = make_organization_and_user_with_slack_identities()
     # set up schedule: user is on call
     schedule = make_schedule(
@@ -100,12 +97,6 @@ def test_add_user_no_warning(
     )
     on_call_shift.add_rolling_users([[user]])
     schedule.refresh_ical_file()
-    # setup notification policy
-    make_user_notification_policy(
-        user=user,
-        step=UserNotificationPolicy.Step.NOTIFY,
-        notify_by=UserNotificationPolicy.NotificationChannel.SMS,
-    )
 
     payload = make_slack_payload(organization=organization, user=user)
 
@@ -118,9 +109,7 @@ def test_add_user_no_warning(
 
 
 @pytest.mark.django_db
-def test_add_user_maximum_exceeded(
-    make_organization_and_user_with_slack_identities, make_schedule, make_on_call_shift, make_user_notification_policy
-):
+def test_add_user_maximum_exceeded(make_organization_and_user_with_slack_identities, make_schedule, make_on_call_shift):
     organization, user, slack_team_identity, slack_user_identity = make_organization_and_user_with_slack_identities()
     # set up schedule: user is on call
     schedule = make_schedule(
@@ -143,12 +132,6 @@ def test_add_user_maximum_exceeded(
     )
     on_call_shift.add_rolling_users([[user]])
     schedule.refresh_ical_file()
-    # setup notification policy
-    make_user_notification_policy(
-        user=user,
-        step=UserNotificationPolicy.Step.NOTIFY,
-        notify_by=UserNotificationPolicy.NotificationChannel.SMS,
-    )
 
     payload = make_slack_payload(organization=organization, user=user)
 
@@ -228,39 +211,28 @@ def test_remove_user(make_organization_and_user_with_slack_identities):
 
 
 @pytest.mark.django_db
-def test_trigger_paging_no_responders(make_organization_and_user_with_slack_identities):
-    organization, user, slack_team_identity, slack_user_identity = make_organization_and_user_with_slack_identities()
+def test_trigger_paging_no_team_or_user_selected(make_organization_and_user_with_slack_identities):
+    organization, _, slack_team_identity, slack_user_identity = make_organization_and_user_with_slack_identities()
     payload = make_slack_payload(organization=organization)
 
     step = FinishDirectPaging(slack_team_identity)
-    with patch("apps.slack.scenarios.paging.direct_paging") as mock_direct_paging:
-        with patch.object(step._slack_client, "api_call"):
-            step.process_scenario(slack_user_identity, slack_team_identity, payload)
 
-    assert mock_direct_paging.called_with(organization, None, user, "The Title", "The Message")
+    with patch.object(step._slack_client, "api_call"):
+        response = step.process_scenario(slack_user_identity, slack_team_identity, payload)
 
+    response = response.data
 
-@pytest.mark.django_db
-def test_trigger_paging(make_organization_and_user_with_slack_identities, make_team):
-    organization, user, slack_team_identity, slack_user_identity = make_organization_and_user_with_slack_identities()
-    team = make_team(organization)
-    payload = make_slack_payload(organization=organization, team=team)
-
-    step = FinishDirectPaging(slack_team_identity)
-    with patch("apps.slack.scenarios.paging.direct_paging") as mock_direct_paging:
-        with patch.object(step._slack_client, "api_call"):
-            step.process_scenario(slack_user_identity, slack_team_identity, payload)
-
-    assert mock_direct_paging.called_with(organization, team, user, "The Title", "The Message", [], [], None)
+    assert response["response_action"] == "update"
+    assert (
+        response["view"]["blocks"][0]["text"]["text"]
+        == ":warning: At least one team or one user must be selected to directly page :warning:"
+    )
 
 
 @pytest.mark.django_db
-def test_trigger_paging_additional_responders(
-    make_organization_and_user_with_slack_identities, make_team, make_schedule
-):
+def test_trigger_paging_additional_responders(make_organization_and_user_with_slack_identities, make_team):
     organization, user, slack_team_identity, slack_user_identity = make_organization_and_user_with_slack_identities()
     team = make_team(organization)
-    schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb, team=None)
     payload = make_slack_payload(organization=organization, team=team, current_users={str(user.pk): Policy.IMPORTANT})
 
     step = FinishDirectPaging(slack_team_identity)
@@ -268,9 +240,7 @@ def test_trigger_paging_additional_responders(
         with patch.object(step._slack_client, "api_call"):
             step.process_scenario(slack_user_identity, slack_team_identity, payload)
 
-    assert mock_direct_paging.called_with(
-        organization, team, user, "The Title", "The Message", [(user, True)], [(schedule, False)], None
-    )
+    mock_direct_paging.called_once_with(organization, user, "The Message", team, [(user, True)])
 
 
 @pytest.mark.django_db

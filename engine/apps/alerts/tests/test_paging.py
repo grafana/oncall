@@ -1,9 +1,11 @@
 from unittest.mock import patch
 
 import pytest
+from django.utils import timezone
 
 from apps.alerts.models import AlertGroup, AlertGroupLogRecord, UserHasNotification
-from apps.alerts.paging import DirectPagingUserTeamValidationError, direct_paging, unpage_user
+from apps.alerts.paging import DirectPagingUserTeamValidationError, direct_paging, unpage_user, user_is_oncall
+from apps.schedules.models import CustomOnCallShift, OnCallScheduleWeb
 
 
 def _calculate_title(from_user) -> str:
@@ -15,6 +17,38 @@ def assert_log_record(alert_group, reason, log_type=AlertGroupLogRecord.TYPE_DIR
     assert log is not None
     if expected_info is not None:
         assert log.get_step_specific_info() == expected_info
+
+
+@pytest.mark.django_db
+def test_user_is_oncall(make_organization, make_user_for_organization, make_schedule, make_on_call_shift):
+    organization = make_organization()
+    not_oncall_user = make_user_for_organization(organization)
+    oncall_user = make_user_for_organization(organization)
+
+    # set up schedule: user is on call
+    schedule = make_schedule(
+        organization,
+        schedule_class=OnCallScheduleWeb,
+        team=None,
+    )
+    now = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    start_date = now - timezone.timedelta(days=7)
+    data = {
+        "start": start_date,
+        "rotation_start": start_date,
+        "duration": timezone.timedelta(hours=23, minutes=59, seconds=59),
+        "priority_level": 1,
+        "frequency": CustomOnCallShift.FREQUENCY_DAILY,
+        "schedule": schedule,
+    }
+    on_call_shift = make_on_call_shift(
+        organization=organization, shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT, **data
+    )
+    on_call_shift.add_rolling_users([[oncall_user]])
+    schedule.refresh_ical_file()
+
+    assert user_is_oncall(not_oncall_user) is False
+    assert user_is_oncall(oncall_user) is True
 
 
 @pytest.mark.django_db

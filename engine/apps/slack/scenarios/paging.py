@@ -5,9 +5,10 @@ from uuid import uuid4
 
 from django.conf import settings
 from django.db.models import Model, QuerySet
+from rest_framework.response import Response
 
 from apps.alerts.models import AlertReceiveChannel
-from apps.alerts.paging import UserNotifications, direct_paging, user_is_oncall
+from apps.alerts.paging import DirectPagingUserTeamValidationError, UserNotifications, direct_paging, user_is_oncall
 from apps.schedules.ical_utils import get_oncall_users_for_multiple_schedules
 from apps.slack.constants import DIVIDER, PRIVATE_METADATA_MAX_LENGTH
 from apps.slack.errors import SlackAPIChannelNotFoundError
@@ -166,13 +167,35 @@ class FinishDirectPaging(scenario_step.ScenarioStep):
         ]
 
         # trigger direct paging to selected team + users
-        alert_group = direct_paging(
-            selected_organization,
-            user,
-            message,
-            selected_team,
-            selected_users,
-        )
+        try:
+            alert_group = direct_paging(
+                selected_organization,
+                user,
+                message,
+                selected_team,
+                selected_users,
+            )
+        except DirectPagingUserTeamValidationError:
+            # show validation warning messages
+            validation_errors: Block.AnyBlocks = [
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": ":warning: At least one team or one user must be selected to directly page :warning:",
+                    },
+                }
+            ]
+
+            return Response(
+                {
+                    "response_action": "update",
+                    "view": render_dialog(
+                        slack_user_identity, slack_team_identity, payload, validation_errors=validation_errors
+                    ),
+                },
+                status=200,
+            )
 
         text = f":white_check_mark: Escalation created: {alert_group.web_link}"
 
@@ -335,8 +358,6 @@ class OnPagingConfirmUserChange(scenario_step.ScenarioStep):
         # add selected user
         selected_user = _get_selected_user_from_payload(previous_view_payload, private_metadata["input_id_prefix"])
 
-        print("SELECTED USER IS", selected_user)
-
         error_msg = None
         try:
             updated_payload = add_or_update_item(previous_view_payload, DataKey.USERS, selected_user.pk, Policy.DEFAULT)
@@ -360,6 +381,7 @@ def render_dialog(
     payload: EventPayload,
     initial=False,
     error_msg=None,
+    validation_errors: typing.Optional[Block.AnyBlocks] = None,
 ) -> ModalView:
     private_metadata = json.loads(payload["view"]["private_metadata"])
     submit_routing_uid = private_metadata.get("submit_routing_uid")
@@ -384,8 +406,12 @@ def render_dialog(
         )
         is_team_selected, selected_team = _get_selected_team_from_payload(payload, old_input_id_prefix)
 
-    # Add message inputs
-    blocks: Block.AnyBlocks = [_get_message_input(payload)]
+    blocks: Block.AnyBlocks = []
+
+    if validation_errors:
+        blocks += validation_errors
+
+    blocks.append(_get_message_input(payload))
 
     # Add organization select if more than one organization available for user
     if len(available_organizations) > 1:
