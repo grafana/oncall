@@ -5,7 +5,7 @@ export interface RemoteFiltersType {}
 export interface FilterOption {
   name: string;
   display_name?: string;
-  type: 'search' | 'options' | 'boolean' | 'daterange' | 'team_select';
+  type: 'search' | 'options' | 'boolean' | 'daterange' | 'team_select' | 'labels';
   href?: string;
   options?: SelectOption[];
   default?: { value: string };

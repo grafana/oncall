@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { HorizontalGroup, Button, VerticalGroup, Icon, ConfirmModal, Tooltip } from '@grafana/ui';
+import { HorizontalGroup, Button, VerticalGroup, Icon, ConfirmModal, Tooltip, Tag } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { debounce } from 'lodash-es';
 import { observer } from 'mobx-react';
@@ -11,7 +11,6 @@ import { RouteComponentProps, withRouter } from 'react-router-dom';
 import GTable from 'components/GTable/GTable';
 import HamburgerMenu from 'components/HamburgerMenu/HamburgerMenu';
 import IntegrationLogo from 'components/IntegrationLogo/IntegrationLogo';
-import { Filters } from 'components/IntegrationsFilters/IntegrationsFilters';
 import { PageBaseState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
 import {
   getWrongTeamResponseInfo,
@@ -19,6 +18,7 @@ import {
 } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper.helpers';
 import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
+import TextEllipsisTooltip from 'components/TextEllipsisTooltip/TextEllipsisTooltip';
 import TooltipBadge from 'components/TooltipBadge/TooltipBadge';
 import { WithContextMenu } from 'components/WithContextMenu/WithContextMenu';
 import IntegrationForm from 'containers/IntegrationForm/IntegrationForm';
@@ -28,23 +28,24 @@ import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/W
 import { HeartIcon, HeartRedIcon } from 'icons';
 import { AlertReceiveChannelStore } from 'models/alert_receive_channel/alert_receive_channel';
 import { AlertReceiveChannel, MaintenanceMode } from 'models/alert_receive_channel/alert_receive_channel.types';
+import { LabelKeyValue } from 'models/label/label.types';
 import IntegrationHelper from 'pages/integration/Integration.helper';
+import { AppFeature } from 'state/features';
 import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import { openNotification } from 'utils';
 import LocationHelper from 'utils/LocationHelper';
 import { UserActions } from 'utils/authorization';
-import { PAGE } from 'utils/consts';
+import { PAGE, TEXT_ELLIPSIS_CLASS } from 'utils/consts';
 
 import styles from './Integrations.module.scss';
 
 const cx = cn.bind(styles);
 const FILTERS_DEBOUNCE_MS = 500;
 const ITEMS_PER_PAGE = 15;
-const MAX_LINE_LENGTH = 40;
 
 interface IntegrationsState extends PageBaseState {
-  integrationsFilters: Filters;
+  integrationsFilters: Record<string, any>;
   alertReceiveChannelId?: AlertReceiveChannel['id'] | 'new';
   confirmationModal: {
     isOpen: boolean;
@@ -173,7 +174,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
               data-testid="integrations-table"
               rowKey="id"
               data={results}
-              columns={this.getTableColumns()}
+              columns={this.getTableColumns(store.hasFeature.bind(store))}
               className={cx('integrations-table')}
               rowClassName={cx('integrations-table-row')}
               pagination={{
@@ -227,16 +228,11 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
           ...query,
         }}
       >
-        <Text type="link" size="medium">
-          <Emoji
-            className={cx('title')}
-            text={
-              item.verbal_name?.length > MAX_LINE_LENGTH
-                ? item.verbal_name?.substring(0, MAX_LINE_LENGTH) + '...'
-                : item.verbal_name
-            }
-          />
-        </Text>
+        <TextEllipsisTooltip placement="top" content={item.verbal_name}>
+          <Text type="link" size="medium">
+            <Emoji className={cx('title', TEXT_ELLIPSIS_CLASS)} text={item.verbal_name} />
+          </Text>
+        </TextEllipsisTooltip>
       </PluginLink>
     );
   };
@@ -278,6 +274,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
           <PluginLink query={{ page: 'incidents', integration: item.id }} className={cx('alertsInfoText')}>
             <TooltipBadge
               borderType="primary"
+              placement="top"
               text={alertReceiveChannelCounter?.alerts_count + '/' + alertReceiveChannelCounter?.alert_groups_count}
               tooltipTitle=""
               tooltipContent={
@@ -298,6 +295,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
             icon="link"
             text={`${connectedEscalationsChainsCount}/${routesCounter}`}
             tooltipContent={undefined}
+            placement="top"
             tooltipTitle={
               connectedEscalationsChainsCount +
               ' connected escalation chain' +
@@ -328,6 +326,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
           <TooltipBadge
             text={undefined}
             className={cx('heartbeat-badge')}
+            placement="top"
             borderType={heartbeatStatus ? 'success' : 'danger'}
             customIcon={heartbeatStatus ? <HeartIcon /> : <HeartRedIcon />}
             tooltipTitle={`Last heartbeat: ${heartbeat?.last_heartbeat_time_verbal}`}
@@ -347,6 +346,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
           <TooltipBadge
             borderType="primary"
             icon="pause"
+            placement="top"
             text={IntegrationHelper.getMaintenanceText(item.maintenance_till)}
             tooltipTitle={IntegrationHelper.getMaintenanceText(item.maintenance_till, maintenanceMode)}
             tooltipContent={undefined}
@@ -358,8 +358,42 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
     return null;
   }
 
+  renderLabels(item: AlertReceiveChannel) {
+    return (
+      <TooltipBadge
+        tooltipTitle=""
+        borderType="secondary"
+        icon="tag-alt"
+        addPadding
+        text={item.labels?.length}
+        tooltipContent={
+          <VerticalGroup spacing="sm">
+            {item.labels?.length
+              ? item.labels.map((label) => (
+                  <HorizontalGroup spacing="sm" key={label.key.id}>
+                    <Tag name={`${label.key.name}:${label.value.name}`} />
+                    <Button
+                      size="sm"
+                      icon="filter"
+                      tooltip="Apply filter"
+                      variant="secondary"
+                      onClick={this.getApplyLabelFilterClickHandler(label)}
+                    />
+                  </HorizontalGroup>
+                ))
+              : 'No labels attached'}
+          </VerticalGroup>
+        }
+      />
+    );
+  }
+
   renderTeam(item: AlertReceiveChannel, teams: any) {
-    return <TeamName team={teams[item.team]} />;
+    return (
+      <TextEllipsisTooltip placement="top" content={teams[item.team]?.name}>
+        <TeamName className={TEXT_ELLIPSIS_CLASS} team={teams[item.team]} />
+      </TextEllipsisTooltip>
+    );
   }
 
   renderButtons = (item: AlertReceiveChannel) => {
@@ -423,12 +457,12 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
     );
   };
 
-  getTableColumns = () => {
+  getTableColumns = (hasFeatureFn) => {
     const { grafanaTeamStore, alertReceiveChannelStore } = this.props.store;
 
-    return [
+    const columns = [
       {
-        width: '35%',
+        width: '30%',
         title: 'Name',
         key: 'name',
         render: this.renderName,
@@ -441,7 +475,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
         render: (item: AlertReceiveChannel) => this.renderIntegrationStatus(item, alertReceiveChannelStore),
       },
       {
-        width: '20%',
+        width: '25%',
         title: 'Type',
         key: 'datasource',
         render: (item: AlertReceiveChannel) => this.renderDatasource(item, alertReceiveChannelStore),
@@ -458,6 +492,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
         key: 'heartbeat',
         render: (item: AlertReceiveChannel) => this.renderHeartbeat(item),
       },
+
       {
         width: '15%',
         title: 'Team',
@@ -470,6 +505,17 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
         className: cx('buttons'),
       },
     ];
+
+    if (hasFeatureFn(AppFeature.Labels)) {
+      columns.splice(-2, 0, {
+        width: '10%',
+        title: 'Labels',
+        render: (item: AlertReceiveChannel) => this.renderLabels(item),
+      });
+      columns.find((column) => column.key === 'datasource').width = '15%';
+    }
+
+    return columns;
   };
 
   invalidateRequestFn = (requestedPage: number) => {
@@ -497,8 +543,34 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
     this.setState({ confirmationModal: undefined });
   };
 
-  handleIntegrationsFiltersChange = (integrationsFilters: Filters, isOnMount: boolean) => {
+  handleIntegrationsFiltersChange = (
+    integrationsFilters: IntegrationsState['integrationsFilters'],
+    isOnMount: boolean
+  ) => {
     this.setState({ integrationsFilters }, () => this.debouncedUpdateIntegrations(isOnMount));
+  };
+
+  getApplyLabelFilterClickHandler = (label: LabelKeyValue) => {
+    const {
+      store: { filtersStore },
+    } = this.props;
+
+    const {
+      integrationsFilters: { label: oldLabelFilter = [] },
+    } = this.state;
+
+    return () => {
+      const labelToAddString = `${label.key.id}:${label.value.id}`;
+      if (oldLabelFilter.some((label) => label === labelToAddString)) {
+        return;
+      }
+
+      const newLabelFilter = [...oldLabelFilter, labelToAddString];
+
+      LocationHelper.update({ label: newLabelFilter }, 'partial');
+
+      filtersStore.needToParseFilters = true;
+    };
   };
 
   applyFilters = async (isOnMount: boolean) => {

@@ -10,7 +10,7 @@ from rest_framework.response import Response
 from rest_framework.test import APIClient
 
 from apps.alerts.constants import ActionSource
-from apps.alerts.models import AlertGroup, AlertGroupLogRecord
+from apps.alerts.models import AlertGroup, AlertGroupLogRecord, ResolutionNote
 from apps.alerts.tasks import wipe
 from apps.api.errors import AlertGroupAPIError
 from apps.api.permissions import LegacyAccessControlRole
@@ -848,6 +848,7 @@ def test_get_filter_escalation_chain(
         (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
         (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
         (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_alert_group_acknowledge_permissions(
@@ -883,6 +884,7 @@ def test_alert_group_acknowledge_permissions(
         (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
         (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
         (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_alert_group_unacknowledge_permissions(
@@ -917,6 +919,7 @@ def test_alert_group_unacknowledge_permissions(
         (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
         (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
         (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_alert_group_resolve_permissions(
@@ -951,6 +954,7 @@ def test_alert_group_resolve_permissions(
         (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
         (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
         (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_alert_group_unresolve_permissions(
@@ -985,6 +989,7 @@ def test_alert_group_unresolve_permissions(
         (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
         (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
         (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_alert_group_silence_permissions(
@@ -1019,6 +1024,7 @@ def test_alert_group_silence_permissions(
         (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
         (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
         (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_alert_group_unsilence_permissions(
@@ -1053,6 +1059,7 @@ def test_alert_group_unsilence_permissions(
         (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
         (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
         (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_alert_group_attach_permissions(
@@ -1087,6 +1094,7 @@ def test_alert_group_attach_permissions(
         (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
         (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
         (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_alert_group_unattach_permissions(
@@ -1121,6 +1129,7 @@ def test_alert_group_unattach_permissions(
         (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
         (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
         (LegacyAccessControlRole.VIEWER, status.HTTP_200_OK),
+        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_alert_group_list_permissions(
@@ -1155,6 +1164,7 @@ def test_alert_group_list_permissions(
         (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
         (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
         (LegacyAccessControlRole.VIEWER, status.HTTP_200_OK),
+        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_alert_group_stats_permissions(
@@ -1189,6 +1199,7 @@ def test_alert_group_stats_permissions(
         (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
         (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
         (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_alert_group_bulk_action_permissions(
@@ -1221,6 +1232,7 @@ def test_alert_group_bulk_action_permissions(
         (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
         (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
         (LegacyAccessControlRole.VIEWER, status.HTTP_200_OK),
+        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_alert_group_filters_permissions(
@@ -1255,6 +1267,7 @@ def test_alert_group_filters_permissions(
         (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
         (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
         (LegacyAccessControlRole.VIEWER, status.HTTP_200_OK),
+        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_alert_group_detail_permissions(
@@ -1678,6 +1691,7 @@ def test_alert_group_status_field(
         (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
         (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
         (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_alert_group_preview_template_permissions(
@@ -1877,6 +1891,68 @@ def test_alert_group_resolve_resolution_note(
 
         assert new_alert_group.has_resolution_notes
         assert mock_signal.called
+
+
+@pytest.mark.django_db
+def test_alert_group_resolve_resolution_note_mobile_app(
+    make_organization_and_user,
+    make_mobile_app_auth_token_for_user,
+    make_alert_receive_channel,
+    make_channel_filter,
+    make_alert_group,
+    make_alert,
+    make_user_auth_headers,
+):
+    organization, user = make_organization_and_user()
+    organization.is_resolution_note_required = True
+    organization.save()
+    _, token = make_mobile_app_auth_token_for_user(user, organization)
+
+    alert_receive_channel = make_alert_receive_channel(organization)
+    alert_group = make_alert_group(alert_receive_channel)
+
+    client = APIClient()
+    url = reverse("api-internal:alertgroup-resolve", kwargs={"pk": alert_group.public_primary_key})
+    response = client.post(url, format="json", data={"resolution_note": "hi"}, HTTP_AUTHORIZATION=token)
+
+    assert response.status_code == status.HTTP_200_OK
+    assert alert_group.resolution_notes.get().source == ResolutionNote.Source.MOBILE_APP
+
+
+@pytest.mark.parametrize("source", ResolutionNote.Source)
+@pytest.mark.django_db
+def test_timeline_resolution_note_source(
+    make_organization_and_user_with_plugin_token,
+    make_alert_receive_channel,
+    make_channel_filter,
+    make_alert_group,
+    make_alert,
+    make_resolution_note_slack_message,
+    make_resolution_note,
+    make_user_auth_headers,
+    source,
+):
+    """The 'type' field in timeline items should hold the source of the resolution note"""
+    organization, user, token = make_organization_and_user_with_plugin_token()
+    alert_receive_channel = make_alert_receive_channel(organization)
+    channel_filter = make_channel_filter(alert_receive_channel, is_default=True)
+    alert_group = make_alert_group(alert_receive_channel, channel_filter=channel_filter)
+    make_alert(alert_group=alert_group, raw_request_data=alert_raw_request_data)
+
+    # Create resolution note
+    resolution_note_slack_message = make_resolution_note_slack_message(
+        alert_group=alert_group, user=user, added_by_user=user, text="resolution note"
+    )
+    make_resolution_note(
+        alert_group=alert_group, author=user, resolution_note_slack_message=resolution_note_slack_message, source=source
+    )
+
+    client = APIClient()
+    url = reverse("api-internal:alertgroup-detail", kwargs={"pk": alert_group.public_primary_key})
+    response = client.get(url, **make_user_auth_headers(user, token))
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()["render_after_resolve_report_json"][0]["type"] == source.value
 
 
 @pytest.mark.django_db

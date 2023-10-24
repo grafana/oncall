@@ -111,12 +111,16 @@ export class UserStore extends BaseStore {
   }
 
   @action
-  async updateItems(f: any = { searchTerm: '' }, page = 1): Promise<any> {
+  async updateItems(f: any = { searchTerm: '' }, page = 1, invalidateFn?: () => boolean): Promise<any> {
     const filters = typeof f === 'string' ? { searchTerm: f } : f; // for GSelect compatibility
     const { searchTerm: search } = filters;
     const response = await makeRequest(this.path, {
       params: { search, page },
     });
+
+    if (invalidateFn && invalidateFn()) {
+      return;
+    }
 
     const { count, results } = response;
 

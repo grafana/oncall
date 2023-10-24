@@ -511,7 +511,8 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
                 <VerticalGroup spacing="none">
                   {item.realm === TimeLineRealm.ResolutionNote && (
                     <Text type="secondary" size="small">
-                      {item.author && item.author.username} via {ResolutionNoteSourceTypesToDisplayName[item.type]}
+                      {item.author && item.author.username} via{' '}
+                      {ResolutionNoteSourceTypesToDisplayName[item.type] || 'Web'}
                     </Text>
                   )}
                   <Text type="primary">

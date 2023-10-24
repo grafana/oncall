@@ -46,6 +46,7 @@ interface ScheduleOverridesProps extends WithStoreProps {
   onUpdate: () => void;
   onDelete: () => void;
   disabled: boolean;
+  disableShiftSwaps: boolean;
   filters: ScheduleFiltersType;
 }
 
@@ -72,6 +73,7 @@ class ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverri
       store,
       shiftIdToShowRotationForm,
       disabled,
+      disableShiftSwaps,
       shiftStartToShowOverrideForm: propsShiftStartToShowOverrideForm,
       shiftEndToShowOverrideForm: propsShiftEndToShowOverrideForm,
       onShowShiftSwapForm,
@@ -112,7 +114,7 @@ class ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverri
               <HorizontalGroup>
                 <Button
                   variant="secondary"
-                  disabled={disabled}
+                  disabled={disableShiftSwaps}
                   onClick={() => {
                     const closestEvent = findClosestUserEvent(dayjs(), currentUserPk, layers);
                     const swapStart = closestEvent

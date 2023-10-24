@@ -83,12 +83,13 @@ def _get_payload(action_type="button", **kwargs):
 
 
 @pytest.mark.parametrize("step_class", ALERT_GROUP_ACTIONS_STEPS)
+@pytest.mark.parametrize("role", (LegacyAccessControlRole.VIEWER, LegacyAccessControlRole.NONE))
 @pytest.mark.django_db
 def test_alert_group_actions_unauthorized(
-    step_class, make_organization_and_user_with_slack_identities, make_alert_receive_channel, make_alert_group
+    step_class, make_organization_and_user_with_slack_identities, make_alert_receive_channel, make_alert_group, role
 ):
     organization, user, slack_team_identity, slack_user_identity = make_organization_and_user_with_slack_identities(
-        role=LegacyAccessControlRole.VIEWER
+        role=role
     )
 
     alert_receive_channel = make_alert_receive_channel(organization)

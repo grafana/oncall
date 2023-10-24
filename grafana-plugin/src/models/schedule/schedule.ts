@@ -11,12 +11,15 @@ import { SelectOption } from 'state/types';
 
 import {
   createShiftSwapEventFromShiftSwap,
+  enrichEventsWithScheduleData,
   enrichLayers,
   enrichOverrides,
+  fillGapsInShifts,
   flattenShiftEvents,
   getFromString,
   splitToLayers,
-  splitToShiftsAndFillGaps,
+  splitToShifts,
+  unFlattenShiftEvents,
 } from './schedule.helpers';
 import {
   Rotation,
@@ -34,7 +37,7 @@ import {
 
 export class ScheduleStore extends BaseStore {
   @observable
-  searchResult: { count?: number; results?: Array<Schedule['id']> } = {};
+  searchResult: { page_size?: number; count?: number; results?: Array<Schedule['id']> } = {};
 
   @observable.shallow
   items: { [id: string]: Schedule } = {};
@@ -134,15 +137,15 @@ export class ScheduleStore extends BaseStore {
   async updateItems(
     f: RemoteFiltersType | string = { searchTerm: '', type: undefined, used: undefined },
     page = 1,
-    shouldUpdateFn: () => boolean = undefined
+    invalidateFn: () => boolean = undefined
   ) {
     const filters = typeof f === 'string' ? { search: f } : f;
-    const { count, results } = await makeRequest(this.path, {
+    const { page_size, count, results } = await makeRequest(this.path, {
       method: 'GET',
       params: { ...filters, page },
     });
 
-    if (shouldUpdateFn && !shouldUpdateFn()) {
+    if (invalidateFn && invalidateFn()) {
       return;
     }
 
@@ -157,6 +160,7 @@ export class ScheduleStore extends BaseStore {
       ),
     };
     this.searchResult = {
+      page_size,
       count,
       results: results.map((item: Schedule) => item.id),
     };
@@ -190,6 +194,7 @@ export class ScheduleStore extends BaseStore {
 
   getSearchResult() {
     return {
+      page_size: this.searchResult.page_size,
       count: this.searchResult.count,
       results: this.searchResult.results?.map((scheduleId: Schedule['id']) => this.items[scheduleId]),
     };
@@ -284,7 +289,7 @@ export class ScheduleStore extends BaseStore {
       this.rotationPreview = { ...this.rotationPreview, [fromString]: layers };
     }
 
-    this.finalPreview = { ...this.finalPreview, [fromString]: splitToShiftsAndFillGaps(response.final) };
+    this.finalPreview = { ...this.finalPreview, [fromString]: fillGapsInShifts(splitToShifts(response.final)) };
   }
 
   @action
@@ -447,7 +452,9 @@ export class ScheduleStore extends BaseStore {
     });
 
     const fromString = getFromString(startMoment);
-    const shifts = splitToShiftsAndFillGaps(response.events);
+    const shiftsRaw = splitToShifts(response.events);
+    const shiftsUnflattened = unFlattenShiftEvents(shiftsRaw);
+    const shifts = fillGapsInShifts(shiftsUnflattened);
     const layers = type === 'rotation' ? splitToLayers(shifts) : undefined;
 
     this.events = {
@@ -532,7 +539,7 @@ export class ScheduleStore extends BaseStore {
     };
   }
 
-  async updatePersonalEvents(userPk: User['pk'], startMoment: dayjs.Dayjs, days = 9) {
+  async updatePersonalEvents(userPk: User['pk'], startMoment: dayjs.Dayjs, days = 9, isUpdateOnCallNow = false) {
     const fromString = getFromString(startMoment);
 
     const dayBefore = startMoment.subtract(1, 'day');
@@ -545,8 +552,8 @@ export class ScheduleStore extends BaseStore {
       },
     });
 
-    const shiftEventsList = schedules.reduce((acc, schedule) => {
-      return [...acc, ...splitToShiftsAndFillGaps(schedule.events)];
+    const shiftEventsList = schedules.reduce((acc, { events, id, name }) => {
+      return [...acc, ...fillGapsInShifts(splitToShifts(enrichEventsWithScheduleData(events, { id, name })))];
     }, []);
 
     const shiftEventsListFlattened = flattenShiftEvents(shiftEventsList);
@@ -559,9 +566,12 @@ export class ScheduleStore extends BaseStore {
       },
     };
 
-    this.onCallNow = {
-      ...this.onCallNow,
-      [userPk]: is_oncall,
-    };
+    if (isUpdateOnCallNow) {
+      // since current endpoint works incorrectly we are waiting for https://github.com/grafana/oncall/issues/3164
+      this.onCallNow = {
+        ...this.onCallNow,
+        [userPk]: is_oncall,
+      };
+    }
   }
 }

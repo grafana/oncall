@@ -19,6 +19,7 @@ type ResolutionNoteSourceTypesOptions = {
   [key: number]: string;
 };
 export const ResolutionNoteSourceTypesToDisplayName: ResolutionNoteSourceTypesOptions = {
-  0: 'slack',
-  1: 'web',
+  0: 'Slack',
+  1: 'Web',
+  2: 'Mobile App',
 };
