@@ -169,11 +169,11 @@ class FinishDirectPaging(scenario_step.ScenarioStep):
         # trigger direct paging to selected team + users
         try:
             alert_group = direct_paging(
-                selected_organization,
-                user,
-                message,
-                selected_team,
-                selected_users,
+                organization=selected_organization,
+                from_user=user,
+                message=message,
+                team=selected_team,
+                users=selected_users,
             )
         except DirectPagingUserTeamValidationError:
             # show validation warning messages

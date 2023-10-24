@@ -41,15 +41,17 @@ class DirectPagingSerializer(serializers.Serializer):
     alert_group_id = serializers.CharField(required=False, default=None)
     alert_group = serializers.HiddenField(default=None)  # set in DirectPagingSerializer.validate
 
+    title = serializers.CharField(required=False, default=None)
     message = serializers.CharField(required=False, default=None, allow_null=True)
 
     def validate(self, attrs):
         organization = self.context["organization"]
         alert_group_id = attrs["alert_group_id"]
+        title = attrs["title"]
         message = attrs["message"]
 
-        if alert_group_id and message:
-            raise serializers.ValidationError("alert_group_id and message are mutually exclusive")
+        if alert_group_id and (title or message):
+            raise serializers.ValidationError("alert_group_id and (title, message) are mutually exclusive")
 
         if alert_group_id:
             try:

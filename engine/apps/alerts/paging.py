@@ -44,7 +44,9 @@ class DirectPagingAlertPayload(typing.TypedDict):
     oncall: _OnCall
 
 
-def _trigger_alert(organization: Organization, team: Team | None, message: str, from_user: User) -> AlertGroup:
+def _trigger_alert(
+    organization: Organization, team: Team | None, message: str, title: str, from_user: User
+) -> AlertGroup:
     """Trigger manual integration alert from params."""
     alert_receive_channel = AlertReceiveChannel.get_or_create_manual_integration(
         organization=organization,
@@ -65,7 +67,6 @@ def _trigger_alert(organization: Organization, team: Team | None, message: str, 
             is_default=True,
         )
 
-    title = f"Direct page from {from_user.username}"
     payload: DirectPagingAlertPayload = {
         # Custom oncall property in payload to simplify rendering
         "oncall": {
@@ -90,20 +91,41 @@ def _trigger_alert(organization: Organization, team: Team | None, message: str, 
     return alert.group
 
 
-def user_is_oncall(user: User) -> bool:
-    schedules = OnCallSchedule.objects.filter(
-        Q(cached_ical_file_primary__contains=user.username) | Q(cached_ical_file_primary__contains=user.email),
-        organization=user.organization,
-    )
-    schedules_with_oncall_users = get_oncall_users_for_multiple_schedules(schedules)
+def _construct_title(from_user: User, team: Team | None, users: UserNotifications) -> str:
+    title = f"{from_user.username} is paging"
 
-    return user.pk in {user.pk for _, users in schedules_with_oncall_users.items() for user in users}
+    team_specified = team is not None
+    if team_specified:
+        title += f" {team.name}"
+
+    num_users = len(users)
+    has_more_than_one_user = num_users > 1
+    has_more_than_two_users = num_users > 2
+
+    for idx, user_notification in enumerate(users):
+        user, _ = user_notification
+        is_first_user = idx == 0
+        is_last_user = idx == num_users - 1
+
+        if not is_last_user and (
+            (team_specified and has_more_than_one_user) or (has_more_than_two_users and not is_first_user)
+        ):
+            title += ","
+        elif is_last_user and (has_more_than_one_user or team_specified):
+            title += " and"
+
+        title += f" {user.username}"
+
+    title += " to join escalation"
+
+    return title
 
 
 def direct_paging(
     organization: Organization,
     from_user: User,
     message: str,
+    title: str | None = None,
     team: Team | None = None,
     users: UserNotifications | None = None,
     alert_group: AlertGroup | None = None,
@@ -123,9 +145,12 @@ def direct_paging(
     if alert_group and alert_group.resolved:
         raise DirectPagingAlertGroupResolvedError
 
+    if title is None:
+        title = _construct_title(from_user, team, users)
+
     # create alert group if needed
     if alert_group is None:
-        alert_group = _trigger_alert(organization, team, message, from_user)
+        alert_group = _trigger_alert(organization, team, message, title, from_user)
 
     for u, important in users:
         alert_group.log_records.create(
@@ -162,3 +187,13 @@ def unpage_user(alert_group: AlertGroup, user: User, from_user: User) -> None:
             )
     except IndexError:
         return
+
+
+def user_is_oncall(user: User) -> bool:
+    schedules = OnCallSchedule.objects.filter(
+        Q(cached_ical_file_primary__contains=user.username) | Q(cached_ical_file_primary__contains=user.email),
+        organization=user.organization,
+    )
+    schedules_with_oncall_users = get_oncall_users_for_multiple_schedules(schedules)
+
+    return user.pk in {user.pk for _, users in schedules_with_oncall_users.items() for user in users}

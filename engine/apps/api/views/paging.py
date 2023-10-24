@@ -25,15 +25,17 @@ class DirectPagingAPIView(APIView):
             data=request.data, context={"organization": organization, "request": request}
         )
         serializer.is_valid(raise_exception=True)
+        validated_data = serializer.validated_data
 
         try:
             alert_group = direct_paging(
                 organization=organization,
                 from_user=request.user,
-                message=serializer.validated_data["message"],
-                team=serializer.validated_data["team"],
-                users=[(user["instance"], user["important"]) for user in serializer.validated_data["users"]],
-                alert_group=serializer.validated_data["alert_group"],
+                message=validated_data["message"],
+                title=validated_data["title"],
+                team=validated_data["team"],
+                users=[(user["instance"], user["important"]) for user in validated_data["users"]],
+                alert_group=validated_data["alert_group"],
             )
         except DirectPagingAlertGroupResolvedError:
             raise BadRequest(detail=DirectPagingAlertGroupResolvedError.DETAIL)

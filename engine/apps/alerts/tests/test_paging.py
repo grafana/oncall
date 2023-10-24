@@ -4,12 +4,14 @@ import pytest
 from django.utils import timezone
 
 from apps.alerts.models import AlertGroup, AlertGroupLogRecord, UserHasNotification
-from apps.alerts.paging import DirectPagingUserTeamValidationError, direct_paging, unpage_user, user_is_oncall
+from apps.alerts.paging import (
+    DirectPagingUserTeamValidationError,
+    _construct_title,
+    direct_paging,
+    unpage_user,
+    user_is_oncall,
+)
 from apps.schedules.models import CustomOnCallShift, OnCallScheduleWeb
-
-
-def _calculate_title(from_user) -> str:
-    return f"Direct page from {from_user.username}"
 
 
 def assert_log_record(alert_group, reason, log_type=AlertGroupLogRecord.TYPE_DIRECT_PAGING, expected_info=None):
@@ -68,7 +70,7 @@ def test_direct_paging_user(make_organization, make_user_for_organization):
     ag = alert_groups.get()
     alert = ag.alerts.get()
 
-    assert alert.title == _calculate_title(from_user)
+    assert alert.title == f"{from_user.username} is paging {user.username} and {other_user.username} to join escalation"
     assert alert.message == msg
 
     # notifications sent
@@ -87,14 +89,14 @@ def test_direct_paging_team(make_organization, make_team, make_user_for_organiza
     team = make_team(organization)
     msg = "Fire"
 
-    direct_paging(organization, from_user, msg, team)
+    direct_paging(organization, from_user, msg, team=team)
 
     # alert group created
     alert_groups = AlertGroup.objects.all()
     assert alert_groups.count() == 1
     ag = alert_groups.get()
     alert = ag.alerts.get()
-    assert alert.title == _calculate_title(from_user)
+    assert alert.title == f"{from_user.username} is paging {team.name} to join escalation"
     assert alert.message == msg
 
     assert ag.channel.verbal_name == f"Direct paging ({team.name} team)"
@@ -115,11 +117,30 @@ def test_direct_paging_no_team(make_organization, make_user_for_organization):
     assert alert_groups.count() == 1
     ag = alert_groups.get()
     alert = ag.alerts.get()
-    assert alert.title == _calculate_title(from_user)
+    assert alert.title == f"{from_user.username} is paging {other_user.username} to join escalation"
     assert alert.message == msg
 
     assert ag.channel.verbal_name == "Direct paging (No team)"
     assert ag.channel.team is None
+
+
+@pytest.mark.django_db
+def test_direct_paging_custom_title(make_organization, make_user_for_organization):
+    organization = make_organization()
+    from_user = make_user_for_organization(organization)
+    other_user = make_user_for_organization(organization)
+    custom_title = "Custom title"
+    msg = "Fire"
+
+    direct_paging(organization, from_user, msg, custom_title, users=[(other_user, False)])
+
+    # alert group created
+    alert_groups = AlertGroup.objects.all()
+    assert alert_groups.count() == 1
+    ag = alert_groups.get()
+
+    assert ag.web_title_cache == custom_title
+    assert ag.alerts.get().title == custom_title
 
 
 @pytest.mark.django_db
@@ -227,4 +248,43 @@ def test_direct_paging_always_create_group(make_organization, make_user_for_orga
     )
     assert notify_task.apply_async.called_with(
         (user.pk, alert_groups[1].pk), {"important": False, "notify_even_acknowledged": True, "notify_anyway": True}
+    )
+
+
+@pytest.mark.django_db
+def test_construct_title(make_organization, make_team, make_user_for_organization):
+    organization = make_organization()
+    from_user = make_user_for_organization(organization)
+    user1 = make_user_for_organization(organization)
+    user2 = make_user_for_organization(organization)
+    user3 = make_user_for_organization(organization)
+    team = make_team(organization)
+
+    def _title(middle_portion: str) -> str:
+        return f"{from_user.username} is paging {middle_portion} to join escalation"
+
+    one_user = [(user1, False)]
+    two_users = [(user1, False), (user2, True)]
+    multiple_users = two_users + [(user3, False)]
+
+    # no team specified + one user
+    assert _construct_title(from_user, None, one_user) == _title(user1.username)
+
+    # no team specified + two users
+    assert _construct_title(from_user, None, two_users) == _title(f"{user1.username} and {user2.username}")
+
+    # no team specified + multiple users
+    assert _construct_title(from_user, None, multiple_users) == _title(
+        f"{user1.username}, {user2.username} and {user3.username}"
+    )
+
+    # team specified + one user
+    assert _construct_title(from_user, team, one_user) == _title(f"{team.name} and {user1.username}")
+
+    # team specified + two users
+    assert _construct_title(from_user, team, two_users) == _title(f"{team.name}, {user1.username} and {user2.username}")
+
+    # team specified + multiple users
+    assert _construct_title(from_user, team, multiple_users) == _title(
+        f"{team.name}, {user1.username}, {user2.username} and {user3.username}"
     )

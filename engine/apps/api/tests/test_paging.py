@@ -3,9 +3,11 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
 
+from apps.alerts.models import AlertGroup
 from apps.alerts.paging import DirectPagingAlertGroupResolvedError, DirectPagingUserTeamValidationError
 from apps.api.permissions import LegacyAccessControlRole
 
+title = "Custom title"
 message = "Testing direct paging with new alert group"
 
 
@@ -35,6 +37,7 @@ def test_direct_paging_new_alert_group(
         url,
         data={
             "users": users_to_page,
+            "title": title,
             "message": message,
         },
         format="json",
@@ -43,6 +46,15 @@ def test_direct_paging_new_alert_group(
 
     assert response.status_code == status.HTTP_200_OK
     assert "alert_group_id" in response.json()
+
+    alert_groups = AlertGroup.objects.all()
+    assert alert_groups.count() == 1
+    ag = alert_groups.get()
+    alert = ag.alerts.get()
+
+    assert ag.web_title_cache == title
+    assert alert.title == title
+    assert alert.message == message
 
 
 @pytest.mark.django_db
