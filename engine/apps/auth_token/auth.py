@@ -307,14 +307,27 @@ class GrafanaServiceAccountAuthentication(BaseAuthentication):
         if not permissions:
             raise exceptions.AuthenticationFailed("Invalid token.")
 
+        role = LegacyAccessControlRole.NONE
+        if not organization.is_rbac_permissions_enabled:
+            role = self.determine_role_from_permissions(permissions)
+
         user = User(
             organization_id=organization.pk,
             name="Grafana Service Account",
             username="grafana_service_account",
-            role=LegacyAccessControlRole.ADMIN,
+            role=role,
             permissions=[GrafanaAPIPermission(action=key) for key, _ in permissions.items()],
         )
 
         auth_token = ApiAuthToken(organization=organization, user=user, name="Grafana Service Account")
 
         return user, auth_token
+
+    def determine_role_from_permissions(self, permissions):
+        if "plugins:write" in permissions:
+            return LegacyAccessControlRole.ADMIN
+        if "dashboards:write" in permissions:
+            return LegacyAccessControlRole.EDITOR
+        if "dashboards:read" in permissions:
+            return LegacyAccessControlRole.VIEWER
+        return LegacyAccessControlRole.NONE
