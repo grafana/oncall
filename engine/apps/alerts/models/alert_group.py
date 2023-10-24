@@ -595,7 +595,6 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
             sender=self.acknowledge_by_user,
             log_record=log_record.pk,
             action_source=action_source,
-            alert_group=self.pk,
         )
 
         for dependent_alert_group in self.dependent_alert_groups.all():
@@ -634,7 +633,6 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
             sender=self.acknowledge_by_source,
             log_record=log_record.pk,
             action_source=None,
-            alert_group=self.pk,
         )
 
         for dependent_alert_group in self.dependent_alert_groups.all():
@@ -665,7 +663,6 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
             sender=self.un_acknowledge_by_user,
             log_record=log_record.pk,
             action_source=action_source,
-            alert_group=self.pk,
         )
 
         for dependent_alert_group in self.dependent_alert_groups.all():
@@ -704,7 +701,6 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
             sender=self.resolve_by_user,
             log_record=log_record.pk,
             action_source=action_source,
-            alert_group=self.pk,
         )
 
         for dependent_alert_group in self.dependent_alert_groups.all():
@@ -740,7 +736,6 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
             sender=self.resolve_by_source,
             log_record=log_record.pk,
             action_source=None,
-            alert_group=self.pk,
         )
 
         for dependent_alert_group in self.dependent_alert_groups.all():
@@ -768,7 +763,6 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
             sender=self.resolve_by_last_step,
             log_record=log_record.pk,
             action_source=None,
-            alert_group=self.pk,
         )
 
         for dependent_alert_group in self.dependent_alert_groups.all():
@@ -791,7 +785,6 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
             sender=self.resolve_by_disable_maintenance,
             log_record=log_record.pk,
             action_source=None,
-            alert_group=self.pk,
         )
 
         for dependent_alert_group in self.dependent_alert_groups.all():
@@ -823,7 +816,6 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
                 sender=self.un_resolve_by_user,
                 log_record=log_record.pk,
                 action_source=action_source,
-                alert_group=self.pk,
             )
 
             for dependent_alert_group in self.dependent_alert_groups.all():
@@ -867,7 +859,6 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
                 sender=self.attach_by_user,
                 log_record=log_record.pk,
                 action_source=action_source,
-                alert_group=self.pk,
             )
 
             log_record_for_root_incident = root_alert_group.log_records.create(
@@ -888,7 +879,6 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
                 sender=self.attach_by_user,
                 log_record=log_record_for_root_incident.pk,
                 action_source=action_source,
-                alert_group=self.pk,
             )
 
         else:
@@ -910,7 +900,6 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
                 sender=self.attach_by_user,
                 log_record=log_record.pk,
                 action_source=action_source,
-                alert_group=self.pk,
             )
 
     def un_attach_by_user(self, user: User, action_source: typing.Optional[ActionSource] = None) -> None:
@@ -940,7 +929,6 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
             sender=self.un_attach_by_user,
             log_record=log_record.pk,
             action_source=action_source,
-            alert_group=self.pk,
         )
 
         log_record_for_root_incident = root_alert_group.log_records.create(
@@ -961,7 +949,6 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
             sender=self.un_attach_by_user,
             log_record=log_record_for_root_incident.pk,
             action_source=action_source,
-            alert_group=self.pk,
         )
 
     def un_attach_by_delete(self):
@@ -987,7 +974,6 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
             sender=self.un_attach_by_delete,
             log_record=log_record.pk,
             action_source=None,
-            alert_group=self.pk,
         )
 
     def silence_by_user(
@@ -1061,7 +1047,6 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
             sender=self.silence_by_user,
             log_record=log_record.pk,
             action_source=action_source,
-            alert_group=self.pk,
         )
         for dependent_alert_group in self.dependent_alert_groups.all():
             dependent_alert_group.silence_by_user(user, silence_delay, action_source)
@@ -1097,7 +1082,6 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
             sender=self.un_silence_by_user,
             log_record=log_record.pk,
             action_source=action_source,
-            alert_group=self.pk,
         )
         for dependent_alert_group in self.dependent_alert_groups.all():
             dependent_alert_group.un_silence_by_user(user, action_source=action_source)
@@ -1143,7 +1127,6 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
             sender=self.wipe_by_user,
             log_record=log_record.pk,
             action_source=None,
-            alert_group=self.pk,
         )
 
         for dependent_alert_group in self.dependent_alert_groups.all():
@@ -1178,7 +1161,6 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
             # this flag forces synchrony call for action handler in representatives
             # (for now it is actual only for Slack representative)
             force_sync=True,
-            alert_group=self.pk,
         )
 
         dependent_alerts = list(self.dependent_alert_groups.all())

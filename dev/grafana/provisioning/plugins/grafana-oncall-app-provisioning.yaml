@@ -5,4 +5,4 @@ apps:
     jsonData:
       stackId: 5
       orgId: 100
-      onCallApiUrl: http://host.docker.internal:8080
+      onCallApiUrl: http://oncall-dev-engine:8080
