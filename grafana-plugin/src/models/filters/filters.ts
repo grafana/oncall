@@ -3,10 +3,10 @@ import { action, observable } from 'mobx';
 import BaseStore from 'models/base_store';
 import { makeRequest } from 'network';
 import { RootStore } from 'state';
+import { getItem, setItem } from 'utils/localStorage';
 
 import { getApiPathByPage } from './filters.helpers';
 import { FilterOption, FiltersValues } from './filters.types';
-import { getItem, setItem } from 'utils/localStorage';
 
 const LOCAL_STORAGE_FILTERS_KEY = 'grafana.oncall.global-filters';
 

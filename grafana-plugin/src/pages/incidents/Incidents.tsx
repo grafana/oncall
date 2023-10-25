@@ -62,7 +62,6 @@ interface IncidentsPageState {
   showAddAlertGroupForm: boolean;
 }
 
-const ITEMS_PER_PAGE = 25;
 const POLLING_NUM_SECONDS = 15;
 
 @observer
@@ -77,7 +76,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
 
     const cursor = cursorQuery || undefined;
     const start = !isNaN(startQuery) ? Number(startQuery) : 1;
-    const itemsPerPage = !isNaN(perpageQuery) ? Number(perpageQuery) : ITEMS_PER_PAGE;
+    const itemsPerPage = !isNaN(perpageQuery) ? Number(perpageQuery) : 0;
 
     store.alertGroupStore.incidentsCursor = cursor;
     store.alertGroupStore.incidentsItemsPerPage = itemsPerPage;
@@ -91,6 +90,8 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
         end: start + itemsPerPage - 1,
       },
     };
+
+    console.log(this.state.pagination);
 
     store.alertGroupStore.updateBulkActions();
     store.alertGroupStore.updateSilenceOptions();
@@ -287,12 +288,15 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
     });
 
     if (!isOnMount) {
-      this.setState({
-        pagination: {
-          start: 1,
-          end: store.alertGroupStore.incidentsItemsPerPage,
+      this.setState(
+        {
+          pagination: {
+            start: 1,
+            end: store.alertGroupStore.incidentsItemsPerPage,
+          },
         },
-      });
+        () => console.log({ x: this.state.pagination })
+      );
     }
 
     this.clearPollingInterval();
@@ -309,7 +313,11 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
   onChangeCursor = (cursor: string, direction: 'prev' | 'next') => {
     const { store } = this.props;
 
+    console.log('Change!');
+
     store.alertGroupStore.updateIncidentsCursor(cursor);
+
+    console.log({ perPage: store.alertGroupStore.incidentsItemsPerPage });
 
     this.setState(
       {
@@ -332,6 +340,8 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
 
   handleChangeItemsPerPage = (value: number) => {
     const { store } = this.props;
+
+    console.log({ value });
 
     store.alertGroupStore.setIncidentsItemsPerPage(value);
 

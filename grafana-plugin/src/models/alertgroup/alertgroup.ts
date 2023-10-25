@@ -276,6 +276,8 @@ export class AlertGroupStore extends BaseStore {
     // @ts-ignore
     this.alerts = new Map<number, Alert>([...this.alerts, ...newAlerts]);
 
+    this.incidentsItemsPerPage = page_size;
+
     this.alertsSearchResult['default'] = {
       prev: prevCursor,
       next: nextCursor,
