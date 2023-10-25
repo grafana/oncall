@@ -27,7 +27,7 @@ declare module 'grafana/app/core/core' {
       permissions?: Record<string, boolean>;
     };
 
-    hasAccess(action: string, fallBack: boolean): boolean;
-    accessControlEnabled(): boolean;
+    hasPermission(action: string): boolean;
+    licensedAccessControlEnabled(): boolean;
   };
 }
