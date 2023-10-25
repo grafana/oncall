@@ -11,7 +11,7 @@ import { DirectPagingContext } from 'state/context/directPaging';
 import { useStore } from 'state/useStore';
 import { openWarningNotification } from 'utils';
 
-import { manualAlertFormConfig, FormData } from './ManualAlertGroup.config';
+import { manualAlertFormConfig, ManualAlertGroupFormData } from './ManualAlertGroup.config';
 
 interface ManualAlertGroupProps {
   onHide: () => void;
@@ -19,7 +19,7 @@ interface ManualAlertGroupProps {
   alertReceiveChannelStore: AlertReceiveChannelStore;
 }
 
-const data: FormData = {
+const data: ManualAlertGroupFormData = {
   message: '',
 };
 
@@ -41,7 +41,7 @@ const ManualAlertGroup: FC<ManualAlertGroupProps> = ({ onCreate, onHide }) => {
   // const [directPagingLoading, setdirectPagingLoading] = useState<boolean>();
 
   const handleFormSubmit = useCallback(
-    async (data: FormData) => {
+    async (data: ManualAlertGroupFormData) => {
       const transformedData = prepareForUpdate(selectedUserResponders, selectedTeamResponder, data);
 
       const resp = await directPagingStore.createManualAlertRule(transformedData);

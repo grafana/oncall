@@ -8,7 +8,7 @@ import Avatar from 'components/Avatar/Avatar';
 import Text from 'components/Text/Text';
 import styles from 'containers/AddResponders/AddResponders.module.scss';
 import { UserResponder as UserResponderType } from 'containers/AddResponders/AddResponders.types';
-import NotificationPoliciesSelect from 'containers/AddResponders/parts/NotificationPoliciesSelect';
+import NotificationPoliciesSelect from 'containers/AddResponders/parts/NotificationPoliciesSelect/NotificationPoliciesSelect';
 
 const cx = cn.bind(styles);
 

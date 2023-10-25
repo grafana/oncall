@@ -1,6 +1,6 @@
 import { FormItem, FormItemType } from 'components/GForm/GForm.types';
 
-export type FormData = {
+export type ManualAlertGroupFormData = {
   message: string;
 };
 

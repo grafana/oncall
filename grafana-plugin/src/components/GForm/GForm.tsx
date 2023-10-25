@@ -168,7 +168,6 @@ function renderFormControl(
   }
 }
 
-// TODO: make this generic to accept form data type
 class GForm extends React.Component<GFormProps, {}> {
   render() {
     const { form, data, onFieldRender, customFieldSectionRenderer: CustomFieldSectionRenderer } = this.props;
@@ -198,7 +197,7 @@ class GForm extends React.Component<GFormProps, {}> {
                 <CustomFieldSectionRenderer
                   control={control}
                   formItem={formItem}
-                  setValue={(fName: string, fValue: any) => {
+                  setValue={(fName, fValue: any) => {
                     setValue(fName, fValue);
                     this.forceUpdate();
                   }}

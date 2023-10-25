@@ -5,7 +5,7 @@ import userEvent from '@testing-library/user-event';
 
 import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
 
-import TeamResponder from '.';
+import TeamResponder from './TeamResponder';
 
 describe('TeamResponder', () => {
   const team = {

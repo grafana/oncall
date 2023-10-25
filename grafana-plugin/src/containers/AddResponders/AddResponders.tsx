@@ -17,10 +17,10 @@ import { UserActions } from 'utils/authorization';
 
 import styles from './AddResponders.module.scss';
 import { NotificationPolicyValue, UserResponder as UserResponderType } from './AddResponders.types';
-import AddRespondersPopup from './parts/AddRespondersPopup';
-import NotificationPoliciesSelect from './parts/NotificationPoliciesSelect';
-import TeamResponder from './parts/TeamResponder';
-import UserResponder from './parts/UserResponder';
+import AddRespondersPopup from './parts/AddRespondersPopup/AddRespondersPopup';
+import NotificationPoliciesSelect from './parts/NotificationPoliciesSelect/NotificationPoliciesSelect';
+import TeamResponder from './parts/TeamResponder/TeamResponder';
+import UserResponder from './parts/UserResponder/UserResponder';
 
 const cx = cn.bind(styles);
 

@@ -5,7 +5,7 @@ import { Provider } from 'mobx-react';
 
 import { DirectPagingContext } from 'state/context/directPaging';
 
-import AddRespondersPopup from '.';
+import AddRespondersPopup from './AddRespondersPopup';
 
 const ComponentWithMockedProviders = ({ mockDirectPagingContext, mockStoreValue, children }) => (
   <DirectPagingContext.Provider value={mockDirectPagingContext}>

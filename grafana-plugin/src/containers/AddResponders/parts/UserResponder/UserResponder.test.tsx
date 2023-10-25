@@ -5,7 +5,7 @@ import userEvent from '@testing-library/user-event';
 
 import { User } from 'models/user/user.types';
 
-import UserResponder from '.';
+import UserResponder from './UserResponder';
 
 describe('UserResponder', () => {
   const user = {
