@@ -197,7 +197,7 @@ class GForm extends React.Component<GFormProps, {}> {
                 <CustomFieldSectionRenderer
                   control={control}
                   formItem={formItem}
-                  setValue={(fName, fValue: any) => {
+                  setValue={(fName: string, fValue: any) => {
                     setValue(fName, fValue);
                     this.forceUpdate();
                   }}
