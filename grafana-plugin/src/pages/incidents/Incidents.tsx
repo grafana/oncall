@@ -90,14 +90,16 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
         end: start + itemsPerPage - 1,
       },
     };
-
-    console.log(this.state.pagination);
-
-    store.alertGroupStore.updateBulkActions();
-    store.alertGroupStore.updateSilenceOptions();
   }
 
   private pollingIntervalId: NodeJS.Timer = undefined;
+
+  componentDidMount() {
+    const { alertGroupStore } = this.props.store;
+
+    alertGroupStore.updateBulkActions();
+    alertGroupStore.updateSilenceOptions();
+  }
 
   componentWillUnmount(): void {
     this.clearPollingInterval();
