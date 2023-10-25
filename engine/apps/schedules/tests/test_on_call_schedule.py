@@ -1304,6 +1304,40 @@ def test_schedule_related_users_usernames(
     assert set(schedule.related_users()) == set(users)
 
 
+@pytest.mark.django_db
+def test_schedule_related_users_emails(make_organization, make_user_for_organization, make_schedule):
+    organization = make_organization()
+    user = make_user_for_organization(organization, username="testing", email="testing@testing.com")
+    # ical file using email as reference
+    cached_ical_primary_schedule = textwrap.dedent(
+        """
+        BEGIN:VCALENDAR
+        VERSION:2.0
+        PRODID:testing
+        CALSCALE:GREGORIAN
+        BEGIN:VEVENT
+        CREATED:20220316T121102Z
+        LAST-MODIFIED:20230127T151619Z
+        DTSTAMP:20230127T151619Z
+        UID:something
+        SUMMARY:testing@testing.com
+        RRULE:FREQ=WEEKLY;UNTIL=20221231T010101
+        DTSTART;TZID=Europe/Madrid:20220309T130000
+        DTEND;TZID=Europe/Madrid:20220309T133000
+        SEQUENCE:4
+        END:VEVENT
+        END:VCALENDAR
+    """
+    )
+    schedule = make_schedule(
+        organization,
+        schedule_class=OnCallScheduleICal,
+        cached_ical_file_primary=cached_ical_primary_schedule,
+    )
+
+    assert set(schedule.related_users()) == {user}
+
+
 @pytest.mark.django_db(transaction=True)
 def test_filter_events_none_cache_unchanged(
     make_organization, make_user_for_organization, make_schedule, make_on_call_shift
