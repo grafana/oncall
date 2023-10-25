@@ -262,9 +262,11 @@ To configure Inbound Email integration for Grafana OnCall OSS populate env varia
 
 - `INBOUND_EMAIL_ESP` - Inbound email ESP name. Available options: `amazon_ses`, `mailgun`, `mailjet`, `mandrill`, `postal`, `postmark`, `sendgrid`, `sparkpost`
 - `INBOUND_EMAIL_DOMAIN` - Inbound email domain
-- `INBOUND_EMAIL_WEBHOOK_SECRET` - Inbound email webhook secret
+- `INBOUND_EMAIL_WEBHOOK_SECRET` - Inbound email webhook secret.
 
-You will also need to configure your ESP to forward messages to the following URL: `<ONCALL_ENGINE_PUBLIC_URL>/integrations/v1/inbound_email_webhook`.
+Required secret syntax: `part1ofsecret:part2ofsecret` (The colon `:` is a mandatory delimiter separating both parts of your secret.)
+
+You will also need to configure your ESP to forward messages to the following URL: `scheme://<INBOUND_EMAIL_WEBHOOK_SECRET>@<ONCALL_ENGINE_PUBLIC_URL>/integrations/v1/inbound_email_webhook`.
 
 ## Limits
 
