@@ -107,7 +107,7 @@ class AlertGroupActionsMixin:
 
         try:
             alert_group_pk = value["alert_group_pk"]
-            organization_pk = value["organization_pk"]
+            organization_pk = value["organization_id"]
         except (KeyError, TypeError):
             return None
 
@@ -152,7 +152,7 @@ class AlertGroupActionsMixin:
 
             try:
                 alert_group_pk = value["alert_group_pk"]
-                organization_pk = value["organization_pk"]
+                organization_pk = value["organization_id"]
             except (KeyError, TypeError):
                 continue
 
