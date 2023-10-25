@@ -191,7 +191,21 @@ def test_get_alert_group_from_message(
         ],
         "message": {
             "ts": "RANDOM_MESSAGE_TS",
-            "attachments": [{"blocks": [{"elements": [{"value": json.dumps({"alert_group_pk": alert_group.pk})}]}]}],
+            "attachments": [
+                {
+                    "blocks": [
+                        {
+                            "elements": [
+                                {
+                                    "value": json.dumps(
+                                        {"alert_group_pk": alert_group.pk, "organization_id": organization.pk}
+                                    )
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ],
         },
         "channel": {"id": "RANDOM_CHANNEL_ID"},
     }
