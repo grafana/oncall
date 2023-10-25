@@ -24,9 +24,13 @@ paths_to_work_even_when_maintenance_mode_is_active = [
     path("health/", HealthCheckView.as_view()),
     path("ready/", ReadinessCheckView.as_view()),
     path("startupprobe/", StartupProbeView.as_view()),
-    path("integrations/v1/", include("apps.integrations.urls", namespace="integrations")),
     path("api/internal/v1/maintenance-mode-status", MaintenanceModeStatusView.as_view()),
 ]
+
+if not settings.DETACHED_INTEGRATIONS_SERVER:
+    paths_to_work_even_when_maintenance_mode_is_active += [
+        path("integrations/v1/", include("apps.integrations.urls", namespace="integrations")),
+    ]
 
 urlpatterns = [
     *paths_to_work_even_when_maintenance_mode_is_active,
