@@ -98,12 +98,27 @@ class AlertGroupActionsMixin:
         except (TypeError, json.JSONDecodeError):
             return None
 
+        # New slack messages from OnCall contain alert group primary key
+        try:
+            alert_group_ppk = value["alert_group_ppk"]
+            return AlertGroup.objects.get(public_primary_key=alert_group_ppk)
+        except (KeyError, TypeError):
+            pass
+
         try:
             alert_group_pk = value["alert_group_pk"]
+            organization_pk = value["organization_pk"]
         except (KeyError, TypeError):
             return None
 
-        return AlertGroup.objects.get(pk=alert_group_pk)
+        try:
+            # check organization as well for cases when the organization was migrated from "us" cluster to "eu" and
+            # slack message has an outdated payload with incorrect alert group id
+            alert_group = AlertGroup.objects.get(pk=alert_group_pk, channel__organization_id=organization_pk)
+        except AlertGroup.DoesNotExist:
+            return None
+
+        return alert_group
 
     def _get_alert_group_from_message(self, payload: EventPayload) -> AlertGroup | None:
         """
@@ -128,12 +143,27 @@ class AlertGroupActionsMixin:
             except (TypeError, json.JSONDecodeError):
                 continue
 
+            # New slack messages from OnCall contain alert group primary key
+            try:
+                alert_group_ppk = value["alert_group_ppk"]
+                return AlertGroup.objects.get(public_primary_key=alert_group_ppk)
+            except (KeyError, TypeError):
+                pass
+
             try:
                 alert_group_pk = value["alert_group_pk"]
+                organization_pk = value["organization_pk"]
             except (KeyError, TypeError):
                 continue
 
-            return AlertGroup.objects.get(pk=alert_group_pk)
+            try:
+                # check the organization as well for cases organization was migrated from "us" cluster to "eu" and
+                # the slack message has an outdated payload with incorrect alert group id
+                alert_group = AlertGroup.objects.get(pk=alert_group_pk, channel__organization_id=organization_pk)
+            except AlertGroup.DoesNotExist:
+                return None
+
+            return alert_group
         return None
 
     def _get_alert_group_from_slack_message_in_db(
