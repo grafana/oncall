@@ -112,6 +112,7 @@ def test_slack_renderer_stop_invite_button(
     assert json.loads(action["value"]) == {
         "organization_id": organization.pk,
         "alert_group_pk": alert_group.pk,
+        "alert_group_ppk": alert_group.public_primary_key,
         "invitation_id": invitation.pk,
     }
 
@@ -188,6 +189,7 @@ def test_slack_renderer_unattach_button(make_organization, make_alert_receive_ch
     assert json.loads(action["value"]) == {
         "organization_id": organization.pk,
         "alert_group_pk": alert_group.pk,
+        "alert_group_ppk": alert_group.public_primary_key,
     }
 
 
