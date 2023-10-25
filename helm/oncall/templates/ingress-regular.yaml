@@ -53,4 +53,13 @@ spec:
             port:
               number: 80
       {{- end }}
+      {{ if .Values.integrations.enabled }}
+      - path: /integrations
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ include "oncall.integrations.fullname" . }}
+            port:
+              number: 8080
+      {{- end }}
 {{- end }}

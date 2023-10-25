@@ -1,0 +1,105 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "oncall.integrations.fullname" . }}
+  labels:
+    {{- include "oncall.integrations.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.integrations.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "oncall.integrations.selectorLabels" . | nindent 6 }}
+  strategy:
+    {{- toYaml .Values.integrations.updateStrategy | nindent 4 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        random-annotation: {{ randAlphaNum 10 | lower }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "oncall.integrations.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "oncall.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      initContainers:
+        {{- include "oncall.initContainer" . | indent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          {{- if .Values.oncall.devMode }}
+          command: ["sh", "-c", "uwsgi --disable-logging --py-autoreload 3 --ini uwsgi.ini"]
+          {{- end }}
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          env:
+            {{- include "snippet.oncall.env" . | nindent 12 }}
+            {{- include "snippet.oncall.slack.env" . | nindent 12 }}
+            {{- include "snippet.oncall.telegram.env" . | nindent 12 }}
+            {{- include "snippet.oncall.smtp.env" . | nindent 12 }}
+            {{- include "snippet.oncall.twilio.env" . | nindent 12 }}
+            {{- include "snippet.oncall.exporter.env" . | nindent 12 }}
+            {{- include "snippet.db.env" . | nindent 12 }}
+            {{- include "snippet.broker.env" . | nindent 12 }}
+            {{- include "oncall.extraEnvs" . | nindent 12 }}
+            - name: ROOT_URLCONF
+              value: "engine.integrations_urls"
+          livenessProbe:
+            httpGet:
+              path: /health/
+              port: http
+            periodSeconds: 60
+            timeoutSeconds: 3
+          readinessProbe:
+            httpGet:
+              path: /ready/
+              port: http
+            periodSeconds: 60
+            timeoutSeconds: 3
+          startupProbe:
+            httpGet:
+              path: /startupprobe/
+              port: http
+            periodSeconds: 10
+            timeoutSeconds: 3
+          resources:
+            {{- toYaml .Values.integrations.resources | nindent 12 }}
+          {{- with .Values.integrations.extraVolumeMounts }}
+          volumeMounts: {{- . | toYaml | nindent 12 }}
+          {{- end }}
+      {{- with .Values.integrations.extraContainers }}
+        {{- tpl . $ | nindent 8 }}
+      {{- end }}
+      {{- with .Values.integrations.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.integrations.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.integrations.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.integrations.topologySpreadConstraints }}
+      topologySpreadConstraints:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.integrations.priorityClassName }}
+      priorityClassName: {{ . }}
+      {{- end }}
+      {{- with .Values.integrations.extraVolumes }}
+      volumes: {{- . | toYaml | nindent 8 }}
+      {{- end }}

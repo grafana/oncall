@@ -19,6 +19,8 @@
   value: "admin"
 - name: OSS
   value: "True"
+- name: DETACHED_INTEGRATIONS_SERVER
+  value: {{ .Values.integrations.enabled | toString | title | quote }}
 {{- include "snippet.oncall.uwsgi" . }}
 - name: BROKER_TYPE
   value: {{ .Values.broker.type | default "rabbitmq" }}
