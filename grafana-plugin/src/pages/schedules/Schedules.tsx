@@ -37,7 +37,6 @@ import { PAGE, PLUGIN_ROOT, TEXT_ELLIPSIS_CLASS } from 'utils/consts';
 import styles from './Schedules.module.css';
 
 const cx = cn.bind(styles);
-const PAGE_SIZE_DEFAULT = 15;
 
 interface SchedulesPageProps extends WithStoreProps, RouteComponentProps, PageProps {}
 
@@ -127,7 +126,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
             loading={!results}
             pagination={{
               page,
-              total: Math.ceil((count || 0) / (page_size || PAGE_SIZE_DEFAULT)),
+              total: results ? Math.ceil((count || 0) / page_size) : 0,
               onChange: this.handlePageChange,
             }}
             rowKey="id"

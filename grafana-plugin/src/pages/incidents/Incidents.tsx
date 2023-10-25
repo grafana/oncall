@@ -2,7 +2,6 @@ import React, { ReactElement, SyntheticEvent } from 'react';
 
 import { Button, HorizontalGroup, Icon, LoadingPlaceholder, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
-import { get } from 'lodash-es';
 import { observer } from 'mobx-react';
 import moment from 'moment-timezone';
 import Emoji from 'react-emoji-render';
@@ -353,7 +352,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
       return null;
     }
 
-    const results = store.alertGroupStore.getAlertSearchResult('default');
+    const { results } = store.alertGroupStore.getAlertSearchResult('default');
 
     const hasSelected = selectedIncidentIds.length > 0;
     const hasInvalidatedAlert = Boolean(
@@ -436,9 +435,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
       store: { alertGroupStore, filtersStore },
     } = this.props;
 
-    const results = alertGroupStore.getAlertSearchResult('default');
-    const prev = get(alertGroupStore.alertsSearchResult, `default.prev`);
-    const next = get(alertGroupStore.alertsSearchResult, `default.next`);
+    const { results, prev, next } = alertGroupStore.getAlertSearchResult('default');
     const isLoading = alertGroupStore.alertGroupsLoading || filtersStore.options['incidents'] === undefined;
 
     if (results && !results.length) {

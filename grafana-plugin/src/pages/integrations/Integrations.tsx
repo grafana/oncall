@@ -42,7 +42,6 @@ import styles from './Integrations.module.scss';
 
 const cx = cn.bind(styles);
 const FILTERS_DEBOUNCE_MS = 500;
-const ITEMS_PER_PAGE = 15;
 
 interface IntegrationsState extends PageBaseState {
   integrationsFilters: Record<string, any>;
@@ -131,7 +130,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
     const { alertReceiveChannelId, confirmationModal } = this.state;
     const { alertReceiveChannelStore } = store;
 
-    const { count, results } = alertReceiveChannelStore.getPaginatedSearchResult();
+    const { count, results, page_size } = alertReceiveChannelStore.getPaginatedSearchResult();
 
     return (
       <>
@@ -175,7 +174,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
               rowClassName={cx('integrations-table-row')}
               pagination={{
                 page: store.filtersStore.currentTablePageNum[PAGE.Integrations],
-                total: Math.ceil((count || 0) / ITEMS_PER_PAGE),
+                total: results ? Math.ceil((count || 0) / page_size) : 0,
                 onChange: this.handleChangePage,
               }}
             />

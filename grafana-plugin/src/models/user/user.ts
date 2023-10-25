@@ -17,7 +17,7 @@ import { User } from './user.types';
 
 export class UserStore extends BaseStore {
   @observable.shallow
-  searchResult: { count?: number; results?: Array<User['pk']> } = {};
+  searchResult: { count?: number; results?: Array<User['pk']>; page_size?: number } = {};
 
   @observable.shallow
   items: { [pk: string]: User } = {};
@@ -122,7 +122,7 @@ export class UserStore extends BaseStore {
       return;
     }
 
-    const { count, results } = response;
+    const { count, results, page_size } = response;
 
     this.items = {
       ...this.items,
@@ -140,6 +140,7 @@ export class UserStore extends BaseStore {
 
     this.searchResult = {
       count,
+      page_size,
       results: results.map((item: User) => item.pk),
     };
 
@@ -148,6 +149,7 @@ export class UserStore extends BaseStore {
 
   getSearchResult() {
     return {
+      page_size: this.searchResult.page_size,
       count: this.searchResult.count,
       results: this.searchResult.results && this.searchResult.results.map((userPk: User['pk']) => this.items?.[userPk]),
     };

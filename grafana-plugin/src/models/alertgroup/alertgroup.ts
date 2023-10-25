@@ -44,7 +44,12 @@ export class AlertGroupStore extends BaseStore {
   incidentsItemsPerPage?: number;
 
   @observable
-  alertsSearchResult: any = {};
+  alertsSearchResult: {
+    prev?: string;
+    next?: string;
+    results?: any;
+    page_size?: number;
+  } = {};
 
   @observable
   alerts = new Map<string, Alert>();
@@ -87,29 +92,6 @@ export class AlertGroupStore extends BaseStore {
     return await makeRequest(`${this.path}${pk}/unattach/`, {
       method: 'POST',
     }).catch(showApiError);
-  }
-
-  @action // FIXME for `attach to` feature ONLY
-  async updateItems(query = '') {
-    const { results } = await makeRequest(`${this.path}`, {
-      params: { search: query, resolved: false, is_root: true },
-    });
-
-    this.items = {
-      ...this.items,
-      ...results.reduce(
-        (acc: { [key: string]: Alert }, item: Alert) => ({
-          ...acc,
-          [item.pk]: item,
-        }),
-        {}
-      ),
-    };
-
-    this.searchResult = {
-      ...this.searchResult,
-      [query]: results.map((item: Alert) => item.pk),
-    };
   }
 
   async updateItem(id: Alert['pk']) {
@@ -271,11 +253,11 @@ export class AlertGroupStore extends BaseStore {
       results,
       next: nextRaw,
       previous: previousRaw,
+      page_size,
     } = await makeRequest(`${this.path}`, {
       params: {
         ...this.incidentFilters,
         cursor: this.incidentsCursor,
-        perpage: this.incidentsItemsPerPage,
         is_root: true,
       },
     }).catch(refreshPageError);
@@ -298,17 +280,24 @@ export class AlertGroupStore extends BaseStore {
       prev: prevCursor,
       next: nextCursor,
       results: results.map((alert: Alert) => alert.pk),
+      page_size,
     };
 
     this.alertGroupsLoading = false;
   }
 
   getAlertSearchResult(query: string) {
-    if (!this.alertsSearchResult[query]) {
-      return undefined;
+    const result = this.alertsSearchResult[query];
+    if (!result) {
+      return {};
     }
 
-    return this.alertsSearchResult[query].results.map((pk: Alert['pk']) => this.alerts.get(pk));
+    return {
+      prev: result.prev,
+      next: result.next,
+      page_size: result.page_size,
+      results: result.results.map((pk: Alert['pk']) => this.alerts.get(pk)),
+    };
   }
 
   @action
