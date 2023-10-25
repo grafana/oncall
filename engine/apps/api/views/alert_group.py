@@ -516,7 +516,11 @@ class AlertGroupView(
                 rn = ResolutionNote.objects.create(
                     alert_group=alert_group,
                     author=self.request.user,
-                    source=ResolutionNote.Source.WEB,
+                    source=(
+                        ResolutionNote.Source.MOBILE_APP
+                        if isinstance(self.request.successful_authenticator, MobileAppAuthTokenAuthentication)
+                        else ResolutionNote.Source.WEB
+                    ),
                     message_text=resolution_note_text[:3000],  # trim text to fit in the db field
                 )
                 send_update_resolution_note_signal.apply_async(

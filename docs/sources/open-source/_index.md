@@ -213,21 +213,22 @@ Grafana OnCall supports Twilio SMS and phone call notifications delivery. If you
 notifications using Twilio, complete the following steps:
 
 1. Set `GRAFANA_CLOUD_NOTIFICATIONS_ENABLED` as **False** to ensure the Grafana OSS <-> Cloud connector is disabled.
-1. From your **OnCall** environment, select **Env Variables** and configure all variables starting with `TWILIO_`.
+2. From your **OnCall** environment, select **Env Variables** and configure all variables starting with `TWILIO_`.
 
 ### Zvonok.com
 
 Grafana OnCall supports Zvonok.com phone call notifications delivery. To configure phone call notifications using
 Zvonok.com, complete the following steps:
 
-1. Change `PHONE_PROVIDER` value to `zvonok`.
-2. Create a public API key on the Profile->Settings page, and assign its value to `ZVONOK_API_KEY`.
-3. Create campaign and assign its ID value to `ZVONOK_CAMPAIGN_ID`.
-4. If you are planning to use pre-recorded audio instead of a speech synthesizer, you can copy the ID of the audio clip
+1. Set `GRAFANA_CLOUD_NOTIFICATIONS_ENABLED` as **False** to ensure the Grafana OSS <-> Cloud connector is disabled.
+2. Change `PHONE_PROVIDER` value to `zvonok`.
+3. Create a public API key on the Profile->Settings page, and assign its value to `ZVONOK_API_KEY`.
+4. Create campaign and assign its ID value to `ZVONOK_CAMPAIGN_ID`.
+5. If you are planning to use pre-recorded audio instead of a speech synthesizer, you can copy the ID of the audio clip
    to the variable `ZVONOK_AUDIO_ID` (optional step).
-5. To make a call with a specific voice, you can set the `ZVONOK_SPEAKER_ID`.
+6. To make a call with a specific voice, you can set the `ZVONOK_SPEAKER_ID`.
    By default, the ID used is `Salli` (optional step).
-6. To process the call status, it is required to add a postback with the GET/POST method on the side of the zvonok.com
+7. To process the call status, it is required to add a postback with the GET/POST method on the side of the zvonok.com
    service with the following format (optional step):
    `${ONCALL_BASE_URL}/zvonok/call_status_events?campaign_id={ct_campaign_id}&call_id={ct_call_id}&status={ct_status}&user_choice={ct_user_choice}`
 

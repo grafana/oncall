@@ -16,6 +16,7 @@ from apps.api.permissions import LegacyAccessControlRole
         (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
         (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
         (LegacyAccessControlRole.VIEWER, status.HTTP_200_OK),
+        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_slack_channels_list_permissions(
@@ -46,6 +47,7 @@ def test_slack_channels_list_permissions(
         (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
         (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
         (LegacyAccessControlRole.VIEWER, status.HTTP_200_OK),
+        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_slack_channels_detail_permissions(
