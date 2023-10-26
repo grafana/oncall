@@ -178,13 +178,16 @@ class FinishDirectPaging(scenario_step.ScenarioStep):
         except DirectPagingUserTeamValidationError:
             # show validation warning messages
             validation_errors: Block.AnyBlocks = [
-                {
-                    "type": "section",
-                    "text": {
-                        "type": "mrkdwn",
-                        "text": ":warning: At least one team or one user must be selected to directly page",
+                typing.cast(
+                    Block.Section,
+                    {
+                        "type": "section",
+                        "text": {
+                            "type": "mrkdwn",
+                            "text": ":warning: At least one team or one user must be selected to directly page",
+                        },
                     },
-                }
+                )
             ]
 
             return Response(

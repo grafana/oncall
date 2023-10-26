@@ -1850,6 +1850,7 @@ def test_alert_group_paged_users(
             "important": None,
             "name": user2.name,
             "username": user2.username,
+            "teams": [],
         }
     ]
 

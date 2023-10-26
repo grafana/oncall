@@ -6,7 +6,7 @@ from rest_framework.response import Response
 
 from apps.alerts.models import AlertReceiveChannel
 from apps.api.permissions import RBACPermission
-from apps.api.serializers.team import TeamSerializer, TeamSerializerContext
+from apps.api.serializers.team import TeamSerializer
 from apps.auth_token.auth import PluginAuthentication
 from apps.mobile_app.auth import MobileAppAuthTokenAuthentication
 from apps.schedules.ical_utils import get_oncall_users_for_multiple_schedules
@@ -43,7 +43,7 @@ class TeamViewSet(PublicPrimaryKeyMixin, mixins.ListModelMixin, mixins.UpdateMod
         team_schedules = self.request.user.organization.oncall_schedules.filter(team__id__in=team_ids)
         return get_oncall_users_for_multiple_schedules(team_schedules)
 
-    def get_serializer_context(self) -> TeamSerializerContext:
+    def get_serializer_context(self):
         context = super().get_serializer_context()
         context.update({"schedules_with_oncall_users": self.schedules_with_oncall_users})
         return context
@@ -57,6 +57,7 @@ class TeamViewSet(PublicPrimaryKeyMixin, mixins.ListModelMixin, mixins.UpdateMod
             orgs_direct_paging_integrations = AlertReceiveChannel.get_orgs_direct_paging_integrations(
                 self.request.user.organization
             )
+            print("YOOOOO", orgs_direct_paging_integrations)
             contactable_direct_paging_integrations = [i for i in orgs_direct_paging_integrations if i.is_contactable]
             team_ids = [i.team.pk for i in contactable_direct_paging_integrations if i.team is not None]
 

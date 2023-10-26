@@ -4,6 +4,7 @@ exports[`AddRespondersPopup if a team is selected it shows an info alert 1`] = `
 <div>
   <div
     class="add-responders-dropdown"
+    data-testid="add-responders-popup"
   >
     <div
       class="css-11uftlx-input-wrapper responders-filters"
@@ -116,6 +117,7 @@ exports[`AddRespondersPopup it renders teams properly 1`] = `
 <div>
   <div
     class="add-responders-dropdown"
+    data-testid="add-responders-popup"
   >
     <div
       class="css-11uftlx-input-wrapper responders-filters"
