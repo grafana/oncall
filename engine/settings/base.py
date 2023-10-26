@@ -314,8 +314,6 @@ SPECTACULAR_INCLUDED_PATHS = [
     "/features",
     "/alertgroups",
     "/labels",
-    "/teams",
-    # "/users",
 ]
 
 MIDDLEWARE = [
