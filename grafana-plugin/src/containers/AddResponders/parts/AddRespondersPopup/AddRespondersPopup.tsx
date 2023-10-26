@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, useRef, useContext, FC } from 'react';
+import React, { useState, useCallback, useEffect, useRef, FC } from 'react';
 
 import { Alert, HorizontalGroup, Icon, Input, RadioButtonGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
@@ -11,7 +11,6 @@ import Text from 'components/Text/Text';
 import { Alert as AlertType } from 'models/alertgroup/alertgroup.types';
 import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
 import { User } from 'models/user/user.types';
-import { DirectPagingContext } from 'state/context/directPaging';
 import { useStore } from 'state/useStore';
 import { useDebouncedCallback, useOnClickOutside } from 'utils/hooks';
 
@@ -51,10 +50,8 @@ const AddRespondersPopup = observer(
     setCurrentlyConsideredUser,
     setShowUserConfirmationModal,
   }: Props) => {
-    const { grafanaTeamStore, userStore } = useStore();
-
-    const { selectedTeamResponder, selectedUserResponders, addUserToSelectedUsers, updateSelectedTeam } =
-      useContext(DirectPagingContext);
+    const { directPagingStore, grafanaTeamStore, userStore } = useStore();
+    const { selectedTeamResponder, selectedUserResponders } = directPagingStore;
 
     const isCreateMode = mode === 'create';
 
@@ -92,20 +89,20 @@ const AddRespondersPopup = observer(
     const onClickUser = useCallback(
       async (user: User) => {
         if (isCreateMode && user.is_currently_oncall) {
-          addUserToSelectedUsers(user);
+          directPagingStore.addUserToSelectedUsers(user);
         } else {
           setCurrentlyConsideredUser(user);
           setShowUserConfirmationModal(true);
         }
         setVisible(false);
       },
-      [isCreateMode, userStore, addUserToSelectedUsers, setShowUserConfirmationModal, setVisible]
+      [isCreateMode, userStore, directPagingStore, setShowUserConfirmationModal, setVisible]
     );
 
     const addTeamResponder = useCallback(
       (team: GrafanaTeam) => {
         setVisible(false);
-        updateSelectedTeam(team);
+        directPagingStore.updateSelectedTeam(team);
 
         /**
          * can't select more than one team so we mind as well auto-switch the selected tab
@@ -113,7 +110,7 @@ const AddRespondersPopup = observer(
          */
         setActiveOption(TabOptions.Users);
       },
-      [setVisible, updateSelectedTeam, setActiveOption]
+      [setVisible, directPagingStore, setActiveOption]
     );
 
     const handleSearchTermChange = useDebouncedCallback(() => {
@@ -206,12 +203,12 @@ const AddRespondersPopup = observer(
 
     return (
       visible && (
-        <div ref={ref} className={cx('add-responders-dropdown')}>
+        <div data-testid="add-responders-popup" ref={ref} className={cx('add-responders-dropdown')}>
           <Input
             suffix={<Icon name="search" />}
             key="search"
             className={cx('responders-filters')}
-            data-test-id="add-responders-search-input"
+            data-testid="add-responders-search-input"
             value={searchTerm}
             placeholder="Search"
             // @ts-ignore

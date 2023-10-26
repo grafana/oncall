@@ -1,4 +1,4 @@
-import React, { useState, useContext, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 
 import { SelectableValue } from '@grafana/data';
 import { HorizontalGroup, Button, Modal, Alert, VerticalGroup, Icon } from '@grafana/ui';
@@ -12,7 +12,7 @@ import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/W
 import { Alert as AlertType } from 'models/alertgroup/alertgroup.types';
 import { getTimezone } from 'models/user/user.helpers';
 import { User } from 'models/user/user.types';
-import { DirectPagingContext } from 'state/context/directPaging';
+import { useStore } from 'state/useStore';
 import { UserActions } from 'utils/authorization';
 
 import styles from './AddResponders.module.scss';
@@ -28,7 +28,7 @@ type Props = {
   mode: 'create' | 'update';
   hideAddResponderButton?: boolean;
   existingPagedUsers?: AlertType['paged_users'];
-  onAddNewParticipant?: (responder: Omit<UserResponderType, 'type'>) => Promise<void>;
+  onAddNewParticipant?: (responder: UserResponderType) => Promise<void>;
   generateRemovePreviouslyPagedUserCallback?: (userId: string) => () => Promise<void>;
 };
 
@@ -56,14 +56,8 @@ const AddResponders = observer(
     onAddNewParticipant,
     generateRemovePreviouslyPagedUserCallback,
   }: Props) => {
-    const {
-      addUserToSelectedUsers,
-      selectedTeamResponder,
-      selectedUserResponders,
-      resetSelectedTeam,
-      generateRemoveSelectedUserHandler,
-      generateUpdateSelectedUserImportantStatusHandler,
-    } = useContext(DirectPagingContext);
+    const { directPagingStore } = useStore();
+    const { selectedTeamResponder, selectedUserResponders } = directPagingStore;
 
     const currentMoment = useMemo(() => dayjs(), []);
     const isCreateMode = mode === 'create';
@@ -95,7 +89,7 @@ const AddResponders = observer(
        * for the alert group
        */
       if (isCreateMode) {
-        addUserToSelectedUsers(currentlyConsideredUser);
+        directPagingStore.addUserToSelectedUsers(currentlyConsideredUser);
       } else {
         await onAddNewParticipant({
           important: Boolean(currentlyConsideredUserNotificationPolicy),
@@ -106,7 +100,7 @@ const AddResponders = observer(
       closeUserConfirmationModal();
     }, [
       isCreateMode,
-      addUserToSelectedUsers,
+      directPagingStore,
       currentlyConsideredUser,
       currentlyConsideredUserNotificationPolicy,
       closeUserConfirmationModal,
@@ -138,7 +132,7 @@ const AddResponders = observer(
               <>
                 <ul className={cx('responders-list')}>
                   {selectedTeamResponder && (
-                    <TeamResponder team={selectedTeamResponder} handleDelete={resetSelectedTeam} />
+                    <TeamResponder team={selectedTeamResponder} handleDelete={directPagingStore.resetSelectedTeam} />
                   )}
                   {existingPagedUsers.map((user) => (
                     <UserResponder
@@ -153,8 +147,10 @@ const AddResponders = observer(
                   {selectedUserResponders.map((responder, index) => (
                     <UserResponder
                       key={responder.data.pk}
-                      onImportantChange={generateUpdateSelectedUserImportantStatusHandler(index)}
-                      handleDelete={generateRemoveSelectedUserHandler(index)}
+                      onImportantChange={({ value: important }) =>
+                        directPagingStore.updateSelectedUserImportantStatus(index, Boolean(important))
+                      }
+                      handleDelete={() => directPagingStore.removeSelectedUser(index)}
                       {...responder}
                     />
                   ))}

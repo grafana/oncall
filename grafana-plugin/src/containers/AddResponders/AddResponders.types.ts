@@ -8,13 +8,7 @@ export enum NotificationPolicyValue {
   Important = 1,
 }
 
-export enum ResponderType {
-  User,
-  Team,
-}
-
 export type UserResponder = {
-  type: ResponderType;
   data: User;
   important: boolean;
 };

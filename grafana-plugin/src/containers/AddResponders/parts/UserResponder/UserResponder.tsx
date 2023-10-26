@@ -12,7 +12,7 @@ import NotificationPoliciesSelect from 'containers/AddResponders/parts/Notificat
 
 const cx = cn.bind(styles);
 
-type Props = Pick<UserResponderType, 'important' | 'data'> & {
+type Props = UserResponderType & {
   onImportantChange: (value: SelectableValue<number>, actionMeta: ActionMeta) => void | {};
   handleDelete: React.MouseEventHandler<HTMLButtonElement>;
   disableNotificationPolicySelect?: boolean;

@@ -36,7 +36,7 @@ import SourceCode from 'components/SourceCode/SourceCode';
 import Text from 'components/Text/Text';
 import AddResponders from 'containers/AddResponders/AddResponders';
 import { prepareForUpdate } from 'containers/AddResponders/AddResponders.helpers';
-import { ResponderType, UserResponder } from 'containers/AddResponders/AddResponders.types';
+import { UserResponder } from 'containers/AddResponders/AddResponders.types';
 import AttachIncidentForm from 'containers/AttachIncidentForm/AttachIncidentForm';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import {
@@ -448,7 +448,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
       },
     } = this.props;
 
-    await store.directPagingStore.updateAlertGroup(alertId, prepareForUpdate([{ type: ResponderType.User, ...user }]));
+    await store.directPagingStore.updateAlertGroup(alertId, prepareForUpdate([user]));
 
     this.update();
   };

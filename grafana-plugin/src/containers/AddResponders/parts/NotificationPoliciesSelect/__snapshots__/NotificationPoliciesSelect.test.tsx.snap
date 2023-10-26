@@ -7,7 +7,7 @@ exports[`NotificationPoliciesSelect disabled state 1`] = `
   >
     <span
       class="css-1f43avz-a11yText-A11yText"
-      id="react-select-4-live-region"
+      id="react-select-3-live-region"
     />
     <span
       aria-atomic="false"
@@ -33,7 +33,7 @@ exports[`NotificationPoliciesSelect disabled state 1`] = `
           aria-readonly="true"
           class="css-mohuvp-dummyInput-DummyInput"
           disabled=""
-          id="react-select-4-input"
+          id="react-select-3-input"
           inputmode="none"
           role="combobox"
           tabindex="0"

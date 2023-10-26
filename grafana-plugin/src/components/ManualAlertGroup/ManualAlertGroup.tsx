@@ -1,13 +1,13 @@
-import React, { FC, useCallback, useContext, useState } from 'react';
+import React, { FC, useCallback, useState } from 'react';
 
 import { Button, Drawer, HorizontalGroup, VerticalGroup } from '@grafana/ui';
+import { observer } from 'mobx-react';
 
 import GForm from 'components/GForm/GForm';
 import AddResponders from 'containers/AddResponders/AddResponders';
 import { prepareForUpdate } from 'containers/AddResponders/AddResponders.helpers';
 import { AlertReceiveChannelStore } from 'models/alert_receive_channel/alert_receive_channel';
 import { Alert as AlertType } from 'models/alertgroup/alertgroup.types';
-import { DirectPagingContext } from 'state/context/directPaging';
 import { useStore } from 'state/useStore';
 import { openWarningNotification } from 'utils';
 
@@ -23,18 +23,17 @@ const data: ManualAlertGroupFormData = {
   message: '',
 };
 
-const ManualAlertGroup: FC<ManualAlertGroupProps> = ({ onCreate, onHide }) => {
+const ManualAlertGroup: FC<ManualAlertGroupProps> = observer(({ onCreate, onHide }) => {
   const { directPagingStore } = useStore();
+  const { selectedTeamResponder, selectedUserResponders } = directPagingStore;
 
   const [formIsValid, setFormIsValid] = useState<boolean>(false);
-  const { selectedTeamResponder, selectedUserResponders, resetSelectedUsers, resetSelectedTeam } =
-    useContext(DirectPagingContext);
 
   const onHideDrawer = useCallback(() => {
-    resetSelectedUsers();
-    resetSelectedTeam();
+    directPagingStore.resetSelectedUsers();
+    directPagingStore.resetSelectedTeam();
     onHide();
-  }, [resetSelectedUsers, resetSelectedTeam, onHide]);
+  }, [directPagingStore, onHide]);
 
   const hasSelectedEitherATeamOrAUser = selectedTeamResponder !== null || selectedUserResponders.length > 0;
   const formIsSubmittable = hasSelectedEitherATeamOrAUser && formIsValid;
@@ -53,13 +52,13 @@ const ManualAlertGroup: FC<ManualAlertGroupProps> = ({ onCreate, onHide }) => {
         return;
       }
 
-      resetSelectedUsers();
-      resetSelectedTeam();
+      directPagingStore.resetSelectedUsers();
+      directPagingStore.resetSelectedTeam();
 
       onCreate(resp.alert_group_id);
       onHide();
     },
-    [prepareForUpdate, selectedTeamResponder, selectedUserResponders, resetSelectedUsers, resetSelectedTeam]
+    [prepareForUpdate, directPagingStore, selectedUserResponders, selectedTeamResponder]
   );
 
   return (
@@ -78,6 +77,6 @@ const ManualAlertGroup: FC<ManualAlertGroupProps> = ({ onCreate, onHide }) => {
       </VerticalGroup>
     </Drawer>
   );
-};
+});
 
 export default ManualAlertGroup;

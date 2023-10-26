@@ -1,12 +1,11 @@
 import React from 'react';
 
 import { render } from '@testing-library/react';
-
-import { DirectPagingContext } from 'state/context/directPaging';
+import { Provider } from 'mobx-react';
 
 import AddResponders from './AddResponders';
 
-jest.mock('./parts/AddRespondersPopup', () => ({
+jest.mock('./parts/AddRespondersPopup/AddRespondersPopup', () => ({
   __esModule: true,
   default: () => <div>AddRespondersPopup</div>,
 }));
@@ -19,11 +18,20 @@ describe('AddResponders', () => {
   const generateRemovePreviouslyPagedUserCallback = jest.fn();
 
   test.each<'create' | 'update'>(['create', 'update'])('should render properly in %s mode', (mode) => {
+    const mockStoreValue = {
+      directPagingStore: {
+        selectedTeamResponder: null,
+        selectedUserResponders: [],
+      },
+    };
+
     const component = render(
-      <AddResponders
-        mode={mode}
-        generateRemovePreviouslyPagedUserCallback={generateRemovePreviouslyPagedUserCallback}
-      />
+      <Provider store={mockStoreValue}>
+        <AddResponders
+          mode={mode}
+          generateRemovePreviouslyPagedUserCallback={generateRemovePreviouslyPagedUserCallback}
+        />
+      </Provider>
     );
     expect(component.container).toMatchSnapshot();
   });
@@ -31,46 +39,55 @@ describe('AddResponders', () => {
   test.each([true, false])(
     'should properly display the add responders button when hideAddResponderButton is %s',
     (hideAddResponderButton) => {
+      const mockStoreValue = {
+        directPagingStore: {
+          selectedTeamResponder: null,
+          selectedUserResponders: [],
+        },
+      };
+
       const component = render(
-        <AddResponders
-          mode="create"
-          hideAddResponderButton={hideAddResponderButton}
-          generateRemovePreviouslyPagedUserCallback={generateRemovePreviouslyPagedUserCallback}
-        />
+        <Provider store={mockStoreValue}>
+          <AddResponders
+            mode="create"
+            hideAddResponderButton={hideAddResponderButton}
+            generateRemovePreviouslyPagedUserCallback={generateRemovePreviouslyPagedUserCallback}
+          />
+        </Provider>
       );
       expect(component.container).toMatchSnapshot();
     }
   );
 
   test('should render selected team and users properly', () => {
-    const mockContextValue = {
-      selectedTeamResponder: {
-        id: 'asdfasdf',
-        avatar_url: 'https://example.com',
-        name: 'my test team',
+    const mockStoreValue = {
+      directPagingStore: {
+        selectedTeamResponder: {
+          id: 'asdfasdf',
+          avatar_url: 'https://example.com',
+          name: 'my test team',
+        },
+        selectedUserResponders: [
+          {
+            data: {
+              pk: 'mcvnm',
+              avatar: 'https://example.com/user123.png',
+              username: 'my test user',
+            },
+          },
+          {
+            data: {
+              pk: 'iuo',
+              avatar: 'https://example.com/user456.png',
+              username: 'my test user2',
+            },
+          },
+        ],
       },
-      selectedUserResponders: [
-        {
-          data: {
-            pk: 'mcvnm',
-            avatar: 'https://example.com/user123.png',
-            username: 'my test user',
-          },
-        },
-        {
-          data: {
-            pk: 'iuo',
-            avatar: 'https://example.com/user456.png',
-            username: 'my test user2',
-          },
-        },
-      ],
-      generateRemoveSelectedUserHandler: jest.fn(),
-      generateUpdateSelectedUserImportantStatusHandler: jest.fn(),
-    } as any;
+    };
 
     const component = render(
-      <DirectPagingContext.Provider value={mockContextValue}>
+      <Provider store={mockStoreValue}>
         <AddResponders
           mode="create"
           existingPagedUsers={[
@@ -82,7 +99,7 @@ describe('AddResponders', () => {
           ]}
           generateRemovePreviouslyPagedUserCallback={generateRemovePreviouslyPagedUserCallback}
         />
-      </DirectPagingContext.Provider>
+      </Provider>
     );
     expect(component.container).toMatchSnapshot();
   });
