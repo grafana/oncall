@@ -1,4 +1,4 @@
-integrations.enabled=true -> should create integrations deployment (default):
+detached_integrations.enabled=true -> should create integrations deployment:
   1: |
     - env:
         - name: BASE_URL

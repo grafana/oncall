@@ -1,17 +1,17 @@
-{{- if .Values.integrations.enabled -}}
+{{- if .Values.detached_integrations.enabled -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "oncall.integrations.fullname" . }}
+  name: {{ include "oncall.detached_integrations.fullname" . }}
   labels:
-    {{- include "oncall.integrations.labels" . | nindent 4 }}
+    {{- include "oncall.detached_integrations.labels" . | nindent 4 }}
 spec:
-  replicas: {{ .Values.integrations.replicaCount }}
+  replicas: {{ .Values.detached_integrations.replicaCount }}
   selector:
     matchLabels:
-      {{- include "oncall.integrations.selectorLabels" . | nindent 6 }}
+      {{- include "oncall.detached_integrations.selectorLabels" . | nindent 6 }}
   strategy:
-    {{- toYaml .Values.integrations.updateStrategy | nindent 4 }}
+    {{- toYaml .Values.detached_integrations.updateStrategy | nindent 4 }}
   template:
     metadata:
       {{- with .Values.podAnnotations }}
@@ -20,7 +20,7 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:
-        {{- include "oncall.integrations.selectorLabels" . | nindent 8 }}
+        {{- include "oncall.detached_integrations.selectorLabels" . | nindent 8 }}
     spec:
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
@@ -75,33 +75,33 @@ spec:
             periodSeconds: 10
             timeoutSeconds: 3
           resources:
-            {{- toYaml .Values.integrations.resources | nindent 12 }}
-          {{- with .Values.integrations.extraVolumeMounts }}
+            {{- toYaml .Values.detached_integrations.resources | nindent 12 }}
+          {{- with .Values.detached_integrations.extraVolumeMounts }}
           volumeMounts: {{- . | toYaml | nindent 12 }}
           {{- end }}
-      {{- with .Values.integrations.extraContainers }}
+      {{- with .Values.detached_integrations.extraContainers }}
         {{- tpl . $ | nindent 8 }}
       {{- end }}
-      {{- with .Values.integrations.nodeSelector }}
+      {{- with .Values.detached_integrations.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.integrations.affinity }}
+      {{- with .Values.detached_integrations.affinity }}
       affinity:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.integrations.tolerations }}
+      {{- with .Values.detached_integrations.tolerations }}
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.integrations.topologySpreadConstraints }}
+      {{- with .Values.detached_integrations.topologySpreadConstraints }}
       topologySpreadConstraints:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.integrations.priorityClassName }}
+      {{- with .Values.detached_integrations.priorityClassName }}
       priorityClassName: {{ . }}
       {{- end }}
-      {{- with .Values.integrations.extraVolumes }}
+      {{- with .Values.detached_integrations.extraVolumes }}
       volumes: {{- . | toYaml | nindent 8 }}
       {{- end }}
 {{- end -}}

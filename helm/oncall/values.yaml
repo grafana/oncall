@@ -95,9 +95,16 @@ engine:
   # - mountPath: /mnt/redis-tls
   #   name: redis-tls
 
+
+detached_integrations_service:
+  enabled: false
+  type: LoadBalancer
+  port: 8080
+  annotations: {}
+
 # Integrations pods configuration
-integrations:
-  enabled: true
+detached_integrations:
+  enabled: false
   replicaCount: 1
   resources:
     {}

@@ -1,9 +1,9 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "oncall.integrations.fullname" . }}
+  name: {{ include "oncall.detached_integrations.fullname" . }}
   labels:
-    {{- include "oncall.integrations.labels" . | nindent 4 }}
+    {{- include "oncall.detached_integrations.labels" . | nindent 4 }}
 spec:
   type: ClusterIP
   ports:
@@ -12,4 +12,4 @@ spec:
       protocol: TCP
       name: http
   selector:
-    {{- include "oncall.integrations.selectorLabels" . | nindent 4 }}
+    {{- include "oncall.detached_integrations.selectorLabels" . | nindent 4 }}

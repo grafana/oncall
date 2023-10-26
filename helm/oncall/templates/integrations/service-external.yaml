@@ -1,24 +1,24 @@
-{{- if .Values.service.enabled }}
+{{- if .Values.detached_integrations_service.enabled }}
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "oncall.integrations.fullname" . }}-external
+  name: {{ include "oncall.detached_integrations.fullname" . }}-external
   labels:
-    {{- include "oncall.integrations.labels" . | nindent 4 }}
-  {{- with .Values.service.annotations }}
+    {{- include "oncall.detached_integrations.labels" . | nindent 4 }}
+  {{- with .Values.detached_integrations_service.annotations }}
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
 spec:
-  type: {{ .Values.service.type }}
+  type: {{ .Values.detached_integrations_service.type }}
   ports:
-    - port: {{ .Values.service.port }}
+    - port: {{ .Values.detached_integrations_service.port }}
       targetPort: http
       protocol: TCP
       name: http
-      {{- if and (eq .Values.service.type "NodePort") (.Values.service.nodePort) }}
-      nodePort: {{ .Values.service.nodePort }}
+      {{- if and (eq .Values.detached_integrations_service.type "NodePort") (.Values.detached_integrations_service.nodePort) }}
+      nodePort: {{ .Values.detached_integrations_service.nodePort }}
       {{- end }}
   selector:
-    {{- include "oncall.integrations.selectorLabels" . | nindent 4 }}
+    {{- include "oncall.detached_integrations.selectorLabels" . | nindent 4 }}
 {{- end }}

@@ -6,14 +6,14 @@ release:
 chart:
   appVersion: v1.3.39
 tests:
-  - it: integrations.enabled=false -> should not create deployment
-    set:
-      integrations.enabled: false
+  - it: detached_integrations.enabled=false -> should not create deployment (default)
     asserts:
       - hasDocuments:
           count: 0
 
-  - it: integrations.enabled=true -> should create integrations deployment (default)
+  - it: detached_integrations.enabled=true -> should create integrations deployment
+    set:
+      detached_integrations.enabled: true
     asserts:
       - containsDocument:
           kind: Deployment
