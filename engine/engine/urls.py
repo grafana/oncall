@@ -15,20 +15,24 @@ Including another URLconf
 """
 from django.conf import settings
 from django.conf.urls.static import static
-from django.urls import include, path
+from django.urls import URLPattern, URLResolver, include, path
 
 from .views import HealthCheckView, MaintenanceModeStatusView, ReadinessCheckView, StartupProbeView
 
-paths_to_work_even_when_maintenance_mode_is_active = [
+paths_to_work_even_when_maintenance_mode_is_active: list[URLPattern | URLResolver] = [
     path("", HealthCheckView.as_view()),
     path("health/", HealthCheckView.as_view()),
     path("ready/", ReadinessCheckView.as_view()),
     path("startupprobe/", StartupProbeView.as_view()),
-    path("integrations/v1/", include("apps.integrations.urls", namespace="integrations")),
     path("api/internal/v1/maintenance-mode-status", MaintenanceModeStatusView.as_view()),
 ]
 
-urlpatterns = [
+if not settings.DETACHED_INTEGRATIONS_SERVER:
+    paths_to_work_even_when_maintenance_mode_is_active += [
+        path("integrations/v1/", include("apps.integrations.urls", namespace="integrations")),
+    ]
+
+urlpatterns: list[URLPattern | URLResolver] = [
     *paths_to_work_even_when_maintenance_mode_is_active,
     path("api/gi/v1/", include("apps.api_for_grafana_incident.urls", namespace="api-gi")),
     path("api/internal/v1/", include("apps.api.urls", namespace="api-internal")),
