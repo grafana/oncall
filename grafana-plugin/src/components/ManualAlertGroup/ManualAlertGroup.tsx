@@ -1,4 +1,4 @@
-import React, { FC, useCallback, useContext } from 'react';
+import React, { FC, useCallback, useContext, useState } from 'react';
 
 import { Button, Drawer, HorizontalGroup, VerticalGroup } from '@grafana/ui';
 
@@ -26,6 +26,7 @@ const data: ManualAlertGroupFormData = {
 const ManualAlertGroup: FC<ManualAlertGroupProps> = ({ onCreate, onHide }) => {
   const { directPagingStore } = useStore();
 
+  const [formIsValid, setFormIsValid] = useState<boolean>(false);
   const { selectedTeamResponder, selectedUserResponders, resetSelectedUsers, resetSelectedTeam } =
     useContext(DirectPagingContext);
 
@@ -35,7 +36,8 @@ const ManualAlertGroup: FC<ManualAlertGroupProps> = ({ onCreate, onHide }) => {
     onHide();
   }, [resetSelectedUsers, resetSelectedTeam, onHide]);
 
-  const hasSelectedEitherATeamOrAUser = selectedTeamResponder !== undefined || selectedUserResponders.length > 0;
+  const hasSelectedEitherATeamOrAUser = selectedTeamResponder !== null || selectedUserResponders.length > 0;
+  const formIsSubmittable = hasSelectedEitherATeamOrAUser && formIsValid;
 
   // TODO: add a loading state while we're waiting to hear back from the API when submitting
   // const [directPagingLoading, setdirectPagingLoading] = useState<boolean>();
@@ -63,14 +65,13 @@ const ManualAlertGroup: FC<ManualAlertGroupProps> = ({ onCreate, onHide }) => {
   return (
     <Drawer scrollableContent title="New escalation" onClose={onHideDrawer} closeOnMaskClick={false} width="70%">
       <VerticalGroup>
-        <GForm form={manualAlertFormConfig} data={data} onSubmit={handleFormSubmit} />
+        <GForm form={manualAlertFormConfig} data={data} onSubmit={handleFormSubmit} onChange={setFormIsValid} />
         <AddResponders mode="create" />
         <HorizontalGroup justify="flex-end">
           <Button variant="secondary" onClick={onHideDrawer}>
             Cancel
           </Button>
-          {/* TODO: make the button be disabled if the form is not valid */}
-          <Button type="submit" form={manualAlertFormConfig.name} disabled={!hasSelectedEitherATeamOrAUser}>
+          <Button type="submit" form={manualAlertFormConfig.name} disabled={!formIsSubmittable}>
             Create
           </Button>
         </HorizontalGroup>

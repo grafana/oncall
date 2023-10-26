@@ -1,8 +1,9 @@
 import React from 'react';
 
-import { Field, Form, Input, InputControl, Select, Switch, TextArea } from '@grafana/ui';
+import { Field, Form, FormFieldErrors, Input, InputControl, Select, Switch, TextArea } from '@grafana/ui';
 import { capitalCase } from 'change-case';
 import cn from 'classnames/bind';
+import { isEmpty } from 'lodash-es';
 
 import Collapse from 'components/Collapse/Collapse';
 import { FormItem, FormItemType } from 'components/GForm/GForm.types';
@@ -20,6 +21,7 @@ interface GFormProps {
   form: { name: string; fields: FormItem[] };
   data: any;
   onSubmit: (data: any) => void;
+  onChange?: (formIsValid: boolean) => void;
 
   customFieldSectionRenderer?: React.FC<CustomFieldSectionRendererProps>;
   onFieldRender?: (
@@ -190,7 +192,13 @@ class GForm extends React.Component<GFormProps, {}> {
               ? formItem.getDisabled(getValues())
               : false;
 
-            const formControl = renderFormControl(formItem, register, control, disabled, this.onChange);
+            const formControl = renderFormControl(
+              formItem,
+              register,
+              control,
+              disabled,
+              this.onChange.bind(this, errors)
+            );
 
             if (CustomFieldSectionRenderer && formItem.type === FormItemType.Other && formItem.render) {
               return (
@@ -245,7 +253,13 @@ class GForm extends React.Component<GFormProps, {}> {
     );
   }
 
-  onChange = (field: any, value: string) => {
+  onChange = (errors: FormFieldErrors, field: any, value: string) => {
+    const formIsValid = isEmpty(errors);
+
+    if (this.props.onChange) {
+      this.props.onChange(formIsValid);
+    }
+
     field?.onChange(value);
     this.forceUpdate();
   };
