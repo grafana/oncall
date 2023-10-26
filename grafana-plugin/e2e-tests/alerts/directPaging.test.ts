@@ -8,7 +8,7 @@ import { goToOnCallPage } from '../utils/navigation';
  * it will show up in the dropdown (ie. create an escalation chain and assign it to the integration)
  */
 
-test.only('we can directly page a user', async ({ adminRolePage }) => {
+test('we can directly page a user', async ({ adminRolePage }) => {
   const message = 'Help me please!';
   const { page } = adminRolePage;
 
