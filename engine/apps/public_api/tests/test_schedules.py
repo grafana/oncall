@@ -393,24 +393,24 @@ def test_update_ical_url_overrides_calendar_schedule(
     with patch("common.api_helpers.utils.validate_ical_url", return_value=ICAL_URL):
         response = client.put(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
 
-        result = {
-            "id": schedule.public_primary_key,
-            "team_id": None,
-            "name": schedule.name,
-            "type": "calendar",
-            "time_zone": schedule.time_zone,
-            "on_call_now": [],
-            "shifts": [],
-            "slack": {
-                "channel_id": "SLACKCHANNELID",
-                "user_group_id": None,
-            },
-            "ical_url_overrides": ICAL_URL,
-            "enable_web_overrides": False,
-        }
+    result = {
+        "id": schedule.public_primary_key,
+        "team_id": None,
+        "name": schedule.name,
+        "type": "calendar",
+        "time_zone": schedule.time_zone,
+        "on_call_now": [],
+        "shifts": [],
+        "slack": {
+            "channel_id": "SLACKCHANNELID",
+            "user_group_id": None,
+        },
+        "ical_url_overrides": ICAL_URL,
+        "enable_web_overrides": False,
+    }
 
-        assert response.status_code == status.HTTP_200_OK
-        assert response.json() == result
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == result
 
 
 @pytest.mark.django_db
@@ -633,7 +633,7 @@ def test_create_ical_schedule(make_organization_and_user_with_token):
     with patch(
         "apps.public_api.serializers.schedules_ical.ScheduleICalSerializer.validate_ical_url_primary",
         return_value=ICAL_URL,
-    ):
+    ), patch("apps.schedules.tasks.refresh_ical_final_schedule.apply_async") as mock_refresh_final:
         response = client.post(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
     schedule = OnCallSchedule.objects.get(public_primary_key=response.data["id"])
 
@@ -653,6 +653,7 @@ def test_create_ical_schedule(make_organization_and_user_with_token):
 
     assert response.status_code == status.HTTP_201_CREATED
     assert response.json() == result
+    mock_refresh_final.assert_called_once_with((schedule.pk,))
 
 
 @pytest.mark.django_db
@@ -680,7 +681,8 @@ def test_update_ical_schedule(
 
     assert schedule.name != data["name"]
 
-    response = client.put(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
+    with patch("apps.schedules.tasks.refresh_ical_final_schedule.apply_async") as mock_refresh_final:
+        response = client.put(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
 
     result = {
         "id": schedule.public_primary_key,
@@ -700,6 +702,7 @@ def test_update_ical_schedule(
     schedule.refresh_from_db()
     assert schedule.name == data["name"]
     assert response.json() == result
+    assert not mock_refresh_final.called
 
 
 @pytest.mark.django_db

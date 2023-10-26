@@ -81,18 +81,16 @@ def manage_responders_setup(
 
 @pytest.mark.django_db
 def test_initial_state(manage_responders_setup):
+    organization, user, slack_team_identity, slack_user_identity = manage_responders_setup
     payload = {
         "trigger_id": TRIGGER_ID,
         "actions": [
             {
                 "type": "button",
-                "value": json.dumps({"organization_id": ORGANIZATION_ID, "alert_group_pk": ALERT_GROUP_ID}),
+                "value": json.dumps({"organization_id": organization.pk, "alert_group_pk": ALERT_GROUP_ID}),
             }
         ],
     }
-
-    organization, user, slack_team_identity, slack_user_identity = manage_responders_setup
-
     step = StartManageResponders(slack_team_identity, organization, user)
     with patch.object(step._slack_client, "views_open") as mock_slack_api_call:
         step.process_scenario(slack_user_identity, slack_team_identity, payload)

@@ -3,12 +3,20 @@
   line-height: 16px;
   padding: 3px 4px;
   border-radius: 2px;
+  display: inline-block;
 
   &--primary {
     background: var(--tag-background-primary);
     border: 1px solid var(--tag-border-primary);
     color: var(--tag-text-primary);
   }
+
+  &--secondary {
+    background: var(--background-secondary);
+    border: var(--border);
+    color: var(--primary-text-color);
+  }
+
   &--warning {
     background: var(--tag-background-warning);
     border: 1px solid var(--tag-border-warning);

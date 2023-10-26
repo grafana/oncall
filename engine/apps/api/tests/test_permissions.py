@@ -5,16 +5,21 @@ from rest_framework.views import APIView
 from rest_framework.viewsets import ViewSetMixin
 
 from apps.api.permissions import (
+    BASIC_ROLE_PERMISSIONS_ATTR,
     RBAC_PERMISSIONS_ATTR,
+    BasicRolePermission,
+    BasicRolePermissionsAttribute,
     GrafanaAPIPermission,
     HasRBACPermissions,
     IsOwner,
     IsOwnerOrHasRBACPermissions,
     LegacyAccessControlCompatiblePermission,
+    LegacyAccessControlRole,
     RBACObjectPermissionsAttribute,
     RBACPermission,
     RBACPermissionsAttribute,
     get_most_authorized_role,
+    get_view_action,
     user_is_authorized,
 )
 
@@ -26,10 +31,13 @@ class MockedOrg:
 
 class MockedUser:
     def __init__(
-        self, permissions: typing.List[LegacyAccessControlCompatiblePermission], org_has_rbac_enabled=True
+        self,
+        permissions: typing.List[LegacyAccessControlCompatiblePermission],
+        org_has_rbac_enabled=True,
+        basic_role: typing.Optional[LegacyAccessControlRole] = None,
     ) -> None:
         self.permissions = [GrafanaAPIPermission(action=perm.value) for perm in permissions]
-        self.role = get_most_authorized_role(permissions)
+        self.role = basic_role if basic_role is not None else get_most_authorized_role(permissions)
         self.organization = MockedOrg(org_has_rbac_enabled)
 
 
@@ -52,6 +60,7 @@ class MockedViewSet(ViewSetMixin):
         action: str,
         rbac_permissions: typing.Optional[RBACPermissionsAttribute] = None,
         rbac_object_permissions: typing.Optional[RBACObjectPermissionsAttribute] = None,
+        basic_role_permissions: typing.Optional[BasicRolePermissionsAttribute] = None,
     ) -> None:
         super().__init__()
         self.action = action
@@ -60,6 +69,8 @@ class MockedViewSet(ViewSetMixin):
             self.rbac_permissions = rbac_permissions
         if rbac_object_permissions:
             self.rbac_object_permissions = rbac_object_permissions
+        if basic_role_permissions:
+            self.basic_role_permissions = basic_role_permissions
 
 
 class MockedAPIView(APIView):
@@ -67,6 +78,7 @@ class MockedAPIView(APIView):
         self,
         rbac_permissions: typing.Optional[RBACPermissionsAttribute] = None,
         rbac_object_permissions: typing.Optional[RBACObjectPermissionsAttribute] = None,
+        basic_role_permissions: typing.Optional[BasicRolePermissionsAttribute] = None,
     ) -> None:
         super().__init__()
 
@@ -74,6 +86,8 @@ class MockedAPIView(APIView):
             self.rbac_permissions = rbac_permissions
         if rbac_object_permissions:
             self.rbac_object_permissions = rbac_object_permissions
+        if basic_role_permissions:
+            self.basic_role_permissions = basic_role_permissions
 
 
 @pytest.mark.parametrize(
@@ -156,19 +170,20 @@ def test_get_most_authorized_role(permissions, expected_role) -> None:
     assert get_most_authorized_role(permissions) == expected_role
 
 
+def test_get_view_action():
+    viewset_action = "viewset_action"
+    viewset = MockedViewSet(viewset_action)
+
+    apiview = MockedAPIView()
+
+    method = "APIVIEW_ACTION"
+    request = MockedRequest(method=method)
+
+    assert get_view_action(request, viewset) == viewset_action, "it works with a ViewSet"
+    assert get_view_action(request, apiview) == method.lower(), "it works with an APIView"
+
+
 class TestRBACPermission:
-    def test_get_view_action(self) -> None:
-        viewset_action = "viewset_action"
-        viewset = MockedViewSet(viewset_action)
-
-        apiview = MockedAPIView()
-
-        method = "APIVIEW_ACTION"
-        request = MockedRequest(method=method)
-
-        assert RBACPermission._get_view_action(request, viewset) == viewset_action, "it works with a ViewSet"
-        assert RBACPermission._get_view_action(request, apiview) == method.lower(), "it works with an APIView"
-
     def test_has_permission_works_on_a_viewset_view(self) -> None:
         required_permission = RBACPermission.Permissions.ALERT_GROUPS_READ
 
@@ -445,3 +460,142 @@ class TestIsOwnerOrHasRBACPermissions:
 
         assert PermClass.has_object_permission(request, None, thingy) is True
         assert PermClass.has_object_permission(MockedRequest(MockedUser([])), None, thingy) is False
+
+
+@pytest.mark.parametrize(
+    "role,required_role,org_has_rbac_enabled,expected_result",
+    [
+        (
+            LegacyAccessControlRole.VIEWER,
+            LegacyAccessControlRole.VIEWER,
+            True,
+            True,
+        ),
+        (
+            LegacyAccessControlRole.VIEWER,
+            LegacyAccessControlRole.VIEWER,
+            False,
+            True,
+        ),
+        (
+            LegacyAccessControlRole.ADMIN,
+            LegacyAccessControlRole.VIEWER,
+            True,
+            True,
+        ),
+        (
+            LegacyAccessControlRole.ADMIN,
+            LegacyAccessControlRole.VIEWER,
+            False,
+            True,
+        ),
+        (
+            LegacyAccessControlRole.VIEWER,
+            LegacyAccessControlRole.ADMIN,
+            True,
+            False,
+        ),
+        (
+            LegacyAccessControlRole.VIEWER,
+            LegacyAccessControlRole.ADMIN,
+            False,
+            False,
+        ),
+    ],
+)
+def test_user_is_authorized_basic_role(
+    role,
+    required_role,
+    org_has_rbac_enabled,
+    expected_result,
+) -> None:
+    user = MockedUser([], org_has_rbac_enabled=org_has_rbac_enabled, basic_role=role)
+    assert user_is_authorized(user, [], required_role) == expected_result
+
+
+class TestBasicRolePermission:
+    def test_has_permission_works_on_a_viewset_view(self) -> None:
+        required_role = LegacyAccessControlRole.VIEWER
+
+        action = "hello"
+        viewset = MockedViewSet(
+            action=action,
+            basic_role_permissions={
+                action: required_role,
+            },
+        )
+
+        user_with_permission = MockedUser([], basic_role=required_role)
+        user_without_permission = MockedUser([], basic_role=LegacyAccessControlRole.NONE)
+
+        assert (
+            BasicRolePermission().has_permission(MockedRequest(user_with_permission), viewset) is True
+        ), "it works on a viewset when the user does have permission"
+
+        assert (
+            BasicRolePermission().has_permission(MockedRequest(user_without_permission), viewset) is False
+        ), "it works on a viewset when the user does have permission"
+
+    def test_has_permission_works_on_an_apiview_view(self) -> None:
+        required_role = LegacyAccessControlRole.VIEWER
+
+        method = "hello"
+        apiview = MockedAPIView(
+            basic_role_permissions={
+                method: required_role,
+            },
+        )
+
+        user_with_permission = MockedUser([], basic_role=required_role)
+        user_without_permission = MockedUser([], basic_role=LegacyAccessControlRole.NONE)
+
+        class Request(MockedRequest):
+            def __init__(self, user: typing.Optional[MockedUser] = None) -> None:
+                super().__init__(user, method)
+
+        assert (
+            BasicRolePermission().has_permission(Request(user_with_permission), apiview) is True
+        ), "it works on an APIView when the user has permission"
+
+        assert (
+            BasicRolePermission().has_permission(Request(user_without_permission), apiview) is False
+        ), "it works on an APIView when the user does not have permission"
+
+    def test_has_permission_throws_assertion_error_if_developer_forgets_to_specify_basic_role_permissions(self) -> None:
+        action_slash_method = "hello"
+        error_msg = f"Must define a {BASIC_ROLE_PERMISSIONS_ATTR} dict on the ViewSet that is consuming the role class"
+
+        viewset = MockedViewSet(action_slash_method)
+        apiview = MockedAPIView()
+
+        with pytest.raises(AssertionError, match=error_msg):
+            BasicRolePermission().has_permission(MockedRequest(), viewset)
+
+        with pytest.raises(AssertionError, match=error_msg):
+            BasicRolePermission().has_permission(MockedRequest(method=action_slash_method), apiview)
+
+    def test_has_permission_throws_assertion_error_if_developer_forgets_to_specify_an_action_in_basic_role_permissions(
+        self,
+    ) -> None:
+        action_slash_method = "hello"
+        other_action_role_permissions = {"bonjour": LegacyAccessControlRole.VIEWER}
+        error_msg = f"""Each action must be defined within the {BASIC_ROLE_PERMISSIONS_ATTR} dict on the ViewSet"""
+
+        viewset = MockedViewSet(action_slash_method, basic_role_permissions=other_action_role_permissions)
+        apiview = MockedAPIView(basic_role_permissions=other_action_role_permissions)
+
+        with pytest.raises(AssertionError, match=error_msg):
+            BasicRolePermission().has_permission(MockedRequest(), viewset)
+
+        with pytest.raises(AssertionError, match=error_msg):
+            BasicRolePermission().has_permission(MockedRequest(method=action_slash_method), apiview)
+
+    def test_has_object_permission_returns_true(self) -> None:
+        action = "hello"
+
+        request = MockedRequest(None, action)
+        apiview = MockedAPIView()
+        viewset = MockedViewSet(action)
+
+        assert BasicRolePermission().has_object_permission(request, apiview, None) is True
+        assert BasicRolePermission().has_object_permission(request, viewset, None) is True

@@ -66,6 +66,7 @@ FEATURE_MULTIREGION_ENABLED = getenv_boolean("FEATURE_MULTIREGION_ENABLED", defa
 FEATURE_INBOUND_EMAIL_ENABLED = getenv_boolean("FEATURE_INBOUND_EMAIL_ENABLED", default=True)
 FEATURE_PROMETHEUS_EXPORTER_ENABLED = getenv_boolean("FEATURE_PROMETHEUS_EXPORTER_ENABLED", default=False)
 FEATURE_GRAFANA_ALERTING_V2_ENABLED = getenv_boolean("FEATURE_GRAFANA_ALERTING_V2_ENABLED", default=False)
+FEATURE_LABELS_ENABLED = getenv_boolean("FEATURE_LABELS_ENABLED", default=False)
 GRAFANA_CLOUD_ONCALL_HEARTBEAT_ENABLED = getenv_boolean("GRAFANA_CLOUD_ONCALL_HEARTBEAT_ENABLED", default=True)
 GRAFANA_CLOUD_NOTIFICATIONS_ENABLED = getenv_boolean("GRAFANA_CLOUD_NOTIFICATIONS_ENABLED", default=True)
 
@@ -265,6 +266,7 @@ INSTALLED_APPS = [
     "apps.grafana_plugin",
     "apps.webhooks",
     "apps.metrics_exporter",
+    "apps.labels",
     "corsheaders",
     "debug_toolbar",
     "social_django",
@@ -311,6 +313,7 @@ if SWAGGER_UI_SETTINGS_URL:
 SPECTACULAR_INCLUDED_PATHS = [
     "/features",
     "/alertgroups",
+    "/labels",
 ]
 
 MIDDLEWARE = [
@@ -370,7 +373,7 @@ LOGGING = {
     },
 }
 
-ROOT_URLCONF = "engine.urls"
+ROOT_URLCONF = os.environ.get("ROOT_URLCONF", "engine.urls")
 
 TEMPLATES = [
     {
@@ -828,3 +831,5 @@ ZVONOK_POSTBACK_CAMPAIGN_ID = os.getenv("ZVONOK_POSTBACK_CAMPAIGN_ID", "campaign
 ZVONOK_POSTBACK_STATUS = os.getenv("ZVONOK_POSTBACK_STATUS", "status")
 ZVONOK_POSTBACK_USER_CHOICE = os.getenv("ZVONOK_POSTBACK_USER_CHOICE", None)
 ZVONOK_POSTBACK_USER_CHOICE_ACK = os.getenv("ZVONOK_POSTBACK_USER_CHOICE_ACK", None)
+
+DETACHED_INTEGRATIONS_SERVER = getenv_boolean("DETACHED_INTEGRATIONS_SERVER", default=False)
