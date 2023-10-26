@@ -16,6 +16,7 @@ ICAL_URL = "https://calendar.google.com/calendar/ical/amixr.io_37gttuakhrtr75ano
         (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
         (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
         (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_get_user_schedule_export_token(
@@ -47,6 +48,7 @@ def test_get_user_schedule_export_token(
         (LegacyAccessControlRole.ADMIN, status.HTTP_404_NOT_FOUND),
         (LegacyAccessControlRole.EDITOR, status.HTTP_404_NOT_FOUND),
         (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_user_schedule_export_token_not_found(
@@ -73,6 +75,7 @@ def test_user_schedule_export_token_not_found(
         (LegacyAccessControlRole.ADMIN, status.HTTP_201_CREATED),
         (LegacyAccessControlRole.EDITOR, status.HTTP_201_CREATED),
         (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_user_schedule_create_export_token(
@@ -99,6 +102,7 @@ def test_user_schedule_create_export_token(
         (LegacyAccessControlRole.ADMIN, status.HTTP_409_CONFLICT),
         (LegacyAccessControlRole.EDITOR, status.HTTP_409_CONFLICT),
         (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_user_schedule_create_multiple_export_tokens_fails(
@@ -130,6 +134,7 @@ def test_user_schedule_create_multiple_export_tokens_fails(
         (LegacyAccessControlRole.ADMIN, status.HTTP_204_NO_CONTENT),
         (LegacyAccessControlRole.EDITOR, status.HTTP_204_NO_CONTENT),
         (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_user_schedule_delete_export_token(
@@ -166,6 +171,7 @@ def test_user_schedule_delete_export_token(
         (LegacyAccessControlRole.ADMIN, status.HTTP_404_NOT_FOUND),
         (LegacyAccessControlRole.EDITOR, status.HTTP_404_NOT_FOUND),
         (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_user_cannot_get_another_users_schedule_token(
@@ -198,6 +204,7 @@ def test_user_cannot_get_another_users_schedule_token(
         (LegacyAccessControlRole.ADMIN, status.HTTP_404_NOT_FOUND),
         (LegacyAccessControlRole.EDITOR, status.HTTP_404_NOT_FOUND),
         (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_user_cannot_delete_another_users_schedule_token(

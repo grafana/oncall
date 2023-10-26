@@ -17,7 +17,11 @@ def test_slack_renderer_acknowledge_button(make_organization, make_alert_receive
 
     button = elements[0]
     assert button["text"]["text"] == "Acknowledge"
-    assert json.loads(button["value"]) == {"organization_id": organization.pk, "alert_group_pk": alert_group.pk}
+    assert json.loads(button["value"]) == {
+        "organization_id": organization.pk,
+        "alert_group_pk": alert_group.pk,
+        "alert_group_ppk": alert_group.public_primary_key,
+    }
 
 
 @pytest.mark.django_db
@@ -33,7 +37,11 @@ def test_slack_renderer_unacknowledge_button(
 
     button = elements[0]
     assert button["text"]["text"] == "Unacknowledge"
-    assert json.loads(button["value"]) == {"organization_id": organization.pk, "alert_group_pk": alert_group.pk}
+    assert json.loads(button["value"]) == {
+        "organization_id": organization.pk,
+        "alert_group_pk": alert_group.pk,
+        "alert_group_ppk": alert_group.public_primary_key,
+    }
 
 
 @pytest.mark.django_db
@@ -47,7 +55,11 @@ def test_slack_renderer_resolve_button(make_organization, make_alert_receive_cha
 
     button = elements[1]
     assert button["text"]["text"] == "Resolve"
-    assert json.loads(button["value"]) == {"organization_id": organization.pk, "alert_group_pk": alert_group.pk}
+    assert json.loads(button["value"]) == {
+        "organization_id": organization.pk,
+        "alert_group_pk": alert_group.pk,
+        "alert_group_ppk": alert_group.public_primary_key,
+    }
 
 
 @pytest.mark.django_db
@@ -61,7 +73,11 @@ def test_slack_renderer_unresolve_button(make_organization, make_alert_receive_c
 
     button = elements[0]
     assert button["text"]["text"] == "Unresolve"
-    assert json.loads(button["value"]) == {"organization_id": organization.pk, "alert_group_pk": alert_group.pk}
+    assert json.loads(button["value"]) == {
+        "organization_id": organization.pk,
+        "alert_group_pk": alert_group.pk,
+        "alert_group_ppk": alert_group.public_primary_key,
+    }
 
 
 @pytest.mark.django_db
@@ -96,6 +112,7 @@ def test_slack_renderer_stop_invite_button(
     assert json.loads(action["value"]) == {
         "organization_id": organization.pk,
         "alert_group_pk": alert_group.pk,
+        "alert_group_ppk": alert_group.public_primary_key,
         "invitation_id": invitation.pk,
     }
 
@@ -114,7 +131,12 @@ def test_slack_renderer_silence_button(make_organization, make_alert_receive_cha
 
     values = [json.loads(option["value"]) for option in button["options"]]
     assert values == [
-        {"organization_id": organization.pk, "alert_group_pk": alert_group.pk, "delay": delay}
+        {
+            "organization_id": organization.pk,
+            "alert_group_pk": alert_group.pk,
+            "alert_group_ppk": alert_group.public_primary_key,
+            "delay": delay,
+        }
         for delay, _ in AlertGroup.SILENCE_DELAY_OPTIONS
     ]
 
@@ -133,6 +155,7 @@ def test_slack_renderer_unsilence_button(make_organization, make_alert_receive_c
     assert json.loads(button["value"]) == {
         "organization_id": organization.pk,
         "alert_group_pk": alert_group.pk,
+        "alert_group_ppk": alert_group.public_primary_key,
     }
 
 
@@ -150,6 +173,7 @@ def test_slack_renderer_attach_button(make_organization, make_alert_receive_chan
     assert json.loads(button["value"]) == {
         "organization_id": organization.pk,
         "alert_group_pk": alert_group.pk,
+        "alert_group_ppk": alert_group.public_primary_key,
     }
 
 
@@ -170,6 +194,7 @@ def test_slack_renderer_unattach_button(make_organization, make_alert_receive_ch
     assert json.loads(action["value"]) == {
         "organization_id": organization.pk,
         "alert_group_pk": alert_group.pk,
+        "alert_group_ppk": alert_group.public_primary_key,
     }
 
 
@@ -186,7 +211,11 @@ def test_slack_renderer_format_alert_button(
 
     button = elements[5]
     assert button["text"]["text"] == ":mag: Format Alert"
-    assert json.loads(button["value"]) == {"organization_id": organization.pk, "alert_group_pk": alert_group.pk}
+    assert json.loads(button["value"]) == {
+        "organization_id": organization.pk,
+        "alert_group_pk": alert_group.pk,
+        "alert_group_ppk": alert_group.public_primary_key,
+    }
 
 
 @pytest.mark.django_db
@@ -205,5 +234,6 @@ def test_slack_renderer_resolution_notes_button(
     assert json.loads(button["value"]) == {
         "organization_id": organization.pk,
         "alert_group_pk": alert_group.pk,
+        "alert_group_ppk": alert_group.public_primary_key,
         "resolution_note_window_action": "edit",
     }

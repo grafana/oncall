@@ -1,4 +1,5 @@
 import json
+import textwrap
 from unittest.mock import patch
 
 import pytest
@@ -1488,6 +1489,57 @@ def test_next_shifts_per_user(
 
 
 @pytest.mark.django_db
+def test_next_shifts_per_user_ical_schedule_using_emails(
+    make_organization_and_user_with_plugin_token, make_user_for_organization, make_user_auth_headers, make_schedule
+):
+    organization, admin, token = make_organization_and_user_with_plugin_token()
+    client = APIClient()
+
+    user = make_user_for_organization(organization, username="testing", email="testing@testing.com")
+    # ical file using emails as reference
+    cached_ical_primary_schedule = textwrap.dedent(
+        """
+        BEGIN:VCALENDAR
+        VERSION:2.0
+        PRODID:testing
+        CALSCALE:GREGORIAN
+        BEGIN:VEVENT
+        CREATED:20220316T121102Z
+        LAST-MODIFIED:20230127T151619Z
+        DTSTAMP:20230127T151619Z
+        UID:something
+        SUMMARY:testing@testing.com
+        RRULE:FREQ=WEEKLY
+        DTSTART;TZID=Europe/Madrid:20220309T130000
+        DTEND;TZID=Europe/Madrid:20220309T133000
+        END:VEVENT
+        BEGIN:VEVENT
+        CREATED:20220316T121102Z
+        LAST-MODIFIED:20230127T151619Z
+        DTSTAMP:20230127T151619Z
+        UID:something-else
+        SUMMARY:testing_unknown@testing.com
+        RRULE:FREQ=WEEKLY
+        DTSTART;TZID=Europe/Madrid:20220309T150000
+        DTEND;TZID=Europe/Madrid:20220309T153000
+        END:VEVENT
+        END:VCALENDAR
+    """
+    )
+    schedule = make_schedule(
+        organization,
+        schedule_class=OnCallScheduleICal,
+        cached_ical_file_primary=cached_ical_primary_schedule,
+    )
+
+    url = reverse("api-internal:schedule-next-shifts-per-user", kwargs={"pk": schedule.public_primary_key})
+    response = client.get(url, format="json", **make_user_auth_headers(admin, token))
+    assert response.status_code == status.HTTP_200_OK
+
+    assert set(response.data["users"].keys()) == {user.public_primary_key}
+
+
+@pytest.mark.django_db
 def test_related_users(
     make_organization_and_user_with_plugin_token,
     make_user_for_organization,
@@ -1693,6 +1745,7 @@ def test_filter_events_invalid_type(
         (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
         (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
         (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_schedule_create_permissions(
@@ -1731,6 +1784,7 @@ def test_schedule_create_permissions(
         (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
         (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
         (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_schedule_update_permissions(
@@ -1773,6 +1827,7 @@ def test_schedule_update_permissions(
         (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
         (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
         (LegacyAccessControlRole.VIEWER, status.HTTP_200_OK),
+        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_schedule_list_permissions(
@@ -1811,6 +1866,7 @@ def test_schedule_list_permissions(
         (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
         (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
         (LegacyAccessControlRole.VIEWER, status.HTTP_200_OK),
+        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_schedule_retrieve_permissions(
@@ -1849,6 +1905,7 @@ def test_schedule_retrieve_permissions(
         (LegacyAccessControlRole.ADMIN, status.HTTP_204_NO_CONTENT),
         (LegacyAccessControlRole.EDITOR, status.HTTP_204_NO_CONTENT),
         (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_schedule_delete_permissions(
@@ -1887,6 +1944,7 @@ def test_schedule_delete_permissions(
         (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
         (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
         (LegacyAccessControlRole.VIEWER, status.HTTP_200_OK),
+        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_events_permissions(
@@ -1925,6 +1983,7 @@ def test_events_permissions(
         (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
         (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
         (LegacyAccessControlRole.VIEWER, status.HTTP_200_OK),
+        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_filter_shift_swaps_permissions(
@@ -1963,6 +2022,7 @@ def test_filter_shift_swaps_permissions(
         (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
         (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
         (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_reload_ical_permissions(
@@ -2001,6 +2061,7 @@ def test_reload_ical_permissions(
         (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
         (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
         (LegacyAccessControlRole.VIEWER, status.HTTP_200_OK),
+        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_schedule_notify_oncall_shift_freq_options_permissions(
@@ -2025,6 +2086,7 @@ def test_schedule_notify_oncall_shift_freq_options_permissions(
         (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
         (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
         (LegacyAccessControlRole.VIEWER, status.HTTP_200_OK),
+        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_schedule_notify_empty_oncall_options_permissions(
@@ -2049,6 +2111,7 @@ def test_schedule_notify_empty_oncall_options_permissions(
         (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
         (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
         (LegacyAccessControlRole.VIEWER, status.HTTP_200_OK),
+        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_schedule_mention_options_permissions(
@@ -2073,6 +2136,7 @@ def test_schedule_mention_options_permissions(
         (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
         (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
         (LegacyAccessControlRole.VIEWER, status.HTTP_200_OK),
+        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_current_user_events_permissions(

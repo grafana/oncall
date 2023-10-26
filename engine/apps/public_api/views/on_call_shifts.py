@@ -1,3 +1,4 @@
+from django.db.models import Q
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.exceptions import NotFound
 from rest_framework.permissions import IsAuthenticated
@@ -35,7 +36,9 @@ class CustomOnCallShiftView(RateLimitHeadersMixin, UpdateSerializerMixin, ModelV
         queryset = CustomOnCallShift.objects.filter(organization=self.request.auth.organization)
 
         if schedule_id:
-            queryset = queryset.filter(schedules__public_primary_key=schedule_id)
+            queryset = queryset.filter(
+                Q(schedules__public_primary_key=schedule_id) | Q(schedule__public_primary_key=schedule_id)
+            )
         if name:
             queryset = queryset.filter(name=name)
         return queryset.order_by("schedules")

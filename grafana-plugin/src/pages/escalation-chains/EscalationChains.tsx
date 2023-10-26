@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Button, HorizontalGroup, Icon, IconButton, LoadingPlaceholder, Tooltip, VerticalGroup } from '@grafana/ui';
+import { Button, HorizontalGroup, Icon, IconButton, Tooltip, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
@@ -176,7 +176,11 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
                           {(item) => <EscalationChainCard id={item.id} />}
                         </GList>
                       ) : (
-                        <LoadingPlaceholder className={cx('loading')} text="Loading..." />
+                        <VerticalGroup>
+                          <Text type="primary" className={cx('loading')}>
+                            Loading...
+                          </Text>
+                        </VerticalGroup>
                       )}
                     </div>
                   </div>
