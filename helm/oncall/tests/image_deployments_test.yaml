@@ -3,6 +3,7 @@ templates:
   - celery/deployment.yaml
   - engine/deployment.yaml
   - engine/job-migrate.yaml
+  - integrations/deployment.yaml
   - telegram-polling/deployment.yaml
 release:
   name: oncall
