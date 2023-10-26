@@ -254,11 +254,7 @@ class GForm extends React.Component<GFormProps, {}> {
   }
 
   onChange = (errors: FormFieldErrors, field: any, value: string) => {
-    const formIsValid = isEmpty(errors);
-
-    if (this.props.onChange) {
-      this.props.onChange(formIsValid);
-    }
+    this.props.onChange?.(isEmpty(errors));
 
     field?.onChange(value);
     this.forceUpdate();
