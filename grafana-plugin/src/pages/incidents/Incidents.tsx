@@ -352,9 +352,11 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
       selectedIncidentIds: [],
       pagination: {
         start: 1,
-        end: store.alertGroupStore.incidentsItemsPerPage,
+        end: value,
       },
     });
+
+    LocationHelper.update({ start: 1, perpage: value }, 'partial');
   };
 
   renderBulkActions = () => {
