@@ -737,7 +737,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
   }
 
   setPollingInterval(filters: IncidentsFiltersType = this.state.filters, isOnMount = false) {
-    const startPolling = (delayed: boolean = false) => {
+    const startPolling = (delayed = false) => {
       this.pollingIntervalId = setTimeout(
         async () => {
           const isBrowserWindowInactive = document.hidden;
@@ -745,7 +745,9 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
             await this.fetchIncidentData(filters, isOnMount);
           }
 
-          if (this.pollingIntervalId === null) return;
+          if (this.pollingIntervalId === null) {
+            return;
+          }
           startPolling(isBrowserWindowInactive);
         },
         delayed ? 60 * 1000 : POLLING_NUM_SECONDS * 1000
