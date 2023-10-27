@@ -202,12 +202,13 @@ export class AlertGroupStore extends BaseStore {
   // TODO check if methods are dublicating existing ones
   @action
   async updateIncidents() {
-    this.getNewIncidentsStats();
-    this.getAcknowledgedIncidentsStats();
-    this.getResolvedIncidentsStats();
-    this.getSilencedIncidentsStats();
-
-    this.updateAlertGroups();
+    await Promise.all([
+      this.getNewIncidentsStats(),
+      this.getAcknowledgedIncidentsStats(),
+      this.getResolvedIncidentsStats(),
+      this.getSilencedIncidentsStats(),
+      this.updateAlertGroups(),
+    ]);
 
     this.liveUpdatesPaused = false;
   }
@@ -220,7 +221,7 @@ export class AlertGroupStore extends BaseStore {
 
     this.incidentFilters = params;
 
-    this.updateIncidents();
+    await this.updateIncidents();
   }
 
   @action
@@ -242,6 +243,8 @@ export class AlertGroupStore extends BaseStore {
     this.setIncidentsCursor(undefined);
     this.incidentsItemsPerPage = value;
 
+    console.log(this.incidentsItemsPerPage);
+
     this.updateAlertGroups();
   }
 
@@ -257,6 +260,7 @@ export class AlertGroupStore extends BaseStore {
     } = await makeRequest(`${this.path}`, {
       params: {
         ...this.incidentFilters,
+        perpage: this.incidentsItemsPerPage,
         cursor: this.incidentsCursor,
         is_root: true,
       },
