@@ -40,7 +40,8 @@ jobs:
           days-before-pr-stale: -1
           days-before-pr-close: -1
           ascending: true # start processing older issues first
-          stale-issue-label: "issue:stale"
+          stale-issue-label: "pr:stale"
+          exempt-issue-labels: "not-stale"
           stale-issue-message: >
             This issue has been automatically marked as stale because it has not had activity in the last
             120 days. It will be closed in 30 days if no further activity occurs.
