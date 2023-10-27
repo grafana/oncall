@@ -155,7 +155,13 @@ def direct_paging(
 
 
 def unpage_user(alert_group: AlertGroup, user: User, from_user: User) -> None:
-    """Remove user from alert group escalation."""
+    """
+    Remove user from alert group escalation.
+
+    An IndexError is raised (and caught) if the user had not been notified for some reason.
+    Regardless of whether or not the user was notified, we will always create an AlertGroupLogRecord of type
+    TYPE_UNPAGE_USER.
+    """
     try:
         with transaction.atomic():
             user_has_notification = UserHasNotification.objects.filter(
@@ -163,15 +169,15 @@ def unpage_user(alert_group: AlertGroup, user: User, from_user: User) -> None:
             ).select_for_update()[0]
             user_has_notification.active_notification_policy_id = None
             user_has_notification.save(update_fields=["active_notification_policy_id"])
-            # add log entry
-            alert_group.log_records.create(
-                type=AlertGroupLogRecord.TYPE_UNPAGE_USER,
-                author=from_user,
-                reason=f"{from_user.username} unpaged user {user.username}",
-                step_specific_info={"user": user.public_primary_key},
-            )
     except IndexError:
         return
+    finally:
+        alert_group.log_records.create(
+            type=AlertGroupLogRecord.TYPE_UNPAGE_USER,
+            author=from_user,
+            reason=f"{from_user.username} unpaged user {user.username}",
+            step_specific_info={"user": user.public_primary_key},
+        )
 
 
 def user_is_oncall(user: User) -> bool:

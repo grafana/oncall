@@ -523,7 +523,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
         from apps.alerts.models import AlertGroupLogRecord
 
         user_ids: typing.Set[str] = set()
-        users: typing.List[PagedUser] = []
+        users: typing.Dict[str, PagedUser] = {}
 
         log_records = self.log_records.filter(
             type__in=(AlertGroupLogRecord.TYPE_DIRECT_PAGING, AlertGroupLogRecord.TYPE_UNPAGE_USER)
@@ -553,23 +553,21 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
             if user_id is not None and (user := user_map.get(user_id)) is not None:
                 if log_record.type == AlertGroupLogRecord.TYPE_DIRECT_PAGING:
                     # add the user
-                    users.append(
-                        {
-                            "id": user.pk,
-                            "pk": user.public_primary_key,
-                            "name": user.name,
-                            "username": user.username,
-                            "avatar": user.avatar_url,
-                            "avatar_full": user.avatar_full_url,
-                            "important": important,
-                            "teams": [{"pk": t.public_primary_key, "name": t.name} for t in user.teams.all()],
-                        }
-                    )
+                    users[user_id] = {
+                        "id": user.pk,
+                        "pk": user.public_primary_key,
+                        "name": user.name,
+                        "username": user.username,
+                        "avatar": user.avatar_url,
+                        "avatar_full": user.avatar_full_url,
+                        "important": important,
+                        "teams": [{"pk": t.public_primary_key, "name": t.name} for t in user.teams.all()],
+                    }
                 else:
                     # user was unpaged at some point, remove them
-                    users = [u for u in users if u["pk"] != user_id]
+                    del users[user_id]
 
-        return users
+        return list(users.values())
 
     def _get_response_time(self):
         """Return response_time based on current alert group status."""
