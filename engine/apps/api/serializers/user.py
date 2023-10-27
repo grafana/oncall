@@ -32,8 +32,6 @@ class UserPermissionSerializer(serializers.Serializer):
 
 
 class UserSerializer(DynamicFieldsModelSerializer, EagerLoadingMixin):
-    context: UserSerializerContext
-
     pk = serializers.CharField(read_only=True, source="public_primary_key")
     slack_user_identity = SlackUserIdentitySerializer(read_only=True)
 
@@ -43,7 +41,6 @@ class UserSerializer(DynamicFieldsModelSerializer, EagerLoadingMixin):
 
     organization = FastOrganizationSerializer(read_only=True)
     current_team = TeamPrimaryKeyRelatedField(allow_null=True, required=False)
-    teams = FastTeamSerializer(read_only=True, many=True)
 
     timezone = TimeZoneField(allow_null=True, required=False)
     avatar = serializers.URLField(source="avatar_url", read_only=True)
@@ -59,7 +56,6 @@ class UserSerializer(DynamicFieldsModelSerializer, EagerLoadingMixin):
             "pk",
             "organization",
             "current_team",
-            "teams",
             "email",
             "username",
             "name",
@@ -275,10 +271,14 @@ class UserShortSerializer(serializers.ModelSerializer):
 
 
 class UserLongSerializer(UserSerializer):
+    context: UserSerializerContext
+
+    teams = FastTeamSerializer(read_only=True, many=True)
     is_currently_oncall = serializers.SerializerMethodField()
 
     class Meta(UserSerializer.Meta):
         fields = UserSerializer.Meta.fields + [
+            "teams",
             "is_currently_oncall",
         ]
 

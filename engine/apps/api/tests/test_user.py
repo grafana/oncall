@@ -55,7 +55,6 @@ def test_current_user(make_organization_and_user_with_plugin_token, make_user_au
         "slack_user_identity": None,
         "avatar": user.avatar_url,
         "avatar_full": user.avatar_full_url,
-        "teams": [],
     }
 
     response = client.get(url, format="json", **make_user_auth_headers(user, token))
@@ -141,7 +140,6 @@ def test_update_user_cant_change_email_and_username(
         "slack_user_identity": None,
         "avatar": admin.avatar_url,
         "avatar_full": admin.avatar_full_url,
-        "teams": [],
     }
     response = client.put(url, data, format="json", **make_user_auth_headers(admin, token))
     assert response.status_code == status.HTTP_200_OK
@@ -193,7 +191,6 @@ def test_list_users(
                 "avatar": admin.avatar_url,
                 "avatar_full": admin.avatar_full_url,
                 "cloud_connection_status": None,
-                "teams": [],
             },
             {
                 "pk": editor.public_primary_key,
@@ -219,7 +216,6 @@ def test_list_users(
                 "avatar": editor.avatar_url,
                 "avatar_full": editor.avatar_full_url,
                 "cloud_connection_status": None,
-                "teams": [],
             },
         ],
         "current_page_number": 1,
@@ -1948,6 +1944,7 @@ def test_users_is_currently_oncall_attribute_works_properly(
     }
 
     for user in response.json()["results"]:
+        assert user["teams"] == []
         assert user["is_currently_oncall"] == oncall_statuses[user["pk"]]
 
 
@@ -1998,5 +1995,8 @@ def test_list_users_filtered_by_is_currently_oncall(
     response = client.get(f"{url}?is_currently_oncall=false", format="json", **make_user_auth_headers(user1, token))
 
     response = response.json()["results"]
+    user = response[0]
+
     assert len(response) == 1
-    assert response[0]["pk"] == user2.public_primary_key
+    assert user["pk"] == user2.public_primary_key
+    assert user["teams"] == []
