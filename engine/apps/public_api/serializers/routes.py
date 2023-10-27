@@ -163,8 +163,14 @@ class ChannelFilterSerializer(BaseChannelFilterSerializer):
         return super().create(validated_data)
 
     def validate(self, data):
-        filtering_term = data.get("routing_regex")
-        filtering_term_type = data.get("routing_type")
+        filtering_term = data.get("filtering_term")
+        filtering_term_type = data.get("filtering_term_type")
+        if filtering_term is not None:
+            if len(filtering_term) > ChannelFilter.FILTERING_TERM_MAX_LENGTH:
+                raise serializers.ValidationError(
+                    f"Expression is too long. Maximum length: {ChannelFilter.FILTERING_TERM_MAX_LENGTH} characters, "
+                    f"current length: {len(filtering_term)}"
+                )
         if filtering_term_type == ChannelFilter.FILTERING_TERM_TYPE_JINJA2:
             try:
                 valid_jinja_template_for_serializer_method_field({"route_template": filtering_term})
