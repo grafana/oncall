@@ -117,7 +117,7 @@ const AddRespondersPopup = observer(
       if (isCreateMode && activeOption === TabOptions.Teams) {
         grafanaTeamStore.updateItems(searchTerm, false, true);
       } else {
-        userStore.updateItems(searchTerm);
+        userStore.updateItems({ searchTerm, short: 'false' });
       }
     }, 500);
 

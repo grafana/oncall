@@ -177,3 +177,28 @@ def unpage_user(alert_group: AlertGroup, user: User, from_user: User) -> None:
 def user_is_oncall(user: User) -> bool:
     schedules_with_oncall_users = get_oncall_users_for_multiple_schedules(OnCallSchedule.objects.related_to_user(user))
     return user.pk in {user.pk for _, users in schedules_with_oncall_users.items() for user in users}
+
+
+def integration_is_notifiable(integration: AlertReceiveChannel) -> bool:
+    """
+    Returns true if:
+    - the integration has more than one channel filter associated with it
+    - the default channel filter has at least one notification method specified or an escalation chain associated with it
+    """
+    if integration.channel_filters.count() > 1:
+        return True
+
+    default_channel_filter = integration.default_channel_filter
+    if not default_channel_filter:
+        return False
+
+    organization = integration.organization
+    notify_via_slack = organization.slack_is_configured and default_channel_filter.notify_in_slack
+    notify_via_telegram = organization.telegram_is_configured and default_channel_filter.notify_in_telegram
+
+    notify_via_chatops = notify_via_slack or notify_via_telegram
+    custom_messaging_backend_configured = default_channel_filter.notification_backends is not None
+
+    return (
+        default_channel_filter.escalation_chain is not None or notify_via_chatops or custom_messaging_backend_configured
+    )

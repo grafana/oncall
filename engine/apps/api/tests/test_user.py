@@ -55,7 +55,6 @@ def test_current_user(make_organization_and_user_with_plugin_token, make_user_au
         "slack_user_identity": None,
         "avatar": user.avatar_url,
         "avatar_full": user.avatar_full_url,
-        "is_currently_oncall": False,
         "teams": [],
     }
 
@@ -142,7 +141,6 @@ def test_update_user_cant_change_email_and_username(
         "slack_user_identity": None,
         "avatar": admin.avatar_url,
         "avatar_full": admin.avatar_full_url,
-        "is_currently_oncall": False,
         "teams": [],
     }
     response = client.put(url, data, format="json", **make_user_auth_headers(admin, token))
@@ -195,7 +193,6 @@ def test_list_users(
                 "avatar": admin.avatar_url,
                 "avatar_full": admin.avatar_full_url,
                 "cloud_connection_status": None,
-                "is_currently_oncall": False,
                 "teams": [],
             },
             {
@@ -222,7 +219,6 @@ def test_list_users(
                 "avatar": editor.avatar_url,
                 "avatar_full": editor.avatar_full_url,
                 "cloud_connection_status": None,
-                "is_currently_oncall": False,
                 "teams": [],
             },
         ],
@@ -1943,8 +1939,7 @@ def test_users_is_currently_oncall_attribute_works_properly(
     schedule.refresh_ical_final_schedule()
 
     client = APIClient()
-    url = reverse("api-internal:user-list")
-
+    url = f"{reverse('api-internal:user-list')}?short=false"
     response = client.get(url, format="json", **make_user_auth_headers(user1, token))
 
     oncall_statuses = {

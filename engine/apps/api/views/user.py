@@ -29,6 +29,7 @@ from apps.api.serializers.user import (
     CurrentUserSerializer,
     FilterUserSerializer,
     UserHiddenFieldsSerializer,
+    UserLongSerializer,
     UserSerializer,
 )
 from apps.api.throttlers import (
@@ -242,10 +243,17 @@ class UserView(
         request = self.request
         user = request.user
         kwargs = self.kwargs
+        query_params = request.query_params
 
-        is_filters_request = request.query_params.get("filters", "false") == "true"
-        if self.action in ["list"] and is_filters_request:
+        is_list_request = self.action in ["list"]
+        is_filters_request = query_params.get("filters", "false") == "true"
+        is_short_request = query_params.get("short", "true") == "false"
+        is_currently_oncall_request = query_params.get("is_currently_oncall", "").lower() in ["true", "false"]
+
+        if is_list_request and is_filters_request:
             return self.get_filter_serializer_class()
+        elif is_list_request and (is_short_request or is_currently_oncall_request):
+            return UserLongSerializer
 
         is_users_own_data = kwargs.get("pk") is not None and kwargs.get("pk") == user.public_primary_key
         has_admin_permission = user_is_authorized(user, [RBACPermission.Permissions.USER_SETTINGS_ADMIN])

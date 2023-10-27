@@ -51,8 +51,6 @@ class UserSerializer(DynamicFieldsModelSerializer, EagerLoadingMixin):
     notification_chain_verbal = serializers.SerializerMethodField()
     cloud_connection_status = serializers.SerializerMethodField()
 
-    is_currently_oncall = serializers.SerializerMethodField()
-
     SELECT_RELATED = ["telegram_verification_code", "telegram_connection", "organization", "slack_user_identity"]
 
     class Meta:
@@ -78,7 +76,6 @@ class UserSerializer(DynamicFieldsModelSerializer, EagerLoadingMixin):
             "notification_chain_verbal",
             "cloud_connection_status",
             "hide_phone_number",
-            "is_currently_oncall",
         ]
         read_only_fields = [
             "email",
@@ -153,13 +150,6 @@ class UserSerializer(DynamicFieldsModelSerializer, EagerLoadingMixin):
             status, _ = cloud_user_identity_status(connector, identity)
             return status
         return None
-
-    def get_is_currently_oncall(self, obj: User) -> bool:
-        # Serializer context is set here: apps.api.views.user.UserView.get_serializer_context.
-        for users in self.context.get("schedules_with_oncall_users", {}).values():
-            if obj in users:
-                return True
-        return False
 
     def to_representation(self, instance):
         result = super().to_representation(instance)
@@ -282,6 +272,22 @@ class UserShortSerializer(serializers.ModelSerializer):
             "avatar",
             "avatar_full",
         ]
+
+
+class UserLongSerializer(UserSerializer):
+    is_currently_oncall = serializers.SerializerMethodField()
+
+    class Meta(UserSerializer.Meta):
+        fields = UserSerializer.Meta.fields + [
+            "is_currently_oncall",
+        ]
+
+    def get_is_currently_oncall(self, obj: User) -> bool:
+        # Serializer context is set here: apps.api.views.user.UserView.get_serializer_context.
+        for users in self.context.get("schedules_with_oncall_users", {}).values():
+            if obj in users:
+                return True
+        return False
 
 
 class PagedUserSerializer(serializers.Serializer):

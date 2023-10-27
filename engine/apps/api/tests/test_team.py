@@ -1,4 +1,4 @@
-from unittest.mock import PropertyMock, patch
+from unittest.mock import patch
 
 import pytest
 from django.urls import reverse
@@ -80,14 +80,10 @@ def test_list_teams_only_include_notifiable_teams(
     )
     make_alert_receive_channel(organization, team=team2, integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING)
 
-    class CustomPropertyMock(PropertyMock):
-        def __get__(self, obj, obj_type=None):
-            return obj.id == arc1.id
-
     client = APIClient()
     url = reverse("api-internal:team-list")
 
-    with patch("apps.alerts.models.AlertReceiveChannel.is_notifiable", new_callable=CustomPropertyMock):
+    with patch("apps.api.views.team.integration_is_notifiable", side_effect=lambda obj: obj.id == arc1.id):
         response = client.get(
             f"{url}?only_include_notifiable_teams=true&include_no_team=false",
             format="json",
