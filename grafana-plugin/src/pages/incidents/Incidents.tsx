@@ -76,7 +76,9 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
 
     const cursor = cursorQuery || undefined;
     const start = !isNaN(startQuery) ? Number(startQuery) : 1;
-    const end = !isNaN(perpageQuery) ? Number(perpageQuery) : undefined;
+    const pageSize = !isNaN(perpageQuery) ? Number(perpageQuery) : undefined;
+
+    store.alertGroupStore.incidentsItemsPerPage = pageSize || undefined;
     store.alertGroupStore.incidentsCursor = cursor;
 
     this.state = {
@@ -85,7 +87,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
       showAddAlertGroupForm: false,
       pagination: {
         start,
-        end,
+        end: start + pageSize,
       },
     };
   }

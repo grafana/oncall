@@ -243,8 +243,6 @@ export class AlertGroupStore extends BaseStore {
     this.setIncidentsCursor(undefined);
     this.incidentsItemsPerPage = value;
 
-    console.log(this.incidentsItemsPerPage);
-
     this.updateAlertGroups();
   }
 
