@@ -245,15 +245,6 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
             channel.save()
         return channel
 
-    @classmethod
-    def get_orgs_direct_paging_integrations(
-        cls, organization: "Organization"
-    ) -> models.QuerySet["AlertReceiveChannel"]:
-        return cls.objects.filter(
-            organization=organization,
-            integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING,
-        )
-
     def delete(self):
         self.deleted_at = timezone.now()
         self.save()
