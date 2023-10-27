@@ -89,7 +89,7 @@ class RemoteFilters extends Component<RemoteFiltersProps, RemoteFiltersState> {
     } = this.props;
 
     const filterOptions = await filtersStore.updateOptionsForPage(page);
-    const currentTablePageNum = parseInt(filtersStore.currentTablePageNum[page] || query.p || 1);
+    const currentTablePageNum = parseInt(filtersStore.currentTablePageNum[page] || query.p || 1, 10);
 
     // set the current page from filters/query or default it to 1
     filtersStore.currentTablePageNum[page] = currentTablePageNum;
