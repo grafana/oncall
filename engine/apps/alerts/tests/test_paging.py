@@ -278,6 +278,9 @@ def test_construct_title(make_organization, make_team, make_user_for_organizatio
         f"{user1.username}, {user2.username} and {user3.username}"
     )
 
+    # team specified + no users
+    assert _construct_title(from_user, team, []) == _title(team.name)
+
     # team specified + one user
     assert _construct_title(from_user, team, one_user) == _title(f"{team.name} and {user1.username}")
 

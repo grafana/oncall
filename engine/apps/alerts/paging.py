@@ -2,7 +2,6 @@ import typing
 from uuid import uuid4
 
 from django.db import transaction
-from django.db.models import Q
 
 from apps.alerts.models import (
     Alert,
@@ -94,27 +93,13 @@ def _trigger_alert(
 def _construct_title(from_user: User, team: Team | None, users: UserNotifications) -> str:
     title = f"{from_user.username} is paging"
 
-    team_specified = team is not None
-    if team_specified:
-        title += f" {team.name}"
+    names = [team.name] if team is not None else []
+    names.extend([user.username for user, _ in users])
 
-    num_users = len(users)
-    has_more_than_one_user = num_users > 1
-    has_more_than_two_users = num_users > 2
-
-    for idx, user_notification in enumerate(users):
-        user, _ = user_notification
-        is_first_user = idx == 0
-        is_last_user = idx == num_users - 1
-
-        if not is_last_user and (
-            (team_specified and has_more_than_one_user) or (has_more_than_two_users and not is_first_user)
-        ):
-            title += ","
-        elif is_last_user and (has_more_than_one_user or team_specified):
-            title += " and"
-
-        title += f" {user.username}"
+    if (num_names := len(names)) == 1:
+        title += f" {names[0]}"
+    elif num_names > 1:
+        title += f" {', '.join(names[:-1])} and {names[-1]}"
 
     title += " to join escalation"
 
@@ -190,10 +175,5 @@ def unpage_user(alert_group: AlertGroup, user: User, from_user: User) -> None:
 
 
 def user_is_oncall(user: User) -> bool:
-    schedules = OnCallSchedule.objects.filter(
-        Q(cached_ical_file_primary__contains=user.username) | Q(cached_ical_file_primary__contains=user.email),
-        organization=user.organization,
-    )
-    schedules_with_oncall_users = get_oncall_users_for_multiple_schedules(schedules)
-
+    schedules_with_oncall_users = get_oncall_users_for_multiple_schedules(OnCallSchedule.objects.related_to_user(user))
     return user.pk in {user.pk for _, users in schedules_with_oncall_users.items() for user in users}

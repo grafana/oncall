@@ -75,17 +75,19 @@ def test_list_teams_only_include_notifiable_teams(
 
     user.teams.set([team1, team2])
 
-    make_alert_receive_channel(organization, team=team1, integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING)
+    arc1 = make_alert_receive_channel(
+        organization, team=team1, integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING
+    )
     make_alert_receive_channel(organization, team=team2, integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING)
 
     class CustomPropertyMock(PropertyMock):
         def __get__(self, obj, obj_type=None):
-            return obj.id == team1.id
+            return obj.id == arc1.id
 
     client = APIClient()
     url = reverse("api-internal:team-list")
 
-    with patch("apps.api.views.team.AlertReceiveChannel.is_contactable", new_callable=CustomPropertyMock):
+    with patch("apps.alerts.models.AlertReceiveChannel.is_notifiable", new_callable=CustomPropertyMock):
         response = client.get(
             f"{url}?only_include_notifiable_teams=true&include_no_team=false",
             format="json",

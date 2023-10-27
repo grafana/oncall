@@ -4,7 +4,6 @@ from rest_framework.filters import SearchFilter
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from apps.alerts.models import AlertReceiveChannel
 from apps.api.permissions import RBACPermission
 from apps.api.serializers.team import TeamSerializer
 from apps.auth_token.auth import PluginAuthentication
@@ -53,13 +52,10 @@ class TeamViewSet(PublicPrimaryKeyMixin, mixins.ListModelMixin, mixins.UpdateMod
         queryset = self.filter_queryset(self.get_queryset())
 
         if self.request.query_params.get("only_include_notifiable_teams", "false") == "true":
-            # filters down to only teams that have a direct paging integration that is "contactable"
-            orgs_direct_paging_integrations = AlertReceiveChannel.get_orgs_direct_paging_integrations(
-                self.request.user.organization
-            )
-            print("YOOOOO", orgs_direct_paging_integrations)
-            contactable_direct_paging_integrations = [i for i in orgs_direct_paging_integrations if i.is_contactable]
-            team_ids = [i.team.pk for i in contactable_direct_paging_integrations if i.team is not None]
+            # filters down to only teams that have a direct paging integration that is "notifiable"
+            orgs_direct_paging_integrations = self.request.user.organization.get_direct_paging_integrations()
+            notifiable_direct_paging_integrations = [i for i in orgs_direct_paging_integrations if i.is_notifiable]
+            team_ids = [i.team.pk for i in notifiable_direct_paging_integrations if i.team is not None]
 
             queryset = queryset.filter(pk__in=team_ids)
 

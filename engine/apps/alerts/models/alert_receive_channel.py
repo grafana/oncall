@@ -255,7 +255,7 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
         )
 
     @property
-    def is_contactable(self) -> bool:
+    def is_notifiable(self) -> bool:
         """
         Returns true if:
         - the integration has more than one channel filter associated with it

@@ -298,6 +298,11 @@ class Organization(MaintainableObject):
                 new_channel=channel_name,
             )
 
+    def get_direct_paging_integrations(self) -> "RelatedManager['AlertReceiveChannel']":
+        from apps.alerts.models import AlertReceiveChannel
+
+        return self.alert_receive_channels.filter(integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING)
+
     @property
     def web_link(self):
         return urljoin(self.grafana_url, "a/grafana-oncall-app/")
@@ -315,6 +320,7 @@ class Organization(MaintainableObject):
     def telegram_is_configured(self) -> bool:
         return self.telegram_channel.count() > 0
 
+    @classmethod
     def __str__(self):
         return f"{self.pk}: {self.org_title}"
 
