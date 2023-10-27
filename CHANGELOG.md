@@ -31,6 +31,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix iCal imported schedules related users and next shifts per user ([#3178](https://github.com/grafana/oncall/pull/3178))
 - Fix references to removed access control functions in Grafana @mderynck ([#3184](https://github.com/grafana/oncall/pull/3184))
 
+### Changed
+
+- Upgrade Django to 4.2.6 and update iCal related deps ([#3176](https://github.com/grafana/oncall/pull/3176))
+
 ## v1.3.45 (2023-10-19)
 
 ### Added
