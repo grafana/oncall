@@ -4,13 +4,14 @@ name: "Triage stale pull requests"
     - cron: "30 1 * * *"
 
 jobs:
-  stale:
+  stale-pull-requests:
+    name: Triage stale pull requests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/stale@v8
         with:
           # docs - https://github.com/actions/stale
-          # don't mark issues as stale, only triage pull requests
+          # only triage pull requests
           days-before-issue-stale: -1
           days-before-issue-close: -1
           days-before-pr-stale: 30
@@ -25,3 +26,23 @@ jobs:
             This pull request has been automatically closed because it has not had activity in the last 30 days.
             Please feel free to give a status update now, ping for review, or re-open when it's ready.
             Thank you for your contributions!
+
+  stale-issues:
+    name: Triage stale issues
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/stale@v8
+        with:
+          # docs - https://github.com/actions/stale
+          # only triage issues
+          days-before-issue-stale: -120
+          days-before-issue-close: -150
+          days-before-pr-stale: -1
+          days-before-pr-close: -1
+          ascending: true # start processing older issues first
+          stale-issue-label: "issue:stale"
+          stale-issue-message: >
+            This issue has been automatically marked as stale because it has not had activity in the last
+            120 days. It will be closed in 30 days if no further activity occurs.
+          close-issue-message: >
+            This issue has been automatically closed because it has not had activity in the last 150 days.
