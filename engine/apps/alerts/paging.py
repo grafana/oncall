@@ -163,15 +163,16 @@ def unpage_user(alert_group: AlertGroup, user: User, from_user: User) -> None:
             ).select_for_update()[0]
             user_has_notification.active_notification_policy_id = None
             user_has_notification.save(update_fields=["active_notification_policy_id"])
-            # add log entry
-            alert_group.log_records.create(
-                type=AlertGroupLogRecord.TYPE_UNPAGE_USER,
-                author=from_user,
-                reason=f"{from_user.username} unpaged user {user.username}",
-                step_specific_info={"user": user.public_primary_key},
-            )
     except IndexError:
         return
+    finally:
+        # add log entry
+        alert_group.log_records.create(
+            type=AlertGroupLogRecord.TYPE_UNPAGE_USER,
+            author=from_user,
+            reason=f"{from_user.username} unpaged user {user.username}",
+            step_specific_info={"user": user.public_primary_key},
+        )
 
 
 def user_is_oncall(user: User) -> bool:
