@@ -33,7 +33,7 @@ const ManualAlertGroup: FC<ManualAlertGroupProps> = observer(({ onCreate, onHide
     directPagingStore.resetSelectedUsers();
     directPagingStore.resetSelectedTeam();
     onHide();
-  }, [directPagingStore, onHide]);
+  }, [onHide]);
 
   const hasSelectedEitherATeamOrAUser = selectedTeamResponder !== null || selectedUserResponders.length > 0;
   const formIsSubmittable = hasSelectedEitherATeamOrAUser && formIsValid;
@@ -58,7 +58,7 @@ const ManualAlertGroup: FC<ManualAlertGroupProps> = observer(({ onCreate, onHide
       onCreate(resp.alert_group_id);
       onHide();
     },
-    [prepareForUpdate, directPagingStore, selectedUserResponders, selectedTeamResponder]
+    [prepareForUpdate, selectedUserResponders, selectedTeamResponder]
   );
 
   return (
