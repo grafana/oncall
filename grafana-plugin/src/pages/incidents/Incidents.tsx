@@ -91,7 +91,6 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
   }
 
   private pollingIntervalId: NodeJS.Timer = undefined;
-  private didLastPollingComplete: boolean = true;
 
   componentDidMount() {
     const { alertGroupStore } = this.props.store;
@@ -727,8 +726,6 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
   onIncidentsUpdateClick = () => {
     const { store } = this.props;
 
-    console.log('click');
-
     this.setState({ affectedRows: {} }, () => {
       store.alertGroupStore.updateIncidents();
     });
@@ -736,17 +733,26 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
 
   clearPollingInterval() {
     clearInterval(this.pollingIntervalId);
-    this.pollingIntervalId = undefined;
+    this.pollingIntervalId = null;
   }
 
   setPollingInterval(filters: IncidentsFiltersType = this.state.filters, isOnMount = false) {
-    this.pollingIntervalId = setInterval(async () => {
-      if (!this.didLastPollingComplete) return;
+    const startPolling = (delayed: boolean = false) => {
+      this.pollingIntervalId = setTimeout(
+        async () => {
+          const isBrowserWindowInactive = document.hidden;
+          if (!isBrowserWindowInactive) {
+            await this.fetchIncidentData(filters, isOnMount);
+          }
 
-      this.didLastPollingComplete = false;
-      await this.fetchIncidentData(filters, isOnMount);
-      this.didLastPollingComplete = true;
-    }, POLLING_NUM_SECONDS * 1000);
+          if (this.pollingIntervalId === null) return;
+          startPolling(isBrowserWindowInactive);
+        },
+        delayed ? 60 * 1000 : POLLING_NUM_SECONDS * 1000
+      );
+    };
+
+    startPolling();
   }
 }
 
