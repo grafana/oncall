@@ -526,4 +526,23 @@ def test_alert_group_get_paged_users(
 
     _make_log_record(alert_group, other_user, AlertGroupLogRecord.TYPE_DIRECT_PAGING)
 
-    alert_group.get_paged_users()[0]["pk"] == other_user.public_primary_key
+    assert alert_group.get_paged_users()[0]["pk"] == other_user.public_primary_key
+
+    # user was paged, unpaged, and then paged again - they should only show up once
+    alert_group = make_alert_group(alert_receive_channel)
+    _make_log_record(alert_group, user, AlertGroupLogRecord.TYPE_DIRECT_PAGING)
+    _make_log_record(alert_group, user, AlertGroupLogRecord.TYPE_UNPAGE_USER)
+    _make_log_record(alert_group, user, AlertGroupLogRecord.TYPE_DIRECT_PAGING)
+
+    paged_users = alert_group.get_paged_users()
+    assert len(paged_users) == 1
+    assert alert_group.get_paged_users()[0]["pk"] == user.public_primary_key
+
+    # user was paged and then paged again - they should only show up once
+    alert_group = make_alert_group(alert_receive_channel)
+    _make_log_record(alert_group, user, AlertGroupLogRecord.TYPE_DIRECT_PAGING)
+    _make_log_record(alert_group, user, AlertGroupLogRecord.TYPE_DIRECT_PAGING)
+
+    paged_users = alert_group.get_paged_users()
+    assert len(paged_users) == 1
+    assert alert_group.get_paged_users()[0]["pk"] == user.public_primary_key
