@@ -45,10 +45,12 @@ export class AlertGroupStore extends BaseStore {
 
   @observable
   alertsSearchResult: {
-    prev?: string;
-    next?: string;
-    results?: any;
-    page_size?: number;
+    [key: string]: {
+      prev?: string;
+      next?: string;
+      results?: string[];
+      page_size?: number;
+    };
   } = {};
 
   @observable
