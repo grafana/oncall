@@ -175,6 +175,7 @@ class User(models.Model):
     schedule_export_token: "RelatedManager['ScheduleExportAuthToken']"
     silenced_alert_groups: "RelatedManager['AlertGroup']"
     slack_user_identity: typing.Optional["SlackUserIdentity"]
+    teams: "RelatedManager['Team']"
     user_schedule_export_token: "RelatedManager['UserScheduleExportAuthToken']"
     wiped_alert_groups: "RelatedManager['AlertGroup']"
 

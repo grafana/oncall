@@ -1841,7 +1841,18 @@ def test_alert_group_paged_users(
 
     url = reverse("api-internal:alertgroup-detail", kwargs={"pk": new_alert_group.public_primary_key})
     response = client.get(url, format="json", **make_user_auth_headers(user, token))
-    assert response.json()["paged_users"] == [user2.short()]
+    assert response.json()["paged_users"] == [
+        {
+            "avatar": user2.avatar_url,
+            "avatar_full": user2.avatar_full_url,
+            "id": user2.pk,
+            "pk": user2.public_primary_key,
+            "important": None,
+            "name": user2.name,
+            "username": user2.username,
+            "teams": [],
+        }
+    ]
 
 
 @pytest.mark.django_db

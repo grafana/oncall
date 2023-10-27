@@ -70,6 +70,16 @@ class LogRecordUser(typing.TypedDict):
     avatar_full: str
 
 
+class PagedUser(typing.TypedDict):
+    id: int
+    username: str
+    name: str
+    pk: str
+    avatar: str
+    avatar_full: str
+    important: bool
+
+
 class LogRecords(typing.TypedDict):
     time: str  # humanized delta relative to now
     action: str  # human-friendly description
@@ -509,22 +519,57 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
     def happened_while_maintenance(self):
         return self.root_alert_group is not None and self.root_alert_group.maintenance_uuid is not None
 
-    def get_paged_users(self) -> QuerySet[User]:
+    def get_paged_users(self) -> typing.List[PagedUser]:
         from apps.alerts.models import AlertGroupLogRecord
 
-        users_ids = set()
-        for log_record in self.log_records.filter(
+        user_ids: typing.Set[str] = set()
+        users: typing.List[PagedUser] = []
+
+        log_records = self.log_records.filter(
             type__in=(AlertGroupLogRecord.TYPE_DIRECT_PAGING, AlertGroupLogRecord.TYPE_UNPAGE_USER)
-        ):
+        )
+
+        for log_record in log_records:
             # filter paging events, track still active escalations
             info = log_record.get_step_specific_info()
             user_id = info.get("user") if info else None
-            if user_id is not None:
-                users_ids.add(
-                    user_id
-                ) if log_record.type == AlertGroupLogRecord.TYPE_DIRECT_PAGING else users_ids.discard(user_id)
+            important = info.get("important") if info else None
 
-        return User.objects.filter(public_primary_key__in=users_ids)
+            if user_id is not None:
+                user_ids.add(
+                    user_id
+                ) if log_record.type == AlertGroupLogRecord.TYPE_DIRECT_PAGING else user_ids.discard(user_id)
+
+        user_instances = User.objects.filter(public_primary_key__in=user_ids)
+        user_map = {u.public_primary_key: u for u in user_instances}
+
+        # mostly doing this second loop to avoid having to query each user individually in the first loop
+        for log_record in log_records:
+            # filter paging events, track still active escalations
+            info = log_record.get_step_specific_info()
+            user_id = info.get("user") if info else None
+            important = info.get("important") if info else False
+
+            if user_id is not None and (user := user_map.get(user_id)) is not None:
+                if log_record.type == AlertGroupLogRecord.TYPE_DIRECT_PAGING:
+                    # add the user
+                    users.append(
+                        {
+                            "id": user.pk,
+                            "pk": user.public_primary_key,
+                            "name": user.name,
+                            "username": user.username,
+                            "avatar": user.avatar_url,
+                            "avatar_full": user.avatar_full_url,
+                            "important": important,
+                            "teams": [{"pk": t.public_primary_key, "name": t.name} for t in user.teams.all()],
+                        }
+                    )
+                else:
+                    # user was unpaged at some point, remove them
+                    users = [u for u in users if u["pk"] != user_id]
+
+        return users
 
     def _get_response_time(self):
         """Return response_time based on current alert group status."""

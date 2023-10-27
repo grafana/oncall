@@ -1,0 +1,48 @@
+.add-responders-dropdown {
+  border: var(--border-medium);
+  position: absolute;
+  right: 16px;
+  top: 55px;
+  background: var(--primary-background);
+  width: 340px;
+  z-index: 10;
+}
+
+.team-direct-paging-info-alert {
+  margin: 8px;
+}
+
+.learn-more-link {
+  display: inline-block;
+}
+
+.responder-item {
+  cursor: pointer;
+  width: 280px;
+  overflow: hidden;
+}
+
+.responders-filters {
+  margin: 8px;
+}
+
+.radio-buttons {
+  margin: 8px;
+}
+
+.table {
+  overflow: auto;
+  padding: 4px 0px;
+
+  & tr:hover {
+    background: var(--background-secondary) !important;
+  }
+
+  & tbody tr:nth-child(odd) {
+    background: unset;
+  }
+}
+
+.user-results-section-header {
+  padding: 10px 8px;
+}

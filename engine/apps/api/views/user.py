@@ -6,6 +6,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db.utils import IntegrityError
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.functional import cached_property
 from django_filters import rest_framework as filters
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
@@ -15,7 +16,6 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from apps.alerts.paging import check_user_availability
 from apps.api.permissions import (
     ALL_PERMISSION_CHOICES,
     IsOwnerOrHasRBACPermissions,
@@ -29,6 +29,7 @@ from apps.api.serializers.user import (
     CurrentUserSerializer,
     FilterUserSerializer,
     UserHiddenFieldsSerializer,
+    UserLongSerializer,
     UserSerializer,
 )
 from apps.api.throttlers import (
@@ -57,6 +58,7 @@ from apps.phone_notifications.exceptions import (
     ProviderNotSupports,
 )
 from apps.phone_notifications.phone_backend import PhoneBackend
+from apps.schedules.ical_utils import get_oncall_users_for_multiple_schedules
 from apps.schedules.models import OnCallSchedule
 from apps.telegram.client import TelegramClient
 from apps.telegram.models import TelegramVerificationCode
@@ -219,18 +221,39 @@ class UserView(
         "^username",
         "^slack_user_identity__cached_slack_login",
         "^slack_user_identity__cached_name",
+        "^teams__name",
     )
 
     filterset_class = UserFilter
+
+    @cached_property
+    def schedules_with_oncall_users(self):
+        """
+        The result of this method is cached and is reused for the whole lifetime of a request,
+        since self.get_serializer_context() is called multiple times for every instance in the queryset.
+        """
+        return get_oncall_users_for_multiple_schedules(self.request.user.organization.oncall_schedules.all())
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context.update({"schedules_with_oncall_users": self.schedules_with_oncall_users})
+        return context
 
     def get_serializer_class(self):
         request = self.request
         user = request.user
         kwargs = self.kwargs
+        query_params = request.query_params
 
-        is_filters_request = request.query_params.get("filters", "false") == "true"
-        if self.action in ["list"] and is_filters_request:
+        is_list_request = self.action in ["list"]
+        is_filters_request = query_params.get("filters", "false") == "true"
+        is_short_request = query_params.get("short", "true") == "false"
+        is_currently_oncall_request = query_params.get("is_currently_oncall", "").lower() in ["true", "false"]
+
+        if is_list_request and is_filters_request:
             return self.get_filter_serializer_class()
+        elif is_list_request and (is_short_request or is_currently_oncall_request):
+            return UserLongSerializer
 
         is_users_own_data = kwargs.get("pk") is not None and kwargs.get("pk") == user.public_primary_key
         has_admin_permission = user_is_authorized(user, [RBACPermission.Permissions.USER_SETTINGS_ADMIN])
@@ -253,9 +276,24 @@ class UserView(
 
     def list(self, request, *args, **kwargs) -> Response:
         queryset = self.filter_queryset(self.get_queryset())
+
+        is_currently_oncall_query_param = request.query_params.get("is_currently_oncall", "").lower()
+
+        def _get_oncall_user_ids():
+            return {user.pk for _, users in self.schedules_with_oncall_users.items() for user in users}
+
+        if is_currently_oncall_query_param == "true":
+            # client explicitly wants to filter out users that are on-call
+            queryset = queryset.filter(pk__in=_get_oncall_user_ids())
+        elif is_currently_oncall_query_param == "false":
+            # user explicitly wants to filter out on-call users
+            queryset = queryset.exclude(pk__in=_get_oncall_user_ids())
+
         page = self.paginate_queryset(queryset)
+
         if page is not None:
-            context = {"request": self.request, "format": self.format_kwarg, "view": self}
+            context = self.get_serializer_context()
+
             if settings.IS_OPEN_SOURCE:
                 if live_settings.GRAFANA_CLOUD_NOTIFICATIONS_ENABLED:
                     from apps.oss_installation.models import CloudConnector, CloudUserIdentity
@@ -274,7 +312,8 @@ class UserView(
         return Response(serializer.data)
 
     def retrieve(self, request, *args, **kwargs) -> Response:
-        context = {"request": self.request, "format": self.format_kwarg, "view": self}
+        context = self.get_serializer_context()
+
         try:
             instance = self.get_object()
         except NotFound:
@@ -647,12 +686,6 @@ class UserView(
                 raise NotFound
             return Response(status=status.HTTP_204_NO_CONTENT)
         return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
-
-    @action(detail=True, methods=["get"])
-    def check_availability(self, request, pk) -> Response:
-        user = self.get_object()
-        warnings = check_user_availability(user=user)
-        return Response(data={"warnings": warnings}, status=status.HTTP_200_OK)
 
 
 def handle_phone_notificator_failed(exc: BaseFailed) -> Response:
