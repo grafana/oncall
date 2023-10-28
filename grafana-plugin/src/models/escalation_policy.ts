@@ -4,7 +4,7 @@ import { UserGroup } from 'models/user_group/user_group.types';
 
 import { ChannelFilter } from './channel_filter';
 import { ScheduleDTO } from './schedule';
-import { UserDTO as User } from './user';
+import { User } from './user/user.types';
 
 export interface EscalationPolicyType {
   id: string;

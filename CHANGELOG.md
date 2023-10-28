@@ -5,12 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## v1.3.48 (2023-10-27)
+## Unreleased
 
 ### Added
 
 - Data type changed from `DateField` to `DateTimeField` on the `final_shifts` API endpoint. Endpoint now accepts either
 a date or a datetime ([#3103](https://github.com/grafana/oncall/pull/3103))
+
+### Changed
+
+- Simplify Direct Paging workflow. Now when using Direct Paging you either simply specify a team, or one or more users
+  to page by @joeyorlando ([#3128](https://github.com/grafana/oncall/pull/3128))
 
 ## v1.3.47 (2023-10-25)
 
@@ -30,6 +35,10 @@ a date or a datetime ([#3103](https://github.com/grafana/oncall/pull/3103))
 - Fix resolution note source for mobile app by @vadimkerr ([#3174](https://github.com/grafana/oncall/pull/3174))
 - Fix iCal imported schedules related users and next shifts per user ([#3178](https://github.com/grafana/oncall/pull/3178))
 - Fix references to removed access control functions in Grafana @mderynck ([#3184](https://github.com/grafana/oncall/pull/3184))
+
+### Changed
+
+- Upgrade Django to 4.2.6 and update iCal related deps ([#3176](https://github.com/grafana/oncall/pull/3176))
 
 ## v1.3.45 (2023-10-19)
 

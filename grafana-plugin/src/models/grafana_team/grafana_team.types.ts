@@ -4,4 +4,5 @@ export interface GrafanaTeam {
   email: string;
   avatar_url: string;
   is_sharing_resources_to_all: boolean;
+  number_of_users_currently_oncall: number;
 }
