@@ -193,10 +193,6 @@ export class ScheduleStore extends BaseStore {
   }
 
   getSearchResult() {
-    if (!this.searchResult) {
-      return undefined;
-    }
-
     return {
       page_size: this.searchResult.page_size,
       count: this.searchResult.count,
