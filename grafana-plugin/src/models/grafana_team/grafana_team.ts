@@ -29,9 +29,13 @@ export class GrafanaTeamStore extends BaseStore {
   }
 
   @action
-  async updateItems(query = '') {
+  async updateItems(query = '', includeNoTeam = true, onlyIncludeNotifiableTeams = false) {
     const result = await makeRequest(`${this.path}`, {
-      params: { search: query },
+      params: {
+        search: query,
+        include_no_team: includeNoTeam ? 'true' : 'false',
+        only_include_notifiable_teams: onlyIncludeNotifiableTeams ? 'true' : 'false',
+      },
     });
 
     this.items = {
@@ -53,7 +57,7 @@ export class GrafanaTeamStore extends BaseStore {
 
   getSearchResult(query = '') {
     if (!this.searchResult[query]) {
-      return undefined;
+      return [];
     }
 
     return this.searchResult[query].map((teamId: GrafanaTeam['id']) => this.items[teamId]);

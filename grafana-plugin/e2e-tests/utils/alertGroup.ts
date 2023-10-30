@@ -100,13 +100,3 @@ export const verifyThatAlertGroupIsTriggered = async (
 
   expect(await incidentTimelineContainsStep(page, triggeredStepText)).toBe(true);
 };
-
-
-export const verifyAlertGroupTitleAndMessageContainText = async (
-  page: Page,
-  title: string,
-  message: string
-): Promise<void> => {
-  await expect(page.getByTestId('incident-title')).toContainText(title);
-  await expect(page.getByTestId('incident-message')).toContainText(message);
-};
