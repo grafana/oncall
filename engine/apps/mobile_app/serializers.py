@@ -1,3 +1,5 @@
+import typing
+
 from rest_framework import serializers
 
 from apps.mobile_app.models import MobileAppUserSettings
@@ -30,11 +32,14 @@ class MobileAppUserSettingsSerializer(serializers.ModelSerializer):
             "time_zone",
         )
 
-    def validate_going_oncall_notification_timing(self, going_oncall_notification_timing: typing.Optional[typing.List[int]]) -> typing.Optional[typing.List[int]]:
+    def validate_going_oncall_notification_timing(
+        self, going_oncall_notification_timing: typing.Optional[typing.List[int]]
+    ) -> typing.Optional[typing.List[int]]:
         if going_oncall_notification_timing is not None:
             if len(going_oncall_notification_timing) == 0:
                 raise serializers.ValidationError(detail="invalid timing options")
+            notification_timing_options = [opt[0] for opt in MobileAppUserSettings.NOTIFICATION_TIMING_CHOICES]
             for option in going_oncall_notification_timing:
-                if option not in [opt[0] for opt in MobileAppUserSettings.NOTIFICATION_TIMING_CHOICES]:
+                if option not in notification_timing_options:
                     raise serializers.ValidationError(detail="invalid timing options")
         return going_oncall_notification_timing
