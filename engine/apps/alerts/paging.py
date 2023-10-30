@@ -1,9 +1,7 @@
-import enum
 import typing
 from uuid import uuid4
 
 from django.db import transaction
-from django.db.models import Q
 
 from apps.alerts.models import (
     Alert,
@@ -11,49 +9,26 @@ from apps.alerts.models import (
     AlertGroupLogRecord,
     AlertReceiveChannel,
     ChannelFilter,
-    EscalationChain,
     UserHasNotification,
 )
 from apps.alerts.tasks.notify_user import notify_user_task
-from apps.schedules.ical_utils import list_users_to_notify_from_ical
+from apps.schedules.ical_utils import get_oncall_users_for_multiple_schedules
 from apps.schedules.models import OnCallSchedule
 from apps.user_management.models import Organization, Team, User
 
-
-class PagingError(enum.StrEnum):
-    USER_HAS_NO_NOTIFICATION_POLICY = "USER_HAS_NO_NOTIFICATION_POLICY"
-    USER_IS_NOT_ON_CALL = "USER_IS_NOT_ON_CALL"
-
-
-# notifications: (User|Schedule, important)
 UserNotifications = list[tuple[User, bool]]
-ScheduleNotifications = list[tuple[OnCallSchedule, bool]]
-
-
-class NoNotificationPolicyWarning(typing.TypedDict):
-    error: typing.Literal[PagingError.USER_HAS_NO_NOTIFICATION_POLICY]
-    data: typing.Dict
-
-
-ScheduleWarnings = typing.Dict[str, typing.List[str]]
-
-
-class _NotOnCallWarningData(typing.TypedDict):
-    schedules: ScheduleWarnings
-
-
-class NotOnCallWarning(typing.TypedDict):
-    error: typing.Literal[PagingError.USER_IS_NOT_ON_CALL]
-    data: _NotOnCallWarningData
-
-
-AvailabilityWarning = NoNotificationPolicyWarning | NotOnCallWarning
 
 
 class DirectPagingAlertGroupResolvedError(Exception):
     """Raised when trying to use direct paging for a resolved alert group."""
 
     DETAIL = "Cannot add responders for a resolved alert group"  # Returned in BadRequest responses and Slack warnings
+
+
+class DirectPagingUserTeamValidationError(Exception):
+    """Raised when trying to use direct paging and no team or user is specified."""
+
+    DETAIL = "No team or user(s) specified"  # Returned in BadRequest responses and Slack warnings
 
 
 class _OnCall(typing.TypedDict):
@@ -69,12 +44,7 @@ class DirectPagingAlertPayload(typing.TypedDict):
 
 
 def _trigger_alert(
-    organization: Organization,
-    team: Team | None,
-    title: str,
-    message: str,
-    from_user: User,
-    escalation_chain: EscalationChain = None,
+    organization: Organization, team: Team | None, message: str, title: str, from_user: User
 ) -> AlertGroup:
     """Trigger manual integration alert from params."""
     alert_receive_channel = AlertReceiveChannel.get_or_create_manual_integration(
@@ -87,28 +57,14 @@ def _trigger_alert(
             "verbal_name": f"Direct paging ({team.name if team else 'No'} team)",
         },
     )
+
+    channel_filter = None
     if alert_receive_channel.default_channel_filter is None:
-        ChannelFilter.objects.create(
+        channel_filter = ChannelFilter.objects.create(
             alert_receive_channel=alert_receive_channel,
             notify_in_slack=True,
             is_default=True,
         )
-
-    channel_filter = None
-    if escalation_chain is not None:
-        channel_filter, _ = ChannelFilter.objects.get_or_create(
-            alert_receive_channel=alert_receive_channel,
-            escalation_chain=escalation_chain,
-            is_default=False,
-            defaults={
-                "filtering_term": f"escalate to {escalation_chain.name}",
-                "notify_in_slack": True,
-            },
-        )
-
-    permalink = None
-    if not title:
-        title = "Message from {}".format(from_user.username)
 
     payload: DirectPagingAlertPayload = {
         # Custom oncall property in payload to simplify rendering
@@ -117,7 +73,7 @@ def _trigger_alert(
             "message": message,
             "uid": str(uuid4()),  # avoid grouping
             "author_username": from_user.username,
-            "permalink": permalink,
+            "permalink": None,
         },
     }
 
@@ -134,107 +90,60 @@ def _trigger_alert(
     return alert.group
 
 
-def check_user_availability(user: User) -> typing.List[AvailabilityWarning]:
-    """Check user availability to be paged.
+def _construct_title(from_user: User, team: Team | None, users: UserNotifications) -> str:
+    title = f"{from_user.username} is paging"
 
-    Return a warnings list indicating `error` and any additional related `data`.
-    """
-    warnings: typing.List[AvailabilityWarning] = []
-    if not user.notification_policies.exists():
-        warnings.append(
-            {
-                "error": PagingError.USER_HAS_NO_NOTIFICATION_POLICY,
-                "data": {},
-            }
-        )
+    names = [team.name] if team is not None else []
+    names.extend([user.username for user, _ in users])
 
-    is_on_call = False
-    schedules = OnCallSchedule.objects.filter(
-        Q(cached_ical_file_primary__contains=user.username) | Q(cached_ical_file_primary__contains=user.email),
-        organization=user.organization,
-    )
-    schedules_data: ScheduleWarnings = {}
-    for s in schedules:
-        # keep track of schedules and on call users to suggest if needed
-        oncall_users = list_users_to_notify_from_ical(s)
-        schedules_data[s.name] = set(u.public_primary_key for u in oncall_users)
-        if user in oncall_users:
-            is_on_call = True
-            break
+    if (num_names := len(names)) == 1:
+        title += f" {names[0]}"
+    elif num_names > 1:
+        title += f" {', '.join(names[:-1])} and {names[-1]}"
 
-    if not is_on_call:
-        # user is not on-call
-        # TODO: check working hours
-        warnings.append(
-            {
-                "error": PagingError.USER_IS_NOT_ON_CALL,
-                "data": {"schedules": schedules_data},
-            }
-        )
+    title += " to join escalation"
 
-    return warnings
+    return title
 
 
 def direct_paging(
     organization: Organization,
-    team: Team | None,
     from_user: User,
-    title: str = None,
-    message: str = None,
+    message: str,
+    title: str | None = None,
+    team: Team | None = None,
     users: UserNotifications | None = None,
-    schedules: ScheduleNotifications | None = None,
-    escalation_chain: EscalationChain | None = None,
     alert_group: AlertGroup | None = None,
 ) -> AlertGroup | None:
-    """Trigger escalation targeting given users/schedules.
+    """Trigger escalation targeting given team/users.
 
     If an alert group is given, update escalation to include the specified users.
-    Otherwise, create a new alert using given title and message.
-
+    Otherwise, create a new alert using given message.
     """
-
     if users is None:
         users = []
 
-    if schedules is None:
-        schedules = []
-
-    if escalation_chain is not None and alert_group is not None:
-        raise ValueError("Cannot change an existing alert group escalation chain")
+    if not users and team is None:
+        raise DirectPagingUserTeamValidationError
 
     # Cannot add responders to a resolved alert group
     if alert_group and alert_group.resolved:
         raise DirectPagingAlertGroupResolvedError
 
+    if title is None:
+        title = _construct_title(from_user, team, users)
+
     # create alert group if needed
     if alert_group is None:
-        alert_group = _trigger_alert(organization, team, title, message, from_user, escalation_chain=escalation_chain)
+        alert_group = _trigger_alert(organization, team, message, title, from_user)
 
-    # initialize direct paged users (without a schedule)
-    users = [(u, important, None) for u, important in users]
-
-    # get on call users, add log entry for each schedule
-    for s, important in schedules:
-        oncall_users = list_users_to_notify_from_ical(s)
-        users += [(u, important, s) for u in oncall_users]
+    for u, important in users:
         alert_group.log_records.create(
             type=AlertGroupLogRecord.TYPE_DIRECT_PAGING,
             author=from_user,
-            reason=f"{from_user.username} paged schedule {s.name}",
-            step_specific_info={"schedule": s.public_primary_key},
-        )
-
-    for u, important, schedule in users:
-        reason = f"{from_user.username} paged user {u.username}"
-        if schedule:
-            reason += f" (from schedule {schedule.name})"
-        alert_group.log_records.create(
-            type=AlertGroupLogRecord.TYPE_DIRECT_PAGING,
-            author=from_user,
-            reason=reason,
+            reason=f"{from_user.username} paged user {u.username}",
             step_specific_info={
                 "user": u.public_primary_key,
-                "schedule": schedule.public_primary_key if schedule else None,
                 "important": important,
             },
         )
@@ -246,7 +155,13 @@ def direct_paging(
 
 
 def unpage_user(alert_group: AlertGroup, user: User, from_user: User) -> None:
-    """Remove user from alert group escalation."""
+    """
+    Remove user from alert group escalation.
+
+    An IndexError is raised (and caught) if the user had not been notified for some reason.
+    Regardless of whether or not the user was notified, we will always create an AlertGroupLogRecord of type
+    TYPE_UNPAGE_USER.
+    """
     try:
         with transaction.atomic():
             user_has_notification = UserHasNotification.objects.filter(
@@ -254,12 +169,42 @@ def unpage_user(alert_group: AlertGroup, user: User, from_user: User) -> None:
             ).select_for_update()[0]
             user_has_notification.active_notification_policy_id = None
             user_has_notification.save(update_fields=["active_notification_policy_id"])
-            # add log entry
-            alert_group.log_records.create(
-                type=AlertGroupLogRecord.TYPE_UNPAGE_USER,
-                author=from_user,
-                reason=f"{from_user.username} unpaged user {user.username}",
-                step_specific_info={"user": user.public_primary_key},
-            )
     except IndexError:
         return
+    finally:
+        alert_group.log_records.create(
+            type=AlertGroupLogRecord.TYPE_UNPAGE_USER,
+            author=from_user,
+            reason=f"{from_user.username} unpaged user {user.username}",
+            step_specific_info={"user": user.public_primary_key},
+        )
+
+
+def user_is_oncall(user: User) -> bool:
+    schedules_with_oncall_users = get_oncall_users_for_multiple_schedules(OnCallSchedule.objects.related_to_user(user))
+    return user.pk in {user.pk for _, users in schedules_with_oncall_users.items() for user in users}
+
+
+def integration_is_notifiable(integration: AlertReceiveChannel) -> bool:
+    """
+    Returns true if:
+    - the integration has more than one channel filter associated with it
+    - the default channel filter has at least one notification method specified or an escalation chain associated with it
+    """
+    if integration.channel_filters.count() > 1:
+        return True
+
+    default_channel_filter = integration.default_channel_filter
+    if not default_channel_filter:
+        return False
+
+    organization = integration.organization
+    notify_via_slack = organization.slack_is_configured and default_channel_filter.notify_in_slack
+    notify_via_telegram = organization.telegram_is_configured and default_channel_filter.notify_in_telegram
+
+    notify_via_chatops = notify_via_slack or notify_via_telegram
+    custom_messaging_backend_configured = default_channel_filter.notification_backends is not None
+
+    return (
+        default_channel_filter.escalation_chain is not None or notify_via_chatops or custom_messaging_backend_configured
+    )

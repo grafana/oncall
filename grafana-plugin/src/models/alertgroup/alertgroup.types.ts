@@ -40,6 +40,10 @@ export interface GroupedAlert {
   render_for_web: RenderForWeb;
 }
 
+export type PagedUser = Pick<User, 'pk' | 'name' | 'username' | 'avatar' | 'avatar_full'> & {
+  important: boolean;
+};
+
 export interface Alert {
   pk: string;
   title: string;
@@ -80,14 +84,12 @@ export interface Alert {
   short?: boolean;
   root_alert_group?: Alert;
   alert_receive_channel: Partial<AlertReceiveChannel>;
-  paged_users: Array<Pick<User, 'pk' | 'username' | 'avatar'>>;
+  paged_users: PagedUser[];
   team: GrafanaTeam['id'];
 
   // set by client
   loading?: boolean;
   undoAction?: AlertAction;
-
-  has_pormortem?: boolean; // not implemented yet
 }
 
 interface RenderForWeb {
