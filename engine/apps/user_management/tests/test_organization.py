@@ -195,3 +195,50 @@ def test_organization_hard_delete(
     for obj in cascading_objects:
         with pytest.raises(ObjectDoesNotExist):
             obj.refresh_from_db()
+
+
+@pytest.mark.django_db
+def test_slack_is_configured(make_organization, make_slack_team_identity):
+    organization = make_organization()
+
+    assert organization.slack_is_configured is False
+    slack_team_identity = make_slack_team_identity()
+    organization.slack_team_identity = slack_team_identity
+    organization.save()
+    assert organization.slack_is_configured is True
+
+
+@pytest.mark.django_db
+def test_telegram_is_configured(make_organization, make_telegram_channel):
+    organization = make_organization()
+    assert organization.telegram_is_configured is False
+    make_telegram_channel(organization)
+    assert organization.telegram_is_configured is True
+
+
+@pytest.mark.django_db
+def test_get_direct_paging_integrations(make_organization, make_team, make_alert_receive_channel):
+    org1 = make_organization()
+    org1_team1 = make_team(org1)
+    org1_team2 = make_team(org1)
+
+    org2 = make_organization()
+
+    org1_direct_paging_integration1 = make_alert_receive_channel(
+        org1, integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING, team=org1_team1
+    )
+    org1_direct_paging_integration2 = make_alert_receive_channel(
+        org1, integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING, team=org1_team2
+    )
+
+    make_alert_receive_channel(org1, integration=AlertReceiveChannel.INTEGRATION_ALERTMANAGER)
+    make_alert_receive_channel(org2, integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING)
+
+    org1_direct_paging_integrations = org1.get_direct_paging_integrations()
+    org2_direct_paging_integrations = org2.get_direct_paging_integrations()
+
+    assert len(org1_direct_paging_integrations) == 2
+    assert len(org2_direct_paging_integrations) == 1
+
+    assert org1_direct_paging_integration1 in org1_direct_paging_integrations
+    assert org1_direct_paging_integration2 in org1_direct_paging_integrations

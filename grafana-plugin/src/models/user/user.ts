@@ -113,9 +113,9 @@ export class UserStore extends BaseStore {
   @action
   async updateItems(f: any = { searchTerm: '' }, page = 1, invalidateFn?: () => boolean): Promise<any> {
     const filters = typeof f === 'string' ? { searchTerm: f } : f; // for GSelect compatibility
-    const { searchTerm: search } = filters;
+    const { searchTerm: search, ...restFilters } = filters;
     const response = await makeRequest(this.path, {
-      params: { search, page },
+      params: { search, page, ...restFilters },
     });
 
     if (invalidateFn && invalidateFn()) {
@@ -423,12 +423,6 @@ export class UserStore extends BaseStore {
   async deleteiCalLink(userPk: User['pk']) {
     await makeRequest(`/users/${userPk}/export_token/`, {
       method: 'DELETE',
-    });
-  }
-
-  async checkUserAvailability(userPk: User['pk']) {
-    return await makeRequest(`/users/${userPk}/check_availability/`, {
-      method: 'GET',
     });
   }
 }
