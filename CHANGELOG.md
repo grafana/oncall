@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Simplify Direct Paging workflow. Now when using Direct Paging you either simply specify a team, or one or more users
   to page by @joeyorlando ([#3128](https://github.com/grafana/oncall/pull/3128))
+- Enable timing options for mobile push notifications, allow multi-select by @Ferril ([#3187](https://github.com/grafana/oncall/pull/3187))
 
 ## v1.3.47 (2023-10-25)
 
