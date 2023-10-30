@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+
+- Data type changed from `DateField` to `DateTimeField` on the `final_shifts` API endpoint. Endpoint now accepts either
+a date or a datetime ([#3103](https://github.com/grafana/oncall/pull/3103))
+
 ### Changed
 
 - Simplify Direct Paging workflow. Now when using Direct Paging you either simply specify a team, or one or more users

@@ -1,7 +1,5 @@
-import datetime
 import logging
 
-import pytz
 from django_filters import rest_framework as filters
 from rest_framework import status
 from rest_framework.decorators import action
@@ -141,14 +139,8 @@ class OnCallScheduleChannelView(RateLimitHeadersMixin, UpdateSerializerMixin, Mo
 
         start_date = serializer.validated_data["start_date"]
         end_date = serializer.validated_data["end_date"]
-        days_between_start_and_end = (end_date - start_date).days
 
-        datetime_start = datetime.datetime.combine(start_date, datetime.time.min, tzinfo=pytz.UTC)
-        datetime_end = datetime_start + datetime.timedelta(
-            days=days_between_start_and_end, hours=23, minutes=59, seconds=59
-        )
-
-        final_schedule_events: ScheduleEvents = schedule.final_events(datetime_start, datetime_end)
+        final_schedule_events: ScheduleEvents = schedule.final_events(start_date, end_date)
         logger.info(
             f"Exporting oncall shifts for schedule {pk} between dates {start_date} and {end_date}. {len(final_schedule_events)} shift events were found."
         )
@@ -159,8 +151,8 @@ class OnCallScheduleChannelView(RateLimitHeadersMixin, UpdateSerializerMixin, Mo
                 "user_email": user["email"],
                 "user_username": user["display_name"],
                 # truncate shift start/end exceeding the requested period
-                "shift_start": event["start"] if event["start"] >= datetime_start else datetime_start,
-                "shift_end": event["end"] if event["end"] <= datetime_end else datetime_end,
+                "shift_start": event["start"] if event["start"] >= start_date else start_date,
+                "shift_end": event["end"] if event["end"] <= end_date else end_date,
             }
             for event in final_schedule_events
             for user in event["users"]
