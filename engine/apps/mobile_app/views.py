@@ -68,7 +68,7 @@ class MobileAppUserSettingsViewSet(
         return mobile_app_settings
 
     def notification_timing_options(self, request):
-        choices = []
-        for item in MobileAppUserSettings.NOTIFICATION_TIMING_CHOICES:
-            choices.append({"value": item[0], "display_name": item[1]})
+        choices = [
+            {"value": item[0], "display_name": item[1]} for item in MobileAppUserSettings.NOTIFICATION_TIMING_CHOICES
+        ]
         return Response(choices)
