@@ -230,7 +230,7 @@ class InviteOtherPersonToIncident(AlertGroupActionsMixin, scenario_step.Scenario
     Check out apps/slack/scenarios/manage_responders.py for the new version that uses direct paging.
     """
 
-    REQUIRED_PERMISSIONS = [RBACPermission.Permissions.CHATOPS_WRITE]
+    REQUIRED_PERMISSIONS = [RBACPermission.Permissions.ALERT_GROUPS_WRITE]
 
     def process_scenario(
         self,
@@ -266,7 +266,7 @@ class InviteOtherPersonToIncident(AlertGroupActionsMixin, scenario_step.Scenario
 
 
 class SilenceGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
-    REQUIRED_PERMISSIONS = [RBACPermission.Permissions.CHATOPS_WRITE]
+    REQUIRED_PERMISSIONS = [RBACPermission.Permissions.ALERT_GROUPS_WRITE]
 
     def process_scenario(
         self,
@@ -293,7 +293,7 @@ class SilenceGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
 
 
 class UnSilenceGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
-    REQUIRED_PERMISSIONS = [RBACPermission.Permissions.CHATOPS_WRITE]
+    REQUIRED_PERMISSIONS = [RBACPermission.Permissions.ALERT_GROUPS_WRITE]
 
     def process_scenario(
         self,
@@ -313,7 +313,7 @@ class UnSilenceGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
 
 
 class SelectAttachGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
-    REQUIRED_PERMISSIONS = [RBACPermission.Permissions.CHATOPS_WRITE]
+    REQUIRED_PERMISSIONS = [RBACPermission.Permissions.ALERT_GROUPS_WRITE]
 
     def process_scenario(
         self,
@@ -509,7 +509,7 @@ class AttachGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
 
 
 class UnAttachGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
-    REQUIRED_PERMISSIONS = [RBACPermission.Permissions.CHATOPS_WRITE]
+    REQUIRED_PERMISSIONS = [RBACPermission.Permissions.ALERT_GROUPS_WRITE]
 
     def process_scenario(
         self,
@@ -534,7 +534,7 @@ class StopInvitationProcess(AlertGroupActionsMixin, scenario_step.ScenarioStep):
     Check out apps/slack/scenarios/manage_responders.py for the new version that uses direct paging.
     """
 
-    REQUIRED_PERMISSIONS = [RBACPermission.Permissions.CHATOPS_WRITE]
+    REQUIRED_PERMISSIONS = [RBACPermission.Permissions.ALERT_GROUPS_WRITE]
 
     def process_scenario(
         self,
@@ -561,7 +561,7 @@ class StopInvitationProcess(AlertGroupActionsMixin, scenario_step.ScenarioStep):
 
 
 class CustomButtonProcessStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
-    REQUIRED_PERMISSIONS = [RBACPermission.Permissions.CHATOPS_WRITE]
+    REQUIRED_PERMISSIONS = [RBACPermission.Permissions.ALERT_GROUPS_WRITE]
 
     def process_scenario(
         self,
@@ -624,7 +624,7 @@ class CustomButtonProcessStep(AlertGroupActionsMixin, scenario_step.ScenarioStep
 
 
 class ResolveGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
-    REQUIRED_PERMISSIONS = [RBACPermission.Permissions.CHATOPS_WRITE]
+    REQUIRED_PERMISSIONS = [RBACPermission.Permissions.ALERT_GROUPS_WRITE]
 
     def process_scenario(
         self,
@@ -665,7 +665,7 @@ class ResolveGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
 
 
 class UnResolveGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
-    REQUIRED_PERMISSIONS = [RBACPermission.Permissions.CHATOPS_WRITE]
+    REQUIRED_PERMISSIONS = [RBACPermission.Permissions.ALERT_GROUPS_WRITE]
 
     def process_scenario(
         self,
@@ -685,7 +685,7 @@ class UnResolveGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
 
 
 class AcknowledgeGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
-    REQUIRED_PERMISSIONS = [RBACPermission.Permissions.CHATOPS_WRITE]
+    REQUIRED_PERMISSIONS = [RBACPermission.Permissions.ALERT_GROUPS_WRITE]
 
     def process_scenario(
         self,
@@ -705,7 +705,7 @@ class AcknowledgeGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
 
 
 class UnAcknowledgeGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
-    REQUIRED_PERMISSIONS = [RBACPermission.Permissions.CHATOPS_WRITE]
+    REQUIRED_PERMISSIONS = [RBACPermission.Permissions.ALERT_GROUPS_WRITE]
 
     def process_scenario(
         self,
