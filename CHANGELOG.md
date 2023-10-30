@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## v1.3.48 (2023-10-30)
+
 ### Added
 
 - Data type changed from `DateField` to `DateTimeField` on the `final_shifts` API endpoint. Endpoint now accepts either
