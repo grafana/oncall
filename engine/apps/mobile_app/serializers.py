@@ -30,7 +30,7 @@ class MobileAppUserSettingsSerializer(serializers.ModelSerializer):
             "time_zone",
         )
 
-    def validate_going_oncall_notification_timing(self, going_oncall_notification_timing):
+    def validate_going_oncall_notification_timing(self, going_oncall_notification_timing: typing.Optional[typing.List[int]]) -> typing.Optional[typing.List[int]]:
         if going_oncall_notification_timing is not None:
             if len(going_oncall_notification_timing) == 0:
                 raise serializers.ValidationError(detail="invalid timing options")
