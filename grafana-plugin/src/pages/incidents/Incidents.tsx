@@ -1,6 +1,6 @@
-import React, { ReactElement, SyntheticEvent } from 'react';
+import React, { SyntheticEvent } from 'react';
 
-import { Button, HorizontalGroup, Icon, LoadingPlaceholder, VerticalGroup } from '@grafana/ui';
+import { Button, HorizontalGroup, Icon, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 import moment from 'moment-timezone';
@@ -39,19 +39,6 @@ interface Pagination {
   start: number;
   end: number;
 }
-
-function withSkeleton(fn: (alert: AlertType) => ReactElement | ReactElement[]) {
-  const WithSkeleton = (alert: AlertType) => {
-    if (alert.short) {
-      return <LoadingPlaceholder text={''} />;
-    }
-
-    return fn(alert);
-  };
-
-  return WithSkeleton;
-}
-
 interface IncidentsPageProps extends WithStoreProps, PageProps, RouteComponentProps {}
 
 interface IncidentsPageState {
@@ -64,6 +51,12 @@ interface IncidentsPageState {
 
 const POLLING_NUM_SECONDS = 15;
 
+const PAGINATION_OPTIONS = [
+  { label: '25', value: 25 },
+  { label: '50', value: 50 },
+  { label: '100', value: 100 },
+];
+
 @observer
 class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> {
   constructor(props: IncidentsPageProps) {
@@ -74,12 +67,10 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
       query: { cursor: cursorQuery, start: startQuery, perpage: perpageQuery },
     } = props;
 
-    const cursor = cursorQuery || undefined;
     const start = !isNaN(startQuery) ? Number(startQuery) : 1;
     const pageSize = !isNaN(perpageQuery) ? Number(perpageQuery) : undefined;
 
-    store.alertGroupStore.incidentsItemsPerPage = pageSize || undefined;
-    store.alertGroupStore.incidentsCursor = cursor;
+    store.alertGroupStore.incidentsCursor = cursorQuery || undefined;
 
     this.state = {
       selectedIncidentIds: [],
@@ -285,6 +276,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
     const {
       store: { alertGroupStore },
     } = this.props;
+
     const { start } = this.state.pagination;
 
     this.setState({
@@ -293,7 +285,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
     });
 
     if (!isOnMount) {
-      this.setPagination(1, alertGroupStore.incidentsItemsPerPage);
+      this.setPagination(1, alertGroupStore.alertsSearchResult['default'].page_size);
     }
 
     this.clearPollingInterval();
@@ -302,7 +294,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
     await this.fetchIncidentData(filters, isOnMount);
 
     if (isOnMount) {
-      this.setPagination(start, start + alertGroupStore.incidentsItemsPerPage - 1);
+      this.setPagination(start, start + alertGroupStore.alertsSearchResult['default'].page_size - 1);
     }
   };
 
@@ -322,25 +314,21 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
   };
 
   onChangeCursor = (cursor: string, direction: 'prev' | 'next') => {
-    const { store } = this.props;
+    const { alertGroupStore } = this.props.store;
+    const pageSize = alertGroupStore.alertsSearchResult['default'].page_size;
 
-    store.alertGroupStore.updateIncidentsCursor(cursor);
+    alertGroupStore.updateIncidentsCursor(cursor);
 
     this.setState(
       {
         selectedIncidentIds: [],
         pagination: {
-          start:
-            this.state.pagination.start + store.alertGroupStore.incidentsItemsPerPage * (direction === 'prev' ? -1 : 1),
-          end:
-            this.state.pagination.end + store.alertGroupStore.incidentsItemsPerPage * (direction === 'prev' ? -1 : 1),
+          start: this.state.pagination.start + pageSize * (direction === 'prev' ? -1 : 1),
+          end: this.state.pagination.end + pageSize * (direction === 'prev' ? -1 : 1),
         },
       },
       () => {
-        LocationHelper.update(
-          { start: this.state.pagination.start, perpage: store.alertGroupStore.incidentsItemsPerPage },
-          'partial'
-        );
+        LocationHelper.update({ start: this.state.pagination.start, perpage: pageSize }, 'partial');
       }
     );
   };
@@ -348,7 +336,12 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
   handleChangeItemsPerPage = (value: number) => {
     const { store } = this.props;
 
-    store.alertGroupStore.setIncidentsItemsPerPage(value);
+    store.alertGroupStore.alertsSearchResult['default'] = {
+      ...store.alertGroupStore.alertsSearchResult['default'],
+      page_size: value,
+    };
+
+    store.alertGroupStore.setIncidentsItemsPerPage();
 
     this.setState({
       selectedIncidentIds: [],
@@ -492,12 +485,8 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
           <div className={cx('pagination')}>
             <CursorPagination
               current={`${pagination.start}-${pagination.end}`}
-              itemsPerPage={alertGroupStore.incidentsItemsPerPage}
-              itemsPerPageOptions={[
-                { label: '25', value: 25 },
-                { label: '50', value: 50 },
-                { label: '100', value: 100 },
-              ]}
+              itemsPerPage={alertGroupStore.alertsSearchResult?.['default']?.page_size}
+              itemsPerPageOptions={PAGINATION_OPTIONS}
               prev={prev}
               next={next}
               onChange={this.onChangeCursor}
@@ -522,7 +511,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
   renderTitle = (record: AlertType) => {
     const { store, query } = this.props;
     const { start } = this.state.pagination || {};
-    const { incidentsItemsPerPage, incidentsCursor } = store.alertGroupStore;
+    const { incidentsCursor } = store.alertGroupStore;
 
     return (
       <div>
@@ -533,7 +522,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
                 page: 'alert-groups',
                 id: record.pk,
                 cursor: incidentsCursor,
-                perpage: incidentsItemsPerPage,
+                perpage: store.alertGroupStore.alertsSearchResult?.['default']?.page_size,
                 start,
                 ...query,
               }}
@@ -603,7 +592,13 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
   }
 
   shouldShowPagination() {
-    return this.state.pagination?.start && this.state.pagination?.end;
+    const { alertGroupStore } = this.props.store;
+
+    return Boolean(
+      this.state.pagination?.start &&
+        this.state.pagination?.end &&
+        alertGroupStore.alertsSearchResult?.['default']?.page_size
+    );
   }
 
   handleSelectedIncidentIdsChange = (ids: Array<Alert['pk']>) => {
@@ -620,49 +615,49 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
         width: '140px',
         title: 'Status',
         key: 'time',
-        render: withSkeleton(this.renderStatus),
+        render: this.renderStatus,
       },
       {
         width: '10%',
         title: 'ID',
         key: 'id',
-        render: withSkeleton(this.renderId),
+        render: this.renderId,
       },
       {
         width: '35%',
         title: 'Title',
         key: 'title',
-        render: withSkeleton(this.renderTitle),
+        render: this.renderTitle,
       },
       {
         width: '5%',
         title: 'Alerts',
         key: 'alerts',
-        render: withSkeleton(this.renderAlertsCounter),
+        render: this.renderAlertsCounter,
       },
       {
         width: '15%',
         title: 'Integration',
         key: 'source',
-        render: withSkeleton(this.renderSource),
+        render: this.renderSource,
       },
       {
         width: '10%',
         title: 'Created',
         key: 'created',
-        render: withSkeleton(this.renderStartedAt),
+        render: this.renderStartedAt,
       },
       {
         width: '10%',
         title: 'Team',
         key: 'team',
-        render: withSkeleton((item: AlertType) => this.renderTeam(item, store.grafanaTeamStore.items)),
+        render: (item: AlertType) => this.renderTeam(item, store.grafanaTeamStore.items),
       },
       {
         width: '15%',
         title: 'Users',
         key: 'users',
-        render: withSkeleton(renderRelatedUsers),
+        render: renderRelatedUsers,
       },
     ];
   }

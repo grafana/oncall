@@ -41,9 +41,6 @@ export class AlertGroupStore extends BaseStore {
   incidentsCursor?: string;
 
   @observable
-  incidentsItemsPerPage?: number;
-
-  @observable
   alertsSearchResult: {
     [key: string]: {
       prev?: string;
@@ -241,9 +238,8 @@ export class AlertGroupStore extends BaseStore {
   }
 
   @action
-  async setIncidentsItemsPerPage(value: number) {
+  async setIncidentsItemsPerPage() {
     this.setIncidentsCursor(undefined);
-    this.incidentsItemsPerPage = value;
 
     this.updateAlertGroups();
   }
@@ -260,7 +256,7 @@ export class AlertGroupStore extends BaseStore {
     } = await makeRequest(`${this.path}`, {
       params: {
         ...this.incidentFilters,
-        perpage: this.incidentsItemsPerPage,
+        perpage: this.alertsSearchResult?.['default']?.page_size,
         cursor: this.incidentsCursor,
         is_root: true,
       },
@@ -279,8 +275,6 @@ export class AlertGroupStore extends BaseStore {
 
     // @ts-ignore
     this.alerts = new Map<number, Alert>([...this.alerts, ...newAlerts]);
-
-    this.incidentsItemsPerPage = page_size;
 
     this.alertsSearchResult['default'] = {
       prev: prevCursor,
