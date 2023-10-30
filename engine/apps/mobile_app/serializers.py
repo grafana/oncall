@@ -6,6 +6,7 @@ from common.api_helpers.custom_fields import TimeZoneField
 
 class MobileAppUserSettingsSerializer(serializers.ModelSerializer):
     time_zone = TimeZoneField(required=False, allow_null=False)
+    going_oncall_notification_timing = serializers.ListField(required=False, allow_null=False)
 
     class Meta:
         model = MobileAppUserSettings
@@ -28,3 +29,12 @@ class MobileAppUserSettingsSerializer(serializers.ModelSerializer):
             "locale",
             "time_zone",
         )
+
+    def validate_going_oncall_notification_timing(self, going_oncall_notification_timing):
+        if going_oncall_notification_timing is not None:
+            if len(going_oncall_notification_timing) == 0:
+                raise serializers.ValidationError(detail="invalid timing options")
+            for option in going_oncall_notification_timing:
+                if option not in [opt[0] for opt in MobileAppUserSettings.NOTIFICATION_TIMING_CHOICES]:
+                    raise serializers.ValidationError(detail="invalid timing options")
+        return going_oncall_notification_timing

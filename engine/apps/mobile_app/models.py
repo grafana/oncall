@@ -4,6 +4,7 @@ import typing
 
 from django.core import validators
 from django.db import models
+from django.db.models import JSONField
 from django.utils import timezone
 from fcm_django.models import FCMDevice as BaseFCMDevice
 
@@ -19,6 +20,10 @@ MOBILE_APP_AUTH_VERIFICATION_TOKEN_TIMEOUT_SECONDS = 60 * 5  # 5 minutes
 
 def get_expire_date():
     return timezone.now() + timezone.timedelta(seconds=MOBILE_APP_AUTH_VERIFICATION_TOKEN_TIMEOUT_SECONDS)
+
+
+def default_notification_timing_options():
+    return [MobileAppUserSettings.FIFTEEN_MINUTES_IN_SECONDS]
 
 
 class ActiveFCMDeviceQuerySet(models.QuerySet):
@@ -159,19 +164,20 @@ class MobileAppUserSettings(models.Model):
 
     # these choices + the below column are used to calculate when to send the "You're Going OnCall soon"
     # push notification
-    # ONE_HOUR, TWELVE_HOURS, ONE_DAY, ONE_WEEK = range(4)
+    FIFTEEN_MINUTES_IN_SECONDS = 15 * 60
+    ONE_HOUR_IN_SECONDS = 60 * 60
+    SIX_HOURS_IN_SECONDS = 6 * 60 * 60
     TWELVE_HOURS_IN_SECONDS = 12 * 60 * 60
     ONE_DAY_IN_SECONDS = TWELVE_HOURS_IN_SECONDS * 2
-    ONE_WEEK_IN_SECONDS = ONE_DAY_IN_SECONDS * 7
 
     NOTIFICATION_TIMING_CHOICES = (
+        (FIFTEEN_MINUTES_IN_SECONDS, "fifteen minutes before"),
+        (ONE_HOUR_IN_SECONDS, "one hour before"),
+        (SIX_HOURS_IN_SECONDS, "six hours before"),
         (TWELVE_HOURS_IN_SECONDS, "twelve hours before"),
         (ONE_DAY_IN_SECONDS, "one day before"),
-        (ONE_WEEK_IN_SECONDS, "one week before"),
     )
-    going_oncall_notification_timing = models.IntegerField(
-        choices=NOTIFICATION_TIMING_CHOICES, default=TWELVE_HOURS_IN_SECONDS
-    )
+    going_oncall_notification_timing = JSONField(default=default_notification_timing_options)
 
     locale = models.CharField(max_length=50, null=True)
     time_zone = models.CharField(max_length=100, default="UTC")

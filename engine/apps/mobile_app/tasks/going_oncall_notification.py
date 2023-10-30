@@ -121,7 +121,6 @@ def _should_we_send_push_notification(
     an `int` which represents the # of seconds until the oncall shift starts.
     """
     NOTIFICATION_TIMING_BUFFER = 7 * 60  # 7 minutes in seconds
-    FIFTEEN_MINUTES_IN_SECONDS = 15 * 60
 
     # this _should_ always be positive since final_events is returning only events in the future
     seconds_until_shift_starts = math.floor((schedule_event["start"] - now).total_seconds())
@@ -134,30 +133,33 @@ def _should_we_send_push_notification(
         logger.info("not sending going oncall push notification because info_notifications_enabled is false")
         return None
 
-    # 14 minute window where the notification could be sent (7 mins before or 7 mins after)
-    timing_window_lower = user_notification_timing_preference - NOTIFICATION_TIMING_BUFFER
-    timing_window_upper = user_notification_timing_preference + NOTIFICATION_TIMING_BUFFER
+    for timing_preference in user_notification_timing_preference:
+        # 14 minute window where the notification could be sent (7 mins before or 7 mins after)
+        timing_window_lower = timing_preference - NOTIFICATION_TIMING_BUFFER
+        timing_window_upper = timing_preference + NOTIFICATION_TIMING_BUFFER
 
-    shift_starts_within_users_notification_timing_preference = _shift_starts_within_range(
-        timing_window_lower, timing_window_upper, seconds_until_shift_starts
-    )
-    shift_starts_within_fifteen_minutes = _shift_starts_within_range(
-        0, FIFTEEN_MINUTES_IN_SECONDS, seconds_until_shift_starts
-    )
+        shift_starts_within_users_notification_timing_preference = _shift_starts_within_range(
+            timing_window_lower, timing_window_upper, seconds_until_shift_starts
+        )
 
-    timing_logging_msg = (
+        if shift_starts_within_users_notification_timing_preference:
+            logger.info(
+                f"timing is right to send going oncall push notification\n"
+                f"seconds_until_shift_starts: {seconds_until_shift_starts}\n"
+                f"user_notification_timing_preference: {user_notification_timing_preference}\n"
+                f"current timing_preference: {timing_preference}\n"
+                f"timing_window_lower: {timing_window_lower}\n"
+                f"timing_window_upper: {timing_window_upper}\n"
+                f"shift_starts_within_users_notification_timing_preference: {shift_starts_within_users_notification_timing_preference}\n"
+            )
+            return seconds_until_shift_starts
+
+    logger.info(
+        f"timing is not right to send going oncall push notification\n"
         f"seconds_until_shift_starts: {seconds_until_shift_starts}\n"
         f"user_notification_timing_preference: {user_notification_timing_preference}\n"
-        f"timing_window_lower: {timing_window_lower}\n"
-        f"timing_window_upper: {timing_window_upper}\n"
-        f"shift_starts_within_users_notification_timing_preference: {shift_starts_within_users_notification_timing_preference}\n"
-        f"shift_starts_within_fifteen_minutes: {shift_starts_within_fifteen_minutes}"
+        f"shift_starts_within_users_notification_timing_preference: False\n"
     )
-
-    if shift_starts_within_fifteen_minutes or shift_starts_within_users_notification_timing_preference:
-        logger.info(f"timing is right to send going oncall push notification\n{timing_logging_msg}")
-        return seconds_until_shift_starts
-    logger.info(f"timing is not right to send going oncall push notification\n{timing_logging_msg}")
     return None
 
 

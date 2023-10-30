@@ -1,5 +1,5 @@
 from fcm_django.api.rest_framework import FCMDeviceAuthorizedViewSet as BaseFCMDeviceAuthorizedViewSet
-from rest_framework import generics, status
+from rest_framework import mixins, status, viewsets
 from rest_framework.exceptions import NotFound
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -54,7 +54,11 @@ class MobileAppAuthTokenAPIView(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class MobileAppUserSettingsAPIView(generics.RetrieveUpdateAPIView):
+class MobileAppUserSettingsViewSet(
+    mixins.RetrieveModelMixin,
+    mixins.UpdateModelMixin,
+    viewsets.GenericViewSet,
+):
     authentication_classes = (MobileAppAuthTokenAuthentication,)
     permission_classes = (IsAuthenticated,)
     serializer_class = MobileAppUserSettingsSerializer
@@ -62,3 +66,9 @@ class MobileAppUserSettingsAPIView(generics.RetrieveUpdateAPIView):
     def get_object(self):
         mobile_app_settings, _ = MobileAppUserSettings.objects.get_or_create(user=self.request.user)
         return mobile_app_settings
+
+    def notification_timing_options(self, request):
+        choices = []
+        for item in MobileAppUserSettings.NOTIFICATION_TIMING_CHOICES:
+            choices.append({"value": item[0], "display_name": item[1]})
+        return Response(choices)
