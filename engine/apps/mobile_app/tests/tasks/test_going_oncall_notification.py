@@ -21,6 +21,7 @@ from apps.mobile_app.types import MessageType, Platform
 from apps.schedules.models import OnCallScheduleCalendar, OnCallScheduleICal, OnCallScheduleWeb
 from apps.schedules.models.on_call_schedule import ScheduleEvent
 
+FIFTEEN_MINUTES_IN_SECONDS = 15 * 60
 ONE_HOUR_IN_SECONDS = 60 * 60
 ONCALL_TIMING_PREFERENCE = ONE_HOUR_IN_SECONDS * 12
 
@@ -254,7 +255,7 @@ def test_get_fcm_message(
         (
             True,
             timezone.datetime(2022, 5, 2, 12, 5, 0),
-            ONE_HOUR_IN_SECONDS,
+            [ONE_HOUR_IN_SECONDS],
             timezone.datetime(2022, 5, 2, 13, 13, 0),
             None,
         ),
@@ -262,14 +263,14 @@ def test_get_fcm_message(
         (
             True,
             timezone.datetime(2022, 5, 2, 12, 5, 0),
-            ONE_HOUR_IN_SECONDS,
+            [ONE_HOUR_IN_SECONDS],
             timezone.datetime(2022, 5, 2, 13, 12, 0),
             67 * 60,
         ),
         (
             False,
             timezone.datetime(2022, 5, 2, 12, 5, 0),
-            ONE_HOUR_IN_SECONDS,
+            [ONE_HOUR_IN_SECONDS],
             timezone.datetime(2022, 5, 2, 13, 12, 0),
             None,
         ),
@@ -277,14 +278,14 @@ def test_get_fcm_message(
         (
             True,
             timezone.datetime(2022, 5, 2, 12, 5, 0),
-            ONE_HOUR_IN_SECONDS,
+            [ONE_HOUR_IN_SECONDS],
             timezone.datetime(2022, 5, 2, 12, 58, 0),
             53 * 60,
         ),
         (
             False,
             timezone.datetime(2022, 5, 2, 12, 5, 0),
-            ONE_HOUR_IN_SECONDS,
+            [ONE_HOUR_IN_SECONDS],
             timezone.datetime(2022, 5, 2, 12, 58, 0),
             None,
         ),
@@ -292,7 +293,7 @@ def test_get_fcm_message(
         (
             True,
             timezone.datetime(2022, 5, 2, 12, 5, 0),
-            ONE_HOUR_IN_SECONDS,
+            [ONE_HOUR_IN_SECONDS],
             timezone.datetime(2022, 5, 2, 12, 57, 0),
             None,
         ),
@@ -300,37 +301,30 @@ def test_get_fcm_message(
         (
             True,
             timezone.datetime(2022, 5, 2, 12, 5, 0),
-            ONE_HOUR_IN_SECONDS,
+            [ONE_HOUR_IN_SECONDS],
             timezone.datetime(2022, 5, 2, 12, 21, 0),
             None,
         ),
-        # shift starts in 15m - send only if info_notifications_enabled is true
+        # shift starts in 15m, user timing preference is 1h and 15m - send only if info_notifications_enabled is true
         (
             True,
             timezone.datetime(2022, 5, 2, 12, 5, 0),
-            ONE_HOUR_IN_SECONDS,
+            [ONE_HOUR_IN_SECONDS, FIFTEEN_MINUTES_IN_SECONDS],
             timezone.datetime(2022, 5, 2, 12, 20, 0),
             15 * 60,
         ),
         (
             False,
             timezone.datetime(2022, 5, 2, 12, 5, 0),
-            ONE_HOUR_IN_SECONDS,
+            [ONE_HOUR_IN_SECONDS, FIFTEEN_MINUTES_IN_SECONDS],
             timezone.datetime(2022, 5, 2, 12, 20, 0),
             None,
         ),
-        # shift starts in 0secs - send only if info_notifications_enabled is true
-        (
-            True,
-            timezone.datetime(2022, 5, 2, 12, 5, 0),
-            ONE_HOUR_IN_SECONDS,
-            timezone.datetime(2022, 5, 2, 12, 5, 0),
-            0,
-        ),
+        # shift starts in 0secs - don't send
         (
             False,
             timezone.datetime(2022, 5, 2, 12, 5, 0),
-            ONE_HOUR_IN_SECONDS,
+            [ONE_HOUR_IN_SECONDS],
             timezone.datetime(2022, 5, 2, 12, 5, 0),
             None,
         ),
@@ -338,7 +332,7 @@ def test_get_fcm_message(
         (
             True,
             timezone.datetime(2022, 5, 2, 12, 5, 0),
-            ONE_HOUR_IN_SECONDS,
+            [ONE_HOUR_IN_SECONDS],
             timezone.datetime(2022, 5, 2, 12, 4, 55),
             None,
         ),
