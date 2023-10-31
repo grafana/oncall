@@ -69,10 +69,6 @@
   padding-left: 24px;
 }
 
-.column:first-child {
-  border-right: 1px solid rgba(204, 204, 220, 0.25);
-}
-
 .incidents-content > div:not(:last-child) {
   border-bottom: 1px solid rgba(204, 204, 220, 0.25);
   padding-bottom: 16px;
