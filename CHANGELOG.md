@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## v1.3.49 (2023-10-31)
+
 ### Changed
 
 - Removed the hardcoding of page size on frontend ([#3205](https://github.com/grafana/oncall/pull/3205))
