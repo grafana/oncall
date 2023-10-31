@@ -391,6 +391,8 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
 
     is_restricted = models.BooleanField(default=False, null=True)
 
+    grafana_incident_id = models.CharField(max_length=100, null=True, default=None)
+
     @staticmethod
     def get_silenced_state_filter():
         """
@@ -445,6 +447,10 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
     @property
     def is_maintenance_incident(self):
         return self.maintenance_uuid is not None
+
+    @property
+    def has_a_related_grafana_incident(self) -> bool:
+        return self.grafana_incident_id is not None
 
     def stop_maintenance(self, user: User) -> None:
         from apps.alerts.models import AlertReceiveChannel

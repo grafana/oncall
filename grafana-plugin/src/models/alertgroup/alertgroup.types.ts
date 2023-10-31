@@ -85,6 +85,8 @@ export interface Alert {
   alert_receive_channel: Partial<AlertReceiveChannel>;
   paged_users: PagedUser[];
   team: GrafanaTeam['id'];
+  grafana_incident_id: string | null;
+  has_a_related_grafana_incident: boolean;
 
   // set by client
   loading?: boolean;

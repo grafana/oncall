@@ -400,13 +400,15 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
                 onSilence: this.getSilenceClickHandler(incident),
                 onUnsilence: this.getUnsilenceClickHandler(incident),
               })}
-              <PluginBridge plugin={SupportedPlugin.Incident}>
-                <a href={incident.declare_incident_link} target="_blank" rel="noreferrer">
-                  <Button variant="secondary" size="md" icon="fire">
-                    Declare incident
-                  </Button>
-                </a>
-              </PluginBridge>
+              {!incident.has_a_related_grafana_incident && (
+                <PluginBridge plugin={SupportedPlugin.Incident}>
+                  <a href={incident.declare_incident_link} target="_blank" rel="noreferrer">
+                    <Button variant="secondary" size="md" icon="fire">
+                      Declare incident
+                    </Button>
+                  </a>
+                </PluginBridge>
+              )}
             </HorizontalGroup>
 
             <Button
