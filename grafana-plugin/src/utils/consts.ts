@@ -50,6 +50,7 @@ export enum PAGE {
   Incidents = 'incidents',
   Webhooks = 'webhooks',
   Schedules = 'schedules',
+  Users = 'users',
 }
 
 export const TEXT_ELLIPSIS_CLASS = 'overflow-child';
