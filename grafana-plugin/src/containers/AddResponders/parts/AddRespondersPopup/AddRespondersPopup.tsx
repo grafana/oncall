@@ -115,7 +115,7 @@ const AddRespondersPopup = observer(
 
     const handleSearchTermChange = useDebouncedCallback(() => {
       if (isCreateMode && activeOption === TabOptions.Teams) {
-        grafanaTeamStore.updateItems(searchTerm, false, true);
+        grafanaTeamStore.updateItems(searchTerm, false, true, false);
       } else {
         userStore.updateItems({ searchTerm, short: 'false' });
       }

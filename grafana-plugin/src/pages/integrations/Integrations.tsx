@@ -42,7 +42,6 @@ import styles from './Integrations.module.scss';
 
 const cx = cn.bind(styles);
 const FILTERS_DEBOUNCE_MS = 500;
-const ITEMS_PER_PAGE = 15;
 
 interface IntegrationsState extends PageBaseState {
   integrationsFilters: Record<string, any>;
@@ -66,15 +65,11 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
   constructor(props: IntegrationsProps) {
     super(props);
 
-    const { query, store } = props;
-
     this.state = {
       integrationsFilters: { searchTerm: '' },
       errorData: initErrorDataState(),
       confirmationModal: undefined,
     };
-
-    store.currentPage['integrations'] = Number(store.currentPage['integrations'] || query.p || 1);
   }
 
   async componentDidMount() {
@@ -121,7 +116,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
   update = () => {
     const { store } = this.props;
     const { integrationsFilters } = this.state;
-    const page = store.currentPage['integrations'];
+    const page = store.filtersStore.currentTablePageNum[PAGE.Integrations];
 
     LocationHelper.update({ p: page }, 'partial');
 
@@ -135,7 +130,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
     const { alertReceiveChannelId, confirmationModal } = this.state;
     const { alertReceiveChannelStore } = store;
 
-    const { count, results } = alertReceiveChannelStore.getPaginatedSearchResult();
+    const { count, results, page_size } = alertReceiveChannelStore.getPaginatedSearchResult();
 
     return (
       <>
@@ -178,8 +173,8 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
               className={cx('integrations-table')}
               rowClassName={cx('integrations-table-row')}
               pagination={{
-                page: store.currentPage['integrations'],
-                total: Math.ceil((count || 0) / ITEMS_PER_PAGE),
+                page: store.filtersStore.currentTablePageNum[PAGE.Integrations],
+                total: results ? Math.ceil((count || 0) / page_size) : 0,
                 onChange: this.handleChangePage,
               }}
             />
@@ -520,13 +515,13 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
 
   invalidateRequestFn = (requestedPage: number) => {
     const { store } = this.props;
-    return requestedPage !== store.getCurrentPage(PAGE.Integrations);
+    return requestedPage !== store.filtersStore.currentTablePageNum[PAGE.Integrations];
   };
 
   handleChangePage = (page: number) => {
     const { store } = this.props;
 
-    store.currentPage['integrations'] = page;
+    store.filtersStore.currentTablePageNum[PAGE.Integrations] = page;
     this.update();
   };
 
@@ -578,12 +573,12 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
     const { alertReceiveChannelStore } = store;
     const { integrationsFilters } = this.state;
 
-    const newPage = isOnMount ? store.getCurrentPage(PAGE.Integrations) : 1;
+    const newPage = isOnMount ? store.filtersStore.currentTablePageNum[PAGE.Integrations] : 1;
 
     return alertReceiveChannelStore
       .updatePaginatedItems(integrationsFilters, newPage, false, () => this.invalidateRequestFn(newPage))
       .then(() => {
-        store.setCurrentPage(PAGE.Integrations, newPage);
+        store.filtersStore.currentTablePageNum[PAGE.Integrations] = newPage;
         LocationHelper.update({ p: newPage }, 'partial');
       });
   };

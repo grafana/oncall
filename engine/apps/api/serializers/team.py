@@ -19,27 +19,34 @@ class FastTeamSerializer(serializers.ModelSerializer):
 
 
 class TeamSerializer(serializers.ModelSerializer):
-    context: TeamSerializerContext
-
     id = serializers.CharField(read_only=True, source="public_primary_key")
-    number_of_users_currently_oncall = serializers.SerializerMethodField()
 
     class Meta:
         model = Team
-        fields = (
+        fields = [
             "id",
             "name",
             "email",
             "avatar_url",
             "is_sharing_resources_to_all",
-            "number_of_users_currently_oncall",
-        )
+        ]
 
         read_only_fields = [
             "id",
             "name",
             "email",
             "avatar_url",
+        ]
+
+
+class TeamLongSerializer(TeamSerializer):
+    context: TeamSerializerContext
+
+    number_of_users_currently_oncall = serializers.SerializerMethodField()
+
+    class Meta(TeamSerializer.Meta):
+        fields = TeamSerializer.Meta.fields + [
+            "number_of_users_currently_oncall",
         ]
 
     def get_number_of_users_currently_oncall(self, obj: Team) -> int:
