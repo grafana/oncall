@@ -14,15 +14,18 @@ from apps.user_management.models import Team
 GENERAL_TEAM = Team(public_primary_key="null", name="No team", email=None, avatar_url=None)
 
 
-def get_payload_from_team(team):
-    return {
+def get_payload_from_team(team, short=True):
+    payload = {
         "id": team.public_primary_key,
         "name": team.name,
         "email": team.email,
         "avatar_url": team.avatar_url,
         "is_sharing_resources_to_all": team.is_sharing_resources_to_all,
-        "number_of_users_currently_oncall": 0,
     }
+
+    if short:
+        payload.update({"number_of_users_currently_oncall": 0})
+    return payload
 
 
 @pytest.mark.django_db
@@ -40,21 +43,35 @@ def test_list_teams(
     team = make_team(organization)
     team.users.add(user)
 
+    auth_headers = make_user_auth_headers(user, token)
+
     general_team_payload = get_payload_from_team(GENERAL_TEAM)
+    general_team_long_payload = get_payload_from_team(GENERAL_TEAM, short=False)
     team_payload = get_payload_from_team(team)
+    team_long_payload = get_payload_from_team(team, short=False)
 
     client = APIClient()
     url = reverse("api-internal:team-list")
-    response = client.get(url, format="json", **make_user_auth_headers(user, token))
+    response = client.get(url, format="json", **auth_headers)
 
     assert response.status_code == status.HTTP_200_OK
     assert response.json() == [general_team_payload, team_payload]
 
+    response = client.get(f"{url}?short=false", format="json", **auth_headers)
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == [general_team_long_payload, team_long_payload]
+
     url = reverse("api-internal:team-list")
-    response = client.get(f"{url}?include_no_team=false", format="json", **make_user_auth_headers(user, token))
+    response = client.get(f"{url}?include_no_team=false", format="json", **auth_headers)
 
     assert response.status_code == status.HTTP_200_OK
     assert response.json() == [team_payload]
+
+    response = client.get(f"{url}?include_no_team=false&short=false", format="json", **auth_headers)
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == [team_long_payload]
 
 
 @pytest.mark.django_db

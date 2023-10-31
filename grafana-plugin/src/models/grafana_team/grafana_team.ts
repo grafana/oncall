@@ -5,12 +5,14 @@ import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
 import { makeRequest } from 'network';
 import { RootStore } from 'state';
 
+type TeamItems = { [id: string]: GrafanaTeam };
+
 export class GrafanaTeamStore extends BaseStore {
   @observable
-  searchResult: { [key: string]: Array<GrafanaTeam['id']> } = {};
+  searchResult: Array<GrafanaTeam['id']> = [];
 
   @observable.shallow
-  items: { [id: string]: GrafanaTeam } = {};
+  items: TeamItems = {};
 
   constructor(rootStore: RootStore) {
     super(rootStore);
@@ -29,10 +31,11 @@ export class GrafanaTeamStore extends BaseStore {
   }
 
   @action
-  async updateItems(query = '', includeNoTeam = true, onlyIncludeNotifiableTeams = false) {
-    const result = await makeRequest(`${this.path}`, {
+  async updateItems(query = '', includeNoTeam = true, onlyIncludeNotifiableTeams = false, short = true) {
+    const result = await makeRequest<GrafanaTeam[]>(`${this.path}`, {
       params: {
         search: query,
+        short: short ? 'true' : 'false',
         include_no_team: includeNoTeam ? 'true' : 'false',
         only_include_notifiable_teams: onlyIncludeNotifiableTeams ? 'true' : 'false',
       },
@@ -40,8 +43,8 @@ export class GrafanaTeamStore extends BaseStore {
 
     this.items = {
       ...this.items,
-      ...result.reduce(
-        (acc: { [key: number]: GrafanaTeam }, item: GrafanaTeam) => ({
+      ...result.reduce<TeamItems>(
+        (acc, item) => ({
           ...acc,
           [item.id]: item,
         }),
@@ -49,17 +52,11 @@ export class GrafanaTeamStore extends BaseStore {
       ),
     };
 
-    this.searchResult = {
-      ...this.searchResult,
-      [query]: result.map((item: GrafanaTeam) => item.id),
-    };
+    this.searchResult = result.map((item: GrafanaTeam) => item.id);
   }
 
-  getSearchResult(query = '') {
-    if (!this.searchResult[query]) {
-      return [];
-    }
-
-    return this.searchResult[query].map((teamId: GrafanaTeam['id']) => this.items[teamId]);
+  getSearchResult() {
+    console.log('yoooo');
+    return this.searchResult.map((teamId: GrafanaTeam['id']) => this.items[teamId]);
   }
 }
