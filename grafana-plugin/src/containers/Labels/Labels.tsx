@@ -1,6 +1,5 @@
 import React, { forwardRef, useCallback, useImperativeHandle, useState } from 'react';
 
-import '@grafana/labels/dist/theme.css';
 import ServiceLabels from '@grafana/labels';
 import { Field } from '@grafana/ui';
 import cn from 'classnames/bind';
@@ -11,6 +10,7 @@ import { useStore } from 'state/useStore';
 import { openErrorNotification } from 'utils';
 
 import styles from './Labels.module.css';
+import { isEmpty } from 'lodash-es';
 
 const cx = cn.bind(styles);
 
@@ -57,6 +57,25 @@ const Labels = observer(
       };
     }, []);
 
+    const isValid = () => {
+      return (
+        (propsErrors || [])
+          .map((error: LabelKeyValue, index) => {
+            // error object is empty => Valid
+            if (isEmpty(error)) return undefined;
+            const matchingValue = value[index]?.value;
+            // We have a name for the value => Valid
+            if (error.value && matchingValue?.name) return undefined;
+            const matchingKey = value[index]?.key;
+            // We have a name for the key => Valid
+            if (error.key && matchingKey?.name) return undefined;
+            // Invalid
+            return error;
+          })
+          .filter((er: LabelKeyValue) => er).length === 0
+      );
+    };
+
     const cachedOnLoadValuesForKey = useCallback(() => {
       let result = undefined;
       return async (key: string, search?: string) => {
@@ -87,7 +106,7 @@ const Labels = observer(
             onUpdateValue={labelsStore.updateKeyValue.bind(labelsStore)}
             onRowItemRemoval={(_pair, _index) => {}}
             onUpdateError={onUpdateError}
-            errors={{ ...propsErrors }}
+            errors={isValid() ? {} : { ...propsErrors }}
             onDataUpdate={setValue}
           />
         </Field>

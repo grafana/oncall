@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { HorizontalGroup, Button, VerticalGroup, Icon, ConfirmModal, Tooltip, Tag } from '@grafana/ui';
+import { HorizontalGroup, Button, VerticalGroup, Icon, ConfirmModal, Tooltip } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { debounce } from 'lodash-es';
 import { observer } from 'mobx-react';
@@ -39,6 +39,7 @@ import { UserActions } from 'utils/authorization';
 import { PAGE, TEXT_ELLIPSIS_CLASS } from 'utils/consts';
 
 import styles from './Integrations.module.scss';
+import { LabelTag } from '@grafana/labels';
 
 const cx = cn.bind(styles);
 const FILTERS_DEBOUNCE_MS = 500;
@@ -366,7 +367,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
             {item.labels?.length
               ? item.labels.map((label) => (
                   <HorizontalGroup spacing="sm" key={label.key.id}>
-                    <Tag name={`${label.key.name}:${label.value.name}`} />
+                    <LabelTag label={label.key.name} value={label.value.name} key={label.key.id} />
                     <Button
                       size="sm"
                       icon="filter"

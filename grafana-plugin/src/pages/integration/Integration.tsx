@@ -11,7 +11,6 @@ import {
   ConfirmModal,
   Drawer,
   Alert,
-  Tag as GrafanaTag,
 } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { get } from 'lodash-es';
@@ -69,6 +68,7 @@ import LocationHelper from 'utils/LocationHelper';
 import { UserActions } from 'utils/authorization';
 import { PLUGIN_ROOT } from 'utils/consts';
 import sanitize from 'utils/sanitize';
+import { LabelTag } from '@grafana/labels';
 
 const cx = cn.bind(styles);
 
@@ -1072,7 +1072,7 @@ const IntegrationHeader: React.FC<IntegrationHeaderProps> = ({
             <VerticalGroup spacing="sm">
               {alertReceiveChannel.labels.length
                 ? alertReceiveChannel.labels.map((label) => (
-                    <GrafanaTag name={`${label.key.name}:${label.value.name}`} key={label.key.id} />
+                    <LabelTag label={label.key.name} value={label.value.name} key={label.key.id} />
                   ))
                 : 'No labels attached'}
             </VerticalGroup>
