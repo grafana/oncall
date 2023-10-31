@@ -25,7 +25,7 @@ import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import LocationHelper from 'utils/LocationHelper';
 import { generateMissingPermissionMessage, isUserActionAllowed, UserActions } from 'utils/authorization';
-import { PLUGIN_ROOT } from 'utils/consts';
+import { PAGE, PLUGIN_ROOT } from 'utils/consts';
 
 import { getUserRowClassNameFn } from './Users.helpers';
 
@@ -35,11 +35,9 @@ const cx = cn.bind(styles);
 
 interface UsersProps extends WithStoreProps, PageProps, RouteComponentProps<{ id: string }> {}
 
-const ITEMS_PER_PAGE = 100;
 const REQUIRED_PERMISSION_TO_VIEW_USERS = UserActions.UserSettingsWrite;
 
 interface UsersState extends PageBaseState {
-  page: number;
   isWrongTeam: boolean;
   userPkToEdit?: UserType['pk'] | 'new';
   usersFilters?: {
@@ -54,10 +52,10 @@ class Users extends React.Component<UsersProps, UsersState> {
 
     const {
       query: { p },
+      store: { filtersStore },
     } = props;
 
     this.state = {
-      page: p ? Number(p) : 1,
       isWrongTeam: false,
       userPkToEdit: undefined,
       usersFilters: {
@@ -66,6 +64,10 @@ class Users extends React.Component<UsersProps, UsersState> {
 
       errorData: initErrorDataState(),
     };
+
+    // Users component doesn't rely on RemoteFilters
+    // therefore we need to initialize the page in the constructor instead
+    filtersStore.currentTablePageNum[PAGE.Users] = p ? Number(p) : 1;
   }
 
   async componentDidMount() {
@@ -74,8 +76,9 @@ class Users extends React.Component<UsersProps, UsersState> {
 
   updateUsers = async (invalidateFn?: () => boolean) => {
     const { store } = this.props;
-    const { usersFilters, page } = this.state;
-    const { userStore } = store;
+    const { usersFilters } = this.state;
+    const { userStore, filtersStore } = store;
+    const page = filtersStore.currentTablePageNum[PAGE.Users];
 
     if (!isUserActionAllowed(REQUIRED_PERMISSION_TO_VIEW_USERS)) {
       return;
@@ -84,7 +87,6 @@ class Users extends React.Component<UsersProps, UsersState> {
     LocationHelper.update({ p: page }, 'partial');
     await userStore.updateItems(usersFilters, page, invalidateFn);
 
-    // otherwise MobX doesn't update :(
     this.forceUpdate();
   };
 
@@ -171,12 +173,14 @@ class Users extends React.Component<UsersProps, UsersState> {
 
   renderContentIfAuthorized(authorizedToViewUsers: boolean) {
     const {
-      store: { userStore },
+      store: { userStore, filtersStore },
     } = this.props;
 
-    const { usersFilters, page, userPkToEdit } = this.state;
+    const { usersFilters, userPkToEdit } = this.state;
 
-    const { count, results } = userStore.getSearchResult();
+    const page = filtersStore.currentTablePageNum[PAGE.Users];
+
+    const { count, results, page_size } = userStore.getSearchResult();
     const columns = this.getTableColumns();
 
     const handleClear = () =>
@@ -209,7 +213,7 @@ class Users extends React.Component<UsersProps, UsersState> {
               rowClassName={getUserRowClassNameFn(userPkToEdit, userStore.currentUserPk)}
               pagination={{
                 page,
-                total: Math.ceil((count || 0) / ITEMS_PER_PAGE),
+                total: results ? Math.ceil((count || 0) / page_size) : 0,
                 onChange: this.handleChangePage,
               }}
             />
@@ -417,11 +421,19 @@ class Users extends React.Component<UsersProps, UsersState> {
   }
 
   handleChangePage = (page: number) => {
-    this.setState({ page }, this.updateUsers);
+    const { filtersStore } = this.props.store;
+
+    filtersStore.currentTablePageNum[PAGE.Users] = page;
+
+    this.updateUsers();
   };
 
   handleUsersFiltersChange = (usersFilters: any, invalidateFn: () => boolean) => {
-    this.setState({ usersFilters, page: 1 }, () => {
+    const { filtersStore } = this.props.store;
+
+    filtersStore.currentTablePageNum[PAGE.Users] = 1;
+
+    this.setState({ usersFilters }, () => {
       this.updateUsers(invalidateFn);
     });
   };
