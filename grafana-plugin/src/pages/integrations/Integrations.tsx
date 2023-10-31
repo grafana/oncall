@@ -1,5 +1,6 @@
 import React from 'react';
 
+import { LabelTag } from '@grafana/labels';
 import { HorizontalGroup, Button, VerticalGroup, Icon, ConfirmModal, Tooltip } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { debounce } from 'lodash-es';
@@ -39,7 +40,6 @@ import { UserActions } from 'utils/authorization';
 import { PAGE, TEXT_ELLIPSIS_CLASS } from 'utils/consts';
 
 import styles from './Integrations.module.scss';
-import { LabelTag } from '@grafana/labels';
 
 const cx = cn.bind(styles);
 const FILTERS_DEBOUNCE_MS = 500;

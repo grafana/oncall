@@ -3,6 +3,7 @@ import React, { forwardRef, useCallback, useImperativeHandle, useState } from 'r
 import ServiceLabels from '@grafana/labels';
 import { Field } from '@grafana/ui';
 import cn from 'classnames/bind';
+import { isEmpty } from 'lodash-es';
 import { observer } from 'mobx-react';
 
 import { LabelKeyValue } from 'models/label/label.types';
@@ -10,7 +11,6 @@ import { useStore } from 'state/useStore';
 import { openErrorNotification } from 'utils';
 
 import styles from './Labels.module.css';
-import { isEmpty } from 'lodash-es';
 
 const cx = cn.bind(styles);
 
@@ -62,13 +62,19 @@ const Labels = observer(
         (propsErrors || [])
           .map((error: LabelKeyValue, index) => {
             // error object is empty => Valid
-            if (isEmpty(error)) return undefined;
+            if (isEmpty(error)) {
+              return undefined;
+            }
             const matchingValue = value[index]?.value;
             // We have a name for the value => Valid
-            if (error.value && matchingValue?.name) return undefined;
+            if (error.value && matchingValue?.name) {
+              return undefined;
+            }
             const matchingKey = value[index]?.key;
             // We have a name for the key => Valid
-            if (error.key && matchingKey?.name) return undefined;
+            if (error.key && matchingKey?.name) {
+              return undefined;
+            }
             // Invalid
             return error;
           })
