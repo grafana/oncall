@@ -13,6 +13,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Prevent additional polling on Incidents if the previous request didn't complete
   ([#3205](https://github.com/grafana/oncall/pull/3205))
 
+### Fixed
+
+- Do not allow to update terraform-based shifts in web UI schedule API ([#3224](https://github.com/grafana/oncall/pull/3224))
+
 ## v1.3.48 (2023-10-30)
 
 ### Added
