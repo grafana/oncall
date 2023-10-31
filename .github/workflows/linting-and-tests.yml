@@ -124,8 +124,11 @@ jobs:
             engine/requirements-dev.txt
       - name: Lint migrations
         working-directory: engine
+        # makemigrations --check = Exit with a non-zero status if model changes are missing migrations
+        # and don't actually write them.
         run: |
           pip install -r requirements.txt -r requirements-dev.txt
+          python manage.py makemigrations --check
           python manage.py lintmigrations
 
   unit-test-helm-chart:
