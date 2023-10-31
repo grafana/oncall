@@ -14,7 +14,7 @@ from apps.user_management.models import Team
 GENERAL_TEAM = Team(public_primary_key="null", name="No team", email=None, avatar_url=None)
 
 
-def get_payload_from_team(team, short=True):
+def get_payload_from_team(team, long=False):
     payload = {
         "id": team.public_primary_key,
         "name": team.name,
@@ -23,7 +23,7 @@ def get_payload_from_team(team, short=True):
         "is_sharing_resources_to_all": team.is_sharing_resources_to_all,
     }
 
-    if short:
+    if long:
         payload.update({"number_of_users_currently_oncall": 0})
     return payload
 
@@ -46,9 +46,9 @@ def test_list_teams(
     auth_headers = make_user_auth_headers(user, token)
 
     general_team_payload = get_payload_from_team(GENERAL_TEAM)
-    general_team_long_payload = get_payload_from_team(GENERAL_TEAM, short=False)
+    general_team_long_payload = get_payload_from_team(GENERAL_TEAM, long=True)
     team_payload = get_payload_from_team(team)
-    team_long_payload = get_payload_from_team(team, short=False)
+    team_long_payload = get_payload_from_team(team, long=True)
 
     client = APIClient()
     url = reverse("api-internal:team-list")
@@ -163,7 +163,7 @@ def test_teams_number_of_users_currently_oncall_attribute_works_properly(
     _make_schedule(team=team3, oncall_users=[])
 
     client = APIClient()
-    url = reverse("api-internal:team-list")
+    url = f"{reverse('api-internal:team-list')}?short=false"
 
     response = client.get(url, format="json", **make_user_auth_headers(user1, token))
 
