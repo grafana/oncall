@@ -11,9 +11,6 @@ Telegram polling common labels
 {{- define "oncall.telegramPolling.labels" -}}
 {{ include "oncall.labels" . }}
 app.kubernetes.io/component: telegram-polling
-{{- if .Values.telegramPolling.podLabels }}
-{{ toYaml .Values.telegramPolling.podLabels }}
-{{- end }}
 {{- end }}
 
 {{/*

@@ -1,0 +1,32 @@
+suite: test podlabels for deployments
+templates:
+  - celery/deployment.yaml
+  - engine/deployment.yaml
+  - telegram-polling/deployment.yaml
+release:
+  name: oncall
+tests:
+  - it: podLabels={} -> should exclude podLabels
+    set:
+      telegramPolling:
+        enabled: true
+    asserts:
+      - notExists:
+          path: spec.template.metadata.labels.some-key
+
+  - it: podLabels -> should use custom podLabels
+    set:
+      engine:
+        podLabels:
+          some-key: some-value
+      celery:
+        podLabels:
+          some-key: some-value
+      telegramPolling:
+        enabled: true
+        podLabels:
+          some-key: some-value
+    asserts:
+      - equal:
+          path: spec.template.metadata.labels.some-key
+          value: some-value

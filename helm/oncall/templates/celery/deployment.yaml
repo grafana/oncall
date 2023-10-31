@@ -18,6 +18,9 @@ spec:
       {{- end }}
       labels:
         {{- include "oncall.celery.selectorLabels" . | nindent 8 }}
+        {{- if .Values.celery.podLabels }}
+        {{- toYaml .Values.celery.podLabels | nindent 8}}
+        {{- end }}
     spec:
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
