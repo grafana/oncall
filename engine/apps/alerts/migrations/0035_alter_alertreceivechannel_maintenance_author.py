@@ -7,12 +7,13 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('user_management', '0016_alter_user_role'),
+        ('user_management', '0017_alter_organization_maintenance_author'),
+        ('alerts', '0034_alter_resolutionnote_source'),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='organization',
+            model_name='alertreceivechannel',
             name='maintenance_author',
             field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='%(class)s_maintenances_created', to='user_management.user'),
         ),
