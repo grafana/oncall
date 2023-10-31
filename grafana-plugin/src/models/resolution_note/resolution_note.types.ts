@@ -1,5 +1,5 @@
 import { Alert } from 'models/alertgroup/alertgroup.types';
-import { UserDTO } from 'models/user';
+import { User } from 'models/user/user.types';
 
 interface ResolutionNoteSource {
   id: number; // TODO check if string
@@ -11,7 +11,7 @@ export interface ResolutionNote {
   alert_group: Alert['pk'];
   created_at: string;
   source: ResolutionNoteSource;
-  author: Partial<UserDTO>;
+  author: Partial<User>;
   text: string;
 }
 
@@ -19,6 +19,7 @@ type ResolutionNoteSourceTypesOptions = {
   [key: number]: string;
 };
 export const ResolutionNoteSourceTypesToDisplayName: ResolutionNoteSourceTypesOptions = {
-  0: 'slack',
-  1: 'web',
+  0: 'Slack',
+  1: 'Web',
+  2: 'Mobile App',
 };

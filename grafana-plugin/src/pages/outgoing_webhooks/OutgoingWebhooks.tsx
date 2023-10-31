@@ -26,6 +26,7 @@ import {
 } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper.helpers';
 import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
+import TextEllipsisTooltip from 'components/TextEllipsisTooltip/TextEllipsisTooltip';
 import OutgoingWebhookForm from 'containers/OutgoingWebhookForm/OutgoingWebhookForm';
 import RemoteFilters from 'containers/RemoteFilters/RemoteFilters';
 import TeamName from 'containers/TeamName/TeamName';
@@ -36,7 +37,7 @@ import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import { openErrorNotification, openNotification } from 'utils';
 import { isUserActionAllowed, UserActions } from 'utils/authorization';
-import { PAGE, PLUGIN_ROOT } from 'utils/consts';
+import { PAGE, PLUGIN_ROOT, TEXT_ELLIPSIS_CLASS } from 'utils/consts';
 
 import styles from './OutgoingWebhooks.module.scss';
 import { WebhookFormActionType } from './OutgoingWebhooks.types';
@@ -233,7 +234,7 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
     );
   }
 
-  handleFiltersChange = (filters: FiltersValues, isOnMount) => {
+  handleFiltersChange = (filters: FiltersValues, isOnMount: boolean) => {
     const { store } = this.props;
 
     const { outgoingWebhookStore } = store;
@@ -246,7 +247,11 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
   };
 
   renderTeam(record: OutgoingWebhook, teams: any) {
-    return <TeamName team={teams[record.team]} />;
+    return (
+      <TextEllipsisTooltip placement="top" content={teams[record.team]?.name}>
+        <TeamName className={TEXT_ELLIPSIS_CLASS} team={teams[record.team]} />
+      </TextEllipsisTooltip>
+    );
   }
 
   renderActionButtons = (record: OutgoingWebhook) => {
@@ -342,9 +347,13 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
 
   renderUrl(url: string) {
     return (
-      <div className="u-break-word">
-        <span>{url}</span>
-      </div>
+      <TextEllipsisTooltip content={url} placement="top">
+        <CopyToClipboard text={url} onCopy={() => openNotification('URL has been copied')}>
+          <Text type="link" className={cx(TEXT_ELLIPSIS_CLASS, 'line-clamp-3')}>
+            {url}
+          </Text>
+        </CopyToClipboard>
+      </TextEllipsisTooltip>
     );
   }
 

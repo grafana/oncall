@@ -34,9 +34,10 @@ import { PluginBridge, SupportedPlugin } from 'components/PluginBridge/PluginBri
 import PluginLink from 'components/PluginLink/PluginLink';
 import SourceCode from 'components/SourceCode/SourceCode';
 import Text from 'components/Text/Text';
+import AddResponders from 'containers/AddResponders/AddResponders';
+import { prepareForUpdate } from 'containers/AddResponders/AddResponders.helpers';
+import { UserResponder } from 'containers/AddResponders/AddResponders.types';
 import AttachIncidentForm from 'containers/AttachIncidentForm/AttachIncidentForm';
-import EscalationVariants from 'containers/EscalationVariants/EscalationVariants';
-import { prepareForEdit, prepareForUpdate } from 'containers/EscalationVariants/EscalationVariants.helpers';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import {
   Alert as AlertType,
@@ -59,7 +60,6 @@ import sanitize from 'utils/sanitize';
 
 import { getActionButtons } from './Incident.helpers';
 import styles from './Incident.module.scss';
-import PagedUsers from './parts/PagedUsers';
 
 const cx = cn.bind(styles);
 const INTEGRATION_NAME_LENGTH_LIMIT = 30;
@@ -177,11 +177,13 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
                     <AttachedIncidentsList id={incident.pk} getUnattachClickHandler={this.getUnattachClickHandler} />
                   </div>
                   <div className={cx('column')}>
-                    <VerticalGroup>
-                      <PagedUsers
-                        pagedUsers={incident.paged_users}
-                        onRemove={this.handlePagedUserRemove}
-                        disabled={incident.is_restricted}
+                    <VerticalGroup style={{ display: 'block' }}>
+                      <AddResponders
+                        mode="update"
+                        hideAddResponderButton={incident.resolved}
+                        existingPagedUsers={incident.paged_users}
+                        onAddNewParticipant={this.handleAddUserResponder}
+                        generateRemovePreviouslyPagedUserCallback={this.handlePagedUserRemove}
                       />
                       {this.renderTimeline()}
                     </VerticalGroup>
@@ -231,17 +233,19 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
     );
   }
 
-  handlePagedUserRemove = async (userId: User['pk']) => {
-    const {
-      store,
-      match: {
-        params: { id: alertId },
-      },
-    } = this.props;
+  handlePagedUserRemove = (userId: User['pk']) => {
+    return async () => {
+      const {
+        store,
+        match: {
+          params: { id: alertId },
+        },
+      } = this.props;
 
-    await store.alertGroupStore.unpageUser(alertId, userId);
+      await store.alertGroupStore.unpageUser(alertId, userId);
 
-    this.update();
+      this.update();
+    };
   };
 
   renderHeader = () => {
@@ -422,31 +426,21 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
               </PluginBridge>
             </HorizontalGroup>
 
-            <HorizontalGroup>
-              <EscalationVariants
-                variant="secondary"
-                hideSelected
-                value={prepareForEdit(incident.paged_users)}
-                disabled={incident.is_restricted}
-                onUpdateEscalationVariants={this.handleAddResponders}
-              />
-
-              <Button
-                disabled={incident.alert_receive_channel.deleted || incident.is_restricted}
-                variant="secondary"
-                icon="edit"
-                onClick={this.showIntegrationSettings}
-              >
-                Edit templates
-              </Button>
-            </HorizontalGroup>
+            <Button
+              disabled={incident.alert_receive_channel.deleted || incident.is_restricted}
+              variant="secondary"
+              icon="edit"
+              onClick={this.showIntegrationSettings}
+            >
+              Edit templates
+            </Button>
           </HorizontalGroup>
         </VerticalGroup>
       </Block>
     );
   };
 
-  handleAddResponders = async (data) => {
+  handleAddUserResponder = async (user: Omit<UserResponder, 'type'>) => {
     const {
       store,
       match: {
@@ -454,10 +448,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
       },
     } = this.props;
 
-    await store.directPagingStore.updateAlertGroup(
-      alertId,
-      prepareForUpdate(data.userResponders, data.scheduleResponders)
-    );
+    await store.directPagingStore.updateAlertGroup(alertId, prepareForUpdate([user]));
 
     this.update();
   };
@@ -495,7 +486,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
     const { timelineFilter, resolutionNoteText } = this.state;
     const isResolutionNoteTextEmpty = resolutionNoteText === '';
     return (
-      <div>
+      <Block bordered>
         <Text.Title type="primary" level={4} className={cx('timeline-title')}>
           Timeline
         </Text.Title>
@@ -520,7 +511,8 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
                 <VerticalGroup spacing="none">
                   {item.realm === TimeLineRealm.ResolutionNote && (
                     <Text type="secondary" size="small">
-                      {item.author && item.author.username} via {ResolutionNoteSourceTypesToDisplayName[item.type]}
+                      {item.author && item.author.username} via{' '}
+                      {ResolutionNoteSourceTypesToDisplayName[item.type] || 'Web'}
                     </Text>
                   )}
                   <Text type="primary">
@@ -554,7 +546,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
             Add resolution note
           </ToolbarButton>
         </WithPermissionControlTooltip>
-      </div>
+      </Block>
     );
   };
 

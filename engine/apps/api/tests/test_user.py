@@ -327,6 +327,7 @@ def test_notification_chain_verbal(
         (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
         (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
         (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_user_update_self_permissions(
@@ -356,6 +357,7 @@ def test_user_update_self_permissions(
         (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
         (LegacyAccessControlRole.EDITOR, status.HTTP_403_FORBIDDEN),
         (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_user_update_other_permissions(
@@ -384,6 +386,7 @@ def test_user_update_other_permissions(
         (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
         (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
         (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_user_list_permissions(
@@ -414,6 +417,7 @@ def test_user_list_permissions(
         (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
         (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
         (LegacyAccessControlRole.VIEWER, status.HTTP_200_OK),
+        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_user_detail_self_permissions(
@@ -444,6 +448,7 @@ def test_user_detail_self_permissions(
         (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
         (LegacyAccessControlRole.EDITOR, status.HTTP_403_FORBIDDEN),
         (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_user_detail_other_permissions(
@@ -470,6 +475,7 @@ def test_user_detail_other_permissions(
         (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
         (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
         (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_user_get_own_verification_code(
@@ -500,6 +506,7 @@ def test_user_get_own_verification_code(
         (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
         (LegacyAccessControlRole.EDITOR, status.HTTP_403_FORBIDDEN),
         (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_user_get_other_verification_code(
@@ -572,6 +579,7 @@ def test_verification_code_provider_exception(
         (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
         (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
         (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_user_verify_own_phone(
@@ -607,6 +615,7 @@ Tests below are outdated
         (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
         (LegacyAccessControlRole.EDITOR, status.HTTP_403_FORBIDDEN),
         (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_user_verify_another_phone(
@@ -635,6 +644,7 @@ def test_user_verify_another_phone(
         (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
         (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
         (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_user_get_own_telegram_verification_code(
@@ -659,6 +669,7 @@ def test_user_get_own_telegram_verification_code(
         (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
         (LegacyAccessControlRole.EDITOR, status.HTTP_403_FORBIDDEN),
         (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_user_get_another_telegram_verification_code(
@@ -1580,31 +1591,6 @@ def test_invalid_working_hours(
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 
 
-@pytest.mark.django_db
-def test_check_availability(make_organization_and_user_with_plugin_token, make_user_auth_headers):
-    _, user, token = make_organization_and_user_with_plugin_token(role=LegacyAccessControlRole.EDITOR)
-
-    client = APIClient()
-    url = reverse("api-internal:user-check-availability", kwargs={"pk": user.public_primary_key})
-
-    response = client.get(url, **make_user_auth_headers(user, token))
-
-    assert response.status_code == status.HTTP_200_OK
-
-
-@pytest.mark.django_db
-def test_check_availability_other_user(make_organization_and_user_with_plugin_token, make_user, make_user_auth_headers):
-    _, user, token = make_organization_and_user_with_plugin_token(role=LegacyAccessControlRole.EDITOR)
-    user_to_check = make_user(organization=user.organization, role=LegacyAccessControlRole.ADMIN)
-
-    client = APIClient()
-    url = reverse("api-internal:user-check-availability", kwargs={"pk": user_to_check.public_primary_key})
-
-    response = client.get(url, **make_user_auth_headers(user, token))
-
-    assert response.status_code == status.HTTP_200_OK
-
-
 @patch("apps.phone_notifications.phone_backend.PhoneBackend.send_verification_sms", return_value=Mock())
 @patch("apps.phone_notifications.phone_backend.PhoneBackend.verify_phone_number", return_value=True)
 @patch(
@@ -1911,3 +1897,106 @@ def test_upcoming_shifts_multiple_schedules(
             assert returned_data[i]["is_oncall"] is False
             assert returned_data[i]["current_shift"] is None
             assert returned_data[i]["next_shift"]["start"] == expected_start
+
+
+@pytest.mark.django_db
+def test_users_is_currently_oncall_attribute_works_properly(
+    make_organization,
+    make_user_for_organization,
+    make_token_for_organization,
+    make_user_auth_headers,
+    make_schedule,
+    make_on_call_shift,
+):
+    organization = make_organization()
+    user1 = make_user_for_organization(organization)
+    user2 = make_user_for_organization(organization)
+    _, token = make_token_for_organization(organization)
+
+    schedule = make_schedule(
+        organization,
+        schedule_class=OnCallScheduleWeb,
+    )
+
+    today = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+
+    on_call_shift = make_on_call_shift(
+        organization=organization,
+        shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT,
+        start=today,
+        rotation_start=today,
+        duration=timezone.timedelta(seconds=24 * 60 * 60),
+        priority_level=1,
+        frequency=CustomOnCallShift.FREQUENCY_DAILY,
+        schedule=schedule,
+    )
+    on_call_shift.add_rolling_users([[user1]])
+    schedule.refresh_ical_file()
+    schedule.refresh_ical_final_schedule()
+
+    client = APIClient()
+    url = f"{reverse('api-internal:user-list')}?short=false"
+    response = client.get(url, format="json", **make_user_auth_headers(user1, token))
+
+    oncall_statuses = {
+        user1.public_primary_key: True,
+        user2.public_primary_key: False,
+    }
+
+    for user in response.json()["results"]:
+        assert user["teams"] == []
+        assert user["is_currently_oncall"] == oncall_statuses[user["pk"]]
+
+
+@pytest.mark.django_db
+def test_list_users_filtered_by_is_currently_oncall(
+    make_organization,
+    make_user_for_organization,
+    make_token_for_organization,
+    make_user_auth_headers,
+    make_schedule,
+    make_on_call_shift,
+):
+    organization = make_organization()
+    user1 = make_user_for_organization(organization)
+    user2 = make_user_for_organization(organization)
+    _, token = make_token_for_organization(organization)
+
+    schedule = make_schedule(
+        organization,
+        schedule_class=OnCallScheduleWeb,
+    )
+
+    today = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+
+    on_call_shift = make_on_call_shift(
+        organization=organization,
+        shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT,
+        start=today,
+        rotation_start=today,
+        duration=timezone.timedelta(seconds=24 * 60 * 60),
+        priority_level=1,
+        frequency=CustomOnCallShift.FREQUENCY_DAILY,
+        schedule=schedule,
+    )
+    on_call_shift.add_rolling_users([[user1]])
+    schedule.refresh_ical_file()
+    schedule.refresh_ical_final_schedule()
+
+    client = APIClient()
+    url = reverse("api-internal:user-list")
+
+    response = client.get(f"{url}?is_currently_oncall=true", format="json", **make_user_auth_headers(user1, token))
+
+    response = response.json()["results"]
+    assert len(response) == 1
+    assert response[0]["pk"] == user1.public_primary_key
+
+    response = client.get(f"{url}?is_currently_oncall=false", format="json", **make_user_auth_headers(user1, token))
+
+    response = response.json()["results"]
+    user = response[0]
+
+    assert len(response) == 1
+    assert user["pk"] == user2.public_primary_key
+    assert user["teams"] == []

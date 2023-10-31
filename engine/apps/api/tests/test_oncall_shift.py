@@ -216,6 +216,55 @@ def test_get_on_call_shift(
 
 
 @pytest.mark.django_db
+def test_get_calendar_on_call_shift(
+    on_call_shift_internal_api_setup,
+    make_schedule,
+    make_on_call_shift,
+    make_user_auth_headers,
+):
+    token, user1, user2, organization, _ = on_call_shift_internal_api_setup
+    schedule = make_schedule(organization, schedule_class=OnCallScheduleCalendar)
+
+    client = APIClient()
+    start_date = timezone.now().replace(microsecond=0)
+
+    name = "Test Shift Rotation"
+    on_call_shift = make_on_call_shift(
+        schedule.organization,
+        shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT,
+        name=name,
+        start=start_date,
+        duration=timezone.timedelta(hours=1),
+        rotation_start=start_date,
+        rolling_users=[{user1.pk: user1.public_primary_key}, {user2.pk: user2.public_primary_key}],
+    )
+    on_call_shift.schedules.add(schedule)
+    url = reverse("api-internal:oncall_shifts-detail", kwargs={"pk": on_call_shift.public_primary_key})
+
+    response = client.get(url, format="json", **make_user_auth_headers(user1, token))
+    expected_payload = {
+        "id": response.data["id"],
+        "name": name,
+        "type": CustomOnCallShift.TYPE_ROLLING_USERS_EVENT,
+        "schedule": schedule.public_primary_key,
+        "priority_level": 0,
+        "shift_start": start_date.strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "shift_end": (start_date + timezone.timedelta(hours=1)).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "rotation_start": start_date.strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "until": None,
+        "frequency": None,
+        "interval": None,
+        "by_day": None,
+        "week_start": CustomOnCallShift.ICAL_WEEKDAY_MAP[CustomOnCallShift.SUNDAY],
+        "rolling_users": [[user1.public_primary_key], [user2.public_primary_key]],
+        "updated_shift": None,
+    }
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == expected_payload
+
+
+@pytest.mark.django_db
 def test_list_on_call_shift(
     on_call_shift_internal_api_setup,
     make_on_call_shift,
@@ -1164,6 +1213,7 @@ def test_create_on_call_shift_override_in_past(on_call_shift_internal_api_setup,
         (LegacyAccessControlRole.ADMIN, status.HTTP_201_CREATED),
         (LegacyAccessControlRole.EDITOR, status.HTTP_201_CREATED),
         (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_on_call_shift_create_permissions(
@@ -1196,6 +1246,7 @@ def test_on_call_shift_create_permissions(
         (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
         (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
         (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_on_call_shift_update_permissions(
@@ -1243,6 +1294,7 @@ def test_on_call_shift_update_permissions(
         (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
         (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
         (LegacyAccessControlRole.VIEWER, status.HTTP_200_OK),
+        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_on_call_shift_list_permissions(
@@ -1274,6 +1326,7 @@ def test_on_call_shift_list_permissions(
         (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
         (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
         (LegacyAccessControlRole.VIEWER, status.HTTP_200_OK),
+        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_on_call_shift_retrieve_permissions(
@@ -1317,6 +1370,7 @@ def test_on_call_shift_retrieve_permissions(
         (LegacyAccessControlRole.ADMIN, status.HTTP_204_NO_CONTENT),
         (LegacyAccessControlRole.EDITOR, status.HTTP_204_NO_CONTENT),
         (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_on_call_shift_delete_permissions(
@@ -1360,6 +1414,7 @@ def test_on_call_shift_delete_permissions(
         (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
         (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
         (LegacyAccessControlRole.VIEWER, status.HTTP_200_OK),
+        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_on_call_shift_frequency_options_permissions(
@@ -1391,6 +1446,7 @@ def test_on_call_shift_frequency_options_permissions(
         (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
         (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
         (LegacyAccessControlRole.VIEWER, status.HTTP_200_OK),
+        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_on_call_shift_days_options_permissions(
@@ -1422,6 +1478,7 @@ def test_on_call_shift_days_options_permissions(
         (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
         (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
         (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_on_call_shift_preview_permissions(

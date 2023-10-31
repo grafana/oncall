@@ -1,8 +1,7 @@
 import React, { Component } from 'react';
 
-import { SelectableValue, TimeRange } from '@grafana/data';
+import { KeyValue, SelectableValue, TimeRange } from '@grafana/data';
 import {
-  IconButton,
   InlineSwitch,
   MultiSelect,
   TimeRangeInput,
@@ -11,6 +10,7 @@ import {
   Input,
   Icon,
   Tooltip,
+  Button,
 } from '@grafana/ui';
 import { capitalCase } from 'change-case';
 import cn from 'classnames/bind';
@@ -20,6 +20,7 @@ import moment from 'moment-timezone';
 import Emoji from 'react-emoji-render';
 
 import Text from 'components/Text/Text';
+import LabelsFilter from 'containers/Labels/LabelsFilter';
 import RemoteSelect from 'containers/RemoteSelect/RemoteSelect';
 import TeamName from 'containers/TeamName/TeamName';
 import { FiltersValues } from 'models/filters/filters.types';
@@ -30,16 +31,15 @@ import LocationHelper from 'utils/LocationHelper';
 import { PAGE } from 'utils/consts';
 
 import { parseFilters } from './RemoteFilters.helpers';
-import { FilterOption, RemoteFiltersType } from './RemoteFilters.types';
+import { FilterOption } from './RemoteFilters.types';
 
 import styles from './RemoteFilters.module.css';
 
 const cx = cn.bind(styles);
 
 interface RemoteFiltersProps extends WithStoreProps {
-  value: RemoteFiltersType;
-  onChange: (filters: { [key: string]: any }, isOnMount: boolean) => void;
-  query: { [key: string]: any };
+  onChange: (filters: { [key: string]: any }, isOnMount: boolean, invalidateFn: () => boolean) => void;
+  query: KeyValue;
   page: PAGE;
   defaultFilters?: FiltersValues;
   extraFilters?: (state, setState, onFiltersValueChange) => React.ReactNode;
@@ -50,6 +50,7 @@ interface RemoteFiltersState {
   filters: FilterOption[];
   values: { [key: string]: any };
   hadInteraction: boolean;
+  lastRequestId: string;
 }
 
 @observer
@@ -59,16 +60,39 @@ class RemoteFilters extends Component<RemoteFiltersProps, RemoteFiltersState> {
     filters: undefined,
     values: {},
     hadInteraction: false,
+    lastRequestId: undefined,
   };
 
   searchRef = React.createRef<HTMLInputElement>();
 
-  async componentDidMount() {
-    const { query, page, store, defaultFilters } = this.props;
-
+  componentDidUpdate(prevProps: Readonly<RemoteFiltersProps>): void {
+    const { store, query } = this.props;
     const { filtersStore } = store;
 
+    if (prevProps.query !== query && filtersStore.needToParseFilters) {
+      filtersStore.needToParseFilters = false;
+
+      const { filterOptions } = this.state;
+
+      let { filters, values } = parseFilters(query, filterOptions, query);
+
+      this.setState({ filterOptions, filters, values }, () => this.onChange());
+    }
+  }
+
+  async componentDidMount() {
+    const {
+      query,
+      page,
+      store: { filtersStore },
+      defaultFilters,
+    } = this.props;
+
     const filterOptions = await filtersStore.updateOptionsForPage(page);
+    const currentTablePageNum = parseInt(filtersStore.currentTablePageNum[page] || query.p || 1, 10);
+
+    // set the current page from filters/query or default it to 1
+    filtersStore.setCurrentTablePageNum(page, currentTablePageNum);
 
     let { filters, values } = parseFilters({ ...query, ...filtersStore.globalValues }, filterOptions, query);
 
@@ -125,7 +149,13 @@ class RemoteFilters extends Component<RemoteFiltersProps, RemoteFiltersState> {
               </Tooltip>
             )}
             <Text type="secondary">:</Text> {this.renderFilterOption(filterOption)}
-            <IconButton size="sm" name="times" onClick={this.getDeleteFilterClickHandler(filterOption.name)} />
+            <Button
+              size="sm"
+              icon="times"
+              tooltip="Remove filter"
+              variant="secondary"
+              onClick={this.getDeleteFilterClickHandler(filterOption.name)}
+            />
           </div>
         ))}
         <Select
@@ -299,6 +329,16 @@ class RemoteFilters extends Component<RemoteFiltersProps, RemoteFiltersState> {
           />
         );
 
+      case 'labels':
+        return (
+          <LabelsFilter
+            autoFocus={autoFocus}
+            className={cx('filter-select')}
+            value={values[filter.name]}
+            onChange={this.getLabelsFilterChangeHandler(filter.name)}
+          />
+        );
+
       default:
         console.warn('Unknown type of filter:', filter.type, 'with name', filter.name);
         return null;
@@ -310,6 +350,15 @@ class RemoteFilters extends Component<RemoteFiltersProps, RemoteFiltersState> {
       this.onFiltersValueChange(
         name,
         options.map((option) => option.value)
+      );
+    };
+  };
+
+  getLabelsFilterChangeHandler = (name: FilterOption['name']) => {
+    return (options: Array<{ key: SelectableValue; value: SelectableValue }>) => {
+      this.onFiltersValueChange(
+        name,
+        options.map((option) => `${option.key.id}:${option.value.id}`)
       );
     };
   };
@@ -378,12 +427,25 @@ class RemoteFilters extends Component<RemoteFiltersProps, RemoteFiltersState> {
       store.filtersStore.globalValues = newGlobalValues;
     }
 
-    LocationHelper.update({ ...values }, 'partial');
+    const currentRequestId = this.getNewRequestId();
+    this.setState({ lastRequestId: currentRequestId });
 
-    onChange(values, isOnMount);
+    LocationHelper.update({ ...values }, 'partial');
+    onChange(values, isOnMount, this.invalidateFn.bind(this, currentRequestId));
   };
+
+  invalidateFn = (id: string) => {
+    const { lastRequestId } = this.state;
+
+    // This will ensure that only the newest request will get to update the store data
+    return lastRequestId && id !== lastRequestId;
+  };
+
+  getNewRequestId = () => Math.random().toString(36).slice(-6);
 
   debouncedOnChange = debounce(this.onChange, 500);
 }
 
-export default withMobXProviderContext(RemoteFilters);
+export default withMobXProviderContext(RemoteFilters) as unknown as React.ComponentClass<
+  Omit<RemoteFiltersProps, 'store'>
+>;

@@ -72,10 +72,14 @@ class TeamManager(models.Manager["Team"]):
                 )
                 direct_paging_integrations_to_create.append(alert_receive_channel)
             AlertReceiveChannel.objects.bulk_create(direct_paging_integrations_to_create, batch_size=5000)
-            created_direct_paging_integrations = AlertReceiveChannel.objects.filter(
-                organization=organization,
-                integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING,
-            ).exclude(team__team_id__in=existing_team_ids)
+            created_direct_paging_integrations = (
+                AlertReceiveChannel.objects.filter(
+                    organization=organization,
+                    integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING,
+                )
+                .exclude(team__team_id__in=existing_team_ids)
+                .exclude(team__isnull=True)
+            )
             default_channel_filters_to_create = []
             for integration in created_direct_paging_integrations:
                 channel_filter = ChannelFilter(

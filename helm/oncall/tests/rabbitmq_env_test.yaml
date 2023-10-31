@@ -120,11 +120,10 @@ tests:
     set:
       broker.type: rabbitmq
       rabbitmq.enabled: false
-      asserts:
-        - failedTemplate:
-            errorMessage: >
-              externalRabbitmq.password is required if not rabbitmq.enabled and not externalRabbitmq.existingSecret
-          template: secrets.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: externalRabbitmq.user is required if not rabbitmq.enabled
+        template: engine/job-migrate.yaml
 
   - it: rabbitmq.enabled=false -> should use internal custom values
     templates:
@@ -183,7 +182,7 @@ tests:
       - containsDocument:
           kind: Secret
           apiVersion: v1
-          name: oncall-rabbitmq-external
+          metadata.name: oncall-rabbitmq-external
         template: secrets.yaml
       - equal:
           path: data.rabbitmq-password

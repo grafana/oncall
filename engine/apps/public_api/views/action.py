@@ -2,7 +2,6 @@ from django_filters import rest_framework as filters
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import ModelViewSet
 
-from apps.api.serializers.webhook import WebhookSerializer
 from apps.auth_token.auth import ApiTokenAuthentication
 from apps.public_api.serializers.action import ActionCreateSerializer, ActionUpdateSerializer
 from apps.public_api.throttlers.user_throttle import UserThrottle
@@ -19,7 +18,7 @@ class ActionView(RateLimitHeadersMixin, PublicPrimaryKeyMixin, UpdateSerializerM
     pagination_class = FiftyPageSizePaginator
     throttle_classes = [UserThrottle]
 
-    model = WebhookSerializer
+    model = Webhook
     serializer_class = ActionCreateSerializer
     update_serializer_class = ActionUpdateSerializer
 

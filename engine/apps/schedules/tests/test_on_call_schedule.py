@@ -225,6 +225,95 @@ def test_filter_events_include_gaps(make_organization, make_user_for_organizatio
 
 
 @pytest.mark.django_db
+def test_filter_events_include_shift_info(
+    make_organization, make_user_for_organization, make_schedule, make_on_call_shift
+):
+    organization = make_organization()
+    schedule = make_schedule(
+        organization,
+        schedule_class=OnCallScheduleWeb,
+        name="test_web_schedule",
+    )
+    user = make_user_for_organization(organization)
+    now = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    start_date = now - timezone.timedelta(days=7)
+
+    data = {
+        "start": start_date + timezone.timedelta(hours=10),
+        "rotation_start": start_date + timezone.timedelta(hours=10),
+        "duration": timezone.timedelta(hours=8),
+        "priority_level": 1,
+        "frequency": CustomOnCallShift.FREQUENCY_DAILY,
+        "schedule": schedule,
+    }
+    on_call_shift = make_on_call_shift(
+        organization=organization, shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT, **data
+    )
+    on_call_shift.add_rolling_users([[user]])
+
+    end_date = start_date + timezone.timedelta(days=1)
+    events = schedule.filter_events(
+        start_date, end_date, filter_by=OnCallSchedule.TYPE_ICAL_PRIMARY, with_gap=True, include_shift_info=True
+    )
+    expected = [
+        {
+            "calendar_type": None,
+            "start": start_date,
+            "end": on_call_shift.start,
+            "all_day": False,
+            "is_override": False,
+            "is_empty": False,
+            "is_gap": True,
+            "priority_level": None,
+            "missing_users": [],
+            "users": [],
+            "shift": {"pk": None},
+            "source": None,
+        },
+        {
+            "calendar_type": OnCallSchedule.TYPE_ICAL_PRIMARY,
+            "start": on_call_shift.start,
+            "end": on_call_shift.start + on_call_shift.duration,
+            "all_day": False,
+            "is_override": False,
+            "is_empty": False,
+            "is_gap": False,
+            "priority_level": on_call_shift.priority_level,
+            "missing_users": [],
+            "users": [
+                {
+                    "display_name": user.username,
+                    "pk": user.public_primary_key,
+                    "email": user.email,
+                    "avatar_full": user.avatar_full_url,
+                },
+            ],
+            "shift": {
+                "pk": on_call_shift.public_primary_key,
+                "name": on_call_shift.name,
+                "type": on_call_shift.type,
+            },
+            "source": "api",
+        },
+        {
+            "calendar_type": None,
+            "start": on_call_shift.start + on_call_shift.duration,
+            "end": on_call_shift.start + timezone.timedelta(hours=14),
+            "all_day": False,
+            "is_override": False,
+            "is_empty": False,
+            "is_gap": True,
+            "priority_level": None,
+            "missing_users": [],
+            "users": [],
+            "shift": {"pk": None},
+            "source": None,
+        },
+    ]
+    assert events == expected
+
+
+@pytest.mark.django_db
 def test_filter_events_include_empty(make_organization, make_user_for_organization, make_schedule, make_on_call_shift):
     organization = make_organization()
     schedule = make_schedule(
@@ -337,7 +426,10 @@ def test_filter_events_ical_all_day(make_organization, make_user_for_organizatio
 
 
 @pytest.mark.django_db
-def test_final_schedule_events(make_organization, make_user_for_organization, make_on_call_shift, make_schedule):
+@pytest.mark.parametrize("include_shift_info", [False, True])
+def test_final_schedule_events(
+    make_organization, make_user_for_organization, make_on_call_shift, make_schedule, include_shift_info
+):
     organization = make_organization()
     schedule = make_schedule(
         organization,
@@ -364,6 +456,7 @@ def test_final_schedule_events(make_organization, make_user_for_organization, ma
         (user_d, 2, 17, 1),  # r2-3: 17-18 / D
         (user_d, 2, 20, 3),  # r2-4: 20-23 / D
     )
+    oncall_shifts = []
     for user, priority, start_h, duration in shifts:
         data = {
             "start": start_date + timezone.timedelta(hours=start_h),
@@ -377,6 +470,7 @@ def test_final_schedule_events(make_organization, make_user_for_organization, ma
             organization=organization, shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT, **data
         )
         on_call_shift.add_rolling_users([[user]])
+        oncall_shifts.append(on_call_shift)
 
     overrides = (
         # user, priority, start time (h), duration (hs)
@@ -395,26 +489,27 @@ def test_final_schedule_events(make_organization, make_user_for_organization, ma
             organization=organization, shift_type=CustomOnCallShift.TYPE_OVERRIDE, **data
         )
         on_call_shift.add_rolling_users([[user]])
+        oncall_shifts.append(on_call_shift)
 
     datetime_end = start_date + timezone.timedelta(days=1)
-    returned_events = schedule.final_events(start_date, datetime_end)
+    returned_events = schedule.final_events(start_date, datetime_end, include_shift_info=include_shift_info)
 
     expected = (
-        # start (h), duration (H), user, priority, is_gap, is_override
-        (0, 10, None, None, True, False),  # 0-10 gap
-        (10, 2, "A", 1, False, False),  # 10-12 A
-        (11, 1, "B", 1, False, False),  # 11-12 B
-        (12, 2, "C", 2, False, False),  # 12-14 C
-        (14, 1, "D", 2, False, False),  # 14-15 D
-        (15, 1, None, None, True, False),  # 15-16 gap
-        (16, 1, "A", 1, False, False),  # 16-17 A
-        (17, 1, "D", 2, False, False),  # 17-18 D
-        (18, 1, "A", 1, False, False),  # 18-19 A
-        (19, 1, None, None, True, False),  # 19-20 gap
-        (20, 2, "D", 2, False, False),  # 20-22 D
-        (22, 0.5, "A", 1, False, True),  # 22-22:30 A (override the override)
-        (22.5, 0.5, "E", None, False, True),  # 22:30-23 E (override)
-        (23, 1, "B", 1, False, False),  # 23-00 B
+        # start (h), duration (H), user, priority, is_gap, is_override, shift
+        (0, 10, None, None, True, False, None),  # 0-10 gap
+        (10, 2, "A", 1, False, False, oncall_shifts[0]),  # 10-12 A
+        (11, 1, "B", 1, False, False, oncall_shifts[1]),  # 11-12 B
+        (12, 2, "C", 2, False, False, oncall_shifts[5]),  # 12-14 C
+        (14, 1, "D", 2, False, False, oncall_shifts[6]),  # 14-15 D
+        (15, 1, None, None, True, False, None),  # 15-16 gap
+        (16, 1, "A", 1, False, False, oncall_shifts[2]),  # 16-17 A
+        (17, 1, "D", 2, False, False, oncall_shifts[7]),  # 17-18 D
+        (18, 1, "A", 1, False, False, oncall_shifts[2]),  # 18-19 A
+        (19, 1, None, None, True, False, None),  # 19-20 gap
+        (20, 2, "D", 2, False, False, oncall_shifts[8]),  # 20-22 D
+        (22, 0.5, "A", 1, False, True, oncall_shifts[10]),  # 22-22:30 A (override the override)
+        (22.5, 0.5, "E", None, False, True, oncall_shifts[9]),  # 22:30-23 E (override)
+        (23, 1, "B", 1, False, False, oncall_shifts[4]),  # 23-00 B
     )
     expected_events = [
         {
@@ -425,8 +520,15 @@ def test_final_schedule_events(make_organization, make_user_for_organization, ma
             "priority_level": priority,
             "start": start_date + timezone.timedelta(hours=start),
             "user": user,
+            "shift": (
+                {"pk": shift.public_primary_key, "name": shift.name, "type": shift.type}
+                if include_shift_info
+                else {"pk": shift.public_primary_key}
+            )
+            if not is_gap
+            else {"pk": None},
         }
-        for start, duration, user, priority, is_gap, is_override in expected
+        for start, duration, user, priority, is_gap, is_override, shift in expected
     ]
     returned_events = [
         {
@@ -437,6 +539,7 @@ def test_final_schedule_events(make_organization, make_user_for_organization, ma
             "priority_level": e["priority_level"],
             "start": e["start"],
             "user": e["users"][0]["display_name"] if e["users"] else None,
+            "shift": e["shift"],
         }
         for e in returned_events
     ]
@@ -1199,6 +1302,40 @@ def test_schedule_related_users_usernames(
     schedule.refresh_from_db()
 
     assert set(schedule.related_users()) == set(users)
+
+
+@pytest.mark.django_db
+def test_schedule_related_users_emails(make_organization, make_user_for_organization, make_schedule):
+    organization = make_organization()
+    user = make_user_for_organization(organization, username="testing", email="testing@testing.com")
+    # ical file using email as reference
+    cached_ical_primary_schedule = textwrap.dedent(
+        """
+        BEGIN:VCALENDAR
+        VERSION:2.0
+        PRODID:testing
+        CALSCALE:GREGORIAN
+        BEGIN:VEVENT
+        CREATED:20220316T121102Z
+        LAST-MODIFIED:20230127T151619Z
+        DTSTAMP:20230127T151619Z
+        UID:something
+        SUMMARY:testing@testing.com
+        RRULE:FREQ=WEEKLY;UNTIL=20221231T010101
+        DTSTART;TZID=Europe/Madrid:20220309T130000
+        DTEND;TZID=Europe/Madrid:20220309T133000
+        SEQUENCE:4
+        END:VEVENT
+        END:VCALENDAR
+    """
+    )
+    schedule = make_schedule(
+        organization,
+        schedule_class=OnCallScheduleICal,
+        cached_ical_file_primary=cached_ical_primary_schedule,
+    )
+
+    assert set(schedule.related_users()) == {user}
 
 
 @pytest.mark.django_db(transaction=True)

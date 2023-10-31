@@ -346,20 +346,32 @@ class OnCallSchedule(PolymorphicModel):
         all_day_datetime: bool = False,
         ignore_untaken_swaps: bool = False,
         from_cached_final: bool = False,
+        include_shift_info: bool = False,
     ) -> ScheduleEvents:
         """Return filtered events from schedule."""
-        shifts = (
-            list_of_oncall_shifts_from_ical(
-                self,
-                datetime_start,
-                datetime_end,
-                with_empty,
-                with_gap,
-                filter_by=filter_by,
-                from_cached_final=from_cached_final,
+        try:
+            shifts = (
+                list_of_oncall_shifts_from_ical(
+                    self,
+                    datetime_start,
+                    datetime_end,
+                    with_empty,
+                    with_gap,
+                    filter_by=filter_by,
+                    from_cached_final=from_cached_final,
+                )
+                or []
             )
-            or []
-        )
+        except ValueError:
+            # raised when filtering events on a non-saved/deleted schedule
+            return []
+        shifts_data = {}
+        if include_shift_info:
+            pks = set(shift["shift_pk"] for shift in shifts)
+            shifts_from_db = CustomOnCallShift.objects.filter(
+                organization=self.organization, public_primary_key__in=pks
+            )
+            shifts_data = {s.public_primary_key: {"name": s.name, "type": s.type} for s in shifts_from_db}
         events: ScheduleEvents = []
         for shift in shifts:
             start = shift["start"]
@@ -396,6 +408,15 @@ class OnCallSchedule(PolymorphicModel):
                     "pk": shift["shift_pk"],
                 },
             }
+            if include_shift_info and not is_gap:
+                no_data = {
+                    "name": None,
+                    "type": CustomOnCallShift.TYPE_OVERRIDE
+                    if shift["calendar_type"] == OnCallSchedule.TYPE_ICAL_OVERRIDES
+                    else None,
+                }
+                shift_data = shifts_data.get(shift["shift_pk"], no_data)
+                shift_json["shift"].update(shift_data)
             events.append(shift_json)
 
         # combine multiple-users same-shift events into one
@@ -415,6 +436,7 @@ class OnCallSchedule(PolymorphicModel):
         with_empty: bool = True,
         with_gap: bool = True,
         ignore_untaken_swaps: bool = False,
+        include_shift_info: bool = False,
     ) -> ScheduleEvents:
         """Return schedule final events, after resolving shifts and overrides."""
         events = self.filter_events(
@@ -424,6 +446,7 @@ class OnCallSchedule(PolymorphicModel):
             with_gap=with_gap,
             all_day_datetime=True,
             ignore_untaken_swaps=ignore_untaken_swaps,
+            include_shift_info=include_shift_info,
         )
         events = self._resolve_schedule(events, datetime_start, datetime_end)
         return events
@@ -518,7 +541,9 @@ class OnCallSchedule(PolymorphicModel):
             # no final schedule info available
             return passed_shifts, current_shifts, upcoming_shifts
 
-        events = self.filter_events(datetime_start, datetime_end, all_day_datetime=True, from_cached_final=True)
+        events = self.filter_events(
+            datetime_start, datetime_end, all_day_datetime=True, from_cached_final=True, include_shift_info=True
+        )
         events.sort(key=lambda e: e["start"])
         for event in events:
             users = {u["pk"] for u in event["users"]}
@@ -1070,6 +1095,16 @@ class OnCallScheduleICal(OnCallSchedule):
                 self.ical_url_overrides,
             )
         self.save(update_fields=["cached_ical_file_overrides", "prev_ical_file_overrides", "ical_file_error_overrides"])
+
+    def related_users(self):
+        """Return users referenced in the schedule."""
+        # combine users based on usernames and users via email (allowed in iCal based schedules)
+        usernames = []
+        if self.cached_ical_file_primary:
+            usernames += RE_ICAL_FETCH_USERNAME.findall(self.cached_ical_file_primary)
+        if self.cached_ical_file_overrides:
+            usernames += RE_ICAL_FETCH_USERNAME.findall(self.cached_ical_file_overrides)
+        return self.organization.users.filter(Q(username__in=usernames) | Q(email__in=usernames))
 
     # Insight logs
     @property

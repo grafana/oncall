@@ -88,7 +88,7 @@ class UserManager(models.Manager["User"]):
                 email=user["email"],
                 name=user["name"],
                 username=user["login"],
-                role=LegacyAccessControlRole[user["role"].upper()],
+                role=getattr(LegacyAccessControlRole, user["role"].upper(), LegacyAccessControlRole.NONE),
                 avatar_url=user["avatarUrl"],
                 permissions=user["permissions"],
             )
@@ -120,7 +120,7 @@ class UserManager(models.Manager["User"]):
         users_to_update = []
         for user in organization.users.filter(user_id__in=existing_user_ids):
             grafana_user = grafana_users[user.user_id]
-            g_user_role = LegacyAccessControlRole[grafana_user["role"].upper()]
+            g_user_role = getattr(LegacyAccessControlRole, grafana_user["role"].upper(), LegacyAccessControlRole.NONE)
 
             if (
                 user.email != grafana_user["email"]
@@ -175,6 +175,7 @@ class User(models.Model):
     schedule_export_token: "RelatedManager['ScheduleExportAuthToken']"
     silenced_alert_groups: "RelatedManager['AlertGroup']"
     slack_user_identity: typing.Optional["SlackUserIdentity"]
+    teams: "RelatedManager['Team']"
     user_schedule_export_token: "RelatedManager['UserScheduleExportAuthToken']"
     wiped_alert_groups: "RelatedManager['AlertGroup']"
 
@@ -307,7 +308,7 @@ class User(models.Model):
         self._timezone = value
 
     def is_in_working_hours(self, dt: datetime.datetime, tz: typing.Optional[str] = None) -> bool:
-        assert dt.tzinfo == pytz.utc, "dt must be in UTC"
+        assert dt.tzinfo == datetime.timezone.utc, "dt must be in UTC"
 
         # Default to user's timezone
         if not tz:

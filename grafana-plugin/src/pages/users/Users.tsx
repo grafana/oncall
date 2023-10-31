@@ -2,7 +2,6 @@ import React from 'react';
 
 import { Alert, Button, HorizontalGroup, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
-import { debounce } from 'lodash-es';
 import { observer } from 'mobx-react';
 import LegacyNavHeading from 'navbar/LegacyNavHeading';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
@@ -26,7 +25,7 @@ import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import LocationHelper from 'utils/LocationHelper';
 import { generateMissingPermissionMessage, isUserActionAllowed, UserActions } from 'utils/authorization';
-import { PLUGIN_ROOT } from 'utils/consts';
+import { PAGE, PLUGIN_ROOT } from 'utils/consts';
 
 import { getUserRowClassNameFn } from './Users.helpers';
 
@@ -36,18 +35,14 @@ const cx = cn.bind(styles);
 
 interface UsersProps extends WithStoreProps, PageProps, RouteComponentProps<{ id: string }> {}
 
-const ITEMS_PER_PAGE = 100;
 const REQUIRED_PERMISSION_TO_VIEW_USERS = UserActions.UserSettingsWrite;
 
 interface UsersState extends PageBaseState {
-  page: number;
   isWrongTeam: boolean;
   userPkToEdit?: UserType['pk'] | 'new';
   usersFilters?: {
     searchTerm: string;
   };
-  initialUsersLoaded: boolean;
-  queuedUpdateUsers: boolean;
 }
 
 @observer
@@ -57,10 +52,10 @@ class Users extends React.Component<UsersProps, UsersState> {
 
     const {
       query: { p },
+      store: { filtersStore },
     } = props;
 
     this.state = {
-      page: p ? Number(p) : 1,
       isWrongTeam: false,
       userPkToEdit: undefined,
       usersFilters: {
@@ -68,34 +63,31 @@ class Users extends React.Component<UsersProps, UsersState> {
       },
 
       errorData: initErrorDataState(),
-      initialUsersLoaded: false,
-      queuedUpdateUsers: false,
     };
+
+    // Users component doesn't rely on RemoteFilters
+    // therefore we need to initialize the page in the constructor instead
+    filtersStore.currentTablePageNum[PAGE.Users] = p ? Number(p) : 1;
   }
 
   async componentDidMount() {
-    this.updateUsers();
     this.parseParams();
   }
 
-  updateUsers = async () => {
+  updateUsers = async (invalidateFn?: () => boolean) => {
     const { store } = this.props;
-    const { usersFilters, page } = this.state;
-    const { userStore } = store;
+    const { usersFilters } = this.state;
+    const { userStore, filtersStore } = store;
+    const page = filtersStore.currentTablePageNum[PAGE.Users];
 
     if (!isUserActionAllowed(REQUIRED_PERMISSION_TO_VIEW_USERS)) {
       return;
     }
 
     LocationHelper.update({ p: page }, 'partial');
-    await userStore.updateItems(usersFilters, page);
+    await userStore.updateItems(usersFilters, page, invalidateFn);
 
-    const { queuedUpdateUsers } = this.state;
-    this.setState({ initialUsersLoaded: true, queuedUpdateUsers: false }, () => {
-      if (queuedUpdateUsers) {
-        this.updateUsers();
-      }
-    });
+    this.forceUpdate();
   };
 
   componentDidUpdate(prevProps: UsersProps) {
@@ -181,12 +173,14 @@ class Users extends React.Component<UsersProps, UsersState> {
 
   renderContentIfAuthorized(authorizedToViewUsers: boolean) {
     const {
-      store: { userStore },
+      store: { userStore, filtersStore },
     } = this.props;
 
-    const { usersFilters, page, initialUsersLoaded, userPkToEdit, queuedUpdateUsers } = this.state;
+    const { usersFilters, userPkToEdit } = this.state;
 
-    const { count, results } = userStore.getSearchResult();
+    const page = filtersStore.currentTablePageNum[PAGE.Users];
+
+    const { count, results, page_size } = userStore.getSearchResult();
     const columns = this.getTableColumns();
 
     const handleClear = () =>
@@ -202,7 +196,7 @@ class Users extends React.Component<UsersProps, UsersState> {
               <UsersFilters
                 className={cx('users-filters')}
                 value={usersFilters}
-                isLoading={queuedUpdateUsers}
+                isLoading={results === undefined}
                 onChange={this.handleUsersFiltersChange}
               />
               <Button variant="secondary" icon="times" onClick={handleClear} className={cx('searchIntegrationClear')}>
@@ -212,14 +206,14 @@ class Users extends React.Component<UsersProps, UsersState> {
 
             <GTable
               data-testid="users-table"
-              emptyText={initialUsersLoaded ? 'No users found' : 'Loading...'}
+              emptyText={results ? 'No users found' : 'Loading...'}
               rowKey="pk"
               data={results}
               columns={columns}
               rowClassName={getUserRowClassNameFn(userPkToEdit, userStore.currentUserPk)}
               pagination={{
                 page,
-                total: Math.ceil((count || 0) / ITEMS_PER_PAGE),
+                total: results ? Math.ceil((count || 0) / page_size) : 0,
                 onChange: this.handleChangePage,
               }}
             />
@@ -427,19 +421,20 @@ class Users extends React.Component<UsersProps, UsersState> {
   }
 
   handleChangePage = (page: number) => {
-    this.setState({ page }, this.updateUsers);
+    const { filtersStore } = this.props.store;
+
+    filtersStore.currentTablePageNum[PAGE.Users] = page;
+
+    this.updateUsers();
   };
 
-  debouncedUpdateUsers = debounce(this.updateUsers, 500);
+  handleUsersFiltersChange = (usersFilters: any, invalidateFn: () => boolean) => {
+    const { filtersStore } = this.props.store;
 
-  handleUsersFiltersChange = (usersFilters: any) => {
-    this.setState({ usersFilters, page: 1 }, () => {
-      if (!this.state.initialUsersLoaded) {
-        // queue delayed users update
-        return this.setState({ queuedUpdateUsers: true });
-      }
+    filtersStore.currentTablePageNum[PAGE.Users] = 1;
 
-      this.debouncedUpdateUsers();
+    this.setState({ usersFilters }, () => {
+      this.updateUsers(invalidateFn);
     });
   };
 

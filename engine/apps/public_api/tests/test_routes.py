@@ -455,3 +455,36 @@ def test_update_route_with_manual_ordering(
 
     response = client.put(url, format="json", HTTP_AUTHORIZATION=token, data=data_to_update)
     assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+@pytest.mark.django_db
+def test_routes_long_filtering_term(
+    route_public_api_setup,
+    make_channel_filter,
+):
+    organization, _, token, alert_receive_channel, escalation_chain, _ = route_public_api_setup
+    client = APIClient()
+    long_filtering_term = "a" * (ChannelFilter.FILTERING_TERM_MAX_LENGTH + 1)
+
+    url = reverse("api-public:routes-list")
+    data_for_creation = {
+        "integration_id": alert_receive_channel.public_primary_key,
+        "escalation_chain_id": escalation_chain.public_primary_key,
+        "routing_regex": long_filtering_term,
+    }
+
+    response = client.post(url, data=data_for_creation, format="json", HTTP_AUTHORIZATION=token)
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert "Expression is too long" in response.json()["non_field_errors"][0]
+
+    channel_filter = make_channel_filter(alert_receive_channel, filtering_term="a", is_default=False)
+    url = reverse("api-public:routes-detail", kwargs={"pk": channel_filter.public_primary_key})
+    data_for_update = {
+        "routing_regex": long_filtering_term,
+    }
+
+    response = client.put(url, data=data_for_update, format="json", HTTP_AUTHORIZATION=token)
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert "Expression is too long" in response.json()["non_field_errors"][0]

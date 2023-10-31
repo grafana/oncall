@@ -2,15 +2,21 @@ import datetime
 from unittest.mock import patch
 
 import pytest
+from django.core.cache import cache
 from django.urls import reverse
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.test import APIClient
 
-from apps.alerts.models import AlertGroup, AlertGroupLogRecord
+from apps.alerts.constants import ActionSource
+from apps.alerts.models import AlertGroup, AlertGroupLogRecord, ResolutionNote
+from apps.alerts.paging import direct_paging
+from apps.alerts.tasks import wipe
 from apps.api.errors import AlertGroupAPIError
 from apps.api.permissions import LegacyAccessControlRole
+from apps.api.serializers.alert import AlertFieldsCacheSerializerMixin
+from apps.api.serializers.alert_group import AlertGroupFieldsCacheSerializerMixin
 from apps.base.models import UserNotificationPolicyLogRecord
 
 alert_raw_request_data = {
@@ -843,6 +849,7 @@ def test_get_filter_escalation_chain(
         (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
         (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
         (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_alert_group_acknowledge_permissions(
@@ -878,6 +885,7 @@ def test_alert_group_acknowledge_permissions(
         (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
         (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
         (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_alert_group_unacknowledge_permissions(
@@ -912,6 +920,7 @@ def test_alert_group_unacknowledge_permissions(
         (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
         (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
         (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_alert_group_resolve_permissions(
@@ -946,6 +955,7 @@ def test_alert_group_resolve_permissions(
         (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
         (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
         (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_alert_group_unresolve_permissions(
@@ -980,6 +990,7 @@ def test_alert_group_unresolve_permissions(
         (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
         (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
         (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_alert_group_silence_permissions(
@@ -1014,6 +1025,7 @@ def test_alert_group_silence_permissions(
         (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
         (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
         (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_alert_group_unsilence_permissions(
@@ -1048,6 +1060,7 @@ def test_alert_group_unsilence_permissions(
         (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
         (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
         (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_alert_group_attach_permissions(
@@ -1082,6 +1095,7 @@ def test_alert_group_attach_permissions(
         (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
         (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
         (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_alert_group_unattach_permissions(
@@ -1116,6 +1130,7 @@ def test_alert_group_unattach_permissions(
         (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
         (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
         (LegacyAccessControlRole.VIEWER, status.HTTP_200_OK),
+        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_alert_group_list_permissions(
@@ -1150,6 +1165,7 @@ def test_alert_group_list_permissions(
         (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
         (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
         (LegacyAccessControlRole.VIEWER, status.HTTP_200_OK),
+        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_alert_group_stats_permissions(
@@ -1184,6 +1200,7 @@ def test_alert_group_stats_permissions(
         (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
         (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
         (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_alert_group_bulk_action_permissions(
@@ -1216,6 +1233,7 @@ def test_alert_group_bulk_action_permissions(
         (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
         (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
         (LegacyAccessControlRole.VIEWER, status.HTTP_200_OK),
+        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_alert_group_filters_permissions(
@@ -1250,6 +1268,7 @@ def test_alert_group_filters_permissions(
         (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
         (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
         (LegacyAccessControlRole.VIEWER, status.HTTP_200_OK),
+        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_alert_group_detail_permissions(
@@ -1338,16 +1357,30 @@ def test_unpage_user(
     make_user_auth_headers,
 ):
     client = APIClient()
-    user, token, alert_groups = alert_group_internal_api_setup
-    user_to_unpage = make_user(organization=user.organization)
-    _, _, new_alert_group, _ = alert_groups
+    user, token, _ = alert_group_internal_api_setup
+    other_user = make_user(organization=user.organization)
 
-    url = reverse("api-internal:alertgroup-unpage-user", kwargs={"pk": new_alert_group.public_primary_key})
-    response = client.post(
-        url, data={"user_id": user_to_unpage.public_primary_key}, **make_user_auth_headers(user, token)
-    )
+    alert_group = direct_paging(user.organization, user, "testtesttest", users=[(other_user, False)])
+    paged_users = alert_group.get_paged_users()
+
+    assert paged_users[0]["pk"] == other_user.public_primary_key
+
+    url = reverse("api-internal:alertgroup-unpage-user", kwargs={"pk": alert_group.public_primary_key})
+    response = client.post(url, data={"user_id": other_user.public_primary_key}, **make_user_auth_headers(user, token))
 
     assert response.status_code == status.HTTP_200_OK
+
+    alert_group.refresh_from_db()
+    assert alert_group.silenced_until is None
+    assert alert_group.get_paged_users() == []
+
+    unpage_user_log_record = alert_group.log_records.get(
+        type=AlertGroupLogRecord.TYPE_UNPAGE_USER,
+        author=user,
+    )
+
+    assert unpage_user_log_record.reason == f"{user.username} unpaged user {other_user.username}"
+    assert unpage_user_log_record.step_specific_info == {"user": other_user.public_primary_key}
 
 
 @pytest.mark.django_db
@@ -1673,6 +1706,7 @@ def test_alert_group_status_field(
         (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
         (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
         (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_alert_group_preview_template_permissions(
@@ -1822,7 +1856,18 @@ def test_alert_group_paged_users(
 
     url = reverse("api-internal:alertgroup-detail", kwargs={"pk": new_alert_group.public_primary_key})
     response = client.get(url, format="json", **make_user_auth_headers(user, token))
-    assert response.json()["paged_users"] == [user2.short()]
+    assert response.json()["paged_users"] == [
+        {
+            "avatar": user2.avatar_url,
+            "avatar_full": user2.avatar_full_url,
+            "id": user2.pk,
+            "pk": user2.public_primary_key,
+            "important": None,
+            "name": user2.name,
+            "username": user2.username,
+            "teams": [],
+        }
+    ]
 
 
 @pytest.mark.django_db
@@ -1862,3 +1907,133 @@ def test_alert_group_resolve_resolution_note(
 
         assert new_alert_group.has_resolution_notes
         assert mock_signal.called
+
+
+@pytest.mark.django_db
+def test_alert_group_resolve_resolution_note_mobile_app(
+    make_organization_and_user,
+    make_mobile_app_auth_token_for_user,
+    make_alert_receive_channel,
+    make_channel_filter,
+    make_alert_group,
+    make_alert,
+    make_user_auth_headers,
+):
+    organization, user = make_organization_and_user()
+    organization.is_resolution_note_required = True
+    organization.save()
+    _, token = make_mobile_app_auth_token_for_user(user, organization)
+
+    alert_receive_channel = make_alert_receive_channel(organization)
+    alert_group = make_alert_group(alert_receive_channel)
+
+    client = APIClient()
+    url = reverse("api-internal:alertgroup-resolve", kwargs={"pk": alert_group.public_primary_key})
+    response = client.post(url, format="json", data={"resolution_note": "hi"}, HTTP_AUTHORIZATION=token)
+
+    assert response.status_code == status.HTTP_200_OK
+    assert alert_group.resolution_notes.get().source == ResolutionNote.Source.MOBILE_APP
+
+
+@pytest.mark.parametrize("source", ResolutionNote.Source)
+@pytest.mark.django_db
+def test_timeline_resolution_note_source(
+    make_organization_and_user_with_plugin_token,
+    make_alert_receive_channel,
+    make_channel_filter,
+    make_alert_group,
+    make_alert,
+    make_resolution_note_slack_message,
+    make_resolution_note,
+    make_user_auth_headers,
+    source,
+):
+    """The 'type' field in timeline items should hold the source of the resolution note"""
+    organization, user, token = make_organization_and_user_with_plugin_token()
+    alert_receive_channel = make_alert_receive_channel(organization)
+    channel_filter = make_channel_filter(alert_receive_channel, is_default=True)
+    alert_group = make_alert_group(alert_receive_channel, channel_filter=channel_filter)
+    make_alert(alert_group=alert_group, raw_request_data=alert_raw_request_data)
+
+    # Create resolution note
+    resolution_note_slack_message = make_resolution_note_slack_message(
+        alert_group=alert_group, user=user, added_by_user=user, text="resolution note"
+    )
+    make_resolution_note(
+        alert_group=alert_group, author=user, resolution_note_slack_message=resolution_note_slack_message, source=source
+    )
+
+    client = APIClient()
+    url = reverse("api-internal:alertgroup-detail", kwargs={"pk": alert_group.public_primary_key})
+    response = client.get(url, **make_user_auth_headers(user, token))
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()["render_after_resolve_report_json"][0]["type"] == source.value
+
+
+@pytest.mark.django_db
+def test_timeline_api_action(
+    make_organization_and_user_with_plugin_token,
+    make_alert_receive_channel,
+    make_channel_filter,
+    make_alert_group,
+    make_alert,
+    make_user_auth_headers,
+):
+    """Check that the timeline API returns the correct actions when using AlertSource.WEB vs ActionSource.API"""
+    organization, user, token = make_organization_and_user_with_plugin_token()
+    alert_receive_channel = make_alert_receive_channel(organization)
+    channel_filter = make_channel_filter(alert_receive_channel, is_default=True)
+    alert_group = make_alert_group(alert_receive_channel, channel_filter=channel_filter)
+    make_alert(alert_group=alert_group, raw_request_data=alert_raw_request_data)
+
+    alert_group.acknowledge_by_user(user, action_source=ActionSource.WEB)
+    alert_group.resolve_by_user(user, action_source=ActionSource.API)
+
+    client = APIClient()
+    url = reverse("api-internal:alertgroup-detail", kwargs={"pk": alert_group.public_primary_key})
+    response = client.get(url, **make_user_auth_headers(user, token))
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()["render_after_resolve_report_json"][0]["action"] == "acknowledged by {{author}}"
+    assert response.json()["render_after_resolve_report_json"][1]["action"] == "resolved by API"
+
+
+@pytest.mark.django_db
+def test_wipe_clears_cache(
+    make_organization_and_user_with_plugin_token,
+    make_alert_receive_channel,
+    make_channel_filter,
+    make_alert_group,
+    make_alert,
+    make_user_auth_headers,
+):
+    """Check that internal API cache is cleared when wiping an alert group"""
+    organization, user, token = make_organization_and_user_with_plugin_token()
+    alert_receive_channel = make_alert_receive_channel(organization)
+    channel_filter = make_channel_filter(alert_receive_channel, is_default=True)
+    alert_group = make_alert_group(alert_receive_channel, channel_filter=channel_filter)
+    alert = make_alert(alert_group=alert_group, raw_request_data=alert_raw_request_data)
+
+    # Populate cache
+    client = APIClient()
+    url = reverse("api-internal:alertgroup-detail", kwargs={"pk": alert_group.public_primary_key})
+    response = client.get(url, **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_200_OK
+
+    # Wipe alert group
+    wipe(alert_group.pk, user.pk)
+
+    # Check that cache is cleared for alert group
+    alert_group_cache_keys = [
+        AlertGroupFieldsCacheSerializerMixin.calculate_cache_key(field_name, alert_group)
+        for field_name in AlertGroupFieldsCacheSerializerMixin.ALL_FIELD_NAMES
+    ]
+    assert not any([cache.get(key) for key in alert_group_cache_keys])
+
+    # Check that cache is cleared for alert
+    alert_cache_keys = [
+        AlertFieldsCacheSerializerMixin.calculate_cache_key(field_name, alert)
+        for field_name in AlertFieldsCacheSerializerMixin.ALL_FIELD_NAMES
+    ]
+    assert not any([cache.get(key) for key in alert_cache_keys])

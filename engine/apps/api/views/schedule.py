@@ -337,9 +337,10 @@ class ScheduleView(
                 with_gap=resolve_schedule,
                 filter_by=filter_by,
                 all_day_datetime=True,
+                include_shift_info=True,
             )
         else:  # return final schedule
-            events = schedule.final_events(datetime_start, datetime_end)
+            events = schedule.final_events(datetime_start, datetime_end, include_shift_info=True)
 
         result = {
             "id": schedule.public_primary_key,
@@ -374,11 +375,14 @@ class ScheduleView(
 
         events = schedule.final_events(now, datetime_end)
 
-        users = {u.public_primary_key: None for u in schedule.related_users()}
+        # include user TZ information for every user
+        users = {u.public_primary_key: {"user_timezone": u.timezone} for u in schedule.related_users()}
+        added_users = set()
         for e in events:
             user = e["users"][0]["pk"] if e["users"] else None
-            if user is not None and users.get(user) is None and e["end"] > now:
-                users[user] = e
+            if user is not None and user not in added_users and user in users and e["end"] > now:
+                users[user].update(e)
+                added_users.add(user)
 
         result = {"users": users}
         return Response(result, status=status.HTTP_200_OK)

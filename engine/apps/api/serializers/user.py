@@ -1,5 +1,6 @@
 import math
 import time
+import typing
 
 from django.conf import settings
 from rest_framework import serializers
@@ -9,6 +10,7 @@ from apps.base.messaging import get_messaging_backends
 from apps.base.models import UserNotificationPolicy
 from apps.base.utils import live_settings
 from apps.oss_installation.utils import cloud_user_identity_status
+from apps.schedules.ical_utils import SchedulesOnCallUsers
 from apps.user_management.models import User
 from apps.user_management.models.user import default_working_hours
 from common.api_helpers.custom_fields import TeamPrimaryKeyRelatedField, TimeZoneField
@@ -18,6 +20,11 @@ from common.api_helpers.utils import check_phone_number_is_valid
 from .custom_serializers import DynamicFieldsModelSerializer
 from .organization import FastOrganizationSerializer
 from .slack_user_identity import SlackUserIdentitySerializer
+from .team import FastTeamSerializer
+
+
+class UserSerializerContext(typing.TypedDict):
+    schedules_with_oncall_users: SchedulesOnCallUsers
 
 
 class UserPermissionSerializer(serializers.Serializer):
@@ -120,18 +127,18 @@ class UserSerializer(DynamicFieldsModelSerializer, EagerLoadingMixin):
         else:
             return None
 
-    def get_messaging_backends(self, obj):
+    def get_messaging_backends(self, obj: User):
         serialized_data = {}
         supported_backends = get_messaging_backends()
         for backend_id, backend in supported_backends:
             serialized_data[backend_id] = backend.serialize_user(obj)
         return serialized_data
 
-    def get_notification_chain_verbal(self, obj):
+    def get_notification_chain_verbal(self, obj: User):
         default, important = UserNotificationPolicy.get_short_verbals_for_user(user=obj)
         return {"default": " - ".join(default), "important": " - ".join(important)}
 
-    def get_cloud_connection_status(self, obj):
+    def get_cloud_connection_status(self, obj: User):
         if settings.IS_OPEN_SOURCE and live_settings.GRAFANA_CLOUD_NOTIFICATIONS_ENABLED:
             connector = self.context.get("connector", None)
             identities = self.context.get("cloud_identities", {})
@@ -260,4 +267,35 @@ class UserShortSerializer(serializers.ModelSerializer):
             "pk",
             "avatar",
             "avatar_full",
+        ]
+
+
+class UserLongSerializer(UserSerializer):
+    context: UserSerializerContext
+
+    teams = FastTeamSerializer(read_only=True, many=True)
+    is_currently_oncall = serializers.SerializerMethodField()
+
+    class Meta(UserSerializer.Meta):
+        fields = UserSerializer.Meta.fields + [
+            "teams",
+            "is_currently_oncall",
+        ]
+
+    def get_is_currently_oncall(self, obj: User) -> bool:
+        # Serializer context is set here: apps.api.views.user.UserView.get_serializer_context.
+        for users in self.context.get("schedules_with_oncall_users", {}).values():
+            if obj in users:
+                return True
+        return False
+
+
+class PagedUserSerializer(serializers.Serializer):
+    class Meta:
+        fields = [
+            "username",
+            "pk",
+            "avatar",
+            "avatar_full",
+            "important",
         ]

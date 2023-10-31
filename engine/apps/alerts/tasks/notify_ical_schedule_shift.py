@@ -22,6 +22,9 @@ if TYPE_CHECKING:
     from apps.schedules.models import OnCallSchedule
 
 
+MIN_DAYS_TO_LOOKUP_FOR_THE_END_OF_EVENT = 3
+
+
 def convert_prev_shifts_to_new_format(prev_shifts: dict, schedule: "OnCallSchedule") -> list:
     new_prev_shifts = []
     user_ids = []
@@ -82,12 +85,6 @@ def notify_ical_schedule_shift(schedule_pk):
 
     task_logger.info(f"Notify ical schedule shift {schedule_pk}, organization {schedule.organization_id}")
 
-    MIN_DAYS_TO_LOOKUP_FOR_THE_END_OF_EVENT = 3
-
-    now = datetime.datetime.now(timezone.utc)
-
-    current_shifts = schedule.final_events(now, now, with_empty=False, with_gap=False, ignore_untaken_swaps=True)
-
     prev_shifts = json.loads(schedule.current_shifts) if not schedule.empty_oncall else []
     prev_shifts_updated = False
     # convert prev_shifts to new events format for compatibility with the previous version of this task
@@ -101,6 +98,33 @@ def notify_ical_schedule_shift(schedule_pk):
         prev_shift["start"] = datetime.datetime.strptime(prev_shift["start"], str_format)
         prev_shift["end"] = datetime.datetime.strptime(prev_shift["end"], str_format)
 
+    # get shifts in progress now
+    now = datetime.datetime.now(timezone.utc)
+    current_shifts = schedule.final_events(now, now, with_empty=False, with_gap=False, ignore_untaken_swaps=True)
+
+    # get days_to_lookup for next shifts (which may affect current shifts)
+    if len(current_shifts) != 0:
+        max_end_date = max([shift["end"].date() for shift in current_shifts])
+        days_to_lookup = (max_end_date - now.date()).days + 1
+        days_to_lookup = max([days_to_lookup, MIN_DAYS_TO_LOOKUP_FOR_THE_END_OF_EVENT])
+    else:
+        days_to_lookup = MIN_DAYS_TO_LOOKUP_FOR_THE_END_OF_EVENT
+
+    # get updated current and upcoming shifts
+    datetime_end = now + datetime.timedelta(days=days_to_lookup)
+    next_shifts_unfiltered = schedule.final_events(
+        now, datetime_end, with_empty=False, with_gap=False, ignore_untaken_swaps=True
+    )
+
+    # split current and next shifts
+    current_shifts = []
+    next_shifts = []
+    for shift in next_shifts_unfiltered:
+        if now < shift["start"]:
+            next_shifts.append(shift)
+        else:
+            current_shifts.append(shift)
+
     shift_changed, diff_shifts = calculate_shift_diff(current_shifts, prev_shifts)
 
     # Do not notify if there is no difference between current and previous shifts
@@ -113,25 +137,6 @@ def notify_ical_schedule_shift(schedule_pk):
         return
 
     new_shifts = sorted(diff_shifts, key=lambda shift: shift["start"])
-
-    # get days_to_lookup for next shifts
-    if len(new_shifts) != 0:
-        max_end_date = max([shift["end"].date() for shift in new_shifts])
-        days_to_lookup = (max_end_date - now.date()).days + 1
-        days_to_lookup = max([days_to_lookup, MIN_DAYS_TO_LOOKUP_FOR_THE_END_OF_EVENT])
-    else:
-        days_to_lookup = MIN_DAYS_TO_LOOKUP_FOR_THE_END_OF_EVENT
-
-    datetime_end = now + datetime.timedelta(days=days_to_lookup)
-
-    next_shifts_unfiltered = schedule.final_events(
-        now, datetime_end, with_empty=False, with_gap=False, ignore_untaken_swaps=True
-    )
-    # drop events that already started
-    next_shifts = []
-    for next_shift in next_shifts_unfiltered:
-        if now < next_shift["start"]:
-            next_shifts.append(next_shift)
 
     upcoming_shifts = []
     # Add the earliest next_shift
