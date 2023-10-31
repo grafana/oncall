@@ -29,7 +29,6 @@ class TeamSerializer(serializers.ModelSerializer):
             "email",
             "avatar_url",
             "is_sharing_resources_to_all",
-            "number_of_users_currently_oncall",
         ]
 
         read_only_fields = [
