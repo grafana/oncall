@@ -56,7 +56,6 @@ export class GrafanaTeamStore extends BaseStore {
   }
 
   getSearchResult() {
-    console.log('yoooo');
     return this.searchResult.map((teamId: GrafanaTeam['id']) => this.items[teamId]);
   }
 }
