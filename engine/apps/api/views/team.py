@@ -6,7 +6,7 @@ from rest_framework.response import Response
 
 from apps.alerts.paging import integration_is_notifiable
 from apps.api.permissions import RBACPermission
-from apps.api.serializers.team import TeamSerializer
+from apps.api.serializers.team import TeamLongSerializer, TeamSerializer
 from apps.auth_token.auth import PluginAuthentication
 from apps.mobile_app.auth import MobileAppAuthTokenAuthentication
 from apps.schedules.ical_utils import get_oncall_users_for_multiple_schedules
@@ -33,6 +33,9 @@ class TeamViewSet(PublicPrimaryKeyMixin, mixins.ListModelMixin, mixins.UpdateMod
     def get_queryset(self):
         return self.request.user.available_teams
 
+    def _is_long_request(self) -> bool:
+        return self.request.query_params.get("short", "true").lower() == "false"
+
     @cached_property
     def schedules_with_oncall_users(self):
         """
@@ -45,8 +48,13 @@ class TeamViewSet(PublicPrimaryKeyMixin, mixins.ListModelMixin, mixins.UpdateMod
 
     def get_serializer_context(self):
         context = super().get_serializer_context()
-        context.update({"schedules_with_oncall_users": self.schedules_with_oncall_users})
+        context.update(
+            {"schedules_with_oncall_users": self.schedules_with_oncall_users if self._is_long_request() else {}}
+        )
         return context
+
+    def get_serializer_class(self):
+        return TeamLongSerializer if self._is_long_request() else TeamSerializer
 
     def list(self, request, *args, **kwargs):
         general_team = [Team(public_primary_key="null", name="No team", email=None, avatar_url=None)]
@@ -61,6 +69,8 @@ class TeamViewSet(PublicPrimaryKeyMixin, mixins.ListModelMixin, mixins.UpdateMod
             team_ids = [i.team.pk for i in notifiable_direct_paging_integrations if i.team is not None]
 
             queryset = queryset.filter(pk__in=team_ids)
+
+        queryset = queryset.order_by("name")
 
         teams = list(queryset)
         if self.request.query_params.get("include_no_team", "true") != "false":

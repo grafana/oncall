@@ -71,5 +71,4 @@ class AlertRawSerializer(serializers.ModelSerializer):
         ]
 
     def get_raw_request_data(self, obj):
-        # TODO:
-        return {} if obj.group.is_restricted else obj.raw_request_data
+        return obj.raw_request_data
