@@ -135,6 +135,37 @@ class LabelsViewSet(ViewSet):
             update_labels_cache.apply_async((label_data,))
 
 
+class AlertGroupLabelsViewSet(ViewSet):
+    # TODO: comments
+    permission_classes = (IsAuthenticated, BasicRolePermission)
+    authentication_classes = (PluginAuthentication,)
+    basic_role_permissions = {
+        "get_keys": LegacyAccessControlRole.VIEWER,
+        "get_key": LegacyAccessControlRole.VIEWER,
+    }
+
+    def initial(self, request, *args, **kwargs):
+        super().initial(request, *args, **kwargs)
+        if not is_labels_feature_enabled(self.request.auth.organization):
+            raise NotFound
+
+    @extend_schema(responses=LabelKeySerializer(many=True))
+    def get_keys(self, request):
+        """List of labels keys"""
+        names = self.request.auth.organization.alert_group_labels.values_list("key_name", flat=True).distinct()
+        return Response([{"id": name, "name": name} for name in names])
+
+    @extend_schema(responses=LabelKeyValuesSerializer)
+    def get_key(self, request, key_id):
+        """Key with the list of values"""
+        values = (
+            self.request.auth.organization.alert_group_labels.filter(key_name=key_id)
+            .values_list("value_name", flat=True)
+            .distinct()
+        )
+        return Response({"key": {"id": key_id, "name": key_id}, "values": [{"id": v, "name": v} for v in values]})
+
+
 class LabelsAssociatingMixin:  # use for labelable objects views (ex. AlertReceiveChannelView)
     def filter_by_labels(self, queryset):
         """Call this method in `get_queryset()` to add filtering by labels"""

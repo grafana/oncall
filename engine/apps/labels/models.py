@@ -112,3 +112,22 @@ class AlertReceiveChannelAssociatedLabel(AssociatedLabel):
     def get_associating_label_field_name() -> str:
         """Returns ForeignKey field name for the associated model"""
         return "alert_receive_channel"
+
+
+class AlertGroupAssociatedLabel(models.Model):
+    # TODO: comments
+    alert_group = models.ForeignKey("alerts.AlertGroup", on_delete=models.CASCADE, related_name="labels")
+    organization = models.ForeignKey(
+        "user_management.Organization", on_delete=models.CASCADE, related_name="alert_group_labels"
+    )
+
+    key_name = models.CharField(max_length=200)
+    value_name = models.CharField(max_length=200)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["organization", "key_name", "value_name", "alert_group"],
+                name="unique_alert_group_label",
+            )
+        ]

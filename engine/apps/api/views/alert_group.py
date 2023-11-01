@@ -23,6 +23,7 @@ from apps.api.serializers.alert_group import AlertGroupListSerializer, AlertGrou
 from apps.api.serializers.team import TeamSerializer
 from apps.auth_token.auth import PluginAuthentication
 from apps.base.models.user_notification_policy_log_record import UserNotificationPolicyLogRecord
+from apps.labels.utils import is_labels_feature_enabled
 from apps.mobile_app.auth import MobileAppAuthTokenAuthentication
 from apps.user_management.models import Team, User
 from common.api_helpers.exceptions import BadRequest
@@ -331,10 +332,13 @@ class AlertGroupView(
             alert_receive_channels_qs = alert_receive_channels_qs.filter(*self.available_teams_lookup_args)
 
         alert_receive_channels_ids = list(alert_receive_channels_qs.values_list("id", flat=True))
+        queryset = AlertGroup.objects.filter(channel__in=alert_receive_channels_ids)
 
-        queryset = AlertGroup.objects.filter(
-            channel__in=alert_receive_channels_ids,
-        )
+        # TODO: comment
+        labels = self.request.query_params.getlist("label")
+        for label in labels:
+            key_name, value_name = label.split(":")
+            queryset = queryset.filter(labels__key_name=key_name, labels__value_name=value_name)
 
         queryset = queryset.only("id")
 
@@ -744,6 +748,16 @@ class AlertGroupView(
                 "description": f"This filter works only for last {AlertGroupFilter.FILTER_BY_INVOLVED_USERS_ALERT_GROUPS_CUTOFF} alert groups you're involved in.",
             },
         ]
+
+        # TODO: comment
+        if is_labels_feature_enabled(self.request.auth.organization):
+            filter_options.append(
+                {
+                    "name": "label",
+                    "display_name": "Label",
+                    "type": "labels",
+                }
+            )
 
         if filter_name is not None:
             filter_options = list(filter(lambda f: filter_name in f["name"], filter_options))

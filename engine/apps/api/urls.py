@@ -13,7 +13,7 @@ from .views.escalation_chain import EscalationChainViewSet
 from .views.escalation_policy import EscalationPolicyView
 from .views.features import FeaturesAPIView
 from .views.integration_heartbeat import IntegrationHeartBeatView
-from .views.labels import LabelsViewSet
+from .views.labels import AlertGroupLabelsViewSet, LabelsViewSet
 from .views.live_setting import LiveSettingViewSet
 from .views.on_call_shifts import OnCallShiftView
 from .views.organization import (
@@ -128,4 +128,12 @@ urlpatterns += [
         name="get_update_value",
     ),
     re_path(r"^labels/?$", LabelsViewSet.as_view({"post": "create_label"}), name="create_label"),
+]
+
+# Alert group labels
+urlpatterns += [
+    re_path(r"^alert_group_labels/keys/?$", AlertGroupLabelsViewSet.as_view({"get": "get_keys"}), name="get_keys"),
+    re_path(
+        r"^alert_group_labels/id/(?P<key_id>.+/?$)", AlertGroupLabelsViewSet.as_view({"get": "get_key"}), name="get_key"
+    ),
 ]
