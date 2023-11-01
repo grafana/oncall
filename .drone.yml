@@ -5,7 +5,7 @@ name: Build and Release
 
 steps:
   - name: merge helm release oss pr
-    image: curlimages/curl:7.73.0
+    image: alpine
     environment:
       # TODO: this is simply a test for now
       # TODO: when finished relocate this to the "OSS engine release" pipeline
@@ -13,8 +13,7 @@ steps:
         from_secret: github_api_token
       DRONE_TAG: v1.3.49
     commands:
-      - apt-get update
-      - apt-get --assume-yes install jq
+      - apk add --no-cache curl jq
       # TODO: fetch the PR number from the first API call and use it to make a second API call to merge the PR
       # Step 1. Fetch PRs from GitHub's API that're open and have a particular head ref indicative of a helm release PR
       # Step 2. Extract the PR number from the first PR in the list
@@ -357,4 +356,4 @@ kind: secret
 name: github_api_token
 ---
 kind: signature
-hmac: 89889af2c69b26cbef8efab82bf5341fd560ab3113569aec82264e464c91e274
+hmac: 3cd4898180d110af5a7b75c4b0e6f67dafb0074776996ae5cd15e7c4b8ea6a63
