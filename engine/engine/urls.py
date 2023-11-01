@@ -15,6 +15,7 @@ Including another URLconf
 """
 from django.conf import settings
 from django.conf.urls.static import static
+from django.contrib import admin
 from django.urls import URLPattern, URLResolver, include, path
 
 from .views import HealthCheckView, MaintenanceModeStatusView, ReadinessCheckView, StartupProbeView
@@ -76,7 +77,11 @@ if settings.DEBUG:
     ] + urlpatterns
 
 if settings.SILK_PROFILER_ENABLED:
-    urlpatterns += [path(settings.SILK_PATH, include("silk.urls", namespace="silk"))]
+    urlpatterns += [
+        # need django admin enabled to be able to access silk
+        path("django-admin/", admin.site.urls),
+        path(settings.SILK_PATH, include("silk.urls", namespace="silk")),
+    ]
 
 if settings.DRF_SPECTACULAR_ENABLED:
     from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
