@@ -149,7 +149,6 @@ class AlertGroupListSerializer(EagerLoadingMixin, AlertGroupFieldsCacheSerialize
             "status",
             "declare_incident_link",
             "team",
-            "is_restricted",
             "grafana_incident_id",
         ]
 
