@@ -4,6 +4,7 @@ from jinja2.exceptions import SecurityError
 from jinja2.sandbox import SandboxedEnvironment
 
 from .filters import (
+    b64decode,
     datetimeformat,
     iso8601_to_time,
     json_dumps,
@@ -29,3 +30,4 @@ jinja_template_env.filters["regex_replace"] = regex_replace
 jinja_template_env.filters["regex_match"] = regex_match
 jinja_template_env.filters["regex_search"] = regex_search
 jinja_template_env.filters["json_dumps"] = json_dumps
+jinja_template_env.filters["b64decode"] = b64decode
