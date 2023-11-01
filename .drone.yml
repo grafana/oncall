@@ -4,31 +4,6 @@ type: docker
 name: Build and Release
 
 steps:
-  - name: merge helm release oss pr
-    image: alpine
-    environment:
-      # TODO: remove this when done testing
-      GITHUB_API_KEY:
-        from_secret: github_api_token
-      DRONE_TAG: v1.3.49
-    # Allow this step to fail as it's not critical to the build process and we don't want to block
-    # the build promotion. If this step fails we can always merge the PR manually
-    failure: ignore
-    commands:
-      # yamllint disable rule:line-length
-      - apk add --no-cache curl jq
-      # Step 1. Fetch PRs from GitHub's API that're open and have a particular head ref indicative of a helm release PR
-      # API docs - https://docs.github.com/en/rest/pulls/pulls?apiVersion=2022-11-28#list-pull-requests
-      # NOTE: ${DRONE_TAG:1} will slice off the "v" prefix from the tag
-      - 'curl -L -H "Accept: application/vnd.github+json" -H "Authorization: Bearer $${GITHUB_API_KEY}" -H "X-GitHub-Api-Version: 2022-11-28" "https://api.github.com/repos/grafana/oncall/pulls?head=grafana:helm-release/$${DRONE_TAG:1}&state=closed" > prs.json'
-      - cat prs.json
-      # Step 2. Extract the PR number from the first PR in the list and pass that to the next API call (via jq + xargs)
-      - cat prs.json | jq -r ".[0].number" > pr_number.txt
-      - cat pr_number.txt
-      # Step 3. Merge the PR (https://docs.github.com/en/rest/pulls/pulls?apiVersion=2022-11-28#merge-a-pull-request)
-      - 'cat pr_number.txt | xargs -r -I{pull_number} curl -L -X PUT -H "Accept: application/vnd.github+json" -H "Authorization: Bearer $${GITHUB_API_KEY}" -H "X-GitHub-Api-Version: 2022-11-28" "https://api.github.com/repos/grafana/oncall/pulls/{pull_number}/merge"'
-      # yamllint enable rule:line-length
-
   - name: Build Plugin
     image: node:18.16.0-buster
     commands:
@@ -181,11 +156,11 @@ trigger:
       - tag
       - push
       - pull_request
-  # ref:
-  #   include:
-  #     - refs/heads/main
-  #     - refs/heads/dev
-  #     - refs/tags/v*.*.*
+  ref:
+    include:
+      - refs/heads/main
+      - refs/heads/dev
+      - refs/tags/v*.*.*
 
 ---
 kind: pipeline
@@ -288,15 +263,22 @@ steps:
     environment:
       GITHUB_API_KEY:
         from_secret: github_api_token
+    # Allow this step to fail as it's not critical to the build process and we don't want to block
+    # the build promotion. If this step fails we can always merge the PR manually
+    failure: ignore
     commands:
+      # yamllint disable rule:line-length
       - apk add --no-cache curl jq
       # Step 1. Fetch PRs from GitHub's API that're open and have a particular head ref indicative of a helm release PR
       # API docs - https://docs.github.com/en/rest/pulls/pulls?apiVersion=2022-11-28#list-pull-requests
-      # Step 2. Extract the PR number from the first PR in the list and pass that to the next API call (via jq + xargs)
-      # Step 3. Merge the PR (https://docs.github.com/en/rest/pulls/pulls?apiVersion=2022-11-28#merge-a-pull-request)
       # NOTE: ${DRONE_TAG:1} will slice off the "v" prefix from the tag
-      # yamllint disable rule:line-length
-      - 'curl -L -H "Accept: application/vnd.github+json" -H "Authorization: Bearer $${GITHUB_API_KEY}" -H "X-GitHub-Api-Version: 2022-11-28" "https://api.github.com/repos/grafana/oncall/pulls?head=grafana:helm-release/$${DRONE_TAG:1}&state=open" | jq -r ".[0].number" | xargs -r -I{pull_number} curl -L -X PUT -H "Accept: application/vnd.github+json" -H "Authorization: Bearer $${GITHUB_API_KEY}" -H "X-GitHub-Api-Version: 2022-11-28" "https://api.github.com/repos/grafana/oncall/pulls/{pull_number}/merge"'
+      - 'curl -L -H "Accept: application/vnd.github+json" -H "Authorization: Bearer $${GITHUB_API_KEY}" -H "X-GitHub-Api-Version: 2022-11-28" "https://api.github.com/repos/grafana/oncall/pulls?head=grafana:helm-release/$${DRONE_TAG:1}&state=closed" > prs.json'
+      - cat prs.json
+      # Step 2. Extract the PR number from the first PR in the list to be able to pass that to the next API call
+      - cat prs.json | jq -r ".[0].number" > pr_number.txt
+      - cat pr_number.txt
+      # Step 3. Merge the PR (https://docs.github.com/en/rest/pulls/pulls?apiVersion=2022-11-28#merge-a-pull-request)
+      - 'cat pr_number.txt | xargs -r -I{pull_number} curl -L -X PUT -H "Accept: application/vnd.github+json" -H "Authorization: Bearer $${GITHUB_API_KEY}" -H "X-GitHub-Api-Version: 2022-11-28" "https://api.github.com/repos/grafana/oncall/pulls/{pull_number}/merge"'
       # yamllint enable rule:line-length
     depends_on:
       - build and push docker image
@@ -380,4 +362,4 @@ kind: secret
 name: github_api_token
 ---
 kind: signature
-hmac: 7322677ebc8e53a9f9ed3b8896b1b6a1fdf667ec264420d152ae23f87c7f31fd
+hmac: 5130d0140fad972a032e0596b58c9e31d5725e71fa471ef8d8b7c24f71fd4675
