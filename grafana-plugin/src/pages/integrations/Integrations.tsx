@@ -1,7 +1,17 @@
 import React from 'react';
 
 import { LabelTag } from '@grafana/labels';
-import { HorizontalGroup, Button, VerticalGroup, Icon, ConfirmModal, Tooltip } from '@grafana/ui';
+import {
+  HorizontalGroup,
+  Button,
+  VerticalGroup,
+  Icon,
+  ConfirmModal,
+  Tooltip,
+  TabsBar,
+  TabContent,
+  Tab,
+} from '@grafana/ui';
 import cn from 'classnames/bind';
 import { debounce } from 'lodash-es';
 import { observer } from 'mobx-react';
@@ -44,6 +54,12 @@ import styles from './Integrations.module.scss';
 const cx = cn.bind(styles);
 const FILTERS_DEBOUNCE_MS = 500;
 
+// TODO: what is the final wording on this?
+enum TabType {
+  Integrations = 'integrations',
+  DirectPaging = 'direct-paging',
+}
+
 interface IntegrationsState extends PageBaseState {
   integrationsFilters: Record<string, any>;
   alertReceiveChannelId?: AlertReceiveChannel['id'] | 'new';
@@ -57,6 +73,7 @@ interface IntegrationsState extends PageBaseState {
     confirmationText?: string;
     onConfirm: () => void;
   };
+  activeTab: TabType;
 }
 
 interface IntegrationsProps extends WithStoreProps, PageProps, RouteComponentProps<{ id: string }> {}
@@ -70,6 +87,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
       integrationsFilters: { searchTerm: '' },
       errorData: initErrorDataState(),
       confirmationModal: undefined,
+      activeTab: TabType.Integrations,
     };
   }
 
@@ -128,7 +146,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
 
   render() {
     const { store, query } = this.props;
-    const { alertReceiveChannelId, confirmationModal } = this.state;
+    const { alertReceiveChannelId, confirmationModal, activeTab } = this.state;
     const { alertReceiveChannelStore } = store;
 
     const { count, results, page_size } = alertReceiveChannelStore.getPaginatedSearchResult();
@@ -158,27 +176,45 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
             </HorizontalGroup>
           </div>
           <div>
+            <TabsBar>
+              <Tab
+                label="Integrations"
+                active={activeTab === TabType.Integrations}
+                onChangeTab={() => this.setState({ activeTab: TabType.Integrations })}
+              >
+                Integrations
+              </Tab>
+              <Tab
+                label="Direct paging"
+                active={activeTab === TabType.DirectPaging}
+                onChangeTab={() => this.setState({ activeTab: TabType.DirectPaging })}
+              >
+                Direct paging
+              </Tab>
+            </TabsBar>
             <RemoteFilters
               query={query}
               page={PAGE.Integrations}
               grafanaTeamStore={store.grafanaTeamStore}
               onChange={this.handleIntegrationsFiltersChange}
             />
-            <GTable
-              emptyText={count === undefined ? 'Loading...' : 'No integrations found'}
-              loading={count === undefined}
-              data-testid="integrations-table"
-              rowKey="id"
-              data={results}
-              columns={this.getTableColumns(store.hasFeature.bind(store))}
-              className={cx('integrations-table')}
-              rowClassName={cx('integrations-table-row')}
-              pagination={{
-                page: store.filtersStore.currentTablePageNum[PAGE.Integrations],
-                total: results ? Math.ceil((count || 0) / page_size) : 0,
-                onChange: this.handleChangePage,
-              }}
-            />
+            <TabContent>
+              <GTable
+                emptyText={count === undefined ? 'Loading...' : 'No integrations found'}
+                loading={count === undefined}
+                data-testid="integrations-table"
+                rowKey="id"
+                data={results}
+                columns={this.getTableColumns(store.hasFeature.bind(store))}
+                className={cx('integrations-table')}
+                rowClassName={cx('integrations-table-row')}
+                pagination={{
+                  page: store.filtersStore.currentTablePageNum[PAGE.Integrations],
+                  total: results ? Math.ceil((count || 0) / page_size) : 0,
+                  onChange: this.handleChangePage,
+                }}
+              />
+            </TabContent>
           </div>
         </div>
 
