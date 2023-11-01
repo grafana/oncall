@@ -35,8 +35,14 @@ jobs:
         with:
           # docs - https://github.com/actions/stale
           # only triage issues
-          days-before-issue-stale: -120
-          days-before-issue-close: -150
+          days-before-issue-stale: 120
+
+          # The idle number of days before closing the stale issues or the stale pull requests (due to the stale label).
+          # The issues or the pull requests will be closed if the last update (based on GitHub issue field updated_at)
+          # is older than the idle number of days.
+          # Since adding the stale label will alter the last update date, we can calculate the number of days from
+          # this date.
+          days-before-issue-close: 30
           days-before-pr-stale: -1
           days-before-pr-close: -1
           ascending: true # start processing older issues first
