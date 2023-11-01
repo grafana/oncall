@@ -151,7 +151,6 @@ class AlertGroupListSerializer(EagerLoadingMixin, AlertGroupFieldsCacheSerialize
             "team",
             "is_restricted",
             "grafana_incident_id",
-            "has_a_related_grafana_incident",
         ]
 
     @extend_schema_field(

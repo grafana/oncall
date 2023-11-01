@@ -92,7 +92,6 @@ def test_direct_paging_page_team(
     alert = alert_group.alerts.first()
 
     assert alert_group.grafana_incident_id == grafana_incident_id
-    assert alert_group.has_a_related_grafana_incident is True
     assert alert.raw_request_data["oncall"]["permalink"] == source_url
 
 

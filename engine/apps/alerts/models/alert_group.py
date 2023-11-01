@@ -448,10 +448,6 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
     def is_maintenance_incident(self):
         return self.maintenance_uuid is not None
 
-    @property
-    def has_a_related_grafana_incident(self) -> bool:
-        return self.grafana_incident_id is not None
-
     def stop_maintenance(self, user: User) -> None:
         from apps.alerts.models import AlertReceiveChannel
 
