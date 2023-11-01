@@ -4,24 +4,6 @@ type: docker
 name: Build and Release
 
 steps:
-  - name: merge helm release oss pr
-    image: alpine
-    environment:
-      # TODO: this is simply a test for now
-      # TODO: when finished relocate this to the "OSS engine release" pipeline
-      GITHUB_API_KEY:
-        from_secret: github_api_token
-      DRONE_TAG: v1.3.49
-    commands:
-      - apk add --no-cache curl jq
-      # Step 1. Fetch PRs from GitHub's API that're open and have a particular head ref indicative of a helm release PR
-      # Step 2. Extract the PR number from the first PR in the list
-      # Step 3. Merge the PR
-      # NOTE: ${DRONE_TAG:1} will slice off the "v" prefix from the tag
-      # yamllint disable rule:line-length
-      - 'curl -L -H "Accept: application/vnd.github+json" -H "Authorization: Bearer $${GITHUB_API_KEY}" -H "X-GitHub-Api-Version: 2022-11-28" "https://api.github.com/repos/grafana/oncall/pulls?head=grafana:helm-release/$${DRONE_TAG:1}&state=closed" | jq -r ".[0].number" | xargs -r -I{pull_number} curl -L -X PUT -H "Accept: application/vnd.github+json" -H "Authorization: Bearer $${GITHUB_API_KEY}" -H "X-GitHub-Api-Version: 2022-11-28" "https://api.github.com/repos/grafana/oncall/pulls/{pull_number}/merge"'
-      # yamllint enable rule:line-length
-
   - name: Build Plugin
     image: node:18.16.0-buster
     commands:
@@ -174,11 +156,11 @@ trigger:
       - tag
       - push
       - pull_request
-  # ref:
-  #   include:
-  #     - refs/heads/main
-  #     - refs/heads/dev
-  #     - refs/tags/v*.*.*
+  ref:
+    include:
+      - refs/heads/main
+      - refs/heads/dev
+      - refs/tags/v*.*.*
 
 ---
 kind: pipeline
@@ -276,6 +258,24 @@ steps:
     depends_on:
       - set engine version
 
+  - name: merge helm release oss pr
+    image: alpine
+    environment:
+      GITHUB_API_KEY:
+        from_secret: github_api_token
+    commands:
+      - apk add --no-cache curl jq
+      # Step 1. Fetch PRs from GitHub's API that're open and have a particular head ref indicative of a helm release PR
+      # API docs - https://docs.github.com/en/rest/pulls/pulls?apiVersion=2022-11-28#list-pull-requests
+      # Step 2. Extract the PR number from the first PR in the list and pass that to the next API call (via jq + xargs)
+      # Step 3. Merge the PR (https://docs.github.com/en/rest/pulls/pulls?apiVersion=2022-11-28#merge-a-pull-request)
+      # NOTE: ${DRONE_TAG:1} will slice off the "v" prefix from the tag
+      # yamllint disable rule:line-length
+      - 'curl -L -H "Accept: application/vnd.github+json" -H "Authorization: Bearer $${GITHUB_API_KEY}" -H "X-GitHub-Api-Version: 2022-11-28" "https://api.github.com/repos/grafana/oncall/pulls?head=grafana:helm-release/$${DRONE_TAG:1}&state=open" | jq -r ".[0].number" | xargs -r -I{pull_number} curl -L -X PUT -H "Accept: application/vnd.github+json" -H "Authorization: Bearer $${GITHUB_API_KEY}" -H "X-GitHub-Api-Version: 2022-11-28" "https://api.github.com/repos/grafana/oncall/pulls/{pull_number}/merge"'
+      # yamllint enable rule:line-length
+    depends_on:
+      - build and push docker image
+
 trigger:
   event:
     - promote
@@ -355,4 +355,4 @@ kind: secret
 name: github_api_token
 ---
 kind: signature
-hmac: 73a24a6b455b00f172975b837cdc33fc002ebec9c98ed53467a3f5564b7a2b91
+hmac: 35db256906c594e87132eb1736c53c99106fd46e761bae4f08d1af0d06be5142
