@@ -350,9 +350,11 @@ name: drone_token
 # GitHub API token (only scoped to grafana/oncall + PR access)
 get:
   name: github-api-token
-  path: ci/repo/grafana/oncall/drone
+  path: ci/data/repo/grafana/oncall/drone
 kind: secret
 name: github_api_token
 ---
 kind: signature
-hmac: 31ac93460d97c0d4e6fe579647e94e6a54265ebc5035974cc33593234b68954c
+hmac: c07d7fc2424d856acc3fd6efb2fb69aaca5e2a4ae4b767ea35e24ee3a1c64211
+
+...
