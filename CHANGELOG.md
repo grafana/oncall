@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Prevent additional polling on Incidents if the previous request didn't complete
   ([#3205](https://github.com/grafana/oncall/pull/3205))
 - Order results from `GET /teams` internal API endpoint by ascending name by @joeyorlando ([#3220](https://github.com/grafana/oncall/pull/3220))
+- Order alert groups internal API endpoint by descending started_at by @mderynck ([#3240](https://github.com/grafana/oncall/pull/3240))
 
 ### Fixed
 
