@@ -272,7 +272,7 @@ steps:
       # Step 1. Fetch PRs from GitHub's API that're open and have a particular head ref indicative of a helm release PR
       # API docs - https://docs.github.com/en/rest/pulls/pulls?apiVersion=2022-11-28#list-pull-requests
       # NOTE: ${DRONE_TAG:1} will slice off the "v" prefix from the tag
-      - 'curl -L -H "Accept: application/vnd.github+json" -H "Authorization: Bearer $${GITHUB_API_KEY}" -H "X-GitHub-Api-Version: 2022-11-28" "https://api.github.com/repos/grafana/oncall/pulls?head=grafana:helm-release/$${DRONE_TAG:1}&state=closed" > prs.json'
+      - 'curl -L -H "Accept: application/vnd.github+json" -H "Authorization: Bearer $${GITHUB_API_KEY}" -H "X-GitHub-Api-Version: 2022-11-28" "https://api.github.com/repos/grafana/oncall/pulls?head=grafana:helm-release/$${DRONE_TAG:1}&state=open" > prs.json'
       - cat prs.json
       # Step 2. Extract the PR number from the first PR in the list to be able to pass that to the next API call
       - cat prs.json | jq -r ".[0].number" > pr_number.txt
@@ -362,4 +362,4 @@ kind: secret
 name: github_api_token
 ---
 kind: signature
-hmac: 5130d0140fad972a032e0596b58c9e31d5725e71fa471ef8d8b7c24f71fd4675
+hmac: 9cc2cc2db01455d34768577047f8069d19c0573b6a05dd26c88b9deb3af3a0c9
