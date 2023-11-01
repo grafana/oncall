@@ -267,6 +267,7 @@ class RemoteFilters extends Component<RemoteFiltersProps, RemoteFiltersState> {
             value={values[filter.name]}
             onChange={this.getRemoteOptionsChangeHandler(filter.name)}
             getOptionLabel={(item: SelectableValue) => <Emoji text={item.label || ''} />}
+            predefinedOptions={filter.default ? [filter.default] : undefined}
           />
         );
 
