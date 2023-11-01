@@ -125,7 +125,7 @@ celery:
     #   cpu: 100m
     #   memory: 128Mi
 
-  # -- Labels for celery pods
+  # Labels for celery pods
   podLabels: {}
 
   ## Affinity for pod assignment
@@ -187,7 +187,7 @@ telegramPolling:
     #   cpu: 100m
     #   memory: 128Mi
   
-  # -- Labels for telegram-polling pods
+  # Labels for telegram-polling pods
   podLabels: {}
 
   # Extra volume mounts for the main container
