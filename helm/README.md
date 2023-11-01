@@ -2,7 +2,8 @@
 
 1. Create the cluster with [kind](https://kind.sigs.k8s.io/docs/user/quick-start/#installation)
 
-   > Make sure ports 30001, 30002 and 30003 are free on your machine
+   > Make sure ports 30001, 30002 (Grafana, optional) and
+   > 30003 (detached integrations server, optional) are free on your machine
 
    ```bash
    kind create cluster --image kindest/node:v1.24.7 --config kind.yml
@@ -19,12 +20,14 @@
 
    ```yaml
    image:
-   repository: oncall/engine
-   tag: latest
-   pullPolicy: IfNotPresent
+     repository: oncall/engine
+     tag: latest
+     pullPolicy: IfNotPresent
    oncall:
-   devMode: true
+     devMode: true
    ```
+
+   Alternatively you can also pass an extra `--values ./local_image.yml` in the command below.
 
 3. Install the helm chart
 

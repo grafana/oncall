@@ -35,7 +35,7 @@ spec:
         - name: {{ .Chart.Name }}
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          image: {{ include "oncall.engine.image" . }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           {{- if .Values.oncall.devMode }}
           command: ["sh", "-c", "uwsgi --disable-logging --py-autoreload 3 --ini uwsgi.ini"]
@@ -45,15 +45,7 @@ spec:
               containerPort: 8080
               protocol: TCP
           env:
-            {{- include "snippet.oncall.env" . | nindent 12 }}
-            {{- include "snippet.oncall.slack.env" . | nindent 12 }}
-            {{- include "snippet.oncall.telegram.env" . | nindent 12 }}
-            {{- include "snippet.oncall.smtp.env" . | nindent 12 }}
-            {{- include "snippet.oncall.twilio.env" . | nindent 12 }}
-            {{- include "snippet.oncall.exporter.env" . | nindent 12 }}
-            {{- include "snippet.db.env" . | nindent 12 }}
-            {{- include "snippet.broker.env" . | nindent 12 }}
-            {{- include "oncall.extraEnvs" . | nindent 12 }}
+            {{- include "snippet.oncall.engine.env" . | nindent 12 }}
             - name: ROOT_URLCONF
               value: "engine.integrations_urls"
           livenessProbe:

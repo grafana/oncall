@@ -642,3 +642,15 @@ when broker.type != rabbitmq, we do not need to include rabbitmq environment var
   value: {{ .Values.oncall.exporter.enabled | toString | title | quote }}
 {{- end }}
 {{- end }}
+
+{{- define "snippet.oncall.engine.env" -}}
+{{ include "snippet.oncall.env" . }}
+{{ include "snippet.oncall.slack.env" . }}
+{{ include "snippet.oncall.telegram.env" . }}
+{{ include "snippet.oncall.smtp.env" . }}
+{{ include "snippet.oncall.twilio.env" . }}
+{{ include "snippet.oncall.exporter.env" . }}
+{{ include "snippet.db.env" . }}
+{{ include "snippet.broker.env" . }}
+{{ include "oncall.extraEnvs" . }}
+{{- end }}
