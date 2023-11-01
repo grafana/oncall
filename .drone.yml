@@ -352,4 +352,6 @@ kind: secret
 name: github_api_token
 ---
 kind: signature
-hmac: c5252e2c6947a20ab8a1fbb9001df8ebd479f4f8bec1f8815e6fc9c5ff713cc4
+hmac: 47f7586885300769de70ab334b951c5bf1628f148930ea365bb230bf01642108
+
+...
