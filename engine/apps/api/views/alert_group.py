@@ -200,7 +200,7 @@ class AlertGroupFilter(DateRangeFilterMixin, ByTeamModelFieldFilterMixin, ModelF
         # so we limit the number of alert groups to filter by the last 1000 for the given user(s)
         alert_group_notified_users_ids = list(
             UserNotificationPolicyLogRecord.objects.filter(author__in=users)
-            .order_by("-alert_group_id")
+            .order_by("-started_at")
             .values_list("alert_group_id", flat=True)
             .distinct()[: self.FILTER_BY_INVOLVED_USERS_ALERT_GROUPS_CUTOFF]
         )
@@ -423,7 +423,7 @@ class AlertGroupView(
 
         # enrich alert groups with select_related and prefetch_related
         alert_group_pks = [alert_group.pk for alert_group in alert_groups]
-        queryset = AlertGroup.objects.filter(pk__in=alert_group_pks).order_by("-pk")
+        queryset = AlertGroup.objects.filter(pk__in=alert_group_pks).order_by("-started_at")
 
         queryset = self.get_serializer_class().setup_eager_loading(queryset)
         alert_groups = list(queryset)
