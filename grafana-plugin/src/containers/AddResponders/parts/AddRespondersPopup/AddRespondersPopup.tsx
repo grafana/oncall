@@ -170,7 +170,7 @@ const AddRespondersPopup = observer(
                   <Avatar size="small" src={avatar} />
                   <Text type={disabled ? 'disabled' : undefined}>{name || username}</Text>
                 </HorizontalGroup>
-                {teams.length > 0 && <Text type="secondary">{teams.map(({ name }) => name).join(', ')}</Text>}
+                {teams?.length > 0 && <Text type="secondary">{teams.map(({ name }) => name).join(', ')}</Text>}
               </HorizontalGroup>
             </div>
           );

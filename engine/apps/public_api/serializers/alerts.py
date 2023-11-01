@@ -21,4 +21,4 @@ class AlertSerializer(EagerLoadingMixin, serializers.ModelSerializer):
         ]
 
     def get_payload(self, obj):
-        return {} if obj.group.is_restricted else obj.raw_request_data
+        return obj.raw_request_data

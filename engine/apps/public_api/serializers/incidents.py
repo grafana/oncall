@@ -4,7 +4,6 @@ from rest_framework import serializers
 from apps.alerts.models import AlertGroup
 from apps.telegram.models.message import TelegramMessage
 from common.api_helpers.mixins import EagerLoadingMixin
-from common.constants.alert_group_restrictions import IS_RESTRICTED_TITLE
 
 
 class IncidentSerializer(EagerLoadingMixin, serializers.ModelSerializer):
@@ -42,7 +41,7 @@ class IncidentSerializer(EagerLoadingMixin, serializers.ModelSerializer):
         ]
 
     def get_title(self, obj):
-        return IS_RESTRICTED_TITLE if obj.is_restricted else obj.web_title_cache
+        return obj.web_title_cache
 
     def get_alerts_count(self, obj):
         return len(obj.alerts.all())
