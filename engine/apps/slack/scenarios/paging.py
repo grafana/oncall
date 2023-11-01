@@ -538,22 +538,24 @@ def _get_team_select_blocks(
     input_id_prefix: str,
 ) -> Block.AnyBlocks:
     user = slack_user_identity.get_user(organization)  # TODO: handle None
-    teams = user.available_teams
+    teams = user.organization.get_notifiable_direct_paging_integrations().values_list("team__pk", "team__name")
 
     team_options: typing.List[CompositionObjectOption] = []
 
     initial_option_idx = 0
     for idx, team in enumerate(teams):
+        team_pk, team_name = team
+
         if team == value:
             initial_option_idx = idx
         team_options.append(
             {
                 "text": {
                     "type": "plain_text",
-                    "text": f"{team.name}",
+                    "text": f"{team_name}",
                     "emoji": True,
                 },
-                "value": f"{team.pk}",
+                "value": f"{team_pk}",
             }
         )
 
@@ -578,6 +580,21 @@ def _get_team_select_blocks(
 
     # No context block if no team selected
     if not is_selected:
+        blocks.append(
+            {
+                "type": "context",
+                "elements": [
+                    {
+                        "type": "mrkdwn",
+                        "text": (
+                            "*Note*: You can only page teams which have a Direct Paging integration that is configured. "
+                            "<https://grafana.com/docs/oncall/latest/integrations/manual/#set-up-direct-paging-for-a-team|Learn more>"
+                        ),
+                    },
+                ],
+            }
+        )
+
         return blocks
 
     team_select["element"]["initial_option"] = team_options[initial_option_idx]

@@ -185,6 +185,7 @@ def user_is_oncall(user: User) -> bool:
     return user.pk in {user.pk for _, users in schedules_with_oncall_users.items() for user in users}
 
 
+# TODO: remove this
 def integration_is_notifiable(integration: AlertReceiveChannel) -> bool:
     """
     Returns true if:

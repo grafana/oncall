@@ -10,7 +10,7 @@ import GTable from 'components/GTable/GTable';
 import Text from 'components/Text/Text';
 import { Alert as AlertType } from 'models/alertgroup/alertgroup.types';
 import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
-import { User } from 'models/user/user.types';
+import { UserCurrentlyOnCall } from 'models/user/user.types';
 import { useStore } from 'state/useStore';
 import { useDebouncedCallback, useOnClickOutside } from 'utils/hooks';
 
@@ -21,7 +21,7 @@ type Props = {
   visible: boolean;
   setVisible: (value: boolean) => void;
 
-  setCurrentlyConsideredUser: (user: User) => void;
+  setCurrentlyConsideredUser: (user: UserCurrentlyOnCall) => void;
   setShowUserConfirmationModal: (value: boolean) => void;
 
   existingPagedUsers?: AlertType['paged_users'];
@@ -56,12 +56,11 @@ const AddRespondersPopup = observer(
     const isCreateMode = mode === 'create';
 
     const [activeOption, setActiveOption] = useState<TabOptions>(isCreateMode ? TabOptions.Teams : TabOptions.Users);
+    const [userSearchResults, setUserSearchResults] = useState<UserCurrentlyOnCall[]>([]);
     const [searchTerm, setSearchTerm] = useState('');
 
     const ref = useRef();
     const teamSearchResults = grafanaTeamStore.getSearchResult();
-
-    let userSearchResults = userStore.getSearchResult().results || [];
 
     /**
      * in the context where some user(s) have already been paged (ex. on a direct paging generated
@@ -69,7 +68,7 @@ const AddRespondersPopup = observer(
      */
     if (existingPagedUsers.length > 0) {
       const existingPagedUserIds = existingPagedUsers.map(({ pk }) => pk);
-      userSearchResults = userSearchResults.filter(({ pk }) => !existingPagedUserIds.includes(pk));
+      setUserSearchResults(userSearchResults.filter(({ pk }) => !existingPagedUserIds.includes(pk)));
     }
 
     const usersCurrentlyOnCall = userSearchResults.filter(({ is_currently_oncall }) => is_currently_oncall);
@@ -87,7 +86,7 @@ const AddRespondersPopup = observer(
     );
 
     const onClickUser = useCallback(
-      async (user: User) => {
+      async (user: UserCurrentlyOnCall) => {
         if (isCreateMode && user.is_currently_oncall) {
           directPagingStore.addUserToSelectedUsers(user);
         } else {
@@ -113,18 +112,32 @@ const AddRespondersPopup = observer(
       [setVisible, directPagingStore, setActiveOption]
     );
 
-    const handleSearchTermChange = useDebouncedCallback(() => {
+    const searchForUsers = useCallback(async () => {
+      const userResults = await userStore.search<UserCurrentlyOnCall>({ searchTerm, is_currently_oncall: 'all' });
+      setUserSearchResults(userResults.results);
+    }, []);
+
+    const handleSearchTermChange = useDebouncedCallback(async () => {
+      // TODO: would be nice to add a loading state here...
       if (isCreateMode && activeOption === TabOptions.Teams) {
         grafanaTeamStore.updateItems(searchTerm, false, true, false);
       } else {
-        userStore.updateItems({ searchTerm, short: 'false' });
+        await searchForUsers();
       }
     }, 500);
 
     useEffect(handleSearchTermChange, [searchTerm, activeOption]);
 
+    /**
+     * populate the initial user search results before the user jumps over to the users tab
+     * should provide a slightly nicer UX
+     */
+    useEffect(() => {
+      searchForUsers();
+    }, []);
+
     const userIsSelected = useCallback(
-      (user: User) => selectedUserResponders.some((userResponder) => userResponder.data.pk === user.pk),
+      (user: UserCurrentlyOnCall) => selectedUserResponders.some((userResponder) => userResponder.data.pk === user.pk),
       [selectedUserResponders]
     );
 
@@ -155,11 +168,11 @@ const AddRespondersPopup = observer(
       },
     ];
 
-    const userColumns: ColumnsType<User> = [
+    const userColumns: ColumnsType<UserCurrentlyOnCall> = [
       // TODO: how to make the rows span full width properly?
       {
         width: 300,
-        render: (user: User) => {
+        render: (user: UserCurrentlyOnCall) => {
           const { avatar, name, username, teams } = user;
           const disabled = userIsSelected(user);
 
@@ -179,18 +192,18 @@ const AddRespondersPopup = observer(
       },
       {
         width: 40,
-        render: (user: User) => (userIsSelected(user) ? <Icon name="check" /> : null),
+        render: (user: UserCurrentlyOnCall) => (userIsSelected(user) ? <Icon name="check" /> : null),
         key: 'Checked',
       },
     ];
 
-    const UserResultsSection: FC<{ header: string; users: User[] }> = ({ header, users }) =>
+    const UserResultsSection: FC<{ header: string; users: UserCurrentlyOnCall[] }> = ({ header, users }) =>
       users.length > 0 && (
         <>
           <Text type="secondary" className={cx('user-results-section-header')}>
             {header}
           </Text>
-          <GTable<User>
+          <GTable<UserCurrentlyOnCall>
             emptyText={users ? 'No users found' : 'Loading...'}
             rowKey="pk"
             columns={userColumns}

@@ -6,6 +6,7 @@ from urllib.parse import urljoin
 from django.conf import settings
 from django.core.validators import MinLengthValidator
 from django.db import models
+from django.db.models import Count, Q
 from django.utils import timezone
 from mirage import fields as mirage_fields
 
@@ -298,10 +299,31 @@ class Organization(MaintainableObject):
                 new_channel=channel_name,
             )
 
+    # TODO: remove this
     def get_direct_paging_integrations(self) -> "RelatedManager['AlertReceiveChannel']":
         from apps.alerts.models import AlertReceiveChannel
 
         return self.alert_receive_channels.filter(integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING)
+
+    def get_notifiable_direct_paging_integrations(self) -> "RelatedManager['AlertReceiveChannel']":
+        from apps.alerts.models import AlertReceiveChannel
+
+        return self.alert_receive_channels.annotate(
+            num_channel_filters=Count("channel_filters"),
+            # used to determine if the organization has telegram configured
+            num_org_telegram_channels=Count("organization__telegram_channel"),
+        ).filter(
+            # in layman's terms, this filters down to teams that have a direct paging integration which:
+            # - have more than one channel filter associated with it
+            # - OR the organization has either Slack or Telegram configured (as the direct paging integration
+            # would automatically be configured to be notified via these channel(s))
+            # - OR the default channel filter associated with the integration has an escalation chain associated
+            # with it
+            Q(num_channel_filters__gt=1)
+            | (Q(organization__slack_team_identity__isnull=False) | Q(num_org_telegram_channels__gt=0))
+            | Q(channel_filters__is_default=True, channel_filters__escalation_chain__isnull=False),
+            integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING,
+        )
 
     @property
     def web_link(self):
@@ -312,10 +334,12 @@ class Organization(MaintainableObject):
         # It's a workaround to pass some unique identifier to the oncall gateway while proxying telegram requests
         return urljoin(self.grafana_url, f"a/grafana-oncall-app/?oncall-uuid={self.uuid}")
 
+    # TODO: remove this
     @property
     def slack_is_configured(self) -> bool:
         return self.slack_team_identity is not None
 
+    # TODO: remove this
     @property
     def telegram_is_configured(self) -> bool:
         return self.telegram_channel.count() > 0
