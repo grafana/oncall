@@ -356,5 +356,3 @@ name: github_api_token
 ---
 kind: signature
 hmac: c07d7fc2424d856acc3fd6efb2fb69aaca5e2a4ae4b767ea35e24ee3a1c64211
-
-...
