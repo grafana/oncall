@@ -14,13 +14,12 @@ steps:
       DRONE_TAG: v1.3.49
     commands:
       - apk add --no-cache curl jq
-      # TODO: fetch the PR number from the first API call and use it to make a second API call to merge the PR
       # Step 1. Fetch PRs from GitHub's API that're open and have a particular head ref indicative of a helm release PR
       # Step 2. Extract the PR number from the first PR in the list
       # Step 3. Merge the PR
       # NOTE: ${DRONE_TAG:1} will slice off the "v" prefix from the tag
       # yamllint disable rule:line-length
-      - 'curl -L -H "Accept: application/vnd.github+json" -H "Authorization: Bearer $${GITHUB_API_KEY}" -H "X-GitHub-Api-Version: 2022-11-28" https://api.github.com/repos/grafana/oncall/pulls?head=grafana:helm-release/${DRONE_TAG:1}&state=closed | jq -r ".[0].number" | xargs -r -I{pull_number} curl -L -X PUT -H "Accept: application/vnd.github+json" -H "Authorization: Bearer $${GITHUB_API_KEY}" -H "X-GitHub-Api-Version: 2022-11-28" "https://api.github.com/repos/grafana/oncall/pulls/{pull_number}/merge"'
+      - 'curl -L -H "Accept: application/vnd.github+json" -H "Authorization: Bearer $${GITHUB_API_KEY}" -H "X-GitHub-Api-Version: 2022-11-28" "https://api.github.com/repos/grafana/oncall/pulls?head=grafana:helm-release/$${DRONE_TAG:1}&state=closed" | jq -r ".[0].number" | xargs -r -I{pull_number} curl -L -X PUT -H "Accept: application/vnd.github+json" -H "Authorization: Bearer $${GITHUB_API_KEY}" -H "X-GitHub-Api-Version: 2022-11-28" "https://api.github.com/repos/grafana/oncall/pulls/{pull_number}/merge"'
       # yamllint enable rule:line-length
 
   - name: Build Plugin
@@ -356,4 +355,4 @@ kind: secret
 name: github_api_token
 ---
 kind: signature
-hmac: 3cd4898180d110af5a7b75c4b0e6f67dafb0074776996ae5cd15e7c4b8ea6a63
+hmac: 73a24a6b455b00f172975b837cdc33fc002ebec9c98ed53467a3f5564b7a2b91
