@@ -39,7 +39,7 @@ engine:
     #   cpu: 100m
     #   memory: 128Mi
 
-  # -- Labels for engine pods
+  # Labels for engine pods
   podLabels: {}
 
   ## Deployment update strategy
