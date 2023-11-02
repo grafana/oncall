@@ -96,8 +96,6 @@ class RemoteFilters extends Component<RemoteFiltersProps, RemoteFiltersState> {
 
     let { filters, values } = parseFilters({ ...query, ...filtersStore.globalValues }, filterOptions, query);
 
-    console.log('isEmpty(values)', isEmpty(values), filtersStore.globalValues);
-
     if (isEmpty(values)) {
       ({ filters, values } = parseFilters(defaultFilters || { team: [] }, filterOptions, query));
     }
