@@ -74,7 +74,7 @@ class RemoteFilters extends Component<RemoteFiltersProps, RemoteFiltersState> {
 
       const { filterOptions } = this.state;
 
-      let { filters, values } = parseFilters(query, filterOptions, query);
+      let { filters, values } = parseFilters({ ...query, ...filtersStore.globalValues }, filterOptions, query);
 
       this.setState({ filterOptions, filters, values }, () => this.onChange());
     }
@@ -95,6 +95,8 @@ class RemoteFilters extends Component<RemoteFiltersProps, RemoteFiltersState> {
     filtersStore.setCurrentTablePageNum(page, currentTablePageNum);
 
     let { filters, values } = parseFilters({ ...query, ...filtersStore.globalValues }, filterOptions, query);
+
+    console.log('isEmpty(values)', isEmpty(values), filtersStore.globalValues);
 
     if (isEmpty(values)) {
       ({ filters, values } = parseFilters(defaultFilters || { team: [] }, filterOptions, query));
