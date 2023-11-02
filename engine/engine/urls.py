@@ -79,7 +79,7 @@ if settings.DEBUG:
 if settings.SILK_PROFILER_ENABLED:
     urlpatterns += [
         # need django admin enabled to be able to access silk
-        path("django-admin/", admin.site.urls),
+        path(settings.ONCALL_DJANGO_ADMIN_PATH, admin.site.urls),
         path(settings.SILK_PATH, include("silk.urls", namespace="silk")),
     ]
 

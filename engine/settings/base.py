@@ -588,7 +588,9 @@ INTERNAL_IPS = ["127.0.0.1"]
 SELF_IP = os.environ.get("SELF_IP")
 
 SILK_PROFILER_ENABLED = getenv_boolean("SILK_PROFILER_ENABLED", default=False) and not IS_IN_MAINTENANCE_MODE
+
 # django admin panel is required to auth with django silk. Otherwise if silk isn't enabled, we don't need it.
+ONCALL_DJANGO_ADMIN_PATH = os.environ.get("ONCALL_DJANGO_ADMIN_PATH", "django-admin") + "/"
 ADMIN_ENABLED = SILK_PROFILER_ENABLED
 
 if SILK_PROFILER_ENABLED:
