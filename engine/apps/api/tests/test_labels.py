@@ -192,7 +192,7 @@ def test_labels_feature_false(
     make_alert_receive_channel,
     settings,
 ):
-    setattr(settings, "FEATURE_LABELS_ENABLED", False)
+    setattr(settings, "FEATURE_LABELS_ENABLED_FOR_ALL", False)
 
     organization, user, token = make_organization_and_user_with_plugin_token()
     client = APIClient()
