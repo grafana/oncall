@@ -180,14 +180,14 @@ def mock_apply_async(monkeypatch):
 
 @pytest.fixture(autouse=True)
 def mock_is_labels_feature_enabled(settings):
-    setattr(settings, "FEATURE_LABELS_ENABLED", True)
+    setattr(settings, "FEATURE_LABELS_ENABLED_FOR_ALL", True)
 
 
 @pytest.fixture
 def mock_is_labels_feature_enabled_for_org(settings):
     def _mock_is_labels_feature_enabled_for_org(org_id):
-        setattr(settings, "FEATURE_LABELS_ENABLED", False)
-        setattr(settings, "FEATURE_LABELS_ENABLED_FOR_ORGS", [org_id])
+        setattr(settings, "FEATURE_LABELS_ENABLED_FOR_ALL", False)
+        setattr(settings, "FEATURE_LABELS_ENABLED_FOR_GRAFANA_ORGS", [org_id])
 
     return _mock_is_labels_feature_enabled_for_org
 

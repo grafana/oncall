@@ -9,19 +9,19 @@ from apps.labels.utils import get_associating_label_model, is_labels_feature_ena
 def test_labels_feature_flag(mock_is_labels_feature_enabled_for_org, make_organization, settings):
     organization = make_organization()
     # returns True if feature flag is enabled
-    assert settings.FEATURE_LABELS_ENABLED
-    assert organization.id not in settings.FEATURE_LABELS_ENABLED_FOR_ORGS
+    assert settings.FEATURE_LABELS_ENABLED_FOR_ALL
+    assert organization.id not in settings.FEATURE_LABELS_ENABLED_FOR_GRAFANA_ORGS
     assert is_labels_feature_enabled(organization)
 
     mock_is_labels_feature_enabled_for_org(organization.id)
     # returns True if feature flag is disabled and organization is in the feature list
-    assert not settings.FEATURE_LABELS_ENABLED
-    assert organization.id in settings.FEATURE_LABELS_ENABLED_FOR_ORGS
+    assert not settings.FEATURE_LABELS_ENABLED_FOR_ALL
+    assert organization.id in settings.FEATURE_LABELS_ENABLED_FOR_GRAFANA_ORGS
     assert is_labels_feature_enabled(organization)
 
     mock_is_labels_feature_enabled_for_org(12345)
     # returns False if feature flag is disabled and organization is not in the feature list
-    assert organization.id not in settings.FEATURE_LABELS_ENABLED_FOR_ORGS
+    assert organization.id not in settings.FEATURE_LABELS_ENABLED_FOR_GRAFANA_ORGS
     assert not is_labels_feature_enabled(organization)
 
 
