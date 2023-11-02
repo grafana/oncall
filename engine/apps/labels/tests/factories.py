@@ -1,6 +1,11 @@
 import factory
 
-from apps.labels.models import AlertReceiveChannelAssociatedLabel, LabelKeyCache, LabelValueCache
+from apps.labels.models import (
+    AlertGroupAssociatedLabel,
+    AlertReceiveChannelAssociatedLabel,
+    LabelKeyCache,
+    LabelValueCache,
+)
 from common.utils import UniqueFaker
 
 
@@ -23,3 +28,8 @@ class LabelValueFactory(factory.DjangoModelFactory):
 class AlertReceiveChannelAssociatedLabelFactory(factory.DjangoModelFactory):
     class Meta:
         model = AlertReceiveChannelAssociatedLabel
+
+
+class AlertGroupAssociatedLabelFactory(factory.DjangoModelFactory):
+    class Meta:
+        model = AlertGroupAssociatedLabel

@@ -57,7 +57,12 @@ from apps.base.tests.factories import (
 )
 from apps.email.tests.factories import EmailMessageFactory
 from apps.heartbeat.tests.factories import IntegrationHeartBeatFactory
-from apps.labels.tests.factories import AlertReceiveChannelAssociatedLabelFactory, LabelKeyFactory, LabelValueFactory
+from apps.labels.tests.factories import (
+    AlertGroupAssociatedLabelFactory,
+    AlertReceiveChannelAssociatedLabelFactory,
+    LabelKeyFactory,
+    LabelValueFactory,
+)
 from apps.mobile_app.models import MobileAppAuthToken, MobileAppVerificationToken
 from apps.phone_notifications.phone_backend import PhoneBackend
 from apps.phone_notifications.tests.factories import PhoneCallRecordFactory, SMSRecordFactory
@@ -965,3 +970,11 @@ def make_integration_label_association(make_label_key_and_value):
         )
 
     return _make_integration_label_association
+
+
+@pytest.fixture
+def make_alert_group_label_association():
+    def _make_alert_group_label_association(organization, alert_group, **kwargs):
+        return AlertGroupAssociatedLabelFactory(alert_group=alert_group, organization=organization, **kwargs)
+
+    return _make_alert_group_label_association

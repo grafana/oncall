@@ -132,8 +132,14 @@ urlpatterns += [
 
 # Alert group labels
 urlpatterns += [
-    re_path(r"^alert_group_labels/keys/?$", AlertGroupLabelsViewSet.as_view({"get": "get_keys"}), name="get_keys"),
     re_path(
-        r"^alert_group_labels/id/(?P<key_id>.+/?$)", AlertGroupLabelsViewSet.as_view({"get": "get_key"}), name="get_key"
+        r"^alert_group_labels/keys/?$",
+        AlertGroupLabelsViewSet.as_view({"get": "get_keys"}),
+        name="alert_group_labels-get_keys",
+    ),
+    re_path(
+        r"^alert_group_labels/id/(?P<key_id>.+/?$)",
+        AlertGroupLabelsViewSet.as_view({"get": "get_key"}),
+        name="alert_group_labels-get_key",
     ),
 ]
