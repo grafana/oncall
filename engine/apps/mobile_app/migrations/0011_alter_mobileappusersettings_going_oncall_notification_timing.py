@@ -4,13 +4,6 @@ import apps.mobile_app.models
 import django_migration_linter as linter
 
 from django.db import migrations, models
-from apps.mobile_app.models import default_notification_timing_options
-
-
-def set_going_oncall_notification_timing_to_default(apps, schema_editor):
-    MobileAppUserSettings = apps.get_model("mobile_app", "MobileAppUserSettings")
-    default = default_notification_timing_options()
-    MobileAppUserSettings.objects.all().update(going_oncall_notification_timing=default)
 
 
 class Migration(migrations.Migration):
@@ -21,10 +14,13 @@ class Migration(migrations.Migration):
 
     operations = [
         linter.IgnoreMigration(),
-        migrations.AlterField(
+        migrations.RemoveField(
+            model_name='mobileappusersettings',
+            name='going_oncall_notification_timing',
+        ),
+        migrations.AddField(
             model_name='mobileappusersettings',
             name='going_oncall_notification_timing',
             field=models.JSONField(default=apps.mobile_app.models.default_notification_timing_options),
         ),
-        migrations.RunPython(set_going_oncall_notification_timing_to_default, migrations.RunPython.noop),
     ]
