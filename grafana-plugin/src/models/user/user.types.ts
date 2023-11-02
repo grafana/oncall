@@ -43,6 +43,6 @@ export interface User {
   hidden_fields?: boolean;
   timezone: Timezone;
   working_hours: { [key: string]: [] };
-  is_currently_oncall: boolean;
-  teams: GrafanaTeam[];
+  is_currently_oncall?: boolean;
+  teams?: GrafanaTeam[];
 }

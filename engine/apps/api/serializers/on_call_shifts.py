@@ -228,6 +228,9 @@ class OnCallShiftUpdateSerializer(OnCallShiftSerializer):
         read_only_fields = ["schedule", "type"]
 
     def update(self, instance, validated_data):
+        if not instance.schedule:
+            # only web-based schedule events can be updated using UI
+            raise serializers.ValidationError(["This event cannot be updated"])
         validated_data = self._correct_validated_data(instance.type, validated_data)
         change_only_name = True
         create_or_update_last_shift = False

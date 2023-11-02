@@ -55,7 +55,6 @@ export interface Alert {
   acknowledged_at: string;
   acknowledged_by_user: User;
   acknowledged_on_source: boolean;
-  is_restricted: boolean;
   channel: Channel;
   slack_permalink?: string;
   permalinks: {
@@ -86,6 +85,7 @@ export interface Alert {
   alert_receive_channel: Partial<AlertReceiveChannel>;
   paged_users: PagedUser[];
   team: GrafanaTeam['id'];
+  grafana_incident_id: string | null;
 
   // set by client
   loading?: boolean;

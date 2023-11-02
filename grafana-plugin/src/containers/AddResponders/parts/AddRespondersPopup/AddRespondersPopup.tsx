@@ -115,7 +115,7 @@ const AddRespondersPopup = observer(
 
     const handleSearchTermChange = useDebouncedCallback(() => {
       if (isCreateMode && activeOption === TabOptions.Teams) {
-        grafanaTeamStore.updateItems(searchTerm, false, true);
+        grafanaTeamStore.updateItems(searchTerm, false, true, false);
       } else {
         userStore.updateItems({ searchTerm, short: 'false' });
       }
@@ -170,7 +170,7 @@ const AddRespondersPopup = observer(
                   <Avatar size="small" src={avatar} />
                   <Text type={disabled ? 'disabled' : undefined}>{name || username}</Text>
                 </HorizontalGroup>
-                {teams.length > 0 && <Text type="secondary">{teams.map(({ name }) => name).join(', ')}</Text>}
+                {teams?.length > 0 && <Text type="secondary">{teams.map(({ name }) => name).join(', ')}</Text>}
               </HorizontalGroup>
             </div>
           );
