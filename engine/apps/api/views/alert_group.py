@@ -325,7 +325,7 @@ class AlertGroupView(
     def get_queryset(self, ignore_filtering_by_available_teams=False):
         # no select_related or prefetch_related is used at this point, it will be done on paginate_queryset.
 
-        alert_receive_channels_qs = AlertReceiveChannel.objects.filter(
+        alert_receive_channels_qs = AlertReceiveChannel.objects_with_deleted.filter(
             organization_id=self.request.auth.organization.id
         )
         if not ignore_filtering_by_available_teams:
@@ -436,7 +436,7 @@ class AlertGroupView(
 
         # enrich alert groups with select_related and prefetch_related
         alert_group_pks = [alert_group.pk for alert_group in alert_groups]
-        queryset = AlertGroup.objects.filter(pk__in=alert_group_pks).order_by("-pk")
+        queryset = AlertGroup.objects.filter(pk__in=alert_group_pks).order_by("-started_at")
 
         queryset = self.get_serializer_class().setup_eager_loading(queryset)
         alert_groups = list(queryset)

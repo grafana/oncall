@@ -392,6 +392,8 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
     # TODO: drop this column in an upcoming release
     is_restricted = models.BooleanField(default=False, null=True)
 
+    grafana_incident_id = models.CharField(max_length=100, null=True, default=None)
+
     @staticmethod
     def get_silenced_state_filter():
         """

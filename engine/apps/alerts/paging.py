@@ -44,7 +44,13 @@ class DirectPagingAlertPayload(typing.TypedDict):
 
 
 def _trigger_alert(
-    organization: Organization, team: Team | None, message: str, title: str, from_user: User
+    organization: Organization,
+    team: Team | None,
+    message: str,
+    title: str,
+    permalink: str | None,
+    grafana_incident_id: str | None,
+    from_user: User,
 ) -> AlertGroup:
     """Trigger manual integration alert from params."""
     alert_receive_channel = AlertReceiveChannel.get_or_create_manual_integration(
@@ -73,7 +79,7 @@ def _trigger_alert(
             "message": message,
             "uid": str(uuid4()),  # avoid grouping
             "author_username": from_user.username,
-            "permalink": None,
+            "permalink": permalink,
         },
     }
 
@@ -87,7 +93,13 @@ def _trigger_alert(
         link_to_upstream_details=None,
         channel_filter=channel_filter,
     )
-    return alert.group
+    alert_group = alert.group
+
+    if grafana_incident_id is not None:
+        alert_group.grafana_incident_id = grafana_incident_id
+        alert_group.save(update_fields=["grafana_incident_id"])
+
+    return alert_group
 
 
 def _construct_title(from_user: User, team: Team | None, users: UserNotifications) -> str:
@@ -111,6 +123,8 @@ def direct_paging(
     from_user: User,
     message: str,
     title: str | None = None,
+    source_url: str | None = None,
+    grafana_incident_id: str | None = None,
     team: Team | None = None,
     users: UserNotifications | None = None,
     alert_group: AlertGroup | None = None,
@@ -135,7 +149,7 @@ def direct_paging(
 
     # create alert group if needed
     if alert_group is None:
-        alert_group = _trigger_alert(organization, team, message, title, from_user)
+        alert_group = _trigger_alert(organization, team, message, title, source_url, grafana_incident_id, from_user)
 
     for u, important in users:
         alert_group.log_records.create(

@@ -33,6 +33,8 @@ class DirectPagingAPIView(APIView):
                 from_user=request.user,
                 message=validated_data["message"],
                 title=validated_data["title"],
+                source_url=validated_data["source_url"],
+                grafana_incident_id=validated_data["grafana_incident_id"],
                 team=validated_data["team"],
                 users=[(user["instance"], user["important"]) for user in validated_data["users"]],
                 alert_group=validated_data["alert_group"],

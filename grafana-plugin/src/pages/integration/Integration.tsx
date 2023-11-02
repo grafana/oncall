@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 
+import { LabelTag } from '@grafana/labels';
 import {
   Button,
   HorizontalGroup,
@@ -11,7 +12,6 @@ import {
   ConfirmModal,
   Drawer,
   Alert,
-  Tag as GrafanaTag,
 } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { get } from 'lodash-es';
@@ -279,7 +279,7 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
               <VerticalGroup>
                 <Text type="secondary">
                   We are introducing a new {getDisplayName()} integration. The existing integration is marked as Legacy
-                  and will be migrated after 1 November 2023.
+                  and will be migrated in Q1 2024.
                 </Text>
                 <Text type="secondary">
                   To ensure a smooth transition you can migrate now using "Migrate" button in the menu on the right.
@@ -1072,7 +1072,7 @@ const IntegrationHeader: React.FC<IntegrationHeaderProps> = ({
             <VerticalGroup spacing="sm">
               {alertReceiveChannel.labels.length
                 ? alertReceiveChannel.labels.map((label) => (
-                    <GrafanaTag name={`${label.key.name}:${label.value.name}`} key={label.key.id} />
+                    <LabelTag label={label.key.name} value={label.value.name} key={label.key.id} />
                   ))
                 : 'No labels attached'}
             </VerticalGroup>
