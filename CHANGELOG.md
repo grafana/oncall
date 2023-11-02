@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## v1.3.52 (2023-11-02)
+
+### Fixed
+
+- Address `TypeError` that occurs under some scenarios on the Alert Group detail page
+
 ### Changed
 
 - Change wording for push notifications timing choices @Ferril ([#3253](https://github.com/grafana/oncall/pull/3253))
@@ -16,7 +22,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Postpone Legacy AlertManager and Grafana Alerting integration auto-migration date ([3250])(<https://github.com/grafana/oncall/pull/3250>)
-- Address `TypeError` that occurs under some scenarios on the Alert Group detail page ([3252](https://github.com/grafana/oncall/pull/3252))
 
 ## v1.3.50 (2023-11-02)
 
