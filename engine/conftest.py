@@ -184,6 +184,15 @@ def mock_is_labels_feature_enabled(settings):
 
 
 @pytest.fixture
+def mock_is_labels_feature_enabled_for_org(settings):
+    def _mock_is_labels_feature_enabled_for_org(org_id):
+        setattr(settings, "FEATURE_LABELS_ENABLED", False)
+        setattr(settings, "FEATURE_LABELS_ENABLED_FOR_ORGS", [org_id])
+
+    return _mock_is_labels_feature_enabled_for_org
+
+
+@pytest.fixture
 def make_organization():
     def _make_organization(**kwargs):
         return OrganizationFactory(**kwargs, is_rbac_permissions_enabled=IS_RBAC_ENABLED)
