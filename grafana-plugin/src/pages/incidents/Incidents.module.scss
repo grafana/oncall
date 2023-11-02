@@ -17,8 +17,15 @@
   align-items: center;
 }
 
-.bulk-actions {
+.bulk-actions-container {
   margin: 10px 0 10px 0;
+  display: flex;
+  width: 100%;
+}
+.bulk-actions-list {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .other-users {
@@ -75,4 +82,16 @@
     flex: 0 0 100%;
     max-width: 100%;
   }
+}
+
+.columns-selector-container {
+  margin-left: auto;
+}
+
+.columns-selector-view {}
+.columns-visible-section {}
+.columns-hidden-section {}
+.columns-selector-buttons {
+  display: flex;
+  align-items: flex-end;
 }

@@ -18,7 +18,6 @@ import CopyToClipboard from 'react-copy-to-clipboard';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 
 import GTable from 'components/GTable/GTable';
-import HamburgerMenu from 'components/HamburgerMenu/HamburgerMenu';
 import PageErrorHandlingWrapper, { PageBaseState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
 import {
   getWrongTeamResponseInfo,
@@ -41,6 +40,7 @@ import { PAGE, PLUGIN_ROOT, TEXT_ELLIPSIS_CLASS } from 'utils/consts';
 
 import styles from './OutgoingWebhooks.module.scss';
 import { WebhookFormActionType } from './OutgoingWebhooks.types';
+import CustomContextMenuDisplay from 'components/CustomContextMenuDisplay/CustomContextMenuDisplay';
 
 const cx = cn.bind(styles);
 
@@ -332,7 +332,17 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
           </div>
         )}
       >
-        {({ openMenu }) => <HamburgerMenu openMenu={openMenu} listBorder={2} listWidth={225} withBackground />}
+        {({ openMenu }) => (
+          <CustomContextMenuDisplay
+            openMenu={openMenu}
+            baseClassName={cx('hamburgerMenu')}
+            listBorder={2}
+            listWidth={225}
+            withBackground
+          >
+            <Icon size="sm" name="ellipsis-v" />
+          </CustomContextMenuDisplay>
+        )}
       </WithContextMenu>
     );
   };

@@ -40,6 +40,9 @@ export const WithContextMenu: React.FC<WithContextMenuProps> = ({
     <div {...rest}>
       {children({
         openMenu: (e) => {
+          console.log('Should trigger');
+          console.log({ x: e.pageX, y: e.pageY });
+
           setIsMenuOpen(true);
           setMenuPosition({
             x: e.pageX,
