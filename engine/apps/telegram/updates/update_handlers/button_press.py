@@ -2,6 +2,8 @@ import logging
 from dataclasses import dataclass
 from typing import Callable, Optional, Tuple
 
+from rest_framework.exceptions import NotFound
+
 from apps.alerts.constants import ActionSource
 from apps.alerts.models import AlertGroup
 from apps.api.permissions import RBACPermission, user_is_authorized
@@ -65,7 +67,10 @@ class ButtonPressHandler(UpdateHandler):
         args = CallbackQueryFactory.decode_data(data)
 
         alert_group_pk = args[0]
-        alert_group = AlertGroup.objects.get(pk=alert_group_pk)
+        try:
+            alert_group = AlertGroup.objects.get(pk=alert_group_pk)
+        except AlertGroup.DoesNotExist:
+            raise NotFound
 
         action_value = args[1]
         try:
