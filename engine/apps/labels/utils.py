@@ -43,12 +43,12 @@ def get_associating_label_model(obj_model_name: str) -> typing.Type["AssociatedL
 
 
 def is_labels_feature_enabled(organization) -> bool:
-    # check FEATURE_LABELS_ENABLED in settings
-    # checking labels feature flag per organization will be added later
-
     logger.info(
         "is_labels_feature_enabled: "
-        f"FEATURE_LABELS_ENABLED={settings.FEATURE_LABELS_ENABLED} "
+        f"FEATURE_LABELS_ENABLED={settings.FEATURE_LABELS_ENABLED}, "
+        f"organization in FEATURE_LABELS_ENABLED_FOR_ORGS={organization.id in settings.FEATURE_LABELS_ENABLED_FOR_ORGS}"
         f"organization={organization.id}"
     )
+    if not settings.FEATURE_LABELS_ENABLED:
+        return organization.id in settings.FEATURE_LABELS_ENABLED_FOR_ORGS
     return settings.FEATURE_LABELS_ENABLED
