@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Changed
+
+- Change wording for push notifications timing choices @Ferril ([#3253](https://github.com/grafana/oncall/pull/3253))
+
 ## v1.3.51 (2023-11-02)
 
 ### Fixed
