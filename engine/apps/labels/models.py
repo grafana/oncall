@@ -115,7 +115,12 @@ class AlertReceiveChannelAssociatedLabel(AssociatedLabel):
 
 
 class AlertGroupAssociatedLabel(models.Model):
-    # TODO: comments
+    """
+    A model for alert group labels (similar to AlertReceiveChannelAssociatedLabel for integrations).
+    The key difference is that alert group labels do not use label IDs, but rather key and value names explicitly.
+    This is done to make alert group labels "static" (so they don't change when the labels are updated in label repo).
+    """
+
     alert_group = models.ForeignKey("alerts.AlertGroup", on_delete=models.CASCADE, related_name="labels")
     organization = models.ForeignKey(
         "user_management.Organization", on_delete=models.CASCADE, related_name="alert_group_labels"

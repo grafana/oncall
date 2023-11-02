@@ -334,10 +334,13 @@ class AlertGroupView(
         alert_receive_channels_ids = list(alert_receive_channels_qs.values_list("id", flat=True))
         queryset = AlertGroup.objects.filter(channel__in=alert_receive_channels_ids)
 
-        # TODO: comment
+        # filter by labels
         labels = self.request.query_params.getlist("label")
         for label in labels:
-            key_name, value_name = label.split(":")
+            label_split = label.split(":")
+            if len(label_split) != 2:
+                continue
+            key_name, value_name = label_split
             queryset = queryset.filter(labels__key_name=key_name, labels__value_name=value_name)
 
         queryset = queryset.only("id")
@@ -749,7 +752,6 @@ class AlertGroupView(
             },
         ]
 
-        # TODO: comment
         if is_labels_feature_enabled(self.request.auth.organization):
             filter_options.append(
                 {

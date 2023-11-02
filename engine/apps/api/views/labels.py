@@ -136,7 +136,11 @@ class LabelsViewSet(ViewSet):
 
 
 class AlertGroupLabelsViewSet(ViewSet):
-    # TODO: comments
+    """
+    This viewset is similar to LabelsViewSet, but it works with alert group labels.
+    Alert group labels are stored in the database, not in the label repo.
+    """
+
     permission_classes = (IsAuthenticated, BasicRolePermission)
     authentication_classes = (PluginAuthentication,)
     basic_role_permissions = {
@@ -151,19 +155,24 @@ class AlertGroupLabelsViewSet(ViewSet):
 
     @extend_schema(responses=LabelKeySerializer(many=True))
     def get_keys(self, request):
-        """List of labels keys"""
+        """
+        List of alert group label keys.
+        IDs are the same as names to keep the response format consistent with LabelsViewSet.get_keys().
+        """
         names = self.request.auth.organization.alert_group_labels.values_list("key_name", flat=True).distinct()
         return Response([{"id": name, "name": name} for name in names])
 
     @extend_schema(responses=LabelKeyValuesSerializer)
     def get_key(self, request, key_id):
-        """Key with the list of values"""
+        """Key with the list of values. IDs and names are interchangeable (see get_keys() for more details)."""
         values = (
             self.request.auth.organization.alert_group_labels.filter(key_name=key_id)
             .values_list("value_name", flat=True)
             .distinct()
         )
-        return Response({"key": {"id": key_id, "name": key_id}, "values": [{"id": v, "name": v} for v in values]})
+        return Response(
+            {"key": {"id": key_id, "name": key_id}, "values": [{"id": value, "name": value} for value in values]}
+        )
 
 
 class LabelsAssociatingMixin:  # use for labelable objects views (ex. AlertReceiveChannelView)
