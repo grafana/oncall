@@ -107,6 +107,8 @@ steps:
       target: prod
       config:
         from_secret: gcr_admin
+      build_args:
+        - BUILDKIT_INLINE_CACHE=1
     depends_on:
       - Lint Backend
       - Unit Test Backend
@@ -128,6 +130,8 @@ steps:
         from_secret: docker_password
       username:
         from_secret: docker_username
+      build_args:
+        - BUILDKIT_INLINE_CACHE=1
     depends_on:
       - Lint Backend
       - Unit Test Backend
@@ -244,6 +248,11 @@ steps:
     # Be aware that the this plugin requires privileged capabilities, otherwise the integrated
     # Docker daemon is not able to start.
     privileged: true
+    environment:
+      # force docker to use buildkit feature, this will skip build stages that aren't required in
+      # the final image (ie. dev & dev-enterprise)
+      # https://github.com/docker/cli/issues/1134#issuecomment-406449342
+      DOCKER_BUILDKIT: 1
     settings:
       repo: grafana/oncall
       tags: latest,${DRONE_TAG}
@@ -255,6 +264,8 @@ steps:
         from_secret: docker_password
       username:
         from_secret: docker_username
+      build_args:
+        - BUILDKIT_INLINE_CACHE=1
     depends_on:
       - set engine version
 
