@@ -341,7 +341,13 @@ class AlertGroupView(
             if len(label_split) != 2:
                 continue
             key_name, value_name = label_split
-            queryset = queryset.filter(labels__key_name=key_name, labels__value_name=value_name)
+
+            # Utilize (organization, key_name, value_name, alert_group) index on AlertGroupAssociatedLabel
+            queryset = queryset.filter(
+                labels__organization=self.request.auth.organization,
+                labels__key_name=key_name,
+                labels__value_name=value_name,
+            )
 
         queryset = queryset.only("id")
 
