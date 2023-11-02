@@ -16,12 +16,12 @@ def test_labels_feature_flag(mock_is_labels_feature_enabled_for_org, make_organi
     mock_is_labels_feature_enabled_for_org(organization.org_id)
     # returns True if feature flag is disabled and organization is in the feature list
     assert not settings.FEATURE_LABELS_ENABLED_FOR_ALL
-    assert organization.id in settings.FEATURE_LABELS_ENABLED_FOR_GRAFANA_ORGS
+    assert organization.org_id in settings.FEATURE_LABELS_ENABLED_FOR_GRAFANA_ORGS
     assert is_labels_feature_enabled(organization)
 
     mock_is_labels_feature_enabled_for_org(12345)
     # returns False if feature flag is disabled and organization is not in the feature list
-    assert organization.id not in settings.FEATURE_LABELS_ENABLED_FOR_GRAFANA_ORGS
+    assert organization.org_id not in settings.FEATURE_LABELS_ENABLED_FOR_GRAFANA_ORGS
     assert not is_labels_feature_enabled(organization)
 
 
