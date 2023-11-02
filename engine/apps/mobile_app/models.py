@@ -171,11 +171,11 @@ class MobileAppUserSettings(models.Model):
     ONE_DAY_IN_SECONDS = TWELVE_HOURS_IN_SECONDS * 2
 
     NOTIFICATION_TIMING_CHOICES = (
-        (FIFTEEN_MINUTES_IN_SECONDS, "fifteen minutes before"),
-        (ONE_HOUR_IN_SECONDS, "one hour before"),
-        (SIX_HOURS_IN_SECONDS, "six hours before"),
-        (TWELVE_HOURS_IN_SECONDS, "twelve hours before"),
-        (ONE_DAY_IN_SECONDS, "one day before"),
+        (FIFTEEN_MINUTES_IN_SECONDS, "15 minutes before"),
+        (ONE_HOUR_IN_SECONDS, "1 hour before"),
+        (SIX_HOURS_IN_SECONDS, "6 hours before"),
+        (TWELVE_HOURS_IN_SECONDS, "12 hours before"),
+        (ONE_DAY_IN_SECONDS, "1 day before"),
     )
     going_oncall_notification_timing = JSONField(default=default_notification_timing_options)
 
