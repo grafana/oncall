@@ -83,7 +83,7 @@ export const genericTemplateCheatSheet: CheatSheetInterface = {
         { listItemName: 'time(), datetimeformat, iso8601_to_time' },
         { listItemName: 'to_pretty_json' },
         { listItemName: 'regex_replace, regex_match' },
-        { listItemName: 'base64decode' },
+        { listItemName: 'b64decode' },
       ],
     },
     {
