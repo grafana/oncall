@@ -109,6 +109,8 @@ steps:
         from_secret: gcr_admin
       build_args:
         - BUILDKIT_INLINE_CACHE=1
+      cache_from:
+        - grafana/oncall:latest
     depends_on:
       - Lint Backend
       - Unit Test Backend
@@ -132,6 +134,8 @@ steps:
         from_secret: docker_username
       build_args:
         - BUILDKIT_INLINE_CACHE=1
+      cache_from:
+        - grafana/oncall:latest
     depends_on:
       - Lint Backend
       - Unit Test Backend
@@ -266,6 +270,8 @@ steps:
         from_secret: docker_username
       build_args:
         - BUILDKIT_INLINE_CACHE=1
+      cache_from:
+        - grafana/oncall:latest
     depends_on:
       - set engine version
 
