@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect, useRef, FC } from 'react';
 
-import { Alert, HorizontalGroup, Icon, Input, RadioButtonGroup } from '@grafana/ui';
+import { Alert, HorizontalGroup, Icon, Input, LoadingPlaceholder, RadioButtonGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 import { ColumnsType } from 'rc-table/lib/interface';
@@ -34,13 +34,6 @@ enum TabOptions {
   Users = 'users',
 }
 
-/**
- * TODO: properly filter out 'No team'. Right now it shows up on first render and then shortly thereafter the component
- * re-renders with 'No team' filtered out
- *
- * TODO: properly fetch/show loading state when fetching users. Right now it shows an empty list on the initial network
- * request, we can probably have a better experience here
- */
 const AddRespondersPopup = observer(
   ({
     mode,
@@ -55,22 +48,14 @@ const AddRespondersPopup = observer(
 
     const isCreateMode = mode === 'create';
 
+    const [isInitialRender, setIsInitialRender] = useState<boolean>(true);
+    const [searchLoading, setSearchLoading] = useState<boolean>(true);
     const [activeOption, setActiveOption] = useState<TabOptions>(isCreateMode ? TabOptions.Teams : TabOptions.Users);
+    const [teamSearchResults, setTeamSearchResults] = useState<GrafanaTeam[]>([]);
     const [userSearchResults, setUserSearchResults] = useState<UserCurrentlyOnCall[]>([]);
     const [searchTerm, setSearchTerm] = useState('');
 
     const ref = useRef();
-    const teamSearchResults = grafanaTeamStore.getSearchResult();
-
-    /**
-     * in the context where some user(s) have already been paged (ex. on a direct paging generated
-     * alert group detail page), we should filter out the search results to not include these users
-     */
-    if (existingPagedUsers.length > 0) {
-      const existingPagedUserIds = existingPagedUsers.map(({ pk }) => pk);
-      setUserSearchResults(userSearchResults.filter(({ pk }) => !existingPagedUserIds.includes(pk)));
-    }
-
     const usersCurrentlyOnCall = userSearchResults.filter(({ is_currently_oncall }) => is_currently_oncall);
     const usersNotCurrentlyOnCall = userSearchResults.filter(({ is_currently_oncall }) => !is_currently_oncall);
 
@@ -115,26 +100,52 @@ const AddRespondersPopup = observer(
     const searchForUsers = useCallback(async () => {
       const userResults = await userStore.search<UserCurrentlyOnCall>({ searchTerm, is_currently_oncall: 'all' });
       setUserSearchResults(userResults.results);
-    }, []);
+    }, [searchTerm]);
+
+    const searchForTeams = useCallback(async () => {
+      await grafanaTeamStore.updateItems(searchTerm, false, true, false);
+      setTeamSearchResults(grafanaTeamStore.getSearchResult());
+    }, [searchTerm]);
 
     const handleSearchTermChange = useDebouncedCallback(async () => {
-      // TODO: would be nice to add a loading state here...
-      if (isCreateMode && activeOption === TabOptions.Teams) {
-        grafanaTeamStore.updateItems(searchTerm, false, true, false);
+      setSearchLoading(true);
+
+      if (isInitialRender) {
+        await searchForTeams();
+        await searchForUsers();
+        setIsInitialRender(false);
+      } else if (isCreateMode && activeOption === TabOptions.Teams) {
+        await searchForTeams();
       } else {
         await searchForUsers();
       }
+
+      setSearchLoading(false);
     }, 500);
+
+    const onChangeTab = useCallback((tab: TabOptions) => {
+      /**
+       * avoids a flicker where the results are shown momentarily before handleSearchTermChange
+       * gets called which calls setSearchLoading(true);
+       */
+      setSearchLoading(true);
+      setActiveOption(tab);
+    }, []);
 
     useEffect(handleSearchTermChange, [searchTerm, activeOption]);
 
     /**
-     * populate the initial user search results before the user jumps over to the users tab
-     * should provide a slightly nicer UX
+     * in the context where some user(s) have already been paged (ex. on a direct paging generated
+     * alert group detail page), we should filter out the search results to not include these users
      */
     useEffect(() => {
-      searchForUsers();
-    }, []);
+      if (existingPagedUsers.length > 0) {
+        const existingPagedUserIds = existingPagedUsers.map(({ pk }) => pk);
+        setUserSearchResults((userSearchResults) =>
+          userSearchResults.filter(({ pk }) => !existingPagedUserIds.includes(pk))
+        );
+      }
+    }, [existingPagedUsers]);
 
     const userIsSelected = useCallback(
       (user: UserCurrentlyOnCall) => selectedUserResponders.some((userResponder) => userResponder.data.pk === user.pk),
@@ -183,6 +194,7 @@ const AddRespondersPopup = observer(
                   <Avatar size="small" src={avatar} />
                   <Text type={disabled ? 'disabled' : undefined}>{name || username}</Text>
                 </HorizontalGroup>
+                {/* TODO: we should add an elippsis and/or tooltip in the event that the user has a ton of teams */}
                 {teams?.length > 0 && <Text type="secondary">{teams.map(({ name }) => name).join(', ')}</Text>}
               </HorizontalGroup>
             </div>
@@ -236,11 +248,12 @@ const AddRespondersPopup = observer(
               ]}
               className={cx('radio-buttons')}
               value={activeOption}
-              onChange={setActiveOption}
+              onChange={onChangeTab}
               fullWidth
             />
           )}
-          {activeOption === TabOptions.Teams && (
+          {searchLoading && <LoadingPlaceholder className={cx('loading-placeholder')} text="Loading..." />}
+          {!searchLoading && activeOption === TabOptions.Teams && (
             <>
               {selectedTeamResponder ? (
                 <Alert
@@ -285,7 +298,7 @@ const AddRespondersPopup = observer(
               )}
             </>
           )}
-          {activeOption === TabOptions.Users && (
+          {!searchLoading && activeOption === TabOptions.Users && (
             <>
               <UserResultsSection header="On-call now" users={usersCurrentlyOnCall} />
               <UserResultsSection header="Not on-call" users={usersNotCurrentlyOnCall} />
