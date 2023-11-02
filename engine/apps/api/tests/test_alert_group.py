@@ -843,6 +843,46 @@ def test_get_filter_escalation_chain(
 
 
 @pytest.mark.django_db
+def test_get_filter_labels(
+    make_organization_and_user_with_plugin_token,
+    make_user_for_organization,
+    make_alert_receive_channel,
+    make_channel_filter,
+    make_alert_group,
+    make_alert,
+    make_alert_group_label_association,
+    make_user_auth_headers,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+
+    alert_receive_channel = make_alert_receive_channel(organization)
+    channel_filter = make_channel_filter(alert_receive_channel, is_default=True)
+
+    alert_groups = []
+    for _ in range(3):
+        alert_group = make_alert_group(alert_receive_channel, channel_filter=channel_filter)
+        make_alert(alert_group=alert_group, raw_request_data=alert_raw_request_data)
+        alert_groups.append(alert_group)
+
+    make_alert_group_label_association(organization, alert_groups[0], key_name="a", value_name="b")
+    make_alert_group_label_association(organization, alert_groups[0], key_name="c", value_name="d")
+    make_alert_group_label_association(organization, alert_groups[1], key_name="a", value_name="b")
+    make_alert_group_label_association(organization, alert_groups[2], key_name="c", value_name="d")
+
+    client = APIClient()
+    url = reverse("api-internal:alertgroup-list")
+
+    response = client.get(
+        url + "?label=a:b&label=c:d",
+        format="json",
+        **make_user_auth_headers(user, token),
+    )
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.json()["results"]) == 1
+    assert response.json()["results"][0]["pk"] == alert_groups[0].public_primary_key
+
+
+@pytest.mark.django_db
 @pytest.mark.parametrize(
     "role,expected_status",
     [
