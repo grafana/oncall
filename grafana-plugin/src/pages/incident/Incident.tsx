@@ -177,13 +177,15 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
                   </div>
                   <div className={cx('column')}>
                     <VerticalGroup style={{ display: 'block' }}>
-                      <AddResponders
-                        mode="update"
-                        hideAddResponderButton={incident.resolved}
-                        existingPagedUsers={incident.paged_users}
-                        onAddNewParticipant={this.handleAddUserResponder}
-                        generateRemovePreviouslyPagedUserCallback={this.handlePagedUserRemove}
-                      />
+                      {(!incident.resolved || incident.paged_users.length > 0) && (
+                        <AddResponders
+                          mode="update"
+                          hideAddResponderButton={incident.resolved}
+                          existingPagedUsers={incident.paged_users}
+                          onAddNewParticipant={this.handleAddUserResponder}
+                          generateRemovePreviouslyPagedUserCallback={this.handlePagedUserRemove}
+                        />
+                      )}
                       {this.renderTimeline()}
                     </VerticalGroup>
                   </div>
@@ -400,13 +402,15 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
                 onSilence: this.getSilenceClickHandler(incident),
                 onUnsilence: this.getUnsilenceClickHandler(incident),
               })}
-              <PluginBridge plugin={SupportedPlugin.Incident}>
-                <a href={incident.declare_incident_link} target="_blank" rel="noreferrer">
-                  <Button variant="secondary" size="md" icon="fire">
-                    Declare incident
-                  </Button>
-                </a>
-              </PluginBridge>
+              {incident.grafana_incident_id === null && (
+                <PluginBridge plugin={SupportedPlugin.Incident}>
+                  <a href={incident.declare_incident_link} target="_blank" rel="noreferrer">
+                    <Button variant="secondary" size="md" icon="fire">
+                      Declare incident
+                    </Button>
+                  </a>
+                </PluginBridge>
+              )}
             </HorizontalGroup>
 
             <Button

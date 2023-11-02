@@ -1,5 +1,6 @@
 import functools
 import html
+import json
 import os
 import random
 import re
@@ -110,6 +111,14 @@ def getenv_integer(variable_name: str, default: int) -> int:
         return int(value)
     except ValueError:
         return default
+
+
+def getenv_list(variable_name: str, default: list) -> list:
+    value = os.environ.get(variable_name)
+    if value is None:
+        return default
+
+    return json.loads(value)
 
 
 def batch_queryset(qs, batch_size=1000):
