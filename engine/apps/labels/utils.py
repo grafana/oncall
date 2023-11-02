@@ -43,12 +43,18 @@ def get_associating_label_model(obj_model_name: str) -> typing.Type["AssociatedL
 
 
 def is_labels_feature_enabled(organization) -> bool:
-    # check FEATURE_LABELS_ENABLED in settings
-    # checking labels feature flag per organization will be added later
-
+    """
+    Checks if labels feature enabled for all organizations (FEATURE_LABELS_ENABLED_FOR_ALL).
+    If not, checks if current organization's grafana org_id is in the list of organizations labels feature enabled for
+    (FEATURE_LABELS_ENABLED_FOR_GRAFANA_ORGS)
+    """
     logger.info(
         "is_labels_feature_enabled: "
-        f"FEATURE_LABELS_ENABLED={settings.FEATURE_LABELS_ENABLED} "
+        f"FEATURE_LABELS_ENABLED_FOR_ALL={settings.FEATURE_LABELS_ENABLED_FOR_ALL}, "
+        f"organization in FEATURE_LABELS_ENABLED_FOR_GRAFANA_ORGS="
+        f"{organization.id in settings.FEATURE_LABELS_ENABLED_FOR_GRAFANA_ORGS}, "
         f"organization={organization.id}"
     )
-    return settings.FEATURE_LABELS_ENABLED
+    if not settings.FEATURE_LABELS_ENABLED_FOR_ALL:
+        return organization.org_id in settings.FEATURE_LABELS_ENABLED_FOR_GRAFANA_ORGS
+    return settings.FEATURE_LABELS_ENABLED_FOR_ALL

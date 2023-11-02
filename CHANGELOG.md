@@ -5,7 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Unreleased
+## v1.3.51 (2023-11-02)
+
+### Fixed
+
+- Postpone Legacy AlertManager and Grafana Alerting integration auto-migration date ([3250])(<https://github.com/grafana/oncall/pull/3250>)
+
+## v1.3.50 (2023-11-02)
+
+### Fixed
+
+- Return alert groups for deleted integrations on private api ([3223](https://github.com/grafana/oncall/pull/3223))
 
 ## v1.3.49 (2023-10-31)
 
@@ -15,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Prevent additional polling on Incidents if the previous request didn't complete
   ([#3205](https://github.com/grafana/oncall/pull/3205))
 - Order results from `GET /teams` internal API endpoint by ascending name by @joeyorlando ([#3220](https://github.com/grafana/oncall/pull/3220))
+- Order alert groups internal API endpoint by descending started_at by @mderynck ([#3240](https://github.com/grafana/oncall/pull/3240))
 
 ### Fixed
 

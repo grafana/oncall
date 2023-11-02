@@ -77,6 +77,27 @@ def test_get_filter_by_integration(
 
 
 @pytest.mark.django_db
+def test_get_alert_groups_from_deleted_integration(alert_group_internal_api_setup, make_user_auth_headers):
+    user, token, alert_groups = alert_group_internal_api_setup
+
+    alert_receive_channel = alert_groups[0].channel
+    alert_receive_channel.delete()
+
+    client = APIClient()
+
+    url = reverse("api-internal:alertgroup-list")
+    response = client.get(
+        url,
+        format="json",
+        **make_user_auth_headers(user, token),
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    # Alert groups from deleted integrations should be returned
+    assert len(response.data["results"]) == 4
+
+
+@pytest.mark.django_db
 def test_get_filter_started_at(alert_group_internal_api_setup, make_user_auth_headers):
     user, token, _ = alert_group_internal_api_setup
     client = APIClient()
