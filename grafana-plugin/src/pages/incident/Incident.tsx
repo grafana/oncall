@@ -177,7 +177,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
                   </div>
                   <div className={cx('column')}>
                     <VerticalGroup style={{ display: 'block' }}>
-                      {(!incident.resolved || incident?.paged_users.length > 0) && (
+                      {(!incident.resolved || incident?.paged_users?.length > 0) && (
                         <AddResponders
                           mode="update"
                           hideAddResponderButton={incident.resolved}
