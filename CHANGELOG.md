@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+
+- Add `b64decode` Jinja2 template helper filter by @jorgeav ([#3242](https://github.com/grafana/oncall/pull/3242))
+
 ### Fixed
 
 - Fix db migration for mobile app @Ferril ([#3260](https://github.com/grafana/oncall/pull/3260))
