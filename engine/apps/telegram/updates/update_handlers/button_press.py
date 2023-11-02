@@ -47,9 +47,10 @@ class ButtonPressHandler(UpdateHandler):
 
     def _get_alert_group_from_message(self) -> Optional[AlertGroup]:
         alert_group = None
-        message = self.update.message
-        if message:
-            telegram_message = TelegramMessage.objects.get(message_id=message.message_id, chat_id=message.chat.id)
+        if self.update.message:
+            telegram_message = TelegramMessage.objects.get(
+                message_id=self.update.message.message_id, chat_id=self.update.message.chat.id
+            )
             alert_group = telegram_message.alert_group
         return alert_group
 
