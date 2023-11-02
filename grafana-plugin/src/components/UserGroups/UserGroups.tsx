@@ -26,7 +26,7 @@ interface UserGroupsProps {
 
 const cx = cn.bind(styles);
 
-const DragHandle = () => <IconButton className={cx('icon')} name="draggabledots" />;
+const DragHandle = () => <IconButton aria-label="Drag" className={cx('icon')} name="draggabledots" />;
 
 const SortableHandleHoc = SortableHandle(DragHandle);
 
@@ -101,7 +101,12 @@ const UserGroups = (props: UserGroupsProps) => {
       {!disabled && (
         <div className={cx('user-buttons')}>
           <HorizontalGroup>
-            <IconButton className={cx('icon')} name="trash-alt" onClick={getDeleteItemHandler(index)} />
+            <IconButton
+              aria-label="Remove"
+              className={cx('icon')}
+              name="trash-alt"
+              onClick={getDeleteItemHandler(index)}
+            />
             <SortableHandleHoc />
           </HorizontalGroup>
         </div>

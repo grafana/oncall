@@ -5,6 +5,8 @@ import { ContextMenu } from '@grafana/ui';
 export interface WithContextMenuProps {
   children: (props: { openMenu: React.MouseEventHandler<HTMLElement> }) => JSX.Element;
   renderMenuItems: ({ closeMenu }: { closeMenu?: () => void }) => React.ReactNode;
+  isOpen?: boolean;
+
   forceIsOpen?: boolean;
   focusOnOpen?: boolean;
 }
@@ -14,6 +16,7 @@ const query = '[class$="-page-container"] .scrollbar-view';
 export const WithContextMenu: React.FC<WithContextMenuProps> = ({
   children,
   renderMenuItems,
+  isOpen,
   forceIsOpen = false,
   focusOnOpen = true,
   ...rest
@@ -40,9 +43,6 @@ export const WithContextMenu: React.FC<WithContextMenuProps> = ({
     <div {...rest}>
       {children({
         openMenu: (e) => {
-          console.log('Should trigger');
-          console.log({ x: e.pageX, y: e.pageY });
-
           setIsMenuOpen(true);
           setMenuPosition({
             x: e.pageX,
@@ -51,9 +51,12 @@ export const WithContextMenu: React.FC<WithContextMenuProps> = ({
         },
       })}
 
-      {isMenuOpen && (
+      {isContextMenuOpen() && (
         <ContextMenu
-          onClose={() => setIsMenuOpen(false)}
+          // TODO: Revisit this
+          onClose={() => {
+            !forceIsOpen && setIsMenuOpen(false);
+          }}
           x={menuPosition.x}
           y={menuPosition.y}
           renderMenuItems={() => renderMenuItems({ closeMenu: () => setIsMenuOpen(false) })}
@@ -62,4 +65,8 @@ export const WithContextMenu: React.FC<WithContextMenuProps> = ({
       )}
     </div>
   );
+
+  function isContextMenuOpen() {
+    return isOpen === undefined ? isMenuOpen : isOpen;
+  }
 };

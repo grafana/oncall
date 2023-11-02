@@ -275,7 +275,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
           <HorizontalGroup justify="space-between">
             <HorizontalGroup className={cx('title')}>
               <PluginLink query={{ page: 'alert-groups', ...query }}>
-                <IconButton name="arrow-left" size="xl" />
+                <IconButton aria-label="Go Back" name="arrow-left" size="xl" />
               </PluginLink>
               {/* @ts-ignore*/}
               <HorizontalGroup align="baseline">
@@ -733,7 +733,7 @@ function GroupedIncident({ incident, datetimeReference }: { incident: GroupedAle
           <div className={cx('incident-row-right')}>
             <HorizontalGroup wrap={false} justify={'flex-end'}>
               <Tooltip placement="top" content="Alert Payload">
-                <IconButton name="arrow" onClick={() => openIncidentResponse(incident)} />
+                <IconButton aria-label="Alert Payload" name="arrow" onClick={() => openIncidentResponse(incident)} />
               </Tooltip>
             </HorizontalGroup>
           </div>

@@ -43,18 +43,6 @@
   margin-left: 5px;
 } */
 
-.groups {
-  width: 100%;
-  padding: 0;
-  margin: 0;
-  list-style: none;
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-  max-height: calc(100vh - 600px);
-  overflow: scroll;
-}
-
 .user {
   background: #22252b;
   border-radius: 2px;

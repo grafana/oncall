@@ -72,6 +72,7 @@ export class NotificationPolicy extends React.Component<NotificationPolicyProps,
           {this._renderControls(isDisabled)}
           <WithPermissionControlTooltip userAction={userAction}>
             <IconButton
+              aria-label='Remove'
               className={cx('control')}
               name="trash-alt"
               onClick={this._getDeleteClickHandler(id)}

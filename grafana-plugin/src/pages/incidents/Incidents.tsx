@@ -1,6 +1,6 @@
-import React, { SyntheticEvent, useState } from 'react';
+import React, { SyntheticEvent } from 'react';
 
-import { Button, Checkbox, HorizontalGroup, Icon, VerticalGroup, WithContextMenu } from '@grafana/ui';
+import { Button, Toggletip, HorizontalGroup, Icon, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 import moment from 'moment-timezone';
@@ -32,7 +32,7 @@ import { PAGE, PLUGIN_ROOT, TEXT_ELLIPSIS_CLASS } from 'utils/consts';
 import styles from './Incidents.module.scss';
 import { IncidentDropdown } from './parts/IncidentDropdown';
 import { SilenceButtonCascader } from './parts/SilenceButtonCascader';
-import CustomContextMenuDisplay from 'components/CustomContextMenuDisplay/CustomContextMenuDisplay';
+import { ExampleSortedList } from './ColumnsSelector';
 
 const cx = cn.bind(styles);
 
@@ -48,6 +48,7 @@ interface IncidentsPageState {
   filters?: IncidentsFiltersType;
   pagination: Pagination;
   showAddAlertGroupForm: boolean;
+  isSelectorColumnMenuOpen: boolean;
 }
 
 const POLLING_NUM_SECONDS = 15;
@@ -81,6 +82,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
         start,
         end: start + pageSize,
       },
+      isSelectorColumnMenuOpen: true,
     };
   }
 
@@ -423,24 +425,14 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
           </div>
 
           <div className={cx('columns-selector-container')}>
-            <WithContextMenu renderMenuItems={() => <ColumnSelector />}>
-              {({ openMenu }) => (
-                <CustomContextMenuDisplay
-                  openMenu={openMenu}
-                  baseClassName={cx('todo-add-class-here')}
-                  listBorder={2}
-                  listWidth={300}
-                  withBackground
-                >
-                  <Button type="button" variant={'secondary'} icon="columns">
-                    <HorizontalGroup spacing="xs">
-                      Fields
-                      <Icon name="angle-down" />
-                    </HorizontalGroup>
-                  </Button>
-                </CustomContextMenuDisplay>
-              )}
-            </WithContextMenu>
+            <Toggletip content={<ExampleSortedList />} placement={'bottom-end'} closeButton={true} onClose={() => {}}>
+              <Button type="button" variant={'secondary'} icon="columns">
+                <HorizontalGroup spacing="xs">
+                  Fields
+                  <Icon name="angle-down" />
+                </HorizontalGroup>
+              </Button>
+            </Toggletip>
           </div>
         </div>
 
@@ -779,52 +771,5 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
     startPolling();
   }
 }
-
-interface Column {
-  name: string;
-  isHidden?: boolean;
-  icon?: string;
-}
-
-const startingColumnsData: Column[] = [
-  { name: 'Status' },
-  { name: 'ID' },
-  { name: 'Summary' },
-  { name: 'Integration' },
-  { name: 'Users' },
-  { name: 'Team' },
-  { name: 'Cortex' },
-  { name: 'Created' },
-];
-
-const ColumnSelector: React.FC = () => {
-  const [columns, _setColumns] = useState<Column[]>(startingColumnsData);
-
-  return (
-    <div className={cx('columns-selector-view')}>
-      <Text type="primary">Fields Settings</Text>
-
-      <div className={cx('columns-visible-section')}>
-        <Text type="primary">Visible</Text>
-        {columns.map((col) => (
-          <HorizontalGroup>
-            <Checkbox value={!col.isHidden} label={col.name} />
-          </HorizontalGroup>
-        ))}
-      </div>
-
-      <div className={cx('columns-hidden-section')}>
-        <Text type="primary">Hidden</Text>
-      </div>
-
-      <div className={cx('columns-selector-buttons')}>
-        <Button variant={'secondary'}>Reset</Button>
-        <Button variant={'primary'} icon="plus">
-          Add field
-        </Button>
-      </div>
-    </div>
-  );
-};
 
 export default withRouter(withMobXProviderContext(Incidents));

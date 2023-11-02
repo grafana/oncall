@@ -35,3 +35,7 @@
   flex-grow: 1;
   gap: 8px;
 }
+
+.button-back {
+  margin-top: 5px;
+}

@@ -450,7 +450,7 @@ const RotationForm = observer((props: RotationFormProps) => {
                     onClick={() => setShowDeleteRotationConfirmation(true)}
                   />
                 )}
-                <IconButton variant="secondary" className={cx('drag-handler')} name="draggabledots" />
+                <IconButton aria-label='Drag' variant="secondary" className={cx('drag-handler')} name="draggabledots" />
                 <IconButton
                   name="times"
                   variant="secondary"
