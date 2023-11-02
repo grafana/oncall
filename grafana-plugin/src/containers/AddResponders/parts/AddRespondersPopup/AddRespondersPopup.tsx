@@ -48,7 +48,6 @@ const AddRespondersPopup = observer(
 
     const isCreateMode = mode === 'create';
 
-    const [isInitialRender, setIsInitialRender] = useState<boolean>(true);
     const [searchLoading, setSearchLoading] = useState<boolean>(true);
     const [activeOption, setActiveOption] = useState<TabOptions>(isCreateMode ? TabOptions.Teams : TabOptions.Users);
     const [teamSearchResults, setTeamSearchResults] = useState<GrafanaTeam[]>([]);
@@ -110,11 +109,7 @@ const AddRespondersPopup = observer(
     const handleSearchTermChange = useDebouncedCallback(async () => {
       setSearchLoading(true);
 
-      if (isInitialRender) {
-        await searchForTeams();
-        await searchForUsers();
-        setIsInitialRender(false);
-      } else if (isCreateMode && activeOption === TabOptions.Teams) {
+      if (isCreateMode && activeOption === TabOptions.Teams) {
         await searchForTeams();
       } else {
         await searchForUsers();
@@ -123,16 +118,30 @@ const AddRespondersPopup = observer(
       setSearchLoading(false);
     }, 500);
 
-    const onChangeTab = useCallback((tab: TabOptions) => {
-      /**
-       * avoids a flicker where the results are shown momentarily before handleSearchTermChange
-       * gets called which calls setSearchLoading(true);
-       */
-      setSearchLoading(true);
-      setActiveOption(tab);
-    }, []);
+    const onChangeTab = useCallback(
+      async (tab: TabOptions) => {
+        /**
+         * there's no need to trigger a new search request when the user changes tabs if they don't have a
+         * search term
+         */
+        if (searchTerm) {
+          setSearchLoading(true);
 
-    useEffect(handleSearchTermChange, [searchTerm, activeOption]);
+          if (activeOption === TabOptions.Teams) {
+            await searchForTeams();
+          } else {
+            await searchForUsers();
+          }
+
+          setSearchLoading(false);
+        }
+
+        setActiveOption(tab);
+      },
+      [searchTerm]
+    );
+
+    useEffect(handleSearchTermChange, [searchTerm]);
 
     /**
      * in the context where some user(s) have already been paged (ex. on a direct paging generated
@@ -146,6 +155,24 @@ const AddRespondersPopup = observer(
         );
       }
     }, [existingPagedUsers]);
+
+    /**
+     * pre-populate the users and teams search results so that when the user opens AddRespondersPopup it is already
+     * populated with data (nicer UX)
+     */
+    useEffect(() => {
+      (async () => {
+        /**
+         * teams are not relevant when the component is rendered in "update" mode so we skip fetching teams here
+         */
+        if (isCreateMode) {
+          await searchForTeams();
+        }
+
+        await searchForUsers();
+        setSearchLoading(false);
+      })();
+    }, []);
 
     const userIsSelected = useCallback(
       (user: UserCurrentlyOnCall) => selectedUserResponders.some((userResponder) => userResponder.data.pk === user.pk),
