@@ -755,7 +755,7 @@ class AlertGroupView(
                 {
                     "name": "label",
                     "display_name": "Label",
-                    "type": "labels",
+                    "type": "alert_group_labels",
                 }
             )
 
