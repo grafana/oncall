@@ -324,7 +324,7 @@ class AlertGroupView(
     def get_queryset(self, ignore_filtering_by_available_teams=False):
         # no select_related or prefetch_related is used at this point, it will be done on paginate_queryset.
 
-        alert_receive_channels_qs = AlertReceiveChannel.objects.filter(
+        alert_receive_channels_qs = AlertReceiveChannel.objects_with_deleted.filter(
             organization_id=self.request.auth.organization.id
         )
         if not ignore_filtering_by_available_teams:
