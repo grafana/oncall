@@ -1,4 +1,4 @@
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -6,8 +6,13 @@ from apps.telegram.renderers.keyboard import Action
 from apps.telegram.updates.update_handlers.button_press import ButtonPressHandler
 
 
+@patch(
+    "apps.telegram.updates.update_handlers.button_press.ButtonPressHandler._get_alert_group_from_message",
+    return_value=None,
+)
 @pytest.mark.django_db
 def test_get_action_context(
+    mocked_get_alert_group_from_message,
     make_organization_and_user_with_slack_identities,
     make_alert_receive_channel,
     make_alert_group,
