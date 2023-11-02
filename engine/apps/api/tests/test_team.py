@@ -100,7 +100,17 @@ def test_list_teams_only_include_notifiable_teams(
     client = APIClient()
     url = reverse("api-internal:team-list")
 
-    with patch("apps.api.views.team.integration_is_notifiable", side_effect=lambda obj: obj.id == arc1.id):
+    def mock_get_notifiable_direct_paging_integrations():
+        class MockRelatedManager:
+            def values_list(self, *args, **kwargs):
+                return [arc1.team.pk]
+
+        return MockRelatedManager()
+
+    with patch(
+        "apps.user_management.models.Organization.get_notifiable_direct_paging_integrations",
+        side_effect=mock_get_notifiable_direct_paging_integrations,
+    ):
         response = client.get(
             f"{url}?only_include_notifiable_teams=true&include_no_team=false",
             format="json",
