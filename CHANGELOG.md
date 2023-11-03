@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## v1.3.53 (2023-11-03)
+
+### Fixed
+
+- Fix db migration for mobile app @Ferril ([#3260](https://github.com/grafana/oncall/pull/3260))
+
 ## v1.3.52 (2023-11-02)
 
 ### Fixed

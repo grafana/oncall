@@ -29,7 +29,7 @@ from apps.api.serializers.user import (
     CurrentUserSerializer,
     FilterUserSerializer,
     UserHiddenFieldsSerializer,
-    UserLongSerializer,
+    UserIsCurrentlyOnCallSerializer,
     UserSerializer,
 )
 from apps.api.throttlers import (
@@ -238,20 +238,14 @@ class UserView(
         return self.request.query_params.get("is_currently_oncall", "").lower()
 
     def _is_currently_oncall_request(self) -> bool:
-        return self._get_is_currently_oncall_query_param() in ["true", "false"]
-
-    def _is_long_request(self) -> bool:
-        return self.request.query_params.get("short", "true").lower() == "false"
-
-    def _is_currently_oncall_or_long_request(self) -> bool:
-        return self._is_currently_oncall_request() or self._is_long_request()
+        return self._get_is_currently_oncall_query_param() in ["true", "false", "all"]
 
     def get_serializer_context(self):
         context = super().get_serializer_context()
         context.update(
             {
                 "schedules_with_oncall_users": self.schedules_with_oncall_users
-                if self._is_currently_oncall_or_long_request()
+                if self._is_currently_oncall_request()
                 else {}
             }
         )
@@ -268,8 +262,8 @@ class UserView(
 
         if is_list_request and is_filters_request:
             return self.get_filter_serializer_class()
-        elif is_list_request and self._is_currently_oncall_or_long_request():
-            return UserLongSerializer
+        elif is_list_request and self._is_currently_oncall_request():
+            return UserIsCurrentlyOnCallSerializer
 
         is_users_own_data = kwargs.get("pk") is not None and kwargs.get("pk") == user.public_primary_key
         has_admin_permission = user_is_authorized(user, [RBACPermission.Permissions.USER_SETTINGS_ADMIN])
@@ -296,8 +290,7 @@ class UserView(
         def _get_oncall_user_ids():
             return {user.pk for _, users in self.schedules_with_oncall_users.items() for user in users}
 
-        is_currently_oncall_query_param = self._get_is_currently_oncall_query_param()
-        if is_currently_oncall_query_param == "true":
+        if (is_currently_oncall_query_param := self._get_is_currently_oncall_query_param()) == "true":
             # client explicitly wants to filter out users that are on-call
             queryset = queryset.filter(pk__in=_get_oncall_user_ids())
         elif is_currently_oncall_query_param == "false":

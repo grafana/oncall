@@ -534,26 +534,54 @@ def _get_team_select_blocks(
     slack_user_identity: "SlackUserIdentity",
     organization: "Organization",
     is_selected: bool,
-    value: "Team",
+    value: typing.Optional["Team"],
     input_id_prefix: str,
 ) -> Block.AnyBlocks:
+    blocks: Block.AnyBlocks = []
     user = slack_user_identity.get_user(organization)  # TODO: handle None
-    teams = user.available_teams
+    teams = (
+        user.organization.get_notifiable_direct_paging_integrations()
+        .filter(team__isnull=False)
+        .values_list("team__pk", "team__name")
+    )
+
+    direct_paging_info_msg = {
+        "type": "context",
+        "elements": [
+            {
+                "type": "mrkdwn",
+                "text": (
+                    "*Note*: You can only page teams which have a Direct Paging integration that is configured. "
+                    "<https://grafana.com/docs/oncall/latest/integrations/manual/#set-up-direct-paging-for-a-team|Learn more>"
+                ),
+            },
+        ],
+    }
+
+    if not teams:
+        direct_paging_info_msg["elements"][0][
+            "text"
+        ] += ". There are currently no teams which have a Direct Paging integration that is configured."
+        blocks.append(direct_paging_info_msg)
+        return blocks
 
     team_options: typing.List[CompositionObjectOption] = []
 
     initial_option_idx = 0
     for idx, team in enumerate(teams):
-        if team == value:
+        team_pk, team_name = team
+        team_pk_str = str(team_pk)
+
+        if value == team_pk_str:
             initial_option_idx = idx
         team_options.append(
             {
                 "text": {
                     "type": "plain_text",
-                    "text": f"{team.name}",
+                    "text": team_name,
                     "emoji": True,
                 },
-                "value": f"{team.pk}",
+                "value": team_pk_str,
             }
         )
 
@@ -574,10 +602,11 @@ def _get_team_select_blocks(
         "optional": True,
     }
 
-    blocks: Block.AnyBlocks = [team_select]
+    blocks.append(team_select)
 
     # No context block if no team selected
     if not is_selected:
+        blocks.append(direct_paging_info_msg)
         return blocks
 
     team_select["element"]["initial_option"] = team_options[initial_option_idx]
