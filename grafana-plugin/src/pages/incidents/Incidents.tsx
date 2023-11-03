@@ -32,7 +32,7 @@ import { PAGE, PLUGIN_ROOT, TEXT_ELLIPSIS_CLASS } from 'utils/consts';
 import styles from './Incidents.module.scss';
 import { IncidentDropdown } from './parts/IncidentDropdown';
 import { SilenceButtonCascader } from './parts/SilenceButtonCascader';
-import { ExampleSortedList } from './ColumnsSelector';
+import { ColumnsSelector } from './ColumnsSelector';
 
 const cx = cn.bind(styles);
 
@@ -425,7 +425,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
           </div>
 
           <div className={cx('columns-selector-container')}>
-            <Toggletip content={<ExampleSortedList />} placement={'bottom-end'} closeButton={true} onClose={() => {}}>
+            <Toggletip content={<ColumnsSelector />} placement={'bottom-end'} closeButton={true} onClose={() => {}}>
               <Button type="button" variant={'secondary'} icon="columns">
                 <HorizontalGroup spacing="xs">
                   Fields

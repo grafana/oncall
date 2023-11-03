@@ -1,5 +1,14 @@
 import React, { useState } from 'react';
-import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
+import cn from 'classnames/bind';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core';
 import {
   arrayMove,
   SortableContext,
@@ -10,11 +19,22 @@ import {
 
 import { CSS } from '@dnd-kit/utilities';
 
+import styles from 'pages/incidents/ColumnsSelector.module.scss';
+import Text from 'components/Text/Text';
+import { Button, Checkbox } from '@grafana/ui';
+
+const cx = cn.bind(styles);
+
 interface Column {
   id: number | string;
   name: string;
   isChecked?: boolean;
   isHidden?: boolean;
+}
+
+interface ColumnRowProps {
+  column: Column;
+  onItemChange: (id: number | string) => void;
 }
 
 const startingColumnsData: Column[] = [
@@ -28,8 +48,8 @@ const startingColumnsData: Column[] = [
   { id: 8, name: 'Created', isHidden: true },
 ];
 
-const SortableItem: React.FC<Column> = (props) => {
-  const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: props.id });
+const ColumnRow: React.FC<ColumnRowProps> = ({ column, onItemChange }) => {
+  const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: column.id });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -38,13 +58,18 @@ const SortableItem: React.FC<Column> = (props) => {
 
   return (
     <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
-      <span>{props.name}</span>
+      <div className={cx('column-item')}>
+        <Checkbox value={!column.isHidden} onChange={() => onItemChange(column.id)} />
+        <span>{column.name}</span>
+      </div>
     </div>
   );
 };
 
-export const ExampleSortedList: React.FC = () => {
+export const ColumnsSelector: React.FC = () => {
   const [items, setItems] = useState<Column[]>([...startingColumnsData]);
+  const visibleColumns = items.filter((col) => !col.isHidden);
+  const hiddenColumns = items.filter((col) => col.isHidden);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -54,26 +79,61 @@ export const ExampleSortedList: React.FC = () => {
   );
 
   return (
-    <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-      <SortableContext items={items} strategy={verticalListSortingStrategy}>
-        {items.map(({ id, name }) => (
-          <SortableItem key={id} id={id} name={name} />
-        ))}
-      </SortableContext>
-    </DndContext>
+    <div className={cx('columns-selector-view')}>
+      <Text type="primary">Fields Settings</Text>
+
+      <div className={cx('columns-visible-section')}>
+        <Text type="primary">Visible</Text>
+
+        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={(ev) => handleDragEnd(ev, true)}>
+          <SortableContext items={items} strategy={verticalListSortingStrategy}>
+            {visibleColumns.map((column) => (
+              <ColumnRow key={column.id} column={column} onItemChange={onItemChange} />
+            ))}
+          </SortableContext>
+        </DndContext>
+      </div>
+
+      <div className={cx('columns-hidden-section')}>
+        <Text type="primary">Hidden</Text>
+
+        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={(ev) => handleDragEnd(ev, false)}>
+          <SortableContext items={items} strategy={verticalListSortingStrategy}>
+            {hiddenColumns.map((column) => (
+              <ColumnRow key={column.id} column={column} onItemChange={onItemChange} />
+            ))}
+          </SortableContext>
+        </DndContext>
+      </div>
+
+      <div className={cx('columns-selector-buttons')}>
+        <Button variant={'secondary'}>Reset</Button>
+        <Button variant={'primary'} icon="plus">
+          Add field
+        </Button>
+      </div>
+    </div>
   );
 
-  function handleDragEnd(event) {
-    const { active, over }: { active: Column; over: Column } = event;
+  function onItemChange(id: string | number) {
+    setItems((items) => {
+      return items.map((it) => (it.id === id ? { ...it, isChecked: !it.isChecked } : it));
+    });
+  }
+
+  function handleDragEnd(event: DragEndEvent, isVisible: boolean) {
+    const { active, over } = event;
+
+    const searchableList: Column[] = isVisible ? visibleColumns : hiddenColumns;
 
     if (active.id !== over.id) {
-      setItems((items) => {
-        console.log('Log []');
-        const oldIndex = items.findIndex((item) => item.id === active.id);
-        const newIndex = items.findIndex((item) => item.id === over.id);
+      const oldIndex = searchableList.findIndex((item) => item.id === active.id);
+      const newIndex = searchableList.findIndex((item) => item.id === over.id);
 
-        return arrayMove(items, oldIndex, newIndex);
-      });
+      arrayMove(searchableList, oldIndex, newIndex);
+
+      const updatedList = isVisible ? [...searchableList, ...hiddenColumns] : [...visibleColumns, ...searchableList];
+      setItems(updatedList);
     }
   }
 };

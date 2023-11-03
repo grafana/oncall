@@ -83,39 +83,3 @@
     max-width: 100%;
   }
 }
-
-.columns-selector-container {
-  margin-left: auto;
-}
-
-.columns-selector-view {
-  min-width: 300px;
-}
-
-.columns-visible-section {
-  margin-bottom: 16px;
-}
-
-.columns-header {
-  display: block;
-  margin-bottom: 16px;
-}
-.columns-header-secondary {
-  display: block;
-  margin-bottom: 8px;
-}
-
-.columns-hidden-section {
-  margin-bottom: 20px;
-}
-.columns-selector-buttons {
-  display: flex;
-  justify-content: flex-end;
-  gap: 8px;
-  width: 100%;
-}
-
-.column-item {
-  display: flex;
-  gap: 12px;
-}
