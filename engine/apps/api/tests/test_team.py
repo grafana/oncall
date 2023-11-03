@@ -29,6 +29,25 @@ def get_payload_from_team(team, long=False):
 
 
 @pytest.mark.django_db
+def test_get_team(make_organization_and_user_with_plugin_token, make_team, make_user_auth_headers):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+    team = make_team(organization)
+
+    client = APIClient()
+
+    # team exists
+    url = reverse("api-internal:team-detail", kwargs={"pk": team.public_primary_key})
+    response = client.get(url, format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == get_payload_from_team(team)
+
+    # 404 scenario
+    url = reverse("api-internal:team-detail", kwargs={"pk": "asdfasdflkjlkajsdf"})
+    response = client.get(url, format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+
+
+@pytest.mark.django_db
 def test_list_teams(
     make_organization,
     make_team,
@@ -100,7 +119,20 @@ def test_list_teams_only_include_notifiable_teams(
     client = APIClient()
     url = reverse("api-internal:team-list")
 
-    with patch("apps.api.views.team.integration_is_notifiable", side_effect=lambda obj: obj.id == arc1.id):
+    def mock_get_notifiable_direct_paging_integrations():
+        class MockRelatedManager:
+            def filter(self, *args, **kwargs):
+                return self
+
+            def values_list(self, *args, **kwargs):
+                return [arc1.team.pk]
+
+        return MockRelatedManager()
+
+    with patch(
+        "apps.user_management.models.Organization.get_notifiable_direct_paging_integrations",
+        side_effect=mock_get_notifiable_direct_paging_integrations,
+    ):
         response = client.get(
             f"{url}?only_include_notifiable_teams=true&include_no_team=false",
             format="json",
