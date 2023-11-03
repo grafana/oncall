@@ -8,6 +8,8 @@ nodes:
         hostPort: 30001
       - containerPort: 30002
         hostPort: 30002
+      - containerPort: 30003
+        hostPort: 30003
     # https://stackoverflow.com/a/62695918
     extraMounts:
       # this basically mounts our local ./grafana-plugin (frontend) directory into the kind node

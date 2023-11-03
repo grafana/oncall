@@ -1,10 +1,6 @@
-telegramPolling.enabled=true -> should create telegram polling deployment:
+detached_integrations.enabled=true -> should create integrations deployment:
   1: |
-    - command:
-        - sh
-        - -c
-        - python manage.py start_telegram_polling
-      env:
+    - env:
         - name: BASE_URL
           value: https://example.com
         - name: SECRET_KEY
@@ -26,21 +22,39 @@ telegramPolling.enabled=true -> should create telegram polling deployment:
         - name: OSS
           value: "True"
         - name: DETACHED_INTEGRATIONS_SERVER
-          value: "False"
+          value: "True"
         - name: UWSGI_LISTEN
           value: "1024"
         - name: BROKER_TYPE
           value: rabbitmq
         - name: GRAFANA_API_URL
           value: http://oncall-grafana
+        - name: FEATURE_SLACK_INTEGRATION_ENABLED
+          value: "False"
         - name: FEATURE_TELEGRAM_INTEGRATION_ENABLED
+          value: "False"
+        - name: FEATURE_EMAIL_INTEGRATION_ENABLED
           value: "True"
-        - name: FEATURE_TELEGRAM_LONG_POLLING_ENABLED
+        - name: EMAIL_HOST
+          value: null
+        - name: EMAIL_PORT
+          value: "587"
+        - name: EMAIL_HOST_USER
+          value: null
+        - name: EMAIL_HOST_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: smtp-password
+              name: oncall-smtp
+              optional: true
+        - name: EMAIL_USE_TLS
           value: "True"
-        - name: TELEGRAM_WEBHOOK_HOST
-          value: https://example.com
-        - name: TELEGRAM_TOKEN
-          value: ""
+        - name: EMAIL_FROM_ADDRESS
+          value: null
+        - name: EMAIL_NOTIFICATIONS_LIMIT
+          value: "200"
+        - name: FEATURE_PROMETHEUS_EXPORTER_ENABLED
+          value: "False"
         - name: MYSQL_HOST
           value: oncall-mariadb
         - name: MYSQL_PORT
@@ -84,7 +98,32 @@ telegramPolling.enabled=true -> should create telegram polling deployment:
           value: amqp
         - name: RABBITMQ_VHOST
           value: ""
-      image: grafana/oncall:v1.2.36
+        - name: ROOT_URLCONF
+          value: engine.integrations_urls
+      image: grafana/oncall:v1.3.39
       imagePullPolicy: Always
-      name: telegram-polling
+      livenessProbe:
+        httpGet:
+          path: /health/
+          port: http
+        periodSeconds: 60
+        timeoutSeconds: 3
+      name: oncall
+      ports:
+        - containerPort: 8080
+          name: http
+          protocol: TCP
+      readinessProbe:
+        httpGet:
+          path: /ready/
+          port: http
+        periodSeconds: 60
+        timeoutSeconds: 3
+      resources: {}
       securityContext: {}
+      startupProbe:
+        httpGet:
+          path: /startupprobe/
+          port: http
+        periodSeconds: 10
+        timeoutSeconds: 3
