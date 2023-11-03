@@ -53,6 +53,7 @@ def json_dumps(value):
     except (ValueError, AttributeError, TypeError):
         return None
 
+
 def b64decode(value):
     try:
         return base64.b64decode(value).decode("utf-8")
