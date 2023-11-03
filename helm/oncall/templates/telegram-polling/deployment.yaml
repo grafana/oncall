@@ -28,7 +28,7 @@ spec:
         - name: telegram-polling
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          image: {{ include "oncall.engine.image" . }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           command: ['sh', '-c', 'python manage.py start_telegram_polling']
           env:
