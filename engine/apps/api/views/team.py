@@ -13,7 +13,13 @@ from apps.user_management.models import Team
 from common.api_helpers.mixins import PublicPrimaryKeyMixin
 
 
-class TeamViewSet(PublicPrimaryKeyMixin, mixins.ListModelMixin, mixins.UpdateModelMixin, viewsets.GenericViewSet):
+class TeamViewSet(
+    PublicPrimaryKeyMixin,
+    mixins.ListModelMixin,
+    mixins.RetrieveModelMixin,
+    mixins.UpdateModelMixin,
+    viewsets.GenericViewSet,
+):
     authentication_classes = (
         MobileAppAuthTokenAuthentication,
         PluginAuthentication,

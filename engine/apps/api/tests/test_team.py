@@ -29,6 +29,25 @@ def get_payload_from_team(team, long=False):
 
 
 @pytest.mark.django_db
+def test_get_team(make_organization_and_user_with_plugin_token, make_team, make_user_auth_headers):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+    team = make_team(organization)
+
+    client = APIClient()
+
+    # team exists
+    url = reverse("api-internal:team-detail", kwargs={"pk": team.public_primary_key})
+    response = client.get(url, format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == get_payload_from_team(team)
+
+    # 404 scenario
+    url = reverse("api-internal:team-detail", kwargs={"pk": "asdfasdflkjlkajsdf"})
+    response = client.get(url, format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+
+
+@pytest.mark.django_db
 def test_list_teams(
     make_organization,
     make_team,
