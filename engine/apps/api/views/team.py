@@ -61,9 +61,9 @@ class TeamViewSet(PublicPrimaryKeyMixin, mixins.ListModelMixin, mixins.UpdateMod
 
         if self.request.query_params.get("only_include_notifiable_teams", "false") == "true":
             queryset = queryset.filter(
-                pk__in=self.request.user.organization.get_notifiable_direct_paging_integrations().values_list(
-                    "team__pk", flat=True
-                )
+                pk__in=self.request.user.organization.get_notifiable_direct_paging_integrations()
+                .filter(team__isnull=False)
+                .values_list("team__pk", flat=True)
             )
 
         queryset = queryset.order_by("name")

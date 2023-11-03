@@ -102,6 +102,9 @@ def test_list_teams_only_include_notifiable_teams(
 
     def mock_get_notifiable_direct_paging_integrations():
         class MockRelatedManager:
+            def filter(self, *args, **kwargs):
+                return self
+
             def values_list(self, *args, **kwargs):
                 return [arc1.team.pk]
 
