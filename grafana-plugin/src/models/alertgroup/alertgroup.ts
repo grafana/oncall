@@ -3,6 +3,7 @@ import qs from 'query-string';
 
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import BaseStore from 'models/base_store';
+import { LabelKey } from 'models/label/label.types';
 import { User } from 'models/user/user.types';
 import { makeRequest } from 'network';
 import { Mixpanel } from 'services/mixpanel';
@@ -436,5 +437,25 @@ export class AlertGroupStore extends BaseStore {
       method: 'POST',
       data: { user_id: userId },
     }).catch(this.onApiError);
+  }
+
+  @action
+  public async loadLabelsKeys() {
+    return await makeRequest(`/alert_group_labels/keys/`, {});
+  }
+
+  @action
+  public async loadValuesForLabelKey(key: LabelKey['id'], search = '') {
+    if (!key) {
+      return [];
+    }
+
+    const result = await makeRequest(`/alert_group_labels/id/${key}`, {
+      params: { search },
+    });
+
+    const filteredValues = result.values.filter((v) => v.name.toLowerCase().includes(search.toLowerCase())); // TODO remove after backend search implementation
+
+    return { ...result, values: filteredValues };
   }
 }
