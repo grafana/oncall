@@ -58,7 +58,7 @@ spec:
       - name: {{ .Chart.Name }}-migrate
         securityContext:
           {{- toYaml .Values.securityContext | nindent 12 }}
-        image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+        image: {{ include "oncall.engine.image" . }}
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         command:
           - /bin/sh
