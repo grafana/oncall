@@ -441,7 +441,7 @@ export class AlertGroupStore extends BaseStore {
 
   @action
   public async loadLabelsKeys() {
-    return await makeRequest(`/alert_group_labels/keys/`, {});
+    return await makeRequest(`/alertgroups/labels/keys/`, {});
   }
 
   @action
@@ -450,7 +450,7 @@ export class AlertGroupStore extends BaseStore {
       return [];
     }
 
-    const result = await makeRequest(`/alert_group_labels/id/${key}`, {
+    const result = await makeRequest(`/alertgroups/labels/id/${key}`, {
       params: { search },
     });
 
