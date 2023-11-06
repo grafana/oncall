@@ -112,3 +112,27 @@ class AlertReceiveChannelAssociatedLabel(AssociatedLabel):
     def get_associating_label_field_name() -> str:
         """Returns ForeignKey field name for the associated model"""
         return "alert_receive_channel"
+
+
+class AlertGroupAssociatedLabel(models.Model):
+    """
+    A model for alert group labels (similar to AlertReceiveChannelAssociatedLabel for integrations).
+    The key difference is that alert group labels do not use label IDs, but rather key and value names explicitly.
+    This is done to make alert group labels "static" (so they don't change when the labels are updated in label repo).
+    """
+
+    alert_group = models.ForeignKey("alerts.AlertGroup", on_delete=models.CASCADE, related_name="labels")
+    organization = models.ForeignKey(
+        "user_management.Organization", on_delete=models.CASCADE, related_name="alert_group_labels"
+    )
+
+    key_name = models.CharField(max_length=200)
+    value_name = models.CharField(max_length=200)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["organization", "key_name", "value_name", "alert_group"],
+                name="unique_alert_group_label",
+            )
+        ]

@@ -12,7 +12,7 @@ from apps.alerts.models import (
     UserHasNotification,
 )
 from apps.alerts.tasks.notify_user import notify_user_task
-from apps.schedules.ical_utils import get_oncall_users_for_multiple_schedules
+from apps.schedules.ical_utils import get_cached_oncall_users_for_multiple_schedules
 from apps.schedules.models import OnCallSchedule
 from apps.user_management.models import Organization, Team, User
 
@@ -195,5 +195,7 @@ def unpage_user(alert_group: AlertGroup, user: User, from_user: User) -> None:
 
 
 def user_is_oncall(user: User) -> bool:
-    schedules_with_oncall_users = get_oncall_users_for_multiple_schedules(OnCallSchedule.objects.related_to_user(user))
+    schedules_with_oncall_users = get_cached_oncall_users_for_multiple_schedules(
+        OnCallSchedule.objects.related_to_user(user)
+    )
     return user.pk in {user.pk for _, users in schedules_with_oncall_users.items() for user in users}

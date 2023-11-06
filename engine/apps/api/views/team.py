@@ -8,7 +8,7 @@ from apps.api.permissions import RBACPermission
 from apps.api.serializers.team import TeamLongSerializer, TeamSerializer
 from apps.auth_token.auth import PluginAuthentication
 from apps.mobile_app.auth import MobileAppAuthTokenAuthentication
-from apps.schedules.ical_utils import get_oncall_users_for_multiple_schedules
+from apps.schedules.ical_utils import get_cached_oncall_users_for_multiple_schedules
 from apps.user_management.models import Team
 from common.api_helpers.mixins import PublicPrimaryKeyMixin
 
@@ -49,7 +49,7 @@ class TeamViewSet(
         """
         team_ids = [t.id for t in self.filter_queryset(self.get_queryset())]
         team_schedules = self.request.user.organization.oncall_schedules.filter(team__id__in=team_ids)
-        return get_oncall_users_for_multiple_schedules(team_schedules)
+        return get_cached_oncall_users_for_multiple_schedules(team_schedules)
 
     def get_serializer_context(self):
         context = super().get_serializer_context()

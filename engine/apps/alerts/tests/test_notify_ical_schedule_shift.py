@@ -4,14 +4,12 @@ import textwrap
 from unittest.mock import Mock, patch
 
 import pytest
-import pytz
 from django.utils import timezone
 
 from apps.alerts.tasks.notify_ical_schedule_shift import (
     MIN_DAYS_TO_LOOKUP_FOR_THE_END_OF_EVENT,
     notify_ical_schedule_shift,
 )
-from apps.schedules.ical_utils import memoized_users_in_ical
 from apps.schedules.models import CustomOnCallShift, OnCallScheduleCalendar, OnCallScheduleICal, OnCallScheduleWeb
 
 ICAL_DATA = """
@@ -86,8 +84,6 @@ def test_next_shift_notification_long_shifts(
     organization, _, _, _ = make_organization_and_user_with_slack_identities()
     make_user(organization=organization, username="user1")
     make_user(organization=organization, username="user2")
-    # clear users pks <-> organization cache (persisting between tests)
-    memoized_users_in_ical.cache_clear()
 
     ical_schedule = make_schedule(
         organization,
@@ -102,7 +98,7 @@ def test_next_shift_notification_long_shifts(
     )
 
     with patch("apps.alerts.tasks.notify_ical_schedule_shift.datetime", Mock(wraps=datetime)) as mock_datetime:
-        mock_datetime.datetime.now.return_value = datetime.datetime(2021, 9, 29, 12, 0, tzinfo=pytz.UTC)
+        mock_datetime.datetime.now.return_value = datetime.datetime(2021, 9, 29, 12, 0, tzinfo=datetime.timezone.utc)
         with patch("apps.slack.client.SlackClient.chat_postMessage") as mock_slack_api_call:
             notify_ical_schedule_shift(ical_schedule.pk)
 
@@ -122,8 +118,6 @@ def test_overrides_changes_no_current_no_triggering_notification(
 ):
     organization, _, _, _ = make_organization_and_user_with_slack_identities()
     user1 = make_user(organization=organization, username="user1")
-    # clear users pks <-> organization cache (persisting between tests)
-    memoized_users_in_ical.cache_clear()
 
     ical_before = textwrap.dedent(
         """
@@ -222,8 +216,6 @@ def test_no_changes_no_triggering_notification(
 ):
     organization, _, _, _ = make_organization_and_user_with_slack_identities()
     user1 = make_user(organization=organization, username="user1")
-    # clear users pks <-> organization cache (persisting between tests)
-    memoized_users_in_ical.cache_clear()
 
     schedule = make_schedule(
         organization,
@@ -270,8 +262,6 @@ def test_current_shift_changes_trigger_notification(
 ):
     organization, _, _, _ = make_organization_and_user_with_slack_identities()
     user1 = make_user(organization=organization, username="user1")
-    # clear users pks <-> organization cache (persisting between tests)
-    memoized_users_in_ical.cache_clear()
 
     schedule = make_schedule(
         organization,
@@ -322,8 +312,6 @@ def test_current_shift_changes_swap_split(
     organization, _, _, _ = make_organization_and_user_with_slack_identities()
     user1 = make_user(organization=organization, username="user1")
     user2 = make_user(organization=organization, username="user2")
-    # clear users pks <-> organization cache (persisting between tests)
-    memoized_users_in_ical.cache_clear()
 
     schedule = make_schedule(
         organization,
@@ -385,8 +373,6 @@ def test_current_shift_changes_end_affected_by_swap(
     organization, _, _, _ = make_organization_and_user_with_slack_identities()
     user1 = make_user(organization=organization, username="user1")
     user2 = make_user(organization=organization, username="user2")
-    # clear users pks <-> organization cache (persisting between tests)
-    memoized_users_in_ical.cache_clear()
 
     schedule = make_schedule(
         organization,
@@ -453,8 +439,6 @@ def test_next_shift_changes_no_triggering_notification(
     organization, _, _, _ = make_organization_and_user_with_slack_identities()
     user1 = make_user(organization=organization, username="user1")
     user2 = make_user(organization=organization, username="user2")
-    # clear users pks <-> organization cache (persisting between tests)
-    memoized_users_in_ical.cache_clear()
 
     schedule = make_schedule(
         organization,
@@ -524,8 +508,6 @@ def test_lower_priority_changes_no_triggering_notification(
     organization, _, _, _ = make_organization_and_user_with_slack_identities()
     user1 = make_user(organization=organization, username="user1")
     user2 = make_user(organization=organization, username="user2")
-    # clear users pks <-> organization cache (persisting between tests)
-    memoized_users_in_ical.cache_clear()
 
     schedule = make_schedule(
         organization,
@@ -589,8 +571,6 @@ def test_vtimezone_changes_no_triggering_notification(
 ):
     organization, _, _, _ = make_organization_and_user_with_slack_identities()
     make_user(organization=organization, username="user1")
-    # clear users pks <-> organization cache (persisting between tests)
-    memoized_users_in_ical.cache_clear()
 
     ical_before = textwrap.dedent(
         """
@@ -696,7 +676,7 @@ def test_vtimezone_changes_no_triggering_notification(
     )
 
     # setup current shifts before checking/triggering for notifications
-    now = datetime.datetime.now(timezone.utc)
+    now = datetime.datetime.now(datetime.timezone.utc)
     current_shifts = schedule.final_events(now, now, False, False)
     schedule.current_shifts = json.dumps(current_shifts, default=str)
     schedule.empty_oncall = False
@@ -720,8 +700,6 @@ def test_no_changes_no_triggering_notification_from_old_to_new_task_version(
 ):
     organization, _, _, _ = make_organization_and_user_with_slack_identities()
     user1 = make_user(organization=organization, username="user1")
-    # clear users pks <-> organization cache (persisting between tests)
-    memoized_users_in_ical.cache_clear()
 
     schedule = make_schedule(
         organization,
@@ -778,8 +756,6 @@ def test_current_shift_changes_trigger_notification_from_old_to_new_task_version
     organization, _, _, _ = make_organization_and_user_with_slack_identities()
     user1 = make_user(organization=organization, username="user1")
     user2 = make_user(organization=organization, username="user2")
-    # clear users pks <-> organization cache (persisting between tests)
-    memoized_users_in_ical.cache_clear()
 
     schedule = make_schedule(
         organization,
@@ -841,8 +817,6 @@ def test_next_shift_notification_long_and_short_shifts(
     user1 = make_user(organization=organization, username="user1")
     user2 = make_user(organization=organization, username="user2")
     user3 = make_user(organization=organization, username="user3")
-    # clear users pks <-> organization cache (persisting between tests)
-    memoized_users_in_ical.cache_clear()
 
     schedule = make_schedule(
         organization,
