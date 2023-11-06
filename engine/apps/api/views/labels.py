@@ -23,7 +23,14 @@ from common.api_helpers.exceptions import BadRequest
 logger = logging.getLogger(__name__)
 
 
-class LabelsViewSet(ViewSet):
+class LabelsFeatureFlagViewSet(ViewSet):
+    def initial(self, request, *args, **kwargs):
+        super().initial(request, *args, **kwargs)
+        if not is_labels_feature_enabled(self.request.auth.organization):
+            raise NotFound
+
+
+class LabelsViewSet(LabelsFeatureFlagViewSet):
     """
     Proxy requests to labels-app to create/update labels
     """
@@ -39,11 +46,6 @@ class LabelsViewSet(ViewSet):
         "add_value": LegacyAccessControlRole.EDITOR,
         "rename_value": LegacyAccessControlRole.EDITOR,
     }
-
-    def initial(self, request, *args, **kwargs):
-        super().initial(request, *args, **kwargs)
-        if not is_labels_feature_enabled(self.request.auth.organization):
-            raise NotFound
 
     @extend_schema(responses=LabelKeySerializer(many=True))
     def get_keys(self, request):
@@ -135,7 +137,7 @@ class LabelsViewSet(ViewSet):
             update_labels_cache.apply_async((label_data,))
 
 
-class AlertGroupLabelsViewSet(ViewSet):
+class AlertGroupLabelsViewSet(LabelsFeatureFlagViewSet):
     """
     This viewset is similar to LabelsViewSet, but it works with alert group labels.
     Alert group labels are stored in the database, not in the label repo.
@@ -147,11 +149,6 @@ class AlertGroupLabelsViewSet(ViewSet):
         "get_keys": LegacyAccessControlRole.VIEWER,
         "get_key": LegacyAccessControlRole.VIEWER,
     }
-
-    def initial(self, request, *args, **kwargs):
-        super().initial(request, *args, **kwargs)
-        if not is_labels_feature_enabled(self.request.auth.organization):
-            raise NotFound
 
     @extend_schema(responses=LabelKeySerializer(many=True))
     def get_keys(self, request):
