@@ -42,7 +42,9 @@ jobs:
           # is older than the idle number of days.
           # Since adding the stale label will alter the last update date, we can calculate the number of days from
           # this date.
-          days-before-issue-close: 30
+          #
+          # NOTE: for now we will not close stale issues, simply triage labelling them as stale
+          days-before-issue-close: -1
           days-before-pr-stale: -1
           days-before-pr-close: -1
           ascending: true # start processing older issues first
@@ -50,6 +52,6 @@ jobs:
           exempt-issue-labels: "not-stale"
           stale-issue-message: >
             This issue has been automatically marked as stale because it has not had activity in the last
-            120 days. It will be closed in 30 days if no further activity occurs.
-          close-issue-message: >
-            This issue has been automatically closed because it has not had activity in the last 150 days.
+            120 days.
+          # close-issue-message: >
+          #   This issue has been automatically closed because it has not had activity in the last 150 days.
