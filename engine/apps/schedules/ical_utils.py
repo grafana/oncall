@@ -387,14 +387,6 @@ def get_oncall_users_for_multiple_schedules(
     return oncall_users
 
 
-def _generate_cache_key_for_schedule_oncall_users(schedule: "OnCallSchedule") -> str:
-    return f"schedule_{schedule.public_primary_key}_oncall_users"
-
-
-def _get_schedule_public_primary_key_from_schedule_oncall_users_cache_key(cache_key: str) -> str:
-    return cache_key.replace("schedule_", "").replace("_oncall_users", "")
-
-
 def get_cached_oncall_users_for_multiple_schedules(schedules: typing.List["OnCallSchedule"]) -> SchedulesOnCallUsers:
     """
     More "performant" version of `apps.schedules.ical_utils.get_oncall_users_for_multiple_schedules`
@@ -411,6 +403,12 @@ def get_cached_oncall_users_for_multiple_schedules(schedules: typing.List["OnCal
     """
     from apps.schedules.models import OnCallSchedule
     from apps.user_management.models import User
+
+    def _generate_cache_key_for_schedule_oncall_users(schedule: "OnCallSchedule") -> str:
+        return f"schedule_{schedule.public_primary_key}_oncall_users"
+
+    def _get_schedule_public_primary_key_from_schedule_oncall_users_cache_key(cache_key: str) -> str:
+        return cache_key.replace("schedule_", "").replace("_oncall_users", "")
 
     CACHE_TTL = 15 * 60  # 15 minutes in seconds
 
@@ -464,7 +462,7 @@ def get_cached_oncall_users_for_multiple_schedules(schedules: typing.List["OnCal
     schedules = {
         schedule.public_primary_key: schedule
         for schedule in OnCallSchedule.objects.filter(
-            public_primary_key__in=schedule_primary_keys_we_need_to_calculate_results_for
+            public_primary_key__in=schedule_public_primary_keys_to_fetch_from_db
         )
     }
     users = {

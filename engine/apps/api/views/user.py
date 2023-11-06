@@ -58,7 +58,7 @@ from apps.phone_notifications.exceptions import (
     ProviderNotSupports,
 )
 from apps.phone_notifications.phone_backend import PhoneBackend
-from apps.schedules.ical_utils import get_oncall_users_for_multiple_schedules
+from apps.schedules.ical_utils import get_cached_oncall_users_for_multiple_schedules
 from apps.schedules.models import OnCallSchedule
 from apps.telegram.client import TelegramClient
 from apps.telegram.models import TelegramVerificationCode
@@ -232,7 +232,7 @@ class UserView(
         The result of this method is cached and is reused for the whole lifetime of a request,
         since self.get_serializer_context() is called multiple times for every instance in the queryset.
         """
-        return get_oncall_users_for_multiple_schedules(self.request.user.organization.oncall_schedules.all())
+        return get_cached_oncall_users_for_multiple_schedules(self.request.user.organization.oncall_schedules.all())
 
     def _get_is_currently_oncall_query_param(self) -> str:
         return self.request.query_params.get("is_currently_oncall", "").lower()

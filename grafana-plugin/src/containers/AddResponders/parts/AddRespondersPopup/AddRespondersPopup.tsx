@@ -79,7 +79,7 @@ const AddRespondersPopup = observer(
         }
         setVisible(false);
       },
-      [isCreateMode, userStore, directPagingStore, setShowUserConfirmationModal, setVisible]
+      [isCreateMode, setShowUserConfirmationModal, setVisible]
     );
 
     const addTeamResponder = useCallback(
