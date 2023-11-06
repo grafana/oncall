@@ -13,6 +13,7 @@ from apps.api.permissions import LegacyAccessControlRole
 from apps.schedules.ical_utils import (
     get_cached_oncall_users_for_multiple_schedules,
     get_icalendar_tz_or_utc,
+    get_oncall_users_for_multiple_schedules,
     is_icals_equal,
     list_of_oncall_shifts_from_ical,
     list_users_to_notify_from_ical,
@@ -541,7 +542,7 @@ def test_get_cached_oncall_users_for_multiple_schedules(
         return users, (schedule1, schedule2, schedule3)
 
     def _generate_cache_key(schedule):
-        f"schedule_{schedule.public_primary_key}_oncall_users"
+        return f"schedule_{schedule.public_primary_key}_oncall_users"
 
     # scenario: nothing is cached, need to recalculate everything and cache it
     users, schedules = _test_setup()
@@ -573,12 +574,13 @@ def test_get_cached_oncall_users_for_multiple_schedules(
     cache.set(_generate_cache_key(schedule1), [users[0].public_primary_key, users[1].public_primary_key])
 
     with patch(
-        "apps.schedules.ical_utils.get_oncall_users_for_multiple_schedules"
-    ) as get_oncall_users_for_multiple_schedules:
+        "apps.schedules.ical_utils.get_oncall_users_for_multiple_schedules",
+        wraps=get_oncall_users_for_multiple_schedules,
+    ) as spy_get_oncall_users_for_multiple_schedules:
         results = get_cached_oncall_users_for_multiple_schedules(schedules)
 
     # make sure we're only calling the actual method for the uncached schedules
-    get_oncall_users_for_multiple_schedules.assert_called_once_with([schedule2, schedule3])
+    spy_get_oncall_users_for_multiple_schedules.assert_called_once_with([schedule2, schedule3])
 
     assert results == {
         schedule1: [users[0], users[1]],
@@ -607,12 +609,13 @@ def test_get_cached_oncall_users_for_multiple_schedules(
     )
 
     with patch(
-        "apps.schedules.ical_utils.get_oncall_users_for_multiple_schedules"
-    ) as get_oncall_users_for_multiple_schedules:
+        "apps.schedules.ical_utils.get_oncall_users_for_multiple_schedules",
+        wraps=get_oncall_users_for_multiple_schedules,
+    ) as spy_get_oncall_users_for_multiple_schedules:
         results = get_cached_oncall_users_for_multiple_schedules(schedules)
 
     # make sure we're not recalculating results because everything is already cached
-    get_oncall_users_for_multiple_schedules.assert_called_once_with([])
+    spy_get_oncall_users_for_multiple_schedules.assert_called_once_with([])
 
     assert results == {
         schedule1: [users[0], users[1]],
