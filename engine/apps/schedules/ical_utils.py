@@ -10,7 +10,6 @@ from typing import TYPE_CHECKING
 import pytz
 import requests
 from django.db.models import Q
-from django.utils import timezone
 from icalendar import Calendar
 from icalendar import Event as IcalEvent
 
@@ -251,8 +250,8 @@ def get_shifts_dict(
                 if start < end:
                     result_datetime.append(
                         {
-                            "start": start.astimezone(pytz.UTC),
-                            "end": end.astimezone(pytz.UTC),
+                            "start": start.astimezone(datetime.timezone.utc),
+                            "end": end.astimezone(datetime.timezone.utc),
                             "users": users,
                             "missing_users": missing_users,
                             "priority": priority,
@@ -288,9 +287,9 @@ def list_of_empty_shifts_in_schedule(
             start_datetime = datetime.datetime.combine(start_date, datetime.time.min) + datetime.timedelta(
                 milliseconds=1
             )
-            start_datetime_with_offset = (start_datetime - schedule_timezone_offset).astimezone(pytz.UTC)
+            start_datetime_with_offset = (start_datetime - schedule_timezone_offset).astimezone(datetime.timezone.utc)
             end_datetime = datetime.datetime.combine(end_date, datetime.time.max)
-            end_datetime_with_offset = (end_datetime - schedule_timezone_offset).astimezone(pytz.UTC)
+            end_datetime_with_offset = (end_datetime - schedule_timezone_offset).astimezone(datetime.timezone.utc)
 
             events = ical_events.get_events_from_ical_between(
                 calendar, start_datetime_with_offset, end_datetime_with_offset
@@ -315,8 +314,8 @@ def list_of_empty_shifts_in_schedule(
 
                     start, end, all_day = event_start_end_all_day_with_respect_to_type(event, calendar_tz)
                     if not all_day:
-                        start = start.astimezone(pytz.UTC)
-                        end = end.astimezone(pytz.UTC)
+                        start = start.astimezone(datetime.timezone.utc)
+                        end = end.astimezone(datetime.timezone.utc)
 
                     empty_shifts_per_calendar.append(
                         EmptyShift(
@@ -343,7 +342,7 @@ def list_users_to_notify_from_ical(
     """
     Retrieve on-call users for the current time
     """
-    events_datetime = events_datetime if events_datetime else datetime.datetime.now(timezone.utc)
+    events_datetime = events_datetime if events_datetime else datetime.datetime.now(datetime.timezone.utc)
     return list_users_to_notify_from_ical_for_period(
         schedule,
         events_datetime,
@@ -370,7 +369,7 @@ def get_oncall_users_for_multiple_schedules(
     schedules: typing.List["OnCallSchedule"], events_datetime=None
 ) -> SchedulesOnCallUsers:
     if events_datetime is None:
-        events_datetime = datetime.datetime.now(timezone.utc)
+        events_datetime = datetime.datetime.now(datetime.timezone.utc)
 
     # Exit early if there are no schedules
     if not schedules:

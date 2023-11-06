@@ -67,6 +67,7 @@ from apps.mobile_app.models import MobileAppAuthToken, MobileAppVerificationToke
 from apps.phone_notifications.phone_backend import PhoneBackend
 from apps.phone_notifications.tests.factories import PhoneCallRecordFactory, SMSRecordFactory
 from apps.phone_notifications.tests.mock_phone_provider import MockPhoneProvider
+from apps.schedules.ical_utils import memoized_users_in_ical
 from apps.schedules.models import OnCallScheduleWeb
 from apps.schedules.tests.factories import (
     CustomOnCallShiftFactory,
@@ -186,6 +187,12 @@ def mock_apply_async(monkeypatch):
 @pytest.fixture(autouse=True)
 def mock_is_labels_feature_enabled(settings):
     setattr(settings, "FEATURE_LABELS_ENABLED_FOR_ALL", True)
+
+
+@pytest.fixture(autouse=True)
+def clear_ical_users_cache():
+    # clear users pks <-> organization cache (persisting between tests)
+    memoized_users_in_ical.cache_clear()
 
 
 @pytest.fixture
