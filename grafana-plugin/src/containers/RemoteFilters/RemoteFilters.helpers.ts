@@ -22,7 +22,12 @@ export function parseFilters(
 
     let value: any = rawValue;
 
-    if (filterOption.type === 'options' || filterOption.type === 'team_select' || filterOption.type === 'labels') {
+    if (
+      filterOption.type === 'options' ||
+      filterOption.type === 'team_select' ||
+      filterOption.type === 'labels' ||
+      filterOption.type === 'alert_group_labels'
+    ) {
       if (!Array.isArray(rawValue)) {
         value = [rawValue];
       }
