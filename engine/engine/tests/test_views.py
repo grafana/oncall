@@ -15,7 +15,7 @@ def test_detached_integrations_startupprobe_populates_integrations_cache():
         response = client.get("/startupprobe/")
 
     assert response.status_code == status.HTTP_200_OK
-    mock_update_cache.assert_called_once
+    mock_update_cache.assert_called_once()
 
 
 def test_startupprobe_populates_integrations_cache():
@@ -27,4 +27,4 @@ def test_startupprobe_populates_integrations_cache():
         response = client.get("/startupprobe/")
 
     assert response.status_code == status.HTTP_200_OK
-    mock_update_cache.assert_called_once
+    mock_update_cache.assert_called_once()
