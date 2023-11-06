@@ -197,13 +197,13 @@ Refer to the following steps to configure the Telegram integration:
 
 ## Grafana OSS-Cloud Setup
 
-The benefits of connecting to Grafana Cloud include:
+The benefits of connecting to Grafana Cloud OnCall include:
 
-- Cloud OnCall could monitor OSS OnCall uptime using heartbeat
+- Grafana Cloud OnCall could monitor OSS OnCall uptime using heartbeat
 - SMS for user notifications
 - Phone calls for user notifications.
 
-To connect to Grafana Cloud, refer to the **Cloud** page in your OSS Grafana OnCall instance.
+To connect to Grafana Cloud OnCall, refer to the **Cloud** page in your OSS Grafana OnCall instance.
 
 ## Supported Phone Providers
 

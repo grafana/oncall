@@ -24,7 +24,7 @@ import { AppFeature } from 'state/features';
 import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import LocationHelper from 'utils/LocationHelper';
-import { generateMissingPermissionMessage, isUserActionAllowed, UserActions } from 'utils/authorization';
+import { UserActions, generateMissingPermissionMessage, isUserActionAllowed } from 'utils/authorization';
 import { PLUGIN_ROOT } from 'utils/consts';
 
 import { getUserRowClassNameFn } from './Users.helpers';
@@ -339,10 +339,10 @@ class Users extends React.Component<UsersProps, UsersState> {
           warnings.push('User not matched with cloud');
           break;
         case 2:
-          warnings.push('Phone number is not verified in Grafana Cloud');
+          warnings.push('Phone number is not verified in Grafana Cloud OnCall');
           break;
         case 3:
-          phone_verified = true; // Phone is verified in Grafana Cloud, no need to show warning to the user
+          phone_verified = true; // Phone is verified in Grafana Cloud OnCall, no need to show warning to the user
           break;
       }
     } else if (!phone_verified) {
