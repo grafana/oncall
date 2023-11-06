@@ -95,6 +95,82 @@ engine:
   # - mountPath: /mnt/redis-tls
   #   name: redis-tls
 
+
+detached_integrations_service:
+  enabled: false
+  type: LoadBalancer
+  port: 8080
+  annotations: {}
+
+# Integrations pods configuration
+detached_integrations:
+  enabled: false
+  replicaCount: 1
+  resources:
+    {}
+    # limits:
+    #   cpu: 100m
+    #   memory: 128Mi
+    # requests:
+    #   cpu: 100m
+    #   memory: 128Mi
+
+  ## Deployment update strategy
+  ## ref: https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#strategy
+  updateStrategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 0
+    type: RollingUpdate
+
+  ## Affinity for pod assignment
+  ## ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity
+  affinity: {}
+
+  ## Node labels for pod assignment
+  ## ref: https://kubernetes.io/docs/user-guide/node-selection/
+  nodeSelector: {}
+
+  ## Tolerations for pod assignment
+  ## ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
+  tolerations: []
+
+  ## Topology spread constraints for pod assignment
+  ## ref: https://kubernetes.io/docs/concepts/scheduling-eviction/topology-spread-constraints/
+  topologySpreadConstraints: []
+
+  ## Priority class for the pods
+  ## ref: https://kubernetes.io/docs/concepts/scheduling-eviction/pod-priority-preemption/
+  priorityClassName: ""
+
+  # Extra containers which runs as sidecar
+  extraContainers: ""
+  # extraContainers: |
+  # - name: cloud-sql-proxy
+  #   image: gcr.io/cloud-sql-connectors/cloud-sql-proxy:2.1.2
+  #   args:
+  #     - --private-ip
+  #     - --port=5432
+  #     - example:europe-west3:grafana-oncall-db
+
+  # Extra volume mounts for the container
+  extraVolumeMounts: []
+  # - name: postgres-tls
+  #   configMap:
+  #     name: my-postgres-tls
+  #     defaultMode: 0640
+  # - name: redis-tls
+  #   configMap:
+  #     name: my-redis-tls
+  #     defaultMode: 0640
+
+  # Extra volumes for the pod
+  extraVolumes: []
+  # - mountPath: /mnt/postgres-tls
+  #   name: postgres-tls
+  # - mountPath: /mnt/redis-tls
+  #   name: redis-tls
+
 # Celery workers pods configuration
 celery:
   replicaCount: 1

@@ -1,16 +1,17 @@
+{{- if .Values.detached_integrations.enabled -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "oncall.engine.fullname" . }}
+  name: {{ include "oncall.detached_integrations.fullname" . }}
   labels:
-    {{- include "oncall.engine.labels" . | nindent 4 }}
+    {{- include "oncall.detached_integrations.labels" . | nindent 4 }}
 spec:
-  replicas: {{ .Values.engine.replicaCount }}
+  replicas: {{ .Values.detached_integrations.replicaCount }}
   selector:
     matchLabels:
-      {{- include "oncall.engine.selectorLabels" . | nindent 6 }}
+      {{- include "oncall.detached_integrations.selectorLabels" . | nindent 6 }}
   strategy:
-    {{- toYaml .Values.engine.updateStrategy | nindent 4 }}
+    {{- toYaml .Values.detached_integrations.updateStrategy | nindent 4 }}
   template:
     metadata:
       {{- with .Values.podAnnotations }}
@@ -19,7 +20,7 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:
-        {{- include "oncall.engine.selectorLabels" . | nindent 8 }}
+        {{- include "oncall.detached_integrations.selectorLabels" . | nindent 8 }}
     spec:
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
@@ -45,6 +46,8 @@ spec:
               protocol: TCP
           env:
             {{- include "snippet.oncall.engine.env" . | nindent 12 }}
+            - name: ROOT_URLCONF
+              value: "engine.integrations_urls"
           livenessProbe:
             httpGet:
               path: /health/
@@ -64,32 +67,33 @@ spec:
             periodSeconds: 10
             timeoutSeconds: 3
           resources:
-            {{- toYaml .Values.engine.resources | nindent 12 }}
-          {{- with .Values.engine.extraVolumeMounts }}
+            {{- toYaml .Values.detached_integrations.resources | nindent 12 }}
+          {{- with .Values.detached_integrations.extraVolumeMounts }}
           volumeMounts: {{- . | toYaml | nindent 12 }}
           {{- end }}
-      {{- with .Values.engine.extraContainers }}
+      {{- with .Values.detached_integrations.extraContainers }}
         {{- tpl . $ | nindent 8 }}
       {{- end }}
-      {{- with .Values.engine.nodeSelector }}
+      {{- with .Values.detached_integrations.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.engine.affinity }}
+      {{- with .Values.detached_integrations.affinity }}
       affinity:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.engine.tolerations }}
+      {{- with .Values.detached_integrations.tolerations }}
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.engine.topologySpreadConstraints }}
+      {{- with .Values.detached_integrations.topologySpreadConstraints }}
       topologySpreadConstraints:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.engine.priorityClassName }}
+      {{- with .Values.detached_integrations.priorityClassName }}
       priorityClassName: {{ . }}
       {{- end }}
-      {{- with .Values.engine.extraVolumes }}
+      {{- with .Values.detached_integrations.extraVolumes }}
       volumes: {{- . | toYaml | nindent 8 }}
       {{- end }}
+{{- end -}}

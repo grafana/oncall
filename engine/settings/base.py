@@ -11,7 +11,6 @@ from common.utils import getenv_boolean, getenv_integer, getenv_list
 
 VERSION = "dev-oss"
 SEND_ANONYMOUS_USAGE_STATS = getenv_boolean("SEND_ANONYMOUS_USAGE_STATS", default=True)
-ADMIN_ENABLED = False  # disable django admin panel
 
 # License is OpenSource or Cloud
 OPEN_SOURCE_LICENSE_NAME = "OpenSource"
@@ -589,6 +588,10 @@ INTERNAL_IPS = ["127.0.0.1"]
 SELF_IP = os.environ.get("SELF_IP")
 
 SILK_PROFILER_ENABLED = getenv_boolean("SILK_PROFILER_ENABLED", default=False) and not IS_IN_MAINTENANCE_MODE
+
+# django admin panel is required to auth with django silk. Otherwise if silk isn't enabled, we don't need it.
+ONCALL_DJANGO_ADMIN_PATH = os.environ.get("ONCALL_DJANGO_ADMIN_PATH", "django-admin") + "/"
+ADMIN_ENABLED = SILK_PROFILER_ENABLED
 
 if SILK_PROFILER_ENABLED:
     SILK_PATH = os.environ.get("SILK_PATH", "silk/")

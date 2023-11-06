@@ -5,17 +5,20 @@ export interface MessagingBackends {
   [key: string]: any;
 }
 
-export interface User {
+interface BaseUser {
   pk: string;
+  name: string;
+  username: string;
+  avatar: string;
+  avatar_full: string;
+}
+
+export interface User extends BaseUser {
   slack_login: string;
   email: string;
   phone: string;
-  avatar: string;
-  avatar_full: string;
-  name: string;
   display_name: string;
   hide_phone_number: boolean;
-  username: string;
   slack_id: string;
   phone_verified: boolean;
   telegram_configuration: {
@@ -43,6 +46,14 @@ export interface User {
   hidden_fields?: boolean;
   timezone: Timezone;
   working_hours: { [key: string]: [] };
-  is_currently_oncall?: boolean;
-  teams?: GrafanaTeam[];
+}
+
+export interface PagedUser extends BaseUser {
+  important: boolean;
+}
+
+export interface UserCurrentlyOnCall extends BaseUser {
+  timezone: Timezone;
+  is_currently_oncall: boolean;
+  teams: GrafanaTeam[];
 }

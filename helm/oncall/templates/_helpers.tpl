@@ -85,6 +85,11 @@ Create the name of the service account to use
 {{- printf "%s-%s" .Release.Name "redis" | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
+{{/* Generate engine image name */}}
+{{- define "oncall.engine.image" -}}
+{{- printf "%s:%s" .Values.image.repository (.Values.image.tag | default .Chart.AppVersion) }}
+{{- end }}
+
 {{- define "oncall.initContainer" }}
 - name: wait-for-db
   image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
