@@ -97,8 +97,11 @@ const AddRespondersPopup = observer(
     );
 
     const searchForUsers = useCallback(async () => {
-      const userResults = await userStore.search<UserCurrentlyOnCall>({ searchTerm, is_currently_oncall: 'all' });
-      setUserSearchResults(userResults.results);
+      /**
+       * specifying is_currently_oncall=all will tell the backend not to paginate the results
+       */
+      const userResults = await userStore.search<UserCurrentlyOnCall[]>({ searchTerm, is_currently_oncall: 'all' });
+      setUserSearchResults(userResults);
     }, [searchTerm]);
 
     const searchForTeams = useCallback(async () => {

@@ -116,10 +116,13 @@ export class UserStore extends BaseStore {
     delete this.itemsCurrentlyUpdating[userPk];
   }
 
-  async search<UT = User>(f: any = { searchTerm: '' }, page = 1): Promise<PaginatedUsersResponse<UT>> {
+  /**
+   * NOTE: if is_currently_oncall=all the backend will not paginate the results, it will send back an array of ALL users
+   */
+  async search<RT = PaginatedUsersResponse<User>>(f: any = { searchTerm: '' }, page = 1): Promise<RT> {
     const filters = typeof f === 'string' ? { searchTerm: f } : f; // for GSelect compatibility
     const { searchTerm: search, ...restFilters } = filters;
-    return makeRequest<PaginatedUsersResponse<UT>>(this.path, {
+    return makeRequest<RT>(this.path, {
       params: { search, page, ...restFilters },
     });
   }

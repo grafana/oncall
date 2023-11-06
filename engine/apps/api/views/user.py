@@ -290,33 +290,35 @@ class UserView(
         def _get_oncall_user_ids():
             return {user.pk for _, users in self.schedules_with_oncall_users.items() for user in users}
 
+        paginate_results = True
+
         if (is_currently_oncall_query_param := self._get_is_currently_oncall_query_param()) == "true":
             # client explicitly wants to filter out users that are on-call
             queryset = queryset.filter(pk__in=_get_oncall_user_ids())
         elif is_currently_oncall_query_param == "false":
             # user explicitly wants to filter out on-call users
             queryset = queryset.exclude(pk__in=_get_oncall_user_ids())
+        elif is_currently_oncall_query_param == "all":
+            # return all users, don't paginate
+            paginate_results = False
 
-        page = self.paginate_queryset(queryset)
+        context = self.get_serializer_context()
 
-        if page is not None:
-            context = self.get_serializer_context()
+        if paginate_results and (page := self.paginate_queryset(queryset)) is not None:
+            if settings.IS_OPEN_SOURCE and live_settings.GRAFANA_CLOUD_NOTIFICATIONS_ENABLED:
+                from apps.oss_installation.models import CloudConnector, CloudUserIdentity
 
-            if settings.IS_OPEN_SOURCE:
-                if live_settings.GRAFANA_CLOUD_NOTIFICATIONS_ENABLED:
-                    from apps.oss_installation.models import CloudConnector, CloudUserIdentity
+                if (connector := CloudConnector.objects.first()) is not None:
+                    emails = list(queryset.values_list("email", flat=True))
+                    cloud_identities = list(CloudUserIdentity.objects.filter(email__in=emails))
+                    cloud_identities = {cloud_identity.email: cloud_identity for cloud_identity in cloud_identities}
+                    context["cloud_identities"] = cloud_identities
+                    context["connector"] = connector
 
-                    connector = CloudConnector.objects.first()
-                    if connector is not None:
-                        emails = list(queryset.values_list("email", flat=True))
-                        cloud_identities = list(CloudUserIdentity.objects.filter(email__in=emails))
-                        cloud_identities = {cloud_identity.email: cloud_identity for cloud_identity in cloud_identities}
-                        context["cloud_identities"] = cloud_identities
-                        context["connector"] = connector
             serializer = self.get_serializer(page, many=True, context=context)
             return self.get_paginated_response(serializer.data)
 
-        serializer = self.get_serializer(queryset, many=True)
+        serializer = self.get_serializer(queryset, many=True, context=context)
         return Response(serializer.data)
 
     def retrieve(self, request, *args, **kwargs) -> Response:

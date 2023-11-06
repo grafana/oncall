@@ -16,7 +16,7 @@ from rest_framework.response import Response
 from apps.alerts.constants import ActionSource
 from apps.alerts.models import Alert, AlertGroup, AlertReceiveChannel, EscalationChain, ResolutionNote
 from apps.alerts.paging import unpage_user
-from apps.alerts.tasks import send_update_resolution_note_signal
+from apps.alerts.tasks import delete_alert_group, send_update_resolution_note_signal
 from apps.api.errors import AlertGroupAPIError
 from apps.api.permissions import RBACPermission
 from apps.api.serializers.alert_group import AlertGroupListSerializer, AlertGroupSerializer
@@ -273,6 +273,7 @@ class AlertGroupView(
     PublicPrimaryKeyMixin,
     mixins.RetrieveModelMixin,
     mixins.ListModelMixin,
+    mixins.DestroyModelMixin,
     viewsets.GenericViewSet,
 ):
     authentication_classes = (
@@ -305,7 +306,7 @@ class AlertGroupView(
         "preview_template": [RBACPermission.Permissions.INTEGRATIONS_TEST],
     }
 
-    http_method_names = ["get", "post"]
+    http_method_names = ["get", "post", "delete"]
 
     serializer_class = AlertGroupSerializer
 
@@ -468,6 +469,12 @@ class AlertGroupView(
                 alert_group.alerts_count = 0
 
         return alert_groups
+
+    def destroy(self, request, *args, **kwargs):
+        print("YOOOO HOMIE")
+        instance = self.get_object()
+        delete_alert_group.apply_async((instance.pk, request.user.pk))
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     @extend_schema(responses=inline_serializer(name="AlertGroupStats", fields={"count": serializers.IntegerField()}))
     @action(detail=False)
