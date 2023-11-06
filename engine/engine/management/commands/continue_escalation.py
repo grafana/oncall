@@ -8,6 +8,17 @@ from apps.alerts.tasks import escalate_alert_group, unsilence_task
 
 
 class Command(BaseCommand):
+    """
+    Start escalation for alert groups from the point it was stopped with optionally start unsilence task for silenced
+    alert groups.
+
+    Usage example:
+    `python manage.py continue_escalation -ppk {"ppk1","ppk2"}` - continue escalation for alert groups with these
+    public pks
+    `python manage.py continue_escalation -id {1,2} -uns` - continue escalation for alert groups with these ids and
+    schedule unsilence task for silenced alert groups
+    """
+
     def add_arguments(self, parser):
         group = parser.add_mutually_exclusive_group(required=True)
 
