@@ -1943,7 +1943,7 @@ def test_users_is_currently_oncall_attribute_works_properly(
         user2.public_primary_key: False,
     }
 
-    for user in response.json()["results"]:
+    for user in response.json():
         assert user["teams"] == []
         assert user["is_currently_oncall"] == oncall_statuses[user["pk"]]
 
