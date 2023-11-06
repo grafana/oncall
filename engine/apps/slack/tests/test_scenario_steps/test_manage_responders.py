@@ -4,21 +4,17 @@ from unittest.mock import patch
 import pytest
 from django.utils import timezone
 
-from apps.alerts.models import AlertGroup
-from apps.alerts.paging import DirectPagingAlertGroupResolvedError
 from apps.base.models import UserNotificationPolicy
 from apps.schedules.models import CustomOnCallShift, OnCallScheduleWeb
 from apps.slack.scenarios.manage_responders import (
     ALERT_GROUP_DATA_KEY,
-    DIRECT_PAGING_SCHEDULE_SELECT_ID,
     DIRECT_PAGING_USER_SELECT_ID,
     USER_DATA_KEY,
     ManageRespondersRemoveUser,
-    ManageRespondersScheduleChange,
     ManageRespondersUserChange,
     StartManageResponders,
 )
-from apps.slack.scenarios.paging import _get_schedules_select, _get_users_select
+from apps.slack.scenarios.paging import _get_users_select
 
 ORGANIZATION_ID = 12
 ALERT_GROUP_ID = 42
@@ -27,11 +23,7 @@ CHANNEL_ID = "123"
 MESSAGE_TS = "67"
 
 
-def make_slack_payload(
-    user=None,
-    schedule=None,
-    actions=None,
-):
+def make_slack_payload(user=None, actions=None):
     payload = {
         "trigger_id": TRIGGER_ID,
         "view": {
@@ -42,11 +34,6 @@ def make_slack_payload(
                     DIRECT_PAGING_USER_SELECT_ID: {
                         ManageRespondersUserChange.routing_uid(): {
                             "selected_option": {"value": user.pk} if user else None
-                        }
-                    },
-                    DIRECT_PAGING_SCHEDULE_SELECT_ID: {
-                        ManageRespondersScheduleChange.routing_uid(): {
-                            "selected_option": {"value": schedule.pk} if schedule else None
                         }
                     },
                 }
@@ -155,72 +142,12 @@ def test_add_user_raise_warning(manage_responders_setup):
     text_from_blocks = "".join(
         b["text"]["text"] for b in mock_slack_api_call.call_args.kwargs["view"]["blocks"] if b["type"] == "section"
     )
-    assert f"*{user.username}* is not on-call" in text_from_blocks
+    assert (
+        "This user is not currently on-call. We don't recommend to page users outside on-call hours."
+        in text_from_blocks
+    )
     metadata = json.loads(mock_slack_api_call.call_args.kwargs["view"]["private_metadata"])
     assert metadata[USER_DATA_KEY] == user.pk
-
-
-@pytest.mark.django_db
-def test_add_schedule(manage_responders_setup, make_schedule, make_on_call_shift):
-    organization, user, slack_team_identity, slack_user_identity = manage_responders_setup
-    schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb, team=None)
-    now = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
-    start_date = now - timezone.timedelta(days=7)
-    data = {
-        "start": start_date,
-        "rotation_start": start_date,
-        "duration": timezone.timedelta(hours=23, minutes=59, seconds=59),
-        "priority_level": 1,
-        "frequency": CustomOnCallShift.FREQUENCY_DAILY,
-        "schedule": schedule,
-    }
-    on_call_shift = make_on_call_shift(
-        organization=organization, shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT, **data
-    )
-    on_call_shift.add_rolling_users([[user]])
-    schedule.refresh_ical_file()
-    payload = make_slack_payload(schedule=schedule)
-
-    step = ManageRespondersScheduleChange(slack_team_identity, organization, user)
-    with patch.object(step._slack_client, "views_update") as mock_slack_api_call:
-        step.process_scenario(slack_user_identity, slack_team_identity, payload)
-
-    assert mock_slack_api_call.call_args.kwargs["view"]["blocks"][0]["accessory"]["value"] == str(user.pk)
-
-
-@pytest.mark.django_db
-def test_add_schedule_alert_group_resolved(
-    manage_responders_setup, make_schedule, make_on_call_shift, make_user_notification_policy
-):
-    organization, user, slack_team_identity, slack_user_identity = manage_responders_setup
-    AlertGroup.objects.filter(pk=ALERT_GROUP_ID).update(resolved=True)  # resolve alert group
-
-    schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb, team=None)
-    now = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
-    start_date = now - timezone.timedelta(days=7)
-    data = {
-        "start": start_date,
-        "rotation_start": start_date,
-        "duration": timezone.timedelta(hours=23, minutes=59, seconds=59),
-        "priority_level": 1,
-        "frequency": CustomOnCallShift.FREQUENCY_DAILY,
-        "schedule": schedule,
-    }
-    on_call_shift = make_on_call_shift(
-        organization=organization, shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT, **data
-    )
-    on_call_shift.add_rolling_users([[user]])
-    schedule.refresh_ical_file()
-    payload = make_slack_payload(schedule=schedule)
-
-    step = ManageRespondersScheduleChange(slack_team_identity, organization, user)
-    with patch.object(step._slack_client, "views_update") as mock_slack_api_call:
-        step.process_scenario(slack_user_identity, slack_team_identity, payload)
-
-    assert (
-        DirectPagingAlertGroupResolvedError.DETAIL
-        in mock_slack_api_call.call_args.kwargs["view"]["blocks"][0]["text"]["text"]
-    )
 
 
 @pytest.mark.django_db
@@ -233,42 +160,59 @@ def test_remove_user(manage_responders_setup):
         step.process_scenario(slack_user_identity, slack_team_identity, payload)
 
     # check there's no list of users in the view
-    assert mock_slack_api_call.call_args.kwargs["view"]["blocks"][0]["accessory"]["type"] != "button"
+    assert mock_slack_api_call.call_args.kwargs["view"]["blocks"][0]["element"]["type"] != "button"
 
 
 @pytest.mark.django_db
-def test_get_users_select(make_organization, make_user):
+def test_get_users_select(make_organization, make_user, make_schedule, make_on_call_shift):
     organization = make_organization()
+
+    # not on-call users
     for _ in range(3):
         make_user(organization=organization)
 
-    select_options = _get_users_select(organization=organization, input_id_prefix="test", action_id="test")
-    assert len(select_options["accessory"]["options"]) == 3
-    assert "option_groups" not in select_options["accessory"]
+    oncall_user = make_user(organization=organization)
 
-    select_option_groups = _get_users_select(
+    # set up schedule: user is on call
+    schedule = make_schedule(
+        organization,
+        schedule_class=OnCallScheduleWeb,
+        team=None,
+    )
+    now = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    start_date = now - timezone.timedelta(days=7)
+    data = {
+        "start": start_date,
+        "rotation_start": start_date,
+        "duration": timezone.timedelta(hours=23, minutes=59, seconds=59),
+        "priority_level": 1,
+        "frequency": CustomOnCallShift.FREQUENCY_DAILY,
+        "schedule": schedule,
+    }
+    on_call_shift = make_on_call_shift(
+        organization=organization, shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT, **data
+    )
+    on_call_shift.add_rolling_users([[oncall_user]])
+    schedule.refresh_ical_file()
+
+    select_input = _get_users_select(
         organization=organization, input_id_prefix="test", action_id="test", max_options_per_group=2
     )
-    assert len(select_option_groups["accessory"]["option_groups"]) == 2
-    assert len(select_option_groups["accessory"]["option_groups"][0]["options"]) == 2
-    assert len(select_option_groups["accessory"]["option_groups"][1]["options"]) == 1
-    assert "options" not in select_option_groups["accessory"]
 
+    select_element = select_input["element"]
+    select_option_groups = select_element["option_groups"]
 
-@pytest.mark.django_db
-def test_get_schedules_select(make_organization, make_schedule):
-    organization = make_organization()
-    for _ in range(3):
-        make_schedule(organization, schedule_class=OnCallScheduleWeb)
+    assert len(select_option_groups) == 3
+    assert "options" not in select_element
 
-    select_options = _get_schedules_select(organization=organization, input_id_prefix="test", action_id="test")
-    assert len(select_options["accessory"]["options"]) == 3
-    assert "option_groups" not in select_options["accessory"]
+    oncall_options = select_option_groups[0]
+    not_oncall_options_group1 = select_option_groups[1]
+    not_oncall_options_group2 = select_option_groups[2]
 
-    select_option_groups = _get_schedules_select(
-        organization=organization, input_id_prefix="test", action_id="test", max_options_per_group=2
-    )
-    assert len(select_option_groups["accessory"]["option_groups"]) == 2
-    assert len(select_option_groups["accessory"]["option_groups"][0]["options"]) == 2
-    assert len(select_option_groups["accessory"]["option_groups"][1]["options"]) == 1
-    assert "options" not in select_option_groups["accessory"]
+    assert len(oncall_options["options"]) == 1
+    assert len(not_oncall_options_group1["options"]) == 2
+    assert len(not_oncall_options_group2["options"]) == 1
+
+    assert oncall_options["label"]["text"] == "On-call now"
+    assert not_oncall_options_group1["label"]["text"] == "Not on-call (1-2)"
+    assert not_oncall_options_group2["label"]["text"] == "Not on-call (3-4)"

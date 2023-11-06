@@ -234,7 +234,7 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
     );
   }
 
-  handleFiltersChange = (filters: FiltersValues, isOnMount) => {
+  handleFiltersChange = (filters: FiltersValues, isOnMount: boolean) => {
     const { store } = this.props;
 
     const { outgoingWebhookStore } = store;

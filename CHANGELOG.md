@@ -5,6 +5,70 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+## v1.3.53 (2023-11-03)
+
+### Fixed
+
+- Fix db migration for mobile app @Ferril ([#3260](https://github.com/grafana/oncall/pull/3260))
+
+## v1.3.52 (2023-11-02)
+
+### Fixed
+
+- Address `TypeError` that occurs under some scenarios on the Alert Group detail page
+
+### Changed
+
+- Change wording for push notifications timing choices @Ferril ([#3253](https://github.com/grafana/oncall/pull/3253))
+
+## v1.3.51 (2023-11-02)
+
+### Fixed
+
+- Postpone Legacy AlertManager and Grafana Alerting integration auto-migration date ([3250])(<https://github.com/grafana/oncall/pull/3250>)
+
+## v1.3.50 (2023-11-02)
+
+### Fixed
+
+- Return alert groups for deleted integrations on private api ([3223](https://github.com/grafana/oncall/pull/3223))
+
+## v1.3.49 (2023-10-31)
+
+### Changed
+
+- Removed the hardcoding of page size on frontend ([#3205](https://github.com/grafana/oncall/pull/3205))
+- Prevent additional polling on Incidents if the previous request didn't complete
+  ([#3205](https://github.com/grafana/oncall/pull/3205))
+- Order results from `GET /teams` internal API endpoint by ascending name by @joeyorlando ([#3220](https://github.com/grafana/oncall/pull/3220))
+- Order alert groups internal API endpoint by descending started_at by @mderynck ([#3240](https://github.com/grafana/oncall/pull/3240))
+
+### Fixed
+
+- Improve slow `GET /users` + `GET /teams` internal API endpoints by @joeyorlando ([#3220](https://github.com/grafana/oncall/pull/3220))
+- Fix search issue when searching for teams in the add responders popup window by @joeyorlando ([#3220](https://github.com/grafana/oncall/pull/3220))
+- CSS changes to add responders dropdown to fix long search results list by @joeyorlando ([#3220](https://github.com/grafana/oncall/pull/3220))
+- Do not allow to update terraform-based shifts in web UI schedule API ([#3224](https://github.com/grafana/oncall/pull/3224))
+
+## v1.3.48 (2023-10-30)
+
+### Added
+
+- Data type changed from `DateField` to `DateTimeField` on the `final_shifts` API endpoint. Endpoint now accepts either
+  a date or a datetime ([#3103](https://github.com/grafana/oncall/pull/3103))
+
+### Changed
+
+- Simplify Direct Paging workflow. Now when using Direct Paging you either simply specify a team, or one or more users
+  to page by @joeyorlando ([#3128](https://github.com/grafana/oncall/pull/3128))
+- Enable timing options for mobile push notifications, allow multi-select by @Ferril ([#3187](https://github.com/grafana/oncall/pull/3187))
+
+### Fixed
+
+- Fix RBAC authorization bugs related to interacting with Alert Group Slack messages by @joeyorlando ([#3213](https://github.com/grafana/oncall/pull/3213))
+
 ## v1.3.47 (2023-10-25)
 
 ### Fixed
@@ -23,6 +87,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix resolution note source for mobile app by @vadimkerr ([#3174](https://github.com/grafana/oncall/pull/3174))
 - Fix iCal imported schedules related users and next shifts per user ([#3178](https://github.com/grafana/oncall/pull/3178))
 - Fix references to removed access control functions in Grafana @mderynck ([#3184](https://github.com/grafana/oncall/pull/3184))
+
+### Changed
+
+- Upgrade Django to 4.2.6 and update iCal related deps ([#3176](https://github.com/grafana/oncall/pull/3176))
 
 ## v1.3.45 (2023-10-19)
 

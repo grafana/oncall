@@ -107,6 +107,10 @@ steps:
       target: prod
       config:
         from_secret: gcr_admin
+      build_args:
+        - BUILDKIT_INLINE_CACHE=1
+      cache_from:
+        - grafana/oncall:latest
     depends_on:
       - Lint Backend
       - Unit Test Backend
@@ -128,6 +132,10 @@ steps:
         from_secret: docker_password
       username:
         from_secret: docker_username
+      build_args:
+        - BUILDKIT_INLINE_CACHE=1
+      cache_from:
+        - grafana/oncall:latest
     depends_on:
       - Lint Backend
       - Unit Test Backend
@@ -244,6 +252,11 @@ steps:
     # Be aware that the this plugin requires privileged capabilities, otherwise the integrated
     # Docker daemon is not able to start.
     privileged: true
+    environment:
+      # force docker to use buildkit feature, this will skip build stages that aren't required in
+      # the final image (ie. dev & dev-enterprise)
+      # https://github.com/docker/cli/issues/1134#issuecomment-406449342
+      DOCKER_BUILDKIT: 1
     settings:
       repo: grafana/oncall
       tags: latest,${DRONE_TAG}
@@ -255,8 +268,37 @@ steps:
         from_secret: docker_password
       username:
         from_secret: docker_username
+      build_args:
+        - BUILDKIT_INLINE_CACHE=1
+      cache_from:
+        - grafana/oncall:latest
     depends_on:
       - set engine version
+
+  - name: merge helm release oss pr
+    image: alpine
+    environment:
+      GITHUB_API_KEY:
+        from_secret: github_api_token
+    # Allow this step to fail as it's not critical to the build process and we don't want to block
+    # the build promotion. If this step fails we can always merge the PR manually
+    failure: ignore
+    commands:
+      # yamllint disable rule:line-length
+      - apk add --no-cache curl jq
+      # Step 1. Fetch PRs from GitHub's API that're open and have a particular head ref indicative of a helm release PR
+      # API docs - https://docs.github.com/en/rest/pulls/pulls?apiVersion=2022-11-28#list-pull-requests
+      # NOTE: ${DRONE_TAG:1} will slice off the "v" prefix from the tag
+      - 'curl -L -H "Accept: application/vnd.github+json" -H "Authorization: Bearer $${GITHUB_API_KEY}" -H "X-GitHub-Api-Version: 2022-11-28" "https://api.github.com/repos/grafana/oncall/pulls?head=grafana:helm-release/$${DRONE_TAG:1}&state=open" > prs.json'
+      - cat prs.json
+      # Step 2. Extract the PR number from the first PR in the list to be able to pass that to the next API call
+      - cat prs.json | jq -r ".[0].number" > pr_number.txt
+      - cat pr_number.txt
+      # Step 3. Merge the PR (https://docs.github.com/en/rest/pulls/pulls?apiVersion=2022-11-28#merge-a-pull-request)
+      - 'cat pr_number.txt | xargs -r -I{pull_number} curl -L -X PUT -H "Accept: application/vnd.github+json" -H "Authorization: Bearer $${GITHUB_API_KEY}" -H "X-GitHub-Api-Version: 2022-11-28" "https://api.github.com/repos/grafana/oncall/pulls/{pull_number}/merge"'
+      # yamllint enable rule:line-length
+    depends_on:
+      - build and push docker image
 
 trigger:
   event:
@@ -327,8 +369,14 @@ get:
   path: infra/data/ci/drone
 kind: secret
 name: drone_token
+
+---
+# GitHub API token (only scoped to grafana/oncall + PR access)
+get:
+  name: github-api-token
+  path: ci/data/repo/grafana/oncall/drone
+kind: secret
+name: github_api_token
 ---
 kind: signature
-hmac: 8b387638ef35f86ed9f8c8c964726e0ae703beb7d0f18e053b5041ab8ee9bed2
-
-...
+hmac: b9e499a424faecd9a8f41552cc307bd3431cb0e3fac77f3ee99ce19258fc0fec

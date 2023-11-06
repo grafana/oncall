@@ -37,7 +37,6 @@ import { PAGE, PLUGIN_ROOT, TEXT_ELLIPSIS_CLASS } from 'utils/consts';
 import styles from './Schedules.module.css';
 
 const cx = cn.bind(styles);
-const PAGE_SIZE_DEFAULT = 15;
 
 interface SchedulesPageProps extends WithStoreProps, RouteComponentProps, PageProps {}
 
@@ -47,7 +46,6 @@ interface SchedulesPageState {
   showNewScheduleSelector: boolean;
   expandedRowKeys: Array<Schedule['id']>;
   scheduleIdToEdit?: Schedule['id'];
-  page: number;
 }
 
 @observer
@@ -63,7 +61,6 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
       showNewScheduleSelector: false,
       expandedRowKeys: [],
       scheduleIdToEdit: undefined,
-      page: !isNaN(Number(props.query.p)) ? Number(props.query.p) : 1,
     };
   }
 
@@ -77,10 +74,11 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
 
   render() {
     const { store, query } = this.props;
-
-    const { showNewScheduleSelector, expandedRowKeys, scheduleIdToEdit, page, startMoment } = this.state;
+    const { showNewScheduleSelector, expandedRowKeys, scheduleIdToEdit, startMoment } = this.state;
 
     const { results, count, page_size } = store.scheduleStore.getSearchResult();
+
+    const page = store.filtersStore.currentTablePageNum[PAGE.Schedules];
 
     const users = store.userStore.getSearchResult().results;
 
@@ -118,9 +116,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
               query={query}
               page={PAGE.Schedules}
               grafanaTeamStore={store.grafanaTeamStore}
-              onChange={(filters, isOnMount: boolean, invalidateFn: () => boolean) => {
-                this.handleSchedulesFiltersChange(filters, isOnMount, invalidateFn);
-              }}
+              onChange={this.handleSchedulesFiltersChange}
             />
           </div>
 
@@ -130,7 +126,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
             loading={!results}
             pagination={{
               page,
-              total: Math.ceil((count || 0) / (page_size || PAGE_SIZE_DEFAULT)),
+              total: results ? Math.ceil((count || 0) / page_size) : 0,
               onChange: this.handlePageChange,
             }}
             rowKey="id"
@@ -384,27 +380,32 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
     };
   };
 
-  handleSchedulesFiltersChange = (filters: RemoteFiltersType, isOnMount: boolean, invalidateFn: () => boolean) => {
-    this.setState({ filters, page: isOnMount ? this.state.page : 1 }, () => {
+  handleSchedulesFiltersChange = (filters: RemoteFiltersType, _isOnMount: boolean, invalidateFn: () => boolean) => {
+    this.setState({ filters }, () => {
       this.applyFilters(invalidateFn);
     });
   };
 
   applyFilters = (invalidateFn?: () => boolean) => {
-    const { scheduleStore } = this.props.store;
-    const { page, filters } = this.state;
+    const { scheduleStore, filtersStore } = this.props.store;
+    const { filters } = this.state;
+    const currentTablePage = filtersStore.currentTablePageNum[PAGE.Schedules];
 
-    LocationHelper.update({ p: page }, 'partial');
-    scheduleStore.updateItems(filters, page, invalidateFn);
+    LocationHelper.update({ p: currentTablePage }, 'partial');
+    scheduleStore.updateItems(filters, currentTablePage, invalidateFn);
   };
 
   handlePageChange = (page: number) => {
-    this.setState({ page, expandedRowKeys: [] }, this.applyFilters);
+    const { store } = this.props;
+    store.filtersStore.currentTablePageNum[PAGE.Schedules] = page;
+
+    this.setState({ expandedRowKeys: [] }, this.applyFilters);
   };
 
   update = () => {
     const { store } = this.props;
-    const { page, startMoment } = this.state;
+    const { startMoment } = this.state;
+    const page = store.filtersStore.currentTablePageNum[PAGE.Schedules];
 
     store.scheduleStore.updatePersonalEvents(store.userStore.currentUserPk, startMoment, 9, true);
 

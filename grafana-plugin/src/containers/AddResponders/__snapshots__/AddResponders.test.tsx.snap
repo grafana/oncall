@@ -1,0 +1,856 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`AddResponders should properly display the add responders button when hideAddResponderButton is false 1`] = `
+<div>
+  <div
+    class="body"
+  >
+    <div
+      class="root root_bordered"
+    >
+      <div
+        class="css-on8nbh-horizontal-group"
+        style="width: 100%; height: 100%;"
+      >
+        <div
+          class="css-cvef6c-layoutChildrenWrapper"
+        >
+          <h4
+            class="title"
+          >
+            <span
+              class="root text text--primary text--medium"
+            >
+              Participants
+            </span>
+          </h4>
+        </div>
+        <div
+          class="css-cvef6c-layoutChildrenWrapper"
+        >
+          <div>
+            <button
+              class="css-b2ba3d-button"
+              type="button"
+            >
+              <div
+                class="css-wf08df-Icon"
+              >
+                <svg
+                  class="css-1gebccs"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  width="16"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M19,11H13V5a1,1,0,0,0-2,0v6H5a1,1,0,0,0,0,2h6v6a1,1,0,0,0,2,0V13h6a1,1,0,0,0,0-2Z"
+                  />
+                </svg>
+              </div>
+              <span
+                class="css-1mhnkuh"
+              >
+                Invite
+              </span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div>
+      AddRespondersPopup
+    </div>
+  </div>
+</div>
+`;
+
+exports[`AddResponders should properly display the add responders button when hideAddResponderButton is true 1`] = `
+<div>
+  <div
+    class="body"
+  >
+    <div
+      class="root root_bordered"
+    >
+      <div
+        class="css-on8nbh-horizontal-group"
+        style="width: 100%; height: 100%;"
+      >
+        <div
+          class="css-cvef6c-layoutChildrenWrapper"
+        >
+          <h4
+            class="title"
+          >
+            <span
+              class="root text text--primary text--medium"
+            >
+              Participants
+            </span>
+          </h4>
+        </div>
+      </div>
+    </div>
+    <div>
+      AddRespondersPopup
+    </div>
+  </div>
+</div>
+`;
+
+exports[`AddResponders should render properly in create mode 1`] = `
+<div>
+  <div
+    class="body"
+  >
+    <div
+      class="root root_bordered"
+    >
+      <div
+        class="css-on8nbh-horizontal-group"
+        style="width: 100%; height: 100%;"
+      >
+        <div
+          class="css-cvef6c-layoutChildrenWrapper"
+        >
+          <h4
+            class="title"
+          >
+            <span
+              class="root text text--primary text--medium"
+            >
+              Participants
+            </span>
+          </h4>
+        </div>
+        <div
+          class="css-cvef6c-layoutChildrenWrapper"
+        >
+          <div>
+            <button
+              class="css-b2ba3d-button"
+              type="button"
+            >
+              <div
+                class="css-wf08df-Icon"
+              >
+                <svg
+                  class="css-1gebccs"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  width="16"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M19,11H13V5a1,1,0,0,0-2,0v6H5a1,1,0,0,0,0,2h6v6a1,1,0,0,0,2,0V13h6a1,1,0,0,0,0-2Z"
+                  />
+                </svg>
+              </div>
+              <span
+                class="css-1mhnkuh"
+              >
+                Invite
+              </span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div>
+      AddRespondersPopup
+    </div>
+  </div>
+</div>
+`;
+
+exports[`AddResponders should render properly in update mode 1`] = `
+<div>
+  <div
+    class="body"
+  >
+    <div
+      class="root root_bordered"
+    >
+      <div
+        class="css-on8nbh-horizontal-group"
+        style="width: 100%; height: 100%;"
+      >
+        <div
+          class="css-cvef6c-layoutChildrenWrapper"
+        >
+          <h4
+            class="title"
+          >
+            <span
+              class="root text text--primary text--medium"
+            >
+              Participants
+            </span>
+          </h4>
+        </div>
+        <div
+          class="css-cvef6c-layoutChildrenWrapper"
+        >
+          <div>
+            <button
+              class="css-b2ba3d-button"
+              type="button"
+            >
+              <div
+                class="css-wf08df-Icon"
+              >
+                <svg
+                  class="css-1gebccs"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  width="16"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M19,11H13V5a1,1,0,0,0-2,0v6H5a1,1,0,0,0,0,2h6v6a1,1,0,0,0,2,0V13h6a1,1,0,0,0,0-2Z"
+                  />
+                </svg>
+              </div>
+              <span
+                class="css-1mhnkuh"
+              >
+                Add
+              </span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div>
+      AddRespondersPopup
+    </div>
+  </div>
+</div>
+`;
+
+exports[`AddResponders should render selected team and users properly 1`] = `
+<div>
+  <div
+    class="body"
+  >
+    <div
+      class="root root_bordered"
+    >
+      <div
+        class="css-on8nbh-horizontal-group"
+        style="width: 100%; height: 100%;"
+      >
+        <div
+          class="css-cvef6c-layoutChildrenWrapper"
+        >
+          <h4
+            class="title"
+          >
+            <span
+              class="root text text--primary text--medium"
+            >
+              Participants
+            </span>
+          </h4>
+        </div>
+        <div
+          class="css-cvef6c-layoutChildrenWrapper"
+        >
+          <div>
+            <button
+              class="css-b2ba3d-button"
+              type="button"
+            >
+              <div
+                class="css-wf08df-Icon"
+              >
+                <svg
+                  class="css-1gebccs"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  width="16"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M19,11H13V5a1,1,0,0,0-2,0v6H5a1,1,0,0,0,0,2h6v6a1,1,0,0,0,2,0V13h6a1,1,0,0,0,0-2Z"
+                  />
+                </svg>
+              </div>
+              <span
+                class="css-1mhnkuh"
+              >
+                Invite
+              </span>
+            </button>
+          </div>
+        </div>
+      </div>
+      <ul
+        class="responders-list"
+      >
+        <li>
+          <div
+            class="css-on8nbh-horizontal-group"
+            style="width: 100%; height: 100%;"
+          >
+            <div
+              class="css-cvef6c-layoutChildrenWrapper"
+            >
+              <div
+                class="css-ve64a7-horizontal-group"
+                style="width: 100%; height: 100%;"
+              >
+                <div
+                  class="css-cvef6c-layoutChildrenWrapper"
+                >
+                  <div
+                    class="timeline-icon-background"
+                  >
+                    <img
+                      class="root avatarSize-medium"
+                      data-testid="test__avatar"
+                      src="https://example.com"
+                    />
+                  </div>
+                </div>
+                <div
+                  class="css-cvef6c-layoutChildrenWrapper"
+                >
+                  <span
+                    class="root text text--undefined text--medium responder-name"
+                  >
+                    my test team
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div
+              class="css-cvef6c-layoutChildrenWrapper"
+            >
+              <button
+                aria-label="Remove responder"
+                class="css-x1vujn"
+                data-testid="team-responder-delete-icon"
+                tabindex="0"
+              >
+                <div
+                  class="css-wf08df-Icon"
+                >
+                  <svg
+                    class="css-hj6vlq"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    width="16"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M10,18a1,1,0,0,0,1-1V11a1,1,0,0,0-2,0v6A1,1,0,0,0,10,18ZM20,6H16V5a3,3,0,0,0-3-3H11A3,3,0,0,0,8,5V6H4A1,1,0,0,0,4,8H5V19a3,3,0,0,0,3,3h8a3,3,0,0,0,3-3V8h1a1,1,0,0,0,0-2ZM10,5a1,1,0,0,1,1-1h2a1,1,0,0,1,1,1V6H10Zm7,14a1,1,0,0,1-1,1H8a1,1,0,0,1-1-1V8H17Zm-3-1a1,1,0,0,0,1-1V11a1,1,0,0,0-2,0v6A1,1,0,0,0,14,18Z"
+                    />
+                  </svg>
+                </div>
+              </button>
+            </div>
+          </div>
+        </li>
+        <li>
+          <div
+            class="css-on8nbh-horizontal-group"
+            style="width: 100%; height: 100%;"
+          >
+            <div
+              class="css-cvef6c-layoutChildrenWrapper"
+            >
+              <div
+                class="css-ve64a7-horizontal-group"
+                style="width: 100%; height: 100%;"
+              >
+                <div
+                  class="css-cvef6c-layoutChildrenWrapper"
+                >
+                  <div
+                    class="timeline-icon-background timeline-icon-background--green"
+                  >
+                    <img
+                      class="root avatarSize-medium"
+                      data-testid="test__avatar"
+                      src="https://example.com/user9995.png"
+                    />
+                  </div>
+                </div>
+                <div
+                  class="css-cvef6c-layoutChildrenWrapper"
+                >
+                  <span
+                    class="root text text--undefined text--medium responder-name"
+                  >
+                    my test user3
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div
+              class="css-cvef6c-layoutChildrenWrapper"
+            >
+              <div
+                class="css-ve64a7-horizontal-group"
+                style="width: 100%; height: 100%;"
+              >
+                <div
+                  class="css-cvef6c-layoutChildrenWrapper"
+                >
+                  <div
+                    class="css-19xfdrs-input-wrapper select css-8k5qe3-SelectContainer"
+                  >
+                    <span
+                      class="css-1f43avz-a11yText-A11yText"
+                      id="react-select-2-live-region"
+                    />
+                    <span
+                      aria-atomic="false"
+                      aria-live="polite"
+                      aria-relevant="additions text"
+                      class="css-1f43avz-a11yText-A11yText"
+                    />
+                    <div
+                      class="css-1scgfe8"
+                    >
+                      <div
+                        class="css-1kl463j-grafana-select-value-container"
+                      >
+                        <div
+                          class=" css-1yc0yww-placeholder"
+                          id="react-select-2-placeholder"
+                        >
+                          Choose
+                        </div>
+                        <input
+                          aria-autocomplete="list"
+                          aria-describedby="react-select-2-placeholder"
+                          aria-expanded="false"
+                          aria-haspopup="true"
+                          aria-readonly="true"
+                          class="css-mohuvp-dummyInput-DummyInput"
+                          disabled=""
+                          id="react-select-2-input"
+                          inputmode="none"
+                          role="combobox"
+                          tabindex="0"
+                          value=""
+                        />
+                      </div>
+                      <div
+                        class="css-uvldi-input-suffix"
+                      >
+                        <div
+                          class="css-wf08df-Icon"
+                        >
+                          <svg
+                            class="css-eyx4do"
+                            height="16"
+                            viewBox="0 0 24 24"
+                            width="16"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <path
+                              d="M17,9.17a1,1,0,0,0-1.41,0L12,12.71,8.46,9.17a1,1,0,0,0-1.41,0,1,1,0,0,0,0,1.42l4.24,4.24a1,1,0,0,0,1.42,0L17,10.59A1,1,0,0,0,17,9.17Z"
+                            />
+                          </svg>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  class="css-cvef6c-layoutChildrenWrapper"
+                >
+                  <button
+                    aria-label="Remove responder"
+                    class="css-x1vujn"
+                    data-testid="user-responder-delete-icon"
+                    tabindex="0"
+                  >
+                    <div
+                      class="css-wf08df-Icon"
+                    >
+                      <svg
+                        class="css-hj6vlq"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        width="16"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M10,18a1,1,0,0,0,1-1V11a1,1,0,0,0-2,0v6A1,1,0,0,0,10,18ZM20,6H16V5a3,3,0,0,0-3-3H11A3,3,0,0,0,8,5V6H4A1,1,0,0,0,4,8H5V19a3,3,0,0,0,3,3h8a3,3,0,0,0,3-3V8h1a1,1,0,0,0,0-2ZM10,5a1,1,0,0,1,1-1h2a1,1,0,0,1,1,1V6H10Zm7,14a1,1,0,0,1-1,1H8a1,1,0,0,1-1-1V8H17Zm-3-1a1,1,0,0,0,1-1V11a1,1,0,0,0-2,0v6A1,1,0,0,0,14,18Z"
+                        />
+                      </svg>
+                    </div>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </li>
+        <li>
+          <div
+            class="css-on8nbh-horizontal-group"
+            style="width: 100%; height: 100%;"
+          >
+            <div
+              class="css-cvef6c-layoutChildrenWrapper"
+            >
+              <div
+                class="css-ve64a7-horizontal-group"
+                style="width: 100%; height: 100%;"
+              >
+                <div
+                  class="css-cvef6c-layoutChildrenWrapper"
+                >
+                  <div
+                    class="timeline-icon-background timeline-icon-background--green"
+                  >
+                    <img
+                      class="root avatarSize-medium"
+                      data-testid="test__avatar"
+                      src="https://example.com/user123.png"
+                    />
+                  </div>
+                </div>
+                <div
+                  class="css-cvef6c-layoutChildrenWrapper"
+                >
+                  <span
+                    class="root text text--undefined text--medium responder-name"
+                  >
+                    my test user
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div
+              class="css-cvef6c-layoutChildrenWrapper"
+            >
+              <div
+                class="css-ve64a7-horizontal-group"
+                style="width: 100%; height: 100%;"
+              >
+                <div
+                  class="css-cvef6c-layoutChildrenWrapper"
+                >
+                  <div
+                    class="css-15fuo2f-input-wrapper select css-8k5qe3-SelectContainer"
+                  >
+                    <span
+                      class="css-1f43avz-a11yText-A11yText"
+                      id="react-select-3-live-region"
+                    />
+                    <span
+                      aria-atomic="false"
+                      aria-live="polite"
+                      aria-relevant="additions text"
+                      class="css-1f43avz-a11yText-A11yText"
+                    />
+                    <div
+                      class="css-1scgfe8"
+                    >
+                      <div
+                        class="css-1kl463j-grafana-select-value-container"
+                      >
+                        <div
+                          class=" css-1yc0yww-placeholder"
+                          id="react-select-3-placeholder"
+                        >
+                          Choose
+                        </div>
+                        <input
+                          aria-autocomplete="list"
+                          aria-describedby="react-select-3-placeholder"
+                          aria-expanded="false"
+                          aria-haspopup="true"
+                          aria-readonly="true"
+                          class="css-mohuvp-dummyInput-DummyInput"
+                          id="react-select-3-input"
+                          inputmode="none"
+                          role="combobox"
+                          tabindex="0"
+                          value=""
+                        />
+                      </div>
+                      <div
+                        class="css-uvldi-input-suffix"
+                      >
+                        <div
+                          class="css-wf08df-Icon"
+                        >
+                          <svg
+                            class="css-eyx4do"
+                            height="16"
+                            viewBox="0 0 24 24"
+                            width="16"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <path
+                              d="M17,9.17a1,1,0,0,0-1.41,0L12,12.71,8.46,9.17a1,1,0,0,0-1.41,0,1,1,0,0,0,0,1.42l4.24,4.24a1,1,0,0,0,1.42,0L17,10.59A1,1,0,0,0,17,9.17Z"
+                            />
+                          </svg>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  class="css-cvef6c-layoutChildrenWrapper"
+                >
+                  <button
+                    aria-label="Remove responder"
+                    class="css-x1vujn"
+                    data-testid="user-responder-delete-icon"
+                    tabindex="0"
+                  >
+                    <div
+                      class="css-wf08df-Icon"
+                    >
+                      <svg
+                        class="css-hj6vlq"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        width="16"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M10,18a1,1,0,0,0,1-1V11a1,1,0,0,0-2,0v6A1,1,0,0,0,10,18ZM20,6H16V5a3,3,0,0,0-3-3H11A3,3,0,0,0,8,5V6H4A1,1,0,0,0,4,8H5V19a3,3,0,0,0,3,3h8a3,3,0,0,0,3-3V8h1a1,1,0,0,0,0-2ZM10,5a1,1,0,0,1,1-1h2a1,1,0,0,1,1,1V6H10Zm7,14a1,1,0,0,1-1,1H8a1,1,0,0,1-1-1V8H17Zm-3-1a1,1,0,0,0,1-1V11a1,1,0,0,0-2,0v6A1,1,0,0,0,14,18Z"
+                        />
+                      </svg>
+                    </div>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </li>
+        <li>
+          <div
+            class="css-on8nbh-horizontal-group"
+            style="width: 100%; height: 100%;"
+          >
+            <div
+              class="css-cvef6c-layoutChildrenWrapper"
+            >
+              <div
+                class="css-ve64a7-horizontal-group"
+                style="width: 100%; height: 100%;"
+              >
+                <div
+                  class="css-cvef6c-layoutChildrenWrapper"
+                >
+                  <div
+                    class="timeline-icon-background timeline-icon-background--green"
+                  >
+                    <img
+                      class="root avatarSize-medium"
+                      data-testid="test__avatar"
+                      src="https://example.com/user456.png"
+                    />
+                  </div>
+                </div>
+                <div
+                  class="css-cvef6c-layoutChildrenWrapper"
+                >
+                  <span
+                    class="root text text--undefined text--medium responder-name"
+                  >
+                    my test user2
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div
+              class="css-cvef6c-layoutChildrenWrapper"
+            >
+              <div
+                class="css-ve64a7-horizontal-group"
+                style="width: 100%; height: 100%;"
+              >
+                <div
+                  class="css-cvef6c-layoutChildrenWrapper"
+                >
+                  <div
+                    class="css-15fuo2f-input-wrapper select css-8k5qe3-SelectContainer"
+                  >
+                    <span
+                      class="css-1f43avz-a11yText-A11yText"
+                      id="react-select-4-live-region"
+                    />
+                    <span
+                      aria-atomic="false"
+                      aria-live="polite"
+                      aria-relevant="additions text"
+                      class="css-1f43avz-a11yText-A11yText"
+                    />
+                    <div
+                      class="css-1scgfe8"
+                    >
+                      <div
+                        class="css-1kl463j-grafana-select-value-container"
+                      >
+                        <div
+                          class=" css-1yc0yww-placeholder"
+                          id="react-select-4-placeholder"
+                        >
+                          Choose
+                        </div>
+                        <input
+                          aria-autocomplete="list"
+                          aria-describedby="react-select-4-placeholder"
+                          aria-expanded="false"
+                          aria-haspopup="true"
+                          aria-readonly="true"
+                          class="css-mohuvp-dummyInput-DummyInput"
+                          id="react-select-4-input"
+                          inputmode="none"
+                          role="combobox"
+                          tabindex="0"
+                          value=""
+                        />
+                      </div>
+                      <div
+                        class="css-uvldi-input-suffix"
+                      >
+                        <div
+                          class="css-wf08df-Icon"
+                        >
+                          <svg
+                            class="css-eyx4do"
+                            height="16"
+                            viewBox="0 0 24 24"
+                            width="16"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <path
+                              d="M17,9.17a1,1,0,0,0-1.41,0L12,12.71,8.46,9.17a1,1,0,0,0-1.41,0,1,1,0,0,0,0,1.42l4.24,4.24a1,1,0,0,0,1.42,0L17,10.59A1,1,0,0,0,17,9.17Z"
+                            />
+                          </svg>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  class="css-cvef6c-layoutChildrenWrapper"
+                >
+                  <button
+                    aria-label="Remove responder"
+                    class="css-x1vujn"
+                    data-testid="user-responder-delete-icon"
+                    tabindex="0"
+                  >
+                    <div
+                      class="css-wf08df-Icon"
+                    >
+                      <svg
+                        class="css-hj6vlq"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        width="16"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M10,18a1,1,0,0,0,1-1V11a1,1,0,0,0-2,0v6A1,1,0,0,0,10,18ZM20,6H16V5a3,3,0,0,0-3-3H11A3,3,0,0,0,8,5V6H4A1,1,0,0,0,4,8H5V19a3,3,0,0,0,3,3h8a3,3,0,0,0,3-3V8h1a1,1,0,0,0,0-2ZM10,5a1,1,0,0,1,1-1h2a1,1,0,0,1,1,1V6H10Zm7,14a1,1,0,0,1-1,1H8a1,1,0,0,1-1-1V8H17Zm-3-1a1,1,0,0,0,1-1V11a1,1,0,0,0-2,0v6A1,1,0,0,0,14,18Z"
+                        />
+                      </svg>
+                    </div>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </li>
+        <div
+          aria-label="[object Object]"
+          class="css-j2xd7x"
+          data-testid="data-testid Alert info"
+          role="status"
+        >
+          <div
+            class="css-38nxtd"
+          >
+            <div
+              class="css-wf08df-Icon"
+            >
+              <svg
+                class="css-eyx4do"
+                data-name="Layer 1"
+                height="24"
+                id="Layer_1"
+                viewBox="0 0 24 24"
+                width="24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M12,2A10,10,0,1,0,22,12,10.01114,10.01114,0,0,0,12,2Zm0,18a8,8,0,1,1,8-8A8.00917,8.00917,0,0,1,12,20Zm0-8.5a1,1,0,0,0-1,1v3a1,1,0,0,0,2,0v-3A1,1,0,0,0,12,11.5Zm0-4a1.25,1.25,0,1,0,1.25,1.25A1.25,1.25,0,0,0,12,7.5Z"
+                />
+              </svg>
+            </div>
+          </div>
+          <div
+            class="css-zmuccj"
+          >
+            <div
+              class="css-hui7p1"
+            >
+              <span
+                class="root text text--primary text--medium"
+              >
+                <a
+                  class="learn-more-link"
+                  href="https://grafana.com/docs/oncall/latest/notify/#configure-user-notification-policies"
+                  rel="noreferrer"
+                  target="_blank"
+                >
+                  <span
+                    class="root text text--link text--medium"
+                  >
+                    <div
+                      class="css-ve64a7-horizontal-group"
+                      style="width: 100%; height: 100%;"
+                    >
+                      <div
+                        class="css-12pko5d-layoutChildrenWrapper"
+                      >
+                        Learn more
+                      </div>
+                      <div
+                        class="css-12pko5d-layoutChildrenWrapper"
+                      >
+                        <div
+                          class="css-wf08df-Icon"
+                        >
+                          <svg
+                            class="css-eyx4do"
+                            height="16"
+                            viewBox="0 0 24 24"
+                            width="16"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <path
+                              d="M18,10.82a1,1,0,0,0-1,1V19a1,1,0,0,1-1,1H5a1,1,0,0,1-1-1V8A1,1,0,0,1,5,7h7.18a1,1,0,0,0,0-2H5A3,3,0,0,0,2,8V19a3,3,0,0,0,3,3H16a3,3,0,0,0,3-3V11.82A1,1,0,0,0,18,10.82Zm3.92-8.2a1,1,0,0,0-.54-.54A1,1,0,0,0,21,2H15a1,1,0,0,0,0,2h3.59L8.29,14.29a1,1,0,0,0,0,1.42,1,1,0,0,0,1.42,0L20,5.41V9a1,1,0,0,0,2,0V3A1,1,0,0,0,21.92,2.62Z"
+                            />
+                          </svg>
+                        </div>
+                      </div>
+                    </div>
+                  </span>
+                </a>
+                 about Default vs Important user personal notification settings
+              </span>
+            </div>
+          </div>
+        </div>
+      </ul>
+    </div>
+    <div>
+      AddRespondersPopup
+    </div>
+  </div>
+</div>
+`;

@@ -175,6 +175,7 @@ class User(models.Model):
     schedule_export_token: "RelatedManager['ScheduleExportAuthToken']"
     silenced_alert_groups: "RelatedManager['AlertGroup']"
     slack_user_identity: typing.Optional["SlackUserIdentity"]
+    teams: "RelatedManager['Team']"
     user_schedule_export_token: "RelatedManager['UserScheduleExportAuthToken']"
     wiped_alert_groups: "RelatedManager['AlertGroup']"
 
@@ -307,7 +308,7 @@ class User(models.Model):
         self._timezone = value
 
     def is_in_working_hours(self, dt: datetime.datetime, tz: typing.Optional[str] = None) -> bool:
-        assert dt.tzinfo == pytz.utc, "dt must be in UTC"
+        assert dt.tzinfo == datetime.timezone.utc, "dt must be in UTC"
 
         # Default to user's timezone
         if not tz:

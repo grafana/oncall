@@ -1454,7 +1454,7 @@
     "@emotion/sheet" "^1.2.1"
     "@emotion/utils" "^1.2.0"
 
-"@emotion/css@11.11.2":
+"@emotion/css@11.11.2", "@emotion/css@^11.11.2":
   version "11.11.2"
   resolved "https://registry.yarnpkg.com/@emotion/css/-/css-11.11.2.tgz#e5fa081d0c6e335352e1bc2b05953b61832dca5a"
   integrity sha512-VJxe1ucoMYMS7DkiMdC2T7PWNbrEI0a39YRiyDvK2qq4lXwjRbVP/z4lpG+odCsRzadlR+1ywwrTzhdm5HNdew==
@@ -1966,15 +1966,17 @@
     "@opentelemetry/sdk-trace-web" "^1.8.0"
     "@opentelemetry/semantic-conventions" "^1.8.0"
 
-"@grafana/labels@^1.1.0":
-  version "1.1.0"
-  resolved "https://registry.yarnpkg.com/@grafana/labels/-/labels-1.1.0.tgz#d41f10d2cfdb7a83a0e86a49009505744574f784"
-  integrity sha512-LQHJ8KwHReDj6UxHmVsfDO3J128hebow2nmxSXSoc8j1KDeM847Q0FCibOnrcubQi/hI13ahwBDEWST7UBc7og==
+"@grafana/labels@~1.2.1":
+  version "1.2.1"
+  resolved "https://registry.yarnpkg.com/@grafana/labels/-/labels-1.2.1.tgz#4113d584bf5cd826d011f957cb69c90bd0416ea8"
+  integrity sha512-Nlqqvjwh0MjWsqnfpYbKdYwByeKSmEpiit5mKd6Mnnbc5Hxb8ORIruMr40lTxxWLEnDfhENcAs6pvlBuIMG7tQ==
   dependencies:
+    "@emotion/css" "^11.11.2"
     "@grafana/ui" "^10.0.0"
     change-case "^4.1.2"
     react "^18.0.0"
     react-dom "^18.0.0"
+    tinycolor2 "1.6.0"
 
 "@grafana/runtime@9.3.0-beta1":
   version "9.3.0-beta1"

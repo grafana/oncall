@@ -46,7 +46,6 @@ if TYPE_CHECKING:
     from apps.schedules.models import OnCallSchedule
     from apps.schedules.models.on_call_schedule import OnCallScheduleQuerySet
     from apps.user_management.models import Organization, User
-    from apps.user_management.models.user import UserQuerySet
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -62,6 +61,7 @@ DatetimeInterval = namedtuple("DatetimeInterval", ["start", "end"])
 DatetimeIntervals = typing.List[DatetimeInterval]
 
 IcalEvents = typing.List[IcalEvent]
+SchedulesOnCallUsers = typing.Dict["OnCallSchedule", typing.List["User"]]
 
 
 def users_in_ical(
@@ -368,7 +368,7 @@ def list_users_to_notify_from_ical_for_period(
 
 def get_oncall_users_for_multiple_schedules(
     schedules: typing.List["OnCallSchedule"], events_datetime=None
-) -> typing.Dict["OnCallSchedule", UserQuerySet]:
+) -> SchedulesOnCallUsers:
     if events_datetime is None:
         events_datetime = datetime.datetime.now(timezone.utc)
 
@@ -377,11 +377,11 @@ def get_oncall_users_for_multiple_schedules(
         return {}
 
     # Get on-call users
-    oncall_users = {}
+    oncall_users: SchedulesOnCallUsers = {}
     for schedule in schedules:
         # pass user list to list_users_to_notify_from_ical
         schedule_oncall_users = list_users_to_notify_from_ical(schedule, events_datetime=events_datetime)
-        oncall_users.update({schedule.pk: schedule_oncall_users})
+        oncall_users.update({schedule: schedule_oncall_users})
 
     return oncall_users
 

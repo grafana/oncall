@@ -31,14 +31,11 @@ def plugin_json():
 
 allow_k8s_contexts(["kind-kind"])
 
-local_resource("download-cache", cmd="docker pull grafana/oncall:latest; docker tag grafana/oncall localhost:63628/grafana/oncall:latest")
-
 # Build the image including frontend folder for pytest
 docker_build_sub(
     "localhost:63628/oncall/engine:dev",
     context="./engine",
-    cache_from="localhost:63628/grafana/oncall:latest",
-    # only=["./engine", "./grafana-plugin"],
+    cache_from=["grafana/oncall:latest"],
     ignore=["./grafana-plugin/test-results/", "./grafana-plugin/dist/", "./grafana-plugin/e2e-tests/"],
     child_context=".",
     target="dev",

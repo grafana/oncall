@@ -96,7 +96,7 @@ features:
       should_escape: false
     - command: /escalate
       url: <ONCALL_ENGINE_PUBLIC_URL>/slack/interactive_api_endpoint/
-      description: Direct page user(s) or schedule(s)
+      description: Direct page a team or user(s)
       should_escape: false
 oauth_config:
   redirect_urls:

@@ -45,8 +45,14 @@ def check_heartbeats() -> str:
         # * is enabled,
         # * is not already expired,
         # * last check in was before the timeout period start
-        expired_heartbeats = enabled_heartbeats.select_for_update().filter(
-            last_heartbeat_time__lte=F("period_start"), previous_alerted_state_was_life=True
+        expired_heartbeats = (
+            enabled_heartbeats.select_for_update()
+            .filter(
+                last_heartbeat_time__lte=F("period_start"),
+                previous_alerted_state_was_life=True,
+                alert_receive_channel__organization__deleted_at__isnull=True,
+            )
+            .select_related("alert_receive_channel")
         )
         # Schedule alert creation for each expired heartbeat after transaction commit
         for heartbeat in expired_heartbeats:
