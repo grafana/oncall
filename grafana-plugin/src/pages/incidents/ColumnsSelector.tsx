@@ -61,7 +61,7 @@ const ColumnRow: React.FC<ColumnRowProps> = ({ column, onItemChange }) => {
   return (
     <div ref={setNodeRef} style={{ ...style }} className={cx('column-row')}>
       <div className={cx('column-item')}>
-        <span>{column.name}</span>
+        <span className={cx('column-name')}>{column.name}</span>
 
         {column.isChecked ? (
           <IconButton
@@ -86,7 +86,11 @@ const ColumnRow: React.FC<ColumnRowProps> = ({ column, onItemChange }) => {
   );
 };
 
-export const ColumnsSelector: React.FC = () => {
+interface ColumnsSelectorProps {
+  onModalOpen(): void;
+}
+
+export const ColumnsSelector: React.FC<ColumnsSelectorProps> = ({ onModalOpen }) => {
   const [items, setItems] = useState<Column[]>([...startingColumnsData]);
   const visibleColumns = items.filter((col) => col.isChecked);
   const hiddenColumns = items.filter((col) => !col.isChecked);
@@ -134,7 +138,7 @@ export const ColumnsSelector: React.FC = () => {
 
       <div className={cx('columns-selector-buttons')}>
         <Button variant={'secondary'}>Reset</Button>
-        <Button variant={'primary'} icon="plus">
+        <Button variant={'primary'} icon="plus" onClick={onModalOpen}>
           Add field
         </Button>
       </div>

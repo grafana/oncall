@@ -1,6 +1,6 @@
 import React, { SyntheticEvent } from 'react';
 
-import { Button, Toggletip, HorizontalGroup, Icon, VerticalGroup } from '@grafana/ui';
+import { Button, HorizontalGroup, Icon, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 import moment from 'moment-timezone';
@@ -33,7 +33,7 @@ import styles from './Incidents.module.scss';
 import { IncidentDropdown } from './parts/IncidentDropdown';
 import { SilenceButtonCascader } from './parts/SilenceButtonCascader';
 
-import { ColumnsSelector } from './ColumnsSelector';
+import ColumnsSelectorWrapper from './ColumnsSelectorWrapper';
 
 const cx = cn.bind(styles);
 
@@ -426,14 +426,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
           </div>
 
           <div className={cx('fields-dropdown')}>
-            <Toggletip content={<ColumnsSelector />} placement={'bottom-end'} closeButton={true} onClose={() => {}}>
-              <Button type="button" variant={'secondary'} icon="columns">
-                <HorizontalGroup spacing="xs">
-                  Fields
-                  <Icon name="angle-down" />
-                </HorizontalGroup>
-              </Button>
-            </Toggletip>
+            <ColumnsSelectorWrapper />
           </div>
         </div>
 

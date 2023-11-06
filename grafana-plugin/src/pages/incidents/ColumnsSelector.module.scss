@@ -39,6 +39,7 @@
   display: flex;
   position: relative;
   padding: 0px 8px;
+  margin-right: 25px;
 
   &:hover .column-icon--trash {
     display: block;
@@ -74,4 +75,12 @@
   position: relative;
   margin-bottom: 4px;
   height: 22px;
+}
+
+.column-name {
+  text-wrap: nowrap;
+  max-width: 100%;
+  text-overflow: ellipsis;
+  display: block;
+  overflow: hidden;
 }
