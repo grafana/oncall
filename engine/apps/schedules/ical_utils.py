@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING
 
 import pytz
 import requests
+from django.core.cache import cache
 from django.db.models import Q
 from django.utils import timezone
 from icalendar import Calendar
@@ -384,6 +385,102 @@ def get_oncall_users_for_multiple_schedules(
         oncall_users.update({schedule: schedule_oncall_users})
 
     return oncall_users
+
+
+def _generate_cache_key_for_schedule_oncall_users(schedule: "OnCallSchedule") -> str:
+    return f"schedule_{schedule.public_primary_key}_oncall_users"
+
+
+def _get_schedule_public_primary_key_from_schedule_oncall_users_cache_key(cache_key: str) -> str:
+    return cache_key.replace("schedule_", "").replace("_oncall_users", "")
+
+
+def get_cached_oncall_users_for_multiple_schedules(schedules: typing.List["OnCallSchedule"]) -> SchedulesOnCallUsers:
+    """
+    More "performant" version of `apps.schedules.ical_utils.get_oncall_users_for_multiple_schedules`
+    which caches results, for 15 minutes.
+
+    The cache results are stored in the following format:
+    - `schedule_<schedule_public_primary_key>_oncall_users`: [list of oncall user public_primary_keys for the schedule]
+
+    This method will return the cached version of the results, if they exist, otherwise it will calculate
+    the results and cache them for 15 minutes.
+
+    Note: since we cannot cache Python objects we will cache the primary keys of schedules/users and
+    then fetch these from the db in two queries (one for users, one for schedules).
+    """
+    from apps.schedules.models import OnCallSchedule
+    from apps.user_management.models import User
+
+    CACHE_TTL = 15 * 60  # 15 minutes in seconds
+
+    cache_keys: typing.List[str] = [_generate_cache_key_for_schedule_oncall_users(schedule) for schedule in schedules]
+
+    # get_many returns a dictionary with all the keys we asked for that actually exist
+    # in the cache (and haven’t expired)
+    cached_results = cache.get_many(cache_keys)
+
+    schedule_public_primary_keys_to_fetch_from_db: typing.Set[str] = set()
+    user_public_primary_keys_to_fetch_from_db: typing.Set[str] = set()
+
+    # for the results returned from the cache we need to determine which schedule and user objects
+    # that we will need to fetch from the database (since we can't cache python objects and are only caching
+    # the objects primary keys)
+    for cache_key, oncall_users in cached_results.items():
+        schedule_public_primary_keys_to_fetch_from_db.add(
+            _get_schedule_public_primary_key_from_schedule_oncall_users_cache_key(cache_key)
+        )
+
+        user_public_primary_keys_to_fetch_from_db.update(oncall_users)
+
+    # calculate results for schedules that weren't in the cache
+    cached_result_keys = list(cached_results.keys())
+    schedule_primary_keys_we_need_to_calculate_results_for = [
+        _get_schedule_public_primary_key_from_schedule_oncall_users_cache_key(cache_key)
+        for cache_key in cache_keys
+        if cache_key not in cached_result_keys
+    ]
+
+    schedules_we_need_to_calculate_results_for = [
+        schedule
+        for schedule in schedules
+        if schedule.public_primary_key in schedule_primary_keys_we_need_to_calculate_results_for
+    ]
+
+    results = get_oncall_users_for_multiple_schedules(schedules_we_need_to_calculate_results_for)
+
+    # update the cache with the new results we just got back
+    new_results_to_update_in_cache: typing.Dict[str, typing.List[str]] = {}
+    for schedule, oncall_users in results.items():
+        oncall_user_public_primary_keys = [user.public_primary_key for user in oncall_users]
+        new_results_to_update_in_cache[
+            _generate_cache_key_for_schedule_oncall_users(schedule)
+        ] = oncall_user_public_primary_keys
+
+    cache.set_many(new_results_to_update_in_cache, timeout=CACHE_TTL)
+
+    # make two queries to the database, one to fetch the schedule objects we need and the other to fetch
+    # the user objects we need
+    schedules = {
+        schedule.public_primary_key: schedule
+        for schedule in OnCallSchedule.objects.filter(
+            public_primary_key__in=schedule_primary_keys_we_need_to_calculate_results_for
+        )
+    }
+    users = {
+        user.public_primary_key: user
+        for user in User.objects.filter(public_primary_key__in=user_public_primary_keys_to_fetch_from_db)
+    }
+
+    # revisit our cached_results and this time populate the results with the actual objects
+    for cache_key, oncall_users in cached_results.items():
+        schedule_public_primary_key = _get_schedule_public_primary_key_from_schedule_oncall_users_cache_key(cache_key)
+        schedule = schedules[schedule_public_primary_key]
+        oncall_users = [users[user_public_primary_key] for user_public_primary_key in oncall_users]
+
+        results[schedule] = oncall_users
+
+    return results
 
 
 def parse_username_from_string(string: str) -> str:
