@@ -29,11 +29,10 @@ import LocationHelper from 'utils/LocationHelper';
 import { UserActions } from 'utils/authorization';
 import { PAGE, PLUGIN_ROOT, TEXT_ELLIPSIS_CLASS } from 'utils/consts';
 
+import ColumnsSelectorWrapper from './ColumnsSelectorWrapper';
 import styles from './Incidents.module.scss';
 import { IncidentDropdown } from './parts/IncidentDropdown';
 import { SilenceButtonCascader } from './parts/SilenceButtonCascader';
-
-import ColumnsSelectorWrapper from './ColumnsSelectorWrapper';
 
 const cx = cn.bind(styles);
 

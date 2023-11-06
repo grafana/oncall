@@ -256,7 +256,7 @@ const IntegrationContactPoint: React.FC<{
     return (
       <HorizontalGroup spacing="md">
         <IconButton
-          aria-label='Alert Manager'
+          aria-label="Alert Manager"
           name="external-link-alt"
           onClick={() => {
             window.open(
@@ -278,7 +278,7 @@ const IntegrationContactPoint: React.FC<{
           }
         >
           <IconButton
-            aria-label='Disconnect Contact Point'
+            aria-label="Disconnect Contact Point"
             name="trash-alt"
             onClick={() => {
               alertReceiveChannelStore

@@ -181,6 +181,7 @@
 .sortableHelper {
   z-index: 9990;
 }
+
 .sortable-wrapper {
   min-width: 300px;
 }

@@ -263,7 +263,7 @@ const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) => {
             <Text>Edit custom payload</Text>
 
             <HorizontalGroup>
-              <IconButton aria-label='List View' name="times" onClick={() => returnToListView()} />
+              <IconButton aria-label="List View" name="times" onClick={() => returnToListView()} />
             </HorizontalGroup>
           </HorizontalGroup>
         </div>

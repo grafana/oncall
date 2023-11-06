@@ -17,6 +17,7 @@ import LegacyNavHeading from 'navbar/LegacyNavHeading';
 import CopyToClipboard from 'react-copy-to-clipboard';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 
+import CustomContextMenuDisplay from 'components/CustomContextMenuDisplay/CustomContextMenuDisplay';
 import GTable from 'components/GTable/GTable';
 import PageErrorHandlingWrapper, { PageBaseState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
 import {
@@ -40,7 +41,6 @@ import { PAGE, PLUGIN_ROOT, TEXT_ELLIPSIS_CLASS } from 'utils/consts';
 
 import styles from './OutgoingWebhooks.module.scss';
 import { WebhookFormActionType } from './OutgoingWebhooks.types';
-import CustomContextMenuDisplay from 'components/CustomContextMenuDisplay/CustomContextMenuDisplay';
 
 const cx = cn.bind(styles);
 

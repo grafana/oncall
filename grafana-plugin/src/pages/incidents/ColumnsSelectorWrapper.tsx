@@ -1,5 +1,10 @@
-import { Button, HorizontalGroup, Icon, Modal, Toggletip } from '@grafana/ui';
 import React, { useState } from 'react';
+
+import { Button, HorizontalGroup, Icon, Input, Modal, Toggletip, VerticalGroup } from '@grafana/ui';
+import { noop } from 'lodash-es';
+
+import Text from 'components/Text/Text';
+
 import { ColumnsSelector } from './ColumnsSelector';
 
 interface ColumnsSelectorWrapperProps {}
@@ -10,10 +15,16 @@ const ColumnsSelectorWrapper: React.FC<ColumnsSelectorWrapperProps> = () => {
   return (
     <>
       <Modal isOpen={isModalOpen} title={'Add field'} onDismiss={() => setIsModalOpen(false)}>
-        <HorizontalGroup align="flex-end" spacing="xs">
-          <Button variant="secondary">Close</Button>
-          <Button variant="primary">Add</Button>
-        </HorizontalGroup>
+        <VerticalGroup spacing="md">
+          <Input autoFocus placeholder="Search..." value="" onChange={noop} />
+
+          <Text type="primary">2101 items available. Type in to see suggestions</Text>
+
+          <HorizontalGroup justify="flex-end" spacing="md">
+            <Button variant="secondary">Close</Button>
+            <Button variant="primary">Add</Button>
+          </HorizontalGroup>
+        </VerticalGroup>
       </Modal>
 
       {!isModalOpen ? (

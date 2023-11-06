@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import cn from 'classnames/bind';
+
 import {
   DndContext,
   closestCenter,
@@ -16,12 +16,12 @@ import {
   verticalListSortingStrategy,
   useSortable,
 } from '@dnd-kit/sortable';
-
 import { CSS } from '@dnd-kit/utilities';
-
-import styles from 'pages/incidents/ColumnsSelector.module.scss';
-import Text from 'components/Text/Text';
 import { Button, Checkbox, IconButton } from '@grafana/ui';
+import cn from 'classnames/bind';
+
+import Text from 'components/Text/Text';
+import styles from 'pages/incidents/ColumnsSelector.module.scss';
 
 const cx = cn.bind(styles);
 
