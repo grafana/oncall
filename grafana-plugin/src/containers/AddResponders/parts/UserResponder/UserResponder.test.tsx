@@ -3,7 +3,7 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-import { User } from 'models/user/user.types';
+import { UserCurrentlyOnCall } from 'models/user/user.types';
 
 import UserResponder from './UserResponder';
 
@@ -11,7 +11,7 @@ describe('UserResponder', () => {
   const user = {
     avatar: 'http://avatar.com/',
     username: 'johnsmith',
-  } as User;
+  } as UserCurrentlyOnCall;
 
   test('it renders data properly', () => {
     const component = render(

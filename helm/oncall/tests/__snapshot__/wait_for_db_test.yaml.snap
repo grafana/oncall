@@ -25,6 +25,8 @@ database.type=mysql -> should create initContainer for MySQL database (default):
           value: admin
         - name: OSS
           value: "True"
+        - name: DETACHED_INTEGRATIONS_SERVER
+          value: "False"
         - name: UWSGI_LISTEN
           value: "1024"
         - name: BROKER_TYPE
@@ -111,6 +113,8 @@ database.type=mysql -> should create initContainer for MySQL database (default):
           value: admin
         - name: OSS
           value: "True"
+        - name: DETACHED_INTEGRATIONS_SERVER
+          value: "False"
         - name: UWSGI_LISTEN
           value: "1024"
         - name: BROKER_TYPE
@@ -197,6 +201,8 @@ database.type=mysql -> should create initContainer for MySQL database (default):
           value: admin
         - name: OSS
           value: "True"
+        - name: DETACHED_INTEGRATIONS_SERVER
+          value: "False"
         - name: UWSGI_LISTEN
           value: "1024"
         - name: BROKER_TYPE
@@ -284,6 +290,8 @@ database.type=postgresql -> should create initContainer for PostgreSQL database:
           value: admin
         - name: OSS
           value: "True"
+        - name: DETACHED_INTEGRATIONS_SERVER
+          value: "False"
         - name: UWSGI_LISTEN
           value: "1024"
         - name: BROKER_TYPE
@@ -372,6 +380,8 @@ database.type=postgresql -> should create initContainer for PostgreSQL database:
           value: admin
         - name: OSS
           value: "True"
+        - name: DETACHED_INTEGRATIONS_SERVER
+          value: "False"
         - name: UWSGI_LISTEN
           value: "1024"
         - name: BROKER_TYPE
@@ -460,6 +470,8 @@ database.type=postgresql -> should create initContainer for PostgreSQL database:
           value: admin
         - name: OSS
           value: "True"
+        - name: DETACHED_INTEGRATIONS_SERVER
+          value: "False"
         - name: UWSGI_LISTEN
           value: "1024"
         - name: BROKER_TYPE

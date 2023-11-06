@@ -7,6 +7,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## v1.3.53 (2023-11-03)
+
+### Fixed
+
+- Fix db migration for mobile app @Ferril ([#3260](https://github.com/grafana/oncall/pull/3260))
+
+## v1.3.52 (2023-11-02)
+
+### Fixed
+
+- Address `TypeError` that occurs under some scenarios on the Alert Group detail page
+
+### Changed
+
+- Change wording for push notifications timing choices @Ferril ([#3253](https://github.com/grafana/oncall/pull/3253))
+
+## v1.3.51 (2023-11-02)
+
+### Fixed
+
+- Postpone Legacy AlertManager and Grafana Alerting integration auto-migration date ([3250])(<https://github.com/grafana/oncall/pull/3250>)
+
+## v1.3.50 (2023-11-02)
+
+### Fixed
+
+- Return alert groups for deleted integrations on private api ([3223](https://github.com/grafana/oncall/pull/3223))
+
 ## v1.3.49 (2023-10-31)
 
 ### Changed

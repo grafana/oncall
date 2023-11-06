@@ -51,7 +51,7 @@ spec:
         - name: {{ .Chart.Name }}
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          image: {{ include "oncall.engine.image" . }}
           {{- if .Values.oncall.devMode }}
           command: ["python", "manage.py", "start_celery"]
           {{- else }}
@@ -60,14 +60,7 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           env:
             {{- include "snippet.celery.env" . | nindent 12 }}
-            {{- include "snippet.oncall.env" . | nindent 12 }}
-            {{- include "snippet.oncall.slack.env" . | nindent 12 }}
-            {{- include "snippet.oncall.telegram.env" . | nindent 12 }}
-            {{- include "snippet.oncall.smtp.env" . | nindent 12 }}
-            {{- include "snippet.oncall.exporter.env" . | nindent 12 }}
-            {{- include "snippet.db.env" . | nindent 12 }}
-            {{- include "snippet.broker.env" . | nindent 12 }}
-            {{- include "oncall.extraEnvs" . | nindent 12 }}
+            {{- include "snippet.oncall.engine.env" . | nindent 12 }}
           {{- if .Values.celery.livenessProbe.enabled }}
           livenessProbe:
             exec:

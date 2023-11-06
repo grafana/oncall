@@ -18,7 +18,7 @@ weight: 300
 > ⚠️ A note about **(Legacy)** integrations:
 > We are changing internal behaviour of AlertManager integration.
 > Integrations that were created before version 1.3.21 are marked as **(Legacy)**.
-> These integrations are still receiving and escalating alerts but will be automatically migrated after 1 November 2023.
+> These integrations are still receiving and escalating alerts but will be automatically migrated in Q1 2024.
 > <br/><br/>
 > To ensure a smooth transition you can migrate legacy integrations by yourself now.
 > [Here][migration] you can read more about changes and migration process.

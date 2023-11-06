@@ -1935,7 +1935,7 @@ def test_users_is_currently_oncall_attribute_works_properly(
     schedule.refresh_ical_final_schedule()
 
     client = APIClient()
-    url = f"{reverse('api-internal:user-list')}?short=false"
+    url = f"{reverse('api-internal:user-list')}?is_currently_oncall=all"
     response = client.get(url, format="json", **make_user_auth_headers(user1, token))
 
     oncall_statuses = {

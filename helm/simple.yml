@@ -14,6 +14,13 @@ grafana:
   service:
     type: NodePort
     nodePort: 30002
+detached_integrations:
+  enabled: true
+detached_integrations_service:
+  enabled: true
+  type: NodePort
+  port: 8080
+  nodePort: 30003
 database:
   # can be either mysql or postgresql
   type: postgresql

@@ -17,7 +17,6 @@ RUN apk add bash \
 
 WORKDIR /etc/app
 COPY ./requirements.txt ./
-COPY ./pip/cache /root/.cache/pip/wheels/
 RUN pip install -r requirements.txt
 
 # we intentionally have two COPY commands, this is to have the requirements.txt in a separate build step
