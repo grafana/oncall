@@ -471,7 +471,6 @@ class AlertGroupView(
         return alert_groups
 
     def destroy(self, request, *args, **kwargs):
-        print("YOOOO HOMIE")
         instance = self.get_object()
         delete_alert_group.apply_async((instance.pk, request.user.pk))
         return Response(status=status.HTTP_204_NO_CONTENT)
