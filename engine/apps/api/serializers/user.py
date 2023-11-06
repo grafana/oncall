@@ -270,14 +270,19 @@ class UserShortSerializer(serializers.ModelSerializer):
         ]
 
 
-class UserLongSerializer(UserSerializer):
+class UserIsCurrentlyOnCallSerializer(UserShortSerializer, EagerLoadingMixin):
     context: UserSerializerContext
 
     teams = FastTeamSerializer(read_only=True, many=True)
     is_currently_oncall = serializers.SerializerMethodField()
 
-    class Meta(UserSerializer.Meta):
-        fields = UserSerializer.Meta.fields + [
+    SELECT_RELATED = ["organization"]
+    PREFETCH_RELATED = ["teams"]
+
+    class Meta(UserShortSerializer.Meta):
+        fields = UserShortSerializer.Meta.fields + [
+            "name",
+            "timezone",
             "teams",
             "is_currently_oncall",
         ]

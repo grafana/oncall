@@ -1,7 +1,7 @@
 import { SelectableValue } from '@grafana/data';
 import { ActionMeta } from '@grafana/ui';
 
-import { User } from 'models/user/user.types';
+import { UserCurrentlyOnCall } from 'models/user/user.types';
 
 export enum NotificationPolicyValue {
   Default = 0,
@@ -9,7 +9,7 @@ export enum NotificationPolicyValue {
 }
 
 export type UserResponder = {
-  data: User;
+  data: UserCurrentlyOnCall;
   important: boolean;
 };
 export type UserResponders = UserResponder[];
