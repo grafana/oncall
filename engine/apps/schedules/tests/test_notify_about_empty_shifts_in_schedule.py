@@ -5,7 +5,6 @@ import pytest
 from django.utils import timezone
 
 from apps.api.permissions import LegacyAccessControlRole
-from apps.schedules.ical_utils import memoized_users_in_ical
 from apps.schedules.models import CustomOnCallShift, OnCallScheduleWeb
 from apps.schedules.tasks import notify_about_empty_shifts_in_schedule
 
@@ -19,8 +18,6 @@ def test_no_empty_shifts_no_triggering_notification(
 ):
     organization, _, _, _ = make_organization_and_user_with_slack_identities()
     user1 = make_user(organization=organization, username="user1")
-    # clear users pks <-> organization cache (persisting between tests)
-    memoized_users_in_ical.cache_clear()
 
     schedule = make_schedule(
         organization,
@@ -67,8 +64,6 @@ def test_empty_shifts_trigger_notification(
 ):
     organization, _, _, _ = make_organization_and_user_with_slack_identities()
     user1 = make_user(organization=organization, username="user1", role=LegacyAccessControlRole.VIEWER)
-    # clear users pks <-> organization cache (persisting between tests)
-    memoized_users_in_ical.cache_clear()
 
     schedule = make_schedule(
         organization,
@@ -117,8 +112,6 @@ def test_empty_non_empty_shifts_trigger_notification(
     organization, _, _, _ = make_organization_and_user_with_slack_identities()
     user1 = make_user(organization=organization, username="user1")
     user2 = make_user(organization=organization, username="user2", role=LegacyAccessControlRole.VIEWER)
-    # clear users pks <-> organization cache (persisting between tests)
-    memoized_users_in_ical.cache_clear()
 
     schedule = make_schedule(
         organization,
