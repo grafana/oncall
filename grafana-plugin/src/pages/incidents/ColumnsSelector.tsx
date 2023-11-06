@@ -21,7 +21,7 @@ import { CSS } from '@dnd-kit/utilities';
 
 import styles from 'pages/incidents/ColumnsSelector.module.scss';
 import Text from 'components/Text/Text';
-import { Button, Checkbox } from '@grafana/ui';
+import { Button, Checkbox, IconButton } from '@grafana/ui';
 
 const cx = cn.bind(styles);
 
@@ -49,27 +49,47 @@ const startingColumnsData: Column[] = [
 ];
 
 const ColumnRow: React.FC<ColumnRowProps> = ({ column, onItemChange }) => {
-  const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: column.id });
+  const dnd = useSortable({ id: column.id });
 
-  const style = {
+  const { attributes, listeners, setNodeRef, transform, transition } = dnd;
+
+  const style: React.CSSProperties = {
     transform: CSS.Transform.toString(transform),
     transition,
   };
 
   return (
-    <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
+    <div ref={setNodeRef} style={{ ...style }} className={cx('column-row')}>
       <div className={cx('column-item')}>
-        <Checkbox value={!column.isHidden} onChange={() => onItemChange(column.id)} />
         <span>{column.name}</span>
+
+        {column.isChecked ? (
+          <IconButton
+            aria-label="Drag"
+            name="draggabledots"
+            className={cx('column-icon', 'column-icon--drag')}
+            {...attributes}
+            {...listeners}
+          />
+        ) : (
+          <IconButton className={cx('column-icon', 'column-icon--trash')} name="trash-alt" aria-label="Remove" />
+        )}
       </div>
+
+      <Checkbox
+        className={cx('columns-checkbox')}
+        type="checkbox"
+        value={column.isChecked}
+        onChange={() => onItemChange(column.id)}
+      />
     </div>
   );
 };
 
 export const ColumnsSelector: React.FC = () => {
   const [items, setItems] = useState<Column[]>([...startingColumnsData]);
-  const visibleColumns = items.filter((col) => !col.isHidden);
-  const hiddenColumns = items.filter((col) => col.isHidden);
+  const visibleColumns = items.filter((col) => col.isChecked);
+  const hiddenColumns = items.filter((col) => !col.isChecked);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -80,10 +100,14 @@ export const ColumnsSelector: React.FC = () => {
 
   return (
     <div className={cx('columns-selector-view')}>
-      <Text type="primary">Fields Settings</Text>
+      <Text type="primary" className={cx('columns-header')}>
+        Fields Settings
+      </Text>
 
       <div className={cx('columns-visible-section')}>
-        <Text type="primary">Visible</Text>
+        <Text type="primary" className={cx('columns-header-small')}>
+          Visible ({visibleColumns.length})
+        </Text>
 
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={(ev) => handleDragEnd(ev, true)}>
           <SortableContext items={items} strategy={verticalListSortingStrategy}>
@@ -95,7 +119,9 @@ export const ColumnsSelector: React.FC = () => {
       </div>
 
       <div className={cx('columns-hidden-section')}>
-        <Text type="primary">Hidden</Text>
+        <Text type="primary" className={cx('columns-header-small')}>
+          Hidden ({hiddenColumns.length})
+        </Text>
 
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={(ev) => handleDragEnd(ev, false)}>
           <SortableContext items={items} strategy={verticalListSortingStrategy}>
@@ -124,13 +150,13 @@ export const ColumnsSelector: React.FC = () => {
   function handleDragEnd(event: DragEndEvent, isVisible: boolean) {
     const { active, over } = event;
 
-    const searchableList: Column[] = isVisible ? visibleColumns : hiddenColumns;
+    let searchableList: Column[] = isVisible ? visibleColumns : hiddenColumns;
 
     if (active.id !== over.id) {
       const oldIndex = searchableList.findIndex((item) => item.id === active.id);
       const newIndex = searchableList.findIndex((item) => item.id === over.id);
 
-      arrayMove(searchableList, oldIndex, newIndex);
+      searchableList = arrayMove(searchableList, oldIndex, newIndex);
 
       const updatedList = isVisible ? [...searchableList, ...hiddenColumns] : [...visibleColumns, ...searchableList];
       setItems(updatedList);
