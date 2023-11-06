@@ -3,8 +3,6 @@ import json
 import typing
 from typing import TYPE_CHECKING
 
-from django.utils import timezone
-
 from apps.schedules.ical_utils import calculate_shift_diff, parse_event_uid
 from apps.slack.client import SlackClient
 from apps.slack.errors import (
@@ -99,7 +97,7 @@ def notify_ical_schedule_shift(schedule_pk):
         prev_shift["end"] = datetime.datetime.strptime(prev_shift["end"], str_format)
 
     # get shifts in progress now
-    now = datetime.datetime.now(timezone.utc)
+    now = datetime.datetime.now(datetime.timezone.utc)
     current_shifts = schedule.final_events(now, now, with_empty=False, with_gap=False, ignore_untaken_swaps=True)
 
     # get days_to_lookup for next shifts (which may affect current shifts)

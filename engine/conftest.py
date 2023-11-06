@@ -57,11 +57,17 @@ from apps.base.tests.factories import (
 )
 from apps.email.tests.factories import EmailMessageFactory
 from apps.heartbeat.tests.factories import IntegrationHeartBeatFactory
-from apps.labels.tests.factories import AlertReceiveChannelAssociatedLabelFactory, LabelKeyFactory, LabelValueFactory
+from apps.labels.tests.factories import (
+    AlertGroupAssociatedLabelFactory,
+    AlertReceiveChannelAssociatedLabelFactory,
+    LabelKeyFactory,
+    LabelValueFactory,
+)
 from apps.mobile_app.models import MobileAppAuthToken, MobileAppVerificationToken
 from apps.phone_notifications.phone_backend import PhoneBackend
 from apps.phone_notifications.tests.factories import PhoneCallRecordFactory, SMSRecordFactory
 from apps.phone_notifications.tests.mock_phone_provider import MockPhoneProvider
+from apps.schedules.ical_utils import memoized_users_in_ical
 from apps.schedules.models import OnCallScheduleWeb
 from apps.schedules.tests.factories import (
     CustomOnCallShiftFactory,
@@ -181,6 +187,12 @@ def mock_apply_async(monkeypatch):
 @pytest.fixture(autouse=True)
 def mock_is_labels_feature_enabled(settings):
     setattr(settings, "FEATURE_LABELS_ENABLED_FOR_ALL", True)
+
+
+@pytest.fixture(autouse=True)
+def clear_ical_users_cache():
+    # clear users pks <-> organization cache (persisting between tests)
+    memoized_users_in_ical.cache_clear()
 
 
 @pytest.fixture
@@ -974,3 +986,11 @@ def make_integration_label_association(make_label_key_and_value):
         )
 
     return _make_integration_label_association
+
+
+@pytest.fixture
+def make_alert_group_label_association():
+    def _make_alert_group_label_association(organization, alert_group, **kwargs):
+        return AlertGroupAssociatedLabelFactory(alert_group=alert_group, organization=organization, **kwargs)
+
+    return _make_alert_group_label_association

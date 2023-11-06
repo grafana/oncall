@@ -330,8 +330,10 @@ class RemoteFilters extends Component<RemoteFiltersProps, RemoteFiltersState> {
         );
 
       case 'labels':
+      case 'alert_group_labels':
         return (
           <LabelsFilter
+            filterType={filter.type}
             autoFocus={autoFocus}
             className={cx('filter-select')}
             value={values[filter.name]}

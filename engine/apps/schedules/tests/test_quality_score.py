@@ -5,7 +5,6 @@ from rest_framework import status
 from rest_framework.reverse import reverse
 from rest_framework.test import APIClient
 
-from apps.schedules.ical_utils import memoized_users_in_ical
 from apps.schedules.models import CustomOnCallShift, OnCallScheduleICal, OnCallScheduleWeb
 
 
@@ -19,9 +18,6 @@ def get_schedule_quality_response(
     make_user_auth_headers,
 ):
     def _get_schedule_quality_response(date, days):
-        # clear cache
-        memoized_users_in_ical.cache_clear()
-
         calendar = get_ical("quality.ics")
 
         organization = make_organization()
@@ -152,8 +148,6 @@ def test_get_schedule_score_weekdays(
     )
 
     users = [make_user_for_organization(organization, username=f"user-{idx}") for idx in range(8)]
-    # clear users pks <-> organization cache (persisting between tests)
-    memoized_users_in_ical.cache_clear()
 
     make_on_call_shift(
         schedule.organization,
@@ -216,8 +210,6 @@ def test_get_schedule_score_all_week(
     )
 
     users = [make_user_for_organization(organization, username=f"user-{idx}") for idx in range(8)]
-    # clear users pks <-> organization cache (persisting between tests)
-    memoized_users_in_ical.cache_clear()
 
     make_on_call_shift(
         schedule.organization,
@@ -293,8 +285,6 @@ def test_get_schedule_score_all_week_imbalanced_weekends(
     )
 
     users = [make_user_for_organization(organization, username=f"user-{idx}") for idx in range(8)]
-    # clear users pks <-> organization cache (persisting between tests)
-    memoized_users_in_ical.cache_clear()
 
     make_on_call_shift(
         schedule.organization,
