@@ -546,3 +546,34 @@ def test_alert_group_get_paged_users(
     paged_users = alert_group.get_paged_users()
     assert len(paged_users) == 1
     assert alert_group.get_paged_users()[0]["pk"] == user.public_primary_key
+
+
+@patch("apps.alerts.models.AlertGroup.start_unsilence_task", return_value=None)
+@pytest.mark.django_db
+def test_filter_active_alert_groups(
+    mocked_start_unsilence_task,
+    make_organization_and_user,
+    make_alert_receive_channel,
+    make_alert_group,
+):
+    organization, user = make_organization_and_user()
+    alert_receive_channel = make_alert_receive_channel(organization)
+
+    # alert groups with active escalation
+    alert_group_active = make_alert_group(alert_receive_channel)
+    alert_group_active_silenced = make_alert_group(alert_receive_channel)
+    alert_group_active_silenced.silence_by_user(user, silence_delay=1800)  # silence by period
+    # alert groups with inactive escalation
+    alert_group_1 = make_alert_group(alert_receive_channel)
+    alert_group_1.acknowledge_by_user(user)
+    alert_group_2 = make_alert_group(alert_receive_channel)
+    alert_group_2.resolve_by_user(user)
+    alert_group_3 = make_alert_group(alert_receive_channel)
+    alert_group_3.attach_by_user(user, alert_group_active)
+    alert_group_4 = make_alert_group(alert_receive_channel)
+    alert_group_4.silence_by_user(user, silence_delay=None)  # silence forever
+
+    active_alert_groups = AlertGroup.objects.filter_active()
+    assert active_alert_groups.count() == 2
+    assert alert_group_active in active_alert_groups
+    assert alert_group_active_silenced in active_alert_groups
