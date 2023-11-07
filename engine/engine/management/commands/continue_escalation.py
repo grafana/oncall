@@ -1,9 +1,8 @@
 from celery import uuid as celery_uuid
 from django.core.management import BaseCommand
-from django.db.models import Q
 from django.utils import timezone
 
-from apps.alerts.models import AlertGroup, AlertReceiveChannel
+from apps.alerts.models import AlertGroup
 from apps.alerts.tasks import escalate_alert_group, unsilence_task
 
 
@@ -43,14 +42,7 @@ class Command(BaseCommand):
 
         if restart_all:
             self.stdout.write("Processing restart escalation for all active alert groups...")
-            alert_groups = AlertGroup.objects.filter(
-                ~Q(channel__integration=AlertReceiveChannel.INTEGRATION_MAINTENANCE),
-                ~Q(silenced=True, silenced_until__isnull=True),  # filter silenced forever alert_groups
-                Q(Q(is_escalation_finished=False) | Q(silenced_until__isnull=False)),
-                resolved=False,
-                acknowledged=False,
-                root_alert_group=None,
-            )
+            alert_groups = AlertGroup.objects.filter_active()
         elif alert_group_ids:
             self.stdout.write(f"Processing restart escalation for alert groups with ids: {alert_group_ids}...")
             alert_groups = AlertGroup.objects.filter(
