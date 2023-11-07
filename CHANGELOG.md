@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Changed
+
+- Unify naming of Grafana Cloud / Cloud OnCall / Grafana Cloud OnCall
+  so that it's always Grafana Cloud OnCall ([#3279](https://github.com/grafana/oncall/pull/3279))
+
 ## v1.3.54 (2023-11-06)
 
 ### Added
