@@ -279,7 +279,7 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
               <VerticalGroup>
                 <Text type="secondary">
                   We are introducing a new {getDisplayName()} integration. The existing integration is marked as Legacy
-                  and will be migrated in Q1 2024.
+                  and will be migrated on 1st February 2024.
                 </Text>
                 <Text type="secondary">
                   To ensure a smooth transition you can migrate now using "Migrate" button in the menu on the right.
