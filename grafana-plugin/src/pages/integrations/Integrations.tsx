@@ -1,7 +1,17 @@
 import React from 'react';
 
 import { LabelTag } from '@grafana/labels';
-import { HorizontalGroup, Button, VerticalGroup, Icon, ConfirmModal, Tooltip } from '@grafana/ui';
+import {
+  HorizontalGroup,
+  Button,
+  VerticalGroup,
+  Icon,
+  ConfirmModal,
+  Tooltip,
+  Tab,
+  TabsBar,
+  TabContent,
+} from '@grafana/ui';
 import cn from 'classnames/bind';
 import { debounce } from 'lodash-es';
 import { observer } from 'mobx-react';
@@ -41,11 +51,27 @@ import { PAGE, TEXT_ELLIPSIS_CLASS } from 'utils/consts';
 
 import styles from './Integrations.module.scss';
 
+enum TabType {
+  Connections = 'connections',
+  DirectPaging = 'direct-paging',
+}
+
+const TABS = [
+  {
+    label: 'Connections',
+    value: TabType.Connections,
+  },
+  {
+    label: 'Direct Paging',
+    value: TabType.DirectPaging,
+  },
+];
+
 const cx = cn.bind(styles);
 const FILTERS_DEBOUNCE_MS = 500;
 
 interface IntegrationsState extends PageBaseState {
-  integrationsFilters: Record<string, any>;
+  integrationsFilters: Partial<{ integration: string[]; team: string[]; label: string[]; searchTerm: string }>;
   alertReceiveChannelId?: AlertReceiveChannel['id'] | 'new';
   confirmationModal: {
     isOpen: boolean;
@@ -57,6 +83,7 @@ interface IntegrationsState extends PageBaseState {
     confirmationText?: string;
     onConfirm: () => void;
   };
+  activeTab: TabType;
 }
 
 interface IntegrationsProps extends WithStoreProps, PageProps, RouteComponentProps<{ id: string }> {}
@@ -70,6 +97,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
       integrationsFilters: { searchTerm: '' },
       errorData: initErrorDataState(),
       confirmationModal: undefined,
+      activeTab: TabType.Connections,
     };
   }
 
@@ -126,9 +154,17 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
     );
   };
 
+  onTabChange = (tab: TabType) => {
+    // TODO: change grafana_alerting to non_direct_paging
+    const integration = tab === TabType.DirectPaging ? ['direct_paging'] : ['grafana_alerting'];
+    this.setState({ activeTab: tab, integrationsFilters: { integration } }, () => {
+      this.debouncedUpdateIntegrations(false);
+    });
+  };
+
   render() {
     const { store, query } = this.props;
-    const { alertReceiveChannelId, confirmationModal } = this.state;
+    const { alertReceiveChannelId, confirmationModal, activeTab } = this.state;
     const { alertReceiveChannelStore } = store;
 
     const { count, results, page_size } = alertReceiveChannelStore.getPaginatedSearchResult();
@@ -158,27 +194,39 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
             </HorizontalGroup>
           </div>
           <div>
+            <TabsBar className={cx('tabsBar')}>
+              {TABS.map(({ label, value }) => (
+                <Tab
+                  key={value}
+                  label={label}
+                  active={activeTab === value}
+                  onChangeTab={() => this.onTabChange(value)}
+                />
+              ))}
+            </TabsBar>
             <RemoteFilters
               query={query}
               page={PAGE.Integrations}
               grafanaTeamStore={store.grafanaTeamStore}
               onChange={this.handleIntegrationsFiltersChange}
             />
-            <GTable
-              emptyText={count === undefined ? 'Loading...' : 'No integrations found'}
-              loading={count === undefined}
-              data-testid="integrations-table"
-              rowKey="id"
-              data={results}
-              columns={this.getTableColumns(store.hasFeature.bind(store))}
-              className={cx('integrations-table')}
-              rowClassName={cx('integrations-table-row')}
-              pagination={{
-                page: store.filtersStore.currentTablePageNum[PAGE.Integrations],
-                total: results ? Math.ceil((count || 0) / page_size) : 0,
-                onChange: this.handleChangePage,
-              }}
-            />
+            <TabContent>
+              <GTable
+                emptyText={count === undefined ? 'Loading...' : 'No integrations found'}
+                loading={count === undefined}
+                data-testid="integrations-table"
+                rowKey="id"
+                data={results}
+                columns={this.getTableColumns(store.hasFeature.bind(store))}
+                className={cx('integrations-table')}
+                rowClassName={cx('integrations-table-row')}
+                pagination={{
+                  page: store.filtersStore.currentTablePageNum[PAGE.Integrations],
+                  total: results ? Math.ceil((count || 0) / page_size) : 0,
+                  onChange: this.handleChangePage,
+                }}
+              />
+            </TabContent>
           </div>
         </div>
 
@@ -573,6 +621,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
     const { store } = this.props;
     const { alertReceiveChannelStore } = store;
     const { integrationsFilters } = this.state;
+    console.log('applyFilters', { integrationsFilters });
 
     const newPage = isOnMount ? store.filtersStore.currentTablePageNum[PAGE.Integrations] : 1;
 

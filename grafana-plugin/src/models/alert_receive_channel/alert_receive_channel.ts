@@ -133,6 +133,7 @@ export class AlertReceiveChannelStore extends BaseStore {
   }
 
   async updatePaginatedItems(query: any = '', page = 1, updateCounters = false, invalidateFn = undefined) {
+    console.log('updatePaginatedItems', { query, page, updateCounters, invalidateFn });
     const filters = typeof query === 'string' ? { search: query } : query;
     const { count, results, page_size } = await makeRequest(this.path, { params: { ...filters, page } });
 
