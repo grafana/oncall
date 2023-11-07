@@ -1,4 +1,3 @@
-from django import urls
 from django.conf import settings
 from django.core.cache import cache
 from django.http import HttpResponse, JsonResponse
@@ -44,13 +43,7 @@ class StartupProbeView(View):
     dangerously_bypass_middlewares = True
 
     def get(self, request):
-        # enable integrations cache if current engine instance is serving them
-        integrations_enabled = True
-        if settings.DETACHED_INTEGRATIONS_SERVER:
-            url_resolver = urls.get_resolver(urls.get_urlconf())
-            integrations_enabled = url_resolver.namespace_dict.get("integrations")
-
-        if integrations_enabled and cache.get(AlertChannelDefiningMixin.CACHE_KEY_DB_FALLBACK) is None:
+        if cache.get(AlertChannelDefiningMixin.CACHE_KEY_DB_FALLBACK) is None:
             AlertChannelDefiningMixin().update_alert_receive_channel_cache()
 
         cache.set("healthcheck", "healthcheck", 30)  # Checking cache connectivity
