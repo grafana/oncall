@@ -9,11 +9,11 @@ exports[`AddResponders should properly display the add responders button when hi
       class="root root_bordered"
     >
       <div
-        class="css-on8nbh-horizontal-group"
+        class="css-1mhys9y-horizontal-group"
         style="width: 100%; height: 100%;"
       >
         <div
-          class="css-cvef6c-layoutChildrenWrapper"
+          class="css-18qv8yz-layoutChildrenWrapper"
         >
           <h4
             class="title"
@@ -26,30 +26,18 @@ exports[`AddResponders should properly display the add responders button when hi
           </h4>
         </div>
         <div
-          class="css-cvef6c-layoutChildrenWrapper"
+          class="css-18qv8yz-layoutChildrenWrapper"
         >
           <div>
             <button
-              class="css-b2ba3d-button"
+              class="css-8b29hm-button"
               type="button"
             >
               <div
-                class="css-wf08df-Icon"
-              >
-                <svg
-                  class="css-1gebccs"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  width="16"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M19,11H13V5a1,1,0,0,0-2,0v6H5a1,1,0,0,0,0,2h6v6a1,1,0,0,0,2,0V13h6a1,1,0,0,0,0-2Z"
-                  />
-                </svg>
-              </div>
+                class="css-1j2891d-Icon"
+              />
               <span
-                class="css-1mhnkuh"
+                class="css-1riaxdn"
               >
                 Invite
               </span>
@@ -74,11 +62,11 @@ exports[`AddResponders should properly display the add responders button when hi
       class="root root_bordered"
     >
       <div
-        class="css-on8nbh-horizontal-group"
+        class="css-1mhys9y-horizontal-group"
         style="width: 100%; height: 100%;"
       >
         <div
-          class="css-cvef6c-layoutChildrenWrapper"
+          class="css-18qv8yz-layoutChildrenWrapper"
         >
           <h4
             class="title"
@@ -108,11 +96,11 @@ exports[`AddResponders should render properly in create mode 1`] = `
       class="root root_bordered"
     >
       <div
-        class="css-on8nbh-horizontal-group"
+        class="css-1mhys9y-horizontal-group"
         style="width: 100%; height: 100%;"
       >
         <div
-          class="css-cvef6c-layoutChildrenWrapper"
+          class="css-18qv8yz-layoutChildrenWrapper"
         >
           <h4
             class="title"
@@ -125,30 +113,18 @@ exports[`AddResponders should render properly in create mode 1`] = `
           </h4>
         </div>
         <div
-          class="css-cvef6c-layoutChildrenWrapper"
+          class="css-18qv8yz-layoutChildrenWrapper"
         >
           <div>
             <button
-              class="css-b2ba3d-button"
+              class="css-8b29hm-button"
               type="button"
             >
               <div
-                class="css-wf08df-Icon"
-              >
-                <svg
-                  class="css-1gebccs"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  width="16"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M19,11H13V5a1,1,0,0,0-2,0v6H5a1,1,0,0,0,0,2h6v6a1,1,0,0,0,2,0V13h6a1,1,0,0,0,0-2Z"
-                  />
-                </svg>
-              </div>
+                class="css-1j2891d-Icon"
+              />
               <span
-                class="css-1mhnkuh"
+                class="css-1riaxdn"
               >
                 Invite
               </span>
@@ -173,11 +149,11 @@ exports[`AddResponders should render properly in update mode 1`] = `
       class="root root_bordered"
     >
       <div
-        class="css-on8nbh-horizontal-group"
+        class="css-1mhys9y-horizontal-group"
         style="width: 100%; height: 100%;"
       >
         <div
-          class="css-cvef6c-layoutChildrenWrapper"
+          class="css-18qv8yz-layoutChildrenWrapper"
         >
           <h4
             class="title"
@@ -190,30 +166,18 @@ exports[`AddResponders should render properly in update mode 1`] = `
           </h4>
         </div>
         <div
-          class="css-cvef6c-layoutChildrenWrapper"
+          class="css-18qv8yz-layoutChildrenWrapper"
         >
           <div>
             <button
-              class="css-b2ba3d-button"
+              class="css-8b29hm-button"
               type="button"
             >
               <div
-                class="css-wf08df-Icon"
-              >
-                <svg
-                  class="css-1gebccs"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  width="16"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M19,11H13V5a1,1,0,0,0-2,0v6H5a1,1,0,0,0,0,2h6v6a1,1,0,0,0,2,0V13h6a1,1,0,0,0,0-2Z"
-                  />
-                </svg>
-              </div>
+                class="css-1j2891d-Icon"
+              />
               <span
-                class="css-1mhnkuh"
+                class="css-1riaxdn"
               >
                 Add
               </span>
