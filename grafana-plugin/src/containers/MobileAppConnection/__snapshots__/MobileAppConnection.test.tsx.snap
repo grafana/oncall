@@ -2892,7 +2892,7 @@ exports[`MobileAppConnection it shows a warning when cloud is not connected 1`] 
       <span
         class="root text text--secondary text--medium"
       >
-        Please connect Cloud OnCall to use the mobile app
+        Please connect Grafana Cloud OnCall to use the mobile app
       </span>
     </div>
     <div
@@ -2912,7 +2912,7 @@ exports[`MobileAppConnection it shows a warning when cloud is not connected 1`] 
           <span
             class="css-1riaxdn"
           >
-            Connect Cloud OnCall
+            Connect Grafana Cloud OnCall
           </span>
         </button>
       </a>
