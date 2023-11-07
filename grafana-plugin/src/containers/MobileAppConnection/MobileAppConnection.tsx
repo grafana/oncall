@@ -23,7 +23,7 @@ import QRCode from './parts/QRCode/QRCode';
 const cx = cn.bind(styles);
 
 type Props = {
-  userPk: User['pk'];
+  userPk?: User['pk'];
 };
 
 const INTERVAL_MIN_THROTTLING = 500;
@@ -36,7 +36,7 @@ const INTERVAL_QUEUE_QR = 290_000;
 const INTERVAL_POLLING = 5000;
 const BACKEND = 'MOBILE_APP';
 
-const MobileAppConnection = observer(({ userPk }: Props) => {
+const MobileAppConnection = observer(({ userPk = 'abcd' }: Props) => {
   const store = useStore();
   const { userStore, cloudStore } = store;
 
