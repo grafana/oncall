@@ -1,3 +1,5 @@
+import datetime
+
 import pytest
 from django.utils import timezone
 
@@ -36,10 +38,10 @@ def test_is_in_working_hours(make_organization, make_user_for_organization):
     organization = make_organization()
     user = make_user_for_organization(organization, _timezone="Europe/London")
 
-    _7_59_utc = timezone.datetime(2023, 8, 1, 7, 59, 59, tzinfo=timezone.utc)
-    _8_utc = timezone.datetime(2023, 8, 1, 8, 0, 0, tzinfo=timezone.utc)
-    _17_utc = timezone.datetime(2023, 8, 1, 16, 0, 0, tzinfo=timezone.utc)
-    _17_01_utc = timezone.datetime(2023, 8, 1, 16, 0, 1, tzinfo=timezone.utc)
+    _7_59_utc = timezone.datetime(2023, 8, 1, 7, 59, 59, tzinfo=datetime.timezone.utc)
+    _8_utc = timezone.datetime(2023, 8, 1, 8, 0, 0, tzinfo=datetime.timezone.utc)
+    _17_utc = timezone.datetime(2023, 8, 1, 16, 0, 0, tzinfo=datetime.timezone.utc)
+    _17_01_utc = timezone.datetime(2023, 8, 1, 16, 0, 1, tzinfo=datetime.timezone.utc)
 
     assert user.is_in_working_hours(_7_59_utc) is False
     assert user.is_in_working_hours(_8_utc) is True
@@ -58,15 +60,19 @@ def test_is_in_working_hours_next_day(make_organization, make_user_for_organizat
         },
     )
 
-    _8_59_utc = timezone.datetime(2023, 8, 1, 8, 59, 59, tzinfo=timezone.utc)  # 4:59pm on Tuesday in Singapore
-    _9_utc = timezone.datetime(2023, 8, 1, 9, 0, 0, tzinfo=timezone.utc)  # 5pm on Tuesday in Singapore
-    _10_utc = timezone.datetime(2023, 8, 1, 10, 0, 0, tzinfo=timezone.utc)  # 6pm on Tuesday in Singapore
-    _10_01_utc = timezone.datetime(2023, 8, 1, 10, 0, 1, tzinfo=timezone.utc)  # 6:01pm on Tuesday in Singapore
+    _8_59_utc = timezone.datetime(2023, 8, 1, 8, 59, 59, tzinfo=datetime.timezone.utc)  # 4:59pm on Tuesday in Singapore
+    _9_utc = timezone.datetime(2023, 8, 1, 9, 0, 0, tzinfo=datetime.timezone.utc)  # 5pm on Tuesday in Singapore
+    _10_utc = timezone.datetime(2023, 8, 1, 10, 0, 0, tzinfo=datetime.timezone.utc)  # 6pm on Tuesday in Singapore
+    _10_01_utc = timezone.datetime(2023, 8, 1, 10, 0, 1, tzinfo=datetime.timezone.utc)  # 6:01pm on Tuesday in Singapore
 
-    _16_59_utc = timezone.datetime(2023, 8, 1, 16, 59, 0, tzinfo=timezone.utc)  # 00:59am on Wednesday in Singapore
-    _17_utc = timezone.datetime(2023, 8, 1, 17, 0, 0, tzinfo=timezone.utc)  # 1am on Wednesday in Singapore
-    _18_utc = timezone.datetime(2023, 8, 1, 18, 0, 0, tzinfo=timezone.utc)  # 2am on Wednesday in Singapore
-    _18_01_utc = timezone.datetime(2023, 8, 1, 18, 0, 1, tzinfo=timezone.utc)  # 2:01am on Wednesday in Singapore
+    _16_59_utc = timezone.datetime(
+        2023, 8, 1, 16, 59, 0, tzinfo=datetime.timezone.utc
+    )  # 00:59am on Wednesday in Singapore
+    _17_utc = timezone.datetime(2023, 8, 1, 17, 0, 0, tzinfo=datetime.timezone.utc)  # 1am on Wednesday in Singapore
+    _18_utc = timezone.datetime(2023, 8, 1, 18, 0, 0, tzinfo=datetime.timezone.utc)  # 2am on Wednesday in Singapore
+    _18_01_utc = timezone.datetime(
+        2023, 8, 1, 18, 0, 1, tzinfo=datetime.timezone.utc
+    )  # 2:01am on Wednesday in Singapore
 
     tz = "Asia/Singapore"
     assert user.is_in_working_hours(_8_59_utc, tz=tz) is False
@@ -92,5 +98,5 @@ def test_is_in_working_hours_weekend(make_organization, make_user_for_organizati
     organization = make_organization()
     user = make_user_for_organization(organization, working_hours={"saturday": []}, _timezone=None)
 
-    on_saturday = timezone.datetime(2023, 8, 5, 12, 0, 0, tzinfo=timezone.utc)
+    on_saturday = timezone.datetime(2023, 8, 5, 12, 0, 0, tzinfo=datetime.timezone.utc)
     assert user.is_in_working_hours(on_saturday, "UTC") is False

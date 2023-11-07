@@ -12,6 +12,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Unify naming of Grafana Cloud / Cloud OnCall / Grafana Cloud OnCall
   so that it's always Grafana Cloud OnCall ([#3279](https://github.com/grafana/oncall/pull/3279))
 
+## v1.3.54 (2023-11-06)
+
+### Added
+
+- Add `b64decode` Jinja2 template helper filter by @jorgeav ([#3242](https://github.com/grafana/oncall/pull/3242))
+
 ## v1.3.53 (2023-11-03)
 
 ### Fixed

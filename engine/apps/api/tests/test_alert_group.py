@@ -2098,3 +2098,26 @@ def test_wipe_clears_cache(
         for field_name in AlertFieldsCacheSerializerMixin.ALL_FIELD_NAMES
     ]
     assert not any([cache.get(key) for key in alert_cache_keys])
+
+
+@patch("apps.api.views.alert_group.delete_alert_group.apply_async")
+@pytest.mark.django_db
+def test_delete(mock_delete_alert_group, make_user_auth_headers, alert_group_internal_api_setup):
+    client = APIClient()
+    user, token, alert_groups = alert_group_internal_api_setup
+    resolved_alert_group, acked_alert_group, new_alert_group, _ = alert_groups
+
+    auth_headers = make_user_auth_headers(user, token)
+
+    for alert_group in [resolved_alert_group, acked_alert_group, new_alert_group]:
+        mock_delete_alert_group.reset_mock()
+
+        url = reverse("api-internal:alertgroup-detail", kwargs={"pk": alert_group.public_primary_key})
+        response = client.delete(url, **auth_headers)
+
+        assert response.status_code == status.HTTP_204_NO_CONTENT
+        mock_delete_alert_group.assert_called_once_with((alert_group.pk, user.pk))
+
+    url = reverse("api-internal:alertgroup-detail", kwargs={"pk": "potato"})
+    response = client.delete(url, **auth_headers)
+    assert response.status_code == status.HTTP_404_NOT_FOUND
