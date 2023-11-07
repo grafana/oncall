@@ -120,6 +120,7 @@ DATABASE_DEFAULTS = {
     },
 }
 
+DATABASE_TYPES = DatabaseTypes
 DATABASE_NAME = os.getenv("DATABASE_NAME") or os.getenv("MYSQL_DB_NAME")
 DATABASE_USER = os.getenv("DATABASE_USER") or os.getenv("MYSQL_USER")
 DATABASE_PASSWORD = os.getenv("DATABASE_PASSWORD") or os.getenv("MYSQL_PASSWORD")

@@ -143,6 +143,19 @@ class AlertGroupQuerySet(models.QuerySet):
                 pass
             raise
 
+    def filter_active(self, *args, **kwargs):
+        # filter alert groups with active escalation
+        return super().filter(
+            *args,
+            ~Q(silenced=True, silenced_until__isnull=True),  # filter silenced forever alert_groups
+            **kwargs,
+            maintenance_uuid__isnull=True,
+            is_escalation_finished=False,
+            resolved=False,
+            acknowledged=False,
+            root_alert_group=None,
+        )
+
 
 class AlertGroupSlackRenderingMixin:
     """
