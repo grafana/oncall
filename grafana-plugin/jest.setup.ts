@@ -19,3 +19,35 @@ Object.defineProperty(window, 'matchMedia', {
     dispatchEvent: jest.fn(),
   })),
 });
+
+const global = window as any;
+
+global.ResizeObserver = class ResizeObserver {
+  //callback: ResizeObserverCallback;
+
+  constructor(callback: ResizeObserverCallback) {
+    setTimeout(() => {
+      callback(
+        [
+          {
+            contentRect: {
+              x: 1,
+              y: 2,
+              width: 500,
+              height: 500,
+              top: 100,
+              bottom: 0,
+              left: 100,
+              right: 0,
+            },
+            target: {},
+          } as ResizeObserverEntry,
+        ],
+        this
+      );
+    });
+  }
+  observe() {}
+  disconnect() {}
+  unobserve() {}
+};

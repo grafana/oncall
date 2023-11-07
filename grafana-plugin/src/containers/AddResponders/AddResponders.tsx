@@ -56,6 +56,8 @@ const AddResponders = observer(
     onAddNewParticipant,
     generateRemovePreviouslyPagedUserCallback,
   }: Props) => {
+    console.log('here');
+
     const { directPagingStore } = useStore();
     const { selectedTeamResponder, selectedUserResponders } = directPagingStore;
 
