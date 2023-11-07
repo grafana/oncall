@@ -408,7 +408,7 @@ class User(models.Model):
                 # https://docs.djangoproject.com/en/4.2/topics/db/queries/#contains
                 return PermissionsRegexQuery(permissions__regex=re.escape(permission.value))
             required_permission = {"action": permission.value}
-            return PermissionsQuery(permissions__contains=required_permission)
+            return PermissionsQuery(permissions__contains=[required_permission])
         return RoleInQuery(role__lte=permission.fallback_role.value)
 
     def get_or_create_notification_policies(self, important=False):
