@@ -12,9 +12,9 @@ class Command(BaseCommand):
     alert groups.
 
     Usage example:
-    `python manage.py continue_escalation -ppk {"ppk1","ppk2"}` - continue escalation for alert groups with these
+    `python manage.py continue_escalation -ppk "ppk1" "ppk2"` - continue escalation for alert groups with these
     public pks
-    `python manage.py continue_escalation -id {1,2} -uns` - continue escalation for alert groups with these ids and
+    `python manage.py continue_escalation -id 1 2 -uns` - continue escalation for alert groups with these ids and
     schedule unsilence task for silenced alert groups
     """
 
@@ -33,12 +33,19 @@ class Command(BaseCommand):
         parser.add_argument(
             "-uns", "--unsilence_task", action="store_true", help="Restart unsilence task for selected alert groups."
         )
+        parser.add_argument(  # used for cases with migrated organizations to actualize data in escalation snapshot
+            "-rebuild",
+            "--rebuild_escalation_snapshot",
+            action="store_true",
+            help="Rebuild escalation snapshot for selected alert groups.",
+        )
 
     def handle(self, *args, **options):
         alert_group_ids = options["alert_group_ids"]
         alert_group_ppk = options["alert_group_ppk"]
         restart_all = options["all"]
         restart_unsilence_task = options["unsilence_task"]
+        rebuild_escalation_snapshot = options["rebuild_escalation_snapshot"]
 
         if restart_all:
             self.stdout.write("Processing restart escalation for all active alert groups...")
@@ -65,6 +72,21 @@ class Command(BaseCommand):
         now = timezone.now()
 
         for alert_group in alert_groups:
+            # rebuild escalation snapshot with keeping information about current escalation step
+            # this is used for migrated organizations to actualize data in escalation snapshot
+            if rebuild_escalation_snapshot:
+                self._write_stdout_log(
+                    restart_all,
+                    f"rebuild escalation snapshot for alert group (id: {alert_group.id}, ppk: "
+                    f"{alert_group.public_primary_key})",
+                )
+                original_escalation_snapshot = alert_group.raw_escalation_snapshot
+                new_escalation_snapshot = alert_group.build_raw_escalation_snapshot()
+                snapshot_fields_to_copy = ["last_active_escalation_policy_order", "next_step_eta", "pause_escalation"]
+                for field in snapshot_fields_to_copy:
+                    new_escalation_snapshot[field] = original_escalation_snapshot[field]
+                alert_group.raw_escalation_snapshot = new_escalation_snapshot
+
             task_id = celery_uuid()
             # if incident was silenced, start unsilence_task
             if alert_group.is_silenced_for_period:
@@ -118,7 +140,7 @@ class Command(BaseCommand):
 
         AlertGroup.objects.bulk_update(
             alert_groups_to_update,
-            ["active_escalation_id", "unsilence_task_uuid"],
+            ["active_escalation_id", "unsilence_task_uuid", "raw_escalation_snapshot"],
             batch_size=5000,
         )
 
