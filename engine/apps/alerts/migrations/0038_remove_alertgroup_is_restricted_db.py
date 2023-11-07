@@ -2,6 +2,7 @@
 
 import common.migrations.remove_field
 from django.db import migrations
+import django_migration_linter as linter
 
 
 class Migration(migrations.Migration):
@@ -11,6 +12,7 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        linter.IgnoreMigration(),
         common.migrations.remove_field.RemoveFieldDB(
             model_name='AlertGroup',
             name='is_restricted',
