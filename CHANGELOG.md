@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Fix escalation policy importance going back to default by @vadimkerr ([#3282](https://github.com/grafana/oncall/pull/3282))
+- Improve user permissions query ([#3291](https://github.com/grafana/oncall/pull/3291))
 
 ## v1.3.54 (2023-11-06)
 
