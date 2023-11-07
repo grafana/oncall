@@ -9,7 +9,7 @@ from rest_framework.response import Response
 
 from apps.alerts.models import AlertReceiveChannel
 from apps.alerts.paging import DirectPagingUserTeamValidationError, UserNotifications, direct_paging, user_is_oncall
-from apps.schedules.ical_utils import get_oncall_users_for_multiple_schedules
+from apps.schedules.ical_utils import get_cached_oncall_users_for_multiple_schedules
 from apps.slack.constants import DIVIDER, PRIVATE_METADATA_MAX_LENGTH
 from apps.slack.errors import SlackAPIChannelNotFoundError
 from apps.slack.scenarios import scenario_step
@@ -707,7 +707,7 @@ def _get_user_select_blocks(
 def _get_users_select(
     organization: "Organization", input_id_prefix: str, action_id: str, max_options_per_group=MAX_STATIC_SELECT_OPTIONS
 ) -> Block.Context | Block.Input:
-    schedules = get_oncall_users_for_multiple_schedules(organization.oncall_schedules.all())
+    schedules = get_cached_oncall_users_for_multiple_schedules(organization.oncall_schedules.all())
     oncall_user_pks = {user.pk for _, users in schedules.items() for user in users}
 
     oncall_user_option_groups = _create_user_option_groups(

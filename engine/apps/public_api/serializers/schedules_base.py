@@ -1,6 +1,5 @@
 import datetime
 
-from django.utils import timezone
 from rest_framework import serializers
 
 from apps.schedules.ical_utils import list_users_to_notify_from_ical
@@ -21,7 +20,7 @@ class ScheduleBaseSerializer(serializers.ModelSerializer):
         return super().create(validated_data)
 
     def get_on_call_now(self, obj):
-        users_on_call = list_users_to_notify_from_ical(obj, datetime.datetime.now(timezone.utc))
+        users_on_call = list_users_to_notify_from_ical(obj, datetime.datetime.now(datetime.timezone.utc))
         if users_on_call is not None:
             return [user.public_primary_key for user in users_on_call]
         else:

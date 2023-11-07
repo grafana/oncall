@@ -11,6 +11,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fix escalation policy importance going back to default by @vadimkerr ([#3282](https://github.com/grafana/oncall/pull/3282))
 
+## v1.3.54 (2023-11-06)
+
+### Added
+
+- Add `b64decode` Jinja2 template helper filter by @jorgeav ([#3242](https://github.com/grafana/oncall/pull/3242))
+
 ## v1.3.53 (2023-11-03)
 
 ### Fixed
