@@ -2698,12 +2698,13 @@ def test_shifts_for_user_only_two_users_with_shifts(
 
     now = timezone.now()
     today = now.replace(hour=0, minute=0, second=0, microsecond=0)
+    tomorrow = today + timezone.timedelta(days=1)
     start_date = today - timezone.timedelta(days=2)
     days = 7
 
     data = {
-        "start": now + timezone.timedelta(hours=1),
-        "rotation_start": now + timezone.timedelta(hours=1),
+        "start": tomorrow + timezone.timedelta(hours=1),
+        "rotation_start": tomorrow + timezone.timedelta(hours=1),
         "duration": timezone.timedelta(hours=2),
         "priority_level": 1,
         "frequency": CustomOnCallShift.FREQUENCY_DAILY,
@@ -2733,7 +2734,7 @@ def test_shifts_for_user_only_two_users_with_shifts(
     passed_shifts, current_shifts, upcoming_shifts = schedule.shifts_for_user(current_user, start_date, days)
     assert len(passed_shifts) == 0
     assert len(current_shifts) == 0
-    assert len(upcoming_shifts) == 5
+    assert len(upcoming_shifts) == 4
     for shift in upcoming_shifts:
         users = {u["pk"] for u in shift["users"]}
         assert current_user.public_primary_key in users

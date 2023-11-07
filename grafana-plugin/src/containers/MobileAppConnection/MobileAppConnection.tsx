@@ -45,15 +45,15 @@ const MobileAppConnection = observer(({ userPk }: Props) => {
     return (
       <WithPermissionControlDisplay userAction={UserActions.UserSettingsWrite}>
         <VerticalGroup spacing="lg">
-          <Text type="secondary">Please connect Cloud OnCall to use the mobile app</Text>
+          <Text type="secondary">Please connect Grafana Cloud OnCall to use the mobile app</Text>
           <WithPermissionControlDisplay
             userAction={UserActions.OtherSettingsWrite}
-            message="You do not have permission to perform this action. Ask an admin to connect Cloud OnCall or upgrade your
+            message="You do not have permission to perform this action. Ask an admin to connect Grafana Cloud OnCall or upgrade your
             permissions."
           >
             <PluginLink query={{ page: 'cloud' }}>
               <Button variant="secondary" icon="external-link-alt">
-                Connect Cloud OnCall
+                Connect Grafana Cloud OnCall
               </Button>
             </PluginLink>
           </WithPermissionControlDisplay>
