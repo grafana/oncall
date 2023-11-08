@@ -174,19 +174,10 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
   };
 
   onTabChange = (tab: TabType) => {
-    this.setState(
-      (prevState) => ({
-        activeTab: tab,
-        integrationsFilters: {
-          ...prevState.integrationsFilters,
-          searchTerm: undefined,
-        },
-      }),
-      () => {
-        LocationHelper.update({ tab }, 'partial');
-        this.handleChangePage(1);
-      }
-    );
+    LocationHelper.update({ tab, p: 1, integration: undefined, search: undefined }, 'partial');
+    this.setState({
+      activeTab: tab,
+    });
   };
 
   render() {
@@ -233,13 +224,17 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
                 />
               ))}
             </TabsBar>
-            <RemoteFilters
-              query={query}
-              page={PAGE.Integrations}
-              grafanaTeamStore={store.grafanaTeamStore}
-              onChange={this.handleIntegrationsFiltersChange}
-            />
             <TabContent>
+              <RemoteFilters
+                key={activeTab} // added to remount the component on every tab
+                query={query}
+                page={PAGE.Integrations}
+                grafanaTeamStore={store.grafanaTeamStore}
+                onChange={this.handleIntegrationsFiltersChange}
+                {...(activeTab === TabType.DirectPaging && {
+                  skipFilterOptionFn: ({ name }) => name === 'integration',
+                })}
+              />
               {isDirectPagingSelectedOnConnectionTab && (
                 <Alert
                   className={cx('goToDirectPagingAlert')}
@@ -247,7 +242,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
                   title="Direct Paging integrations has been moved."
                 >
                   <span>
-                    Direct Paging integrations are in a separate tab now.{' '}
+                    They are in a separate tab now.{' '}
                     <PluginLink query={{ page: 'integrations', tab: TabType.DirectPaging }}>
                       Go to Direct Paging tab
                     </PluginLink>{' '}
