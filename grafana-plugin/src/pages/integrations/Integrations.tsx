@@ -11,6 +11,7 @@ import {
   Tab,
   TabsBar,
   TabContent,
+  Alert,
 } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { debounce } from 'lodash-es';
@@ -38,7 +39,11 @@ import TeamName from 'containers/TeamName/TeamName';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { HeartIcon, HeartRedIcon } from 'icons';
 import { AlertReceiveChannelStore } from 'models/alert_receive_channel/alert_receive_channel';
-import { AlertReceiveChannel, MaintenanceMode } from 'models/alert_receive_channel/alert_receive_channel.types';
+import {
+  AlertReceiveChannel,
+  MaintenanceMode,
+  SupportedIntegrationFilters,
+} from 'models/alert_receive_channel/alert_receive_channel.types';
 import { LabelKeyValue } from 'models/label/label.types';
 import IntegrationHelper from 'pages/integration/Integration.helper';
 import { AppFeature } from 'state/features';
@@ -56,6 +61,8 @@ enum TabType {
   DirectPaging = 'direct-paging',
 }
 
+const TAB_QUERY_PARAM_KEY = 'tab';
+
 const TABS = [
   {
     label: 'Connections',
@@ -71,7 +78,7 @@ const cx = cn.bind(styles);
 const FILTERS_DEBOUNCE_MS = 500;
 
 interface IntegrationsState extends PageBaseState {
-  integrationsFilters: Partial<{ integration: string[]; team: string[]; label: string[]; searchTerm: string }>;
+  integrationsFilters: SupportedIntegrationFilters;
   alertReceiveChannelId?: AlertReceiveChannel['id'] | 'new';
   confirmationModal: {
     isOpen: boolean;
@@ -94,10 +101,10 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
     super(props);
 
     this.state = {
-      integrationsFilters: { searchTerm: '' },
+      integrationsFilters: { searchTerm: '', integration_ne: ['direct_paging'] },
       errorData: initErrorDataState(),
       confirmationModal: undefined,
-      activeTab: TabType.Connections,
+      activeTab: props.query[TAB_QUERY_PARAM_KEY] || TabType.Connections,
     };
   }
 
@@ -109,20 +116,23 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
     if (prevProps.match.params.id !== this.props.match.params.id) {
       this.parseQueryParams();
     }
+    if (prevProps.query[TAB_QUERY_PARAM_KEY] !== this.props.query[TAB_QUERY_PARAM_KEY]) {
+      this.onTabChange(this.props.query[TAB_QUERY_PARAM_KEY] as TabType);
+    }
   }
 
   parseQueryParams = async () => {
-    this.setState((_prevState) => ({
-      errorData: initErrorDataState(),
-      alertReceiveChannelId: undefined,
-    })); // reset state on query parse
-
     const {
       store,
       match: {
         params: { id },
       },
     } = this.props;
+
+    this.setState((_prevState) => ({
+      errorData: initErrorDataState(),
+      alertReceiveChannelId: undefined,
+    })); // reset state on query parse
 
     if (!id) {
       return;
@@ -142,32 +152,51 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
     }
   };
 
+  getFiltersBasedOnCurrentTab = () => ({
+    ...this.state.integrationsFilters,
+    ...(this.state.activeTab === TabType.DirectPaging
+      ? { integration: ['direct_paging'] }
+      : { integration_ne: ['direct_paging'] }),
+  });
+
   update = () => {
     const { store } = this.props;
-    const { integrationsFilters } = this.state;
     const page = store.filtersStore.currentTablePageNum[PAGE.Integrations];
 
     LocationHelper.update({ p: page }, 'partial');
 
-    return store.alertReceiveChannelStore.updatePaginatedItems(integrationsFilters, page, false, () =>
-      this.invalidateRequestFn(page)
-    );
+    return store.alertReceiveChannelStore.updatePaginatedItems({
+      filters: this.getFiltersBasedOnCurrentTab(),
+      page,
+      updateCounters: false,
+      invalidateFn: () => this.invalidateRequestFn(page),
+    });
   };
 
   onTabChange = (tab: TabType) => {
-    // TODO: change grafana_alerting to non_direct_paging
-    const integration = tab === TabType.DirectPaging ? ['direct_paging'] : ['grafana_alerting'];
-    this.setState({ activeTab: tab, integrationsFilters: { integration } }, () => {
-      this.debouncedUpdateIntegrations(false);
-    });
+    this.setState(
+      (prevState) => ({
+        activeTab: tab,
+        integrationsFilters: {
+          ...prevState.integrationsFilters,
+          searchTerm: undefined,
+        },
+      }),
+      () => {
+        LocationHelper.update({ tab }, 'partial');
+        this.handleChangePage(1);
+      }
+    );
   };
 
   render() {
     const { store, query } = this.props;
-    const { alertReceiveChannelId, confirmationModal, activeTab } = this.state;
+    const { alertReceiveChannelId, confirmationModal, activeTab, integrationsFilters } = this.state;
     const { alertReceiveChannelStore } = store;
 
     const { count, results, page_size } = alertReceiveChannelStore.getPaginatedSearchResult();
+    const isDirectPagingSelectedOnConnectionTab =
+      activeTab === TabType.Connections && integrationsFilters.integration?.includes('direct_paging');
 
     return (
       <>
@@ -211,6 +240,21 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
               onChange={this.handleIntegrationsFiltersChange}
             />
             <TabContent>
+              {isDirectPagingSelectedOnConnectionTab && (
+                <Alert
+                  className={cx('goToDirectPagingAlert')}
+                  severity="info"
+                  title="Direct Paging integrations has been moved."
+                >
+                  <span>
+                    Direct Paging integrations are in a separate tab now.{' '}
+                    <PluginLink query={{ page: 'integrations', tab: TabType.DirectPaging }}>
+                      Go to Direct Paging tab
+                    </PluginLink>{' '}
+                    to view them.
+                  </span>
+                </Alert>
+              )}
               <GTable
                 emptyText={count === undefined ? 'Loading...' : 'No integrations found'}
                 loading={count === undefined}
@@ -620,13 +664,15 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
   applyFilters = async (isOnMount: boolean) => {
     const { store } = this.props;
     const { alertReceiveChannelStore } = store;
-    const { integrationsFilters } = this.state;
-    console.log('applyFilters', { integrationsFilters });
-
     const newPage = isOnMount ? store.filtersStore.currentTablePageNum[PAGE.Integrations] : 1;
 
     return alertReceiveChannelStore
-      .updatePaginatedItems(integrationsFilters, newPage, false, () => this.invalidateRequestFn(newPage))
+      .updatePaginatedItems({
+        filters: this.getFiltersBasedOnCurrentTab(),
+        page: newPage,
+        updateCounters: false,
+        invalidateFn: () => this.invalidateRequestFn(newPage),
+      })
       .then(() => {
         store.filtersStore.currentTablePageNum[PAGE.Integrations] = newPage;
         LocationHelper.update({ p: newPage }, 'partial');
