@@ -21,7 +21,7 @@ logger = get_task_logger(__name__)
 class UniqueFaker(factory.Faker):
     @classmethod
     def _get_faker(cls, locale=None):
-        return super()._get_faker(locale=locale).unique
+        return super()._get_faker(locale).unique
 
 
 # Context manager for tasks that are intended to retry
