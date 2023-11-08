@@ -158,7 +158,7 @@ export const ColumnsSelector: React.FC<ColumnsSelectorProps> = ({ onModalOpen })
 
   function onItemChange(id: string | number) {
     setItems((items) => {
-      return items.map((it) => (it.id === id ? { ...it, isChecked: !it.isVisible } : it));
+      return items.map((it) => (it.id === id ? { ...it, isVisible: !it.isVisible } : it));
     });
   }
 
