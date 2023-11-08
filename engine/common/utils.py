@@ -8,7 +8,6 @@ import time
 from functools import reduce
 
 import factory
-import faker
 import markdown2
 from bs4 import BeautifulSoup
 from celery.utils.log import get_task_logger
@@ -22,7 +21,7 @@ logger = get_task_logger(__name__)
 class UniqueFaker(factory.Faker):
     @classmethod
     def _get_faker(cls, locale=None):
-        return faker.Faker(locale=locale).unique
+        return super()._get_faker(locale=locale).unique
 
 
 # Context manager for tasks that are intended to retry
