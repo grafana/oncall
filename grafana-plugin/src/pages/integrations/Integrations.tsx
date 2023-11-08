@@ -186,7 +186,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
     const { alertReceiveChannelStore } = store;
 
     const { count, results, page_size } = alertReceiveChannelStore.getPaginatedSearchResult();
-    const isDirectPagingSelectedOnConnectionTab =
+    const isDirectPagingSelectedOnConnectionsTab =
       activeTab === TabType.Connections && integrationsFilters.integration?.includes('direct_paging');
 
     return (
@@ -226,7 +226,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
             </TabsBar>
             <TabContent>
               <RemoteFilters
-                key={activeTab} // added to remount the component on every tab
+                key={activeTab} // added to remount the component on each tab
                 query={query}
                 page={PAGE.Integrations}
                 grafanaTeamStore={store.grafanaTeamStore}
@@ -235,7 +235,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
                   skipFilterOptionFn: ({ name }) => name === 'integration',
                 })}
               />
-              {isDirectPagingSelectedOnConnectionTab && (
+              {isDirectPagingSelectedOnConnectionsTab && (
                 <Alert
                   className={cx('goToDirectPagingAlert')}
                   severity="info"
