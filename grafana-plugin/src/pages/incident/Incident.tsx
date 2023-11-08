@@ -57,6 +57,7 @@ import { openNotification } from 'utils';
 import { UserActions } from 'utils/authorization';
 import { PLUGIN_ROOT } from 'utils/consts';
 import sanitize from 'utils/sanitize';
+import { parseURL } from 'utils/url';
 
 import { getActionButtons } from './Incident.helpers';
 import styles from './Incident.module.scss';
@@ -269,6 +270,8 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
 
     const integrationNameWithEmojies = <Emoji text={incident.alert_receive_channel.verbal_name} />;
 
+    const sourceLink = incident?.render_for_web?.source_link;
+
     return (
       <Block className={cx('block')}>
         <VerticalGroup>
@@ -370,17 +373,19 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
                   <Tooltip
                     placement="top"
                     content={
-                      incident.render_for_web.source_link === null
+                      sourceLink === null
                         ? `The integration template Source Link is empty`
+                        : parseURL(sourceLink) === ''
+                        ? 'The Integration template Source Link is invalid'
                         : 'Go to source'
                     }
                   >
-                    <a href={incident.render_for_web.source_link} target="_blank" rel="noreferrer">
+                    <a href={parseURL(sourceLink) || undefined} target="_blank" rel="noreferrer">
                       <Button
                         variant="secondary"
                         fill="outline"
                         size="sm"
-                        disabled={incident.render_for_web.source_link === null}
+                        disabled={sourceLink === null || parseURL(sourceLink) === ''}
                         className={cx('label-button')}
                         icon="external-link-alt"
                       >
