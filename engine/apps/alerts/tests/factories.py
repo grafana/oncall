@@ -30,7 +30,7 @@ class ChannelFilterFactory(factory.DjangoModelFactory):
 
 
 class EscalationChainFactory(factory.DjangoModelFactory):
-    name = UniqueFaker("sentence")
+    name = UniqueFaker("sentence", nb_words=3)
 
     class Meta:
         model = EscalationChain
@@ -70,7 +70,7 @@ class ResolutionNoteSlackMessageFactory(factory.DjangoModelFactory):
 
 class CustomActionFactory(factory.DjangoModelFactory):
     webhook = factory.Faker("url")
-    name = UniqueFaker("sentence")
+    name = UniqueFaker("sentence", nb_words=3)
 
     class Meta:
         model = CustomButton
