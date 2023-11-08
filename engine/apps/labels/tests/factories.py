@@ -10,16 +10,16 @@ from common.utils import UniqueFaker
 
 
 class LabelKeyFactory(factory.DjangoModelFactory):
-    id = UniqueFaker("word")
-    name = UniqueFaker("word")
+    id = UniqueFaker("sentence")
+    name = UniqueFaker("sentence")
 
     class Meta:
         model = LabelKeyCache
 
 
 class LabelValueFactory(factory.DjangoModelFactory):
-    id = UniqueFaker("word")
-    name = UniqueFaker("word")
+    id = UniqueFaker("sentence")
+    name = UniqueFaker("sentence")
 
     class Meta:
         model = LabelValueCache
