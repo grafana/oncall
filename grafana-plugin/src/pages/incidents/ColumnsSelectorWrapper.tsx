@@ -70,6 +70,9 @@ const ColumnsSelectorWrapper: React.FC<ColumnsSelectorWrapperProps> = () => {
             <Button
               variant="secondary"
               onClick={() => {
+                inputRef.current.value = '';
+
+                setSearchResults([]);
                 setIsModalOpen(false);
                 setTimeout(() => forceOpenToggletip(), 0);
               }}

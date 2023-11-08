@@ -23,31 +23,26 @@ import cn from 'classnames/bind';
 
 import Text from 'components/Text/Text';
 import styles from 'pages/incidents/ColumnsSelector.module.scss';
+import { noop } from 'lodash-es';
+import { AGColumn } from 'models/alertgroup/alertgroup.types';
 
 const cx = cn.bind(styles);
-const TRANSITION_MS = 300;
-
-interface Column {
-  id: number | string;
-  name: string;
-  isChecked?: boolean;
-  isHidden?: boolean;
-}
+const TRANSITION_MS = 500;
 
 interface ColumnRowProps {
-  column: Column;
+  column: AGColumn;
   onItemChange: (id: number | string) => void;
 }
 
-const startingColumnsData: Column[] = [
-  { id: 1, name: 'Status', isChecked: true },
-  { id: 2, name: 'ID', isChecked: true },
-  { id: 3, name: 'Summary', isChecked: true },
-  { id: 4, name: 'Integration', isChecked: true },
-  { id: 5, name: 'Users', isChecked: true },
-  { id: 6, name: 'Team', isChecked: true },
-  { id: 7, name: 'Cortex', isHidden: true },
-  { id: 8, name: 'Created', isHidden: true },
+const startingColumnsData: AGColumn[] = [
+  { id: 1, name: 'Status', isVisible: true },
+  { id: 2, name: 'ID', isVisible: true },
+  { id: 3, name: 'Summary', isVisible: true },
+  { id: 4, name: 'Integration', isVisible: true },
+  { id: 5, name: 'Users', isVisible: true },
+  { id: 6, name: 'Team', isVisible: true },
+  { id: 7, name: 'Cortex', isVisible: false },
+  { id: 8, name: 'Created', isVisible: false },
 ];
 
 const ColumnRow: React.FC<ColumnRowProps> = ({ column, onItemChange }) => {
@@ -66,7 +61,7 @@ const ColumnRow: React.FC<ColumnRowProps> = ({ column, onItemChange }) => {
       <div className={cx('column-item')} ref={columnElRef}>
         <span className={cx('column-name')}>{column.name}</span>
 
-        {column.isChecked ? (
+        {column.isVisible ? (
           <IconButton
             aria-label="Drag"
             name="draggabledots"
@@ -75,14 +70,19 @@ const ColumnRow: React.FC<ColumnRowProps> = ({ column, onItemChange }) => {
             {...listeners}
           />
         ) : (
-          <IconButton className={cx('column-icon', 'column-icon--trash')} name="trash-alt" aria-label="Remove" />
+          <IconButton
+            className={cx('column-icon', 'column-icon--trash')}
+            name="trash-alt"
+            aria-label="Remove"
+            onClick={noop}
+          />
         )}
       </div>
 
       <Checkbox
         className={cx('columns-checkbox')}
         type="checkbox"
-        value={column.isChecked}
+        value={column.isVisible}
         onChange={() => onItemChange(column.id)}
       />
     </div>
@@ -94,9 +94,9 @@ interface ColumnsSelectorProps {
 }
 
 export const ColumnsSelector: React.FC<ColumnsSelectorProps> = ({ onModalOpen }) => {
-  const [items, setItems] = useState<Column[]>([...startingColumnsData]);
-  const visibleColumns = items.filter((col) => col.isChecked);
-  const hiddenColumns = items.filter((col) => !col.isChecked);
+  const [items, setItems] = useState<AGColumn[]>([...startingColumnsData]);
+  const visibleColumns = items.filter((col) => col.isVisible);
+  const hiddenColumns = items.filter((col) => !col.isVisible);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -158,14 +158,14 @@ export const ColumnsSelector: React.FC<ColumnsSelectorProps> = ({ onModalOpen })
 
   function onItemChange(id: string | number) {
     setItems((items) => {
-      return items.map((it) => (it.id === id ? { ...it, isChecked: !it.isChecked } : it));
+      return items.map((it) => (it.id === id ? { ...it, isChecked: !it.isVisible } : it));
     });
   }
 
   function handleDragEnd(event: DragEndEvent, isVisible: boolean) {
     const { active, over } = event;
 
-    let searchableList: Column[] = isVisible ? visibleColumns : hiddenColumns;
+    let searchableList: AGColumn[] = isVisible ? visibleColumns : hiddenColumns;
 
     if (active.id !== over.id) {
       const oldIndex = searchableList.findIndex((item) => item.id === active.id);

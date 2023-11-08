@@ -88,6 +88,12 @@ export interface Alert {
   undoAction?: AlertAction;
 }
 
+export interface AGColumn {
+  id: number | string;
+  name: string;
+  isVisible: boolean;
+}
+
 interface RenderForWeb {
   message: any;
   title: any;

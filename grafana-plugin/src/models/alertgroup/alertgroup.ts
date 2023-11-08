@@ -12,7 +12,7 @@ import { SelectOption } from 'state/types';
 import { openErrorNotification, refreshPageError, showApiError } from 'utils';
 import LocationHelper from 'utils/LocationHelper';
 
-import { Alert, AlertAction, IncidentStatus } from './alertgroup.types';
+import { AGColumn, Alert, AlertAction, IncidentStatus } from './alertgroup.types';
 
 export class AlertGroupStore extends BaseStore {
   @observable.shallow
@@ -74,6 +74,9 @@ export class AlertGroupStore extends BaseStore {
 
   @observable
   liveUpdatesPaused = false;
+
+  @observable
+  columns: AGColumn[] = [];
 
   constructor(rootStore: RootStore) {
     super(rootStore);
