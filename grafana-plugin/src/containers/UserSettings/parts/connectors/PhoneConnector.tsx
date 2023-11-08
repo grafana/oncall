@@ -35,11 +35,11 @@ const PhoneConnector = (props: PhoneConnectorProps) => {
             <InlineField
               label="Phone"
               labelWidth={12}
-              tooltip={'OnCall uses Grafana Cloud for SMS and phone call notifications'}
+              tooltip={'OnCall uses Grafana Cloud OnCall for SMS and phone call notifications'}
             >
-              <Button onClick={handleClickConfirmPhoneButton}>Connect to Cloud</Button>
+              <Button onClick={handleClickConfirmPhoneButton}>Connect to Grafana Cloud OnCall</Button>
             </InlineField>
-            <Alert title="This instance is not connected to Cloud OnCall" severity="warning" />
+            <Alert title="This instance is not connected to Grafana Cloud OnCall" severity="warning" />
           </>
         );
 
@@ -49,7 +49,7 @@ const PhoneConnector = (props: PhoneConnectorProps) => {
             <InlineField
               label="Phone"
               labelWidth={12}
-              tooltip={'OnCall uses Grafana Cloud for SMS and phone call notifications'}
+              tooltip={'OnCall uses Grafana Cloud OnCall for SMS and phone call notifications'}
             >
               <Button onClick={handleClickConfirmPhoneButton}>Reload from Cloud</Button>
             </InlineField>
@@ -63,11 +63,11 @@ const PhoneConnector = (props: PhoneConnectorProps) => {
             <InlineField
               label="Phone"
               labelWidth={12}
-              tooltip={'OnCall uses Grafana Cloud for SMS and phone call notifications'}
+              tooltip={'OnCall uses Grafana Cloud OnCall for SMS and phone call notifications'}
             >
               <Button onClick={handleClickConfirmPhoneButton}>Verify in Cloud</Button>
             </InlineField>
-            <Alert title="Phone number is not verified in Grafana Cloud" severity="warning" />
+            <Alert title="Phone number is not verified in Grafana Cloud OnCall" severity="warning" />
           </>
         );
       case 3:
@@ -76,7 +76,7 @@ const PhoneConnector = (props: PhoneConnectorProps) => {
             <InlineField
               label="Phone"
               labelWidth={12}
-              tooltip={'OnCall uses Grafana Cloud for SMS and phone call notifications'}
+              tooltip={'OnCall uses Grafana Cloud OnCall for SMS and phone call notifications'}
             >
               <Button onClick={handleClickConfirmPhoneButton}>Change in Cloud</Button>
             </InlineField>
@@ -90,7 +90,7 @@ const PhoneConnector = (props: PhoneConnectorProps) => {
               label="Phone"
               disabled={true}
               labelWidth={12}
-              tooltip={'OnCall uses Grafana Cloud for SMS and phone call notifications'}
+              tooltip={'OnCall uses Grafana Cloud OnCall for SMS and phone call notifications'}
             >
               <Button onClick={handleClickConfirmPhoneButton}>Reload from Cloud</Button>
             </InlineField>
