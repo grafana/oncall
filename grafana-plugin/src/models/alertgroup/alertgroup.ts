@@ -3,7 +3,7 @@ import qs from 'query-string';
 
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import BaseStore from 'models/base_store';
-import { LabelKey } from 'models/label/label.types';
+import { Label, LabelKey } from 'models/label/label.types';
 import { User } from 'models/user/user.types';
 import { makeRequest } from 'network';
 import { Mixpanel } from 'services/mixpanel';
@@ -440,7 +440,7 @@ export class AlertGroupStore extends BaseStore {
   }
 
   @action
-  public async loadLabelsKeys() {
+  public async loadLabelsKeys(): Promise<Label[]> {
     return await makeRequest(`/alertgroups/labels/keys/`, {});
   }
 

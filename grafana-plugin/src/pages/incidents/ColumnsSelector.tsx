@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 
 import {
   DndContext,
@@ -18,12 +18,14 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Button, Checkbox, IconButton } from '@grafana/ui';
+import { CSSTransition, TransitionGroup } from 'react-transition-group';
 import cn from 'classnames/bind';
 
 import Text from 'components/Text/Text';
 import styles from 'pages/incidents/ColumnsSelector.module.scss';
 
 const cx = cn.bind(styles);
+const TRANSITION_MS = 300;
 
 interface Column {
   id: number | string;
@@ -52,6 +54,7 @@ const ColumnRow: React.FC<ColumnRowProps> = ({ column, onItemChange }) => {
   const dnd = useSortable({ id: column.id });
 
   const { attributes, listeners, setNodeRef, transform, transition } = dnd;
+  const columnElRef = useRef<HTMLDivElement>(undefined);
 
   const style: React.CSSProperties = {
     transform: CSS.Transform.toString(transform),
@@ -60,7 +63,7 @@ const ColumnRow: React.FC<ColumnRowProps> = ({ column, onItemChange }) => {
 
   return (
     <div ref={setNodeRef} style={{ ...style }} className={cx('column-row')}>
-      <div className={cx('column-item')}>
+      <div className={cx('column-item')} ref={columnElRef}>
         <span className={cx('column-name')}>{column.name}</span>
 
         {column.isChecked ? (
@@ -115,9 +118,13 @@ export const ColumnsSelector: React.FC<ColumnsSelectorProps> = ({ onModalOpen })
 
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={(ev) => handleDragEnd(ev, true)}>
           <SortableContext items={items} strategy={verticalListSortingStrategy}>
-            {visibleColumns.map((column) => (
-              <ColumnRow key={column.id} column={column} onItemChange={onItemChange} />
-            ))}
+            <TransitionGroup>
+              {visibleColumns.map((column) => (
+                <CSSTransition key={column.id} timeout={TRANSITION_MS} unmountOnExit classNames="fade">
+                  <ColumnRow key={column.id} column={column} onItemChange={onItemChange} />
+                </CSSTransition>
+              ))}
+            </TransitionGroup>
           </SortableContext>
         </DndContext>
       </div>
@@ -129,9 +136,13 @@ export const ColumnsSelector: React.FC<ColumnsSelectorProps> = ({ onModalOpen })
 
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={(ev) => handleDragEnd(ev, false)}>
           <SortableContext items={items} strategy={verticalListSortingStrategy}>
-            {hiddenColumns.map((column) => (
-              <ColumnRow key={column.id} column={column} onItemChange={onItemChange} />
-            ))}
+            <TransitionGroup>
+              {hiddenColumns.map((column) => (
+                <CSSTransition key={column.id} timeout={TRANSITION_MS} classNames="fade">
+                  <ColumnRow key={column.id} column={column} onItemChange={onItemChange} />
+                </CSSTransition>
+              ))}
+            </TransitionGroup>
           </SortableContext>
         </DndContext>
       </div>
