@@ -645,15 +645,14 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
     @property
     def alert_group_labels(self) -> IntegrationAlertGroupLabels:
         """
-        Alert group labels configuration for the integration.
-        Used by apps.api.serializers.AlertReceiveChannelSerializer.
-        See apps.labels.models.AlertReceiveChannelAssociatedLabel.inherit for more details.
+        Alert group labels configuration for the integration used by AlertReceiveChannelSerializer.
+        See AlertReceiveChannelAssociatedLabel.inherit for more details.
         """
         return {"inherit": {label.key_id: label.inherit for label in self.labels.all()}}
 
     @alert_group_labels.setter
     def alert_group_labels(self, value: IntegrationAlertGroupLabels) -> None:
-        """Setter for alert_group_labels used by apps.api.serializers.AlertReceiveChannelSerializer"""
+        """Setter for alert_group_labels used by AlertReceiveChannelSerializer"""
         inherit_key_ids = [key_id for key_id, inherit in value["inherit"].items() if inherit]
         self.labels.filter(key_id__in=inherit_key_ids).update(inherit=True)
         self.labels.filter(~Q(key_id__in=inherit_key_ids)).update(inherit=False)

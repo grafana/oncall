@@ -34,10 +34,7 @@ def valid_jinja_template_for_serializer_method_field(template):
 
 
 class IntegrationAlertGroupLabelsSerializer(serializers.Serializer):
-    """
-    Alert group labels configuration for the integration.
-    See apps.alerts.models.AlertReceiveChannel.alert_group_labels for details.
-    """
+    """Alert group labels configuration for the integration. See AlertReceiveChannel.alert_group_labels for details."""
 
     inherit = serializers.DictField(child=serializers.BooleanField())
 
