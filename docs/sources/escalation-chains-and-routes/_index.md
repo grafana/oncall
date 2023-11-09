@@ -69,6 +69,11 @@ Useful when you want to get escalation only during working hours
 passes some threshold
 * `Repeat escalation from beginning (5 times max)` - loop the escalation chain
 
+   > **Note:** Both "**Notify whole Slack channel**" and "**Notify Slack User Group**" will filter OnCall registered users matching the users in the Slack channel or Slack User Group with their profiles linked to their Slack accounts (ie. users should have linked their Slack and OnCall users). In both cases, the filtered users satisfying the criteria above are notified following their respective notification policies. 
+
+   > However, to avoid **spamming** the Slack channel/thread, users **won't be notified** in the alert group Slack **thread** (this is how the feature is currently implemented) but instead notify them using their **other defined** options in their [respective policies]([url](https://grafana.com/docs/oncall/latest/notify/#configure-user-notification-policies)).
+
+
 ### Notification types
 
 Each escalation step that notifies a user, does so by triggering their personal notification steps. These are configured in the Grafana
