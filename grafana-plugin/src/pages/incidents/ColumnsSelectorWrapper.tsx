@@ -12,6 +12,7 @@ import { Label } from 'models/label/label.types';
 import cn from 'classnames/bind';
 
 import styles from 'pages/incidents/ColumnsSelector.module.scss';
+import { AGColumn } from 'models/alertgroup/alertgroup.types';
 
 const cx = cn.bind(styles);
 
@@ -84,6 +85,7 @@ interface SearchResult extends Label {
 }
 
 const ColumnsModal: React.FC<ColumnsModalProps> = ({ isModalOpen, labelKeys, setIsModalOpen, inputRef }) => {
+  const store = useStore();
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const debouncedOnInputChange = useDebouncedCallback(onInputChange, DEBOUNCE_MS);
 
@@ -142,11 +144,31 @@ const ColumnsModal: React.FC<ColumnsModalProps> = ({ isModalOpen, labelKeys, set
           >
             Close
           </Button>
-          <Button variant="primary">Add</Button>
+          <Button variant="primary" onClick={onAddNewColumns}>
+            Add
+          </Button>
         </HorizontalGroup>
       </VerticalGroup>
     </Modal>
   );
+
+  function onAddNewColumns() {
+    const newColumns: AGColumn[] = searchResults
+      .filter((item) => item.isChecked)
+      .map((it) => ({
+        id: it.id,
+        name: it.name,
+        isVisible: true,
+      }));
+
+    store.alertGroupStore.columns = [...store.alertGroupStore.columns, ...newColumns];
+
+    setIsModalOpen(false);
+    setTimeout(() => forceOpenToggletip(), 0);
+    setSearchResults([]);
+
+    inputRef.current.value = '';
+  }
 
   function forceOpenToggletip() {
     document.getElementById('toggletip-button')?.click();
