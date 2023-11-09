@@ -156,7 +156,12 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
     ...this.state.integrationsFilters,
     ...(this.state.activeTab === TabType.DirectPaging
       ? { integration: ['direct_paging'] }
-      : { integration_ne: ['direct_paging'] }),
+      : {
+          integration_ne: ['direct_paging'],
+          integration: this.state.integrationsFilters.integration?.filter(
+            (integration) => integration !== 'direct_paging'
+          ),
+        }),
   });
 
   update = () => {
