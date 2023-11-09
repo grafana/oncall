@@ -508,3 +508,43 @@ for the common mistakes and best practices
 5. In any subsequent release, include migration #2 (the one that removes the field from the database).
 6. After releasing and deploying migration #2, the field will be removed both from the database and Django state,
    without backward compatibility issues or downtime 🎉
+
+## System components
+```mermaid
+flowchart TD
+    client[Monitoring System]
+    third_party["Slack, Twilio, 
+           3rd party services.."]
+    server[Server]
+    celery[Celery Worker]
+    db[(SQL Database)]
+    redis[("Cache
+            (Redis)")]
+    broker[("AMPQ Broker
+             (Redis or RabbitMQ)")]
+    
+    subgraph OnCall Backend
+    server <--> redis
+    server <--> db
+    server -->|"Schedule tasks 
+                with ETA"| broker
+    broker -->|"Fetch tasks"| celery
+    celery --> db
+
+    end
+    subgraph Grafana Stack
+    plugin["OnCall Frontend 
+            Plugin"]
+    proxy[Plugin Proxy]
+    api[Grafana API]
+    plugin --> proxy --> server
+    api --> server
+    end
+
+    client -->|Alerts| server
+    third_party -->|"Statuses, 
+               events"| server
+    celery -->|"Notifications, 
+                Outgoing Webhooks"| third_party
+```
+
