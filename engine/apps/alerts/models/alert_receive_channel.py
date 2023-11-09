@@ -87,6 +87,10 @@ def number_to_smiles_translator(number):
     return "".join(reversed(smileset))
 
 
+class IntegrationAlertGroupLabels(typing.TypedDict):
+    inherited: typing.Dict[str, bool]
+
+
 class AlertReceiveChannelQueryset(models.QuerySet):
     def delete(self):
         self.update(deleted_at=timezone.now())
@@ -637,6 +641,21 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
         else:
             result["team"] = "General"
         return result
+
+    @property
+    def alert_group_labels(self) -> IntegrationAlertGroupLabels:
+        """
+        Alert group labels configuration for the integration.
+        Used by apps.api.serializers.AlertReceiveChannelSerializer.
+        Check out the setter method below for more details.
+        """
+        return {"inherited": {label.key_id: label.inherit for label in self.labels.all()}}
+
+    @alert_group_labels.setter
+    def alert_group_labels(self, value: IntegrationAlertGroupLabels) -> None:
+        inherit_key_ids = [key_id for key_id, inherit in value["inherited"].items() if inherit]
+        self.labels.filter(key_id__in=inherit_key_ids).update(inherit=True)
+        self.labels.filter(~Q(key_id__in=inherit_key_ids)).update(inherit=False)
 
 
 @receiver(post_save, sender=AlertReceiveChannel)
