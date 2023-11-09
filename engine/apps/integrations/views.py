@@ -21,6 +21,7 @@ from apps.integrations.mixins import (
     is_ratelimit_ignored,
 )
 from apps.integrations.tasks import create_alert, create_alertmanager_alerts
+from apps.user_management.exceptions import OrganizationDeletedException, OrganizationMovedException
 from common.api_helpers.utils import create_engine_url
 
 logger = logging.getLogger(__name__)
@@ -31,8 +32,10 @@ class AmazonSNS(BrowsableInstructionMixin, AlertChannelDefiningMixin, Integratio
     def dispatch(self, *args, **kwargs):
         try:
             return super().dispatch(*args, **kwargs)
+        except (OrganizationMovedException, OrganizationDeletedException, PermissionDenied) as oe:
+            raise oe
         except Exception as e:
-            print(e)
+            logger.error(f"AmazonSNS - Bad Request (400) {str(e)}")
             return JsonResponse(status=400, data={})
 
     def handle_message(self, message, payload):
