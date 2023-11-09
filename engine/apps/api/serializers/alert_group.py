@@ -56,6 +56,19 @@ class AlertGroupFieldsCacheSerializerMixin(AlertsFieldCacheBusterMixin):
         return field
 
 
+class AlertGroupLabelSerializer(serializers.Serializer):
+    class KeySerializer(serializers.Serializer):
+        id = serializers.CharField(source="key_name")
+        name = serializers.CharField(source="key_name")
+
+    class ValueSerializer(serializers.Serializer):
+        id = serializers.CharField(source="value_name")
+        name = serializers.CharField(source="value_name")
+
+    key = KeySerializer(source="*")
+    value = ValueSerializer(source="*")
+
+
 class ShortAlertGroupSerializer(AlertGroupFieldsCacheSerializerMixin, serializers.ModelSerializer):
     pk = serializers.CharField(read_only=True, source="public_primary_key")
     alert_receive_channel = FastAlertReceiveChannelSerializer(source="channel")
@@ -105,6 +118,8 @@ class AlertGroupListSerializer(EagerLoadingMixin, AlertGroupFieldsCacheSerialize
     render_for_web = serializers.SerializerMethodField()
     render_for_classic_markdown = serializers.SerializerMethodField()
 
+    labels = AlertGroupLabelSerializer(many=True, read_only=True)
+
     PREFETCH_RELATED = [
         "dependent_alert_groups",
         "log_records__author",
@@ -150,6 +165,7 @@ class AlertGroupListSerializer(EagerLoadingMixin, AlertGroupFieldsCacheSerialize
             "declare_incident_link",
             "team",
             "grafana_incident_id",
+            "labels",
         ]
 
     @extend_schema_field(
