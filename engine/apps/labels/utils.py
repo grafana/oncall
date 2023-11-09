@@ -55,8 +55,7 @@ def assign_labels(alert_group: "AlertGroup", alert_receive_channel: "AlertReceiv
     if not is_labels_feature_enabled(alert_receive_channel.organization):
         return
 
-    # inherit all labels from the integration
-    # FIXME: this is a temporary solution before we have a UI for configuring inherited labels
+    # inherit labels from the integration
     alert_group_labels = [
         AlertGroupAssociatedLabel(
             alert_group=alert_group,
@@ -64,6 +63,6 @@ def assign_labels(alert_group: "AlertGroup", alert_receive_channel: "AlertReceiv
             key_name=label.key.name,
             value_name=label.value.name,
         )
-        for label in alert_receive_channel.labels.all().select_related("key", "value")
+        for label in alert_receive_channel.labels.filter(inherit=True).select_related("key", "value")
     ]
     AlertGroupAssociatedLabel.objects.bulk_create(alert_group_labels)

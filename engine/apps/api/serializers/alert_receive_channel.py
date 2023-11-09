@@ -39,7 +39,7 @@ class IntegrationAlertGroupLabelsSerializer(serializers.Serializer):
     See apps.alerts.models.AlertReceiveChannel.alert_group_labels for details.
     """
 
-    inherited = serializers.DictField(child=serializers.BooleanField())
+    inherit = serializers.DictField(child=serializers.BooleanField())
 
 
 class AlertReceiveChannelSerializer(EagerLoadingMixin, LabelsSerializerMixin, serializers.ModelSerializer):

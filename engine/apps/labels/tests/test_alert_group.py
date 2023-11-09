@@ -32,6 +32,7 @@ def test_assign_labels(make_organization, make_alert_receive_channel, make_integ
     organization = make_organization()
     alert_receive_channel = make_alert_receive_channel(organization)
     label = make_integration_label_association(organization, alert_receive_channel)
+    make_integration_label_association(organization, alert_receive_channel, inherit=False)
 
     alert = Alert.create(
         title="the title",
