@@ -249,7 +249,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
                 <Alert
                   className={cx('goToDirectPagingAlert')}
                   severity="info"
-                  title="Direct Paging integrations has been moved."
+                  title="Direct Paging integrations have been moved."
                 >
                   <span>
                     They are in a separate tab now. Go to{' '}
@@ -552,6 +552,8 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
 
   getTableColumns = (hasFeatureFn) => {
     const { grafanaTeamStore, alertReceiveChannelStore } = this.props.store;
+    const { activeTab } = this.state;
+    const isConnectionsTab = activeTab === TabType.Connections;
 
     const columns = [
       {
@@ -573,19 +575,22 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
         key: 'datasource',
         render: (item: AlertReceiveChannel) => this.renderDatasource(item, alertReceiveChannelStore),
       },
-      {
-        width: '10%',
-        title: 'Maintenance',
-        key: 'maintenance',
-        render: (item: AlertReceiveChannel) => this.renderMaintenance(item),
-      },
-      {
-        width: '5%',
-        title: 'Heartbeat',
-        key: 'heartbeat',
-        render: (item: AlertReceiveChannel) => this.renderHeartbeat(item),
-      },
-
+      ...(isConnectionsTab
+        ? [
+            {
+              width: '10%',
+              title: 'Maintenance',
+              key: 'maintenance',
+              render: (item: AlertReceiveChannel) => this.renderMaintenance(item),
+            },
+            {
+              width: '5%',
+              title: 'Heartbeat',
+              key: 'heartbeat',
+              render: (item: AlertReceiveChannel) => this.renderHeartbeat(item),
+            },
+          ]
+        : []),
       {
         width: '15%',
         title: 'Team',
