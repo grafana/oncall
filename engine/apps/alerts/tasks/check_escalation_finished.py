@@ -100,17 +100,23 @@ def check_escalation_finished_task() -> None:
     now = timezone.now() - datetime.timedelta(minutes=5)
     two_days_ago = now - datetime.timedelta(days=2)
 
+    # Total alert groups
     alert_groups = AlertGroup.objects.using(get_random_readonly_database_key_if_present_otherwise_default()).filter(
+        started_at__range=(two_days_ago, now),
+    )
+
+    total_alert_groups_count = alert_groups.count()
+
+    alert_groups = alert_groups.filter(
         ~Q(silenced=True, silenced_until__isnull=True),  # filter silenced forever alert_groups
         # here we should query maintenance_uuid rather than joining on channel__integration
         # and checking for something like ~Q(channel__integration=AlertReceiveChannel.INTEGRATION_MAINTENANCE)
         # this avoids an unnecessary join
         maintenance_uuid__isnull=True,
+        root_alert_group=None,
         is_escalation_finished=False,
         resolved=False,
         acknowledged=False,
-        root_alert_group=None,
-        started_at__range=(two_days_ago, now),
     )
 
     task_logger.info(
@@ -126,6 +132,14 @@ def check_escalation_finished_task() -> None:
             audit_alert_group_escalation(alert_group)
         except AlertGroupEscalationPolicyExecutionAuditException:
             alert_group_ids_that_failed_audit.append(str(alert_group.id))
+
+    failed_alert_groups_count = len(alert_group_ids_that_failed_audit)
+    success_ratio = (
+        100
+        if total_alert_groups_count == 0
+        else (total_alert_groups_count - failed_alert_groups_count) / total_alert_groups_count * 100
+    )
+    task_logger.info(f"Alert group notifications success ratio: {success_ratio}")
 
     if alert_group_ids_that_failed_audit:
         msg = f"The following alert group id(s) failed auditing: {', '.join(alert_group_ids_that_failed_audit)}"
