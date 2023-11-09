@@ -76,7 +76,16 @@ export class AlertGroupStore extends BaseStore {
   liveUpdatesPaused = false;
 
   @observable
-  columns: AGColumn[] = [];
+  columns: AGColumn[] = [
+    { id: 1, name: 'Status', isVisible: true },
+    { id: 2, name: 'ID', isVisible: true },
+    { id: 3, name: 'Summary', isVisible: true },
+    { id: 4, name: 'Integration', isVisible: true },
+    { id: 5, name: 'Users', isVisible: true },
+    { id: 6, name: 'Team', isVisible: true },
+    { id: 7, name: 'Cortex', isVisible: false },
+    { id: 8, name: 'Created', isVisible: false },
+  ];
 
   constructor(rootStore: RootStore) {
     super(rootStore);

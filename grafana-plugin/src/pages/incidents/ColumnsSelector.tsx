@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef } from 'react';
 
 import {
   DndContext,
@@ -25,6 +25,8 @@ import Text from 'components/Text/Text';
 import styles from 'pages/incidents/ColumnsSelector.module.scss';
 import { noop } from 'lodash-es';
 import { AGColumn } from 'models/alertgroup/alertgroup.types';
+import { useStore } from 'state/useStore';
+import { observer } from 'mobx-react';
 
 const cx = cn.bind(styles);
 const TRANSITION_MS = 500;
@@ -33,17 +35,6 @@ interface ColumnRowProps {
   column: AGColumn;
   onItemChange: (id: number | string) => void;
 }
-
-const startingColumnsData: AGColumn[] = [
-  { id: 1, name: 'Status', isVisible: true },
-  { id: 2, name: 'ID', isVisible: true },
-  { id: 3, name: 'Summary', isVisible: true },
-  { id: 4, name: 'Integration', isVisible: true },
-  { id: 5, name: 'Users', isVisible: true },
-  { id: 6, name: 'Team', isVisible: true },
-  { id: 7, name: 'Cortex', isVisible: false },
-  { id: 8, name: 'Created', isVisible: false },
-];
 
 const ColumnRow: React.FC<ColumnRowProps> = ({ column, onItemChange }) => {
   const dnd = useSortable({ id: column.id });
@@ -93,8 +84,10 @@ interface ColumnsSelectorProps {
   onModalOpen(): void;
 }
 
-export const ColumnsSelector: React.FC<ColumnsSelectorProps> = ({ onModalOpen }) => {
-  const [items, setItems] = useState<AGColumn[]>([...startingColumnsData]);
+export const ColumnsSelector: React.FC<ColumnsSelectorProps> = observer(({ onModalOpen }) => {
+  const { alertGroupStore } = useStore();
+  const { columns: items } = alertGroupStore;
+
   const visibleColumns = items.filter((col) => col.isVisible);
   const hiddenColumns = items.filter((col) => !col.isVisible);
 
@@ -148,7 +141,9 @@ export const ColumnsSelector: React.FC<ColumnsSelectorProps> = ({ onModalOpen })
       </div>
 
       <div className={cx('columns-selector-buttons')}>
-        <Button variant={'secondary'}>Reset</Button>
+        <Button variant={'secondary'} onClick={onReset}>
+          Reset
+        </Button>
         <Button variant={'primary'} icon="plus" onClick={onModalOpen}>
           Add field
         </Button>
@@ -156,9 +151,12 @@ export const ColumnsSelector: React.FC<ColumnsSelectorProps> = ({ onModalOpen })
     </div>
   );
 
+  function onReset() {}
+
   function onItemChange(id: string | number) {
-    setItems((items) => {
-      return items.map((it) => (it.id === id ? { ...it, isVisible: !it.isVisible } : it));
+    alertGroupStore.columns = alertGroupStore.columns.map((item): AGColumn => {
+      let newItem: AGColumn = { ...item, isVisible: !item.isVisible };
+      return item.id === id ? newItem : item;
     });
   }
 
@@ -174,7 +172,7 @@ export const ColumnsSelector: React.FC<ColumnsSelectorProps> = ({ onModalOpen })
       searchableList = arrayMove(searchableList, oldIndex, newIndex);
 
       const updatedList = isVisible ? [...searchableList, ...hiddenColumns] : [...visibleColumns, ...searchableList];
-      setItems(updatedList);
+      alertGroupStore.columns = updatedList;
     }
   }
-};
+});

@@ -8,7 +8,6 @@ import { ColumnsSelector } from './ColumnsSelector';
 import { useStore } from 'state/useStore';
 import { useDebouncedCallback } from 'utils/hooks';
 import { Label } from 'models/label/label.types';
-import { noop } from 'lodash-es';
 
 import cn from 'classnames/bind';
 
@@ -23,12 +22,9 @@ const DEBOUNCE_MS = 300;
 const ColumnsSelectorWrapper: React.FC<ColumnsSelectorWrapperProps> = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const [searchResults, setSearchResults] = useState<Label[]>([]);
   const [labelKeys, setLabelKeys] = useState<Label[]>([]);
 
   const inputRef = useRef<HTMLInputElement>(null);
-
-  const debouncedOnInputChange = useDebouncedCallback(onInputChange, DEBOUNCE_MS);
 
   const store = useStore();
 
@@ -42,47 +38,12 @@ const ColumnsSelectorWrapper: React.FC<ColumnsSelectorWrapperProps> = () => {
 
   return (
     <>
-      <Modal isOpen={isModalOpen} title={'Add field'} onDismiss={() => setIsModalOpen(false)}>
-        <VerticalGroup spacing="md">
-          <Input autoFocus placeholder="Search..." ref={inputRef} onChange={debouncedOnInputChange} />
-
-          {inputRef?.current?.value === '' && (
-            <Text type="primary">{labelKeys.length} items available. Type in to see suggestions</Text>
-          )}
-
-          {searchResults.length && (
-            <VerticalGroup spacing="xs">
-              {searchResults.map((result) => (
-                <HorizontalGroup spacing="md">
-                  <Checkbox type="checkbox" value={true} onChange={noop} />
-
-                  <div className={cx('result-spacer')}>
-                    <Icon name="tag-alt" />
-                  </div>
-
-                  <Text type="primary">{result.name}</Text>
-                </HorizontalGroup>
-              ))}
-            </VerticalGroup>
-          )}
-
-          <HorizontalGroup justify="flex-end" spacing="md">
-            <Button
-              variant="secondary"
-              onClick={() => {
-                inputRef.current.value = '';
-
-                setSearchResults([]);
-                setIsModalOpen(false);
-                setTimeout(() => forceOpenToggletip(), 0);
-              }}
-            >
-              Close
-            </Button>
-            <Button variant="primary">Add</Button>
-          </HorizontalGroup>
-        </VerticalGroup>
-      </Modal>
+      <ColumnsModal
+        inputRef={inputRef}
+        isModalOpen={isModalOpen}
+        labelKeys={labelKeys}
+        setIsModalOpen={setIsModalOpen}
+      />
 
       {!isModalOpen ? (
         <Toggletip
@@ -99,15 +60,6 @@ const ColumnsSelectorWrapper: React.FC<ColumnsSelectorWrapperProps> = () => {
     </>
   );
 
-  function forceOpenToggletip() {
-    document.getElementById('toggletip-button')?.click();
-  }
-
-  function onInputChange() {
-    const search = inputRef?.current?.value;
-    setSearchResults(labelKeys.filter((pair) => pair.name.indexOf(search) > -1));
-  }
-
   function renderToggletipButton() {
     return (
       <Button type="button" variant={'secondary'} icon="columns" id="toggletip-button">
@@ -116,6 +68,94 @@ const ColumnsSelectorWrapper: React.FC<ColumnsSelectorWrapperProps> = () => {
           <Icon name="angle-down" />
         </HorizontalGroup>
       </Button>
+    );
+  }
+};
+
+interface ColumnsModalProps {
+  isModalOpen: boolean;
+  labelKeys: Label[];
+  setIsModalOpen: (value: boolean) => void;
+  inputRef: React.RefObject<HTMLInputElement>;
+}
+
+interface SearchResult extends Label {
+  isChecked: boolean;
+}
+
+const ColumnsModal: React.FC<ColumnsModalProps> = ({ isModalOpen, labelKeys, setIsModalOpen, inputRef }) => {
+  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
+  const debouncedOnInputChange = useDebouncedCallback(onInputChange, DEBOUNCE_MS);
+
+  return (
+    <Modal isOpen={isModalOpen} title={'Add field'} onDismiss={() => setIsModalOpen(false)}>
+      <VerticalGroup spacing="md">
+        <Input
+          className={cx('input')}
+          autoFocus
+          placeholder="Search..."
+          ref={inputRef}
+          onChange={debouncedOnInputChange}
+        />
+
+        {inputRef?.current?.value === '' && (
+          <Text type="primary">{labelKeys.length} items available. Type in to see suggestions</Text>
+        )}
+
+        {searchResults.length && (
+          <VerticalGroup spacing="xs">
+            {searchResults.map((result) => (
+              <HorizontalGroup spacing="md">
+                <Checkbox
+                  type="checkbox"
+                  value={result.isChecked}
+                  onChange={() => {
+                    setSearchResults((items) => {
+                      return items.map((item) => {
+                        const updatedItem: SearchResult = { ...item, isChecked: !item.isChecked };
+                        return item.id === result.id ? updatedItem : item;
+                      });
+                    });
+                  }}
+                />
+
+                <Text type="primary">{result.name}</Text>
+              </HorizontalGroup>
+            ))}
+          </VerticalGroup>
+        )}
+
+        {inputRef?.current?.value && searchResults.length === 0 && (
+          <Text type="primary">0 results for your search.</Text>
+        )}
+
+        <HorizontalGroup justify="flex-end" spacing="md">
+          <Button
+            variant="secondary"
+            onClick={() => {
+              inputRef.current.value = '';
+
+              setSearchResults([]);
+              setIsModalOpen(false);
+              setTimeout(() => forceOpenToggletip(), 0);
+            }}
+          >
+            Close
+          </Button>
+          <Button variant="primary">Add</Button>
+        </HorizontalGroup>
+      </VerticalGroup>
+    </Modal>
+  );
+
+  function forceOpenToggletip() {
+    document.getElementById('toggletip-button')?.click();
+  }
+
+  function onInputChange() {
+    const search = inputRef?.current?.value;
+    setSearchResults(
+      labelKeys.filter((pair) => pair.name.indexOf(search) > -1).map((pair) => ({ ...pair, isChecked: false }))
     );
   }
 };
