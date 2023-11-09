@@ -179,13 +179,13 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
   };
 
   onTabChange = (tab: TabType) => {
+    LocationHelper.update({ tab, integration: undefined, search: undefined }, 'partial');
     this.setState(
       {
         activeTab: tab,
       },
       () => {
         this.handleChangePage(1);
-        LocationHelper.update({ tab, integration: undefined, search: undefined }, 'partial');
       }
     );
   };
