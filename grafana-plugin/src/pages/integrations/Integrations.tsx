@@ -552,8 +552,6 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
 
   getTableColumns = (hasFeatureFn) => {
     const { grafanaTeamStore, alertReceiveChannelStore } = this.props.store;
-    const { activeTab } = this.state;
-    const isConnectionsTab = activeTab === TabType.Connections;
 
     const columns = [
       {
@@ -575,7 +573,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
         key: 'datasource',
         render: (item: AlertReceiveChannel) => this.renderDatasource(item, alertReceiveChannelStore),
       },
-      ...(isConnectionsTab
+      ...(this.state.activeTab === TabType.Connections
         ? [
             {
               width: '10%',
