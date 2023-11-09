@@ -247,9 +247,9 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
                   title="Direct Paging integrations has been moved."
                 >
                   <span>
-                    They are in a separate tab now.{' '}
+                    They are in a separate tab now. Go to{' '}
                     <PluginLink query={{ page: 'integrations', tab: TabType.DirectPaging }}>
-                      Go to Direct Paging tab
+                      Direct Paging tab
                     </PluginLink>{' '}
                     to view them.
                   </span>
