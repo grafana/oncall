@@ -14,7 +14,7 @@ class OrganizationFactory(factory.DjangoModelFactory):
 
 
 class UserFactory(factory.DjangoModelFactory):
-    username = factory.Faker("user_name")
+    username = UniqueFaker("user_name")
     email = factory.Faker("email")
     user_id = UniqueFaker("pyint")
     avatar_url = factory.Faker("url")
