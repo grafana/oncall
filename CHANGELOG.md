@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+
+- Added user timezone field to the users public API response ([#3311](https://github.com/grafana/oncall/pull/3311))
+
+### Changed
+
+- Split Integrations table into Connections and Direct Paging tabs ([#3290](https://github.com/grafana/oncall/pull/3290))
+
 ### Fixed
 
 - Fix issue where Slack user connection error message is sometimes shown despite successful connection by @joeyorlando ([#3327](https://github.com/grafana/oncall/pull/3327))

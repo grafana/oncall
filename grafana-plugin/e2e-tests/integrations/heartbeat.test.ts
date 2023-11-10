@@ -15,7 +15,7 @@ test.describe("updating an integration's heartbeat interval works", async () => 
   };
 
   test('change heartbeat interval', async ({ adminRolePage: { page } }) => {
-    await createIntegration(page, generateRandomValue());
+    await createIntegration({ page, integrationName: generateRandomValue() });
 
     await _openHeartbeatSettingsForm(page);
 
@@ -43,7 +43,7 @@ test.describe("updating an integration's heartbeat interval works", async () => 
   });
 
   test('send heartbeat', async ({ adminRolePage: { page } }) => {
-    await createIntegration(page, generateRandomValue());
+    await createIntegration({ page, integrationName: generateRandomValue() });
 
     await _openHeartbeatSettingsForm(page);
 
