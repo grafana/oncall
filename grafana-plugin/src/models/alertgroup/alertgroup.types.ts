@@ -92,6 +92,12 @@ export interface AGColumn {
   id: number | string;
   name: string;
   isVisible: boolean;
+  type?: AGColumnType;
+}
+
+export enum AGColumnType {
+  DEFAULT = 'default',
+  LABEL = 'label',
 }
 
 interface RenderForWeb {

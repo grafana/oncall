@@ -54,3 +54,7 @@ export enum PAGE {
 }
 
 export const TEXT_ELLIPSIS_CLASS = 'overflow-child';
+
+export enum AGColumn {
+  Status = 'status',
+}

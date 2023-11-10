@@ -21,7 +21,14 @@ import { IncidentsFiltersType } from 'containers/IncidentsFilters/IncidentFilter
 import RemoteFilters from 'containers/RemoteFilters/RemoteFilters';
 import TeamName from 'containers/TeamName/TeamName';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
-import { Alert, Alert as AlertType, AlertAction, IncidentStatus } from 'models/alertgroup/alertgroup.types';
+import {
+  Alert,
+  Alert as AlertType,
+  AlertAction,
+  IncidentStatus,
+  AGColumn,
+  AGColumnType,
+} from 'models/alertgroup/alertgroup.types';
 import { renderRelatedUsers } from 'pages/incident/Incident.helpers';
 import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
@@ -33,6 +40,7 @@ import ColumnsSelectorWrapper from './ColumnsSelectorWrapper';
 import styles from './Incidents.module.scss';
 import { IncidentDropdown } from './parts/IncidentDropdown';
 import { SilenceButtonCascader } from './parts/SilenceButtonCascader';
+import { TableColumn } from 'utils/types';
 
 const cx = cn.bind(styles);
 
@@ -615,59 +623,59 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
     });
   };
 
-  getTableColumns(): Array<{ width: string; title: string; key: string; render }> {
+  getTableColumns(): TableColumn[] {
     const { store } = this.props;
 
-    return [
-      {
-        width: '140px',
-        title: 'Status',
-        key: 'time',
-        render: this.renderStatus,
-      },
-      {
+    const columnMapping: { [key: string]: TableColumn } = {
+      ID: {
         width: '10%',
         title: 'ID',
         key: 'id',
         render: this.renderId,
       },
-      {
-        width: '35%',
-        title: 'Title',
-        key: 'title',
-        render: this.renderTitle,
+      Status: {
+        width: '140px',
+        title: 'Status',
+        key: 'time',
+        render: this.renderStatus,
       },
-      {
+      Alerts: {
         width: '5%',
         title: 'Alerts',
         key: 'alerts',
         render: this.renderAlertsCounter,
       },
-      {
+      Source: {
         width: '15%',
         title: 'Integration',
         key: 'source',
         render: this.renderSource,
       },
-      {
+      Created: {
         width: '10%',
         title: 'Created',
         key: 'created',
         render: this.renderStartedAt,
       },
-      {
+      Team: {
         width: '10%',
         title: 'Team',
         key: 'team',
         render: (item: AlertType) => this.renderTeam(item, store.grafanaTeamStore.items),
       },
-      {
+      Users: {
         width: '15%',
         title: 'Users',
         key: 'users',
         render: renderRelatedUsers,
       },
-    ];
+    };
+
+    const mappedColumns: TableColumn[] = store.alertGroupStore.columns
+      .filter((col) => col.type === AGColumnType.DEFAULT && col.isVisible)
+      .map((column: AGColumn): TableColumn => columnMapping[column.name]);
+
+    return mappedColumns;
   }
 
   getOnActionButtonClick = (incidentId: string, action: AlertAction): ((e: SyntheticEvent) => Promise<void>) => {

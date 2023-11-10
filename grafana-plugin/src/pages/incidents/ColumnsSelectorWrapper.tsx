@@ -11,7 +11,7 @@ import { Label } from 'models/label/label.types';
 
 import cn from 'classnames/bind';
 
-import styles from 'pages/incidents/ColumnsSelector.module.scss';
+import styles from 'pages/incidents/ColumnsSelectorWrapper.module.scss';
 import { AGColumn } from 'models/alertgroup/alertgroup.types';
 
 const cx = cn.bind(styles);
@@ -104,7 +104,7 @@ const ColumnsModal: React.FC<ColumnsModalProps> = ({ isModalOpen, labelKeys, set
           <Text type="primary">{labelKeys.length} items available. Type in to see suggestions</Text>
         )}
 
-        {searchResults.length && (
+        {inputRef?.current?.value && searchResults.length && (
           <VerticalGroup spacing="xs">
             {searchResults.map((result) => (
               <HorizontalGroup spacing="md">
@@ -144,7 +144,7 @@ const ColumnsModal: React.FC<ColumnsModalProps> = ({ isModalOpen, labelKeys, set
           >
             Close
           </Button>
-          <Button variant="primary" onClick={onAddNewColumns}>
+          <Button disabled={!searchResults.find((it) => it.isChecked)} variant="primary" onClick={onAddNewColumns}>
             Add
           </Button>
         </HorizontalGroup>
@@ -153,6 +153,8 @@ const ColumnsModal: React.FC<ColumnsModalProps> = ({ isModalOpen, labelKeys, set
   );
 
   function onAddNewColumns() {
+    // TODO: Backend Call instead! (once ready)
+
     const newColumns: AGColumn[] = searchResults
       .filter((item) => item.isChecked)
       .map((it) => ({

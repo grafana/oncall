@@ -12,7 +12,7 @@ import { SelectOption } from 'state/types';
 import { openErrorNotification, refreshPageError, showApiError } from 'utils';
 import LocationHelper from 'utils/LocationHelper';
 
-import { AGColumn, Alert, AlertAction, IncidentStatus } from './alertgroup.types';
+import { AGColumn, AGColumnType, Alert, AlertAction, IncidentStatus } from './alertgroup.types';
 
 export class AlertGroupStore extends BaseStore {
   @observable.shallow
@@ -77,14 +77,14 @@ export class AlertGroupStore extends BaseStore {
 
   @observable
   columns: AGColumn[] = [
-    { id: 1, name: 'Status', isVisible: true },
-    { id: 2, name: 'ID', isVisible: true },
-    { id: 3, name: 'Summary', isVisible: true },
-    { id: 4, name: 'Integration', isVisible: true },
-    { id: 5, name: 'Users', isVisible: true },
-    { id: 6, name: 'Team', isVisible: true },
-    { id: 7, name: 'Cortex', isVisible: false },
-    { id: 8, name: 'Created', isVisible: false },
+    { id: 1, name: 'ID', isVisible: true, type: AGColumnType.DEFAULT },
+    { id: 2, name: 'Status', isVisible: true, type: AGColumnType.DEFAULT },
+    { id: 3, name: 'Alerts', isVisible: false, type: AGColumnType.DEFAULT },
+    { id: 4, name: 'Source', isVisible: true, type: AGColumnType.DEFAULT },
+    { id: 5, name: 'Created', isVisible: true, type: AGColumnType.DEFAULT },
+    { id: 6, name: 'Team', isVisible: true, type: AGColumnType.DEFAULT },
+    { id: 7, name: 'Users', isVisible: false, type: AGColumnType.DEFAULT },
+    { id: 8, name: 'Bananas', isVisible: false, type: AGColumnType.LABEL },
   ];
 
   constructor(rootStore: RootStore) {
