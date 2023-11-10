@@ -10,7 +10,7 @@ from common.utils import UniqueFaker
 
 
 class LabelKeyFactory(factory.DjangoModelFactory):
-    id = UniqueFaker("sentence", nb_words=3)
+    id = UniqueFaker("pystr", max_chars=36)
     name = UniqueFaker("sentence", nb_words=3)
 
     class Meta:
@@ -18,7 +18,7 @@ class LabelKeyFactory(factory.DjangoModelFactory):
 
 
 class LabelValueFactory(factory.DjangoModelFactory):
-    id = UniqueFaker("sentence", nb_words=3)
+    id = UniqueFaker("pystr", max_chars=36)
     name = UniqueFaker("sentence", nb_words=3)
 
     class Meta:
