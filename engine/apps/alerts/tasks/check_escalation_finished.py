@@ -128,7 +128,7 @@ def check_escalation_finished_task() -> None:
         if total_alert_groups_count == 0
         else (total_alert_groups_count - failed_alert_groups_count) / total_alert_groups_count * 100
     )
-    task_logger.info(f"Alert group notifications success ratio: {success_ratio}")
+    task_logger.info(f"Alert group notifications success ratio: {success_ratio:.2f}")
 
     if alert_group_ids_that_failed_audit:
         msg = f"The following alert group id(s) failed auditing: {', '.join(alert_group_ids_that_failed_audit)}"
