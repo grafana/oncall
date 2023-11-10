@@ -9,7 +9,7 @@ from rest_framework.test import APIClient
 from apps.alerts.models import AlertReceiveChannel
 from apps.auth_token.auth import ApiTokenAuthentication, ScheduleExportAuthentication, UserScheduleExportAuthentication
 from apps.auth_token.models import ScheduleExportAuthToken, UserScheduleExportAuthToken
-from apps.integrations.views import AlertManagerAPIView
+from apps.integrations.views import AlertManagerAPIView, AmazonSNS
 from apps.schedules.models import OnCallScheduleWeb
 from apps.user_management.exceptions import OrganizationMovedException
 
@@ -30,19 +30,27 @@ def test_organization_region_delete(
 
 
 @pytest.mark.django_db
+@pytest.mark.parametrize(
+    "integration_type,integration_view",
+    [
+        (AlertReceiveChannel.INTEGRATION_ALERTMANAGER, AlertManagerAPIView()),
+        ("amazon_sns", AmazonSNS()),
+    ],
+)
 def test_integration_does_not_raise_exception_organization_moved(
     make_organization,
     make_alert_receive_channel,
+    integration_type,
+    integration_view,
 ):
     organization = make_organization()
     alert_receive_channel = make_alert_receive_channel(
         organization=organization,
-        integration=AlertReceiveChannel.INTEGRATION_ALERTMANAGER,
+        integration=integration_type,
     )
 
     try:
-        am = AlertManagerAPIView()
-        am.dispatch(alert_channel_key=alert_receive_channel.token)
+        integration_view.dispatch(alert_channel_key=alert_receive_channel.token)
         assert False
     except OrganizationMovedException:
         assert False
@@ -51,21 +59,29 @@ def test_integration_does_not_raise_exception_organization_moved(
 
 
 @pytest.mark.django_db
+@pytest.mark.parametrize(
+    "integration_type,integration_view",
+    [
+        (AlertReceiveChannel.INTEGRATION_ALERTMANAGER, AlertManagerAPIView()),
+        ("amazon_sns", AmazonSNS()),
+    ],
+)
 def test_integration_raises_exception_organization_moved(
     make_organization_and_region,
     make_alert_receive_channel,
+    integration_type,
+    integration_view,
 ):
     organization, region = make_organization_and_region()
     organization.save()
 
     alert_receive_channel = make_alert_receive_channel(
         organization=organization,
-        integration=AlertReceiveChannel.INTEGRATION_ALERTMANAGER,
+        integration=integration_type,
     )
 
     try:
-        am = AlertManagerAPIView()
-        am.dispatch(alert_channel_key=alert_receive_channel.token)
+        integration_view.dispatch(alert_channel_key=alert_receive_channel.token)
         assert False
     except OrganizationMovedException as e:
         assert e.organization == organization
@@ -73,24 +89,29 @@ def test_integration_raises_exception_organization_moved(
 
 @patch("apps.user_management.middlewares.OrganizationMovedMiddleware.make_request")
 @pytest.mark.django_db
+@pytest.mark.parametrize(
+    "integration_type",
+    [
+        AlertReceiveChannel.INTEGRATION_ALERTMANAGER,
+        "amazon_sns",
+    ],
+)
 def test_organization_moved_middleware(
-    mocked_make_request,
-    make_organization_and_region,
-    make_alert_receive_channel,
+    mocked_make_request, make_organization_and_region, make_alert_receive_channel, integration_type
 ):
     organization, region = make_organization_and_region()
     organization.save()
 
     alert_receive_channel = make_alert_receive_channel(
         organization=organization,
-        integration=AlertReceiveChannel.INTEGRATION_ALERTMANAGER,
+        integration=integration_type,
     )
 
     expected_message = bytes(f"Redirected to {region.oncall_backend_url}", "utf-8")
     mocked_make_request.return_value = HttpResponse(expected_message, status=status.HTTP_200_OK)
 
     client = APIClient()
-    url = reverse("integrations:alertmanager", kwargs={"alert_channel_key": alert_receive_channel.token})
+    url = reverse(f"integrations:{integration_type}", kwargs={"alert_channel_key": alert_receive_channel.token})
 
     data = {"value": "test"}
     response = client.post(url, data, format="json")
