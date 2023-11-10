@@ -1,5 +1,6 @@
 import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
 import { Heartbeat } from 'models/heartbeat/heartbeat.types';
+import { LabelKeyValue } from 'models/label/label.types';
 import { User } from 'models/user/user.types';
 
 export enum MaintenanceMode {
@@ -47,6 +48,7 @@ export interface AlertReceiveChannel {
   connected_escalations_chains_count: number;
   allow_delete: boolean;
   deleted?: boolean;
+  labels: LabelKeyValue[];
 }
 
 export interface AlertReceiveChannelChoice {

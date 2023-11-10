@@ -76,7 +76,9 @@ class ChannelFilter(OrderedModel):
     notification_backends = models.JSONField(null=True, default=None)
 
     created_at = models.DateTimeField(auto_now_add=True)
-    filtering_term = models.CharField(max_length=1024, null=True, default=None)
+
+    FILTERING_TERM_MAX_LENGTH = 1024
+    filtering_term = models.CharField(max_length=FILTERING_TERM_MAX_LENGTH, null=True, default=None)
 
     FILTERING_TERM_TYPE_REGEX = 0
     FILTERING_TERM_TYPE_JINJA2 = 1

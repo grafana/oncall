@@ -14,7 +14,7 @@ jest.mock('grafana/app/core/core', () => ({
 
 describe('Unauthorized', () => {
   test.each([true, false])('renders properly - access control enabled: %s', (accessControlEnabled) => {
-    contextSrv.accessControlEnabled = () => accessControlEnabled;
+    contextSrv.licensedAccessControlEnabled = () => accessControlEnabled;
     const tree = renderer
       .create(
         <Unauthorized
@@ -31,7 +31,7 @@ describe('Unauthorized', () => {
   test.each([OrgRole.Admin, OrgRole.Editor, OrgRole.Viewer])(
     'renders properly the grammar for different roles - %s',
     (role) => {
-      contextSrv.accessControlEnabled = () => false;
+      contextSrv.licensedAccessControlEnabled = () => false;
       const tree = renderer
         .create(
           <Unauthorized

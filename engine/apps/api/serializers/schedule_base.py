@@ -68,7 +68,7 @@ class ScheduleBaseSerializer(EagerLoadingMixin, serializers.ModelSerializer):
 
     def get_on_call_now(self, obj):
         # Serializer context is set here: apps.api.views.schedule.ScheduleView.get_serializer_context
-        users = self.context["oncall_users"].get(obj.pk, [])
+        users = self.context["oncall_users"].get(obj, [])
         return [user.short() for user in users]
 
     def get_number_of_escalation_chains(self, obj):

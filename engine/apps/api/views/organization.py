@@ -22,7 +22,7 @@ class CurrentOrganizationView(APIView):
     permission_classes = (IsAuthenticated, RBACPermission)
 
     rbac_permissions = {
-        "get": [],
+        "get": [RBACPermission.Permissions.OTHER_SETTINGS_READ],
         "put": [RBACPermission.Permissions.OTHER_SETTINGS_WRITE],
     }
 

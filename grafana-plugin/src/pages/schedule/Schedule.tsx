@@ -156,6 +156,12 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
       shiftIdToShowRotationForm ||
       shiftSwapIdToShowForm;
 
+    const disabledShiftSwaps =
+      !isUserActionAllowed(UserActions.SchedulesWrite) ||
+      !!shiftIdToShowOverridesForm ||
+      shiftIdToShowRotationForm ||
+      shiftSwapIdToShowForm;
+
     return (
       <PageErrorHandlingWrapper errorData={errorData} objectName="schedule" pageName="schedules">
         {() => (
@@ -314,6 +320,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
                       shiftIdToShowRotationForm={shiftIdToShowOverridesForm}
                       onShowRotationForm={this.handleShowOverridesForm}
                       disabled={disabledOverrideForm}
+                      disableShiftSwaps={disabledShiftSwaps}
                       shiftStartToShowOverrideForm={shiftStartToShowOverrideForm}
                       shiftEndToShowOverrideForm={shiftEndToShowOverrideForm}
                       onShowShiftSwapForm={!shiftSwapIdToShowForm ? this.handleShowShiftSwapForm : undefined}

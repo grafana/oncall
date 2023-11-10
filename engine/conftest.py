@@ -57,10 +57,17 @@ from apps.base.tests.factories import (
 )
 from apps.email.tests.factories import EmailMessageFactory
 from apps.heartbeat.tests.factories import IntegrationHeartBeatFactory
+from apps.labels.tests.factories import (
+    AlertGroupAssociatedLabelFactory,
+    AlertReceiveChannelAssociatedLabelFactory,
+    LabelKeyFactory,
+    LabelValueFactory,
+)
 from apps.mobile_app.models import MobileAppAuthToken, MobileAppVerificationToken
 from apps.phone_notifications.phone_backend import PhoneBackend
 from apps.phone_notifications.tests.factories import PhoneCallRecordFactory, SMSRecordFactory
 from apps.phone_notifications.tests.mock_phone_provider import MockPhoneProvider
+from apps.schedules.ical_utils import memoized_users_in_ical
 from apps.schedules.models import OnCallScheduleWeb
 from apps.schedules.tests.factories import (
     CustomOnCallShiftFactory,
@@ -128,6 +135,10 @@ register(EmailMessageFactory)
 register(IntegrationHeartBeatFactory)
 register(LiveSettingFactory)
 
+register(LabelKeyFactory)
+register(LabelValueFactory)
+register(AlertReceiveChannelAssociatedLabelFactory)
+
 IS_RBAC_ENABLED = os.getenv("ONCALL_TESTING_RBAC_ENABLED", "True") == "True"
 
 
@@ -171,6 +182,26 @@ def mock_apply_async(monkeypatch):
         return uuid.uuid4()
 
     monkeypatch.setattr(Task, "apply_async", mock_apply_async)
+
+
+@pytest.fixture(autouse=True)
+def mock_is_labels_feature_enabled(settings):
+    setattr(settings, "FEATURE_LABELS_ENABLED_FOR_ALL", True)
+
+
+@pytest.fixture(autouse=True)
+def clear_ical_users_cache():
+    # clear users pks <-> organization cache (persisting between tests)
+    memoized_users_in_ical.cache_clear()
+
+
+@pytest.fixture
+def mock_is_labels_feature_enabled_for_org(settings):
+    def _mock_is_labels_feature_enabled_for_org(org_id):
+        setattr(settings, "FEATURE_LABELS_ENABLED_FOR_ALL", False)
+        setattr(settings, "FEATURE_LABELS_ENABLED_FOR_GRAFANA_ORGS", [org_id])
+
+    return _mock_is_labels_feature_enabled_for_org
 
 
 @pytest.fixture
@@ -279,6 +310,7 @@ def get_user_permission_role_mapping_from_frontend_plugin_json() -> RoleMapping:
         plugin_json: PluginJSON = json.load(fp)
 
     role_mapping: RoleMapping = {
+        LegacyAccessControlRole.NONE: [],
         LegacyAccessControlRole.VIEWER: [],
         LegacyAccessControlRole.EDITOR: [],
         LegacyAccessControlRole.ADMIN: [],
@@ -917,3 +949,48 @@ def webhook_preset_api_setup():
     WebhookPresetOptions.WEBHOOK_PRESET_CHOICES = [
         preset.metadata for preset in WebhookPresetOptions.WEBHOOK_PRESETS.values()
     ]
+
+
+@pytest.fixture
+def make_label_key():
+    def _make_label_key(organization, **kwargs):
+        return LabelKeyFactory(organization=organization, **kwargs)
+
+    return _make_label_key
+
+
+@pytest.fixture
+def make_label_value():
+    def _make_label_value(key, **kwargs):
+        return LabelValueFactory(key=key, **kwargs)
+
+    return _make_label_value
+
+
+@pytest.fixture
+def make_label_key_and_value(make_label_key, make_label_value):
+    def _make_label_key_and_value(organization):
+        key = make_label_key(organization=organization)
+        value = make_label_value(key=key)
+        return key, value
+
+    return _make_label_key_and_value
+
+
+@pytest.fixture
+def make_integration_label_association(make_label_key_and_value):
+    def _make_integration_label_association(organization, alert_receive_channel, **kwargs):
+        key, value = make_label_key_and_value(organization)
+        return AlertReceiveChannelAssociatedLabelFactory(
+            alert_receive_channel=alert_receive_channel, organization=organization, key=key, value=value, **kwargs
+        )
+
+    return _make_integration_label_association
+
+
+@pytest.fixture
+def make_alert_group_label_association():
+    def _make_alert_group_label_association(organization, alert_group, **kwargs):
+        return AlertGroupAssociatedLabelFactory(alert_group=alert_group, organization=organization, **kwargs)
+
+    return _make_alert_group_label_association

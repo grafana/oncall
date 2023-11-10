@@ -3,6 +3,7 @@ import qs from 'query-string';
 
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import BaseStore from 'models/base_store';
+import { LabelKey } from 'models/label/label.types';
 import { User } from 'models/user/user.types';
 import { makeRequest } from 'network';
 import { Mixpanel } from 'services/mixpanel';
@@ -41,10 +42,14 @@ export class AlertGroupStore extends BaseStore {
   incidentsCursor?: string;
 
   @observable
-  incidentsItemsPerPage?: number;
-
-  @observable
-  alertsSearchResult: any = {};
+  alertsSearchResult: {
+    [key: string]: {
+      prev?: string;
+      next?: string;
+      results?: string[];
+      page_size?: number;
+    };
+  } = {};
 
   @observable
   alerts = new Map<string, Alert>();
@@ -87,29 +92,6 @@ export class AlertGroupStore extends BaseStore {
     return await makeRequest(`${this.path}${pk}/unattach/`, {
       method: 'POST',
     }).catch(showApiError);
-  }
-
-  @action // FIXME for `attach to` feature ONLY
-  async updateItems(query = '') {
-    const { results } = await makeRequest(`${this.path}`, {
-      params: { search: query, resolved: false, is_root: true },
-    });
-
-    this.items = {
-      ...this.items,
-      ...results.reduce(
-        (acc: { [key: string]: Alert }, item: Alert) => ({
-          ...acc,
-          [item.pk]: item,
-        }),
-        {}
-      ),
-    };
-
-    this.searchResult = {
-      ...this.searchResult,
-      [query]: results.map((item: Alert) => item.pk),
-    };
   }
 
   async updateItem(id: Alert['pk']) {
@@ -220,12 +202,13 @@ export class AlertGroupStore extends BaseStore {
   // TODO check if methods are dublicating existing ones
   @action
   async updateIncidents() {
-    this.getNewIncidentsStats();
-    this.getAcknowledgedIncidentsStats();
-    this.getResolvedIncidentsStats();
-    this.getSilencedIncidentsStats();
-
-    this.updateAlertGroups();
+    await Promise.all([
+      this.getNewIncidentsStats(),
+      this.getAcknowledgedIncidentsStats(),
+      this.getResolvedIncidentsStats(),
+      this.getSilencedIncidentsStats(),
+      this.updateAlertGroups(),
+    ]);
 
     this.liveUpdatesPaused = false;
   }
@@ -238,7 +221,7 @@ export class AlertGroupStore extends BaseStore {
 
     this.incidentFilters = params;
 
-    this.updateIncidents();
+    await this.updateIncidents();
   }
 
   @action
@@ -256,9 +239,8 @@ export class AlertGroupStore extends BaseStore {
   }
 
   @action
-  async setIncidentsItemsPerPage(value: number) {
+  async setIncidentsItemsPerPage() {
     this.setIncidentsCursor(undefined);
-    this.incidentsItemsPerPage = value;
 
     this.updateAlertGroups();
   }
@@ -271,11 +253,12 @@ export class AlertGroupStore extends BaseStore {
       results,
       next: nextRaw,
       previous: previousRaw,
+      page_size,
     } = await makeRequest(`${this.path}`, {
       params: {
         ...this.incidentFilters,
+        perpage: this.alertsSearchResult?.['default']?.page_size,
         cursor: this.incidentsCursor,
-        perpage: this.incidentsItemsPerPage,
         is_root: true,
       },
     }).catch(refreshPageError);
@@ -298,17 +281,24 @@ export class AlertGroupStore extends BaseStore {
       prev: prevCursor,
       next: nextCursor,
       results: results.map((alert: Alert) => alert.pk),
+      page_size,
     };
 
     this.alertGroupsLoading = false;
   }
 
   getAlertSearchResult(query: string) {
-    if (!this.alertsSearchResult[query]) {
-      return undefined;
+    const result = this.alertsSearchResult[query];
+    if (!result) {
+      return {};
     }
 
-    return this.alertsSearchResult[query].results.map((pk: Alert['pk']) => this.alerts.get(pk));
+    return {
+      prev: result.prev,
+      next: result.next,
+      page_size: result.page_size,
+      results: result.results.map((pk: Alert['pk']) => this.alerts.get(pk)),
+    };
   }
 
   @action
@@ -447,5 +437,25 @@ export class AlertGroupStore extends BaseStore {
       method: 'POST',
       data: { user_id: userId },
     }).catch(this.onApiError);
+  }
+
+  @action
+  public async loadLabelsKeys() {
+    return await makeRequest(`/alertgroups/labels/keys/`, {});
+  }
+
+  @action
+  public async loadValuesForLabelKey(key: LabelKey['id'], search = '') {
+    if (!key) {
+      return [];
+    }
+
+    const result = await makeRequest(`/alertgroups/labels/id/${key}`, {
+      params: { search },
+    });
+
+    const filteredValues = result.values.filter((v) => v.name.toLowerCase().includes(search.toLowerCase())); // TODO remove after backend search implementation
+
+    return { ...result, values: filteredValues };
   }
 }

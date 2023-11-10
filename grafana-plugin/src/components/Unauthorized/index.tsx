@@ -24,7 +24,7 @@ const Unauthorized: FC<Props> = ({ requiredUserAction: { permission, fallbackMin
       </Text.Title>
       <Text.Title level={4}>
         You do not have access to view this page.{' '}
-        {contextSrv.accessControlEnabled()
+        {contextSrv.licensedAccessControlEnabled()
           ? `You are missing the ${permission} permission.`
           : `You must be at least a${
               fallbackMinimumRoleRequired === OrgRole.Viewer ? '' : 'n'

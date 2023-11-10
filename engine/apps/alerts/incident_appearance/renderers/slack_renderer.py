@@ -437,6 +437,8 @@ class AlertGroupSlackRenderer(AlertGroupBaseRenderer):
         data = {
             "organization_id": self.alert_group.channel.organization_id,
             "alert_group_pk": self.alert_group.pk,
+            # eventually replace using alert_group_pk with alert_group_public_pk in slack payload
+            "alert_group_ppk": self.alert_group.public_primary_key,
             **kwargs,
         }
         return json.dumps(data)  # Slack block elements allow to pass value as string only (max 2000 chars)

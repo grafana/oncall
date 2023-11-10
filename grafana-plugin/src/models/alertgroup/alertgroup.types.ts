@@ -1,7 +1,7 @@
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { Channel } from 'models/channel';
 import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
-import { User } from 'models/user/user.types';
+import { PagedUser, User } from 'models/user/user.types';
 
 export enum IncidentStatus {
   'Firing',
@@ -51,7 +51,6 @@ export interface Alert {
   acknowledged_at: string;
   acknowledged_by_user: User;
   acknowledged_on_source: boolean;
-  is_restricted: boolean;
   channel: Channel;
   slack_permalink?: string;
   permalinks: {
@@ -80,14 +79,13 @@ export interface Alert {
   short?: boolean;
   root_alert_group?: Alert;
   alert_receive_channel: Partial<AlertReceiveChannel>;
-  paged_users: Array<Pick<User, 'pk' | 'username' | 'avatar'>>;
+  paged_users: PagedUser[];
   team: GrafanaTeam['id'];
+  grafana_incident_id: string | null;
 
   // set by client
   loading?: boolean;
   undoAction?: AlertAction;
-
-  has_pormortem?: boolean; // not implemented yet
 }
 
 interface RenderForWeb {

@@ -1,6 +1,10 @@
 from apps.api.serializers.schedule_base import ScheduleBaseSerializer
 from apps.schedules.models import OnCallScheduleICal
-from apps.schedules.tasks import schedule_notify_about_empty_shifts_in_schedule, schedule_notify_about_gaps_in_schedule
+from apps.schedules.tasks import (
+    refresh_ical_final_schedule,
+    schedule_notify_about_empty_shifts_in_schedule,
+    schedule_notify_about_gaps_in_schedule,
+)
 from apps.slack.models import SlackChannel, SlackUserGroup
 from common.api_helpers.custom_fields import OrganizationFilteredPrimaryKeyRelatedField
 from common.api_helpers.utils import validate_ical_url
@@ -36,6 +40,12 @@ class ScheduleICalCreateSerializer(ScheduleICalSerializer):
         required=False,
         allow_null=True,
     )
+
+    def create(self, validated_data):
+        created_schedule = super().create(validated_data)
+        # for iCal-based schedules we need to refresh final schedule information
+        refresh_ical_final_schedule.apply_async((created_schedule.pk,))
+        return created_schedule
 
     class Meta:
         model = OnCallScheduleICal
@@ -80,4 +90,6 @@ class ScheduleICalUpdateSerializer(ScheduleICalCreateSerializer):
             updated_schedule.check_gaps_for_next_week()
             schedule_notify_about_empty_shifts_in_schedule.apply_async((instance.pk,))
             schedule_notify_about_gaps_in_schedule.apply_async((instance.pk,))
+            # for iCal-based schedules we need to refresh final schedule information
+            refresh_ical_final_schedule.apply_async((instance.pk,))
         return updated_schedule

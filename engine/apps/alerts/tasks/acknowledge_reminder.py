@@ -1,3 +1,5 @@
+from functools import partial
+
 from django.conf import settings
 from django.db import transaction
 
@@ -60,7 +62,7 @@ def acknowledge_reminder_task(alert_group_pk: int, unacknowledge_process_id: str
     log_record = alert_group.log_records.create(
         type=AlertGroupLogRecord.TYPE_ACK_REMINDER_TRIGGERED, author=alert_group.acknowledged_by_user
     )
-    transaction.on_commit(lambda: send_alert_group_signal.delay(log_record.pk))
+    transaction.on_commit(partial(send_alert_group_signal.delay, log_record.pk))
 
 
 @shared_dedicated_queue_retry_task(autoretry_for=(Exception,), retry_backoff=True, max_retries=MAX_RETRIES)
@@ -108,6 +110,6 @@ def unacknowledge_timeout_task(alert_group_pk: int, unacknowledge_process_id: st
     log_record = alert_group.log_records.create(
         type=AlertGroupLogRecord.TYPE_AUTO_UN_ACK, author=alert_group.acknowledged_by_user
     )
-    transaction.on_commit(lambda: send_alert_group_signal.delay(log_record.pk))
+    transaction.on_commit(partial(send_alert_group_signal.delay, log_record.pk))
     alert_group.unacknowledge()
     alert_group.start_escalation_if_needed()

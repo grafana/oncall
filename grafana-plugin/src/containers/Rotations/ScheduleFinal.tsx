@@ -16,7 +16,7 @@ import {
   getOverridesFromStore,
   getShiftsFromStore,
 } from 'models/schedule/schedule.helpers';
-import { Schedule, Shift, ShiftSwap, Event } from 'models/schedule/schedule.types';
+import { Schedule, ShiftSwap, Event } from 'models/schedule/schedule.types';
 import { Timezone } from 'models/timezone/timezone.types';
 import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
@@ -59,7 +59,7 @@ class ScheduleFinal extends Component<ScheduleFinalProps> {
 
     const currentTimeHidden = currentTimeX < 0 || currentTimeX > 1;
 
-    const getColor = (shiftId: Shift['id']) => findColor(shiftId, layers, overrides);
+    const getColor = (event: Event) => findColor(event.shift?.pk, layers, overrides);
 
     return (
       <>

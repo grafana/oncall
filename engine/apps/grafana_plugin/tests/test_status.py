@@ -10,9 +10,11 @@ GRAFANA_TOKEN = "TESTTOKEN"
 GRAFANA_URL = "hello.com"
 LICENSE = "asdfasdf"
 VERSION = "asdfasdfasdf"
-BASE_URL = "http://asdasdqweqweqw.com/oncall"
+BASE_URL = "http://asdasdqweqweqw.com/oncall/"
+BASE_URL_NO_TRAILING_SLASH = "http://asdasdqweqweqw.com/oncall"
 GRAFANA_CONTEXT_DATA = {"IsAnonymous": False}
 SETTINGS = {"LICENSE": LICENSE, "VERSION": VERSION, "BASE_URL": BASE_URL}
+SETTINGS_ALT = SETTINGS | {"BASE_URL": BASE_URL_NO_TRAILING_SLASH}
 
 
 def _check_status_response(auth_headers, client):
@@ -85,4 +87,19 @@ def test_status_mobile_app_auth_token(
     assert response.status_code == status.HTTP_403_FORBIDDEN
 
     auth_headers = {"HTTP_AUTHORIZATION": f"{auth_token}"}
+    _check_status_response(auth_headers, client)
+
+
+@pytest.mark.django_db
+@override_settings(**SETTINGS_ALT)
+def test_status_base_url_trailing_slash(make_organization_and_user_with_plugin_token, make_user_auth_headers):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+    organization.grafana_url = GRAFANA_URL
+    organization.api_token_status = Organization.API_TOKEN_STATUS_OK
+    organization.save(update_fields=["grafana_url", "api_token_status"])
+
+    client = APIClient()
+    auth_headers = make_user_auth_headers(
+        user, token, grafana_token=GRAFANA_TOKEN, grafana_context_data=GRAFANA_CONTEXT_DATA
+    )
     _check_status_response(auth_headers, client)

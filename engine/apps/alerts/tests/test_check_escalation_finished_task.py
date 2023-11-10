@@ -341,12 +341,13 @@ def test_check_escalation_finished_task_simply_calls_heartbeat_when_no_alert_gro
 @patch("apps.alerts.tasks.check_escalation_finished.audit_alert_group_escalation")
 @patch("apps.alerts.tasks.check_escalation_finished.send_alert_group_escalation_auditor_task_heartbeat")
 @pytest.mark.django_db
-def test_check_escalation_finished_task_calls_audit_alert_group_escalation_for_every_alert_group_even_if_one_fails(
+def test_check_escalation_finished_task_calls_audit_alert_group_escalation_for_every_alert_group_even_if_one_fails_and_returns_success_ratio(
     mocked_send_alert_group_escalation_auditor_task_heartbeat,
     mocked_audit_alert_group_escalation,
     make_organization_and_user,
     make_alert_receive_channel,
     make_alert_group_that_started_at_specific_date,
+    caplog,
 ):
     organization, _ = make_organization_and_user()
     alert_receive_channel = make_alert_receive_channel(organization)
@@ -369,6 +370,8 @@ def test_check_escalation_finished_task_calls_audit_alert_group_escalation_for_e
     assert "The following alert group id(s) failed auditing:" in error_msg
     assert str(alert_group1.id) in error_msg
     assert str(alert_group2.id) in error_msg
+
+    assert "Alert group notifications success ratio: 33.33" in caplog.text
 
     mocked_audit_alert_group_escalation.assert_any_call(alert_group1)
     mocked_audit_alert_group_escalation.assert_any_call(alert_group2)

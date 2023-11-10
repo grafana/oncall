@@ -8,7 +8,7 @@ import hash from 'object-hash';
 import { ScheduleFiltersType } from 'components/ScheduleFilters/ScheduleFilters.types';
 import Text from 'components/Text/Text';
 import ScheduleSlot from 'containers/ScheduleSlot/ScheduleSlot';
-import { Event, RotationFormLiveParams, Shift, ShiftSwap } from 'models/schedule/schedule.types';
+import { Event, RotationFormLiveParams, ShiftSwap } from 'models/schedule/schedule.types';
 import { Timezone } from 'models/timezone/timezone.types';
 
 import RotationTutorial from './RotationTutorial';
@@ -34,7 +34,7 @@ interface RotationProps {
   tutorialParams?: RotationFormLiveParams;
   simplified?: boolean;
   filters?: ScheduleFiltersType;
-  getColor?: (shiftId: Shift['id']) => string;
+  getColor?: (event: Event) => string;
   onSlotClick?: (event: Event) => void;
   emptyText?: string;
   showScheduleNameAsSlotTitle?: boolean;
@@ -156,7 +156,7 @@ const Rotation: FC<RotationProps> = (props) => {
                     event={event}
                     startMoment={startMoment}
                     currentTimezone={currentTimezone}
-                    color={propsColor || getColor(event.shift?.pk)}
+                    color={propsColor || getColor(event)}
                     handleAddOverride={getAddOverrideClickHandler(event)}
                     handleAddShiftSwap={getAddShiftSwapClickHandler(event)}
                     handleOpenSchedule={getOpenScheduleClickHandler(event)}

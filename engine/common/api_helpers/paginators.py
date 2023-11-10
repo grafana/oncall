@@ -82,4 +82,4 @@ class FifteenPageSizePaginator(PathPrefixedPagePagination):
 
 class TwentyFiveCursorPaginator(PathPrefixedCursorPagination):
     page_size = 25
-    ordering = "-pk"
+    ordering = "-started_at"

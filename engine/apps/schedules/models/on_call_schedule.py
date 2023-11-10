@@ -349,18 +349,22 @@ class OnCallSchedule(PolymorphicModel):
         include_shift_info: bool = False,
     ) -> ScheduleEvents:
         """Return filtered events from schedule."""
-        shifts = (
-            list_of_oncall_shifts_from_ical(
-                self,
-                datetime_start,
-                datetime_end,
-                with_empty,
-                with_gap,
-                filter_by=filter_by,
-                from_cached_final=from_cached_final,
+        try:
+            shifts = (
+                list_of_oncall_shifts_from_ical(
+                    self,
+                    datetime_start,
+                    datetime_end,
+                    with_empty,
+                    with_gap,
+                    filter_by=filter_by,
+                    from_cached_final=from_cached_final,
+                )
+                or []
             )
-            or []
-        )
+        except ValueError:
+            # raised when filtering events on a non-saved/deleted schedule
+            return []
         shifts_data = {}
         if include_shift_info:
             pks = set(shift["shift_pk"] for shift in shifts)
@@ -1091,6 +1095,16 @@ class OnCallScheduleICal(OnCallSchedule):
                 self.ical_url_overrides,
             )
         self.save(update_fields=["cached_ical_file_overrides", "prev_ical_file_overrides", "ical_file_error_overrides"])
+
+    def related_users(self):
+        """Return users referenced in the schedule."""
+        # combine users based on usernames and users via email (allowed in iCal based schedules)
+        usernames = []
+        if self.cached_ical_file_primary:
+            usernames += RE_ICAL_FETCH_USERNAME.findall(self.cached_ical_file_primary)
+        if self.cached_ical_file_overrides:
+            usernames += RE_ICAL_FETCH_USERNAME.findall(self.cached_ical_file_overrides)
+        return self.organization.users.filter(Q(username__in=usernames) | Q(email__in=usernames))
 
     # Insight logs
     @property

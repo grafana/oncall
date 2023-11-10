@@ -13,6 +13,8 @@ CELERY_TASK_ROUTES = {
     "common.oncall_gateway.tasks.delete_slack_connector_async_v2": {"queue": "default"},
     "apps.heartbeat.tasks.integration_heartbeat_checkup": {"queue": "default"},
     "apps.heartbeat.tasks.process_heartbeat_task": {"queue": "default"},
+    "apps.labels.tasks.update_labels_cache": {"queue": "default"},
+    "apps.labels.tasks.update_instances_labels_cache": {"queue": "default"},
     "apps.metrics_exporter.tasks.start_calculate_and_cache_metrics": {"queue": "default"},
     "apps.metrics_exporter.tasks.start_recalculation_for_new_metric": {"queue": "default"},
     "apps.metrics_exporter.tasks.save_organizations_ids_in_cache": {"queue": "default"},
