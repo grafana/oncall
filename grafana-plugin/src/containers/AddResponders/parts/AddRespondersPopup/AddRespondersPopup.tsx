@@ -10,6 +10,7 @@ import GTable from 'components/GTable/GTable';
 import Text from 'components/Text/Text';
 import { Alert as AlertType } from 'models/alertgroup/alertgroup.types';
 import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
+import { PaginatedUsersResponse } from 'models/user/user';
 import { UserCurrentlyOnCall } from 'models/user/user.types';
 import { useStore } from 'state/useStore';
 import { useDebouncedCallback, useOnClickOutside } from 'utils/hooks';
@@ -51,12 +52,11 @@ const AddRespondersPopup = observer(
     const [searchLoading, setSearchLoading] = useState<boolean>(true);
     const [activeOption, setActiveOption] = useState<TabOptions>(isCreateMode ? TabOptions.Teams : TabOptions.Users);
     const [teamSearchResults, setTeamSearchResults] = useState<GrafanaTeam[]>([]);
-    const [userSearchResults, setUserSearchResults] = useState<UserCurrentlyOnCall[]>([]);
+    const [onCallUserSearchResults, setOnCallUserSearchResults] = useState<UserCurrentlyOnCall[]>([]);
+    const [notOnCallUserSearchResults, setNotOnCallUserSearchResults] = useState<UserCurrentlyOnCall[]>([]);
     const [searchTerm, setSearchTerm] = useState('');
 
     const ref = useRef();
-    const usersCurrentlyOnCall = userSearchResults.filter(({ is_currently_oncall }) => is_currently_oncall);
-    const usersNotCurrentlyOnCall = userSearchResults.filter(({ is_currently_oncall }) => !is_currently_oncall);
 
     useOnClickOutside(ref, () => {
       setVisible(false);
@@ -97,11 +97,17 @@ const AddRespondersPopup = observer(
     );
 
     const searchForUsers = useCallback(async () => {
-      /**
-       * specifying is_currently_oncall=all will tell the backend not to paginate the results
-       */
-      const userResults = await userStore.search<UserCurrentlyOnCall[]>({ searchTerm, is_currently_oncall: 'all' });
-      setUserSearchResults(userResults);
+      const _searchForUsers = (is_currently_oncall: string) =>
+        userStore.search<PaginatedUsersResponse<UserCurrentlyOnCall>>({ searchTerm, is_currently_oncall });
+
+      const onCallUserSearchResultsPromise = _searchForUsers('true').then((resp) =>
+        setOnCallUserSearchResults(resp.results)
+      );
+      const notOnCallUserSearchResultsPromise = _searchForUsers('false').then((resp) =>
+        setNotOnCallUserSearchResults(resp.results)
+      );
+
+      await Promise.all([onCallUserSearchResultsPromise, notOnCallUserSearchResultsPromise]);
     }, [searchTerm]);
 
     const searchForTeams = useCallback(async () => {
@@ -153,9 +159,12 @@ const AddRespondersPopup = observer(
     useEffect(() => {
       if (existingPagedUsers.length > 0) {
         const existingPagedUserIds = existingPagedUsers.map(({ pk }) => pk);
-        setUserSearchResults((userSearchResults) =>
-          userSearchResults.filter(({ pk }) => !existingPagedUserIds.includes(pk))
-        );
+
+        const _filterUsers = (users: UserCurrentlyOnCall[]) =>
+          users.filter(({ pk }) => !existingPagedUserIds.includes(pk));
+
+        setOnCallUserSearchResults(_filterUsers);
+        setNotOnCallUserSearchResults(_filterUsers);
       }
     }, [existingPagedUsers]);
 
@@ -293,7 +302,7 @@ const AddRespondersPopup = observer(
               ) : (
                 <>
                   <Alert
-                    className={cx('team-direct-paging-info-alert')}
+                    className={cx('info-alert')}
                     severity="info"
                     title={
                       (
@@ -330,8 +339,22 @@ const AddRespondersPopup = observer(
           )}
           {!searchLoading && activeOption === TabOptions.Users && (
             <>
-              <UserResultsSection header="On-call now" users={usersCurrentlyOnCall} />
-              <UserResultsSection header="Not on-call" users={usersNotCurrentlyOnCall} />
+              <Alert
+                className={cx('info-alert')}
+                severity="info"
+                title={
+                  (
+                    <Text type="primary">
+                      We display a maximum of 100 users per category. Use the search bar above to refine results. You
+                      can search by username, email, or team name.
+                    </Text>
+                  ) as any
+                }
+              />
+              <UserResultsSection header="On-call now" users={onCallUserSearchResults} />
+              <div style={{ marginTop: '10px' }}>
+                <UserResultsSection header="Not on-call" users={notOnCallUserSearchResults} />
+              </div>
             </>
           )}
         </div>
