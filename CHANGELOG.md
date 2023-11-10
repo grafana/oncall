@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fix AmazonSNS integration to handle exceptions the same as other integrations @mderynck ([#3315](https://github.com/grafana/oncall/pull/3315))
 
+## v1.3.56 (2023-11-10)
+
 ## v1.3.55 (2023-11-07)
 
 ### Changed
