@@ -143,6 +143,19 @@ class AlertGroupQuerySet(models.QuerySet):
                 pass
             raise
 
+    def filter_active(self, *args, **kwargs):
+        # filter alert groups with active escalation
+        return super().filter(
+            *args,
+            ~Q(silenced=True, silenced_until__isnull=True),  # filter silenced forever alert_groups
+            **kwargs,
+            maintenance_uuid__isnull=True,
+            is_escalation_finished=False,
+            resolved=False,
+            acknowledged=False,
+            root_alert_group=None,
+        )
+
 
 class AlertGroupSlackRenderingMixin:
     """
@@ -388,9 +401,6 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
     # We just don't care about that because we'll use only get_or_create(...is_open_for_grouping=True...)
     # https://code.djangoproject.com/ticket/28545
     is_open_for_grouping = models.BooleanField(default=None, null=True, blank=True)
-
-    # TODO: drop this column in an upcoming release
-    is_restricted = models.BooleanField(default=False, null=True)
 
     grafana_incident_id = models.CharField(max_length=100, null=True, default=None)
 

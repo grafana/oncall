@@ -239,7 +239,7 @@ class EscalationSnapshotMixin:
         self.raw_escalation_snapshot["next_step_eta"] = updated_next_step_eta.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
         return self.raw_escalation_snapshot
 
-    def start_escalation_if_needed(self, countdown=START_ESCALATION_DELAY, eta=None):
+    def start_escalation_if_needed(self, countdown=START_ESCALATION_DELAY, eta=None, continue_escalation=False):
         """
         :type self:AlertGroup
         """
@@ -259,9 +259,11 @@ class EscalationSnapshotMixin:
 
         logger.debug(f"Start escalation for alert group with pk: {self.pk}")
 
-        # take raw escalation snapshot from db if escalation is paused
+        # take raw escalation snapshot from db if escalation is paused or `continue_escalation` flag is True
         raw_escalation_snapshot = (
-            self.build_raw_escalation_snapshot() if not self.pause_escalation else self.raw_escalation_snapshot
+            self.raw_escalation_snapshot
+            if self.pause_escalation or continue_escalation
+            else self.build_raw_escalation_snapshot()
         )
         task_id = celery_uuid()
 
