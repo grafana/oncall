@@ -238,3 +238,36 @@ def test_user_schedule_export_token_raises_exception_organization_moved(
         assert False
     except OrganizationMovedException as e:
         assert e.organization == organization
+
+
+@patch("apps.user_management.middlewares.OrganizationMovedMiddleware.make_request")
+@pytest.mark.django_db
+def test_organization_moved_middleware_amazon_sns_headers(
+    mocked_make_request, make_organization_and_region, make_alert_receive_channel
+):
+    organization, region = make_organization_and_region()
+    organization.save()
+
+    alert_receive_channel = make_alert_receive_channel(
+        organization=organization,
+        integration="amazon_sns",
+    )
+
+    expected_sns_headers = {
+        "x-amz-sns-subscription-arn": "arn:aws:sns:xxxxxxxxxx:467989492352:oncall-test:3aab6edb-0c5e-4fa9-b876-64409d1f6c63",
+        "x-amz-sns-topic-arn": "arn:aws:sns:xxxxxxxxxx:467989492352:oncall-test",
+        "x-amz-sns-message-id": "473efe1d-8ea4-5252-8124-a3d5ff7408c5",
+        "x-amz-sns-message-type": "Notification",
+    }
+    expected_message = bytes(f"Redirected to {region.oncall_backend_url}", "utf-8")
+    mocked_make_request.return_value = HttpResponse(expected_message, status=status.HTTP_200_OK)
+
+    client = APIClient()
+    url = reverse("integrations:amazon_sns", kwargs={"alert_channel_key": alert_receive_channel.token})
+
+    data = {"value": "test"}
+    response = client.post(url, data, format="json", **expected_sns_headers)
+    assert mocked_make_request.called
+    assert expected_sns_headers.items() <= mocked_make_request.call_args.args[2].items()
+    assert response.content == expected_message
+    assert response.status_code == status.HTTP_200_OK
