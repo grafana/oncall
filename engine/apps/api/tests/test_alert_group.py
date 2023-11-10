@@ -2121,3 +2121,24 @@ def test_delete(mock_delete_alert_group, make_user_auth_headers, alert_group_int
     url = reverse("api-internal:alertgroup-detail", kwargs={"pk": "potato"})
     response = client.delete(url, **auth_headers)
     assert response.status_code == status.HTTP_404_NOT_FOUND
+
+
+@pytest.mark.django_db
+def test_alert_group_list_labels(
+    alert_group_internal_api_setup,
+    make_alert_group_label_association,
+    make_alert_receive_channel,
+    make_alert_group,
+    make_user_auth_headers,
+):
+    user, token, alert_groups = alert_group_internal_api_setup
+    make_alert_group_label_association(user.organization, alert_groups[0], key_name="a", value_name="b")
+
+    client = APIClient()
+    url = reverse("api-internal:alertgroup-list")
+    response = client.get(url, **make_user_auth_headers(user, token))
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()["results"][-1]["labels"] == [
+        {"key": {"id": "a", "name": "a"}, "value": {"id": "b", "name": "b"}}
+    ]
