@@ -105,7 +105,7 @@ def check_escalation_finished_task() -> None:
     )
     total_alert_groups_count = alert_groups.count()
 
-    # Filter alert groups with active escalations (that could fail)    
+    # Filter alert groups with active escalations (that could fail)
     alert_groups = alert_groups.filter_active()
 
     task_logger.info(
