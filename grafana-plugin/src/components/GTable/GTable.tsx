@@ -115,7 +115,7 @@ const GTable = <RT extends DefaultRecordType = DefaultRecordType>(props: Props<R
 
     if (rowSelection) {
       columns.unshift({
-        width: '25px',
+        width: '5%',
         key: 'check',
         title: (
           <Checkbox

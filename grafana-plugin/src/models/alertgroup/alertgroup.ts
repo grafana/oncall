@@ -85,6 +85,7 @@ export class AlertGroupStore extends BaseStore {
     { id: 6, name: 'Team', isVisible: true, type: AGColumnType.DEFAULT },
     { id: 7, name: 'Users', isVisible: false, type: AGColumnType.DEFAULT },
     { id: 8, name: 'Bananas', isVisible: false, type: AGColumnType.LABEL },
+    { id: 9, name: 'Title', isVisible: false, type: AGColumnType.DEFAULT },
   ];
 
   constructor(rootStore: RootStore) {

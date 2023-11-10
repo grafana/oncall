@@ -1,6 +1,7 @@
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { Channel } from 'models/channel';
 import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
+import { LabelKeyValue } from 'models/label/label.types';
 import { PagedUser, User } from 'models/user/user.types';
 
 export enum IncidentStatus {
@@ -82,6 +83,7 @@ export interface Alert {
   paged_users: PagedUser[];
   team: GrafanaTeam['id'];
   grafana_incident_id: string | null;
+  labels?: LabelKeyValue[];
 
   // set by client
   loading?: boolean;

@@ -628,13 +628,13 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
 
     const columnMapping: { [key: string]: TableColumn } = {
       ID: {
-        width: '10%',
+        width: '5%', // 10%
         title: 'ID',
         key: 'id',
         render: this.renderId,
       },
       Status: {
-        width: '140px',
+        width: '140px', // 140px
         title: 'Status',
         key: 'time',
         render: this.renderStatus,
@@ -650,6 +650,12 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
         title: 'Integration',
         key: 'source',
         render: this.renderSource,
+      },
+      Title: {
+        width: '35%',
+        title: 'Title',
+        key: 'title',
+        render: this.renderTitle,
       },
       Created: {
         width: '10%',
@@ -672,8 +678,19 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
     };
 
     const mappedColumns: TableColumn[] = store.alertGroupStore.columns
-      .filter((col) => col.type === AGColumnType.DEFAULT && col.isVisible)
-      .map((column: AGColumn): TableColumn => columnMapping[column.name]);
+      .filter((col) => col.isVisible)
+      .map((column: AGColumn): TableColumn => {
+        if (column.type === AGColumnType.DEFAULT && columnMapping[column.name]) {
+          return columnMapping[column.name];
+        }
+
+        return {
+          width: '5%',
+          title: column.name,
+          key: column.id.toString(),
+          render: (item: AlertType) => <>{item.labels?.find((label) => label.key.name === 'a')?.value.name}</>,
+        };
+      });
 
     return mappedColumns;
   }

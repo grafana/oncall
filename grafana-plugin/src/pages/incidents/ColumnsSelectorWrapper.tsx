@@ -1,6 +1,16 @@
 import React, { useEffect, useRef, useState } from 'react';
 
-import { Button, Checkbox, HorizontalGroup, Icon, Input, Modal, Toggletip, VerticalGroup } from '@grafana/ui';
+import {
+  Button,
+  Checkbox,
+  HorizontalGroup,
+  Icon,
+  Input,
+  InlineLabel,
+  Modal,
+  Toggletip,
+  VerticalGroup,
+} from '@grafana/ui';
 
 import Text from 'components/Text/Text';
 
@@ -84,6 +94,11 @@ interface SearchResult extends Label {
   isChecked: boolean;
 }
 
+const KEY = 'test';
+const resultValues = {
+  [KEY]: ['eu-stage', 'us-central-prod'],
+};
+
 const ColumnsModal: React.FC<ColumnsModalProps> = ({ isModalOpen, labelKeys, setIsModalOpen, inputRef }) => {
   const store = useStore();
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
@@ -92,44 +107,62 @@ const ColumnsModal: React.FC<ColumnsModalProps> = ({ isModalOpen, labelKeys, set
   return (
     <Modal isOpen={isModalOpen} title={'Add field'} onDismiss={() => setIsModalOpen(false)}>
       <VerticalGroup spacing="md">
-        <Input
-          className={cx('input')}
-          autoFocus
-          placeholder="Search..."
-          ref={inputRef}
-          onChange={debouncedOnInputChange}
-        />
+        <div className={cx('content')}>
+          <VerticalGroup spacing="md">
+            <Input
+              className={cx('input')}
+              autoFocus
+              placeholder="Search..."
+              ref={inputRef}
+              onChange={debouncedOnInputChange}
+            />
 
-        {inputRef?.current?.value === '' && (
-          <Text type="primary">{labelKeys.length} items available. Type in to see suggestions</Text>
-        )}
+            {inputRef?.current?.value === '' && (
+              <Text type="primary">{labelKeys.length} items available. Type in to see suggestions</Text>
+            )}
 
-        {inputRef?.current?.value && searchResults.length && (
-          <VerticalGroup spacing="xs">
-            {searchResults.map((result) => (
-              <HorizontalGroup spacing="md">
-                <Checkbox
-                  type="checkbox"
-                  value={result.isChecked}
-                  onChange={() => {
-                    setSearchResults((items) => {
-                      return items.map((item) => {
-                        const updatedItem: SearchResult = { ...item, isChecked: !item.isChecked };
-                        return item.id === result.id ? updatedItem : item;
-                      });
-                    });
-                  }}
-                />
+            {inputRef?.current?.value && searchResults.length && (
+              <VerticalGroup spacing="xs">
+                {searchResults.map((result) => (
+                  <div className={cx('field-row')}>
+                    <Checkbox
+                      type="checkbox"
+                      value={result.isChecked}
+                      onChange={() => {
+                        setSearchResults((items) => {
+                          return items.map((item) => {
+                            const updatedItem: SearchResult = { ...item, isChecked: !item.isChecked };
+                            return item.id === result.id ? updatedItem : item;
+                          });
+                        });
+                      }}
+                    />
 
-                <Text type="primary">{result.name}</Text>
-              </HorizontalGroup>
-            ))}
+                    <Text type="primary">{result.name}</Text>
+
+                    <div className={cx('content-right')}>
+                      <HorizontalGroup spacing="xs">
+                        {resultValues[KEY].map((value) => (
+                          <InlineLabel>
+                            <HorizontalGroup spacing="xs">
+                              <span>{KEY}</span>
+                              <span>:</span>
+                              <span>{value}</span>
+                            </HorizontalGroup>
+                          </InlineLabel>
+                        ))}
+                      </HorizontalGroup>
+                    </div>
+                  </div>
+                ))}
+              </VerticalGroup>
+            )}
+
+            {inputRef?.current?.value && searchResults.length === 0 && (
+              <Text type="primary">0 results for your search.</Text>
+            )}
           </VerticalGroup>
-        )}
-
-        {inputRef?.current?.value && searchResults.length === 0 && (
-          <Text type="primary">0 results for your search.</Text>
-        )}
+        </div>
 
         <HorizontalGroup justify="flex-end" spacing="md">
           <Button
