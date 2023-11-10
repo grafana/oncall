@@ -34,6 +34,7 @@ export interface User extends BaseUser {
   unverified_phone_number?: string;
   slack_user_identity: {
     avatar: string;
+    display_name: string;
     name: string;
     slack_id: string;
     slack_login: string;
