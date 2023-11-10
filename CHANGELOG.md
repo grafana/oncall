@@ -9,7 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Added user timezone field to the users public API response  ([#3311](https://github.com/grafana/oncall/pull/3311))
+- Added user timezone field to the users public API response ([#3311](https://github.com/grafana/oncall/pull/3311))
+
+### Changed
+
+- Split Integrations table into Connections and Direct Paging tabs ([#3290](https://github.com/grafana/oncall/pull/3290))
 
 ## v1.3.57 (2023-11-10)
 

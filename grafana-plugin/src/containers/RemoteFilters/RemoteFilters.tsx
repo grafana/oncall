@@ -44,6 +44,7 @@ interface RemoteFiltersProps extends WithStoreProps {
   defaultFilters?: FiltersValues;
   extraFilters?: (state, setState, onFiltersValueChange) => React.ReactNode;
   grafanaTeamStore: GrafanaTeamStore;
+  skipFilterOptionFn?: (filterOption: FilterOption) => boolean;
 }
 interface RemoteFiltersState {
   filterOptions?: FilterOption[];
@@ -86,10 +87,15 @@ class RemoteFilters extends Component<RemoteFiltersProps, RemoteFiltersState> {
       page,
       store: { filtersStore },
       defaultFilters,
+      skipFilterOptionFn,
     } = this.props;
 
-    const filterOptions = await filtersStore.updateOptionsForPage(page);
+    let filterOptions = await filtersStore.updateOptionsForPage(page);
     const currentTablePageNum = parseInt(filtersStore.currentTablePageNum[page] || query.p || 1, 10);
+
+    if (skipFilterOptionFn) {
+      filterOptions = filterOptions.filter((option: FilterOption) => !skipFilterOptionFn(option));
+    }
 
     // set the current page from filters/query or default it to 1
     filtersStore.setCurrentTablePageNum(page, currentTablePageNum);
