@@ -68,3 +68,7 @@ def test_complete_slack_auth_redirect_error(
 
     assert response.status_code == status.HTTP_302_FOUND
     assert response.url == "some-url"
+
+
+# TODO: add test case to ensure we don't see a previously encountered error message upon
+# successful slack user connection
