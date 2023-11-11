@@ -1,0 +1,31 @@
+# Please see the documentation for all configuration options:
+# https://docs.github.com/github/administering-a-repository/configuration-options-for-dependency-updates
+
+version: 2
+updates:
+  # Maintain dependencies for GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 3
+  # Upgrade for npm packages, minor and patch versions only
+  - package-ecosystem: "npm"
+    directory: "/grafana-plugin"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 2
+    groups:
+      grafana_plugin_production_dependencies:
+        dependency-type: "production"
+        update-types:
+          - "minor"
+          - "patch"
+      grafana_plugin_development_dependencies:
+        dependency-type: "development"
+        update-types:
+          - "minor"
+          - "patch"
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
