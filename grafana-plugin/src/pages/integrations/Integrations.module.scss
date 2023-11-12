@@ -2,7 +2,16 @@
   width: 180px;
 }
 
-.title {
+.heartbeat-badge {
+  padding: 4px 10px;
+  width: 40px;
+}
+
+.tabsBar {
+  margin-bottom: 24px;
+}
+
+.integrations-header {
   margin-bottom: 24px;
   right: 0;
 }
@@ -13,11 +22,6 @@
 
 .integrations-table {
   margin-top: 16px;
-}
-
-.heartbeat-badge {
-  padding: 4px 10px;
-  width: 40px;
 }
 
 .integrations-actionsList {
@@ -44,4 +48,8 @@
   &:hover {
     background: var(--cards-background);
   }
+}
+
+.goToDirectPagingAlert {
+  margin-top: 24px;
 }

@@ -6,6 +6,7 @@ from urllib.parse import urljoin
 from django.conf import settings
 from django.core.validators import MinLengthValidator
 from django.db import models
+from django.db.models import Count, Q
 from django.utils import timezone
 from mirage import fields as mirage_fields
 
@@ -18,6 +19,7 @@ from common.public_primary_keys import generate_public_primary_key, increase_pub
 if typing.TYPE_CHECKING:
     from django.db.models.manager import RelatedManager
 
+    from apps.alerts.models import AlertReceiveChannel
     from apps.auth_token.models import (
         ApiAuthToken,
         PluginAuthToken,
@@ -27,6 +29,7 @@ if typing.TYPE_CHECKING:
     from apps.mobile_app.models import MobileAppAuthToken
     from apps.schedules.models import CustomOnCallShift, OnCallSchedule
     from apps.slack.models import SlackTeamIdentity
+    from apps.telegram.models import TelegramToOrganizationConnector
     from apps.user_management.models import Region, Team, User
 
 logger = logging.getLogger(__name__)
@@ -77,6 +80,7 @@ class OrganizationManager(models.Manager):
 # this will remove the maintenance related columns that're no longer used on the organization object
 # class Organization(models.Model):
 class Organization(MaintainableObject):
+    alert_receive_channels: "RelatedManager['AlertReceiveChannel']"
     auth_tokens: "RelatedManager['ApiAuthToken']"
     custom_on_call_shifts: "RelatedManager['CustomOnCallShift']"
     migration_destination: typing.Optional["Region"]
@@ -86,6 +90,7 @@ class Organization(MaintainableObject):
     schedule_export_token: "RelatedManager['ScheduleExportAuthToken']"
     slack_team_identity: typing.Optional["SlackTeamIdentity"]
     teams: "RelatedManager['Team']"
+    telegram_channel: "RelatedManager['TelegramToOrganizationConnector']"
     user_schedule_export_token: "RelatedManager['UserScheduleExportAuthToken']"
     users: "RelatedManager['User']"
 
@@ -294,6 +299,33 @@ class Organization(MaintainableObject):
                 new_channel=channel_name,
             )
 
+    def get_notifiable_direct_paging_integrations(self) -> "RelatedManager['AlertReceiveChannel']":
+        """
+        in layman's terms, this filters down an organization's integrations to ones which meet the following criterias:
+           - the integration is a direct paging integration
+
+           AND at-least one of the following conditions are true for the integration:
+           - have more than one channel filter associated with it
+           - OR the organization has either Slack or Telegram configured (as the direct paging integration
+           would automatically be configured to be notified via these channel(s))
+           - OR the default channel filter associated with the integration has an escalation chain associated with it
+           - OR the default channel filter associated with the integration is contactable via a custom
+           messaging backend
+        """
+        from apps.alerts.models import AlertReceiveChannel
+
+        return self.alert_receive_channels.annotate(
+            num_channel_filters=Count("channel_filters"),
+            # used to determine if the organization has telegram configured
+            num_org_telegram_channels=Count("organization__telegram_channel"),
+        ).filter(
+            Q(num_channel_filters__gt=1)
+            | (Q(organization__slack_team_identity__isnull=False) | Q(num_org_telegram_channels__gt=0))
+            | Q(channel_filters__is_default=True, channel_filters__escalation_chain__isnull=False)
+            | Q(channel_filters__is_default=True, channel_filters__notification_backends__isnull=False),
+            integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING,
+        )
+
     @property
     def web_link(self):
         return urljoin(self.grafana_url, "a/grafana-oncall-app/")
@@ -303,6 +335,7 @@ class Organization(MaintainableObject):
         # It's a workaround to pass some unique identifier to the oncall gateway while proxying telegram requests
         return urljoin(self.grafana_url, f"a/grafana-oncall-app/?oncall-uuid={self.uuid}")
 
+    @classmethod
     def __str__(self):
         return f"{self.pk}: {self.org_title}"
 

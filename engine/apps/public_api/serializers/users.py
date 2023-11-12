@@ -53,7 +53,8 @@ class UserSerializer(serializers.ModelSerializer, EagerLoadingMixin):
 
     class Meta:
         model = User
-        fields = ["id", "email", "slack", "username", "role", "is_phone_number_verified"]
+        fields = ["id", "email", "slack", "username", "role", "is_phone_number_verified", "timezone"]
+        read_only_fields = ["timezone"]
 
     @staticmethod
     def get_role(obj):

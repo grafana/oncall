@@ -142,8 +142,8 @@ describe('rootBaseStore', () => {
     const rootBaseStore = new RootBaseStore();
 
     contextSrv.user.orgRole = OrgRole.Viewer;
-    contextSrv.accessControlEnabled = jest.fn().mockReturnValue(false);
-    contextSrv.hasAccess = jest.fn().mockReturnValue(false);
+    contextSrv.licensedAccessControlEnabled = jest.fn().mockReturnValue(false);
+    contextSrv.hasPermission = jest.fn().mockReturnValue(false);
 
     PluginState.updatePluginStatus = jest.fn().mockResolvedValueOnce({
       is_user_anonymous: false,
@@ -180,8 +180,8 @@ describe('rootBaseStore', () => {
     const mockedLoadCurrentUser = jest.fn();
 
     contextSrv.user.orgRole = OrgRole.Admin;
-    contextSrv.accessControlEnabled = jest.fn().mockResolvedValueOnce(false);
-    contextSrv.hasAccess = jest.fn().mockReturnValue(true);
+    contextSrv.licensedAccessControlEnabled = jest.fn().mockResolvedValueOnce(false);
+    contextSrv.hasPermission = jest.fn().mockReturnValue(true);
 
     PluginState.updatePluginStatus = jest.fn().mockResolvedValueOnce({
       ...scenario,
@@ -218,14 +218,14 @@ describe('rootBaseStore', () => {
       missing_permissions: ['plugins:write', 'org.users:read', 'teams:read', 'apikeys:create', 'apikeys:delete'],
       expected_result: false,
     },
-  ])('signup is allowed, accessControlEnabled, various roles and permissions', async (scenario) => {
+  ])('signup is allowed, licensedAccessControlEnabled, various roles and permissions', async (scenario) => {
     // mocks/setup
     const onCallApiUrl = 'http://asdfasdf.com';
     const rootBaseStore = new RootBaseStore();
     const mockedLoadCurrentUser = jest.fn();
 
     contextSrv.user.orgRole = scenario.role;
-    contextSrv.accessControlEnabled = jest.fn().mockReturnValue(true);
+    contextSrv.licensedAccessControlEnabled = jest.fn().mockReturnValue(true);
     rootBaseStore.checkMissingSetupPermissions = jest.fn().mockImplementation(() => scenario.missing_permissions);
 
     PluginState.updatePluginStatus = jest.fn().mockResolvedValueOnce({
@@ -268,8 +268,8 @@ describe('rootBaseStore', () => {
     const humanReadableErrorMsg = 'asdfasldkfjaksdjflk';
 
     contextSrv.user.orgRole = OrgRole.Admin;
-    contextSrv.accessControlEnabled = jest.fn().mockReturnValue(false);
-    contextSrv.hasAccess = jest.fn().mockReturnValue(true);
+    contextSrv.licensedAccessControlEnabled = jest.fn().mockReturnValue(false);
+    contextSrv.hasPermission = jest.fn().mockReturnValue(true);
 
     PluginState.updatePluginStatus = jest.fn().mockResolvedValueOnce({
       is_user_anonymous: false,

@@ -28,3 +28,15 @@ export function getPathFromQueryParams(query: ParsedQuery<string>) {
 
   return path;
 }
+
+export function parseURL(url: string) {
+  let parsedUrl: URL;
+
+  try {
+    parsedUrl = new URL(url);
+  } catch (ex) {
+    return '';
+  }
+
+  return parsedUrl.protocol === 'http:' || parsedUrl.protocol === 'https:' ? url : '';
+}

@@ -17,6 +17,7 @@ interface TooltipBadgeProps {
   icon?: IconName;
   customIcon?: React.ReactNode;
   addPadding?: boolean;
+  placement?;
 
   onHover?: () => void;
 }
@@ -24,14 +25,25 @@ interface TooltipBadgeProps {
 const cx = cn.bind(styles);
 
 const TooltipBadge: FC<TooltipBadgeProps> = (props) => {
-  const { borderType, text, tooltipTitle, tooltipContent, onHover, addPadding, icon, customIcon, className, ...rest } =
-    props;
+  const {
+    borderType,
+    text,
+    tooltipTitle,
+    tooltipContent,
+    placement,
+    onHover,
+    addPadding,
+    icon,
+    customIcon,
+    className,
+    ...rest
+  } = props;
 
   const testId = rest['data-testid'];
 
   return (
     <Tooltip
-      placement="bottom-start"
+      placement={placement || 'bottom-start'}
       interactive
       content={
         <div className={cx('tooltip')}>
@@ -55,7 +67,7 @@ const TooltipBadge: FC<TooltipBadgeProps> = (props) => {
       >
         <HorizontalGroup spacing="xs">
           {renderIcon()}
-          {text && (
+          {text !== undefined && (
             <Text
               className={cx('element__text', { [`element__text--${borderType}`]: true })}
               {...(testId ? { 'data-testid': `${testId}-text` } : {})}

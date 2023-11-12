@@ -15,9 +15,15 @@ import { isUserActionAllowed, UserActions } from 'utils/authorization';
 import { getTimezone, prepareForUpdate } from './user.helpers';
 import { User } from './user.types';
 
+type PaginatedUsersResponse<UT = User> = {
+  count: number;
+  page_size: number;
+  results: UT[];
+};
+
 export class UserStore extends BaseStore {
   @observable.shallow
-  searchResult: { count?: number; results?: Array<User['pk']> } = {};
+  searchResult: { count?: number; results?: Array<User['pk']>; page_size?: number } = {};
 
   @observable.shallow
   items: { [pk: string]: User } = {};
@@ -110,15 +116,26 @@ export class UserStore extends BaseStore {
     delete this.itemsCurrentlyUpdating[userPk];
   }
 
-  @action
-  async updateItems(f: any = { searchTerm: '' }, page = 1): Promise<any> {
+  /**
+   * NOTE: if is_currently_oncall=all the backend will not paginate the results, it will send back an array of ALL users
+   */
+  async search<RT = PaginatedUsersResponse<User>>(f: any = { searchTerm: '' }, page = 1): Promise<RT> {
     const filters = typeof f === 'string' ? { searchTerm: f } : f; // for GSelect compatibility
-    const { searchTerm: search } = filters;
-    const response = await makeRequest(this.path, {
-      params: { search, page },
+    const { searchTerm: search, ...restFilters } = filters;
+    return makeRequest<RT>(this.path, {
+      params: { search, page, ...restFilters },
     });
+  }
 
-    const { count, results } = response;
+  @action
+  async updateItems(f: any = { searchTerm: '' }, page = 1, invalidateFn?: () => boolean): Promise<any> {
+    const response = await this.search(f, page);
+
+    if (invalidateFn && invalidateFn()) {
+      return;
+    }
+
+    const { count, results, page_size } = response;
 
     this.items = {
       ...this.items,
@@ -136,6 +153,7 @@ export class UserStore extends BaseStore {
 
     this.searchResult = {
       count,
+      page_size,
       results: results.map((item: User) => item.pk),
     };
 
@@ -144,6 +162,7 @@ export class UserStore extends BaseStore {
 
   getSearchResult() {
     return {
+      page_size: this.searchResult.page_size,
       count: this.searchResult.count,
       results: this.searchResult.results && this.searchResult.results.map((userPk: User['pk']) => this.items?.[userPk]),
     };
@@ -417,12 +436,6 @@ export class UserStore extends BaseStore {
   async deleteiCalLink(userPk: User['pk']) {
     await makeRequest(`/users/${userPk}/export_token/`, {
       method: 'DELETE',
-    });
-  }
-
-  async checkUserAvailability(userPk: User['pk']) {
-    return await makeRequest(`/users/${userPk}/check_availability/`, {
-      method: 'GET',
     });
   }
 }

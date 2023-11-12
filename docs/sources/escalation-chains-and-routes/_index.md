@@ -56,9 +56,8 @@ need a larger time interval, use multiple wait steps in a row.
 from an on-call schedule.
 * `Resolve incident automatically` - resolve the alert group right now with status
 `Resolved automatically`.
-* `Notify whole slack channel` - send a notification to a slack channel (not recommended
-to use as it will spam the channel).
-* `Notify Slack User Group` - send a notification to a slack user group.
+* `Notify whole slack channel` - send a notification to the users in the slack channel.
+* `Notify Slack User Group` - send a notification to each member of a slack user group.
 * `Trigger outgoing webhook` - trigger an [outgoing webhook][outgoing-webhooks].
 * `Notify users one by one (round robin)` - each notification will be sent to a group of
 users one by one, in sequential order in [round robin fashion](https://en.wikipedia.org/wiki/Round-robin_item_allocation).
@@ -68,6 +67,14 @@ Useful when you want to get escalation only during working hours
 * `Continue escalation if >X alerts per Y minutes (beta)` - continue escalation only if it
 passes some threshold
 * `Repeat escalation from beginning (5 times max)` - loop the escalation chain
+
+> **Note:** Both "**Notify whole Slack channel**" and "**Notify Slack User Group**" will filter OnCall registered users
+matching the users in the Slack channel or Slack User Group with their profiles linked to their Slack accounts (ie. users
+should have linked their Slack and OnCall users). In both cases, the filtered users satisfying the criteria above are
+notified following their respective notification policies. However, to avoid **spamming** the Slack channel/thread,
+users **won't be notified** in the alert group Slack **thread** (this is how the feature is currently implemented)
+but instead notify them using their **other defined** options in
+their [respective policies]([url](https://grafana.com/docs/oncall/latest/notify/#configure-user-notification-policies)).
 
 ### Notification types
 

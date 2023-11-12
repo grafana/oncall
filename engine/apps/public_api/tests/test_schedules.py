@@ -393,24 +393,24 @@ def test_update_ical_url_overrides_calendar_schedule(
     with patch("common.api_helpers.utils.validate_ical_url", return_value=ICAL_URL):
         response = client.put(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
 
-        result = {
-            "id": schedule.public_primary_key,
-            "team_id": None,
-            "name": schedule.name,
-            "type": "calendar",
-            "time_zone": schedule.time_zone,
-            "on_call_now": [],
-            "shifts": [],
-            "slack": {
-                "channel_id": "SLACKCHANNELID",
-                "user_group_id": None,
-            },
-            "ical_url_overrides": ICAL_URL,
-            "enable_web_overrides": False,
-        }
+    result = {
+        "id": schedule.public_primary_key,
+        "team_id": None,
+        "name": schedule.name,
+        "type": "calendar",
+        "time_zone": schedule.time_zone,
+        "on_call_now": [],
+        "shifts": [],
+        "slack": {
+            "channel_id": "SLACKCHANNELID",
+            "user_group_id": None,
+        },
+        "ical_url_overrides": ICAL_URL,
+        "enable_web_overrides": False,
+    }
 
-        assert response.status_code == status.HTTP_200_OK
-        assert response.json() == result
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == result
 
 
 @pytest.mark.django_db
@@ -633,7 +633,7 @@ def test_create_ical_schedule(make_organization_and_user_with_token):
     with patch(
         "apps.public_api.serializers.schedules_ical.ScheduleICalSerializer.validate_ical_url_primary",
         return_value=ICAL_URL,
-    ):
+    ), patch("apps.schedules.tasks.refresh_ical_final_schedule.apply_async") as mock_refresh_final:
         response = client.post(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
     schedule = OnCallSchedule.objects.get(public_primary_key=response.data["id"])
 
@@ -653,6 +653,7 @@ def test_create_ical_schedule(make_organization_and_user_with_token):
 
     assert response.status_code == status.HTTP_201_CREATED
     assert response.json() == result
+    mock_refresh_final.assert_called_once_with((schedule.pk,))
 
 
 @pytest.mark.django_db
@@ -680,7 +681,8 @@ def test_update_ical_schedule(
 
     assert schedule.name != data["name"]
 
-    response = client.put(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
+    with patch("apps.schedules.tasks.refresh_ical_final_schedule.apply_async") as mock_refresh_final:
+        response = client.put(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
 
     result = {
         "id": schedule.public_primary_key,
@@ -700,6 +702,7 @@ def test_update_ical_schedule(
     schedule.refresh_from_db()
     assert schedule.name == data["name"]
     assert response.json() == result
+    assert not mock_refresh_final.called
 
 
 @pytest.mark.django_db
@@ -873,7 +876,7 @@ def test_oncall_shifts_request_validation(
     organization, _, token = make_organization_and_user_with_token()
     web_schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
 
-    valid_date_msg = "Date has wrong format. Use one of these formats instead: YYYY-MM-DD."
+    valid_date_msg = "Datetime has wrong format. Use one of these formats instead: YYYY-MM-DDThh:mm, YYYY-MM-DD."
 
     client = APIClient()
 
@@ -913,6 +916,23 @@ def test_oncall_shifts_request_validation(
             "The difference between start_date and end_date must be less than one year (365 days)",
         ]
     }
+
+    # datetime validation
+    # invalid request (doesnt match pattern YYYY-MM-DDThh:mm)
+    response = _make_request(web_schedule, "?start_date=2021-01-01 01:00")
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert (
+        response.json()["start_date"][0]
+        == "Datetime has wrong format. Use one of these formats instead: YYYY-MM-DDThh:mm, YYYY-MM-DD."
+    )
+
+    # valid request both parameters using datetime
+    response = _make_request(web_schedule, "?start_date=2021-01-01T01:00&end_date=2021-01-02T01:00")
+    assert response.status_code == status.HTTP_200_OK
+
+    # valid request combination of date and datetime
+    response = _make_request(web_schedule, "?start_date=2021-01-01&end_date=2021-01-02T01:00")
+    assert response.status_code == status.HTTP_200_OK
 
 
 @pytest.mark.django_db
@@ -955,7 +975,9 @@ def test_oncall_shifts_export(
     client = APIClient()
 
     url = reverse("api-public:schedules-final-shifts", kwargs={"pk": schedule.public_primary_key})
-    response = client.get(f"{url}?start_date=2023-01-01&end_date=2023-02-01", format="json", HTTP_AUTHORIZATION=token)
+    response = client.get(
+        f"{url}?start_date=2023-01-01T18:00&end_date=2023-02-01", format="json", HTTP_AUTHORIZATION=token
+    )
     assert response.status_code == status.HTTP_200_OK
 
     expected_on_call_times = {
@@ -1015,7 +1037,9 @@ def test_oncall_shifts_export_from_ical_schedule(
     client = APIClient()
 
     url = reverse("api-public:schedules-final-shifts", kwargs={"pk": schedule.public_primary_key})
-    response = client.get(f"{url}?start_date=2023-07-01&end_date=2023-07-31", format="json", HTTP_AUTHORIZATION=token)
+    response = client.get(
+        f"{url}?start_date=2023-07-01T09:00&end_date=2023-07-31T21:00", format="json", HTTP_AUTHORIZATION=token
+    )
     assert response.status_code == status.HTTP_200_OK
 
     expected_on_call_times = {
@@ -1052,7 +1076,9 @@ def test_oncall_shifts_export_from_api_schedule(
     client = APIClient()
 
     url = reverse("api-public:schedules-final-shifts", kwargs={"pk": schedule.public_primary_key})
-    response = client.get(f"{url}?start_date=2023-07-01&end_date=2023-07-31", format="json", HTTP_AUTHORIZATION=token)
+    response = client.get(
+        f"{url}?start_date=2023-07-01T09:00&end_date=2023-07-31T11:00", format="json", HTTP_AUTHORIZATION=token
+    )
     assert response.status_code == status.HTTP_200_OK
 
     expected_on_call_times = {
@@ -1095,7 +1121,9 @@ def test_oncall_shifts_export_truncate_events(
 
     # request shifts on a Tu (ie. 00:00 - 09:00)
     url = reverse("api-public:schedules-final-shifts", kwargs={"pk": schedule.public_primary_key})
-    response = client.get(f"{url}?start_date=2023-01-03&end_date=2023-01-03", format="json", HTTP_AUTHORIZATION=token)
+    response = client.get(
+        f"{url}?start_date=2023-01-03&end_date=2023-01-03T09:00", format="json", HTTP_AUTHORIZATION=token
+    )
     assert response.status_code == status.HTTP_200_OK
 
     expected_on_call_times = {user1_public_primary_key: 9}

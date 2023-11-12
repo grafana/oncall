@@ -15,7 +15,7 @@ from common.api_helpers.mixins import EagerLoadingMixin
 from .alert import AlertSerializer
 from .alert_receive_channel import FastAlertReceiveChannelSerializer
 from .alerts_field_cache_buster_mixin import AlertsFieldCacheBusterMixin
-from .user import FastUserSerializer, UserShortSerializer
+from .user import FastUserSerializer, PagedUserSerializer, UserShortSerializer
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -54,6 +54,19 @@ class AlertGroupFieldsCacheSerializerMixin(AlertsFieldCacheBusterMixin):
             cache.set(CACHE_KEY, {"cache_created_at": timezone.now(), field_name: field}, cache_lifetime)
 
         return field
+
+
+class AlertGroupLabelSerializer(serializers.Serializer):
+    class KeySerializer(serializers.Serializer):
+        id = serializers.CharField(source="key_name")
+        name = serializers.CharField(source="key_name")
+
+    class ValueSerializer(serializers.Serializer):
+        id = serializers.CharField(source="value_name")
+        name = serializers.CharField(source="value_name")
+
+    key = KeySerializer(source="*")
+    value = ValueSerializer(source="*")
 
 
 class ShortAlertGroupSerializer(AlertGroupFieldsCacheSerializerMixin, serializers.ModelSerializer):
@@ -105,6 +118,8 @@ class AlertGroupListSerializer(EagerLoadingMixin, AlertGroupFieldsCacheSerialize
     render_for_web = serializers.SerializerMethodField()
     render_for_classic_markdown = serializers.SerializerMethodField()
 
+    labels = AlertGroupLabelSerializer(many=True, read_only=True)
+
     PREFETCH_RELATED = [
         "dependent_alert_groups",
         "log_records__author",
@@ -149,7 +164,8 @@ class AlertGroupListSerializer(EagerLoadingMixin, AlertGroupFieldsCacheSerialize
             "status",
             "declare_incident_link",
             "team",
-            "is_restricted",
+            "grafana_incident_id",
+            "labels",
         ]
 
     @extend_schema_field(
@@ -242,8 +258,6 @@ class AlertGroupSerializer(AlertGroupListSerializer):
         alerts = obj.alerts.order_by("-pk")[:100]
         return AlertSerializer(alerts, many=True).data
 
-    @extend_schema_field(UserShortSerializer(many=True))
+    @extend_schema_field(PagedUserSerializer(many=True))
     def get_paged_users(self, obj):
-        paged_users = obj.get_paged_users()
-        serializer = UserShortSerializer(paged_users, many=True)
-        return serializer.data
+        return obj.get_paged_users()

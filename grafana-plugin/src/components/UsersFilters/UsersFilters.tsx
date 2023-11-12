@@ -1,7 +1,9 @@
-import React, { ChangeEvent, useCallback } from 'react';
+import React, { ChangeEvent, useCallback, useEffect, useRef } from 'react';
 
 import { Icon, Input } from '@grafana/ui';
 import cn from 'classnames/bind';
+
+import { useDebouncedCallback } from 'utils/hooks';
 
 import styles from './UsersFilters.module.css';
 
@@ -9,13 +11,33 @@ const cx = cn.bind(styles);
 
 interface UsersFiltersProps {
   value: any;
-  onChange: (filters: any) => void;
+  onChange: (filters: any, invalidateFn: () => boolean) => void;
   className?: string;
   isLoading?: boolean;
 }
 
+const DEBOUNCE_MS = 500;
+
 const UsersFilters = (props: UsersFiltersProps) => {
-  const { value = { searchTerm: '' }, onChange, className, isLoading } = props;
+  const { value = { searchTerm: '' }, onChange: onChangeProp, className, isLoading } = props;
+
+  // useRef instead of useState so that we don't get into closure when checking for last id
+  const lastRequestId = useRef<string>(undefined);
+
+  const onChange = useCallback(
+    (filters: any) => {
+      const currentRequestId = getNewRequestId();
+      lastRequestId.current = currentRequestId;
+
+      onChangeProp(filters, () => {
+        // This will ensure that only the newest request will get to update the store data
+        return lastRequestId.current && currentRequestId !== lastRequestId.current;
+      });
+    },
+    [onChangeProp]
+  );
+
+  const debouncedOnChange = useDebouncedCallback(onChange, DEBOUNCE_MS);
 
   const onSearchTermChangeCallback = useCallback(
     (e: ChangeEvent<HTMLInputElement>) => {
@@ -28,6 +50,13 @@ const UsersFilters = (props: UsersFiltersProps) => {
     },
     [onChange, value]
   );
+
+  useEffect(() => {
+    debouncedOnChange({
+      ...value,
+      searchTerm: '',
+    });
+  }, []);
 
   return (
     <div className={cx('root', className)}>
@@ -42,6 +71,10 @@ const UsersFilters = (props: UsersFiltersProps) => {
       />
     </div>
   );
+
+  function getNewRequestId() {
+    return Math.random().toString(36).slice(-6);
+  }
 };
 
 export default UsersFilters;

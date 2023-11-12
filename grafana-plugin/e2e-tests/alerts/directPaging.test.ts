@@ -1,27 +1,31 @@
-import { test } from '../fixtures';
-import { clickButton, fillInInput, selectDropdownValue } from '../utils/forms';
-import { goToOnCallPage } from "../utils/navigation";
-import { verifyAlertGroupTitleAndMessageContainText } from "../utils/alertGroup";
+import { test, expect } from '../fixtures';
+import { clickButton, fillInInput } from '../utils/forms';
+import { goToOnCallPage } from '../utils/navigation';
 
-test('we can create an alert group for default team', async ({ adminRolePage }) => {
+/**
+ * TODO: test that we can also direct page a team. This is a bit more involved because we need to
+ * create a team via the Grafana API then go and configure the team's direct paging integration so that
+ * it will show up in the dropdown (ie. create an escalation chain and assign it to the integration)
+ */
+
+test('we can directly page a user', async ({ adminRolePage }) => {
+  const message = 'Help me please!';
   const { page } = adminRolePage;
 
   await goToOnCallPage(page, 'alert-groups');
-  await clickButton({ page, buttonText: 'New alert group' });
+  await clickButton({ page, buttonText: 'Escalation' });
 
-  await fillInInput(page, 'input[name="title"]', "Help me!");
-  await fillInInput(page, 'textarea[name="message"]', "Help me please!");
+  await fillInInput(page, 'textarea[name="message"]', message);
+  await clickButton({ page, buttonText: 'Invite' });
 
-  await selectDropdownValue({
-    page,
-    selectType: 'grafanaSelect',
-    placeholderText: "Select team",
-    value: "No team",
-  });
+  const addRespondersPopup = page.getByTestId('add-responders-popup');
+
+  await addRespondersPopup.getByText('Users').click();
+  await addRespondersPopup.getByText(adminRolePage.userName).click();
 
   await clickButton({ page, buttonText: 'Create' });
 
   // Check we are redirected to the alert group page
-  await page.waitForURL('**/alert-groups/I*');  // Alert group IDs always start with "I"
-  await verifyAlertGroupTitleAndMessageContainText(page, "Help me!", "Help me please!")
+  await page.waitForURL('**/alert-groups/I*'); // Alert group IDs always start with "I"
+  await expect(page.getByTestId('incident-message')).toContainText(message);
 });

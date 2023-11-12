@@ -16,13 +16,14 @@ from rest_framework.response import Response
 from apps.alerts.constants import ActionSource
 from apps.alerts.models import Alert, AlertGroup, AlertReceiveChannel, EscalationChain, ResolutionNote
 from apps.alerts.paging import unpage_user
-from apps.alerts.tasks import send_update_resolution_note_signal
+from apps.alerts.tasks import delete_alert_group, send_update_resolution_note_signal
 from apps.api.errors import AlertGroupAPIError
 from apps.api.permissions import RBACPermission
 from apps.api.serializers.alert_group import AlertGroupListSerializer, AlertGroupSerializer
 from apps.api.serializers.team import TeamSerializer
 from apps.auth_token.auth import PluginAuthentication
 from apps.base.models.user_notification_policy_log_record import UserNotificationPolicyLogRecord
+from apps.labels.utils import is_labels_feature_enabled
 from apps.mobile_app.auth import MobileAppAuthTokenAuthentication
 from apps.user_management.models import Team, User
 from common.api_helpers.exceptions import BadRequest
@@ -272,6 +273,7 @@ class AlertGroupView(
     PublicPrimaryKeyMixin,
     mixins.RetrieveModelMixin,
     mixins.ListModelMixin,
+    mixins.DestroyModelMixin,
     viewsets.GenericViewSet,
 ):
     authentication_classes = (
@@ -304,7 +306,7 @@ class AlertGroupView(
         "preview_template": [RBACPermission.Permissions.INTEGRATIONS_TEST],
     }
 
-    http_method_names = ["get", "post"]
+    http_method_names = ["get", "post", "delete"]
 
     serializer_class = AlertGroupSerializer
 
@@ -324,17 +326,29 @@ class AlertGroupView(
     def get_queryset(self, ignore_filtering_by_available_teams=False):
         # no select_related or prefetch_related is used at this point, it will be done on paginate_queryset.
 
-        alert_receive_channels_qs = AlertReceiveChannel.objects.filter(
+        alert_receive_channels_qs = AlertReceiveChannel.objects_with_deleted.filter(
             organization_id=self.request.auth.organization.id
         )
         if not ignore_filtering_by_available_teams:
             alert_receive_channels_qs = alert_receive_channels_qs.filter(*self.available_teams_lookup_args)
 
         alert_receive_channels_ids = list(alert_receive_channels_qs.values_list("id", flat=True))
+        queryset = AlertGroup.objects.filter(channel__in=alert_receive_channels_ids)
 
-        queryset = AlertGroup.objects.filter(
-            channel__in=alert_receive_channels_ids,
-        )
+        # filter by labels
+        labels = self.request.query_params.getlist("label")
+        for label in labels:
+            label_split = label.split(":")
+            if len(label_split) != 2:
+                continue
+            key_name, value_name = label_split
+
+            # Utilize (organization, key_name, value_name, alert_group) index on AlertGroupAssociatedLabel
+            queryset = queryset.filter(
+                labels__organization=self.request.auth.organization,
+                labels__key_name=key_name,
+                labels__value_name=value_name,
+            )
 
         queryset = queryset.only("id")
 
@@ -423,7 +437,7 @@ class AlertGroupView(
 
         # enrich alert groups with select_related and prefetch_related
         alert_group_pks = [alert_group.pk for alert_group in alert_groups]
-        queryset = AlertGroup.objects.filter(pk__in=alert_group_pks).order_by("-pk")
+        queryset = AlertGroup.objects.filter(pk__in=alert_group_pks).order_by("-started_at")
 
         queryset = self.get_serializer_class().setup_eager_loading(queryset)
         alert_groups = list(queryset)
@@ -455,6 +469,11 @@ class AlertGroupView(
                 alert_group.alerts_count = 0
 
         return alert_groups
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        delete_alert_group.apply_async((instance.pk, request.user.pk))
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     @extend_schema(responses=inline_serializer(name="AlertGroupStats", fields={"count": serializers.IntegerField()}))
     @action(detail=False)
@@ -516,7 +535,11 @@ class AlertGroupView(
                 rn = ResolutionNote.objects.create(
                     alert_group=alert_group,
                     author=self.request.user,
-                    source=ResolutionNote.Source.WEB,
+                    source=(
+                        ResolutionNote.Source.MOBILE_APP
+                        if isinstance(self.request.successful_authenticator, MobileAppAuthTokenAuthentication)
+                        else ResolutionNote.Source.WEB
+                    ),
                     message_text=resolution_note_text[:3000],  # trim text to fit in the db field
                 )
                 send_update_resolution_note_signal.apply_async(
@@ -740,6 +763,15 @@ class AlertGroupView(
                 "description": f"This filter works only for last {AlertGroupFilter.FILTER_BY_INVOLVED_USERS_ALERT_GROUPS_CUTOFF} alert groups you're involved in.",
             },
         ]
+
+        if is_labels_feature_enabled(self.request.auth.organization):
+            filter_options.append(
+                {
+                    "name": "label",
+                    "display_name": "Label",
+                    "type": "alert_group_labels",
+                }
+            )
 
         if filter_name is not None:
             filter_options = list(filter(lambda f: filter_name in f["name"], filter_options))

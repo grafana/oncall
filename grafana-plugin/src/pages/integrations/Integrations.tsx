@@ -1,6 +1,18 @@
 import React from 'react';
 
-import { HorizontalGroup, Button, VerticalGroup, Icon, ConfirmModal, Tooltip } from '@grafana/ui';
+import { LabelTag } from '@grafana/labels';
+import {
+  HorizontalGroup,
+  Button,
+  VerticalGroup,
+  Icon,
+  ConfirmModal,
+  Tooltip,
+  Tab,
+  TabsBar,
+  TabContent,
+  Alert,
+} from '@grafana/ui';
 import cn from 'classnames/bind';
 import { debounce } from 'lodash-es';
 import { observer } from 'mobx-react';
@@ -11,7 +23,6 @@ import { RouteComponentProps, withRouter } from 'react-router-dom';
 import GTable from 'components/GTable/GTable';
 import HamburgerMenu from 'components/HamburgerMenu/HamburgerMenu';
 import IntegrationLogo from 'components/IntegrationLogo/IntegrationLogo';
-import { Filters } from 'components/IntegrationsFilters/IntegrationsFilters';
 import { PageBaseState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
 import {
   getWrongTeamResponseInfo,
@@ -19,6 +30,7 @@ import {
 } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper.helpers';
 import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
+import TextEllipsisTooltip from 'components/TextEllipsisTooltip/TextEllipsisTooltip';
 import TooltipBadge from 'components/TooltipBadge/TooltipBadge';
 import { WithContextMenu } from 'components/WithContextMenu/WithContextMenu';
 import IntegrationForm from 'containers/IntegrationForm/IntegrationForm';
@@ -27,24 +39,46 @@ import TeamName from 'containers/TeamName/TeamName';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { HeartIcon, HeartRedIcon } from 'icons';
 import { AlertReceiveChannelStore } from 'models/alert_receive_channel/alert_receive_channel';
-import { AlertReceiveChannel, MaintenanceMode } from 'models/alert_receive_channel/alert_receive_channel.types';
+import {
+  AlertReceiveChannel,
+  MaintenanceMode,
+  SupportedIntegrationFilters,
+} from 'models/alert_receive_channel/alert_receive_channel.types';
+import { LabelKeyValue } from 'models/label/label.types';
 import IntegrationHelper from 'pages/integration/Integration.helper';
+import { AppFeature } from 'state/features';
 import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import { openNotification } from 'utils';
 import LocationHelper from 'utils/LocationHelper';
 import { UserActions } from 'utils/authorization';
-import { PAGE } from 'utils/consts';
+import { PAGE, TEXT_ELLIPSIS_CLASS } from 'utils/consts';
 
 import styles from './Integrations.module.scss';
 
+enum TabType {
+  Connections = 'connections',
+  DirectPaging = 'direct-paging',
+}
+
+const TAB_QUERY_PARAM_KEY = 'tab';
+
+const TABS = [
+  {
+    label: 'Connections',
+    value: TabType.Connections,
+  },
+  {
+    label: 'Direct Paging',
+    value: TabType.DirectPaging,
+  },
+];
+
 const cx = cn.bind(styles);
 const FILTERS_DEBOUNCE_MS = 500;
-const ITEMS_PER_PAGE = 15;
-const MAX_LINE_LENGTH = 40;
 
 interface IntegrationsState extends PageBaseState {
-  integrationsFilters: Filters;
+  integrationsFilters: SupportedIntegrationFilters;
   alertReceiveChannelId?: AlertReceiveChannel['id'] | 'new';
   confirmationModal: {
     isOpen: boolean;
@@ -56,6 +90,7 @@ interface IntegrationsState extends PageBaseState {
     confirmationText?: string;
     onConfirm: () => void;
   };
+  activeTab: TabType;
 }
 
 interface IntegrationsProps extends WithStoreProps, PageProps, RouteComponentProps<{ id: string }> {}
@@ -65,15 +100,12 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
   constructor(props: IntegrationsProps) {
     super(props);
 
-    const { query, store } = props;
-
     this.state = {
-      integrationsFilters: { searchTerm: '' },
+      integrationsFilters: { searchTerm: '', integration_ne: ['direct_paging'] },
       errorData: initErrorDataState(),
       confirmationModal: undefined,
+      activeTab: props.query[TAB_QUERY_PARAM_KEY] || TabType.Connections,
     };
-
-    store.currentPage['integrations'] = Number(store.currentPage['integrations'] || query.p || 1);
   }
 
   async componentDidMount() {
@@ -84,20 +116,23 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
     if (prevProps.match.params.id !== this.props.match.params.id) {
       this.parseQueryParams();
     }
+    if (prevProps.query[TAB_QUERY_PARAM_KEY] !== this.props.query[TAB_QUERY_PARAM_KEY]) {
+      this.onTabChange(this.props.query[TAB_QUERY_PARAM_KEY] as TabType);
+    }
   }
 
   parseQueryParams = async () => {
-    this.setState((_prevState) => ({
-      errorData: initErrorDataState(),
-      alertReceiveChannelId: undefined,
-    })); // reset state on query parse
-
     const {
       store,
       match: {
         params: { id },
       },
     } = this.props;
+
+    this.setState((_prevState) => ({
+      errorData: initErrorDataState(),
+      alertReceiveChannelId: undefined,
+    })); // reset state on query parse
 
     if (!id) {
       return;
@@ -117,24 +152,52 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
     }
   };
 
+  getFiltersBasedOnCurrentTab = () => ({
+    ...this.state.integrationsFilters,
+    ...(this.state.activeTab === TabType.DirectPaging
+      ? { integration: ['direct_paging'] }
+      : {
+          integration_ne: ['direct_paging'],
+          integration: this.state.integrationsFilters.integration?.filter(
+            (integration) => integration !== 'direct_paging'
+          ),
+        }),
+  });
+
   update = () => {
     const { store } = this.props;
-    const { integrationsFilters } = this.state;
-    const page = store.currentPage['integrations'];
+    const page = store.filtersStore.currentTablePageNum[PAGE.Integrations];
 
     LocationHelper.update({ p: page }, 'partial');
 
-    return store.alertReceiveChannelStore.updatePaginatedItems(integrationsFilters, page, false, () =>
-      this.invalidateRequestFn(page)
+    return store.alertReceiveChannelStore.updatePaginatedItems({
+      filters: this.getFiltersBasedOnCurrentTab(),
+      page,
+      updateCounters: false,
+      invalidateFn: () => this.invalidateRequestFn(page),
+    });
+  };
+
+  onTabChange = (tab: TabType) => {
+    LocationHelper.update({ tab, integration: undefined, search: undefined }, 'partial');
+    this.setState(
+      {
+        activeTab: tab,
+      },
+      () => {
+        this.handleChangePage(1);
+      }
     );
   };
 
   render() {
     const { store, query } = this.props;
-    const { alertReceiveChannelId, confirmationModal } = this.state;
+    const { alertReceiveChannelId, confirmationModal, activeTab, integrationsFilters } = this.state;
     const { alertReceiveChannelStore } = store;
 
-    const { count, results } = alertReceiveChannelStore.getPaginatedSearchResult();
+    const { count, results, page_size } = alertReceiveChannelStore.getPaginatedSearchResult();
+    const isDirectPagingSelectedOnConnectionsTab =
+      activeTab === TabType.Connections && integrationsFilters.integration?.includes('direct_paging');
 
     return (
       <>
@@ -161,27 +224,58 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
             </HorizontalGroup>
           </div>
           <div>
-            <RemoteFilters
-              query={query}
-              page={PAGE.Integrations}
-              grafanaTeamStore={store.grafanaTeamStore}
-              onChange={this.handleIntegrationsFiltersChange}
-            />
-            <GTable
-              emptyText={count === undefined ? 'Loading...' : 'No integrations found'}
-              loading={count === undefined}
-              data-testid="integrations-table"
-              rowKey="id"
-              data={results}
-              columns={this.getTableColumns()}
-              className={cx('integrations-table')}
-              rowClassName={cx('integrations-table-row')}
-              pagination={{
-                page: store.currentPage['integrations'],
-                total: Math.ceil((count || 0) / ITEMS_PER_PAGE),
-                onChange: this.handleChangePage,
-              }}
-            />
+            <TabsBar className={cx('tabsBar')}>
+              {TABS.map(({ label, value }) => (
+                <Tab
+                  key={value}
+                  label={label}
+                  active={activeTab === value}
+                  onChangeTab={() => this.onTabChange(value)}
+                />
+              ))}
+            </TabsBar>
+            <TabContent>
+              <RemoteFilters
+                key={activeTab} // added to remount the component on each tab
+                query={query}
+                page={PAGE.Integrations}
+                grafanaTeamStore={store.grafanaTeamStore}
+                onChange={this.handleIntegrationsFiltersChange}
+                {...(activeTab === TabType.DirectPaging && {
+                  skipFilterOptionFn: ({ name }) => name === 'integration',
+                })}
+              />
+              {isDirectPagingSelectedOnConnectionsTab && (
+                <Alert
+                  className={cx('goToDirectPagingAlert')}
+                  severity="info"
+                  title="Direct Paging integrations have been moved."
+                >
+                  <span>
+                    They are in a separate tab now. Go to{' '}
+                    <PluginLink query={{ page: 'integrations', tab: TabType.DirectPaging }}>
+                      Direct Paging tab
+                    </PluginLink>{' '}
+                    to view them.
+                  </span>
+                </Alert>
+              )}
+              <GTable
+                emptyText={count === undefined ? 'Loading...' : 'No integrations found'}
+                loading={count === undefined}
+                data-testid="integrations-table"
+                rowKey="id"
+                data={results}
+                columns={this.getTableColumns(store.hasFeature.bind(store))}
+                className={cx('integrations-table')}
+                rowClassName={cx('integrations-table-row')}
+                pagination={{
+                  page: store.filtersStore.currentTablePageNum[PAGE.Integrations],
+                  total: results ? Math.ceil((count || 0) / page_size) : 0,
+                  onChange: this.handleChangePage,
+                }}
+              />
+            </TabContent>
           </div>
         </div>
 
@@ -227,16 +321,11 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
           ...query,
         }}
       >
-        <Text type="link" size="medium">
-          <Emoji
-            className={cx('title')}
-            text={
-              item.verbal_name?.length > MAX_LINE_LENGTH
-                ? item.verbal_name?.substring(0, MAX_LINE_LENGTH) + '...'
-                : item.verbal_name
-            }
-          />
-        </Text>
+        <TextEllipsisTooltip placement="top" content={item.verbal_name}>
+          <Text type="link" size="medium">
+            <Emoji className={cx('title', TEXT_ELLIPSIS_CLASS)} text={item.verbal_name} />
+          </Text>
+        </TextEllipsisTooltip>
       </PluginLink>
     );
   };
@@ -278,6 +367,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
           <PluginLink query={{ page: 'incidents', integration: item.id }} className={cx('alertsInfoText')}>
             <TooltipBadge
               borderType="primary"
+              placement="top"
               text={alertReceiveChannelCounter?.alerts_count + '/' + alertReceiveChannelCounter?.alert_groups_count}
               tooltipTitle=""
               tooltipContent={
@@ -298,6 +388,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
             icon="link"
             text={`${connectedEscalationsChainsCount}/${routesCounter}`}
             tooltipContent={undefined}
+            placement="top"
             tooltipTitle={
               connectedEscalationsChainsCount +
               ' connected escalation chain' +
@@ -328,6 +419,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
           <TooltipBadge
             text={undefined}
             className={cx('heartbeat-badge')}
+            placement="top"
             borderType={heartbeatStatus ? 'success' : 'danger'}
             customIcon={heartbeatStatus ? <HeartIcon /> : <HeartRedIcon />}
             tooltipTitle={`Last heartbeat: ${heartbeat?.last_heartbeat_time_verbal}`}
@@ -347,6 +439,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
           <TooltipBadge
             borderType="primary"
             icon="pause"
+            placement="top"
             text={IntegrationHelper.getMaintenanceText(item.maintenance_till)}
             tooltipTitle={IntegrationHelper.getMaintenanceText(item.maintenance_till, maintenanceMode)}
             tooltipContent={undefined}
@@ -358,8 +451,42 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
     return null;
   }
 
+  renderLabels(item: AlertReceiveChannel) {
+    return (
+      <TooltipBadge
+        tooltipTitle=""
+        borderType="secondary"
+        icon="tag-alt"
+        addPadding
+        text={item.labels?.length}
+        tooltipContent={
+          <VerticalGroup spacing="sm">
+            {item.labels?.length
+              ? item.labels.map((label) => (
+                  <HorizontalGroup spacing="sm" key={label.key.id}>
+                    <LabelTag label={label.key.name} value={label.value.name} key={label.key.id} />
+                    <Button
+                      size="sm"
+                      icon="filter"
+                      tooltip="Apply filter"
+                      variant="secondary"
+                      onClick={this.getApplyLabelFilterClickHandler(label)}
+                    />
+                  </HorizontalGroup>
+                ))
+              : 'No labels attached'}
+          </VerticalGroup>
+        }
+      />
+    );
+  }
+
   renderTeam(item: AlertReceiveChannel, teams: any) {
-    return <TeamName team={teams[item.team]} />;
+    return (
+      <TextEllipsisTooltip placement="top" content={teams[item.team]?.name}>
+        <TeamName className={TEXT_ELLIPSIS_CLASS} team={teams[item.team]} />
+      </TextEllipsisTooltip>
+    );
   }
 
   renderButtons = (item: AlertReceiveChannel) => {
@@ -423,12 +550,13 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
     );
   };
 
-  getTableColumns = () => {
+  getTableColumns = (hasFeatureFn) => {
     const { grafanaTeamStore, alertReceiveChannelStore } = this.props.store;
+    const isConnectionsTab = this.state.activeTab === TabType.Connections;
 
-    return [
+    const columns = [
       {
-        width: '35%',
+        width: '30%',
         title: 'Name',
         key: 'name',
         render: this.renderName,
@@ -441,25 +569,29 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
         render: (item: AlertReceiveChannel) => this.renderIntegrationStatus(item, alertReceiveChannelStore),
       },
       {
-        width: '20%',
+        width: '25%',
         title: 'Type',
         key: 'datasource',
         render: (item: AlertReceiveChannel) => this.renderDatasource(item, alertReceiveChannelStore),
       },
+      ...(isConnectionsTab
+        ? [
+            {
+              width: '10%',
+              title: 'Maintenance',
+              key: 'maintenance',
+              render: (item: AlertReceiveChannel) => this.renderMaintenance(item),
+            },
+            {
+              width: '5%',
+              title: 'Heartbeat',
+              key: 'heartbeat',
+              render: (item: AlertReceiveChannel) => this.renderHeartbeat(item),
+            },
+          ]
+        : []),
       {
-        width: '10%',
-        title: 'Maintenance',
-        key: 'maintenance',
-        render: (item: AlertReceiveChannel) => this.renderMaintenance(item),
-      },
-      {
-        width: '5%',
-        title: 'Heartbeat',
-        key: 'heartbeat',
-        render: (item: AlertReceiveChannel) => this.renderHeartbeat(item),
-      },
-      {
-        width: '15%',
+        width: isConnectionsTab ? '15%' : '30%',
         title: 'Team',
         render: (item: AlertReceiveChannel) => this.renderTeam(item, grafanaTeamStore.items),
       },
@@ -470,17 +602,28 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
         className: cx('buttons'),
       },
     ];
+
+    if (hasFeatureFn(AppFeature.Labels)) {
+      columns.splice(-2, 0, {
+        width: '10%',
+        title: 'Labels',
+        render: (item: AlertReceiveChannel) => this.renderLabels(item),
+      });
+      columns.find((column) => column.key === 'datasource').width = '15%';
+    }
+
+    return columns;
   };
 
   invalidateRequestFn = (requestedPage: number) => {
     const { store } = this.props;
-    return requestedPage !== store.getCurrentPage(PAGE.Integrations);
+    return requestedPage !== store.filtersStore.currentTablePageNum[PAGE.Integrations];
   };
 
   handleChangePage = (page: number) => {
     const { store } = this.props;
 
-    store.currentPage['integrations'] = page;
+    store.filtersStore.currentTablePageNum[PAGE.Integrations] = page;
     this.update();
   };
 
@@ -497,21 +640,50 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
     this.setState({ confirmationModal: undefined });
   };
 
-  handleIntegrationsFiltersChange = (integrationsFilters: Filters, isOnMount: boolean) => {
+  handleIntegrationsFiltersChange = (
+    integrationsFilters: IntegrationsState['integrationsFilters'],
+    isOnMount: boolean
+  ) => {
     this.setState({ integrationsFilters }, () => this.debouncedUpdateIntegrations(isOnMount));
+  };
+
+  getApplyLabelFilterClickHandler = (label: LabelKeyValue) => {
+    const {
+      store: { filtersStore },
+    } = this.props;
+
+    const {
+      integrationsFilters: { label: oldLabelFilter = [] },
+    } = this.state;
+
+    return () => {
+      const labelToAddString = `${label.key.id}:${label.value.id}`;
+      if (oldLabelFilter.some((label) => label === labelToAddString)) {
+        return;
+      }
+
+      const newLabelFilter = [...oldLabelFilter, labelToAddString];
+
+      LocationHelper.update({ label: newLabelFilter }, 'partial');
+
+      filtersStore.needToParseFilters = true;
+    };
   };
 
   applyFilters = async (isOnMount: boolean) => {
     const { store } = this.props;
     const { alertReceiveChannelStore } = store;
-    const { integrationsFilters } = this.state;
-
-    const newPage = isOnMount ? store.getCurrentPage(PAGE.Integrations) : 1;
+    const newPage = isOnMount ? store.filtersStore.currentTablePageNum[PAGE.Integrations] : 1;
 
     return alertReceiveChannelStore
-      .updatePaginatedItems(integrationsFilters, newPage, false, () => this.invalidateRequestFn(newPage))
+      .updatePaginatedItems({
+        filters: this.getFiltersBasedOnCurrentTab(),
+        page: newPage,
+        updateCounters: false,
+        invalidateFn: () => this.invalidateRequestFn(newPage),
+      })
       .then(() => {
-        store.setCurrentPage(PAGE.Integrations, newPage);
+        store.filtersStore.currentTablePageNum[PAGE.Integrations] = newPage;
         LocationHelper.update({ p: newPage }, 'partial');
       });
   };

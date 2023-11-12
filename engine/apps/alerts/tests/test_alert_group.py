@@ -482,3 +482,98 @@ def test_alert_group_log_record_action_source(
     alert_group.un_attach_by_user(user, action_source=action_source)
     log_record = alert_group.log_records.last()
     assert (log_record.type, log_record.action_source) == (AlertGroupLogRecord.TYPE_UNATTACHED, action_source)
+
+
+@pytest.mark.django_db
+def test_alert_group_get_paged_users(
+    make_organization_and_user,
+    make_user_for_organization,
+    make_alert_receive_channel,
+    make_alert_group,
+):
+    organization, user = make_organization_and_user()
+    other_user = make_user_for_organization(organization)
+    alert_receive_channel = make_alert_receive_channel(organization)
+
+    def _make_log_record(alert_group, user, log_type, important=False):
+        alert_group.log_records.create(
+            type=log_type,
+            author=user,
+            reason="paged user",
+            step_specific_info={
+                "user": user.public_primary_key,
+                "important": important,
+            },
+        )
+
+    # user was paged - also check that important is persisted/available
+    alert_group = make_alert_group(alert_receive_channel)
+    _make_log_record(alert_group, user, AlertGroupLogRecord.TYPE_DIRECT_PAGING)
+    _make_log_record(alert_group, other_user, AlertGroupLogRecord.TYPE_DIRECT_PAGING, True)
+
+    paged_users = {u["pk"]: u["important"] for u in alert_group.get_paged_users()}
+
+    assert user.public_primary_key in paged_users
+    assert paged_users[user.public_primary_key] is False
+
+    assert other_user.public_primary_key in paged_users
+    assert paged_users[other_user.public_primary_key] is True
+
+    # user was paged and then unpaged
+    alert_group = make_alert_group(alert_receive_channel)
+    _make_log_record(alert_group, user, AlertGroupLogRecord.TYPE_DIRECT_PAGING)
+    _make_log_record(alert_group, user, AlertGroupLogRecord.TYPE_UNPAGE_USER)
+
+    _make_log_record(alert_group, other_user, AlertGroupLogRecord.TYPE_DIRECT_PAGING)
+
+    assert alert_group.get_paged_users()[0]["pk"] == other_user.public_primary_key
+
+    # user was paged, unpaged, and then paged again - they should only show up once
+    alert_group = make_alert_group(alert_receive_channel)
+    _make_log_record(alert_group, user, AlertGroupLogRecord.TYPE_DIRECT_PAGING)
+    _make_log_record(alert_group, user, AlertGroupLogRecord.TYPE_UNPAGE_USER)
+    _make_log_record(alert_group, user, AlertGroupLogRecord.TYPE_DIRECT_PAGING)
+
+    paged_users = alert_group.get_paged_users()
+    assert len(paged_users) == 1
+    assert alert_group.get_paged_users()[0]["pk"] == user.public_primary_key
+
+    # user was paged and then paged again - they should only show up once
+    alert_group = make_alert_group(alert_receive_channel)
+    _make_log_record(alert_group, user, AlertGroupLogRecord.TYPE_DIRECT_PAGING)
+    _make_log_record(alert_group, user, AlertGroupLogRecord.TYPE_DIRECT_PAGING)
+
+    paged_users = alert_group.get_paged_users()
+    assert len(paged_users) == 1
+    assert alert_group.get_paged_users()[0]["pk"] == user.public_primary_key
+
+
+@patch("apps.alerts.models.AlertGroup.start_unsilence_task", return_value=None)
+@pytest.mark.django_db
+def test_filter_active_alert_groups(
+    mocked_start_unsilence_task,
+    make_organization_and_user,
+    make_alert_receive_channel,
+    make_alert_group,
+):
+    organization, user = make_organization_and_user()
+    alert_receive_channel = make_alert_receive_channel(organization)
+
+    # alert groups with active escalation
+    alert_group_active = make_alert_group(alert_receive_channel)
+    alert_group_active_silenced = make_alert_group(alert_receive_channel)
+    alert_group_active_silenced.silence_by_user(user, silence_delay=1800)  # silence by period
+    # alert groups with inactive escalation
+    alert_group_1 = make_alert_group(alert_receive_channel)
+    alert_group_1.acknowledge_by_user(user)
+    alert_group_2 = make_alert_group(alert_receive_channel)
+    alert_group_2.resolve_by_user(user)
+    alert_group_3 = make_alert_group(alert_receive_channel)
+    alert_group_3.attach_by_user(user, alert_group_active)
+    alert_group_4 = make_alert_group(alert_receive_channel)
+    alert_group_4.silence_by_user(user, silence_delay=None)  # silence forever
+
+    active_alert_groups = AlertGroup.objects.filter_active()
+    assert active_alert_groups.count() == 2
+    assert alert_group_active in active_alert_groups
+    assert alert_group_active_silenced in active_alert_groups

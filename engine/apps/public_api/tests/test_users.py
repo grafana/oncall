@@ -34,6 +34,7 @@ def test_get_user(
         "username": user.username,
         "role": "admin",
         "is_phone_number_verified": False,
+        "timezone": user.timezone,
     }
 
     assert response.status_code == status.HTTP_200_OK
@@ -72,6 +73,7 @@ def test_get_users_list(
                 "username": user_1.username,
                 "role": "admin",
                 "is_phone_number_verified": False,
+                "timezone": user_1.timezone,
             },
             {
                 "id": user_2.public_primary_key,
@@ -80,6 +82,7 @@ def test_get_users_list(
                 "username": user_2.username,
                 "role": "admin",
                 "is_phone_number_verified": False,
+                "timezone": user_2.timezone,
             },
         ],
         "current_page_number": 1,

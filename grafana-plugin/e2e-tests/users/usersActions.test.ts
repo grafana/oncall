@@ -61,6 +61,8 @@ test.describe('Users screen actions', () => {
     const { page } = adminRolePage;
     await goToOnCallPage(page, 'users');
 
+    await page.waitForTimeout(1000);
+
     const searchInput = page.locator(`[data-testid="search-users"]`);
 
     await searchInput.fill('oncall');

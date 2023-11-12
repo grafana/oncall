@@ -4,7 +4,7 @@ import { pick } from 'lodash-es';
 
 import { User } from './user.types';
 
-export const getTimezone = (user: User) => {
+export const getTimezone = (user: Pick<User, 'timezone'>) => {
   return user.timezone || 'UTC';
 };
 

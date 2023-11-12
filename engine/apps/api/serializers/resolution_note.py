@@ -2,6 +2,7 @@ from rest_framework import serializers
 
 from apps.alerts.models import AlertGroup, ResolutionNote
 from apps.api.serializers.user import FastUserSerializer
+from apps.mobile_app.auth import MobileAppAuthTokenAuthentication
 from common.api_helpers.custom_fields import OrganizationFilteredPrimaryKeyRelatedField
 from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.mixins import EagerLoadingMixin
@@ -36,7 +37,13 @@ class ResolutionNoteSerializer(EagerLoadingMixin, serializers.ModelSerializer):
 
     def create(self, validated_data):
         validated_data["author"] = self.context["request"].user
-        validated_data["source"] = ResolutionNote.Source.WEB
+
+        if isinstance(self.context["request"].successful_authenticator, MobileAppAuthTokenAuthentication):
+            source = ResolutionNote.Source.MOBILE_APP
+        else:
+            source = ResolutionNote.Source.WEB
+        validated_data["source"] = source
+
         created_instance = super().create(validated_data)
         return created_instance
 

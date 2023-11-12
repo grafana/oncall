@@ -3,7 +3,7 @@
  */
 
 .u-flex {
-  display: flex;
+  display: flex !important;
   flex-direction: row;
 }
 
@@ -84,10 +84,6 @@
   position: relative;
 }
 
-.u-overflow-x-auto {
-  overflow-x: auto;
-}
-
 .u-break-word {
   word-break: break-word;
 }
@@ -128,4 +124,29 @@
 .loadingPlaceholder {
   margin-bottom: 0;
   margin-right: 4px;
+}
+
+/* -----
+ * Overflow
+ */
+
+.u-overflow-x-auto {
+  overflow-x: auto;
+}
+
+.overflow-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  white-space: initial;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.break-word {
+  word-break: break-all;
+}
+
+.line-clamp-3 {
+  -webkit-line-clamp: 3;
 }

@@ -47,6 +47,9 @@
 .rc-table-cell {
   padding-left: 4px;
   padding-right: 4px;
+
+  /* works better than break-all, especially for table headers */
+  word-break: break-word;
 }
 
 .grecaptcha-badge {

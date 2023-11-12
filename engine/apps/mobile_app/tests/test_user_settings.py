@@ -33,20 +33,42 @@ def test_user_settings_get(make_organization_and_user_with_mobile_app_auth_token
         "important_notification_volume_override": True,
         "important_notification_override_dnd": True,
         "info_notifications_enabled": False,
-        "going_oncall_notification_timing": 43200,
+        "going_oncall_notification_timing": [900],
         "locale": None,
         "time_zone": "UTC",
     }
 
 
 @pytest.mark.django_db
+def test_user_settings_get_notification_timing_options(make_organization_and_user_with_mobile_app_auth_token):
+    _, _, auth_token = make_organization_and_user_with_mobile_app_auth_token()
+
+    client = APIClient()
+    url = reverse("mobile_app:notification_timing_options")
+
+    choices = [
+        {"value": item[0], "display_name": item[1]} for item in MobileAppUserSettings.NOTIFICATION_TIMING_CHOICES
+    ]
+
+    response = client.get(url, HTTP_AUTHORIZATION=auth_token)
+    assert response.status_code == status.HTTP_200_OK
+
+    # Check the default values are correct
+    assert response.json() == choices
+
+
+@pytest.mark.django_db
 @pytest.mark.parametrize(
     "going_oncall_notification_timing,expected_status_code",
     [
-        (43200, status.HTTP_200_OK),
-        (86400, status.HTTP_200_OK),
-        (604800, status.HTTP_200_OK),
-        (500, status.HTTP_400_BAD_REQUEST),
+        ([MobileAppUserSettings.FIFTEEN_MINUTES_IN_SECONDS], status.HTTP_200_OK),
+        ([MobileAppUserSettings.ONE_HOUR_IN_SECONDS], status.HTTP_200_OK),
+        ([MobileAppUserSettings.SIX_HOURS_IN_SECONDS], status.HTTP_200_OK),
+        ([MobileAppUserSettings.TWELVE_HOURS_IN_SECONDS], status.HTTP_200_OK),
+        ([MobileAppUserSettings.ONE_DAY_IN_SECONDS], status.HTTP_200_OK),
+        ([MobileAppUserSettings.ONE_DAY_IN_SECONDS, MobileAppUserSettings.ONE_HOUR_IN_SECONDS], status.HTTP_200_OK),
+        ([123], status.HTTP_400_BAD_REQUEST),
+        ([], status.HTTP_400_BAD_REQUEST),
     ],
 )
 def test_user_settings_put(

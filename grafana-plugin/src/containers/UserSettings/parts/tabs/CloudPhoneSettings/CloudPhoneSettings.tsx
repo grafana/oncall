@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 
-import { Button, VerticalGroup, LoadingPlaceholder } from '@grafana/ui';
+import { Button, LoadingPlaceholder, VerticalGroup } from '@grafana/ui';
 import { observer } from 'mobx-react';
 
 import PluginLink from 'components/PluginLink/PluginLink';
@@ -53,10 +53,10 @@ const CloudPhoneSettings = observer((props: CloudPhoneSettingsProps) => {
       case 0:
         return (
           <VerticalGroup spacing="lg">
-            <Text>Cloud notifications enabled, but Grafana Cloud instance is not connected.</Text>
+            <Text>Cloud notifications enabled, but Grafana Cloud OnCall instance is not connected.</Text>
             <PluginLink query={{ page: 'cloud' }}>
               <Button variant="secondary" icon="external-link-alt">
-                Open Grafana Cloud page
+                Open Grafana Cloud OnCall page
               </Button>
             </PluginLink>
           </VerticalGroup>
@@ -65,11 +65,11 @@ const CloudPhoneSettings = observer((props: CloudPhoneSettingsProps) => {
         return (
           <VerticalGroup spacing="lg">
             <Text>
-              We can’t find a matching account in the connected Grafana Cloud instance (matching by e-mail
+              We can’t find a matching account in the connected Grafana Cloud OnCall instance (matching by e-mail
               {email && ': ' + email}).
             </Text>
             <Button variant="primary" onClick={() => handleLinkClick(userLink)}>
-              Sign up in Grafana Cloud
+              Sign up in Grafana Cloud OnCall
             </Button>
           </VerticalGroup>
         );
@@ -77,10 +77,10 @@ const CloudPhoneSettings = observer((props: CloudPhoneSettingsProps) => {
         return (
           <VerticalGroup spacing="lg">
             <Text>
-              Your account successfully matched with the Grafana Cloud account. Please verify your phone number.{' '}
+              Your account successfully matched with the Grafana Cloud OnCall account. Please verify your phone number.{' '}
             </Text>
             <Button variant="secondary" icon="external-link-alt" onClick={() => handleLinkClick(userLink)}>
-              Verify phone number in Grafana Cloud
+              Verify phone number in Grafana Cloud OnCall
             </Button>
           </VerticalGroup>
         );
@@ -88,10 +88,10 @@ const CloudPhoneSettings = observer((props: CloudPhoneSettingsProps) => {
         return (
           <VerticalGroup spacing="lg">
             <Text>
-              Your account successfully matched with the Grafana Cloud account. Your phone number is verified.{' '}
+              Your account successfully matched with the Grafana Cloud OnCall account. Your phone number is verified.{' '}
             </Text>
             <Button variant="secondary" icon="external-link-alt" onClick={() => handleLinkClick(userLink)}>
-              Open account in Grafana Cloud
+              Open account in Grafana Cloud OnCall
             </Button>
           </VerticalGroup>
         );
@@ -99,11 +99,11 @@ const CloudPhoneSettings = observer((props: CloudPhoneSettingsProps) => {
         return (
           <VerticalGroup spacing="lg">
             <Text>
-              We can’t find a matching account in the connected Grafana Cloud instance (matching by e-mail
+              We can’t find a matching account in the connected Grafana Cloud OnCall instance (matching by e-mail
               {email && ': ' + email}).
             </Text>
             <Button variant="primary" onClick={() => handleLinkClick(userLink)}>
-              Sign up in Grafana Cloud
+              Sign up in Grafana Cloud OnCall
             </Button>
           </VerticalGroup>
         );
@@ -113,10 +113,10 @@ const CloudPhoneSettings = observer((props: CloudPhoneSettingsProps) => {
   return (
     <WithPermissionControlDisplay
       userAction={UserActions.UserSettingsWrite}
-      title="OnCall uses Grafana Cloud for SMS and phone call notifications"
+      title="OnCall uses Grafana Cloud OnCall for SMS and phone call notifications"
     >
       <VerticalGroup spacing="lg">
-        <Text.Title level={3}>OnCall uses Grafana Cloud for SMS and phone call notifications</Text.Title>
+        <Text.Title level={3}>OnCall uses Grafana Cloud OnCall for SMS and phone call notifications</Text.Title>
         {syncing ? (
           <Button icon="sync" variant="secondary" disabled>
             Updating...

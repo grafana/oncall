@@ -120,8 +120,9 @@ class ResolutionNote(models.Model):
     objects_with_deleted = models.Manager()
 
     class Source(models.IntegerChoices):
-        SLACK = 0, "slack"
-        WEB = 1, "web"
+        SLACK = 0, "Slack"
+        WEB = 1, "Web"
+        MOBILE_APP = 2, "Mobile App"
 
     public_primary_key = models.CharField(
         max_length=20,

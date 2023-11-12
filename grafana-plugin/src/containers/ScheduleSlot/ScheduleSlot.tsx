@@ -57,7 +57,7 @@ const ScheduleSlot: FC<ScheduleSlotProps> = observer((props) => {
 
   const base = 60 * 60 * 24 * 7;
 
-  const width = duration / base;
+  const width = Math.max(duration / base, 0);
 
   const currentMoment = useMemo(() => dayjs(), []);
 
@@ -172,6 +172,7 @@ const ShiftSwapEvent = (props: ShiftSwapEventProps) => {
       content={
         <ScheduleSlotDetails
           isShiftSwap
+          title="Shift swap"
           beneficiaryName={beneficiary?.display_name}
           user={benefactorStoreUser || beneficiaryStoreUser}
           benefactorName={benefactor?.display_name}
@@ -237,12 +238,16 @@ const RegularEvent = (props: RegularEventProps) => {
       {users.map(({ display_name, pk: userPk, swap_request }) => {
         const storeUser = store.userStore.items[userPk];
 
+        const { schedule, shift } = event;
+
         const isCurrentUserSlot = userPk === store.userStore.currentUserPk;
         const inactive = filters && filters.users.length && !filters.users.includes(userPk);
 
-        const userTitle = storeUser ? getTitle(storeUser) : display_name;
+        const userTitle = showScheduleNameAsSlotTitle ? schedule?.name : storeUser ? getTitle(storeUser) : display_name;
 
         const isShiftSwap = Boolean(swap_request);
+
+        const title = isShiftSwap ? 'Shift swap' : showScheduleNameAsSlotTitle ? schedule?.name : getShiftName(shift);
 
         let backgroundColor = color;
         if (isShiftSwap) {
@@ -282,7 +287,7 @@ const RegularEvent = (props: RegularEventProps) => {
             key={userPk}
             content={
               <ScheduleSlotDetails
-                showScheduleNameAsSlotTitle={showScheduleNameAsSlotTitle}
+                title={title}
                 isShiftSwap={isShiftSwap}
                 beneficiaryName={
                   isShiftSwap ? (swap_request.user ? swap_request.user.display_name : display_name) : undefined
@@ -328,7 +333,7 @@ interface ScheduleSlotDetailsProps {
   beneficiaryName?: string;
   benefactorName?: string;
   currentMoment: dayjs.Dayjs;
-  showScheduleNameAsSlotTitle?: boolean;
+  title: string;
 }
 
 const ScheduleSlotDetails = (props: ScheduleSlotDetailsProps) => {
@@ -344,7 +349,7 @@ const ScheduleSlotDetails = (props: ScheduleSlotDetailsProps) => {
     beneficiaryName,
     benefactorName,
     currentMoment,
-    showScheduleNameAsSlotTitle,
+    title,
   } = props;
 
   const { scheduleStore } = useStore();
@@ -367,8 +372,6 @@ const ScheduleSlotDetails = (props: ScheduleSlotDetailsProps) => {
       scheduleStore.loadItem(shift.schedule);
     }
   }, [shift]);
-
-  const title = isShiftSwap ? 'Shift swap' : showScheduleNameAsSlotTitle ? schedule?.name : getShiftName(shift);
 
   // const onCallNow = schedule?.on_call_now;
   // const isOncall = Boolean(storeUser && onCallNow && onCallNow.some((onCallUser) => storeUser.pk === onCallUser.pk));
