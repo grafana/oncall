@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Fixed
+
+- Fix styling when light theme is turned on via system preferences by excluding dark theme css vars in this case ([#3336](https://github.com/grafana/oncall/pull/3336))
+
 ### Added
 
 - Added user timezone field to the users public API response ([#3311](https://github.com/grafana/oncall/pull/3311))
