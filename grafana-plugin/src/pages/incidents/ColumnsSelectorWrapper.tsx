@@ -11,18 +11,16 @@ import {
   Toggletip,
   VerticalGroup,
 } from '@grafana/ui';
-
-import Text from 'components/Text/Text';
-
-import { ColumnsSelector } from './ColumnsSelector';
-import { useStore } from 'state/useStore';
-import { useDebouncedCallback } from 'utils/hooks';
-import { Label } from 'models/label/label.types';
-
 import cn from 'classnames/bind';
 
-import styles from 'pages/incidents/ColumnsSelectorWrapper.module.scss';
+import Text from 'components/Text/Text';
 import { AGColumn } from 'models/alertgroup/alertgroup.types';
+import { Label } from 'models/label/label.types';
+import styles from 'pages/incidents/ColumnsSelectorWrapper.module.scss';
+import { useStore } from 'state/useStore';
+import { useDebouncedCallback } from 'utils/hooks';
+
+import { ColumnsSelector } from './ColumnsSelector';
 
 const cx = cn.bind(styles);
 

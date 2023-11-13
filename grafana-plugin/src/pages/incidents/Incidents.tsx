@@ -2,6 +2,7 @@ import React, { SyntheticEvent } from 'react';
 
 import { Button, HorizontalGroup, Icon, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
+import { capitalize } from 'lodash-es';
 import { observer } from 'mobx-react';
 import moment from 'moment-timezone';
 import Emoji from 'react-emoji-render';
@@ -35,14 +36,12 @@ import { withMobXProviderContext } from 'state/withStore';
 import LocationHelper from 'utils/LocationHelper';
 import { UserActions } from 'utils/authorization';
 import { PAGE, PLUGIN_ROOT, TEXT_ELLIPSIS_CLASS } from 'utils/consts';
+import { TableColumn } from 'utils/types';
 
 import ColumnsSelectorWrapper from './ColumnsSelectorWrapper';
 import styles from './Incidents.module.scss';
 import { IncidentDropdown } from './parts/IncidentDropdown';
 import { SilenceButtonCascader } from './parts/SilenceButtonCascader';
-import { TableColumn } from 'utils/types';
-import { capitalize } from 'lodash-es';
-import { toJS } from 'mobx';
 
 const cx = cn.bind(styles);
 
@@ -116,8 +115,6 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
     const {
       store: { alertReceiveChannelStore },
     } = this.props;
-
-    console.log({ items: toJS(this.props.store.alertGroupStore.columns) });
 
     return (
       <>

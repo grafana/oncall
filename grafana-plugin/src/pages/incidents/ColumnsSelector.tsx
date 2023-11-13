@@ -18,15 +18,15 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Button, Checkbox, IconButton } from '@grafana/ui';
-import { CSSTransition, TransitionGroup } from 'react-transition-group';
 import cn from 'classnames/bind';
+import { noop } from 'lodash-es';
+import { observer } from 'mobx-react';
+import { CSSTransition, TransitionGroup } from 'react-transition-group';
 
 import Text from 'components/Text/Text';
-import styles from 'pages/incidents/ColumnsSelector.module.scss';
-import { noop } from 'lodash-es';
 import { AGColumn } from 'models/alertgroup/alertgroup.types';
+import styles from 'pages/incidents/ColumnsSelector.module.scss';
 import { useStore } from 'state/useStore';
-import { observer } from 'mobx-react';
 
 const cx = cn.bind(styles);
 const TRANSITION_MS = 500;
