@@ -90,7 +90,7 @@ will be sent to users.
 #### Heartbeat monitoring
 
 An OnCall heartbeat acts as a healthcheck for alert group monitoring. You can configure you monitoring to regularly send alerts
-to the heartbeat endpoint. If OnCall doen't receive one of these alerts, it will create an new alert group and escalate it
+to the heartbeat endpoint. If OnCall doesn't receive one of these alerts, it will create an new alert group and escalate it
 
 1. Go to Integration page and click **Three dots**
 1. Select **Heartbeat Settings**
