@@ -732,7 +732,8 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
   isLegacyIntegration,
   changeIsTemplateSettingsOpen,
 }) => {
-  const { alertReceiveChannelStore } = useStore();
+  const store = useStore();
+  const { alertReceiveChannelStore } = store;
 
   const history = useHistory();
 
@@ -837,11 +838,14 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
               <div className={cx('integration__actionItem')} onClick={() => openIntegrationSettings()}>
                 <Text type="primary">Integration Settings</Text>
               </div>
-              <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
-                <div className={cx('integration__actionItem')} onClick={() => openLabelsForm()}>
-                  <Text type="primary">Alert group labels</Text>
-                </div>
-              </WithPermissionControlTooltip>
+
+              {store.hasFeature(AppFeature.Labels) && (
+                <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
+                  <div className={cx('integration__actionItem')} onClick={() => openLabelsForm()}>
+                    <Text type="primary">Alert group labels</Text>
+                  </div>
+                </WithPermissionControlTooltip>
+              )}
 
               {showHeartbeatSettings() && (
                 <WithPermissionControlTooltip key="ok" userAction={UserActions.IntegrationsWrite}>

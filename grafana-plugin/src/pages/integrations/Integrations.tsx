@@ -409,6 +409,8 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
   }
 
   renderButtons = (item: AlertReceiveChannel) => {
+    const { store } = this.props;
+
     return (
       <WithContextMenu
         renderMenuItems={() => (
@@ -419,11 +421,13 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
               </div>
             </WithPermissionControlTooltip>
 
-            <WithPermissionControlTooltip key="edit" userAction={UserActions.IntegrationsWrite}>
-              <div className={cx('integrations-actionItem')} onClick={() => this.onLabelsEditClick(item.id)}>
-                <Text type="primary">Alert group labels</Text>
-              </div>
-            </WithPermissionControlTooltip>
+            {store.hasFeature(AppFeature.Labels) && (
+              <WithPermissionControlTooltip key="edit" userAction={UserActions.IntegrationsWrite}>
+                <div className={cx('integrations-actionItem')} onClick={() => this.onLabelsEditClick(item.id)}>
+                  <Text type="primary">Alert group labels</Text>
+                </div>
+              </WithPermissionControlTooltip>
+            )}
 
             <CopyToClipboard text={item.id} onCopy={() => openNotification('Integration ID has been copied')}>
               <div className={cx('integrations-actionItem')}>
