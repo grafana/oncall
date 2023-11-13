@@ -501,6 +501,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
           rowKey="pk"
           data={results}
           columns={this.getTableColumns()}
+          tableLayout="auto"
         />
         {this.shouldShowPagination() && (
           <div className={cx('pagination')}>
@@ -612,6 +613,18 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
     );
   }
 
+  renderCustomColumn = (column: AGColumn, alert: AlertType) => {
+    const matchingLabel = alert.labels?.find((label) => label.key.name === column.name)?.value.name;
+
+    return (
+      <TextEllipsisTooltip placement="top" content={matchingLabel}>
+        <Text type="secondary" className={cx(TEXT_ELLIPSIS_CLASS, 'overflow-child--line-1')}>
+          {matchingLabel}
+        </Text>
+      </TextEllipsisTooltip>
+    );
+  };
+
   shouldShowPagination() {
     const { alertGroupStore } = this.props.store;
 
@@ -633,49 +646,42 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
 
     const columnMapping: { [key: string]: TableColumn } = {
       ID: {
-        width: '5%', // 10%
+        width: '5%',
         title: 'ID',
         key: 'id',
         render: this.renderId,
       },
       Status: {
-        width: '140px', // 140px
         title: 'Status',
         key: 'time',
         render: this.renderStatus,
       },
       Alerts: {
-        width: '5%',
         title: 'Alerts',
         key: 'alerts',
         render: this.renderAlertsCounter,
       },
       Source: {
-        width: '15%',
         title: 'Integration',
         key: 'source',
         render: this.renderSource,
       },
       Title: {
-        width: '35%',
         title: 'Title',
         key: 'title',
         render: this.renderTitle,
       },
       Created: {
-        width: '10%',
         title: 'Created',
         key: 'created',
         render: this.renderStartedAt,
       },
       Team: {
-        width: '10%',
         title: 'Team',
         key: 'team',
         render: (item: AlertType) => this.renderTeam(item, store.grafanaTeamStore.items),
       },
       Users: {
-        width: '15%',
         title: 'Users',
         key: 'users',
         render: renderRelatedUsers,
@@ -690,10 +696,9 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
         }
 
         return {
-          width: '10%',
           title: capitalize(column.name),
           key: column.id.toString(),
-          render: (item: AlertType) => <>{item.labels?.find((label) => label.key.name === column.name)?.value.name}</>,
+          render: (item: AlertType) => this.renderCustomColumn(column, item),
         };
       });
 

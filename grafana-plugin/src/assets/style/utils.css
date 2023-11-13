@@ -143,6 +143,10 @@
   -webkit-box-orient: vertical;
 }
 
+.overflow-child--line-1 {
+  -webkit-line-clamp: 1;
+}
+
 .break-word {
   word-break: break-all;
 }
