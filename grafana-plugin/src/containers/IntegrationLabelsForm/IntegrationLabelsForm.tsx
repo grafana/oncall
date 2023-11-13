@@ -46,8 +46,6 @@ const IntegrationLabelsForm = observer((props: IntegrationLabelsFormProps) => {
     };
   };
 
-  console.log('alertGroupLabels', alertGroupLabels);
-
   return (
     <Drawer scrollableContent title="Alert group labels" onClose={onHide} closeOnMaskClick={false} width="640px">
       <div>

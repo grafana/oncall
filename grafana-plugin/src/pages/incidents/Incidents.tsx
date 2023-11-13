@@ -24,6 +24,7 @@ import RemoteFilters from 'containers/RemoteFilters/RemoteFilters';
 import TeamName from 'containers/TeamName/TeamName';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { Alert, Alert as AlertType, AlertAction, IncidentStatus } from 'models/alertgroup/alertgroup.types';
+import { LabelKeyValue } from 'models/label/label.types';
 import { renderRelatedUsers } from 'pages/incident/Incident.helpers';
 import { AppFeature } from 'state/features';
 import { PageProps, WithStoreProps } from 'state/types';
@@ -47,7 +48,7 @@ interface IncidentsPageProps extends WithStoreProps, PageProps, RouteComponentPr
 interface IncidentsPageState {
   selectedIncidentIds: Array<Alert['pk']>;
   affectedRows: { [key: string]: boolean };
-  filters?: IncidentsFiltersType;
+  filters?: Record<string, any>;
   pagination: Pagination;
   showAddAlertGroupForm: boolean;
 }
@@ -609,7 +610,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
                       icon="filter"
                       tooltip="Apply filter"
                       variant="secondary"
-                      //onClick={this.getApplyLabelFilterClickHandler(label)}
+                      onClick={this.getApplyLabelFilterClickHandler(label)}
                     />
                   </HorizontalGroup>
                 ))
@@ -627,6 +628,29 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
       </TextEllipsisTooltip>
     );
   }
+
+  getApplyLabelFilterClickHandler = (label: LabelKeyValue) => {
+    const {
+      store: { filtersStore },
+    } = this.props;
+
+    const {
+      filters: { label: oldLabelFilter = [] },
+    } = this.state;
+
+    return () => {
+      const labelToAddString = `${label.key.id}:${label.value.id}`;
+      if (oldLabelFilter.some((label) => label === labelToAddString)) {
+        return;
+      }
+
+      const newLabelFilter = [...oldLabelFilter, labelToAddString];
+
+      LocationHelper.update({ label: newLabelFilter }, 'partial');
+
+      filtersStore.needToParseFilters = true;
+    };
+  };
 
   shouldShowPagination() {
     const { alertGroupStore } = this.props.store;
@@ -703,7 +727,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
         width: '5%',
         title: 'Labels',
         key: 'labels',
-        render: this.renderLabels,
+        render: (item: AlertType) => this.renderLabels(item),
       });
       columns.find((column) => column.key === 'title').width = '30%';
     }
