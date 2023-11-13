@@ -289,7 +289,9 @@ class SlackSettings extends Component<SlackProps, SlackState> {
         ) : (
           <HorizontalGroup>
             <Button onClick={this.handleOpenSlackInstructions}>
-              <Icon name="external-link-alt" className={cx('external-link-style')} /> Open Slack connection page
+              <HorizontalGroup spacing="xs" align="center">
+                <Icon name="external-link-alt" className={cx('external-link-style')} /> Open Slack connection page
+              </HorizontalGroup>
             </Button>
             {store.hasFeature(AppFeature.LiveSettings) && (
               <PluginLink query={{ page: 'live-settings' }}>
