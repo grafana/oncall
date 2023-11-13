@@ -21,11 +21,8 @@ interface LabelsFilterProps {
 
 const LabelsFilter = observer((props: LabelsFilterProps) => {
   const { filterType, className, autoFocus, value: propsValue, onChange } = props;
-
   const [value, setValue] = useState([]);
-
   const [keys, setKeys] = useState([]);
-
   const { alertGroupStore, labelsStore } = useStore();
 
   const loadKeys =
@@ -44,9 +41,7 @@ const LabelsFilter = observer((props: LabelsFilterProps) => {
 
   useEffect(() => {
     const keyValuePairs = (propsValue || []).map((k) => k.split(':'));
-
     const promises = keyValuePairs.map(([keyId]) => loadValuesForKey(keyId));
-
     const fetchKeyValues = async () => await Promise.all(promises);
 
     fetchKeyValues().then((list) => {

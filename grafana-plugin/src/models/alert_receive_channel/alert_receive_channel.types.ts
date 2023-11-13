@@ -63,3 +63,11 @@ export interface ContactPoint {
   contactPoint: string;
   notificationConnected: boolean;
 }
+
+export interface SupportedIntegrationFilters {
+  integration?: string[];
+  integration_ne?: string[];
+  team?: string[];
+  label?: string[];
+  searchTerm?: string;
+}

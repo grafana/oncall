@@ -34,6 +34,29 @@ def test_get_alert_receive_channel(alert_receive_channel_internal_api_setup, mak
 
 
 @pytest.mark.django_db
+def test_get_alert_receive_channel_by_integration_ne(
+    make_organization_and_user_with_plugin_token, make_user_auth_headers, make_alert_receive_channel
+):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+
+    make_alert_receive_channel(organization, integration=AlertReceiveChannel.INTEGRATION_GRAFANA)
+    make_alert_receive_channel(organization, integration=AlertReceiveChannel.INTEGRATION_GRAFANA_ALERTING)
+    make_alert_receive_channel(organization, integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING)
+
+    client = APIClient()
+    url = f"{reverse('api-internal:alert_receive_channel-list')}?integration_ne={AlertReceiveChannel.INTEGRATION_DIRECT_PAGING}"
+
+    response = client.get(url, format="json", **make_user_auth_headers(user, token))
+    results = response.json()["results"]
+
+    assert response.status_code == status.HTTP_200_OK
+    assert len(results) == 2
+
+    for result in results:
+        assert result["integration"] != AlertReceiveChannel.INTEGRATION_DIRECT_PAGING
+
+
+@pytest.mark.django_db
 @pytest.mark.parametrize(
     "query_param,should_be_unpaginated",
     [
