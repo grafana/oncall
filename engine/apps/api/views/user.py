@@ -222,6 +222,7 @@ class UserView(
         "^slack_user_identity__cached_slack_login",
         "^slack_user_identity__cached_name",
         "^teams__name",
+        "=public_primary_key",
     )
 
     filterset_class = UserFilter
