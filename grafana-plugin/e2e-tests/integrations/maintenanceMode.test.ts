@@ -106,7 +106,7 @@ test.describe('maintenance mode works', () => {
     const integrationName = generateRandomValue();
 
     await createEscalationChain(page, escalationChainName, EscalationStep.NotifyUsers, userName);
-    await createIntegration(page, integrationName);
+    await createIntegration({ page, integrationName });
     await assignEscalationChainToIntegration(page, escalationChainName);
     await enableMaintenanceMode(page, maintenanceModeType);
 

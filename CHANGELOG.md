@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+### Added
+
+- Added user timezone field to the users public API response ([#3311](https://github.com/grafana/oncall/pull/3311))
+
+### Changed
+
+- Split Integrations table into Connections and Direct Paging tabs ([#3290](https://github.com/grafana/oncall/pull/3290))
+
+### Fixed
+
+- Forward headers for Amazon SNS when organizations are moved @mderynck ([#3326](https://github.com/grafana/oncall/pull/3326))
+
 ## v1.3.57 (2023-11-10)
 
 ### Fixed
