@@ -41,6 +41,8 @@ import styles from './Incidents.module.scss';
 import { IncidentDropdown } from './parts/IncidentDropdown';
 import { SilenceButtonCascader } from './parts/SilenceButtonCascader';
 import { TableColumn } from 'utils/types';
+import { capitalize } from 'lodash-es';
+import { toJS } from 'mobx';
 
 const cx = cn.bind(styles);
 
@@ -101,6 +103,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
 
     alertGroupStore.updateBulkActions();
     alertGroupStore.updateSilenceOptions();
+    alertGroupStore.fetchAllColumnKeys();
   }
 
   componentWillUnmount(): void {
@@ -113,6 +116,8 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
     const {
       store: { alertReceiveChannelStore },
     } = this.props;
+
+    console.log({ items: toJS(this.props.store.alertGroupStore.columns) });
 
     return (
       <>
@@ -685,10 +690,10 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
         }
 
         return {
-          width: '5%',
-          title: column.name,
+          width: '10%',
+          title: capitalize(column.name),
           key: column.id.toString(),
-          render: (item: AlertType) => <>{item.labels?.find((label) => label.key.name === 'a')?.value.name}</>,
+          render: (item: AlertType) => <>{item.labels?.find((label) => label.key.name === column.name)?.value.name}</>,
         };
       });
 

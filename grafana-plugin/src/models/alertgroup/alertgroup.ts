@@ -79,13 +79,17 @@ export class AlertGroupStore extends BaseStore {
   columns: AGColumn[] = [
     { id: 1, name: 'ID', isVisible: true, type: AGColumnType.DEFAULT },
     { id: 2, name: 'Status', isVisible: true, type: AGColumnType.DEFAULT },
-    { id: 3, name: 'Alerts', isVisible: false, type: AGColumnType.DEFAULT },
+    { id: 3, name: 'Alerts', isVisible: true, type: AGColumnType.DEFAULT },
     { id: 4, name: 'Source', isVisible: true, type: AGColumnType.DEFAULT },
     { id: 5, name: 'Created', isVisible: true, type: AGColumnType.DEFAULT },
     { id: 6, name: 'Team', isVisible: true, type: AGColumnType.DEFAULT },
     { id: 7, name: 'Users', isVisible: false, type: AGColumnType.DEFAULT },
     { id: 8, name: 'Bananas', isVisible: false, type: AGColumnType.LABEL },
     { id: 9, name: 'Title', isVisible: false, type: AGColumnType.DEFAULT },
+    { id: 9, name: 'a', isVisible: false, type: AGColumnType.LABEL },
+    { id: 10, name: 'color', isVisible: false, type: AGColumnType.LABEL },
+    { id: 11, name: 'country', isVisible: false, type: AGColumnType.LABEL },
+    { id: 12, name: 'game', isVisible: false, type: AGColumnType.LABEL },
   ];
 
   constructor(rootStore: RootStore) {
@@ -450,6 +454,19 @@ export class AlertGroupStore extends BaseStore {
       method: 'POST',
       data: { user_id: userId },
     }).catch(this.onApiError);
+  }
+
+  @action
+  public async fetchAllColumnKeys(): Promise<void> {
+    const keys = await this.loadLabelsKeys();
+    const results: AGColumn[] = keys.map((key) => ({
+      id: key.id,
+      name: key.name,
+      isVisible: false,
+      type: AGColumnType.LABEL,
+    }));
+
+    this.columns = [...this.columns] || [...results]; // TODO; change once backend is ready
   }
 
   @action
