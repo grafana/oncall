@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Added user timezone field to the users public API response ([#3311](https://github.com/grafana/oncall/pull/3311))
+- Allow filtering users by public primary key in internal API ([#3339](https://github.com/grafana/oncall/pull/3339))
 
 ### Changed
 
