@@ -49,6 +49,7 @@ export interface AlertReceiveChannel {
   allow_delete: boolean;
   deleted?: boolean;
   labels: LabelKeyValue[];
+  alert_group_labels: { inherit: Record<LabelKeyValue['key']['id'], boolean> };
 }
 
 export interface AlertReceiveChannelChoice {

@@ -44,6 +44,7 @@ import ExpandedIntegrationRouteDisplay from 'containers/IntegrationContainers/Ex
 import IntegrationHeartbeatForm from 'containers/IntegrationContainers/IntegrationHeartbeatForm/IntegrationHeartbeatForm';
 import IntegrationTemplateList from 'containers/IntegrationContainers/IntegrationTemplatesList';
 import IntegrationForm from 'containers/IntegrationForm/IntegrationForm';
+import IntegrationLabelsForm from 'containers/IntegrationLabelsForm/IntegrationLabelsForm';
 import IntegrationTemplate from 'containers/IntegrationTemplate/IntegrationTemplate';
 import MaintenanceForm from 'containers/MaintenanceForm/MaintenanceForm';
 import TeamName from 'containers/TeamName/TeamName';
@@ -747,6 +748,7 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
   }>(undefined);
 
   const [isIntegrationSettingsOpen, setIsIntegrationSettingsOpen] = useState(false);
+  const [labelsFormOpen, setLabelsFormOpen] = useState(false);
   const [isHeartbeatFormOpen, setIsHeartbeatFormOpen] = useState(false);
   const [isDemoModalOpen, setIsDemoModalOpen] = useState(false);
   const [maintenanceData, setMaintenanceData] = useState<{
@@ -789,6 +791,16 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
         />
       )}
 
+      {labelsFormOpen && (
+        <IntegrationLabelsForm
+          onHide={() => {
+            setLabelsFormOpen(false);
+          }}
+          onSubmit={() => alertReceiveChannelStore.updateItem(alertReceiveChannel['id'])}
+          id={alertReceiveChannel['id']}
+        />
+      )}
+
       {isHeartbeatFormOpen && (
         <IntegrationHeartbeatForm
           alertReceveChannelId={alertReceiveChannel['id']}
@@ -825,6 +837,11 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
               <div className={cx('integration__actionItem')} onClick={() => openIntegrationSettings()}>
                 <Text type="primary">Integration Settings</Text>
               </div>
+              <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
+                <div className={cx('integration__actionItem')} onClick={() => openLabelsForm()}>
+                  <Text type="primary">Alert group labels</Text>
+                </div>
+              </WithPermissionControlTooltip>
 
               {showHeartbeatSettings() && (
                 <WithPermissionControlTooltip key="ok" userAction={UserActions.IntegrationsWrite}>
@@ -1015,6 +1032,10 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
     setIsIntegrationSettingsOpen(true);
   }
 
+  function openLabelsForm() {
+    setLabelsFormOpen(true);
+  }
+
   function openStartMaintenance() {
     setMaintenanceData({ disabled: true, alert_receive_channel_id: alertReceiveChannel.id });
   }
@@ -1061,7 +1082,7 @@ const IntegrationHeader: React.FC<IntegrationHeaderProps> = ({
         </PluginLink>
       )}
 
-      {renderLabels && (
+      {Boolean(renderLabels && alertReceiveChannel.labels.length) && (
         <TooltipBadge
           tooltipTitle=""
           borderType="secondary"

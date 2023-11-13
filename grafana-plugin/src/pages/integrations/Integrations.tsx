@@ -23,6 +23,7 @@ import TextEllipsisTooltip from 'components/TextEllipsisTooltip/TextEllipsisTool
 import TooltipBadge from 'components/TooltipBadge/TooltipBadge';
 import { WithContextMenu } from 'components/WithContextMenu/WithContextMenu';
 import IntegrationForm from 'containers/IntegrationForm/IntegrationForm';
+import IntegrationLabelsForm from 'containers/IntegrationLabelsForm/IntegrationLabelsForm';
 import RemoteFilters from 'containers/RemoteFilters/RemoteFilters';
 import TeamName from 'containers/TeamName/TeamName';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
@@ -47,6 +48,7 @@ const FILTERS_DEBOUNCE_MS = 500;
 interface IntegrationsState extends PageBaseState {
   integrationsFilters: Record<string, any>;
   alertReceiveChannelId?: AlertReceiveChannel['id'] | 'new';
+  alertReceiveChannelIdToShowLabels?: AlertReceiveChannel['id'];
   confirmationModal: {
     isOpen: boolean;
     title: any;
@@ -128,7 +130,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
 
   render() {
     const { store, query } = this.props;
-    const { alertReceiveChannelId, confirmationModal } = this.state;
+    const { alertReceiveChannelId, alertReceiveChannelIdToShowLabels, confirmationModal } = this.state;
     const { alertReceiveChannelStore } = store;
 
     const { count, results, page_size } = alertReceiveChannelStore.getPaginatedSearchResult();
@@ -189,6 +191,16 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
             }}
             onSubmit={this.update}
             id={alertReceiveChannelId}
+          />
+        )}
+
+        {alertReceiveChannelIdToShowLabels && (
+          <IntegrationLabelsForm
+            onHide={() => {
+              this.setState({ alertReceiveChannelIdToShowLabels: undefined });
+            }}
+            onSubmit={this.update}
+            id={alertReceiveChannelIdToShowLabels}
           />
         )}
 
@@ -355,6 +367,10 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
   }
 
   renderLabels(item: AlertReceiveChannel) {
+    if (!item.labels.length) {
+      return null;
+    }
+
     return (
       <TooltipBadge
         tooltipTitle=""
@@ -400,6 +416,12 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
             <WithPermissionControlTooltip key="edit" userAction={UserActions.IntegrationsWrite}>
               <div className={cx('integrations-actionItem')} onClick={() => this.onIntegrationEditClick(item.id)}>
                 <Text type="primary">Integration settings</Text>
+              </div>
+            </WithPermissionControlTooltip>
+
+            <WithPermissionControlTooltip key="edit" userAction={UserActions.IntegrationsWrite}>
+              <div className={cx('integrations-actionItem')} onClick={() => this.onLabelsEditClick(item.id)}>
+                <Text type="primary">Alert group labels</Text>
               </div>
             </WithPermissionControlTooltip>
 
@@ -528,6 +550,10 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
 
   onIntegrationEditClick = (id: AlertReceiveChannel['id']) => {
     this.setState({ alertReceiveChannelId: id });
+  };
+
+  onLabelsEditClick = (id: AlertReceiveChannel['id']) => {
+    this.setState({ alertReceiveChannelIdToShowLabels: id });
   };
 
   handleDeleteAlertReceiveChannel = (alertReceiveChannelId: AlertReceiveChannel['id']) => {
