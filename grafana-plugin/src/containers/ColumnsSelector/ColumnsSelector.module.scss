@@ -4,6 +4,8 @@
 
 .columns-visible-section {
   margin-bottom: 16px;
+  max-height: 400px;
+  overflow-y: overlay;
 }
 
 .columns-header,
@@ -25,6 +27,8 @@
 
 .columns-hidden-section {
   margin-bottom: 20px;
+  max-height: 250px;
+  overflow-y: overlay;
 }
 .columns-selector-buttons {
   display: flex;
@@ -83,4 +87,9 @@
   text-overflow: ellipsis;
   display: block;
   overflow: hidden;
+}
+
+.label-icon {
+  margin: 0 !important;
+  padding: 0 !important;
 }

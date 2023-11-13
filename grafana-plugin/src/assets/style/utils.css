@@ -160,22 +160,34 @@
  */
 
 .fade-enter {
+  max-height: 0;
   opacity: 0;
+}
+
+.fade-enter.fade-enter-active {
+  max-height: 50px;
+  opacity: 1;
+  transition: opacity 300ms ease-in, max-height 300ms ease-in;
+}
+
+.fade-leave {
+  opacity: 1;
+  max-height: 50px;
+}
+
+.fade-leave.fade-leave-active {
+  max-height: 0;
+  opacity: 0;
+  transition: opacity 300ms ease-in, max-height 300ms ease-in;
 }
 
 .fade-exit {
   opacity: 1;
+  max-height: 50px;
 }
 
-.fade-enter-active {
-  opacity: 1;
-}
-
-.fade-exit-active {
+.fade-exit.fade-exit-active {
+  max-height: 0;
   opacity: 0;
-}
-
-.fade-enter-active,
-.fade-exit-active {
-  transition: opacity 500ms;
+  transition: opacity 300ms ease-in, max-height 300ms ease-in;
 }

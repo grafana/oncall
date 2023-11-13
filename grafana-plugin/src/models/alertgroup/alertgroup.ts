@@ -91,6 +91,9 @@ export class AlertGroupStore extends BaseStore {
     { id: 12, name: 'game', isVisible: false, type: AGColumnType.LABEL },
   ];
 
+  @observable
+  temporaryColumns: AGColumn[] = [];
+
   constructor(rootStore: RootStore) {
     super(rootStore);
 

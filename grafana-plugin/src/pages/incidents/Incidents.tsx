@@ -18,6 +18,7 @@ import Text from 'components/Text/Text';
 import TextEllipsisTooltip from 'components/TextEllipsisTooltip/TextEllipsisTooltip';
 import Tutorial from 'components/Tutorial/Tutorial';
 import { TutorialStep } from 'components/Tutorial/Tutorial.types';
+import ColumnsSelectorWrapper from 'containers/ColumnsSelectorWrapper/ColumnsSelectorWrapper';
 import { IncidentsFiltersType } from 'containers/IncidentsFilters/IncidentFilters.types';
 import RemoteFilters from 'containers/RemoteFilters/RemoteFilters';
 import TeamName from 'containers/TeamName/TeamName';
@@ -31,6 +32,7 @@ import {
   AGColumnType,
 } from 'models/alertgroup/alertgroup.types';
 import { renderRelatedUsers } from 'pages/incident/Incident.helpers';
+import { AppFeature } from 'state/features';
 import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import LocationHelper from 'utils/LocationHelper';
@@ -38,7 +40,6 @@ import { UserActions } from 'utils/authorization';
 import { PAGE, PLUGIN_ROOT, TEXT_ELLIPSIS_CLASS } from 'utils/consts';
 import { TableColumn } from 'utils/types';
 
-import ColumnsSelectorWrapper from './ColumnsSelectorWrapper';
 import styles from './Incidents.module.scss';
 import { IncidentDropdown } from './parts/IncidentDropdown';
 import { SilenceButtonCascader } from './parts/SilenceButtonCascader';
@@ -435,23 +436,23 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
           </div>
 
           <div className={cx('fields-dropdown')}>
-            <ColumnsSelectorWrapper />
+            {hasInvalidatedAlert && (
+              <HorizontalGroup spacing="xs">
+                <Text type="secondary">Results out of date</Text>
+                <Button
+                  style={{ marginLeft: '8px' }}
+                  disabled={store.alertGroupStore.alertGroupsLoading}
+                  variant="primary"
+                  onClick={this.onIncidentsUpdateClick}
+                >
+                  Refresh
+                </Button>
+              </HorizontalGroup>
+            )}
+
+            {store.hasFeature(AppFeature.Labels) && <ColumnsSelectorWrapper />}
           </div>
         </div>
-
-        {hasInvalidatedAlert && (
-          <div className={cx('out-of-date')}>
-            <Text type="secondary">Results out of date</Text>
-            <Button
-              style={{ marginLeft: '8px' }}
-              disabled={store.alertGroupStore.alertGroupsLoading}
-              variant="primary"
-              onClick={this.onIncidentsUpdateClick}
-            >
-              Refresh
-            </Button>
-          </div>
-        )}
       </div>
     );
   };

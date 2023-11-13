@@ -1,26 +1,16 @@
 import React, { useEffect, useRef, useState } from 'react';
 
-import {
-  Button,
-  Checkbox,
-  HorizontalGroup,
-  Icon,
-  Input,
-  InlineLabel,
-  Modal,
-  Toggletip,
-  VerticalGroup,
-} from '@grafana/ui';
+import { Button, Checkbox, HorizontalGroup, Icon, Input, Modal, Toggletip, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 
 import Text from 'components/Text/Text';
 import { AGColumn } from 'models/alertgroup/alertgroup.types';
 import { Label } from 'models/label/label.types';
-import styles from 'pages/incidents/ColumnsSelectorWrapper.module.scss';
+import styles from 'containers/ColumnsSelectorWrapper/ColumnsSelectorWrapper.module.scss';
 import { useStore } from 'state/useStore';
 import { useDebouncedCallback } from 'utils/hooks';
 
-import { ColumnsSelector } from './ColumnsSelector';
+import { ColumnsSelector } from 'containers/ColumnsSelector/ColumnsSelector';
 
 const cx = cn.bind(styles);
 
@@ -92,18 +82,13 @@ interface SearchResult extends Label {
   isChecked: boolean;
 }
 
-const KEY = 'test';
-const resultValues = {
-  [KEY]: ['eu-stage', 'us-central-prod'],
-};
-
 const ColumnsModal: React.FC<ColumnsModalProps> = ({ isModalOpen, labelKeys, setIsModalOpen, inputRef }) => {
   const store = useStore();
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const debouncedOnInputChange = useDebouncedCallback(onInputChange, DEBOUNCE_MS);
 
   return (
-    <Modal isOpen={isModalOpen} title={'Add field'} onDismiss={() => setIsModalOpen(false)}>
+    <Modal isOpen={isModalOpen} title={'Add column'} onDismiss={() => setIsModalOpen(false)}>
       <VerticalGroup spacing="md">
         <div className={cx('content')}>
           <VerticalGroup spacing="md">
@@ -121,8 +106,8 @@ const ColumnsModal: React.FC<ColumnsModalProps> = ({ isModalOpen, labelKeys, set
 
             {inputRef?.current?.value && searchResults.length && (
               <VerticalGroup spacing="xs">
-                {searchResults.map((result) => (
-                  <div className={cx('field-row')}>
+                {searchResults.map((result, index) => (
+                  <div key={index} className={cx('field-row')}>
                     <Checkbox
                       type="checkbox"
                       value={result.isChecked}
@@ -137,20 +122,6 @@ const ColumnsModal: React.FC<ColumnsModalProps> = ({ isModalOpen, labelKeys, set
                     />
 
                     <Text type="primary">{result.name}</Text>
-
-                    <div className={cx('content-right')}>
-                      <HorizontalGroup spacing="xs">
-                        {resultValues[KEY].map((value) => (
-                          <InlineLabel>
-                            <HorizontalGroup spacing="xs">
-                              <span>{KEY}</span>
-                              <span>:</span>
-                              <span>{value}</span>
-                            </HorizontalGroup>
-                          </InlineLabel>
-                        ))}
-                      </HorizontalGroup>
-                    </div>
                   </div>
                 ))}
               </VerticalGroup>

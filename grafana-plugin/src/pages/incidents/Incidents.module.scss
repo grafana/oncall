@@ -12,7 +12,11 @@
 }
 
 .fields-dropdown {
+  gap: 8px;
+  display: flex;
   margin-left: auto;
+  align-items: center;
+  padding-left: 4px;
 }
 
 .above-incidents-table {

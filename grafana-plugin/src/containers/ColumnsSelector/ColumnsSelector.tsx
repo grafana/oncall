@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 
 import {
   DndContext,
@@ -17,16 +17,17 @@ import {
   useSortable,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Button, Checkbox, IconButton } from '@grafana/ui';
+import { Button, Checkbox, Icon, IconButton, Tooltip } from '@grafana/ui';
 import cn from 'classnames/bind';
-import { noop } from 'lodash-es';
+import { cloneDeep, isEqual, noop } from 'lodash-es';
 import { observer } from 'mobx-react';
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
 
 import Text from 'components/Text/Text';
-import { AGColumn } from 'models/alertgroup/alertgroup.types';
-import styles from 'pages/incidents/ColumnsSelector.module.scss';
+import { AGColumn, AGColumnType } from 'models/alertgroup/alertgroup.types';
+import styles from 'containers/ColumnsSelector/ColumnsSelector.module.scss';
 import { useStore } from 'state/useStore';
+import { openErrorNotification } from 'utils';
 
 const cx = cn.bind(styles);
 const TRANSITION_MS = 500;
@@ -51,6 +52,12 @@ const ColumnRow: React.FC<ColumnRowProps> = ({ column, onItemChange }) => {
     <div ref={setNodeRef} style={{ ...style }} className={cx('column-row')}>
       <div className={cx('column-item')} ref={columnElRef}>
         <span className={cx('column-name')}>{column.name}</span>
+
+        {column.type === AGColumnType.LABEL && (
+          <Tooltip content="Label Column">
+            <Icon aria-label="Label" name="tag-alt" className={cx('label-icon')} />
+          </Tooltip>
+        )}
 
         {column.isVisible ? (
           <IconButton
@@ -86,10 +93,21 @@ interface ColumnsSelectorProps {
 
 export const ColumnsSelector: React.FC<ColumnsSelectorProps> = observer(({ onModalOpen }) => {
   const { alertGroupStore } = useStore();
-  const { columns: items } = alertGroupStore;
+  const { columns: items, temporaryColumns } = alertGroupStore;
 
   const visibleColumns = items.filter((col) => col.isVisible);
   const hiddenColumns = items.filter((col) => !col.isVisible);
+
+  useEffect(() => {
+    if (!temporaryColumns.length) {
+      alertGroupStore.temporaryColumns = cloneDeep(items);
+    }
+  }, []);
+
+  const canResetData = useMemo(
+    () => !isEqual(temporaryColumns, items),
+    [alertGroupStore.columns, alertGroupStore.temporaryColumns]
+  );
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -141,19 +159,28 @@ export const ColumnsSelector: React.FC<ColumnsSelectorProps> = observer(({ onMod
       </div>
 
       <div className={cx('columns-selector-buttons')}>
-        <Button variant={'secondary'} onClick={onReset}>
+        <Button variant={'secondary'} disabled={!canResetData} onClick={onReset}>
           Reset
         </Button>
         <Button variant={'primary'} icon="plus" onClick={onModalOpen}>
-          Add field
+          Add column
         </Button>
       </div>
     </div>
   );
 
-  function onReset() {}
+  function onReset() {
+    alertGroupStore.columns = [...alertGroupStore.temporaryColumns];
+    alertGroupStore.temporaryColumns = [];
+  }
 
   function onItemChange(id: string | number) {
+    const checkedItems = alertGroupStore.columns.filter((col) => col.isVisible);
+    if (checkedItems.length === 1 && checkedItems[0].id === id) {
+      openErrorNotification('At least one column should be selected');
+      return;
+    }
+
     alertGroupStore.columns = alertGroupStore.columns.map((item): AGColumn => {
       let newItem: AGColumn = { ...item, isVisible: !item.isVisible };
       return item.id === id ? newItem : item;
