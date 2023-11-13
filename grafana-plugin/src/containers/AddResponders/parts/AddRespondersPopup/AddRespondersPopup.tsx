@@ -97,17 +97,18 @@ const AddRespondersPopup = observer(
     );
 
     const searchForUsers = useCallback(async () => {
-      const _searchForUsers = (is_currently_oncall: string) =>
-        userStore.search<PaginatedUsersResponse<UserCurrentlyOnCall>>({ searchTerm, is_currently_oncall });
+      const _search = async (is_currently_oncall: boolean) => {
+        const response = await userStore.search<PaginatedUsersResponse<UserCurrentlyOnCall>>({
+          searchTerm,
+          is_currently_oncall,
+        });
+        return response.results;
+      };
 
-      const onCallUserSearchResultsPromise = _searchForUsers('true').then((resp) =>
-        setOnCallUserSearchResults(resp.results)
-      );
-      const notOnCallUserSearchResultsPromise = _searchForUsers('false').then((resp) =>
-        setNotOnCallUserSearchResults(resp.results)
-      );
+      const [onCallUserSearchResults, notOnCallUserSearchResults] = await Promise.all([_search(true), _search(false)]);
 
-      await Promise.all([onCallUserSearchResultsPromise, notOnCallUserSearchResultsPromise]);
+      setOnCallUserSearchResults(onCallUserSearchResults);
+      setNotOnCallUserSearchResults(notOnCallUserSearchResults);
     }, [searchTerm]);
 
     const searchForTeams = useCallback(async () => {
