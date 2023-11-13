@@ -634,11 +634,11 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
       store: { filtersStore },
     } = this.props;
 
-    const {
-      filters: { label: oldLabelFilter = [] },
-    } = this.state;
-
     return () => {
+      const {
+        filters: { label: oldLabelFilter = [] },
+      } = this.state;
+
       const labelToAddString = `${label.key.id}:${label.value.id}`;
       if (oldLabelFilter.some((label) => label === labelToAddString)) {
         return;
