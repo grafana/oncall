@@ -133,9 +133,9 @@ exports[`MobileAppConnection if we disconnect the app, it disconnects and fetche
                   class="root root_bordered qr-code"
                 >
                   <svg
-                    height="128"
+                    height="256"
                     viewBox="0 0 21 21"
-                    width="128"
+                    width="256"
                   >
                     <path
                       d="M0,0 h21v21H0z"

@@ -6,9 +6,9 @@ exports[`QRCode it renders properly 1`] = `
     class="root root_bordered"
   >
     <svg
-      height="128"
+      height="256"
       viewBox="0 0 21 21"
-      width="128"
+      width="256"
     >
       <path
         d="M0,0 h21v21H0z"
