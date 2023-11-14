@@ -120,7 +120,7 @@ exports[`MobileAppConnection if we disconnect the app, it disconnects and fetche
               <span
                 class="root text text--primary text--medium"
               >
-                Open Grafana IRM mobile application and scan this code to sync it with your account.
+                Open the Grafana IRM mobile application and scan this code to sync it with your account.
               </span>
             </div>
             <div
@@ -2846,7 +2846,7 @@ exports[`MobileAppConnection it shows a message when the mobile app is already c
               <span
                 class="root text text--primary text--medium"
               >
-                You can sync one application to your account. To setup new device please disconnect app first.
+                You can only sync one application to your account. To setup a new device, please disconnect the currently connected device first.
               </span>
             </div>
             <div

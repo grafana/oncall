@@ -1,6 +1,6 @@
 import React, { useCallback } from 'react';
 
-import { Button, VerticalGroup, Icon } from '@grafana/ui';
+import { Button, VerticalGroup, Icon, HorizontalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 
 import Block from 'components/GBlock/Block';
@@ -48,7 +48,9 @@ export const SlackTab = () => {
           </VerticalGroup>
         </Block>
         <Button onClick={handleClickConnectSlackAccount}>
-          <Icon name="external-link-alt" className={cx('external-link-style')} /> Open Slack connection page
+          <HorizontalGroup spacing="xs" align="center">
+            <Icon name="external-link-alt" className={cx('external-link-style')} /> Open Slack connection page
+          </HorizontalGroup>
         </Button>
       </VerticalGroup>
     </WithPermissionControlDisplay>
