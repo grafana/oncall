@@ -1,6 +1,6 @@
 import path from 'path';
 
-import type { PlaywrightTestConfig } from '@playwright/test';
+import { defineConfig } from '@playwright/test';
 import { devices } from '@playwright/test';
 
 /**
@@ -18,7 +18,7 @@ const IS_CI = !!process.env.CI;
 /**
  * See https://playwright.dev/docs/test-configuration.
  */
-const config: PlaywrightTestConfig = {
+export default defineConfig({
   testDir: './e2e-tests',
 
   /* Maximum time all the tests can run for. */
@@ -68,38 +68,28 @@ const config: PlaywrightTestConfig = {
     },
     {
       name: 'chromium',
-      use: {
-        ...devices['Desktop Chrome'],
-      },
+      use: devices['Desktop Chrome'],
       dependencies: ['setup'],
     },
     // {
     //   name: 'firefox',
-    //   use: {
-    //     ...devices['Desktop Firefox'],
-    //   },
+    //   use: devices['Desktop Firefox'],
     //   dependencies: ['setup'],
     // },
     // {
     //   name: 'webkit',
-    //   use: {
-    //     ...devices['Desktop Safari'],
-    //   },
+    //   use: devices['Desktop Safari'],
     //   dependencies: ['setup'],
     // },
 
     /* Test against mobile viewports. */
     // {
     //   name: 'Mobile Chrome',
-    //   use: {
-    //     ...devices['Pixel 5'],
-    //   },
+    //   use: devices['Pixel 5'],
     // },
     // {
     //   name: 'Mobile Safari',
-    //   use: {
-    //     ...devices['iPhone 12'],
-    //   },
+    //   use: devices['iPhone 12'],
     // },
 
     /* Test against branded browsers. */
@@ -125,6 +115,4 @@ const config: PlaywrightTestConfig = {
   //   command: 'npm run start',
   //   port: 3000,
   // },
-};
-
-export default config;
+});
