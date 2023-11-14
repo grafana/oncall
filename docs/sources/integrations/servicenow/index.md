@@ -135,7 +135,7 @@ Use the following JSON template as webhook data:
 
 >**Note**: Values for fields `state` and `close_code` may be different for your ServiceNow instance, please check and update the values accordingly.
 
-## Advanced usage
+## More Information on Outgoing Webhook syntax  (Or something similar).
 
 The examples above describe how to create outgoing webhooks in Grafana OnCall that will allow to automatically create, assign and resolve incidents in ServiceNow.
 
