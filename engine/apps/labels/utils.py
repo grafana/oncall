@@ -63,6 +63,6 @@ def assign_labels(alert_group: "AlertGroup", alert_receive_channel: "AlertReceiv
             key_name=label.key.name,
             value_name=label.value.name,
         )
-        for label in alert_receive_channel.labels.filter(inherit=True).select_related("key", "value")
+        for label in alert_receive_channel.labels.filter(inheritable=True).select_related("key", "value")
     ]
     AlertGroupAssociatedLabel.objects.bulk_create(alert_group_labels)
