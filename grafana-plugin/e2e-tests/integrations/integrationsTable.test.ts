@@ -10,6 +10,7 @@ test('Integrations table shows data in Connections and Direct Paging tabs', asyn
   const DIRECT_PAGING_INTEGRATION_NAME = `Direct paging`;
 
   await createIntegration({ page, integrationSearchText: 'Webhook', integrationName: WEBHOOK_INTEGRATION_NAME });
+  await page.waitForTimeout(1000);
   await page.getByRole('tab', { name: 'Tab Integrations' }).click();
 
   await createIntegration({
@@ -18,6 +19,7 @@ test('Integrations table shows data in Connections and Direct Paging tabs', asyn
     shouldGoToIntegrationsPage: false,
     integrationName: ALERTMANAGER_INTEGRATION_NAME,
   });
+  await page.waitForTimeout(1000);
   await page.getByRole('tab', { name: 'Tab Integrations' }).click();
 
   // Create 1 Direct Paging integration if it doesn't exist
@@ -31,6 +33,7 @@ test('Integrations table shows data in Connections and Direct Paging tabs', asyn
       shouldGoToIntegrationsPage: false,
       integrationName: DIRECT_PAGING_INTEGRATION_NAME,
     });
+    await page.waitForTimeout(1000);
   }
   await page.getByRole('tab', { name: 'Tab Integrations' }).click();
 

@@ -40,9 +40,7 @@ test.describe('maintenance mode works', () => {
     await integrationSettingsPopupElement.click();
 
     // open the maintenance mode settings drawer + fill in the maintenance details
-    const startMaintenanceModeButton = page.getByTestId('integration-start-maintenance');
-    await startMaintenanceModeButton.waitFor({ state: 'visible' });
-    await startMaintenanceModeButton.click();
+    await page.getByTestId('integration-start-maintenance').click();
 
     // fill in the form
     const maintenanceModeDrawer = page.getByTestId('maintenance-mode-drawer');
@@ -80,9 +78,7 @@ test.describe('maintenance mode works', () => {
     await _openIntegrationSettingsPopup(page);
 
     // click the stop maintenance button
-    const stopMaintenanceModeButton = page.getByTestId('integration-stop-maintenance');
-    await stopMaintenanceModeButton.waitFor({ state: 'visible' });
-    await stopMaintenanceModeButton.click();
+    await page.getByTestId('integration-stop-maintenance').click();
 
     // in the modal popup, confirm that we want to stop it
     await clickButton({

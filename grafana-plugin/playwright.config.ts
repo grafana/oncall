@@ -13,6 +13,8 @@ export const VIEWER_USER_STORAGE_STATE = path.join(__dirname, 'e2e-tests/.auth/v
 export const EDITOR_USER_STORAGE_STATE = path.join(__dirname, 'e2e-tests/.auth/editor.json');
 export const ADMIN_USER_STORAGE_STATE = path.join(__dirname, 'e2e-tests/.auth/admin.json');
 
+const IS_CI = !!process.env.CI;
+
 /**
  * See https://playwright.dev/docs/test-configuration.
  */
@@ -23,7 +25,7 @@ const config: PlaywrightTestConfig = {
   globalTimeout: 20 * 60 * 1000, // 20 minutes
 
   /* Maximum time one test can run for. */
-  timeout: 60 * 1000,
+  timeout: 20 * 1000,
   expect: {
     /**
      * Maximum time expect() should wait for the condition to be met.
@@ -32,17 +34,17 @@ const config: PlaywrightTestConfig = {
     timeout: 10000,
   },
   /* Run tests in files in parallel */
-  fullyParallel: true,
+  fullyParallel: false,
   /* Fail the build on CI if you accidentally left test.only in the source code. */
-  forbidOnly: !!process.env.CI,
+  forbidOnly: IS_CI,
   /**
    * Retry on CI only
    *
    * NOTE: until we fix this issue (https://github.com/grafana/oncall/issues/1692) which occasionally leads
    * to flaky tests.. let's just retry failed tests. If the same test fails 3 times, you know something must be up
    */
-  retries: !!process.env.CI ? 3 : 0,
-  workers: 2,
+  retries: IS_CI ? 3 : 0,
+  workers: 1,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   reporter: 'html',
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
@@ -53,9 +55,9 @@ const config: PlaywrightTestConfig = {
     // baseURL: 'http://localhost:3000',
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
-    trace: 'on',
-    video: 'on',
-    headless: !!process.env.CI,
+    trace: 'off',
+    video: 'off',
+    headless: IS_CI,
   },
 
   /* Configure projects for major browsers */
