@@ -32,6 +32,11 @@ class OrganizationMovedMiddleware(MiddlewareMixin):
             if (v := request.META.get("HTTP_AUTHORIZATION", None)) is not None:
                 headers["Authorization"] = v
 
+            if "amazon_sns" in request.path:
+                for k, v in request.META.items():
+                    if k.startswith("x-amz-sns-"):
+                        headers[k] = v
+
             response = self.make_request(request.method, url, headers, request.body)
             return HttpResponse(response.content, status=response.status_code)
 

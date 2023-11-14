@@ -5,6 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+## v1.3.58 (2023-11-14)
+
+### Added
+
+- Added user timezone field to the users public API response ([#3311](https://github.com/grafana/oncall/pull/3311))
+- Allow filtering users by public primary key in internal API ([#3339](https://github.com/grafana/oncall/pull/3339))
+
+### Changed
+
+- Split Integrations table into Connections and Direct Paging tabs ([#3290](https://github.com/grafana/oncall/pull/3290))
+
+### Fixed
+
+- Fix issue where Slack user connection error message is sometimes shown despite successful connection by @joeyorlando ([#3327](https://github.com/grafana/oncall/pull/3327))
+- Forward headers for Amazon SNS when organizations are moved @mderynck ([#3326](https://github.com/grafana/oncall/pull/3326))
+- Fix styling when light theme is turned on via system preferences
+  by excluding dark theme css vars in this case ([#3336](https://github.com/grafana/oncall/pull/3336))
+- Fix issue when acknowledge reminder works for deleted organizations @Ferril ([#3345](https://github.com/grafana/oncall/pull/3345))
+- Fix generating QR code ([#3347](https://github.com/grafana/oncall/pull/3347))
+
 ## v1.3.57 (2023-11-10)
 
 ### Fixed
