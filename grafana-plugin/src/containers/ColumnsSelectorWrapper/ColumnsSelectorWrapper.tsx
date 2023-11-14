@@ -4,13 +4,12 @@ import { Button, Checkbox, HorizontalGroup, Icon, Input, Modal, Toggletip, Verti
 import cn from 'classnames/bind';
 
 import Text from 'components/Text/Text';
+import { ColumnsSelector } from 'containers/ColumnsSelector/ColumnsSelector';
+import styles from 'containers/ColumnsSelectorWrapper/ColumnsSelectorWrapper.module.scss';
 import { AGColumn } from 'models/alertgroup/alertgroup.types';
 import { Label } from 'models/label/label.types';
-import styles from 'containers/ColumnsSelectorWrapper/ColumnsSelectorWrapper.module.scss';
 import { useStore } from 'state/useStore';
 import { useDebouncedCallback } from 'utils/hooks';
-
-import { ColumnsSelector } from 'containers/ColumnsSelector/ColumnsSelector';
 
 const cx = cn.bind(styles);
 

@@ -24,8 +24,8 @@ import { observer } from 'mobx-react';
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
 
 import Text from 'components/Text/Text';
-import { AGColumn, AGColumnType } from 'models/alertgroup/alertgroup.types';
 import styles from 'containers/ColumnsSelector/ColumnsSelector.module.scss';
+import { AGColumn, AGColumnType } from 'models/alertgroup/alertgroup.types';
 import { useStore } from 'state/useStore';
 import { openErrorNotification } from 'utils';
 
