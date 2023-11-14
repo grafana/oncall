@@ -26,13 +26,11 @@ def acknowledge_reminder_task(alert_group_pk: int, unacknowledge_process_id: str
         if unacknowledge_process_id != alert_group.last_unique_unacknowledge_process_id:
             return
 
+    organization = alert_group.channel.organization
+
     # Get timeout values
-    acknowledge_reminder_timeout = Organization.ACKNOWLEDGE_REMIND_DELAY[
-        alert_group.channel.organization.acknowledge_remind_timeout
-    ]
-    unacknowledge_timeout = Organization.UNACKNOWLEDGE_TIMEOUT_DELAY[
-        alert_group.channel.organization.unacknowledge_timeout
-    ]
+    acknowledge_reminder_timeout = Organization.ACKNOWLEDGE_REMIND_DELAY[organization.acknowledge_remind_timeout]
+    unacknowledge_timeout = Organization.UNACKNOWLEDGE_TIMEOUT_DELAY[organization.unacknowledge_timeout]
 
     # Don't proceed if the alert group is not in a state for acknowledgement reminder
     acknowledge_reminder_required = (
@@ -41,9 +39,17 @@ def acknowledge_reminder_task(alert_group_pk: int, unacknowledge_process_id: str
         and alert_group.acknowledged_by == AlertGroup.USER
         and acknowledge_reminder_timeout
     )
-    if not acknowledge_reminder_required:
-        task_logger.info("AlertGroup is not in a state for acknowledgement reminder")
+    is_organization_deleted = organization.deleted_at is not None
+    log_info = (
+        f"acknowledge_reminder_timeout option: {acknowledge_reminder_timeout},"
+        f"organization ppk: {organization.public_primary_key},"
+        f"organization is deleted: {is_organization_deleted}"
+    )
+    if not acknowledge_reminder_required or is_organization_deleted:
+        task_logger.info(f"alert group {alert_group_pk} is not in a state for acknowledgement reminder. {log_info}")
         return
+
+    task_logger.info(f"alert group {alert_group_pk} is in a state for acknowledgement reminder. {log_info}")
 
     # unacknowledge_timeout_task uses acknowledged_by_confirmed to check if acknowledgement reminder has been confirmed
     # by the user. Setting to None here to indicate that the user has not confirmed the acknowledgement reminder
@@ -80,13 +86,11 @@ def unacknowledge_timeout_task(alert_group_pk: int, unacknowledge_process_id: st
         if unacknowledge_process_id != alert_group.last_unique_unacknowledge_process_id:
             return
 
+    organization = alert_group.channel.organization
+
     # Get timeout values
-    acknowledge_reminder_timeout = Organization.ACKNOWLEDGE_REMIND_DELAY[
-        alert_group.channel.organization.acknowledge_remind_timeout
-    ]
-    unacknowledge_timeout = Organization.UNACKNOWLEDGE_TIMEOUT_DELAY[
-        alert_group.channel.organization.unacknowledge_timeout
-    ]
+    acknowledge_reminder_timeout = Organization.ACKNOWLEDGE_REMIND_DELAY[organization.acknowledge_remind_timeout]
+    unacknowledge_timeout = Organization.UNACKNOWLEDGE_TIMEOUT_DELAY[organization.unacknowledge_timeout]
 
     # Don't proceed if the alert group is not in a state for auto-unacknowledge
     unacknowledge_required = (
@@ -96,16 +100,28 @@ def unacknowledge_timeout_task(alert_group_pk: int, unacknowledge_process_id: st
         and acknowledge_reminder_timeout
         and unacknowledge_timeout
     )
-    if not unacknowledge_required:
-        task_logger.info("AlertGroup is not in a state for unacknowledge")
+    is_organization_deleted = organization.deleted_at is not None
+    log_info = (
+        f"acknowledge_reminder_timeout option: {acknowledge_reminder_timeout},"
+        f"unacknowledge_timeout option: {unacknowledge_timeout},"
+        f"organization ppk: {organization.public_primary_key},"
+        f"organization is deleted: {is_organization_deleted}"
+    )
+    if not unacknowledge_required or is_organization_deleted:
+        task_logger.info(f"alert group {alert_group_pk} is not in a state for unacknowledge by timeout. {log_info}")
         return
 
     if alert_group.acknowledged_by_confirmed:  # acknowledgement reminder was confirmed by the user
         acknowledge_reminder_task.apply_async(
             (alert_group_pk, unacknowledge_process_id), countdown=acknowledge_reminder_timeout - unacknowledge_timeout
         )
+        task_logger.info(
+            f"Acknowledgement reminder was confirmed by user. Rescheduling acknowledge_reminder_task..."
+            f"alert group: {alert_group_pk}, {log_info}"
+        )
         return
 
+    task_logger.info(f"alert group {alert_group_pk} is in a state for unacknowledge by timeout. {log_info}")
     # If acknowledgement reminder wasn't confirmed by the user, unacknowledge the alert group and start escalation again
     log_record = alert_group.log_records.create(
         type=AlertGroupLogRecord.TYPE_AUTO_UN_ACK, author=alert_group.acknowledged_by_user

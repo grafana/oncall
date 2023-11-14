@@ -299,3 +299,43 @@ def test_unacknowledge_timeout_task_no_unacknowledge(
     )
 
     assert not alert_group.log_records.exists()
+
+
+@patch.object(acknowledge_reminder_task, "apply_async")
+@patch.object(unacknowledge_timeout_task, "apply_async")
+@pytest.mark.django_db
+def test_ack_reminder_skip_deleted_org(
+    mock_acknowledge_reminder_task,
+    mock_unacknowledge_timeout_task,
+    ack_reminder_test_setup,
+):
+    organization, alert_group, user = ack_reminder_test_setup()
+    organization.deleted_at = timezone.now()
+    organization.save()
+
+    acknowledge_reminder_task(alert_group.pk, TASK_ID)
+
+    mock_unacknowledge_timeout_task.assert_not_called()
+    mock_acknowledge_reminder_task.assert_not_called()
+
+    assert not alert_group.log_records.exists()
+
+
+@patch.object(acknowledge_reminder_task, "apply_async")
+@patch.object(unacknowledge_timeout_task, "apply_async")
+@pytest.mark.django_db
+def test_unacknowledge_timeout_task_skip_deleted_org(
+    mock_acknowledge_reminder_task,
+    mock_unacknowledge_timeout_task,
+    ack_reminder_test_setup,
+):
+    organization, alert_group, user = ack_reminder_test_setup()
+    organization.deleted_at = timezone.now()
+    organization.save()
+
+    unacknowledge_timeout_task(alert_group.pk, TASK_ID)
+
+    mock_unacknowledge_timeout_task.assert_not_called()
+    mock_acknowledge_reminder_task.assert_not_called()
+
+    assert not alert_group.log_records.exists()
