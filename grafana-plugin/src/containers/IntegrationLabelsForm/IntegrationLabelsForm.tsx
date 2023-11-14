@@ -41,7 +41,7 @@ const IntegrationLabelsForm = observer((props: IntegrationLabelsFormProps) => {
     return (event: React.ChangeEvent<HTMLInputElement>) => {
       setAlertGroupLabels((alertGroupLabels) => ({
         ...alertGroupLabels,
-        inherit: { ...alertGroupLabels.inherit, [keyId]: event.target.checked },
+        inheritable: { ...alertGroupLabels.inheritable, [keyId]: event.target.checked },
       }));
     };
   };
@@ -65,7 +65,7 @@ const IntegrationLabelsForm = observer((props: IntegrationLabelsFormProps) => {
                   {/* @ts-ignore */}
                   <Input width="250px" value={label.value.name} disabled />
                   <InlineSwitch
-                    value={alertGroupLabels.inherit[label.key.id]}
+                    value={alertGroupLabels.inheritable[label.key.id]}
                     transparent
                     onChange={getInheritanceChangeHandler(label.key.id)}
                   />

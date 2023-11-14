@@ -36,7 +36,7 @@ def valid_jinja_template_for_serializer_method_field(template):
 class IntegrationAlertGroupLabelsSerializer(serializers.Serializer):
     """Alert group labels configuration for the integration. See AlertReceiveChannel.alert_group_labels for details."""
 
-    inherit = serializers.DictField(child=serializers.BooleanField())
+    inheritable = serializers.DictField(child=serializers.BooleanField())
 
 
 class AlertReceiveChannelSerializer(EagerLoadingMixin, LabelsSerializerMixin, serializers.ModelSerializer):
@@ -147,7 +147,7 @@ class AlertReceiveChannelSerializer(EagerLoadingMixin, LabelsSerializerMixin, se
         except AlertReceiveChannel.DuplicateDirectPagingError:
             raise BadRequest(detail=AlertReceiveChannel.DuplicateDirectPagingError.DETAIL)
 
-        # Create label associations first, then update inherited labels
+        # Create label associations first, then update inheritable labels
         self.update_labels_association_if_needed(labels, instance, organization)
         if alert_group_labels:
             instance.alert_group_labels = alert_group_labels

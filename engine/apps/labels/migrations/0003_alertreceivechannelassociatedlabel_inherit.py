@@ -12,7 +12,7 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AddField(
             model_name='alertreceivechannelassociatedlabel',
-            name='inherit',
+            name='inheritable',
             field=models.BooleanField(default=True, null=True),
         ),
     ]
