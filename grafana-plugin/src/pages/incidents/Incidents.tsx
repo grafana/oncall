@@ -500,6 +500,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
           data={results}
           columns={this.getTableColumns()}
           tableLayout="auto"
+          scroll={{ x: true }}
         />
         {this.shouldShowPagination() && (
           <div className={cx('pagination')}>
@@ -521,7 +522,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
   renderId(record: AlertType) {
     return (
       <TextEllipsisTooltip placement="top" content={`#${record.inside_organization_number}`}>
-        <Text type="secondary" className={cx(TEXT_ELLIPSIS_CLASS)}>
+        <Text type="secondary" className={cx(TEXT_ELLIPSIS_CLASS, 'overflow-child--line-1')}>
           #{record.inside_organization_number}
         </Text>
       </TextEllipsisTooltip>

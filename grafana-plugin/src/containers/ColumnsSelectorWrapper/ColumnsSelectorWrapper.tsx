@@ -50,6 +50,7 @@ const ColumnsSelectorWrapper: React.FC<ColumnsSelectorWrapperProps> = () => {
           placement={'bottom-end'}
           show={true}
           closeButton={false}
+          onClose={onToggletipClose}
         >
           {renderToggletipButton()}
         </Toggletip>
@@ -68,6 +69,13 @@ const ColumnsSelectorWrapper: React.FC<ColumnsSelectorWrapperProps> = () => {
         </HorizontalGroup>
       </Button>
     );
+  }
+
+  function onToggletipClose() {
+    const { alertGroupStore } = store;
+
+    // reset temporary cached columns
+    alertGroupStore.temporaryColumns = [...alertGroupStore.columns];
   }
 };
 

@@ -171,7 +171,6 @@ export const ColumnsSelector: React.FC<ColumnsSelectorProps> = observer(({ onMod
 
   function onReset() {
     alertGroupStore.columns = [...alertGroupStore.temporaryColumns];
-    alertGroupStore.temporaryColumns = [];
   }
 
   function onItemChange(id: string | number) {
