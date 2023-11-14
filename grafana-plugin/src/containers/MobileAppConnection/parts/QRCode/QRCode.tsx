@@ -1,6 +1,6 @@
 import React, { FC } from 'react';
 
-import QRCodeBase from 'react-qr-code';
+import { QRCodeSVG } from 'qrcode.react';
 
 import Block from 'components/GBlock/Block';
 
@@ -14,7 +14,7 @@ const QRCode: FC<Props> = (props: Props) => {
 
   return (
     <Block bordered className={className}>
-      <QRCodeBase value={value} />
+      <QRCodeSVG value={value} size={256} />
     </Block>
   );
 };
