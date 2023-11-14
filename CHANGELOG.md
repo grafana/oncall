@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## v1.3.58 (2023-11-14)
+
 ### Added
 
 - Added user timezone field to the users public API response ([#3311](https://github.com/grafana/oncall/pull/3311))
