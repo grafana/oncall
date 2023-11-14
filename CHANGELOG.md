@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Forward headers for Amazon SNS when organizations are moved @mderynck ([#3326](https://github.com/grafana/oncall/pull/3326))
 - Fix styling when light theme is turned on via system preferences
   by excluding dark theme css vars in this case ([#3336](https://github.com/grafana/oncall/pull/3336))
+- Fix issue when acknowledge reminder works for deleted organizations @Ferril ([#3345](https://github.com/grafana/oncall/pull/3345))
 
 ## v1.3.57 (2023-11-10)
 
