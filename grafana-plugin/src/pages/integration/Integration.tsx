@@ -732,8 +732,7 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
   isLegacyIntegration,
   changeIsTemplateSettingsOpen,
 }) => {
-  const store = useStore();
-  const { alertReceiveChannelStore } = store;
+  const { alertReceiveChannelStore, hasFeature } = useStore();
 
   const history = useHistory();
 
@@ -839,7 +838,7 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
                 <Text type="primary">Integration Settings</Text>
               </div>
 
-              {store.hasFeature(AppFeature.Labels) && (
+              {hasFeature(AppFeature.Labels) && (
                 <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
                   <div className={cx('integration__actionItem')} onClick={() => openLabelsForm()}>
                     <Text type="primary">Alert group labels</Text>
@@ -1088,18 +1087,15 @@ const IntegrationHeader: React.FC<IntegrationHeaderProps> = ({
 
       {Boolean(renderLabels && alertReceiveChannel.labels.length) && (
         <TooltipBadge
-          tooltipTitle=""
           borderType="secondary"
           icon="tag-alt"
           addPadding
           text={alertReceiveChannel.labels.length}
           tooltipContent={
             <VerticalGroup spacing="sm">
-              {alertReceiveChannel.labels.length
-                ? alertReceiveChannel.labels.map((label) => (
-                    <LabelTag label={label.key.name} value={label.value.name} key={label.key.id} />
-                  ))
-                : 'No labels attached'}
+              {alertReceiveChannel.labels.map((label) => (
+                <LabelTag label={label.key.name} value={label.value.name} key={label.key.id} />
+              ))}
             </VerticalGroup>
           }
         />

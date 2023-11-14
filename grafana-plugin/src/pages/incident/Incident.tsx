@@ -344,18 +344,15 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
 
               {Boolean(store.hasFeature(AppFeature.Labels) && incident.labels.length) && (
                 <TooltipBadge
-                  tooltipTitle=""
                   borderType="secondary"
                   icon="tag-alt"
                   addPadding
                   text={incident.labels.length}
                   tooltipContent={
                     <VerticalGroup spacing="sm">
-                      {incident.labels.length
-                        ? incident.labels.map((label) => (
-                            <LabelTag label={label.key.name} value={label.value.name} key={label.key.id} />
-                          ))
-                        : 'No labels attached'}
+                      {incident.labels.map((label) => (
+                        <LabelTag label={label.key.name} value={label.value.name} key={label.key.id} />
+                      ))}
                     </VerticalGroup>
                   }
                 />

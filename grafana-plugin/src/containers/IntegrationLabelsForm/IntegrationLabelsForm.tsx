@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useState } from 'react';
 
 import { Button, Drawer, HorizontalGroup, Icon, InlineSwitch, Input, Label, Tooltip, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
@@ -21,21 +21,21 @@ interface IntegrationLabelsFormProps {
 const IntegrationLabelsForm = observer((props: IntegrationLabelsFormProps) => {
   const { id, onHide, onSubmit } = props;
 
-  const store = useStore();
+  const {
+    alertReceiveChannelStore: { items, saveAlertReceiveChannel },
+  } = useStore();
 
-  const { alertReceiveChannelStore } = store;
-
-  const alertReceiveChannel = alertReceiveChannelStore.items[id];
+  const alertReceiveChannel = items[id];
 
   const [alertGroupLabels, setAlertGroupLabels] = useState(alertReceiveChannel.alert_group_labels);
 
-  const handleSave = useCallback(() => {
-    alertReceiveChannelStore.saveAlertReceiveChannel(id, { alert_group_labels: alertGroupLabels });
+  const handleSave = () => {
+    saveAlertReceiveChannel(id, { alert_group_labels: alertGroupLabels });
 
     onSubmit();
 
     onHide();
-  }, [alertGroupLabels]);
+  };
 
   const getInheritanceChangeHandler = (keyId: LabelKey['id']) => {
     return (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -48,43 +48,39 @@ const IntegrationLabelsForm = observer((props: IntegrationLabelsFormProps) => {
 
   return (
     <Drawer scrollableContent title="Alert group labels" onClose={onHide} closeOnMaskClick={false} width="640px">
-      <div>
-        <VerticalGroup>
-          <HorizontalGroup spacing="xs" align="flex-start">
-            <Label>Inherited labels</Label>
-            <Tooltip content="Labels inherited from integration">
-              <Icon name="info-circle" className={cx('extra-fields__icon')} />
-            </Tooltip>
+      <VerticalGroup>
+        <HorizontalGroup spacing="xs" align="flex-start">
+          <Label>Inherited labels</Label>
+          <Tooltip content="Labels inherited from integration">
+            <Icon name="info-circle" className={cx('extra-fields__icon')} />
+          </Tooltip>
+        </HorizontalGroup>
+        <ul className={cx('labels-list')}>
+          {alertReceiveChannel.labels.map((label) => (
+            <li key={label.key.id}>
+              <HorizontalGroup spacing="xs">
+                <Input width={38} value={label.key.name} disabled />
+                <Input width={31} value={label.value.name} disabled />
+                <InlineSwitch
+                  value={alertGroupLabels.inherit[label.key.id]}
+                  transparent
+                  onChange={getInheritanceChangeHandler(label.key.id)}
+                />
+              </HorizontalGroup>
+            </li>
+          ))}
+        </ul>
+        <div className={cx('buttons')}>
+          <HorizontalGroup justify="flex-end">
+            <Button variant="secondary" onClick={onHide}>
+              Close
+            </Button>
+            <Button variant="primary" onClick={handleSave}>
+              Save
+            </Button>
           </HorizontalGroup>
-          <ul className={cx('labels-list')}>
-            {alertReceiveChannel.labels.map((label) => (
-              <li key={label.key.id}>
-                <HorizontalGroup spacing="xs">
-                  {/* @ts-ignore */}
-                  <Input width="300px" value={label.key.name} disabled />
-                  {/* @ts-ignore */}
-                  <Input width="250px" value={label.value.name} disabled />
-                  <InlineSwitch
-                    value={alertGroupLabels.inherit[label.key.id]}
-                    transparent
-                    onChange={getInheritanceChangeHandler(label.key.id)}
-                  />
-                </HorizontalGroup>
-              </li>
-            ))}
-          </ul>
-          <div className={cx('buttons')}>
-            <HorizontalGroup justify="flex-end">
-              <Button variant="secondary" onClick={onHide}>
-                Close
-              </Button>
-              <Button variant="primary" onClick={handleSave}>
-                Save
-              </Button>
-            </HorizontalGroup>
-          </div>
-        </VerticalGroup>
-      </div>
+        </div>
+      </VerticalGroup>
     </Drawer>
   );
 });

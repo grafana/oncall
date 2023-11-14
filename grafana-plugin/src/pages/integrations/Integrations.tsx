@@ -387,7 +387,6 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
               borderType="primary"
               placement="top"
               text={alertReceiveChannelCounter?.alerts_count + '/' + alertReceiveChannelCounter?.alert_groups_count}
-              tooltipTitle=""
               tooltipContent={
                 alertReceiveChannelCounter?.alerts_count +
                 ' alert' +
@@ -476,27 +475,24 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
 
     return (
       <TooltipBadge
-        tooltipTitle=""
         borderType="secondary"
         icon="tag-alt"
         addPadding
         text={item.labels?.length}
         tooltipContent={
           <VerticalGroup spacing="sm">
-            {item.labels?.length
-              ? item.labels.map((label) => (
-                  <HorizontalGroup spacing="sm" key={label.key.id}>
-                    <LabelTag label={label.key.name} value={label.value.name} key={label.key.id} />
-                    <Button
-                      size="sm"
-                      icon="filter"
-                      tooltip="Apply filter"
-                      variant="secondary"
-                      onClick={this.getApplyLabelFilterClickHandler(label)}
-                    />
-                  </HorizontalGroup>
-                ))
-              : 'No labels attached'}
+            {item.labels.map((label) => (
+              <HorizontalGroup spacing="sm" key={label.key.id}>
+                <LabelTag label={label.key.name} value={label.value.name} key={label.key.id} />
+                <Button
+                  size="sm"
+                  icon="filter"
+                  tooltip="Apply filter"
+                  variant="secondary"
+                  onClick={this.getApplyLabelFilterClickHandler(label)}
+                />
+              </HorizontalGroup>
+            ))}
           </VerticalGroup>
         }
       />
