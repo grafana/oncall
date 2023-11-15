@@ -245,14 +245,17 @@ class FastAlertReceiveChannelSerializer(serializers.ModelSerializer[AlertReceive
 
 
 class FilterAlertReceiveChannelSerializer(serializers.ModelSerializer[AlertReceiveChannel]):
-    value = serializers.SerializerMethodField()
+    # don't use get_value as the method name, otherwise this will override the get_value method on
+    # serializers.ModelSerializer, which may cause unexpected behavior (+ this violates the "Lisov substition
+    # principle" which mypy complains about)
+    value = serializers.SerializerMethodField(method_name="_get_value")
     display_name = serializers.SerializerMethodField()
 
     class Meta:
         model = AlertReceiveChannel
         fields = ["value", "display_name", "integration_url"]
 
-    def get_value(self, obj: "AlertReceiveChannel"):
+    def _get_value(self, obj: "AlertReceiveChannel"):
         return obj.public_primary_key
 
     def get_display_name(self, obj: "AlertReceiveChannel"):
