@@ -7,10 +7,7 @@ const HEARTBEAT_SETTINGS_FORM_TEST_ID = 'heartbeat-settings-form';
 
 test.describe("updating an integration's heartbeat interval works", async () => {
   const _openHeartbeatSettingsForm = async (page: Page) => {
-    const integrationSettingsPopupElement = page.getByTestId('integration-settings-context-menu');
-    await integrationSettingsPopupElement.waitFor({ state: 'visible' });
-    await integrationSettingsPopupElement.click();
-
+    await page.getByTestId('integration-settings-context-menu-wrapper').getByRole('img').click();
     await page.getByTestId('integration-heartbeat-settings').click();
   };
 
@@ -60,6 +57,6 @@ test.describe("updating an integration's heartbeat interval works", async () => 
      */
     await page.request.get(endpoint);
     await page.reload({ waitUntil: 'networkidle' });
-    await page.getByTestId('heartbeat-badge').waitFor({ state: 'visible' });
+    await page.getByTestId('heartbeat-badge').waitFor();
   });
 });

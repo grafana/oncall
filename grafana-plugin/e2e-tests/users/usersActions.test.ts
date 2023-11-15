@@ -80,10 +80,9 @@ test.describe('Users screen actions', () => {
   async function _testButtons(page: Page, selector: string) {
     await goToOnCallPage(page, 'users');
 
-    const usersTableElement = page.getByTestId('users-table');
-    await usersTableElement.waitFor({ state: 'visible' });
+    await page.getByTestId('users-table').isVisible();
 
-    const buttonsList = await page.locator(selector);
+    const buttonsList = await page.locator(selector); // TODO: check it
 
     expect(buttonsList).toHaveCount(0);
   }

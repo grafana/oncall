@@ -1,3 +1,4 @@
+import { time } from 'console';
 import { test, expect, Page, Locator } from '../fixtures';
 import { verifyThatAlertGroupIsRoutedCorrectlyButNotEscalated } from '../utils/alertGroup';
 import { EscalationStep, createEscalationChain } from '../utils/escalationChain';
@@ -13,8 +14,6 @@ import { goToOnCallPage } from '../utils/navigation';
 type MaintenanceModeType = 'Debug' | 'Maintenance';
 
 test.describe('maintenance mode works', () => {
-  test.slow(); // this test is doing a good amount of work, give it time
-
   const MAINTENANCE_DURATION = '1 hour';
   const REMAINING_TIME_TEXT = '59m left';
   const REMAINING_TIME_TOOLTIP_TEST_ID = 'maintenance-mode-remaining-time-tooltip';
@@ -23,7 +22,10 @@ test.describe('maintenance mode works', () => {
     `alert group assigned to route "default" with escalation chain "${escalationChainName}"`;
 
   const _openIntegrationSettingsPopup = async (page: Page): Promise<Locator> => {
-    const integrationSettingsPopupElement = page.getByTestId('integration-settings-context-menu');
+    await page.waitForTimeout(1000);
+    const integrationSettingsPopupElement = page
+      .getByTestId('integration-settings-context-menu-wrapper')
+      .getByRole('img');
     await integrationSettingsPopupElement.click();
     return integrationSettingsPopupElement;
   };
@@ -103,6 +105,7 @@ test.describe('maintenance mode works', () => {
     await createEscalationChain(page, escalationChainName, EscalationStep.NotifyUsers, userName);
     await createIntegration({ page, integrationName });
     await assignEscalationChainToIntegration(page, escalationChainName);
+    await page.waitForTimeout(1000);
     await enableMaintenanceMode(page, maintenanceModeType);
 
     return { escalationChainName, integrationName };

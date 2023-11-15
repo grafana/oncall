@@ -1,8 +1,6 @@
+import { defineConfig, devices } from '@playwright/test';
+
 import path from 'path';
-
-import { defineConfig } from '@playwright/test';
-import { devices } from '@playwright/test';
-
 /**
  * Read environment variables from file.
  * https://github.com/motdotla/dotenv
@@ -57,7 +55,7 @@ export default defineConfig({
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'off',
     video: 'off',
-    headless: IS_CI,
+    headless: false,
   },
 
   /* Configure projects for major browsers */

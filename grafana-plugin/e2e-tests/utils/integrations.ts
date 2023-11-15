@@ -85,9 +85,5 @@ export const filterIntegrationsTableAndGoToDetailPage = async (page: Page, integ
     pressEnterInsteadOfSelectingOption: true,
   });
 
-  await (
-    await page.waitForSelector(
-      `div[data-testid="integrations-table"] table > tbody > tr > td:first-child a >> text=${integrationName}`
-    )
-  ).click();
+  await page.getByTestId('integrations-table').getByText(`${integrationName}`).click();
 };

@@ -818,156 +818,159 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
           </Button>
         </WithPermissionControlTooltip>
 
-        <WithContextMenu
-          data-testid="integration-settings-context-menu"
-          renderMenuItems={() => (
-            <div className={cx('integration__actionsList')} id="integration-menu-options">
-              <div className={cx('integration__actionItem')} onClick={() => openIntegrationSettings()}>
-                <Text type="primary">Integration Settings</Text>
-              </div>
-
-              {showHeartbeatSettings() && (
-                <WithPermissionControlTooltip key="ok" userAction={UserActions.IntegrationsWrite}>
-                  <div
-                    className={cx('integration__actionItem')}
-                    onClick={() => setIsHeartbeatFormOpen(true)}
-                    data-testid="integration-heartbeat-settings"
-                  >
-                    Heartbeat Settings
-                  </div>
-                </WithPermissionControlTooltip>
-              )}
-
-              {!alertReceiveChannel.maintenance_till && (
-                <WithPermissionControlTooltip userAction={UserActions.MaintenanceWrite}>
-                  <div
-                    className={cx('integration__actionItem')}
-                    onClick={openStartMaintenance}
-                    data-testid="integration-start-maintenance"
-                  >
-                    <Text type="primary">Start Maintenance</Text>
-                  </div>
-                </WithPermissionControlTooltip>
-              )}
-
-              <WithPermissionControlTooltip userAction={UserActions.MaintenanceWrite}>
-                <div className={cx('integration__actionItem')} onClick={changeIsTemplateSettingsOpen}>
-                  <Text type="primary">Edit Templates</Text>
+        <div data-testid="integration-settings-context-menu-wrapper">
+          <WithContextMenu
+            renderMenuItems={() => (
+              <div className={cx('integration__actionsList')} id="integration-menu-options">
+                <div className={cx('integration__actionItem')} onClick={() => openIntegrationSettings()}>
+                  <Text type="primary">Integration Settings</Text>
                 </div>
-              </WithPermissionControlTooltip>
 
-              {alertReceiveChannel.maintenance_till && (
+                {showHeartbeatSettings() && (
+                  <WithPermissionControlTooltip key="ok" userAction={UserActions.IntegrationsWrite}>
+                    <div
+                      className={cx('integration__actionItem')}
+                      onClick={() => setIsHeartbeatFormOpen(true)}
+                      data-testid="integration-heartbeat-settings"
+                    >
+                      Heartbeat Settings
+                    </div>
+                  </WithPermissionControlTooltip>
+                )}
+
+                {!alertReceiveChannel.maintenance_till && (
+                  <WithPermissionControlTooltip userAction={UserActions.MaintenanceWrite}>
+                    <div
+                      className={cx('integration__actionItem')}
+                      onClick={openStartMaintenance}
+                      data-testid="integration-start-maintenance"
+                    >
+                      <Text type="primary">Start Maintenance</Text>
+                    </div>
+                  </WithPermissionControlTooltip>
+                )}
+
                 <WithPermissionControlTooltip userAction={UserActions.MaintenanceWrite}>
-                  <div
-                    className={cx('integration__actionItem')}
-                    onClick={() => {
-                      setConfirmModal({
-                        isOpen: true,
-                        confirmText: 'Stop',
-                        dismissText: 'Cancel',
-                        onConfirm: onStopMaintenance,
-                        title: 'Stop Maintenance',
-                        body: (
-                          <Text type="primary">
-                            Are you sure you want to stop the maintenance for{' '}
-                            <Emoji text={alertReceiveChannel.verbal_name} /> ?
-                          </Text>
-                        ),
-                      });
-                    }}
-                    data-testid="integration-stop-maintenance"
-                  >
-                    <Text type="primary">Stop Maintenance</Text>
+                  <div className={cx('integration__actionItem')} onClick={changeIsTemplateSettingsOpen}>
+                    <Text type="primary">Edit Templates</Text>
                   </div>
                 </WithPermissionControlTooltip>
-              )}
 
-              {isLegacyIntegration && (
-                <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
-                  <div
-                    className={cx('integration__actionItem')}
-                    onClick={() =>
-                      setConfirmModal({
-                        isOpen: true,
-                        title: 'Migrate Integration?',
-                        body: (
-                          <VerticalGroup spacing="lg">
+                {alertReceiveChannel.maintenance_till && (
+                  <WithPermissionControlTooltip userAction={UserActions.MaintenanceWrite}>
+                    <div
+                      className={cx('integration__actionItem')}
+                      onClick={() => {
+                        setConfirmModal({
+                          isOpen: true,
+                          confirmText: 'Stop',
+                          dismissText: 'Cancel',
+                          onConfirm: onStopMaintenance,
+                          title: 'Stop Maintenance',
+                          body: (
                             <Text type="primary">
-                              Are you sure you want to migrate <Emoji text={alertReceiveChannel.verbal_name} /> ?
+                              Are you sure you want to stop the maintenance for{' '}
+                              <Emoji text={alertReceiveChannel.verbal_name} /> ?
                             </Text>
+                          ),
+                        });
+                      }}
+                      data-testid="integration-stop-maintenance"
+                    >
+                      <Text type="primary">Stop Maintenance</Text>
+                    </div>
+                  </WithPermissionControlTooltip>
+                )}
 
-                            <VerticalGroup spacing="xs">
-                              <Text type="secondary">- Integration internal behaviour will be changed</Text>
-                              <Text type="secondary">
-                                - Integration URL will stay the same, so no need to change {getMigrationDisplayName()}{' '}
-                                configuration
+                {isLegacyIntegration && (
+                  <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
+                    <div
+                      className={cx('integration__actionItem')}
+                      onClick={() =>
+                        setConfirmModal({
+                          isOpen: true,
+                          title: 'Migrate Integration?',
+                          body: (
+                            <VerticalGroup spacing="lg">
+                              <Text type="primary">
+                                Are you sure you want to migrate <Emoji text={alertReceiveChannel.verbal_name} /> ?
                               </Text>
-                              <Text type="secondary">
-                                - Integration templates will be reset to suit the new payload
-                              </Text>
-                              <Text type="secondary">- It is needed to adjust routes manually to the new payload</Text>
+
+                              <VerticalGroup spacing="xs">
+                                <Text type="secondary">- Integration internal behaviour will be changed</Text>
+                                <Text type="secondary">
+                                  - Integration URL will stay the same, so no need to change {getMigrationDisplayName()}{' '}
+                                  configuration
+                                </Text>
+                                <Text type="secondary">
+                                  - Integration templates will be reset to suit the new payload
+                                </Text>
+                                <Text type="secondary">
+                                  - It is needed to adjust routes manually to the new payload
+                                </Text>
+                              </VerticalGroup>
                             </VerticalGroup>
-                          </VerticalGroup>
-                        ),
-                        onConfirm: onIntegrationMigrate,
-                        dismissText: 'Cancel',
-                        confirmText: 'Migrate',
-                      })
-                    }
-                  >
-                    Migrate
+                          ),
+                          onConfirm: onIntegrationMigrate,
+                          dismissText: 'Cancel',
+                          confirmText: 'Migrate',
+                        })
+                      }
+                    >
+                      Migrate
+                    </div>
+                  </WithPermissionControlTooltip>
+                )}
+
+                <CopyToClipboard
+                  text={alertReceiveChannel.id}
+                  onCopy={() => openNotification('Integration ID is copied')}
+                >
+                  <div className={cx('integration__actionItem')}>
+                    <HorizontalGroup spacing={'xs'}>
+                      <Icon name="copy" />
+
+                      <Text type="primary">UID: {alertReceiveChannel.id}</Text>
+                    </HorizontalGroup>
+                  </div>
+                </CopyToClipboard>
+
+                <div className={cx('thin-line-break')} />
+
+                <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
+                  <div className={cx('integration__actionItem')}>
+                    <div
+                      onClick={() => {
+                        setConfirmModal({
+                          isOpen: true,
+                          title: 'Delete Integration?',
+                          body: (
+                            <Text type="primary">
+                              Are you sure you want to delete <Emoji text={alertReceiveChannel.verbal_name} /> ?
+                            </Text>
+                          ),
+                          onConfirm: deleteIntegration,
+                          dismissText: 'Cancel',
+                          confirmText: 'Delete',
+                        });
+                      }}
+                      className="u-width-100"
+                    >
+                      <Text type="danger">
+                        <HorizontalGroup spacing={'xs'}>
+                          <Icon name="trash-alt" />
+                          <span>Delete Integration</span>
+                        </HorizontalGroup>
+                      </Text>
+                    </div>
                   </div>
                 </WithPermissionControlTooltip>
-              )}
-
-              <CopyToClipboard
-                text={alertReceiveChannel.id}
-                onCopy={() => openNotification('Integration ID is copied')}
-              >
-                <div className={cx('integration__actionItem')}>
-                  <HorizontalGroup spacing={'xs'}>
-                    <Icon name="copy" />
-
-                    <Text type="primary">UID: {alertReceiveChannel.id}</Text>
-                  </HorizontalGroup>
-                </div>
-              </CopyToClipboard>
-
-              <div className={cx('thin-line-break')} />
-
-              <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
-                <div className={cx('integration__actionItem')}>
-                  <div
-                    onClick={() => {
-                      setConfirmModal({
-                        isOpen: true,
-                        title: 'Delete Integration?',
-                        body: (
-                          <Text type="primary">
-                            Are you sure you want to delete <Emoji text={alertReceiveChannel.verbal_name} /> ?
-                          </Text>
-                        ),
-                        onConfirm: deleteIntegration,
-                        dismissText: 'Cancel',
-                        confirmText: 'Delete',
-                      });
-                    }}
-                    className="u-width-100"
-                  >
-                    <Text type="danger">
-                      <HorizontalGroup spacing={'xs'}>
-                        <Icon name="trash-alt" />
-                        <span>Delete Integration</span>
-                      </HorizontalGroup>
-                    </Text>
-                  </div>
-                </div>
-              </WithPermissionControlTooltip>
-            </div>
-          )}
-        >
-          {({ openMenu }) => <HamburgerMenu openMenu={openMenu} listBorder={2} listWidth={200} withBackground />}
-        </WithContextMenu>
+              </div>
+            )}
+          >
+            {({ openMenu }) => <HamburgerMenu openMenu={openMenu} listBorder={2} listWidth={200} withBackground />}
+          </WithContextMenu>
+        </div>
       </div>
     </>
   );
