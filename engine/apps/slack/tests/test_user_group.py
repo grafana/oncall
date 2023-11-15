@@ -4,6 +4,12 @@ import pytest
 
 from apps.schedules.models.on_call_schedule import OnCallScheduleQuerySet, OnCallScheduleWeb
 from apps.slack.client import SlackClient
+from apps.slack.errors import (
+    SlackAPIError,
+    SlackAPIInvalidUsersError,
+    SlackAPITokenError,
+    SlackAPIUsergroupNotFoundError,
+)
 from apps.slack.models import SlackUserGroup
 from apps.slack.tasks import (
     populate_slack_usergroups_for_team,
@@ -26,6 +32,42 @@ def test_update_members(make_organization_with_slack_team_identity, make_slack_u
         mock.assert_called()
 
     assert user_group.members == slack_ids
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("exception", [SlackAPITokenError, SlackAPIUsergroupNotFoundError, SlackAPIInvalidUsersError])
+def test_slack_user_group_update_errors(
+    make_organization_with_slack_team_identity,
+    make_slack_user_group,
+    exception,
+):
+    organization, slack_team_identity = make_organization_with_slack_team_identity()
+    user_group = make_slack_user_group(slack_team_identity=slack_team_identity)
+
+    slack_ids = ["slack_id_1", "slack_id_2"]
+    with patch("apps.slack.client.SlackClient.usergroups_users_update", side_effect=exception("Error")) as mock_update:
+        user_group.update_members(slack_ids)
+
+    assert mock_update.called
+    assert user_group.members is None
+
+
+@pytest.mark.django_db
+def test_slack_user_group_update_errors_raise(
+    make_organization_with_slack_team_identity,
+    make_slack_user_group,
+):
+    organization, slack_team_identity = make_organization_with_slack_team_identity()
+    user_group = make_slack_user_group(slack_team_identity=slack_team_identity)
+
+    slack_ids = ["slack_id_1", "slack_id_2"]
+    with patch(
+        "apps.slack.client.SlackClient.usergroups_users_update", side_effect=SlackAPIError("Error")
+    ) as mock_update:
+        with pytest.raises(SlackAPIError):
+            user_group.update_members(slack_ids)
+
+    assert mock_update.called
 
 
 @pytest.mark.django_db
