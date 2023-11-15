@@ -237,7 +237,7 @@ class FastAlertReceiveChannelSerializer(serializers.ModelSerializer):
         model = AlertReceiveChannel
         fields = ["id", "integration", "verbal_name", "deleted"]
 
-    def get_deleted(self, obj):
+    def get_deleted(self, obj) -> bool:
         return obj.deleted_at is not None
 
 

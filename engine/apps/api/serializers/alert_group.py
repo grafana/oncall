@@ -1,21 +1,22 @@
 import datetime
 import logging
+import typing
 
 from django.core.cache import cache
 from django.utils import timezone
 from drf_spectacular.utils import extend_schema_field, inline_serializer
 from rest_framework import serializers
 
-from apps.alerts.incident_appearance.renderers.classic_markdown_renderer import AlertGroupClassicMarkdownRenderer
 from apps.alerts.incident_appearance.renderers.web_renderer import AlertGroupWebRenderer
 from apps.alerts.models import AlertGroup
+from apps.alerts.models.alert_group import PagedUser
 from common.api_helpers.custom_fields import TeamPrimaryKeyRelatedField
 from common.api_helpers.mixins import EagerLoadingMixin
 
 from .alert import AlertSerializer
 from .alert_receive_channel import FastAlertReceiveChannelSerializer
 from .alerts_field_cache_buster_mixin import AlertsFieldCacheBusterMixin
-from .user import FastUserSerializer, PagedUserSerializer, UserShortSerializer
+from .user import FastUserSerializer, UserShortSerializer
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -116,7 +117,6 @@ class AlertGroupListSerializer(EagerLoadingMixin, AlertGroupFieldsCacheSerialize
 
     alerts_count = serializers.IntegerField(read_only=True)
     render_for_web = serializers.SerializerMethodField()
-    render_for_classic_markdown = serializers.SerializerMethodField()
 
     labels = AlertGroupLabelSerializer(many=True, read_only=True)
 
@@ -158,7 +158,6 @@ class AlertGroupListSerializer(EagerLoadingMixin, AlertGroupFieldsCacheSerialize
             "silenced_until",
             "related_users",
             "render_for_web",
-            "render_for_classic_markdown",
             "dependent_alert_groups",
             "root_alert_group",
             "status",
@@ -187,17 +186,6 @@ class AlertGroupListSerializer(EagerLoadingMixin, AlertGroupFieldsCacheSerialize
             obj.last_alert,
             AlertGroupFieldsCacheSerializerMixin.RENDER_FOR_WEB_FIELD_NAME,
             AlertGroupWebRenderer,
-        )
-
-    def get_render_for_classic_markdown(self, obj):
-        """Deprecated. TODO: remove"""
-        if not obj.last_alert:
-            return {}
-        return AlertGroupFieldsCacheSerializerMixin.get_or_set_web_template_field(
-            obj,
-            obj.last_alert,
-            AlertGroupFieldsCacheSerializerMixin.RENDER_FOR_CLASSIC_MARKDOWN_FIELD_NAME,
-            AlertGroupClassicMarkdownRenderer,
         )
 
     @extend_schema_field(UserShortSerializer(many=True))
@@ -241,7 +229,7 @@ class AlertGroupSerializer(AlertGroupListSerializer):
             "paged_users",
         ]
 
-    def get_last_alert_at(self, obj) -> datetime.datetime:
+    def get_last_alert_at(self, obj: "AlertGroup") -> datetime.datetime:
         last_alert = obj.alerts.last()
 
         if not last_alert:
@@ -250,7 +238,7 @@ class AlertGroupSerializer(AlertGroupListSerializer):
         return last_alert.created_at
 
     @extend_schema_field(AlertSerializer(many=True))
-    def get_limited_alerts(self, obj):
+    def get_limited_alerts(self, obj: "AlertGroup"):
         """
         Overriding default alerts because there are alert_groups with thousands of them.
         It's just too slow, we need to cut here.
@@ -258,6 +246,5 @@ class AlertGroupSerializer(AlertGroupListSerializer):
         alerts = obj.alerts.order_by("-pk")[:100]
         return AlertSerializer(alerts, many=True).data
 
-    @extend_schema_field(PagedUserSerializer(many=True))
-    def get_paged_users(self, obj):
+    def get_paged_users(self, obj: "AlertGroup") -> typing.List[PagedUser]:
         return obj.get_paged_users()
