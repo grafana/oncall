@@ -188,8 +188,7 @@ def test_get_web_override_shift(
         shift_type=CustomOnCallShift.TYPE_OVERRIDE,
         **data,
     )
-    on_call_shift.add_rolling_users([[other_user]])
-    on_call_shift.users.add(user)
+    on_call_shift.add_rolling_users([[other_user], [user]])
 
     url = reverse("api-public:on_call_shifts-detail", kwargs={"pk": on_call_shift.public_primary_key})
 
@@ -205,7 +204,7 @@ def test_get_web_override_shift(
         "start": on_call_shift.start.strftime("%Y-%m-%dT%H:%M:%S"),
         "rotation_start": on_call_shift.start.strftime("%Y-%m-%dT%H:%M:%S"),
         "duration": int(on_call_shift.duration.total_seconds()),
-        "users": list(set([user.public_primary_key, other_user.public_primary_key])),
+        "users": list({user.public_primary_key, other_user.public_primary_key}),
     }
 
     assert response.status_code == status.HTTP_200_OK

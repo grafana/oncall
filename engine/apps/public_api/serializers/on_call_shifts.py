@@ -264,8 +264,7 @@ class CustomOnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer
             and instance.source == CustomOnCallShift.SOURCE_WEB
             and result["rolling_users"] is not None
         ):
-            result["users"] += [u for r in result["rolling_users"] for u in r]
-            result["users"] = list(set(result["users"]))  # return unique users
+            result["users"] = list({u for r in result["rolling_users"] for u in r})
         result = self._get_fields_to_represent(instance, result)
         return result
 
