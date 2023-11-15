@@ -645,7 +645,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
 
       LocationHelper.update({ label: newLabelFilter }, 'partial');
 
-      filtersStore.needToParseFilters = true;
+      filtersStore.setNeedToParseFilters(true);
     };
   };
 

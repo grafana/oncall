@@ -304,6 +304,9 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
             }}
             onSubmit={this.update}
             id={alertReceiveChannelIdToShowLabels}
+            onOpenIntegraionSettings={(id: AlertReceiveChannel['id']) => {
+              this.setState({ alertReceiveChannelId: id });
+            }}
           />
         )}
 
@@ -698,7 +701,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
 
       LocationHelper.update({ label: newLabelFilter }, 'partial');
 
-      filtersStore.needToParseFilters = true;
+      filtersStore.setNeedToParseFilters(true);
     };
   };
 

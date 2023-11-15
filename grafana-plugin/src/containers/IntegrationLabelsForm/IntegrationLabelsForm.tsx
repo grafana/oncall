@@ -4,6 +4,7 @@ import { Button, Drawer, HorizontalGroup, Icon, InlineSwitch, Input, Label, Tool
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
+import Text from 'components/Text/Text';
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { LabelKey } from 'models/label/label.types';
 import { useStore } from 'state/useStore';
@@ -16,25 +17,32 @@ interface IntegrationLabelsFormProps {
   id: AlertReceiveChannel['id'];
   onSubmit: () => void;
   onHide: () => void;
+  onOpenIntegraionSettings: (id: AlertReceiveChannel['id']) => void;
 }
 
 const IntegrationLabelsForm = observer((props: IntegrationLabelsFormProps) => {
-  const { id, onHide, onSubmit } = props;
+  const { id, onHide, onSubmit, onOpenIntegraionSettings } = props;
 
-  const {
-    alertReceiveChannelStore: { items, saveAlertReceiveChannel },
-  } = useStore();
+  const store = useStore();
 
-  const alertReceiveChannel = items[id];
+  const { alertReceiveChannelStore } = store;
+
+  const alertReceiveChannel = alertReceiveChannelStore.items[id];
 
   const [alertGroupLabels, setAlertGroupLabels] = useState(alertReceiveChannel.alert_group_labels);
 
   const handleSave = () => {
-    saveAlertReceiveChannel(id, { alert_group_labels: alertGroupLabels });
+    alertReceiveChannelStore.saveAlertReceiveChannel(id, { alert_group_labels: alertGroupLabels });
 
     onSubmit();
 
     onHide();
+  };
+
+  const handleOpenIntegrationSettings = () => {
+    onHide();
+
+    onOpenIntegraionSettings(id);
   };
 
   const getInheritanceChangeHandler = (keyId: LabelKey['id']) => {
@@ -56,19 +64,28 @@ const IntegrationLabelsForm = observer((props: IntegrationLabelsFormProps) => {
           </Tooltip>
         </HorizontalGroup>
         <ul className={cx('labels-list')}>
-          {alertReceiveChannel.labels.map((label) => (
-            <li key={label.key.id}>
-              <HorizontalGroup spacing="xs">
-                <Input width={38} value={label.key.name} disabled />
-                <Input width={31} value={label.value.name} disabled />
-                <InlineSwitch
-                  value={alertGroupLabels.inheritable[label.key.id]}
-                  transparent
-                  onChange={getInheritanceChangeHandler(label.key.id)}
-                />
-              </HorizontalGroup>
-            </li>
-          ))}
+          {alertReceiveChannel.labels.length ? (
+            alertReceiveChannel.labels.map((label) => (
+              <li key={label.key.id}>
+                <HorizontalGroup spacing="xs">
+                  <Input width={38} value={label.key.name} disabled />
+                  <Input width={31} value={label.value.name} disabled />
+                  <InlineSwitch
+                    value={alertGroupLabels.inheritable[label.key.id]}
+                    transparent
+                    onChange={getInheritanceChangeHandler(label.key.id)}
+                  />
+                </HorizontalGroup>
+              </li>
+            ))
+          ) : (
+            <VerticalGroup>
+              <Text type="secondary">There are no labels to inherit yet</Text>
+              <Text type="link" onClick={handleOpenIntegrationSettings} clickable>
+                Add labels to the integration
+              </Text>
+            </VerticalGroup>
+          )}
         </ul>
         <div className={cx('buttons')}>
           <HorizontalGroup justify="flex-end">

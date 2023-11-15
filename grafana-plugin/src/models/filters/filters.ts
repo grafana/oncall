@@ -24,7 +24,7 @@ export class FiltersStore extends BaseStore {
   private _globalValues: FiltersValues = {};
 
   @observable
-  public _needToParseFilters = false;
+  needToParseFilters = false;
 
   constructor(rootStore: RootStore) {
     super(rootStore);
@@ -36,12 +36,8 @@ export class FiltersStore extends BaseStore {
   }
 
   @action
-  set needToParseFilters(value: boolean) {
-    this._needToParseFilters = value;
-  }
-
-  get needToParseFilters() {
-    return this._needToParseFilters;
+  setNeedToParseFilters(value: boolean) {
+    this.needToParseFilters = value;
   }
 
   set globalValues(value: any) {
