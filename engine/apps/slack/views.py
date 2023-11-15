@@ -37,7 +37,7 @@ from apps.slack.scenarios.slack_channel import STEPS_ROUTING as CHANNEL_ROUTING
 from apps.slack.scenarios.slack_channel_integration import STEPS_ROUTING as SLACK_CHANNEL_INTEGRATION_ROUTING
 from apps.slack.scenarios.slack_usergroup import STEPS_ROUTING as SLACK_USERGROUP_UPDATE_ROUTING
 from apps.slack.tasks import clean_slack_integration_leftovers, unpopulate_slack_user_identities
-from apps.slack.types import EventPayload, EventType, MessageEventSubtype, PayloadType, ScenarioRoute
+from apps.slack.types import EventChannelType, EventPayload, EventType, MessageEventSubtype, PayloadType, ScenarioRoute
 from apps.user_management.models import Organization
 from common.insight_log import ChatOpsEvent, ChatOpsTypePlug, write_chatops_insight_log
 from common.oncall_gateway import delete_slack_connector
@@ -217,13 +217,22 @@ class SlackEventApiEndpointView(APIView):
                     raise Exception("Failed Linking user identity")
 
             elif (
-                payload_event_bot_id and slack_team_identity and payload_event_channel_type == EventType.MESSAGE_CHANNEL
+                payload_event_bot_id
+                and slack_team_identity
+                and payload_event_channel_type == EventChannelType.MESSAGE_CHANNEL
             ):
+                # Check if we can detect bot's user_id without additional request
+                bot_user_id = payload_event.get("authorizations", {}).get("user_id")
+                logger.info(f"{bot_user_id} == {slack_team_identity.bot_user_id}")
+                # TODO: catch ratelimits here
                 response = sc.bots_info(bot=payload_event_bot_id)
                 bot_user_id = response.get("bot", {}).get("user_id", "")
 
                 # Don't react on own bot's messages.
                 if bot_user_id == slack_team_identity.bot_user_id:
+                    logger.info(
+                        f"Dropping request because it's own bot's message. {bot_user_id}=={slack_team_identity.bot_user_id}"
+                    )
                     return Response(status=200)
 
             elif payload_event_message_user:
@@ -304,7 +313,7 @@ class SlackEventApiEndpointView(APIView):
             # Message event is from channel
             if (
                 event_type == EventType.MESSAGE
-                and payload_event_channel_type == EventType.MESSAGE_CHANNEL
+                and payload_event_channel_type == EventChannelType.MESSAGE_CHANNEL
                 and (
                     not payload_event_subtype
                     or payload_event_subtype

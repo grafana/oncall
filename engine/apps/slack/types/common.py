@@ -24,12 +24,6 @@ class EventType(enum.StrEnum):
     [Documentation](https://api.slack.com/events/message)
     """
 
-    MESSAGE_CHANNEL = "channel"
-    """
-    NOTE: this event doesn't actually seem to exist? This is here for legacy reasons and should
-    probably be re-investgated and/or deleted?
-    """
-
     USER_CHANGE = "user_change"
     """
     NOTE: This is deprecated in favour of `user_profile_changed`. Kept for legacy reasons.
@@ -129,6 +123,10 @@ class EventType(enum.StrEnum):
 
     [Documentation](https://api.slack.com/events/channel_unarchive)
     """
+
+
+class EventChannelType(enum.StrEnum):
+    MESSAGE_CHANNEL = "channel"
 
 
 class MessageEventSubtype(enum.StrEnum):

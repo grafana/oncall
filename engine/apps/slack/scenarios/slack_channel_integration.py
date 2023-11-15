@@ -3,7 +3,7 @@ import typing
 
 from apps.slack.scenarios import scenario_step
 from apps.slack.scenarios.resolution_note import RESOLUTION_NOTE_EXCEPTIONS
-from apps.slack.types import EventPayload, EventType, MessageEventSubtype, PayloadType, ScenarioRoute
+from apps.slack.types import EventChannelType, EventPayload, EventType, MessageEventSubtype, PayloadType, ScenarioRoute
 
 if typing.TYPE_CHECKING:
     from apps.slack.models import SlackTeamIdentity, SlackUserIdentity
@@ -146,7 +146,7 @@ STEPS_ROUTING: ScenarioRoute.RoutingSteps = [
         {
             "payload_type": PayloadType.EVENT_CALLBACK,
             "event_type": EventType.MESSAGE,
-            "message_channel_type": EventType.MESSAGE_CHANNEL,
+            "message_channel_type": EventChannelType.MESSAGE_CHANNEL,
             "step": SlackChannelMessageEventStep,
         },
     ),
