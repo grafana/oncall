@@ -22,9 +22,6 @@ type SelectDropdownValueArgs = {
 type ClickButtonArgs = {
   page: Page;
   buttonText: string;
-  // if provided, search for the button by data-testid
-  dataTestId?: string;
-
   // if provided, use this Locator as the root of our search for the button
   startingLocator?: Locator;
 };
@@ -36,15 +33,9 @@ export const fillInInputByPlaceholderValue = (page: Page, placeholderValue: stri
 
 export const getInputByName = (page: Page, name: string): Locator => page.locator(`input[name="${name}"]`);
 
-export const clickButton = async ({
-  page,
-  buttonText,
-  startingLocator,
-  dataTestId,
-}: ClickButtonArgs): Promise<void> => {
+export const clickButton = async ({ page, buttonText, startingLocator }: ClickButtonArgs): Promise<void> => {
   const baseLocator = startingLocator || page;
-  const locator = dataTestId ? baseLocator.getByTestId(dataTestId) : baseLocator;
-  await locator.getByRole('button', { name: buttonText, disabled: false }).click();
+  await baseLocator.getByRole('button', { name: buttonText, disabled: false }).click();
 };
 
 /**

@@ -60,8 +60,8 @@ export const assignEscalationChainToIntegration = async (page: Page, escalationC
 };
 
 export const sendDemoAlert = async (page: Page): Promise<void> => {
-  await clickButton({ page, buttonText: 'Send demo alert', dataTestId: 'send-demo-alert' });
-  await clickButton({ page, buttonText: 'Send Alert', dataTestId: 'submit-send-alert' });
+  await clickButton({ page, buttonText: 'Send demo alert' });
+  await clickButton({ page, buttonText: 'Send Alert' });
   await page.getByTestId('demo-alert-sent-notification').waitFor({ state: 'visible' });
 };
 

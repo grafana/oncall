@@ -24,7 +24,8 @@ test('Integrations table shows data in Connections and Direct Paging tabs', asyn
   // Create 1 Direct Paging integration if it doesn't exist
   await page.getByRole('tab', { name: 'Tab Direct Paging' }).click();
   const integrationsTable = page.getByTestId('integrations-table');
-  const isDirectPagingAlreadyCreated = await integrationsTable.getByText(DIRECT_PAGING_INTEGRATION_NAME).isVisible();
+  await page.waitForTimeout(2000);
+  const isDirectPagingAlreadyCreated = (await integrationsTable.getByText('Direct paging').count()) >= 1;
   if (!isDirectPagingAlreadyCreated) {
     await createIntegration({
       page,

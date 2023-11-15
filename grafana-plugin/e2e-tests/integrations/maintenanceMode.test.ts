@@ -21,20 +21,21 @@ test.describe('maintenance mode works', () => {
   const createRoutedText = (escalationChainName: string): string =>
     `alert group assigned to route "default" with escalation chain "${escalationChainName}"`;
 
-  const _openIntegrationSettingsPopup = async (page: Page): Promise<Locator> => {
+  const _openIntegrationSettingsPopup = async (page: Page, shouldDoubleClickSettingsIcon = false): Promise<Locator> => {
     await page.waitForTimeout(2000);
     const integrationSettingsPopupElement = page
       .getByTestId('integration-settings-context-menu-wrapper')
       .getByRole('img');
     await integrationSettingsPopupElement.click();
-    return integrationSettingsPopupElement;
+    if (shouldDoubleClickSettingsIcon) {
+      await integrationSettingsPopupElement.click();
+    }
   };
 
   const getRemainingTimeTooltip = (page: Page): Locator => page.getByTestId(REMAINING_TIME_TOOLTIP_TEST_ID);
 
   const enableMaintenanceMode = async (page: Page, mode: MaintenanceModeType): Promise<void> => {
-    await _openIntegrationSettingsPopup(page);
-
+    await _openIntegrationSettingsPopup(page, true);
     // open the maintenance mode settings drawer + fill in the maintenance details
     await page.getByTestId('integration-start-maintenance').click();
 
@@ -71,7 +72,7 @@ test.describe('maintenance mode works', () => {
     await goToOnCallPage(page, 'integrations');
 
     await filterIntegrationsTableAndGoToDetailPage(page, integrationName);
-    await _openIntegrationSettingsPopup(page);
+    await _openIntegrationSettingsPopup(page, true);
 
     // click the stop maintenance button
     await page.getByTestId('integration-stop-maintenance').click();
