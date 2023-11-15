@@ -21,10 +21,16 @@ test('we can directly page a user', async ({ adminRolePage }) => {
   const addRespondersPopup = page.getByTestId('add-responders-popup');
 
   await addRespondersPopup.getByText('Users').click();
-  await page.waitForTimeout(1000);
   await addRespondersPopup.getByText(adminRolePage.userName).click();
 
   await clickButton({ page, buttonText: 'Create' });
+
+  // If user is not on call, confirm invitation
+  await page.waitForTimeout(1000);
+  const isConfirmationModalShown = await page.getByText('Confirm Participant Invitation').isVisible();
+  if (isConfirmationModalShown) {
+    await clickButton({ page, buttonText: 'Confirm' });
+  }
 
   // Check we are redirected to the alert group page
   await page.waitForURL('**/alert-groups/I*'); // Alert group IDs always start with "I"
