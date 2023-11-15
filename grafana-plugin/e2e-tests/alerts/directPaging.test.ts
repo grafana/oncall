@@ -21,6 +21,7 @@ test('we can directly page a user', async ({ adminRolePage }) => {
   const addRespondersPopup = page.getByTestId('add-responders-popup');
 
   await addRespondersPopup.getByText('Users').click();
+  await page.waitForTimeout(1000);
   await addRespondersPopup.getByText(adminRolePage.userName).click();
 
   await clickButton({ page, buttonText: 'Create' });

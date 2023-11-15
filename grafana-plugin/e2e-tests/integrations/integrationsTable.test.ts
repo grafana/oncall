@@ -3,16 +3,15 @@ import { generateRandomValue } from '../utils/forms';
 import { createIntegration } from '../utils/integrations';
 
 test('Integrations table shows data in Connections and Direct Paging tabs', async ({ adminRolePage: { page } }) => {
-  //   // Create 2 integrations that are not Direct Paging
   const ID = generateRandomValue();
   const WEBHOOK_INTEGRATION_NAME = `Webhook-${ID}`;
   const ALERTMANAGER_INTEGRATION_NAME = `Alertmanager-${ID}`;
   const DIRECT_PAGING_INTEGRATION_NAME = `Direct paging`;
 
+  // Create 2 integrations that are not Direct Paging
   await createIntegration({ page, integrationSearchText: 'Webhook', integrationName: WEBHOOK_INTEGRATION_NAME });
   await page.waitForTimeout(1000);
   await page.getByRole('tab', { name: 'Tab Integrations' }).click();
-
   await createIntegration({
     page,
     integrationSearchText: 'Alertmanager',
@@ -25,7 +24,7 @@ test('Integrations table shows data in Connections and Direct Paging tabs', asyn
   // Create 1 Direct Paging integration if it doesn't exist
   const integrationsTable = page.getByTestId('integrations-table');
   await page.getByRole('tab', { name: 'Tab Direct Paging' }).click();
-  const isDirectPagingAlreadyCreated = await page.getByText('Direct paging').isVisible();
+  const isDirectPagingAlreadyCreated = await integrationsTable.getByText('Direct paging').isVisible();
   if (!isDirectPagingAlreadyCreated) {
     await createIntegration({
       page,
