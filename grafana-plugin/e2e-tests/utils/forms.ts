@@ -42,9 +42,9 @@ export const clickButton = async ({
   startingLocator,
   dataTestId,
 }: ClickButtonArgs): Promise<void> => {
-  const baseLocator = dataTestId ? `button[data-testid="${dataTestId}"]` : 'button';
-  const button = (startingLocator || page).locator(`${baseLocator}:not([disabled]) >> text=${buttonText}`);
-  await button.click();
+  const baseLocator = startingLocator || page;
+  const locator = dataTestId ? baseLocator.getByTestId(dataTestId) : baseLocator;
+  await locator.getByRole('button', { name: buttonText, disabled: false }).click();
 };
 
 /**

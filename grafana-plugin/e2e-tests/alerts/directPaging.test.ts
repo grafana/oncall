@@ -13,8 +13,8 @@ test('we can directly page a user', async ({ adminRolePage }) => {
   const { page } = adminRolePage;
 
   await goToOnCallPage(page, 'alert-groups');
+  await page.waitForTimeout(1000);
   await clickButton({ page, buttonText: 'Escalation' });
-
   await fillInInput(page, 'textarea[name="message"]', message);
   await clickButton({ page, buttonText: 'Invite' });
 
