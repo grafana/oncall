@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Populate `users` field of the public Shift GET API with `rolling_users` from the type override created from web UI([#3303](https://github.com/grafana/oncall/pull/3303))
+- Do not retry to update slack user group on every API error ([#3363](https://github.com/grafana/oncall/pull/3363))
 
 ## v1.3.58 (2023-11-14)
 
