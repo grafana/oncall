@@ -33,6 +33,12 @@ def valid_jinja_template_for_serializer_method_field(template):
             pass
 
 
+class IntegrationAlertGroupLabelsSerializer(serializers.Serializer):
+    """Alert group labels configuration for the integration. See AlertReceiveChannel.alert_group_labels for details."""
+
+    inheritable = serializers.DictField(child=serializers.BooleanField())
+
+
 class AlertReceiveChannelSerializer(EagerLoadingMixin, LabelsSerializerMixin, serializers.ModelSerializer):
     id = serializers.CharField(read_only=True, source="public_primary_key")
     integration_url = serializers.ReadOnlyField()
@@ -55,6 +61,7 @@ class AlertReceiveChannelSerializer(EagerLoadingMixin, LabelsSerializerMixin, se
     connected_escalations_chains_count = serializers.SerializerMethodField()
     inbound_email = serializers.CharField(required=False)
     is_legacy = serializers.SerializerMethodField()
+    alert_group_labels = IntegrationAlertGroupLabelsSerializer(required=False)
 
     # integration heartbeat is in PREFETCH_RELATED not by mistake.
     # With using of select_related ORM builds strange join
@@ -95,6 +102,7 @@ class AlertReceiveChannelSerializer(EagerLoadingMixin, LabelsSerializerMixin, se
             "inbound_email",
             "is_legacy",
             "labels",
+            "alert_group_labels",
         ]
         read_only_fields = [
             "created_at",
@@ -128,6 +136,7 @@ class AlertReceiveChannelSerializer(EagerLoadingMixin, LabelsSerializerMixin, se
                 is_able_to_autoresolve = _integration.is_able_to_autoresolve
 
         labels = validated_data.pop("labels", None)
+        alert_group_labels = validated_data.pop("alert_group_labels", None)
         try:
             instance = AlertReceiveChannel.create(
                 **validated_data,
@@ -137,7 +146,12 @@ class AlertReceiveChannelSerializer(EagerLoadingMixin, LabelsSerializerMixin, se
             )
         except AlertReceiveChannel.DuplicateDirectPagingError:
             raise BadRequest(detail=AlertReceiveChannel.DuplicateDirectPagingError.DETAIL)
+
+        # Create label associations first, then update inheritable labels
         self.update_labels_association_if_needed(labels, instance, organization)
+        if alert_group_labels:
+            instance.alert_group_labels = alert_group_labels
+
         return instance
 
     def update(self, instance, validated_data):
