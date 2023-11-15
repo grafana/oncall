@@ -105,7 +105,6 @@ test.describe('maintenance mode works', () => {
     await createEscalationChain(page, escalationChainName, EscalationStep.NotifyUsers, userName);
     await createIntegration({ page, integrationName });
     await assignEscalationChainToIntegration(page, escalationChainName);
-    await page.waitForTimeout(1000);
     await enableMaintenanceMode(page, maintenanceModeType);
 
     return { escalationChainName, integrationName };
