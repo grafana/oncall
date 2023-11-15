@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fixed recurrency limit issue in the Rotation Modal ([#3358](https://github.com/grafana/oncall/pull/3358))
 - Added dragging boundary constraints for Rotation Modal and show scroll for the users list ([#3365](https://github.com/grafana/oncall/pull/3365))
+### Added
+- Populate `users` field of the public Shift GET API with `rolling_users` from the type override created from web UI([#3303](https://github.com/grafana/oncall/pull/3303))
 
 ## v1.3.58 (2023-11-14)
 
