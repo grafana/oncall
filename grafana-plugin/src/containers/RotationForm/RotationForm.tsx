@@ -283,22 +283,19 @@ const RotationForm = observer((props: RotationFormProps) => {
     [showActiveOnSelectedPartOfDay, showActiveOnSelectedDays, repeatEveryValue]
   );
 
-  const handleRepeatEveryValueChange = useCallback(
-    (option) => {
-      const value = Math.floor(Number(option.value));
-      if (isNaN(value) || value < 1) {
-        return;
-      }
+  const handleRepeatEveryValueChange = (option) => {
+    const value = Math.floor(Number(option.value));
+    if (isNaN(value) || value < 1) {
+      return;
+    }
 
-      setShiftPeriodDefaultValue(undefined);
-      setRepeatEveryValue(value);
+    setShiftPeriodDefaultValue(undefined);
+    setRepeatEveryValue(value);
 
-      if (!showActiveOnSelectedPartOfDay) {
-        setShiftEnd(shiftStart.add(value, repeatEveryPeriodToUnitName[repeatEveryPeriod]));
-      }
-    },
-    [showActiveOnSelectedPartOfDay, repeatEveryPeriod]
-  );
+    if (!showActiveOnSelectedPartOfDay) {
+      setShiftEnd(rotationStart.add(value, repeatEveryPeriodToUnitName[repeatEveryPeriod]));
+    }
+  };
 
   const handleRotationStartChange = useCallback(
     (value) => {
