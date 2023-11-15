@@ -6,7 +6,7 @@ test('Integrations table shows data in Connections and Direct Paging tabs', asyn
   const ID = generateRandomValue();
   const WEBHOOK_INTEGRATION_NAME = `Webhook-${ID}`;
   const ALERTMANAGER_INTEGRATION_NAME = `Alertmanager-${ID}`;
-  const DIRECT_PAGING_INTEGRATION_NAME = `Direct paging`;
+  const DIRECT_PAGING_INTEGRATION_NAME = `Direct paging integration name`;
 
   // Create 2 integrations that are not Direct Paging
   await createIntegration({ page, integrationSearchText: 'Webhook', integrationName: WEBHOOK_INTEGRATION_NAME });
@@ -22,9 +22,9 @@ test('Integrations table shows data in Connections and Direct Paging tabs', asyn
   await page.getByRole('tab', { name: 'Tab Integrations' }).click();
 
   // Create 1 Direct Paging integration if it doesn't exist
-  const integrationsTable = page.getByTestId('integrations-table');
   await page.getByRole('tab', { name: 'Tab Direct Paging' }).click();
-  const isDirectPagingAlreadyCreated = await integrationsTable.getByText('Direct paging').isVisible();
+  const integrationsTable = page.getByTestId('integrations-table');
+  const isDirectPagingAlreadyCreated = await integrationsTable.getByText(DIRECT_PAGING_INTEGRATION_NAME).isVisible();
   if (!isDirectPagingAlreadyCreated) {
     await createIntegration({
       page,
@@ -45,5 +45,5 @@ test('Integrations table shows data in Connections and Direct Paging tabs', asyn
   await page.getByRole('tab', { name: 'Tab Direct Paging' }).click();
   await expect(integrationsTable.getByText(WEBHOOK_INTEGRATION_NAME)).not.toBeVisible();
   await expect(integrationsTable.getByText(ALERTMANAGER_INTEGRATION_NAME)).not.toBeVisible();
-  await expect(integrationsTable).toContainText(DIRECT_PAGING_INTEGRATION_NAME);
+  await expect(integrationsTable).toContainText('Direct paging');
 });

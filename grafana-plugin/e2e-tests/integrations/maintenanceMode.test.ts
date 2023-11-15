@@ -22,7 +22,7 @@ test.describe('maintenance mode works', () => {
     `alert group assigned to route "default" with escalation chain "${escalationChainName}"`;
 
   const _openIntegrationSettingsPopup = async (page: Page): Promise<Locator> => {
-    await page.waitForTimeout(1000);
+    await page.waitForTimeout(2000);
     const integrationSettingsPopupElement = page
       .getByTestId('integration-settings-context-menu-wrapper')
       .getByRole('img');
@@ -33,12 +33,7 @@ test.describe('maintenance mode works', () => {
   const getRemainingTimeTooltip = (page: Page): Locator => page.getByTestId(REMAINING_TIME_TOOLTIP_TEST_ID);
 
   const enableMaintenanceMode = async (page: Page, mode: MaintenanceModeType): Promise<void> => {
-    const integrationSettingsPopupElement = await _openIntegrationSettingsPopup(page);
-    /**
-     * we need to click twice here, because adding the escalation chain route
-     * doesn't unfocus out of the select element after selecting an option
-     */
-    await integrationSettingsPopupElement.click();
+    await _openIntegrationSettingsPopup(page);
 
     // open the maintenance mode settings drawer + fill in the maintenance details
     await page.getByTestId('integration-start-maintenance').click();
