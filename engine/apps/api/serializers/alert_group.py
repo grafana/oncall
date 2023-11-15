@@ -91,7 +91,7 @@ class ShortAlertGroupSerializer(AlertGroupFieldsCacheSerializerMixin, serializer
             },
         )
     )
-    def get_render_for_web(self, obj):
+    def get_render_for_web(self, obj: "AlertGroup"):
         last_alert = obj.alerts.last()
         if last_alert is None:
             return {}
@@ -103,7 +103,9 @@ class ShortAlertGroupSerializer(AlertGroupFieldsCacheSerializerMixin, serializer
         )
 
 
-class AlertGroupListSerializer(EagerLoadingMixin, AlertGroupFieldsCacheSerializerMixin, serializers.ModelSerializer):
+class AlertGroupListSerializer(
+    EagerLoadingMixin, AlertGroupFieldsCacheSerializerMixin, serializers.ModelSerializer[AlertGroup]
+):
     pk = serializers.CharField(read_only=True, source="public_primary_key")
     alert_receive_channel = FastAlertReceiveChannelSerializer(source="channel")
     status = serializers.ReadOnlyField()
@@ -178,7 +180,7 @@ class AlertGroupListSerializer(EagerLoadingMixin, AlertGroupFieldsCacheSerialize
             },
         )
     )
-    def get_render_for_web(self, obj):
+    def get_render_for_web(self, obj: "AlertGroup"):
         if not obj.last_alert:
             return {}
         return AlertGroupFieldsCacheSerializerMixin.get_or_set_web_template_field(
@@ -189,9 +191,11 @@ class AlertGroupListSerializer(EagerLoadingMixin, AlertGroupFieldsCacheSerialize
         )
 
     @extend_schema_field(UserShortSerializer(many=True))
-    def get_related_users(self, obj):
-        users_ids = set()
-        users = []
+    def get_related_users(self, obj: "AlertGroup"):
+        from apps.user_management.models import User
+
+        users_ids: typing.Set[str] = set()
+        users: typing.List[User] = []
 
         # add resolved and acknowledged by_user explicitly because logs are already prefetched
         # when def acknowledge/resolve are called in view.

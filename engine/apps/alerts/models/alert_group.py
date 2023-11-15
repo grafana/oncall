@@ -179,6 +179,7 @@ class AlertGroupSlackRenderingMixin:
 
 
 class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.Model):
+    acknowledged_by_user: typing.Optional["User"]
     alerts: "RelatedManager['Alert']"
     dependent_alert_groups: "RelatedManager['AlertGroup']"
     channel: "AlertReceiveChannel"
@@ -187,7 +188,9 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
     resolution_notes: "RelatedManager['ResolutionNote']"
     resolution_note_slack_messages: "RelatedManager['ResolutionNoteSlackMessage']"
     resolved_by_alert: typing.Optional["Alert"]
+    resolved_by_user: typing.Optional["User"]
     root_alert_group: typing.Optional["AlertGroup"]
+    silenced_by_user: typing.Optional["User"]
     slack_log_message: typing.Optional["SlackMessage"]
     slack_messages: "RelatedManager['SlackMessage']"
     users: "RelatedManager['User']"
