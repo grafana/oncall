@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## v1.3.59 (2023-11-16)
+
 ### Added
 
 - Populate `users` field of the public Shift GET API with `rolling_users` from the type override created from web UI([#3303](https://github.com/grafana/oncall/pull/3303))
