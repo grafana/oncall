@@ -349,18 +349,22 @@ class OnCallSchedule(PolymorphicModel):
         include_shift_info: bool = False,
     ) -> ScheduleEvents:
         """Return filtered events from schedule."""
-        shifts = (
-            list_of_oncall_shifts_from_ical(
-                self,
-                datetime_start,
-                datetime_end,
-                with_empty,
-                with_gap,
-                filter_by=filter_by,
-                from_cached_final=from_cached_final,
+        try:
+            shifts = (
+                list_of_oncall_shifts_from_ical(
+                    self,
+                    datetime_start,
+                    datetime_end,
+                    with_empty,
+                    with_gap,
+                    filter_by=filter_by,
+                    from_cached_final=from_cached_final,
+                )
+                or []
             )
-            or []
-        )
+        except ValueError:
+            # raised when filtering events on a non-saved/deleted schedule
+            return []
         shifts_data = {}
         if include_shift_info:
             pks = set(shift["shift_pk"] for shift in shifts)

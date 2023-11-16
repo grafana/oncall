@@ -47,7 +47,7 @@ const SlackConnector = (props: SlackConnectorProps) => {
               <Input
                 disabled={true}
                 value={
-                  storeUser.slack_user_identity?.slack_login ? '@' + storeUser.slack_user_identity?.slack_login : ''
+                  storeUser.slack_user_identity?.display_name ? '@' + storeUser.slack_user_identity?.display_name : ''
                 }
               />
               <WithConfirm title="Are you sure to disconnect your Slack account?" confirmText="Disconnect">

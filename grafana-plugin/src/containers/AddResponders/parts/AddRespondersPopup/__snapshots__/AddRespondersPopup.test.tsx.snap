@@ -1,0 +1,91 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`AddRespondersPopup it shows a loading message initially 1`] = `
+<div>
+  <div
+    class="add-responders-dropdown"
+    data-testid="add-responders-popup"
+  >
+    <div
+      class="css-11uftlx-input-wrapper responders-filters"
+      data-testid="input-wrapper"
+    >
+      <div
+        class="css-1w5c5dq-input-inputWrapper"
+      >
+        <input
+          class="css-1mlczho-input-input"
+          data-testid="add-responders-search-input"
+          placeholder="Search"
+          style="padding-right: 12px;"
+          value=""
+        />
+        <div
+          class="css-7y3u6k-input-suffix"
+        >
+          <div
+            class="css-wf08df-Icon"
+          >
+            <svg
+              class="css-eyx4do"
+              height="16"
+              viewBox="0 0 24 24"
+              width="16"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M21.71,20.29,18,16.61A9,9,0,1,0,16.61,18l3.68,3.68a1,1,0,0,0,1.42,0A1,1,0,0,0,21.71,20.29ZM11,18a7,7,0,1,1,7-7A7,7,0,0,1,11,18Z"
+              />
+            </svg>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      class="radio-buttons css-sv3u8u"
+    >
+      <input
+        checked=""
+        class="css-8hl977"
+        id="option-teams-radiogroup-1"
+        name="radiogroup-1"
+        type="radio"
+      />
+      <label
+        class="css-1tpfx0m"
+        for="option-teams-radiogroup-1"
+      >
+        Teams
+         
+      </label>
+      <input
+        class="css-8hl977"
+        id="option-users-radiogroup-1"
+        name="radiogroup-1"
+        type="radio"
+      />
+      <label
+        class="css-1tpfx0m"
+        for="option-users-radiogroup-1"
+      >
+        Users
+         
+      </label>
+    </div>
+    <div
+      class="css-lq6a48 loading-placeholder"
+    >
+      Loading...
+       
+      <div
+        class="css-13pg8vy"
+        data-testid="Spinner"
+      >
+        <i
+          class="fa fa-spinner fa-spin fa-spin"
+        />
+      </div>
+    </div>
+  </div>
+</div>
+`;

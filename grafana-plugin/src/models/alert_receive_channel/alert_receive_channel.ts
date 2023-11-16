@@ -21,6 +21,7 @@ import {
   AlertReceiveChannelCounters,
   ContactPoint,
   MaintenanceMode,
+  SupportedIntegrationFilters,
 } from './alert_receive_channel.types';
 
 export class AlertReceiveChannelStore extends BaseStore {
@@ -28,7 +29,7 @@ export class AlertReceiveChannelStore extends BaseStore {
   searchResult: Array<AlertReceiveChannel['id']>;
 
   @observable.shallow
-  paginatedSearchResult: { count?: number; results?: Array<AlertReceiveChannel['id']> } = {};
+  paginatedSearchResult: { count?: number; results?: Array<AlertReceiveChannel['id']>; page_size?: number } = {};
 
   @observable.shallow
   items: { [id: string]: AlertReceiveChannel } = {};
@@ -81,6 +82,7 @@ export class AlertReceiveChannelStore extends BaseStore {
     }
 
     return {
+      page_size: this.paginatedSearchResult.page_size,
       count: this.paginatedSearchResult.count,
       results:
         this.paginatedSearchResult.results &&
@@ -131,9 +133,18 @@ export class AlertReceiveChannelStore extends BaseStore {
     return results;
   }
 
-  async updatePaginatedItems(query: any = '', page = 1, updateCounters = false, invalidateFn = undefined) {
-    const filters = typeof query === 'string' ? { search: query } : query;
-    const { count, results } = await makeRequest(this.path, { params: { ...filters, page } });
+  async updatePaginatedItems({
+    filters,
+    page = 1,
+    updateCounters = false,
+    invalidateFn = undefined,
+  }: {
+    filters: SupportedIntegrationFilters;
+    page: number;
+    updateCounters: boolean;
+    invalidateFn: () => boolean;
+  }) {
+    const { count, results, page_size } = await makeRequest(this.path, { params: { ...filters, page } });
 
     if (invalidateFn?.()) {
       return undefined;
@@ -155,6 +166,7 @@ export class AlertReceiveChannelStore extends BaseStore {
     this.paginatedSearchResult = {
       count,
       results: results.map((item: AlertReceiveChannel) => item.id),
+      page_size,
     };
 
     if (updateCounters) {

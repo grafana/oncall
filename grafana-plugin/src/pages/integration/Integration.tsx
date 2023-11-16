@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 
+import { LabelTag } from '@grafana/labels';
 import {
   Button,
   HorizontalGroup,
@@ -11,7 +12,6 @@ import {
   ConfirmModal,
   Drawer,
   Alert,
-  Tag as GrafanaTag,
 } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { get } from 'lodash-es';
@@ -44,6 +44,7 @@ import ExpandedIntegrationRouteDisplay from 'containers/IntegrationContainers/Ex
 import IntegrationHeartbeatForm from 'containers/IntegrationContainers/IntegrationHeartbeatForm/IntegrationHeartbeatForm';
 import IntegrationTemplateList from 'containers/IntegrationContainers/IntegrationTemplatesList';
 import IntegrationForm from 'containers/IntegrationForm/IntegrationForm';
+import IntegrationLabelsForm from 'containers/IntegrationLabelsForm/IntegrationLabelsForm';
 import IntegrationTemplate from 'containers/IntegrationTemplate/IntegrationTemplate';
 import MaintenanceForm from 'containers/MaintenanceForm/MaintenanceForm';
 import TeamName from 'containers/TeamName/TeamName';
@@ -279,7 +280,7 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
               <VerticalGroup>
                 <Text type="secondary">
                   We are introducing a new {getDisplayName()} integration. The existing integration is marked as Legacy
-                  and will be migrated after 1 November 2023.
+                  and will be migrated on 1st February 2024.
                 </Text>
                 <Text type="secondary">
                   To ensure a smooth transition you can migrate now using "Migrate" button in the menu on the right.
@@ -731,7 +732,8 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
   isLegacyIntegration,
   changeIsTemplateSettingsOpen,
 }) => {
-  const { alertReceiveChannelStore } = useStore();
+  const store = useStore();
+  const { alertReceiveChannelStore } = store;
 
   const history = useHistory();
 
@@ -747,6 +749,7 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
   }>(undefined);
 
   const [isIntegrationSettingsOpen, setIsIntegrationSettingsOpen] = useState(false);
+  const [labelsFormOpen, setLabelsFormOpen] = useState(false);
   const [isHeartbeatFormOpen, setIsHeartbeatFormOpen] = useState(false);
   const [isDemoModalOpen, setIsDemoModalOpen] = useState(false);
   const [maintenanceData, setMaintenanceData] = useState<{
@@ -789,6 +792,19 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
         />
       )}
 
+      {labelsFormOpen && (
+        <IntegrationLabelsForm
+          onHide={() => {
+            setLabelsFormOpen(false);
+          }}
+          onSubmit={() => alertReceiveChannelStore.updateItem(alertReceiveChannel['id'])}
+          id={alertReceiveChannel['id']}
+          onOpenIntegraionSettings={() => {
+            setIsIntegrationSettingsOpen(true);
+          }}
+        />
+      )}
+
       {isHeartbeatFormOpen && (
         <IntegrationHeartbeatForm
           alertReceveChannelId={alertReceiveChannel['id']}
@@ -825,6 +841,14 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
               <div className={cx('integration__actionItem')} onClick={() => openIntegrationSettings()}>
                 <Text type="primary">Integration Settings</Text>
               </div>
+
+              {store.hasFeature(AppFeature.Labels) && (
+                <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
+                  <div className={cx('integration__actionItem')} onClick={() => openLabelsForm()}>
+                    <Text type="primary">Alert group labels</Text>
+                  </div>
+                </WithPermissionControlTooltip>
+              )}
 
               {showHeartbeatSettings() && (
                 <WithPermissionControlTooltip key="ok" userAction={UserActions.IntegrationsWrite}>
@@ -1015,6 +1039,10 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
     setIsIntegrationSettingsOpen(true);
   }
 
+  function openLabelsForm() {
+    setLabelsFormOpen(true);
+  }
+
   function openStartMaintenance() {
     setMaintenanceData({ disabled: true, alert_receive_channel_id: alertReceiveChannel.id });
   }
@@ -1061,20 +1089,17 @@ const IntegrationHeader: React.FC<IntegrationHeaderProps> = ({
         </PluginLink>
       )}
 
-      {renderLabels && (
+      {Boolean(renderLabels && alertReceiveChannel.labels.length) && (
         <TooltipBadge
-          tooltipTitle=""
           borderType="secondary"
           icon="tag-alt"
           addPadding
           text={alertReceiveChannel.labels.length}
           tooltipContent={
             <VerticalGroup spacing="sm">
-              {alertReceiveChannel.labels.length
-                ? alertReceiveChannel.labels.map((label) => (
-                    <GrafanaTag name={`${label.key.name}:${label.value.name}`} key={label.key.id} />
-                  ))
-                : 'No labels attached'}
+              {alertReceiveChannel.labels.map((label) => (
+                <LabelTag label={label.key.name} value={label.value.name} key={label.key.id} />
+              ))}
             </VerticalGroup>
           }
         />

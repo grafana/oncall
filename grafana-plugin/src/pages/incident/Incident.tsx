@@ -1,5 +1,6 @@
 import React, { useState, SyntheticEvent } from 'react';
 
+import { LabelTag } from '@grafana/labels';
 import {
   Button,
   HorizontalGroup,
@@ -34,9 +35,11 @@ import { PluginBridge, SupportedPlugin } from 'components/PluginBridge/PluginBri
 import PluginLink from 'components/PluginLink/PluginLink';
 import SourceCode from 'components/SourceCode/SourceCode';
 import Text from 'components/Text/Text';
+import TooltipBadge from 'components/TooltipBadge/TooltipBadge';
+import AddResponders from 'containers/AddResponders/AddResponders';
+import { prepareForUpdate } from 'containers/AddResponders/AddResponders.helpers';
+import { UserResponder } from 'containers/AddResponders/AddResponders.types';
 import AttachIncidentForm from 'containers/AttachIncidentForm/AttachIncidentForm';
-import EscalationVariants from 'containers/EscalationVariants/EscalationVariants';
-import { prepareForEdit, prepareForUpdate } from 'containers/EscalationVariants/EscalationVariants.helpers';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import {
   Alert as AlertType,
@@ -49,6 +52,7 @@ import {
 import { ResolutionNoteSourceTypesToDisplayName } from 'models/resolution_note/resolution_note.types';
 import { User } from 'models/user/user.types';
 import { IncidentDropdown } from 'pages/incidents/parts/IncidentDropdown';
+import { AppFeature } from 'state/features';
 import { PageProps, WithStoreProps } from 'state/types';
 import { useStore } from 'state/useStore';
 import { withMobXProviderContext } from 'state/withStore';
@@ -56,10 +60,10 @@ import { openNotification } from 'utils';
 import { UserActions } from 'utils/authorization';
 import { PLUGIN_ROOT } from 'utils/consts';
 import sanitize from 'utils/sanitize';
+import { parseURL } from 'utils/url';
 
 import { getActionButtons } from './Incident.helpers';
 import styles from './Incident.module.scss';
-import PagedUsers from './parts/PagedUsers';
 
 const cx = cn.bind(styles);
 const INTEGRATION_NAME_LENGTH_LIMIT = 30;
@@ -171,18 +175,21 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
                     <Incident incident={incident} datetimeReference={this.getIncidentDatetimeReference(incident)} />
                     <GroupedIncidentsList
                       id={incident.pk}
-                      disabled={incident.is_restricted}
                       getIncidentDatetimeReference={this.getIncidentDatetimeReference}
                     />
                     <AttachedIncidentsList id={incident.pk} getUnattachClickHandler={this.getUnattachClickHandler} />
                   </div>
                   <div className={cx('column')}>
-                    <VerticalGroup>
-                      <PagedUsers
-                        pagedUsers={incident.paged_users}
-                        onRemove={this.handlePagedUserRemove}
-                        disabled={incident.is_restricted}
-                      />
+                    <VerticalGroup style={{ display: 'block' }}>
+                      {(!incident.resolved || incident?.paged_users?.length > 0) && (
+                        <AddResponders
+                          mode="update"
+                          hideAddResponderButton={incident.resolved}
+                          existingPagedUsers={incident.paged_users}
+                          onAddNewParticipant={this.handleAddUserResponder}
+                          generateRemovePreviouslyPagedUserCallback={this.handlePagedUserRemove}
+                        />
+                      )}
                       {this.renderTimeline()}
                     </VerticalGroup>
                   </div>
@@ -231,17 +238,19 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
     );
   }
 
-  handlePagedUserRemove = async (userId: User['pk']) => {
-    const {
-      store,
-      match: {
-        params: { id: alertId },
-      },
-    } = this.props;
+  handlePagedUserRemove = (userId: User['pk']) => {
+    return async () => {
+      const {
+        store,
+        match: {
+          params: { id: alertId },
+        },
+      } = this.props;
 
-    await store.alertGroupStore.unpageUser(alertId, userId);
+      await store.alertGroupStore.unpageUser(alertId, userId);
 
-    this.update();
+      this.update();
+    };
   };
 
   renderHeader = () => {
@@ -264,6 +273,8 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
 
     const integrationNameWithEmojies = <Emoji text={incident.alert_receive_channel.verbal_name} />;
 
+    const sourceLink = incident?.render_for_web?.source_link;
+
     return (
       <Block className={cx('block')}>
         <VerticalGroup>
@@ -285,12 +296,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
                       {incident.root_alert_group.render_for_web.title}
                     </PluginLink>{' '}
                     <WithPermissionControlTooltip userAction={UserActions.AlertGroupsWrite}>
-                      <Button
-                        variant="secondary"
-                        onClick={() => this.getUnattachClickHandler(incident.pk)}
-                        size="sm"
-                        disabled={incident.is_restricted}
-                      >
+                      <Button variant="secondary" onClick={() => this.getUnattachClickHandler(incident.pk)} size="sm">
                         Unattach
                       </Button>
                     </WithPermissionControlTooltip>
@@ -306,16 +312,10 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
                     onClick={this.showAttachIncidentForm}
                     tooltip="Attach to another Alert Group"
                     className={cx('title-icon')}
-                    disabled={incident.is_restricted}
                   />
                 )}
                 <a href={incident.slack_permalink} target="_blank" rel="noreferrer">
-                  <IconButton
-                    name="slack"
-                    tooltip="View in Slack"
-                    className={cx('title-icon')}
-                    disabled={incident.is_restricted}
-                  />
+                  <IconButton name="slack" tooltip="View in Slack" className={cx('title-icon')} />
                 </a>
                 <CopyToClipboard
                   text={window.location.href}
@@ -323,12 +323,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
                     openNotification('Link copied');
                   }}
                 >
-                  <IconButton
-                    name="copy"
-                    tooltip="Copy link"
-                    className={cx('title-icon')}
-                    disabled={incident.is_restricted}
-                  />
+                  <IconButton name="copy" tooltip="Copy link" className={cx('title-icon')} />
                 </CopyToClipboard>
               </Text>
             </HorizontalGroup>
@@ -347,6 +342,22 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
                 />
               </div>
 
+              {Boolean(store.hasFeature(AppFeature.Labels) && incident.labels.length) && (
+                <TooltipBadge
+                  borderType="secondary"
+                  icon="tag-alt"
+                  addPadding
+                  text={incident.labels.length}
+                  tooltipContent={
+                    <VerticalGroup spacing="sm">
+                      {incident.labels.map((label) => (
+                        <LabelTag label={label.key.name} value={label.value.name} key={label.key.id} />
+                      ))}
+                    </VerticalGroup>
+                  }
+                />
+              )}
+
               {integration && (
                 <HorizontalGroup>
                   <PluginLink
@@ -354,7 +365,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
                     query={{ page: 'integrations', id: incident.alert_receive_channel.id }}
                   >
                     <Button
-                      disabled={incident.alert_receive_channel.deleted || incident.is_restricted}
+                      disabled={incident.alert_receive_channel.deleted}
                       variant="secondary"
                       fill="outline"
                       size="sm"
@@ -381,17 +392,19 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
                   <Tooltip
                     placement="top"
                     content={
-                      incident.render_for_web.source_link === null
+                      sourceLink === null
                         ? `The integration template Source Link is empty`
+                        : parseURL(sourceLink) === ''
+                        ? 'The Integration template Source Link is invalid'
                         : 'Go to source'
                     }
                   >
-                    <a href={incident.render_for_web.source_link} target="_blank" rel="noreferrer">
+                    <a href={parseURL(sourceLink) || undefined} target="_blank" rel="noreferrer">
                       <Button
                         variant="secondary"
                         fill="outline"
                         size="sm"
-                        disabled={incident.render_for_web.source_link === null || incident.is_restricted}
+                        disabled={sourceLink === null || parseURL(sourceLink) === ''}
                         className={cx('label-button')}
                         icon="external-link-alt"
                       >
@@ -413,40 +426,32 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
                 onSilence: this.getSilenceClickHandler(incident),
                 onUnsilence: this.getUnsilenceClickHandler(incident),
               })}
-              <PluginBridge plugin={SupportedPlugin.Incident}>
-                <a href={incident.declare_incident_link} target="_blank" rel="noreferrer">
-                  <Button variant="secondary" size="md" icon="fire" disabled={incident.is_restricted}>
-                    Declare incident
-                  </Button>
-                </a>
-              </PluginBridge>
+              {incident.grafana_incident_id === null && (
+                <PluginBridge plugin={SupportedPlugin.Incident}>
+                  <a href={incident.declare_incident_link} target="_blank" rel="noreferrer">
+                    <Button variant="secondary" size="md" icon="fire">
+                      Declare incident
+                    </Button>
+                  </a>
+                </PluginBridge>
+              )}
             </HorizontalGroup>
 
-            <HorizontalGroup>
-              <EscalationVariants
-                variant="secondary"
-                hideSelected
-                value={prepareForEdit(incident.paged_users)}
-                disabled={incident.is_restricted}
-                onUpdateEscalationVariants={this.handleAddResponders}
-              />
-
-              <Button
-                disabled={incident.alert_receive_channel.deleted || incident.is_restricted}
-                variant="secondary"
-                icon="edit"
-                onClick={this.showIntegrationSettings}
-              >
-                Edit templates
-              </Button>
-            </HorizontalGroup>
+            <Button
+              disabled={incident.alert_receive_channel.deleted}
+              variant="secondary"
+              icon="edit"
+              onClick={this.showIntegrationSettings}
+            >
+              Edit templates
+            </Button>
           </HorizontalGroup>
         </VerticalGroup>
       </Block>
     );
   };
 
-  handleAddResponders = async (data) => {
+  handleAddUserResponder = async (user: Omit<UserResponder, 'type'>) => {
     const {
       store,
       match: {
@@ -454,10 +459,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
       },
     } = this.props;
 
-    await store.directPagingStore.updateAlertGroup(
-      alertId,
-      prepareForUpdate(data.userResponders, data.scheduleResponders)
-    );
+    await store.directPagingStore.updateAlertGroup(alertId, prepareForUpdate([user]));
 
     this.update();
   };
@@ -495,7 +497,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
     const { timelineFilter, resolutionNoteText } = this.state;
     const isResolutionNoteTextEmpty = resolutionNoteText === '';
     return (
-      <div>
+      <Block bordered>
         <Text.Title type="primary" level={4} className={cx('timeline-title')}>
           Timeline
         </Text.Title>
@@ -541,7 +543,6 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
         >
           <TextArea
             value={resolutionNoteText}
-            disabled={incident.is_restricted}
             onChange={(e: any) => this.setState({ resolutionNoteText: e.target.value })}
           />
         </Field>
@@ -550,12 +551,12 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
             icon="plus"
             variant="primary"
             onClick={this.handleCreateResolutionNote}
-            disabled={isResolutionNoteTextEmpty || incident.is_restricted}
+            disabled={isResolutionNoteTextEmpty}
           >
             Add resolution note
           </ToolbarButton>
         </WithPermissionControlTooltip>
-      </div>
+      </Block>
     );
   };
 
@@ -672,10 +673,8 @@ function Incident({ incident }: { incident: Alert; datetimeReference: string }) 
 function GroupedIncidentsList({
   id,
   getIncidentDatetimeReference,
-  disabled,
 }: {
   id: string;
-  disabled: boolean;
   getIncidentDatetimeReference: (incident: GroupedAlert) => string;
 }) {
   const store = useStore();
@@ -704,26 +703,13 @@ function GroupedIncidentsList({
       contentClassName={cx('incidents-content')}
     >
       {alerts.map((alert) => (
-        <GroupedIncident
-          key={alert.id}
-          incident={alert}
-          disabled={disabled}
-          datetimeReference={getIncidentDatetimeReference(alert)}
-        />
+        <GroupedIncident key={alert.id} incident={alert} datetimeReference={getIncidentDatetimeReference(alert)} />
       ))}
     </Collapse>
   );
 }
 
-function GroupedIncident({
-  incident,
-  datetimeReference,
-  disabled,
-}: {
-  incident: GroupedAlert;
-  datetimeReference: string;
-  disabled: boolean;
-}) {
+function GroupedIncident({ incident, datetimeReference }: { incident: GroupedAlert; datetimeReference: string }) {
   const store = useStore();
   const [incidentRawResponse, setIncidentRawResponse] = useState<{ id: string; raw_request_data: any }>(undefined);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -771,7 +757,7 @@ function GroupedIncident({
           <div className={cx('incident-row-right')}>
             <HorizontalGroup wrap={false} justify={'flex-end'}>
               <Tooltip placement="top" content="Alert Payload">
-                <IconButton name="arrow" onClick={() => openIncidentResponse(incident)} disabled={disabled} />
+                <IconButton name="arrow" onClick={() => openIncidentResponse(incident)} />
               </Tooltip>
             </HorizontalGroup>
           </div>
@@ -827,12 +813,7 @@ function AttachedIncidentsList({
               #{incident.inside_organization_number} {incident.render_for_web.title}
             </PluginLink>
             <WithPermissionControlTooltip userAction={UserActions.AlertGroupsWrite}>
-              <Button
-                size="sm"
-                onClick={() => getUnattachClickHandler(incident.pk)}
-                variant="secondary"
-                disabled={incident.is_restricted}
-              >
+              <Button size="sm" onClick={() => getUnattachClickHandler(incident.pk)} variant="secondary">
                 Unattach
               </Button>
             </WithPermissionControlTooltip>

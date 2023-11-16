@@ -552,3 +552,41 @@ def test_channel_filter_convert_from_regex_to_jinja2(
         assert jinja2_channel_filter.filtering_term == final_filtering_term
         # Check if the same alert is matched to the channel filter (route) new jinja2
         assert bool(jinja2_channel_filter.is_satisfying(payload)) is True
+
+
+@pytest.mark.django_db
+def test_channel_filter_long_filtering_term(
+    make_organization_and_user_with_plugin_token,
+    make_alert_receive_channel,
+    make_escalation_chain,
+    make_channel_filter,
+    make_user_auth_headers,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+    alert_receive_channel = make_alert_receive_channel(organization)
+    make_escalation_chain(organization)
+    make_channel_filter(alert_receive_channel, is_default=True)
+    client = APIClient()
+    long_filtering_term = "a" * (ChannelFilter.FILTERING_TERM_MAX_LENGTH + 1)
+
+    url = reverse("api-internal:channel_filter-list")
+    data_for_creation = {
+        "alert_receive_channel": alert_receive_channel.public_primary_key,
+        "filtering_term": long_filtering_term,
+    }
+
+    response = client.post(url, data=data_for_creation, format="json", **make_user_auth_headers(user, token))
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert "Expression is too long" in response.json()["non_field_errors"][0]
+
+    channel_filter = make_channel_filter(alert_receive_channel, filtering_term="a", is_default=False)
+    url = reverse("api-internal:channel_filter-detail", kwargs={"pk": channel_filter.public_primary_key})
+    data_for_update = {
+        "filtering_term": long_filtering_term,
+    }
+
+    response = client.put(url, data=data_for_update, format="json", **make_user_auth_headers(user, token))
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert "Expression is too long" in response.json()["non_field_errors"][0]

@@ -13,7 +13,6 @@ from rest_framework.test import APIClient
 from apps.alerts.models import EscalationPolicy
 from apps.api.permissions import LegacyAccessControlRole
 from apps.api.serializers.user import ScheduleUserSerializer
-from apps.schedules.ical_utils import memoized_users_in_ical
 from apps.schedules.models import (
     CustomOnCallShift,
     OnCallSchedule,
@@ -1197,8 +1196,6 @@ def test_filter_events_final_schedule(
     request_date = start_date
 
     user_a, user_b, user_c, user_d, user_e = (make_user_for_organization(organization, username=i) for i in "ABCDE")
-    # clear users pks <-> organization cache (persisting between tests)
-    memoized_users_in_ical.cache_clear()
 
     shifts = (
         # user, priority, start time (h), duration (hs)
@@ -1308,8 +1305,6 @@ def test_filter_swap_requests(
         name="other_web_schedule",
     )
     user_a, user_b, user_c = (make_user_for_organization(organization, username=i) for i in "ABC")
-    # clear users pks <-> organization cache (persisting between tests)
-    memoized_users_in_ical.cache_clear()
 
     today = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
     start_date = today - timezone.timedelta(days=7)
@@ -1408,8 +1403,6 @@ def test_next_shifts_per_user(
     user_a, user_b, user_c, user_d = (
         make_user_for_organization(organization, username=i, _timezone=tz) for i, tz in users
     )
-    # clear users pks <-> organization cache (persisting between tests)
-    memoized_users_in_ical.cache_clear()
 
     shifts = (
         # user, priority, start time (h), duration (hs)
@@ -1558,8 +1551,6 @@ def test_related_users(
 
     tomorrow = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0) + timezone.timedelta(days=1)
     user_a, user_b, user_c, _ = (make_user_for_organization(organization, username=i) for i in "ABCD")
-    # clear users pks <-> organization cache (persisting between tests)
-    memoized_users_in_ical.cache_clear()
 
     shifts = (
         # user, priority, start time (h), duration (hs)
@@ -2204,7 +2195,7 @@ def test_get_schedule_on_call_now(
     url = reverse("api-internal:schedule-list")
     with patch(
         "apps.api.views.schedule.get_oncall_users_for_multiple_schedules",
-        return_value={schedule.pk: [user]},
+        return_value={schedule: [user]},
     ):
         response = client.get(url, format="json", **make_user_auth_headers(user, token))
 

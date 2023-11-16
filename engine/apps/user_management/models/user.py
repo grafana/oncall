@@ -1,6 +1,7 @@
 import datetime
 import json
 import logging
+import re
 import typing
 from urllib.parse import urljoin
 
@@ -32,6 +33,10 @@ if typing.TYPE_CHECKING:
     from apps.user_management.models import Organization, Team
 
 logger = logging.getLogger(__name__)
+
+
+class PermissionsQuery(typing.TypedDict):
+    permissions__contains: typing.Dict
 
 
 class PermissionsRegexQuery(typing.TypedDict):
@@ -175,6 +180,7 @@ class User(models.Model):
     schedule_export_token: "RelatedManager['ScheduleExportAuthToken']"
     silenced_alert_groups: "RelatedManager['AlertGroup']"
     slack_user_identity: typing.Optional["SlackUserIdentity"]
+    teams: "RelatedManager['Team']"
     user_schedule_export_token: "RelatedManager['UserScheduleExportAuthToken']"
     wiped_alert_groups: "RelatedManager['AlertGroup']"
 
@@ -307,7 +313,7 @@ class User(models.Model):
         self._timezone = value
 
     def is_in_working_hours(self, dt: datetime.datetime, tz: typing.Optional[str] = None) -> bool:
-        assert dt.tzinfo == pytz.utc, "dt must be in UTC"
+        assert dt.tzinfo == datetime.timezone.utc, "dt must be in UTC"
 
         # Default to user's timezone
         if not tz:
@@ -386,7 +392,7 @@ class User(models.Model):
     @staticmethod
     def build_permissions_query(
         permission: LegacyAccessControlCompatiblePermission, organization
-    ) -> typing.Union[PermissionsRegexQuery, RoleInQuery]:
+    ) -> typing.Union[PermissionsQuery, PermissionsRegexQuery, RoleInQuery]:
         """
         This method returns a django query filter that is compatible with RBAC
         as well as legacy "basic" role based authorization. If a permission is provided we simply do
@@ -398,7 +404,11 @@ class User(models.Model):
         """
         if organization.is_rbac_permissions_enabled:
             # https://stackoverflow.com/a/50251879
-            return PermissionsRegexQuery(permissions__regex=r".*{0}.*".format(permission.value))
+            if settings.DATABASE_TYPE == settings.DATABASE_TYPES.SQLITE3:
+                # https://docs.djangoproject.com/en/4.2/topics/db/queries/#contains
+                return PermissionsRegexQuery(permissions__regex=re.escape(permission.value))
+            required_permission = {"action": permission.value}
+            return PermissionsQuery(permissions__contains=[required_permission])
         return RoleInQuery(role__lte=permission.fallback_role.value)
 
     def get_or_create_notification_policies(self, important=False):

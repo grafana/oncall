@@ -60,6 +60,12 @@ class ChannelFilterSerializer(EagerLoadingMixin, serializers.ModelSerializer):
     def validate(self, data):
         filtering_term = data.get("filtering_term")
         filtering_term_type = data.get("filtering_term_type")
+        if filtering_term is not None:
+            if len(filtering_term) > ChannelFilter.FILTERING_TERM_MAX_LENGTH:
+                raise serializers.ValidationError(
+                    f"Expression is too long. Maximum length: {ChannelFilter.FILTERING_TERM_MAX_LENGTH} characters, "
+                    f"current length: {len(filtering_term)}"
+                )
         if filtering_term_type == ChannelFilter.FILTERING_TERM_TYPE_JINJA2:
             try:
                 valid_jinja_template_for_serializer_method_field({"route_template": filtering_term})
@@ -141,7 +147,6 @@ class ChannelFilterSerializer(EagerLoadingMixin, serializers.ModelSerializer):
 class ChannelFilterCreateSerializer(ChannelFilterSerializer):
     alert_receive_channel = OrganizationFilteredPrimaryKeyRelatedField(queryset=AlertReceiveChannel.objects)
     slack_channel = serializers.CharField(allow_null=True, required=False, source="slack_channel_id")
-    filtering_term = serializers.CharField(required=False, allow_null=True, allow_blank=True)
 
     class Meta:
         model = ChannelFilter

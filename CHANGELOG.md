@@ -5,6 +5,137 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+## v1.3.59 (2023-11-16)
+
+### Added
+
+- Populate `users` field of the public Shift GET API with `rolling_users` from the type override created from web UI([#3303](https://github.com/grafana/oncall/pull/3303))
+- Do not retry to update slack user group on every API error ([#3363](https://github.com/grafana/oncall/pull/3363))
+- Allow specifying a comma-separated list of redis-servers to the `REDIS_URI` engine environment variable by @joeyorlando
+  ([#3368](https://github.com/grafana/oncall/pull/3368))
+
+### Fixed
+
+- Fixed recurrency limit issue in the Rotation Modal ([#3358](https://github.com/grafana/oncall/pull/3358))
+- Added dragging boundary constraints for Rotation Modal and show scroll for the users list ([#3365](https://github.com/grafana/oncall/pull/3365))
+- Delete direct paging integration on team delete by @vadimkerr ([#3367](https://github.com/grafana/oncall/pull/3367))
+
+## v1.3.58 (2023-11-14)
+
+### Added
+
+- Added user timezone field to the users public API response ([#3311](https://github.com/grafana/oncall/pull/3311))
+- Allow filtering users by public primary key in internal API ([#3339](https://github.com/grafana/oncall/pull/3339))
+
+### Changed
+
+- Split Integrations table into Connections and Direct Paging tabs ([#3290](https://github.com/grafana/oncall/pull/3290))
+
+### Fixed
+
+- Fix issue where Slack user connection error message is sometimes shown despite successful connection by @joeyorlando ([#3327](https://github.com/grafana/oncall/pull/3327))
+- Forward headers for Amazon SNS when organizations are moved @mderynck ([#3326](https://github.com/grafana/oncall/pull/3326))
+- Fix styling when light theme is turned on via system preferences
+  by excluding dark theme css vars in this case ([#3336](https://github.com/grafana/oncall/pull/3336))
+- Fix issue when acknowledge reminder works for deleted organizations @Ferril ([#3345](https://github.com/grafana/oncall/pull/3345))
+- Fix generating QR code ([#3347](https://github.com/grafana/oncall/pull/3347))
+
+## v1.3.57 (2023-11-10)
+
+### Fixed
+
+- Fix AmazonSNS integration to handle exceptions the same as other integrations @mderynck ([#3315](https://github.com/grafana/oncall/pull/3315))
+
+## v1.3.56 (2023-11-10)
+
+## v1.3.55 (2023-11-07)
+
+### Changed
+
+- Unify naming of Grafana Cloud / Cloud OnCall / Grafana Cloud OnCall
+  so that it's always Grafana Cloud OnCall ([#3279](https://github.com/grafana/oncall/pull/3279))
+
+### Fixed
+
+- Fix escalation policy importance going back to default by @vadimkerr ([#3282](https://github.com/grafana/oncall/pull/3282))
+- Improve user permissions query ([#3291](https://github.com/grafana/oncall/pull/3291))
+
+## v1.3.54 (2023-11-06)
+
+### Added
+
+- Add `b64decode` Jinja2 template helper filter by @jorgeav ([#3242](https://github.com/grafana/oncall/pull/3242))
+
+## v1.3.53 (2023-11-03)
+
+### Fixed
+
+- Fix db migration for mobile app @Ferril ([#3260](https://github.com/grafana/oncall/pull/3260))
+
+## v1.3.52 (2023-11-02)
+
+### Fixed
+
+- Address `TypeError` that occurs under some scenarios on the Alert Group detail page
+
+### Changed
+
+- Change wording for push notifications timing choices @Ferril ([#3253](https://github.com/grafana/oncall/pull/3253))
+
+## v1.3.51 (2023-11-02)
+
+### Fixed
+
+- Postpone Legacy AlertManager and Grafana Alerting integration auto-migration date ([3250])(<https://github.com/grafana/oncall/pull/3250>)
+
+## v1.3.50 (2023-11-02)
+
+### Fixed
+
+- Return alert groups for deleted integrations on private api ([3223](https://github.com/grafana/oncall/pull/3223))
+
+## v1.3.49 (2023-10-31)
+
+### Changed
+
+- Removed the hardcoding of page size on frontend ([#3205](https://github.com/grafana/oncall/pull/3205))
+- Prevent additional polling on Incidents if the previous request didn't complete
+  ([#3205](https://github.com/grafana/oncall/pull/3205))
+- Order results from `GET /teams` internal API endpoint by ascending name by @joeyorlando ([#3220](https://github.com/grafana/oncall/pull/3220))
+- Order alert groups internal API endpoint by descending started_at by @mderynck ([#3240](https://github.com/grafana/oncall/pull/3240))
+
+### Fixed
+
+- Improve slow `GET /users` + `GET /teams` internal API endpoints by @joeyorlando ([#3220](https://github.com/grafana/oncall/pull/3220))
+- Fix search issue when searching for teams in the add responders popup window by @joeyorlando ([#3220](https://github.com/grafana/oncall/pull/3220))
+- CSS changes to add responders dropdown to fix long search results list by @joeyorlando ([#3220](https://github.com/grafana/oncall/pull/3220))
+- Do not allow to update terraform-based shifts in web UI schedule API ([#3224](https://github.com/grafana/oncall/pull/3224))
+
+## v1.3.48 (2023-10-30)
+
+### Added
+
+- Data type changed from `DateField` to `DateTimeField` on the `final_shifts` API endpoint. Endpoint now accepts either
+  a date or a datetime ([#3103](https://github.com/grafana/oncall/pull/3103))
+
+### Changed
+
+- Simplify Direct Paging workflow. Now when using Direct Paging you either simply specify a team, or one or more users
+  to page by @joeyorlando ([#3128](https://github.com/grafana/oncall/pull/3128))
+- Enable timing options for mobile push notifications, allow multi-select by @Ferril ([#3187](https://github.com/grafana/oncall/pull/3187))
+
+### Fixed
+
+- Fix RBAC authorization bugs related to interacting with Alert Group Slack messages by @joeyorlando ([#3213](https://github.com/grafana/oncall/pull/3213))
+
+## v1.3.47 (2023-10-25)
+
+### Fixed
+
+- Add filtering term length check for channel filter endpoints @Ferril ([#3192](https://github.com/grafana/oncall/pull/3192))
+
 ## v1.3.46 (2023-10-23)
 
 ### Added
@@ -17,6 +148,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix resolution note source for mobile app by @vadimkerr ([#3174](https://github.com/grafana/oncall/pull/3174))
 - Fix iCal imported schedules related users and next shifts per user ([#3178](https://github.com/grafana/oncall/pull/3178))
 - Fix references to removed access control functions in Grafana @mderynck ([#3184](https://github.com/grafana/oncall/pull/3184))
+
+### Changed
+
+- Upgrade Django to 4.2.6 and update iCal related deps ([#3176](https://github.com/grafana/oncall/pull/3176))
 
 ## v1.3.45 (2023-10-19)
 

@@ -195,3 +195,77 @@ def test_organization_hard_delete(
     for obj in cascading_objects:
         with pytest.raises(ObjectDoesNotExist):
             obj.refresh_from_db()
+
+
+@pytest.mark.django_db
+def test_get_notifiable_direct_paging_integrations(
+    make_organization,
+    make_alert_receive_channel,
+    make_channel_filter,
+    make_escalation_chain,
+    make_slack_team_identity,
+    make_telegram_channel,
+):
+    def _make_org_and_arc(**arc_kwargs):
+        org = make_organization()
+        arc = make_alert_receive_channel(org, integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING, **arc_kwargs)
+        return org, arc
+
+    def _assert(org, arc, should_be_returned=True):
+        notifiable_direct_paging_integrations = org.get_notifiable_direct_paging_integrations()
+        if should_be_returned:
+            assert arc in notifiable_direct_paging_integrations
+        else:
+            assert arc not in notifiable_direct_paging_integrations
+
+    # integration has no default channel filter
+    org, arc = _make_org_and_arc()
+    make_channel_filter(arc, is_default=False)
+    _assert(org, arc, should_be_returned=False)
+
+    # integration has more than one channel filter
+    org, arc = _make_org_and_arc()
+    make_channel_filter(arc, is_default=False)
+    make_channel_filter(arc, is_default=False)
+    _assert(org, arc)
+
+    # integration's default channel filter is setup to notify via slack but Slack is not configured for the org
+    org, arc = _make_org_and_arc()
+    make_channel_filter(arc, is_default=True, notify_in_slack=True)
+    _assert(org, arc, should_be_returned=False)
+
+    # integration's default channel filter is setup to notify via slack and Slack is configured for the org
+    org, arc = _make_org_and_arc()
+    slack_team_identity = make_slack_team_identity()
+    org.slack_team_identity = slack_team_identity
+    org.save()
+
+    make_channel_filter(arc, is_default=True, notify_in_slack=True)
+    _assert(org, arc)
+
+    # integration's default channel filter is setup to notify via telegram but Telegram is not configured for the org
+    org, arc = _make_org_and_arc()
+    make_channel_filter(arc, is_default=True, notify_in_slack=False, notify_in_telegram=True)
+    _assert(org, arc, should_be_returned=False)
+
+    # integration's default channel filter is setup to notify via telegram and Telegram is configured for the org
+    org, arc = _make_org_and_arc()
+    make_channel_filter(arc, is_default=True, notify_in_slack=False, notify_in_telegram=True)
+    make_telegram_channel(org)
+    _assert(org, arc)
+
+    # integration's default channel filter is contactable via a custom messaging backend
+    org, arc = _make_org_and_arc()
+    make_channel_filter(
+        arc,
+        is_default=True,
+        notify_in_slack=False,
+        notification_backends={"MSTEAMS": {"channel": "test", "enabled": True}},
+    )
+    _assert(org, arc)
+
+    # integration's default channel filter has an escalation chain attached to it
+    org, arc = _make_org_and_arc()
+    escalation_chain = make_escalation_chain(org)
+    make_channel_filter(arc, is_default=True, notify_in_slack=False, escalation_chain=escalation_chain)
+    _assert(org, arc)

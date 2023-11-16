@@ -45,15 +45,15 @@ const MobileAppConnection = observer(({ userPk }: Props) => {
     return (
       <WithPermissionControlDisplay userAction={UserActions.UserSettingsWrite}>
         <VerticalGroup spacing="lg">
-          <Text type="secondary">Please connect Cloud OnCall to use the mobile app</Text>
+          <Text type="secondary">Please connect Grafana Cloud OnCall to use the mobile app</Text>
           <WithPermissionControlDisplay
             userAction={UserActions.OtherSettingsWrite}
-            message="You do not have permission to perform this action. Ask an admin to connect Cloud OnCall or upgrade your
+            message="You do not have permission to perform this action. Ask an admin to connect Grafana Cloud OnCall or upgrade your
             permissions."
           >
             <PluginLink query={{ page: 'cloud' }}>
               <Button variant="secondary" icon="external-link-alt">
-                Connect Cloud OnCall
+                Connect Grafana Cloud OnCall
               </Button>
             </PluginLink>
           </WithPermissionControlDisplay>
@@ -152,7 +152,8 @@ const MobileAppConnection = observer(({ userPk }: Props) => {
           App connected <Icon name="check-circle" size="md" className={cx('icon')} />
         </Text>
         <Text type="primary">
-          You can sync one application to your account. To setup new device please disconnect app first.
+          You can only sync one application to your account. To setup a new device, please disconnect the currently
+          connected device first.
         </Text>
         <div className={cx('disconnect__container')}>
           <img src={qrCodeImage} className={cx('disconnect__qrCode')} />
@@ -168,7 +169,9 @@ const MobileAppConnection = observer(({ userPk }: Props) => {
         <Text type="primary" strong>
           Sign In
         </Text>
-        <Text type="primary">Open Grafana IRM mobile application and scan this code to sync it with your account.</Text>
+        <Text type="primary">
+          Open the Grafana OnCall mobile application and scan this code to sync it with your account.
+        </Text>
         <div className={cx('u-width-100', 'u-flex', 'u-flex-center', 'u-position-relative')}>
           <QRCode className={cx({ 'qr-code': true, blurry: isQRBlurry })} value={QRCodeValue} />
           {isQRBlurry && <QRLoading />}
