@@ -121,7 +121,7 @@ class SlackUserGroup(models.Model):
         try:
             sc.usergroups_users_update(usergroup=self.slack_id, users=slack_ids)
         except (SlackAPITokenError, SlackAPIUsergroupNotFoundError, SlackAPIInvalidUsersError) as err:
-            logger.info(f"Slack usergroup update failed: {err}")
+            logger.warning(f"Slack usergroup update failed: {err}")
         except SlackAPIError:
             raise
         else:

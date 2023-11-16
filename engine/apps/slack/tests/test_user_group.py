@@ -26,11 +26,10 @@ def test_update_members(make_organization_with_slack_team_identity, make_slack_u
     user_group = make_slack_user_group(slack_team_identity)
 
     slack_ids = ["slack_id_1", "slack_id_2"]
-
-    with patch.object(SlackClient, "api_call") as mock:
+    with patch("apps.slack.client.SlackClient.usergroups_users_update") as mock_update:
         user_group.update_members(slack_ids)
-        mock.assert_called()
 
+    mock_update.assert_called_once()
     assert user_group.members == slack_ids
 
 
@@ -48,7 +47,7 @@ def test_slack_user_group_update_errors(
     with patch("apps.slack.client.SlackClient.usergroups_users_update", side_effect=exception("Error")) as mock_update:
         user_group.update_members(slack_ids)
 
-    assert mock_update.called
+    mock_update.assert_called_once()
     assert user_group.members is None
 
 
@@ -67,7 +66,7 @@ def test_slack_user_group_update_errors_raise(
         with pytest.raises(SlackAPIError):
             user_group.update_members(slack_ids)
 
-    assert mock_update.called
+    mock_update.assert_called_once()
 
 
 @pytest.mark.django_db
