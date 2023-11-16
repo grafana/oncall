@@ -15,7 +15,7 @@ import {
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
-import Draggable from 'react-draggable';
+import Draggable, { DraggableData, DraggableEvent } from 'react-draggable';
 
 import Block from 'components/GBlock/Block';
 import Modal from 'components/Modal/Modal';
@@ -105,6 +105,10 @@ const RotationForm = observer((props: RotationFormProps) => {
   const shift = store.scheduleStore.shifts[shiftId];
 
   const [errors, setErrors] = useState<{ [key: string]: string[] }>({});
+
+  const [bounds, setDraggableBounds] = useState<{ left: number; right: number; top: number; bottom: number }>(
+    undefined
+  );
 
   const [rotationName, setRotationName] = useState<string>(`[L${layerPriority}] Rotation`);
   const [isOpen, setIsOpen] = useState<boolean>(false);
@@ -423,7 +427,8 @@ const RotationForm = observer((props: RotationFormProps) => {
             handle=".drag-handler"
             defaultClassName={cx('draggable')}
             positionOffset={{ x: 0, y: offsetTop }}
-            bounds={{ top: 0 }}
+            bounds={bounds || 'body'}
+            onStart={onDraggableInit}
           >
             <div {...props}>{children}</div>
           </Draggable>
@@ -457,7 +462,7 @@ const RotationForm = observer((props: RotationFormProps) => {
               </HorizontalGroup>
             </HorizontalGroup>
           </div>
-          <div className={cx('body')}>
+          <div className={cx('container')}>
             <div className={cx('content')}>
               <VerticalGroup spacing="none">
                 {hasUpdatedShift && (
@@ -684,6 +689,20 @@ const RotationForm = observer((props: RotationFormProps) => {
       )}
     </>
   );
+
+  function onDraggableInit(_e: DraggableEvent, data: DraggableData) {
+    if (!data) {
+      return;
+    }
+
+    const scrollbarView = document.querySelector('.scrollbar-view')?.getBoundingClientRect();
+
+    const x = data.node.offsetLeft;
+    const top = -data.node.offsetTop + (scrollbarView?.top || 100);
+    const bottom = window.innerHeight - (data.node.offsetTop + data.node.offsetHeight);
+
+    setDraggableBounds({ left: -x, right: x, top: top - offsetTop, bottom: bottom - offsetTop });
+  }
 });
 
 interface ShiftPeriodProps {
