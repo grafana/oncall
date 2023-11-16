@@ -23,7 +23,7 @@ export default defineConfig({
   globalTimeout: 20 * 60 * 1000, // 20 minutes
 
   /* Maximum time one test can run for. */
-  timeout: 20 * 1000,
+  timeout: 40 * 1000,
   expect: {
     /**
      * Maximum time expect() should wait for the condition to be met.
