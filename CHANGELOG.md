@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Fixed
+
+- Fixed recurrency limit issue in the Rotation Modal ([#3358](https://github.com/grafana/oncall/pull/3358))
+- Added dragging boundary constraints for Rotation Modal and show scroll for the users list ([#3365](https://github.com/grafana/oncall/pull/3365))
+
 ## v1.3.58 (2023-11-14)
 
 ### Added
@@ -26,7 +31,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   by excluding dark theme css vars in this case ([#3336](https://github.com/grafana/oncall/pull/3336))
 - Fix issue when acknowledge reminder works for deleted organizations @Ferril ([#3345](https://github.com/grafana/oncall/pull/3345))
 - Fix generating QR code ([#3347](https://github.com/grafana/oncall/pull/3347))
-- Fixed recurrency limit issue in the Rotation Modal ([#3358](https://github.com/grafana/oncall/pull/3358))
 
 ## v1.3.57 (2023-11-10)
 
