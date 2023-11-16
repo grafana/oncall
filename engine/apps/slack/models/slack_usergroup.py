@@ -10,7 +10,13 @@ from django.utils import timezone
 
 from apps.api.permissions import RBACPermission
 from apps.slack.client import SlackClient
-from apps.slack.errors import SlackAPIError, SlackAPIPermissionDeniedError
+from apps.slack.errors import (
+    SlackAPIError,
+    SlackAPIInvalidUsersError,
+    SlackAPIPermissionDeniedError,
+    SlackAPITokenError,
+    SlackAPIUsergroupNotFoundError,
+)
 from apps.slack.models import SlackTeamIdentity
 from apps.user_management.models.user import User
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
@@ -112,10 +118,15 @@ class SlackUserGroup(models.Model):
     def update_members(self, slack_ids):
         sc = SlackClient(self.slack_team_identity)
 
-        sc.usergroups_users_update(usergroup=self.slack_id, users=slack_ids)
-
-        self.members = slack_ids
-        self.save(update_fields=("members",))
+        try:
+            sc.usergroups_users_update(usergroup=self.slack_id, users=slack_ids)
+        except (SlackAPITokenError, SlackAPIUsergroupNotFoundError, SlackAPIInvalidUsersError) as err:
+            logger.warning(f"Slack usergroup update failed: {err}")
+        except SlackAPIError:
+            raise
+        else:
+            self.members = slack_ids
+            self.save(update_fields=("members",))
 
     def get_users_from_members_for_organization(self, organization):
         return organization.users.filter(
