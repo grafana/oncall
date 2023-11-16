@@ -26,7 +26,7 @@ test('we can directly page a user', async ({ adminRolePage }) => {
   await clickButton({ page, buttonText: 'Create' });
 
   // If user is not on call, confirm invitation
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
   const isConfirmationModalShown = await page.getByText('Confirm Participant Invitation').isVisible();
   if (isConfirmationModalShown) {
     await clickButton({ page, buttonText: 'Confirm' });

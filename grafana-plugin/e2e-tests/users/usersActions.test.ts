@@ -30,22 +30,11 @@ test.describe('Users screen actions', () => {
     const { page } = editorRolePage;
 
     await goToOnCallPage(page, 'users');
-    await page.waitForSelector('.current-user');
+    await page.getByTestId('users-email').and(page.getByText('editor')).waitFor();
 
-    // check if these fields are Masked or Not (******)
-    const fieldIds = ['users-email', 'users-phone-number'];
-
-    for (let i = 0; i < fieldIds.length - 1; ++i) {
-      const currentUsername = page.locator(`.current-user [data-testid="${fieldIds[i]}"]`);
-
-      expect((await currentUsername.all()).length).toBe(1); // match for current user
-      (await currentUsername.all()).forEach((val) => expect(val).not.toHaveText('******'));
-
-      const otherUsername = page.locator(`.other-user [data-testid="${fieldIds[i]}"]`);
-
-      expect((await otherUsername.all()).length).toBeGreaterThan(1); // match for other users (>= 1)
-      (await otherUsername.all()).forEach((val) => expect(val).toHaveText('******'));
-    }
+    await expect(page.getByTestId('users-email').and(page.getByText('editor'))).toHaveCount(1);
+    await expect(page.getByTestId('users-email').and(page.getByText('******'))).toHaveCount(2);
+    await expect(page.getByTestId('users-phone-number').and(page.getByText('******'))).toHaveCount(2);
   });
 
   test('Editor can access tabs from View My Profile', async ({ editorRolePage }) => {
