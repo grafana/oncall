@@ -20,7 +20,7 @@ test.describe('maintenance mode works', () => {
   const createRoutedText = (escalationChainName: string): string =>
     `alert group assigned to route "default" with escalation chain "${escalationChainName}"`;
 
-  const _openIntegrationSettingsPopup = async (page: Page, shouldDoubleClickSettingsIcon = false): Promise<Locator> => {
+  const _openIntegrationSettingsPopup = async (page: Page, shouldDoubleClickSettingsIcon = false): Promise<void> => {
     await page.waitForTimeout(2000);
     const integrationSettingsPopupElement = page
       .getByTestId('integration-settings-context-menu-wrapper')
