@@ -1,15 +1,28 @@
 import React, { useEffect, useRef, useState } from 'react';
 
-import { Button, Checkbox, HorizontalGroup, Icon, Input, Modal, Toggletip, VerticalGroup } from '@grafana/ui';
+import {
+  Button,
+  Checkbox,
+  HorizontalGroup,
+  Icon,
+  Input,
+  LoadingPlaceholder,
+  Modal,
+  Toggletip,
+  VerticalGroup,
+} from '@grafana/ui';
 import cn from 'classnames/bind';
 
 import Text from 'components/Text/Text';
 import { ColumnsSelector } from 'containers/ColumnsSelector/ColumnsSelector';
 import styles from 'containers/ColumnsSelectorWrapper/ColumnsSelectorWrapper.module.scss';
-import { AGColumn } from 'models/alertgroup/alertgroup.types';
+import { AGColumn, AGColumnType } from 'models/alertgroup/alertgroup.types';
 import { Label } from 'models/label/label.types';
 import { useStore } from 'state/useStore';
 import { useDebouncedCallback } from 'utils/hooks';
+import LoaderStore from 'models/loader/loader';
+import { ActionKey } from 'models/loader/action-keys';
+import { observer } from 'mobx-react';
 
 const cx = cn.bind(styles);
 
@@ -89,10 +102,12 @@ interface SearchResult extends Label {
   isChecked: boolean;
 }
 
-const ColumnsModal: React.FC<ColumnsModalProps> = ({ isModalOpen, labelKeys, setIsModalOpen, inputRef }) => {
+const ColumnsModal: React.FC<ColumnsModalProps> = observer(({ isModalOpen, labelKeys, setIsModalOpen, inputRef }) => {
   const store = useStore();
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const debouncedOnInputChange = useDebouncedCallback(onInputChange, DEBOUNCE_MS);
+
+  const isLoading = LoaderStore.isLoading(ActionKey.IS_ADDING_NEW_COLUMN_TO_ALERT_GROUP);
 
   return (
     <Modal isOpen={isModalOpen} title={'Add column'} onDismiss={() => setIsModalOpen(false)}>
@@ -108,7 +123,7 @@ const ColumnsModal: React.FC<ColumnsModalProps> = ({ isModalOpen, labelKeys, set
             />
 
             {inputRef?.current?.value === '' && (
-              <Text type="primary">{labelKeys.length} items available. Type in to see suggestions</Text>
+              <Text type="primary">{labelKeys.length} items available. Type to see suggestions</Text>
             )}
 
             {inputRef?.current?.value && searchResults.length && (
@@ -153,26 +168,33 @@ const ColumnsModal: React.FC<ColumnsModalProps> = ({ isModalOpen, labelKeys, set
           >
             Close
           </Button>
-          <Button disabled={!searchResults.find((it) => it.isChecked)} variant="primary" onClick={onAddNewColumns}>
-            Add
+          <Button
+            disabled={isLoading || !searchResults.find((it) => it.isChecked)}
+            variant="primary"
+            onClick={onAddNewColumns}
+          >
+            {isLoading ? <LoadingPlaceholder className={'loader'} text="Loading..." /> : 'Add'}
           </Button>
         </HorizontalGroup>
       </VerticalGroup>
     </Modal>
   );
 
-  function onAddNewColumns() {
-    // TODO: Backend Call instead! (once ready)
-
+  async function onAddNewColumns() {
     const newColumns: AGColumn[] = searchResults
       .filter((item) => item.isChecked)
-      .map((it) => ({
-        id: it.id,
-        name: it.name,
-        isVisible: true,
-      }));
+      .map(
+        (it): AGColumn => ({
+          id: it.id,
+          name: it.name,
+          isVisible: false,
+          type: AGColumnType.LABEL,
+        })
+      );
 
-    store.alertGroupStore.columns = [...store.alertGroupStore.columns, ...newColumns];
+    const allColumns = [...store.alertGroupStore.columns, ...newColumns];
+
+    await store.alertGroupStore.updateTableSettings(allColumns, false);
 
     setIsModalOpen(false);
     setTimeout(() => forceOpenToggletip(), 0);
@@ -191,6 +213,6 @@ const ColumnsModal: React.FC<ColumnsModalProps> = ({ isModalOpen, labelKeys, set
       labelKeys.filter((pair) => pair.name.indexOf(search) > -1).map((pair) => ({ ...pair, isChecked: false }))
     );
   }
-};
+});
 
 export default ColumnsSelectorWrapper;

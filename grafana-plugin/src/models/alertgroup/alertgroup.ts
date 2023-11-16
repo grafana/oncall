@@ -12,7 +12,9 @@ import { SelectOption } from 'state/types';
 import { openErrorNotification, refreshPageError, showApiError } from 'utils';
 import LocationHelper from 'utils/LocationHelper';
 
-import { AGColumn, AGColumnType, Alert, AlertAction, IncidentStatus } from './alertgroup.types';
+import { AGColumn, Alert, AlertAction, IncidentStatus } from './alertgroup.types';
+import { AutoLoadingState } from 'utils/decorators';
+import { ActionKey } from 'models/loader/action-keys';
 
 export class AlertGroupStore extends BaseStore {
   @observable.shallow
@@ -76,20 +78,7 @@ export class AlertGroupStore extends BaseStore {
   liveUpdatesPaused = false;
 
   @observable
-  columns: AGColumn[] = [
-    { id: 1, name: 'ID', isVisible: true, type: AGColumnType.DEFAULT },
-    { id: 2, name: 'Status', isVisible: true, type: AGColumnType.DEFAULT },
-    { id: 3, name: 'Alerts', isVisible: true, type: AGColumnType.DEFAULT },
-    { id: 4, name: 'Source', isVisible: true, type: AGColumnType.DEFAULT },
-    { id: 5, name: 'Created', isVisible: true, type: AGColumnType.DEFAULT },
-    { id: 6, name: 'Team', isVisible: true, type: AGColumnType.DEFAULT },
-    { id: 7, name: 'Users', isVisible: false, type: AGColumnType.DEFAULT },
-    { id: 8, name: 'Title', isVisible: false, type: AGColumnType.DEFAULT },
-    { id: 9, name: 'a', isVisible: false, type: AGColumnType.LABEL },
-    { id: 10, name: 'color', isVisible: false, type: AGColumnType.LABEL },
-    { id: 11, name: 'country', isVisible: false, type: AGColumnType.LABEL },
-    { id: 12, name: 'game', isVisible: false, type: AGColumnType.LABEL },
-  ];
+  columns: AGColumn[] = [];
 
   @observable
   temporaryColumns: AGColumn[] = [];
@@ -458,17 +447,29 @@ export class AlertGroupStore extends BaseStore {
     }).catch(this.onApiError);
   }
 
-  @action
-  public async fetchAllColumnKeys(): Promise<void> {
-    const keys = await this.loadLabelsKeys();
-    const results: AGColumn[] = keys.map((key) => ({
-      id: key.id,
-      name: key.name,
-      isVisible: false,
-      type: AGColumnType.LABEL,
-    }));
+  // api/internal/v1/alertgroup_table_settings
 
-    this.columns = [...this.columns] || [...results]; // TODO; change once backend is ready
+  @action
+  public async fetchTableSettings(): Promise<void> {
+    const tableSettings = await makeRequest('/alertgroup_table_settings', {});
+
+    const { hidden, visible } = tableSettings;
+
+    this.columns = [
+      ...visible.map((item: AGColumn): AGColumn => ({ ...item, isVisible: true })),
+      ...hidden.map((item: AGColumn): AGColumn => ({ ...item, isVisible: false })),
+    ];
+  }
+
+  @action
+  @AutoLoadingState(ActionKey.IS_ADDING_NEW_COLUMN_TO_ALERT_GROUP)
+  public async updateTableSettings(columns: AGColumn[], isUserUpdate: boolean): Promise<void> {
+    const method = isUserUpdate ? 'PUT' : 'POST';
+
+    await makeRequest('/alertgroup_table_settings', {
+      method,
+      data: [...columns],
+    });
   }
 
   @action

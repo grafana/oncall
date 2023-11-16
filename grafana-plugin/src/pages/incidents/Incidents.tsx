@@ -103,7 +103,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
 
     alertGroupStore.updateBulkActions();
     alertGroupStore.updateSilenceOptions();
-    alertGroupStore.fetchAllColumnKeys();
+    alertGroupStore.fetchTableSettings();
   }
 
   componentWillUnmount(): void {
