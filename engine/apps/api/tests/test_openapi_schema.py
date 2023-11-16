@@ -1,13 +1,14 @@
 import pytest
 import yaml
+from django.test import override_settings
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
 
 
 @pytest.mark.django_db
+@override_settings(DRF_SPECTACULAR_ENABLED=True)
 def test_fetching_the_openapi_schema_works(settings, reload_urls):
-    settings.DRF_SPECTACULAR_ENABLED = True
     reload_urls()
 
     client = APIClient()

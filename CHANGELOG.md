@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+
+- Allow specifying a comma-separated list of redis-servers to the `REDIS_URI` engine environment variable by @joeyorlando
+  ([#TBD](https://github.com/grafana/oncall/pull/TBD))
+
 ### Fixed
 
 - Fixed recurrency limit issue in the Rotation Modal ([#3358](https://github.com/grafana/oncall/pull/3358))
