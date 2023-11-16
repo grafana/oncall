@@ -4,6 +4,7 @@ from unittest.mock import patch
 import pytest
 
 from apps.slack.client import SlackClient
+from apps.slack.constants import BLOCK_SECTION_TEXT_MAX_SIZE
 from apps.slack.errors import SlackAPIViewNotFoundError
 from apps.slack.scenarios.scenario_step import ScenarioStep
 from apps.slack.tests.conftest import build_slack_response
@@ -100,6 +101,47 @@ def test_get_resolution_notes_blocks_non_empty(
                     }
                 ),
             },
+        },
+    ]
+
+    assert blocks == expected_blocks
+
+
+@pytest.mark.django_db
+def test_get_resolution_note_blocks_truncate_text(
+    make_organization_and_user_with_slack_identities,
+    make_alert_receive_channel,
+    make_alert_group,
+    make_resolution_note,
+):
+    UpdateResolutionNoteStep = ScenarioStep.get_step("resolution_note", "UpdateResolutionNoteStep")
+    organization, user, slack_team_identity, _ = make_organization_and_user_with_slack_identities()
+    step = UpdateResolutionNoteStep(slack_team_identity)
+
+    alert_receive_channel = make_alert_receive_channel(organization)
+    alert_group = make_alert_group(alert_receive_channel)
+    resolution_note = make_resolution_note(alert_group=alert_group, author=user, message_text="a" * 3000)
+    author_verbal = resolution_note.author_verbal(mention=False)
+
+    blocks = step.get_resolution_note_blocks(resolution_note)
+
+    expected_blocks = [
+        {
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                # text is truncated, ellipsis added
+                "text": resolution_note.text[: BLOCK_SECTION_TEXT_MAX_SIZE - 1] + "…",
+            },
+        },
+        {
+            "type": "context",
+            "elements": [
+                {
+                    "type": "mrkdwn",
+                    "text": f"{author_verbal} resolution note from {resolution_note.get_source_display()}.",
+                }
+            ],
         },
     ]
 
