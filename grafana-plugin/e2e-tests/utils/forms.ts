@@ -84,7 +84,7 @@ export const selectDropdownValue = async (args: SelectDropdownValueArgs): Promis
   const { page, value, pressEnterInsteadOfSelectingOption } = args;
 
   const selectElement = await openSelect(args);
-  await selectElement.fill(value);
+  await selectElement.pressSequentially(value);
 
   if (pressEnterInsteadOfSelectingOption) {
     await page.keyboard.press('Enter');

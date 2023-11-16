@@ -214,6 +214,7 @@ class PluginState {
     const existingKey = await PluginState.getGrafanaToken();
     if (!existingKey) {
       try {
+        console.log('INSTALL');
         await PluginState.installPlugin();
       } catch (e) {
         return PluginState.getHumanReadableErrorFromOnCallError(e, onCallApiUrl, 'install', false);
