@@ -106,6 +106,8 @@ test.describe('maintenance mode works', () => {
   };
 
   test('debug mode', async ({ adminRolePage: { page, userName } }) => {
+    test.slow();
+
     const { escalationChainName, integrationName } = await createIntegrationAndEscalationChainAndEnableMaintenanceMode(
       page,
       userName,
@@ -127,6 +129,7 @@ test.describe('maintenance mode works', () => {
       userName,
       'Maintenance'
     );
+    test.slow();
     await sendDemoAlert(page);
 
     // TODO: there seems to be a bug here where "maintenance" mode alert groups don't show up in the UI

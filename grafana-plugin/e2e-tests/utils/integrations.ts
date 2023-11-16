@@ -1,4 +1,4 @@
-import { Page } from '@playwright/test';
+import { Locator, Page, expect } from '@playwright/test';
 
 import { clickButton, generateRandomValue, selectDropdownValue } from './forms';
 import { goToOnCallPage } from './navigation';
@@ -87,4 +87,31 @@ export const filterIntegrationsTableAndGoToDetailPage = async (page: Page, integ
   });
 
   await page.getByTestId('integrations-table').getByText(`${integrationName}`).click();
+};
+
+export const searchIntegrationAndAssertItsPresence = async ({
+  page,
+  integrationName,
+  integrationsTable,
+  visibleExpected = true,
+}: {
+  page: Page;
+  integrationsTable: Locator;
+  integrationName: string;
+  visibleExpected?: boolean;
+}) => {
+  await page
+    .locator('div')
+    .filter({ hasText: /^Search or filter results\.\.\.$/ })
+    .nth(1)
+    .click();
+  await page.keyboard.insertText(integrationName);
+  await page.keyboard.press('Enter');
+  await page.waitForTimeout(2000);
+  const nbOfResults = await integrationsTable.getByText(integrationName).count();
+  if (visibleExpected) {
+    expect(nbOfResults).toBeGreaterThanOrEqual(1);
+  } else {
+    expect(nbOfResults).toBe(0);
+  }
 };
