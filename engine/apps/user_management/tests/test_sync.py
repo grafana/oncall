@@ -101,9 +101,13 @@ def test_sync_users_for_organization_role_none(make_organization, make_user_for_
 
 
 @pytest.mark.django_db
-def test_sync_teams_for_organization(make_organization, make_team):
+def test_sync_teams_for_organization(make_organization, make_team, make_alert_receive_channel):
     organization = make_organization()
     teams = tuple(make_team(organization, team_id=team_id) for team_id in (1, 2))
+    direct_paging_integrations = tuple(
+        make_alert_receive_channel(organization, integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING, team=team)
+        for team in teams
+    )
 
     api_teams = tuple(
         {"id": team_id, "name": "Test", "email": "test@test.test", "avatarUrl": "test.test/test"} for team_id in (2, 3)
@@ -113,14 +117,16 @@ def test_sync_teams_for_organization(make_organization, make_team):
 
     assert organization.teams.count() == 2
 
-    # check that excess teams are deleted
+    # check that excess teams and direct paging integrations are deleted
     assert not organization.teams.filter(pk=teams[0].pk).exists()
+    assert not organization.alert_receive_channels.filter(pk=direct_paging_integrations[0].pk).exists()
 
     # check that existing teams are updated
     updated_team = organization.teams.filter(pk=teams[1].pk).first()
     assert updated_team is not None
     assert updated_team.name == api_teams[0]["name"]
     assert updated_team.email == api_teams[0]["email"]
+    assert organization.alert_receive_channels.filter(pk=direct_paging_integrations[1].pk).exists()
 
     # check that missing teams are created
     created_team = organization.teams.filter(team_id=api_teams[1]["id"]).first()
