@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-from apps.user_management.constants import AlertGroupTableColumnChoices, AlertGroupTableColumnTypeChoices
+from apps.user_management.constants import AlertGroupTableColumnTypeChoices, AlertGroupTableDefaultColumnChoices
 
 
 class ColumnIdField(serializers.Field):
@@ -21,15 +21,13 @@ class AlertGroupTableColumnSerializer(serializers.Serializer):
     type = serializers.ChoiceField(choices=AlertGroupTableColumnTypeChoices.choices)
 
     def validate(self, data):
-        # todo: check if id for default is int and for label is str
-        # todo: check if every column exists in organization columns list if not is_org_settings
+        self._validate_id(data)
         return data
 
-    def _validate_id(self, column_id, column_type):
-        # todo
+    def _validate_id(self, data):
         if (
-            column_type == AlertGroupTableColumnTypeChoices.DEFAULT.value
-            and column_id not in AlertGroupTableColumnChoices.values
+            data["type"] == AlertGroupTableColumnTypeChoices.DEFAULT.value
+            and data["id"] not in AlertGroupTableDefaultColumnChoices.values
         ):
             raise ValidationError("Invalid column id format")
 
@@ -38,11 +36,28 @@ class AlertGroupTableColumnsListSerializer(serializers.Serializer):
     visible = AlertGroupTableColumnSerializer(many=True)
     hidden = AlertGroupTableColumnSerializer(many=True)
 
-    def is_org_settings(self):  # todo
-        return self.context.get("is_org_settings") is True
-
     def validate(self, data):
-        # todo: check columns list if not is_org_settings (should be the same)
-        # todo: check if all default columns are in the list if is_org_settings
-        # todo: minimum one columns should be visible
+        """
+        Validate data regarding if it updates alert group table columns settings for organization or for user:
+
+        `is_org_settings=True` means that organization alert group table columns list should be updated.
+        Validate that all default columns are in the list.
+
+        `is_org_settings=False` means that list of visible columns for user should be updated.
+        Validate that all columns exist in organization alert group table columns list and at least one column is
+        selected as visible.
+        """
+        is_org_settings = self.context.get("is_org_settings") is True
+        organization = self.context["request"].auth.organization
+        columns_list = data["visible"] + data["hidden"]
+        request_columns_ids = [column["id"] for column in columns_list]
+        if is_org_settings:
+            if not set(request_columns_ids) >= set(AlertGroupTableDefaultColumnChoices.values):
+                raise ValidationError("Default column cannot be removed")
+        else:
+            if len(data["visible"]) == 0:
+                raise ValidationError("At least one column should be selected as visible")
+            organization_columns_ids = [column["id"] for column in organization.alert_group_table_columns]
+            if set(organization_columns_ids) != set(request_columns_ids):
+                raise ValidationError("Invalid settings")
         return data

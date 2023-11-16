@@ -1,3 +1,5 @@
+import typing
+
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ViewSet
@@ -5,6 +7,7 @@ from rest_framework.viewsets import ViewSet
 from apps.api.permissions import RBACPermission
 from apps.api.serializers.alert_group_table_settings import AlertGroupTableColumnsListSerializer
 from apps.auth_token.auth import PluginAuthentication
+from apps.user_management.constants import AlertGroupTableColumn
 from apps.user_management.utils import alert_group_table_user_settings
 
 
@@ -30,9 +33,9 @@ class AlertGroupTableColumnsViewSet(ViewSet):
             data=request.data, context={"request": request, "is_org_settings": True}
         )
         serializer.is_valid(raise_exception=True)
-        columns = [column for column in request.data.get("visible", [])] + [
-            column for column in request.data.get("hidden", [])
-        ]
+        columns: typing.List[AlertGroupTableColumn] = serializer.validated_data.get(
+            "visible", []
+        ) + serializer.validated_data.get("hidden", [])
         organization.update_alert_group_table_columns(columns)
         return Response(alert_group_table_user_settings(user))
 
@@ -43,6 +46,6 @@ class AlertGroupTableColumnsViewSet(ViewSet):
             data=request.data, context={"request": request, "is_org_settings": False}
         )
         serializer.is_valid(raise_exception=True)
-        columns = [column for column in request.data.get("visible", [])]
+        columns: typing.List[AlertGroupTableColumn] = serializer.validated_data.get("visible", [])
         user.update_alert_group_table_columns_settings(columns)
         return Response(alert_group_table_user_settings(user))

@@ -3,7 +3,7 @@ import typing
 from django.db.models import IntegerChoices, TextChoices
 
 
-class AlertGroupTableColumnChoices(IntegerChoices):
+class AlertGroupTableDefaultColumnChoices(IntegerChoices):
     STATUS = 1, "Status"
     ID = 2, "ID"
     TITLE = 3, "Title"

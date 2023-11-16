@@ -2,16 +2,16 @@ import typing
 
 from apps.user_management.constants import (
     AlertGroupTableColumn,
-    AlertGroupTableColumnChoices,
     AlertGroupTableColumns,
     AlertGroupTableColumnTypeChoices,
+    AlertGroupTableDefaultColumnChoices,
 )
 
 
 def default_columns():
     columns = [
         {"name": column.label, "id": column.value, "type": AlertGroupTableColumnTypeChoices.DEFAULT.value}
-        for column in AlertGroupTableColumnChoices
+        for column in AlertGroupTableDefaultColumnChoices
     ]
     return columns
 
