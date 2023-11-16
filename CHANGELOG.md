@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fixed recurrency limit issue in the Rotation Modal ([#3358](https://github.com/grafana/oncall/pull/3358))
 - Added dragging boundary constraints for Rotation Modal and show scroll for the users list ([#3365](https://github.com/grafana/oncall/pull/3365))
+- Delete direct paging integration on team delete by @vadimkerr ([#3367](https://github.com/grafana/oncall/pull/3367))
 
 ## v1.3.58 (2023-11-14)
 
