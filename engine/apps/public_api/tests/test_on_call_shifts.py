@@ -166,6 +166,51 @@ def test_get_override_on_call_shift(make_organization_and_user_with_token, make_
 
 
 @pytest.mark.django_db
+def test_get_web_override_shift(
+    make_organization_and_user_with_token, make_user_for_organization, make_on_call_shift, make_schedule
+):
+    organization, user, token = make_organization_and_user_with_token()
+    client = APIClient()
+
+    start_data = timezone.now().replace(microsecond=0)
+    schedule = make_schedule(organization, schedule_class=OnCallScheduleCalendar)
+    data = {
+        "name": "override shift",
+        "start": start_data,
+        "rotation_start": start_data,
+        "duration": timezone.timedelta(hours=9),
+        "schedule": schedule,
+    }
+    on_call_shift = make_on_call_shift(
+        organization=organization,
+        source=CustomOnCallShift.SOURCE_WEB,
+        shift_type=CustomOnCallShift.TYPE_OVERRIDE,
+        **data,
+    )
+    on_call_shift.add_rolling_users([[user]])
+
+    url = reverse("api-public:on_call_shifts-detail", kwargs={"pk": on_call_shift.public_primary_key})
+
+    response = client.get(url, format="json", HTTP_AUTHORIZATION=f"{token}")
+
+    result = {
+        "id": on_call_shift.public_primary_key,
+        "team_id": None,
+        "schedule": schedule.public_primary_key,
+        "name": on_call_shift.name,
+        "type": "override",
+        "time_zone": None,
+        "start": on_call_shift.start.strftime("%Y-%m-%dT%H:%M:%S"),
+        "rotation_start": on_call_shift.start.strftime("%Y-%m-%dT%H:%M:%S"),
+        "duration": int(on_call_shift.duration.total_seconds()),
+        "users": list({user.public_primary_key}),
+    }
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data == result
+
+
+@pytest.mark.django_db
 def test_create_on_call_shift(make_organization_and_user_with_token):
     _, user, token = make_organization_and_user_with_token()
     client = APIClient()

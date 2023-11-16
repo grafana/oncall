@@ -256,6 +256,15 @@ class CustomOnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer
         result["rotation_start"] = instance.rotation_start.strftime("%Y-%m-%dT%H:%M:%S")
         if instance.until is not None:
             result["until"] = instance.until.strftime("%Y-%m-%dT%H:%M:%S")
+
+        # Populate "users" field using "rolling_users" field for web overrides
+        # To support the behavior of the web UI, which creates overrides populating the rolling_users field
+        if (
+            result["type"] == CustomOnCallShift.PUBLIC_TYPE_CHOICES_MAP[CustomOnCallShift.TYPE_OVERRIDE]
+            and instance.source == CustomOnCallShift.SOURCE_WEB
+            and result["rolling_users"] is not None
+        ):
+            result["users"] = list({u for r in result["rolling_users"] for u in r})
         result = self._get_fields_to_represent(instance, result)
         return result
 
