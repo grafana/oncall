@@ -29,7 +29,7 @@ test('we can directly page a user', async ({ adminRolePage }) => {
   await page.waitForTimeout(2000);
   const isConfirmationModalShown = await page.getByText('Confirm Participant Invitation').isVisible();
   if (isConfirmationModalShown) {
-    await clickButton({ page, buttonText: 'Confirm' });
+    await page.getByTestId('confirm-non-oncall').click();
   }
 
   // Check we are redirected to the alert group page

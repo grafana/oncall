@@ -214,7 +214,7 @@ const AddResponders = observer(
                 <Button variant="secondary" onClick={closeUserConfirmationModal}>
                   Cancel
                 </Button>
-                <Button variant="primary" onClick={confirmCurrentlyConsideredUser}>
+                <Button variant="primary" onClick={confirmCurrentlyConsideredUser} data-testid="confirm-non-oncall">
                   Confirm
                 </Button>
               </HorizontalGroup>
