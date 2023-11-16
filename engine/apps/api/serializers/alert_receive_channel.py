@@ -1,3 +1,4 @@
+import typing
 from collections import OrderedDict
 
 from django.conf import settings
@@ -39,7 +40,9 @@ class IntegrationAlertGroupLabelsSerializer(serializers.Serializer):
     inheritable = serializers.DictField(child=serializers.BooleanField())
 
 
-class AlertReceiveChannelSerializer(EagerLoadingMixin, LabelsSerializerMixin, serializers.ModelSerializer):
+class AlertReceiveChannelSerializer(
+    EagerLoadingMixin, LabelsSerializerMixin, serializers.ModelSerializer[AlertReceiveChannel]
+):
     id = serializers.CharField(read_only=True, source="public_primary_key")
     integration_url = serializers.ReadOnlyField()
     alert_count = serializers.SerializerMethodField()
@@ -163,12 +166,12 @@ class AlertReceiveChannelSerializer(EagerLoadingMixin, LabelsSerializerMixin, se
         except AlertReceiveChannel.DuplicateDirectPagingError:
             raise BadRequest(detail=AlertReceiveChannel.DuplicateDirectPagingError.DETAIL)
 
-    def get_instructions(self, obj):
+    def get_instructions(self, obj: "AlertReceiveChannel"):
         # Deprecated, kept for api-backward compatibility
         return ""
 
     # MethodFields are used instead of relevant properties because of properties hit db on each instance in queryset
-    def get_default_channel_filter(self, obj):
+    def get_default_channel_filter(self, obj: "AlertReceiveChannel"):
         for filter in obj.channel_filters.all():
             if filter.is_default:
                 return filter.public_primary_key
@@ -192,29 +195,29 @@ class AlertReceiveChannelSerializer(EagerLoadingMixin, LabelsSerializerMixin, se
         else:
             raise serializers.ValidationError(detail="Integration with this name already exists")
 
-    def get_heartbeat(self, obj):
+    def get_heartbeat(self, obj: "AlertReceiveChannel"):
         try:
             heartbeat = obj.integration_heartbeat
         except ObjectDoesNotExist:
             return None
         return IntegrationHeartBeatSerializer(heartbeat).data
 
-    def get_allow_delete(self, obj):
+    def get_allow_delete(self, obj: "AlertReceiveChannel"):
         return True
 
-    def get_alert_count(self, obj):
+    def get_alert_count(self, obj: "AlertReceiveChannel"):
         return 0
 
-    def get_alert_groups_count(self, obj):
+    def get_alert_groups_count(self, obj: "AlertReceiveChannel"):
         return 0
 
-    def get_routes_count(self, obj) -> int:
+    def get_routes_count(self, obj: "AlertReceiveChannel") -> int:
         return obj.channel_filters.count()
 
-    def get_is_legacy(self, obj) -> bool:
+    def get_is_legacy(self, obj: "AlertReceiveChannel") -> bool:
         return has_legacy_prefix(obj.integration)
 
-    def get_connected_escalations_chains_count(self, obj) -> int:
+    def get_connected_escalations_chains_count(self, obj: "AlertReceiveChannel") -> int:
         return (
             ChannelFilter.objects.filter(alert_receive_channel=obj, escalation_chain__isnull=False)
             .values("escalation_chain")
@@ -228,7 +231,7 @@ class AlertReceiveChannelUpdateSerializer(AlertReceiveChannelSerializer):
         read_only_fields = [*AlertReceiveChannelSerializer.Meta.read_only_fields, "integration"]
 
 
-class FastAlertReceiveChannelSerializer(serializers.ModelSerializer):
+class FastAlertReceiveChannelSerializer(serializers.ModelSerializer[AlertReceiveChannel]):
     id = serializers.CharField(read_only=True, source="public_primary_key")
     integration = serializers.CharField(read_only=True)
     deleted = serializers.SerializerMethodField()
@@ -237,27 +240,30 @@ class FastAlertReceiveChannelSerializer(serializers.ModelSerializer):
         model = AlertReceiveChannel
         fields = ["id", "integration", "verbal_name", "deleted"]
 
-    def get_deleted(self, obj):
+    def get_deleted(self, obj: "AlertReceiveChannel") -> bool:
         return obj.deleted_at is not None
 
 
-class FilterAlertReceiveChannelSerializer(serializers.ModelSerializer):
-    value = serializers.SerializerMethodField()
+class FilterAlertReceiveChannelSerializer(serializers.ModelSerializer[AlertReceiveChannel]):
+    # don't use get_value as the method name, otherwise this will override the get_value method on
+    # serializers.ModelSerializer, which may cause unexpected behavior (+ this violates the "Lisov substition
+    # principle" which mypy complains about)
+    value = serializers.SerializerMethodField(method_name="_get_value")
     display_name = serializers.SerializerMethodField()
 
     class Meta:
         model = AlertReceiveChannel
         fields = ["value", "display_name", "integration_url"]
 
-    def get_value(self, obj):
+    def _get_value(self, obj: "AlertReceiveChannel"):
         return obj.public_primary_key
 
-    def get_display_name(self, obj):
+    def get_display_name(self, obj: "AlertReceiveChannel"):
         display_name = obj.verbal_name or AlertReceiveChannel.INTEGRATION_CHOICES[obj.integration][1]
         return display_name
 
 
-class AlertReceiveChannelTemplatesSerializer(EagerLoadingMixin, serializers.ModelSerializer):
+class AlertReceiveChannelTemplatesSerializer(EagerLoadingMixin, serializers.ModelSerializer[AlertReceiveChannel]):
     id = serializers.CharField(read_only=True, source="public_primary_key")
 
     payload_example = SerializerMethodField()
@@ -273,7 +279,7 @@ class AlertReceiveChannelTemplatesSerializer(EagerLoadingMixin, serializers.Mode
         ]
         extra_kwargs = {"integration": {"required": True}}
 
-    def get_payload_example(self, obj):
+    def get_payload_example(self, obj: "AlertReceiveChannel"):
         from apps.alerts.models import AlertGroup
 
         if "alert_group_id" in self.context["request"].query_params:
@@ -290,7 +296,7 @@ class AlertReceiveChannelTemplatesSerializer(EagerLoadingMixin, serializers.Mode
             except AttributeError:
                 return None
 
-    def get_is_based_on_alertmanager(self, obj):
+    def get_is_based_on_alertmanager(self, obj: "AlertReceiveChannel"):
         return obj.based_on_alertmanager
 
     # Override method to pass field_name directly in set_value to handle None values for WritableSerializerField
@@ -366,7 +372,7 @@ class AlertReceiveChannelTemplatesSerializer(EagerLoadingMixin, serializers.Mode
                 set_value(ret, [field_name], value)
         return errors
 
-    def to_representation(self, obj):
+    def to_representation(self, obj: "AlertReceiveChannel"):
         ret = super().to_representation(obj)
 
         core_templates = self._get_core_templates(obj)
@@ -378,7 +384,7 @@ class AlertReceiveChannelTemplatesSerializer(EagerLoadingMixin, serializers.Mode
 
         return ret
 
-    def _get_messaging_backend_templates(self, obj):
+    def _get_messaging_backend_templates(self, obj: "AlertReceiveChannel"):
         """Return additional messaging backend templates if any."""
         templates = {}
         for backend_id, backend in get_messaging_backends():
@@ -397,7 +403,7 @@ class AlertReceiveChannelTemplatesSerializer(EagerLoadingMixin, serializers.Mode
                 templates[f"{field_name}_is_default"] = is_default
         return templates
 
-    def _get_core_templates(self, obj):
+    def _get_core_templates(self, obj: "AlertReceiveChannel"):
         core_templates = {}
 
         for template_name in self.core_templates_names:
@@ -410,10 +416,9 @@ class AlertReceiveChannelTemplatesSerializer(EagerLoadingMixin, serializers.Mode
         return core_templates
 
     @property
-    def core_templates_names(self):
+    def core_templates_names(self) -> typing.List[str]:
         """
-        core_templates_names returns names of templates introduced before messaging backends system with respect to
-        enabled integrations.
+        returns names of templates introduced before messaging backends system with respect to enabled integrations.
         """
         core_templates = [
             "web_title_template",
@@ -427,21 +432,16 @@ class AlertReceiveChannelTemplatesSerializer(EagerLoadingMixin, serializers.Mode
             "acknowledge_condition_template",
         ]
 
-        slack_integration_required_templates = [
-            "slack_title_template",
-            "slack_message_template",
-            "slack_image_url_template",
-        ]
-        telegram_integration_required_templates = [
-            "telegram_title_template",
-            "telegram_message_template",
-            "telegram_image_url_template",
-        ]
-
-        apppend = []
-
         if settings.FEATURE_SLACK_INTEGRATION_ENABLED:
-            core_templates += slack_integration_required_templates
+            core_templates += [
+                "slack_title_template",
+                "slack_message_template",
+                "slack_image_url_template",
+            ]
         if settings.FEATURE_TELEGRAM_INTEGRATION_ENABLED:
-            core_templates += telegram_integration_required_templates
-        return apppend + core_templates
+            core_templates += [
+                "telegram_title_template",
+                "telegram_message_template",
+                "telegram_image_url_template",
+            ]
+        return core_templates

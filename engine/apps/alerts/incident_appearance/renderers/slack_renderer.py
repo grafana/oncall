@@ -5,6 +5,7 @@ from django.utils.text import Truncator
 
 from apps.alerts.incident_appearance.renderers.base_renderer import AlertBaseRenderer, AlertGroupBaseRenderer
 from apps.alerts.incident_appearance.templaters import AlertSlackTemplater
+from apps.slack.constants import BLOCK_SECTION_TEXT_MAX_SIZE
 from apps.slack.scenarios.scenario_step import ScenarioStep
 from apps.slack.types import Block
 from common.utils import is_string_with_visible_characters, str_or_backup
@@ -23,7 +24,6 @@ class AlertSlackRenderer(AlertBaseRenderer):
         return AlertSlackTemplater
 
     def render_alert_blocks(self) -> Block.AnyBlocks:
-        BLOCK_SECTION_TEXT_MAX_SIZE = 2800
         blocks: Block.AnyBlocks = []
 
         title = Truncator(str_or_backup(self.templated_alert.title, "Alert"))
