@@ -6,7 +6,10 @@ from rest_framework.test import APIClient
 
 
 @pytest.mark.django_db
-def test_fetching_the_openapi_schema_works(settings):
+def test_fetching_the_openapi_schema_works(settings, reload_urls):
+    settings.DRF_SPECTACULAR_ENABLED = True
+    reload_urls()
+
     client = APIClient()
     response = client.get(reverse("schema"))
 

@@ -40,6 +40,3 @@ TWILIO_ACCOUNT_SID = "dummy_twilio_account_sid"
 TWILIO_AUTH_TOKEN = "dummy_twilio_auth_token"
 
 EXTRA_MESSAGING_BACKENDS = [("apps.base.tests.messaging_backend.TestOnlyBackend", 42)]
-
-# needed to test that the openapi schema is valid and doesn't return HTTP 500
-DRF_SPECTACULAR_ENABLED = True
