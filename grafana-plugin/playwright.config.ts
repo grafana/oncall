@@ -23,7 +23,7 @@ export default defineConfig({
   globalTimeout: 20 * 60 * 1000, // 20 minutes
 
   /* Maximum time one test can run for. */
-  timeout: 40 * 1000,
+  timeout: 60 * 1000,
   expect: {
     /**
      * Maximum time expect() should wait for the condition to be met.
@@ -42,7 +42,7 @@ export default defineConfig({
    * to flaky tests.. let's allow 1 retry per test
    */
   retries: IS_CI ? 1 : 0,
-  workers: 3,
+  workers: 2,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   reporter: 'html',
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
