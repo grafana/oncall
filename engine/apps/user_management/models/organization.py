@@ -6,12 +6,13 @@ from urllib.parse import urljoin
 from django.conf import settings
 from django.core.validators import MinLengthValidator
 from django.db import models
-from django.db.models import Count, Q
+from django.db.models import Count, JSONField, Q
 from django.utils import timezone
 from mirage import fields as mirage_fields
 
 from apps.alerts.models import MaintainableObject
 from apps.user_management.subscription_strategy import FreePublicBetaSubscriptionStrategy
+from apps.user_management.utils import default_columns
 from common.insight_log import ChatOpsEvent, ChatOpsTypePlug, write_chatops_insight_log
 from common.oncall_gateway import create_oncall_connector, delete_oncall_connector, delete_slack_connector
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
@@ -248,6 +249,8 @@ class Organization(MaintainableObject):
     is_rbac_permissions_enabled = models.BooleanField(default=False)
     is_grafana_incident_enabled = models.BooleanField(default=False)
 
+    alert_group_table_columns = JSONField(default=default_columns)
+
     class Meta:
         unique_together = ("stack_id", "org_id")
 
@@ -282,6 +285,11 @@ class Organization(MaintainableObject):
     # todo: manage backend specific limits in messaging backend
     def emails_left(self, user):
         return self.subscription_strategy.emails_left(user)
+
+    def update_alert_group_table_columns(self, columns: list):
+        if columns != self.alert_group_table_columns:
+            self.alert_group_table_columns = columns
+            self.save(update_fields=["alert_group_table_columns"])
 
     def set_general_log_channel(self, channel_id, channel_name, user):
         if self.general_log_channel_id != channel_id:

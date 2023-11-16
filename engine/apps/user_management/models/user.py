@@ -236,6 +236,8 @@ class User(models.Model):
     is_active = models.BooleanField(null=True, default=True)
     permissions = models.JSONField(null=False, default=list)
 
+    alert_groups_table_selected_columns = models.JSONField(default=None, null=True)
+
     def __str__(self):
         return f"{self.pk}: {self.username}"
 
@@ -448,6 +450,11 @@ class User(models.Model):
                 order=0,
             ),
         )
+
+    def update_alert_group_table_columns_settings(self, columns: list):
+        if self.alert_groups_table_selected_columns != columns:
+            self.alert_groups_table_selected_columns = columns
+            self.save(update_fields=["alert_groups_table_selected_columns"])
 
 
 # TODO: check whether this signal can be moved to save method of the model
