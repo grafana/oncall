@@ -34,6 +34,7 @@ import TextEllipsisTooltip from 'components/TextEllipsisTooltip/TextEllipsisTool
 import TooltipBadge from 'components/TooltipBadge/TooltipBadge';
 import { WithContextMenu } from 'components/WithContextMenu/WithContextMenu';
 import IntegrationForm from 'containers/IntegrationForm/IntegrationForm';
+import IntegrationLabelsForm from 'containers/IntegrationLabelsForm/IntegrationLabelsForm';
 import RemoteFilters from 'containers/RemoteFilters/RemoteFilters';
 import TeamName from 'containers/TeamName/TeamName';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
@@ -80,6 +81,7 @@ const FILTERS_DEBOUNCE_MS = 500;
 interface IntegrationsState extends PageBaseState {
   integrationsFilters: SupportedIntegrationFilters;
   alertReceiveChannelId?: AlertReceiveChannel['id'] | 'new';
+  alertReceiveChannelIdToShowLabels?: AlertReceiveChannel['id'];
   confirmationModal: {
     isOpen: boolean;
     title: any;
@@ -192,7 +194,13 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
 
   render() {
     const { store, query } = this.props;
-    const { alertReceiveChannelId, confirmationModal, activeTab, integrationsFilters } = this.state;
+    const {
+      alertReceiveChannelId,
+      alertReceiveChannelIdToShowLabels,
+      confirmationModal,
+      activeTab,
+      integrationsFilters,
+    } = this.state;
     const { alertReceiveChannelStore } = store;
 
     const { count, results, page_size } = alertReceiveChannelStore.getPaginatedSearchResult();
@@ -289,6 +297,19 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
           />
         )}
 
+        {alertReceiveChannelIdToShowLabels && (
+          <IntegrationLabelsForm
+            onHide={() => {
+              this.setState({ alertReceiveChannelIdToShowLabels: undefined });
+            }}
+            onSubmit={this.update}
+            id={alertReceiveChannelIdToShowLabels}
+            onOpenIntegraionSettings={(id: AlertReceiveChannel['id']) => {
+              this.setState({ alertReceiveChannelId: id });
+            }}
+          />
+        )}
+
         {confirmationModal && (
           <ConfirmModal
             isOpen={confirmationModal.isOpen}
@@ -369,7 +390,6 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
               borderType="primary"
               placement="top"
               text={alertReceiveChannelCounter?.alerts_count + '/' + alertReceiveChannelCounter?.alert_groups_count}
-              tooltipTitle=""
               tooltipContent={
                 alertReceiveChannelCounter?.alerts_count +
                 ' alert' +
@@ -452,29 +472,30 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
   }
 
   renderLabels(item: AlertReceiveChannel) {
+    if (!item.labels.length) {
+      return null;
+    }
+
     return (
       <TooltipBadge
-        tooltipTitle=""
         borderType="secondary"
         icon="tag-alt"
         addPadding
         text={item.labels?.length}
         tooltipContent={
           <VerticalGroup spacing="sm">
-            {item.labels?.length
-              ? item.labels.map((label) => (
-                  <HorizontalGroup spacing="sm" key={label.key.id}>
-                    <LabelTag label={label.key.name} value={label.value.name} key={label.key.id} />
-                    <Button
-                      size="sm"
-                      icon="filter"
-                      tooltip="Apply filter"
-                      variant="secondary"
-                      onClick={this.getApplyLabelFilterClickHandler(label)}
-                    />
-                  </HorizontalGroup>
-                ))
-              : 'No labels attached'}
+            {item.labels.map((label) => (
+              <HorizontalGroup spacing="sm" key={label.key.id}>
+                <LabelTag label={label.key.name} value={label.value.name} key={label.key.id} />
+                <Button
+                  size="sm"
+                  icon="filter"
+                  tooltip="Apply filter"
+                  variant="secondary"
+                  onClick={this.getApplyLabelFilterClickHandler(label)}
+                />
+              </HorizontalGroup>
+            ))}
           </VerticalGroup>
         }
       />
@@ -490,6 +511,8 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
   }
 
   renderButtons = (item: AlertReceiveChannel) => {
+    const { store } = this.props;
+
     return (
       <WithContextMenu
         renderMenuItems={() => (
@@ -499,6 +522,14 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
                 <Text type="primary">Integration settings</Text>
               </div>
             </WithPermissionControlTooltip>
+
+            {store.hasFeature(AppFeature.Labels) && (
+              <WithPermissionControlTooltip key="edit" userAction={UserActions.IntegrationsWrite}>
+                <div className={cx('integrations-actionItem')} onClick={() => this.onLabelsEditClick(item.id)}>
+                  <Text type="primary">Alert group labels</Text>
+                </div>
+              </WithPermissionControlTooltip>
+            )}
 
             <CopyToClipboard text={item.id} onCopy={() => openNotification('Integration ID has been copied')}>
               <div className={cx('integrations-actionItem')}>
@@ -631,6 +662,10 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
     this.setState({ alertReceiveChannelId: id });
   };
 
+  onLabelsEditClick = (id: AlertReceiveChannel['id']) => {
+    this.setState({ alertReceiveChannelIdToShowLabels: id });
+  };
+
   handleDeleteAlertReceiveChannel = (alertReceiveChannelId: AlertReceiveChannel['id']) => {
     const { store } = this.props;
 
@@ -666,7 +701,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
 
       LocationHelper.update({ label: newLabelFilter }, 'partial');
 
-      filtersStore.needToParseFilters = true;
+      filtersStore.setNeedToParseFilters(true);
     };
   };
 

@@ -38,7 +38,7 @@ import styles from './RemoteFilters.module.css';
 const cx = cn.bind(styles);
 
 interface RemoteFiltersProps extends WithStoreProps {
-  onChange: (filters: { [key: string]: any }, isOnMount: boolean, invalidateFn: () => boolean) => void;
+  onChange: (filters: Record<string, any>, isOnMount: boolean, invalidateFn: () => boolean) => void;
   query: KeyValue;
   page: PAGE;
   defaultFilters?: FiltersValues;
@@ -49,7 +49,7 @@ interface RemoteFiltersProps extends WithStoreProps {
 interface RemoteFiltersState {
   filterOptions?: FilterOption[];
   filters: FilterOption[];
-  values: { [key: string]: any };
+  values: Record<string, any>;
   hadInteraction: boolean;
   lastRequestId: string;
 }
