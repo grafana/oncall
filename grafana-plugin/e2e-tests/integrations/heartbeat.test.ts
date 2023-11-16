@@ -1,5 +1,4 @@
 import { test, Page, expect } from '../fixtures';
-
 import { generateRandomValue, selectDropdownValue } from '../utils/forms';
 import { createIntegration } from '../utils/integrations';
 

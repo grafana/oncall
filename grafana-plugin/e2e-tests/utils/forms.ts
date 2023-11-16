@@ -1,4 +1,5 @@
 import type { Locator, Page } from '@playwright/test';
+
 import { randomUUID } from 'crypto';
 
 type SelectorType = 'gSelect' | 'grafanaSelect';

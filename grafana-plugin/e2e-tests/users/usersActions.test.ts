@@ -1,4 +1,4 @@
-import { test, expect, Page } from '../fixtures';
+import { test, expect } from '../fixtures';
 import { goToOnCallPage } from '../utils/navigation';
 import { viewUsers, accessProfileTabs } from '../utils/users';
 

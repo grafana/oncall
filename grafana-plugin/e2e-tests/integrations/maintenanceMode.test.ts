@@ -1,4 +1,3 @@
-import { time } from 'console';
 import { test, expect, Page, Locator } from '../fixtures';
 import { verifyThatAlertGroupIsRoutedCorrectlyButNotEscalated } from '../utils/alertGroup';
 import { EscalationStep, createEscalationChain } from '../utils/escalationChain';

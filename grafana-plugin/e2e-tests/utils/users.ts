@@ -1,4 +1,5 @@
 import { Page, expect } from '@playwright/test';
+
 import { goToOnCallPage } from './navigation';
 
 export async function accessProfileTabs(page: Page, tabs: string[], hasAccess: boolean) {
