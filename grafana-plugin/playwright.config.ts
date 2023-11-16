@@ -39,10 +39,10 @@ export default defineConfig({
    * Retry on CI only
    *
    * NOTE: until we fix this issue (https://github.com/grafana/oncall/issues/1692) which occasionally leads
-   * to flaky tests.. let's just retry failed tests. If the same test fails 3 times, you know something must be up
+   * to flaky tests.. let's allow 1 retry per test
    */
-  retries: IS_CI ? 3 : 0,
-  workers: 1,
+  retries: IS_CI ? 1 : 0,
+  workers: 2,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   reporter: 'html',
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
