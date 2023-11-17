@@ -9,6 +9,7 @@ import styles from 'containers/ColumnsSelectorWrapper/ColumnsSelectorWrapper.mod
 import { AGColumn } from 'models/alertgroup/alertgroup.types';
 import { Label } from 'models/label/label.types';
 import { useStore } from 'state/useStore';
+
 import { ColumnsModal } from './ColumnsModal';
 
 const cx = cn.bind(styles);
