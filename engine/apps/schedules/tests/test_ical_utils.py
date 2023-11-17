@@ -104,6 +104,9 @@ def test_users_in_ical_email_case_insensitive(make_organization_and_user, make_u
 )
 def test_users_in_ical_basic_role(make_organization_and_user, make_user_for_organization, role, included):
     organization, user = make_organization_and_user()
+    organization.is_rbac_permissions_enabled = False
+    organization.save()
+
     other_user = make_user_for_organization(organization, role=role)
 
     usernames = [user.username, other_user.username]
@@ -130,16 +133,18 @@ def test_users_in_ical_rbac(make_organization_and_user, make_user_for_organizati
     organization.save()
 
     viewer = make_user_for_organization(organization, role=LegacyAccessControlRole.VIEWER)
+    usernames = [user.username, viewer.username]
+
+    # viewer doesn't yet have the required permission, they shouldn't be included
+    assert set(users_in_ical(usernames, organization)) == {user}
+
     viewer.permissions = [{"action": permission.value}] if permission else []
     viewer.save()
 
-    usernames = [user.username, viewer.username]
     expected_result = {user}
     if included:
         expected_result.add(viewer)
-
-    result = users_in_ical(usernames, organization)
-    assert set(result) == expected_result
+    assert set(users_in_ical(usernames, organization)) == expected_result
 
 
 @pytest.mark.django_db
