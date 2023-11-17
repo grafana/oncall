@@ -12,6 +12,7 @@ from apps.auth_token.models import ScheduleExportAuthToken, UserScheduleExportAu
 from apps.integrations.views import AlertManagerAPIView, AmazonSNS
 from apps.schedules.models import OnCallScheduleWeb
 from apps.user_management.exceptions import OrganizationMovedException
+from apps.user_management.middlewares import AMAZON_SNS_HEADERS
 
 
 @pytest.mark.django_db
@@ -254,10 +255,10 @@ def test_organization_moved_middleware_amazon_sns_headers(
     )
 
     expected_sns_headers = {
-        "x-amz-sns-subscription-arn": "arn:aws:sns:xxxxxxxxxx:467989492352:oncall-test:3aab6edb-0c5e-4fa9-b876-64409d1f6c63",
-        "x-amz-sns-topic-arn": "arn:aws:sns:xxxxxxxxxx:467989492352:oncall-test",
-        "x-amz-sns-message-id": "473efe1d-8ea4-5252-8124-a3d5ff7408c5",
-        "x-amz-sns-message-type": "Notification",
+        "HTTP_X_AMZ_SNS_SUBSCRIPTION_ARN": "arn:aws:sns:xxxxxxxxxx:467989492352:oncall-test:3aab6edb-0c5e-4fa9-b876-64409d1f6c63",
+        "HTTP_X_AMZ_SNS_TOPIC_ARN": "arn:aws:sns:xxxxxxxxxx:467989492352:oncall-test",
+        "HTTP_X_AMZ_SNS_MESSAGE_ID": "473efe1d-8ea4-5252-8124-a3d5ff7408c5",
+        "HTTP_X_AMZ_SNS_MESSAGE_TYPE": "Notification",
     }
     expected_message = bytes(f"Redirected to {region.oncall_backend_url}", "utf-8")
     mocked_make_request.return_value = HttpResponse(expected_message, status=status.HTTP_200_OK)
@@ -268,6 +269,9 @@ def test_organization_moved_middleware_amazon_sns_headers(
     data = {"value": "test"}
     response = client.post(url, data, format="json", **expected_sns_headers)
     assert mocked_make_request.called
-    assert expected_sns_headers.items() <= mocked_make_request.call_args.args[2].items()
+    for k in AMAZON_SNS_HEADERS:
+        assert expected_sns_headers.get(f'HTTP_{k.upper().replace("-","_")}') == mocked_make_request.call_args.args[
+            2
+        ].get(k)
     assert response.content == expected_message
     assert response.status_code == status.HTTP_200_OK
