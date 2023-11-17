@@ -15,6 +15,8 @@ RUN apk add bash \
             git \
             postgresql-dev 
 
+# Create /etc/app folder if not exists
+RUN mkdir -p /etc/app
 WORKDIR /etc/app
 COPY ./requirements.txt ./
 RUN pip install -r requirements.txt
