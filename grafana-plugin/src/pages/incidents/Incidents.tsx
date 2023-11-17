@@ -33,6 +33,7 @@ import {
   AGColumn,
   AGColumnType,
 } from 'models/alertgroup/alertgroup.types';
+import { LabelKeyValue } from 'models/label/label.types';
 import { renderRelatedUsers } from 'pages/incident/Incident.helpers';
 import { AppFeature } from 'state/features';
 import { PageProps, WithStoreProps } from 'state/types';
@@ -45,7 +46,6 @@ import { TableColumn } from 'utils/types';
 import styles from './Incidents.module.scss';
 import { IncidentDropdown } from './parts/IncidentDropdown';
 import { SilenceButtonCascader } from './parts/SilenceButtonCascader';
-import { LabelKeyValue } from 'models/label/label.types';
 
 const cx = cn.bind(styles);
 

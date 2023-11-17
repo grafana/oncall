@@ -1,17 +1,19 @@
+import React, { useState } from 'react';
+
+import { Button, Checkbox, HorizontalGroup, Input, LoadingPlaceholder, Modal, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
-import { Label } from 'models/label/label.types';
-import React, { useState } from 'react';
-import { useStore } from 'state/useStore';
-import { useDebouncedCallback } from 'utils/hooks';
-import LoaderStore from 'models/loader/loader';
-import { ActionKey } from 'models/loader/action-keys';
-import { Button, Checkbox, HorizontalGroup, Input, LoadingPlaceholder, Modal, VerticalGroup } from '@grafana/ui';
-import styles from 'containers/ColumnsSelectorWrapper/ColumnsSelectorWrapper.module.scss';
+
 import Text from 'components/Text/Text';
+import styles from 'containers/ColumnsSelectorWrapper/ColumnsSelectorWrapper.module.scss';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
-import { UserActions } from 'utils/authorization';
 import { AGColumn, AGColumnType } from 'models/alertgroup/alertgroup.types';
+import { Label } from 'models/label/label.types';
+import { ActionKey } from 'models/loader/action-keys';
+import LoaderStore from 'models/loader/loader';
+import { useStore } from 'state/useStore';
+import { UserActions } from 'utils/authorization';
+import { useDebouncedCallback } from 'utils/hooks';
 
 const cx = cn.bind(styles);
 
@@ -146,7 +148,7 @@ export const ColumnsModal: React.FC<ColumnsModalProps> = observer(
     }
 
     function forceOpenToggletip() {
-        document.getElementById('toggletip-button')?.click();
+      document.getElementById('toggletip-button')?.click();
     }
   }
 );
