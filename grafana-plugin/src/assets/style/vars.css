@@ -71,7 +71,7 @@
   --working-hours-shades-color-light: rgba(17, 18, 23, 0.04);
 }
 
-.theme-dark {
+.theme-dark:not(.theme-light) {
   --cards-background: var(--gray-9);
   --highlighted-row-bg: var(--gray-9);
   --disabled-button-color: hsla(0, 0%, 100%, 0.08);

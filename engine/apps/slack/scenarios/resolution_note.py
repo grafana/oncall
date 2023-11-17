@@ -4,9 +4,10 @@ import logging
 import typing
 
 from django.db.models import Q
+from django.utils.text import Truncator
 
 from apps.api.permissions import RBACPermission
-from apps.slack.constants import DIVIDER
+from apps.slack.constants import BLOCK_SECTION_TEXT_MAX_SIZE, DIVIDER
 from apps.slack.errors import (
     SlackAPIChannelArchivedError,
     SlackAPIChannelInactiveError,
@@ -295,9 +296,10 @@ class UpdateResolutionNoteStep(scenario_step.ScenarioStep):
     def get_resolution_note_blocks(self, resolution_note: "ResolutionNote") -> Block.AnyBlocks:
         blocks: Block.AnyBlocks = []
         author_verbal = resolution_note.author_verbal(mention=False)
+        resolution_note_text = Truncator(resolution_note.text)
         resolution_note_text_block = {
             "type": "section",
-            "text": {"type": "mrkdwn", "text": resolution_note.text},
+            "text": {"type": "mrkdwn", "text": resolution_note_text.chars(BLOCK_SECTION_TEXT_MAX_SIZE)},
         }
         blocks.append(resolution_note_text_block)
         context_block = {

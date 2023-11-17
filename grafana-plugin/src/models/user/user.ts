@@ -15,7 +15,7 @@ import { isUserActionAllowed, UserActions } from 'utils/authorization';
 import { getTimezone, prepareForUpdate } from './user.helpers';
 import { User } from './user.types';
 
-type PaginatedUsersResponse<UT = User> = {
+export type PaginatedUsersResponse<UT = User> = {
   count: number;
   page_size: number;
   results: UT[];

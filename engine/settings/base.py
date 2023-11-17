@@ -220,9 +220,7 @@ if REDIS_USE_SSL:
 CACHES = {
     "default": {
         "BACKEND": "redis_cache.RedisCache",
-        "LOCATION": [
-            REDIS_URI,
-        ],
+        "LOCATION": REDIS_URI,
         "OPTIONS": {
             "DB": REDIS_DATABASE,
             "PARSER_CLASS": "redis.connection.HiredisParser",

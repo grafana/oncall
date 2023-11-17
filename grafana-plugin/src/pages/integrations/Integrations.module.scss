@@ -7,6 +7,10 @@
   width: 40px;
 }
 
+.tabsBar {
+  margin-bottom: 24px;
+}
+
 .integrations-header {
   margin-bottom: 24px;
   right: 0;
@@ -44,4 +48,8 @@
   &:hover {
     background: var(--cards-background);
   }
+}
+
+.goToDirectPagingAlert {
+  margin-top: 24px;
 }
