@@ -12,19 +12,19 @@ import {
   VerticalGroup,
 } from '@grafana/ui';
 import cn from 'classnames/bind';
+import { observer } from 'mobx-react';
 
 import Text from 'components/Text/Text';
 import { ColumnsSelector, convertColumnsToTableSettings } from 'containers/ColumnsSelector/ColumnsSelector';
 import styles from 'containers/ColumnsSelectorWrapper/ColumnsSelectorWrapper.module.scss';
+import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { AGColumn, AGColumnType } from 'models/alertgroup/alertgroup.types';
 import { Label } from 'models/label/label.types';
-import { useStore } from 'state/useStore';
-import { useDebouncedCallback } from 'utils/hooks';
-import LoaderStore from 'models/loader/loader';
 import { ActionKey } from 'models/loader/action-keys';
-import { observer } from 'mobx-react';
-import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
+import LoaderStore from 'models/loader/loader';
+import { useStore } from 'state/useStore';
 import { UserActions } from 'utils/authorization';
+import { useDebouncedCallback } from 'utils/hooks';
 
 const cx = cn.bind(styles);
 

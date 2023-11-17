@@ -117,9 +117,9 @@
  * Icons
  */
 
- .loader {
+.loader {
   margin-bottom: 0 !important;
- }
+}
 
 .icon-exclamation {
   color: var(--error-text-color);

@@ -4,6 +4,7 @@ import qs from 'query-string';
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import BaseStore from 'models/base_store';
 import { Label, LabelKey } from 'models/label/label.types';
+import { ActionKey } from 'models/loader/action-keys';
 import { User } from 'models/user/user.types';
 import { makeRequest } from 'network';
 import { Mixpanel } from 'services/mixpanel';
@@ -11,10 +12,9 @@ import { RootStore } from 'state';
 import { SelectOption } from 'state/types';
 import { openErrorNotification, refreshPageError, showApiError } from 'utils';
 import LocationHelper from 'utils/LocationHelper';
+import { AutoLoadingState } from 'utils/decorators';
 
 import { AGColumn, Alert, AlertAction, IncidentStatus } from './alertgroup.types';
-import { AutoLoadingState } from 'utils/decorators';
-import { ActionKey } from 'models/loader/action-keys';
 
 export class AlertGroupStore extends BaseStore {
   @observable.shallow
