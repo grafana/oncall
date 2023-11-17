@@ -57,7 +57,7 @@
     {
       "type": "page",
       "name": "Integrations",
-      "path": "/a/grafana-oncall-app/integrations",
+      "path": "/a/grafana-oncall-app/integrations?tab=connections",
       "role": "Viewer",
       "action": "grafana-oncall-app.integrations:read",
       "addToNav": true
