@@ -26,6 +26,10 @@ test.describe('maintenance mode works', () => {
       .getByTestId('integration-settings-context-menu-wrapper')
       .getByRole('img');
     await integrationSettingsPopupElement.click();
+    /**
+     * sometimes we need to click twice (e.g. adding the escalation chain route
+     * doesn't unfocus out of the select element after selecting an option)
+     */
     if (shouldDoubleClickSettingsIcon) {
       await integrationSettingsPopupElement.click();
     }
@@ -124,12 +128,12 @@ test.describe('maintenance mode works', () => {
   });
 
   test('"maintenance" mode', async ({ adminRolePage: { page, userName } }) => {
+    test.slow();
     const { integrationName } = await createIntegrationAndEscalationChainAndEnableMaintenanceMode(
       page,
       userName,
       'Maintenance'
     );
-    test.slow();
     await sendDemoAlert(page);
 
     // TODO: there seems to be a bug here where "maintenance" mode alert groups don't show up in the UI
