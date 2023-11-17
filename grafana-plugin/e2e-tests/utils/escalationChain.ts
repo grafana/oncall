@@ -32,7 +32,7 @@ export const createEscalationChain = async (
   await page.locator('text=Loading...').waitFor({ state: 'detached' });
 
   // open the create escalation chain modal
-  (await page.waitForSelector('text=New Escalation Chain')).click();
+  (await page.waitForSelector('text=/New Escalation Chain/i')).click();
 
   // fill in the name input
   await fillInInput(page, 'div[data-testid="create-escalation-chain-name-input-modal"] >> input', escalationChainName);
@@ -44,7 +44,10 @@ export const createEscalationChain = async (
   if (escalationStep) {
     // add an escalation step
     await selectDropdownValue({
-      page, selectType: 'grafanaSelect', placeholderText: 'Add escalation step...', value: escalationStep,
+      page,
+      selectType: 'grafanaSelect',
+      placeholderText: 'Add escalation step...',
+      value: escalationStep,
     });
 
     // toggle important
@@ -52,13 +55,15 @@ export const createEscalationChain = async (
       await selectDropdownValue({
         page,
         selectType: 'grafanaSelect',
-        placeholderText: "Default",
-        value: "Important",
+        placeholderText: 'Default',
+        value: 'Important',
       });
     }
 
     // select the escalation step value (e.g. user or schedule)
-    if (escalationStepValue) {await selectEscalationStepValue(page, escalationStep, escalationStepValue);}
+    if (escalationStepValue) {
+      await selectEscalationStepValue(page, escalationStep, escalationStepValue);
+    }
   }
 };
 

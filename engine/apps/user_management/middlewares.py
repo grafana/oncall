@@ -11,6 +11,13 @@ from .exceptions import OrganizationDeletedException, OrganizationMovedException
 
 logger = logging.getLogger(__name__)
 
+AMAZON_SNS_HEADERS = [
+    "x-amz-sns-subscription-arn",
+    "x-amz-sns-topic-arn",
+    "x-amz-sns-message-id",
+    "x-amz-sns-message-type",
+]
+
 
 class OrganizationMovedMiddleware(MiddlewareMixin):
     def process_exception(self, request, exception):
@@ -31,6 +38,10 @@ class OrganizationMovedMiddleware(MiddlewareMixin):
 
             if (v := request.META.get("HTTP_AUTHORIZATION", None)) is not None:
                 headers["Authorization"] = v
+
+            if "amazon_sns" in request.path:
+                for k in AMAZON_SNS_HEADERS:
+                    headers[k] = request.headers.get(k)
 
             response = self.make_request(request.method, url, headers, request.body)
             return HttpResponse(response.content, status=response.status_code)

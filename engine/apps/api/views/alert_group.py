@@ -5,7 +5,7 @@ from django.db.models import Count, Max, Q
 from django.utils import timezone
 from django_filters import rest_framework as filters
 from django_filters.widgets import RangeWidget
-from drf_spectacular.utils import extend_schema, inline_serializer
+from drf_spectacular.utils import extend_schema, extend_schema_view, inline_serializer
 from rest_framework import mixins, serializers, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound
@@ -267,6 +267,12 @@ class AlertGroupTeamFilteringMixin(TeamFilteringMixin):
             return Response(data={"error_code": "wrong_team"}, status=status.HTTP_403_FORBIDDEN)
 
 
+@extend_schema_view(
+    list=extend_schema(description="Fetch a list of alert groups"),
+    retrieve=extend_schema(description="Fetch a single alert group"),
+    destroy=extend_schema(description="Delete an alert group"),
+    preview_template=extend_schema(description="Preview a template for an alert group"),
+)
 class AlertGroupView(
     PreviewTemplateMixin,
     AlertGroupTeamFilteringMixin,
@@ -290,8 +296,6 @@ class AlertGroupView(
         "filters": [RBACPermission.Permissions.ALERT_GROUPS_READ],
         "silence_options": [RBACPermission.Permissions.ALERT_GROUPS_READ],
         "bulk_action_options": [RBACPermission.Permissions.ALERT_GROUPS_READ],
-        "create": [RBACPermission.Permissions.ALERT_GROUPS_WRITE],
-        "update": [RBACPermission.Permissions.ALERT_GROUPS_WRITE],
         "destroy": [RBACPermission.Permissions.ALERT_GROUPS_WRITE],
         "acknowledge": [RBACPermission.Permissions.ALERT_GROUPS_WRITE],
         "unacknowledge": [RBACPermission.Permissions.ALERT_GROUPS_WRITE],
@@ -478,7 +482,9 @@ class AlertGroupView(
     @extend_schema(responses=inline_serializer(name="AlertGroupStats", fields={"count": serializers.IntegerField()}))
     @action(detail=False)
     def stats(self, *args, **kwargs):
-        """Return number of alert groups capped at 100001"""
+        """
+        Return number of alert groups capped at 100001
+        """
         MAX_COUNT = 100001
         alert_groups = self.filter_queryset(self.get_queryset())[:MAX_COUNT]
         count = alert_groups.count()
@@ -491,6 +497,9 @@ class AlertGroupView(
 
     @action(methods=["post"], detail=True)
     def acknowledge(self, request, pk):
+        """
+        Acknowledge an alert group
+        """
         alert_group = self.get_object()
         if alert_group.is_maintenance_incident:
             raise BadRequest(detail="Can't acknowledge maintenance alert group")
@@ -502,6 +511,9 @@ class AlertGroupView(
 
     @action(methods=["post"], detail=True)
     def unacknowledge(self, request, pk):
+        """
+        Unacknowledge an alert group
+        """
         alert_group = self.get_object()
         if alert_group.is_maintenance_incident:
             raise BadRequest(detail="Can't unacknowledge maintenance alert group")
@@ -521,6 +533,9 @@ class AlertGroupView(
 
     @action(methods=["post"], detail=True)
     def resolve(self, request, pk):
+        """
+        Resolve an alert group
+        """
         alert_group = self.get_object()
         organization = self.request.user.organization
 
@@ -563,6 +578,9 @@ class AlertGroupView(
 
     @action(methods=["post"], detail=True)
     def unresolve(self, request, pk):
+        """
+        Unresolve an alert group
+        """
         alert_group = self.get_object()
         if alert_group.is_maintenance_incident:
             raise BadRequest(detail="Can't unresolve maintenance alert group")
@@ -603,6 +621,9 @@ class AlertGroupView(
 
     @action(methods=["post"], detail=True)
     def unattach(self, request, pk=None):
+        """
+        Unattach an alert group that is already attached to another alert group
+        """
         alert_group = self.get_object()
         if alert_group.is_maintenance_incident:
             raise BadRequest(detail="Can't unattach maintenance alert group")
@@ -614,6 +635,9 @@ class AlertGroupView(
 
     @action(methods=["post"], detail=True)
     def silence(self, request, pk=None):
+        """
+        Silence an alert group for a specified delay
+        """
         alert_group = self.get_object()
 
         delay = request.data.get("delay")
@@ -635,6 +659,9 @@ class AlertGroupView(
     )
     @action(methods=["get"], detail=False)
     def silence_options(self, request):
+        """
+        Retrieve a list of valid silence options
+        """
         data = [
             {"value": value, "display_name": display_name} for value, display_name in AlertGroup.SILENCE_DELAY_OPTIONS
         ]
@@ -642,6 +669,9 @@ class AlertGroupView(
 
     @action(methods=["post"], detail=True)
     def unsilence(self, request, pk=None):
+        """
+        Unsilence a silenced alert group
+        """
         alert_group = self.get_object()
 
         if not alert_group.silenced:
@@ -662,6 +692,9 @@ class AlertGroupView(
 
     @action(methods=["post"], detail=True)
     def unpage_user(self, request, pk=None):
+        """
+        Remove a user that was directly paged for the alert group
+        """
         organization = request.auth.organization
         from_user = request.user
         alert_group = self.get_object()
@@ -681,6 +714,9 @@ class AlertGroupView(
 
     @action(methods=["get"], detail=False)
     def filters(self, request):
+        """
+        Retrieve a list of valid filter options that can be used to filter alert groups
+        """
         filter_name = request.query_params.get("search", None)
         api_root = "/api/internal/v1/"
 
@@ -780,6 +816,9 @@ class AlertGroupView(
 
     @action(methods=["post"], detail=False)
     def bulk_action(self, request):
+        """
+        Perform a bulk action on a list of alert groups
+        """
         alert_group_public_pks = self.request.data.get("alert_group_pks", [])
         action_with_incidents = self.request.data.get("action", None)
         delay = self.request.data.get("delay")
@@ -807,6 +846,9 @@ class AlertGroupView(
 
     @action(methods=["get"], detail=False)
     def bulk_action_options(self, request):
+        """
+        Retrieve a list of valid bulk action options
+        """
         return Response(
             [{"value": action_name, "display_name": action_name} for action_name in AlertGroup.BULK_ACTIONS]
         )
