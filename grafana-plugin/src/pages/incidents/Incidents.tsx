@@ -660,9 +660,9 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
         key: 'alerts',
         render: this.renderAlertsCounter,
       },
-      Source: {
+      Integration: {
         title: 'Integration',
-        key: 'source',
+        key: 'integration',
         render: this.renderSource,
       },
       Title: {

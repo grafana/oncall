@@ -447,8 +447,6 @@ export class AlertGroupStore extends BaseStore {
     }).catch(this.onApiError);
   }
 
-  // api/internal/v1/alertgroup_table_settings
-
   @action
   public async fetchTableSettings(): Promise<void> {
     const tableSettings = await makeRequest('/alertgroup_table_settings', {});
@@ -463,12 +461,15 @@ export class AlertGroupStore extends BaseStore {
 
   @action
   @AutoLoadingState(ActionKey.IS_ADDING_NEW_COLUMN_TO_ALERT_GROUP)
-  public async updateTableSettings(columns: AGColumn[], isUserUpdate: boolean): Promise<void> {
+  public async updateTableSettings(
+    columns: { visible: AGColumn[]; hidden: AGColumn[] },
+    isUserUpdate: boolean
+  ): Promise<void> {
     const method = isUserUpdate ? 'PUT' : 'POST';
 
     await makeRequest('/alertgroup_table_settings', {
       method,
-      data: [...columns],
+      data: { ...columns },
     });
   }
 

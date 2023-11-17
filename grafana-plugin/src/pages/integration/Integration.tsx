@@ -941,7 +941,7 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
                     onClick={() => {
                       setConfirmModal({
                         isOpen: true,
-                        title: 'Delete Integration?',
+                        title: 'Delete Integration',
                         body: (
                           <Text type="primary">
                             Are you sure you want to delete <Emoji text={alertReceiveChannel.verbal_name} /> ?

@@ -19,7 +19,7 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import { Button, Checkbox, Icon, IconButton, Tooltip } from '@grafana/ui';
 import cn from 'classnames/bind';
-import { cloneDeep, isEqual, noop } from 'lodash-es';
+import { cloneDeep, isEqual } from 'lodash-es';
 import { observer } from 'mobx-react';
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
 
@@ -28,6 +28,8 @@ import styles from 'containers/ColumnsSelector/ColumnsSelector.module.scss';
 import { AGColumn, AGColumnType } from 'models/alertgroup/alertgroup.types';
 import { useStore } from 'state/useStore';
 import { openErrorNotification } from 'utils';
+import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
+import { UserActions } from 'utils/authorization';
 
 const cx = cn.bind(styles);
 const TRANSITION_MS = 500;
@@ -35,9 +37,10 @@ const TRANSITION_MS = 500;
 interface ColumnRowProps {
   column: AGColumn;
   onItemChange: (id: number | string) => void;
+  onColumnRemoval: (column: AGColumn) => void;
 }
 
-const ColumnRow: React.FC<ColumnRowProps> = ({ column, onItemChange }) => {
+const ColumnRow: React.FC<ColumnRowProps> = ({ column, onItemChange, onColumnRemoval }) => {
   const dnd = useSortable({ id: column.id });
 
   const { attributes, listeners, setNodeRef, transform, transition } = dnd;
@@ -67,14 +70,16 @@ const ColumnRow: React.FC<ColumnRowProps> = ({ column, onItemChange }) => {
             {...attributes}
             {...listeners}
           />
-        ) : (
-          <IconButton
-            className={cx('column-icon', 'column-icon--trash')}
-            name="trash-alt"
-            aria-label="Remove"
-            onClick={noop}
-          />
-        )}
+        ) : column.type === AGColumnType.LABEL ? (
+          <WithPermissionControlTooltip userAction={UserActions.OtherSettingsWrite}>
+            <IconButton
+              className={cx('column-icon', 'column-icon--trash')}
+              name="trash-alt"
+              aria-label="Remove"
+              onClick={() => onColumnRemoval(column)}
+            />
+          </WithPermissionControlTooltip>
+        ) : undefined}
       </div>
 
       <Checkbox
@@ -88,10 +93,11 @@ const ColumnRow: React.FC<ColumnRowProps> = ({ column, onItemChange }) => {
 };
 
 interface ColumnsSelectorProps {
-  onModalOpen(): void;
+  onColumnAddModalOpen(): void;
+  onConfirmRemovalModalOpen(column: AGColumn): void;
 }
 
-export const ColumnsSelector: React.FC<ColumnsSelectorProps> = observer(({ onModalOpen }) => {
+export const ColumnsSelector: React.FC<ColumnsSelectorProps> = observer(({ onColumnAddModalOpen, onConfirmRemovalModalOpen }) => {
   const { alertGroupStore } = useStore();
   const { columns: items, temporaryColumns } = alertGroupStore;
 
@@ -132,7 +138,12 @@ export const ColumnsSelector: React.FC<ColumnsSelectorProps> = observer(({ onMod
             <TransitionGroup>
               {visibleColumns.map((column) => (
                 <CSSTransition key={column.id} timeout={TRANSITION_MS} unmountOnExit classNames="fade">
-                  <ColumnRow key={column.id} column={column} onItemChange={onItemChange} />
+                  <ColumnRow
+                    key={column.id}
+                    column={column}
+                    onItemChange={onItemChange}
+                    onColumnRemoval={onConfirmRemovalModalOpen}
+                  />
                 </CSSTransition>
               ))}
             </TransitionGroup>
@@ -150,7 +161,12 @@ export const ColumnsSelector: React.FC<ColumnsSelectorProps> = observer(({ onMod
             <TransitionGroup>
               {hiddenColumns.map((column) => (
                 <CSSTransition key={column.id} timeout={TRANSITION_MS} classNames="fade">
-                  <ColumnRow key={column.id} column={column} onItemChange={onItemChange} />
+                  <ColumnRow
+                    key={column.id}
+                    column={column}
+                    onItemChange={onItemChange}
+                    onColumnRemoval={onConfirmRemovalModalOpen}
+                  />
                 </CSSTransition>
               ))}
             </TransitionGroup>
@@ -162,9 +178,11 @@ export const ColumnsSelector: React.FC<ColumnsSelectorProps> = observer(({ onMod
         <Button variant={'secondary'} disabled={!canResetData} onClick={onReset}>
           Reset
         </Button>
-        <Button variant={'primary'} icon="plus" onClick={onModalOpen}>
-          Add column
-        </Button>
+        <WithPermissionControlTooltip userAction={UserActions.OtherSettingsWrite}>
+          <Button variant={'primary'} icon="plus" onClick={onColumnAddModalOpen}>
+            Add column
+          </Button>
+        </WithPermissionControlTooltip>
       </div>
     </div>
   );
@@ -173,7 +191,7 @@ export const ColumnsSelector: React.FC<ColumnsSelectorProps> = observer(({ onMod
     alertGroupStore.columns = [...alertGroupStore.temporaryColumns];
   }
 
-  function onItemChange(id: string | number) {
+  async function onItemChange(id: string | number) {
     const checkedItems = alertGroupStore.columns.filter((col) => col.isVisible);
     if (checkedItems.length === 1 && checkedItems[0].id === id) {
       openErrorNotification('At least one column should be selected');
@@ -184,6 +202,8 @@ export const ColumnsSelector: React.FC<ColumnsSelectorProps> = observer(({ onMod
       let newItem: AGColumn = { ...item, isVisible: !item.isVisible };
       return item.id === id ? newItem : item;
     });
+
+    await alertGroupStore.updateTableSettings(convertColumnsToTableSettings(alertGroupStore.columns), true);
   }
 
   function handleDragEnd(event: DragEndEvent, isVisible: boolean) {
@@ -202,3 +222,12 @@ export const ColumnsSelector: React.FC<ColumnsSelectorProps> = observer(({ onMod
     }
   }
 });
+
+export function convertColumnsToTableSettings(columns: AGColumn[]): { visible: AGColumn[]; hidden: AGColumn[] } {
+  const tableSettings: { visible: AGColumn[]; hidden: AGColumn[] } = {
+    visible: columns.filter((col: AGColumn) => col.isVisible),
+    hidden: columns.filter((col: AGColumn) => !col.isVisible),
+  };
+
+  return tableSettings;
+}

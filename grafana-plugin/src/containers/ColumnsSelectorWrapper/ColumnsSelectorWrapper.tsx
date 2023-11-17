@@ -14,7 +14,7 @@ import {
 import cn from 'classnames/bind';
 
 import Text from 'components/Text/Text';
-import { ColumnsSelector } from 'containers/ColumnsSelector/ColumnsSelector';
+import { ColumnsSelector, convertColumnsToTableSettings } from 'containers/ColumnsSelector/ColumnsSelector';
 import styles from 'containers/ColumnsSelectorWrapper/ColumnsSelectorWrapper.module.scss';
 import { AGColumn, AGColumnType } from 'models/alertgroup/alertgroup.types';
 import { Label } from 'models/label/label.types';
@@ -23,6 +23,8 @@ import { useDebouncedCallback } from 'utils/hooks';
 import LoaderStore from 'models/loader/loader';
 import { ActionKey } from 'models/loader/action-keys';
 import { observer } from 'mobx-react';
+import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
+import { UserActions } from 'utils/authorization';
 
 const cx = cn.bind(styles);
 
@@ -31,7 +33,9 @@ interface ColumnsSelectorWrapperProps {}
 const DEBOUNCE_MS = 300;
 
 const ColumnsSelectorWrapper: React.FC<ColumnsSelectorWrapperProps> = () => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isConfirmRemovalModalOpen, setIsConfirmRemovalModalOpen] = useState(false);
+  const [columnToBeRemoved, setColumnToBeRemoved] = useState<AGColumn>(undefined);
+  const [isColumnAddModalOpen, setIsColumnAddModalOpen] = useState(false);
 
   const [labelKeys, setLabelKeys] = useState<Label[]>([]);
 
@@ -40,25 +44,53 @@ const ColumnsSelectorWrapper: React.FC<ColumnsSelectorWrapperProps> = () => {
   const store = useStore();
 
   useEffect(() => {
-    isModalOpen &&
+    isColumnAddModalOpen &&
       (async function () {
         const keys = await store.alertGroupStore.loadLabelsKeys();
         setLabelKeys(keys);
       })();
-  }, [isModalOpen]);
+  }, [isColumnAddModalOpen]);
 
   return (
     <>
       <ColumnsModal
         inputRef={inputRef}
-        isModalOpen={isModalOpen}
+        isModalOpen={isColumnAddModalOpen}
         labelKeys={labelKeys}
-        setIsModalOpen={setIsModalOpen}
+        setIsModalOpen={setIsColumnAddModalOpen}
       />
 
-      {!isModalOpen ? (
+      <Modal
+        closeOnEscape={false}
+        isOpen={isConfirmRemovalModalOpen}
+        title={'Remove column'}
+        onDismiss={onConfirmRemovalClose}
+      >
+        <VerticalGroup spacing="md">
+          <Text type="primary">Are you sure you want to remove column label {columnToBeRemoved?.name}?</Text>
+
+          <HorizontalGroup justify="flex-end" spacing="md">
+            <Button variant={'secondary'} onClick={onConfirmRemovalClose}>
+              Cancel
+            </Button>
+            <Button variant={'destructive'} onClick={onColumnRemovalClick}>
+              Remove
+            </Button>
+          </HorizontalGroup>
+        </VerticalGroup>
+      </Modal>
+
+      {!isColumnAddModalOpen && !isConfirmRemovalModalOpen ? (
         <Toggletip
-          content={<ColumnsSelector onModalOpen={() => setIsModalOpen(!isModalOpen)} />}
+          content={
+            <ColumnsSelector
+              onColumnAddModalOpen={() => setIsColumnAddModalOpen(!isColumnAddModalOpen)}
+              onConfirmRemovalModalOpen={(column: AGColumn) => {
+                setIsConfirmRemovalModalOpen(!isConfirmRemovalModalOpen);
+                setColumnToBeRemoved(column);
+              }}
+            />
+          }
           placement={'bottom-end'}
           show={true}
           closeButton={false}
@@ -71,6 +103,21 @@ const ColumnsSelectorWrapper: React.FC<ColumnsSelectorWrapperProps> = () => {
       )}
     </>
   );
+
+  function onConfirmRemovalClose(): void {
+    setIsConfirmRemovalModalOpen(false);
+    forceOpenToggletip();
+  }
+
+  async function onColumnRemovalClick(): Promise<void> {
+    const columns = store.alertGroupStore.columns.filter((col) => col.id !== columnToBeRemoved.id);
+
+    await store.alertGroupStore.updateTableSettings(convertColumnsToTableSettings(columns), false);
+    await store.alertGroupStore.fetchTableSettings();
+
+    setIsConfirmRemovalModalOpen(false);
+    forceOpenToggletip();
+  }
 
   function renderToggletipButton() {
     return (
@@ -110,7 +157,7 @@ const ColumnsModal: React.FC<ColumnsModalProps> = observer(({ isModalOpen, label
   const isLoading = LoaderStore.isLoading(ActionKey.IS_ADDING_NEW_COLUMN_TO_ALERT_GROUP);
 
   return (
-    <Modal isOpen={isModalOpen} title={'Add column'} onDismiss={() => setIsModalOpen(false)}>
+    <Modal isOpen={isModalOpen} title={'Add column'} onDismiss={onCloseModal} closeOnEscape={false}>
       <VerticalGroup spacing="md">
         <div className={cx('content')}>
           <VerticalGroup spacing="md">
@@ -156,55 +203,59 @@ const ColumnsModal: React.FC<ColumnsModalProps> = observer(({ isModalOpen, label
         </div>
 
         <HorizontalGroup justify="flex-end" spacing="md">
-          <Button
-            variant="secondary"
-            onClick={() => {
-              inputRef.current.value = '';
-
-              setSearchResults([]);
-              setIsModalOpen(false);
-              setTimeout(() => forceOpenToggletip(), 0);
-            }}
-          >
+          <Button variant="secondary" onClick={onCloseModal}>
             Close
           </Button>
-          <Button
-            disabled={isLoading || !searchResults.find((it) => it.isChecked)}
-            variant="primary"
-            onClick={onAddNewColumns}
-          >
-            {isLoading ? <LoadingPlaceholder className={'loader'} text="Loading..." /> : 'Add'}
-          </Button>
+          <WithPermissionControlTooltip userAction={UserActions.OtherSettingsWrite}>
+            <Button
+              disabled={isLoading || !searchResults.find((it) => it.isChecked)}
+              variant="primary"
+              onClick={onAddNewColumns}
+            >
+              {isLoading ? <LoadingPlaceholder className={'loader'} text="Loading..." /> : 'Add'}
+            </Button>
+          </WithPermissionControlTooltip>
         </HorizontalGroup>
       </VerticalGroup>
     </Modal>
   );
 
+  function onCloseModal() {
+    inputRef.current.value = '';
+
+    setSearchResults([]);
+    setIsModalOpen(false);
+    setTimeout(() => forceOpenToggletip(), 0);
+  }
+
   async function onAddNewColumns() {
-    const newColumns: AGColumn[] = searchResults
-      .filter((item) => item.isChecked)
-      .map(
-        (it): AGColumn => ({
-          id: it.id,
-          name: it.name,
-          isVisible: false,
-          type: AGColumnType.LABEL,
-        })
-      );
+    const mergedColumns = [
+      ...store.alertGroupStore.columns,
+      ...searchResults
+        .filter((item) => item.isChecked)
+        .map(
+          (it): AGColumn => ({
+            id: it.id,
+            name: it.name,
+            isVisible: false,
+            type: AGColumnType.LABEL,
+          })
+        ),
+    ];
 
-    const allColumns = [...store.alertGroupStore.columns, ...newColumns];
+    const columns: { visible: AGColumn[]; hidden: AGColumn[] } = {
+      visible: mergedColumns.filter((col) => col.isVisible),
+      hidden: mergedColumns.filter((col) => !col.isVisible),
+    };
 
-    await store.alertGroupStore.updateTableSettings(allColumns, false);
+    await store.alertGroupStore.updateTableSettings(columns, false);
+    await store.alertGroupStore.fetchTableSettings();
 
     setIsModalOpen(false);
     setTimeout(() => forceOpenToggletip(), 0);
     setSearchResults([]);
 
     inputRef.current.value = '';
-  }
-
-  function forceOpenToggletip() {
-    document.getElementById('toggletip-button')?.click();
   }
 
   function onInputChange() {
@@ -214,5 +265,9 @@ const ColumnsModal: React.FC<ColumnsModalProps> = observer(({ isModalOpen, label
     );
   }
 });
+
+function forceOpenToggletip() {
+  document.getElementById('toggletip-button')?.click();
+}
 
 export default ColumnsSelectorWrapper;
