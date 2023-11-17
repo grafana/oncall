@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Fixes forwarding of Amazon SNS headers @mderynck ([#3371](https://github.com/grafana/oncall/pull/3371))
+- Fixes issue when using the `/escalate` Slack command and selecting a team by @joeyorlando ([#TBD](https://github.com/grafana/oncall/pull/TBD))
 
 ## v1.3.59 (2023-11-16)
 
