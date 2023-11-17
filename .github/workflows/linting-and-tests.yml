@@ -318,4 +318,5 @@ jobs:
       # https://raintank-corp.slack.com/archives/C01C4K8DETW/p1692279329797149
       grafana-image-tag: 10.0.2
       run-expensive-tests: false
+      browsers: "chromium"
     secrets: inherit
