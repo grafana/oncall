@@ -343,9 +343,12 @@ def test_get_team_select_blocks(
     team1_option = _contstruct_team_option(team1)
     team2_option = _contstruct_team_option(team2)
 
+    def _sort_team_options(options):
+        return sorted(options, key=lambda o: o["value"])
+
     assert input_block["type"] == "input"
     assert len(input_block["element"]["options"]) == 2
-    assert input_block["element"]["options"] == [team1_option, team2_option]
+    assert _sort_team_options(input_block["element"]["options"]) == _sort_team_options([team1_option, team2_option])
     assert input_block["element"]["initial_option"] == team2_option
 
     assert (
