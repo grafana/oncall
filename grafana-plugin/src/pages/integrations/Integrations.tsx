@@ -562,7 +562,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
                         },
                       });
                     }}
-                    style={{ width: '100%' }}
+                    className="u-width-100"
                   >
                     <Text type="danger">
                       <HorizontalGroup spacing={'xs'}>
