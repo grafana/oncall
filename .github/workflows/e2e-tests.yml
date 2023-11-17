@@ -5,6 +5,9 @@ name: e2e tests
       grafana-image-tag:
         required: true
         type: string
+      browsers:
+        required: true
+        type: string
       run-expensive-tests:
         description: >
           Whether or not to run Playwright tests that're annotated as "@expensive"
