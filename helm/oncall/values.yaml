@@ -186,7 +186,7 @@ telegramPolling:
     # requests:
     #   cpu: 100m
     #   memory: 128Mi
-  
+
   # Labels for telegram-polling pods
   podLabels: {}
 
