@@ -607,7 +607,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
     );
   }
 
-  renderLabels(item: AlertType) {
+  renderLabels = (item: AlertType) => {
     if (!item.labels.length) {
       return null;
     }
@@ -636,7 +636,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
         }
       />
     );
-  }
+  };
 
   renderTeam(record: AlertType, teams: any) {
     return (
