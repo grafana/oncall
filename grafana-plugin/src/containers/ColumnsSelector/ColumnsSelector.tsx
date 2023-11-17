@@ -76,6 +76,7 @@ const ColumnRow: React.FC<ColumnRowProps> = ({ column, onItemChange, onColumnRem
               className={cx('column-icon', 'column-icon--trash')}
               name="trash-alt"
               aria-label="Remove"
+              tooltip={'Remove column'}
               onClick={() => onColumnRemoval(column)}
             />
           </WithPermissionControlTooltip>
