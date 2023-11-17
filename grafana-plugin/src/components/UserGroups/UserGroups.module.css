@@ -24,24 +24,17 @@
   margin-top: 12px;
 }
 
-/* 
-.separator::before {
-  display: block;
-  content: '';
-  flex-grow: 1;
-  border-bottom: var(--border-medium);
-  height: 0;
-  margin-right: 5px;
+.groups {
+  width: 100%;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  max-height: 300px;
+  overflow: auto;
 }
-
-.separator::after {
-  display: block;
-  content: '';
-  flex-grow: 1;
-  border-bottom: var(--border-medium);
-  height: 0;
-  margin-left: 5px;
-} */
 
 .user {
   background: #22252b;

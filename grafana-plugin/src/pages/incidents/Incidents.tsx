@@ -1,5 +1,6 @@
 import React, { SyntheticEvent } from 'react';
 
+import { LabelTag } from '@grafana/labels';
 import { Button, HorizontalGroup, Icon, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { capitalize } from 'lodash-es';
@@ -16,6 +17,7 @@ import ManualAlertGroup from 'components/ManualAlertGroup/ManualAlertGroup';
 import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
 import TextEllipsisTooltip from 'components/TextEllipsisTooltip/TextEllipsisTooltip';
+import TooltipBadge from 'components/TooltipBadge/TooltipBadge';
 import Tutorial from 'components/Tutorial/Tutorial';
 import { TutorialStep } from 'components/Tutorial/Tutorial.types';
 import ColumnsSelectorWrapper from 'containers/ColumnsSelectorWrapper/ColumnsSelectorWrapper';
@@ -43,6 +45,7 @@ import { TableColumn } from 'utils/types';
 import styles from './Incidents.module.scss';
 import { IncidentDropdown } from './parts/IncidentDropdown';
 import { SilenceButtonCascader } from './parts/SilenceButtonCascader';
+import { LabelKeyValue } from 'models/label/label.types';
 
 const cx = cn.bind(styles);
 
@@ -55,7 +58,7 @@ interface IncidentsPageProps extends WithStoreProps, PageProps, RouteComponentPr
 interface IncidentsPageState {
   selectedIncidentIds: Array<Alert['pk']>;
   affectedRows: { [key: string]: boolean };
-  filters?: IncidentsFiltersType;
+  filters?: Record<string, any>;
   pagination: Pagination;
   showAddAlertGroupForm: boolean;
   isSelectorColumnMenuOpen: boolean;
@@ -604,6 +607,37 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
     );
   }
 
+  renderLabels(item: AlertType) {
+    if (!item.labels.length) {
+      return null;
+    }
+
+    return (
+      <TooltipBadge
+        borderType="secondary"
+        icon="tag-alt"
+        addPadding
+        text={item.labels?.length}
+        tooltipContent={
+          <VerticalGroup spacing="sm">
+            {item.labels.map((label) => (
+              <HorizontalGroup spacing="sm" key={label.key.id}>
+                <LabelTag label={label.key.name} value={label.value.name} key={label.key.id} />
+                <Button
+                  size="sm"
+                  icon="filter"
+                  tooltip="Apply filter"
+                  variant="secondary"
+                  onClick={this.getApplyLabelFilterClickHandler(label)}
+                />
+              </HorizontalGroup>
+            ))}
+          </VerticalGroup>
+        }
+      />
+    );
+  }
+
   renderTeam(record: AlertType, teams: any) {
     return (
       <TextEllipsisTooltip placement="top" content={teams[record.team]?.name}>
@@ -611,6 +645,29 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
       </TextEllipsisTooltip>
     );
   }
+
+  getApplyLabelFilterClickHandler = (label: LabelKeyValue) => {
+    const {
+      store: { filtersStore },
+    } = this.props;
+
+    return () => {
+      const {
+        filters: { label: oldLabelFilter = [] },
+      } = this.state;
+
+      const labelToAddString = `${label.key.id}:${label.value.id}`;
+      if (oldLabelFilter.some((label) => label === labelToAddString)) {
+        return;
+      }
+
+      const newLabelFilter = [...oldLabelFilter, labelToAddString];
+
+      LocationHelper.update({ label: newLabelFilter }, 'partial');
+
+      filtersStore.setNeedToParseFilters(true);
+    };
+  };
 
   renderCustomColumn = (column: AGColumn, alert: AlertType) => {
     const matchingLabel = alert.labels?.find((label) => label.key.name === column.name)?.value.name;
@@ -684,6 +741,11 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
         title: 'Users',
         key: 'users',
         render: renderRelatedUsers,
+      },
+      Labels: {
+        title: 'Labels',
+        key: 'labels',
+        render: this.renderLabels,
       },
     };
 

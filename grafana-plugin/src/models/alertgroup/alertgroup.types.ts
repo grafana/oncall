@@ -83,7 +83,7 @@ export interface Alert {
   paged_users: PagedUser[];
   team: GrafanaTeam['id'];
   grafana_incident_id: string | null;
-  labels?: LabelKeyValue[];
+  labels: LabelKeyValue[];
 
   // set by client
   loading?: boolean;

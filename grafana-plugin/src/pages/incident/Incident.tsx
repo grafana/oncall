@@ -1,5 +1,6 @@
 import React, { useState, SyntheticEvent } from 'react';
 
+import { LabelTag } from '@grafana/labels';
 import {
   Button,
   HorizontalGroup,
@@ -34,6 +35,7 @@ import { PluginBridge, SupportedPlugin } from 'components/PluginBridge/PluginBri
 import PluginLink from 'components/PluginLink/PluginLink';
 import SourceCode from 'components/SourceCode/SourceCode';
 import Text from 'components/Text/Text';
+import TooltipBadge from 'components/TooltipBadge/TooltipBadge';
 import AddResponders from 'containers/AddResponders/AddResponders';
 import { prepareForUpdate } from 'containers/AddResponders/AddResponders.helpers';
 import { UserResponder } from 'containers/AddResponders/AddResponders.types';
@@ -50,6 +52,7 @@ import {
 import { ResolutionNoteSourceTypesToDisplayName } from 'models/resolution_note/resolution_note.types';
 import { User } from 'models/user/user.types';
 import { IncidentDropdown } from 'pages/incidents/parts/IncidentDropdown';
+import { AppFeature } from 'state/features';
 import { PageProps, WithStoreProps } from 'state/types';
 import { useStore } from 'state/useStore';
 import { withMobXProviderContext } from 'state/withStore';
@@ -338,6 +341,22 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
                   onUnsilence={this.getUnsilenceClickHandler(incident)}
                 />
               </div>
+
+              {Boolean(store.hasFeature(AppFeature.Labels) && incident.labels.length) && (
+                <TooltipBadge
+                  borderType="secondary"
+                  icon="tag-alt"
+                  addPadding
+                  text={incident.labels.length}
+                  tooltipContent={
+                    <VerticalGroup spacing="sm">
+                      {incident.labels.map((label) => (
+                        <LabelTag label={label.key.name} value={label.value.name} key={label.key.id} />
+                      ))}
+                    </VerticalGroup>
+                  }
+                />
+              )}
 
               {integration && (
                 <HorizontalGroup>

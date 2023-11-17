@@ -301,7 +301,6 @@ const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) => {
           <TooltipBadge
             borderType="primary"
             text="Payload"
-            tooltipTitle=""
             tooltipContent=""
             className={cx('alert-groups-last-payload-badge')}
           />

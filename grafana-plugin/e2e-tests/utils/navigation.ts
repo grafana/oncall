@@ -1,4 +1,5 @@
 import type { Page, Response } from '@playwright/test';
+
 import { BASE_URL } from './constants';
 
 type GrafanaPage = '/plugins/grafana-oncall-app';

@@ -170,7 +170,7 @@ const MobileAppConnection = observer(({ userPk }: Props) => {
           Sign In
         </Text>
         <Text type="primary">
-          Open the Grafana IRM mobile application and scan this code to sync it with your account.
+          Open the Grafana OnCall mobile application and scan this code to sync it with your account.
         </Text>
         <div className={cx('u-width-100', 'u-flex', 'u-flex-center', 'u-position-relative')}>
           <QRCode className={cx({ 'qr-code': true, blurry: isQRBlurry })} value={QRCodeValue} />

@@ -33,9 +33,6 @@ export class AlertGroupStore extends BaseStore {
   alertGroupsLoading = false;
 
   @observable
-  needToParseFilters = false;
-
-  @observable
   incidentFilters: any;
 
   initialQuery = qs.parse(window.location.search);
