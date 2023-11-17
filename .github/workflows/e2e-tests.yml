@@ -1,5 +1,5 @@
 name: e2e tests
-"on":
+'on':
   workflow_call:
     inputs:
       grafana-image-tag:
@@ -29,7 +29,7 @@ jobs:
     # the oncall backend, and hence, flaky tests. Let's use CI runners w/ more resources to avoid this (plus
     # this will allow us to run more backend containers and parralelize the tests)
     runs-on: ubuntu-latest-8-cores
-    name: "Grafana: ${{ inputs.grafana-image-tag }}"
+    name: 'Grafana: ${{ inputs.grafana-image-tag }}'
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -49,7 +49,7 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: 18.16.0
-          cache: "yarn"
+          cache: 'yarn'
           cache-dependency-path: grafana-plugin/yarn.lock
 
       - name: Use cached frontend dependencies
@@ -118,7 +118,7 @@ jobs:
         id: playwright-cache
         uses: actions/cache@v3
         with:
-          path: "~/.cache/ms-playwright"
+          path: '~/.cache/ms-playwright'
           key: ${{ runner.os }}-playwright-${{ env.PLAYWRIGHT_VERSION }}-chromium-firefox-webkit
 
       # For the next two steps, use the binary directly from node_modules/.bin as opposed to npx playwright
@@ -126,14 +126,14 @@ jobs:
       - name: Install Playwright Browsers
         if: steps.playwright-cache.outputs.cache-hit != 'true'
         working-directory: grafana-plugin
-        run: ./node_modules/.bin/playwright install --with-deps {{ inputs.browsers }}
+        run: ./node_modules/.bin/playwright install --with-deps ${{ inputs.browsers }}
 
       # use the cached browsers, but we still need to install the necessary system dependencies
       # (system deps are installed in the cache-miss step above by the --with-deps flag)
       - name: Install Playwright System Dependencies
         if: steps.playwright-cache.outputs.cache-hit == 'true'
         working-directory: grafana-plugin
-        run: ./node_modules/.bin/playwright install-deps {{ inputs.browsers }}
+        run: ./node_modules/.bin/playwright install-deps ${{ inputs.browsers }}
 
       # we could instead use the --wait flag for the helm install command above
       # but there's no reason to block on that step
