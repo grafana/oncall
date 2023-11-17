@@ -1,4 +1,4 @@
-import { defineConfig, devices } from '@playwright/test';
+import { PlaywrightTestConfig, PlaywrightTestProject, defineConfig, devices } from '@playwright/test';
 
 import path from 'path';
 /**
@@ -12,6 +12,11 @@ export const EDITOR_USER_STORAGE_STATE = path.join(__dirname, 'e2e-tests/.auth/e
 export const ADMIN_USER_STORAGE_STATE = path.join(__dirname, 'e2e-tests/.auth/admin.json');
 
 const IS_CI = !!process.env.CI;
+const BROWSERS = process.env.BROWSERS || 'chromium firefox webkit';
+
+const SETUP_PROJECT_NAME = 'setup';
+const getEnabledBrowsers = (browsers: PlaywrightTestProject[]) =>
+  browsers.filter(({ name }) => name === SETUP_PROJECT_NAME || BROWSERS.includes(name));
 
 /**
  * See https://playwright.dev/docs/test-configuration.
@@ -57,26 +62,26 @@ export default defineConfig({
     headless: IS_CI,
   },
 
-  /* Configure projects for major browsers */
-  projects: [
+  /* Configure projects for major browsers. The final list is filtered based on BROWSERS env var */
+  projects: getEnabledBrowsers([
     {
-      name: 'setup',
+      name: SETUP_PROJECT_NAME,
       testMatch: /globalSetup\.ts/,
     },
     {
       name: 'chromium',
       use: devices['Desktop Chrome'],
-      dependencies: ['setup'],
+      dependencies: [SETUP_PROJECT_NAME],
     },
     {
       name: 'firefox',
       use: devices['Desktop Firefox'],
-      dependencies: ['setup'],
+      dependencies: [SETUP_PROJECT_NAME],
     },
     {
       name: 'webkit',
       use: devices['Desktop Safari'],
-      dependencies: ['setup'],
+      dependencies: [SETUP_PROJECT_NAME],
     },
 
     /* Test against mobile viewports. */
@@ -102,7 +107,7 @@ export default defineConfig({
     //     channel: 'chrome',
     //   },
     // },
-  ],
+  ]),
 
   /* Folder for test artifacts such as screenshots, videos, traces, etc. */
   // outputDir: 'test-results/',
