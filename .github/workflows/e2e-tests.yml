@@ -166,6 +166,7 @@ jobs:
           GRAFANA_VIEWER_USERNAME: viewer
           GRAFANA_VIEWER_PASSWORD: viewer
           MAILSLURP_API_KEY: ${{ secrets.MAILSLURP_API_KEY }}
+          BROWSERS: ${{ inputs.browsers }}
         working-directory: ./grafana-plugin
         run: yarn test:e2e
 
