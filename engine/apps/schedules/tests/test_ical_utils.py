@@ -128,23 +128,20 @@ def test_users_in_ical_basic_role(make_organization_and_user, make_user_for_orga
     ],
 )
 def test_users_in_ical_rbac(make_organization_and_user, make_user_for_organization, permission, included):
-    organization, user = make_organization_and_user()
+    organization, _ = make_organization_and_user()
     organization.is_rbac_permissions_enabled = True
     organization.save()
 
     viewer = make_user_for_organization(organization, role=LegacyAccessControlRole.VIEWER)
-    usernames = [user.username, viewer.username]
+    usernames = [viewer.username]
 
     # viewer doesn't yet have the required permission, they shouldn't be included
-    assert set(users_in_ical(usernames, organization)) == {user}
+    assert len(users_in_ical(usernames, organization)) == 0
 
     viewer.permissions = [{"action": permission.value}] if permission else []
     viewer.save()
 
-    expected_result = {user}
-    if included:
-        expected_result.add(viewer)
-    assert set(users_in_ical(usernames, organization)) == expected_result
+    assert users_in_ical(usernames, organization) == ([viewer] if included else [])
 
 
 @pytest.mark.django_db
