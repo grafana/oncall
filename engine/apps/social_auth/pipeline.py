@@ -57,6 +57,11 @@ def connect_user_to_slack(response, backend, strategy, user, organization, *args
         strategy.session[REDIRECT_FIELD_NAME] = url
         return HttpResponse(status=status.HTTP_400_BAD_REQUEST)
 
+    # at this point everything is correct and we can create the SlackUserIdentity
+    # be sure to clear any pre-existing sessions, in case the user previously enecountered errors we want
+    # to be sure to clear these so they do not see them again
+    strategy.session.flush()
+
     slack_user_identity, _ = SlackUserIdentity.objects.get_or_create(
         slack_id=slack_user_id,
         slack_team_identity=slack_team_identity,

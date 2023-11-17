@@ -38,17 +38,18 @@ import styles from './RemoteFilters.module.css';
 const cx = cn.bind(styles);
 
 interface RemoteFiltersProps extends WithStoreProps {
-  onChange: (filters: { [key: string]: any }, isOnMount: boolean, invalidateFn: () => boolean) => void;
+  onChange: (filters: Record<string, any>, isOnMount: boolean, invalidateFn: () => boolean) => void;
   query: KeyValue;
   page: PAGE;
   defaultFilters?: FiltersValues;
   extraFilters?: (state, setState, onFiltersValueChange) => React.ReactNode;
   grafanaTeamStore: GrafanaTeamStore;
+  skipFilterOptionFn?: (filterOption: FilterOption) => boolean;
 }
 interface RemoteFiltersState {
   filterOptions?: FilterOption[];
   filters: FilterOption[];
-  values: { [key: string]: any };
+  values: Record<string, any>;
   hadInteraction: boolean;
   lastRequestId: string;
 }
@@ -86,10 +87,15 @@ class RemoteFilters extends Component<RemoteFiltersProps, RemoteFiltersState> {
       page,
       store: { filtersStore },
       defaultFilters,
+      skipFilterOptionFn,
     } = this.props;
 
-    const filterOptions = await filtersStore.updateOptionsForPage(page);
+    let filterOptions = await filtersStore.updateOptionsForPage(page);
     const currentTablePageNum = parseInt(filtersStore.currentTablePageNum[page] || query.p || 1, 10);
+
+    if (skipFilterOptionFn) {
+      filterOptions = filterOptions.filter((option: FilterOption) => !skipFilterOptionFn(option));
+    }
 
     // set the current page from filters/query or default it to 1
     filtersStore.setCurrentTablePageNum(page, currentTablePageNum);

@@ -5,8 +5,7 @@ from django.core.cache import cache
 
 class AlertsFieldCacheBusterMixin:
     RENDER_FOR_WEB_FIELD_NAME = "render_for_web"
-    RENDER_FOR_CLASSIC_MARKDOWN_FIELD_NAME = "render_for_classic_markdown"
-    ALL_FIELD_NAMES = [RENDER_FOR_WEB_FIELD_NAME, RENDER_FOR_CLASSIC_MARKDOWN_FIELD_NAME]
+    ALL_FIELD_NAMES = [RENDER_FOR_WEB_FIELD_NAME]
 
     @classmethod
     def calculate_cache_key(cls, field_name: str, obj: typing.Any) -> str:

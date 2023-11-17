@@ -53,7 +53,11 @@ class SlackAPIInvalidAuthError(SlackAPIError):
 
 
 class SlackAPIUsergroupNotFoundError(SlackAPIError):
-    errors = ("no_such_subteam",)
+    errors = ("no_such_subteam", "subteam_not_found")
+
+
+class SlackAPIInvalidUsersError(SlackAPIError):
+    errors = ("invalid_users",)
 
 
 class SlackAPIChannelNotFoundError(SlackAPIError):

@@ -95,7 +95,7 @@ export default class GrafanaAPIClient {
       // user was just created
       const respJson: CreateUserResponse = await res.json();
       userId = respJson.id;
-    } else if (responseCode == 412) {
+    } else if (responseCode === 412) {
       // user already exists, go fetch their user id
       userId = await this.getUserIdByUsername(request, userName);
     } else {

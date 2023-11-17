@@ -1,7 +1,8 @@
 import { Page } from '@playwright/test';
+import dayjs from 'dayjs';
+
 import { clickButton, fillInInput, selectDropdownValue } from './forms';
 import { goToOnCallPage } from './navigation';
-import dayjs from 'dayjs';
 
 export const createOnCallSchedule = async (page: Page, scheduleName: string, userName: string): Promise<void> => {
   // go to the schedules page
