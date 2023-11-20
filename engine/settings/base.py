@@ -219,7 +219,7 @@ if REDIS_USE_SSL:
 # Cache
 CACHES = {
     "default": {
-        "BACKEND": "redis_cache.RedisCache",
+        "BACKEND": "django_redis.cache.RedisCache",
         "LOCATION": REDIS_URI,
         "OPTIONS": {
             "DB": REDIS_DATABASE,
