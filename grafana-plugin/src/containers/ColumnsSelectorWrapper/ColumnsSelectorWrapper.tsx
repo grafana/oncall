@@ -51,7 +51,7 @@ const ColumnsSelectorWrapper: React.FC<ColumnsSelectorWrapperProps> = () => {
         onDismiss={onConfirmRemovalClose}
         className={cx('removal-modal')}
       >
-        <VerticalGroup spacing="md">
+        <VerticalGroup spacing="lg">
           <Text type="primary">Are you sure you want to remove column label {columnToBeRemoved?.name}?</Text>
 
           <HorizontalGroup justify="flex-end" spacing="md">
