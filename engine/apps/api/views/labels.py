@@ -172,12 +172,11 @@ class AlertGroupLabelsViewSet(LabelsFeatureFlagViewSet):
         )
 
 
-class LabelsAssociatingMixin:  # use for labelable objects views (ex. AlertReceiveChannelView)
-    def filter_by_labels(self, queryset):
+def filter_by_labels(request, queryset):
         """Call this method in `get_queryset()` to add filtering by labels"""
-        if not is_labels_feature_enabled(self.request.auth.organization):
+        if not is_labels_feature_enabled(request.auth.organization):
             return queryset
-        labels = self.request.query_params.getlist("label")  # ["key1:value1", "key2:value2"]
+        labels = request.query_params.getlist("label")  # ["key1:value1", "key2:value2"]
         if not labels:
             return queryset
         for label in labels:
@@ -191,12 +190,9 @@ class LabelsAssociatingMixin:  # use for labelable objects views (ex. AlertRecei
             ).distinct()
         return queryset
 
-    def paginate_queryset(self, queryset):
-        organization = self.request.auth.organization
-        data = super().paginate_queryset(queryset)
-        if not is_labels_feature_enabled(self.request.auth.organization):
-            return data
-        ids = [d.id for d in data]
-        logger.info(f"start update_instances_labels_cache for ids: {ids}")
-        update_instances_labels_cache.apply_async((organization.id, ids, self.model.__name__))
-        return data
+
+def schedule_update_label_cache(model_name, org, ids):
+    if not is_labels_feature_enabled(org):
+        return
+    logger.info(f"start update_instances_labels_cache for ids: {ids}")
+    update_instances_labels_cache.apply_async((org.id, ids, model_name))

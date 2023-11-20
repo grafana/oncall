@@ -18,7 +18,7 @@ from apps.api.serializers.alert_receive_channel import (
     FilterAlertReceiveChannelSerializer,
 )
 from apps.api.throttlers import DemoAlertThrottler
-from apps.api.views.labels import LabelsAssociatingMixin
+from apps.api.views.labels import filter_by_labels, schedule_update_label_cache
 from apps.auth_token.auth import PluginAuthentication
 from apps.integrations.legacy_prefix import has_legacy_prefix, remove_legacy_prefix
 from apps.labels.utils import is_labels_feature_enabled
@@ -76,7 +76,6 @@ class AlertReceiveChannelView(
     PublicPrimaryKeyMixin,
     FilterSerializerMixin,
     UpdateSerializerMixin,
-    LabelsAssociatingMixin,
     ModelViewSet,
 ):
     authentication_classes = (
@@ -159,7 +158,7 @@ class AlertReceiveChannelView(
         if not ignore_filtering_by_available_teams:
             queryset = queryset.filter(*self.available_teams_lookup_args).distinct()
 
-        queryset = self.filter_by_labels(queryset)
+        queryset = filter_by_labels(self.request, queryset)
 
         return queryset
 
@@ -170,7 +169,11 @@ class AlertReceiveChannelView(
         """
         if self.request.query_params.get("skip_pagination", "false").lower() == "true":
             return None
-        return super().paginate_queryset(queryset)
+        page = super().paginate_queryset(queryset)
+        if page is not None:
+            ids = [d.id for d in queryset]
+            schedule_update_label_cache(self.model.__name__, self.request.auth.organization, ids)
+        return page
 
     @action(detail=True, methods=["post"], throttle_classes=[DemoAlertThrottler])
     def send_demo_alert(self, request, pk):

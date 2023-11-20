@@ -13,7 +13,7 @@ from rest_framework.viewsets import ModelViewSet
 
 from apps.api.permissions import RBACPermission
 from apps.api.serializers.webhook import WebhookResponseSerializer, WebhookSerializer
-from apps.api.views.labels import LabelsAssociatingMixin
+from apps.api.views.labels import filter_by_labels, schedule_update_label_cache
 from apps.auth_token.auth import PluginAuthentication
 from apps.webhooks.models import Webhook, WebhookResponse
 from apps.webhooks.presets.preset_options import WebhookPresetOptions
@@ -40,7 +40,7 @@ class WebhooksFilter(ByTeamModelFieldFilterMixin, ModelFieldFilterMixin, filters
     team = TeamModelMultipleChoiceFilter()
 
 
-class WebhooksView(TeamFilteringMixin, PublicPrimaryKeyMixin, LabelsAssociatingMixin, ModelViewSet):
+class WebhooksView(TeamFilteringMixin, PublicPrimaryKeyMixin,ModelViewSet):
     authentication_classes = (PluginAuthentication,)
     permission_classes = (IsAuthenticated, RBACPermission)
 
@@ -95,6 +95,9 @@ class WebhooksView(TeamFilteringMixin, PublicPrimaryKeyMixin, LabelsAssociatingM
         ).prefetch_related("responses")
         if not ignore_filtering_by_available_teams:
             queryset = queryset.filter(*self.available_teams_lookup_args).distinct()
+        queryset = filter_by_labels(self.request, queryset)
+        ids = [d.id for d in queryset]
+        schedule_update_label_cache(self.model.__name__, self.request.auth.organization, ids)
         return queryset
 
     def get_object(self):
