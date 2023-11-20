@@ -222,11 +222,12 @@ class UpdateResolutionNoteStep(scenario_step.ScenarioStep):
         blocks = self.get_resolution_note_blocks(resolution_note)
 
         if resolution_note_slack_message is None:
+            resolution_note_text = Truncator(resolution_note.text)
             try:
                 result = self._slack_client.chat_postMessage(
                     channel=alert_group_slack_message.channel_id,
                     thread_ts=alert_group_slack_message.slack_id,
-                    text=resolution_note.text,
+                    text=resolution_note_text.chars(BLOCK_SECTION_TEXT_MAX_SIZE),
                     blocks=blocks,
                 )
             except RESOLUTION_NOTE_EXCEPTIONS:
@@ -256,11 +257,12 @@ class UpdateResolutionNoteStep(scenario_step.ScenarioStep):
                 resolution_note.resolution_note_slack_message = resolution_note_slack_message
                 resolution_note.save(update_fields=["resolution_note_slack_message"])
         elif resolution_note_slack_message.posted_by_bot:
+            resolution_note_text = Truncator(resolution_note_slack_message.text)
             try:
                 self._slack_client.chat_update(
                     channel=alert_group_slack_message.channel_id,
                     ts=resolution_note_slack_message.ts,
-                    text=resolution_note_slack_message.text,
+                    text=resolution_note_text.chars(BLOCK_SECTION_TEXT_MAX_SIZE),
                     blocks=blocks,
                 )
             except RESOLUTION_NOTE_EXCEPTIONS:
