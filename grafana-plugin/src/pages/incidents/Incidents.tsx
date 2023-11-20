@@ -1,7 +1,7 @@
 import React, { SyntheticEvent } from 'react';
 
 import { LabelTag } from '@grafana/labels';
-import { Button, HorizontalGroup, Icon, VerticalGroup } from '@grafana/ui';
+import { Button, HorizontalGroup, Icon, RadioButtonGroup, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { capitalize } from 'lodash-es';
 import { observer } from 'mobx-react';
@@ -40,12 +40,13 @@ import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import LocationHelper from 'utils/LocationHelper';
 import { UserActions } from 'utils/authorization';
-import { PAGE, PLUGIN_ROOT, TEXT_ELLIPSIS_CLASS } from 'utils/consts';
+import { INCIDENT_HORIZONTAL_SCROLLING_STORAGE, PAGE, PLUGIN_ROOT, TEXT_ELLIPSIS_CLASS } from 'utils/consts';
 import { TableColumn } from 'utils/types';
 
 import styles from './Incidents.module.scss';
 import { IncidentDropdown } from './parts/IncidentDropdown';
 import { SilenceButtonCascader } from './parts/SilenceButtonCascader';
+import { getItem, setItem } from 'utils/localStorage';
 
 const cx = cn.bind(styles);
 
@@ -62,6 +63,7 @@ interface IncidentsPageState {
   pagination: Pagination;
   showAddAlertGroupForm: boolean;
   isSelectorColumnMenuOpen: boolean;
+  isHorizontalScrolling: boolean;
 }
 
 const POLLING_NUM_SECONDS = 15;
@@ -96,6 +98,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
         end: start + pageSize,
       },
       isSelectorColumnMenuOpen: true,
+      isHorizontalScrolling: getItem(INCIDENT_HORIZONTAL_SCROLLING_STORAGE) || false,
     };
   }
 
@@ -350,6 +353,11 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
     );
   };
 
+  onEnableHorizontalScroll = (value: boolean) => {
+    setItem(INCIDENT_HORIZONTAL_SCROLLING_STORAGE, value);
+    this.setState({ isHorizontalScrolling: value });
+  };
+
   handleChangeItemsPerPage = (value: number) => {
     const { store } = this.props;
 
@@ -372,7 +380,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
   };
 
   renderBulkActions = () => {
-    const { selectedIncidentIds, affectedRows } = this.state;
+    const { selectedIncidentIds, affectedRows, isHorizontalScrolling } = this.state;
     const { store } = this.props;
 
     if (!store.alertGroupStore.bulkActions) {
@@ -453,6 +461,20 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
               </HorizontalGroup>
             )}
 
+            {store.hasFeature(AppFeature.Labels) && (
+              <RadioButtonGroup
+                options={[
+                  { value: false, icon: 'wrap-text' },
+                  {
+                    value: true,
+                    icon: 'arrow-from-right',
+                  },
+                ]}
+                value={isHorizontalScrolling}
+                onChange={this.onEnableHorizontalScroll}
+              />
+            )}
+
             {store.hasFeature(AppFeature.Labels) && <ColumnsSelectorWrapper />}
           </div>
         </div>
@@ -461,7 +483,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
   };
 
   renderTable() {
-    const { selectedIncidentIds, pagination } = this.state;
+    const { selectedIncidentIds, pagination, isHorizontalScrolling } = this.state;
     const { alertGroupStore, filtersStore } = this.props.store;
 
     const { results, prev, next } = alertGroupStore.getAlertSearchResult('default');
@@ -503,7 +525,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
           data={results}
           columns={this.getTableColumns()}
           tableLayout="auto"
-          scroll={{ x: true }}
+          scroll={{ x: isHorizontalScrolling ? '2000px' : true }}
         />
         {this.shouldShowPagination() && (
           <div className={cx('pagination')}>
@@ -702,7 +724,6 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
 
     const columnMapping: { [key: string]: TableColumn } = {
       ID: {
-        width: '5%',
         title: 'ID',
         key: 'id',
         render: this.renderId,

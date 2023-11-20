@@ -3,7 +3,7 @@ import qs from 'query-string';
 
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import BaseStore from 'models/base_store';
-import { Label, LabelKey } from 'models/label/label.types';
+import { Label, LabelKey, LabelValue } from 'models/label/label.types';
 import { ActionKey } from 'models/loader/action-keys';
 import { User } from 'models/user/user.types';
 import { makeRequest } from 'network';
@@ -476,16 +476,19 @@ export class AlertGroupStore extends BaseStore {
   }
 
   @action
-  public async loadValuesForLabelKey(key: LabelKey['id'], search = '') {
+  public async loadValuesForLabelKey(
+    key: LabelKey['id'],
+    search = ''
+  ): Promise<{ key: LabelKey; values: LabelValue[] }> {
     if (!key) {
-      return [];
+      return { key: undefined, values: [] };
     }
 
     const result = await makeRequest(`/alertgroups/labels/id/${key}`, {
       params: { search },
     });
 
-    const filteredValues = result.values.filter((v) => v.name.toLowerCase().includes(search.toLowerCase())); // TODO remove after backend search implementation
+    const filteredValues = result.values.filter((v: LabelValue) => v.name.toLowerCase().includes(search.toLowerCase())); // TODO remove after backend search implementation
 
     return { ...result, values: filteredValues };
   }

@@ -1,6 +1,15 @@
 import React, { useMemo, useState } from 'react';
 
-import { Button, Checkbox, HorizontalGroup, Input, LoadingPlaceholder, Modal, VerticalGroup } from '@grafana/ui';
+import {
+  Button,
+  Checkbox,
+  HorizontalGroup,
+  IconButton,
+  Input,
+  LoadingPlaceholder,
+  Modal,
+  VerticalGroup,
+} from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
@@ -8,13 +17,15 @@ import Text from 'components/Text/Text';
 import styles from 'containers/ColumnsSelectorWrapper/ColumnsSelectorWrapper.module.scss';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { AGColumn, AGColumnType } from 'models/alertgroup/alertgroup.types';
-import { Label } from 'models/label/label.types';
+import { Label, LabelValue } from 'models/label/label.types';
 import { ActionKey } from 'models/loader/action-keys';
 import LoaderStore from 'models/loader/loader';
 import { useStore } from 'state/useStore';
 import { openErrorNotification, pluralize } from 'utils';
 import { UserActions } from 'utils/authorization';
 import { useDebouncedCallback } from 'utils/hooks';
+import Block from 'components/GBlock/Block';
+import { LabelTag } from '@grafana/labels';
 
 const cx = cn.bind(styles);
 
@@ -27,6 +38,8 @@ interface ColumnsModalProps {
 
 interface SearchResult extends Label {
   isChecked: boolean;
+  isCollapsed: boolean;
+  values: any[];
 }
 
 const DEBOUNCE_MS = 300;
@@ -67,22 +80,39 @@ export const ColumnsModal: React.FC<ColumnsModalProps> = observer(
               {inputRef?.current?.value && searchResults.length && (
                 <VerticalGroup spacing="xs">
                   {searchResults.map((result, index) => (
-                    <div key={index} className={cx('field-row')}>
-                      <Checkbox
-                        type="checkbox"
-                        value={result.isChecked}
-                        onChange={() => {
-                          setSearchResults((items) => {
-                            return items.map((item) => {
-                              const updatedItem: SearchResult = { ...item, isChecked: !item.isChecked };
-                              return item.id === result.id ? updatedItem : item;
-                            });
-                          });
-                        }}
-                      />
+                    <VerticalGroup>
+                      <div key={index} className={cx('field-row')}>
+                        <IconButton
+                          aria-label={result.isCollapsed ? 'Expand' : 'Collapse'}
+                          name={result.isCollapsed ? 'angle-down' : 'angle-right'}
+                          onClick={() => expandOrCollapseSearchResultItem(result, index)}
+                        />
 
-                      <Text type="primary">{result.name}</Text>
-                    </div>
+                        <Checkbox
+                          type="checkbox"
+                          value={result.isChecked}
+                          onChange={() => {
+                            setSearchResults((items) => {
+                              return items.map((item) => {
+                                const updatedItem: SearchResult = { ...item, isChecked: !item.isChecked };
+                                return item.id === result.id ? updatedItem : item;
+                              });
+                            });
+                          }}
+                        />
+
+                        <Text type="primary">{result.name}</Text>
+                      </div>
+                      {!result.isCollapsed && (
+                        <Block bordered withBackground fullWidth>
+                          {result.values === undefined ? (
+                            <LoadingPlaceholder text="Loading" className="loadingPlaceholder" />
+                          ) : (
+                            renderLabelValues(result.name, result.values)
+                          )}
+                        </Block>
+                      )}
+                    </VerticalGroup>
                   ))}
                 </VerticalGroup>
               )}
@@ -110,6 +140,33 @@ export const ColumnsModal: React.FC<ColumnsModalProps> = observer(
         </VerticalGroup>
       </Modal>
     );
+
+    function renderLabelValues(keyName: string, values: LabelValue[]) {
+      return (
+        <HorizontalGroup spacing="xs">
+          {values.slice(0, 2).map((val) => (
+            <LabelTag label={keyName} value={val.name} key={val.id} />
+          ))}
+          <div className={cx('total-values-count')}>{values.length > 2 ? `+ ${values.length - 2}` : ``}</div>
+        </HorizontalGroup>
+      );
+    }
+
+    async function expandOrCollapseSearchResultItem(result: SearchResult, index: number) {
+      setSearchResults((items) =>
+        items.map((it, idx) => (idx === index ? { ...it, isCollapsed: !it.isCollapsed } : it))
+      );
+
+      await fetchLabelValues(result, index);
+    }
+
+    async function fetchLabelValues(result: SearchResult, index: number) {
+      const labelResponse = await store.alertGroupStore.loadValuesForLabelKey(result.id);
+
+      setSearchResults((items) =>
+        items.map((it, idx) => (idx === index ? { ...it, values: labelResponse.values } : it))
+      );
+    }
 
     function onCloseModal() {
       inputRef.current.value = '';
@@ -159,7 +216,7 @@ export const ColumnsModal: React.FC<ColumnsModalProps> = observer(
       setSearchResults(
         availableKeysForSearching
           .filter((pair) => pair.name.indexOf(search) > -1)
-          .map((pair) => ({ ...pair, isChecked: false }))
+          .map((pair) => ({ ...pair, isChecked: false, isCollapsed: true, values: undefined }))
       );
     }
 
