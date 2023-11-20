@@ -43,7 +43,9 @@ export interface GroupedAlert {
   render_for_web: RenderForWeb;
 }
 
-export type AlertGroup = components['schemas']['AlertGroup'];
+export type AlertGroup = components['schemas']['AlertGroup'] & {
+  loading?: boolean;
+};
 
 // The type below should be deprecated in favor to the above one
 export interface Alert {

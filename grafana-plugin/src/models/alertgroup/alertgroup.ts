@@ -1,4 +1,4 @@
-import { action, observable } from 'mobx';
+import { action, observable, runInAction } from 'mobx';
 import qs from 'query-string';
 
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
@@ -306,7 +306,8 @@ export class AlertGroupStore extends BaseStore {
         path: { id: pk },
       },
     });
-    this.alerts.set(pk, data);
+    runInAction(() => this.alerts.set(pk, data));
+    return data;
   }
 
   async getPayloadForIncident(pk: Alert['pk']) {
