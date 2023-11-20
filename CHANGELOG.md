@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Fixes forwarding of Amazon SNS headers @mderynck ([#3371](https://github.com/grafana/oncall/pull/3371))
+- Fixes issue when using the `/escalate` Slack command and selecting a team by @joeyorlando ([#3381](https://github.com/grafana/oncall/pull/3381))
 - Fix issue when RBAC is enabled where Viewers with "Notifications Receiver" role do not properly show up in schedule
   rotations by @joeyorlando ([#3378](https://github.com/grafana/oncall/pull/3378))
 
