@@ -223,7 +223,7 @@ CACHES = {
         "LOCATION": REDIS_URI,
         "OPTIONS": {
             "DB": REDIS_DATABASE,
-            "PARSER_CLASS": "redis.connection.HiredisParser",
+            "PARSER_CLASS": "redis.connection._HiredisParser",
             "CONNECTION_POOL_CLASS": "redis.BlockingConnectionPool",
             "CONNECTION_POOL_CLASS_KWARGS": REDIS_SSL_CONFIG
             | {
