@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 
 import { Button, Checkbox, HorizontalGroup, Input, LoadingPlaceholder, Modal, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
@@ -12,6 +12,7 @@ import { Label } from 'models/label/label.types';
 import { ActionKey } from 'models/loader/action-keys';
 import LoaderStore from 'models/loader/loader';
 import { useStore } from 'state/useStore';
+import { openErrorNotification, pluralize } from 'utils';
 import { UserActions } from 'utils/authorization';
 import { useDebouncedCallback } from 'utils/hooks';
 
@@ -38,6 +39,11 @@ export const ColumnsModal: React.FC<ColumnsModalProps> = observer(
 
     const isLoading = LoaderStore.isLoading(ActionKey.IS_ADDING_NEW_COLUMN_TO_ALERT_GROUP);
 
+    const availableKeysForSearching = useMemo(() => {
+      const currentAGColumns = store.alertGroupStore.columns.map((col) => col.name);
+      return labelKeys.filter((pair) => currentAGColumns.indexOf(pair.name) === -1);
+    }, [labelKeys, store.alertGroupStore.columns]);
+
     return (
       <Modal isOpen={isModalOpen} title={'Add column'} onDismiss={onCloseModal} closeOnEscape={false}>
         <VerticalGroup spacing="md">
@@ -52,7 +58,10 @@ export const ColumnsModal: React.FC<ColumnsModalProps> = observer(
               />
 
               {inputRef?.current?.value === '' && (
-                <Text type="primary">{labelKeys.length} items available. Type to see suggestions</Text>
+                <Text type="primary">
+                  {availableKeysForSearching.length} {pluralize('item', availableKeysForSearching.length)} available.
+                  Type to see suggestions
+                </Text>
               )}
 
               {inputRef?.current?.value && searchResults.length && (
@@ -130,20 +139,27 @@ export const ColumnsModal: React.FC<ColumnsModalProps> = observer(
         hidden: mergedColumns.filter((col) => !col.isVisible),
       };
 
-      await store.alertGroupStore.updateTableSettings(columns, false);
-      await store.alertGroupStore.fetchTableSettings();
+      try {
+        await store.alertGroupStore.updateTableSettings(columns, false);
+        await store.alertGroupStore.fetchTableSettings();
 
-      setIsModalOpen(false);
-      setTimeout(() => forceOpenToggletip(), 0);
-      setSearchResults([]);
+        setIsModalOpen(false);
+        setTimeout(() => forceOpenToggletip(), 0);
+        setSearchResults([]);
 
-      inputRef.current.value = '';
+        inputRef.current.value = '';
+      } catch (ex) {
+        openErrorNotification('An error has occurred. Please try again');
+      }
     }
 
     function onInputChange() {
       const search = inputRef?.current?.value;
+
       setSearchResults(
-        labelKeys.filter((pair) => pair.name.indexOf(search) > -1).map((pair) => ({ ...pair, isChecked: false }))
+        availableKeysForSearching
+          .filter((pair) => pair.name.indexOf(search) > -1)
+          .map((pair) => ({ ...pair, isChecked: false }))
       );
     }
 
