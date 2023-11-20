@@ -19,7 +19,7 @@ import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/W
 import { AGColumn, AGColumnType } from 'models/alertgroup/alertgroup.types';
 import { Label, LabelValue } from 'models/label/label.types';
 import { ActionKey } from 'models/loader/action-keys';
-import LoaderStore from 'models/loader/loader';
+import { LoaderStore } from 'models/loader/loader';
 import { useStore } from 'state/useStore';
 import { openErrorNotification, pluralize } from 'utils';
 import { UserActions } from 'utils/authorization';
@@ -104,9 +104,9 @@ export const ColumnsModal: React.FC<ColumnsModalProps> = observer(
                         <Text type="primary">{result.name}</Text>
                       </div>
                       {!result.isCollapsed && (
-                        <Block bordered withBackground fullWidth>
+                        <Block bordered withBackground fullWidth className={cx('values-block')}>
                           {result.values === undefined ? (
-                            <LoadingPlaceholder text="Loading" className="loadingPlaceholder" />
+                            <LoadingPlaceholder text="Loading..." className="loadingPlaceholder" />
                           ) : (
                             renderLabelValues(result.name, result.values)
                           )}

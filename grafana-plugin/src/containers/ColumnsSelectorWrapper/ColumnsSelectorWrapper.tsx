@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 
-import { Button, HorizontalGroup, Icon, Modal, Toggletip, VerticalGroup } from '@grafana/ui';
+import { Button, HorizontalGroup, Icon, LoadingPlaceholder, Modal, Toggletip, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 
 import Text from 'components/Text/Text';
@@ -11,12 +11,16 @@ import { Label } from 'models/label/label.types';
 import { useStore } from 'state/useStore';
 
 import { ColumnsModal } from './ColumnsModal';
+import { LoaderStore } from 'models/loader/loader';
+import { ActionKey } from 'models/loader/action-keys';
+import { WrapAutoLoadingState } from 'utils/decorators';
+import { observer } from 'mobx-react';
 
 const cx = cn.bind(styles);
 
 interface ColumnsSelectorWrapperProps {}
 
-const ColumnsSelectorWrapper: React.FC<ColumnsSelectorWrapperProps> = () => {
+const ColumnsSelectorWrapper: React.FC<ColumnsSelectorWrapperProps> = observer(() => {
   const [isConfirmRemovalModalOpen, setIsConfirmRemovalModalOpen] = useState(false);
   const [columnToBeRemoved, setColumnToBeRemoved] = useState<AGColumn>(undefined);
   const [isColumnAddModalOpen, setIsColumnAddModalOpen] = useState(false);
@@ -35,6 +39,8 @@ const ColumnsSelectorWrapper: React.FC<ColumnsSelectorWrapperProps> = () => {
       })();
   }, [isColumnAddModalOpen]);
 
+  const isRemoveLoading = LoaderStore.isLoading(ActionKey.IS_REMOVING_COLUMN_FROM_ALERT_GROUP);
+
   return (
     <>
       <ColumnsModal
@@ -52,14 +58,18 @@ const ColumnsSelectorWrapper: React.FC<ColumnsSelectorWrapperProps> = () => {
         className={cx('removal-modal')}
       >
         <VerticalGroup spacing="lg">
-          <Text type="primary">Are you sure you want to remove column label {columnToBeRemoved?.name}?</Text>
+          <Text type="primary">Are you sure you want to remove column {columnToBeRemoved?.name}?</Text>
 
           <HorizontalGroup justify="flex-end" spacing="md">
             <Button variant={'secondary'} onClick={onConfirmRemovalClose}>
               Cancel
             </Button>
-            <Button variant={'destructive'} onClick={onColumnRemovalClick}>
-              Remove
+            <Button
+              disabled={isRemoveLoading}
+              variant={'destructive'}
+              onClick={WrapAutoLoadingState(onColumnRemovalClick, ActionKey.IS_REMOVING_COLUMN_FROM_ALERT_GROUP)}
+            >
+              {isRemoveLoading ? <LoadingPlaceholder text="Loading..." className="loadingPlaceholder" /> : 'Remove'}
             </Button>
           </HorizontalGroup>
         </VerticalGroup>
@@ -121,7 +131,7 @@ const ColumnsSelectorWrapper: React.FC<ColumnsSelectorWrapperProps> = () => {
     // reset temporary cached columns
     alertGroupStore.temporaryColumns = [...alertGroupStore.columns];
   }
-};
+});
 
 function forceOpenToggletip() {
   document.getElementById('toggletip-button')?.click();

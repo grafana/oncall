@@ -4,7 +4,7 @@ interface LoadingResult {
   [key: string]: boolean;
 }
 
-class LoaderStore {
+class LoaderStoreClass {
   @observable
   items: LoadingResult = {};
 
@@ -17,4 +17,4 @@ class LoaderStore {
   }
 }
 
-export default new LoaderStore() as LoaderStore;
+export const LoaderStore = new LoaderStoreClass();
