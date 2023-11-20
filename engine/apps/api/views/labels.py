@@ -182,7 +182,8 @@ class LabelsAssociatingMixin:  # use for labelable objects views (ex. AlertRecei
             return queryset
         for label in labels:
             label_data = label.split(":")
-            if len(label_data) != 2:  # ["key1", "value1"]
+            # Check if label_data is a valid k:v label tuple: ["key1", "value1"]
+            if len(label_data) != 2:
                 continue
             key_id, value_id = label_data
             queryset &= AlertReceiveChannel.objects_with_deleted.filter(
