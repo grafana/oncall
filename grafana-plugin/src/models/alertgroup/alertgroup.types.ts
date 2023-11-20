@@ -1,3 +1,5 @@
+import { components } from 'api.types';
+
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { Channel } from 'models/channel';
 import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
@@ -41,6 +43,9 @@ export interface GroupedAlert {
   render_for_web: RenderForWeb;
 }
 
+export type AlertGroup = components['schemas']['AlertGroup'];
+
+// The type below should be deprecated in favor to the above one
 export interface Alert {
   pk: string;
   title: string;

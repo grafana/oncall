@@ -84,9 +84,9 @@ if settings.SILK_PROFILER_ENABLED:
     ]
 
 if settings.DRF_SPECTACULAR_ENABLED:
-    from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
+    from drf_spectacular.views import SpectacularYAMLAPIView, SpectacularSwaggerView
 
     urlpatterns += [
-        path("internal/schema/", SpectacularAPIView.as_view(api_version="internal/v1"), name="schema"),
+        path("internal/schema/", SpectacularYAMLAPIView.as_view(api_version="internal/v1"), name="schema"),
         path("internal/schema/swagger-ui/", SpectacularSwaggerView.as_view(url_name="schema"), name="swagger-ui"),
     ]

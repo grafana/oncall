@@ -6,13 +6,14 @@ import BaseStore from 'models/base_store';
 import { LabelKey } from 'models/label/label.types';
 import { User } from 'models/user/user.types';
 import { makeRequest } from 'network';
+import httpClient from 'network/http-client';
 import { Mixpanel } from 'services/mixpanel';
 import { RootStore } from 'state';
 import { SelectOption } from 'state/types';
 import { openErrorNotification, refreshPageError, showApiError } from 'utils';
 import LocationHelper from 'utils/LocationHelper';
 
-import { Alert, AlertAction, IncidentStatus } from './alertgroup.types';
+import { Alert, AlertAction, AlertGroup, IncidentStatus } from './alertgroup.types';
 
 export class AlertGroupStore extends BaseStore {
   @observable.shallow
@@ -22,7 +23,7 @@ export class AlertGroupStore extends BaseStore {
   silenceOptions: any;
 
   @observable.shallow
-  items: { [id: string]: Alert } = {};
+  items: { [id: string]: AlertGroup } = {};
 
   @observable.shallow
   searchResult: { [key: string]: Array<Alert['pk']> } = {};
@@ -49,7 +50,7 @@ export class AlertGroupStore extends BaseStore {
   } = {};
 
   @observable
-  alerts = new Map<string, Alert>();
+  alerts = new Map<string, AlertGroup>();
 
   @observable
   newIncidents: any = {};
@@ -299,12 +300,13 @@ export class AlertGroupStore extends BaseStore {
   }
 
   @action
-  async getAlert(pk: Alert['pk']) {
-    return await makeRequest(`${this.path}${pk}`, {}).then((alert: Alert) => {
-      this.alerts.set(pk, alert);
-
-      return alert;
+  async getAlert(pk: AlertGroup['pk']) {
+    const { data } = await httpClient.GET('/alertgroups/{id}/', {
+      params: {
+        path: { id: pk },
+      },
     });
+    this.alerts.set(pk, data);
   }
 
   async getPayloadForIncident(pk: Alert['pk']) {
@@ -417,9 +419,9 @@ export class AlertGroupStore extends BaseStore {
   }
 
   @action
-  async updateAlert(pk: Alert['pk'], value: Partial<Alert>) {
+  async updateAlert(pk: AlertGroup['pk'], value: Partial<AlertGroup>) {
     this.alerts.set(pk, {
-      ...(this.alerts.get(pk) as Alert),
+      ...(this.alerts.get(pk) as AlertGroup),
       ...value,
     });
   }
