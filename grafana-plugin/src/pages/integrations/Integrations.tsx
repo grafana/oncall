@@ -29,6 +29,7 @@ import {
   initErrorDataState,
 } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper.helpers';
 import PluginLink from 'components/PluginLink/PluginLink';
+import RenderConditionally from 'components/RenderConditionally/RenderConditionally';
 import Text from 'components/Text/Text';
 import TextEllipsisTooltip from 'components/TextEllipsisTooltip/TextEllipsisTooltip';
 import TooltipBadge from 'components/TooltipBadge/TooltipBadge';
@@ -540,39 +541,39 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
                 </HorizontalGroup>
               </div>
             </CopyToClipboard>
-
-            <div className={cx('thin-line-break')} />
-
-            <WithPermissionControlTooltip key="delete" userAction={UserActions.IntegrationsWrite}>
-              <div className={cx('integrations-actionItem')}>
-                <div
-                  onClick={() => {
-                    this.setState({
-                      confirmationModal: {
-                        isOpen: true,
-                        confirmText: 'Delete',
-                        dismissText: 'Cancel',
-                        onConfirm: () => this.handleDeleteAlertReceiveChannel(item.id),
-                        title: 'Delete integration',
-                        body: (
-                          <Text type="primary">
-                            Are you sure you want to delete <Emoji text={item.verbal_name} /> integration?
-                          </Text>
-                        ),
-                      },
-                    });
-                  }}
-                  style={{ width: '100%' }}
-                >
-                  <Text type="danger">
-                    <HorizontalGroup spacing={'xs'}>
-                      <Icon name="trash-alt" />
-                      <span>Delete Integration</span>
-                    </HorizontalGroup>
-                  </Text>
+            <RenderConditionally shouldRender={item.allow_delete}>
+              <div className={cx('thin-line-break')} />
+              <WithPermissionControlTooltip key="delete" userAction={UserActions.IntegrationsWrite}>
+                <div className={cx('integrations-actionItem')}>
+                  <div
+                    onClick={() => {
+                      this.setState({
+                        confirmationModal: {
+                          isOpen: true,
+                          confirmText: 'Delete',
+                          dismissText: 'Cancel',
+                          onConfirm: () => this.handleDeleteAlertReceiveChannel(item.id),
+                          title: 'Delete integration',
+                          body: (
+                            <Text type="primary">
+                              Are you sure you want to delete <Emoji text={item.verbal_name} /> integration?
+                            </Text>
+                          ),
+                        },
+                      });
+                    }}
+                    className="u-width-100"
+                  >
+                    <Text type="danger">
+                      <HorizontalGroup spacing={'xs'}>
+                        <Icon name="trash-alt" />
+                        <span>Delete Integration</span>
+                      </HorizontalGroup>
+                    </Text>
+                  </div>
                 </div>
-              </div>
-            </WithPermissionControlTooltip>
+              </WithPermissionControlTooltip>
+            </RenderConditionally>
           </div>
         )}
       >
