@@ -38,25 +38,27 @@ class AlertGroupTableColumnsListSerializer(serializers.Serializer):
 
     def validate(self, data):
         """
-        Validate data regarding if it updates alert group table columns settings for organization or for user:
+        Validate data regarding if it updates alert group table columns settings for organization or for user
+        and validate that at least one column is selected as visible.
 
         `is_org_settings=True` means that organization alert group table columns list should be updated.
         Validate that all default columns are in the list.
 
         `is_org_settings=False` means that list of visible columns for user should be updated.
-        Validate that all columns exist in organization alert group table columns list and at least one column is
-        selected as visible.
+        Validate that all columns exist in organization alert group table columns list.
         """
         is_org_settings = self.context.get("is_org_settings") is True
         organization = self.context["request"].auth.organization
         columns_list = data["visible"] + data["hidden"]
         request_columns_ids = [column["id"] for column in columns_list]
+        if len(data["visible"]) == 0:
+            raise ValidationError("At least one column should be selected as visible")
         if is_org_settings:
             if not set(request_columns_ids) >= set(AlertGroupTableDefaultColumnChoices.values):
                 raise ValidationError("Default column cannot be removed")
+            elif len(request_columns_ids) > len(set(request_columns_ids)):
+                raise ValidationError("Duplicate column")
         else:
-            if len(data["visible"]) == 0:
-                raise ValidationError("At least one column should be selected as visible")
             organization_columns_ids = [column["id"] for column in organization.alert_group_table_columns]
             if set(organization_columns_ids) != set(request_columns_ids):
                 raise ValidationError("Invalid settings")
