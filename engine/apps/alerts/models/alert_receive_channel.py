@@ -88,7 +88,9 @@ def number_to_smiles_translator(number):
 
 
 class IntegrationAlertGroupLabels(typing.TypedDict):
-    inheritable: typing.Dict[str, bool]
+    inheritable: dict[str, bool]
+    custom: dict[str, str]
+    template: str | None
 
 
 class AlertReceiveChannelQueryset(models.QuerySet):
@@ -205,6 +207,9 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
 
     rate_limited_in_slack_at = models.DateTimeField(null=True, default=None)
     rate_limit_message_task_id = models.CharField(max_length=100, null=True, default=None)
+
+    alert_group_labels_custom = models.JSONField(null=True, default=dict)
+    alert_group_labels_template = models.TextField(null=True, default=None)
 
     class Meta:
         constraints = [
@@ -649,7 +654,11 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
         Alert group labels configuration for the integration used by AlertReceiveChannelSerializer.
         See AlertReceiveChannelAssociatedLabel.inheritable for more details.
         """
-        return {"inheritable": {label.key_id: label.inheritable for label in self.labels.all()}}
+        return {
+            "inheritable": {label.key_id: label.inheritable for label in self.labels.all()},
+            "custom": self.alert_group_labels_custom,
+            "template": self.alert_group_labels_template,
+        }
 
     @alert_group_labels.setter
     def alert_group_labels(self, value: IntegrationAlertGroupLabels) -> None:
@@ -657,6 +666,9 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
         inheritable_key_ids = [key_id for key_id, inheritable in value["inheritable"].items() if inheritable]
         self.labels.filter(key_id__in=inheritable_key_ids).update(inheritable=True)
         self.labels.filter(~Q(key_id__in=inheritable_key_ids)).update(inheritable=False)
+
+        self.alert_group_labels_custom = value["custom"]
+        self.alert_group_labels_template = value["template"]
 
 
 @receiver(post_save, sender=AlertReceiveChannel)

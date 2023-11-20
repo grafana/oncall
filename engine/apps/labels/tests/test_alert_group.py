@@ -30,20 +30,28 @@ def test_assign_labels_feature_flag_disabled(
 @pytest.mark.django_db
 def test_assign_labels(make_organization, make_alert_receive_channel, make_integration_label_association):
     organization = make_organization()
-    alert_receive_channel = make_alert_receive_channel(organization)
+    alert_receive_channel = make_alert_receive_channel(
+        organization, alert_group_labels_custom={"a": "b"}, alert_group_labels_template="{{ payload.labels | tojson }}"
+    )
+
     label = make_integration_label_association(organization, alert_receive_channel)
+    label.key.name, label.value.name = ("c", "d")
+    label.key.save(update_fields=["name"])
+    label.value.save(update_fields=["name"])
     make_integration_label_association(organization, alert_receive_channel, inheritable=False)
 
     alert = Alert.create(
         title="the title",
         message="the message",
         alert_receive_channel=alert_receive_channel,
-        raw_request_data={},
+        raw_request_data={"labels": {"e": "f"}},
         integration_unique_data={},
         image_url=None,
         link_to_upstream_details=None,
     )
 
-    assert alert.group.labels.count() == 1
-    assert alert.group.labels.first().key_name == label.key.name
-    assert alert.group.labels.first().value_name == label.value.name
+    assert [(label.key_name, label.value_name) for label in alert.group.labels.all()] == [
+        ("a", "b"),
+        ("c", "d"),
+        ("e", "f"),
+    ]

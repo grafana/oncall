@@ -38,6 +38,8 @@ class IntegrationAlertGroupLabelsSerializer(serializers.Serializer):
     """Alert group labels configuration for the integration. See AlertReceiveChannel.alert_group_labels for details."""
 
     inheritable = serializers.DictField(child=serializers.BooleanField())
+    custom = serializers.DictField(child=serializers.CharField())
+    template = serializers.CharField(allow_null=True)
 
 
 class AlertReceiveChannelSerializer(

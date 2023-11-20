@@ -1,12 +1,19 @@
+import json
+import logging
 import typing
 
 from django.apps import apps  # noqa: I251
 from django.conf import settings
 
+from apps.webhooks.utils import apply_jinja_template
+from common.jinja_templater.apply_jinja_template import JinjaTemplateError, JinjaTemplateWarning
+
 if typing.TYPE_CHECKING:
     from apps.alerts.models import AlertGroup, AlertReceiveChannel
     from apps.labels.models import AssociatedLabel
     from apps.user_management.models import Organization
+
+logger = logging.getLogger(__name__)
 
 
 LABEL_OUTDATED_TIMEOUT_MINUTES = 30
@@ -49,20 +56,61 @@ def is_labels_feature_enabled(organization: "Organization") -> bool:
     )
 
 
-def assign_labels(alert_group: "AlertGroup", alert_receive_channel: "AlertReceiveChannel") -> None:
+def assign_labels(
+    alert_group: "AlertGroup", alert_receive_channel: "AlertReceiveChannel", raw_request_data: typing.Any
+) -> None:
     from apps.labels.models import AlertGroupAssociatedLabel
 
     if not is_labels_feature_enabled(alert_receive_channel.organization):
         return
 
     # inherit labels from the integration
+    labels = {
+        label.key.name: label.value.name
+        for label in alert_receive_channel.labels.filter(inheritable=True).select_related("key", "value")
+    }
+
+    # apply custom labels
+    labels.update(alert_receive_channel.alert_group_labels_custom)
+
+    # apply template labels
+    labels.update(_template_labels(alert_receive_channel, raw_request_data))
+
+    # create associated labels
     alert_group_labels = [
         AlertGroupAssociatedLabel(
             alert_group=alert_group,
             organization=alert_receive_channel.organization,
-            key_name=label.key.name,
-            value_name=label.value.name,
+            key_name=key,
+            value_name=value,
         )
-        for label in alert_receive_channel.labels.filter(inheritable=True).select_related("key", "value")
+        for key, value in labels.items()
     ]
+    # sort associated labels by key and value
+    alert_group_labels.sort(key=lambda label: (label.key_name, label.value_name))
+    # bulk create associated labels
     AlertGroupAssociatedLabel.objects.bulk_create(alert_group_labels)
+
+
+def _template_labels(alert_receive_channel: "AlertReceiveChannel", raw_request_data: typing.Any) -> dict[str, str]:
+    if not alert_receive_channel.alert_group_labels_template:
+        return {}
+
+    try:
+        rendered = apply_jinja_template(alert_receive_channel.alert_group_labels_template, raw_request_data)
+    except (JinjaTemplateError, JinjaTemplateWarning) as e:
+        logger.warning("Failed to apply template. %s", e.fallback_message)
+        return {}
+
+    try:
+        labels = json.loads(rendered)
+    except (TypeError, json.JSONDecodeError):
+        logger.warning("Failed to parse template result. %s", rendered)
+        return {}
+
+    if not isinstance(labels, dict):
+        logger.warning("Template result is not a dict. %s", labels)
+        return {}
+
+    # only keep labels with string, int, float, bool values
+    return {str(k): str(v) for k, v in labels.items() if isinstance(v, (str, int, float, bool))}

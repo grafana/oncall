@@ -108,7 +108,7 @@ class Alert(models.Model):
         )
 
         if group_created:
-            assign_labels(group, alert_receive_channel)
+            assign_labels(group, alert_receive_channel, raw_request_data)
             group.log_records.create(type=AlertGroupLogRecord.TYPE_REGISTERED)
             group.log_records.create(type=AlertGroupLogRecord.TYPE_ROUTE_ASSIGNED)
 
