@@ -173,22 +173,22 @@ class AlertGroupLabelsViewSet(LabelsFeatureFlagViewSet):
 
 
 def filter_by_labels(request, queryset):
-        """Call this method in `get_queryset()` to add filtering by labels"""
-        if not is_labels_feature_enabled(request.auth.organization):
-            return queryset
-        labels = request.query_params.getlist("label")  # ["key1:value1", "key2:value2"]
-        if not labels:
-            return queryset
-        for label in labels:
-            label_data = label.split(":")
-            # Check if label_data is a valid k:v label tuple: ["key1", "value1"]
-            if len(label_data) != 2:
-                continue
-            key_id, value_id = label_data
-            queryset &= AlertReceiveChannel.objects_with_deleted.filter(
-                labels__key_id=key_id, labels__value_id=value_id
-            ).distinct()
+    """Call this method in `get_queryset()` to add filtering by labels"""
+    if not is_labels_feature_enabled(request.auth.organization):
         return queryset
+    labels = request.query_params.getlist("label")  # ["key1:value1", "key2:value2"]
+    if not labels:
+        return queryset
+    for label in labels:
+        label_data = label.split(":")
+        # Check if label_data is a valid k:v label tuple: ["key1", "value1"]
+        if len(label_data) != 2:
+            continue
+        key_id, value_id = label_data
+        queryset &= AlertReceiveChannel.objects_with_deleted.filter(
+            labels__key_id=key_id, labels__value_id=value_id
+        ).distinct()
+    return queryset
 
 
 def schedule_update_label_cache(model_name, org, ids):
