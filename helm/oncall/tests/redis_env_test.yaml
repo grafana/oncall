@@ -268,3 +268,30 @@ tests:
           content:
             name: REDIS_SSL_CERT_REQS
             value: "cert_required"
+
+  - it: |
+      redis.enabled=false and migrate.useHook=>true -> should add "helm.sh/hook" annotations
+      to secret with Redis credentials
+    templates:
+      - secrets.yaml
+    set:
+      migrate.useHook: true
+      broker.type: redis
+      rabbitmq.enabled: false
+      redis.enabled: false
+      externalRedis:
+        host: custom-host
+        port: 6379
+        password: custom-password
+    asserts:
+      - containsDocument:
+          kind: Secret
+          apiVersion: v1
+          name: oncall-redis-external
+        documentIndex: 1
+      - isSubset:
+          path: metadata.annotations
+          content:
+            "helm.sh/hook": pre-install,pre-upgrade
+            "helm.sh/hook-weight": "-5"
+        documentIndex: 1
