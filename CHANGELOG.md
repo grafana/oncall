@@ -7,7 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
-### Changd
+### Added
+
+- Add builtin slack retry on ratelimited error ([#3401](https://github.com/grafana/oncall/pull/3401))
+
+### Changed
 
 - Add integration id to alert creation logging @mderynck ([#3392](https://github.com/grafana/oncall/pull/3392))
 
