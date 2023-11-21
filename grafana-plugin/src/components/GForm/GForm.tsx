@@ -22,6 +22,7 @@ export interface CustomFieldSectionRendererProps {
   errors: any;
   register: any;
   setValue: (fieldName: string, fieldValue: any) => void;
+  getValues: <T = unknown>(fieldName: string | string[]) => T;
 }
 
 interface GFormProps {
@@ -218,6 +219,7 @@ class GForm extends React.Component<GFormProps, {}> {
                   }}
                   errors={errors}
                   register={register}
+                  getValues={getValues}
                 />
               );
             }

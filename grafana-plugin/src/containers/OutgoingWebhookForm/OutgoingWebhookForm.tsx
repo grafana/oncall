@@ -28,6 +28,7 @@ import { webhookPresetIcons } from 'containers/OutgoingWebhookForm/WebhookPreset
 import OutgoingWebhookStatus from 'containers/OutgoingWebhookStatus/OutgoingWebhookStatus';
 import WebhooksTemplateEditor from 'containers/WebhooksTemplateEditor/WebhooksTemplateEditor';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
+import { LabelKeyValue } from 'models/label/label.types';
 import { OutgoingWebhook, OutgoingWebhookPreset } from 'models/outgoing_webhook/outgoing_webhook.types';
 import { WebhookFormActionType } from 'pages/outgoing_webhooks/OutgoingWebhooks.types';
 import { AppFeature } from 'state/features';
@@ -40,7 +41,6 @@ import { createForm } from './OutgoingWebhookForm.config';
 import { WebhookFormFieldName } from './OutgoingWebhookForm.types';
 
 import styles from 'containers/OutgoingWebhookForm/OutgoingWebhookForm.module.css';
-
 
 const cx = cn.bind(styles);
 
@@ -57,16 +57,22 @@ export const WebhookTabs = {
   LastRun: new KeyValuePair('LastRun', 'Last Run'),
 };
 
-const CustomFieldSectionRenderer: React.FC<CustomFieldSectionRendererProps> = observer((props) => {
-  const { hasFeature } = useStore();
-  const onDataUpdate: LabelsProps['onDataUpdate'] = (val) => props.setValue(WebhookFormFieldName.Labels, val);
+const CustomFieldSectionRenderer: React.FC<CustomFieldSectionRendererProps> = observer(
+  ({ errors, setValue, getValues }) => {
+    const { hasFeature } = useStore();
+    const onDataUpdate: LabelsProps['onDataUpdate'] = (val) => setValue(WebhookFormFieldName.Labels, val);
 
-  return (
-    <RenderConditionally shouldRender={hasFeature(AppFeature.Labels)}>
-      <Labels value={[]} errors={[]} onDataUpdate={onDataUpdate} />
-    </RenderConditionally>
-  );
-});
+    return (
+      <RenderConditionally shouldRender={hasFeature(AppFeature.Labels)}>
+        <Labels
+          value={getValues<LabelKeyValue[]>(WebhookFormFieldName.Labels) || []}
+          errors={errors?.[WebhookFormFieldName.Labels]}
+          onDataUpdate={onDataUpdate}
+        />
+      </RenderConditionally>
+    );
+  }
+);
 
 const OutgoingWebhookForm = observer((props: OutgoingWebhookFormProps) => {
   const history = useHistory();
@@ -165,7 +171,15 @@ const OutgoingWebhookForm = observer((props: OutgoingWebhookFormProps) => {
     return null;
   }
 
-  const formElement = <GForm form={form} data={data} onSubmit={handleSubmit} onFieldRender={enrchField} />;
+  const formElement = (
+    <GForm
+      form={form}
+      data={data}
+      onSubmit={handleSubmit}
+      onFieldRender={enrchField}
+      customFieldSectionRenderer={CustomFieldSectionRenderer}
+    />
+  );
   const createWebhookParameters = (
     <>
       <Drawer scrollableContent title={'New Outgoing Webhook'} onClose={onHide} closeOnMaskClick={false}>

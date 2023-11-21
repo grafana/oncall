@@ -94,9 +94,7 @@ export function createForm(presets: OutgoingWebhookPreset[]): { name: string; fi
             },
           ],
         },
-        isVisible: (data) => {
-          return isPresetFieldVisible(data.preset, presets, WebhookFormFieldName.TriggerType);
-        },
+        isVisible: (data) => isPresetFieldVisible(data.preset, presets, WebhookFormFieldName.TriggerType),
         normalize: (value) => value,
       },
       {
@@ -135,12 +133,9 @@ export function createForm(presets: OutgoingWebhookPreset[]): { name: string; fi
         name: WebhookFormFieldName.IntegrationFilter,
         label: 'Integrations',
         type: FormItemType.MultiSelect,
-        isVisible: (data) => {
-          return (
-            isPresetFieldVisible(data.preset, presets, WebhookFormFieldName.IntegrationFilter) &&
-            data.trigger_type !== WebhookTriggerType.EscalationStep.key
-          );
-        },
+        isVisible: (data) =>
+          isPresetFieldVisible(data.preset, presets, WebhookFormFieldName.IntegrationFilter) &&
+          data.trigger_type !== WebhookTriggerType.EscalationStep.key,
         extra: {
           placeholder: 'Choose (Optional)',
           modelName: 'alertReceiveChannelStore',
@@ -165,9 +160,7 @@ export function createForm(presets: OutgoingWebhookPreset[]): { name: string; fi
         extra: {
           height: 30,
         },
-        isVisible: (data) => {
-          return isPresetFieldVisible(data.preset, presets, WebhookFormFieldName.Url);
-        },
+        isVisible: (data) => isPresetFieldVisible(data.preset, presets, WebhookFormFieldName.Url),
       },
       {
         name: WebhookFormFieldName.Headers,
@@ -177,33 +170,24 @@ export function createForm(presets: OutgoingWebhookPreset[]): { name: string; fi
         extra: {
           rows: 3,
         },
-        isVisible: (data) => {
-          return isPresetFieldVisible(data.preset, presets, WebhookFormFieldName.Headers);
-        },
+        isVisible: (data) => isPresetFieldVisible(data.preset, presets, WebhookFormFieldName.Headers),
       },
       {
         name: WebhookFormFieldName.Username,
         type: FormItemType.Input,
-        isVisible: (data) => {
-          return isPresetFieldVisible(data.preset, presets, WebhookFormFieldName.Username);
-        },
+        isVisible: (data) => isPresetFieldVisible(data.preset, presets, WebhookFormFieldName.Username),
       },
       {
         name: WebhookFormFieldName.Password,
         type: FormItemType.Password,
-        isVisible: (data) => {
-          console.log({ data });
-          return isPresetFieldVisible(data.preset, presets, WebhookFormFieldName.Password);
-        },
+        isVisible: (data) => isPresetFieldVisible(data.preset, presets, WebhookFormFieldName.Password),
       },
       {
         name: WebhookFormFieldName.AuthorizationHeader,
         description:
           'Value of the Authorization header, do not need to prefix with "Authorization:". For example: Bearer AbCdEf123456',
         type: FormItemType.Password,
-        isVisible: (data) => {
-          return isPresetFieldVisible(data.preset, presets, WebhookFormFieldName.AuthorizationHeader);
-        },
+        isVisible: (data) => isPresetFieldVisible(data.preset, presets, WebhookFormFieldName.AuthorizationHeader),
       },
       {
         name: WebhookFormFieldName.TriggerTemplate,
@@ -213,18 +197,14 @@ export function createForm(presets: OutgoingWebhookPreset[]): { name: string; fi
         extra: {
           rows: 2,
         },
-        isVisible: (data) => {
-          return isPresetFieldVisible(data.preset, presets, WebhookFormFieldName.TriggerTemplate);
-        },
+        isVisible: (data) => isPresetFieldVisible(data.preset, presets, WebhookFormFieldName.TriggerTemplate),
       },
       {
         name: WebhookFormFieldName.ForwardAll,
         normalize: (value) => (value ? Boolean(value) : value),
         type: FormItemType.Switch,
         description: "Forwards whole payload of the alert group and context data to the webhook's url as POST/PUT data",
-        isVisible: (data) => {
-          return isPresetFieldVisible(data.preset, presets, WebhookFormFieldName.ForwardAll);
-        },
+        isVisible: (data) => isPresetFieldVisible(data.preset, presets, WebhookFormFieldName.ForwardAll),
       },
       {
         name: WebhookFormFieldName.Data,
@@ -233,9 +213,7 @@ export function createForm(presets: OutgoingWebhookPreset[]): { name: string; fi
         description:
           'Available variables: {{ event }}, {{ user }}, {{ alert_group }}, {{ alert_group_id }}, {{ alert_payload }}, {{ integration }}, {{ notified_users }}, {{ users_to_be_notified }}, {{ responses }}',
         extra: {},
-        isVisible: (data) => {
-          return isPresetFieldVisible(data.preset, presets, WebhookFormFieldName.Data);
-        },
+        isVisible: (data) => isPresetFieldVisible(data.preset, presets, WebhookFormFieldName.Data),
       },
     ],
   };
