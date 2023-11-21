@@ -19,6 +19,7 @@ import { RouteComponentProps, withRouter } from 'react-router-dom';
 
 import GTable from 'components/GTable/GTable';
 import HamburgerMenu from 'components/HamburgerMenu/HamburgerMenu';
+import LabelsTooltipBadge from 'components/LabelsTooltipBadge/LabelsTooltipBadge';
 import PageErrorHandlingWrapper, { PageBaseState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
 import {
   getWrongTeamResponseInfo,
@@ -32,7 +33,9 @@ import RemoteFilters from 'containers/RemoteFilters/RemoteFilters';
 import TeamName from 'containers/TeamName/TeamName';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { FiltersValues } from 'models/filters/filters.types';
+import { LabelKeyValue } from 'models/label/label.types';
 import { OutgoingWebhook } from 'models/outgoing_webhook/outgoing_webhook.types';
+import { AppFeature } from 'state/features';
 import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import { openErrorNotification, openNotification } from 'utils';
@@ -102,6 +105,11 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
     return store.outgoingWebhookStore.updateItems();
   };
 
+  applyLabelFilterClickHandler = (label: LabelKeyValue) => {
+    console.log(label);
+    // TODO: handle filtering by clicked label
+  };
+
   render() {
     const {
       store,
@@ -134,9 +142,20 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
       },
       {
         width: '10%',
-        title: 'Last run',
-        render: this.renderLastRun,
+        title: 'Last event',
+        render: this.renderLastEvent,
       },
+      ...(store.hasFeature(AppFeature.Labels)
+        ? [
+            {
+              width: '10%',
+              title: 'Labels',
+              render: ({ labels }: OutgoingWebhook) => (
+                <LabelsTooltipBadge labels={labels} onClick={this.applyLabelFilterClickHandler} />
+              ),
+            },
+          ]
+        : []),
       {
         width: '15%',
         title: 'Team',
@@ -357,17 +376,17 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
     );
   }
 
-  renderLastRun(record: OutgoingWebhook) {
-    const lastRunMoment = moment(record.last_response_log?.timestamp);
+  renderLastEvent(record: OutgoingWebhook) {
+    const lastEventMoment = moment(record.last_response_log?.timestamp);
 
     return !record.is_webhook_enabled ? (
       <Text type="secondary">Disabled</Text>
     ) : (
       <VerticalGroup spacing="none">
-        <Text type="secondary">{lastRunMoment.isValid() ? lastRunMoment.format('MMM DD, YYYY') : '-'}</Text>
-        <Text type="secondary">{lastRunMoment.isValid() ? lastRunMoment.format('HH:mm') : ''}</Text>
+        <Text type="secondary">{lastEventMoment.isValid() ? lastEventMoment.format('MMM DD, YYYY') : '-'}</Text>
+        <Text type="secondary">{lastEventMoment.isValid() ? lastEventMoment.format('HH:mm') : ''}</Text>
         <Text type="secondary">
-          {lastRunMoment.isValid()
+          {lastEventMoment.isValid()
             ? record.last_response_log?.status_code
               ? 'Status: ' + record.last_response_log?.status_code
               : 'Check Status'

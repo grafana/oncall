@@ -1,6 +1,5 @@
 import React from 'react';
 
-import { LabelTag } from '@grafana/labels';
 import {
   HorizontalGroup,
   Button,
@@ -23,6 +22,7 @@ import { RouteComponentProps, withRouter } from 'react-router-dom';
 import GTable from 'components/GTable/GTable';
 import HamburgerMenu from 'components/HamburgerMenu/HamburgerMenu';
 import IntegrationLogo from 'components/IntegrationLogo/IntegrationLogo';
+import LabelsTooltipBadge from 'components/LabelsTooltipBadge/LabelsTooltipBadge';
 import { PageBaseState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
 import {
   getWrongTeamResponseInfo,
@@ -472,37 +472,6 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
     return null;
   }
 
-  renderLabels(item: AlertReceiveChannel) {
-    if (!item.labels.length) {
-      return null;
-    }
-
-    return (
-      <TooltipBadge
-        borderType="secondary"
-        icon="tag-alt"
-        addPadding
-        text={item.labels?.length}
-        tooltipContent={
-          <VerticalGroup spacing="sm">
-            {item.labels.map((label) => (
-              <HorizontalGroup spacing="sm" key={label.key.id}>
-                <LabelTag label={label.key.name} value={label.value.name} key={label.key.id} />
-                <Button
-                  size="sm"
-                  icon="filter"
-                  tooltip="Apply filter"
-                  variant="secondary"
-                  onClick={this.getApplyLabelFilterClickHandler(label)}
-                />
-              </HorizontalGroup>
-            ))}
-          </VerticalGroup>
-        }
-      />
-    );
-  }
-
   renderTeam(item: AlertReceiveChannel, teams: any) {
     return (
       <TextEllipsisTooltip placement="top" content={teams[item.team]?.name}>
@@ -639,7 +608,9 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
       columns.splice(-2, 0, {
         width: '10%',
         title: 'Labels',
-        render: (item: AlertReceiveChannel) => this.renderLabels(item),
+        render: ({ labels }: AlertReceiveChannel) => (
+          <LabelsTooltipBadge labels={labels} onClick={this.applyLabelFilterClickHandler} />
+        ),
       });
       columns.find((column) => column.key === 'datasource').width = '15%';
     }
@@ -683,7 +654,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
     this.setState({ integrationsFilters }, () => this.debouncedUpdateIntegrations(isOnMount));
   };
 
-  getApplyLabelFilterClickHandler = (label: LabelKeyValue) => {
+  applyLabelFilterClickHandler = (label: LabelKeyValue) => {
     const {
       store: { filtersStore },
     } = this.props;
@@ -692,18 +663,16 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
       integrationsFilters: { label: oldLabelFilter = [] },
     } = this.state;
 
-    return () => {
-      const labelToAddString = `${label.key.id}:${label.value.id}`;
-      if (oldLabelFilter.some((label) => label === labelToAddString)) {
-        return;
-      }
+    const labelToAddString = `${label.key.id}:${label.value.id}`;
+    if (oldLabelFilter.some((label) => label === labelToAddString)) {
+      return;
+    }
 
-      const newLabelFilter = [...oldLabelFilter, labelToAddString];
+    const newLabelFilter = [...oldLabelFilter, labelToAddString];
 
-      LocationHelper.update({ label: newLabelFilter }, 'partial');
+    LocationHelper.update({ label: newLabelFilter }, 'partial');
 
-      filtersStore.setNeedToParseFilters(true);
-    };
+    filtersStore.setNeedToParseFilters(true);
   };
 
   applyFilters = async (isOnMount: boolean) => {
