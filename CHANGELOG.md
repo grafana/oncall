@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## v1.3.61 (2023-11-21)
+
+### Fixed
+
+- Fix deleting integrations with duplicate names by @vadimkerr ([#3397](https://github.com/grafana/oncall/pull/3397))
+
 ## v1.3.60 (2023-11-20)
 
 ### Fixed
