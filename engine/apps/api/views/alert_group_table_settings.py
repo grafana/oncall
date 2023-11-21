@@ -2,16 +2,16 @@ import typing
 
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.viewsets import ViewSet
 
 from apps.api.permissions import RBACPermission
 from apps.api.serializers.alert_group_table_settings import AlertGroupTableColumnsListSerializer
+from apps.api.views.labels import LabelsFeatureFlagViewSet
 from apps.auth_token.auth import PluginAuthentication
 from apps.user_management.constants import AlertGroupTableColumn
 from apps.user_management.utils import alert_group_table_user_settings
 
 
-class AlertGroupTableColumnsViewSet(ViewSet):
+class AlertGroupTableColumnsViewSet(LabelsFeatureFlagViewSet):
     authentication_classes = (PluginAuthentication,)
     permission_classes = (IsAuthenticated, RBACPermission)
 
