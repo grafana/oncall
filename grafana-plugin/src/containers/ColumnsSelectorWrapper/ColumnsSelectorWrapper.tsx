@@ -15,6 +15,8 @@ import { LoaderStore } from 'models/loader/loader';
 import { ActionKey } from 'models/loader/action-keys';
 import { WrapAutoLoadingState } from 'utils/decorators';
 import { observer } from 'mobx-react';
+import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
+import { UserActions } from 'utils/authorization';
 
 const cx = cn.bind(styles);
 
@@ -64,13 +66,15 @@ const ColumnsSelectorWrapper: React.FC<ColumnsSelectorWrapperProps> = observer((
             <Button variant={'secondary'} onClick={onConfirmRemovalClose}>
               Cancel
             </Button>
-            <Button
-              disabled={isRemoveLoading}
-              variant={'destructive'}
-              onClick={WrapAutoLoadingState(onColumnRemovalClick, ActionKey.IS_REMOVING_COLUMN_FROM_ALERT_GROUP)}
-            >
-              {isRemoveLoading ? <LoadingPlaceholder text="Loading..." className="loadingPlaceholder" /> : 'Remove'}
-            </Button>
+            <WithPermissionControlTooltip userAction={UserActions.OtherSettingsWrite}>
+              <Button
+                disabled={isRemoveLoading}
+                variant={'destructive'}
+                onClick={WrapAutoLoadingState(onColumnRemovalClick, ActionKey.IS_REMOVING_COLUMN_FROM_ALERT_GROUP)}
+              >
+                {isRemoveLoading ? <LoadingPlaceholder text="Loading..." className="loadingPlaceholder" /> : 'Remove'}
+              </Button>
+            </WithPermissionControlTooltip>
           </HorizontalGroup>
         </VerticalGroup>
       </Modal>

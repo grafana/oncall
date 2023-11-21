@@ -510,6 +510,8 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
       );
     }
 
+    const tableColumns = this.getTableColumns();
+
     return (
       <div className={cx('root')}>
         {this.renderBulkActions()}
@@ -523,9 +525,9 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
           }}
           rowKey="pk"
           data={results}
-          columns={this.getTableColumns()}
+          columns={tableColumns}
           tableLayout="auto"
-          scroll={{ x: isHorizontalScrolling ? '2000px' : true }}
+          scroll={{ x: isHorizontalScrolling ? `${Math.max(2000, tableColumns.length * 200)}px` : true }}
         />
         {this.shouldShowPagination() && (
           <div className={cx('pagination')}>
