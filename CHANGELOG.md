@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Changd
+
+- Add integration id to alert creation logging @mderynck ([#3392](https://github.com/grafana/oncall/pull/3392))
+
 ## v1.3.61 (2023-11-21)
 
 ### Fixed
