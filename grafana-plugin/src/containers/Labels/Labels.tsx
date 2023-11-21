@@ -32,7 +32,9 @@ const Labels = observer(
     const { labelsStore } = useStore();
 
     const onChange = (value: LabelKeyValue[]) => {
-      onDataUpdate(value);
+      if (onDataUpdate) {
+        onDataUpdate(value);
+      }
       setValue(value);
     };
 
