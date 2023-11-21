@@ -105,11 +105,15 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
   private pollingIntervalId: NodeJS.Timer = undefined;
 
   componentDidMount() {
-    const { alertGroupStore } = this.props.store;
+    const { store } = this.props;
+    const { alertGroupStore } = store;
 
     alertGroupStore.updateBulkActions();
     alertGroupStore.updateSilenceOptions();
-    alertGroupStore.fetchTableSettings();
+
+    if (store.hasFeature(AppFeature.Labels)) {
+      alertGroupStore.fetchTableSettings();
+    }
   }
 
   componentWillUnmount(): void {

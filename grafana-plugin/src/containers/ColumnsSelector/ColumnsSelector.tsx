@@ -107,7 +107,9 @@ export const ColumnsSelector: React.FC<ColumnsSelectorProps> = observer(
     const { columns } = alertGroupStore;
 
     const visibleColumns = columns.filter((col) => col.isVisible);
-    const hiddenColumns = columns.filter((col) => !col.isVisible);
+    const hiddenColumns = columns
+      .filter((col) => !col.isVisible)
+      .sort((a, b) => a.id.toString().localeCompare(b.id.toString()));
 
     const canResetData = useMemo(() => !isEqual(columns, getDefaultData()), [alertGroupStore.columns]);
 
