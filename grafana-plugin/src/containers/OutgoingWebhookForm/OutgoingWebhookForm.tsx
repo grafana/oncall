@@ -17,7 +17,7 @@ import { observer } from 'mobx-react';
 import { useHistory } from 'react-router-dom';
 
 import Block from 'components/GBlock/Block';
-import GForm from 'components/GForm/GForm';
+import GForm, { CustomFieldSectionRendererProps } from 'components/GForm/GForm';
 import { FormItem, FormItemType } from 'components/GForm/GForm.types';
 import IntegrationLogo from 'components/IntegrationLogo/IntegrationLogo';
 import { logoCoors } from 'components/IntegrationLogo/IntegrationLogo.config';
@@ -36,6 +36,10 @@ import { PLUGIN_ROOT } from 'utils/consts';
 import { createForm } from './OutgoingWebhookForm.config';
 
 import styles from 'containers/OutgoingWebhookForm/OutgoingWebhookForm.module.css';
+import RenderConditionally from 'components/RenderConditionally/RenderConditionally';
+import Labels, { LabelsProps } from 'containers/Labels/Labels';
+import { AppFeature } from 'state/features';
+import { WebhookFormFieldName } from './OutgoingWebhookForm.types';
 
 const cx = cn.bind(styles);
 
@@ -51,6 +55,17 @@ export const WebhookTabs = {
   Settings: new KeyValuePair('Settings', 'Settings'),
   LastRun: new KeyValuePair('LastRun', 'Last Run'),
 };
+
+const CustomFieldSectionRenderer: React.FC<CustomFieldSectionRendererProps> = observer((props) => {
+  const { hasFeature } = useStore();
+  const onDataUpdate: LabelsProps['onDataUpdate'] = (val) => props.setValue(WebhookFormFieldName.Labels, val);
+
+  return (
+    <RenderConditionally shouldRender={hasFeature(AppFeature.Labels)}>
+      <Labels value={[]} errors={[]} onDataUpdate={onDataUpdate} />
+    </RenderConditionally>
+  );
+});
 
 const OutgoingWebhookForm = observer((props: OutgoingWebhookFormProps) => {
   const history = useHistory();
@@ -279,7 +294,13 @@ const OutgoingWebhookForm = observer((props: OutgoingWebhookFormProps) => {
     return (
       <>
         <div className={cx('content')}>
-          <GForm form={form} data={data} onSubmit={handleSubmit} onFieldRender={enrchField} />
+          <GForm
+            form={form}
+            data={data}
+            onSubmit={handleSubmit}
+            onFieldRender={enrchField}
+            customFieldSectionRenderer={CustomFieldSectionRenderer}
+          />
           <div className={cx('buttons')}>
             <HorizontalGroup justify={'flex-end'}>
               {id === 'new' ? (

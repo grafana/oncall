@@ -275,7 +275,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
                 data-testid="integrations-table"
                 rowKey="id"
                 data={results}
-                columns={this.getTableColumns(store.hasFeature.bind(store))}
+                columns={this.getTableColumns(store.hasFeature)}
                 className={cx('integrations-table')}
                 rowClassName={cx('integrations-table-row')}
                 pagination={{

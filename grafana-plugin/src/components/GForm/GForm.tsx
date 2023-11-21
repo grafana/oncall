@@ -10,12 +10,19 @@ import { FormItem, FormItemType } from 'components/GForm/GForm.types';
 import MonacoEditor from 'components/MonacoEditor/MonacoEditor';
 import { MONACO_READONLY_CONFIG } from 'components/MonacoEditor/MonacoEditor.config';
 import GSelect from 'containers/GSelect/GSelect';
-import { CustomFieldSectionRendererProps } from 'containers/IntegrationForm/IntegrationForm';
 import RemoteSelect from 'containers/RemoteSelect/RemoteSelect';
 
 import styles from './GForm.module.scss';
 
 const cx = cn.bind(styles);
+
+export interface CustomFieldSectionRendererProps {
+  control: any;
+  formItem: FormItem;
+  errors: any;
+  register: any;
+  setValue: (fieldName: string, fieldValue: any) => void;
+}
 
 interface GFormProps {
   form: { name: string; fields: FormItem[] };
