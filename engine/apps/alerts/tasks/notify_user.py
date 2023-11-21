@@ -230,7 +230,17 @@ def perform_notification(log_record_pk):
     from apps.base.models import UserNotificationPolicy, UserNotificationPolicyLogRecord
     from apps.telegram.models import TelegramToUserConnector
 
+    # TODO: remove this log line once done investigation
+    task_logger.info(f"perform_notification: log_record {log_record_pk}")
+
     log_record = UserNotificationPolicyLogRecord.objects.get(pk=log_record_pk)
+
+    # TODO: uncomment this out once done investigation
+    # try:
+    #     log_record = UserNotificationPolicyLogRecord.objects.get(pk=log_record_pk)
+    # except UserNotificationPolicyLogRecord.DoesNotExist:
+    #     task_logger.info(f"perform_notification: log_record {log_record_pk} doesn't exist. Skipping remainder of task")
+    #     return
 
     user = log_record.author
     alert_group = log_record.alert_group
