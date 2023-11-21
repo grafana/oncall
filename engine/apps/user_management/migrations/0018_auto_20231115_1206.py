@@ -3,6 +3,8 @@
 import apps.user_management.utils
 from django.db import migrations, models
 
+import django_migration_linter as linter
+
 
 class Migration(migrations.Migration):
 
@@ -11,6 +13,7 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        linter.IgnoreMigration(),
         migrations.AddField(
             model_name='organization',
             name='alert_group_table_columns',
