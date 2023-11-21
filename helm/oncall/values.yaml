@@ -98,7 +98,6 @@ engine:
   # - mountPath: /mnt/redis-tls
   #   name: redis-tls
 
-
 detached_integrations_service:
   enabled: false
   type: LoadBalancer
@@ -255,7 +254,8 @@ celery:
 # Telegram polling pod configuration
 telegramPolling:
   enabled: false
-  resources: {}
+  resources:
+    {}
     # limits:
     #   cpu: 100m
     #   memory: 128Mi
