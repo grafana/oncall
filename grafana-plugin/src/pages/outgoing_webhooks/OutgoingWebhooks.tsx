@@ -105,8 +105,7 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
     return store.outgoingWebhookStore.updateItems();
   };
 
-  applyLabelFilterClickHandler = (label: LabelKeyValue) => {
-    console.log(label);
+  applyLabelFilterClickHandler = (_label: LabelKeyValue) => {
     // TODO: handle filtering by clicked label
   };
 
