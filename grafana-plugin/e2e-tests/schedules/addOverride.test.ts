@@ -1,7 +1,8 @@
+import dayjs from 'dayjs';
+
 import { test, expect } from '../fixtures';
 import { clickButton, generateRandomValue } from '../utils/forms';
 import { createOnCallSchedule, getOverrideFormDateInputs } from '../utils/schedule';
-import dayjs from 'dayjs';
 
 test('default dates in override creation modal are correct', async ({ adminRolePage }) => {
   const { page, userName } = adminRolePage;

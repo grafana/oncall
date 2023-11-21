@@ -1,6 +1,6 @@
 import { test, expect, Page } from '../fixtures';
-import { generateRandomValue } from '../utils/forms';
 import { createEscalationChain } from '../utils/escalationChain';
+import { generateRandomValue } from '../utils/forms';
 
 const assertEscalationChainSearchWorks = async (
   page: Page,

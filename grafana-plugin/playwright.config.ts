@@ -1,8 +1,6 @@
+import { PlaywrightTestConfig, PlaywrightTestProject, defineConfig, devices } from '@playwright/test';
+
 import path from 'path';
-
-import type { PlaywrightTestConfig } from '@playwright/test';
-import { devices } from '@playwright/test';
-
 /**
  * Read environment variables from file.
  * https://github.com/motdotla/dotenv
@@ -13,10 +11,17 @@ export const VIEWER_USER_STORAGE_STATE = path.join(__dirname, 'e2e-tests/.auth/v
 export const EDITOR_USER_STORAGE_STATE = path.join(__dirname, 'e2e-tests/.auth/editor.json');
 export const ADMIN_USER_STORAGE_STATE = path.join(__dirname, 'e2e-tests/.auth/admin.json');
 
+const IS_CI = !!process.env.CI;
+const BROWSERS = process.env.BROWSERS || 'chromium firefox webkit';
+
+const SETUP_PROJECT_NAME = 'setup';
+const getEnabledBrowsers = (browsers: PlaywrightTestProject[]) =>
+  browsers.filter(({ name }) => name === SETUP_PROJECT_NAME || BROWSERS.includes(name));
+
 /**
  * See https://playwright.dev/docs/test-configuration.
  */
-const config: PlaywrightTestConfig = {
+export default defineConfig({
   testDir: './e2e-tests',
 
   /* Maximum time all the tests can run for. */
@@ -32,16 +37,16 @@ const config: PlaywrightTestConfig = {
     timeout: 10000,
   },
   /* Run tests in files in parallel */
-  fullyParallel: true,
+  fullyParallel: false,
   /* Fail the build on CI if you accidentally left test.only in the source code. */
-  forbidOnly: !!process.env.CI,
+  forbidOnly: IS_CI,
   /**
    * Retry on CI only
    *
    * NOTE: until we fix this issue (https://github.com/grafana/oncall/issues/1692) which occasionally leads
-   * to flaky tests.. let's just retry failed tests. If the same test fails 3 times, you know something must be up
+   * to flaky tests.. let's allow 1 retry per test
    */
-  retries: !!process.env.CI ? 3 : 0,
+  retries: IS_CI ? 1 : 0,
   workers: 2,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   reporter: 'html',
@@ -52,52 +57,41 @@ const config: PlaywrightTestConfig = {
     /* Base URL to use in actions like `await page.goto('/')`. */
     // baseURL: 'http://localhost:3000',
 
-    /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on',
     video: 'on',
-    headless: !!process.env.CI,
+    headless: IS_CI,
   },
 
-  /* Configure projects for major browsers */
-  projects: [
+  /* Configure projects for major browsers. The final list is filtered based on BROWSERS env var */
+  projects: getEnabledBrowsers([
     {
-      name: 'setup',
+      name: SETUP_PROJECT_NAME,
       testMatch: /globalSetup\.ts/,
     },
     {
       name: 'chromium',
-      use: {
-        ...devices['Desktop Chrome'],
-      },
-      dependencies: ['setup'],
+      use: devices['Desktop Chrome'],
+      dependencies: [SETUP_PROJECT_NAME],
     },
     {
       name: 'firefox',
-      use: {
-        ...devices['Desktop Firefox'],
-      },
-      dependencies: ['setup'],
+      use: devices['Desktop Firefox'],
+      dependencies: [SETUP_PROJECT_NAME],
     },
     {
       name: 'webkit',
-      use: {
-        ...devices['Desktop Safari'],
-      },
-      dependencies: ['setup'],
+      use: devices['Desktop Safari'],
+      dependencies: [SETUP_PROJECT_NAME],
     },
 
     /* Test against mobile viewports. */
     // {
     //   name: 'Mobile Chrome',
-    //   use: {
-    //     ...devices['Pixel 5'],
-    //   },
+    //   use: devices['Pixel 5'],
     // },
     // {
     //   name: 'Mobile Safari',
-    //   use: {
-    //     ...devices['iPhone 12'],
-    //   },
+    //   use: devices['iPhone 12'],
     // },
 
     /* Test against branded browsers. */
@@ -113,7 +107,7 @@ const config: PlaywrightTestConfig = {
     //     channel: 'chrome',
     //   },
     // },
-  ],
+  ]),
 
   /* Folder for test artifacts such as screenshots, videos, traces, etc. */
   // outputDir: 'test-results/',
@@ -123,6 +117,4 @@ const config: PlaywrightTestConfig = {
   //   command: 'npm run start',
   //   port: 3000,
   // },
-};
-
-export default config;
+});

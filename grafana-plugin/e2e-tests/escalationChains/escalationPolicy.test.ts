@@ -1,6 +1,6 @@
 import {expect, test} from "../fixtures";
-import {generateRandomValue} from "../utils/forms";
 import {createEscalationChain, EscalationStep, selectEscalationStepValue} from "../utils/escalationChain";
+import {generateRandomValue} from "../utils/forms";
 
 test('escalation policy does not go back to "Default" after adding users to notify', async ({ adminRolePage }) => {
   const { page, userName } = adminRolePage;
