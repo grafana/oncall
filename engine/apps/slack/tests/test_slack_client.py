@@ -167,15 +167,15 @@ def test_slack_client_ratelimit(monkeypatch, error, make_organization_with_slack
     _, slack_team_identity = make_organization_with_slack_team_identity()
     client = SlackClient(slack_team_identity)
 
-    return_value = {"status": 429, "body": json.dumps({"ok": False, "error": error}), "headers": {"Retry-After": "42"}}
+    return_value = {"status": 429, "body": json.dumps({"ok": False, "error": error}), "headers": {"Retry-After": "1"}}
     with patch(
         "slack_sdk.web.base_client.BaseClient._perform_urllib_http_request_internal", return_value=return_value
     ) as mock_request:
         with pytest.raises(SlackAPIRatelimitError) as exc_info:
             client.api_call("auth.test")
 
-    mock_request.assert_called_once()
-    assert exc_info.value.retry_after == 42
+    assert len(mock_request.mock_calls) == 3
+    assert exc_info.value.retry_after == 1
 
 
 @pytest.mark.parametrize("error", ["account_inactive", "token_revoked"])
