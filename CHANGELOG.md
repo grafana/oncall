@@ -10,10 +10,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Add builtin slack retry on ratelimited error ([#3401](https://github.com/grafana/oncall/pull/3401))
+- Add ability to use Grafana Service Account Tokens for OnCall API (This is only enabled for resolution_notes
+endpoint currently) @mderynck ([#3189](https://github.com/grafana/oncall/pull/3189))
+- Add ability for webhook presets to mask sensitive headers @mderynck
+([#3189](https://github.com/grafana/oncall/pull/3189))
 
 ### Changed
 
 - Add integration id to alert creation logging @mderynck ([#3392](https://github.com/grafana/oncall/pull/3392))
+
+### Fixed
+
+- Fixed issue that blocked saving webhooks with presets if the preset is controlling the URL @mderynck
+([#3189](https://github.com/grafana/oncall/pull/3189))
 
 ## v1.3.61 (2023-11-21)
 
