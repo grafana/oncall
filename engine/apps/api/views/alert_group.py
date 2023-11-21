@@ -18,6 +18,7 @@ from apps.alerts.models import Alert, AlertGroup, AlertReceiveChannel, Escalatio
 from apps.alerts.paging import unpage_user
 from apps.alerts.tasks import delete_alert_group, send_update_resolution_note_signal
 from apps.api.errors import AlertGroupAPIError
+from apps.api.label_filtering import parse_label_query
 from apps.api.permissions import RBACPermission
 from apps.api.serializers.alert_group import AlertGroupListSerializer, AlertGroupSerializer
 from apps.api.serializers.team import TeamSerializer
@@ -340,18 +341,14 @@ class AlertGroupView(
         queryset = AlertGroup.objects.filter(channel__in=alert_receive_channels_ids)
 
         # filter by labels
-        labels = self.request.query_params.getlist("label")
-        for label in labels:
-            label_split = label.split(":")
-            if len(label_split) != 2:
-                continue
-            key_name, value_name = label_split
-
+        labelQuery = self.request.query_params.getlist("label", [])
+        kvPairs = parse_label_query(labelQuery)
+        for kv in kvPairs:
             # Utilize (organization, key_name, value_name, alert_group) index on AlertGroupAssociatedLabel
             queryset = queryset.filter(
                 labels__organization=self.request.auth.organization,
-                labels__key_name=key_name,
-                labels__value_name=value_name,
+                labels__key_name=kv[0],
+                labels__value_name=kv[1],
             )
 
         queryset = queryset.only("id")

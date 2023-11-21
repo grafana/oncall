@@ -11,6 +11,7 @@ from rest_framework.viewsets import ModelViewSet
 from apps.alerts.grafana_alerting_sync_manager.grafana_alerting_sync import GrafanaAlertingSyncManager
 from apps.alerts.models import Alert, AlertGroup, AlertReceiveChannel
 from apps.alerts.models.maintainable_object import MaintainableObject
+from apps.api.label_filtering import parse_label_query
 from apps.api.permissions import RBACPermission
 from apps.api.serializers.alert_receive_channel import (
     AlertReceiveChannelSerializer,
@@ -18,7 +19,7 @@ from apps.api.serializers.alert_receive_channel import (
     FilterAlertReceiveChannelSerializer,
 )
 from apps.api.throttlers import DemoAlertThrottler
-from apps.api.views.labels import filter_by_labels, schedule_update_label_cache
+from apps.api.views.labels import schedule_update_label_cache
 from apps.auth_token.auth import PluginAuthentication
 from apps.integrations.legacy_prefix import has_legacy_prefix, remove_legacy_prefix
 from apps.labels.utils import is_labels_feature_enabled
@@ -158,7 +159,14 @@ class AlertReceiveChannelView(
         if not ignore_filtering_by_available_teams:
             queryset = queryset.filter(*self.available_teams_lookup_args).distinct()
 
-        queryset = filter_by_labels(self.request, queryset)
+        # filter labels
+        labelQuery = self.request.query_params.getlist("label", [])
+        kvPairs = parse_label_query(labelQuery)
+        for kv in kvPairs:
+            queryset = queryset.filter(
+                labels__key_name=kv[0],
+                labels__value_name=kv[1],
+            ).distinct()
 
         return queryset
 

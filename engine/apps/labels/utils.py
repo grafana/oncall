@@ -27,6 +27,11 @@ class LabelData(typing.TypedDict):
     value: LabelParams
 
 
+class ValueData(typing.TypedDict):
+    value_name: str
+    key_name: str
+
+
 class LabelKeyData(typing.TypedDict):
     key: LabelParams
     values: typing.List[LabelParams]

@@ -11,9 +11,10 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
+from apps.api.label_filtering import parse_label_query
 from apps.api.permissions import RBACPermission
 from apps.api.serializers.webhook import WebhookResponseSerializer, WebhookSerializer
-from apps.api.views.labels import filter_by_labels, schedule_update_label_cache
+from apps.api.views.labels import schedule_update_label_cache
 from apps.auth_token.auth import PluginAuthentication
 from apps.webhooks.models import Webhook, WebhookResponse
 from apps.webhooks.presets.preset_options import WebhookPresetOptions
@@ -95,9 +96,20 @@ class WebhooksView(TeamFilteringMixin, PublicPrimaryKeyMixin, ModelViewSet):
         ).prefetch_related("responses")
         if not ignore_filtering_by_available_teams:
             queryset = queryset.filter(*self.available_teams_lookup_args).distinct()
-        queryset = filter_by_labels(self.request, queryset)
+
+        # filter by labels
+        labelQuery = self.request.query_params.getlist("label", [])
+        kvPairs = parse_label_query(labelQuery)
+        for kv in kvPairs:
+            queryset = queryset.filter(
+                labels__key_name=kv[0],
+                labels__value_name=kv[1],
+            ).distinct()
+
+        # schedule update of labels cache
         ids = [d.id for d in queryset]
         schedule_update_label_cache(self.model.__name__, self.request.auth.organization, ids)
+
         return queryset
 
     def get_object(self):

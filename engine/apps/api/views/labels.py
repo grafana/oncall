@@ -6,7 +6,6 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ViewSet
 
-from apps.alerts.models import AlertReceiveChannel
 from apps.api.permissions import BasicRolePermission, LegacyAccessControlRole
 from apps.api.serializers.labels import (
     LabelKeySerializer,
@@ -170,25 +169,6 @@ class AlertGroupLabelsViewSet(LabelsFeatureFlagViewSet):
         return Response(
             {"key": {"id": key_id, "name": key_id}, "values": [{"id": value, "name": value} for value in values]}
         )
-
-
-def filter_by_labels(request, queryset):
-    """Call this method in `get_queryset()` to add filtering by labels"""
-    if not is_labels_feature_enabled(request.auth.organization):
-        return queryset
-    labels = request.query_params.getlist("label")  # ["key1:value1", "key2:value2"]
-    if not labels:
-        return queryset
-    for label in labels:
-        label_data = label.split(":")
-        # Check if label_data is a valid k:v label tuple: ["key1", "value1"]
-        if len(label_data) != 2:
-            continue
-        key_id, value_id = label_data
-        queryset &= AlertReceiveChannel.objects_with_deleted.filter(
-            labels__key_id=key_id, labels__value_id=value_id
-        ).distinct()
-    return queryset
 
 
 def schedule_update_label_cache(model_name, org, ids):
