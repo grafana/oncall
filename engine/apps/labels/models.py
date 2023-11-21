@@ -141,7 +141,7 @@ class AlertGroupAssociatedLabel(models.Model):
         ]
 
 
-class OutgoingWebhookAssociatedLabel(AssociatedLabel):
+class WebhookAssociatedLabel(AssociatedLabel):
     """Keeps information about label association with outgoing webhooks instances"""
 
     webhook = models.ForeignKey(

@@ -717,3 +717,179 @@ def test_create_invalid_missing_fields(webhook_internal_api_setup, make_user_aut
     response = client.post(url, data, format="json", **make_user_auth_headers(user, token))
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert response.json()["trigger_type"][0] == "This field is required."
+
+
+@pytest.mark.django_db
+def test_webhook_filter_by_labels(
+    make_organization_and_user_with_plugin_token,
+    make_custom_webhook,
+    make_webhook_label_association,
+    make_label_key_and_value,
+    make_user_auth_headers,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+    webhook_with_label = make_custom_webhook(organization)
+    label = make_webhook_label_association(organization, webhook_with_label)
+
+    webhook_with_another_label = make_custom_webhook(organization)
+    another_label = make_webhook_label_association(organization, webhook_with_another_label)
+
+    not_attached_label = make_label_key_and_value(organization)
+
+    client = APIClient()
+
+    # test filter by label, which is attached to only one webhook
+    url = reverse("api-internal:webhooks-list")
+    response = client.get(
+        f"{url}?label={label.key_id}:{label.value_id}",
+        content_type="application/json",
+        **make_user_auth_headers(user, token),
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.json()["results"]) == 1
+    assert response.json()["results"][0]["id"] == webhook_with_label.public_primary_key
+
+    # test filter by label which is not attached to any webhooks
+    response = client.get(
+        f"{url}?label={not_attached_label.key_id}:{not_attached_label.value_id}",
+        content_type="application/json",
+        **make_user_auth_headers(user, token),
+    )
+    assert len(response.json()["results"]) == 0
+
+    # test filter by two different labels. Each label is attached to one webhook
+    response = client.get(
+        f"{url}?label={label.key_id}:{label.value_id}" f"&label={another_label.key_id}:{another_label.value_id}",
+        content_type="application/json",
+        **make_user_auth_headers(user, token),
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.json()["results"]) == 2
+
+
+@pytest.mark.django_db
+def test_update_webhook_labels(
+    webhook_internal_api_setup,
+    make_user_auth_headers,
+):
+    user, token, webhook = webhook_internal_api_setup
+    client = APIClient()
+
+    url = reverse("api-internal:webhook-detail", kwargs={"pk": webhook.public_primary_key})
+    key_id = "testkey"
+    value_id = "testvalue"
+    data = {"labels": [{"key": {"id": key_id, "name": "test"}, "value": {"id": value_id, "name": "testv"}}]}
+    response = client.patch(
+        url,
+        data=json.dumps(data),
+        content_type="application/json",
+        **make_user_auth_headers(user, token),
+    )
+
+    webhook.refresh_from_db()
+
+    assert response.status_code == status.HTTP_200_OK
+    assert webhook.labels.count() == 1
+    label = webhook.labels.first()
+    assert label.key_id == key_id
+    assert label.value_id == value_id
+
+    response = client.patch(
+        url,
+        data=json.dumps({"labels": []}),
+        content_type="application/json",
+        **make_user_auth_headers(user, token),
+    )
+
+    webhook.refresh_from_db()
+
+    assert response.status_code == status.HTTP_200_OK
+    assert webhook.labels.count() == 0
+
+
+@pytest.mark.django_db
+def test_create_webhook_with_labels(
+    make_organization_and_user_with_plugin_token,
+    make_user_auth_headers,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+    client = APIClient()
+
+    url = reverse("api-internal:webhooks-list")
+
+    key_id = "testkey"
+    value_id = "testvalue"
+    data = {
+        "url": TEST_URL,
+        "trigger_type": Webhook.TRIGGER_ALERT_GROUP_CREATED,
+        "http_method": "POST",
+        "labels": [{"key": {"id": key_id, "name": "test"}, "value": {"id": value_id, "name": "testv"}}],
+    }
+
+    response = client.post(
+        url,
+        data=json.dumps(data),
+        content_type="application/json",
+        **make_user_auth_headers(user, token),
+    )
+
+    webhook = Webhook.objects.get(public_primary_key=response.json()["id"])
+    expected_response = data | {
+        "id": webhook.public_primary_key,
+        "data": None,
+        "username": None,
+        "password": None,
+        "authorization_header": None,
+        "forward_all": True,
+        "headers": None,
+        "http_method": "POST",
+        "integration_filter": None,
+        "is_webhook_enabled": True,
+        "is_legacy": False,
+        "last_response_log": {
+            "request_data": "",
+            "request_headers": "",
+            "timestamp": None,
+            "content": "",
+            "status_code": None,
+            "request_trigger": "",
+            "url": "",
+            "event_data": "",
+        },
+        "trigger_template": None,
+        "trigger_type": str(data["trigger_type"]),
+        "trigger_type_name": "Alert Group Created",
+        "preset": None,
+    }
+    assert response.status_code == status.HTTP_201_CREATED
+    assert response.json() == expected_response
+
+
+@pytest.mark.django_db
+def test_update_webhook_labels_duplicate_key(
+    make_user_auth_headers,
+):
+    user, token, webhook = webhook_internal_api_setup
+    client = APIClient()
+
+    url = reverse("api-internal:webhook-detail", kwargs={"pk": webhook.public_primary_key})
+    key_id = "testkey"
+    data = {
+        "labels": [
+            {"key": {"id": key_id, "name": "test"}, "value": {"id": "testvalue1", "name": "testv1"}},
+            {"key": {"id": key_id, "name": "test"}, "value": {"id": "testvalue2", "name": "testv2"}},
+        ]
+    }
+    response = client.patch(
+        url,
+        data=json.dumps(data),
+        content_type="application/json",
+        **make_user_auth_headers(user, token),
+    )
+
+    webhook.refresh_from_db()
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert webhook.labels.count() == 0

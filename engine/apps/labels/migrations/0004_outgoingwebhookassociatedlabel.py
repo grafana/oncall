@@ -14,7 +14,7 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='OutgoingWebhookAssociatedLabel',
+            name='WebhookAssociatedLabel',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('key', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='labels.labelkeycache')),
