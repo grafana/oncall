@@ -269,7 +269,9 @@ tests:
             name: REDIS_SSL_CERT_REQS
             value: "cert_required"
 
-  - it: redis.enabled=false and migrate.useHook=>true -> should add "helm.sh/hook" annotations to secret with Redis credentials
+  - it: |
+      redis.enabled=false and migrate.useHook=>true -> should add "helm.sh/hook" annotations
+      to secret with Redis credentials
     templates:
       - secrets.yaml
     set:
