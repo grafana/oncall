@@ -7,6 +7,7 @@ import { FormItem, FormItemType } from 'components/GForm/GForm.types';
 import { OutgoingWebhookPreset } from 'models/outgoing_webhook/outgoing_webhook.types';
 import { KeyValuePair } from 'utils';
 import { generateAssignToTeamInputDescription } from 'utils/consts';
+
 import { WebhookFormFieldName } from './OutgoingWebhookForm.types';
 
 export const WebhookTriggerType = {

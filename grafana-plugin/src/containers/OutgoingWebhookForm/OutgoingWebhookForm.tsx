@@ -21,25 +21,26 @@ import GForm, { CustomFieldSectionRendererProps } from 'components/GForm/GForm';
 import { FormItem, FormItemType } from 'components/GForm/GForm.types';
 import IntegrationLogo from 'components/IntegrationLogo/IntegrationLogo';
 import { logoCoors } from 'components/IntegrationLogo/IntegrationLogo.config';
+import RenderConditionally from 'components/RenderConditionally/RenderConditionally';
 import Text from 'components/Text/Text';
+import Labels, { LabelsProps } from 'containers/Labels/Labels';
 import { webhookPresetIcons } from 'containers/OutgoingWebhookForm/WebhookPresetIcons.config';
 import OutgoingWebhookStatus from 'containers/OutgoingWebhookStatus/OutgoingWebhookStatus';
 import WebhooksTemplateEditor from 'containers/WebhooksTemplateEditor/WebhooksTemplateEditor';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { OutgoingWebhook, OutgoingWebhookPreset } from 'models/outgoing_webhook/outgoing_webhook.types';
 import { WebhookFormActionType } from 'pages/outgoing_webhooks/OutgoingWebhooks.types';
+import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
 import { KeyValuePair } from 'utils';
 import { UserActions } from 'utils/authorization';
 import { PLUGIN_ROOT } from 'utils/consts';
 
 import { createForm } from './OutgoingWebhookForm.config';
+import { WebhookFormFieldName } from './OutgoingWebhookForm.types';
 
 import styles from 'containers/OutgoingWebhookForm/OutgoingWebhookForm.module.css';
-import RenderConditionally from 'components/RenderConditionally/RenderConditionally';
-import Labels, { LabelsProps } from 'containers/Labels/Labels';
-import { AppFeature } from 'state/features';
-import { WebhookFormFieldName } from './OutgoingWebhookForm.types';
+
 
 const cx = cn.bind(styles);
 
