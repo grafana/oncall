@@ -747,8 +747,8 @@ def test_webhook_filter_by_labels(
     )
 
     assert response.status_code == status.HTTP_200_OK
-    assert len(response.json()["results"]) == 1
-    assert response.json()["results"][0]["id"] == webhook_with_label.public_primary_key
+    assert len(response.json()) == 1
+    assert response.json()[0]["id"] == webhook_with_label.public_primary_key
 
     # test filter by label which is not attached to any webhooks
     response = client.get(
@@ -756,7 +756,7 @@ def test_webhook_filter_by_labels(
         content_type="application/json",
         **make_user_auth_headers(user, token),
     )
-    assert len(response.json()["results"]) == 0
+    assert len(response.json()) == 0
 
     # test filter by two different labels. Each label is attached to one webhook
     response = client.get(
@@ -766,7 +766,7 @@ def test_webhook_filter_by_labels(
     )
 
     assert response.status_code == status.HTTP_200_OK
-    assert len(response.json()["results"]) == 2
+    assert len(response.json()) == 2
 
 
 @pytest.mark.django_db
