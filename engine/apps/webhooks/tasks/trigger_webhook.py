@@ -96,10 +96,12 @@ def _build_payload(webhook, alert_group, user):
     return data
 
 
-def mask_authorization_header(headers):
+def mask_authorization_header(headers, header_keys_to_mask):
     masked_headers = headers.copy()
-    if "Authorization" in masked_headers:
-        masked_headers["Authorization"] = WEBHOOK_FIELD_PLACEHOLDER
+    lower_keys = set(k.lower() for k in header_keys_to_mask)
+    for k in headers.keys():
+        if k.lower() in lower_keys:
+            masked_headers[k] = WEBHOOK_FIELD_PLACEHOLDER
     return masked_headers
 
 
@@ -114,6 +116,7 @@ def make_request(webhook, alert_group, data):
         "webhook": webhook,
         "event_data": json.dumps(data),
     }
+    masked_header_keys = ["Authorization"]
 
     exception = error = None
     try:
@@ -121,7 +124,9 @@ def make_request(webhook, alert_group, data):
             if webhook.preset not in WebhookPresetOptions.WEBHOOK_PRESETS:
                 raise Exception(f"Invalid preset {webhook.preset}")
             else:
-                WebhookPresetOptions.WEBHOOK_PRESETS[webhook.preset].override_parameters_at_runtime(webhook)
+                preset = WebhookPresetOptions.WEBHOOK_PRESETS[webhook.preset]
+                preset.override_parameters_at_runtime(webhook)
+                masked_header_keys.extend(preset.get_masked_headers())
 
         if not webhook.check_integration_filter(alert_group):
             status["request_trigger"] = NOT_FROM_SELECTED_INTEGRATION
@@ -131,7 +136,7 @@ def make_request(webhook, alert_group, data):
         if triggered:
             status["url"] = webhook.build_url(data)
             request_kwargs = webhook.build_request_kwargs(data, raise_data_errors=True)
-            display_headers = mask_authorization_header(request_kwargs.get("headers", {}))
+            display_headers = mask_authorization_header(request_kwargs.get("headers", {}), masked_header_keys)
             status["request_headers"] = json.dumps(display_headers)
             if "json" in request_kwargs:
                 status["request_data"] = json.dumps(request_kwargs["json"])

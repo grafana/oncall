@@ -164,7 +164,9 @@ class WebhookSerializer(serializers.ModelSerializer):
             for controlled_field in preset_metadata.controlled_fields:
                 if controlled_field in self.initial_data:
                     if self.instance:
-                        if self.initial_data[controlled_field] != getattr(self.instance, controlled_field):
+                        if self.initial_data[controlled_field] is not None and self.initial_data[
+                            controlled_field
+                        ] != getattr(self.instance, controlled_field):
                             raise serializers.ValidationError(
                                 detail=f"{controlled_field} is controlled by preset, cannot update"
                             )

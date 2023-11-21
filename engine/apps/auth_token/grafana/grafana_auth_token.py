@@ -5,14 +5,13 @@ from apps.grafana_plugin.helpers import GrafanaAPIClient
 from apps.user_management.models import Organization
 
 SA_ONCALL_API_NAME = "sa-autogen-OnCall"
-SA_ONCALL_API_LOGIN = "sa-autogen-1-OnCall"
 
 
-def get_service_account(
-    organization: Organization, service_account_login: str
+def find_service_account(
+    organization: Organization, service_account_name=SA_ONCALL_API_NAME
 ) -> typing.Optional["GrafanaAPIClient.Types.GrafanaServiceAccount"]:
     grafana_api_client = GrafanaAPIClient(api_url=organization.grafana_url, api_token=organization.api_token)
-    response, _ = grafana_api_client.get_service_account(service_account_login)
+    response, _ = grafana_api_client.get_service_account(service_account_name)
     if response and "serviceAccounts" in response and response["serviceAccounts"]:
         return response["serviceAccounts"][0]
     return None
@@ -27,10 +26,13 @@ def create_service_account(
 
 
 def create_service_account_token(
-    organization: Organization, service_account_login: str, token_name: str, seconds_to_live=int | None
+    organization: Organization,
+    token_name: str,
+    seconds_to_live=int | None,
+    service_account_name=SA_ONCALL_API_NAME,
 ) -> typing.Optional[str]:
     grafana_api_client = GrafanaAPIClient(api_url=organization.grafana_url, api_token=organization.api_token)
-    service_account = get_service_account(organization, service_account_login)
+    service_account = find_service_account(organization, service_account_name)
     if not service_account:
         raise ServiceAccountDoesNotExist
 
