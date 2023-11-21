@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef } from 'react';
+import React, { useMemo, useRef } from 'react';
 
 import {
   DndContext,
@@ -17,9 +17,9 @@ import {
   useSortable,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Button, Checkbox, Icon, IconButton, Tooltip } from '@grafana/ui';
+import { Button, Checkbox, Icon, IconButton, LoadingPlaceholder, Tooltip } from '@grafana/ui';
 import cn from 'classnames/bind';
-import { cloneDeep, isEqual } from 'lodash-es';
+import { isEqual } from 'lodash-es';
 import { observer } from 'mobx-react';
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
 
@@ -27,9 +27,12 @@ import Text from 'components/Text/Text';
 import styles from 'containers/ColumnsSelector/ColumnsSelector.module.scss';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { AGColumn, AGColumnType } from 'models/alertgroup/alertgroup.types';
+import { ActionKey } from 'models/loader/action-keys';
+import { LoaderStore } from 'models/loader/loader';
 import { useStore } from 'state/useStore';
 import { openErrorNotification } from 'utils';
 import { UserActions } from 'utils/authorization';
+import { WrapAutoLoadingState } from 'utils/decorators';
 
 const cx = cn.bind(styles);
 const TRANSITION_MS = 500;
@@ -101,21 +104,12 @@ interface ColumnsSelectorProps {
 export const ColumnsSelector: React.FC<ColumnsSelectorProps> = observer(
   ({ onColumnAddModalOpen, onConfirmRemovalModalOpen }) => {
     const { alertGroupStore } = useStore();
-    const { columns: items, temporaryColumns } = alertGroupStore;
+    const { columns } = alertGroupStore;
 
-    const visibleColumns = items.filter((col) => col.isVisible);
-    const hiddenColumns = items.filter((col) => !col.isVisible);
+    const visibleColumns = columns.filter((col) => col.isVisible);
+    const hiddenColumns = columns.filter((col) => !col.isVisible);
 
-    useEffect(() => {
-      if (!temporaryColumns.length) {
-        alertGroupStore.temporaryColumns = cloneDeep(items);
-      }
-    }, []);
-
-    const canResetData = useMemo(
-      () => !isEqual(temporaryColumns, items),
-      [alertGroupStore.columns, alertGroupStore.temporaryColumns]
-    );
+    const canResetData = useMemo(() => !isEqual(columns, getDefaultData()), [alertGroupStore.columns]);
 
     const sensors = useSensors(
       useSensor(PointerSensor),
@@ -123,6 +117,8 @@ export const ColumnsSelector: React.FC<ColumnsSelectorProps> = observer(
         coordinateGetter: sortableKeyboardCoordinates,
       })
     );
+
+    const isResetLoading = LoaderStore.isLoading(ActionKey.IS_RESETING_COLUMNS_FROM_ALERT_GROUP);
 
     return (
       <div className={cx('columns-selector-view')}>
@@ -136,7 +132,7 @@ export const ColumnsSelector: React.FC<ColumnsSelectorProps> = observer(
           </Text>
 
           <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={(ev) => handleDragEnd(ev, true)}>
-            <SortableContext items={items} strategy={verticalListSortingStrategy}>
+            <SortableContext items={columns} strategy={verticalListSortingStrategy}>
               <TransitionGroup>
                 {visibleColumns.map((column) => (
                   <CSSTransition key={column.id} timeout={TRANSITION_MS} unmountOnExit classNames="fade">
@@ -159,7 +155,7 @@ export const ColumnsSelector: React.FC<ColumnsSelectorProps> = observer(
           </Text>
 
           <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={(ev) => handleDragEnd(ev, false)}>
-            <SortableContext items={items} strategy={verticalListSortingStrategy}>
+            <SortableContext items={columns} strategy={verticalListSortingStrategy}>
               <TransitionGroup>
                 {hiddenColumns.map((column) => (
                   <CSSTransition key={column.id} timeout={TRANSITION_MS} classNames="fade">
@@ -177,11 +173,15 @@ export const ColumnsSelector: React.FC<ColumnsSelectorProps> = observer(
         </div>
 
         <div className={cx('columns-selector-buttons')}>
-          <Button variant={'secondary'} disabled={!canResetData} onClick={onReset}>
-            Reset
+          <Button
+            variant={'secondary'}
+            disabled={!canResetData || isResetLoading}
+            onClick={WrapAutoLoadingState(onReset, ActionKey.IS_RESETING_COLUMNS_FROM_ALERT_GROUP)}
+          >
+            {isResetLoading ? <LoadingPlaceholder text="Loading..." className="loadingPlaceholder" /> : 'Reset'}
           </Button>
           <WithPermissionControlTooltip userAction={UserActions.OtherSettingsWrite}>
-            <Button variant={'primary'} icon="plus" onClick={onColumnAddModalOpen}>
+            <Button variant={'primary'} disabled={isResetLoading} icon="plus" onClick={onColumnAddModalOpen}>
               Add column
             </Button>
           </WithPermissionControlTooltip>
@@ -189,8 +189,27 @@ export const ColumnsSelector: React.FC<ColumnsSelectorProps> = observer(
       </div>
     );
 
-    function onReset() {
-      alertGroupStore.columns = [...alertGroupStore.temporaryColumns];
+    async function onReset() {
+      const columnsDefaultValues = getDefaultData();
+
+      return alertGroupStore
+        .updateTableSettings(columnsDefaultValues, true)
+        .then(() => alertGroupStore.fetchTableSettings());
+    }
+
+    function getDefaultData() {
+      const { columns } = alertGroupStore;
+
+      const columnsDefaultValues: { visible: AGColumn[]; hidden: AGColumn[] } = {
+        visible: columns
+          .filter((col) => col.type === AGColumnType.DEFAULT)
+          .sort((a, b) => (a.id as number) - (b.id as number)),
+        hidden: columns
+          .filter((col) => col.type === AGColumnType.LABEL)
+          .sort((a, b) => a.id.toString().localeCompare(b.id.toString())),
+      };
+
+      return columnsDefaultValues;
     }
 
     async function onItemChange(id: string | number) {

@@ -77,9 +77,6 @@ export class AlertGroupStore extends BaseStore {
   @observable
   columns: AGColumn[] = [];
 
-  @observable
-  temporaryColumns: AGColumn[] = [];
-
   constructor(rootStore: RootStore) {
     super(rootStore);
 

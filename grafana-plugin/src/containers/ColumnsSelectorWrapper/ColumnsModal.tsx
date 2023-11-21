@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 
+import { LabelTag } from '@grafana/labels';
 import {
   Button,
   Checkbox,
@@ -13,6 +14,7 @@ import {
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
+import Block from 'components/GBlock/Block';
 import Text from 'components/Text/Text';
 import styles from 'containers/ColumnsSelectorWrapper/ColumnsSelectorWrapper.module.scss';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
@@ -24,8 +26,6 @@ import { useStore } from 'state/useStore';
 import { openErrorNotification, pluralize } from 'utils';
 import { UserActions } from 'utils/authorization';
 import { useDebouncedCallback } from 'utils/hooks';
-import Block from 'components/GBlock/Block';
-import { LabelTag } from '@grafana/labels';
 
 const cx = cn.bind(styles);
 

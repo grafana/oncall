@@ -2,21 +2,21 @@ import React, { useEffect, useRef, useState } from 'react';
 
 import { Button, HorizontalGroup, Icon, LoadingPlaceholder, Modal, Toggletip, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
+import { observer } from 'mobx-react';
 
 import Text from 'components/Text/Text';
 import { ColumnsSelector, convertColumnsToTableSettings } from 'containers/ColumnsSelector/ColumnsSelector';
 import styles from 'containers/ColumnsSelectorWrapper/ColumnsSelectorWrapper.module.scss';
+import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { AGColumn } from 'models/alertgroup/alertgroup.types';
 import { Label } from 'models/label/label.types';
+import { ActionKey } from 'models/loader/action-keys';
+import { LoaderStore } from 'models/loader/loader';
 import { useStore } from 'state/useStore';
+import { UserActions } from 'utils/authorization';
+import { WrapAutoLoadingState } from 'utils/decorators';
 
 import { ColumnsModal } from './ColumnsModal';
-import { LoaderStore } from 'models/loader/loader';
-import { ActionKey } from 'models/loader/action-keys';
-import { WrapAutoLoadingState } from 'utils/decorators';
-import { observer } from 'mobx-react';
-import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
-import { UserActions } from 'utils/authorization';
 
 const cx = cn.bind(styles);
 
@@ -91,9 +91,7 @@ const ColumnsSelectorWrapper: React.FC<ColumnsSelectorWrapperProps> = observer((
             />
           }
           placement={'bottom-end'}
-          show={true}
           closeButton={false}
-          onClose={onToggletipClose}
         >
           {renderToggletipButton()}
         </Toggletip>
@@ -127,13 +125,6 @@ const ColumnsSelectorWrapper: React.FC<ColumnsSelectorWrapperProps> = observer((
         </HorizontalGroup>
       </Button>
     );
-  }
-
-  function onToggletipClose() {
-    const { alertGroupStore } = store;
-
-    // reset temporary cached columns
-    alertGroupStore.temporaryColumns = [...alertGroupStore.columns];
   }
 });
 

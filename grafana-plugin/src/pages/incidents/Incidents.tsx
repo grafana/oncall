@@ -41,12 +41,12 @@ import { withMobXProviderContext } from 'state/withStore';
 import LocationHelper from 'utils/LocationHelper';
 import { UserActions } from 'utils/authorization';
 import { INCIDENT_HORIZONTAL_SCROLLING_STORAGE, PAGE, PLUGIN_ROOT, TEXT_ELLIPSIS_CLASS } from 'utils/consts';
+import { getItem, setItem } from 'utils/localStorage';
 import { TableColumn } from 'utils/types';
 
 import styles from './Incidents.module.scss';
 import { IncidentDropdown } from './parts/IncidentDropdown';
 import { SilenceButtonCascader } from './parts/SilenceButtonCascader';
-import { getItem, setItem } from 'utils/localStorage';
 
 const cx = cn.bind(styles);
 
@@ -771,6 +771,10 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
         render: this.renderLabels,
       },
     };
+
+    if (!store.hasFeature(AppFeature.Labels)) {
+      return Object.keys(columnMapping).map((col) => columnMapping[col]);
+    }
 
     const mappedColumns: TableColumn[] = store.alertGroupStore.columns
       .filter((col) => col.isVisible)
