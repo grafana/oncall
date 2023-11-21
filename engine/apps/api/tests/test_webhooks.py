@@ -52,6 +52,7 @@ def test_get_list_webhooks(webhook_internal_api_setup, make_user_auth_headers):
             "http_method": "POST",
             "integration_filter": None,
             "is_webhook_enabled": True,
+            "labels": [],
             "is_legacy": False,
             "last_response_log": {
                 "request_data": "",
@@ -95,6 +96,7 @@ def test_get_detail_webhook(webhook_internal_api_setup, make_user_auth_headers):
         "http_method": "POST",
         "integration_filter": None,
         "is_webhook_enabled": True,
+        "labels": [],
         "is_legacy": False,
         "last_response_log": {
             "request_data": "",
@@ -143,6 +145,7 @@ def test_create_webhook(webhook_internal_api_setup, make_user_auth_headers):
         "http_method": "POST",
         "integration_filter": None,
         "is_webhook_enabled": True,
+        "labels": [],
         "is_legacy": False,
         "last_response_log": {
             "request_data": "",
@@ -203,6 +206,7 @@ def test_create_valid_templated_field(webhook_internal_api_setup, make_user_auth
         "http_method": "POST",
         "integration_filter": None,
         "is_webhook_enabled": True,
+        "labels": [],
         "is_legacy": False,
         "last_response_log": {
             "request_data": "",
@@ -583,6 +587,7 @@ def test_webhook_field_masking(webhook_internal_api_setup, make_user_auth_header
         "http_method": "POST",
         "integration_filter": None,
         "is_webhook_enabled": True,
+        "labels": [],
         "is_legacy": False,
         "last_response_log": {
             "request_data": "",
@@ -642,6 +647,7 @@ def test_webhook_copy(webhook_internal_api_setup, make_user_auth_headers):
         "http_method": "POST",
         "integration_filter": None,
         "is_webhook_enabled": True,
+        "labels": [],
         "is_legacy": False,
         "last_response_log": {
             "request_data": "",
