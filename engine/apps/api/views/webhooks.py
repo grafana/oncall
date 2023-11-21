@@ -102,8 +102,8 @@ class WebhooksView(TeamFilteringMixin, PublicPrimaryKeyMixin, ModelViewSet):
         kvPairs = parse_label_query(labelQuery)
         for kv in kvPairs:
             queryset = queryset.filter(
-                labels__key_name=kv[0],
-                labels__value_name=kv[1],
+                labels__key_id=kv[0],
+                labels__value_id=kv[1],
             ).distinct()
 
         # schedule update of labels cache
