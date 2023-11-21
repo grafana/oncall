@@ -220,3 +220,12 @@ def test_alertmanager_available_for_heartbeat(make_organization, make_alert_rece
     organization = make_organization()
     alert_receive_channel = make_alert_receive_channel(organization, integration=integration)
     assert alert_receive_channel.is_available_for_integration_heartbeat
+
+
+@pytest.mark.django_db
+def test_delete_duplicate_names(make_organization, make_alert_receive_channel):
+    """Check that it's possible to delete two integrations with the same name at once."""
+    organization = make_organization()
+    for _ in range(2):
+        make_alert_receive_channel(organization, verbal_name="duplicate")
+    organization.alert_receive_channels.all().delete()
