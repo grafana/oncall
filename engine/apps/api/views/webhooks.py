@@ -16,6 +16,7 @@ from apps.api.permissions import RBACPermission
 from apps.api.serializers.webhook import WebhookResponseSerializer, WebhookSerializer
 from apps.api.views.labels import schedule_update_label_cache
 from apps.auth_token.auth import PluginAuthentication
+from apps.labels.utils import is_labels_feature_enabled
 from apps.webhooks.models import Webhook, WebhookResponse
 from apps.webhooks.presets.preset_options import WebhookPresetOptions
 from apps.webhooks.utils import apply_jinja_template_for_json
@@ -147,6 +148,15 @@ class WebhooksView(TeamFilteringMixin, PublicPrimaryKeyMixin, ModelViewSet):
                 "global": True,
             },
         ]
+
+        if is_labels_feature_enabled(self.request.auth.organization):
+            filter_options.append(
+                {
+                    "name": "label",
+                    "display_name": "Label",
+                    "type": "labels",
+                }
+            )
 
         if filter_name is not None:
             filter_options = list(filter(lambda f: filter_name in f["name"], filter_options))
