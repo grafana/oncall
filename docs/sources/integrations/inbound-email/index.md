@@ -16,6 +16,10 @@ weight: 500
 
 Inbound Email integration will consume emails from dedicated email address and make alert groups from them.
 
+## Configure required environment variables
+
+See [Inbound Email Setup]({{< relref "../../open-source/_index.md#inbound-email-setup" >}}) for details.
+
 ## Configure Inbound Email integration for Grafana OnCall
 
 You must have an Admin role to create integrations in Grafana OnCall.
