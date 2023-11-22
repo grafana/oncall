@@ -60,15 +60,6 @@ def is_labels_feature_enabled(organization: "Organization") -> bool:
     )
 
 
-def get_label_verbal(obj: typing.Any) -> dict[str, str]:
-    return {label.key.name: label.value.name for label in obj.labels.all().select_related("key", "value")}
-
-
-def get_alert_group_label_verbal(alert_group: "AlertGroup") -> dict[str, str]:
-    """This is different from get_label_verbal because alert group labels store key/value names, not IDs"""
-    return {label.key_name: label.value_name for label in alert_group.labels.all()}
-
-
 def assign_labels(
     alert_group: "AlertGroup", alert_receive_channel: "AlertReceiveChannel", raw_request_data: typing.Any
 ) -> None:
@@ -142,3 +133,12 @@ def _template_labels(alert_receive_channel: "AlertReceiveChannel", raw_request_d
 
     # only keep labels with string, int, float, bool values
     return {str(k): str(v) for k, v in labels.items() if isinstance(v, (str, int, float, bool))}
+
+
+def get_label_verbal(obj: typing.Any) -> dict[str, str]:
+    return {label.key.name: label.value.name for label in obj.labels.all().select_related("key", "value")}
+
+
+def get_alert_group_label_verbal(alert_group: "AlertGroup") -> dict[str, str]:
+    """This is different from get_label_verbal because alert group labels store key/value names, not IDs"""
+    return {label.key_name: label.value_name for label in alert_group.labels.all()}
