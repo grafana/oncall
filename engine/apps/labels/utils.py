@@ -71,3 +71,24 @@ def assign_labels(alert_group: "AlertGroup", alert_receive_channel: "AlertReceiv
         for label in alert_receive_channel.labels.filter(inheritable=True).select_related("key", "value")
     ]
     AlertGroupAssociatedLabel.objects.bulk_create(alert_group_labels)
+
+
+def get_label_verbal(labelable):
+    """
+    label_verbal returns dict of labels' key and values names for the given object
+    """
+    labels_verbal = {}
+    for label in labelable.labels.all().select_related("key", "value"):
+        labels_verbal[label.key.name] = label.value.name
+    return labels_verbal
+
+
+def get_alert_group_label_verbal(alert_group: "AlertGroup"):
+    """
+    get_alert_group_label_verbal returns dict of labels' key and values names for the given alert group.
+    It's different from get_label_verbal, because AlertGroupAssociated labels store key/value_name, not key/value_id
+    """
+    labels_verbal = {}
+    for label in alert_group.labels.all():
+        labels_verbal[label.key.name] = label.value.name
+    return labels_verbal
