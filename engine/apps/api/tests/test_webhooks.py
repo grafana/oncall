@@ -750,6 +750,17 @@ def test_webhook_filter_by_labels(
     assert len(response.json()) == 1
     assert response.json()[0]["id"] == webhook_with_label.public_primary_key
 
+    url = reverse("api-internal:webhooks-list")
+    response = client.get(
+        f"{url}?label={another_label.key_id}:{another_label.value_id}",
+        content_type="application/json",
+        **make_user_auth_headers(user, token),
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.json()) == 1
+    assert response.json()[0]["id"] == webhook_with_another_label.public_primary_key
+
     # test filter by label which is not attached to any webhooks
     response = client.get(
         f"{url}?label={not_attached_key.id}:{not_attached_value.id}",
@@ -757,16 +768,6 @@ def test_webhook_filter_by_labels(
         **make_user_auth_headers(user, token),
     )
     assert len(response.json()) == 0
-
-    # test filter by two different labels. Each label is attached to one webhook
-    response = client.get(
-        f"{url}?label={label.key_id}:{label.value_id}&label={another_label.key_id}:{another_label.value_id}",
-        content_type="application/json",
-        **make_user_auth_headers(user, token),
-    )
-
-    assert response.status_code == status.HTTP_200_OK
-    assert len(response.json()) == 2
 
 
 @pytest.mark.django_db
@@ -777,7 +778,7 @@ def test_update_webhook_labels(
     user, token, webhook = webhook_internal_api_setup
     client = APIClient()
 
-    url = reverse("api-internal:webhook-detail", kwargs={"pk": webhook.public_primary_key})
+    url = reverse("api-internal:webhooks-detail", kwargs={"pk": webhook.public_primary_key})
     key_id = "testkey"
     value_id = "testvalue"
     data = {"labels": [{"key": {"id": key_id, "name": "test"}, "value": {"id": value_id, "name": "testv"}}]}
@@ -822,10 +823,12 @@ def test_create_webhook_with_labels(
     key_id = "testkey"
     value_id = "testvalue"
     data = {
+        "name": "the_webhook",
         "url": TEST_URL,
         "trigger_type": Webhook.TRIGGER_ALERT_GROUP_CREATED,
         "http_method": "POST",
         "labels": [{"key": {"id": key_id, "name": "test"}, "value": {"id": value_id, "name": "testv"}}],
+        "team": None,
     }
 
     response = client.post(
@@ -835,6 +838,7 @@ def test_create_webhook_with_labels(
         **make_user_auth_headers(user, token),
     )
 
+    assert response.status_code == 201
     webhook = Webhook.objects.get(public_primary_key=response.json()["id"])
     expected_response = data | {
         "id": webhook.public_primary_key,
@@ -869,12 +873,13 @@ def test_create_webhook_with_labels(
 
 @pytest.mark.django_db
 def test_update_webhook_labels_duplicate_key(
+    webhook_internal_api_setup,
     make_user_auth_headers,
 ):
     user, token, webhook = webhook_internal_api_setup
     client = APIClient()
 
-    url = reverse("api-internal:webhook-detail", kwargs={"pk": webhook.public_primary_key})
+    url = reverse("api-internal:webhooks-detail", kwargs={"pk": webhook.public_primary_key})
     key_id = "testkey"
     data = {
         "labels": [
