@@ -99,14 +99,15 @@ class WebhooksView(TeamFilteringMixin, PublicPrimaryKeyMixin, ModelViewSet):
             queryset = queryset.filter(*self.available_teams_lookup_args).distinct()
 
         # filter by labels
-        labelQuery = self.request.query_params.getlist("label", [])
-        kvPairs = parse_label_query(labelQuery)
-        for key, value in kvPairs:
+        label_query = self.request.query_params.getlist("label", [])
+        kv_pairs = parse_label_query(label_query)
+        for key, value in kv_pairs:
             queryset = queryset.filter(
                 labels__key_id=key,
                 labels__value_id=value,
-            ).distinct()
-
+            )
+        # distinct to remove duplicates after webhooks X labels join
+        queryset = queryset.distinct()
         # schedule update of labels cache
         ids = [d.id for d in queryset]
         schedule_update_label_cache(self.model.__name__, self.request.auth.organization, ids)

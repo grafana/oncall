@@ -160,13 +160,16 @@ class AlertReceiveChannelView(
             queryset = queryset.filter(*self.available_teams_lookup_args).distinct()
 
         # filter labels
-        labelQuery = self.request.query_params.getlist("label", [])
-        kvPairs = parse_label_query(labelQuery)
-        for key, value in kvPairs:
+        label_query = self.request.query_params.getlist("label", [])
+        kv_pairs = parse_label_query(label_query)
+        for key, value in kv_pairs:
             queryset = queryset.filter(
                 labels__key_id=key,
                 labels__value_id=value,
-            ).distinct()
+            )
+
+        # distinct to remove duplicates after alert_receive_channels X labels join
+        queryset = queryset.distinct()
 
         return queryset
 
