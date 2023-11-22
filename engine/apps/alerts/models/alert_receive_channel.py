@@ -217,14 +217,6 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
     alert_group_labels_custom = models.JSONField(null=True, default=list)
     alert_group_labels_template = models.TextField(null=True, default=None)
 
-    class Meta:
-        constraints = [
-            models.UniqueConstraint(
-                fields=["organization", "verbal_name", "deleted_at"],
-                name="unique integration name",
-            )
-        ]
-
     def __str__(self):
         short_name_with_emojis = emojize(self.short_name, language="alias")
         return f"{self.pk}: {short_name_with_emojis}"

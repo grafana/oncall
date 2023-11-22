@@ -1310,7 +1310,6 @@ def test_integration_filter_by_labels(
 def test_update_alert_receive_channel_labels(
     make_organization_and_user_with_plugin_token,
     make_alert_receive_channel,
-    make_integration_label_association,
     make_user_auth_headers,
 ):
     organization, user, token = make_organization_and_user_with_plugin_token()
@@ -1353,7 +1352,6 @@ def test_update_alert_receive_channel_labels(
 def test_update_alert_receive_channel_labels_duplicate_key(
     make_organization_and_user_with_plugin_token,
     make_alert_receive_channel,
-    make_integration_label_association,
     make_user_auth_headers,
 ):
     organization, user, token = make_organization_and_user_with_plugin_token()

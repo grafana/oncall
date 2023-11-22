@@ -62,7 +62,9 @@ def create_alertmanager_alerts(alert_receive_channel_pk, alert, is_demo=False, f
             alert.group.active_resolve_calculation_id = task.id
             alert.group.save(update_fields=["active_resolve_calculation_id"])
 
-    logger.info(f"Created alert {alert.pk} for alert group {alert.group.pk}")
+    logger.info(
+        f"Created alert alert_id={alert.pk} alert_group_id={alert.group.pk} channel_id={alert_receive_channel.pk}"
+    )
 
 
 @shared_task(
@@ -104,7 +106,9 @@ def create_alert(
             force_route_id=force_route_id,
             is_demo=is_demo,
         )
-        logger.info(f"Created alert {alert.pk} for alert group {alert.group.pk}")
+        logger.info(
+            f"Created alert alert_id={alert.pk} alert_group_id={alert.group.pk} channel_id={alert_receive_channel.pk}"
+        )
     except ConcurrentUpdateError:
         # This error is raised when there are concurrent updates on AlertGroupCounter due to optimistic lock on it.
         # The idea is to not block the worker with a database lock and retry the task in case of concurrent updates.
