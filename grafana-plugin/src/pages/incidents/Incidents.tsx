@@ -727,15 +727,18 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
 
   getTableColumns(): TableColumn[] {
     const { store } = this.props;
+    const { isHorizontalScrolling } = this.state;
 
     const columnMapping: { [key: string]: TableColumn } = {
       ID: {
+        width: isHorizontalScrolling ? '100px' : undefined,
         title: 'ID',
         key: 'id',
         render: this.renderId,
       },
       Status: {
         title: 'Status',
+        width: isHorizontalScrolling ? '140px' : undefined,
         key: 'time',
         render: this.renderStatus,
       },
@@ -769,14 +772,18 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
         key: 'users',
         render: renderRelatedUsers,
       },
-      Labels: {
+    };
+
+    if (store.hasFeature(AppFeature.Labels)) {
+      // add labels specific column if enabled
+      columnMapping['Labels'] = {
+        width: '60px',
         title: 'Labels',
         key: 'labels',
         render: this.renderLabels,
-      },
-    };
-
-    if (!store.hasFeature(AppFeature.Labels)) {
+      };
+    } else {
+      // no filtering needed if we don't have Labels enabled
       return Object.keys(columnMapping).map((col) => columnMapping[col]);
     }
 

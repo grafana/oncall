@@ -17,14 +17,12 @@ import {
   useSortable,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Button, Checkbox, Icon, IconButton, LoadingPlaceholder, Tooltip } from '@grafana/ui';
-import cn from 'classnames/bind';
+import { Button, Checkbox, Icon, IconButton, LoadingPlaceholder, Tooltip, useStyles2 } from '@grafana/ui';
 import { isEqual } from 'lodash-es';
 import { observer } from 'mobx-react';
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
 
 import Text from 'components/Text/Text';
-import styles from 'containers/ColumnsSelector/ColumnsSelector.module.scss';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { AGColumn, AGColumnType } from 'models/alertgroup/alertgroup.types';
 import { ActionKey } from 'models/loader/action-keys';
@@ -34,7 +32,8 @@ import { openErrorNotification } from 'utils';
 import { UserActions } from 'utils/authorization';
 import { WrapAutoLoadingState } from 'utils/decorators';
 
-const cx = cn.bind(styles);
+import { getColumnsSelectorStyles } from './ColumnsSelector.styles';
+
 const TRANSITION_MS = 500;
 
 interface ColumnRowProps {
@@ -46,6 +45,8 @@ interface ColumnRowProps {
 const ColumnRow: React.FC<ColumnRowProps> = ({ column, onItemChange, onColumnRemoval }) => {
   const dnd = useSortable({ id: column.id });
 
+  const styles = useStyles2(getColumnsSelectorStyles);
+
   const { attributes, listeners, setNodeRef, transform, transition } = dnd;
   const columnElRef = useRef<HTMLDivElement>(undefined);
 
@@ -55,13 +56,13 @@ const ColumnRow: React.FC<ColumnRowProps> = ({ column, onItemChange, onColumnRem
   };
 
   return (
-    <div ref={setNodeRef} style={{ ...style }} className={cx('column-row')}>
-      <div className={cx('column-item')} ref={columnElRef}>
-        <span className={cx('column-name')}>{column.name}</span>
+    <div ref={setNodeRef} style={{ ...style }} className={styles.columnRow}>
+      <div className={styles.columnItem} ref={columnElRef}>
+        <span className={styles.columnName}>{column.name}</span>
 
         {column.type === AGColumnType.LABEL && (
           <Tooltip content="Label Column">
-            <Icon aria-label="Label" name="tag-alt" className={cx('label-icon')} />
+            <Icon aria-label="Label" name="tag-alt" className={styles.labelIcon} />
           </Tooltip>
         )}
 
@@ -69,14 +70,14 @@ const ColumnRow: React.FC<ColumnRowProps> = ({ column, onItemChange, onColumnRem
           <IconButton
             aria-label="Drag"
             name="draggabledots"
-            className={cx('column-icon', 'column-icon--drag')}
+            className={styles.columnsIcon}
             {...attributes}
             {...listeners}
           />
         ) : column.type === AGColumnType.LABEL ? (
           <WithPermissionControlTooltip userAction={UserActions.OtherSettingsWrite}>
             <IconButton
-              className={cx('column-icon', 'column-icon--trash')}
+              className={[styles.columnsIcon, styles.columnsIconTrash, 'columns-icon-trash'].join(' ')}
               name="trash-alt"
               aria-label="Remove"
               tooltip={'Remove column'}
@@ -87,7 +88,7 @@ const ColumnRow: React.FC<ColumnRowProps> = ({ column, onItemChange, onColumnRem
       </div>
 
       <Checkbox
-        className={cx('columns-checkbox')}
+        className={styles.columnsCheckbox}
         type="checkbox"
         value={column.isVisible}
         onChange={() => onItemChange(column.id)}
@@ -104,6 +105,9 @@ interface ColumnsSelectorProps {
 export const ColumnsSelector: React.FC<ColumnsSelectorProps> = observer(
   ({ onColumnAddModalOpen, onConfirmRemovalModalOpen }) => {
     const { alertGroupStore } = useStore();
+
+    const styles = useStyles2(getColumnsSelectorStyles);
+
     const { columns } = alertGroupStore;
 
     const visibleColumns = columns.filter((col) => col.isVisible);
@@ -123,17 +127,22 @@ export const ColumnsSelector: React.FC<ColumnsSelectorProps> = observer(
     const isResetLoading = LoaderStore.isLoading(ActionKey.IS_RESETING_COLUMNS_FROM_ALERT_GROUP);
 
     return (
-      <div className={cx('columns-selector-view')}>
-        <Text type="primary" className={cx('columns-header')}>
-          Fields Settings
+      <div className={styles.columnsSelectorView}>
+        <Text type="primary" className={styles.columnsHeader}>
+          Columns Settings
         </Text>
 
-        <div className={cx('columns-visible-section')}>
-          <Text type="primary" className={cx('columns-header-small')}>
+        <div className={styles.columnsVisibleSection}>
+          <Text type="primary" className={styles.columnsHeaderSmall}>
             Visible ({visibleColumns.length})
           </Text>
 
-          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={(ev) => handleDragEnd(ev, true)}>
+          <DndContext
+            autoScroll={{ layoutShiftCompensation: false }}
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={(ev) => handleDragEnd(ev, true)}
+          >
             <SortableContext items={columns} strategy={verticalListSortingStrategy}>
               <TransitionGroup>
                 {visibleColumns.map((column) => (
@@ -151,12 +160,17 @@ export const ColumnsSelector: React.FC<ColumnsSelectorProps> = observer(
           </DndContext>
         </div>
 
-        <div className={cx('columns-hidden-section')}>
-          <Text type="primary" className={cx('columns-header-small')}>
+        <div className={styles.columnsHiddenSection}>
+          <Text type="primary" className={styles.columnsHeaderSmall}>
             Hidden ({hiddenColumns.length})
           </Text>
 
-          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={(ev) => handleDragEnd(ev, false)}>
+          <DndContext
+            autoScroll={{ layoutShiftCompensation: false }}
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={(ev) => handleDragEnd(ev, false)}
+          >
             <SortableContext items={columns} strategy={verticalListSortingStrategy}>
               <TransitionGroup>
                 {hiddenColumns.map((column) => (
@@ -174,9 +188,11 @@ export const ColumnsSelector: React.FC<ColumnsSelectorProps> = observer(
           </DndContext>
         </div>
 
-        <div className={cx('columns-selector-buttons')}>
+        <div className={styles.columnsSelectorButtons}>
           <Button
             variant={'secondary'}
+            tooltipPlacement="top"
+            tooltip={'Reset table to default columns'}
             disabled={!canResetData || isResetLoading}
             onClick={WrapAutoLoadingState(onReset, ActionKey.IS_RESETING_COLUMNS_FROM_ALERT_GROUP)}
           >
@@ -184,7 +200,7 @@ export const ColumnsSelector: React.FC<ColumnsSelectorProps> = observer(
           </Button>
           <WithPermissionControlTooltip userAction={UserActions.OtherSettingsWrite}>
             <Button variant={'primary'} disabled={isResetLoading} icon="plus" onClick={onColumnAddModalOpen}>
-              Add column
+              Add
             </Button>
           </WithPermissionControlTooltip>
         </div>

@@ -1,12 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
 
-import { Button, HorizontalGroup, Icon, LoadingPlaceholder, Modal, Toggletip, VerticalGroup } from '@grafana/ui';
-import cn from 'classnames/bind';
+import { Button, HorizontalGroup, Icon, LoadingPlaceholder, Modal, VerticalGroup } from '@grafana/ui';
+import { useStyles2 } from '@grafana/ui';
 import { observer } from 'mobx-react';
 
 import Text from 'components/Text/Text';
 import { ColumnsSelector, convertColumnsToTableSettings } from 'containers/ColumnsSelector/ColumnsSelector';
-import styles from 'containers/ColumnsSelectorWrapper/ColumnsSelectorWrapper.module.scss';
+import { getColumnsSelectorWrapperStyles } from 'containers/ColumnsSelectorWrapper/ColumnsSelectorWrapper.styles';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { AGColumn } from 'models/alertgroup/alertgroup.types';
 import { Label } from 'models/label/label.types';
@@ -18,18 +18,20 @@ import { WrapAutoLoadingState } from 'utils/decorators';
 
 import { ColumnsModal } from './ColumnsModal';
 
-const cx = cn.bind(styles);
-
 interface ColumnsSelectorWrapperProps {}
 
 const ColumnsSelectorWrapper: React.FC<ColumnsSelectorWrapperProps> = observer(() => {
   const [isConfirmRemovalModalOpen, setIsConfirmRemovalModalOpen] = useState(false);
   const [columnToBeRemoved, setColumnToBeRemoved] = useState<AGColumn>(undefined);
   const [isColumnAddModalOpen, setIsColumnAddModalOpen] = useState(false);
+  const [isFloatingDisplayOpen, setIsFloatingDisplayOpen] = useState(false);
 
   const [labelKeys, setLabelKeys] = useState<Label[]>([]);
 
   const inputRef = useRef<HTMLInputElement>(null);
+  const wrappingFloatingContainerRef = useRef<HTMLDivElement>(null);
+
+  const styles = useStyles2(getColumnsSelectorWrapperStyles);
 
   const store = useStore();
 
@@ -40,6 +42,14 @@ const ColumnsSelectorWrapper: React.FC<ColumnsSelectorWrapperProps> = observer((
         setLabelKeys(keys);
       })();
   }, [isColumnAddModalOpen]);
+
+  useEffect(() => {
+    document.addEventListener('click', onFloatingDisplayClick);
+
+    return () => {
+      document.removeEventListener('click', onFloatingDisplayClick);
+    };
+  }, []);
 
   const isRemoveLoading = LoaderStore.isLoading(ActionKey.IS_REMOVING_COLUMN_FROM_ALERT_GROUP);
 
@@ -57,7 +67,7 @@ const ColumnsSelectorWrapper: React.FC<ColumnsSelectorWrapperProps> = observer((
         isOpen={isConfirmRemovalModalOpen}
         title={'Remove column'}
         onDismiss={onConfirmRemovalClose}
-        className={cx('removal-modal')}
+        className={styles.removalModal}
       >
         <VerticalGroup spacing="lg">
           <Text type="primary">Are you sure you want to remove column {columnToBeRemoved?.name}?</Text>
@@ -79,27 +89,37 @@ const ColumnsSelectorWrapper: React.FC<ColumnsSelectorWrapperProps> = observer((
         </VerticalGroup>
       </Modal>
 
-      {!isColumnAddModalOpen && !isConfirmRemovalModalOpen ? (
-        <Toggletip
-          content={
-            <ColumnsSelector
-              onColumnAddModalOpen={() => setIsColumnAddModalOpen(!isColumnAddModalOpen)}
-              onConfirmRemovalModalOpen={(column: AGColumn) => {
-                setIsConfirmRemovalModalOpen(!isConfirmRemovalModalOpen);
-                setColumnToBeRemoved(column);
-              }}
-            />
-          }
-          placement={'bottom-end'}
-          closeButton={false}
-        >
-          {renderToggletipButton()}
-        </Toggletip>
-      ) : (
-        renderToggletipButton()
-      )}
+      <div ref={wrappingFloatingContainerRef}>
+        {!isColumnAddModalOpen && !isConfirmRemovalModalOpen ? (
+          <div className={styles.floatingContainer}>
+            {renderToggletipButton()}
+            <div
+              className={[styles.floatingContent, isFloatingDisplayOpen ? styles.floatingContentVisible : ''].join(' ')}
+            >
+              <ColumnsSelector
+                onColumnAddModalOpen={() => setIsColumnAddModalOpen(!isColumnAddModalOpen)}
+                onConfirmRemovalModalOpen={(column: AGColumn) => {
+                  setIsConfirmRemovalModalOpen(!isConfirmRemovalModalOpen);
+                  setColumnToBeRemoved(column);
+                }}
+              />
+            </div>
+          </div>
+        ) : (
+          renderToggletipButton()
+        )}
+      </div>
     </>
   );
+
+  function onFloatingDisplayClick(event) {
+    const element = wrappingFloatingContainerRef.current;
+    const isInside = element?.contains(event.target as HTMLDivElement);
+
+    if (!isInside) {
+      setIsFloatingDisplayOpen(false);
+    }
+  }
 
   function onConfirmRemovalClose(): void {
     setIsConfirmRemovalModalOpen(false);
@@ -118,9 +138,15 @@ const ColumnsSelectorWrapper: React.FC<ColumnsSelectorWrapperProps> = observer((
 
   function renderToggletipButton() {
     return (
-      <Button type="button" variant={'secondary'} icon="columns" id="toggletip-button">
+      <Button
+        type="button"
+        variant={'secondary'}
+        icon="columns"
+        id="toggletip-button"
+        onClick={() => setIsFloatingDisplayOpen(!isFloatingDisplayOpen)}
+      >
         <HorizontalGroup spacing="xs">
-          Fields
+          Columns
           <Icon name="angle-down" />
         </HorizontalGroup>
       </Button>

@@ -10,13 +10,12 @@ import {
   LoadingPlaceholder,
   Modal,
   VerticalGroup,
+  useStyles2,
 } from '@grafana/ui';
-import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
 import Block from 'components/GBlock/Block';
 import Text from 'components/Text/Text';
-import styles from 'containers/ColumnsSelectorWrapper/ColumnsSelectorWrapper.module.scss';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { AGColumn, AGColumnType } from 'models/alertgroup/alertgroup.types';
 import { Label, LabelValue } from 'models/label/label.types';
@@ -27,7 +26,7 @@ import { openErrorNotification, pluralize } from 'utils';
 import { UserActions } from 'utils/authorization';
 import { useDebouncedCallback } from 'utils/hooks';
 
-const cx = cn.bind(styles);
+import { getColumnsSelectorWrapperStyles } from './ColumnsSelectorWrapper.styles';
 
 interface ColumnsModalProps {
   isModalOpen: boolean;
@@ -47,6 +46,8 @@ const DEBOUNCE_MS = 300;
 export const ColumnsModal: React.FC<ColumnsModalProps> = observer(
   ({ isModalOpen, labelKeys, setIsModalOpen, inputRef }) => {
     const store = useStore();
+    const styles = useStyles2(getColumnsSelectorWrapperStyles);
+
     const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
     const debouncedOnInputChange = useDebouncedCallback(onInputChange, DEBOUNCE_MS);
 
@@ -60,10 +61,10 @@ export const ColumnsModal: React.FC<ColumnsModalProps> = observer(
     return (
       <Modal isOpen={isModalOpen} title={'Add column'} onDismiss={onCloseModal} closeOnEscape={false}>
         <VerticalGroup spacing="md">
-          <div className={cx('content')}>
+          <div className={styles.content}>
             <VerticalGroup spacing="md">
               <Input
-                className={cx('input')}
+                className={styles.input}
                 autoFocus
                 placeholder="Search..."
                 ref={inputRef}
@@ -81,10 +82,10 @@ export const ColumnsModal: React.FC<ColumnsModalProps> = observer(
                 <VerticalGroup spacing="xs">
                   {searchResults.map((result, index) => (
                     <VerticalGroup>
-                      <div key={index} className={cx('field-row')}>
+                      <div key={index} className={styles.fieldRow}>
                         <IconButton
                           aria-label={result.isCollapsed ? 'Expand' : 'Collapse'}
-                          name={result.isCollapsed ? 'angle-down' : 'angle-right'}
+                          name={result.isCollapsed ? 'angle-right' : 'angle-down'}
                           onClick={() => expandOrCollapseSearchResultItem(result, index)}
                         />
 
@@ -104,7 +105,7 @@ export const ColumnsModal: React.FC<ColumnsModalProps> = observer(
                         <Text type="primary">{result.name}</Text>
                       </div>
                       {!result.isCollapsed && (
-                        <Block bordered withBackground fullWidth className={cx('values-block')}>
+                        <Block bordered withBackground fullWidth className={styles.valuesBlock}>
                           {result.values === undefined ? (
                             <LoadingPlaceholder text="Loading..." className="loadingPlaceholder" />
                           ) : (
@@ -147,7 +148,7 @@ export const ColumnsModal: React.FC<ColumnsModalProps> = observer(
           {values.slice(0, 2).map((val) => (
             <LabelTag label={keyName} value={val.name} key={val.id} />
           ))}
-          <div className={cx('total-values-count')}>{values.length > 2 ? `+ ${values.length - 2}` : ``}</div>
+          <div className={styles.totalValuesCount}>{values.length > 2 ? `+ ${values.length - 2}` : ``}</div>
         </HorizontalGroup>
       );
     }
