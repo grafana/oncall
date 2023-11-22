@@ -87,9 +87,15 @@ def number_to_smiles_translator(number):
     return "".join(reversed(smileset))
 
 
+class CustomLabel(typing.TypedDict):
+    key: str
+    value: str
+    template: bool
+
+
 class IntegrationAlertGroupLabels(typing.TypedDict):
     inheritable: dict[str, bool]
-    custom: dict[str, str]
+    custom: list[CustomLabel]
     template: str | None
 
 
@@ -208,7 +214,7 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
     rate_limited_in_slack_at = models.DateTimeField(null=True, default=None)
     rate_limit_message_task_id = models.CharField(max_length=100, null=True, default=None)
 
-    alert_group_labels_custom = models.JSONField(null=True, default=dict)
+    alert_group_labels_custom = models.JSONField(null=True, default=list)
     alert_group_labels_template = models.TextField(null=True, default=None)
 
     class Meta:

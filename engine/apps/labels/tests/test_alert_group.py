@@ -31,11 +31,16 @@ def test_assign_labels_feature_flag_disabled(
 def test_assign_labels(make_organization, make_alert_receive_channel, make_integration_label_association):
     organization = make_organization()
     alert_receive_channel = make_alert_receive_channel(
-        organization, alert_group_labels_custom={"a": "b"}, alert_group_labels_template="{{ payload.labels | tojson }}"
+        organization,
+        alert_group_labels_custom=[
+            {"key": "a", "value": "b", "template": False},
+            {"key": "c", "value": "{{ payload.c }}", "template": True},
+        ],
+        alert_group_labels_template="{{ payload.labels | tojson }}",
     )
 
     label = make_integration_label_association(organization, alert_receive_channel)
-    label.key.name, label.value.name = ("c", "d")
+    label.key.name, label.value.name = ("e", "f")
     label.key.save(update_fields=["name"])
     label.value.save(update_fields=["name"])
     make_integration_label_association(organization, alert_receive_channel, inheritable=False)
@@ -44,7 +49,7 @@ def test_assign_labels(make_organization, make_alert_receive_channel, make_integ
         title="the title",
         message="the message",
         alert_receive_channel=alert_receive_channel,
-        raw_request_data={"labels": {"e": "f"}},
+        raw_request_data={"c": "d", "labels": {"g": "h"}},
         integration_unique_data={},
         image_url=None,
         link_to_upstream_details=None,
@@ -54,4 +59,5 @@ def test_assign_labels(make_organization, make_alert_receive_channel, make_integ
         ("a", "b"),
         ("c", "d"),
         ("e", "f"),
+        ("g", "h"),
     ]

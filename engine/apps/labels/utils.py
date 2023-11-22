@@ -71,7 +71,7 @@ def assign_labels(
     }
 
     # apply custom labels
-    labels.update(alert_receive_channel.alert_group_labels_custom)
+    labels.update(_custom_labels(alert_receive_channel, raw_request_data))
 
     # apply template labels
     labels.update(_template_labels(alert_receive_channel, raw_request_data))
@@ -90,6 +90,21 @@ def assign_labels(
     alert_group_labels.sort(key=lambda label: (label.key_name, label.value_name))
     # bulk create associated labels
     AlertGroupAssociatedLabel.objects.bulk_create(alert_group_labels)
+
+
+def _custom_labels(alert_receive_channel: "AlertReceiveChannel", raw_request_data: typing.Any) -> dict[str, str]:
+    labels = {}
+    for label in alert_receive_channel.alert_group_labels_custom:
+        if not label["template"]:
+            labels[label["key"]] = label["value"]
+        else:
+            try:
+                labels[label["key"]] = apply_jinja_template(label["value"], raw_request_data)
+            except (JinjaTemplateError, JinjaTemplateWarning) as e:
+                logger.warning("Failed to apply template. %s", e.fallback_message)
+                continue
+
+    return labels
 
 
 def _template_labels(alert_receive_channel: "AlertReceiveChannel", raw_request_data: typing.Any) -> dict[str, str]:
