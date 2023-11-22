@@ -27,6 +27,11 @@ class LabelData(typing.TypedDict):
     value: LabelParams
 
 
+class ValueData(typing.TypedDict):
+    value_name: str
+    key_name: str
+
+
 class LabelKeyData(typing.TypedDict):
     key: LabelParams
     values: typing.List[LabelParams]
@@ -66,3 +71,18 @@ def assign_labels(alert_group: "AlertGroup", alert_receive_channel: "AlertReceiv
         for label in alert_receive_channel.labels.filter(inheritable=True).select_related("key", "value")
     ]
     AlertGroupAssociatedLabel.objects.bulk_create(alert_group_labels)
+
+
+def get_label_verbal(labelable) -> typing.Dict[str, str]:
+    """
+    label_verbal returns dict of labels' key and values names for the given object
+    """
+    return {label.key.name: label.value.name for label in labelable.labels.all().select_related("key", "value")}
+
+
+def get_alert_group_label_verbal(alert_group: "AlertGroup") -> typing.Dict[str, str]:
+    """
+    get_alert_group_label_verbal returns dict of labels' key and values names for the given alert group.
+    It's different from get_label_verbal, because AlertGroupAssociated labels store key/value_name, not key/value_id
+    """
+    return {label.key_name: label.value_name for label in alert_group.labels.all()}
