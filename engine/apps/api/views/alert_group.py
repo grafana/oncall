@@ -341,9 +341,9 @@ class AlertGroupView(
         queryset = AlertGroup.objects.filter(channel__in=alert_receive_channels_ids)
 
         # Filter by labels. Since alert group labels are "static" filter by names, not IDs.
-        labelQuery = self.request.query_params.getlist("label", [])
-        kvPairs = parse_label_query(labelQuery)
-        for key, value in kvPairs:
+        label_query = self.request.query_params.getlist("label", [])
+        kv_pairs = parse_label_query(label_query)
+        for key, value in kv_pairs:
             # Utilize (organization, key_name, value_name, alert_group) index on AlertGroupAssociatedLabel
             queryset = queryset.filter(
                 labels__organization=self.request.auth.organization,
