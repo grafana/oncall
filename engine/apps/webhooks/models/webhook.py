@@ -308,7 +308,7 @@ class WebhookResponse(models.Model):
         related_name="responses",
     )
     trigger_type = models.IntegerField(choices=Webhook.TRIGGER_TYPES)
-    timestamp = models.DateTimeField(default=timezone.now)
+    timestamp = models.DateTimeField(default=timezone.now, db_index=True)
     request_trigger = models.TextField(null=True, default=None)
     request_headers = models.TextField(null=True, default=None)
     request_data = models.TextField(null=True, default=None)
