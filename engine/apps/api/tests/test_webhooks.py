@@ -734,7 +734,7 @@ def test_webhook_filter_by_labels(
     webhook_with_another_label = make_custom_webhook(organization)
     another_label = make_webhook_label_association(organization, webhook_with_another_label)
 
-    not_attached_label = make_label_key_and_value(organization)
+    not_attached_key, not_attached_value = make_label_key_and_value(organization)
 
     client = APIClient()
 
@@ -752,7 +752,7 @@ def test_webhook_filter_by_labels(
 
     # test filter by label which is not attached to any webhooks
     response = client.get(
-        f"{url}?label={not_attached_label.key_id}:{not_attached_label.value_id}",
+        f"{url}?label={not_attached_key.id}:{not_attached_value.id}",
         content_type="application/json",
         **make_user_auth_headers(user, token),
     )
