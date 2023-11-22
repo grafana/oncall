@@ -39,6 +39,7 @@ import { AppFeature } from 'state/features';
 import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import { openErrorNotification, openNotification } from 'utils';
+import LocationHelper from 'utils/LocationHelper';
 import { isUserActionAllowed, UserActions } from 'utils/authorization';
 import { PAGE, PLUGIN_ROOT, TEXT_ELLIPSIS_CLASS } from 'utils/consts';
 
@@ -105,8 +106,21 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
     return store.outgoingWebhookStore.updateItems();
   };
 
-  applyLabelFilterClickHandler = (_label: LabelKeyValue) => {
-    // TODO: handle filtering by clicked label
+  applyLabelFilterClickHandler = (label: LabelKeyValue) => {
+    const { filtersStore } = this.props.store;
+    const currentLabelFilterValues = filtersStore.values[PAGE.Webhooks]?.label || [];
+    const labelToAddString = `${label.key.id}:${label.value.id}`;
+    const newLabelFilter = [...currentLabelFilterValues, labelToAddString];
+
+    if (currentLabelFilterValues?.some((label) => label === labelToAddString)) {
+      return;
+    }
+
+    filtersStore.updateValuesForPage(PAGE.Webhooks, {
+      label: newLabelFilter,
+    });
+    LocationHelper.update({ label: newLabelFilter }, 'partial');
+    filtersStore.setNeedToParseFilters(true);
   };
 
   render() {
