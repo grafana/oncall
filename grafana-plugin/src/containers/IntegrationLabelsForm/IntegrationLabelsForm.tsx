@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { ChangeEvent, useCallback, useState } from 'react';
 
 import {
   AsyncSelect,
@@ -111,7 +111,11 @@ const IntegrationLabelsForm = observer((props: IntegrationLabelsFormProps) => {
             )}
           </VerticalGroup>
 
-          {/* <CustomLabels alertGroupLabels={alertGroupLabels} onChange={setAlertGroupLabels} /> */}
+          {/* <CustomLabels
+            alertGroupLabels={alertGroupLabels}
+            onChange={setAlertGroupLabels}
+            onShowTemplateEditor={setCustomLabelIndexToShowTemplateEditor}
+          /> */}
 
           <Collapse isOpen={false} label="Advanced label templating">
             <MonacoEditor
@@ -142,8 +146,17 @@ const IntegrationLabelsForm = observer((props: IntegrationLabelsFormProps) => {
         <IntegrationTemplate
           id={id}
           template={{ name: 'alert_group_labels', displayName: 'alert_group_labels' }}
-          templateBody="asdfasdf"
+          templateBody={alertGroupLabels.custom[customLabelIndexToShowTemplateEditor].value}
           onHide={() => setCustomLabelIndexToShowTemplateEditor(undefined)}
+          onUpdateTemplates={({ alert_group_labels }) => {
+            const newCustom = [...alertGroupLabels.custom];
+            newCustom[customLabelIndexToShowTemplateEditor].value = alert_group_labels;
+
+            setAlertGroupLabels({
+              ...alertGroupLabels,
+              custom: newCustom,
+            });
+          }}
         />
       )}
     </>
@@ -153,10 +166,11 @@ const IntegrationLabelsForm = observer((props: IntegrationLabelsFormProps) => {
 interface CustomLabelsProps {
   alertGroupLabels: AlertReceiveChannel['alert_group_labels'];
   onChange: (value: AlertReceiveChannel['alert_group_labels']) => void;
+  onShowTemplateEditor: (index: number) => void;
 }
 
 const CustomLabels = (props: CustomLabelsProps) => {
-  const { alertGroupLabels, onChange } = props;
+  const { alertGroupLabels, onChange, onShowTemplateEditor } = props;
 
   const handlePlainLabelAdd = () => {
     onChange({ ...alertGroupLabels, custom: [...alertGroupLabels.custom, { key: '', value: '', template: false }] });
@@ -175,12 +189,36 @@ const CustomLabels = (props: CustomLabelsProps) => {
       </HorizontalGroup>
       {alertGroupLabels.custom.map(({ key, value, template }, index) => (
         <HorizontalGroup key={key} spacing="xs" align="flex-start">
-          <Input width={38} value={key} />
+          <Input
+            width={38}
+            value={key}
+            onChange={(e: ChangeEvent<HTMLInputElement>) => {
+              const newCustom = [...alertGroupLabels.custom];
+              newCustom[index].key = e.currentTarget.value;
 
+              onChange({ ...alertGroupLabels, custom: newCustom });
+            }}
+          />
           <Input
             width={31}
             value={value}
-            addonAfter={template ? <Button variant="secondary" icon="edit" /> : undefined}
+            addonAfter={
+              template ? (
+                <Button
+                  variant="secondary"
+                  icon="edit"
+                  onClick={() => {
+                    onShowTemplateEditor(index);
+                  }}
+                />
+              ) : undefined
+            }
+            onChange={(e: ChangeEvent<HTMLInputElement>) => {
+              const newCustom = [...alertGroupLabels.custom];
+              newCustom[index].value = e.currentTarget.value;
+
+              onChange({ ...alertGroupLabels, custom: newCustom });
+            }}
           />
           <Button
             icon="times"
