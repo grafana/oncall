@@ -760,7 +760,7 @@ def test_webhook_filter_by_labels(
 
     # test filter by two different labels. Each label is attached to one webhook
     response = client.get(
-        f"{url}?label={label.key_id}:{label.value_id}" f"&label={another_label.key_id}:{another_label.value_id}",
+        f"{url}?label={label.key_id}:{label.value_id}&label={another_label.key_id}:{another_label.value_id}",
         content_type="application/json",
         **make_user_auth_headers(user, token),
     )
