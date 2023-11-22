@@ -87,10 +87,10 @@ const OutgoingWebhookForm = observer((props: OutgoingWebhookFormProps) => {
   const [selectedPreset, setSelectedPreset] = useState<OutgoingWebhookPreset>(undefined);
   const [filterValue, setFilterValue] = useState('');
 
-  const { outgoingWebhookStore } = useStore();
+  const { outgoingWebhookStore, hasFeature } = useStore();
   const isNew = action === WebhookFormActionType.NEW;
   const isNewOrCopy = isNew || action === WebhookFormActionType.COPY;
-  const form = createForm(outgoingWebhookStore.outgoingWebhookPresets);
+  const form = createForm(outgoingWebhookStore.outgoingWebhookPresets, hasFeature(AppFeature.Labels));
 
   const handleSubmit = useCallback(
     (data: Partial<OutgoingWebhook>) => {
@@ -375,8 +375,8 @@ const WebhookTabsContent: React.FC<WebhookTabsProps> = ({
   formElement,
 }) => {
   const [confirmationModal, setConfirmationModal] = useState<ConfirmModalProps>(undefined);
-  const { outgoingWebhookStore } = useStore();
-  const form = createForm(outgoingWebhookStore.outgoingWebhookPresets);
+  const { outgoingWebhookStore, hasFeature } = useStore();
+  const form = createForm(outgoingWebhookStore.outgoingWebhookPresets, hasFeature(AppFeature.Labels));
   return (
     <div className={cx('tabs__content')}>
       {confirmationModal && (

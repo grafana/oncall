@@ -21,7 +21,13 @@ export const WebhookTriggerType = {
   Unacknowledged: new KeyValuePair('7', 'Unacknowledged'),
 };
 
-export function createForm(presets: OutgoingWebhookPreset[]): { name: string; fields: FormItem[] } {
+export function createForm(
+  presets: OutgoingWebhookPreset[],
+  hasLabelsFeature?: boolean
+): {
+  name: string;
+  fields: FormItem[];
+} {
   return {
     name: 'OutgoingWebhook',
     fields: [
@@ -210,8 +216,9 @@ export function createForm(presets: OutgoingWebhookPreset[]): { name: string; fi
         name: WebhookFormFieldName.Data,
         getDisabled: (data) => Boolean(data?.forward_all),
         type: FormItemType.Monaco,
-        description:
-          'Available variables: {{ event }}, {{ user }}, {{ alert_group }}, {{ alert_group_id }}, {{ alert_payload }}, {{ integration }}, {{ notified_users }}, {{ users_to_be_notified }}, {{ responses }}',
+        description: `Available variables: {{ event }}, {{ user }}, {{ alert_group }}, {{ alert_group_id }}, {{ alert_payload }}, {{ integration }}, {{ notified_users }}, {{ users_to_be_notified }}, {{ responses }}${
+          hasLabelsFeature ? ' {{ webhook }}' : ''
+        }`,
         extra: {},
         isVisible: (data) => isPresetFieldVisible(data.preset, presets, WebhookFormFieldName.Data),
       },
