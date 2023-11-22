@@ -90,5 +90,5 @@ def get_alert_group_label_verbal(alert_group: "AlertGroup"):
     """
     labels_verbal = {}
     for label in alert_group.labels.all():
-        labels_verbal[label.key.name] = label.value.name
+        labels_verbal[label.key_name] = label.value_name
     return labels_verbal
