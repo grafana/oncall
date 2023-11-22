@@ -81,8 +81,8 @@ export const ColumnsModal: React.FC<ColumnsModalProps> = observer(
               {inputRef?.current?.value && searchResults.length && (
                 <VerticalGroup spacing="xs">
                   {searchResults.map((result, index) => (
-                    <VerticalGroup>
-                      <div key={index} className={styles.fieldRow}>
+                    <VerticalGroup key={index}>
+                      <div className={styles.fieldRow}>
                         <IconButton
                           aria-label={result.isCollapsed ? 'Expand' : 'Collapse'}
                           name={result.isCollapsed ? 'angle-right' : 'angle-down'}
