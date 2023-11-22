@@ -7,5 +7,5 @@ export interface FilterOption {
   type: 'search' | 'options' | 'boolean' | 'daterange' | 'team_select';
   href?: string;
   options?: SelectOption[];
-  default?: { value: string };
+  default?: { value: string };        
 }
