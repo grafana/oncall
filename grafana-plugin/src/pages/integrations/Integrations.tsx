@@ -46,7 +46,6 @@ import {
   MaintenanceMode,
   SupportedIntegrationFilters,
 } from 'models/alert_receive_channel/alert_receive_channel.types';
-import { LabelKeyValue } from 'models/label/label.types';
 import IntegrationHelper from 'pages/integration/Integration.helper';
 import { AppFeature } from 'state/features';
 import { PageProps, WithStoreProps } from 'state/types';
@@ -552,7 +551,11 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
   };
 
   getTableColumns = (hasFeatureFn) => {
-    const { grafanaTeamStore, alertReceiveChannelStore } = this.props.store;
+    const {
+      grafanaTeamStore,
+      alertReceiveChannelStore,
+      filtersStore: { applyLabelFilter },
+    } = this.props.store;
     const isConnectionsTab = this.state.activeTab === TabType.Connections;
 
     const columns = [
@@ -609,7 +612,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
         width: '10%',
         title: 'Labels',
         render: ({ labels }: AlertReceiveChannel) => (
-          <LabelsTooltipBadge labels={labels} onClick={this.applyLabelFilterClickHandler} />
+          <LabelsTooltipBadge labels={labels} onClick={(label) => applyLabelFilter(label, PAGE.Integrations)} />
         ),
       });
       columns.find((column) => column.key === 'datasource').width = '15%';
@@ -652,27 +655,6 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
     isOnMount: boolean
   ) => {
     this.setState({ integrationsFilters }, () => this.debouncedUpdateIntegrations(isOnMount));
-  };
-
-  applyLabelFilterClickHandler = (label: LabelKeyValue) => {
-    const {
-      store: { filtersStore },
-    } = this.props;
-
-    const {
-      integrationsFilters: { label: oldLabelFilter = [] },
-    } = this.state;
-
-    const labelToAddString = `${label.key.id}:${label.value.id}`;
-    if (oldLabelFilter.some((label) => label === labelToAddString)) {
-      return;
-    }
-
-    const newLabelFilter = [...oldLabelFilter, labelToAddString];
-
-    LocationHelper.update({ label: newLabelFilter }, 'partial');
-
-    filtersStore.setNeedToParseFilters(true);
   };
 
   applyFilters = async (isOnMount: boolean) => {

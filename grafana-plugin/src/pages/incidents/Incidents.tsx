@@ -23,7 +23,6 @@ import RemoteFilters from 'containers/RemoteFilters/RemoteFilters';
 import TeamName from 'containers/TeamName/TeamName';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { Alert, Alert as AlertType, AlertAction, IncidentStatus } from 'models/alertgroup/alertgroup.types';
-import { LabelKeyValue } from 'models/label/label.types';
 import { renderRelatedUsers } from 'pages/incident/Incident.helpers';
 import { AppFeature } from 'state/features';
 import { PageProps, WithStoreProps } from 'state/types';
@@ -594,27 +593,6 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
     );
   }
 
-  applyLabelFilterClickHandler = (label: LabelKeyValue) => {
-    const {
-      store: { filtersStore },
-    } = this.props;
-
-    const {
-      filters: { label: oldLabelFilter = [] },
-    } = this.state;
-
-    const labelToAddString = `${label.key.id}:${label.value.id}`;
-    if (oldLabelFilter.some((label) => label === labelToAddString)) {
-      return;
-    }
-
-    const newLabelFilter = [...oldLabelFilter, labelToAddString];
-
-    LocationHelper.update({ label: newLabelFilter }, 'partial');
-
-    filtersStore.setNeedToParseFilters(true);
-  };
-
   shouldShowPagination() {
     const { alertGroupStore } = this.props.store;
 
@@ -632,7 +610,9 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
   };
 
   getTableColumns(): Array<{ width: string; title: string; key: string; render }> {
-    const { store } = this.props;
+    const {
+      store: { filtersStore, grafanaTeamStore, hasFeature },
+    } = this.props;
 
     const columns = [
       {
@@ -675,7 +655,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
         width: '10%',
         title: 'Team',
         key: 'team',
-        render: (item: AlertType) => this.renderTeam(item, store.grafanaTeamStore.items),
+        render: (item: AlertType) => this.renderTeam(item, grafanaTeamStore.items),
       },
       {
         width: '15%',
@@ -685,13 +665,16 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
       },
     ];
 
-    if (store.hasFeature(AppFeature.Labels)) {
+    if (hasFeature(AppFeature.Labels)) {
       columns.splice(-2, 0, {
         width: '5%',
         title: 'Labels',
         key: 'labels',
         render: ({ labels }: AlertType) => (
-          <LabelsTooltipBadge labels={labels} onClick={this.applyLabelFilterClickHandler} />
+          <LabelsTooltipBadge
+            labels={labels}
+            onClick={(label) => filtersStore.applyLabelFilter(label, PAGE.Incidents)}
+          />
         ),
       });
       columns.find((column) => column.key === 'title').width = '30%';

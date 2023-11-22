@@ -33,13 +33,11 @@ import RemoteFilters from 'containers/RemoteFilters/RemoteFilters';
 import TeamName from 'containers/TeamName/TeamName';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { FiltersValues } from 'models/filters/filters.types';
-import { LabelKeyValue } from 'models/label/label.types';
 import { OutgoingWebhook } from 'models/outgoing_webhook/outgoing_webhook.types';
 import { AppFeature } from 'state/features';
 import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import { openErrorNotification, openNotification } from 'utils';
-import LocationHelper from 'utils/LocationHelper';
 import { isUserActionAllowed, UserActions } from 'utils/authorization';
 import { PAGE, PLUGIN_ROOT, TEXT_ELLIPSIS_CLASS } from 'utils/consts';
 
@@ -102,30 +100,15 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
   };
 
   update = () => {
-    const { store } = this.props;
-    return store.outgoingWebhookStore.updateItems();
-  };
-
-  applyLabelFilterClickHandler = (label: LabelKeyValue) => {
-    const { filtersStore } = this.props.store;
-    const currentLabelFilterValues = filtersStore.values[PAGE.Webhooks]?.label || [];
-    const labelToAddString = `${label.key.id}:${label.value.id}`;
-    const newLabelFilter = [...currentLabelFilterValues, labelToAddString];
-
-    if (currentLabelFilterValues?.some((label) => label === labelToAddString)) {
-      return;
-    }
-
-    filtersStore.updateValuesForPage(PAGE.Webhooks, {
-      label: newLabelFilter,
-    });
-    LocationHelper.update({ label: newLabelFilter }, 'partial');
-    filtersStore.setNeedToParseFilters(true);
+    const {
+      store: { outgoingWebhookStore },
+    } = this.props;
+    return outgoingWebhookStore.updateItems();
   };
 
   render() {
     const {
-      store,
+      store: { outgoingWebhookStore, filtersStore, grafanaTeamStore, hasFeature },
       history,
       match: {
         params: { id },
@@ -133,7 +116,7 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
     } = this.props;
     const { outgoingWebhookId, outgoingWebhookAction, errorData, confirmationModal } = this.state;
 
-    const webhooks = store.outgoingWebhookStore.getSearchResult();
+    const webhooks = outgoingWebhookStore.getSearchResult();
 
     const columns = [
       {
@@ -158,13 +141,16 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
         title: 'Last event',
         render: this.renderLastEvent,
       },
-      ...(store.hasFeature(AppFeature.Labels)
+      ...(hasFeature(AppFeature.Labels)
         ? [
             {
               width: '10%',
               title: 'Labels',
               render: ({ labels }: OutgoingWebhook) => (
-                <LabelsTooltipBadge labels={labels} onClick={this.applyLabelFilterClickHandler} />
+                <LabelsTooltipBadge
+                  labels={labels}
+                  onClick={(label) => filtersStore.applyLabelFilter(label, PAGE.Webhooks)}
+                />
               ),
             },
           ]
@@ -172,7 +158,7 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
       {
         width: '15%',
         title: 'Team',
-        render: (item: OutgoingWebhook) => this.renderTeam(item, store.grafanaTeamStore.items),
+        render: (item: OutgoingWebhook) => this.renderTeam(item, grafanaTeamStore.items),
       },
       {
         width: '20%',
