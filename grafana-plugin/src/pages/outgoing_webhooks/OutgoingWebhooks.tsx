@@ -19,6 +19,7 @@ import { RouteComponentProps, withRouter } from 'react-router-dom';
 
 import GTable from 'components/GTable/GTable';
 import HamburgerMenu from 'components/HamburgerMenu/HamburgerMenu';
+import LabelsTooltipBadge from 'components/LabelsTooltipBadge/LabelsTooltipBadge';
 import PageErrorHandlingWrapper, { PageBaseState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
 import {
   getWrongTeamResponseInfo,
@@ -33,6 +34,7 @@ import TeamName from 'containers/TeamName/TeamName';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { FiltersValues } from 'models/filters/filters.types';
 import { OutgoingWebhook } from 'models/outgoing_webhook/outgoing_webhook.types';
+import { AppFeature } from 'state/features';
 import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import { openErrorNotification, openNotification } from 'utils';
@@ -98,13 +100,15 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
   };
 
   update = () => {
-    const { store } = this.props;
-    return store.outgoingWebhookStore.updateItems();
+    const {
+      store: { outgoingWebhookStore },
+    } = this.props;
+    return outgoingWebhookStore.updateItems();
   };
 
   render() {
     const {
-      store,
+      store: { outgoingWebhookStore, filtersStore, grafanaTeamStore, hasFeature },
       history,
       match: {
         params: { id },
@@ -112,7 +116,7 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
     } = this.props;
     const { outgoingWebhookId, outgoingWebhookAction, errorData, confirmationModal } = this.state;
 
-    const webhooks = store.outgoingWebhookStore.getSearchResult();
+    const webhooks = outgoingWebhookStore.getSearchResult();
 
     const columns = [
       {
@@ -134,13 +138,27 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
       },
       {
         width: '10%',
-        title: 'Last run',
-        render: this.renderLastRun,
+        title: 'Last event',
+        render: this.renderLastEvent,
       },
+      ...(hasFeature(AppFeature.Labels)
+        ? [
+            {
+              width: '10%',
+              title: 'Labels',
+              render: ({ labels }: OutgoingWebhook) => (
+                <LabelsTooltipBadge
+                  labels={labels}
+                  onClick={(label) => filtersStore.applyLabelFilter(label, PAGE.Webhooks)}
+                />
+              ),
+            },
+          ]
+        : []),
       {
         width: '15%',
         title: 'Team',
-        render: (item: OutgoingWebhook) => this.renderTeam(item, store.grafanaTeamStore.items),
+        render: (item: OutgoingWebhook) => this.renderTeam(item, grafanaTeamStore.items),
       },
       {
         width: '20%',
@@ -357,17 +375,17 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
     );
   }
 
-  renderLastRun(record: OutgoingWebhook) {
-    const lastRunMoment = moment(record.last_response_log?.timestamp);
+  renderLastEvent(record: OutgoingWebhook) {
+    const lastEventMoment = moment(record.last_response_log?.timestamp);
 
     return !record.is_webhook_enabled ? (
       <Text type="secondary">Disabled</Text>
     ) : (
       <VerticalGroup spacing="none">
-        <Text type="secondary">{lastRunMoment.isValid() ? lastRunMoment.format('MMM DD, YYYY') : '-'}</Text>
-        <Text type="secondary">{lastRunMoment.isValid() ? lastRunMoment.format('HH:mm') : ''}</Text>
+        <Text type="secondary">{lastEventMoment.isValid() ? lastEventMoment.format('MMM DD, YYYY') : '-'}</Text>
+        <Text type="secondary">{lastEventMoment.isValid() ? lastEventMoment.format('HH:mm') : ''}</Text>
         <Text type="secondary">
-          {lastRunMoment.isValid()
+          {lastEventMoment.isValid()
             ? record.last_response_log?.status_code
               ? 'Status: ' + record.last_response_log?.status_code
               : 'Check Status'

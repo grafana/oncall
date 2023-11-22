@@ -34,11 +34,17 @@ def valid_jinja_template_for_serializer_method_field(template):
             pass
 
 
+class IntegrationAlertGroupLabelCustom(serializers.Serializer):
+    key = serializers.CharField()
+    value = serializers.CharField()
+    template = serializers.BooleanField()
+
+
 class IntegrationAlertGroupLabelsSerializer(serializers.Serializer):
     """Alert group labels configuration for the integration. See AlertReceiveChannel.alert_group_labels for details."""
 
     inheritable = serializers.DictField(child=serializers.BooleanField())
-    custom = serializers.DictField(child=serializers.CharField())
+    custom = serializers.ListField(child=IntegrationAlertGroupLabelCustom())
     template = serializers.CharField(allow_null=True)
 
 

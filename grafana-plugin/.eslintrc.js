@@ -49,6 +49,8 @@ module.exports = {
     ],
     'no-duplicate-imports': 'error',
     'no-restricted-imports': 'warn',
+    // https://eslint.org/docs/latest/rules/no-redeclare#handled_by_typescript
+    'no-redeclare': 0,
     'react/display-name': 'warn',
     /**
      * It appears as though the react/prop-types rule has a bug in it

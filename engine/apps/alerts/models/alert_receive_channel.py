@@ -42,6 +42,7 @@ if typing.TYPE_CHECKING:
     from django.db.models.manager import RelatedManager
 
     from apps.alerts.models import AlertGroup, ChannelFilter
+    from apps.labels.models import AlertReceiveChannelAssociatedLabel
     from apps.user_management.models import Organization, Team
 
 logger = logging.getLogger(__name__)
@@ -87,9 +88,15 @@ def number_to_smiles_translator(number):
     return "".join(reversed(smileset))
 
 
+class CustomLabel(typing.TypedDict):
+    key: str
+    value: str
+    template: bool
+
+
 class IntegrationAlertGroupLabels(typing.TypedDict):
     inheritable: dict[str, bool]
-    custom: dict[str, str]
+    custom: list[CustomLabel]
     template: str | None
 
 
@@ -125,6 +132,7 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
     channel_filters: "RelatedManager['ChannelFilter']"
     organization: "Organization"
     team: typing.Optional["Team"]
+    labels: "RelatedManager['AlertReceiveChannelAssociatedLabel']"
 
     objects = AlertReceiveChannelManager()
     objects_with_maintenance = AlertReceiveChannelManagerWithMaintenance()
@@ -208,16 +216,8 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
     rate_limited_in_slack_at = models.DateTimeField(null=True, default=None)
     rate_limit_message_task_id = models.CharField(max_length=100, null=True, default=None)
 
-    alert_group_labels_custom = models.JSONField(null=True, default=dict)
+    alert_group_labels_custom = models.JSONField(null=True, default=list)
     alert_group_labels_template = models.TextField(null=True, default=None)
-
-    class Meta:
-        constraints = [
-            models.UniqueConstraint(
-                fields=["organization", "verbal_name", "deleted_at"],
-                name="unique integration name",
-            )
-        ]
 
     def __str__(self):
         short_name_with_emojis = emojize(self.short_name, language="alias")

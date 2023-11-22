@@ -5,8 +5,7 @@ import typing
 from django.apps import apps  # noqa: I251
 from django.conf import settings
 
-from apps.webhooks.utils import apply_jinja_template
-from common.jinja_templater.apply_jinja_template import JinjaTemplateError, JinjaTemplateWarning
+from common.jinja_templater.apply_jinja_template import JinjaTemplateError, JinjaTemplateWarning, apply_jinja_template
 
 if typing.TYPE_CHECKING:
     from apps.alerts.models import AlertGroup, AlertReceiveChannel
@@ -32,6 +31,11 @@ class LabelParams(typing.TypedDict):
 class LabelData(typing.TypedDict):
     key: LabelParams
     value: LabelParams
+
+
+class ValueData(typing.TypedDict):
+    value_name: str
+    key_name: str
 
 
 class LabelKeyData(typing.TypedDict):
@@ -71,7 +75,7 @@ def assign_labels(
     }
 
     # apply custom labels
-    labels.update(alert_receive_channel.alert_group_labels_custom)
+    labels.update(_custom_labels(alert_receive_channel, raw_request_data))
 
     # apply template labels
     labels.update(_template_labels(alert_receive_channel, raw_request_data))
@@ -90,6 +94,21 @@ def assign_labels(
     alert_group_labels.sort(key=lambda label: (label.key_name, label.value_name))
     # bulk create associated labels
     AlertGroupAssociatedLabel.objects.bulk_create(alert_group_labels)
+
+
+def _custom_labels(alert_receive_channel: "AlertReceiveChannel", raw_request_data: typing.Any) -> dict[str, str]:
+    labels = {}
+    for label in alert_receive_channel.alert_group_labels_custom:
+        if not label["template"]:
+            labels[label["key"]] = label["value"]
+        else:
+            try:
+                labels[label["key"]] = apply_jinja_template(label["value"], raw_request_data)
+            except (JinjaTemplateError, JinjaTemplateWarning) as e:
+                logger.warning("Failed to apply template. %s", e.fallback_message)
+                continue
+
+    return labels
 
 
 def _template_labels(alert_receive_channel: "AlertReceiveChannel", raw_request_data: typing.Any) -> dict[str, str]:
@@ -114,3 +133,12 @@ def _template_labels(alert_receive_channel: "AlertReceiveChannel", raw_request_d
 
     # only keep labels with string, int, float, bool values
     return {str(k): str(v) for k, v in labels.items() if isinstance(v, (str, int, float, bool))}
+
+
+def get_label_verbal(obj: typing.Any) -> dict[str, str]:
+    return {label.key.name: label.value.name for label in obj.labels.all().select_related("key", "value")}
+
+
+def get_alert_group_label_verbal(alert_group: "AlertGroup") -> dict[str, str]:
+    """This is different from get_label_verbal because alert group labels store key/value names, not IDs"""
+    return {label.key_name: label.value_name for label in alert_group.labels.all()}
