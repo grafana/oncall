@@ -731,46 +731,52 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
 
     const columnMapping: { [key: string]: TableColumn } = {
       ID: {
-        width: isHorizontalScrolling ? '100px' : undefined,
         title: 'ID',
         key: 'id',
         render: this.renderId,
+        width: isHorizontalScrolling ? '100px' : '10%',
       },
       Status: {
         title: 'Status',
-        width: isHorizontalScrolling ? '140px' : undefined,
         key: 'time',
         render: this.renderStatus,
+        width: '140px',
       },
       Alerts: {
         title: 'Alerts',
         key: 'alerts',
         render: this.renderAlertsCounter,
+        width: '100px',
       },
       Integration: {
         title: 'Integration',
         key: 'integration',
         render: this.renderSource,
+        width: isHorizontalScrolling ? undefined : '15%',
       },
       Title: {
         title: 'Title',
         key: 'title',
         render: this.renderTitle,
+        width: isHorizontalScrolling ? undefined : '35%',
       },
       Created: {
         title: 'Created',
         key: 'created',
         render: this.renderStartedAt,
+        width: isHorizontalScrolling ? undefined : '10%',
       },
       Team: {
         title: 'Team',
         key: 'team',
         render: (item: AlertType) => this.renderTeam(item, store.grafanaTeamStore.items),
+        width: isHorizontalScrolling ? undefined : '10%',
       },
       Users: {
         title: 'Users',
         key: 'users',
         render: renderRelatedUsers,
+        width: isHorizontalScrolling ? undefined : '15%',
       },
     };
 
