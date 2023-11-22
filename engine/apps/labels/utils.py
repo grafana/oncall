@@ -5,8 +5,7 @@ import typing
 from django.apps import apps  # noqa: I251
 from django.conf import settings
 
-from apps.webhooks.utils import apply_jinja_template
-from common.jinja_templater.apply_jinja_template import JinjaTemplateError, JinjaTemplateWarning
+from common.jinja_templater.apply_jinja_template import JinjaTemplateError, JinjaTemplateWarning, apply_jinja_template
 
 if typing.TYPE_CHECKING:
     from apps.alerts.models import AlertGroup, AlertReceiveChannel
@@ -61,18 +60,12 @@ def is_labels_feature_enabled(organization: "Organization") -> bool:
     )
 
 
-def get_label_verbal(labelable) -> typing.Dict[str, str]:
-    """
-    label_verbal returns dict of labels' key and values names for the given object
-    """
-    return {label.key.name: label.value.name for label in labelable.labels.all().select_related("key", "value")}
+def get_label_verbal(obj: typing.Any) -> dict[str, str]:
+    return {label.key.name: label.value.name for label in obj.labels.all().select_related("key", "value")}
 
 
-def get_alert_group_label_verbal(alert_group: "AlertGroup") -> typing.Dict[str, str]:
-    """
-    get_alert_group_label_verbal returns dict of labels' key and values names for the given alert group.
-    It's different from get_label_verbal, because AlertGroupAssociated labels store key/value_name, not key/value_id
-    """
+def get_alert_group_label_verbal(alert_group: "AlertGroup") -> dict[str, str]:
+    """This is different from get_label_verbal because alert group labels store key/value names, not IDs"""
     return {label.key_name: label.value_name for label in alert_group.labels.all()}
 
 

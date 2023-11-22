@@ -42,6 +42,7 @@ if typing.TYPE_CHECKING:
     from django.db.models.manager import RelatedManager
 
     from apps.alerts.models import AlertGroup, ChannelFilter
+    from apps.labels.models import AlertReceiveChannelAssociatedLabel
     from apps.user_management.models import Organization, Team
 
 logger = logging.getLogger(__name__)
@@ -131,6 +132,7 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
     channel_filters: "RelatedManager['ChannelFilter']"
     organization: "Organization"
     team: typing.Optional["Team"]
+    labels: "RelatedManager['AlertReceiveChannelAssociatedLabel']"
 
     objects = AlertReceiveChannelManager()
     objects_with_maintenance = AlertReceiveChannelManagerWithMaintenance()
