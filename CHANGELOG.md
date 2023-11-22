@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Fixed
+
+- Add index on timestamp for webhook respones @mderynck ([#3411](https://github.com/grafana/oncall/pull/3411))
+
 ## v1.3.62 (2023-11-21)
 
 ### Added
