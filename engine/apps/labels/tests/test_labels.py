@@ -1,8 +1,14 @@
 import pytest
 
 from apps.alerts.models import AlertReceiveChannel
-from apps.labels.models import AlertReceiveChannelAssociatedLabel, AssociatedLabel, LabelValueCache
+from apps.labels.models import (
+    AlertReceiveChannelAssociatedLabel,
+    AssociatedLabel,
+    LabelValueCache,
+    WebhookAssociatedLabel,
+)
 from apps.labels.utils import get_associating_label_model, is_labels_feature_enabled
+from apps.webhooks.models import Webhook
 
 
 @pytest.mark.django_db
@@ -101,6 +107,11 @@ def test_label_update_association_by_removing_label(
 def test_get_associating_label_model():
     model_name = AlertReceiveChannel.__name__
     expected_result = AlertReceiveChannelAssociatedLabel
+    result = get_associating_label_model(model_name)
+    assert result == expected_result
+
+    model_name = Webhook.__name__
+    expected_result = WebhookAssociatedLabel
     result = get_associating_label_model(model_name)
     assert result == expected_result
 

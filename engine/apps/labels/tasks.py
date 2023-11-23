@@ -6,17 +6,18 @@ from django.conf import settings
 from django.utils import timezone
 
 from apps.labels.client import LabelsAPIClient
-from apps.labels.utils import LABEL_OUTDATED_TIMEOUT_MINUTES, LabelKeyData, LabelsData, get_associating_label_model
+from apps.labels.utils import (
+    LABEL_OUTDATED_TIMEOUT_MINUTES,
+    LabelKeyData,
+    LabelsData,
+    ValueData,
+    get_associating_label_model,
+)
 from apps.user_management.models import Organization
 from common.custom_celery_tasks import shared_dedicated_queue_retry_task
 
 logger = get_task_logger(__name__)
 logger.setLevel(logging.DEBUG)
-
-
-class ValueData(typing.TypedDict):
-    value_name: str
-    key_name: str
 
 
 def unify_labels_data(labels_data: LabelsData | LabelKeyData) -> typing.Dict[str, ValueData]:
