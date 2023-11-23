@@ -16,7 +16,7 @@ class LabelKeySerializer(serializers.ModelSerializer):
 
 
 class LabelValueSerializer(serializers.ModelSerializer):
-    id = serializers.CharField()
+    id = serializers.CharField(allow_null=True)  # TODO: refactor
 
     class Meta:
         model = LabelValueCache
