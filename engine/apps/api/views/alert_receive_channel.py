@@ -25,7 +25,7 @@ from apps.integrations.legacy_prefix import has_legacy_prefix, remove_legacy_pre
 from apps.labels.utils import is_labels_feature_enabled
 from apps.mobile_app.auth import MobileAppAuthTokenAuthentication
 from common.api_helpers.exceptions import BadRequest
-from common.api_helpers.filters import ByTeamModelFieldFilterMixin, TeamModelMultipleChoiceFilter
+from common.api_helpers.filters import NO_TEAM_VALUE, ByTeamModelFieldFilterMixin, TeamModelMultipleChoiceFilter
 from common.api_helpers.mixins import (
     FilterSerializerMixin,
     PreviewTemplateException,
@@ -231,7 +231,7 @@ class AlertReceiveChannelView(
             raise BadRequest(detail="team_id must be specified")
 
         team_id = request.query_params["team_id"]
-        if team_id == "null":
+        if team_id == NO_TEAM_VALUE:
             team_id = None
 
         try:

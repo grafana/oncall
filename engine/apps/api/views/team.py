@@ -10,6 +10,7 @@ from apps.auth_token.auth import PluginAuthentication
 from apps.mobile_app.auth import MobileAppAuthTokenAuthentication
 from apps.schedules.ical_utils import get_cached_oncall_users_for_multiple_schedules
 from apps.user_management.models import Team
+from common.api_helpers.filters import NO_TEAM_VALUE
 from common.api_helpers.mixins import PublicPrimaryKeyMixin
 
 
@@ -62,7 +63,7 @@ class TeamViewSet(
         return TeamLongSerializer if self._is_long_request() else TeamSerializer
 
     def list(self, request, *args, **kwargs):
-        general_team = [Team(public_primary_key="null", name="No team", email=None, avatar_url=None)]
+        general_team = [Team(public_primary_key=NO_TEAM_VALUE, name="No team", email=None, avatar_url=None)]
         queryset = self.filter_queryset(self.get_queryset())
 
         if self.request.query_params.get("only_include_notifiable_teams", "false") == "true":
