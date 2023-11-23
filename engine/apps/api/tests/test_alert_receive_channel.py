@@ -1383,11 +1383,14 @@ def test_update_alert_receive_channel_labels_duplicate_key(
 def test_alert_group_labels_get(
     make_organization_and_user_with_plugin_token,
     make_alert_receive_channel,
+    make_label_key_and_value,
     make_integration_label_association,
     make_user_auth_headers,
 ):
     organization, user, token = make_organization_and_user_with_plugin_token()
     alert_receive_channel = make_alert_receive_channel(organization)
+    label_key, label_value = make_label_key_and_value(organization)
+    label_key_1, _ = make_label_key_and_value(organization)
 
     client = APIClient()
     url = reverse("api-internal:alert_receive_channel-detail", kwargs={"pk": alert_receive_channel.public_primary_key})
@@ -1397,7 +1400,13 @@ def test_alert_group_labels_get(
     assert response.json()["alert_group_labels"] == {"inheritable": {}, "custom": [], "template": None}
 
     label = make_integration_label_association(organization, alert_receive_channel)
-    custom = [{"key": "test", "value": "123", "template": False}]
+    custom = [
+        {
+            "key": {"id": label_key.id, "name": label_key.name},
+            "value": {"id": label_value.id, "name": label_value.name},
+        },
+        {"key": {"id": label_key_1.id, "name": label_key_1.name}, "value": {"id": None, "name": "{{ payload.foo }}"}},
+    ]
     template = "{{ payload.labels | tojson }}"
     alert_receive_channel.alert_group_labels_custom = custom
     alert_receive_channel.alert_group_labels_template = template
@@ -1423,7 +1432,12 @@ def test_alert_group_labels_put(
     alert_receive_channel = make_alert_receive_channel(organization)
     label_1 = make_integration_label_association(organization, alert_receive_channel)
     label_2 = make_integration_label_association(organization, alert_receive_channel, inheritable=False)
-    custom = [{"key": "test", "value": "123", "template": False}]
+    custom = [
+        {
+            "key": {"id": label_2.key.id, "name": label_2.key.name},
+            "value": {"id": label_2.value.id, "name": label_2.value.name},
+        }
+    ]
     template = "{{ payload.labels | tojson }}"
 
     client = APIClient()
@@ -1452,7 +1466,7 @@ def test_alert_group_labels_post(alert_receive_channel_internal_api_setup, make_
     labels = [{"key": {"id": "test", "name": "test"}, "value": {"id": "123", "name": "123"}}]
     alert_group_labels = {
         "inheritable": {"test": False},
-        "custom": [{"key": "test", "value": "123", "template": False}],
+        "custom": [{"key": {"id": "test", "name": "test"}, "value": {"id": "123", "name": "123"}}],
         "template": "{{ payload.labels | tojson }}",
     }
     data = {

@@ -22,7 +22,7 @@ from common.jinja_templater import apply_jinja_template, jinja_template_env
 from common.jinja_templater.apply_jinja_template import JinjaTemplateWarning
 
 from .integration_heartbeat import IntegrationHeartBeatSerializer
-from .labels import LabelsSerializerMixin
+from .labels import LabelSerializer, LabelsSerializerMixin
 
 
 def valid_jinja_template_for_serializer_method_field(template):
@@ -34,17 +34,11 @@ def valid_jinja_template_for_serializer_method_field(template):
             pass
 
 
-class IntegrationAlertGroupLabelCustom(serializers.Serializer):
-    key = serializers.CharField()
-    value = serializers.CharField()
-    template = serializers.BooleanField()
-
-
 class IntegrationAlertGroupLabelsSerializer(serializers.Serializer):
     """Alert group labels configuration for the integration. See AlertReceiveChannel.alert_group_labels for details."""
 
     inheritable = serializers.DictField(child=serializers.BooleanField())
-    custom = serializers.ListField(child=IntegrationAlertGroupLabelCustom())
+    custom = LabelSerializer(many=True)
     template = serializers.CharField(allow_null=True)
 
 

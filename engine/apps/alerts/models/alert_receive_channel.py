@@ -88,10 +88,19 @@ def number_to_smiles_translator(number):
     return "".join(reversed(smileset))
 
 
+class CustomLabelKey(typing.TypedDict):
+    id: str
+    name: str
+
+
+class CustomLabelValue(typing.TypedDict):
+    id: str | None
+    name: str
+
+
 class CustomLabel(typing.TypedDict):
-    key: str
-    value: str
-    template: bool
+    key: CustomLabelKey
+    value: CustomLabelValue
 
 
 class IntegrationAlertGroupLabels(typing.TypedDict):
@@ -216,7 +225,7 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
     rate_limited_in_slack_at = models.DateTimeField(null=True, default=None)
     rate_limit_message_task_id = models.CharField(max_length=100, null=True, default=None)
 
-    alert_group_labels_custom = models.JSONField(null=True, default=list)
+    alert_group_labels_custom: list[CustomLabel] = models.JSONField(null=True, default=list)
     alert_group_labels_template = models.TextField(null=True, default=None)
 
     def __str__(self):
@@ -654,6 +663,27 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
         Alert group labels configuration for the integration used by AlertReceiveChannelSerializer.
         See AlertReceiveChannelAssociatedLabel.inheritable for more details.
         """
+
+        # TODO: implement label key/value name updates, refactor
+        # from apps.labels.models import LabelKeyCache, LabelValueCache
+        #
+        # # label_key_ids = [label["key"] for label in self.alert_group_labels_custom]
+        # # label_key_names = {
+        # #     k.id: k.name for k in LabelKeyCache.objects.filter(id__in=label_key_ids).only("id", "name")
+        # # }
+        # #
+        # # label_value_ids = [label["value"] for label in self.alert_group_labels_custom if label["value"]["id"]]
+        # # label_value_names = {
+        # #     v.id: v.name for v in LabelValueCache.objects.filter(key__in=label_value_ids).only("id", "name")
+        # # }
+        # #
+        # # for label in self.alert_group_labels_custom:
+        # #     if not label["value"]["id"]:
+        # #         continue
+        # #
+        # #     label["key"]["name"] = label_key_names[label["key"]["id"]]
+        # #     label["value"]["name"] = label_value_names[label["value"]["id"]]
+
         return {
             "inheritable": {label.key_id: label.inheritable for label in self.labels.all()},
             "custom": self.alert_group_labels_custom,
