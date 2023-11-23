@@ -21,6 +21,7 @@ endpoint currently) @mderynck ([#3189](https://github.com/grafana/oncall/pull/31
 - User filter doesn't display current value on Alert Groups page ([1714](https://github.com/grafana/oncall/issues/1714))
 - Remove displaying rotation modal for Terraform/API based schedules
 - Filters polishing ([3183](https://github.com/grafana/oncall/issues/3183))
+- Fixed permissions so User settings reader role included list users @mderynck ([#3419](https://github.com/grafana/oncall/pull/3419))
 
 ## v1.3.62 (2023-11-21)
 
