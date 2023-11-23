@@ -192,6 +192,19 @@ externalRedis:
   passwordKey: ""
 ```
 
+### Running split ingestion and API services
+
+You can run a detached service for handling integrations by setting up the following variables:
+
+```yaml
+detached_integrations:
+  enabled: true
+detached_integrations_service:
+  enabled: true
+```
+
+This will run an integrations-only service listening by default in port 30003.
+
 ### Set up Slack and Telegram
 
 You can set up Slack connection via following variables:

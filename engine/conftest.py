@@ -62,6 +62,7 @@ from apps.labels.tests.factories import (
     AlertReceiveChannelAssociatedLabelFactory,
     LabelKeyFactory,
     LabelValueFactory,
+    WebhookAssociatedLabelFactory,
 )
 from apps.mobile_app.models import MobileAppAuthToken, MobileAppVerificationToken
 from apps.phone_notifications.phone_backend import PhoneBackend
@@ -994,3 +995,12 @@ def make_alert_group_label_association():
         return AlertGroupAssociatedLabelFactory(alert_group=alert_group, organization=organization, **kwargs)
 
     return _make_alert_group_label_association
+
+
+@pytest.fixture
+def make_webhook_label_association(make_label_key_and_value):
+    def _make_integration_label_association(organization, webhook, **kwargs):
+        key, value = make_label_key_and_value(organization)
+        return WebhookAssociatedLabelFactory(webhook=webhook, organization=organization, key=key, value=value, **kwargs)
+
+    return _make_integration_label_association

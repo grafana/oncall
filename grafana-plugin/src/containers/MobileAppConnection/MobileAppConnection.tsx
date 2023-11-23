@@ -167,7 +167,8 @@ const MobileAppConnection = observer(({ userPk = 'UXX4F8SLKK3LV' }: Props) => {
           App connected <Icon name="check-circle" size="md" className={cx('icon')} />
         </Text>
         <Text type="primary">
-          You can sync one application to your account. To setup new device please disconnect app first.
+          You can only sync one application to your account. To setup a new device, please disconnect the currently
+          connected device first.
         </Text>
         <div className={cx('disconnect__container')}>
           <img src={qrCodeImage} className={cx('disconnect__qrCode')} />
@@ -183,7 +184,9 @@ const MobileAppConnection = observer(({ userPk = 'UXX4F8SLKK3LV' }: Props) => {
         <Text type="primary" strong>
           Sign In
         </Text>
-        <Text type="primary">Open Grafana IRM mobile application and scan this code to sync it with your account.</Text>
+        <Text type="primary">
+          Open the Grafana OnCall mobile application and scan this code to sync it with your account.
+        </Text>
         <div className={cx('u-width-100', 'u-flex', 'u-flex-center', 'u-position-relative')}>
           <QRCode className={cx({ 'qr-code': true, blurry: isQRBlurry })} value={QRCodeValue} />
           {isQRBlurry && <QRLoading />}

@@ -95,8 +95,11 @@ class TeamManager(models.Manager["Team"]):
             for integration in direct_paging_integrations_to_create:
                 metrics_add_integration_to_cache(integration)
 
-        # delete excess teams
+        # delete excess teams and their direct paging integrations
         team_ids_to_delete = existing_team_ids - grafana_teams.keys()
+        organization.alert_receive_channels.filter(
+            team__team_id__in=team_ids_to_delete, integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING
+        ).delete()
         organization.teams.filter(team_id__in=team_ids_to_delete).delete()
 
         # collect teams diffs to update metrics cache

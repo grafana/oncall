@@ -13,8 +13,8 @@ test('we can directly page a user', async ({ adminRolePage }) => {
   const { page } = adminRolePage;
 
   await goToOnCallPage(page, 'alert-groups');
+  await page.waitForTimeout(1000);
   await clickButton({ page, buttonText: 'Escalation' });
-
   await fillInInput(page, 'textarea[name="message"]', message);
   await clickButton({ page, buttonText: 'Invite' });
 
@@ -23,8 +23,14 @@ test('we can directly page a user', async ({ adminRolePage }) => {
   await addRespondersPopup.getByText('Users').click();
   await addRespondersPopup.getByText(adminRolePage.userName).click();
 
-  await clickButton({ page, buttonText: 'Create' });
+  // If user is not on call, confirm invitation
+  await page.waitForTimeout(1000);
+  const isConfirmationModalShown = await page.getByText('Confirm Participant Invitation').isVisible();
+  if (isConfirmationModalShown) {
+    await page.getByTestId('confirm-non-oncall').click();
+  }
 
+  await clickButton({ page, buttonText: 'Create' });
   // Check we are redirected to the alert group page
   await page.waitForURL('**/alert-groups/I*'); // Alert group IDs always start with "I"
   await expect(page.getByTestId('incident-message')).toContainText(message);

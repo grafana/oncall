@@ -3,6 +3,7 @@ from collections import defaultdict
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
 
+from apps.api.serializers.labels import LabelsSerializerMixin
 from apps.webhooks.models import Webhook, WebhookResponse
 from apps.webhooks.models.webhook import PUBLIC_WEBHOOK_HTTP_METHODS, WEBHOOK_FIELD_PLACEHOLDER
 from apps.webhooks.presets.preset_options import WebhookPresetOptions
@@ -27,7 +28,7 @@ class WebhookResponseSerializer(serializers.ModelSerializer):
         ]
 
 
-class WebhookSerializer(serializers.ModelSerializer):
+class WebhookSerializer(LabelsSerializerMixin, serializers.ModelSerializer):
     id = serializers.CharField(read_only=True, source="public_primary_key")
     organization = serializers.HiddenField(default=CurrentOrganizationDefault())
     team = TeamPrimaryKeyRelatedField(allow_null=True, default=CurrentTeamDefault())
@@ -36,6 +37,8 @@ class WebhookSerializer(serializers.ModelSerializer):
     last_response_log = serializers.SerializerMethodField()
     trigger_type = serializers.CharField(allow_null=True)
     trigger_type_name = serializers.SerializerMethodField()
+
+    PREFETCH_RELATED = ["labels", "labels__key", "labels__value"]
 
     class Meta:
         model = Webhook
@@ -61,9 +64,24 @@ class WebhookSerializer(serializers.ModelSerializer):
             "last_response_log",
             "integration_filter",
             "preset",
+            "labels",
         ]
 
         validators = [UniqueTogetherValidator(queryset=Webhook.objects.all(), fields=["name", "organization"])]
+
+    def create(self, validated_data):
+        organization = self.context["request"].auth.organization
+        labels = validated_data.pop("labels", None)
+
+        instance = super().create(validated_data)
+        self.update_labels_association_if_needed(labels, instance, organization)
+        return instance
+
+    def update(self, instance, validated_data):
+        labels = validated_data.pop("labels", None)
+        organization = self.context["request"].auth.organization
+        self.update_labels_association_if_needed(labels, instance, organization)
+        return super().update(instance, validated_data)
 
     def to_representation(self, instance):
         result = super().to_representation(instance)
@@ -176,7 +194,7 @@ class WebhookSerializer(serializers.ModelSerializer):
         return preset
 
     def get_last_response_log(self, obj):
-        return WebhookResponseSerializer(obj.responses.all().last()).data
+        return WebhookResponseSerializer(obj.responses.last()).data
 
     def get_trigger_type_name(self, obj):
         trigger_type_name = ""
