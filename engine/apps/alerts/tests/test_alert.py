@@ -7,22 +7,32 @@ from apps.alerts.tasks import distribute_alert, escalate_alert_group
 
 
 @pytest.mark.django_db
-def test_alert_create_default_channel_filter(make_organization, make_alert_receive_channel, make_channel_filter):
+@patch("apps.alerts.tasks.distribute_alert.distribute_alert.apply_async", return_value=None)
+def test_alert_create_default_channel_filter(
+    mocked_distribute_alert_task,
+    make_organization,
+    make_alert_receive_channel,
+    make_channel_filter,
+    django_capture_on_commit_callbacks,
+):
     organization = make_organization()
     alert_receive_channel = make_alert_receive_channel(organization)
     channel_filter = make_channel_filter(alert_receive_channel, is_default=True)
 
-    alert = Alert.create(
-        title="the title",
-        message="the message",
-        alert_receive_channel=alert_receive_channel,
-        raw_request_data={},
-        integration_unique_data={},
-        image_url=None,
-        link_to_upstream_details=None,
-    )
+    with django_capture_on_commit_callbacks(execute=True) as callbacks:
+        alert = Alert.create(
+            title="the title",
+            message="the message",
+            alert_receive_channel=alert_receive_channel,
+            raw_request_data={},
+            integration_unique_data={},
+            image_url=None,
+            link_to_upstream_details=None,
+        )
 
     assert alert.group.channel_filter == channel_filter
+    assert len(callbacks) == 1
+    mocked_distribute_alert_task.assert_called_once_with((alert.pk,), countdown=1)
 
 
 @pytest.mark.django_db
