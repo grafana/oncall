@@ -5,6 +5,8 @@ from django.core import serializers
 from django.core.cache import cache
 from django.core.exceptions import PermissionDenied
 from django.db import OperationalError
+from django_redis.exceptions import ConnectionInterrupted as RedisConnectionInterrupted  # type: ignore
+from redis.exceptions import ConnectionError as RedisConnectionError
 
 from apps.user_management.exceptions import OrganizationMovedException
 
@@ -33,21 +35,29 @@ class AlertChannelDefiningMixin(object):
         try:
             # Trying to define from short-term cache
             cache_key_short_term = self.CACHE_KEY_SHORT_TERM + "_" + str(kwargs["alert_channel_key"])
-            cached_alert_receive_channel_raw = cache.get(cache_key_short_term)
+            try:
+                cached_alert_receive_channel_raw = cache.get(cache_key_short_term)
+            except RedisConnectionError:
+                logger.error("Skip reading AlertReceiveChannel from cache as Redis is not available")
+                cached_alert_receive_channel_raw = None
+
             if cached_alert_receive_channel_raw is not None:
                 alert_receive_channel = next(serializers.deserialize("json", cached_alert_receive_channel_raw)).object
 
             if alert_receive_channel is None:
                 # Trying to define channel from DB
                 alert_receive_channel = AlertReceiveChannel.objects.get(token=kwargs["alert_channel_key"])
-                # Update short term cache
-                serialized = serializers.serialize("json", [alert_receive_channel])
-                cache.set(cache_key_short_term, serialized, self.CACHE_SHORT_TERM_TIMEOUT)
+                try:
+                    # Update short term cache
+                    serialized = serializers.serialize("json", [alert_receive_channel])
+                    cache.set(cache_key_short_term, serialized, self.CACHE_SHORT_TERM_TIMEOUT)
 
-                # Update cached channels
-                if cache.get(self.CACHE_DB_FALLBACK_OBSOLETE_KEY) is None:
-                    cache.set(self.CACHE_DB_FALLBACK_OBSOLETE_KEY, True, self.CACHE_DB_FALLBACK_REFRESH_INTERVAL)
-                    self.update_alert_receive_channel_cache()
+                    # Update cached channels
+                    if cache.get(self.CACHE_DB_FALLBACK_OBSOLETE_KEY) is None:
+                        cache.set(self.CACHE_DB_FALLBACK_OBSOLETE_KEY, True, self.CACHE_DB_FALLBACK_REFRESH_INTERVAL)
+                        self.update_alert_receive_channel_cache()
+                except (RedisConnectionError, RedisConnectionInterrupted):
+                    logger.error("Skip updating AlertReceiveChannel cache as Redis is not available")
 
         except AlertReceiveChannel.DoesNotExist:
             raise PermissionDenied("Integration key was not found. Permission denied.")
