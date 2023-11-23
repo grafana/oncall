@@ -2,14 +2,12 @@ import logging
 from abc import ABC, abstractmethod
 from functools import wraps
 
-from django.conf import settings
 from django.core.cache import cache
 from django.http import HttpRequest, HttpResponse
 from django.views import View
 from ratelimit import ALL
 from ratelimit.exceptions import Ratelimited
 from ratelimit.utils import is_ratelimited
-from redis.exceptions import ConnectionError as RedisConnectionError
 
 from apps.integrations.tasks import start_notify_about_integration_ratelimit
 
@@ -56,16 +54,9 @@ def ratelimit(group=None, key=None, rate=None, method=ALL, block=False, reason=N
             request.limited = getattr(request, "limited", False)
             was_limited_before = request.limited
 
-            # Allow requests when redis cache backend fails and RATELIMIT_FAIL_OPEN setting is true
-            try:
-                ratelimited = is_ratelimited(
-                    request=request, group=group, fn=fn, key=key, rate=rate, method=method, increment=True
-                )
-            except RedisConnectionError as e:
-                if settings.RATELIMIT_FAIL_OPEN:
-                    ratelimited = False
-                else:
-                    raise e
+            ratelimited = is_ratelimited(
+                request=request, group=group, fn=fn, key=key, rate=rate, method=method, increment=True
+            )
 
             # We need to know if it's the first ratelimited request for notification purposes.
             request.is_first_rate_limited_request = getattr(request, "is_first_rate_limited_request", False)

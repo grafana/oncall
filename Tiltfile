@@ -58,7 +58,7 @@ local_resource(
     allow_parallel=True,
 )
 
-yaml = helm("helm/oncall", name=HELM_PREFIX, values=["./dev/helm-local.yml", "./dev/helm-local.dev.yml"])
+yaml = helm("helm/oncall", name=HELM_PREFIX, values=["./dev/helm-local.yml"])
 
 k8s_yaml(yaml)
 
