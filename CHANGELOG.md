@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - User filter doesn't display current value on Alert Groups page ([1714](https://github.com/grafana/oncall/issues/1714))
-- Remove displaying rotation modal for Terraform/API bases schedules
+- Remove displaying rotation modal for Terraform/API based schedules
 - Filters polishing ([3183](https://github.com/grafana/oncall/issues/3183))
 
 ## v1.3.62 (2023-11-21)
@@ -105,7 +105,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fix db migration for mobile app @Ferril ([#3260](https://github.com/grafana/oncall/pull/3260))
 
-
 ## v1.3.52 (2023-11-02)
 
 ### Fixed
@@ -115,7 +114,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Change wording for push notifications timing choices @Ferril ([#3253](https://github.com/grafana/oncall/pull/3253))
-
 
 ## v1.3.51 (2023-11-02)
 
