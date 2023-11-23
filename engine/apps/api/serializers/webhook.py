@@ -194,7 +194,7 @@ class WebhookSerializer(LabelsSerializerMixin, serializers.ModelSerializer):
         return preset
 
     def get_last_response_log(self, obj):
-        return WebhookResponseSerializer(obj.responses.all().last()).data
+        return WebhookResponseSerializer(obj.responses.last()).data
 
     def get_trigger_type_name(self, obj):
         trigger_type_name = ""
