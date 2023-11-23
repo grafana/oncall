@@ -51,7 +51,7 @@ export interface AlertReceiveChannel {
   labels: LabelKeyValue[];
   alert_group_labels: {
     inheritable: Record<LabelKeyValue['key']['id'], boolean>;
-    custom: { key: string; value: string; template: boolean }[];
+    custom: LabelKeyValue[];
     template: string;
   };
 }

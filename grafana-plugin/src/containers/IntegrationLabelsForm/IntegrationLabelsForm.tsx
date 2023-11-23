@@ -1,7 +1,6 @@
 import React, { ChangeEvent, useCallback, useState } from 'react';
 
 import {
-  AsyncSelect,
   Button,
   Drawer,
   Dropdown,
@@ -11,25 +10,27 @@ import {
   Input,
   Label,
   Menu,
-  TextArea,
   Tooltip,
   VerticalGroup,
 } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
+import Collapse from 'components/Collapse/Collapse';
+import MonacoEditor, { MONACO_LANGUAGE } from 'components/MonacoEditor/MonacoEditor';
 import Text from 'components/Text/Text';
+import IntegrationTemplate from 'containers/IntegrationTemplate/IntegrationTemplate';
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { LabelKey } from 'models/label/label.types';
 import { useStore } from 'state/useStore';
 
 import styles from './IntegrationLabelsForm.module.css';
-
-import Collapse from 'components/Collapse/Collapse';
-import MonacoEditor, { MONACO_LANGUAGE } from 'components/MonacoEditor/MonacoEditor';
-import IntegrationTemplate from 'containers/IntegrationTemplate/IntegrationTemplate';
+import ServiceLabels from 'components/ServiceLabels/ServiceLabels';
+import { openErrorNotification } from 'utils';
 
 const cx = cn.bind(styles);
+
+const INPUT_WIDTH = 280;
 
 interface IntegrationLabelsFormProps {
   id: AlertReceiveChannel['id'];
@@ -43,11 +44,13 @@ const IntegrationLabelsForm = observer((props: IntegrationLabelsFormProps) => {
 
   const store = useStore();
 
-  const [customLabelIndexToShowTemplateEditor, setCustomLabelIndexToShowTemplateEditor] = useState<number>(1);
+  const [showTemplateEditor, setShowTemplateEditor] = useState<boolean>(false);
+  const [customLabelIndexToShowTemplateEditor, setCustomLabelIndexToShowTemplateEditor] = useState<number>(undefined);
 
-  const { alertReceiveChannelStore, labelsStore } = store;
+  const { alertReceiveChannelStore } = store;
 
   const alertReceiveChannel = alertReceiveChannelStore.items[id];
+  const templates = alertReceiveChannelStore.templates[id];
 
   const [alertGroupLabels, setAlertGroupLabels] = useState(alertReceiveChannel.alert_group_labels);
 
@@ -90,8 +93,8 @@ const IntegrationLabelsForm = observer((props: IntegrationLabelsFormProps) => {
                 {alertReceiveChannel.labels.map((label) => (
                   <li key={label.key.id}>
                     <HorizontalGroup spacing="xs">
-                      <Input width={38} value={label.key.name} disabled />
-                      <Input width={31} value={label.value.name} disabled />
+                      <Input width={INPUT_WIDTH / 8} value={label.key.name} disabled />
+                      <Input width={INPUT_WIDTH / 8} value={label.value.name} disabled />
                       <InlineSwitch
                         value={alertGroupLabels.inheritable[label.key.id]}
                         transparent
@@ -99,7 +102,7 @@ const IntegrationLabelsForm = observer((props: IntegrationLabelsFormProps) => {
                       />
                     </HorizontalGroup>
                   </li>
-                ))}{' '}
+                ))}
               </ul>
             ) : (
               <VerticalGroup>
@@ -111,23 +114,35 @@ const IntegrationLabelsForm = observer((props: IntegrationLabelsFormProps) => {
             )}
           </VerticalGroup>
 
-          {/* <CustomLabels
+          <CustomLabels
             alertGroupLabels={alertGroupLabels}
             onChange={setAlertGroupLabels}
             onShowTemplateEditor={setCustomLabelIndexToShowTemplateEditor}
-          /> */}
+          />
 
           <Collapse isOpen={false} label="Advanced label templating">
-            <MonacoEditor
-              value={alertGroupLabels.template}
-              height="200px"
-              data={{}}
-              showLineNumbers={false}
-              language={MONACO_LANGUAGE.jinja2}
-              onChange={(value) => {
-                setAlertGroupLabels({ ...alertGroupLabels, template: value });
-              }}
-            />
+            <VerticalGroup>
+              <HorizontalGroup justify="space-between" style={{ marginBottom: '10px' }}>
+                <Text type="secondary">Jinja2 template to parse all labels in one pass</Text>
+                <Button
+                  variant="secondary"
+                  icon="edit"
+                  onClick={() => {
+                    setShowTemplateEditor(true);
+                  }}
+                />
+              </HorizontalGroup>
+              <MonacoEditor
+                value={alertGroupLabels.template}
+                height="200px"
+                data={{}}
+                showLineNumbers={false}
+                language={MONACO_LANGUAGE.jinja2}
+                onChange={(value) => {
+                  setAlertGroupLabels({ ...alertGroupLabels, template: value });
+                }}
+              />
+            </VerticalGroup>
           </Collapse>
 
           <div className={cx('buttons')}>
@@ -145,8 +160,12 @@ const IntegrationLabelsForm = observer((props: IntegrationLabelsFormProps) => {
       {customLabelIndexToShowTemplateEditor !== undefined && (
         <IntegrationTemplate
           id={id}
-          template={{ name: 'alert_group_labels', displayName: 'alert_group_labels' }}
-          templateBody={alertGroupLabels.custom[customLabelIndexToShowTemplateEditor].value}
+          template={{
+            name: 'alert_group_labels',
+            displayName: ``,
+          }}
+          templates={templates}
+          templateBody={alertGroupLabels.custom[customLabelIndexToShowTemplateEditor].value.name}
           onHide={() => setCustomLabelIndexToShowTemplateEditor(undefined)}
           onUpdateTemplates={({ alert_group_labels }) => {
             const newCustom = [...alertGroupLabels.custom];
@@ -156,6 +175,28 @@ const IntegrationLabelsForm = observer((props: IntegrationLabelsFormProps) => {
               ...alertGroupLabels,
               custom: newCustom,
             });
+
+            setCustomLabelIndexToShowTemplateEditor(undefined);
+          }}
+        />
+      )}
+      {showTemplateEditor && (
+        <IntegrationTemplate
+          id={id}
+          template={{
+            name: 'alert_group_labels',
+            displayName: ``,
+          }}
+          templates={templates}
+          templateBody={alertGroupLabels.template}
+          onHide={() => setShowTemplateEditor(false)}
+          onUpdateTemplates={({ alert_group_labels }) => {
+            setAlertGroupLabels({
+              ...alertGroupLabels,
+              template: alert_group_labels,
+            });
+
+            setShowTemplateEditor(undefined);
           }}
         />
       )}
@@ -172,65 +213,125 @@ interface CustomLabelsProps {
 const CustomLabels = (props: CustomLabelsProps) => {
   const { alertGroupLabels, onChange, onShowTemplateEditor } = props;
 
+  const { labelsStore } = useStore();
+
   const handlePlainLabelAdd = () => {
-    onChange({ ...alertGroupLabels, custom: [...alertGroupLabels.custom, { key: '', value: '', template: false }] });
+    onChange({
+      ...alertGroupLabels,
+      custom: [
+        ...alertGroupLabels.custom,
+        {
+          key: { id: undefined, name: undefined },
+          value: { id: undefined, name: undefined },
+        },
+      ],
+    });
   };
   const handleTemplatedLabelAdd = () => {
-    onChange({ ...alertGroupLabels, custom: [...alertGroupLabels.custom, { key: '', value: '', template: false }] });
+    onChange({
+      ...alertGroupLabels,
+      custom: [
+        ...alertGroupLabels.custom,
+        {
+          key: { id: undefined, name: undefined },
+          value: { id: null, name: undefined }, // id = null means it's a templated value
+        },
+      ],
+    });
   };
+
+  const cachedOnLoadKeys = useCallback(() => {
+    let result = undefined;
+    return async (search?: string) => {
+      if (!result) {
+        try {
+          result = await labelsStore.loadKeys();
+        } catch (error) {
+          openErrorNotification('There was an error processing your request. Please try again');
+        }
+      }
+
+      return result.filter((k) => k.name.toLowerCase().includes(search.toLowerCase()));
+    };
+  }, []);
+
+  const cachedOnLoadValuesForKey = useCallback(() => {
+    let result = undefined;
+    return async (key: string, search?: string) => {
+      if (!result) {
+        try {
+          const { values } = await labelsStore.loadValuesForKey(key, search);
+          result = values;
+        } catch (error) {
+          openErrorNotification('There was an error processing your request. Please try again');
+        }
+      }
+
+      return result.filter((k) => k.name.toLowerCase().includes(search.toLowerCase()));
+    };
+  }, []);
 
   return (
     <VerticalGroup>
       <HorizontalGroup spacing="xs" align="flex-start">
-        <Label>Alert group labels</Label>
-        <Tooltip content="Custom labels">
-          <Icon name="info-circle" className={cx('extra-fields__icon')} />
-        </Tooltip>
+        <Label>Custom labels</Label>
       </HorizontalGroup>
-      {alertGroupLabels.custom.map(({ key, value, template }, index) => (
-        <HorizontalGroup key={key} spacing="xs" align="flex-start">
-          <Input
-            width={38}
-            value={key}
-            onChange={(e: ChangeEvent<HTMLInputElement>) => {
-              const newCustom = [...alertGroupLabels.custom];
-              newCustom[index].key = e.currentTarget.value;
+      <ServiceLabels
+        isAddingDisabled
+        loadById
+        inputWidth={INPUT_WIDTH}
+        value={alertGroupLabels.custom}
+        onLoadKeys={cachedOnLoadKeys()}
+        onLoadValuesForKey={cachedOnLoadValuesForKey()}
+        onCreateKey={labelsStore.createKey.bind(labelsStore)}
+        onUpdateKey={labelsStore.updateKey.bind(labelsStore)}
+        onCreateValue={labelsStore.createValue.bind(labelsStore)}
+        onUpdateValue={labelsStore.updateKeyValue.bind(labelsStore)}
+        onUpdateError={(res) => {
+          if (res?.response?.status === 409) {
+            openErrorNotification(`Duplicate values are not allowed`);
+          } else {
+            openErrorNotification('An error has occurred. Please try again');
+          }
+        }}
+        // errors={isValid() ? {} : { ...propsErrors }}
+        renderValue={(option, index, renderValueDefault) => {
+          if (option.value.id === null) {
+            return (
+              <Input
+                placeholder="Jinja2 template"
+                autoFocus
+                disabled={!alertGroupLabels.custom[index].key.id}
+                width={INPUT_WIDTH / 8}
+                value={option.value.name}
+                addonAfter={
+                  <Button
+                    variant="secondary"
+                    icon="edit"
+                    onClick={() => {
+                      onShowTemplateEditor(index);
+                    }}
+                  />
+                }
+                onChange={(e: ChangeEvent<HTMLInputElement>) => {
+                  const newCustom = [...alertGroupLabels.custom];
+                  newCustom[index].value.name = e.currentTarget.value;
 
-              onChange({ ...alertGroupLabels, custom: newCustom });
-            }}
-          />
-          <Input
-            width={31}
-            value={value}
-            addonAfter={
-              template ? (
-                <Button
-                  variant="secondary"
-                  icon="edit"
-                  onClick={() => {
-                    onShowTemplateEditor(index);
-                  }}
-                />
-              ) : undefined
-            }
-            onChange={(e: ChangeEvent<HTMLInputElement>) => {
-              const newCustom = [...alertGroupLabels.custom];
-              newCustom[index].value = e.currentTarget.value;
-
-              onChange({ ...alertGroupLabels, custom: newCustom });
-            }}
-          />
-          <Button
-            icon="times"
-            variant="secondary"
-            onClick={() => {
-              const newValue = { ...alertGroupLabels, custom: alertGroupLabels.custom.toSpliced(index, 1) };
-
-              onChange(newValue);
-            }}
-          />
-        </HorizontalGroup>
-      ))}
+                  onChange({ ...alertGroupLabels, custom: newCustom });
+                }}
+              />
+            );
+          } else {
+            return renderValueDefault(option, index);
+          }
+        }}
+        onDataUpdate={(value) => {
+          onChange({
+            ...alertGroupLabels,
+            custom: value,
+          });
+        }}
+      />
       <Dropdown
         overlay={
           <Menu>

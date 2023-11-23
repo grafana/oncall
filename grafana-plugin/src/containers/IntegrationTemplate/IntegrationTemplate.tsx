@@ -38,7 +38,7 @@ interface IntegrationTemplateProps {
   templates: AlertTemplatesDTO[];
   onHide: () => void;
   onUpdateTemplates: (values: any) => void;
-  onUpdateRoute: (values: any, channelFilterId?: ChannelFilter['id']) => void;
+  onUpdateRoute?: (values: any, channelFilterId?: ChannelFilter['id']) => void;
 }
 
 const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
