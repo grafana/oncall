@@ -20,7 +20,6 @@ import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/W
 import { AGColumn, AGColumnType } from 'models/alertgroup/alertgroup.types';
 import { Label, LabelValue } from 'models/label/label.types';
 import { ActionKey } from 'models/loader/action-keys';
-import { LoaderStore } from 'models/loader/loader';
 import { useStore } from 'state/useStore';
 import { openErrorNotification, pluralize } from 'utils';
 import { UserActions } from 'utils/authorization';
@@ -51,7 +50,7 @@ export const ColumnsModal: React.FC<ColumnsModalProps> = observer(
     const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
     const debouncedOnInputChange = useDebouncedCallback(onInputChange, DEBOUNCE_MS);
 
-    const isLoading = LoaderStore.isLoading(ActionKey.IS_ADDING_NEW_COLUMN_TO_ALERT_GROUP);
+    const isLoading = store.loaderStore.isLoading(ActionKey.ADD_NEW_COLUMN_TO_ALERT_GROUP);
 
     const availableKeysForSearching = useMemo(() => {
       const currentAGColumns = store.alertGroupStore.columns.map((col) => col.name);
@@ -91,6 +90,7 @@ export const ColumnsModal: React.FC<ColumnsModalProps> = observer(
 
                         <Checkbox
                           type="checkbox"
+                          className={styles.checkboxAddOption}
                           value={result.isChecked}
                           onChange={() => {
                             setSearchResults((items) => {
@@ -183,9 +183,9 @@ export const ColumnsModal: React.FC<ColumnsModalProps> = observer(
         ...searchResults
           .filter((item) => item.isChecked)
           .map(
-            (it): AGColumn => ({
-              id: it.id,
-              name: it.name,
+            (item): AGColumn => ({
+              id: item.id,
+              name: item.name,
               isVisible: false,
               type: AGColumnType.LABEL,
             })

@@ -51,10 +51,9 @@ export const WithContextMenu: React.FC<WithContextMenuProps> = ({
         },
       })}
 
-      {isContextMenuOpen() && (
+      {isMenuOpen && (
         <ContextMenu
-          // TODO: Revisit this
-          onClose={() => !forceIsOpen && setIsMenuOpen(false)}
+          onClose={() => setIsMenuOpen(false)}
           x={menuPosition.x}
           y={menuPosition.y}
           renderMenuItems={() => renderMenuItems({ closeMenu: () => setIsMenuOpen(false) })}
@@ -63,8 +62,4 @@ export const WithContextMenu: React.FC<WithContextMenuProps> = ({
       )}
     </div>
   );
-
-  function isContextMenuOpen() {
-    return isOpen === undefined ? isMenuOpen : isOpen;
-  }
 };

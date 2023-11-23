@@ -10,7 +10,6 @@ import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/W
 import { AGColumn } from 'models/alertgroup/alertgroup.types';
 import { Label } from 'models/label/label.types';
 import { ActionKey } from 'models/loader/action-keys';
-import { LoaderStore } from 'models/loader/loader';
 import { useStore } from 'state/useStore';
 import { UserActions } from 'utils/authorization';
 import { WrapAutoLoadingState } from 'utils/decorators';
@@ -50,7 +49,7 @@ const ColumnsSelectorWrapper: React.FC<ColumnsSelectorWrapperProps> = observer((
     };
   }, []);
 
-  const isRemoveLoading = LoaderStore.isLoading(ActionKey.IS_REMOVING_COLUMN_FROM_ALERT_GROUP);
+  const isRemoveLoading = store.loaderStore.isLoading(ActionKey.REMOVE_COLUMN_FROM_ALERT_GROUP);
 
   return (
     <>
@@ -79,7 +78,7 @@ const ColumnsSelectorWrapper: React.FC<ColumnsSelectorWrapperProps> = observer((
               <Button
                 disabled={isRemoveLoading}
                 variant={'destructive'}
-                onClick={WrapAutoLoadingState(onColumnRemovalClick, ActionKey.IS_REMOVING_COLUMN_FROM_ALERT_GROUP)}
+                onClick={WrapAutoLoadingState(onColumnRemovalClick, ActionKey.REMOVE_COLUMN_FROM_ALERT_GROUP)}
               >
                 {isRemoveLoading ? <LoadingPlaceholder text="Loading..." className="loadingPlaceholder" /> : 'Remove'}
               </Button>

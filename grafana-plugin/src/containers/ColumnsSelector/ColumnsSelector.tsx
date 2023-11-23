@@ -22,11 +22,11 @@ import { isEqual } from 'lodash-es';
 import { observer } from 'mobx-react';
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
 
+import RenderConditionally from 'components/RenderConditionally/RenderConditionally';
 import Text from 'components/Text/Text';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { AGColumn, AGColumnType } from 'models/alertgroup/alertgroup.types';
 import { ActionKey } from 'models/loader/action-keys';
-import { LoaderStore } from 'models/loader/loader';
 import { useStore } from 'state/useStore';
 import { openErrorNotification } from 'utils';
 import { UserActions } from 'utils/authorization';
@@ -66,7 +66,7 @@ const ColumnRow: React.FC<ColumnRowProps> = ({ column, onItemChange, onColumnRem
           </Tooltip>
         )}
 
-        {column.isVisible ? (
+        <RenderConditionally shouldRender={column.isVisible}>
           <IconButton
             aria-label="Drag"
             name="draggabledots"
@@ -74,7 +74,9 @@ const ColumnRow: React.FC<ColumnRowProps> = ({ column, onItemChange, onColumnRem
             {...attributes}
             {...listeners}
           />
-        ) : column.type === AGColumnType.LABEL ? (
+        </RenderConditionally>
+
+        <RenderConditionally shouldRender={!column.isVisible && column.type === AGColumnType.LABEL}>
           <WithPermissionControlTooltip userAction={UserActions.OtherSettingsWrite}>
             <IconButton
               className={[styles.columnsIcon, styles.columnsIconTrash, 'columns-icon-trash'].join(' ')}
@@ -84,7 +86,7 @@ const ColumnRow: React.FC<ColumnRowProps> = ({ column, onItemChange, onColumnRem
               onClick={() => onColumnRemoval(column)}
             />
           </WithPermissionControlTooltip>
-        ) : undefined}
+        </RenderConditionally>
       </div>
 
       <Checkbox
@@ -104,7 +106,7 @@ interface ColumnsSelectorProps {
 
 export const ColumnsSelector: React.FC<ColumnsSelectorProps> = observer(
   ({ onColumnAddModalOpen, onConfirmRemovalModalOpen }) => {
-    const { alertGroupStore } = useStore();
+    const { alertGroupStore, loaderStore } = useStore();
 
     const styles = useStyles2(getColumnsSelectorStyles);
 
@@ -124,7 +126,7 @@ export const ColumnsSelector: React.FC<ColumnsSelectorProps> = observer(
       })
     );
 
-    const isResetLoading = LoaderStore.isLoading(ActionKey.IS_RESETING_COLUMNS_FROM_ALERT_GROUP);
+    const isResetLoading = loaderStore.isLoading(ActionKey.RESET_COLUMNS_FROM_ALERT_GROUP);
 
     return (
       <div className={styles.columnsSelectorView}>
@@ -194,7 +196,7 @@ export const ColumnsSelector: React.FC<ColumnsSelectorProps> = observer(
             tooltipPlacement="top"
             tooltip={'Reset table to default columns'}
             disabled={!canResetData || isResetLoading}
-            onClick={WrapAutoLoadingState(onReset, ActionKey.IS_RESETING_COLUMNS_FROM_ALERT_GROUP)}
+            onClick={WrapAutoLoadingState(onReset, ActionKey.RESET_COLUMNS_FROM_ALERT_GROUP)}
           >
             {isResetLoading ? <LoadingPlaceholder text="Loading..." className="loadingPlaceholder" /> : 'Reset'}
           </Button>
@@ -210,9 +212,8 @@ export const ColumnsSelector: React.FC<ColumnsSelectorProps> = observer(
     async function onReset() {
       const columnsDefaultValues = getDefaultData();
 
-      return alertGroupStore
-        .updateTableSettings(columnsDefaultValues, true)
-        .then(() => alertGroupStore.fetchTableSettings());
+      await alertGroupStore.updateTableSettings(columnsDefaultValues, true);
+      await alertGroupStore.fetchTableSettings();
     }
 
     function getDefaultData() {

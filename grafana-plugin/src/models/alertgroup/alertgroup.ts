@@ -454,7 +454,7 @@ export class AlertGroupStore extends BaseStore {
   }
 
   @action
-  @AutoLoadingState(ActionKey.IS_ADDING_NEW_COLUMN_TO_ALERT_GROUP)
+  @AutoLoadingState(ActionKey.ADD_NEW_COLUMN_TO_ALERT_GROUP)
   public async updateTableSettings(
     columns: { visible: AGColumn[]; hidden: AGColumn[] },
     isUserUpdate: boolean

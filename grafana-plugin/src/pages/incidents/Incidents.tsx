@@ -15,6 +15,7 @@ import GTable from 'components/GTable/GTable';
 import IntegrationLogo from 'components/IntegrationLogo/IntegrationLogo';
 import ManualAlertGroup from 'components/ManualAlertGroup/ManualAlertGroup';
 import PluginLink from 'components/PluginLink/PluginLink';
+import RenderConditionally from 'components/RenderConditionally/RenderConditionally';
 import Text from 'components/Text/Text';
 import TextEllipsisTooltip from 'components/TextEllipsisTooltip/TextEllipsisTooltip';
 import TooltipBadge from 'components/TooltipBadge/TooltipBadge';
@@ -72,6 +73,14 @@ const PAGINATION_OPTIONS = [
   { label: '25', value: 25 },
   { label: '50', value: 50 },
   { label: '100', value: 100 },
+];
+
+const TABLE_SCROLL_OPTIONS: Array<{ value: boolean; icon: string }> = [
+  { value: false, icon: 'wrap-text' },
+  {
+    value: true,
+    icon: 'arrow-from-right',
+  },
 ];
 
 @observer
@@ -451,11 +460,11 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
           </div>
 
           <div className={cx('fields-dropdown')}>
-            {hasInvalidatedAlert && (
+            <RenderConditionally shouldRender={hasInvalidatedAlert}>
               <HorizontalGroup spacing="xs">
                 <Text type="secondary">Results out of date</Text>
                 <Button
-                  style={{ marginLeft: '8px' }}
+                  className={cx('btn-results')}
                   disabled={store.alertGroupStore.alertGroupsLoading}
                   variant="primary"
                   onClick={this.onIncidentsUpdateClick}
@@ -463,23 +472,19 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
                   Refresh
                 </Button>
               </HorizontalGroup>
-            )}
+            </RenderConditionally>
 
-            {store.hasFeature(AppFeature.Labels) && (
+            <RenderConditionally shouldRender={store.hasFeature(AppFeature.Labels)}>
               <RadioButtonGroup
-                options={[
-                  { value: false, icon: 'wrap-text' },
-                  {
-                    value: true,
-                    icon: 'arrow-from-right',
-                  },
-                ]}
+                options={TABLE_SCROLL_OPTIONS}
                 value={isHorizontalScrolling}
                 onChange={this.onEnableHorizontalScroll}
               />
-            )}
+            </RenderConditionally>
 
-            {store.hasFeature(AppFeature.Labels) && <ColumnsSelectorWrapper />}
+            <RenderConditionally shouldRender={store.hasFeature(AppFeature.Labels)}>
+              <ColumnsSelectorWrapper />
+            </RenderConditionally>
           </div>
         </div>
       </div>
@@ -801,6 +806,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
         }
 
         return {
+          width: isHorizontalScrolling ? '200px' : '10%',
           title: capitalize(column.name),
           key: column.id.toString(),
           render: (item: AlertType) => this.renderCustomColumn(column, item),

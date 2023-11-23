@@ -42,5 +42,8 @@ export const getColumnsSelectorWrapperStyles = (theme: GrafanaTheme2) => {
     floatingContentVisible: css`
       display: block;
     `,
+    checkboxAddOption: css`
+      top: 3px;
+    `,
   };
 };

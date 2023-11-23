@@ -6,6 +6,5 @@ import { RootStore } from './index';
 
 export function useStore(): RootStore {
   const { store } = React.useContext(MobXProviderContext);
-
   return store;
 }
