@@ -610,7 +610,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
         content={record?.alert_receive_channel?.verbal_name || ''}
       >
         <IntegrationLogo integration={integration} scale={0.1} />
-        <Emoji className={cx(TEXT_ELLIPSIS_CLASS)} text={record.alert_receive_channel?.verbal_name || ''} />
+        <Emoji className={cx(TEXT_ELLIPSIS_CLASS)} text={record.alert_receive_channel?.verbal_name || ''} data-test-id="integration-name" />
       </TextEllipsisTooltip>
     );
   };

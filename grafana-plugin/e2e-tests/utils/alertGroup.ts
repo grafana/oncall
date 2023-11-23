@@ -68,7 +68,7 @@ export const filterAlertGroupsTableByIntegrationAndGoToDetailPage = async (
      * recursively retry this function
      */
     await firstTableRow.getByText(integrationName).waitFor({ state: 'visible', timeout: 5000 });
-    await firstTableRow.locator('td:nth-child(4) a').click();
+    await firstTableRow.getByTestId('integration-name').click();
   } catch (err) {
     return filterAlertGroupsTableByIntegrationAndGoToDetailPage(page, integrationName, (retryNum += 1));
   }
