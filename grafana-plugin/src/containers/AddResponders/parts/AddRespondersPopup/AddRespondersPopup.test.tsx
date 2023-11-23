@@ -21,7 +21,7 @@ describe('AddRespondersPopup', () => {
     },
   ];
 
-  test('it renders teams properly', () => {
+  test('it shows a loading message initially', () => {
     const mockStoreValue = {
       directPagingStore: {
         selectedTeamResponder: null,
@@ -30,36 +30,7 @@ describe('AddRespondersPopup', () => {
         getSearchResult: jest.fn().mockReturnValue(teams),
       },
       userStore: {
-        getSearchResult: jest.fn().mockReturnValue({ results: [] }),
-      },
-    };
-
-    const component = render(
-      <Provider store={mockStoreValue}>
-        <AddRespondersPopup
-          mode="create"
-          visible={true}
-          setVisible={jest.fn()}
-          setCurrentlyConsideredUser={jest.fn()}
-          setShowUserConfirmationModal={jest.fn()}
-        />
-      </Provider>
-    );
-
-    expect(component.container).toMatchSnapshot();
-  });
-
-  test('if a team is selected it shows an info alert', () => {
-    const mockStoreValue = {
-      directPagingStore: {
-        selectedTeamResponder: teams[0],
-        selectedUserResponders: [],
-      },
-      grafanaTeamStore: {
-        getSearchResult: jest.fn().mockReturnValue(teams),
-      },
-      userStore: {
-        getSearchResult: jest.fn().mockReturnValue({ results: [] }),
+        search: jest.fn().mockReturnValue({ results: [] }),
       },
     };
 

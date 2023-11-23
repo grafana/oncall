@@ -91,7 +91,7 @@ def _build_payload(webhook, alert_group, user):
                 response_data = r.content
             responses_data[r.webhook.public_primary_key] = response_data
 
-    data = serialize_event(event, alert_group, user, responses_data)
+    data = serialize_event(event, alert_group, user, webhook, responses_data)
 
     return data
 
@@ -167,7 +167,7 @@ def make_request(webhook, alert_group, data):
 
 
 @shared_dedicated_queue_retry_task(
-    autoretry_for=(Exception,), retry_backoff=True, max_retries=1 if settings.DEBUG else None
+    autoretry_for=(Exception,), retry_backoff=True, max_retries=1 if settings.DEBUG else 3
 )
 def execute_webhook(webhook_pk, alert_group_id, user_id, escalation_policy_id):
     from apps.webhooks.models import Webhook

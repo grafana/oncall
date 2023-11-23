@@ -11,7 +11,7 @@ import Text from 'components/Text/Text';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { Alert as AlertType } from 'models/alertgroup/alertgroup.types';
 import { getTimezone } from 'models/user/user.helpers';
-import { User } from 'models/user/user.types';
+import { UserCurrentlyOnCall } from 'models/user/user.types';
 import { useStore } from 'state/useStore';
 import { UserActions } from 'utils/authorization';
 
@@ -62,7 +62,7 @@ const AddResponders = observer(
     const currentMoment = useMemo(() => dayjs(), []);
     const isCreateMode = mode === 'create';
 
-    const [currentlyConsideredUser, setCurrentlyConsideredUser] = useState<User>(null);
+    const [currentlyConsideredUser, setCurrentlyConsideredUser] = useState<UserCurrentlyOnCall>(null);
     const [currentlyConsideredUserNotificationPolicy, setCurrentlyConsideredUserNotificationPolicy] =
       useState<NotificationPolicyValue>(NotificationPolicyValue.Default);
 
@@ -141,7 +141,7 @@ const AddResponders = observer(
                       disableNotificationPolicySelect
                       handleDelete={generateRemovePreviouslyPagedUserCallback(user.pk)}
                       important={user.important}
-                      data={user as unknown as User}
+                      data={user as unknown as UserCurrentlyOnCall}
                     />
                   ))}
                   {selectedUserResponders.map((responder, index) => (
@@ -214,7 +214,7 @@ const AddResponders = observer(
                 <Button variant="secondary" onClick={closeUserConfirmationModal}>
                   Cancel
                 </Button>
-                <Button variant="primary" onClick={confirmCurrentlyConsideredUser}>
+                <Button variant="primary" onClick={confirmCurrentlyConsideredUser} data-testid="confirm-non-oncall">
                   Confirm
                 </Button>
               </HorizontalGroup>

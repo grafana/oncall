@@ -4,6 +4,7 @@ from unittest.mock import patch
 import pytest
 from django.utils import timezone
 
+from apps.alerts.models import AlertReceiveChannel
 from apps.schedules.models import CustomOnCallShift, OnCallScheduleWeb
 from apps.slack.scenarios.paging import (
     DIRECT_PAGING_MESSAGE_INPUT_ID,
@@ -19,6 +20,7 @@ from apps.slack.scenarios.paging import (
     Policy,
     StartDirectPaging,
     _get_organization_select,
+    _get_team_select_blocks,
 )
 from apps.user_management.models import Organization
 
@@ -244,6 +246,20 @@ def test_trigger_paging_additional_responders(make_organization_and_user_with_sl
 
 
 @pytest.mark.django_db
+def test_page_team(make_organization_and_user_with_slack_identities, make_team):
+    organization, user, slack_team_identity, slack_user_identity = make_organization_and_user_with_slack_identities()
+    team = make_team(organization)
+    payload = make_slack_payload(organization=organization, team=team)
+
+    step = FinishDirectPaging(slack_team_identity)
+    with patch("apps.slack.scenarios.paging.direct_paging") as mock_direct_paging:
+        with patch.object(step._slack_client, "api_call"):
+            step.process_scenario(slack_user_identity, slack_team_identity, payload)
+
+    mock_direct_paging.called_once_with(organization, user, "The Message", team)
+
+
+@pytest.mark.django_db
 def test_get_organization_select(make_organization):
     organization = make_organization(org_title="Organization", stack_slug="stack_slug")
     select = _get_organization_select(Organization.objects.filter(pk=organization.pk), organization, "test")
@@ -251,3 +267,91 @@ def test_get_organization_select(make_organization):
     assert len(select["element"]["options"]) == 1
     assert select["element"]["options"][0]["value"] == str(organization.pk)
     assert select["element"]["options"][0]["text"]["text"] == "Organization (stack_slug)"
+
+
+@pytest.mark.django_db
+def test_get_team_select_blocks(
+    make_organization_and_user_with_slack_identities,
+    make_team,
+    make_alert_receive_channel,
+    make_escalation_chain,
+    make_channel_filter,
+):
+    info_msg = (
+        "*Note*: You can only page teams which have a Direct Paging integration that is configured. "
+        "<https://grafana.com/docs/oncall/latest/integrations/manual/#set-up-direct-paging-for-a-team|Learn more>"
+    )
+
+    input_id_prefix = "nmxcnvmnxv"
+
+    # no team selected - no team direct paging integrations available
+    organization, _, _, slack_user_identity = make_organization_and_user_with_slack_identities()
+    blocks = _get_team_select_blocks(slack_user_identity, organization, False, None, input_id_prefix)
+
+    assert len(blocks) == 1
+
+    context_block = blocks[0]
+    assert context_block["type"] == "context"
+    assert (
+        context_block["elements"][0]["text"]
+        == info_msg + ". There are currently no teams which have a Direct Paging integration that is configured."
+    )
+
+    # no team selected - 1 team direct paging integration available
+    organization, _, _, slack_user_identity = make_organization_and_user_with_slack_identities()
+    team = make_team(organization)
+    arc = make_alert_receive_channel(organization, team=team, integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING)
+    escalation_chain = make_escalation_chain(organization)
+    make_channel_filter(arc, is_default=True, escalation_chain=escalation_chain)
+
+    blocks = _get_team_select_blocks(slack_user_identity, organization, False, None, input_id_prefix)
+
+    assert len(blocks) == 2
+    input_block, context_block = blocks
+
+    team_option = {"text": {"emoji": True, "text": team.name, "type": "plain_text"}, "value": str(team.pk)}
+
+    assert input_block["type"] == "input"
+    assert len(input_block["element"]["options"]) == 1
+    assert input_block["element"]["options"] == [team_option]
+    assert context_block["elements"][0]["text"] == info_msg
+
+    # team selected
+    organization, _, _, slack_user_identity = make_organization_and_user_with_slack_identities()
+    team1 = make_team(organization)
+    team2 = make_team(organization)
+
+    def _setup_direct_paging_integration(team):
+        arc = make_alert_receive_channel(
+            organization, team=team, integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING
+        )
+        escalation_chain = make_escalation_chain(organization)
+        make_channel_filter(arc, is_default=True, escalation_chain=escalation_chain)
+        return arc
+
+    _setup_direct_paging_integration(team1)
+    team2_direct_paging_arc = _setup_direct_paging_integration(team2)
+
+    blocks = _get_team_select_blocks(slack_user_identity, organization, True, team2, input_id_prefix)
+
+    assert len(blocks) == 2
+    input_block, context_block = blocks
+
+    def _contstruct_team_option(team):
+        return {"text": {"emoji": True, "text": team.name, "type": "plain_text"}, "value": str(team.pk)}
+
+    team1_option = _contstruct_team_option(team1)
+    team2_option = _contstruct_team_option(team2)
+
+    def _sort_team_options(options):
+        return sorted(options, key=lambda o: o["value"])
+
+    assert input_block["type"] == "input"
+    assert len(input_block["element"]["options"]) == 2
+    assert _sort_team_options(input_block["element"]["options"]) == _sort_team_options([team1_option, team2_option])
+    assert input_block["element"]["initial_option"] == team2_option
+
+    assert (
+        context_block["elements"][0]["text"]
+        == f"Integration <{team2_direct_paging_arc.web_link}|{team2_direct_paging_arc.verbal_name}> will be used for notification."
+    )

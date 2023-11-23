@@ -43,7 +43,6 @@ def test_get_update_key_get(
     mocked_get_values,
     make_organization_and_user_with_plugin_token,
     make_user_auth_headers,
-    make_alert_receive_channel,
 ):
     organization, user, token = make_organization_and_user_with_plugin_token()
     client = APIClient()
@@ -68,7 +67,6 @@ def test_get_update_key_put(
     mocked_rename_key,
     make_organization_and_user_with_plugin_token,
     make_user_auth_headers,
-    make_alert_receive_channel,
 ):
     organization, user, token = make_organization_and_user_with_plugin_token()
     client = APIClient()
@@ -94,7 +92,6 @@ def test_add_value(
     mocked_add_value,
     make_organization_and_user_with_plugin_token,
     make_user_auth_headers,
-    make_alert_receive_channel,
 ):
     organization, user, token = make_organization_and_user_with_plugin_token()
     client = APIClient()
@@ -120,7 +117,6 @@ def test_rename_value(
     mocked_rename_value,
     make_organization_and_user_with_plugin_token,
     make_user_auth_headers,
-    make_alert_receive_channel,
 ):
     organization, user, token = make_organization_and_user_with_plugin_token()
     client = APIClient()
@@ -146,7 +142,6 @@ def test_get_value(
     mocked_get_value,
     make_organization_and_user_with_plugin_token,
     make_user_auth_headers,
-    make_alert_receive_channel,
 ):
     organization, user, token = make_organization_and_user_with_plugin_token()
     client = APIClient()
@@ -171,7 +166,6 @@ def test_labels_create_label(
     mocked_create_label,
     make_organization_and_user_with_plugin_token,
     make_user_auth_headers,
-    make_alert_receive_channel,
 ):
     organization, user, token = make_organization_and_user_with_plugin_token()
     client = APIClient()
@@ -189,7 +183,6 @@ def test_labels_create_label(
 def test_labels_feature_false(
     make_organization_and_user_with_plugin_token,
     make_user_auth_headers,
-    make_alert_receive_channel,
     settings,
 ):
     setattr(settings, "FEATURE_LABELS_ENABLED_FOR_ALL", False)
@@ -239,7 +232,6 @@ def test_labels_feature_false(
 def test_labels_permissions_get_actions(
     make_organization_and_user_with_plugin_token,
     make_user_auth_headers,
-    make_alert_receive_channel,
     role,
     expected_status,
 ):
@@ -274,7 +266,6 @@ def test_labels_permissions_get_actions(
 def test_labels_permissions_create_update_actions(
     make_organization_and_user_with_plugin_token,
     make_user_auth_headers,
-    make_alert_receive_channel,
     role,
     expected_status,
 ):
@@ -299,3 +290,47 @@ def test_labels_permissions_create_update_actions(
         url = reverse("api-internal:create_label")
         response = client.post(url, format="json", data={}, **make_user_auth_headers(user, token))
         assert response.status_code == expected_status
+
+
+@pytest.mark.django_db
+def test_alert_group_labels_get_keys(
+    make_organization_and_user_with_plugin_token,
+    make_alert_receive_channel,
+    make_alert_group,
+    make_alert_group_label_association,
+    make_user_auth_headers,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+
+    alert_receive_channel = make_alert_receive_channel(user.organization)
+    alert_group = make_alert_group(alert_receive_channel)
+    make_alert_group_label_association(organization, alert_group, key_name="a", value_name="b")
+
+    client = APIClient()
+    url = reverse("api-internal:alert_group_labels-get_keys")
+    response = client.get(url, format="json", **make_user_auth_headers(user, token))
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == [{"id": "a", "name": "a"}]
+
+
+@pytest.mark.django_db
+def test_alert_group_labels_get_key(
+    make_organization_and_user_with_plugin_token,
+    make_alert_receive_channel,
+    make_alert_group,
+    make_alert_group_label_association,
+    make_user_auth_headers,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+
+    alert_receive_channel = make_alert_receive_channel(user.organization)
+    alert_group = make_alert_group(alert_receive_channel)
+    make_alert_group_label_association(organization, alert_group, key_name="a", value_name="b")
+
+    client = APIClient()
+    url = reverse("api-internal:alert_group_labels-get_key", kwargs={"key_id": "a"})
+    response = client.get(url, format="json", **make_user_auth_headers(user, token))
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == {"key": {"id": "a", "name": "a"}, "values": [{"id": "b", "name": "b"}]}

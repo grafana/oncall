@@ -1,15 +1,19 @@
 import datetime
 import textwrap
+from unittest.mock import patch
 from uuid import uuid4
 
 import icalendar
 import pytest
 import pytz
+from django.core.cache import cache
 from django.utils import timezone
 
-from apps.api.permissions import LegacyAccessControlRole
+from apps.api.permissions import LegacyAccessControlRole, RBACPermission
 from apps.schedules.ical_utils import (
+    get_cached_oncall_users_for_multiple_schedules,
     get_icalendar_tz_or_utc,
+    get_oncall_users_for_multiple_schedules,
     is_icals_equal,
     list_of_oncall_shifts_from_ical,
     list_users_to_notify_from_ical,
@@ -89,17 +93,59 @@ def test_users_in_ical_email_case_insensitive(make_organization_and_user, make_u
 
 
 @pytest.mark.django_db
-def test_users_in_ical_viewers_inclusion(make_organization_and_user, make_user_for_organization):
+@pytest.mark.parametrize(
+    "role,included",
+    [
+        (LegacyAccessControlRole.ADMIN, True),
+        (LegacyAccessControlRole.EDITOR, True),
+        (LegacyAccessControlRole.VIEWER, False),
+        (LegacyAccessControlRole.NONE, False),
+    ],
+)
+def test_users_in_ical_basic_role(make_organization_and_user, make_user_for_organization, role, included):
     organization, user = make_organization_and_user()
-    viewer = make_user_for_organization(organization, role=LegacyAccessControlRole.VIEWER)
+    organization.is_rbac_permissions_enabled = False
+    organization.save()
 
-    usernames = [user.username, viewer.username]
+    other_user = make_user_for_organization(organization, role=role)
+
+    usernames = [user.username, other_user.username]
+    expected_result = {user}
+    if included:
+        expected_result.add(other_user)
+
     result = users_in_ical(usernames, organization)
-    assert set(result) == {user}
+    assert set(result) == expected_result
 
 
 @pytest.mark.django_db
-def test_list_users_to_notify_from_ical_viewers_inclusion(
+@pytest.mark.parametrize(
+    "permission,included",
+    [
+        (RBACPermission.Permissions.NOTIFICATIONS_READ, True),
+        (RBACPermission.Permissions.SCHEDULES_READ, False),
+        (None, False),
+    ],
+)
+def test_users_in_ical_rbac(make_organization_and_user, make_user_for_organization, permission, included):
+    organization, _ = make_organization_and_user()
+    organization.is_rbac_permissions_enabled = True
+    organization.save()
+
+    viewer = make_user_for_organization(organization, role=LegacyAccessControlRole.VIEWER)
+    usernames = [viewer.username]
+
+    # viewer doesn't yet have the required permission, they shouldn't be included
+    assert len(users_in_ical(usernames, organization)) == 0
+
+    viewer.permissions = [{"action": permission.value}] if permission else []
+    viewer.save()
+
+    assert users_in_ical(usernames, organization) == ([viewer] if included else [])
+
+
+@pytest.mark.django_db
+def test_list_users_to_notify_from_ical_viewers_exclusion(
     make_organization_and_user, make_user_for_organization, make_schedule, make_on_call_shift
 ):
     organization, user = make_organization_and_user()
@@ -499,3 +545,129 @@ def test_is_icals_equal_compare_events_not_equal():
     """
     )
     assert not is_icals_equal(with_vtimezone, without_vtimezone)
+
+
+@pytest.mark.django_db
+def test_get_cached_oncall_users_for_multiple_schedules(
+    make_organization,
+    make_user_for_organization,
+    make_schedule,
+    make_on_call_shift,
+):
+    today = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+
+    def _make_schedule_with_oncall_users(organization, oncall_users):
+        schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
+
+        shift_start_time = today - timezone.timedelta(hours=1)
+
+        on_call_shift = make_on_call_shift(
+            organization=organization,
+            shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT,
+            start=shift_start_time,
+            rotation_start=shift_start_time,
+            duration=timezone.timedelta(seconds=(24 * 60 * 60)),
+            priority_level=1,
+            frequency=CustomOnCallShift.FREQUENCY_DAILY,
+            schedule=schedule,
+        )
+        on_call_shift.add_rolling_users([oncall_users])
+        return schedule
+
+    def _test_setup():
+        organization = make_organization()
+        users = [make_user_for_organization(organization) for _ in range(6)]
+        schedule1 = _make_schedule_with_oncall_users(organization, users[:2])
+        schedule2 = _make_schedule_with_oncall_users(organization, users[2:4])
+        schedule3 = _make_schedule_with_oncall_users(organization, users[4:])
+
+        return users, (schedule1, schedule2, schedule3)
+
+    def _generate_cache_key(schedule):
+        return f"schedule_{schedule.public_primary_key}_oncall_users"
+
+    # scenario: nothing is cached, need to recalculate everything and cache it
+    users, schedules = _test_setup()
+    schedule1, schedule2, schedule3 = schedules
+
+    cache.clear()
+
+    results = get_cached_oncall_users_for_multiple_schedules(schedules)
+
+    assert results == {
+        schedule1: [users[0], users[1]],
+        schedule2: [users[2], users[3]],
+        schedule3: [users[4], users[5]],
+    }
+
+    cached_data = cache.get_many([_generate_cache_key(s) for s in schedules])
+
+    assert cached_data == {
+        _generate_cache_key(schedule1): [users[0].public_primary_key, users[1].public_primary_key],
+        _generate_cache_key(schedule2): [users[2].public_primary_key, users[3].public_primary_key],
+        _generate_cache_key(schedule3): [users[4].public_primary_key, users[5].public_primary_key],
+    }
+
+    # scenario: schedule1 is cached, need to recalculate schedule2 and schedule3 and cache them
+    users, schedules = _test_setup()
+    schedule1, schedule2, schedule3 = schedules
+
+    cache.clear()
+    cache.set(_generate_cache_key(schedule1), [users[0].public_primary_key, users[1].public_primary_key])
+
+    with patch(
+        "apps.schedules.ical_utils.get_oncall_users_for_multiple_schedules",
+        wraps=get_oncall_users_for_multiple_schedules,
+    ) as spy_get_oncall_users_for_multiple_schedules:
+        results = get_cached_oncall_users_for_multiple_schedules(schedules)
+
+    # make sure we're only calling the actual method for the uncached schedules
+    spy_get_oncall_users_for_multiple_schedules.assert_called_once_with([schedule2, schedule3])
+
+    assert results == {
+        schedule1: [users[0], users[1]],
+        schedule2: [users[2], users[3]],
+        schedule3: [users[4], users[5]],
+    }
+
+    cached_data = cache.get_many([_generate_cache_key(s) for s in schedules])
+    assert cached_data == {
+        _generate_cache_key(schedule1): [users[0].public_primary_key, users[1].public_primary_key],
+        _generate_cache_key(schedule2): [users[2].public_primary_key, users[3].public_primary_key],
+        _generate_cache_key(schedule3): [users[4].public_primary_key, users[5].public_primary_key],
+    }
+
+    # scenario: everything is already cached
+    users, schedules = _test_setup()
+    schedule1, schedule2, schedule3 = schedules
+
+    cache.clear()
+    cache.set_many(
+        {
+            _generate_cache_key(schedule1): [users[0].public_primary_key, users[1].public_primary_key],
+            _generate_cache_key(schedule2): [users[2].public_primary_key, users[3].public_primary_key],
+            _generate_cache_key(schedule3): [users[4].public_primary_key, users[5].public_primary_key],
+        }
+    )
+
+    with patch(
+        "apps.schedules.ical_utils.get_oncall_users_for_multiple_schedules",
+        wraps=get_oncall_users_for_multiple_schedules,
+    ) as spy_get_oncall_users_for_multiple_schedules:
+        results = get_cached_oncall_users_for_multiple_schedules(schedules)
+
+    # make sure we're not recalculating results because everything is already cached
+    spy_get_oncall_users_for_multiple_schedules.assert_called_once_with([])
+
+    assert results == {
+        schedule1: [users[0], users[1]],
+        schedule2: [users[2], users[3]],
+        schedule3: [users[4], users[5]],
+    }
+
+    cached_data = cache.get_many([_generate_cache_key(s) for s in schedules])
+    assert cached_data == {
+        _generate_cache_key(schedule1): [users[0].public_primary_key, users[1].public_primary_key],
+        _generate_cache_key(schedule2): [users[2].public_primary_key, users[3].public_primary_key],
+        _generate_cache_key(schedule3): [users[4].public_primary_key, users[5].public_primary_key],
+    }

@@ -206,5 +206,6 @@ Built-in functions:
 - `datetimeformat` - converts time from datetime to the given format (`%H:%M / %d-%m-%Y` by default)
 - `regex_replace` - performs a regex find and replace
 - `regex_match` - performs a regex match, returns `True` or `False`. Usage example: `{{ payload.ruleName | regex_match(".*") }}`
+- `b64decode` - performs a base64 string decode. Usage example: `{{ payload.data | b64decode }}`
 
 {{< section >}}

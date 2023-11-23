@@ -32,6 +32,7 @@ jobs:
     with:
       grafana-image-tag: ${{ matrix.grafana-image-tag }}
       run-expensive-tests: true
+      browsers: "chromium firefox webkit"
     secrets: inherit
 
   post-status-to-slack:

@@ -4,7 +4,6 @@ from unittest.mock import patch
 import pytest
 from django.utils import timezone
 
-from apps.schedules.ical_utils import memoized_users_in_ical
 from apps.schedules.models import CustomOnCallShift, OnCallScheduleWeb
 from apps.schedules.tasks import notify_about_gaps_in_schedule
 
@@ -18,8 +17,6 @@ def test_no_gaps_no_triggering_notification(
 ):
     organization, _, _, _ = make_organization_and_user_with_slack_identities()
     user1 = make_user(organization=organization, username="user1")
-    # clear users pks <-> organization cache (persisting between tests)
-    memoized_users_in_ical.cache_clear()
 
     schedule = make_schedule(
         organization,
@@ -67,8 +64,6 @@ def test_gaps_in_the_past_no_triggering_notification(
 ):
     organization, _, _, _ = make_organization_and_user_with_slack_identities()
     user1 = make_user(organization=organization, username="user1")
-    # clear users pks <-> organization cache (persisting between tests)
-    memoized_users_in_ical.cache_clear()
 
     schedule = make_schedule(
         organization,
@@ -132,8 +127,6 @@ def test_gaps_now_trigger_notification(
 ):
     organization, _, _, _ = make_organization_and_user_with_slack_identities()
     user1 = make_user(organization=organization, username="user1")
-    # clear users pks <-> organization cache (persisting between tests)
-    memoized_users_in_ical.cache_clear()
 
     schedule = make_schedule(
         organization,
@@ -185,8 +178,6 @@ def test_gaps_near_future_trigger_notification(
 ):
     organization, _, _, _ = make_organization_and_user_with_slack_identities()
     user1 = make_user(organization=organization, username="user1")
-    # clear users pks <-> organization cache (persisting between tests)
-    memoized_users_in_ical.cache_clear()
 
     schedule = make_schedule(
         organization,
@@ -239,8 +230,6 @@ def test_gaps_later_than_7_days_no_triggering_notification(
 ):
     organization, _, _, _ = make_organization_and_user_with_slack_identities()
     user1 = make_user(organization=organization, username="user1")
-    # clear users pks <-> organization cache (persisting between tests)
-    memoized_users_in_ical.cache_clear()
 
     now = timezone.now().replace(microsecond=0)
 

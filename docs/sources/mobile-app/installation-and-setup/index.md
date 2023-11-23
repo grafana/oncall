@@ -44,14 +44,14 @@ To access your QR code:
 1. Navigate to the **Users** tab, then tap **View my profile**
 1. tap **Mobile app connection** in your profile
 
->**Note**: The QR code will timeout for security purposes - Screenshots of the QR code are unlikely to work for authentication.
+> **Note**: The QR code will timeout for security purposes - Screenshots of the QR code are unlikely to work for authentication.
 
 ### Connect to your open source Grafana OnCall account
 
-Grafana OnCall OSS relies on Grafana Cloud as on relay for push notifications.
-You must first connect your Grafana OnCall OSS to Grafana Cloud for the mobile app to work.
+Grafana OnCall OSS relies on Grafana Cloud OnCall as on relay for push notifications.
+You must first connect your Grafana OnCall OSS to Grafana Cloud OnCall for the mobile app to work.
 
-To connect to Grafana Cloud, refer to the Cloud page in your OSS Grafana OnCall instance.
+To connect to Grafana Cloud OnCall, refer to the Cloud page in your OSS Grafana OnCall instance.
 
 For Grafana OnCall OSS, the QR code includes an authentication token along with a backend URL.
 Your Grafana OnCall OSS instance should be reachable from the same network as your mobile device, preferably from the internet.

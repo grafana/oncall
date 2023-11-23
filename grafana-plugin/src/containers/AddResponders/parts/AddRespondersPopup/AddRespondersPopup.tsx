@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect, useRef, FC } from 'react';
 
-import { Alert, HorizontalGroup, Icon, Input, RadioButtonGroup } from '@grafana/ui';
+import { Alert, HorizontalGroup, Icon, Input, LoadingPlaceholder, RadioButtonGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 import { ColumnsType } from 'rc-table/lib/interface';
@@ -10,7 +10,8 @@ import GTable from 'components/GTable/GTable';
 import Text from 'components/Text/Text';
 import { Alert as AlertType } from 'models/alertgroup/alertgroup.types';
 import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
-import { User } from 'models/user/user.types';
+import { PaginatedUsersResponse } from 'models/user/user';
+import { UserCurrentlyOnCall } from 'models/user/user.types';
 import { useStore } from 'state/useStore';
 import { useDebouncedCallback, useOnClickOutside } from 'utils/hooks';
 
@@ -21,7 +22,7 @@ type Props = {
   visible: boolean;
   setVisible: (value: boolean) => void;
 
-  setCurrentlyConsideredUser: (user: User) => void;
+  setCurrentlyConsideredUser: (user: UserCurrentlyOnCall) => void;
   setShowUserConfirmationModal: (value: boolean) => void;
 
   existingPagedUsers?: AlertType['paged_users'];
@@ -34,13 +35,6 @@ enum TabOptions {
   Users = 'users',
 }
 
-/**
- * TODO: properly filter out 'No team'. Right now it shows up on first render and then shortly thereafter the component
- * re-renders with 'No team' filtered out
- *
- * TODO: properly fetch/show loading state when fetching users. Right now it shows an empty list on the initial network
- * request, we can probably have a better experience here
- */
 const AddRespondersPopup = observer(
   ({
     mode,
@@ -55,25 +49,14 @@ const AddRespondersPopup = observer(
 
     const isCreateMode = mode === 'create';
 
+    const [searchLoading, setSearchLoading] = useState<boolean>(true);
     const [activeOption, setActiveOption] = useState<TabOptions>(isCreateMode ? TabOptions.Teams : TabOptions.Users);
+    const [teamSearchResults, setTeamSearchResults] = useState<GrafanaTeam[]>([]);
+    const [onCallUserSearchResults, setOnCallUserSearchResults] = useState<UserCurrentlyOnCall[]>([]);
+    const [notOnCallUserSearchResults, setNotOnCallUserSearchResults] = useState<UserCurrentlyOnCall[]>([]);
     const [searchTerm, setSearchTerm] = useState('');
 
     const ref = useRef();
-    const teamSearchResults = grafanaTeamStore.getSearchResult();
-
-    let userSearchResults = userStore.getSearchResult().results || [];
-
-    /**
-     * in the context where some user(s) have already been paged (ex. on a direct paging generated
-     * alert group detail page), we should filter out the search results to not include these users
-     */
-    if (existingPagedUsers.length > 0) {
-      const existingPagedUserIds = existingPagedUsers.map(({ pk }) => pk);
-      userSearchResults = userSearchResults.filter(({ pk }) => !existingPagedUserIds.includes(pk));
-    }
-
-    const usersCurrentlyOnCall = userSearchResults.filter(({ is_currently_oncall }) => is_currently_oncall);
-    const usersNotCurrentlyOnCall = userSearchResults.filter(({ is_currently_oncall }) => !is_currently_oncall);
 
     useOnClickOutside(ref, () => {
       setVisible(false);
@@ -87,7 +70,7 @@ const AddRespondersPopup = observer(
     );
 
     const onClickUser = useCallback(
-      async (user: User) => {
+      async (user: UserCurrentlyOnCall) => {
         if (isCreateMode && user.is_currently_oncall) {
           directPagingStore.addUserToSelectedUsers(user);
         } else {
@@ -96,7 +79,7 @@ const AddRespondersPopup = observer(
         }
         setVisible(false);
       },
-      [isCreateMode, userStore, directPagingStore, setShowUserConfirmationModal, setVisible]
+      [isCreateMode, setShowUserConfirmationModal, setVisible]
     );
 
     const addTeamResponder = useCallback(
@@ -113,18 +96,99 @@ const AddRespondersPopup = observer(
       [setVisible, directPagingStore, setActiveOption]
     );
 
-    const handleSearchTermChange = useDebouncedCallback(() => {
+    const searchForUsers = useCallback(async () => {
+      const _search = async (is_currently_oncall: boolean) => {
+        const response = await userStore.search<PaginatedUsersResponse<UserCurrentlyOnCall>>({
+          searchTerm,
+          is_currently_oncall,
+        });
+        return response.results;
+      };
+
+      const [onCallUserSearchResults, notOnCallUserSearchResults] = await Promise.all([_search(true), _search(false)]);
+
+      setOnCallUserSearchResults(onCallUserSearchResults);
+      setNotOnCallUserSearchResults(notOnCallUserSearchResults);
+    }, [searchTerm]);
+
+    const searchForTeams = useCallback(async () => {
+      await grafanaTeamStore.updateItems(searchTerm, false, true, false);
+      setTeamSearchResults(grafanaTeamStore.getSearchResult());
+    }, [searchTerm]);
+
+    const handleSearchTermChange = useDebouncedCallback(async () => {
+      setSearchLoading(true);
+
       if (isCreateMode && activeOption === TabOptions.Teams) {
-        grafanaTeamStore.updateItems(searchTerm, false, true, false);
+        await searchForTeams();
       } else {
-        userStore.updateItems({ searchTerm, short: 'false' });
+        await searchForUsers();
       }
+
+      setSearchLoading(false);
     }, 500);
 
-    useEffect(handleSearchTermChange, [searchTerm, activeOption]);
+    const onChangeTab = useCallback(
+      async (tab: TabOptions) => {
+        /**
+         * there's no need to trigger a new search request when the user changes tabs if they don't have a
+         * search term
+         */
+        if (searchTerm) {
+          setSearchLoading(true);
+
+          if (activeOption === TabOptions.Teams) {
+            await searchForTeams();
+          } else {
+            await searchForUsers();
+          }
+
+          setSearchLoading(false);
+        }
+
+        setActiveOption(tab);
+      },
+      [searchTerm]
+    );
+
+    useEffect(handleSearchTermChange, [searchTerm]);
+
+    /**
+     * in the context where some user(s) have already been paged (ex. on a direct paging generated
+     * alert group detail page), we should filter out the search results to not include these users
+     */
+    useEffect(() => {
+      if (existingPagedUsers.length > 0) {
+        const existingPagedUserIds = existingPagedUsers.map(({ pk }) => pk);
+
+        const _filterUsers = (users: UserCurrentlyOnCall[]) =>
+          users.filter(({ pk }) => !existingPagedUserIds.includes(pk));
+
+        setOnCallUserSearchResults(_filterUsers);
+        setNotOnCallUserSearchResults(_filterUsers);
+      }
+    }, [existingPagedUsers]);
+
+    /**
+     * pre-populate the users and teams search results so that when the user opens AddRespondersPopup it is already
+     * populated with data (nicer UX)
+     */
+    useEffect(() => {
+      (async () => {
+        /**
+         * teams are not relevant when the component is rendered in "update" mode so we skip fetching teams here
+         */
+        if (isCreateMode) {
+          await searchForTeams();
+        }
+
+        await searchForUsers();
+        setSearchLoading(false);
+      })();
+    }, []);
 
     const userIsSelected = useCallback(
-      (user: User) => selectedUserResponders.some((userResponder) => userResponder.data.pk === user.pk),
+      (user: UserCurrentlyOnCall) => selectedUserResponders.some((userResponder) => userResponder.data.pk === user.pk),
       [selectedUserResponders]
     );
 
@@ -155,11 +219,11 @@ const AddRespondersPopup = observer(
       },
     ];
 
-    const userColumns: ColumnsType<User> = [
+    const userColumns: ColumnsType<UserCurrentlyOnCall> = [
       // TODO: how to make the rows span full width properly?
       {
         width: 300,
-        render: (user: User) => {
+        render: (user: UserCurrentlyOnCall) => {
           const { avatar, name, username, teams } = user;
           const disabled = userIsSelected(user);
 
@@ -170,6 +234,7 @@ const AddRespondersPopup = observer(
                   <Avatar size="small" src={avatar} />
                   <Text type={disabled ? 'disabled' : undefined}>{name || username}</Text>
                 </HorizontalGroup>
+                {/* TODO: we should add an elippsis and/or tooltip in the event that the user has a ton of teams */}
                 {teams?.length > 0 && <Text type="secondary">{teams.map(({ name }) => name).join(', ')}</Text>}
               </HorizontalGroup>
             </div>
@@ -179,18 +244,18 @@ const AddRespondersPopup = observer(
       },
       {
         width: 40,
-        render: (user: User) => (userIsSelected(user) ? <Icon name="check" /> : null),
+        render: (user: UserCurrentlyOnCall) => (userIsSelected(user) ? <Icon name="check" /> : null),
         key: 'Checked',
       },
     ];
 
-    const UserResultsSection: FC<{ header: string; users: User[] }> = ({ header, users }) =>
+    const UserResultsSection: FC<{ header: string; users: UserCurrentlyOnCall[] }> = ({ header, users }) =>
       users.length > 0 && (
         <>
           <Text type="secondary" className={cx('user-results-section-header')}>
             {header}
           </Text>
-          <GTable<User>
+          <GTable<UserCurrentlyOnCall>
             emptyText={users ? 'No users found' : 'Loading...'}
             rowKey="pk"
             columns={userColumns}
@@ -223,11 +288,12 @@ const AddRespondersPopup = observer(
               ]}
               className={cx('radio-buttons')}
               value={activeOption}
-              onChange={setActiveOption}
+              onChange={onChangeTab}
               fullWidth
             />
           )}
-          {activeOption === TabOptions.Teams && (
+          {searchLoading && <LoadingPlaceholder className={cx('loading-placeholder')} text="Loading..." />}
+          {!searchLoading && activeOption === TabOptions.Teams && (
             <>
               {selectedTeamResponder ? (
                 <Alert
@@ -237,7 +303,7 @@ const AddRespondersPopup = observer(
               ) : (
                 <>
                   <Alert
-                    className={cx('team-direct-paging-info-alert')}
+                    className={cx('info-alert')}
                     severity="info"
                     title={
                       (
@@ -272,10 +338,24 @@ const AddRespondersPopup = observer(
               )}
             </>
           )}
-          {activeOption === TabOptions.Users && (
+          {!searchLoading && activeOption === TabOptions.Users && (
             <>
-              <UserResultsSection header="On-call now" users={usersCurrentlyOnCall} />
-              <UserResultsSection header="Not on-call" users={usersNotCurrentlyOnCall} />
+              <Alert
+                className={cx('info-alert')}
+                severity="info"
+                title={
+                  (
+                    <Text type="primary">
+                      We display a maximum of 100 users per category. Use the search bar above to refine results. You
+                      can search by username, email, or team name.
+                    </Text>
+                  ) as any
+                }
+              />
+              <UserResultsSection header="On-call now" users={onCallUserSearchResults} />
+              <div style={{ marginTop: '10px' }}>
+                <UserResultsSection header="Not on-call" users={notOnCallUserSearchResults} />
+              </div>
             </>
           )}
         </div>

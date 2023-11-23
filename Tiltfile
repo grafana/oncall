@@ -35,8 +35,7 @@ allow_k8s_contexts(["kind-kind"])
 docker_build_sub(
     "localhost:63628/oncall/engine:dev",
     context="./engine",
-    cache_from="grafana/oncall:latest",
-    # only=["./engine", "./grafana-plugin"],
+    cache_from=["grafana/oncall:latest"],
     ignore=["./grafana-plugin/test-results/", "./grafana-plugin/dist/", "./grafana-plugin/e2e-tests/"],
     child_context=".",
     target="dev",
@@ -59,7 +58,7 @@ local_resource(
     allow_parallel=True,
 )
 
-yaml = helm("helm/oncall", name=HELM_PREFIX, values=["./dev/helm-local.yml"])
+yaml = helm("helm/oncall", name=HELM_PREFIX, values=["./dev/helm-local.yml", "./dev/helm-local.dev.yml"])
 
 k8s_yaml(yaml)
 

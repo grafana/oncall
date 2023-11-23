@@ -1,3 +1,4 @@
+import base64
 import json
 import re
 
@@ -49,5 +50,12 @@ def regex_search(pattern, value):
 def json_dumps(value):
     try:
         return json.dumps(value)
+    except (ValueError, AttributeError, TypeError):
+        return None
+
+
+def b64decode(value):
+    try:
+        return base64.b64decode(value).decode("utf-8")
     except (ValueError, AttributeError, TypeError):
         return None

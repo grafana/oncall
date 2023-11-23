@@ -11,7 +11,6 @@ from common.utils import getenv_boolean, getenv_integer, getenv_list
 
 VERSION = "dev-oss"
 SEND_ANONYMOUS_USAGE_STATS = getenv_boolean("SEND_ANONYMOUS_USAGE_STATS", default=True)
-ADMIN_ENABLED = False  # disable django admin panel
 
 # License is OpenSource or Cloud
 OPEN_SOURCE_LICENSE_NAME = "OpenSource"
@@ -121,6 +120,7 @@ DATABASE_DEFAULTS = {
     },
 }
 
+DATABASE_TYPES = DatabaseTypes
 DATABASE_NAME = os.getenv("DATABASE_NAME") or os.getenv("MYSQL_DB_NAME")
 DATABASE_USER = os.getenv("DATABASE_USER") or os.getenv("MYSQL_USER")
 DATABASE_PASSWORD = os.getenv("DATABASE_PASSWORD") or os.getenv("MYSQL_PASSWORD")
@@ -219,13 +219,11 @@ if REDIS_USE_SSL:
 # Cache
 CACHES = {
     "default": {
-        "BACKEND": "redis_cache.RedisCache",
-        "LOCATION": [
-            REDIS_URI,
-        ],
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": REDIS_URI,
         "OPTIONS": {
             "DB": REDIS_DATABASE,
-            "PARSER_CLASS": "redis.connection.HiredisParser",
+            "PARSER_CLASS": "redis.connection._HiredisParser",
             "CONNECTION_POOL_CLASS": "redis.BlockingConnectionPool",
             "CONNECTION_POOL_CLASS_KWARGS": REDIS_SSL_CONFIG
             | {
@@ -590,6 +588,10 @@ SELF_IP = os.environ.get("SELF_IP")
 
 SILK_PROFILER_ENABLED = getenv_boolean("SILK_PROFILER_ENABLED", default=False) and not IS_IN_MAINTENANCE_MODE
 
+# django admin panel is required to auth with django silk. Otherwise if silk isn't enabled, we don't need it.
+ONCALL_DJANGO_ADMIN_PATH = os.environ.get("ONCALL_DJANGO_ADMIN_PATH", "django-admin") + "/"
+ADMIN_ENABLED = SILK_PROFILER_ENABLED
+
 if SILK_PROFILER_ENABLED:
     SILK_PATH = os.environ.get("SILK_PATH", "silk/")
     SILKY_INTERCEPT_PERCENT = getenv_integer("SILKY_INTERCEPT_PERCENT", 100)
@@ -836,3 +838,5 @@ ZVONOK_POSTBACK_USER_CHOICE = os.getenv("ZVONOK_POSTBACK_USER_CHOICE", None)
 ZVONOK_POSTBACK_USER_CHOICE_ACK = os.getenv("ZVONOK_POSTBACK_USER_CHOICE_ACK", None)
 
 DETACHED_INTEGRATIONS_SERVER = getenv_boolean("DETACHED_INTEGRATIONS_SERVER", default=False)
+
+RATELIMIT_FAIL_OPEN = getenv_boolean("RATELIMIT_FAIL_OPEN", default=True)

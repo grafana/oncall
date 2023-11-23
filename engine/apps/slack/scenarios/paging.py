@@ -9,7 +9,7 @@ from rest_framework.response import Response
 
 from apps.alerts.models import AlertReceiveChannel
 from apps.alerts.paging import DirectPagingUserTeamValidationError, UserNotifications, direct_paging, user_is_oncall
-from apps.schedules.ical_utils import get_oncall_users_for_multiple_schedules
+from apps.schedules.ical_utils import get_cached_oncall_users_for_multiple_schedules
 from apps.slack.constants import DIVIDER, PRIVATE_METADATA_MAX_LENGTH
 from apps.slack.errors import SlackAPIChannelNotFoundError
 from apps.slack.scenarios import scenario_step
@@ -534,26 +534,53 @@ def _get_team_select_blocks(
     slack_user_identity: "SlackUserIdentity",
     organization: "Organization",
     is_selected: bool,
-    value: "Team",
+    value: typing.Optional["Team"],
     input_id_prefix: str,
 ) -> Block.AnyBlocks:
+    blocks: Block.AnyBlocks = []
     user = slack_user_identity.get_user(organization)  # TODO: handle None
-    teams = user.available_teams
+    teams = (
+        user.organization.get_notifiable_direct_paging_integrations()
+        .filter(team__isnull=False)
+        .values_list("team__pk", "team__name")
+    )
+
+    direct_paging_info_msg = {
+        "type": "context",
+        "elements": [
+            {
+                "type": "mrkdwn",
+                "text": (
+                    "*Note*: You can only page teams which have a Direct Paging integration that is configured. "
+                    "<https://grafana.com/docs/oncall/latest/integrations/manual/#set-up-direct-paging-for-a-team|Learn more>"
+                ),
+            },
+        ],
+    }
+
+    if not teams:
+        direct_paging_info_msg["elements"][0][
+            "text"
+        ] += ". There are currently no teams which have a Direct Paging integration that is configured."
+        blocks.append(direct_paging_info_msg)
+        return blocks
 
     team_options: typing.List[CompositionObjectOption] = []
 
     initial_option_idx = 0
     for idx, team in enumerate(teams):
-        if team == value:
+        team_pk, team_name = team
+
+        if value and value.pk == team_pk:
             initial_option_idx = idx
         team_options.append(
             {
                 "text": {
                     "type": "plain_text",
-                    "text": f"{team.name}",
+                    "text": team_name,
                     "emoji": True,
                 },
-                "value": f"{team.pk}",
+                "value": str(team_pk),
             }
         )
 
@@ -574,10 +601,11 @@ def _get_team_select_blocks(
         "optional": True,
     }
 
-    blocks: Block.AnyBlocks = [team_select]
+    blocks.append(team_select)
 
     # No context block if no team selected
     if not is_selected:
+        blocks.append(direct_paging_info_msg)
         return blocks
 
     team_select["element"]["initial_option"] = team_options[initial_option_idx]
@@ -678,7 +706,7 @@ def _get_user_select_blocks(
 def _get_users_select(
     organization: "Organization", input_id_prefix: str, action_id: str, max_options_per_group=MAX_STATIC_SELECT_OPTIONS
 ) -> Block.Context | Block.Input:
-    schedules = get_oncall_users_for_multiple_schedules(organization.oncall_schedules.all())
+    schedules = get_cached_oncall_users_for_multiple_schedules(organization.oncall_schedules.all())
     oncall_user_pks = {user.pk for _, users in schedules.items() for user in users}
 
     oncall_user_option_groups = _create_user_option_groups(

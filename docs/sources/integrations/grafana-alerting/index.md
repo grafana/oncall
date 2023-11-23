@@ -17,7 +17,7 @@ weight: 100
 > ⚠️ A note about **(Legacy)** integrations:
 > We are changing internal behaviour of Grafana Alerting integration.
 > Integrations that were created before version 1.3.21 are marked as **(Legacy)**.
-> These integrations are still receiving and escalating alerts but will be automatically migrated in Q1 2024.
+> These integrations are still receiving and escalating alerts but will be automatically migrated on 1st February 2024.
 > <br/><br/>
 > To ensure a smooth transition you can migrate them by yourself now.
 > [Here][migration] you can read more about changes and migration process.

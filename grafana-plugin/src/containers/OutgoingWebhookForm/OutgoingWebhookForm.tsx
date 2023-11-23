@@ -17,23 +17,28 @@ import { observer } from 'mobx-react';
 import { useHistory } from 'react-router-dom';
 
 import Block from 'components/GBlock/Block';
-import GForm from 'components/GForm/GForm';
+import GForm, { CustomFieldSectionRendererProps } from 'components/GForm/GForm';
 import { FormItem, FormItemType } from 'components/GForm/GForm.types';
 import IntegrationLogo from 'components/IntegrationLogo/IntegrationLogo';
 import { logoCoors } from 'components/IntegrationLogo/IntegrationLogo.config';
+import RenderConditionally from 'components/RenderConditionally/RenderConditionally';
 import Text from 'components/Text/Text';
+import Labels, { LabelsProps } from 'containers/Labels/Labels';
 import { webhookPresetIcons } from 'containers/OutgoingWebhookForm/WebhookPresetIcons.config';
 import OutgoingWebhookStatus from 'containers/OutgoingWebhookStatus/OutgoingWebhookStatus';
 import WebhooksTemplateEditor from 'containers/WebhooksTemplateEditor/WebhooksTemplateEditor';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
+import { LabelKeyValue } from 'models/label/label.types';
 import { OutgoingWebhook, OutgoingWebhookPreset } from 'models/outgoing_webhook/outgoing_webhook.types';
 import { WebhookFormActionType } from 'pages/outgoing_webhooks/OutgoingWebhooks.types';
+import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
 import { KeyValuePair } from 'utils';
 import { UserActions } from 'utils/authorization';
 import { PLUGIN_ROOT } from 'utils/consts';
 
 import { createForm } from './OutgoingWebhookForm.config';
+import { WebhookFormFieldName } from './OutgoingWebhookForm.types';
 
 import styles from 'containers/OutgoingWebhookForm/OutgoingWebhookForm.module.css';
 
@@ -52,6 +57,23 @@ export const WebhookTabs = {
   LastRun: new KeyValuePair('LastRun', 'Last Run'),
 };
 
+const CustomFieldSectionRenderer: React.FC<CustomFieldSectionRendererProps> = observer(
+  ({ errors, setValue, getValues }) => {
+    const { hasFeature } = useStore();
+    const onDataUpdate: LabelsProps['onDataUpdate'] = (val) => setValue(WebhookFormFieldName.Labels, val);
+
+    return (
+      <RenderConditionally shouldRender={hasFeature(AppFeature.Labels)}>
+        <Labels
+          value={getValues<LabelKeyValue[]>(WebhookFormFieldName.Labels) || []}
+          errors={errors?.[WebhookFormFieldName.Labels]}
+          onDataUpdate={onDataUpdate}
+        />
+      </RenderConditionally>
+    );
+  }
+);
+
 const OutgoingWebhookForm = observer((props: OutgoingWebhookFormProps) => {
   const history = useHistory();
   const { id, action, onUpdate, onHide, onDelete } = props;
@@ -65,10 +87,10 @@ const OutgoingWebhookForm = observer((props: OutgoingWebhookFormProps) => {
   const [selectedPreset, setSelectedPreset] = useState<OutgoingWebhookPreset>(undefined);
   const [filterValue, setFilterValue] = useState('');
 
-  const { outgoingWebhookStore } = useStore();
+  const { outgoingWebhookStore, hasFeature } = useStore();
   const isNew = action === WebhookFormActionType.NEW;
   const isNewOrCopy = isNew || action === WebhookFormActionType.COPY;
-  const form = createForm(outgoingWebhookStore.outgoingWebhookPresets);
+  const form = createForm(outgoingWebhookStore.outgoingWebhookPresets, hasFeature(AppFeature.Labels));
 
   const handleSubmit = useCallback(
     (data: Partial<OutgoingWebhook>) => {
@@ -149,7 +171,15 @@ const OutgoingWebhookForm = observer((props: OutgoingWebhookFormProps) => {
     return null;
   }
 
-  const formElement = <GForm form={form} data={data} onSubmit={handleSubmit} onFieldRender={enrchField} />;
+  const formElement = (
+    <GForm
+      form={form}
+      data={data}
+      onSubmit={handleSubmit}
+      onFieldRender={enrchField}
+      customFieldSectionRenderer={CustomFieldSectionRenderer}
+    />
+  );
   const createWebhookParameters = (
     <>
       <Drawer scrollableContent title={'New Outgoing Webhook'} onClose={onHide} closeOnMaskClick={false}>
@@ -279,7 +309,13 @@ const OutgoingWebhookForm = observer((props: OutgoingWebhookFormProps) => {
     return (
       <>
         <div className={cx('content')}>
-          <GForm form={form} data={data} onSubmit={handleSubmit} onFieldRender={enrchField} />
+          <GForm
+            form={form}
+            data={data}
+            onSubmit={handleSubmit}
+            onFieldRender={enrchField}
+            customFieldSectionRenderer={CustomFieldSectionRenderer}
+          />
           <div className={cx('buttons')}>
             <HorizontalGroup justify={'flex-end'}>
               {id === 'new' ? (
@@ -339,8 +375,8 @@ const WebhookTabsContent: React.FC<WebhookTabsProps> = ({
   formElement,
 }) => {
   const [confirmationModal, setConfirmationModal] = useState<ConfirmModalProps>(undefined);
-  const { outgoingWebhookStore } = useStore();
-  const form = createForm(outgoingWebhookStore.outgoingWebhookPresets);
+  const { outgoingWebhookStore, hasFeature } = useStore();
+  const form = createForm(outgoingWebhookStore.outgoingWebhookPresets, hasFeature(AppFeature.Labels));
   return (
     <div className={cx('tabs__content')}>
       {confirmationModal && (

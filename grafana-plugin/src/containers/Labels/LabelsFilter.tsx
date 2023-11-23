@@ -12,6 +12,7 @@ import styles from './Labels.module.css';
 const cx = cn.bind(styles);
 
 interface LabelsFilterProps {
+  filterType: 'labels' | 'alert_group_labels';
   autoFocus: boolean;
   className: string;
   value: string[];
@@ -19,23 +20,28 @@ interface LabelsFilterProps {
 }
 
 const LabelsFilter = observer((props: LabelsFilterProps) => {
-  const { className, autoFocus, value: propsValue, onChange } = props;
-
+  const { filterType, className, autoFocus, value: propsValue, onChange } = props;
   const [value, setValue] = useState([]);
-
   const [keys, setKeys] = useState([]);
+  const { alertGroupStore, labelsStore } = useStore();
 
-  const { labelsStore } = useStore();
+  const loadKeys =
+    filterType === 'alert_group_labels'
+      ? alertGroupStore.loadLabelsKeys.bind(alertGroupStore)
+      : labelsStore.loadKeys.bind(labelsStore);
+
+  const loadValuesForKey =
+    filterType === 'alert_group_labels'
+      ? alertGroupStore.loadValuesForLabelKey.bind(alertGroupStore)
+      : labelsStore.loadValuesForKey.bind(labelsStore);
 
   useEffect(() => {
-    labelsStore.loadKeys().then(setKeys);
+    loadKeys().then(setKeys);
   }, []);
 
   useEffect(() => {
     const keyValuePairs = (propsValue || []).map((k) => k.split(':'));
-
-    const promises = keyValuePairs.map(([keyId]) => labelsStore.loadValuesForKey(keyId));
-
+    const promises = keyValuePairs.map(([keyId]) => loadValuesForKey(keyId));
     const fetchKeyValues = async () => await Promise.all(promises);
 
     fetchKeyValues().then((list) => {
@@ -56,7 +62,7 @@ const LabelsFilter = observer((props: LabelsFilterProps) => {
     return new Promise((resolve) => {
       const keysFiltered = keys.filter((k) => k.name.toLowerCase().includes(search.toLowerCase()));
 
-      const promises = keysFiltered.map((key) => labelsStore.loadValuesForKey(key.id));
+      const promises = keysFiltered.map((key) => loadValuesForKey(key.id));
 
       Promise.all(promises).then((list) => {
         const options = list.reduce((memo, { key, values }) => {

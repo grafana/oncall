@@ -15,6 +15,12 @@ import { isUserActionAllowed, UserActions } from 'utils/authorization';
 import { getTimezone, prepareForUpdate } from './user.helpers';
 import { User } from './user.types';
 
+export type PaginatedUsersResponse<UT = User> = {
+  count: number;
+  page_size: number;
+  results: UT[];
+};
+
 export class UserStore extends BaseStore {
   @observable.shallow
   searchResult: { count?: number; results?: Array<User['pk']>; page_size?: number } = {};
@@ -110,13 +116,20 @@ export class UserStore extends BaseStore {
     delete this.itemsCurrentlyUpdating[userPk];
   }
 
-  @action
-  async updateItems(f: any = { searchTerm: '' }, page = 1, invalidateFn?: () => boolean): Promise<any> {
+  /**
+   * NOTE: if is_currently_oncall=all the backend will not paginate the results, it will send back an array of ALL users
+   */
+  async search<RT = PaginatedUsersResponse<User>>(f: any = { searchTerm: '' }, page = 1): Promise<RT> {
     const filters = typeof f === 'string' ? { searchTerm: f } : f; // for GSelect compatibility
     const { searchTerm: search, ...restFilters } = filters;
-    const response = await makeRequest(this.path, {
+    return makeRequest<RT>(this.path, {
       params: { search, page, ...restFilters },
     });
+  }
+
+  @action
+  async updateItems(f: any = { searchTerm: '' }, page = 1, invalidateFn?: () => boolean): Promise<any> {
+    const response = await this.search(f, page);
 
     if (invalidateFn && invalidateFn()) {
       return;

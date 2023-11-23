@@ -4,7 +4,7 @@ import { UserResponders } from 'containers/AddResponders/AddResponders.types';
 import { Alert } from 'models/alertgroup/alertgroup.types';
 import BaseStore from 'models/base_store';
 import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
-import { User } from 'models/user/user.types';
+import { UserCurrentlyOnCall } from 'models/user/user.types';
 import { makeRequest } from 'network';
 import { RootStore } from 'state';
 
@@ -28,7 +28,7 @@ export class DirectPagingStore extends BaseStore {
   }
 
   @action
-  addUserToSelectedUsers = (user: User) => {
+  addUserToSelectedUsers = (user: UserCurrentlyOnCall) => {
     this.selectedUserResponders = [
       ...this.selectedUserResponders,
       {

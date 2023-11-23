@@ -49,6 +49,7 @@ export interface AlertReceiveChannel {
   allow_delete: boolean;
   deleted?: boolean;
   labels: LabelKeyValue[];
+  alert_group_labels: { inheritable: Record<LabelKeyValue['key']['id'], boolean> };
 }
 
 export interface AlertReceiveChannelChoice {
@@ -61,4 +62,12 @@ export interface ContactPoint {
   dataSourceId: string;
   contactPoint: string;
   notificationConnected: boolean;
+}
+
+export interface SupportedIntegrationFilters {
+  integration?: string[];
+  integration_ne?: string[];
+  team?: string[];
+  label?: string[];
+  searchTerm?: string;
 }

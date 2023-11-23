@@ -11,9 +11,9 @@ interface TooltipBadgeProps {
   className?: string;
   borderType: Partial<TextType>;
   text?: number | string;
-  tooltipTitle: string;
   tooltipContent: React.ReactNode;
 
+  tooltipTitle?: string;
   icon?: IconName;
   customIcon?: React.ReactNode;
   addPadding?: boolean;

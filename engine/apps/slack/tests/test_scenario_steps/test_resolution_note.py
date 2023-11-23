@@ -4,6 +4,7 @@ from unittest.mock import patch
 import pytest
 
 from apps.slack.client import SlackClient
+from apps.slack.constants import BLOCK_SECTION_TEXT_MAX_SIZE
 from apps.slack.errors import SlackAPIViewNotFoundError
 from apps.slack.scenarios.scenario_step import ScenarioStep
 from apps.slack.tests.conftest import build_slack_response
@@ -104,6 +105,119 @@ def test_get_resolution_notes_blocks_non_empty(
     ]
 
     assert blocks == expected_blocks
+
+
+@pytest.mark.django_db
+def test_get_resolution_note_blocks_truncate_text(
+    make_organization_and_user_with_slack_identities,
+    make_alert_receive_channel,
+    make_alert_group,
+    make_resolution_note,
+):
+    UpdateResolutionNoteStep = ScenarioStep.get_step("resolution_note", "UpdateResolutionNoteStep")
+    organization, user, slack_team_identity, _ = make_organization_and_user_with_slack_identities()
+    step = UpdateResolutionNoteStep(slack_team_identity)
+
+    alert_receive_channel = make_alert_receive_channel(organization)
+    alert_group = make_alert_group(alert_receive_channel)
+    resolution_note = make_resolution_note(alert_group=alert_group, author=user, message_text="a" * 3000)
+    author_verbal = resolution_note.author_verbal(mention=False)
+
+    blocks = step.get_resolution_note_blocks(resolution_note)
+
+    expected_blocks = [
+        {
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                # text is truncated, ellipsis added
+                "text": resolution_note.text[: BLOCK_SECTION_TEXT_MAX_SIZE - 1] + "…",
+            },
+        },
+        {
+            "type": "context",
+            "elements": [
+                {
+                    "type": "mrkdwn",
+                    "text": f"{author_verbal} resolution note from {resolution_note.get_source_display()}.",
+                }
+            ],
+        },
+    ]
+
+    assert blocks == expected_blocks
+
+
+@pytest.mark.django_db
+def test_post_or_update_resolution_note_in_thread_truncate_message_text(
+    make_organization_and_user_with_slack_identities,
+    make_alert_receive_channel,
+    make_alert_group,
+    make_slack_message,
+    make_resolution_note,
+):
+    UpdateResolutionNoteStep = ScenarioStep.get_step("resolution_note", "UpdateResolutionNoteStep")
+    organization, user, slack_team_identity, _ = make_organization_and_user_with_slack_identities()
+    step = UpdateResolutionNoteStep(slack_team_identity)
+
+    alert_receive_channel = make_alert_receive_channel(organization)
+    alert_group = make_alert_group(alert_receive_channel)
+    make_slack_message(alert_group=alert_group, channel_id="RANDOM_CHANNEL_ID", slack_id="RANDOM_MESSAGE_ID")
+    resolution_note = make_resolution_note(alert_group=alert_group, author=user, message_text="a" * 3000)
+
+    with patch("apps.slack.client.SlackClient.api_call") as mock_slack_api_call:
+        mock_slack_api_call.return_value = {
+            "ts": "timestamp",
+            "message": {"ts": "timestamp"},
+            "permalink": "https://link.to.message",
+        }
+        step.post_or_update_resolution_note_in_thread(resolution_note)
+
+    assert mock_slack_api_call.called
+    post_message_call = mock_slack_api_call.mock_calls[0]
+    assert post_message_call.args[0] == "chat.postMessage"
+    assert post_message_call.kwargs["json"]["text"] == resolution_note.text[: BLOCK_SECTION_TEXT_MAX_SIZE - 1] + "…"
+
+
+@pytest.mark.django_db
+def test_post_or_update_resolution_note_in_thread_update_truncate_message_text(
+    make_organization_and_user_with_slack_identities,
+    make_alert_receive_channel,
+    make_alert_group,
+    make_slack_message,
+    make_resolution_note,
+    make_resolution_note_slack_message,
+):
+    UpdateResolutionNoteStep = ScenarioStep.get_step("resolution_note", "UpdateResolutionNoteStep")
+    organization, user, slack_team_identity, _ = make_organization_and_user_with_slack_identities()
+    step = UpdateResolutionNoteStep(slack_team_identity)
+
+    alert_receive_channel = make_alert_receive_channel(organization)
+    alert_group = make_alert_group(alert_receive_channel)
+    make_slack_message(alert_group=alert_group, channel_id="RANDOM_CHANNEL_ID", slack_id="RANDOM_MESSAGE_ID")
+    resolution_note = make_resolution_note(alert_group=alert_group, author=user, message_text="a" * 3000)
+    make_resolution_note_slack_message(
+        alert_group=alert_group,
+        resolution_note=resolution_note,
+        user=user,
+        posted_by_bot=True,
+        added_by_user=user,
+        ts=1,
+        text=resolution_note.text,
+    )
+
+    with patch("apps.slack.client.SlackClient.api_call") as mock_slack_api_call:
+        mock_slack_api_call.return_value = {
+            "ts": "timestamp",
+            "message": {"ts": "timestamp"},
+            "permalink": "https://link.to.message",
+        }
+        step.post_or_update_resolution_note_in_thread(resolution_note)
+
+    assert mock_slack_api_call.called
+    post_message_call = mock_slack_api_call.mock_calls[0]
+    assert post_message_call.args[0] == "chat.update"
+    assert post_message_call.kwargs["json"]["text"] == resolution_note.text[: BLOCK_SECTION_TEXT_MAX_SIZE - 1] + "…"
 
 
 @pytest.mark.django_db

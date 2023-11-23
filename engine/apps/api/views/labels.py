@@ -6,7 +6,6 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ViewSet
 
-from apps.alerts.models import AlertReceiveChannel
 from apps.api.permissions import BasicRolePermission, LegacyAccessControlRole
 from apps.api.serializers.labels import (
     LabelKeySerializer,
@@ -23,7 +22,14 @@ from common.api_helpers.exceptions import BadRequest
 logger = logging.getLogger(__name__)
 
 
-class LabelsViewSet(ViewSet):
+class LabelsFeatureFlagViewSet(ViewSet):
+    def initial(self, request, *args, **kwargs):
+        super().initial(request, *args, **kwargs)
+        if not is_labels_feature_enabled(self.request.auth.organization):
+            raise NotFound
+
+
+class LabelsViewSet(LabelsFeatureFlagViewSet):
     """
     Proxy requests to labels-app to create/update labels
     """
@@ -39,11 +45,6 @@ class LabelsViewSet(ViewSet):
         "add_value": LegacyAccessControlRole.EDITOR,
         "rename_value": LegacyAccessControlRole.EDITOR,
     }
-
-    def initial(self, request, *args, **kwargs):
-        super().initial(request, *args, **kwargs)
-        if not is_labels_feature_enabled(self.request.auth.organization):
-            raise NotFound
 
     @extend_schema(responses=LabelKeySerializer(many=True))
     def get_keys(self, request):
@@ -135,30 +136,43 @@ class LabelsViewSet(ViewSet):
             update_labels_cache.apply_async((label_data,))
 
 
-class LabelsAssociatingMixin:  # use for labelable objects views (ex. AlertReceiveChannelView)
-    def filter_by_labels(self, queryset):
-        """Call this method in `get_queryset()` to add filtering by labels"""
-        if not is_labels_feature_enabled(self.request.auth.organization):
-            return queryset
-        labels = self.request.query_params.getlist("label")  # ["key1:value1", "key2:value2"]
-        if not labels:
-            return queryset
-        for label in labels:
-            label_data = label.split(":")
-            if len(label_data) != 2:  # ["key1", "value1"]
-                continue
-            key_id, value_id = label_data
-            queryset &= AlertReceiveChannel.objects_with_deleted.filter(
-                labels__key_id=key_id, labels__value_id=value_id
-            ).distinct()
-        return queryset
+class AlertGroupLabelsViewSet(LabelsFeatureFlagViewSet):
+    """
+    This viewset is similar to LabelsViewSet, but it works with alert group labels.
+    Alert group labels are stored in the database, not in the label repo.
+    """
 
-    def paginate_queryset(self, queryset):
-        organization = self.request.auth.organization
-        data = super().paginate_queryset(queryset)
-        if not is_labels_feature_enabled(self.request.auth.organization):
-            return data
-        ids = [d.id for d in data]
-        logger.info(f"start update_instances_labels_cache for ids: {ids}")
-        update_instances_labels_cache.apply_async((organization.id, ids, self.model.__name__))
-        return data
+    permission_classes = (IsAuthenticated, BasicRolePermission)
+    authentication_classes = (PluginAuthentication,)
+    basic_role_permissions = {
+        "get_keys": LegacyAccessControlRole.VIEWER,
+        "get_key": LegacyAccessControlRole.VIEWER,
+    }
+
+    @extend_schema(responses=LabelKeySerializer(many=True))
+    def get_keys(self, request):
+        """
+        List of alert group label keys.
+        IDs are the same as names to keep the response format consistent with LabelsViewSet.get_keys().
+        """
+        names = self.request.auth.organization.alert_group_labels.values_list("key_name", flat=True).distinct()
+        return Response([{"id": name, "name": name} for name in names])
+
+    @extend_schema(responses=LabelKeyValuesSerializer)
+    def get_key(self, request, key_id):
+        """Key with the list of values. IDs and names are interchangeable (see get_keys() for more details)."""
+        values = (
+            self.request.auth.organization.alert_group_labels.filter(key_name=key_id)
+            .values_list("value_name", flat=True)
+            .distinct()
+        )
+        return Response(
+            {"key": {"id": key_id, "name": key_id}, "values": [{"id": value, "name": value} for value in values]}
+        )
+
+
+def schedule_update_label_cache(model_name, org, ids):
+    if not is_labels_feature_enabled(org):
+        return
+    logger.info(f"start update_instances_labels_cache for ids: {ids}")
+    update_instances_labels_cache.apply_async((org.id, ids, model_name))

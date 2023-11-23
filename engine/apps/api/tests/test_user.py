@@ -263,6 +263,31 @@ def test_list_users_filtered_by_granted_permission(
 
 
 @pytest.mark.django_db
+def test_list_users_filtered_by_public_primary_key(
+    make_organization,
+    make_user_for_organization,
+    make_token_for_organization,
+    make_user_auth_headers,
+):
+    organization = make_organization()
+    admin_user = make_user_for_organization(organization)
+    user1 = make_user_for_organization(organization)
+    make_user_for_organization(organization)
+    _, token = make_token_for_organization(organization)
+
+    client = APIClient()
+    url = reverse("api-internal:user-list")
+
+    response = client.get(
+        f"{url}?search={user1.public_primary_key}", format="json", **make_user_auth_headers(admin_user, token)
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    returned_user_pks = [u["pk"] for u in response.json()["results"]]
+    assert returned_user_pks == [user1.public_primary_key]
+
+
+@pytest.mark.django_db
 def test_notification_chain_verbal(
     make_organization,
     make_user_for_organization,
@@ -1935,7 +1960,7 @@ def test_users_is_currently_oncall_attribute_works_properly(
     schedule.refresh_ical_final_schedule()
 
     client = APIClient()
-    url = f"{reverse('api-internal:user-list')}?short=false"
+    url = f"{reverse('api-internal:user-list')}?is_currently_oncall=all"
     response = client.get(url, format="json", **make_user_auth_headers(user1, token))
 
     oncall_statuses = {
@@ -1943,7 +1968,7 @@ def test_users_is_currently_oncall_attribute_works_properly(
         user2.public_primary_key: False,
     }
 
-    for user in response.json()["results"]:
+    for user in response.json():
         assert user["teams"] == []
         assert user["is_currently_oncall"] == oncall_statuses[user["pk"]]
 

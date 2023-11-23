@@ -25,6 +25,8 @@ telegramPolling.enabled=true -> should create telegram polling deployment:
           value: admin
         - name: OSS
           value: "True"
+        - name: DETACHED_INTEGRATIONS_SERVER
+          value: "False"
         - name: UWSGI_LISTEN
           value: "1024"
         - name: BROKER_TYPE

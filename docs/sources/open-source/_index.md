@@ -197,13 +197,13 @@ Refer to the following steps to configure the Telegram integration:
 
 ## Grafana OSS-Cloud Setup
 
-The benefits of connecting to Grafana Cloud include:
+The benefits of connecting to Grafana Cloud OnCall include:
 
-- Cloud OnCall could monitor OSS OnCall uptime using heartbeat
+- Grafana Cloud OnCall could monitor OSS OnCall uptime using heartbeat
 - SMS for user notifications
 - Phone calls for user notifications.
 
-To connect to Grafana Cloud, refer to the **Cloud** page in your OSS Grafana OnCall instance.
+To connect to Grafana Cloud OnCall, refer to the **Cloud** page in your OSS Grafana OnCall instance.
 
 ## Supported Phone Providers
 
@@ -265,7 +265,9 @@ To configure Inbound Email integration for Grafana OnCall OSS populate env varia
 - `INBOUND_EMAIL_DOMAIN` - Inbound email domain
 - `INBOUND_EMAIL_WEBHOOK_SECRET` - Inbound email webhook secret
 
-You will also need to configure your ESP to forward messages to the following URL: `<ONCALL_ENGINE_PUBLIC_URL>/integrations/v1/inbound_email_webhook`.
+Required secret syntax: `part1ofsecret:part2ofsecret` (The colon `:` is a mandatory delimiter separating both parts of your secret.)
+
+You will also need to configure your ESP to forward messages to the following URL: `scheme://<INBOUND_EMAIL_WEBHOOK_SECRET>@<ONCALL_ENGINE_PUBLIC_URL>/integrations/v1/inbound_email_webhook`.
 
 ## Limits
 

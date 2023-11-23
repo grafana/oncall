@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 
-import { Field, Input, Button, HorizontalGroup, Icon, VerticalGroup, LoadingPlaceholder } from '@grafana/ui';
+import { Button, Field, HorizontalGroup, Icon, Input, LoadingPlaceholder, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
@@ -15,7 +15,7 @@ import { WithStoreProps } from 'state/types';
 import { useStore } from 'state/useStore';
 import { withMobXProviderContext } from 'state/withStore';
 import { openErrorNotification } from 'utils';
-import { determineRequiredAuthString, UserActions } from 'utils/authorization';
+import { UserActions, determineRequiredAuthString } from 'utils/authorization';
 import { PLUGIN_ROOT } from 'utils/consts';
 
 import styles from './CloudPage.module.css';
@@ -135,16 +135,16 @@ const CloudPage = observer((props: CloudPageProps) => {
   const renderStatus = (user: Cloud) => {
     switch (user?.cloud_data?.status) {
       case 0:
-        return <Text className={cx('error-message')}>Grafana Cloud is not synced</Text>;
+        return <Text className={cx('error-message')}>Grafana Cloud OnCall is not synced</Text>;
       case 1:
-        return <Text className={cx('error-message')}>User not found in Grafana Cloud</Text>;
+        return <Text className={cx('error-message')}>User not found in Grafana Cloud OnCall</Text>;
       case 2:
-        return <Text type="warning">Phone number is not verified in Grafana Cloud</Text>;
+        return <Text type="warning">Phone number is not verified in Grafana Cloud OnCall</Text>;
       case 3:
         return <Text type="success">Phone number verified</Text>;
 
       default:
-        return <Text className={cx('error-message')}>User not found in Grafana Cloud</Text>;
+        return <Text className={cx('error-message')}>User not found in Grafana Cloud OnCall</Text>;
     }
   };
 
@@ -209,9 +209,9 @@ const CloudPage = observer((props: CloudPageProps) => {
       <Block withBackground bordered className={cx('info-block')}>
         <VerticalGroup>
           <Text.Title level={4}>
-            <Icon name="check" className={cx('block-icon')} size="lg" /> Cloud OnCall API key
+            <Icon name="check" className={cx('block-icon')} size="lg" /> Grafana Cloud OnCall API key
           </Text.Title>
-          <Text type="secondary">Cloud OnCall is sucessfully connected.</Text>
+          <Text type="secondary">Grafana Cloud OnCall is sucessfully connected.</Text>
 
           <WithConfirm title="Are you sure to disconnect Cloud OnCall?" confirmText="Disconnect">
             <Button variant="destructive" onClick={disconnectCloudOncall} size="md" className={cx('block-button')}>
@@ -261,7 +261,7 @@ const CloudPage = observer((props: CloudPageProps) => {
 
             <div style={{ width: '100%' }}>
               <Text type="secondary">
-                {`Ask your users to sign up in Grafana Cloud, verify phone number and feel free to set up SMS & phone call notifications in personal settings! Users must have ${determineRequiredAuthString(
+                {`Ask your users to sign up in Grafana Cloud OnCall, verify phone number and feel free to set up SMS & phone call notifications in personal settings! Users must have ${determineRequiredAuthString(
                   UserActions.NotificationsRead
                 )} in order to be synced.`}
               </Text>
@@ -277,7 +277,7 @@ const CloudPage = observer((props: CloudPageProps) => {
                       <Text type="secondary">
                         {matched_users_count ? matched_users_count : 0} user
                         {matched_users_count === 1 ? '' : 's'}
-                        {` matched between OSS and Cloud OnCall`}
+                        {` matched between OSS and Grafana Cloud OnCall`}
                       </Text>
                       <Button variant="primary" onClick={syncUsers} icon="sync" disabled={syncingUsers}>
                         {syncingUsers ? 'Syncing...' : 'Sync users'}
@@ -314,8 +314,8 @@ const CloudPage = observer((props: CloudPageProps) => {
             <Icon name="mobile-android" className={cx('block-icon')} size="lg" /> Mobile app push notifications
           </Text.Title>
           <Text type="secondary">
-            Connecting to Cloud OnCall enables sending push notifications on mobile devices using the Grafana OnCall
-            mobile app.
+            Connecting to Grafana Cloud OnCall enables sending push notifications on mobile devices using the Grafana
+            OnCall mobile app.
           </Text>
         </VerticalGroup>
       </Block>
@@ -327,11 +327,11 @@ const CloudPage = observer((props: CloudPageProps) => {
       <Block withBackground bordered className={cx('info-block')}>
         <VerticalGroup>
           <Text.Title level={4}>
-            <Icon name="sync" className={cx('block-icon')} size="lg" /> Cloud OnCall API key
+            <Icon name="sync" className={cx('block-icon')} size="lg" /> Grafana Cloud OnCall API key
           </Text.Title>
           <Field
             label=""
-            description="Find it on the Settings page of OnCall, within your Cloud Grafana instance"
+            description="Find it on the Settings page of OnCall, within your Grafana Cloud OnCall instance"
             style={{ width: '100%' }}
             invalid={apiKeyError}
           >
@@ -351,8 +351,9 @@ const CloudPage = observer((props: CloudPageProps) => {
             Monitor instance with heartbeat
           </Text.Title>
           <Text type="secondary">
-            Once connected, this OnCall instance will send heartbeats every 3 minutes to the Cloud Grafana instance. If
-            no heartbeats are received within 10 minutes, the Cloud Grafana instance will issue an alert.
+            Once connected, this OnCall instance will send heartbeats every 3 minutes to the Grafana Cloud OnCall
+            instance. If no heartbeats are received within 10 minutes, the Grafana Cloud OnCall instance will issue an
+            alert.
           </Text>
         </VerticalGroup>
       </Block>
@@ -363,7 +364,8 @@ const CloudPage = observer((props: CloudPageProps) => {
           </Text.Title>
 
           <Text type="secondary">
-            Connecting to Cloud OnCall enables sending SMS and phone call notifications using Cloud Grafana OnCall.
+            Connecting to Grafana Cloud OnCall enables sending SMS and phone call notifications using Grafana Cloud
+            OnCall.
           </Text>
         </VerticalGroup>
       </Block>
@@ -373,7 +375,7 @@ const CloudPage = observer((props: CloudPageProps) => {
             <Icon name="mobile-android" className={cx('block-icon')} size="lg" /> Mobile app push notifications
           </Text.Title>
           <Text type="secondary">
-            Connecting to Cloud Grafana OnCall enables sending push notifications on mobile devices using the Grafana
+            Connecting to Grafana Cloud OnCall enables sending push notifications on mobile devices using the Grafana
             OnCall mobile app.
           </Text>
         </VerticalGroup>
@@ -385,7 +387,7 @@ const CloudPage = observer((props: CloudPageProps) => {
     <div className={cx('root')}>
       <VerticalGroup spacing="lg">
         <Text.Title level={3} className={cx('cloud-page-title')}>
-          Connect Open Source OnCall and <Text className={cx('cloud-oncall-name')}>Cloud OnCall</Text>
+          Connect Open Source OnCall and <Text className={cx('cloud-oncall-name')}>Grafana Cloud OnCall</Text>
         </Text.Title>
         {cloudIsConnected === undefined ? (
           <LoadingPlaceholder text="Loading..." />

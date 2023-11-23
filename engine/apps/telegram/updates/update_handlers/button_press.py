@@ -5,7 +5,7 @@ from typing import Callable, Optional, Tuple
 from apps.alerts.constants import ActionSource
 from apps.alerts.models import AlertGroup
 from apps.api.permissions import RBACPermission, user_is_authorized
-from apps.telegram.models import TelegramToUserConnector
+from apps.telegram.models import TelegramMessage, TelegramToUserConnector
 from apps.telegram.renderers.keyboard import CODE_TO_ACTION_MAP, Action
 from apps.telegram.updates.update_handlers import UpdateHandler
 from apps.telegram.utils import CallbackQueryFactory
@@ -45,6 +45,15 @@ class ButtonPressHandler(UpdateHandler):
             self.update.callback_query.answer(PERMISSION_DENIED, show_alert=True)
             logger.info(f"User {user} has no permission to trigger '{fn.__name__}'")
 
+    def _get_alert_group_from_message(self) -> Optional[AlertGroup]:
+        alert_group = None
+        if self.update.message:
+            telegram_message = TelegramMessage.objects.get(
+                message_id=self.update.message.message_id, chat_id=self.update.message.chat.id
+            )
+            alert_group = telegram_message.alert_group
+        return alert_group
+
     def _get_user(self, action_context: ActionContext) -> Optional[User]:
         connector = TelegramToUserConnector.objects.filter(
             telegram_chat_id=self.update.effective_user.id,
@@ -60,12 +69,15 @@ class ButtonPressHandler(UpdateHandler):
         has_permission = user_is_authorized(user, [RBACPermission.Permissions.CHATOPS_WRITE])
         return user.organization == alert_group.channel.organization and has_permission
 
-    @classmethod
-    def _get_action_context(cls, data: str) -> ActionContext:
+    def _get_action_context(self, data: str) -> ActionContext:
         args = CallbackQueryFactory.decode_data(data)
 
-        alert_group_pk = args[0]
-        alert_group = AlertGroup.objects.get(pk=alert_group_pk)
+        # Try to get alert group from telegram message, because encoded data is not valid for migrated organizations
+        alert_group = self._get_alert_group_from_message()
+
+        if alert_group is None:
+            alert_group_pk = args[0]
+            alert_group = AlertGroup.objects.get(pk=alert_group_pk)
 
         action_value = args[1]
         try:
@@ -77,7 +89,7 @@ class ButtonPressHandler(UpdateHandler):
             action_name = action_value
         action = Action(action_name)
 
-        action_data = args[2] if len(args) >= 3 and not cls._is_oncall_identifier(args[2]) else None
+        action_data = args[2] if len(args) >= 3 and not self._is_oncall_identifier(args[2]) else None
 
         return ActionContext(alert_group=alert_group, action=action, action_data=action_data)
 

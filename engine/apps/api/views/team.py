@@ -4,17 +4,22 @@ from rest_framework.filters import SearchFilter
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from apps.alerts.paging import integration_is_notifiable
 from apps.api.permissions import RBACPermission
 from apps.api.serializers.team import TeamLongSerializer, TeamSerializer
 from apps.auth_token.auth import PluginAuthentication
 from apps.mobile_app.auth import MobileAppAuthTokenAuthentication
-from apps.schedules.ical_utils import get_oncall_users_for_multiple_schedules
+from apps.schedules.ical_utils import get_cached_oncall_users_for_multiple_schedules
 from apps.user_management.models import Team
 from common.api_helpers.mixins import PublicPrimaryKeyMixin
 
 
-class TeamViewSet(PublicPrimaryKeyMixin, mixins.ListModelMixin, mixins.UpdateModelMixin, viewsets.GenericViewSet):
+class TeamViewSet(
+    PublicPrimaryKeyMixin,
+    mixins.ListModelMixin,
+    mixins.RetrieveModelMixin,
+    mixins.UpdateModelMixin,
+    viewsets.GenericViewSet,
+):
     authentication_classes = (
         MobileAppAuthTokenAuthentication,
         PluginAuthentication,
@@ -44,7 +49,7 @@ class TeamViewSet(PublicPrimaryKeyMixin, mixins.ListModelMixin, mixins.UpdateMod
         """
         team_ids = [t.id for t in self.filter_queryset(self.get_queryset())]
         team_schedules = self.request.user.organization.oncall_schedules.filter(team__id__in=team_ids)
-        return get_oncall_users_for_multiple_schedules(team_schedules)
+        return get_cached_oncall_users_for_multiple_schedules(team_schedules)
 
     def get_serializer_context(self):
         context = super().get_serializer_context()
@@ -61,14 +66,11 @@ class TeamViewSet(PublicPrimaryKeyMixin, mixins.ListModelMixin, mixins.UpdateMod
         queryset = self.filter_queryset(self.get_queryset())
 
         if self.request.query_params.get("only_include_notifiable_teams", "false") == "true":
-            # filters down to only teams that have a direct paging integration that is "notifiable"
-            orgs_direct_paging_integrations = self.request.user.organization.get_direct_paging_integrations()
-            notifiable_direct_paging_integrations = [
-                i for i in orgs_direct_paging_integrations if integration_is_notifiable(i)
-            ]
-            team_ids = [i.team.pk for i in notifiable_direct_paging_integrations if i.team is not None]
-
-            queryset = queryset.filter(pk__in=team_ids)
+            queryset = queryset.filter(
+                pk__in=self.request.user.organization.get_notifiable_direct_paging_integrations()
+                .filter(team__isnull=False)
+                .values_list("team__pk", flat=True)
+            )
 
         queryset = queryset.order_by("name")
 

@@ -1,11 +1,11 @@
-django==4.2.6
+django==4.2.7
 djangorestframework==3.14.0
 slack_sdk==3.21.3
 whitenoise==5.3.0
 twilio~=6.37.0
 phonenumbers==8.10.0
 celery[amqp,redis]==5.3.1
-redis==4.6.0
+redis==5.0.1
 humanize==0.5.1
 uwsgi==2.0.21
 django-cors-headers==3.7.0
@@ -13,13 +13,8 @@ django-debug-toolbar==4.1
 django-sns-view==0.1.2
 python-telegram-bot==13.13
 django-silk==5.0.3
-# we need to use our own fork of django-redis-cache
-# reason being is that the "regular" repo (https://github.com/sebleier/django-redis-cache/)
-# has `redis` pinned @ <4.0
-# celery==5.3.1 complains about this
-# celery[amqp,redis] 5.3.1 depends on redis!=4.5.5 and >=4.5.2; extra == "redis"
-git+https://github.com/grafana/django-redis-cache.git@bump-redis-version-to-v4.6
-hiredis==1.0.0
+django-redis==5.4.0
+hiredis==2.2.3
 django-ratelimit==2.0.0
 django-filter==2.4.0
 icalendar==5.0.10
@@ -57,5 +52,5 @@ urllib3==1.26.18
 prometheus_client==0.16.0
 lxml==4.9.2
 babel==2.12.1
-drf-spectacular==0.26.2
+drf-spectacular==0.26.5
 grpcio==1.57.0

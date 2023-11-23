@@ -1,0 +1,77 @@
+suite: test integrations deployment
+templates:
+  - integrations/deployment.yaml
+release:
+  name: oncall
+chart:
+  appVersion: v1.3.39
+tests:
+  - it: detached_integrations.enabled=false -> should not create deployment (default)
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: detached_integrations.enabled=true -> should create integrations deployment
+    set:
+      detached_integrations.enabled: true
+    asserts:
+      - containsDocument:
+          kind: Deployment
+          apiVersion: apps/v1
+          metadata.name: oncall-integrations
+      - isSubset:
+          path: metadata.labels
+          content:
+            app.kubernetes.io/component: integrations
+            app.kubernetes.io/instance: oncall
+            app.kubernetes.io/name: oncall
+      - isSubset:
+          path: spec.selector.matchLabels
+          content:
+            app.kubernetes.io/component: integrations
+            app.kubernetes.io/instance: oncall
+            app.kubernetes.io/name: oncall
+      - isSubset:
+          path: spec.template.metadata.labels
+          content:
+            app.kubernetes.io/component: integrations
+            app.kubernetes.io/instance: oncall
+            app.kubernetes.io/name: oncall
+      - equal:
+          path: spec.replicas
+          value: 1
+      - equal:
+          path: spec.template.spec.serviceAccountName
+          value: oncall
+      - contains:
+          path: spec.template.spec.initContainers
+          content:
+            name: wait-for-db
+          any: true
+      - matchSnapshot:
+          path: spec.template.spec.containers
+
+---
+suite: test integrations internal service
+templates:
+  - integrations/service-internal.yaml
+release:
+  name: oncall
+chart:
+  appVersion: v1.3.39
+tests:
+  - it: detached_integrations.enabled=false -> should not create service
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: detached_integrations.enabled=true -> should create service
+    set:
+      detached_integrations.enabled: true
+    asserts:
+      - containsDocument:
+          kind: Service
+          apiVersion: v1
+          metadata.name: oncall-integrations
+      - matchSnapshot:
+          path: spec

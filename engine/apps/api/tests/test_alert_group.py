@@ -864,6 +864,46 @@ def test_get_filter_escalation_chain(
 
 
 @pytest.mark.django_db
+def test_get_filter_labels(
+    make_organization_and_user_with_plugin_token,
+    make_user_for_organization,
+    make_alert_receive_channel,
+    make_channel_filter,
+    make_alert_group,
+    make_alert,
+    make_alert_group_label_association,
+    make_user_auth_headers,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+
+    alert_receive_channel = make_alert_receive_channel(organization)
+    channel_filter = make_channel_filter(alert_receive_channel, is_default=True)
+
+    alert_groups = []
+    for _ in range(3):
+        alert_group = make_alert_group(alert_receive_channel, channel_filter=channel_filter)
+        make_alert(alert_group=alert_group, raw_request_data=alert_raw_request_data)
+        alert_groups.append(alert_group)
+
+    make_alert_group_label_association(organization, alert_groups[0], key_name="a", value_name="b")
+    make_alert_group_label_association(organization, alert_groups[0], key_name="c", value_name="d")
+    make_alert_group_label_association(organization, alert_groups[1], key_name="a", value_name="b")
+    make_alert_group_label_association(organization, alert_groups[2], key_name="c", value_name="d")
+
+    client = APIClient()
+    url = reverse("api-internal:alertgroup-list")
+
+    response = client.get(
+        url + "?label=a:b&label=c:d",
+        format="json",
+        **make_user_auth_headers(user, token),
+    )
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.json()["results"]) == 1
+    assert response.json()["results"][0]["pk"] == alert_groups[0].public_primary_key
+
+
+@pytest.mark.django_db
 @pytest.mark.parametrize(
     "role,expected_status",
     [
@@ -2058,3 +2098,47 @@ def test_wipe_clears_cache(
         for field_name in AlertFieldsCacheSerializerMixin.ALL_FIELD_NAMES
     ]
     assert not any([cache.get(key) for key in alert_cache_keys])
+
+
+@patch("apps.api.views.alert_group.delete_alert_group.apply_async")
+@pytest.mark.django_db
+def test_delete(mock_delete_alert_group, make_user_auth_headers, alert_group_internal_api_setup):
+    client = APIClient()
+    user, token, alert_groups = alert_group_internal_api_setup
+    resolved_alert_group, acked_alert_group, new_alert_group, _ = alert_groups
+
+    auth_headers = make_user_auth_headers(user, token)
+
+    for alert_group in [resolved_alert_group, acked_alert_group, new_alert_group]:
+        mock_delete_alert_group.reset_mock()
+
+        url = reverse("api-internal:alertgroup-detail", kwargs={"pk": alert_group.public_primary_key})
+        response = client.delete(url, **auth_headers)
+
+        assert response.status_code == status.HTTP_204_NO_CONTENT
+        mock_delete_alert_group.assert_called_once_with((alert_group.pk, user.pk))
+
+    url = reverse("api-internal:alertgroup-detail", kwargs={"pk": "potato"})
+    response = client.delete(url, **auth_headers)
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+
+
+@pytest.mark.django_db
+def test_alert_group_list_labels(
+    alert_group_internal_api_setup,
+    make_alert_group_label_association,
+    make_alert_receive_channel,
+    make_alert_group,
+    make_user_auth_headers,
+):
+    user, token, alert_groups = alert_group_internal_api_setup
+    make_alert_group_label_association(user.organization, alert_groups[0], key_name="a", value_name="b")
+
+    client = APIClient()
+    url = reverse("api-internal:alertgroup-list")
+    response = client.get(url, **make_user_auth_headers(user, token))
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()["results"][-1]["labels"] == [
+        {"key": {"id": "a", "name": "a"}, "value": {"id": "b", "name": "b"}}
+    ]

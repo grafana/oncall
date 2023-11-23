@@ -87,6 +87,10 @@ def number_to_smiles_translator(number):
     return "".join(reversed(smileset))
 
 
+class IntegrationAlertGroupLabels(typing.TypedDict):
+    inheritable: typing.Dict[str, bool]
+
+
 class AlertReceiveChannelQueryset(models.QuerySet):
     def delete(self):
         self.update(deleted_at=timezone.now())
@@ -202,14 +206,6 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
     rate_limited_in_slack_at = models.DateTimeField(null=True, default=None)
     rate_limit_message_task_id = models.CharField(max_length=100, null=True, default=None)
 
-    class Meta:
-        constraints = [
-            models.UniqueConstraint(
-                fields=["organization", "verbal_name", "deleted_at"],
-                name="unique integration name",
-            )
-        ]
-
     def __str__(self):
         short_name_with_emojis = emojize(self.short_name, language="alias")
         return f"{self.pk}: {short_name_with_emojis}"
@@ -261,6 +257,7 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
         # Don't allow multiple Direct Paging integrations per team
         if (
             self.integration == AlertReceiveChannel.INTEGRATION_DIRECT_PAGING
+            and not self.deleted_at
             and AlertReceiveChannel.objects.filter(
                 organization=self.organization, team=self.team, integration=self.integration
             )
@@ -637,6 +634,21 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
         else:
             result["team"] = "General"
         return result
+
+    @property
+    def alert_group_labels(self) -> IntegrationAlertGroupLabels:
+        """
+        Alert group labels configuration for the integration used by AlertReceiveChannelSerializer.
+        See AlertReceiveChannelAssociatedLabel.inheritable for more details.
+        """
+        return {"inheritable": {label.key_id: label.inheritable for label in self.labels.all()}}
+
+    @alert_group_labels.setter
+    def alert_group_labels(self, value: IntegrationAlertGroupLabels) -> None:
+        """Setter for alert_group_labels used by AlertReceiveChannelSerializer"""
+        inheritable_key_ids = [key_id for key_id, inheritable in value["inheritable"].items() if inheritable]
+        self.labels.filter(key_id__in=inheritable_key_ids).update(inheritable=True)
+        self.labels.filter(~Q(key_id__in=inheritable_key_ids)).update(inheritable=False)
 
 
 @receiver(post_save, sender=AlertReceiveChannel)
