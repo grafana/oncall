@@ -11,6 +11,7 @@ from django.utils import timezone
 from mirage import fields as mirage_fields
 
 from apps.alerts.models import MaintainableObject
+from apps.user_management.constants import AlertGroupTableColumn
 from apps.user_management.subscription_strategy import FreePublicBetaSubscriptionStrategy
 from apps.user_management.utils import default_columns
 from common.insight_log import ChatOpsEvent, ChatOpsTypePlug, write_chatops_insight_log
@@ -286,7 +287,7 @@ class Organization(MaintainableObject):
     def emails_left(self, user):
         return self.subscription_strategy.emails_left(user)
 
-    def update_alert_group_table_columns(self, columns: list):
+    def update_alert_group_table_columns(self, columns: typing.List[AlertGroupTableColumn]) -> None:
         if columns != self.alert_group_table_columns:
             self.alert_group_table_columns = columns
             self.save(update_fields=["alert_group_table_columns"])

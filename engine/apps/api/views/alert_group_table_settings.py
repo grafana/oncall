@@ -1,6 +1,7 @@
 import typing
 
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.request import Request
 from rest_framework.response import Response
 
 from apps.api.permissions import RBACPermission
@@ -21,11 +22,11 @@ class AlertGroupTableColumnsViewSet(LabelsFeatureFlagViewSet):
         "update_columns_list": [RBACPermission.Permissions.OTHER_SETTINGS_WRITE],
     }
 
-    def get_columns(self, request):
+    def get_columns(self, request: Request) -> Response:
         user = request.user
         return Response(alert_group_table_user_settings(user))
 
-    def update_columns_list(self, request):
+    def update_columns_list(self, request: Request) -> Response:
         """add/remove columns for organization"""
         user = request.user
         organization = request.auth.organization
@@ -39,7 +40,7 @@ class AlertGroupTableColumnsViewSet(LabelsFeatureFlagViewSet):
         organization.update_alert_group_table_columns(columns)
         return Response(alert_group_table_user_settings(user))
 
-    def update_columns_settings(self, request):
+    def update_columns_settings(self, request: Request) -> Response:
         """select/hide/change order for user"""
         user = request.user
         serializer = AlertGroupTableColumnsListSerializer(

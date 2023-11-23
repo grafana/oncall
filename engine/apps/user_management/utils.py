@@ -7,8 +7,11 @@ from apps.user_management.constants import (
     AlertGroupTableDefaultColumnChoices,
 )
 
+if typing.TYPE_CHECKING:
+    from apps.user_management.models import User
 
-def default_columns():
+
+def default_columns() -> typing.List[AlertGroupTableColumn]:
     columns = [
         {"name": column.label, "id": column.value, "type": AlertGroupTableColumnTypeChoices.DEFAULT.value}
         for column in AlertGroupTableDefaultColumnChoices
@@ -16,7 +19,7 @@ def default_columns():
     return columns
 
 
-def alert_group_table_user_settings(user) -> AlertGroupTableColumns:
+def alert_group_table_user_settings(user: "User") -> AlertGroupTableColumns:
     organization_columns = user.organization.alert_group_table_columns
     visible_columns: typing.List[AlertGroupTableColumn]
     if user.alert_groups_table_selected_columns:

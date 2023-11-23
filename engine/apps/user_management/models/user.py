@@ -21,6 +21,7 @@ from apps.api.permissions import (
     user_is_authorized,
 )
 from apps.schedules.tasks import drop_cached_ical_for_custom_events_for_organization
+from apps.user_management.constants import AlertGroupTableColumn
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
 
 if typing.TYPE_CHECKING:
@@ -451,7 +452,7 @@ class User(models.Model):
             ),
         )
 
-    def update_alert_group_table_columns_settings(self, columns: list):
+    def update_alert_group_table_columns_settings(self, columns: typing.List[AlertGroupTableColumn]) -> None:
         if self.alert_groups_table_selected_columns != columns:
             self.alert_groups_table_selected_columns = columns
             self.save(update_fields=["alert_groups_table_selected_columns"])
