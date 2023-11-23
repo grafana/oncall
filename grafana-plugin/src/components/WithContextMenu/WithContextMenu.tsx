@@ -16,7 +16,6 @@ const query = '[class$="-page-container"] .scrollbar-view';
 export const WithContextMenu: React.FC<WithContextMenuProps> = ({
   children,
   renderMenuItems,
-  isOpen,
   forceIsOpen = false,
   focusOnOpen = true,
   ...rest
