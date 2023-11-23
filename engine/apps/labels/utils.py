@@ -97,13 +97,30 @@ def assign_labels(
 
 
 def _custom_labels(alert_receive_channel: "AlertReceiveChannel", raw_request_data: typing.Any) -> dict[str, str]:
+    # TODO: implement label key/value name updates, refactor
+
+    from apps.labels.models import LabelKeyCache, LabelValueCache
+
+    label_key_ids = [label["key"]["id"] for label in alert_receive_channel.alert_group_labels_custom]
+    label_key_names = {k.id: k.name for k in LabelKeyCache.objects.filter(id__in=label_key_ids).only("id", "name")}
+
+    label_value_ids = [
+        label["value"]["id"] for label in alert_receive_channel.alert_group_labels_custom if label["value"]["id"]
+    ]
+    label_value_names = {
+        v.id: v.name for v in LabelValueCache.objects.filter(id__in=label_value_ids).only("id", "name")
+    }
+
     labels = {}
     for label in alert_receive_channel.alert_group_labels_custom:
-        if not label["template"]:
-            labels[label["key"]] = label["value"]
+        key_name = label_key_names[label["key"]["id"]]
+        value_name = label_value_names[label["value"]["id"]] if label["value"]["id"] else label["value"]["name"]
+
+        if label["value"]["id"]:
+            labels[key_name] = value_name
         else:
             try:
-                labels[label["key"]] = apply_jinja_template(label["value"], raw_request_data)
+                labels[key_name] = apply_jinja_template(value_name, raw_request_data)
             except (JinjaTemplateError, JinjaTemplateWarning) as e:
                 logger.warning("Failed to apply template. %s", e.fallback_message)
                 continue

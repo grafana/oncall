@@ -664,7 +664,7 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
         See AlertReceiveChannelAssociatedLabel.inheritable for more details.
         """
 
-        # TODO: implement label key/value name updates
+        # TODO: implement label key/value name updates, refactor
         # from apps.labels.models import LabelKeyCache, LabelValueCache
         #
         # # label_key_ids = [label["key"] for label in self.alert_group_labels_custom]
