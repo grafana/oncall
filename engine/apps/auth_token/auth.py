@@ -323,6 +323,7 @@ class GrafanaServiceAccountAuthentication(BaseAuthentication):
 
         return user, auth_token
 
+    # Using default permissions as proxies for roles since we cannot explicitly get role from the service account token
     def determine_role_from_permissions(self, permissions):
         if "plugins:write" in permissions:
             return LegacyAccessControlRole.ADMIN
