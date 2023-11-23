@@ -9,7 +9,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- User filter doesn't display current value on Alert Groups page ([1714](https://github.com/grafana/oncall/issues/1714))
+- Remove displaying rotation modal for Terraform/API based schedules
+- Filters polishing ([3183](https://github.com/grafana/oncall/issues/3183))
+
+## v1.3.62 (2023-11-21)
+
+### Added
+
+- Add builtin slack retry on ratelimited error ([#3401](https://github.com/grafana/oncall/pull/3401))
+
+### Changed
+
+- Add integration id to alert creation logging @mderynck ([#3392](https://github.com/grafana/oncall/pull/3392))
+
+## v1.3.61 (2023-11-21)
+
+### Fixed
+
+- Fix deleting integrations with duplicate names by @vadimkerr ([#3397](https://github.com/grafana/oncall/pull/3397))
+
+## v1.3.60 (2023-11-20)
+
+### Fixed
+
 - Fixes forwarding of Amazon SNS headers @mderynck ([#3371](https://github.com/grafana/oncall/pull/3371))
+- Fixes issue when using the `/escalate` Slack command and selecting a team by @joeyorlando ([#3381](https://github.com/grafana/oncall/pull/3381))
+- Fix issue when RBAC is enabled where Viewers with "Notifications Receiver" role do not properly show up in schedule
+  rotations by @joeyorlando ([#3378](https://github.com/grafana/oncall/pull/3378))
 
 ## v1.3.59 (2023-11-16)
 

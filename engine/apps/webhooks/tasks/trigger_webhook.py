@@ -91,7 +91,7 @@ def _build_payload(webhook, alert_group, user):
                 response_data = r.content
             responses_data[r.webhook.public_primary_key] = response_data
 
-    data = serialize_event(event, alert_group, user, responses_data)
+    data = serialize_event(event, alert_group, user, webhook, responses_data)
 
     return data
 

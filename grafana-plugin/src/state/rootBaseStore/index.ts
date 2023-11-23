@@ -265,10 +265,8 @@ export class RootBaseStore {
     });
   }
 
-  hasFeature(feature: string | AppFeature) {
-    // todo use AppFeature only
-    return this.features?.[feature];
-  }
+  // todo use AppFeature only
+  hasFeature = (feature: string | AppFeature) => this.features?.[feature];
 
   get license() {
     if (this.backendLicense) {

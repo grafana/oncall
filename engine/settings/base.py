@@ -219,11 +219,11 @@ if REDIS_USE_SSL:
 # Cache
 CACHES = {
     "default": {
-        "BACKEND": "redis_cache.RedisCache",
+        "BACKEND": "django_redis.cache.RedisCache",
         "LOCATION": REDIS_URI,
         "OPTIONS": {
             "DB": REDIS_DATABASE,
-            "PARSER_CLASS": "redis.connection.HiredisParser",
+            "PARSER_CLASS": "redis.connection._HiredisParser",
             "CONNECTION_POOL_CLASS": "redis.BlockingConnectionPool",
             "CONNECTION_POOL_CLASS_KWARGS": REDIS_SSL_CONFIG
             | {
@@ -838,3 +838,5 @@ ZVONOK_POSTBACK_USER_CHOICE = os.getenv("ZVONOK_POSTBACK_USER_CHOICE", None)
 ZVONOK_POSTBACK_USER_CHOICE_ACK = os.getenv("ZVONOK_POSTBACK_USER_CHOICE_ACK", None)
 
 DETACHED_INTEGRATIONS_SERVER = getenv_boolean("DETACHED_INTEGRATIONS_SERVER", default=False)
+
+RATELIMIT_FAIL_OPEN = getenv_boolean("RATELIMIT_FAIL_OPEN", default=True)

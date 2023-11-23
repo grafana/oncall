@@ -302,6 +302,7 @@ def test_execute_webhook_ok_forward_all(
             "type": alert_receive_channel.integration,
             "name": alert_receive_channel.short_name,
             "team": None,
+            "labels": {},
         },
         "notified_users": [
             {
@@ -310,10 +311,15 @@ def test_execute_webhook_ok_forward_all(
                 "email": notified_user.email,
             }
         ],
-        "alert_group": IncidentSerializer(alert_group).data,
+        "alert_group": {**IncidentSerializer(alert_group).data, "labels": {}},
         "alert_group_id": alert_group.public_primary_key,
         "alert_payload": "",
         "users_to_be_notified": [],
+        "webhook": {
+            "id": webhook.public_primary_key,
+            "name": webhook.name,
+            "labels": {},
+        },
     }
     expected_call = call(
         "https://something/{}/".format(alert_group.public_primary_key),

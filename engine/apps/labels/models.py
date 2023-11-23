@@ -139,3 +139,24 @@ class AlertGroupAssociatedLabel(models.Model):
                 name="unique_alert_group_label",
             )
         ]
+
+
+class WebhookAssociatedLabel(AssociatedLabel):
+    """Keeps information about label association with outgoing webhooks instances"""
+
+    webhook = models.ForeignKey(
+        "webhooks.Webhook",
+        on_delete=models.CASCADE,
+        related_name="labels",
+    )
+    organization = models.ForeignKey(
+        "user_management.Organization", on_delete=models.CASCADE, related_name="webhook_labels"
+    )
+
+    class Meta:
+        unique_together = ["key_id", "value_id", "webhook_id"]
+
+    @staticmethod
+    def get_associating_label_field_name() -> str:
+        """Returns ForeignKey field name for the associated model"""
+        return "webhook"
