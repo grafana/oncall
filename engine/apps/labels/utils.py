@@ -113,8 +113,12 @@ def _custom_labels(alert_receive_channel: "AlertReceiveChannel", raw_request_dat
 
     labels = {}
     for label in alert_receive_channel.alert_group_labels_custom:
-        key_name = label_key_names[label["key"]["id"]]
-        value_name = label_value_names[label["value"]["id"]] if label["value"]["id"] else label["value"]["name"]
+        key_name = label_key_names.get(label["key"]["id"], label["key"]["name"])
+        value_name = (
+            label_value_names.get(label["value"]["id"], label["value"]["name"])
+            if label["value"]["id"]
+            else label["value"]["name"]
+        )
 
         if label["value"]["id"]:
             labels[key_name] = value_name
