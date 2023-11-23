@@ -5,7 +5,7 @@ from django.core import serializers
 from django.core.cache import cache
 from django.core.exceptions import PermissionDenied
 from django.db import OperationalError
-from django_redis.exceptions import ConnectionInterrupted as RedisConnectionInterrupted
+from django_redis.exceptions import ConnectionInterrupted as RedisConnectionInterrupted  # type: ignore
 from redis.exceptions import ConnectionError as RedisConnectionError
 
 from apps.user_management.exceptions import OrganizationMovedException
