@@ -4,6 +4,7 @@ import os
 import typing
 from random import randrange
 
+import redis.cluster
 from celery.schedules import crontab
 from firebase_admin import credentials, initialize_app
 
@@ -190,9 +191,8 @@ REDIS_PORT = os.getenv("REDIS_PORT", 6379)
 REDIS_DATABASE = os.getenv("REDIS_DATABASE", 1)
 REDIS_PROTOCOL = os.getenv("REDIS_PROTOCOL", "redis")
 
-REDIS_URI = os.getenv("REDIS_URI")
-if not REDIS_URI:
-    REDIS_URI = f"{REDIS_PROTOCOL}://{REDIS_USERNAME}:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}/{REDIS_DATABASE}"
+# TODO: this is a quick hack for local experimentation
+CELERY_REDIS_URI = f"{REDIS_PROTOCOL}://{REDIS_USERNAME}:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}/{REDIS_DATABASE}"
 
 REDIS_USE_SSL = os.getenv("REDIS_USE_SSL")
 REDIS_SSL_CONFIG = {}
@@ -217,13 +217,64 @@ if REDIS_USE_SSL:
         REDIS_SSL_CONFIG["ssl_cert_reqs"] = getattr(ssl, str(REDIS_SSL_CERT_REQS).upper())
 
 # Cache
+# CACHES = {
+#     "default": {
+#         "BACKEND": "django_redis.cache.RedisCache",
+#         "LOCATION": REDIS_URI,
+#         "OPTIONS": {
+#             "DB": REDIS_DATABASE,
+#             "PARSER_CLASS": "redis.connection._HiredisParser",
+#             "CONNECTION_POOL_CLASS": "redis.BlockingConnectionPool",
+#             "CONNECTION_POOL_CLASS_KWARGS": REDIS_SSL_CONFIG
+#             | {
+#                 "max_connections": 50,
+#                 "timeout": 20,
+#             },
+#             "MAX_CONNECTIONS": 1000,
+#             "PICKLE_VERSION": -1,
+#         },
+#     },
+# }
+
+
+def _redis_address_remap(addr):
+    _host, port = addr
+    return ("host.docker.internal", port)
+
+
+# TODO: move this to oncall-private once done testingg
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": REDIS_URI,
+        "LOCATION": "redis://host.docker.internal:30001",
         "OPTIONS": {
-            "DB": REDIS_DATABASE,
             "PARSER_CLASS": "redis.connection._HiredisParser",
+            "REDIS_CLIENT_CLASS": "common.redis.RedisClusterShim",
+            "REDIS_CLIENT_KWARGS": {
+                # NOTE: we should instead specify the "url" kwarg to one of the cluster nodes rather
+                # than needing to worry about specifying `startup_nodes`
+                # `startup_nodes` is a hack because when the RedisCluster class initializes and discovers
+                # all of the other nodes, it uses 127.0.0.1 as the host for all of the other nodes. This is an
+                # issue when running the redis cluster outside of tilt (ie. on your host machine) because the hostname
+                # should instead be host.docker.internal
+                "dynamic_startup_nodes": False,
+                "startup_nodes": [
+                    # by default the local redis cluster setup will have 6 nodes running on ports 30001-30006
+                    redis.cluster.ClusterNode(host="host.docker.internal", port=port)
+                    for port in range(30001, 30007)
+                ],
+                "address_remap": _redis_address_remap,
+                # "url": REDIS_URI,
+                "read_from_replicas": True,
+                # the following setting is required by GCP Memorystore (and AWS ElasticCache AFAIK)
+                #
+                # from the docs
+                # https://cloud.google.com/memorystore/docs/cluster/connect-cluster-instance?_ga=2.191102634.-1637703325.1682510847#redis-py_client_best_practice
+                #
+                # To connect to your Memorystore for Redis Cluster instance using the redis-py Python client
+                # you must add the skip_full_coverage_check=True when declaring a Redis Cluster:
+                "skip_full_coverage_check": True,
+            },
             "CONNECTION_POOL_CLASS": "redis.BlockingConnectionPool",
             "CONNECTION_POOL_CLASS_KWARGS": REDIS_SSL_CONFIG
             | {
@@ -456,7 +507,7 @@ assert BROKER_TYPE in {BrokerTypes.RABBITMQ, BrokerTypes.REDIS}
 if BROKER_TYPE == BrokerTypes.RABBITMQ:
     CELERY_BROKER_URL = RABBITMQ_URI
 elif BROKER_TYPE == BrokerTypes.REDIS:
-    CELERY_BROKER_URL = REDIS_URI
+    CELERY_BROKER_URL = CELERY_REDIS_URI
     if REDIS_USE_SSL:
         CELERY_BROKER_USE_SSL = REDIS_SSL_CONFIG
 else:
