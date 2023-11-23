@@ -18,15 +18,15 @@ import { observer } from 'mobx-react';
 
 import Collapse from 'components/Collapse/Collapse';
 import MonacoEditor, { MONACO_LANGUAGE } from 'components/MonacoEditor/MonacoEditor';
+import ServiceLabels from 'components/ServiceLabels/ServiceLabels';
 import Text from 'components/Text/Text';
 import IntegrationTemplate from 'containers/IntegrationTemplate/IntegrationTemplate';
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { LabelKey } from 'models/label/label.types';
 import { useStore } from 'state/useStore';
+import { openErrorNotification } from 'utils';
 
 import styles from './IntegrationLabelsForm.module.css';
-import ServiceLabels from 'components/ServiceLabels/ServiceLabels';
-import { openErrorNotification } from 'utils';
 
 const cx = cn.bind(styles);
 

@@ -1,8 +1,8 @@
-import { AsyncSelect, Button, Field, HorizontalGroup, IconButton, VerticalGroup, useStyles2 } from '@grafana/ui';
 import React, { FC, useState } from 'react';
-import { ItemSelected } from 'core/types';
 
 import { css } from '@emotion/css';
+import { AsyncSelect, Button, Field, HorizontalGroup, IconButton, VerticalGroup, useStyles2 } from '@grafana/ui';
+import { ItemSelected } from 'core/types';
 
 import { EditModal, BaseEditModal } from 'components/EditModal/EditModal';
 
@@ -259,11 +259,11 @@ const ServiceLabels: FC<ServiceLabelsProps> = ({
     };
   }
 
-  async function loadOptionsKeys(search: string = '') {
+  async function loadOptionsKeys(search = '') {
     return onLoadKeys(search).then((keys) => keys.map((key) => ({ label: key[FieldName], value: key[FieldId] })));
   }
 
-  async function loadOptionsValues(option: ItemSelected, search: string = '') {
+  async function loadOptionsValues(option: ItemSelected, search = '') {
     return onLoadValuesForKey(option.key[getLookoutMethod()], search).then((values) =>
       values.map((value) => ({
         label: value[FieldName],
@@ -281,7 +281,9 @@ const ServiceLabels: FC<ServiceLabelsProps> = ({
   }
 
   function isAddDisabled() {
-    if (!selectedOptions.length) return false;
+    if (!selectedOptions.length) {
+      return false;
+    }
     const lastItem = selectedOptions[selectedOptions.length - 1];
     return !lastItem.key[FieldName] || !lastItem.value[FieldName];
   }
@@ -371,7 +373,9 @@ const ServiceLabels: FC<ServiceLabelsProps> = ({
   }
 
   async function onKeyAdd(key: string, rowIndex: number) {
-    if (!key) return;
+    if (!key) {
+      return;
+    }
 
     onCreateKey(key).then((res) => {
       const newKey = {
@@ -387,7 +391,9 @@ const ServiceLabels: FC<ServiceLabelsProps> = ({
   }
 
   async function onValueAdd(keyId: string, value: string, rowIndex: number) {
-    if (!value) return;
+    if (!value) {
+      return;
+    }
 
     onCreateValue(keyId, value).then((valueResponse) => {
       const newSelectedOptions = [...selectedOptions];
@@ -402,7 +408,9 @@ const ServiceLabels: FC<ServiceLabelsProps> = ({
 
   function onValueChange(key: string, option: any, rowIndex: number) {
     // prevent duplicates
-    if (selectedOptions.find((opt) => opt.key[FieldName] === key && opt.value[FieldName] === option.label)) return;
+    if (selectedOptions.find((opt) => opt.key[FieldName] === key && opt.value[FieldName] === option.label)) {
+      return;
+    }
 
     const newSelectedOptions = selectedOptions.map((opt, index) =>
       index === rowIndex

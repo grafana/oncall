@@ -1,6 +1,7 @@
+import React, { useState } from 'react';
+
 import { css } from '@emotion/css';
 import { Alert, Button, Field, HorizontalGroup, Input, Modal, VerticalGroup, useStyles2 } from '@grafana/ui';
-import React, { useState } from 'react';
 import { ItemSelected } from 'core/types';
 
 export interface BaseEditModal {
