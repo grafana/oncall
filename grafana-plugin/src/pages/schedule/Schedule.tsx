@@ -291,7 +291,13 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
                         shiftSwapIdToShowForm
                           ? this.adjustShiftSwapForm
                           : (event: Event) => {
-                              this.handleShowForm(event.shift.pk);
+                              const shiftId = event.shift.pk;
+
+                              if (event.shift.type === 2 && !disabledRotationForm) {
+                                this.handleShowRotationForm(shiftId);
+                              } else if (event.shift.type === 3 && !disabledOverrideForm) {
+                                this.handleShowOverridesForm(shiftId);
+                              }
                             }
                       }
                     />
@@ -380,20 +386,6 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
     return scheduleStore.loadItem(scheduleId).then((schedule) => {
       setPageTitle(schedule?.name);
     });
-  };
-
-  handleShowForm = async (shiftId: Shift['id'] | 'new') => {
-    const {
-      store: { scheduleStore },
-    } = this.props;
-
-    const shift = await scheduleStore.updateOncallShift(shiftId);
-
-    if (shift.type === 2) {
-      this.handleShowRotationForm(shiftId);
-    } else if (shift.type === 3) {
-      this.handleShowOverridesForm(shiftId);
-    }
   };
 
   handleShowRotationForm = (shiftId: Shift['id'] | 'new') => {

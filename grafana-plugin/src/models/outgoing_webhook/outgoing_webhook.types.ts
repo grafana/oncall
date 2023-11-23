@@ -1,4 +1,5 @@
 import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
+import { LabelKeyValue } from 'models/label/label.types';
 
 export interface OutgoingWebhook {
   authorization_header: string;
@@ -19,6 +20,7 @@ export interface OutgoingWebhook {
   is_webhook_enabled: boolean;
   is_legacy: boolean;
   preset: string;
+  labels: LabelKeyValue[];
 }
 
 export interface OutgoingWebhookResponse {
