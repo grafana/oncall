@@ -9,10 +9,6 @@ import { LabelKeyValue } from 'models/label/label.types';
 import { useStore } from 'state/useStore';
 import { openErrorNotification } from 'utils';
 
-import styles from './Labels.module.css';
-
-const cx = cn.bind(styles);
-
 export interface LabelsProps {
   value: LabelKeyValue[];
   errors: any;
