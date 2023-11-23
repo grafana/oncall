@@ -40,15 +40,11 @@ def test_assign_labels(
     label_key.save(update_fields=["name"])
     label_value.save(update_fields=["name"])
 
-    label_key_1, _ = make_label_key_and_value(organization)
-    label_key_1.name = "c"
-    label_key_1.save(update_fields=["name"])
-
     alert_receive_channel = make_alert_receive_channel(
         organization,
         alert_group_labels_custom=[
             {"key": {"id": label_key.id, "name": "test"}, "value": {"id": label_value.id, "name": "test"}},
-            {"key": {"id": label_key_1.id, "name": "test"}, "value": {"id": None, "name": "{{ payload.c }}"}},
+            {"key": {"id": "random", "name": "c"}, "value": {"id": None, "name": "{{ payload.c }}"}},
         ],
         alert_group_labels_template="{{ payload.labels | tojson }}",
     )
