@@ -573,7 +573,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
     return (
       <div>
         <TextEllipsisTooltip placement="top" content={record.render_for_web.title}>
-          <Text type="link" size="medium" className={cx('overflow-parent')}>
+          <Text type="link" size="medium" className={cx('overflow-parent')} data-testid="integration-url">
             <PluginLink
               query={{
                 page: 'alert-groups',
@@ -610,7 +610,11 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
         content={record?.alert_receive_channel?.verbal_name || ''}
       >
         <IntegrationLogo integration={integration} scale={0.1} />
-        <Emoji className={cx(TEXT_ELLIPSIS_CLASS)} text={record.alert_receive_channel?.verbal_name || ''} data-test-id="integration-name" />
+        <Emoji
+          className={cx(TEXT_ELLIPSIS_CLASS)}
+          text={record.alert_receive_channel?.verbal_name || ''}
+          data-testid="integration-name"
+        />
       </TextEllipsisTooltip>
     );
   };
