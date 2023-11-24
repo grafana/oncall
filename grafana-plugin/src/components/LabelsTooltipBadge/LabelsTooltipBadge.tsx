@@ -1,6 +1,6 @@
 import React, { FC } from 'react';
 
-import { LabelTag } from '@grafana/labels';
+import LabelTag from '@grafana/labels';
 import { VerticalGroup, HorizontalGroup, Button } from '@grafana/ui';
 
 import TooltipBadge from 'components/TooltipBadge/TooltipBadge';
@@ -22,7 +22,7 @@ const LabelsTooltipBadge: FC<LabelsTooltipBadgeProps> = ({ labels, onClick }) =>
         <VerticalGroup spacing="sm">
           {labels.map((label) => (
             <HorizontalGroup spacing="sm" key={label.key.id}>
-              <LabelTag label={label.key.name} value={label.value.name} key={label.key.id} />
+              <LabelTag label={label.key.name} value={label.value.name} />
               <Button
                 size="sm"
                 icon="filter"
