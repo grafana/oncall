@@ -1,9 +1,14 @@
+import logging
+
 from django.conf import settings
 from django.core.cache import cache
 from django.http import HttpResponse, JsonResponse
 from django.views.generic import View
+from redis.exceptions import ConnectionError as RedisConnectionError
 
 from apps.integrations.mixins import AlertChannelDefiningMixin
+
+logger = logging.getLogger(__name__)
 
 
 class HealthCheckView(View):
@@ -43,11 +48,12 @@ class StartupProbeView(View):
     dangerously_bypass_middlewares = True
 
     def get(self, request):
-        if cache.get(AlertChannelDefiningMixin.CACHE_KEY_DB_FALLBACK) is None:
-            AlertChannelDefiningMixin().update_alert_receive_channel_cache()
+        try:
+            if cache.get(AlertChannelDefiningMixin.CACHE_KEY_DB_FALLBACK) is None:
+                AlertChannelDefiningMixin().update_alert_receive_channel_cache()
 
-        cache.set("healthcheck", "healthcheck", 30)  # Checking cache connectivity
-        assert cache.get("healthcheck") == "healthcheck"
+        except RedisConnectionError:
+            logger.error("Skip updating AlertReceiveChannel cache as Redis is not available")
 
         return HttpResponse("Ok")
 

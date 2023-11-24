@@ -1,3 +1,5 @@
+import typing
+
 from apps.webhooks.models import Webhook
 from apps.webhooks.presets.preset import WebhookPreset, WebhookPresetMetadata
 
@@ -17,3 +19,6 @@ class AdvancedWebhookPreset(WebhookPreset):
 
     def override_parameters_at_runtime(self, webhook: Webhook):
         pass
+
+    def get_masked_headers(self) -> typing.List[str]:
+        return []

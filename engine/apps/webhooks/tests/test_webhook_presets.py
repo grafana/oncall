@@ -1,8 +1,11 @@
+import json
+import typing
 from unittest.mock import patch
 
 import pytest
 
 from apps.webhooks.models import Webhook
+from apps.webhooks.models.webhook import WEBHOOK_FIELD_PLACEHOLDER
 from apps.webhooks.presets.preset import WebhookPreset, WebhookPresetMetadata
 from apps.webhooks.tasks.trigger_webhook import make_request
 from apps.webhooks.tests.test_trigger_webhook import MockResponse
@@ -14,6 +17,8 @@ TEST_WEBHOOK_LOGO = "test_logo"
 TEST_WEBHOOK_PRESET_DESCRIPTION = "Description of test webhook preset"
 TEST_WEBHOOK_PRESET_CONTROLLED_FIELDS = ["url", "http_method", "data", "authorization_header"]
 TEST_WEBHOOK_AUTHORIZATION_HEADER = "Test Auth header 12345"
+TEST_WEBHOOK_MASK_HEADER = "X-Secret-Header"
+TEST_WEBHOOK_MASK_HEADER_VALUE = "abc123"
 INVALID_PRESET_ID = "invalid_preset_id"
 
 
@@ -34,6 +39,12 @@ class TestWebhookPreset(WebhookPreset):
 
     def override_parameters_at_runtime(self, webhook: Webhook):
         webhook.authorization_header = TEST_WEBHOOK_AUTHORIZATION_HEADER
+        webhook.headers = json.dumps(
+            {"Content-Type": "application/json", TEST_WEBHOOK_MASK_HEADER: TEST_WEBHOOK_MASK_HEADER_VALUE}
+        )
+
+    def get_masked_headers(self) -> typing.List[str]:
+        return [TEST_WEBHOOK_MASK_HEADER]
 
 
 @pytest.mark.django_db
@@ -124,11 +135,20 @@ def test_webhook_preset_runtime_override(make_organization, webhook_preset_api_s
     with patch.object(webhook, "build_url"):
         response = MockResponse()
         with patch.object(webhook, "make_request", return_value=response) as mock_make_request:
-            triggered, webhook_status, error, exception = make_request(webhook, None, None)
+            triggered, webhook_status, error, exception = make_request(webhook, None, {})
+            assert mock_make_request.call_args.args[1]["headers"]["Content-Type"] == "application/json"
             assert mock_make_request.call_args.args[1]["headers"]["Authorization"] == TEST_WEBHOOK_AUTHORIZATION_HEADER
+            assert (
+                mock_make_request.call_args.args[1]["headers"][TEST_WEBHOOK_MASK_HEADER]
+                == TEST_WEBHOOK_MASK_HEADER_VALUE
+            )
             assert triggered
             assert error is None
             assert exception is None
+            webhook_status_headers = json.loads(webhook_status["request_headers"])
+            assert webhook_status_headers["Content-Type"] == "application/json"
+            assert webhook_status_headers["Authorization"] == WEBHOOK_FIELD_PLACEHOLDER
+            assert webhook_status_headers[TEST_WEBHOOK_MASK_HEADER] == WEBHOOK_FIELD_PLACEHOLDER
 
     webhook.refresh_from_db()
     assert webhook.authorization_header is None

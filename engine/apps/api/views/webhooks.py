@@ -94,7 +94,7 @@ class WebhooksView(TeamFilteringMixin, PublicPrimaryKeyMixin, ModelViewSet):
     def get_queryset(self, ignore_filtering_by_available_teams=False):
         queryset = Webhook.objects.filter(
             organization=self.request.auth.organization,
-        ).prefetch_related("responses")
+        )
         if not ignore_filtering_by_available_teams:
             queryset = queryset.filter(*self.available_teams_lookup_args).distinct()
 
