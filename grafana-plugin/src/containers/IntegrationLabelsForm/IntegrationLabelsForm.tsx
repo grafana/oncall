@@ -26,7 +26,7 @@ import { useStore } from 'state/useStore';
 import { openErrorNotification } from 'utils';
 
 import styles from './IntegrationLabelsForm.module.css';
-import ServiceLabels from '@grafana/labels';
+import { ServiceLabels } from '@grafana/labels';
 
 const cx = cn.bind(styles);
 
