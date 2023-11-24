@@ -1435,8 +1435,6 @@ def test_alert_group_labels_put(
     make_integration_label_association,
     make_user_auth_headers,
 ):
-    # TODO: refactor
-
     organization, user, token = make_organization_and_user_with_plugin_token()
     alert_receive_channel = make_alert_receive_channel(organization)
     label_1 = make_integration_label_association(organization, alert_receive_channel)
@@ -1444,19 +1442,24 @@ def test_alert_group_labels_put(
     label_3 = make_integration_label_association(organization, alert_receive_channel, inheritable=False)
 
     custom = [
+        # plain label
         {
             "key": {"id": label_2.key.id, "name": label_2.key.name},
             "value": {"id": label_2.value.id, "name": label_2.value.name},
         },
-        {"key": {"id": label_3.key.id, "name": label_3.key.name}, "value": {"id": None, "name": "{{ payload.foo }}"}},
+        # templated label
+        {
+            "key": {"id": label_3.key.id, "name": label_3.key.name},
+            "value": {"id": None, "name": "{{ payload.foo }}"},
+        },
     ]
-    template = "{{ payload.labels | tojson }}"
+    template = "{{ payload.labels | tojson }}"  # advanced template
 
     client = APIClient()
     url = reverse("api-internal:alert_receive_channel-detail", kwargs={"pk": alert_receive_channel.public_primary_key})
     data = {
         "alert_group_labels": {
-            "inheritable": {label_1.key_id: False, label_3.key_id: False, label_2.key_id: True},
+            "inheritable": {label_1.key_id: False, label_2.key_id: True, label_3.key_id: False},
             "custom": custom,
             "template": template,
         }
@@ -1465,7 +1468,7 @@ def test_alert_group_labels_put(
 
     assert response.status_code == status.HTTP_200_OK
     assert response.json()["alert_group_labels"] == {
-        "inheritable": {label_1.key_id: False, label_3.key_id: False, label_2.key_id: True},
+        "inheritable": {label_1.key_id: False, label_2.key_id: True, label_3.key_id: False},
         "custom": custom,
         "template": template,
     }

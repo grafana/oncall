@@ -40,6 +40,7 @@ def test_assign_labels(
     # create label repo labels
     label_key, label_value = make_label_key_and_value(organization, key_name="a", value_name="b")
     label_key_1 = make_label_key(organization=organization, key_name="c")
+    label_key_2 = make_label_key(organization=organization)
 
     # create alert receive channel with all 3 types of labels
     alert_receive_channel = make_alert_receive_channel(
@@ -47,6 +48,7 @@ def test_assign_labels(
         alert_group_labels_custom=[
             [label_key.id, label_value.id, None],  # plain label
             ["nonexistent", label_value.id, None],  # plain label with nonexistent key ID
+            [label_key_2.id, "nonexistent", None],  # plain label with nonexistent value ID
             [label_key_1.id, None, "{{ payload.c }}"],  # template label
             ["nonexistent", None, "{{ payload.extra }}"],  # template label with nonexistent key ID
         ],
