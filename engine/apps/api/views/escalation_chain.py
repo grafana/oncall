@@ -18,7 +18,12 @@ from apps.auth_token.auth import PluginAuthentication
 from apps.mobile_app.auth import MobileAppAuthTokenAuthentication
 from apps.user_management.models import Team
 from common.api_helpers.exceptions import BadRequest
-from common.api_helpers.filters import ByTeamModelFieldFilterMixin, ModelFieldFilterMixin, TeamModelMultipleChoiceFilter
+from common.api_helpers.filters import (
+    NO_TEAM_VALUE,
+    ByTeamModelFieldFilterMixin,
+    ModelFieldFilterMixin,
+    TeamModelMultipleChoiceFilter,
+)
 from common.api_helpers.mixins import (
     FilterSerializerMixin,
     ListSerializerMixin,
@@ -128,7 +133,7 @@ class EscalationChainViewSet(
 
         name = request.data.get("name")
         team_id = request.data.get("team")
-        if team_id == "null":
+        if team_id == NO_TEAM_VALUE:
             team_id = None
 
         if not name:
