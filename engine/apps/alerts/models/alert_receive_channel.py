@@ -88,27 +88,6 @@ def number_to_smiles_translator(number):
     return "".join(reversed(smileset))
 
 
-class CustomLabelKey(typing.TypedDict):
-    id: str
-    name: str
-
-
-class CustomLabelValue(typing.TypedDict):
-    id: str | None
-    name: str
-
-
-class CustomLabel(typing.TypedDict):
-    key: CustomLabelKey
-    value: CustomLabelValue
-
-
-class IntegrationAlertGroupLabels(typing.TypedDict):
-    inheritable: dict[str, bool]
-    custom: list[CustomLabel]
-    template: str | None
-
-
 class AlertReceiveChannelQueryset(models.QuerySet):
     def delete(self):
         self.update(deleted_at=timezone.now())
@@ -225,8 +204,16 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
     rate_limited_in_slack_at = models.DateTimeField(null=True, default=None)
     rate_limit_message_task_id = models.CharField(max_length=100, null=True, default=None)
 
-    alert_group_labels_custom: list[CustomLabel] = models.JSONField(null=True, default=list)
-    alert_group_labels_template = models.TextField(null=True, default=None)
+    AlertGroupCustomLabels = list[list[str, str | None, str | None]]
+    alert_group_labels_custom: AlertGroupCustomLabels = models.JSONField(null=True, default=list)
+    """
+    Stores "custom labels" for alert group labels. Custom labels can be either "plain" or "templated".
+    For plain labels, the format is: [<LABEL_KEY_ID>, <LABEL_VALUE_ID>, None]
+    For templated labels, the format is: [<LABEL_KEY_ID>, None, <JINJA2_TEMPLATE>]
+    """
+
+    alert_group_labels_template: str | None = models.TextField(null=True, default=None)
+    """Stores a Jinja2 template for "advanced label templating" for alert group labels."""
 
     def __str__(self):
         short_name_with_emojis = emojize(self.short_name, language="alias")
@@ -656,49 +643,6 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
         else:
             result["team"] = "General"
         return result
-
-    @property
-    def alert_group_labels(self) -> IntegrationAlertGroupLabels:
-        """
-        Alert group labels configuration for the integration used by AlertReceiveChannelSerializer.
-        See AlertReceiveChannelAssociatedLabel.inheritable for more details.
-        """
-
-        # TODO: implement label key/value name updates, refactor
-        # from apps.labels.models import LabelKeyCache, LabelValueCache
-        #
-        # # label_key_ids = [label["key"] for label in self.alert_group_labels_custom]
-        # # label_key_names = {
-        # #     k.id: k.name for k in LabelKeyCache.objects.filter(id__in=label_key_ids).only("id", "name")
-        # # }
-        # #
-        # # label_value_ids = [label["value"] for label in self.alert_group_labels_custom if label["value"]["id"]]
-        # # label_value_names = {
-        # #     v.id: v.name for v in LabelValueCache.objects.filter(key__in=label_value_ids).only("id", "name")
-        # # }
-        # #
-        # # for label in self.alert_group_labels_custom:
-        # #     if not label["value"]["id"]:
-        # #         continue
-        # #
-        # #     label["key"]["name"] = label_key_names[label["key"]["id"]]
-        # #     label["value"]["name"] = label_value_names[label["value"]["id"]]
-
-        return {
-            "inheritable": {label.key_id: label.inheritable for label in self.labels.all()},
-            "custom": self.alert_group_labels_custom,
-            "template": self.alert_group_labels_template,
-        }
-
-    @alert_group_labels.setter
-    def alert_group_labels(self, value: IntegrationAlertGroupLabels) -> None:
-        """Setter for alert_group_labels used by AlertReceiveChannelSerializer"""
-        inheritable_key_ids = [key_id for key_id, inheritable in value["inheritable"].items() if inheritable]
-        self.labels.filter(key_id__in=inheritable_key_ids).update(inheritable=True)
-        self.labels.filter(~Q(key_id__in=inheritable_key_ids)).update(inheritable=False)
-
-        self.alert_group_labels_custom = value["custom"]
-        self.alert_group_labels_template = value["template"]
 
 
 @receiver(post_save, sender=AlertReceiveChannel)

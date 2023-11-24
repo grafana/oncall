@@ -1400,23 +1400,30 @@ def test_alert_group_labels_get(
     assert response.json()["alert_group_labels"] == {"inheritable": {}, "custom": [], "template": None}
 
     label = make_integration_label_association(organization, alert_receive_channel)
-    custom = [
-        {
-            "key": {"id": label_key.id, "name": label_key.name},
-            "value": {"id": label_value.id, "name": label_value.name},
-        },
-        {"key": {"id": label_key_1.id, "name": label_key_1.name}, "value": {"id": None, "name": "{{ payload.foo }}"}},
-    ]
+
     template = "{{ payload.labels | tojson }}"
-    alert_receive_channel.alert_group_labels_custom = custom
     alert_receive_channel.alert_group_labels_template = template
+
+    alert_receive_channel.alert_group_labels_custom = [
+        (label_key.id, label_value.id, None),
+        (label_key_1.id, None, "{{ payload.foo }}"),
+    ]
     alert_receive_channel.save(update_fields=["alert_group_labels_custom", "alert_group_labels_template"])
 
     response = client.get(url, **make_user_auth_headers(user, token))
     assert response.status_code == status.HTTP_200_OK
     assert response.json()["alert_group_labels"] == {
         "inheritable": {label.key_id: True},
-        "custom": custom,
+        "custom": [
+            {
+                "key": {"id": label_key.id, "name": label_key.name},
+                "value": {"id": label_value.id, "name": label_value.name},
+            },
+            {
+                "key": {"id": label_key_1.id, "name": label_key_1.name},
+                "value": {"id": None, "name": "{{ payload.foo }}"},
+            },
+        ],
         "template": template,
     }
 
@@ -1463,6 +1470,31 @@ def test_alert_group_labels_put(
         "template": template,
     }
 
+    alert_receive_channel.refresh_from_db()
+    assert alert_receive_channel.alert_group_labels_custom == [
+        [label_2.key_id, label_2.value_id, None],
+        [label_3.key_id, None, "{{ payload.foo }}"],
+    ]
+    assert alert_receive_channel.alert_group_labels_template == template
+
+
+@pytest.mark.django_db
+def test_alert_group_labels_put_none(
+    make_organization_and_user_with_plugin_token,
+    make_alert_receive_channel,
+    make_user_auth_headers,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+    alert_receive_channel = make_alert_receive_channel(organization)
+
+    client = APIClient()
+    url = reverse("api-internal:alert_receive_channel-detail", kwargs={"pk": alert_receive_channel.public_primary_key})
+    response = client.put(url, {"verbal_name": "123"}, format="json", **make_user_auth_headers(user, token))
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()["verbal_name"] == "123"
+    assert response.json()["alert_group_labels"] == {"inheritable": {}, "custom": [], "template": None}
+
 
 @pytest.mark.django_db
 def test_alert_group_labels_post(alert_receive_channel_internal_api_setup, make_user_auth_headers):
@@ -1488,3 +1520,7 @@ def test_alert_group_labels_post(alert_receive_channel_internal_api_setup, make_
     assert response.status_code == status.HTTP_201_CREATED
     assert response.json()["labels"] == labels
     assert response.json()["alert_group_labels"] == alert_group_labels
+
+    alert_receive_channel = AlertReceiveChannel.objects.get(public_primary_key=response.json()["id"])
+    assert alert_receive_channel.alert_group_labels_custom == [["test", "123", None]]
+    assert alert_receive_channel.alert_group_labels_template == "{{ payload.labels | tojson }}"
