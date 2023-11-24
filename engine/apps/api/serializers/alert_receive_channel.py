@@ -22,10 +22,9 @@ from common.api_helpers.utils import CurrentTeamDefault
 from common.jinja_templater import jinja_template_env
 
 from .integration_heartbeat import IntegrationHeartBeatSerializer
-from .labels import LabelSerializer, LabelsSerializerMixin
+from .labels import LabelsSerializerMixin
 
 
-# TODO: comments
 class AlertGroupCustomLabelKey(typing.TypedDict):
     id: str
     name: str
@@ -50,15 +49,31 @@ class IntegrationAlertGroupLabels(typing.TypedDict):
     template: str | None
 
 
+class CustomLabelSerializer(serializers.Serializer):
+    """This serializer is consistent with apps.api.serializers.labels.LabelSerializer, but allows null for value ID."""
+
+    class KeySerializer(serializers.Serializer):
+        id = serializers.CharField()
+        name = serializers.CharField()
+
+    class ValueSerializer(serializers.Serializer):
+        # ID is null for templated labels. For such labels, the "name" value is a Jinja2 template.
+        id = serializers.CharField(allow_null=True)
+        name = serializers.CharField()
+
+    key = KeySerializer()
+    value = ValueSerializer()
+
+
 class IntegrationAlertGroupLabelsSerializer(serializers.Serializer):
     """Alert group labels configuration for the integration. See AlertReceiveChannel.alert_group_labels for details."""
 
     inheritable = serializers.DictField(child=serializers.BooleanField())
-    custom = LabelSerializer(many=True)
+    custom = CustomLabelSerializer(many=True)
     template = serializers.CharField(allow_null=True)
 
     @staticmethod
-    def get_alert_group_labels(validated_data: dict) -> IntegrationAlertGroupLabels | None:
+    def pop_alert_group_labels(validated_data: dict) -> IntegrationAlertGroupLabels | None:
         """Get alert group labels from validated data."""
 
         # the "alert_group_labels" field is optional, so either all 3 fields are present or none
@@ -126,7 +141,7 @@ class IntegrationAlertGroupLabelsSerializer(serializers.Serializer):
         custom_labels: AlertReceiveChannel.AlertGroupCustomLabels,
     ) -> AlertGroupCustomLabels:
         """
-        Inverse of _custom_labels_to_internal_value method above.
+        Inverse of the _custom_labels_to_internal_value method above.
         Fetches label names from DB cache, so the API response schema is consistent with other label endpoints.
         """
 
@@ -261,7 +276,7 @@ class AlertReceiveChannelSerializer(
 
         # pop associated labels and alert group labels, so they are not passed to AlertReceiveChannel.create
         labels = validated_data.pop("labels", None)
-        alert_group_labels = IntegrationAlertGroupLabelsSerializer.get_alert_group_labels(validated_data)
+        alert_group_labels = IntegrationAlertGroupLabelsSerializer.pop_alert_group_labels(validated_data)
 
         try:
             instance = AlertReceiveChannel.create(
@@ -273,7 +288,7 @@ class AlertReceiveChannelSerializer(
         except AlertReceiveChannel.DuplicateDirectPagingError:
             raise BadRequest(detail=AlertReceiveChannel.DuplicateDirectPagingError.DETAIL)
 
-        # Create label associations first, then update inheritable labels
+        # Create label associations first, then update alert group labels
         self.update_labels_association_if_needed(labels, instance, organization)
         instance = IntegrationAlertGroupLabelsSerializer.update(instance, alert_group_labels)
 
@@ -286,7 +301,7 @@ class AlertReceiveChannelSerializer(
 
         # update alert group labels
         instance = IntegrationAlertGroupLabelsSerializer.update(
-            instance, IntegrationAlertGroupLabelsSerializer.get_alert_group_labels(validated_data)
+            instance, IntegrationAlertGroupLabelsSerializer.pop_alert_group_labels(validated_data)
         )
 
         try:

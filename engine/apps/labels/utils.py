@@ -97,37 +97,48 @@ def assign_labels(
 
 
 def _custom_labels(alert_receive_channel: "AlertReceiveChannel", raw_request_data: typing.Any) -> dict[str, str]:
-    # TODO: implement label key/value name updates, refactor
-
     from apps.labels.models import LabelKeyCache, LabelValueCache
 
-    label_key_ids = [label["key"]["id"] for label in alert_receive_channel.alert_group_labels_custom]
-    label_key_names = {k.id: k.name for k in LabelKeyCache.objects.filter(id__in=label_key_ids).only("id", "name")}
+    # fetch up-to-date label key names
+    label_key_names = {
+        k.id: k.name
+        for k in LabelKeyCache.objects.filter(
+            id__in=[label[0] for label in alert_receive_channel.alert_group_labels_custom]
+        ).only("id", "name")
+    }
 
-    label_value_ids = [
-        label["value"]["id"] for label in alert_receive_channel.alert_group_labels_custom if label["value"]["id"]
-    ]
+    # fetch up-to-date label value names
     label_value_names = {
-        v.id: v.name for v in LabelValueCache.objects.filter(id__in=label_value_ids).only("id", "name")
+        v.id: v.name
+        for v in LabelValueCache.objects.filter(
+            id__in=[label[1] for label in alert_receive_channel.alert_group_labels_custom if label[1]]
+        ).only("id", "name")
     }
 
     labels = {}
     for label in alert_receive_channel.alert_group_labels_custom:
-        key_name = label_key_names.get(label["key"]["id"], label["key"]["name"])
-        value_name = (
-            label_value_names.get(label["value"]["id"], label["value"]["name"])
-            if label["value"]["id"]
-            else label["value"]["name"]
-        )
+        key_id, value_id, template = label
 
-        if label["value"]["id"]:
-            labels[key_name] = value_name
+        if key_id in label_key_names:
+            key = label_key_names[key_id]
         else:
-            try:
-                labels[key_name] = apply_jinja_template(value_name, raw_request_data)
-            except (JinjaTemplateError, JinjaTemplateWarning) as e:
-                logger.warning("Failed to apply template. %s", e.fallback_message)
+            logger.warning("Label key not found. %s", key_id)
+            continue
+
+        if value_id:
+            if value_id in label_value_names:
+                value = label_value_names[value_id]
+            else:
+                logger.warning("Label value not found. %s", value_id)
                 continue
+        else:
+            value = template
+
+        try:
+            labels[key] = apply_jinja_template(value, raw_request_data)
+        except (JinjaTemplateError, JinjaTemplateWarning) as e:
+            logger.warning("Failed to apply template. %s", e.fallback_message)
+            continue
 
     return labels
 

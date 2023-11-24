@@ -29,42 +29,43 @@ def test_assign_labels_feature_flag_disabled(
 
 @pytest.mark.django_db
 def test_assign_labels(
-    make_organization, make_alert_receive_channel, make_label_key_and_value, make_integration_label_association
+    make_organization,
+    make_alert_receive_channel,
+    make_label_key_and_value,
+    make_label_key,
+    make_integration_label_association,
 ):
-    # TODO: refactor
-
     organization = make_organization()
 
-    label_key, label_value = make_label_key_and_value(organization)
-    label_key.name, label_value.name = "a", "b"
-    label_key.save(update_fields=["name"])
-    label_value.save(update_fields=["name"])
+    # create label repo labels
+    label_key, label_value = make_label_key_and_value(organization, key_name="a", value_name="b")
+    label_key_1 = make_label_key(organization=organization, key_name="c")
 
+    # create alert receive channel with all 3 types of labels
     alert_receive_channel = make_alert_receive_channel(
         organization,
         alert_group_labels_custom=[
-            {"key": {"id": label_key.id, "name": "test"}, "value": {"id": label_value.id, "name": "test"}},
-            {"key": {"id": "random", "name": "c"}, "value": {"id": None, "name": "{{ payload.c }}"}},
+            [label_key.id, label_value.id, None],  # plain label
+            ["nonexistent", label_value.id, None],  # plain label with nonexistent key ID
+            [label_key_1.id, None, "{{ payload.c }}"],  # template label
+            ["nonexistent", None, "{{ payload.extra }}"],  # template label with nonexistent key ID
         ],
-        alert_group_labels_template="{{ payload.labels | tojson }}",
+        alert_group_labels_template="{{ payload.advanced_template | tojson }}",
     )
+    make_integration_label_association(organization, alert_receive_channel, key_name="e", value_name="f")
 
-    label = make_integration_label_association(organization, alert_receive_channel)
-    label.key.name, label.value.name = ("e", "f")
-    label.key.save(update_fields=["name"])
-    label.value.save(update_fields=["name"])
-    make_integration_label_association(organization, alert_receive_channel, inheritable=False)
-
+    # create alert group
     alert = Alert.create(
         title="the title",
         message="the message",
         alert_receive_channel=alert_receive_channel,
-        raw_request_data={"c": "d", "labels": {"g": "h"}},
+        raw_request_data={"c": "d", "advanced_template": {"g": "h"}, "extra": "hi"},
         integration_unique_data={},
         image_url=None,
         link_to_upstream_details=None,
     )
 
+    # check alert group labels are assigned correctly, in the lexicographical order
     assert [(label.key_name, label.value_name) for label in alert.group.labels.all()] == [
         ("a", "b"),
         ("c", "d"),
