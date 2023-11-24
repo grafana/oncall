@@ -1,7 +1,7 @@
 
-    import type { CustomApiSchemas } from './types-generator/custom-schemas.d.ts';
-
-    export interface paths {
+      import type { CustomApiSchemas } from './types-generator/custom-schemas';
+  
+      export interface paths {
     "/alertgroups/": {
         parameters: {
             query?: never;
@@ -1318,4 +1318,4 @@ export interface operations {
     };
 }
 
-  
+    
