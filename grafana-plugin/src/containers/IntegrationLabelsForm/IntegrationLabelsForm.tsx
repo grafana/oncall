@@ -1,6 +1,6 @@
 import React, { ChangeEvent, useCallback, useState } from 'react';
 
-import { ServiceLabels } from '@grafana/labels';
+import ServiceLabels from '@grafana/labels';
 import {
   Button,
   Drawer,
