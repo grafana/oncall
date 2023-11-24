@@ -28,7 +28,7 @@ class LabelsAPIClient:
     LABELS_API_URL = "/api/plugins/grafana-labels-app/resources/v1/labels/"
 
     def __init__(self, api_url: str, api_token: str) -> None:
-        super().__init__(api_url, api_token)
+        self.api_token = api_token
         self.api_url = urljoin(api_url, self.LABELS_API_URL)
 
     def create_label(
