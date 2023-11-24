@@ -1,5 +1,6 @@
 import React, { ChangeEvent, useCallback, useState } from 'react';
 
+import ServiceLabels from '@grafana/labels';
 import {
   Button,
   Drawer,
@@ -26,7 +27,6 @@ import { useStore } from 'state/useStore';
 import { openErrorNotification } from 'utils';
 
 import styles from './IntegrationLabelsForm.module.css';
-import ServiceLabels from '@grafana/labels';
 
 const cx = cn.bind(styles);
 
@@ -294,7 +294,6 @@ const CustomLabels = (props: CustomLabelsProps) => {
             openErrorNotification('An error has occurred. Please try again');
           }
         }}
-        // errors={isValid() ? {} : { ...propsErrors }}
         renderValue={(option, index, renderValueDefault) => {
           if (option.value.id === null) {
             return (
