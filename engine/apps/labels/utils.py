@@ -1,14 +1,11 @@
-import json
 import logging
 import typing
 
 from django.apps import apps  # noqa: I251
 from django.conf import settings
 
-from common.jinja_templater.apply_jinja_template import JinjaTemplateError, JinjaTemplateWarning, apply_jinja_template
-
 if typing.TYPE_CHECKING:
-    from apps.alerts.models import AlertGroup, AlertReceiveChannel
+    from apps.alerts.models import AlertGroup
     from apps.labels.models import AssociatedLabel
     from apps.user_management.models import Organization
 
@@ -58,113 +55,6 @@ def is_labels_feature_enabled(organization: "Organization") -> bool:
         settings.FEATURE_LABELS_ENABLED_FOR_ALL
         or organization.org_id in settings.FEATURE_LABELS_ENABLED_FOR_GRAFANA_ORGS  # Grafana org ID, not OnCall org ID
     )
-
-
-def assign_labels(
-    alert_group: "AlertGroup", alert_receive_channel: "AlertReceiveChannel", raw_request_data: typing.Any
-) -> None:
-    from apps.labels.models import AlertGroupAssociatedLabel
-
-    if not is_labels_feature_enabled(alert_receive_channel.organization):
-        return
-
-    # inherit labels from the integration
-    labels = {
-        label.key.name: label.value.name
-        for label in alert_receive_channel.labels.filter(inheritable=True).select_related("key", "value")
-    }
-
-    # apply custom labels
-    labels.update(_custom_labels(alert_receive_channel, raw_request_data))
-
-    # apply template labels
-    labels.update(_template_labels(alert_receive_channel, raw_request_data))
-
-    # create associated labels
-    alert_group_labels = [
-        AlertGroupAssociatedLabel(
-            alert_group=alert_group,
-            organization=alert_receive_channel.organization,
-            key_name=key,
-            value_name=value,
-        )
-        for key, value in labels.items()
-    ]
-    # sort associated labels by key and value
-    alert_group_labels.sort(key=lambda label: (label.key_name, label.value_name))
-    # bulk create associated labels
-    AlertGroupAssociatedLabel.objects.bulk_create(alert_group_labels)
-
-
-def _custom_labels(alert_receive_channel: "AlertReceiveChannel", raw_request_data: typing.Any) -> dict[str, str]:
-    from apps.labels.models import LabelKeyCache, LabelValueCache
-
-    # fetch up-to-date label key names
-    label_key_names = {
-        k.id: k.name
-        for k in LabelKeyCache.objects.filter(
-            id__in=[label[0] for label in alert_receive_channel.alert_group_labels_custom]
-        ).only("id", "name")
-    }
-
-    # fetch up-to-date label value names
-    label_value_names = {
-        v.id: v.name
-        for v in LabelValueCache.objects.filter(
-            id__in=[label[1] for label in alert_receive_channel.alert_group_labels_custom if label[1]]
-        ).only("id", "name")
-    }
-
-    labels = {}
-    for label in alert_receive_channel.alert_group_labels_custom:
-        key_id, value_id, template = label
-
-        if key_id in label_key_names:
-            key = label_key_names[key_id]
-        else:
-            logger.warning("Label key not found. %s", key_id)
-            continue
-
-        if value_id:
-            if value_id in label_value_names:
-                value = label_value_names[value_id]
-            else:
-                logger.warning("Label value not found. %s", value_id)
-                continue
-        else:
-            value = template
-
-        try:
-            labels[key] = apply_jinja_template(value, raw_request_data)
-        except (JinjaTemplateError, JinjaTemplateWarning) as e:
-            logger.warning("Failed to apply template. %s", e.fallback_message)
-            continue
-
-    return labels
-
-
-def _template_labels(alert_receive_channel: "AlertReceiveChannel", raw_request_data: typing.Any) -> dict[str, str]:
-    if not alert_receive_channel.alert_group_labels_template:
-        return {}
-
-    try:
-        rendered = apply_jinja_template(alert_receive_channel.alert_group_labels_template, raw_request_data)
-    except (JinjaTemplateError, JinjaTemplateWarning) as e:
-        logger.warning("Failed to apply template. %s", e.fallback_message)
-        return {}
-
-    try:
-        labels = json.loads(rendered)
-    except (TypeError, json.JSONDecodeError):
-        logger.warning("Failed to parse template result. %s", rendered)
-        return {}
-
-    if not isinstance(labels, dict):
-        logger.warning("Template result is not a dict. %s", labels)
-        return {}
-
-    # only keep labels with string, int, float, bool values
-    return {str(k): str(v) for k, v in labels.items() if isinstance(v, (str, int, float, bool))}
 
 
 def get_label_verbal(obj: typing.Any) -> dict[str, str]:

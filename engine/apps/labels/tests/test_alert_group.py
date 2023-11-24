@@ -3,6 +3,10 @@ from unittest import mock
 import pytest
 
 from apps.alerts.models import Alert
+from apps.labels.models import MAX_KEY_NAME_LENGTH, MAX_VALUE_NAME_LENGTH
+
+TOO_LONG_KEY_NAME = "k" * (MAX_KEY_NAME_LENGTH + 1)
+TOO_LONG_VALUE_NAME = "v" * (MAX_VALUE_NAME_LENGTH + 1)
 
 
 @mock.patch("apps.labels.utils.is_labels_feature_enabled", return_value=False)
@@ -41,6 +45,7 @@ def test_assign_labels(
     label_key, label_value = make_label_key_and_value(organization, key_name="a", value_name="b")
     label_key_1 = make_label_key(organization=organization, key_name="c")
     label_key_2 = make_label_key(organization=organization)
+    label_key_3 = make_label_key(organization=organization)
 
     # create alert receive channel with all 3 types of labels
     alert_receive_channel = make_alert_receive_channel(
@@ -49,8 +54,8 @@ def test_assign_labels(
             [label_key.id, label_value.id, None],  # plain label
             ["nonexistent", label_value.id, None],  # plain label with nonexistent key ID
             [label_key_2.id, "nonexistent", None],  # plain label with nonexistent value ID
-            [label_key_1.id, None, "{{ payload.c }}"],  # template label
-            ["nonexistent", None, "{{ payload.extra }}"],  # template label with nonexistent key ID
+            [label_key_1.id, None, "{{ payload.c }}"],  # templated label
+            [label_key_3.id, None, TOO_LONG_VALUE_NAME],  # templated label too long
         ],
         alert_group_labels_template="{{ payload.advanced_template | tojson }}",
     )
@@ -61,7 +66,16 @@ def test_assign_labels(
         title="the title",
         message="the message",
         alert_receive_channel=alert_receive_channel,
-        raw_request_data={"c": "d", "advanced_template": {"g": "h"}, "extra": "hi"},
+        raw_request_data={
+            "c": "d",
+            "advanced_template": {
+                "g": 123,
+                "too_long": TOO_LONG_VALUE_NAME,
+                TOO_LONG_KEY_NAME: "too_long",
+                "invalid_type": {"test": "test"},
+            },
+            "extra": "hi",
+        },
         integration_unique_data={},
         image_url=None,
         link_to_upstream_details=None,
@@ -72,5 +86,5 @@ def test_assign_labels(
         ("a", "b"),
         ("c", "d"),
         ("e", "f"),
-        ("g", "h"),
+        ("g", "123"),
     ]
