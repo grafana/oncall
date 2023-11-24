@@ -123,7 +123,7 @@ const IntegrationLabelsForm = observer((props: IntegrationLabelsFormProps) => {
           <Collapse isOpen={false} label="Advanced label templating">
             <VerticalGroup>
               <HorizontalGroup justify="space-between" style={{ marginBottom: '10px' }}>
-                <Text type="secondary">Jinja2 template to parse all labels in one pass</Text>
+                <Text type="secondary">Jinja2 template to parse all labels at once</Text>
                 <Button
                   variant="secondary"
                   icon="edit"
@@ -169,7 +169,7 @@ const IntegrationLabelsForm = observer((props: IntegrationLabelsFormProps) => {
           onHide={() => setCustomLabelIndexToShowTemplateEditor(undefined)}
           onUpdateTemplates={({ alert_group_labels }) => {
             const newCustom = [...alertGroupLabels.custom];
-            newCustom[customLabelIndexToShowTemplateEditor].value = alert_group_labels;
+            newCustom[customLabelIndexToShowTemplateEditor].value.name = alert_group_labels;
 
             setAlertGroupLabels({
               ...alertGroupLabels,

@@ -380,7 +380,7 @@ const ServiceLabels: FC<ServiceLabelsProps> = ({
     onCreateKey(key).then((res) => {
       const newKey = {
         key: { [FieldId]: res[FieldId], [FieldName]: res[FieldName] },
-        value: { [FieldId]: undefined, [FieldName]: undefined },
+        value: selectedOptions[rowIndex].value,
       };
 
       const newSelectedOptions = [...selectedOptions];
