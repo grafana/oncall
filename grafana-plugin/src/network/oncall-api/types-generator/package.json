@@ -1,0 +1,6 @@
+{
+  "type": "module",
+  "scripts": {
+    "generate": "npx ts-node-esm ./generate-types.ts"
+  }
+}

@@ -43,15 +43,15 @@ Related: [How to develop integrations](/engine/config_integrations/README.md)
 
 1. Create local k8s cluster:
 
-    ```bash
-    make cluster/up
-    ```
+   ```bash
+   make cluster/up
+   ```
 
 2. Deploy the project:
 
-    ```bash
-    tilt up
-    ```
+   ```bash
+   tilt up
+   ```
 
 3. Wait until all resources are green and open <http://localhost:3000/a/grafana-oncall-app> (user: oncall, password: oncall)
 
@@ -59,9 +59,9 @@ Related: [How to develop integrations](/engine/config_integrations/README.md)
 
 5. Clean up the project by deleting the local k8s cluster:
 
-    ```bash
-    make cluster/down
-    ```
+   ```bash
+   make cluster/down
+   ```
 
 ## Running the project with docker-compose
 
@@ -241,6 +241,8 @@ cp ./grafana-plugin/e2e-tests/.env.example ./grafana-plugin/e2e-tests/.env
 cd grafana-plugin
 yarn test:e2e
 ```
+
+// TODO: add info about local helm values
 
 ## Helm unit tests
 
