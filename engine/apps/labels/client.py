@@ -4,8 +4,6 @@ from urllib.parse import urljoin
 import requests
 from django.conf import settings
 
-from apps.grafana_plugin.helpers.client import APIClient
-
 if typing.TYPE_CHECKING:
     from apps.labels.utils import LabelKeyData, LabelsKeysData, LabelUpdateParam
 
@@ -26,7 +24,7 @@ class LabelsRepoAPIException(Exception):
 TIMEOUT = 5
 
 
-class LabelsAPIClient(APIClient):
+class LabelsAPIClient:
     LABELS_API_URL = "/api/plugins/grafana-labels-app/resources/v1/labels/"
 
     def __init__(self, api_url: str, api_token: str) -> None:
