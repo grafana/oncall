@@ -3,119 +3,118 @@
  * Do not make direct changes to the file.
  */
 
-
 export interface paths {
-  "/alertgroups/": {
+  '/alertgroups/': {
     /** @description Fetch a list of alert groups */
-    get: operations["alertgroups_list"];
+    get: operations['alertgroups_list'];
   };
-  "/alertgroups/{id}/": {
+  '/alertgroups/{id}/': {
     /** @description Fetch a single alert group */
-    get: operations["alertgroups_retrieve"];
+    get: operations['alertgroups_retrieve'];
     /** @description Delete an alert group */
-    delete: operations["alertgroups_destroy"];
+    delete: operations['alertgroups_destroy'];
   };
-  "/alertgroups/{id}/acknowledge/": {
+  '/alertgroups/{id}/acknowledge/': {
     /** @description Acknowledge an alert group */
-    post: operations["alertgroups_acknowledge_create"];
+    post: operations['alertgroups_acknowledge_create'];
   };
-  "/alertgroups/{id}/attach/": {
+  '/alertgroups/{id}/attach/': {
     /** @description Attach alert group to another alert group */
-    post: operations["alertgroups_attach_create"];
+    post: operations['alertgroups_attach_create'];
   };
-  "/alertgroups/{id}/preview_template/": {
+  '/alertgroups/{id}/preview_template/': {
     /** @description Preview a template for an alert group */
-    post: operations["alertgroups_preview_template_create"];
+    post: operations['alertgroups_preview_template_create'];
   };
-  "/alertgroups/{id}/resolve/": {
+  '/alertgroups/{id}/resolve/': {
     /** @description Resolve an alert group */
-    post: operations["alertgroups_resolve_create"];
+    post: operations['alertgroups_resolve_create'];
   };
-  "/alertgroups/{id}/silence/": {
+  '/alertgroups/{id}/silence/': {
     /** @description Silence an alert group for a specified delay */
-    post: operations["alertgroups_silence_create"];
+    post: operations['alertgroups_silence_create'];
   };
-  "/alertgroups/{id}/unacknowledge/": {
+  '/alertgroups/{id}/unacknowledge/': {
     /** @description Unacknowledge an alert group */
-    post: operations["alertgroups_unacknowledge_create"];
+    post: operations['alertgroups_unacknowledge_create'];
   };
-  "/alertgroups/{id}/unattach/": {
+  '/alertgroups/{id}/unattach/': {
     /** @description Unattach an alert group that is already attached to another alert group */
-    post: operations["alertgroups_unattach_create"];
+    post: operations['alertgroups_unattach_create'];
   };
-  "/alertgroups/{id}/unpage_user/": {
+  '/alertgroups/{id}/unpage_user/': {
     /** @description Remove a user that was directly paged for the alert group */
-    post: operations["alertgroups_unpage_user_create"];
+    post: operations['alertgroups_unpage_user_create'];
   };
-  "/alertgroups/{id}/unresolve/": {
+  '/alertgroups/{id}/unresolve/': {
     /** @description Unresolve an alert group */
-    post: operations["alertgroups_unresolve_create"];
+    post: operations['alertgroups_unresolve_create'];
   };
-  "/alertgroups/{id}/unsilence/": {
+  '/alertgroups/{id}/unsilence/': {
     /** @description Unsilence a silenced alert group */
-    post: operations["alertgroups_unsilence_create"];
+    post: operations['alertgroups_unsilence_create'];
   };
-  "/alertgroups/bulk_action/": {
+  '/alertgroups/bulk_action/': {
     /** @description Perform a bulk action on a list of alert groups */
-    post: operations["alertgroups_bulk_action_create"];
+    post: operations['alertgroups_bulk_action_create'];
   };
-  "/alertgroups/bulk_action_options/": {
+  '/alertgroups/bulk_action_options/': {
     /** @description Retrieve a list of valid bulk action options */
-    get: operations["alertgroups_bulk_action_options_retrieve"];
+    get: operations['alertgroups_bulk_action_options_retrieve'];
   };
-  "/alertgroups/filters/": {
+  '/alertgroups/filters/': {
     /** @description Retrieve a list of valid filter options that can be used to filter alert groups */
-    get: operations["alertgroups_filters_retrieve"];
+    get: operations['alertgroups_filters_retrieve'];
   };
-  "/alertgroups/labels/id/{key_id}": {
+  '/alertgroups/labels/id/{key_id}': {
     /** @description Key with the list of values. IDs and names are interchangeable (see get_keys() for more details). */
-    get: operations["alertgroups_labels_id_retrieve"];
+    get: operations['alertgroups_labels_id_retrieve'];
   };
-  "/alertgroups/labels/keys/": {
+  '/alertgroups/labels/keys/': {
     /**
      * @description List of alert group label keys.
      * IDs are the same as names to keep the response format consistent with LabelsViewSet.get_keys().
      */
-    get: operations["alertgroups_labels_keys_list"];
+    get: operations['alertgroups_labels_keys_list'];
   };
-  "/alertgroups/silence_options/": {
+  '/alertgroups/silence_options/': {
     /** @description Retrieve a list of valid silence options */
-    get: operations["alertgroups_silence_options_list"];
+    get: operations['alertgroups_silence_options_list'];
   };
-  "/alertgroups/stats/": {
+  '/alertgroups/stats/': {
     /** @description Return number of alert groups capped at 100001 */
-    get: operations["alertgroups_stats_retrieve"];
+    get: operations['alertgroups_stats_retrieve'];
   };
-  "/features/": {
+  '/features/': {
     /**
      * @description Return whitelist of enabled features.
      * It is needed to disable features for On-prem installations.
      */
-    get: operations["features_retrieve"];
+    get: operations['features_retrieve'];
   };
-  "/labels/": {
+  '/labels/': {
     /** @description Create a new label key with values(Optional) */
-    post: operations["labels_create"];
+    post: operations['labels_create'];
   };
-  "/labels/id/{key_id}/": {
+  '/labels/id/{key_id}/': {
     /** @description Key with the list of values */
-    get: operations["labels_id_retrieve"];
+    get: operations['labels_id_retrieve'];
     /** @description Rename the key */
-    put: operations["labels_id_update"];
+    put: operations['labels_id_update'];
   };
-  "/labels/id/{key_id}/values/": {
+  '/labels/id/{key_id}/values/': {
     /** @description Add a new value to the key */
-    post: operations["labels_id_values_create"];
+    post: operations['labels_id_values_create'];
   };
-  "/labels/id/{key_id}/values/{value_id}/": {
+  '/labels/id/{key_id}/values/{value_id}/': {
     /** @description Value name */
-    get: operations["labels_id_values_retrieve"];
+    get: operations['labels_id_values_retrieve'];
     /** @description Rename the value */
-    put: operations["labels_id_values_update"];
+    put: operations['labels_id_values_update'];
   };
-  "/labels/keys/": {
+  '/labels/keys/': {
     /** @description List of labels keys */
-    get: operations["labels_keys_list"];
+    get: operations['labels_keys_list'];
   };
 }
 
@@ -135,50 +134,50 @@ export interface components {
       pk: string;
       alerts_count: number;
       inside_organization_number?: number;
-      alert_receive_channel: components["schemas"]["FastAlertReceiveChannel"];
+      alert_receive_channel: components['schemas']['FastAlertReceiveChannel'];
       resolved?: boolean;
-      resolved_by?: components["schemas"]["ResolvedByEnum"];
-      resolved_by_user?: components["schemas"]["FastUser"];
+      resolved_by?: components['schemas']['ResolvedByEnum'];
+      resolved_by_user?: components['schemas']['FastUser'];
       /** Format: date-time */
       resolved_at?: string | null;
       /** Format: date-time */
       acknowledged_at?: string | null;
       acknowledged?: boolean;
       acknowledged_on_source?: boolean;
-      acknowledged_by_user?: components["schemas"]["FastUser"];
+      acknowledged_by_user?: components['schemas']['FastUser'];
       silenced?: boolean;
-      silenced_by_user?: components["schemas"]["FastUser"];
+      silenced_by_user?: components['schemas']['FastUser'];
       /** Format: date-time */
       silenced_at?: string | null;
       /** Format: date-time */
       silenced_until?: string | null;
       /** Format: date-time */
       started_at: string;
-      related_users: readonly components["schemas"]["UserShort"][];
-      render_for_web: components["schemas"]["render_for_web"];
-      dependent_alert_groups: components["schemas"]["ShortAlertGroup"][];
-      root_alert_group: components["schemas"]["ShortAlertGroup"];
+      related_users: readonly components['schemas']['UserShort'][];
+      render_for_web: components['schemas']['render_for_web'];
+      dependent_alert_groups: components['schemas']['ShortAlertGroup'][];
+      root_alert_group: components['schemas']['ShortAlertGroup'];
       status: string;
       /** @description Generate a link for AlertGroup to declare Grafana Incident by click */
       declare_incident_link: string;
       team: string | null;
       grafana_incident_id?: string | null;
-      labels: readonly components["schemas"]["AlertGroupLabel"][];
-      alerts: readonly components["schemas"]["Alert"][];
-      render_after_resolve_report_json: readonly ({
-          time: string;
-          action: string;
-          /** @enum {string} */
-          realm: "user_notification" | "alert_group" | "resolution_note";
-          type: number;
-          created_at: string;
-          author: {
-            username: string;
-            pk: string;
-            avatar: string;
-            avatar_full: string;
-          };
-        })[];
+      labels: readonly components['schemas']['AlertGroupLabel'][];
+      alerts: readonly components['schemas']['Alert'][];
+      render_after_resolve_report_json: readonly {
+        time: string;
+        action: string;
+        /** @enum {string} */
+        realm: 'user_notification' | 'alert_group' | 'resolution_note';
+        type: number;
+        created_at: string;
+        author: {
+          username: string;
+          pk: string;
+          avatar: string;
+          avatar_full: string;
+        };
+      }[];
       slack_permalink: string | null;
       permalinks: {
         readonly slack: string | null;
@@ -188,52 +187,52 @@ export interface components {
       /** Format: date-time */
       last_alert_at: string;
       paged_users: readonly {
-          id: number;
-          username: string;
-          name: string;
-          pk: string;
-          avatar: string;
-          avatar_full: string;
-          important: boolean;
-        }[];
+        id: number;
+        username: string;
+        name: string;
+        pk: string;
+        avatar: string;
+        avatar_full: string;
+        important: boolean;
+      }[];
     };
     AlertGroupLabel: {
-      key: components["schemas"]["Key"];
-      value: components["schemas"]["Value"];
+      key: components['schemas']['Key'];
+      value: components['schemas']['Value'];
     };
     AlertGroupList: {
       pk: string;
       alerts_count: number;
       inside_organization_number?: number;
-      alert_receive_channel: components["schemas"]["FastAlertReceiveChannel"];
+      alert_receive_channel: components['schemas']['FastAlertReceiveChannel'];
       resolved?: boolean;
-      resolved_by?: components["schemas"]["ResolvedByEnum"];
-      resolved_by_user?: components["schemas"]["FastUser"];
+      resolved_by?: components['schemas']['ResolvedByEnum'];
+      resolved_by_user?: components['schemas']['FastUser'];
       /** Format: date-time */
       resolved_at?: string | null;
       /** Format: date-time */
       acknowledged_at?: string | null;
       acknowledged?: boolean;
       acknowledged_on_source?: boolean;
-      acknowledged_by_user?: components["schemas"]["FastUser"];
+      acknowledged_by_user?: components['schemas']['FastUser'];
       silenced?: boolean;
-      silenced_by_user?: components["schemas"]["FastUser"];
+      silenced_by_user?: components['schemas']['FastUser'];
       /** Format: date-time */
       silenced_at?: string | null;
       /** Format: date-time */
       silenced_until?: string | null;
       /** Format: date-time */
       started_at: string;
-      related_users: readonly components["schemas"]["UserShort"][];
-      render_for_web: components["schemas"]["render_for_web"];
-      dependent_alert_groups: components["schemas"]["ShortAlertGroup"][];
-      root_alert_group: components["schemas"]["ShortAlertGroup"];
+      related_users: readonly components['schemas']['UserShort'][];
+      render_for_web: components['schemas']['render_for_web'];
+      dependent_alert_groups: components['schemas']['ShortAlertGroup'][];
+      root_alert_group: components['schemas']['ShortAlertGroup'];
       status: string;
       /** @description Generate a link for AlertGroup to declare Grafana Incident by click */
       declare_incident_link: string;
       team: string | null;
       grafana_incident_id?: string | null;
-      labels: readonly components["schemas"]["AlertGroupLabel"][];
+      labels: readonly components['schemas']['AlertGroupLabel'][];
     };
     AlertGroupStats: {
       count: number;
@@ -253,16 +252,16 @@ export interface components {
       name: string;
     };
     LabelCreate: {
-      key: components["schemas"]["LabelRepr"];
-      values: components["schemas"]["LabelRepr"][];
+      key: components['schemas']['LabelRepr'];
+      values: components['schemas']['LabelRepr'][];
     };
     LabelKey: {
       id: string;
       name: string;
     };
     LabelKeyValues: {
-      key: components["schemas"]["LabelKey"];
-      values: components["schemas"]["LabelValue"][];
+      key: components['schemas']['LabelKey'];
+      values: components['schemas']['LabelValue'][];
     };
     LabelRepr: {
       name: string;
@@ -274,12 +273,12 @@ export interface components {
     PaginatedAlertGroupListList: {
       next?: string | null;
       previous?: string | null;
-      results?: components["schemas"]["AlertGroupList"][];
+      results?: components['schemas']['AlertGroupList'][];
     };
     Paginatedsilence_optionsList: {
       next?: string | null;
       previous?: string | null;
-      results?: components["schemas"]["silence_options"][];
+      results?: components['schemas']['silence_options'][];
     };
     /**
      * @description * `0` - source
@@ -295,8 +294,8 @@ export interface components {
     ResolvedByEnum: 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7;
     ShortAlertGroup: {
       pk: string;
-      render_for_web: components["schemas"]["render_for_web"];
-      alert_receive_channel: components["schemas"]["FastAlertReceiveChannel"];
+      render_for_web: components['schemas']['render_for_web'];
+      alert_receive_channel: components['schemas']['FastAlertReceiveChannel'];
       inside_organization_number: number;
     };
     UserShort: {
@@ -332,7 +331,6 @@ export type $defs = Record<string, never>;
 export type external = Record<string, never>;
 
 export interface operations {
-
   /** @description Fetch a list of alert groups */
   alertgroups_list: {
     parameters: {
@@ -348,7 +346,7 @@ export interface operations {
     responses: {
       200: {
         content: {
-          "application/json": components["schemas"]["PaginatedAlertGroupListList"];
+          'application/json': components['schemas']['PaginatedAlertGroupListList'];
         };
       };
     };
@@ -363,7 +361,7 @@ export interface operations {
     responses: {
       200: {
         content: {
-          "application/json": components["schemas"]["AlertGroup"];
+          'application/json': components['schemas']['AlertGroup'];
         };
       };
     };
@@ -391,15 +389,15 @@ export interface operations {
     };
     requestBody: {
       content: {
-        "application/json": components["schemas"]["AlertGroup"];
-        "application/x-www-form-urlencoded": components["schemas"]["AlertGroup"];
-        "multipart/form-data": components["schemas"]["AlertGroup"];
+        'application/json': components['schemas']['AlertGroup'];
+        'application/x-www-form-urlencoded': components['schemas']['AlertGroup'];
+        'multipart/form-data': components['schemas']['AlertGroup'];
       };
     };
     responses: {
       200: {
         content: {
-          "application/json": components["schemas"]["AlertGroup"];
+          'application/json': components['schemas']['AlertGroup'];
         };
       };
     };
@@ -413,15 +411,15 @@ export interface operations {
     };
     requestBody: {
       content: {
-        "application/json": components["schemas"]["AlertGroup"];
-        "application/x-www-form-urlencoded": components["schemas"]["AlertGroup"];
-        "multipart/form-data": components["schemas"]["AlertGroup"];
+        'application/json': components['schemas']['AlertGroup'];
+        'application/x-www-form-urlencoded': components['schemas']['AlertGroup'];
+        'multipart/form-data': components['schemas']['AlertGroup'];
       };
     };
     responses: {
       200: {
         content: {
-          "application/json": components["schemas"]["AlertGroup"];
+          'application/json': components['schemas']['AlertGroup'];
         };
       };
     };
@@ -435,15 +433,15 @@ export interface operations {
     };
     requestBody: {
       content: {
-        "application/json": components["schemas"]["AlertGroup"];
-        "application/x-www-form-urlencoded": components["schemas"]["AlertGroup"];
-        "multipart/form-data": components["schemas"]["AlertGroup"];
+        'application/json': components['schemas']['AlertGroup'];
+        'application/x-www-form-urlencoded': components['schemas']['AlertGroup'];
+        'multipart/form-data': components['schemas']['AlertGroup'];
       };
     };
     responses: {
       200: {
         content: {
-          "application/json": components["schemas"]["AlertGroup"];
+          'application/json': components['schemas']['AlertGroup'];
         };
       };
     };
@@ -457,15 +455,15 @@ export interface operations {
     };
     requestBody: {
       content: {
-        "application/json": components["schemas"]["AlertGroup"];
-        "application/x-www-form-urlencoded": components["schemas"]["AlertGroup"];
-        "multipart/form-data": components["schemas"]["AlertGroup"];
+        'application/json': components['schemas']['AlertGroup'];
+        'application/x-www-form-urlencoded': components['schemas']['AlertGroup'];
+        'multipart/form-data': components['schemas']['AlertGroup'];
       };
     };
     responses: {
       200: {
         content: {
-          "application/json": components["schemas"]["AlertGroup"];
+          'application/json': components['schemas']['AlertGroup'];
         };
       };
     };
@@ -479,15 +477,15 @@ export interface operations {
     };
     requestBody: {
       content: {
-        "application/json": components["schemas"]["AlertGroup"];
-        "application/x-www-form-urlencoded": components["schemas"]["AlertGroup"];
-        "multipart/form-data": components["schemas"]["AlertGroup"];
+        'application/json': components['schemas']['AlertGroup'];
+        'application/x-www-form-urlencoded': components['schemas']['AlertGroup'];
+        'multipart/form-data': components['schemas']['AlertGroup'];
       };
     };
     responses: {
       200: {
         content: {
-          "application/json": components["schemas"]["AlertGroup"];
+          'application/json': components['schemas']['AlertGroup'];
         };
       };
     };
@@ -501,15 +499,15 @@ export interface operations {
     };
     requestBody: {
       content: {
-        "application/json": components["schemas"]["AlertGroup"];
-        "application/x-www-form-urlencoded": components["schemas"]["AlertGroup"];
-        "multipart/form-data": components["schemas"]["AlertGroup"];
+        'application/json': components['schemas']['AlertGroup'];
+        'application/x-www-form-urlencoded': components['schemas']['AlertGroup'];
+        'multipart/form-data': components['schemas']['AlertGroup'];
       };
     };
     responses: {
       200: {
         content: {
-          "application/json": components["schemas"]["AlertGroup"];
+          'application/json': components['schemas']['AlertGroup'];
         };
       };
     };
@@ -523,15 +521,15 @@ export interface operations {
     };
     requestBody: {
       content: {
-        "application/json": components["schemas"]["AlertGroup"];
-        "application/x-www-form-urlencoded": components["schemas"]["AlertGroup"];
-        "multipart/form-data": components["schemas"]["AlertGroup"];
+        'application/json': components['schemas']['AlertGroup'];
+        'application/x-www-form-urlencoded': components['schemas']['AlertGroup'];
+        'multipart/form-data': components['schemas']['AlertGroup'];
       };
     };
     responses: {
       200: {
         content: {
-          "application/json": components["schemas"]["AlertGroup"];
+          'application/json': components['schemas']['AlertGroup'];
         };
       };
     };
@@ -545,15 +543,15 @@ export interface operations {
     };
     requestBody: {
       content: {
-        "application/json": components["schemas"]["AlertGroup"];
-        "application/x-www-form-urlencoded": components["schemas"]["AlertGroup"];
-        "multipart/form-data": components["schemas"]["AlertGroup"];
+        'application/json': components['schemas']['AlertGroup'];
+        'application/x-www-form-urlencoded': components['schemas']['AlertGroup'];
+        'multipart/form-data': components['schemas']['AlertGroup'];
       };
     };
     responses: {
       200: {
         content: {
-          "application/json": components["schemas"]["AlertGroup"];
+          'application/json': components['schemas']['AlertGroup'];
         };
       };
     };
@@ -567,15 +565,15 @@ export interface operations {
     };
     requestBody: {
       content: {
-        "application/json": components["schemas"]["AlertGroup"];
-        "application/x-www-form-urlencoded": components["schemas"]["AlertGroup"];
-        "multipart/form-data": components["schemas"]["AlertGroup"];
+        'application/json': components['schemas']['AlertGroup'];
+        'application/x-www-form-urlencoded': components['schemas']['AlertGroup'];
+        'multipart/form-data': components['schemas']['AlertGroup'];
       };
     };
     responses: {
       200: {
         content: {
-          "application/json": components["schemas"]["AlertGroup"];
+          'application/json': components['schemas']['AlertGroup'];
         };
       };
     };
@@ -589,15 +587,15 @@ export interface operations {
     };
     requestBody: {
       content: {
-        "application/json": components["schemas"]["AlertGroup"];
-        "application/x-www-form-urlencoded": components["schemas"]["AlertGroup"];
-        "multipart/form-data": components["schemas"]["AlertGroup"];
+        'application/json': components['schemas']['AlertGroup'];
+        'application/x-www-form-urlencoded': components['schemas']['AlertGroup'];
+        'multipart/form-data': components['schemas']['AlertGroup'];
       };
     };
     responses: {
       200: {
         content: {
-          "application/json": components["schemas"]["AlertGroup"];
+          'application/json': components['schemas']['AlertGroup'];
         };
       };
     };
@@ -606,15 +604,15 @@ export interface operations {
   alertgroups_bulk_action_create: {
     requestBody: {
       content: {
-        "application/json": components["schemas"]["AlertGroup"];
-        "application/x-www-form-urlencoded": components["schemas"]["AlertGroup"];
-        "multipart/form-data": components["schemas"]["AlertGroup"];
+        'application/json': components['schemas']['AlertGroup'];
+        'application/x-www-form-urlencoded': components['schemas']['AlertGroup'];
+        'multipart/form-data': components['schemas']['AlertGroup'];
       };
     };
     responses: {
       200: {
         content: {
-          "application/json": components["schemas"]["AlertGroup"];
+          'application/json': components['schemas']['AlertGroup'];
         };
       };
     };
@@ -624,7 +622,7 @@ export interface operations {
     responses: {
       200: {
         content: {
-          "application/json": components["schemas"]["AlertGroup"];
+          'application/json': components['schemas']['AlertGroup'];
         };
       };
     };
@@ -634,7 +632,7 @@ export interface operations {
     responses: {
       200: {
         content: {
-          "application/json": components["schemas"]["AlertGroup"];
+          'application/json': components['schemas']['AlertGroup'];
         };
       };
     };
@@ -649,7 +647,7 @@ export interface operations {
     responses: {
       200: {
         content: {
-          "application/json": components["schemas"]["LabelKeyValues"];
+          'application/json': components['schemas']['LabelKeyValues'];
         };
       };
     };
@@ -662,7 +660,7 @@ export interface operations {
     responses: {
       200: {
         content: {
-          "application/json": components["schemas"]["LabelKey"][];
+          'application/json': components['schemas']['LabelKey'][];
         };
       };
     };
@@ -682,7 +680,7 @@ export interface operations {
     responses: {
       200: {
         content: {
-          "application/json": components["schemas"]["Paginatedsilence_optionsList"];
+          'application/json': components['schemas']['Paginatedsilence_optionsList'];
         };
       };
     };
@@ -692,7 +690,7 @@ export interface operations {
     responses: {
       200: {
         content: {
-          "application/json": components["schemas"]["AlertGroupStats"];
+          'application/json': components['schemas']['AlertGroupStats'];
         };
       };
     };
@@ -705,7 +703,7 @@ export interface operations {
     responses: {
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             [key: string]: unknown;
           };
         };
@@ -716,15 +714,15 @@ export interface operations {
   labels_create: {
     requestBody: {
       content: {
-        "application/json": components["schemas"]["LabelCreate"][];
-        "application/x-www-form-urlencoded": components["schemas"]["LabelCreate"][];
-        "multipart/form-data": components["schemas"]["LabelCreate"][];
+        'application/json': components['schemas']['LabelCreate'][];
+        'application/x-www-form-urlencoded': components['schemas']['LabelCreate'][];
+        'multipart/form-data': components['schemas']['LabelCreate'][];
       };
     };
     responses: {
       201: {
         content: {
-          "application/json": components["schemas"]["LabelKeyValues"];
+          'application/json': components['schemas']['LabelKeyValues'];
         };
       };
     };
@@ -739,7 +737,7 @@ export interface operations {
     responses: {
       200: {
         content: {
-          "application/json": components["schemas"]["LabelKeyValues"];
+          'application/json': components['schemas']['LabelKeyValues'];
         };
       };
     };
@@ -753,15 +751,15 @@ export interface operations {
     };
     requestBody: {
       content: {
-        "application/json": components["schemas"]["LabelRepr"];
-        "application/x-www-form-urlencoded": components["schemas"]["LabelRepr"];
-        "multipart/form-data": components["schemas"]["LabelRepr"];
+        'application/json': components['schemas']['LabelRepr'];
+        'application/x-www-form-urlencoded': components['schemas']['LabelRepr'];
+        'multipart/form-data': components['schemas']['LabelRepr'];
       };
     };
     responses: {
       200: {
         content: {
-          "application/json": components["schemas"]["LabelKeyValues"];
+          'application/json': components['schemas']['LabelKeyValues'];
         };
       };
     };
@@ -775,15 +773,15 @@ export interface operations {
     };
     requestBody: {
       content: {
-        "application/json": components["schemas"]["LabelRepr"];
-        "application/x-www-form-urlencoded": components["schemas"]["LabelRepr"];
-        "multipart/form-data": components["schemas"]["LabelRepr"];
+        'application/json': components['schemas']['LabelRepr'];
+        'application/x-www-form-urlencoded': components['schemas']['LabelRepr'];
+        'multipart/form-data': components['schemas']['LabelRepr'];
       };
     };
     responses: {
       200: {
         content: {
-          "application/json": components["schemas"]["LabelKeyValues"];
+          'application/json': components['schemas']['LabelKeyValues'];
         };
       };
     };
@@ -799,7 +797,7 @@ export interface operations {
     responses: {
       200: {
         content: {
-          "application/json": components["schemas"]["LabelValue"];
+          'application/json': components['schemas']['LabelValue'];
         };
       };
     };
@@ -814,15 +812,15 @@ export interface operations {
     };
     requestBody: {
       content: {
-        "application/json": components["schemas"]["LabelRepr"];
-        "application/x-www-form-urlencoded": components["schemas"]["LabelRepr"];
-        "multipart/form-data": components["schemas"]["LabelRepr"];
+        'application/json': components['schemas']['LabelRepr'];
+        'application/x-www-form-urlencoded': components['schemas']['LabelRepr'];
+        'multipart/form-data': components['schemas']['LabelRepr'];
       };
     };
     responses: {
       200: {
         content: {
-          "application/json": components["schemas"]["LabelKeyValues"];
+          'application/json': components['schemas']['LabelKeyValues'];
         };
       };
     };
@@ -832,7 +830,7 @@ export interface operations {
     responses: {
       200: {
         content: {
-          "application/json": components["schemas"]["LabelKey"][];
+          'application/json': components['schemas']['LabelKey'][];
         };
       };
     };
