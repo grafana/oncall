@@ -3,6 +3,5 @@
     "module": "ESNext",
     "moduleResolution": "node",
     "esModuleInterop": true
-  },
-  "files": ["./generate-types.ts"]
+  }
 }
