@@ -1,6 +1,6 @@
 import React, { useState, SyntheticEvent } from 'react';
 
-import LabelTag from '@grafana/labels';
+import { LabelTag } from '@grafana/labels';
 import {
   Button,
   HorizontalGroup,
