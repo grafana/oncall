@@ -38,17 +38,18 @@ import styles from './RemoteFilters.module.css';
 const cx = cn.bind(styles);
 
 interface RemoteFiltersProps extends WithStoreProps {
-  onChange: (filters: { [key: string]: any }, isOnMount: boolean, invalidateFn: () => boolean) => void;
+  onChange: (filters: Record<string, any>, isOnMount: boolean, invalidateFn: () => boolean) => void;
   query: KeyValue;
   page: PAGE;
   defaultFilters?: FiltersValues;
   extraFilters?: (state, setState, onFiltersValueChange) => React.ReactNode;
   grafanaTeamStore: GrafanaTeamStore;
+  skipFilterOptionFn?: (filterOption: FilterOption) => boolean;
 }
 interface RemoteFiltersState {
   filterOptions?: FilterOption[];
   filters: FilterOption[];
-  values: { [key: string]: any };
+  values: Record<string, any>;
   hadInteraction: boolean;
   lastRequestId: string;
 }
@@ -74,7 +75,7 @@ class RemoteFilters extends Component<RemoteFiltersProps, RemoteFiltersState> {
 
       const { filterOptions } = this.state;
 
-      let { filters, values } = parseFilters(query, filterOptions, query);
+      let { filters, values } = parseFilters({ ...query, ...filtersStore.globalValues }, filterOptions, query);
 
       this.setState({ filterOptions, filters, values }, () => this.onChange());
     }
@@ -86,10 +87,15 @@ class RemoteFilters extends Component<RemoteFiltersProps, RemoteFiltersState> {
       page,
       store: { filtersStore },
       defaultFilters,
+      skipFilterOptionFn,
     } = this.props;
 
-    const filterOptions = await filtersStore.updateOptionsForPage(page);
+    let filterOptions = await filtersStore.updateOptionsForPage(page);
     const currentTablePageNum = parseInt(filtersStore.currentTablePageNum[page] || query.p || 1, 10);
+
+    if (skipFilterOptionFn) {
+      filterOptions = filterOptions.filter((option: FilterOption) => !skipFilterOptionFn(option));
+    }
 
     // set the current page from filters/query or default it to 1
     filtersStore.setCurrentTablePageNum(page, currentTablePageNum);
@@ -97,7 +103,7 @@ class RemoteFilters extends Component<RemoteFiltersProps, RemoteFiltersState> {
     let { filters, values } = parseFilters({ ...query, ...filtersStore.globalValues }, filterOptions, query);
 
     if (isEmpty(values)) {
-      ({ filters, values } = parseFilters(defaultFilters || { team: [] }, filterOptions, query));
+      ({ filters, values } = parseFilters(defaultFilters, filterOptions, query));
     }
 
     this.setState({ filterOptions, filters, values }, () => this.onChange(true));
@@ -267,6 +273,7 @@ class RemoteFilters extends Component<RemoteFiltersProps, RemoteFiltersState> {
             value={values[filter.name]}
             onChange={this.getRemoteOptionsChangeHandler(filter.name)}
             getOptionLabel={(item: SelectableValue) => <Emoji text={item.label || ''} />}
+            predefinedOptions={filter.default ? [filter.default] : undefined}
           />
         );
 

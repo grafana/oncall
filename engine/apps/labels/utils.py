@@ -1,13 +1,13 @@
-import logging
 import typing
 
 from django.apps import apps  # noqa: I251
 from django.conf import settings
 
 if typing.TYPE_CHECKING:
+    from apps.alerts.models import AlertGroup, AlertReceiveChannel
     from apps.labels.models import AssociatedLabel
+    from apps.user_management.models import Organization
 
-logger = logging.getLogger(__name__)
 
 LABEL_OUTDATED_TIMEOUT_MINUTES = 30
 ASSOCIATED_MODEL_NAME = "AssociatedLabel"
@@ -27,6 +27,11 @@ class LabelData(typing.TypedDict):
     value: LabelParams
 
 
+class ValueData(typing.TypedDict):
+    value_name: str
+    key_name: str
+
+
 class LabelKeyData(typing.TypedDict):
     key: LabelParams
     values: typing.List[LabelParams]
@@ -42,19 +47,42 @@ def get_associating_label_model(obj_model_name: str) -> typing.Type["AssociatedL
     return label_model
 
 
-def is_labels_feature_enabled(organization) -> bool:
-    """
-    Checks if labels feature enabled for all organizations (FEATURE_LABELS_ENABLED_FOR_ALL).
-    If not, checks if current organization's grafana org_id is in the list of organizations labels feature enabled for
-    (FEATURE_LABELS_ENABLED_FOR_GRAFANA_ORGS)
-    """
-    logger.info(
-        "is_labels_feature_enabled: "
-        f"FEATURE_LABELS_ENABLED_FOR_ALL={settings.FEATURE_LABELS_ENABLED_FOR_ALL}, "
-        f"organization in FEATURE_LABELS_ENABLED_FOR_GRAFANA_ORGS="
-        f"{organization.id in settings.FEATURE_LABELS_ENABLED_FOR_GRAFANA_ORGS}, "
-        f"organization={organization.id}"
+def is_labels_feature_enabled(organization: "Organization") -> bool:
+    return (
+        settings.FEATURE_LABELS_ENABLED_FOR_ALL
+        or organization.org_id in settings.FEATURE_LABELS_ENABLED_FOR_GRAFANA_ORGS  # Grafana org ID, not OnCall org ID
     )
-    if not settings.FEATURE_LABELS_ENABLED_FOR_ALL:
-        return organization.org_id in settings.FEATURE_LABELS_ENABLED_FOR_GRAFANA_ORGS
-    return settings.FEATURE_LABELS_ENABLED_FOR_ALL
+
+
+def assign_labels(alert_group: "AlertGroup", alert_receive_channel: "AlertReceiveChannel") -> None:
+    from apps.labels.models import AlertGroupAssociatedLabel
+
+    if not is_labels_feature_enabled(alert_receive_channel.organization):
+        return
+
+    # inherit labels from the integration
+    alert_group_labels = [
+        AlertGroupAssociatedLabel(
+            alert_group=alert_group,
+            organization=alert_receive_channel.organization,
+            key_name=label.key.name,
+            value_name=label.value.name,
+        )
+        for label in alert_receive_channel.labels.filter(inheritable=True).select_related("key", "value")
+    ]
+    AlertGroupAssociatedLabel.objects.bulk_create(alert_group_labels)
+
+
+def get_label_verbal(labelable) -> typing.Dict[str, str]:
+    """
+    label_verbal returns dict of labels' key and values names for the given object
+    """
+    return {label.key.name: label.value.name for label in labelable.labels.all().select_related("key", "value")}
+
+
+def get_alert_group_label_verbal(alert_group: "AlertGroup") -> typing.Dict[str, str]:
+    """
+    get_alert_group_label_verbal returns dict of labels' key and values names for the given alert group.
+    It's different from get_label_verbal, because AlertGroupAssociated labels store key/value_name, not key/value_id
+    """
+    return {label.key_name: label.value_name for label in alert_group.labels.all()}

@@ -11,9 +11,12 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
+from apps.api.label_filtering import parse_label_query
 from apps.api.permissions import RBACPermission
 from apps.api.serializers.webhook import WebhookResponseSerializer, WebhookSerializer
+from apps.api.views.labels import schedule_update_label_cache
 from apps.auth_token.auth import PluginAuthentication
+from apps.labels.utils import is_labels_feature_enabled
 from apps.webhooks.models import Webhook, WebhookResponse
 from apps.webhooks.presets.preset_options import WebhookPresetOptions
 from apps.webhooks.utils import apply_jinja_template_for_json
@@ -91,9 +94,24 @@ class WebhooksView(TeamFilteringMixin, PublicPrimaryKeyMixin, ModelViewSet):
     def get_queryset(self, ignore_filtering_by_available_teams=False):
         queryset = Webhook.objects.filter(
             organization=self.request.auth.organization,
-        ).prefetch_related("responses")
+        )
         if not ignore_filtering_by_available_teams:
             queryset = queryset.filter(*self.available_teams_lookup_args).distinct()
+
+        # filter by labels
+        label_query = self.request.query_params.getlist("label", [])
+        kv_pairs = parse_label_query(label_query)
+        for key, value in kv_pairs:
+            queryset = queryset.filter(
+                labels__key_id=key,
+                labels__value_id=value,
+            )
+        # distinct to remove duplicates after webhooks X labels join
+        queryset = queryset.distinct()
+        # schedule update of labels cache
+        ids = [d.id for d in queryset]
+        schedule_update_label_cache(self.model.__name__, self.request.auth.organization, ids)
+
         return queryset
 
     def get_object(self):
@@ -131,6 +149,15 @@ class WebhooksView(TeamFilteringMixin, PublicPrimaryKeyMixin, ModelViewSet):
                 "global": True,
             },
         ]
+
+        if is_labels_feature_enabled(self.request.auth.organization):
+            filter_options.append(
+                {
+                    "name": "label",
+                    "display_name": "Label",
+                    "type": "labels",
+                }
+            )
 
         if filter_name is not None:
             filter_options = list(filter(lambda f: filter_name in f["name"], filter_options))

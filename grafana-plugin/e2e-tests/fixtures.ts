@@ -1,9 +1,13 @@
-import * as fs from 'fs';
-import * as path from 'path';
 import { test as base, Browser, Page, TestInfo } from '@playwright/test';
 
-import { GRAFANA_ADMIN_USERNAME, GRAFANA_EDITOR_USERNAME, GRAFANA_VIEWER_USERNAME } from './utils/constants';
 import { VIEWER_USER_STORAGE_STATE, EDITOR_USER_STORAGE_STATE, ADMIN_USER_STORAGE_STATE } from '../playwright.config';
+
+import { GRAFANA_ADMIN_USERNAME, GRAFANA_EDITOR_USERNAME, GRAFANA_VIEWER_USERNAME } from './utils/constants';
+
+import * as fs from 'fs';
+import * as path from 'path';
+
+
 
 export class BaseRolePage {
   page: Page;

@@ -1,4 +1,5 @@
 import type { Locator, Page } from '@playwright/test';
+
 import { randomUUID } from 'crypto';
 
 type SelectorType = 'gSelect' | 'grafanaSelect';
@@ -22,9 +23,6 @@ type SelectDropdownValueArgs = {
 type ClickButtonArgs = {
   page: Page;
   buttonText: string;
-  // if provided, search for the button by data-testid
-  dataTestId?: string;
-
   // if provided, use this Locator as the root of our search for the button
   startingLocator?: Locator;
 };
@@ -36,17 +34,9 @@ export const fillInInputByPlaceholderValue = (page: Page, placeholderValue: stri
 
 export const getInputByName = (page: Page, name: string): Locator => page.locator(`input[name="${name}"]`);
 
-export const clickButton = async ({
-  page,
-  buttonText,
-  startingLocator,
-  dataTestId,
-}: ClickButtonArgs): Promise<void> => {
-  const baseLocator = dataTestId ? `button[data-testid="${dataTestId}"]` : 'button';
-  const button = (startingLocator || page).locator(`${baseLocator}:not([disabled]) >> text=${buttonText}`);
-
-  await button.waitFor({ state: 'visible' });
-  await button.click();
+export const clickButton = async ({ page, buttonText, startingLocator }: ClickButtonArgs): Promise<void> => {
+  const baseLocator = startingLocator || page;
+  await baseLocator.getByRole('button', { name: buttonText, disabled: false }).click();
 };
 
 /**
@@ -94,7 +84,7 @@ export const selectDropdownValue = async (args: SelectDropdownValueArgs): Promis
   const { page, value, pressEnterInsteadOfSelectingOption } = args;
 
   const selectElement = await openSelect(args);
-  await selectElement.type(value);
+  await selectElement.pressSequentially(value);
 
   if (pressEnterInsteadOfSelectingOption) {
     await page.keyboard.press('Enter');

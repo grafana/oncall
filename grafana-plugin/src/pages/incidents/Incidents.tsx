@@ -11,6 +11,7 @@ import CardButton from 'components/CardButton/CardButton';
 import CursorPagination from 'components/CursorPagination/CursorPagination';
 import GTable from 'components/GTable/GTable';
 import IntegrationLogo from 'components/IntegrationLogo/IntegrationLogo';
+import LabelsTooltipBadge from 'components/LabelsTooltipBadge/LabelsTooltipBadge';
 import ManualAlertGroup from 'components/ManualAlertGroup/ManualAlertGroup';
 import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
@@ -23,6 +24,7 @@ import TeamName from 'containers/TeamName/TeamName';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { Alert, Alert as AlertType, AlertAction, IncidentStatus } from 'models/alertgroup/alertgroup.types';
 import { renderRelatedUsers } from 'pages/incident/Incident.helpers';
+import { AppFeature } from 'state/features';
 import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import LocationHelper from 'utils/LocationHelper';
@@ -44,7 +46,7 @@ interface IncidentsPageProps extends WithStoreProps, PageProps, RouteComponentPr
 interface IncidentsPageState {
   selectedIncidentIds: Array<Alert['pk']>;
   affectedRows: { [key: string]: boolean };
-  filters?: IncidentsFiltersType;
+  filters?: Record<string, any>;
   pagination: Pagination;
   showAddAlertGroupForm: boolean;
 }
@@ -608,9 +610,11 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
   };
 
   getTableColumns(): Array<{ width: string; title: string; key: string; render }> {
-    const { store } = this.props;
+    const {
+      store: { filtersStore, grafanaTeamStore, hasFeature },
+    } = this.props;
 
-    return [
+    const columns = [
       {
         width: '140px',
         title: 'Status',
@@ -651,7 +655,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
         width: '10%',
         title: 'Team',
         key: 'team',
-        render: (item: AlertType) => this.renderTeam(item, store.grafanaTeamStore.items),
+        render: (item: AlertType) => this.renderTeam(item, grafanaTeamStore.items),
       },
       {
         width: '15%',
@@ -660,6 +664,23 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
         render: renderRelatedUsers,
       },
     ];
+
+    if (hasFeature(AppFeature.Labels)) {
+      columns.splice(-2, 0, {
+        width: '5%',
+        title: 'Labels',
+        key: 'labels',
+        render: ({ labels }: AlertType) => (
+          <LabelsTooltipBadge
+            labels={labels}
+            onClick={(label) => filtersStore.applyLabelFilter(label, PAGE.Incidents)}
+          />
+        ),
+      });
+      columns.find((column) => column.key === 'title').width = '30%';
+    }
+
+    return columns;
   }
 
   getOnActionButtonClick = (incidentId: string, action: AlertAction): ((e: SyntheticEvent) => Promise<void>) => {

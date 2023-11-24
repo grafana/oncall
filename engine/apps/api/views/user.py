@@ -159,7 +159,7 @@ class UserView(
         "timezone_options": [RBACPermission.Permissions.USER_SETTINGS_READ],
         "check_availability": [RBACPermission.Permissions.USER_SETTINGS_READ],
         "metadata": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
-        "list": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
+        "list": [RBACPermission.Permissions.USER_SETTINGS_READ],
         "update": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
         "partial_update": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
         "verify_number": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
@@ -222,6 +222,7 @@ class UserView(
         "^slack_user_identity__cached_slack_login",
         "^slack_user_identity__cached_name",
         "^teams__name",
+        "=public_primary_key",
     )
 
     filterset_class = UserFilter

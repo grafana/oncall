@@ -6,6 +6,7 @@ metadata:
   name: {{ printf "%s-migrate" (include "oncall.engine.fullname" .) }}
   annotations:
     "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/hook-weight": "-1"
     {{- with .Values.migrate.annotations }}
     {{- toYaml . | nindent 4 }}
     {{- end }}

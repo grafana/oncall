@@ -8,14 +8,16 @@ from rest_framework import exceptions
 from rest_framework.authentication import BaseAuthentication, get_authorization_header
 from rest_framework.request import Request
 
-from apps.api.permissions import RBACPermission, user_is_authorized
+from apps.api.permissions import GrafanaAPIPermission, LegacyAccessControlRole, RBACPermission, user_is_authorized
 from apps.grafana_plugin.helpers.gcom import check_token
 from apps.user_management.exceptions import OrganizationDeletedException, OrganizationMovedException
 from apps.user_management.models import User
 from apps.user_management.models.organization import Organization
+from settings.base import SELF_HOSTED_SETTINGS
 
 from .constants import SCHEDULE_EXPORT_TOKEN_NAME, SLACK_AUTH_TOKEN_NAME
 from .exceptions import InvalidToken
+from .grafana.grafana_auth_token import get_service_account_token_permissions
 from .models import ApiAuthToken, PluginAuthToken, ScheduleExportAuthToken, SlackAuthToken, UserScheduleExportAuthToken
 
 logger = logging.getLogger(__name__)
@@ -262,3 +264,71 @@ class UserScheduleExportAuthentication(BaseAuthentication):
             raise exceptions.AuthenticationFailed("Export token is deactivated")
 
         return auth_token.user, auth_token
+
+
+X_GRAFANA_ORG_SLUG = "X-Grafana-Org-Slug"
+X_GRAFANA_INSTANCE_SLUG = "X-Grafana-Instance-Slug"
+GRAFANA_SA_PREFIX = "glsa_"
+
+
+class GrafanaServiceAccountAuthentication(BaseAuthentication):
+    def authenticate(self, request):
+        auth = get_authorization_header(request).decode("utf-8")
+        if not auth:
+            raise exceptions.AuthenticationFailed("Invalid token.")
+        if not auth.startswith(GRAFANA_SA_PREFIX):
+            return None
+
+        organization = self.get_organization(request)
+        if not organization:
+            raise exceptions.AuthenticationFailed("Invalid organization.")
+        if organization.is_moved:
+            raise OrganizationMovedException(organization)
+        if organization.deleted_at:
+            raise OrganizationDeletedException(organization)
+
+        return self.authenticate_credentials(organization, auth)
+
+    def get_organization(self, request):
+        org_slug = SELF_HOSTED_SETTINGS["ORG_SLUG"]
+        instance_slug = SELF_HOSTED_SETTINGS["STACK_SLUG"]
+        if settings.LICENSE == settings.CLOUD_LICENSE_NAME:
+            org_slug = request.headers.get(X_GRAFANA_ORG_SLUG)
+            if not org_slug:
+                raise exceptions.AuthenticationFailed(f"Missing {X_GRAFANA_ORG_SLUG}")
+            instance_slug = request.headers.get(X_GRAFANA_INSTANCE_SLUG)
+            if not instance_slug:
+                raise exceptions.AuthenticationFailed(f"Missing {X_GRAFANA_INSTANCE_SLUG}")
+
+        return Organization.objects.filter(org_slug=org_slug, stack_slug=instance_slug).first()
+
+    def authenticate_credentials(self, organization, token):
+        permissions = get_service_account_token_permissions(organization, token)
+        if not permissions:
+            raise exceptions.AuthenticationFailed("Invalid token.")
+
+        role = LegacyAccessControlRole.NONE
+        if not organization.is_rbac_permissions_enabled:
+            role = self.determine_role_from_permissions(permissions)
+
+        user = User(
+            organization_id=organization.pk,
+            name="Grafana Service Account",
+            username="grafana_service_account",
+            role=role,
+            permissions=[GrafanaAPIPermission(action=key) for key, _ in permissions.items()],
+        )
+
+        auth_token = ApiAuthToken(organization=organization, user=user, name="Grafana Service Account")
+
+        return user, auth_token
+
+    # Using default permissions as proxies for roles since we cannot explicitly get role from the service account token
+    def determine_role_from_permissions(self, permissions):
+        if "plugins:write" in permissions:
+            return LegacyAccessControlRole.ADMIN
+        if "dashboards:write" in permissions:
+            return LegacyAccessControlRole.EDITOR
+        if "dashboards:read" in permissions:
+            return LegacyAccessControlRole.VIEWER
+        return LegacyAccessControlRole.NONE
