@@ -2,6 +2,8 @@ import json
 
 import pytest
 from django.conf import settings
+from django.utils.dateparse import parse_datetime
+from pytz import timezone
 
 from common.jinja_templater import apply_jinja_template
 from common.jinja_templater.apply_jinja_template import JinjaTemplateError, JinjaTemplateWarning
@@ -12,6 +14,49 @@ def test_apply_jinja_template():
     rendered = apply_jinja_template("{{ payload | tojson_pretty }}", payload)
     result = json.loads(rendered)
     assert payload == result
+
+
+def test_apply_jinja_template_iso8601_to_time():
+    payload = {"name": "2023-11-22T15:30:00.000000000Z"}
+
+    result = apply_jinja_template(
+        "{{ payload.name | iso8601_to_time }}",
+        payload,
+    )
+    expected = str(parse_datetime(payload["name"]))
+    assert result == expected
+
+
+def test_apply_jinja_template_datetimeformat():
+    payload = {"aware": "2023-05-28 23:11:12+0000", "naive": "2023-05-28 23:11:12"}
+
+    assert apply_jinja_template(
+        "{{ payload.aware | iso8601_to_time | datetimeformat('%Y-%m-%dT%H:%M:%S%z') }}",
+        payload,
+    ) == parse_datetime(payload["aware"]).strftime("%Y-%m-%dT%H:%M:%S%z")
+    assert apply_jinja_template(
+        "{{ payload.naive | iso8601_to_time | datetimeformat('%Y-%m-%dT%H:%M:%S%z') }}",
+        payload,
+    ) == parse_datetime(payload["naive"]).strftime("%Y-%m-%dT%H:%M:%S%z")
+
+
+def test_apply_jinja_template_datetimeformat_as_timezone():
+    payload = {"aware": "2023-05-28 23:11:12+0000", "naive": "2023-05-28 23:11:12"}
+
+    assert apply_jinja_template(
+        "{{ payload.aware | iso8601_to_time | datetimeformat_as_timezone('%Y-%m-%dT%H:%M:%S%z', 'America/Chicago') }}",
+        payload,
+    ) == parse_datetime(payload["aware"]).astimezone(timezone("America/Chicago")).strftime("%Y-%m-%dT%H:%M:%S%z")
+    assert apply_jinja_template(
+        "{{ payload.naive | iso8601_to_time | datetimeformat_as_timezone('%Y-%m-%dT%H:%M:%S%z', 'America/Chicago') }}",
+        payload,
+    ) == parse_datetime(payload["naive"]).astimezone(timezone("America/Chicago")).strftime("%Y-%m-%dT%H:%M:%S%z")
+
+    with pytest.raises(JinjaTemplateWarning):
+        apply_jinja_template(
+            "{{ payload.aware | iso8601_to_time | datetimeformat_as_timezone('%Y-%m-%dT%H:%M:%S%z', 'potato') }}",
+            payload,
+        )
 
 
 def test_apply_jinja_template_json_dumps():

@@ -3,12 +3,20 @@ import json
 import re
 
 from django.utils.dateparse import parse_datetime
+from pytz import timezone
 
 
 def datetimeformat(value, format="%H:%M / %d-%m-%Y"):
     try:
         return value.strftime(format)
     except AttributeError:
+        return None
+
+
+def datetimeformat_as_timezone(value, format="%H:%M / %d-%m-%Y", tz="UTC"):
+    try:
+        return value.astimezone(timezone(tz)).strftime(format)
+    except (ValueError, AttributeError, TypeError):
         return None
 
 
