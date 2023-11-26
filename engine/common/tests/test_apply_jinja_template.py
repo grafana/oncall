@@ -1,3 +1,4 @@
+import base64
 import json
 
 import pytest
@@ -57,6 +58,17 @@ def test_apply_jinja_template_datetimeformat_as_timezone():
             "{{ payload.aware | iso8601_to_time | datetimeformat_as_timezone('%Y-%m-%dT%H:%M:%S%z', 'potato') }}",
             payload,
         )
+
+
+def test_apply_jinja_template_b64decode():
+    payload = {"name": "SGVsbG8sIHdvcmxkIQ=="}
+
+    assert apply_jinja_template(
+        "{{ payload.name | b64decode }}",
+        payload,
+    ) == base64.b64decode(
+        payload["name"]
+    ).decode("utf-8")
 
 
 def test_apply_jinja_template_json_dumps():
