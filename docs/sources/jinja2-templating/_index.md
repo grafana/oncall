@@ -204,12 +204,12 @@ Built-in functions:
 - `tojson_pretty` - JSON prettified
 - `iso8601_to_time` - converts time from iso8601 (`2015-02-17T18:30:20.000Z`) to datetime
 - `datetimeformat` - converts time from datetime to the given format (`%H:%M / %d-%m-%Y` by default)
-- `datetimeformat_as_timezone` - same as `datetimeformat`, with the inclusion of timezone conversion (`UTC` by default).
+- `datetimeformat_as_timezone` - same as `datetimeformat`, with the inclusion of timezone conversion (`UTC` by default)
   - Usage example: `{{ payload.alerts.startsAt | iso8601_to_time | datetimeformat_as_timezone('%Y-%m-%dT%H:%M:%S%z', 'America/Chicago') }}`
 - `regex_replace` - performs a regex find and replace
-- `regex_match` - performs a regex match, returns `True` or `False`.
+- `regex_match` - performs a regex match, returns `True` or `False`
   - Usage example: `{{ payload.ruleName | regex_match(".*") }}`
-- `b64decode` - performs a base64 string decode.
+- `b64decode` - performs a base64 string decode
   - Usage example: `{{ payload.data | b64decode }}`
 
 {{< section >}}
