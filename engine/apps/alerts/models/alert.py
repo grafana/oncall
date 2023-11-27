@@ -144,7 +144,9 @@ class Alert(models.Model):
         if settings.DEBUG:
             tasks.distribute_alert(alert.pk)
         else:
-            tasks.distribute_alert.apply_async((alert.pk,), countdown=TASK_DELAY_SECONDS)
+            transaction.on_commit(
+                partial(tasks.distribute_alert.apply_async, (alert.pk,), countdown=TASK_DELAY_SECONDS)
+            )
 
         if group_created:
             # all code below related to maintenance mode

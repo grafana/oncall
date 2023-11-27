@@ -182,7 +182,9 @@ class WebhookSerializer(LabelsSerializerMixin, serializers.ModelSerializer):
             for controlled_field in preset_metadata.controlled_fields:
                 if controlled_field in self.initial_data:
                     if self.instance:
-                        if self.initial_data[controlled_field] != getattr(self.instance, controlled_field):
+                        if self.initial_data[controlled_field] is not None and self.initial_data[
+                            controlled_field
+                        ] != getattr(self.instance, controlled_field):
                             raise serializers.ValidationError(
                                 detail=f"{controlled_field} is controlled by preset, cannot update"
                             )
@@ -194,7 +196,7 @@ class WebhookSerializer(LabelsSerializerMixin, serializers.ModelSerializer):
         return preset
 
     def get_last_response_log(self, obj):
-        return WebhookResponseSerializer(obj.responses.all().last()).data
+        return WebhookResponseSerializer(obj.responses.last()).data
 
     def get_trigger_type_name(self, obj):
         trigger_type_name = ""
