@@ -169,6 +169,9 @@ class IntegrationAlertGroupLabelsSerializer(serializers.Serializer):
 
         from apps.labels.models import LabelKeyCache, LabelValueCache
 
+        if custom_labels is None:
+            return []
+
         # get up-to-date label key names
         label_key_names = {
             k.id: k.name

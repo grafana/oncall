@@ -88,3 +88,28 @@ def test_assign_labels(
         ("e", "f"),
         ("g", "123"),
     ]
+
+
+@pytest.mark.django_db
+def test_assign_labels_custom_labels_none(
+    make_organization,
+    make_alert_receive_channel,
+    make_label_key_and_value,
+    make_label_key,
+    make_integration_label_association,
+):
+    organization = make_organization()
+    alert_receive_channel = make_alert_receive_channel(organization, alert_group_labels_custom=None)
+    make_integration_label_association(organization, alert_receive_channel, key_name="a", value_name="b")
+
+    alert = Alert.create(
+        title="the title",
+        message="the message",
+        alert_receive_channel=alert_receive_channel,
+        raw_request_data={},
+        integration_unique_data={},
+        image_url=None,
+        link_to_upstream_details=None,
+    )
+
+    assert [(label.key_name, label.value_name) for label in alert.group.labels.all()] == [("a", "b")]

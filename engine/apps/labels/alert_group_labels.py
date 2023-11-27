@@ -56,6 +56,9 @@ def assign_labels(
 def _custom_labels(alert_receive_channel: "AlertReceiveChannel", raw_request_data: typing.Any) -> dict[str, str]:
     from apps.labels.models import MAX_VALUE_NAME_LENGTH, LabelKeyCache, LabelValueCache
 
+    if alert_receive_channel.alert_group_labels_custom is None:
+        return {}
+
     # fetch up-to-date label key names
     label_key_names = {
         k.id: k.name
