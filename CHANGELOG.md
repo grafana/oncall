@@ -7,9 +7,47 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+
+- Add ability to use Grafana Service Account Tokens for OnCall API (This is only enabled for resolution_notes
+endpoint currently) @mderynck ([#3189](https://github.com/grafana/oncall/pull/3189))
+- Add ability for webhook presets to mask sensitive headers @mderynck
+([#3189](https://github.com/grafana/oncall/pull/3189))
+
+### Fixed
+
+- Fixed issue that blocked saving webhooks with presets if the preset is controlling the URL @mderynck
+([#3189](https://github.com/grafana/oncall/pull/3189))
+- User filter doesn't display current value on Alert Groups page ([1714](https://github.com/grafana/oncall/issues/1714))
+- Remove displaying rotation modal for Terraform/API based schedules
+- Filters polishing ([3183](https://github.com/grafana/oncall/issues/3183))
+- Fixed permissions so User settings reader role included list users @mderynck ([#3419](https://github.com/grafana/oncall/pull/3419))
+- Fixed alert group rendering when some links were broken because of replacing `-` to `_` @Ferril ([#3424](https://github.com/grafana/oncall/pull/3424))
+
+## v1.3.62 (2023-11-21)
+
+### Added
+
+- Add builtin slack retry on ratelimited error ([#3401](https://github.com/grafana/oncall/pull/3401))
+
+### Changed
+
+- Add integration id to alert creation logging @mderynck ([#3392](https://github.com/grafana/oncall/pull/3392))
+
+## v1.3.61 (2023-11-21)
+
+### Fixed
+
+- Fix deleting integrations with duplicate names by @vadimkerr ([#3397](https://github.com/grafana/oncall/pull/3397))
+
+## v1.3.60 (2023-11-20)
+
 ### Fixed
 
 - Fixes forwarding of Amazon SNS headers @mderynck ([#3371](https://github.com/grafana/oncall/pull/3371))
+- Fixes issue when using the `/escalate` Slack command and selecting a team by @joeyorlando ([#3381](https://github.com/grafana/oncall/pull/3381))
+- Fix issue when RBAC is enabled where Viewers with "Notifications Receiver" role do not properly show up in schedule
+  rotations by @joeyorlando ([#3378](https://github.com/grafana/oncall/pull/3378))
 
 ## v1.3.59 (2023-11-16)
 

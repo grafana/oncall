@@ -50,3 +50,28 @@ tests:
           any: true
       - matchSnapshot:
           path: spec.template.spec.containers
+
+---
+suite: test integrations internal service
+templates:
+  - integrations/service-internal.yaml
+release:
+  name: oncall
+chart:
+  appVersion: v1.3.39
+tests:
+  - it: detached_integrations.enabled=false -> should not create service
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: detached_integrations.enabled=true -> should create service
+    set:
+      detached_integrations.enabled: true
+    asserts:
+      - containsDocument:
+          kind: Service
+          apiVersion: v1
+          metadata.name: oncall-integrations
+      - matchSnapshot:
+          path: spec

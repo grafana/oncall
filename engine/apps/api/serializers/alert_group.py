@@ -125,6 +125,7 @@ class AlertGroupListSerializer(
     PREFETCH_RELATED = [
         "dependent_alert_groups",
         "log_records__author",
+        "labels",
     ]
 
     SELECT_RELATED = [

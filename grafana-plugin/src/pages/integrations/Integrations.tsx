@@ -1,6 +1,5 @@
 import React from 'react';
 
-import { LabelTag } from '@grafana/labels';
 import {
   HorizontalGroup,
   Button,
@@ -23,6 +22,7 @@ import { RouteComponentProps, withRouter } from 'react-router-dom';
 import GTable from 'components/GTable/GTable';
 import HamburgerMenu from 'components/HamburgerMenu/HamburgerMenu';
 import IntegrationLogo from 'components/IntegrationLogo/IntegrationLogo';
+import LabelsTooltipBadge from 'components/LabelsTooltipBadge/LabelsTooltipBadge';
 import { PageBaseState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
 import {
   getWrongTeamResponseInfo,
@@ -46,7 +46,6 @@ import {
   MaintenanceMode,
   SupportedIntegrationFilters,
 } from 'models/alert_receive_channel/alert_receive_channel.types';
-import { LabelKeyValue } from 'models/label/label.types';
 import IntegrationHelper from 'pages/integration/Integration.helper';
 import { AppFeature } from 'state/features';
 import { PageProps, WithStoreProps } from 'state/types';
@@ -275,7 +274,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
                 data-testid="integrations-table"
                 rowKey="id"
                 data={results}
-                columns={this.getTableColumns(store.hasFeature.bind(store))}
+                columns={this.getTableColumns(store.hasFeature)}
                 className={cx('integrations-table')}
                 rowClassName={cx('integrations-table-row')}
                 pagination={{
@@ -472,37 +471,6 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
     return null;
   }
 
-  renderLabels(item: AlertReceiveChannel) {
-    if (!item.labels.length) {
-      return null;
-    }
-
-    return (
-      <TooltipBadge
-        borderType="secondary"
-        icon="tag-alt"
-        addPadding
-        text={item.labels?.length}
-        tooltipContent={
-          <VerticalGroup spacing="sm">
-            {item.labels.map((label) => (
-              <HorizontalGroup spacing="sm" key={label.key.id}>
-                <LabelTag label={label.key.name} value={label.value.name} key={label.key.id} />
-                <Button
-                  size="sm"
-                  icon="filter"
-                  tooltip="Apply filter"
-                  variant="secondary"
-                  onClick={this.getApplyLabelFilterClickHandler(label)}
-                />
-              </HorizontalGroup>
-            ))}
-          </VerticalGroup>
-        }
-      />
-    );
-  }
-
   renderTeam(item: AlertReceiveChannel, teams: any) {
     return (
       <TextEllipsisTooltip placement="top" content={teams[item.team]?.name}>
@@ -583,7 +551,11 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
   };
 
   getTableColumns = (hasFeatureFn) => {
-    const { grafanaTeamStore, alertReceiveChannelStore } = this.props.store;
+    const {
+      grafanaTeamStore,
+      alertReceiveChannelStore,
+      filtersStore: { applyLabelFilter },
+    } = this.props.store;
     const isConnectionsTab = this.state.activeTab === TabType.Connections;
 
     const columns = [
@@ -639,7 +611,9 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
       columns.splice(-2, 0, {
         width: '10%',
         title: 'Labels',
-        render: (item: AlertReceiveChannel) => this.renderLabels(item),
+        render: ({ labels }: AlertReceiveChannel) => (
+          <LabelsTooltipBadge labels={labels} onClick={(label) => applyLabelFilter(label, PAGE.Integrations)} />
+        ),
       });
       columns.find((column) => column.key === 'datasource').width = '15%';
     }
@@ -681,29 +655,6 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
     isOnMount: boolean
   ) => {
     this.setState({ integrationsFilters }, () => this.debouncedUpdateIntegrations(isOnMount));
-  };
-
-  getApplyLabelFilterClickHandler = (label: LabelKeyValue) => {
-    const {
-      store: { filtersStore },
-    } = this.props;
-
-    const {
-      integrationsFilters: { label: oldLabelFilter = [] },
-    } = this.state;
-
-    return () => {
-      const labelToAddString = `${label.key.id}:${label.value.id}`;
-      if (oldLabelFilter.some((label) => label === labelToAddString)) {
-        return;
-      }
-
-      const newLabelFilter = [...oldLabelFilter, labelToAddString];
-
-      LocationHelper.update({ label: newLabelFilter }, 'partial');
-
-      filtersStore.setNeedToParseFilters(true);
-    };
   };
 
   applyFilters = async (isOnMount: boolean) => {

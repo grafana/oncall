@@ -570,9 +570,8 @@ def _get_team_select_blocks(
     initial_option_idx = 0
     for idx, team in enumerate(teams):
         team_pk, team_name = team
-        team_pk_str = str(team_pk)
 
-        if value == team_pk_str:
+        if value and value.pk == team_pk:
             initial_option_idx = idx
         team_options.append(
             {
@@ -581,7 +580,7 @@ def _get_team_select_blocks(
                     "text": team_name,
                     "emoji": True,
                 },
-                "value": team_pk_str,
+                "value": str(team_pk),
             }
         )
 

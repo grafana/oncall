@@ -10,8 +10,9 @@ from apps.alerts.models import AlertReceiveChannel
 from apps.api.permissions import LegacyAccessControlRole
 from apps.schedules.models import CustomOnCallShift, OnCallScheduleCalendar, OnCallScheduleWeb
 from apps.user_management.models import Team
+from common.api_helpers.filters import NO_TEAM_VALUE
 
-GENERAL_TEAM = Team(public_primary_key="null", name="No team", email=None, avatar_url=None)
+GENERAL_TEAM = Team(public_primary_key=NO_TEAM_VALUE, name="No team", email=None, avatar_url=None)
 
 
 def get_payload_from_team(team, long=False):
@@ -203,7 +204,7 @@ def test_teams_number_of_users_currently_oncall_attribute_works_properly(
         team1.public_primary_key: 2,
         team2.public_primary_key: 1,
         team3.public_primary_key: 0,
-        "null": 0,  # this covers the case of "No team"
+        NO_TEAM_VALUE: 0,  # this covers the case of "No team"
     }
 
     for team in response.json():
