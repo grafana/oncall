@@ -73,16 +73,16 @@ def assign_labels(alert_group: "AlertGroup", alert_receive_channel: "AlertReceiv
     AlertGroupAssociatedLabel.objects.bulk_create(alert_group_labels)
 
 
-def get_label_verbal(labelable) -> typing.Dict[str, str]:
+def get_labels_dict(labelable) -> typing.Dict[str, str]:
     """
-    label_verbal returns dict of labels' key and values names for the given object
+    get_labels_dict returns dict of labels' key and values names for the given object
     """
     return {label.key.name: label.value.name for label in labelable.labels.all().select_related("key", "value")}
 
 
-def get_alert_group_label_verbal(alert_group: "AlertGroup") -> typing.Dict[str, str]:
+def get_alert_group_labels_dict(alert_group: "AlertGroup") -> typing.Dict[str, str]:
     """
-    get_alert_group_label_verbal returns dict of labels' key and values names for the given alert group.
+    get_alert_group_labels_dict returns dict of labels' key and values names for the given alert group.
     It's different from get_label_verbal, because AlertGroupAssociated labels store key/value_name, not key/value_id
     """
     return {label.key_name: label.value_name for label in alert_group.labels.all()}
