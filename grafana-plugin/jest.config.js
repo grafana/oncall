@@ -4,7 +4,7 @@ module.exports = {
   testEnvironment: 'jsdom',
 
   moduleDirectories: ['node_modules', 'src'],
-  moduleFileExtensions: ['ts', 'tsx', 'js', 'd.ts'],
+  moduleFileExtensions: ['ts', 'tsx', 'js', 'd.ts', 'cjs'],
 
   transformIgnorePatterns: [`/node_modules/(?!${esModules})`],
 
