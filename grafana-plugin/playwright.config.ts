@@ -1,4 +1,4 @@
-import { PlaywrightTestProject, defineConfig, devices } from '@playwright/test';
+import { PlaywrightTestConfig, PlaywrightTestProject, defineConfig, devices } from '@playwright/test';
 
 import path from 'path';
 /**

@@ -22,7 +22,7 @@ const LabelsTooltipBadge: FC<LabelsTooltipBadgeProps> = ({ labels, onClick }) =>
         <VerticalGroup spacing="sm">
           {labels.map((label) => (
             <HorizontalGroup spacing="sm" key={label.key.id}>
-              <LabelTag label={label.key.name} value={label.value.name} />
+              <LabelTag label={label.key.name} value={label.value.name} key={label.key.id} />
               <Button
                 size="sm"
                 icon="filter"
