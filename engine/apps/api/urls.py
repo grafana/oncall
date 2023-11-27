@@ -150,8 +150,13 @@ urlpatterns += [
     re_path(
         r"^alertgroup_table_settings/?$",
         AlertGroupTableColumnsViewSet.as_view(
-            {"get": "get_columns", "put": "update_columns_settings", "post": "update_columns_list"}
+            {"get": "get_columns", "put": "update_user_columns", "post": "update_organization_columns"}
         ),
         name="alert_group_table-columns_settings",
-    )
+    ),
+    re_path(
+        r"^alertgroup_table_settings/reset?$",
+        AlertGroupTableColumnsViewSet.as_view({"post": "reset_user_columns"}),
+        name="alert_group_table-reset_columns_settings",
+    ),
 ]

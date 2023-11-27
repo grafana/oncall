@@ -12,11 +12,10 @@ if typing.TYPE_CHECKING:
 
 
 def default_columns() -> typing.List[AlertGroupTableColumn]:
-    columns = [
+    return [
         {"name": column.label, "id": column.value, "type": AlertGroupTableColumnTypeChoices.DEFAULT.value}
         for column in AlertGroupTableDefaultColumnChoices
     ]
-    return columns
 
 
 def alert_group_table_user_settings(user: "User") -> AlertGroupTableColumns:

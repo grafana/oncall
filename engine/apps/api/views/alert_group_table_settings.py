@@ -5,11 +5,14 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 
 from apps.api.permissions import RBACPermission
-from apps.api.serializers.alert_group_table_settings import AlertGroupTableColumnsListSerializer
+from apps.api.serializers.alert_group_table_settings import (
+    AlertGroupTableColumnsOrganizationSerializer,
+    AlertGroupTableColumnsUserSerializer,
+)
 from apps.api.views.labels import LabelsFeatureFlagViewSet
 from apps.auth_token.auth import PluginAuthentication
 from apps.user_management.constants import AlertGroupTableColumn
-from apps.user_management.utils import alert_group_table_user_settings
+from apps.user_management.utils import alert_group_table_user_settings, default_columns
 
 
 class AlertGroupTableColumnsViewSet(LabelsFeatureFlagViewSet):
@@ -18,35 +21,35 @@ class AlertGroupTableColumnsViewSet(LabelsFeatureFlagViewSet):
 
     rbac_permissions = {
         "get_columns": [RBACPermission.Permissions.ALERT_GROUPS_READ],
-        "update_columns_settings": [RBACPermission.Permissions.ALERT_GROUPS_READ],
-        "update_columns_list": [RBACPermission.Permissions.OTHER_SETTINGS_WRITE],
+        "update_user_columns": [RBACPermission.Permissions.ALERT_GROUPS_READ],
+        "reset_user_columns": [RBACPermission.Permissions.ALERT_GROUPS_READ],
+        "update_organization_columns": [RBACPermission.Permissions.OTHER_SETTINGS_WRITE],
     }
 
     def get_columns(self, request: Request) -> Response:
-        user = request.user
-        return Response(alert_group_table_user_settings(user))
+        return Response(alert_group_table_user_settings(request.user))
 
-    def update_columns_list(self, request: Request) -> Response:
+    def update_organization_columns(self, request: Request) -> Response:
         """add/remove columns for organization"""
-        user = request.user
-        organization = request.auth.organization
-        serializer = AlertGroupTableColumnsListSerializer(
-            data=request.data, context={"request": request, "is_org_settings": True}
-        )
+        serializer = AlertGroupTableColumnsOrganizationSerializer(data=request.data, context={"request": request})
         serializer.is_valid(raise_exception=True)
         columns: typing.List[AlertGroupTableColumn] = serializer.validated_data.get(
             "visible", []
         ) + serializer.validated_data.get("hidden", [])
-        organization.update_alert_group_table_columns(columns)
-        return Response(alert_group_table_user_settings(user))
+        request.auth.organization.update_alert_group_table_columns(columns)
+        return Response(alert_group_table_user_settings(request.user))
 
-    def update_columns_settings(self, request: Request) -> Response:
+    def update_user_columns(self, request: Request) -> Response:
         """select/hide/change order for user"""
         user = request.user
-        serializer = AlertGroupTableColumnsListSerializer(
-            data=request.data, context={"request": request, "is_org_settings": False}
-        )
+        serializer = AlertGroupTableColumnsUserSerializer(data=request.data, context={"request": request})
         serializer.is_valid(raise_exception=True)
         columns: typing.List[AlertGroupTableColumn] = serializer.validated_data.get("visible", [])
         user.update_alert_group_table_columns_settings(columns)
+        return Response(alert_group_table_user_settings(user))
+
+    def reset_user_columns(self, request: Request) -> Response:
+        """set default alert group table settings for user"""
+        user = request.user
+        user.update_alert_group_table_columns_settings(default_columns())
         return Response(alert_group_table_user_settings(user))

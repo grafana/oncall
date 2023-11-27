@@ -1,18 +1,18 @@
 import typing
 
-from django.db.models import IntegerChoices, TextChoices
+from django.db.models import TextChoices
 
 
-class AlertGroupTableDefaultColumnChoices(IntegerChoices):
-    STATUS = 1, "Status"
-    ID = 2, "ID"
-    TITLE = 3, "Title"
-    ALERTS = 4, "Alerts"
-    INTEGRATION = 5, "Integration"
-    CREATED = 6, "Created"
-    LABELS = 7, "Labels"
-    TEAM = 8, "Team"
-    USERS = 9, "Users"
+class AlertGroupTableDefaultColumnChoices(TextChoices):
+    STATUS = "status", "Status"
+    ID = "id", "ID"
+    TITLE = "title", "Title"
+    ALERTS = "alerts", "Alerts"
+    INTEGRATION = "integration", "Integration"
+    CREATED = "created", "Created"
+    LABELS = "labels", "Labels"
+    TEAM = "team", "Team"
+    USERS = "users", "Users"
 
 
 class AlertGroupTableColumnTypeChoices(TextChoices):
@@ -21,7 +21,7 @@ class AlertGroupTableColumnTypeChoices(TextChoices):
 
 
 class AlertGroupTableColumn(typing.TypedDict):
-    id: str | int
+    id: str
     name: str
     type: str
 
