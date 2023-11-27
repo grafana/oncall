@@ -1,18 +1,18 @@
-import { action, observable } from 'mobx';
+import { action, observable, runInAction } from 'mobx';
 
 import BaseStore from 'models/base_store';
 import { makeRequest } from 'network';
+import { ApiSchemas } from 'network/oncall-api/api.types';
+import onCallApi from 'network/oncall-api/http-client';
 import { RootStore } from 'state';
 import { openNotification } from 'utils';
 
-import { LabelKey, LabelValue } from './label.types';
-
 export class LabelStore extends BaseStore {
   @observable.shallow
-  public keys: LabelKey[] = [];
+  public keys: Array<ApiSchemas['LabelKey']> = [];
 
   @observable.shallow
-  public values: { [key: string]: LabelValue[] } = {};
+  public values: { [key: string]: Array<ApiSchemas['LabelValue']> } = {};
 
   constructor(rootStore: RootStore) {
     super(rootStore);
@@ -22,15 +22,17 @@ export class LabelStore extends BaseStore {
 
   @action
   public async loadKeys() {
-    const result = await makeRequest(`${this.path}keys/`, {});
+    const { data } = await onCallApi.GET('/labels/keys/', undefined);
 
-    this.keys = result;
+    runInAction(() => {
+      this.keys = data;
+    });
 
-    return result;
+    return data;
   }
 
   @action
-  public async loadValuesForKey(key: LabelKey['id'], search = '') {
+  public async loadValuesForKey(key: ApiSchemas['LabelKey']['id'], search = '') {
     if (!key) {
       return [];
     }
@@ -62,7 +64,7 @@ export class LabelStore extends BaseStore {
     return key;
   }
 
-  public async createValue(keyId: LabelKey['id'], value: string) {
+  public async createValue(keyId: ApiSchemas['LabelKey']['id'], value: string) {
     const result = await makeRequest(`${this.path}id/${keyId}/values`, {
       method: 'POST',
       data: { name: value },
@@ -76,7 +78,7 @@ export class LabelStore extends BaseStore {
   }
 
   @action
-  public async updateKey(keyId: LabelKey['id'], name: string) {
+  public async updateKey(keyId: ApiSchemas['LabelKey']['id'], name: string) {
     const result = await makeRequest(`${this.path}id/${keyId}`, {
       method: 'PUT',
       data: { name },
@@ -90,7 +92,11 @@ export class LabelStore extends BaseStore {
   }
 
   @action
-  public async updateKeyValue(keyId: LabelKey['id'], valueId: LabelValue['id'], name: string) {
+  public async updateKeyValue(
+    keyId: ApiSchemas['LabelKey']['id'],
+    valueId: ApiSchemas['LabelValue']['id'],
+    name: string
+  ) {
     const result = await makeRequest(`${this.path}id/${keyId}/values/${valueId}`, {
       method: 'PUT',
       data: { name },

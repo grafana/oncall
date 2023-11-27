@@ -69,10 +69,10 @@ export const customFetch = async (url: string, requestConfig: Parameters<typeof 
   }
 };
 
-const httpClient = createClient<paths>({
+const onCallApi = createClient<paths>({
   baseUrl: `${API_PROXY_PREFIX}${API_PATH_PREFIX}`,
   querySerializer: (params: unknown) => qs.stringify(params, { arrayFormat: 'none' }),
   fetch: customFetch,
 });
 
-export default httpClient;
+export default onCallApi;
