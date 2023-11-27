@@ -52,7 +52,7 @@ describe('customFetch', () => {
     });
 
     describe('if response is not successful', () => {
-      it('should push event to faro and return response', async () => {
+      it('should push event and error to faro', async () => {
         (FaroHelper.faro.api.getOTEL as unknown as jest.Mock).mockReturnValueOnce(undefined);
         fetchMock.mockRejectedValueOnce(ERROR_MOCK);
         await expect(customFetch(URL, REQUEST_CONFIG)).rejects.toEqual(Error(ERROR_MOCK));
@@ -112,7 +112,7 @@ describe('customFetch', () => {
     });
 
     describe('if response is not successful', () => {
-      it('should reject Promise, push event to faro, set spoan status to error and end span', async () => {
+      it('should reject Promise, push event to faro, set span status to error and end span', async () => {
         fetchMock.mockRejectedValueOnce(ERROR_MOCK);
         await expect(customFetch(URL, REQUEST_CONFIG)).rejects.toEqual(ERROR_MOCK);
         expect(FaroHelper.faro.api.pushEvent).toHaveBeenCalledWith('Request failed', { url: URL });
