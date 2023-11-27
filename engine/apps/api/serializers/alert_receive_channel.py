@@ -4,6 +4,7 @@ from collections import OrderedDict
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.exceptions import ValidationError as DjangoValidationError
+from django.db.models import Q
 from jinja2 import TemplateSyntaxError
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
@@ -14,30 +15,188 @@ from apps.alerts.models import AlertReceiveChannel
 from apps.alerts.models.channel_filter import ChannelFilter
 from apps.base.messaging import get_messaging_backends
 from apps.integrations.legacy_prefix import has_legacy_prefix
+from apps.labels.models import LabelKeyCache, LabelValueCache
+from apps.user_management.models import Organization
 from common.api_helpers.custom_fields import TeamPrimaryKeyRelatedField
 from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.mixins import APPEARANCE_TEMPLATE_NAMES, EagerLoadingMixin
 from common.api_helpers.utils import CurrentTeamDefault
-from common.jinja_templater import apply_jinja_template, jinja_template_env
-from common.jinja_templater.apply_jinja_template import JinjaTemplateWarning
+from common.jinja_templater import jinja_template_env
 
 from .integration_heartbeat import IntegrationHeartBeatSerializer
 from .labels import LabelsSerializerMixin
 
 
-def valid_jinja_template_for_serializer_method_field(template):
-    for _, val in template.items():
-        try:
-            apply_jinja_template(val, payload={})
-        except JinjaTemplateWarning:
-            # Suppress warnings, template may be valid with payload
-            pass
+class AlertGroupCustomLabelKey(typing.TypedDict):
+    id: str
+    name: str
+
+
+class AlertGroupCustomLabelValue(typing.TypedDict):
+    id: str | None  # None for templated labels, label value ID for plain labels
+    name: str  # Jinja template for templated labels, label value name for plain labels
+
+
+class AlertGroupCustomLabel(typing.TypedDict):
+    key: AlertGroupCustomLabelKey
+    value: AlertGroupCustomLabelValue
+
+
+AlertGroupCustomLabels = list[AlertGroupCustomLabel]
+
+
+class IntegrationAlertGroupLabels(typing.TypedDict):
+    inheritable: dict[str, bool]
+    custom: AlertGroupCustomLabels
+    template: str | None
+
+
+class CustomLabelSerializer(serializers.Serializer):
+    """This serializer is consistent with apps.api.serializers.labels.LabelSerializer, but allows null for value ID."""
+
+    class KeySerializer(serializers.Serializer):
+        id = serializers.CharField()
+        name = serializers.CharField()
+
+    class ValueSerializer(serializers.Serializer):
+        # ID is null for templated labels. For such labels, the "name" value is a Jinja2 template.
+        id = serializers.CharField(allow_null=True)
+        name = serializers.CharField()
+
+    key = KeySerializer()
+    value = ValueSerializer()
 
 
 class IntegrationAlertGroupLabelsSerializer(serializers.Serializer):
     """Alert group labels configuration for the integration. See AlertReceiveChannel.alert_group_labels for details."""
 
     inheritable = serializers.DictField(child=serializers.BooleanField())
+    custom = CustomLabelSerializer(many=True)
+    template = serializers.CharField(allow_null=True)
+
+    @staticmethod
+    def pop_alert_group_labels(validated_data: dict) -> IntegrationAlertGroupLabels | None:
+        """Get alert group labels from validated data."""
+
+        # the "alert_group_labels" field is optional, so either all 3 fields are present or none
+        if "inheritable" not in validated_data:
+            return None
+
+        return {
+            "inheritable": validated_data.pop("inheritable"),
+            "custom": validated_data.pop("custom"),
+            "template": validated_data.pop("template"),
+        }
+
+    @classmethod
+    def update(
+        cls, instance: AlertReceiveChannel, alert_group_labels: IntegrationAlertGroupLabels | None
+    ) -> AlertReceiveChannel:
+        if alert_group_labels is None:
+            return instance
+
+        # update inheritable labels
+        inheritable_key_ids = [
+            key_id for key_id, inheritable in alert_group_labels["inheritable"].items() if inheritable
+        ]
+        instance.labels.filter(key_id__in=inheritable_key_ids).update(inheritable=True)
+        instance.labels.filter(~Q(key_id__in=inheritable_key_ids)).update(inheritable=False)
+
+        # update DB cache for custom labels
+        cls._create_custom_labels(instance.organization, alert_group_labels["custom"])
+        # update custom labels
+        instance.alert_group_labels_custom = cls._custom_labels_to_internal_value(alert_group_labels["custom"])
+
+        # update template
+        instance.alert_group_labels_template = alert_group_labels["template"]
+
+        instance.save(update_fields=["alert_group_labels_custom", "alert_group_labels_template"])
+        return instance
+
+    @staticmethod
+    def _create_custom_labels(organization: Organization, labels: AlertGroupCustomLabels) -> None:
+        """Create LabelKeyCache and LabelValueCache objects for custom labels."""
+
+        label_keys = [
+            LabelKeyCache(id=label["key"]["id"], name=label["key"]["name"], organization=organization)
+            for label in labels
+        ]
+
+        label_values = [
+            LabelValueCache(id=label["value"]["id"], name=label["value"]["name"], key_id=label["key"]["id"])
+            for label in labels
+            if label["value"]["id"]  # don't create LabelValueCache objects for templated labels
+        ]
+
+        LabelKeyCache.objects.bulk_create(label_keys, ignore_conflicts=True, batch_size=5000)
+        LabelValueCache.objects.bulk_create(label_values, ignore_conflicts=True, batch_size=5000)
+
+    @classmethod
+    def to_representation(cls, instance: AlertReceiveChannel) -> IntegrationAlertGroupLabels:
+        """
+        The API representation of alert group labels is very different from the underlying model.
+
+        "inheritable" is based on AlertReceiveChannelAssociatedLabel.inheritable, a property of another model.
+        "custom" is based on AlertReceiveChannel.alert_group_labels_custom, a JSONField with a different schema.
+        "template" is based on AlertReceiveChannel.alert_group_labels_template, this one is straightforward.
+        """
+
+        return {
+            "inheritable": {label.key_id: label.inheritable for label in instance.labels.all()},
+            "custom": cls._custom_labels_to_representation(instance.alert_group_labels_custom),
+            "template": instance.alert_group_labels_template,
+        }
+
+    @staticmethod
+    def _custom_labels_to_internal_value(
+        custom_labels: AlertGroupCustomLabels,
+    ) -> AlertReceiveChannel.AlertGroupCustomLabels:
+        """Convert custom labels from API representation to the schema used by the JSONField on the model."""
+
+        return [
+            [label["key"]["id"], label["value"]["id"], None if label["value"]["id"] else label["value"]["name"]]
+            for label in custom_labels
+        ]
+
+    @staticmethod
+    def _custom_labels_to_representation(
+        custom_labels: AlertReceiveChannel.AlertGroupCustomLabels,
+    ) -> AlertGroupCustomLabels:
+        """
+        Inverse of the _custom_labels_to_internal_value method above.
+        Fetches label names from DB cache, so the API response schema is consistent with other label endpoints.
+        """
+
+        from apps.labels.models import LabelKeyCache, LabelValueCache
+
+        # get up-to-date label key names
+        label_key_names = {
+            k.id: k.name
+            for k in LabelKeyCache.objects.filter(id__in=[label[0] for label in custom_labels]).only("id", "name")
+        }
+
+        # get up-to-date label value names
+        label_value_names = {
+            v.id: v.name
+            for v in LabelValueCache.objects.filter(id__in=[label[1] for label in custom_labels if label[1]]).only(
+                "id", "name"
+            )
+        }
+
+        return [
+            {
+                "key": {
+                    "id": key_id,
+                    "name": label_key_names[key_id],
+                },
+                "value": {
+                    "id": value_id if value_id else None,
+                    "name": label_value_names[value_id] if value_id else typing.cast(str, template),
+                },
+            }
+            for key_id, value_id, template in custom_labels
+            if key_id in label_key_names and (value_id in label_value_names or not value_id)
+        ]
 
 
 class AlertReceiveChannelSerializer(
@@ -64,7 +223,7 @@ class AlertReceiveChannelSerializer(
     connected_escalations_chains_count = serializers.SerializerMethodField()
     inbound_email = serializers.CharField(required=False)
     is_legacy = serializers.SerializerMethodField()
-    alert_group_labels = IntegrationAlertGroupLabelsSerializer(required=False)
+    alert_group_labels = IntegrationAlertGroupLabelsSerializer(source="*", required=False)
 
     # integration heartbeat is in PREFETCH_RELATED not by mistake.
     # With using of select_related ORM builds strange join
@@ -138,8 +297,10 @@ class AlertReceiveChannelSerializer(
             if _integration.slug == integration:
                 is_able_to_autoresolve = _integration.is_able_to_autoresolve
 
+        # pop associated labels and alert group labels, so they are not passed to AlertReceiveChannel.create
         labels = validated_data.pop("labels", None)
-        alert_group_labels = validated_data.pop("alert_group_labels", None)
+        alert_group_labels = IntegrationAlertGroupLabelsSerializer.pop_alert_group_labels(validated_data)
+
         try:
             instance = AlertReceiveChannel.create(
                 **validated_data,
@@ -150,17 +311,22 @@ class AlertReceiveChannelSerializer(
         except AlertReceiveChannel.DuplicateDirectPagingError:
             raise BadRequest(detail=AlertReceiveChannel.DuplicateDirectPagingError.DETAIL)
 
-        # Create label associations first, then update inheritable labels
+        # Create label associations first, then update alert group labels
         self.update_labels_association_if_needed(labels, instance, organization)
-        if alert_group_labels:
-            instance.alert_group_labels = alert_group_labels
+        instance = IntegrationAlertGroupLabelsSerializer.update(instance, alert_group_labels)
 
         return instance
 
     def update(self, instance, validated_data):
+        # update associated labels
         labels = validated_data.pop("labels", None)
-        organization = self.context["request"].auth.organization
-        self.update_labels_association_if_needed(labels, instance, organization)
+        self.update_labels_association_if_needed(labels, instance, self.context["request"].auth.organization)
+
+        # update alert group labels
+        instance = IntegrationAlertGroupLabelsSerializer.update(
+            instance, IntegrationAlertGroupLabelsSerializer.pop_alert_group_labels(validated_data)
+        )
+
         try:
             return super().update(instance, validated_data)
         except AlertReceiveChannel.DuplicateDirectPagingError:
