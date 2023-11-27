@@ -268,6 +268,7 @@ class UserScheduleExportAuthentication(BaseAuthentication):
 
 X_GRAFANA_ORG_SLUG = "X-Grafana-Org-Slug"
 X_GRAFANA_INSTANCE_SLUG = "X-Grafana-Instance-Slug"
+X_GRAFANA_INSTANCE_ID = "X-Grafana-Instance-ID"
 GRAFANA_SA_PREFIX = "glsa_"
 
 
@@ -290,17 +291,15 @@ class GrafanaServiceAccountAuthentication(BaseAuthentication):
         return self.authenticate_credentials(organization, auth)
 
     def get_organization(self, request):
-        org_slug = SELF_HOSTED_SETTINGS["ORG_SLUG"]
-        instance_slug = SELF_HOSTED_SETTINGS["STACK_SLUG"]
         if settings.LICENSE == settings.CLOUD_LICENSE_NAME:
-            org_slug = request.headers.get(X_GRAFANA_ORG_SLUG)
-            if not org_slug:
-                raise exceptions.AuthenticationFailed(f"Missing {X_GRAFANA_ORG_SLUG}")
-            instance_slug = request.headers.get(X_GRAFANA_INSTANCE_SLUG)
-            if not instance_slug:
-                raise exceptions.AuthenticationFailed(f"Missing {X_GRAFANA_INSTANCE_SLUG}")
-
-        return Organization.objects.filter(org_slug=org_slug, stack_slug=instance_slug).first()
+            instance_id = request.headers.get(X_GRAFANA_INSTANCE_ID)
+            if not instance_id:
+                raise exceptions.AuthenticationFailed(f"Missing {X_GRAFANA_INSTANCE_ID}")
+            return Organization.objects.filter(stack_id=instance_id).first()
+        else:
+            org_slug = SELF_HOSTED_SETTINGS["ORG_SLUG"]
+            instance_slug = SELF_HOSTED_SETTINGS["STACK_SLUG"]
+            return Organization.objects.filter(org_slug=org_slug, stack_slug=instance_slug).first()
 
     def authenticate_credentials(self, organization, token):
         permissions = get_service_account_token_permissions(organization, token)
