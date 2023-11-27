@@ -1,12 +1,16 @@
 import json
+import logging
 import typing
 
-from apps.labels.utils import is_labels_feature_enabled, logger
+from apps.labels.utils import is_labels_feature_enabled
 from common.jinja_templater import apply_jinja_template
 from common.jinja_templater.apply_jinja_template import JinjaTemplateError, JinjaTemplateWarning
 
 if typing.TYPE_CHECKING:
     from apps.alerts.models import AlertGroup, AlertReceiveChannel
+
+
+logger = logging.getLogger(__name__)
 
 
 # What can be used as a label key/value coming out from the template

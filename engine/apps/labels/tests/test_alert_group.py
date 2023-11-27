@@ -9,7 +9,7 @@ TOO_LONG_KEY_NAME = "k" * (MAX_KEY_NAME_LENGTH + 1)
 TOO_LONG_VALUE_NAME = "v" * (MAX_VALUE_NAME_LENGTH + 1)
 
 
-@mock.patch("apps.labels.utils.is_labels_feature_enabled", return_value=False)
+@mock.patch("apps.labels.alert_group_labels.is_labels_feature_enabled", return_value=False)
 @pytest.mark.django_db
 def test_assign_labels_feature_flag_disabled(
     _, make_organization, make_alert_receive_channel, make_integration_label_association
