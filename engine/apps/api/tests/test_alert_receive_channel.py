@@ -9,6 +9,7 @@ from rest_framework.test import APIClient
 
 from apps.alerts.models import AlertReceiveChannel, EscalationPolicy
 from apps.api.permissions import LegacyAccessControlRole
+from apps.labels.models import LabelKeyCache, LabelValueCache
 
 
 @pytest.fixture()
@@ -1447,6 +1448,11 @@ def test_alert_group_labels_put(
             "key": {"id": label_2.key.id, "name": label_2.key.name},
             "value": {"id": label_2.value.id, "name": label_2.value.name},
         },
+        # plain label not present in DB cache
+        {
+            "key": {"id": "hello", "name": "world"},
+            "value": {"id": "foo", "name": "bar"},
+        },
         # templated label
         {
             "key": {"id": label_3.key.id, "name": label_3.key.name},
@@ -1476,9 +1482,15 @@ def test_alert_group_labels_put(
     alert_receive_channel.refresh_from_db()
     assert alert_receive_channel.alert_group_labels_custom == [
         [label_2.key_id, label_2.value_id, None],
+        ["hello", "foo", None],
         [label_3.key_id, None, "{{ payload.foo }}"],
     ]
     assert alert_receive_channel.alert_group_labels_template == template
+
+    # check label keys & values are created
+    key = LabelKeyCache.objects.filter(id="hello", name="world", organization=organization).first()
+    assert key is not None
+    assert LabelValueCache.objects.filter(key=key, id="foo", name="bar").exists()
 
 
 @pytest.mark.django_db

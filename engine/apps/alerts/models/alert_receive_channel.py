@@ -204,7 +204,7 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
     rate_limited_in_slack_at = models.DateTimeField(null=True, default=None)
     rate_limit_message_task_id = models.CharField(max_length=100, null=True, default=None)
 
-    AlertGroupCustomLabels = list[list[str, str | None, str | None]]
+    AlertGroupCustomLabels = list[tuple[str, str | None, str | None]]
     alert_group_labels_custom: AlertGroupCustomLabels = models.JSONField(null=True, default=list)
     """
     Stores "custom labels" for alert group labels. Custom labels can be either "plain" or "templated".

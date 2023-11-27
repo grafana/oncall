@@ -15,6 +15,8 @@ from apps.alerts.models import AlertReceiveChannel
 from apps.alerts.models.channel_filter import ChannelFilter
 from apps.base.messaging import get_messaging_backends
 from apps.integrations.legacy_prefix import has_legacy_prefix
+from apps.labels.models import LabelKeyCache, LabelValueCache
+from apps.user_management.models import Organization
 from common.api_helpers.custom_fields import TeamPrimaryKeyRelatedField
 from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.mixins import APPEARANCE_TEMPLATE_NAMES, EagerLoadingMixin
@@ -100,6 +102,8 @@ class IntegrationAlertGroupLabelsSerializer(serializers.Serializer):
         instance.labels.filter(key_id__in=inheritable_key_ids).update(inheritable=True)
         instance.labels.filter(~Q(key_id__in=inheritable_key_ids)).update(inheritable=False)
 
+        # update DB cache for custom labels
+        cls._create_custom_labels(instance.organization, alert_group_labels["custom"])
         # update custom labels
         instance.alert_group_labels_custom = cls._custom_labels_to_internal_value(alert_group_labels["custom"])
 
@@ -108,6 +112,24 @@ class IntegrationAlertGroupLabelsSerializer(serializers.Serializer):
 
         instance.save(update_fields=["alert_group_labels_custom", "alert_group_labels_template"])
         return instance
+
+    @staticmethod
+    def _create_custom_labels(organization: Organization, labels: AlertGroupCustomLabels) -> None:
+        """Create LabelKeyCache and LabelValueCache objects for custom labels."""
+
+        label_keys = [
+            LabelKeyCache(id=label["key"]["id"], name=label["key"]["name"], organization=organization)
+            for label in labels
+        ]
+
+        label_values = [
+            LabelValueCache(id=label["value"]["id"], name=label["value"]["name"], key_id=label["key"]["id"])
+            for label in labels
+            if label["value"]["id"]  # don't create LabelValueCache objects for templated labels
+        ]
+
+        LabelKeyCache.objects.bulk_create(label_keys, ignore_conflicts=True, batch_size=5000)
+        LabelValueCache.objects.bulk_create(label_values, ignore_conflicts=True, batch_size=5000)
 
     @classmethod
     def to_representation(cls, instance: AlertReceiveChannel) -> IntegrationAlertGroupLabels:
@@ -173,6 +195,7 @@ class IntegrationAlertGroupLabelsSerializer(serializers.Serializer):
                 },
             }
             for key_id, value_id, template in custom_labels
+            if key_id in label_key_names and (value_id in label_value_names or not value_id)
         ]
 
 
