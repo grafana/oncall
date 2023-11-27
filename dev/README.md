@@ -250,8 +250,6 @@ cd grafana-plugin
 yarn test:e2e
 ```
 
-// TODO: add info about local helm values
-
 ## Helm unit tests
 
 To run the `helm` unit tests you will need the following dependencies installed:

@@ -435,7 +435,7 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
   schemas: {
-    Alert: CustomApiSchemas['Alert'] & {
+    Alert: {
       readonly id: string;
       /** Format: uri */
       link_to_upstream_details?: string | null;
@@ -443,7 +443,7 @@ export interface components {
       /** Format: date-time */
       readonly created_at: string;
     };
-    AlertGroup: CustomApiSchemas['AlertGroup'] & {
+    AlertGroup: {
       readonly pk: string;
       readonly alerts_count: number;
       inside_organization_number?: number;
