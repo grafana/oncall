@@ -222,6 +222,20 @@ class SlackEventApiEndpointView(APIView):
                 response = sc.bots_info(bot=payload_event_bot_id)
                 bot_user_id = response.get("bot", {}).get("user_id", "")
 
+                # test if we can use user from authorizations instead of api call
+                payload_bot_user_id = payload_event.get("authorizations", {}).get("user_id")
+                logger.info(
+                    f"checkin_bot_user_id equal={payload_bot_user_id==slack_team_identity.bot_user_id}"
+                    f" payload_bot_user_id={payload_bot_user_id} reqiest_bot_user_id={bot_user_id}"
+                    f" sti_bot_user_id={slack_team_identity.bot_user_id}"
+                )
+
+                # test if we can use bot_id instead of api call
+                logger.info(
+                    f"checking_bot_id equal={payload_event_bot_id == slack_team_identity.bot_id}"
+                    f" payload_bot_id={payload_event_bot_id} sti_bot_id={slack_team_identity.bot_id}"
+                )
+
                 # Don't react on own bot's messages.
                 if bot_user_id == slack_team_identity.bot_user_id:
                     return Response(status=200)
