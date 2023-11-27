@@ -208,8 +208,9 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
 
     class Meta:
         constraints = [
-            # This monstrous constraint ensures that there's at most one active direct paging integration per team
-            # This should work with SQLite, PostgreSQL and MySQL >= 8.0.13
+            # This constraint ensures that there's at most one active direct paging integration per team
+            # This should work with SQLite, PostgreSQL and MySQL >= 8.0.13.
+            # From the docs: Functional indexes are ignored with MySQL < 8.0.13 and MariaDB as neither supports them.
             # https://docs.djangoproject.com/en/4.2/ref/models/constraints/#expressions
             models.UniqueConstraint(
                 F("organization"),
