@@ -12,7 +12,7 @@ from django.db.models import JSONField
 from apps.alerts import tasks
 from apps.alerts.constants import TASK_DELAY_SECONDS
 from apps.alerts.incident_appearance.templaters import TemplateLoader
-from apps.labels.utils import assign_labels
+from apps.labels.alert_group_labels import assign_labels
 from common.jinja_templater import apply_jinja_template
 from common.jinja_templater.apply_jinja_template import JinjaTemplateError, JinjaTemplateWarning
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
@@ -108,7 +108,7 @@ class Alert(models.Model):
         )
 
         if group_created:
-            assign_labels(group, alert_receive_channel)
+            assign_labels(group, alert_receive_channel, raw_request_data)
             group.log_records.create(type=AlertGroupLogRecord.TYPE_REGISTERED)
             group.log_records.create(type=AlertGroupLogRecord.TYPE_ROUTE_ASSIGNED)
 

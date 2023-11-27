@@ -14,6 +14,8 @@ from rest_framework.request import Request
 
 from apps.schedules.ical_utils import fetch_ical_file
 from common.api_helpers.exceptions import BadRequest
+from common.jinja_templater import apply_jinja_template
+from common.jinja_templater.apply_jinja_template import JinjaTemplateWarning
 from common.timezones import raise_exception_if_not_valid_timezone
 
 
@@ -165,3 +167,12 @@ def check_phone_number_is_valid(phone_number):
 
 def serialize_datetime_as_utc_timestamp(dt: datetime.datetime) -> str:
     return dt.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+
+
+def valid_jinja_template_for_serializer_method_field(template):
+    for _, val in template.items():
+        try:
+            apply_jinja_template(val, payload={})
+        except JinjaTemplateWarning:
+            # Suppress warnings, template may be valid with payload
+            pass
