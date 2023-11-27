@@ -6,7 +6,7 @@ import { observer } from 'mobx-react';
 
 import Text from 'components/Text/Text';
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
-import { LabelKey } from 'models/label/label.types';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
 
 import styles from './IntegrationLabelsForm.module.css';
@@ -45,7 +45,7 @@ const IntegrationLabelsForm = observer((props: IntegrationLabelsFormProps) => {
     onOpenIntegraionSettings(id);
   };
 
-  const getInheritanceChangeHandler = (keyId: LabelKey['id']) => {
+  const getInheritanceChangeHandler = (keyId: ApiSchemas['LabelKey']['id']) => {
     return (event: React.ChangeEvent<HTMLInputElement>) => {
       setAlertGroupLabels((alertGroupLabels) => ({
         ...alertGroupLabels,

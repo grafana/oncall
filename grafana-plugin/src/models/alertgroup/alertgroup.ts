@@ -5,6 +5,7 @@ import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_
 import BaseStore from 'models/base_store';
 import { User } from 'models/user/user.types';
 import { makeRequest } from 'network';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 import { Mixpanel } from 'services/mixpanel';
 import { RootStore } from 'state';
 import { SelectOption } from 'state/types';
@@ -12,7 +13,6 @@ import { openErrorNotification, refreshPageError, showApiError } from 'utils';
 import LocationHelper from 'utils/LocationHelper';
 
 import { Alert, AlertAction, IncidentStatus } from './alertgroup.types';
-import { ApiSchemas } from 'network/oncall-api/api.types';
 
 export class AlertGroupStore extends BaseStore {
   @observable.shallow
