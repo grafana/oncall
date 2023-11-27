@@ -266,8 +266,6 @@ class UserScheduleExportAuthentication(BaseAuthentication):
         return auth_token.user, auth_token
 
 
-X_GRAFANA_ORG_SLUG = "X-Grafana-Org-Slug"
-X_GRAFANA_INSTANCE_SLUG = "X-Grafana-Instance-Slug"
 X_GRAFANA_INSTANCE_ID = "X-Grafana-Instance-ID"
 GRAFANA_SA_PREFIX = "glsa_"
 
