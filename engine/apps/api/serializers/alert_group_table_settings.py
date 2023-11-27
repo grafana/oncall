@@ -32,7 +32,9 @@ class AlertGroupTableColumnsOrganizationSerializer(serializers.Serializer):
         """
         columns = data["visible"] + data["hidden"]
         request_columns_ids = [column["id"] for column in columns]
-        if not set(request_columns_ids) >= set(AlertGroupTableDefaultColumnChoices.values):
+        if len(data["visible"]) == 0:
+            raise ValidationError("At least one column should be selected as visible")
+        elif not set(request_columns_ids) >= set(AlertGroupTableDefaultColumnChoices.values):
             raise ValidationError("Default column cannot be removed")
         elif len(request_columns_ids) > len(set(request_columns_ids)):
             raise ValidationError("Duplicate column")

@@ -137,6 +137,26 @@ def test_update_columns_settings(
 
 
 @pytest.mark.django_db
+def test_reset_user_columns(
+    make_organization_and_user_with_plugin_token,
+    make_user_auth_headers,
+):
+    """Test reset alert group table settings for user"""
+    organization, user, token = make_organization_and_user_with_plugin_token()
+    client = APIClient()
+    url = reverse("api-internal:alert_group_table-reset_columns_settings")
+    new_column = {"name": "Test", "id": "test", "type": AlertGroupTableColumnTypeChoices.LABEL.value}
+    organization.alert_group_table_columns += [new_column]
+    organization.save()
+    user.update_alert_group_table_columns_settings(organization.alert_group_table_columns[1::-1])
+    default_settings = columns_settings(new_column)
+    assert alert_group_table_user_settings(user) != default_settings
+    response = client.post(url, format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == default_settings
+
+
+@pytest.mark.django_db
 @pytest.mark.parametrize(
     "role,expected_status",
     [
@@ -206,5 +226,29 @@ def test_update_columns_settings_permissions(
     url = reverse("api-internal:alert_group_table-columns_settings")
     data = columns_settings()
     response = client.put(url, data=data, format="json", **make_user_auth_headers(user, token))
+
+    assert response.status_code == expected_status
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "role,expected_status",
+    [
+        (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
+        (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
+        (LegacyAccessControlRole.VIEWER, status.HTTP_200_OK),
+        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
+    ],
+)
+def test_reset_user_columns_permissions(
+    role,
+    expected_status,
+    make_organization_and_user_with_plugin_token,
+    make_user_auth_headers,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token(role)
+    client = APIClient()
+    url = reverse("api-internal:alert_group_table-reset_columns_settings")
+    response = client.post(url, format="json", **make_user_auth_headers(user, token))
 
     assert response.status_code == expected_status
