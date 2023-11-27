@@ -62,7 +62,7 @@ In order to automate types creation and prevent API usage pitfalls, OnCall proje
    };
    ```
 
-   Then add their names `CUSTOMIZED_SCHEMAS` in `grafana-plugin/src/network/oncall-api/types-generator/generate-types.ts`:
+   Then add their names to `CUSTOMIZED_SCHEMAS` array in `grafana-plugin/src/network/oncall-api/types-generator/generate-types.ts`:
 
    ```ts
    const CUSTOMIZED_SCHEMAS = ['Alert', 'AlertGroup'];
