@@ -53,6 +53,14 @@ Related: [How to develop integrations](/engine/config_integrations/README.md)
    tilt up
    ```
 
+   You can set local environment variables using `dev/helm-local.dev.yml` file, e.g.:
+
+   ```
+   env:
+      - name: FEATURE_LABELS_ENABLED_FOR_ALL
+        value: 'True'
+   ```
+
 3. Wait until all resources are green and open <http://localhost:3000/a/grafana-oncall-app> (user: oncall, password: oncall)
 
 4. Modify source code, backend and frontend will be hot reloaded
