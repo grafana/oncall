@@ -14,6 +14,10 @@ endpoint currently) @mderynck ([#3189](https://github.com/grafana/oncall/pull/31
 - Add ability for webhook presets to mask sensitive headers @mderynck
 ([#3189](https://github.com/grafana/oncall/pull/3189))
 
+### Changed
+
+- Use instance ID for cloud Grafana service token auth @mderynck ([#3435](https://github.com/grafana/oncall/pull/3435))
+
 ### Fixed
 
 - Fixed issue that blocked saving webhooks with presets if the preset is controlling the URL @mderynck
