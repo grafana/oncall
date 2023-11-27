@@ -41,8 +41,10 @@ In order to automate types creation and prevent API usage pitfalls, OnCall proje
    import { ApiSchemas } from 'network/oncall-api/api.types';
    import onCallApi from 'network/oncall-api/http-client';
 
-   const { data } = await onCallApi.GET('/alertgroups/');
-   const alertGroups: Array<ApiSchemas['AlertGroup']> = data;
+   const {
+     data: { results },
+   } = await onCallApi.GET('/alertgroups/');
+   const alertGroups: Array<ApiSchemas['AlertGroup']> = results;
    ```
 
 3. [Optional] If there is any property that is not yet exposed in OpenAPI schema and you already want to use it,
