@@ -43,7 +43,6 @@ if typing.TYPE_CHECKING:
         ResolutionNoteSlackMessage,
     )
     from apps.base.models import UserNotificationPolicyLogRecord
-    from apps.labels.models import AlertGroupAssociatedLabel
     from apps.slack.models import SlackMessage
 
 logger = logging.getLogger(__name__)
@@ -195,7 +194,6 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
     slack_log_message: typing.Optional["SlackMessage"]
     slack_messages: "RelatedManager['SlackMessage']"
     users: "RelatedManager['User']"
-    labels: "RelatedManager['AlertGroupAssociatedLabel']"
 
     objects: models.Manager["AlertGroup"] = AlertGroupQuerySet.as_manager()
 
