@@ -3,9 +3,13 @@ from unittest import mock
 import pytest
 
 from apps.alerts.models import Alert
+from apps.labels.models import MAX_KEY_NAME_LENGTH, MAX_VALUE_NAME_LENGTH
+
+TOO_LONG_KEY_NAME = "k" * (MAX_KEY_NAME_LENGTH + 1)
+TOO_LONG_VALUE_NAME = "v" * (MAX_VALUE_NAME_LENGTH + 1)
 
 
-@mock.patch("apps.labels.utils.is_labels_feature_enabled", return_value=False)
+@mock.patch("apps.labels.alert_group_labels.is_labels_feature_enabled", return_value=False)
 @pytest.mark.django_db
 def test_assign_labels_feature_flag_disabled(
     _, make_organization, make_alert_receive_channel, make_integration_label_association
@@ -28,22 +32,59 @@ def test_assign_labels_feature_flag_disabled(
 
 
 @pytest.mark.django_db
-def test_assign_labels(make_organization, make_alert_receive_channel, make_integration_label_association):
+def test_assign_labels(
+    make_organization,
+    make_alert_receive_channel,
+    make_label_key_and_value,
+    make_label_key,
+    make_integration_label_association,
+):
     organization = make_organization()
-    alert_receive_channel = make_alert_receive_channel(organization)
-    label = make_integration_label_association(organization, alert_receive_channel)
-    make_integration_label_association(organization, alert_receive_channel, inheritable=False)
 
+    # create label repo labels
+    label_key, label_value = make_label_key_and_value(organization, key_name="a", value_name="b")
+    label_key_1 = make_label_key(organization=organization, key_name="c")
+    label_key_2 = make_label_key(organization=organization)
+    label_key_3 = make_label_key(organization=organization)
+
+    # create alert receive channel with all 3 types of labels
+    alert_receive_channel = make_alert_receive_channel(
+        organization,
+        alert_group_labels_custom=[
+            [label_key.id, label_value.id, None],  # plain label
+            ["nonexistent", label_value.id, None],  # plain label with nonexistent key ID
+            [label_key_2.id, "nonexistent", None],  # plain label with nonexistent value ID
+            [label_key_1.id, None, "{{ payload.c }}"],  # templated label
+            [label_key_3.id, None, TOO_LONG_VALUE_NAME],  # templated label too long
+        ],
+        alert_group_labels_template="{{ payload.advanced_template | tojson }}",
+    )
+    make_integration_label_association(organization, alert_receive_channel, key_name="e", value_name="f")
+
+    # create alert group
     alert = Alert.create(
         title="the title",
         message="the message",
         alert_receive_channel=alert_receive_channel,
-        raw_request_data={},
+        raw_request_data={
+            "c": "d",
+            "advanced_template": {
+                "g": 123,
+                "too_long": TOO_LONG_VALUE_NAME,
+                TOO_LONG_KEY_NAME: "too_long",
+                "invalid_type": {"test": "test"},
+            },
+            "extra": "hi",
+        },
         integration_unique_data={},
         image_url=None,
         link_to_upstream_details=None,
     )
 
-    assert alert.group.labels.count() == 1
-    assert alert.group.labels.first().key_name == label.key.name
-    assert alert.group.labels.first().value_name == label.value.name
+    # check alert group labels are assigned correctly, in the lexicographical order
+    assert [(label.key_name, label.value_name) for label in alert.group.labels.all()] == [
+        ("a", "b"),
+        ("c", "d"),
+        ("e", "f"),
+        ("g", "123"),
+    ]
