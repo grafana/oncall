@@ -56,7 +56,7 @@ function useExtensionPointContext(incident: Alert): PluginExtensionOnCallAlertGr
 
 function useExtensionLinks<T>(context: T, extensionPointId: OnCallPluginExtensionPoints): PluginExtensionLink[] {
   return useMemo(() => {
-    // getPuginLinkExtensions is available in Grafana>=10.0,
+    // getPluginLinkExtensions is available in Grafana>=10.0,
     // so will be undefined in earlier versions. Just return an
     // empty list of extensions in this case.
     if (getPluginLinkExtensions === undefined) {
