@@ -1,7 +1,7 @@
 import { ComponentClass } from 'react';
 
 import { AppPlugin, PluginExtensionPoints } from '@grafana/data';
-import IRMSettings from 'irmSettings';
+import IRMSettings, { SomeMoreIRMSettings } from 'irmSettings';
 
 import MobileAppConnection from 'containers/MobileAppConnection/MobileAppConnection';
 import PluginConfigPage from 'containers/PluginConfigPage/PluginConfigPage';
@@ -21,11 +21,11 @@ if (
   PluginExtensionPoints != null &&
   'ExploreToolbarAction' in PluginExtensionPoints
 ) {
-  const IRMSettingsTabTitle = 'Grafana IRM Settings';
-  const OnCallSettingsTabTitle = 'Grafana OnCall Settings';
+  const IRMSettingsTabTitle = 'IRM';
+  const OnCallSettingsTabTitle = 'OnCall';
 
   // TODO: change this to use the PluginExtensionPoints enum once we update the @grafana/data package
-  const extensionPointId = 'grafana/user/profile/settings';
+  const extensionPointId = 'grafana/user/profile/tab';
 
   plugin.configureExtensionComponent({
     title: IRMSettingsTabTitle,
@@ -36,6 +36,17 @@ if (
      * https://github.com/grafana/grafana/pull/75019#issuecomment-1724997540
      */
     component: IRMSettings as any,
+  });
+
+  plugin.configureExtensionComponent({
+    title: IRMSettingsTabTitle,
+    description: 'hello world123',
+    extensionPointId,
+    /**
+     * typing IRMSettings as any until 10.2.0 is released
+     * https://github.com/grafana/grafana/pull/75019#issuecomment-1724997540
+     */
+    component: SomeMoreIRMSettings as any,
   });
 
   plugin.configureExtensionComponent({
