@@ -2,7 +2,10 @@ import json
 import logging
 import typing
 
+import jwt
 import requests
+from django.conf import settings
+from django.utils import timezone
 from fcm_django.api.rest_framework import FCMDeviceAuthorizedViewSet as BaseFCMDeviceAuthorizedViewSet
 from rest_framework import mixins, status, viewsets
 from rest_framework.exceptions import NotFound, ParseError
@@ -98,7 +101,8 @@ class MobileAppGatewayView(APIView):
         SupportedDownstreamBackends.INCIDENT,
     ]
 
-    def _determine_grafana_incident_api_url(self, organization: "Organization") -> typing.Optional[str]:
+    @classmethod
+    def _determine_grafana_incident_api_url(cls, organization: "Organization") -> typing.Optional[str]:
         """
         If the organization already has the Grafana Incident backend URL saved, use that.
         Otherwise, ask the Grafana API for the URL from the Incident plugin's settings, then persist it.
@@ -130,18 +134,43 @@ class MobileAppGatewayView(APIView):
 
         return grafana_incident_backend_url
 
-    def _construct_jwt(self, user: "User") -> str:
-        # TODO:
-        return ""
+    @classmethod
+    def _construct_jwt_payload(cls, user: "User") -> typing.Dict[str, typing.Any]:
+        organization = user.organization
+        now = timezone.now()
 
-    def _get_downstream_headers(self, user: "User") -> typing.Dict[str, str]:
         return {
-            "Authorization": f"Bearer {self._construct_jwt(user)}",
+            # registered claim names
+            "iat": now,
+            "exp": now + timezone.timedelta(minutes=1),  # jwt is short lived. expires in 1 minute.
+            # custom data
+            "user_id": user.user_id,  # grafana user ID
+            "stack_id": organization.stack_id,
+            "organization_id": organization.org_id,  # grafana org ID
+            "stack_slug": organization.stack_slug,
+            "org_slug": organization.org_slug,
         }
 
-    def _get_downstream_url(self, organization: "Organization", downstream_backend: str, downstream_path: str) -> str:
+    @classmethod
+    def _construct_jwt(cls, user: "User") -> str:
+        """
+        RS256 = asymmetric = public/private key pair
+        HS256 = symmetric = shared secret (don't use this)
+        """
+        return jwt.encode(
+            cls._construct_jwt_payload(user), settings.MOBILE_APP_GATEWAY_RSA_PRIVATE_KEY, algorithm="RS256"
+        )
+
+    @classmethod
+    def _get_downstream_headers(cls, user: "User") -> typing.Dict[str, str]:
+        return {
+            "Authorization": f"Bearer {cls._construct_jwt(user)}",
+        }
+
+    @classmethod
+    def _get_downstream_url(cls, organization: "Organization", downstream_backend: str, downstream_path: str) -> str:
         downstream_url_fetcher = {
-            self.SupportedDownstreamBackends.INCIDENT: self._determine_grafana_incident_api_url,
+            cls.SupportedDownstreamBackends.INCIDENT: cls._determine_grafana_incident_api_url,
         }[downstream_backend]
 
         downstream_url = downstream_url_fetcher(organization)

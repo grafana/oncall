@@ -3,15 +3,29 @@ from unittest.mock import patch
 
 import pytest
 from django.urls import reverse
+from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APIClient
 from rest_framework.views import APIView
 
+from apps.mobile_app.views import MobileAppGatewayView
+
 DOWNSTREAM_BACKEND = "incident"
 MOCK_DOWNSTREAM_INCIDENT_API_URL = "https://mockdownstreamincidentapi.com"
 MOCK_DOWNSTREAM_HEADERS = {"Authorization": "Bearer mock_jwt"}
-
 MOCK_DOWNSTREAM_RESPONSE_DATA = {"foo": "bar"}
+
+MOCK_TIMEZONE_NOW = timezone.datetime(2021, 1, 1, 3, 4, 5, tzinfo=timezone.utc)
+MOCK_JWT = "mncn,zxcnv,mznxcv"
+MOCK_JWT_PRIVATE_KEY = "asd,mzcxn,vmnzxcv,mnzx,cvmnzaslkdjflaksjdf"
+
+
+@pytest.fixture(autouse=True)
+def enable_urls(settings, reload_urls):
+    settings.MOBILE_APP_GATEWAY_ENABLED = True
+    settings.MOBILE_APP_GATEWAY_RSA_PRIVATE_KEY = MOCK_JWT_PRIVATE_KEY
+
+    reload_urls()
 
 
 class MockResponse:
@@ -300,13 +314,74 @@ def test_mobile_app_gateway_incident_api_url(
         assert organization.grafana_incident_backend_url == mock_incident_backend_url
 
 
-# # TODO:
-# @pytest.mark.django_db
-# def test_mobile_app_gateway_downstream_jwt_auth(make_organization_and_user_with_mobile_app_auth_token):
-#     _, _, auth_token = make_organization_and_user_with_mobile_app_auth_token()
+@pytest.mark.django_db
+@patch("apps.mobile_app.views.requests")
+@patch(
+    "apps.mobile_app.views.MobileAppGatewayView._construct_jwt",
+    return_value=MOCK_JWT,
+)
+@patch(
+    "apps.mobile_app.views.MobileAppGatewayView._determine_grafana_incident_api_url",
+    return_value=MOCK_DOWNSTREAM_INCIDENT_API_URL,
+)
+def test_mobile_app_gateway_jwt_header(
+    _mock_determine_grafana_incident_api_url,
+    _mock_construct_jwt,
+    mock_requests,
+    make_organization_and_user_with_mobile_app_auth_token,
+):
+    path = "test/123"
+    mock_requests.post.return_value = MockResponse()
 
-#     client = APIClient()
-#     url = reverse("mobile_app:gateway", kwargs={"downstream_backend": DOWNSTREAM_BACKEND, "downstream_path": "test"})
+    _, _, auth_token = make_organization_and_user_with_mobile_app_auth_token()
 
-#     response = client.post(url, HTTP_AUTHORIZATION=auth_token)
-#     assert response.status_code == status.HTTP_403_FORBIDDEN
+    client = APIClient()
+    url = reverse("mobile_app:gateway", kwargs={"downstream_backend": DOWNSTREAM_BACKEND, "downstream_path": path})
+
+    response = client.post(url, HTTP_AUTHORIZATION=auth_token)
+    assert response.status_code == status.HTTP_200_OK
+
+    mock_requests.post.assert_called_once_with(
+        f"{MOCK_DOWNSTREAM_INCIDENT_API_URL}/{path}",
+        data={},
+        params={},
+        headers={"Authorization": f"Bearer {MOCK_JWT}"},
+    )
+
+
+@pytest.mark.django_db
+@patch("apps.mobile_app.views.jwt.encode", return_value=MOCK_JWT)
+@patch("apps.mobile_app.views.timezone.now", return_value=MOCK_TIMEZONE_NOW)
+def test_mobile_app_gateway_properly_generates_a_jwt(
+    _mock_timezone_now,
+    mock_jwt_encode,
+    make_organization,
+    make_user_for_organization,
+):
+    user_id = 90095905
+    stack_id = 895
+    organization_id = 8905
+    stack_slug = "mvcmnvcmnvc"
+    org_slug = "raintank"
+
+    organization = make_organization(
+        stack_id=stack_id, org_id=organization_id, stack_slug=stack_slug, org_slug=org_slug
+    )
+    user = make_user_for_organization(organization, user_id=user_id)
+
+    encoded_jwt = MobileAppGatewayView._construct_jwt(user)
+
+    assert encoded_jwt == MOCK_JWT
+    mock_jwt_encode.assert_called_once_with(
+        {
+            "iat": MOCK_TIMEZONE_NOW,
+            "exp": MOCK_TIMEZONE_NOW + timezone.timedelta(minutes=1),
+            "user_id": user.user_id,  # grafana user ID
+            "stack_id": organization.stack_id,
+            "organization_id": organization.org_id,  # grafana org ID
+            "stack_slug": organization.stack_slug,
+            "org_slug": organization.org_slug,
+        },
+        MOCK_JWT_PRIVATE_KEY,
+        algorithm="RS256",
+    )
