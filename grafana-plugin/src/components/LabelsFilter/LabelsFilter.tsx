@@ -21,14 +21,15 @@ const LabelsFilter: FC<LabelsFilterProps> = (props) => {
   const [search, setSearch] = useState('');
 
   const handleChange = useCallback((value) => {
-    onChange(value.map((v) => v.value));
+    onChange(value.map((v) => v.data));
   }, []);
 
   const handleLoadOptions = (search) => {
     return onLoadOptions(search).then((options) =>
       options.map((v) => ({
         label: `${v.key[FieldName]} : ${v.value[FieldName]}`,
-        value: v,
+        value: `${v.key[FieldName]} : ${v.value[FieldName]}`,
+        data: v,
       }))
     );
   };
@@ -37,7 +38,8 @@ const LabelsFilter: FC<LabelsFilterProps> = (props) => {
     () =>
       propsValue.map((v) => ({
         label: `${v.key[FieldName]} : ${v.value[FieldName]}`,
-        value: v,
+        value: `${v.key[FieldName]} : ${v.value[FieldName]}`,
+        data: v,
       })),
     [propsValue]
   );

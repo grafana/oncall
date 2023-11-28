@@ -5,6 +5,7 @@ from apps.labels.models import (
     AlertReceiveChannelAssociatedLabel,
     LabelKeyCache,
     LabelValueCache,
+    WebhookAssociatedLabel,
 )
 from common.utils import UniqueFaker
 
@@ -33,3 +34,8 @@ class AlertReceiveChannelAssociatedLabelFactory(factory.DjangoModelFactory):
 class AlertGroupAssociatedLabelFactory(factory.DjangoModelFactory):
     class Meta:
         model = AlertGroupAssociatedLabel
+
+
+class WebhookAssociatedLabelFactory(factory.DjangoModelFactory):
+    class Meta:
+        model = WebhookAssociatedLabel

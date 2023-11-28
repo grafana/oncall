@@ -43,7 +43,6 @@ def test_get_update_key_get(
     mocked_get_values,
     make_organization_and_user_with_plugin_token,
     make_user_auth_headers,
-    make_alert_receive_channel,
 ):
     organization, user, token = make_organization_and_user_with_plugin_token()
     client = APIClient()
@@ -68,7 +67,6 @@ def test_get_update_key_put(
     mocked_rename_key,
     make_organization_and_user_with_plugin_token,
     make_user_auth_headers,
-    make_alert_receive_channel,
 ):
     organization, user, token = make_organization_and_user_with_plugin_token()
     client = APIClient()
@@ -94,7 +92,6 @@ def test_add_value(
     mocked_add_value,
     make_organization_and_user_with_plugin_token,
     make_user_auth_headers,
-    make_alert_receive_channel,
 ):
     organization, user, token = make_organization_and_user_with_plugin_token()
     client = APIClient()
@@ -120,7 +117,6 @@ def test_rename_value(
     mocked_rename_value,
     make_organization_and_user_with_plugin_token,
     make_user_auth_headers,
-    make_alert_receive_channel,
 ):
     organization, user, token = make_organization_and_user_with_plugin_token()
     client = APIClient()
@@ -146,7 +142,6 @@ def test_get_value(
     mocked_get_value,
     make_organization_and_user_with_plugin_token,
     make_user_auth_headers,
-    make_alert_receive_channel,
 ):
     organization, user, token = make_organization_and_user_with_plugin_token()
     client = APIClient()
@@ -171,7 +166,6 @@ def test_labels_create_label(
     mocked_create_label,
     make_organization_and_user_with_plugin_token,
     make_user_auth_headers,
-    make_alert_receive_channel,
 ):
     organization, user, token = make_organization_and_user_with_plugin_token()
     client = APIClient()
@@ -189,7 +183,6 @@ def test_labels_create_label(
 def test_labels_feature_false(
     make_organization_and_user_with_plugin_token,
     make_user_auth_headers,
-    make_alert_receive_channel,
     settings,
 ):
     setattr(settings, "FEATURE_LABELS_ENABLED_FOR_ALL", False)
@@ -239,7 +232,6 @@ def test_labels_feature_false(
 def test_labels_permissions_get_actions(
     make_organization_and_user_with_plugin_token,
     make_user_auth_headers,
-    make_alert_receive_channel,
     role,
     expected_status,
 ):
@@ -274,7 +266,6 @@ def test_labels_permissions_get_actions(
 def test_labels_permissions_create_update_actions(
     make_organization_and_user_with_plugin_token,
     make_user_auth_headers,
-    make_alert_receive_channel,
     role,
     expected_status,
 ):

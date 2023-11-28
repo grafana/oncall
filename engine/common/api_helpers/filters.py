@@ -7,6 +7,8 @@ from django_filters.utils import handle_timezone
 from apps.user_management.models import Team
 from common.api_helpers.exceptions import BadRequest
 
+NO_TEAM_VALUE = "null"
+
 
 class DateRangeFilterMixin:
     DATE_FORMAT = "%Y-%m-%dT%H:%M:%S"
@@ -100,7 +102,7 @@ class ByTeamFilter(ByTeamModelFieldFilterMixin, filters.FilterSet):
         queryset=get_team_queryset,
         to_field_name="public_primary_key",
         null_label="noteam",
-        null_value="null",
+        null_value=NO_TEAM_VALUE,
         method=ByTeamModelFieldFilterMixin.filter_model_field_with_single_value.__name__,
     )
 
@@ -112,7 +114,7 @@ class TeamModelMultipleChoiceFilter(filters.ModelMultipleChoiceFilter):
         queryset=get_team_queryset,
         to_field_name="public_primary_key",
         null_label="noteam",
-        null_value="null",
+        null_value=NO_TEAM_VALUE,
         method=ByTeamModelFieldFilterMixin.filter_model_field_with_multiple_values.__name__,
     ):
         super().__init__(

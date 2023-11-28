@@ -864,6 +864,72 @@ def test_get_filter_escalation_chain(
 
 
 @pytest.mark.django_db
+def test_get_filter_by_teams(
+    make_organization_and_user_with_plugin_token,
+    make_team,
+    make_alert_receive_channel,
+    make_alert_group,
+    make_alert,
+    make_user_auth_headers,
+):
+    client = APIClient()
+    organization, user, token = make_organization_and_user_with_plugin_token()
+    team1 = make_team(organization)
+    team2 = make_team(organization)
+
+    alert_receive_channel_0 = make_alert_receive_channel(organization)
+    alert_receive_channel_1 = make_alert_receive_channel(organization, team=team1)
+    alert_receive_channel_2 = make_alert_receive_channel(organization, team=team2)
+
+    alert_group_0 = make_alert_group(alert_receive_channel_0)
+    make_alert(alert_group=alert_group_0, raw_request_data=alert_raw_request_data)
+
+    alert_group_1 = make_alert_group(alert_receive_channel_1)
+    make_alert(alert_group=alert_group_1, raw_request_data=alert_raw_request_data)
+
+    alert_group_2 = make_alert_group(alert_receive_channel_2)
+    make_alert(alert_group=alert_group_2, raw_request_data=alert_raw_request_data)
+
+    url = reverse("api-internal:alertgroup-list")
+
+    # check no team is given
+    response = client.get(url, **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.data["results"]) == 3
+    assert {ag["pk"] for ag in response.data["results"]} == {
+        alert_group_0.public_primary_key,
+        alert_group_1.public_primary_key,
+        alert_group_2.public_primary_key,
+    }
+
+    # check the "No team" case
+    response = client.get(url + "?team=null", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.data["results"]) == 1
+    assert {ag["pk"] for ag in response.data["results"]} == {alert_group_0.public_primary_key}
+
+    # check the "No team" + other team case
+    response = client.get(url + f"?team=null&team={team2.public_primary_key}", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.data["results"]) == 2
+    assert {ag["pk"] for ag in response.data["results"]} == {
+        alert_group_0.public_primary_key,
+        alert_group_2.public_primary_key,
+    }
+
+    # check the multiple teams case
+    response = client.get(
+        url + f"?team={team1.public_primary_key}&team={team2.public_primary_key}", **make_user_auth_headers(user, token)
+    )
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.data["results"]) == 2
+    assert {ag["pk"] for ag in response.data["results"]} == {
+        alert_group_1.public_primary_key,
+        alert_group_2.public_primary_key,
+    }
+
+
+@pytest.mark.django_db
 def test_get_filter_labels(
     make_organization_and_user_with_plugin_token,
     make_user_for_organization,

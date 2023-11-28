@@ -46,9 +46,6 @@ class StartupProbeView(View):
         if cache.get(AlertChannelDefiningMixin.CACHE_KEY_DB_FALLBACK) is None:
             AlertChannelDefiningMixin().update_alert_receive_channel_cache()
 
-        cache.set("healthcheck", "healthcheck", 30)  # Checking cache connectivity
-        assert cache.get("healthcheck") == "healthcheck"
-
         return HttpResponse("Ok")
 
 

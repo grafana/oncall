@@ -5,6 +5,8 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
 
+from common.api_helpers.filters import NO_TEAM_VALUE
+
 
 @pytest.fixture()
 def escalation_chain_internal_api_setup(make_organization_and_user_with_plugin_token, make_escalation_chain):
@@ -103,7 +105,7 @@ def test_escalation_chain_copy(
     escalation_chain = make_escalation_chain(organization, team=team)
     data = {
         "name": "escalation_chain_updated",
-        "team": new_team.public_primary_key if new_team else "null",
+        "team": new_team.public_primary_key if new_team else NO_TEAM_VALUE,
     }
 
     client = APIClient()
@@ -125,6 +127,8 @@ def test_escalation_chain_copy_empty_name(
     client = APIClient()
     url = reverse("api-internal:escalation_chain-copy", kwargs={"pk": escalation_chain.public_primary_key})
 
-    response = client.post(url, {"name": "", "team": "null"}, format="json", **make_user_auth_headers(user, token))
+    response = client.post(
+        url, {"name": "", "team": NO_TEAM_VALUE}, format="json", **make_user_auth_headers(user, token)
+    )
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST

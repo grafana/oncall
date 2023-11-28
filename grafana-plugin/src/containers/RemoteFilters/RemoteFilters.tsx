@@ -75,7 +75,7 @@ class RemoteFilters extends Component<RemoteFiltersProps, RemoteFiltersState> {
 
       const { filterOptions } = this.state;
 
-      let { filters, values } = parseFilters(query, filterOptions, query);
+      let { filters, values } = parseFilters({ ...query, ...filtersStore.globalValues }, filterOptions, query);
 
       this.setState({ filterOptions, filters, values }, () => this.onChange());
     }
@@ -103,7 +103,7 @@ class RemoteFilters extends Component<RemoteFiltersProps, RemoteFiltersState> {
     let { filters, values } = parseFilters({ ...query, ...filtersStore.globalValues }, filterOptions, query);
 
     if (isEmpty(values)) {
-      ({ filters, values } = parseFilters(defaultFilters || { team: [] }, filterOptions, query));
+      ({ filters, values } = parseFilters(defaultFilters, filterOptions, query));
     }
 
     this.setState({ filterOptions, filters, values }, () => this.onChange(true));
@@ -273,6 +273,7 @@ class RemoteFilters extends Component<RemoteFiltersProps, RemoteFiltersState> {
             value={values[filter.name]}
             onChange={this.getRemoteOptionsChangeHandler(filter.name)}
             getOptionLabel={(item: SelectableValue) => <Emoji text={item.label || ''} />}
+            predefinedOptions={filter.default ? [filter.default] : undefined}
           />
         );
 

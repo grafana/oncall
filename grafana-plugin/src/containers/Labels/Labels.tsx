@@ -1,6 +1,6 @@
 import React, { forwardRef, useCallback, useImperativeHandle, useState } from 'react';
 
-import ServiceLabels from '@grafana/labels';
+import { ServiceLabels, ServiceLabelsProps } from '@grafana/labels';
 import { Field } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { isEmpty } from 'lodash-es';
@@ -14,14 +14,15 @@ import styles from './Labels.module.css';
 
 const cx = cn.bind(styles);
 
-interface LabelsProps {
+export interface LabelsProps {
   value: LabelKeyValue[];
   errors: any;
+  onDataUpdate?: ServiceLabelsProps['onDataUpdate'];
 }
 
 const Labels = observer(
   forwardRef(function Labels2(props: LabelsProps, ref) {
-    const { value: defaultValue, errors: propsErrors } = props;
+    const { value: defaultValue, errors: propsErrors, onDataUpdate } = props;
 
     // propsErrors are 'external' caused by attaching/detaching labels to oncall entities,
     // state errors are errors caused by CRUD operations on labels storage
@@ -29,6 +30,13 @@ const Labels = observer(
     const [value, setValue] = useState<LabelKeyValue[]>(defaultValue);
 
     const { labelsStore } = useStore();
+
+    const onChange = (value: LabelKeyValue[]) => {
+      if (onDataUpdate) {
+        onDataUpdate(value);
+      }
+      setValue(value);
+    };
 
     useImperativeHandle(
       ref,
@@ -113,7 +121,7 @@ const Labels = observer(
             onRowItemRemoval={(_pair, _index) => {}}
             onUpdateError={onUpdateError}
             errors={isValid() ? {} : { ...propsErrors }}
-            onDataUpdate={setValue}
+            onDataUpdate={onChange}
           />
         </Field>
       </div>
