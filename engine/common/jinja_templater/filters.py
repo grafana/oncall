@@ -26,17 +26,10 @@ def to_pretty_json(value):
         return None
 
 
-def to_json(value):
-    try:
-        return json.dumps(value, ensure_ascii=False, separators=(",", ":"))
-    except (ValueError, AttributeError, TypeError):
-        return None
-
-
-# json_dumps is deprecated in favour of to_json and left for backward-compatibility.
+# json_dumps is deprecated in favour of built-in tojson filter and left for backward-compatibility.
 def json_dumps(value):
     try:
-        return json.dumps(value, ensure_ascii=False, separators=(",", ":"))
+        return json.dumps(value)
     except (ValueError, AttributeError, TypeError):
         return None
 
