@@ -159,7 +159,6 @@ class MobileAppGatewayView(APIView):
         downstream_request_handler = getattr(requests, method.lower())
 
         try:
-            # TODO: figure out how to properly proxy request body
             downstream_response = downstream_request_handler(
                 downstream_url,
                 data=request.data,
