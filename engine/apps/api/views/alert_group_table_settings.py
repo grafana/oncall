@@ -45,11 +45,11 @@ class AlertGroupTableColumnsViewSet(LabelsFeatureFlagViewSet):
         serializer = AlertGroupTableColumnsUserSerializer(data=request.data, context={"request": request})
         serializer.is_valid(raise_exception=True)
         columns: typing.List[AlertGroupTableColumn] = serializer.validated_data.get("visible", [])
-        user.update_alert_group_table_columns_settings(columns)
+        user.update_alert_group_table_selected_columns(columns)
         return Response(alert_group_table_user_settings(user))
 
     def reset_user_columns(self, request: Request) -> Response:
         """set default alert group table settings for user"""
         user = request.user
-        user.update_alert_group_table_columns_settings(default_columns())
+        user.update_alert_group_table_selected_columns(default_columns())
         return Response(alert_group_table_user_settings(user))

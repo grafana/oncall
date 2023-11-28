@@ -1,7 +1,11 @@
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-from apps.user_management.constants import AlertGroupTableColumnTypeChoices, AlertGroupTableDefaultColumnChoices
+from apps.user_management.constants import (
+    AlertGroupTableColumnTypeChoices,
+    AlertGroupTableDefaultColumnChoices,
+    default_columns,
+)
 
 
 class AlertGroupTableColumnSerializer(serializers.Serializer):
@@ -49,9 +53,8 @@ class AlertGroupTableColumnsUserSerializer(AlertGroupTableColumnsOrganizationSer
         data = super().validate(data)
         columns = data["visible"] + data["hidden"]
         request_columns_ids = [column["id"] for column in columns]
-        organization_columns_ids = [
-            column["id"] for column in self.context["request"].auth.organization.alert_group_table_columns
-        ]
+        organization_columns = self.context["request"].auth.organization.alert_group_table_columns or default_columns()
+        organization_columns_ids = [column["id"] for column in organization_columns]
         if set(organization_columns_ids) != set(request_columns_ids):
             raise ValidationError("Invalid settings")
         return data

@@ -146,9 +146,8 @@ def test_reset_user_columns(
     client = APIClient()
     url = reverse("api-internal:alert_group_table-reset_columns_settings")
     new_column = {"name": "Test", "id": "test", "type": AlertGroupTableColumnTypeChoices.LABEL.value}
-    organization.alert_group_table_columns += [new_column]
-    organization.save()
-    user.update_alert_group_table_columns_settings(organization.alert_group_table_columns[1::-1])
+    organization.update_alert_group_table_columns(default_columns() + [new_column])
+    user.update_alert_group_table_selected_columns(organization.alert_group_table_columns[1::-1])
     default_settings = columns_settings(new_column)
     assert alert_group_table_user_settings(user) != default_settings
     response = client.post(url, format="json", **make_user_auth_headers(user, token))
@@ -252,3 +251,85 @@ def test_reset_user_columns_permissions(
     response = client.post(url, format="json", **make_user_auth_headers(user, token))
 
     assert response.status_code == expected_status
+
+
+@pytest.mark.parametrize(
+    "user_settings,organization_settings,expected_result",
+    [
+        # user doesn't have settings, organization has default settings - all columns are visible
+        (
+            None,
+            DEFAULT_COLUMNS,
+            {"visible": DEFAULT_COLUMNS, "hidden": []},
+        ),
+        # user doesn't have settings, organization has updated settings - only default columns are visible
+        (
+            None,
+            DEFAULT_COLUMNS + [{"name": "Test", "id": "test", "type": AlertGroupTableColumnTypeChoices.LABEL.value}],
+            {
+                "visible": DEFAULT_COLUMNS,
+                "hidden": [{"name": "Test", "id": "test", "type": AlertGroupTableColumnTypeChoices.LABEL.value}],
+            },
+        ),
+        # user has settings, organization has default settings - only selected columns are visible
+        (
+            DEFAULT_COLUMNS[:3],
+            DEFAULT_COLUMNS,
+            {"visible": DEFAULT_COLUMNS[:3], "hidden": DEFAULT_COLUMNS[3:]},
+        ),
+        # user has settings, organization has unchanged settings - only selected columns are visible
+        (
+            DEFAULT_COLUMNS[:3]
+            + [{"name": "Test", "id": "test", "type": AlertGroupTableColumnTypeChoices.LABEL.value}],
+            DEFAULT_COLUMNS + [{"name": "Test", "id": "test", "type": AlertGroupTableColumnTypeChoices.LABEL.value}],
+            {
+                "visible": (
+                    DEFAULT_COLUMNS[:3]
+                    + [{"name": "Test", "id": "test", "type": AlertGroupTableColumnTypeChoices.LABEL.value}]
+                ),
+                "hidden": DEFAULT_COLUMNS[3:],
+            },
+        ),
+        # user has settings, organization has updated settings - column was removed, remove from settings
+        (
+            DEFAULT_COLUMNS[:3]
+            + [{"name": "Test", "id": "test", "type": AlertGroupTableColumnTypeChoices.LABEL.value}],
+            DEFAULT_COLUMNS,
+            {"visible": DEFAULT_COLUMNS[:3], "hidden": DEFAULT_COLUMNS[3:]},
+        ),
+        # user has settings with reordered columns, organization has unchanged settings - selected columns in particular
+        # order are visible
+        (
+            [
+                DEFAULT_COLUMNS[1],
+                DEFAULT_COLUMNS[3],
+                {"name": "Test", "id": "test", "type": AlertGroupTableColumnTypeChoices.LABEL.value},
+                DEFAULT_COLUMNS[2],
+            ],
+            DEFAULT_COLUMNS + [{"name": "Test", "id": "test", "type": AlertGroupTableColumnTypeChoices.LABEL.value}],
+            {
+                "visible": [
+                    DEFAULT_COLUMNS[1],
+                    DEFAULT_COLUMNS[3],
+                    {"name": "Test", "id": "test", "type": AlertGroupTableColumnTypeChoices.LABEL.value},
+                    DEFAULT_COLUMNS[2],
+                ],
+                "hidden": DEFAULT_COLUMNS[:1] + DEFAULT_COLUMNS[4:],
+            },
+        ),
+    ],
+)
+@pytest.mark.django_db
+def test_alert_group_table_user_settings(
+    user_settings,
+    organization_settings,
+    expected_result,
+    make_organization_and_user,
+):
+    organization, user = make_organization_and_user()
+    organization.update_alert_group_table_columns(organization_settings)
+    if user_settings:
+        user.update_alert_group_table_selected_columns(user_settings)
+    result = alert_group_table_user_settings(user)
+    assert result == expected_result
+    assert user.alert_group_table_selected_columns == result["visible"]

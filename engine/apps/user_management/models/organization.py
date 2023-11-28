@@ -11,7 +11,7 @@ from django.utils import timezone
 from mirage import fields as mirage_fields
 
 from apps.alerts.models import MaintainableObject
-from apps.user_management.constants import AlertGroupTableColumn, default_columns
+from apps.user_management.constants import AlertGroupTableColumn
 from apps.user_management.subscription_strategy import FreePublicBetaSubscriptionStrategy
 from common.insight_log import ChatOpsEvent, ChatOpsTypePlug, write_chatops_insight_log
 from common.oncall_gateway import create_oncall_connector, delete_oncall_connector, delete_slack_connector
@@ -249,7 +249,7 @@ class Organization(MaintainableObject):
     is_rbac_permissions_enabled = models.BooleanField(default=False)
     is_grafana_incident_enabled = models.BooleanField(default=False)
 
-    alert_group_table_columns = JSONField(default=default_columns)
+    alert_group_table_columns: list[AlertGroupTableColumn] | None = JSONField(default=None, null=True)
 
     class Meta:
         unique_together = ("stack_id", "org_id")
