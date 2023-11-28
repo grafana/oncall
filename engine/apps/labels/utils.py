@@ -57,7 +57,7 @@ def is_labels_feature_enabled(organization: "Organization") -> bool:
     )
 
 
-def get_labels_dict(labelable: any) -> dict[str, str]:
+def get_labels_dict(labelable) -> dict[str, str]:
     """
     get_labels_dict returns dict of labels' key and values names for the given object
     """
