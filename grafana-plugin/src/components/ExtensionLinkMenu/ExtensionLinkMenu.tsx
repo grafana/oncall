@@ -6,6 +6,7 @@ import { locationUtil, PluginExtensionLink } from '@grafana/data';
 import { Menu } from '@grafana/ui';
 
 import { PluginBridge, SupportedPlugin } from 'components/PluginBridge/PluginBridge';
+import { truncateTitle } from 'utils/string';
 
 type Props = {
   extensions: PluginExtensionLink[];
@@ -120,12 +121,4 @@ function useExtensionLinksByCategory(extensions: PluginExtensionLink[]): Extensi
       categorised,
     };
   }, [extensions]);
-}
-
-function truncateTitle(title: string, length: number): string {
-  if (title.length < length) {
-    return title;
-  }
-  const part = title.slice(0, length - 3);
-  return `${part.trimEnd()}...`;
 }
