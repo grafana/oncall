@@ -49,11 +49,11 @@ function DeclareIncidentMenuItem({ extensions, declareIncidentLink, grafanaIncid
   );
   if (
     // Don't show a custom Declare incident button if the Grafana Incident plugin already configured one.
-    declareIncidentExtensionLink !== undefined ||
+    declareIncidentExtensionLink ||
     // Don't show a custom Declare incident button if there's no valid link.
-    declareIncidentLink === undefined ||
+    !declareIncidentLink ||
     // Don't show the button if an incident has already been declared from this alert group.
-    grafanaIncidentId !== null
+    grafanaIncidentId
   ) {
     return null;
   }
