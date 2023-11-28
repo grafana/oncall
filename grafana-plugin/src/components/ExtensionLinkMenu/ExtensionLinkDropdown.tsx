@@ -25,7 +25,7 @@ export function ExtensionLinkDropdown({
   declareIncidentLink,
   grafanaIncidentId,
 }: Props): ReactElement | null {
-  const [isOpen, setIsOpen] = useState<boolean>(false);
+  const [isOpen, setIsOpen] = useState(false);
   const context = useExtensionPointContext(incident);
   const extensions = useExtensionLinks(context, extensionPointId);
 
