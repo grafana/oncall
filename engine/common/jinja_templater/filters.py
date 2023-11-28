@@ -34,6 +34,14 @@ def to_pretty_json(value):
         return None
 
 
+# json_dumps is deprecated in favour of built-in tojson filter and left for backward-compatibility.
+def json_dumps(value):
+    try:
+        return json.dumps(value)
+    except (ValueError, AttributeError, TypeError):
+        return None
+
+
 def regex_replace(value, find, replace):
     try:
         return re.sub(find, replace, value)
@@ -51,13 +59,6 @@ def regex_match(pattern, value):
 def regex_search(pattern, value):
     try:
         return bool(re.search(value, pattern))
-    except (ValueError, AttributeError, TypeError):
-        return None
-
-
-def json_dumps(value):
-    try:
-        return json.dumps(value)
     except (ValueError, AttributeError, TypeError):
         return None
 

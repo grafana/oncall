@@ -201,7 +201,8 @@ Built-in functions:
 ### Functions added by Grafana OnCall
 
 - `time` - current time
-- `tojson_pretty` - JSON prettified
+- `tojson` - dumps a structure to JSON
+- `tojson_pretty` - same as tojson, but prettified
 - `iso8601_to_time` - converts time from iso8601 (`2015-02-17T18:30:20.000Z`) to datetime
 - `datetimeformat` - converts time from datetime to the given format (`%H:%M / %d-%m-%Y` by default)
 - `datetimeformat_as_timezone` - same as `datetimeformat`, with the inclusion of timezone conversion (`UTC` by default)
