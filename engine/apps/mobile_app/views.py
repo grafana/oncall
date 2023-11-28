@@ -1,13 +1,26 @@
+import json
+import logging
+import typing
+
+import requests
 from fcm_django.api.rest_framework import FCMDeviceAuthorizedViewSet as BaseFCMDeviceAuthorizedViewSet
 from rest_framework import mixins, status, viewsets
-from rest_framework.exceptions import NotFound
+from rest_framework.exceptions import NotFound, ParseError
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from apps.grafana_plugin.helpers.client import GrafanaAPIClient
 from apps.mobile_app.auth import MobileAppAuthTokenAuthentication, MobileAppVerificationTokenAuthentication
 from apps.mobile_app.models import MobileAppAuthToken, MobileAppUserSettings
 from apps.mobile_app.serializers import MobileAppUserSettingsSerializer
+
+if typing.TYPE_CHECKING:
+    from apps.user_management.models import Organization, User
+
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 
 class FCMDeviceAuthorizedViewSet(BaseFCMDeviceAuthorizedViewSet):
@@ -72,3 +85,119 @@ class MobileAppUserSettingsViewSet(
             {"value": item[0], "display_name": item[1]} for item in MobileAppUserSettings.NOTIFICATION_TIMING_CHOICES
         ]
         return Response(choices)
+
+
+class MobileAppGatewayView(APIView):
+    authentication_classes = (MobileAppAuthTokenAuthentication,)
+    permission_classes = (IsAuthenticated,)
+
+    class SupportedDownstreamBackends:
+        INCIDENT = "incident"
+
+    ALL_SUPPORTED_DOWNSTREAM_BACKENDS = [
+        SupportedDownstreamBackends.INCIDENT,
+    ]
+
+    def _determine_grafana_incident_api_url(self, organization: "Organization") -> typing.Optional[str]:
+        """
+        If the organization already has the Grafana Incident backend URL saved, use that.
+        Otherwise, ask the Grafana API for the URL from the Incident plugin's settings, then persist it.
+        """
+        if organization.grafana_incident_backend_url:
+            return organization.grafana_incident_backend_url
+
+        org_pk = organization.pk
+
+        grafana_api_client = GrafanaAPIClient(api_url=organization.grafana_url, api_token=organization.api_token)
+        grafana_incident_settings, _ = grafana_api_client.get_grafana_incident_plugin_settings()
+        if grafana_incident_settings is None:
+            logger.debug(f"Grafana Incident plugin settings not found for organization {org_pk}")
+            return None
+
+        grafana_incident_backend_url = grafana_incident_settings["jsonData"].get(
+            GrafanaAPIClient.GRAFANA_INCIDENT_PLUGIN_BACKEND_URL_KEY
+        )
+        if grafana_incident_backend_url is None:
+            logger.debug(f"Grafana Incident plugin settings do not contain backend URL for organization {org_pk}")
+            return None
+
+        logger.debug(
+            f"Found Grafana Incident plugin backend URL {grafana_incident_backend_url} for organization {org_pk}. Persisting..."
+        )
+
+        organization.grafana_incident_backend_url = grafana_incident_backend_url
+        organization.save(update_fields=["grafana_incident_backend_url"])
+
+        return grafana_incident_backend_url
+
+    def _construct_jwt(self, user: "User") -> str:
+        # TODO:
+        return ""
+
+    def _get_downstream_headers(self, user: "User") -> typing.Dict[str, str]:
+        return {
+            "Authorization": f"Bearer {self._construct_jwt(user)}",
+        }
+
+    def _get_downstream_url(self, organization: "Organization", downstream_backend: str, downstream_path: str) -> str:
+        downstream_url_fetcher = {
+            self.SupportedDownstreamBackends.INCIDENT: self._determine_grafana_incident_api_url,
+        }[downstream_backend]
+
+        downstream_url = downstream_url_fetcher(organization)
+
+        if downstream_url is None:
+            raise ParseError(
+                f"Downstream URL not found for backend {downstream_backend} for organization {organization.pk}"
+            )
+
+        return f"{downstream_url}/{downstream_path}"
+
+    def _proxy_request(self, request, *args, **kwargs):
+        downstream_backend = kwargs["downstream_backend"]
+        downstream_path = kwargs["downstream_path"]
+        method = request.method
+        user = request.user
+
+        if downstream_backend not in self.ALL_SUPPORTED_DOWNSTREAM_BACKENDS:
+            raise NotFound(f"Downstream backend {downstream_backend} not supported")
+
+        downstream_url = self._get_downstream_url(user.organization, downstream_backend, downstream_path)
+        downstream_request_handler = getattr(requests, method.lower())
+
+        try:
+            # TODO: figure out how to properly proxy request body
+            downstream_response = downstream_request_handler(
+                downstream_url,
+                data=request.data,
+                params=request.query_params.dict(),
+                headers=self._get_downstream_headers(user),
+            )
+
+            return Response(status=downstream_response.status_code, data=downstream_response.json())
+        except (
+            requests.exceptions.ConnectionError,
+            requests.exceptions.HTTPError,
+            requests.exceptions.TooManyRedirects,
+            requests.exceptions.Timeout,
+            json.JSONDecodeError,
+        ):
+            logger.error(
+                (
+                    f"MobileAppGatewayView: error while proxying request\n"
+                    f"method={method}\n"
+                    f"downstream_backend={downstream_backend}\n"
+                    f"downstream_path={downstream_path}\n"
+                    f"downstream_url={downstream_url}"
+                ),
+                exc_info=True,
+            )
+            return Response(status=status.HTTP_502_BAD_GATEWAY)
+
+
+"""
+See the default `APIView.dispatch` for more info. Basically this just routes all requests for
+ALL HTTP verbs to the `MobileAppGatewayView._proxy_request` method.
+"""
+for method in APIView.http_method_names:
+    setattr(MobileAppGatewayView, method.lower(), MobileAppGatewayView._proxy_request)

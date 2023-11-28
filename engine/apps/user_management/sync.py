@@ -115,12 +115,8 @@ def sync_users_for_teams(client: GrafanaAPIClient, organization: Organization, *
 
 
 def check_grafana_incident_is_enabled(client: GrafanaAPIClient) -> bool:
-    GRAFANA_INCIDENT_PLUGIN = "grafana-incident-app"
-    grafana_incident_settings, _ = client.get_grafana_plugin_settings(GRAFANA_INCIDENT_PLUGIN)
-    is_grafana_incident_enabled = False
-    if isinstance(grafana_incident_settings, dict) and grafana_incident_settings.get("enabled"):
-        is_grafana_incident_enabled = True
-    return is_grafana_incident_enabled
+    grafana_incident_settings, _ = client.get_grafana_incident_plugin_settings()
+    return False if grafana_incident_settings is None else grafana_incident_settings["enabled"]
 
 
 def delete_organization_if_needed(organization: Organization) -> bool:

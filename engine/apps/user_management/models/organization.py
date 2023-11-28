@@ -248,6 +248,8 @@ class Organization(MaintainableObject):
     is_rbac_permissions_enabled = models.BooleanField(default=False)
     is_grafana_incident_enabled = models.BooleanField(default=False)
 
+    grafana_incident_backend_url = models.CharField(max_length=300, null=True, default=None)
+
     class Meta:
         unique_together = ("stack_id", "org_id")
 
