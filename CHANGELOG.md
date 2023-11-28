@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- User profile UI tweaks ([#3443](https://github.com/grafana/oncall/pull/3443))
 - Delete duplicate direct paging integrations by @vadimkerr ([#3412](https://github.com/grafana/oncall/pull/3412))
 
 ## v1.3.64 (2023-11-28)
@@ -25,6 +26,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 endpoint currently) @mderynck ([#3189](https://github.com/grafana/oncall/pull/3189))
 - Add ability for webhook presets to mask sensitive headers @mderynck
 ([#3189](https://github.com/grafana/oncall/pull/3189))
+
+### Changed
+
+- Use instance ID for cloud Grafana service token auth @mderynck ([#3435](https://github.com/grafana/oncall/pull/3435))
 
 ### Fixed
 
