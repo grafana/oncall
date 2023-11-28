@@ -67,5 +67,5 @@ def get_labels_dict(labelable) -> typing.Dict[str, str]:
 def get_alert_group_labels_dict(alert_group: "AlertGroup") -> typing.Dict[str, str]:
     """
     get_alert_group_labels_dict returns dict of labels' key and values names for the given alert group.
-    It's different from get_label_verbal, because AlertGroupAssociated labels store key/value_name, not key/value_id
+    It's different from get_labels_dict, because AlertGroupAssociated labels store key/value_name, not key/value_id
     """
