@@ -116,7 +116,7 @@ const PhoneConnector = (props: PhoneConnectorProps) => {
         <>
           {storeUser.verified_phone_number ? (
             <div>
-              <InlineField label="Phone" labelWidth={12} className={'test-x-test-x'}>
+              <InlineField label="Phone" labelWidth={12}>
                 <HorizontalGroup spacing="xs">
                   <Input disabled={true} value={storeUser.verified_phone_number} />
                   {isCurrentUser ? (
