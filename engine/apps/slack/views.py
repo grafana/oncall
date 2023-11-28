@@ -220,11 +220,9 @@ class SlackEventApiEndpointView(APIView):
                         "ts":"1701082318.471149",
                         "app_id":"ASUTJU5U4",
                     ...}
-                    So check bot_id even if payload has a user
+                    So check bot_id even if payload has a user to not to react on own bot messages.
                     """
-                    # Don't react on own bot's messages.
-                    if payload_event_bot_id == slack_team_identity.bot_id:
-                        return Response(status=200)
+                    return Response(status=200)
 
                 if "id" in payload_event_user:
                     slack_user_id = payload_event_user["id"]
