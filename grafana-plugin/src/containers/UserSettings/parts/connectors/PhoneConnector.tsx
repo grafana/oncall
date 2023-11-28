@@ -1,12 +1,20 @@
 import React, { useCallback } from 'react';
 
-import { Alert, Button, HorizontalGroup, InlineField, Input } from '@grafana/ui';
+import { Alert, Button, HorizontalGroup, InlineField, Input, VerticalGroup } from '@grafana/ui';
+import cn from 'classnames/bind';
 
+import Tag from 'components/Tag/Tag';
+import Text from 'components/Text/Text';
 import WithConfirm from 'components/WithConfirm/WithConfirm';
 import { UserSettingsTab } from 'containers/UserSettings/UserSettings.types';
 import { User } from 'models/user/user.types';
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
+import { getVar } from 'utils/DOM';
+
+import styles from 'containers/UserSettings/parts/index.module.css';
+
+const cx = cn.bind(styles);
 
 interface PhoneConnectorProps {
   id: User['pk'];
@@ -108,7 +116,7 @@ const PhoneConnector = (props: PhoneConnectorProps) => {
         <>
           {storeUser.verified_phone_number ? (
             <div>
-              <InlineField label="Phone" labelWidth={12}>
+              <InlineField label="Phone" labelWidth={12} className={'test-x-test-x'}>
                 <HorizontalGroup spacing="xs">
                   <Input disabled={true} value={storeUser.verified_phone_number} />
                   {isCurrentUser ? (
@@ -122,10 +130,21 @@ const PhoneConnector = (props: PhoneConnectorProps) => {
               </InlineField>
             </div>
           ) : storeUser.unverified_phone_number ? (
-            <div>
-              <InlineField label="Phone" labelWidth={12}>
-                <HorizontalGroup spacing="xs">
+            <VerticalGroup spacing="xs">
+              <div className={cx('tag-container')}>
+                <Tag
+                  color={getVar('--tag-secondary-transparent')}
+                  border={getVar('--border-weak')}
+                  className={cx('tag', 'tag-left')}
+                >
+                  <Text type="primary" size="small">
+                    Phone
+                  </Text>
+                </Tag>
+
+                <div className={cx('tag-right')}>
                   <Input disabled={true} value={storeUser.unverified_phone_number} />
+
                   {isCurrentUser ? (
                     <Button onClick={handleClickConfirmPhoneButton}>Verify</Button>
                   ) : (
@@ -133,10 +152,11 @@ const PhoneConnector = (props: PhoneConnectorProps) => {
                       <Button onClick={handleClickConfirmPhoneButton}>Verify</Button>
                     </WithConfirm>
                   )}
-                </HorizontalGroup>
-              </InlineField>
+                </div>
+              </div>
+
               <Alert title="Phone number is not verified. Verify or change" severity="warning" />
-            </div>
+            </VerticalGroup>
           ) : (
             <div>
               <InlineField label="Phone" labelWidth={12}>
