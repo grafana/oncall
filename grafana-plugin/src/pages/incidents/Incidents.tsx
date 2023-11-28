@@ -812,7 +812,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
         return {
           width: isHorizontalScrolling ? '200px' : '10%',
           title: capitalize(column.name),
-          key: column.id.toString(),
+          key: column.id,
           render: (item: AlertType) => this.renderCustomColumn(column, item),
         };
       });

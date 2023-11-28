@@ -442,7 +442,7 @@ export class AlertGroupStore extends BaseStore {
   }
 
   @action
-  public async fetchTableSettings(): Promise<void> {
+  async fetchTableSettings(): Promise<void> {
     const tableSettings = await makeRequest('/alertgroup_table_settings', {});
 
     const { hidden, visible } = tableSettings;
@@ -455,7 +455,7 @@ export class AlertGroupStore extends BaseStore {
 
   @action
   @AutoLoadingState(ActionKey.ADD_NEW_COLUMN_TO_ALERT_GROUP)
-  public async updateTableSettings(
+  async updateTableSettings(
     columns: { visible: AGColumn[]; hidden: AGColumn[] },
     isUserUpdate: boolean
   ): Promise<void> {
@@ -468,15 +468,21 @@ export class AlertGroupStore extends BaseStore {
   }
 
   @action
-  public async loadLabelsKeys(): Promise<Label[]> {
-    return await makeRequest(`/alertgroups/labels/keys/`, {});
+  async resetTableSettings(): Promise<void> {
+    return await makeRequest('/alertgroup_table_settings/reset', { method: 'POST' }).catch(() =>
+      openErrorNotification('There was an error resetting the table settings')
+    );
   }
 
   @action
-  public async loadValuesForLabelKey(
-    key: LabelKey['id'],
-    search = ''
-  ): Promise<{ key: LabelKey; values: LabelValue[] }> {
+  async loadLabelsKeys(): Promise<Label[]> {
+    return await makeRequest(`/alertgroups/labels/keys/`, {}).catch(() =>
+      openErrorNotification('There was an error processing your request')
+    );
+  }
+
+  @action
+  async loadValuesForLabelKey(key: LabelKey['id'], search = ''): Promise<{ key: LabelKey; values: LabelValue[] }> {
     if (!key) {
       return { key: undefined, values: [] };
     }

@@ -91,7 +91,7 @@ export interface Alert {
 }
 
 export interface AGColumn {
-  id: number | string;
+  id: string;
   name: string;
   isVisible: boolean;
   type?: AGColumnType;

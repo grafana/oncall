@@ -1,4 +1,4 @@
-import React, { useMemo, useRef } from 'react';
+import React, { useRef } from 'react';
 
 import {
   DndContext,
@@ -18,7 +18,6 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Button, Checkbox, Icon, IconButton, LoadingPlaceholder, Tooltip, useStyles2 } from '@grafana/ui';
-import { isEqual } from 'lodash-es';
 import { observer } from 'mobx-react';
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
 
@@ -117,8 +116,6 @@ export const ColumnsSelector: React.FC<ColumnsSelectorProps> = observer(
       .filter((col) => !col.isVisible)
       .sort((a, b) => a.id.toString().localeCompare(b.id.toString()));
 
-    const canResetData = useMemo(() => !isEqual(columns, getDefaultData()), [alertGroupStore.columns]);
-
     const sensors = useSensors(
       useSensor(PointerSensor),
       useSensor(KeyboardSensor, {
@@ -195,7 +192,7 @@ export const ColumnsSelector: React.FC<ColumnsSelectorProps> = observer(
             variant={'secondary'}
             tooltipPlacement="top"
             tooltip={'Reset table to default columns'}
-            disabled={!canResetData || isResetLoading}
+            disabled={isResetLoading}
             onClick={WrapAutoLoadingState(onReset, ActionKey.RESET_COLUMNS_FROM_ALERT_GROUP)}
           >
             {isResetLoading ? <LoadingPlaceholder text="Loading..." className="loadingPlaceholder" /> : 'Reset'}
@@ -210,25 +207,8 @@ export const ColumnsSelector: React.FC<ColumnsSelectorProps> = observer(
     );
 
     async function onReset() {
-      const columnsDefaultValues = getDefaultData();
-
-      await alertGroupStore.updateTableSettings(columnsDefaultValues, true);
+      await alertGroupStore.resetTableSettings();
       await alertGroupStore.fetchTableSettings();
-    }
-
-    function getDefaultData() {
-      const { columns } = alertGroupStore;
-
-      const columnsDefaultValues: { visible: AGColumn[]; hidden: AGColumn[] } = {
-        visible: columns
-          .filter((col) => col.type === AGColumnType.DEFAULT)
-          .sort((a, b) => (a.id as number) - (b.id as number)),
-        hidden: columns
-          .filter((col) => col.type === AGColumnType.LABEL)
-          .sort((a, b) => a.id.toString().localeCompare(b.id.toString())),
-      };
-
-      return columnsDefaultValues;
     }
 
     async function onItemChange(id: string | number) {

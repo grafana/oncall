@@ -1,6 +1,6 @@
 import React, { forwardRef, useCallback, useImperativeHandle, useState } from 'react';
 
-import ServiceLabels, { ServiceLabelsProps } from '@grafana/labels';
+import { ServiceLabels, ServiceLabelsProps } from '@grafana/labels';
 import { Field } from '@grafana/ui';
 import { isEmpty } from 'lodash-es';
 import { observer } from 'mobx-react';
