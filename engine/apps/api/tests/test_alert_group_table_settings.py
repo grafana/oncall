@@ -3,9 +3,9 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
 
+from apps.api.alert_group_table_columns import alert_group_table_user_settings
 from apps.api.permissions import LegacyAccessControlRole
-from apps.user_management.constants import AlertGroupTableColumnTypeChoices
-from apps.user_management.utils import alert_group_table_user_settings, default_columns
+from apps.user_management.constants import AlertGroupTableColumnTypeChoices, default_columns
 
 DEFAULT_COLUMNS = default_columns()
 

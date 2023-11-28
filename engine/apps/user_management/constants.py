@@ -29,3 +29,10 @@ class AlertGroupTableColumn(typing.TypedDict):
 class AlertGroupTableColumns(typing.TypedDict):
     visible: typing.List[AlertGroupTableColumn]
     hidden: typing.List[AlertGroupTableColumn]
+
+
+def default_columns() -> typing.List[AlertGroupTableColumn]:
+    return [
+        {"name": column.label, "id": column.value, "type": AlertGroupTableColumnTypeChoices.DEFAULT.value}
+        for column in AlertGroupTableDefaultColumnChoices
+    ]

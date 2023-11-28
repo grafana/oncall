@@ -4,6 +4,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
 
+from apps.api.alert_group_table_columns import alert_group_table_user_settings
 from apps.api.permissions import RBACPermission
 from apps.api.serializers.alert_group_table_settings import (
     AlertGroupTableColumnsOrganizationSerializer,
@@ -11,8 +12,7 @@ from apps.api.serializers.alert_group_table_settings import (
 )
 from apps.api.views.labels import LabelsFeatureFlagViewSet
 from apps.auth_token.auth import PluginAuthentication
-from apps.user_management.constants import AlertGroupTableColumn
-from apps.user_management.utils import alert_group_table_user_settings, default_columns
+from apps.user_management.constants import AlertGroupTableColumn, default_columns
 
 
 class AlertGroupTableColumnsViewSet(LabelsFeatureFlagViewSet):

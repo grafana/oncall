@@ -11,9 +11,8 @@ from django.utils import timezone
 from mirage import fields as mirage_fields
 
 from apps.alerts.models import MaintainableObject
-from apps.user_management.constants import AlertGroupTableColumn
+from apps.user_management.constants import AlertGroupTableColumn, default_columns
 from apps.user_management.subscription_strategy import FreePublicBetaSubscriptionStrategy
-from apps.user_management.utils import default_columns
 from common.insight_log import ChatOpsEvent, ChatOpsTypePlug, write_chatops_insight_log
 from common.oncall_gateway import create_oncall_connector, delete_oncall_connector, delete_slack_connector
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length

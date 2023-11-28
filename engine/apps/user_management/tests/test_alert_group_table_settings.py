@@ -1,7 +1,7 @@
 import pytest
 
-from apps.user_management.constants import AlertGroupTableColumnTypeChoices
-from apps.user_management.utils import alert_group_table_user_settings, default_columns
+from apps.api.alert_group_table_columns import alert_group_table_user_settings
+from apps.user_management.constants import AlertGroupTableColumnTypeChoices, default_columns
 
 DEFAULT_COLUMNS = default_columns()
 

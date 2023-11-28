@@ -1,21 +1,9 @@
 import typing
 
-from apps.user_management.constants import (
-    AlertGroupTableColumn,
-    AlertGroupTableColumns,
-    AlertGroupTableColumnTypeChoices,
-    AlertGroupTableDefaultColumnChoices,
-)
+from apps.user_management.constants import AlertGroupTableColumn, AlertGroupTableColumns, default_columns
 
 if typing.TYPE_CHECKING:
     from apps.user_management.models import User
-
-
-def default_columns() -> typing.List[AlertGroupTableColumn]:
-    return [
-        {"name": column.label, "id": column.value, "type": AlertGroupTableColumnTypeChoices.DEFAULT.value}
-        for column in AlertGroupTableDefaultColumnChoices
-    ]
 
 
 def alert_group_table_user_settings(user: "User") -> AlertGroupTableColumns:
