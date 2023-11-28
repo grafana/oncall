@@ -13,7 +13,6 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from apps.grafana_plugin.helpers.client import GrafanaAPIClient
 from apps.mobile_app.auth import MobileAppAuthTokenAuthentication, MobileAppVerificationTokenAuthentication
 from apps.mobile_app.models import MobileAppAuthToken, MobileAppUserSettings
 from apps.mobile_app.serializers import MobileAppUserSettingsSerializer
@@ -102,39 +101,6 @@ class MobileAppGatewayView(APIView):
     ]
 
     @classmethod
-    def _determine_grafana_incident_api_url(cls, organization: "Organization") -> typing.Optional[str]:
-        """
-        If the organization already has the Grafana Incident backend URL saved, use that.
-        Otherwise, ask the Grafana API for the URL from the Incident plugin's settings, then persist it.
-        """
-        if organization.grafana_incident_backend_url:
-            return organization.grafana_incident_backend_url
-
-        org_pk = organization.pk
-
-        grafana_api_client = GrafanaAPIClient(api_url=organization.grafana_url, api_token=organization.api_token)
-        grafana_incident_settings, _ = grafana_api_client.get_grafana_incident_plugin_settings()
-        if grafana_incident_settings is None:
-            logger.debug(f"Grafana Incident plugin settings not found for organization {org_pk}")
-            return None
-
-        grafana_incident_backend_url = grafana_incident_settings["jsonData"].get(
-            GrafanaAPIClient.GRAFANA_INCIDENT_PLUGIN_BACKEND_URL_KEY
-        )
-        if grafana_incident_backend_url is None:
-            logger.debug(f"Grafana Incident plugin settings do not contain backend URL for organization {org_pk}")
-            return None
-
-        logger.debug(
-            f"Found Grafana Incident plugin backend URL {grafana_incident_backend_url} for organization {org_pk}. Persisting..."
-        )
-
-        organization.grafana_incident_backend_url = grafana_incident_backend_url
-        organization.save(update_fields=["grafana_incident_backend_url"])
-
-        return grafana_incident_backend_url
-
-    @classmethod
     def _construct_jwt_payload(cls, user: "User") -> typing.Dict[str, typing.Any]:
         organization = user.organization
         now = timezone.now()
@@ -169,11 +135,9 @@ class MobileAppGatewayView(APIView):
 
     @classmethod
     def _get_downstream_url(cls, organization: "Organization", downstream_backend: str, downstream_path: str) -> str:
-        downstream_url_fetcher = {
-            cls.SupportedDownstreamBackends.INCIDENT: cls._determine_grafana_incident_api_url,
+        downstream_url = {
+            cls.SupportedDownstreamBackends.INCIDENT: organization.grafana_incident_backend_url,
         }[downstream_backend]
-
-        downstream_url = downstream_url_fetcher(organization)
 
         if downstream_url is None:
             raise ParseError(

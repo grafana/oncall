@@ -36,7 +36,13 @@ def sync_organization(organization: Organization) -> None:
         organization.api_token_status = Organization.API_TOKEN_STATUS_OK
         sync_users_and_teams(grafana_api_client, organization)
         organization.last_time_synced = timezone.now()
-        organization.is_grafana_incident_enabled = check_grafana_incident_is_enabled(grafana_api_client)
+
+        grafana_incident_settings, _ = grafana_api_client.get_grafana_incident_plugin_settings()
+        if grafana_incident_settings is not None:
+            organization.is_grafana_incident_enabled = grafana_incident_settings["enabled"]
+            organization.grafana_incident_backend_url = grafana_incident_settings["jsonData"].get(
+                GrafanaAPIClient.GRAFANA_INCIDENT_PLUGIN_BACKEND_URL_KEY
+            )
     else:
         organization.api_token_status = Organization.API_TOKEN_STATUS_FAILED
 
@@ -53,6 +59,7 @@ def sync_organization(organization: Organization) -> None:
             "gcom_token_org_last_time_synced",
             "is_rbac_permissions_enabled",
             "is_grafana_incident_enabled",
+            "grafana_incident_backend_url",
         ]
     )
 
@@ -112,11 +119,6 @@ def sync_users_for_teams(client: GrafanaAPIClient, organization: Organization, *
         return
     api_teams = api_teams_result["teams"]
     Team.objects.sync_for_organization(organization=organization, api_teams=api_teams)
-
-
-def check_grafana_incident_is_enabled(client: GrafanaAPIClient) -> bool:
-    grafana_incident_settings, _ = client.get_grafana_incident_plugin_settings()
-    return False if grafana_incident_settings is None else grafana_incident_settings["enabled"]
 
 
 def delete_organization_if_needed(organization: Organization) -> bool:

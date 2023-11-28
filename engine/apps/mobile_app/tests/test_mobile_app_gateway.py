@@ -11,6 +11,7 @@ from rest_framework.views import APIView
 from apps.mobile_app.views import MobileAppGatewayView
 
 DOWNSTREAM_BACKEND = "incident"
+MOCK_DOWNSTREAM_URL = "https://mockdownstream.com"
 MOCK_DOWNSTREAM_INCIDENT_API_URL = "https://mockdownstreamincidentapi.com"
 MOCK_DOWNSTREAM_HEADERS = {"Authorization": "Bearer mock_jwt"}
 MOCK_DOWNSTREAM_RESPONSE_DATA = {"foo": "bar"}
@@ -39,22 +40,19 @@ class MockResponse:
 
 @pytest.mark.django_db
 @patch("apps.mobile_app.views.requests")
-@patch(
-    "apps.mobile_app.views.MobileAppGatewayView._determine_grafana_incident_api_url",
-    return_value=MOCK_DOWNSTREAM_INCIDENT_API_URL,
-)
 @patch("apps.mobile_app.views.MobileAppGatewayView._get_downstream_headers", return_value=MOCK_DOWNSTREAM_HEADERS)
 @pytest.mark.parametrize("path", ["", "thing", "thing/123", "thing/123/otherthing", "thing/123/otherthing/456"])
 def test_mobile_app_gateway_properly_proxies_paths(
     _mock_get_downstream_headers,
-    _mock_determine_grafana_incident_api_url,
     mock_requests,
     make_organization_and_user_with_mobile_app_auth_token,
     path,
 ):
     mock_requests.post.return_value = MockResponse()
 
-    _, _, auth_token = make_organization_and_user_with_mobile_app_auth_token()
+    org, _, auth_token = make_organization_and_user_with_mobile_app_auth_token()
+    org.grafana_incident_backend_url = MOCK_DOWNSTREAM_INCIDENT_API_URL
+    org.save()
 
     client = APIClient()
     url = reverse("mobile_app:gateway", kwargs={"downstream_backend": DOWNSTREAM_BACKEND, "downstream_path": path})
@@ -73,15 +71,12 @@ def test_mobile_app_gateway_properly_proxies_paths(
 
 @pytest.mark.django_db
 @patch("apps.mobile_app.views.requests")
-@patch(
-    "apps.mobile_app.views.MobileAppGatewayView._determine_grafana_incident_api_url",
-    return_value=MOCK_DOWNSTREAM_INCIDENT_API_URL,
-)
+@patch("apps.mobile_app.views.MobileAppGatewayView._get_downstream_url", return_value=MOCK_DOWNSTREAM_URL)
 @patch("apps.mobile_app.views.MobileAppGatewayView._get_downstream_headers", return_value=MOCK_DOWNSTREAM_HEADERS)
 @pytest.mark.parametrize("method", APIView.http_method_names)
 def test_mobile_app_gateway_supports_all_methods(
     _mock_get_downstream_headers,
-    _mock_determine_grafana_incident_api_url,
+    _mock_get_downstream_url,
     mock_requests,
     make_organization_and_user_with_mobile_app_auth_token,
     method,
@@ -102,30 +97,26 @@ def test_mobile_app_gateway_supports_all_methods(
 
 @pytest.mark.django_db
 @patch("apps.mobile_app.views.requests")
-@patch(
-    "apps.mobile_app.views.MobileAppGatewayView._determine_grafana_incident_api_url",
-    return_value=MOCK_DOWNSTREAM_INCIDENT_API_URL,
-)
+@patch("apps.mobile_app.views.MobileAppGatewayView._get_downstream_url", return_value=MOCK_DOWNSTREAM_URL)
 @patch("apps.mobile_app.views.MobileAppGatewayView._get_downstream_headers", return_value=MOCK_DOWNSTREAM_HEADERS)
 def test_mobile_app_gateway_proxies_query_params(
     _mock_get_downstream_headers,
-    _mock_determine_grafana_incident_api_url,
+    _mock_get_downstream_url,
     mock_requests,
     make_organization_and_user_with_mobile_app_auth_token,
 ):
-    path = "test/123"
     mock_requests.post.return_value = MockResponse()
 
     _, _, auth_token = make_organization_and_user_with_mobile_app_auth_token()
 
     client = APIClient()
-    url = reverse("mobile_app:gateway", kwargs={"downstream_backend": DOWNSTREAM_BACKEND, "downstream_path": path})
+    url = reverse("mobile_app:gateway", kwargs={"downstream_backend": DOWNSTREAM_BACKEND, "downstream_path": "test"})
 
     response = client.post(f"{url}?foo=bar&baz=hello", HTTP_AUTHORIZATION=auth_token)
     assert response.status_code == status.HTTP_200_OK
 
     mock_requests.post.assert_called_once_with(
-        f"{MOCK_DOWNSTREAM_INCIDENT_API_URL}/{path}",
+        MOCK_DOWNSTREAM_URL,
         data={},
         params={"foo": "bar", "baz": "hello"},
         headers=MOCK_DOWNSTREAM_HEADERS,
@@ -134,10 +125,7 @@ def test_mobile_app_gateway_proxies_query_params(
 
 @pytest.mark.django_db
 @patch("apps.mobile_app.views.requests")
-@patch(
-    "apps.mobile_app.views.MobileAppGatewayView._determine_grafana_incident_api_url",
-    return_value=MOCK_DOWNSTREAM_INCIDENT_API_URL,
-)
+@patch("apps.mobile_app.views.MobileAppGatewayView._get_downstream_url", return_value=MOCK_DOWNSTREAM_URL)
 @patch("apps.mobile_app.views.MobileAppGatewayView._get_downstream_headers", return_value=MOCK_DOWNSTREAM_HEADERS)
 @pytest.mark.parametrize(
     "upstream_request_body",
@@ -149,18 +137,17 @@ def test_mobile_app_gateway_proxies_query_params(
 )
 def test_mobile_app_gateway_properly_proxies_request_body(
     _mock_get_downstream_headers,
-    _mock_determine_grafana_incident_api_url,
+    _mock_get_downstream_url,
     mock_requests,
     make_organization_and_user_with_mobile_app_auth_token,
     upstream_request_body,
 ):
-    path = "test/123"
     mock_requests.post.return_value = MockResponse()
 
     _, _, auth_token = make_organization_and_user_with_mobile_app_auth_token()
 
     client = APIClient()
-    url = reverse("mobile_app:gateway", kwargs={"downstream_backend": DOWNSTREAM_BACKEND, "downstream_path": path})
+    url = reverse("mobile_app:gateway", kwargs={"downstream_backend": DOWNSTREAM_BACKEND, "downstream_path": "test"})
 
     response = client.post(
         url,
@@ -171,7 +158,7 @@ def test_mobile_app_gateway_properly_proxies_request_body(
     assert response.status_code == status.HTTP_200_OK
 
     mock_requests.post.assert_called_once_with(
-        f"{MOCK_DOWNSTREAM_INCIDENT_API_URL}/{path}",
+        MOCK_DOWNSTREAM_URL,
         data=upstream_request_body,
         params={},
         headers=MOCK_DOWNSTREAM_HEADERS,
@@ -180,10 +167,7 @@ def test_mobile_app_gateway_properly_proxies_request_body(
 
 @pytest.mark.django_db
 @patch("apps.mobile_app.views.requests")
-@patch(
-    "apps.mobile_app.views.MobileAppGatewayView._determine_grafana_incident_api_url",
-    return_value=MOCK_DOWNSTREAM_INCIDENT_API_URL,
-)
+@patch("apps.mobile_app.views.MobileAppGatewayView._get_downstream_url", return_value=MOCK_DOWNSTREAM_URL)
 @patch("apps.mobile_app.views.MobileAppGatewayView._get_downstream_headers", return_value=MOCK_DOWNSTREAM_HEADERS)
 @pytest.mark.parametrize(
     "downstream_backend,expected_status",
@@ -194,7 +178,7 @@ def test_mobile_app_gateway_properly_proxies_request_body(
 )
 def test_mobile_app_gateway_supported_downstream_backends(
     _mock_get_downstream_headers,
-    _mock_determine_grafana_incident_api_url,
+    _mock_get_downstream_url,
     mock_requests,
     make_organization_and_user_with_mobile_app_auth_token,
     downstream_backend,
@@ -215,14 +199,11 @@ def test_mobile_app_gateway_supported_downstream_backends(
 
 @pytest.mark.django_db
 @patch("apps.mobile_app.views.requests")
-@patch(
-    "apps.mobile_app.views.MobileAppGatewayView._determine_grafana_incident_api_url",
-    return_value=MOCK_DOWNSTREAM_INCIDENT_API_URL,
-)
+@patch("apps.mobile_app.views.MobileAppGatewayView._get_downstream_url", return_value=MOCK_DOWNSTREAM_URL)
 @patch("apps.mobile_app.views.MobileAppGatewayView._get_downstream_headers", return_value=MOCK_DOWNSTREAM_HEADERS)
 def test_mobile_app_gateway_mobile_app_auth_token(
     _mock_get_downstream_headers,
-    _mock_determine_grafana_incident_api_url,
+    _mock_get_downstream_url,
     mock_requests,
     make_organization_and_user_with_mobile_app_auth_token,
 ):
@@ -231,9 +212,7 @@ def test_mobile_app_gateway_mobile_app_auth_token(
     _, _, auth_token = make_organization_and_user_with_mobile_app_auth_token()
 
     client = APIClient()
-    url = reverse(
-        "mobile_app:gateway", kwargs={"downstream_backend": DOWNSTREAM_BACKEND, "downstream_path": "test/123"}
-    )
+    url = reverse("mobile_app:gateway", kwargs={"downstream_backend": DOWNSTREAM_BACKEND, "downstream_path": "test"})
 
     response = client.post(url, HTTP_AUTHORIZATION="potato")
     assert response.status_code == status.HTTP_403_FORBIDDEN
@@ -254,95 +233,46 @@ def test_mobile_app_gateway_incident_api_url(
     mock_requests.post.return_value = MockResponse()
 
     client = APIClient()
-    url = reverse(
-        "mobile_app:gateway", kwargs={"downstream_backend": DOWNSTREAM_BACKEND, "downstream_path": "test/123"}
-    )
+    url = reverse("mobile_app:gateway", kwargs={"downstream_backend": DOWNSTREAM_BACKEND, "downstream_path": "test"})
 
-    # Grafana API returns None for the incident plugin settings
-    with patch(
-        "apps.mobile_app.views.GrafanaAPIClient.get_grafana_incident_plugin_settings"
-    ) as mock_get_grafana_incident_plugin_settings:
-        organization, _, auth_token = make_organization_and_user_with_mobile_app_auth_token()
-        assert organization.grafana_incident_backend_url is None
+    # Organization has no incident backend URL saved
+    organization, _, auth_token = make_organization_and_user_with_mobile_app_auth_token()
+    assert organization.grafana_incident_backend_url is None
 
-        mock_get_grafana_incident_plugin_settings.return_value = (None, None)
-
-        response = client.post(url, HTTP_AUTHORIZATION=auth_token)
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
-
-    # Incident plugin settings jsonData doesn't contain the backend URL
-    with patch(
-        "apps.mobile_app.views.GrafanaAPIClient.get_grafana_incident_plugin_settings"
-    ) as mock_get_grafana_incident_plugin_settings:
-        organization, _, auth_token = make_organization_and_user_with_mobile_app_auth_token()
-        assert organization.grafana_incident_backend_url is None
-
-        mock_get_grafana_incident_plugin_settings.return_value = ({"jsonData": {}}, None)
-
-        response = client.post(url, HTTP_AUTHORIZATION=auth_token)
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
+    response = client.post(url, HTTP_AUTHORIZATION=auth_token)
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
 
     # Organization already has incident backend URL saved
-    with patch(
-        "apps.mobile_app.views.GrafanaAPIClient.get_grafana_incident_plugin_settings"
-    ) as mock_get_grafana_incident_plugin_settings:
-        organization, _, auth_token = make_organization_and_user_with_mobile_app_auth_token()
-        organization.grafana_incident_backend_url = mock_incident_backend_url
-        organization.save()
+    organization, _, auth_token = make_organization_and_user_with_mobile_app_auth_token()
+    organization.grafana_incident_backend_url = mock_incident_backend_url
+    organization.save()
 
-        response = client.post(url, HTTP_AUTHORIZATION=auth_token)
-        assert response.status_code == status.HTTP_200_OK
-        mock_get_grafana_incident_plugin_settings.assert_not_called()
-
-    # Incident plugin settings jsonData contains the backend URL
-    # check that it gets saved to the organization
-    with patch(
-        "apps.mobile_app.views.GrafanaAPIClient.get_grafana_incident_plugin_settings"
-    ) as mock_get_grafana_incident_plugin_settings:
-        organization, _, auth_token = make_organization_and_user_with_mobile_app_auth_token()
-        assert organization.grafana_incident_backend_url is None
-
-        mock_get_grafana_incident_plugin_settings.return_value = (
-            {"jsonData": {"backendUrl": mock_incident_backend_url}},
-            None,
-        )
-
-        response = client.post(url, HTTP_AUTHORIZATION=auth_token)
-        assert response.status_code == status.HTTP_200_OK
-
-        organization.refresh_from_db()
-        assert organization.grafana_incident_backend_url == mock_incident_backend_url
+    response = client.post(url, HTTP_AUTHORIZATION=auth_token)
+    assert response.status_code == status.HTTP_200_OK
 
 
 @pytest.mark.django_db
 @patch("apps.mobile_app.views.requests")
-@patch(
-    "apps.mobile_app.views.MobileAppGatewayView._construct_jwt",
-    return_value=MOCK_JWT,
-)
-@patch(
-    "apps.mobile_app.views.MobileAppGatewayView._determine_grafana_incident_api_url",
-    return_value=MOCK_DOWNSTREAM_INCIDENT_API_URL,
-)
+@patch("apps.mobile_app.views.MobileAppGatewayView._construct_jwt", return_value=MOCK_JWT)
+@patch("apps.mobile_app.views.MobileAppGatewayView._get_downstream_url", return_value=MOCK_DOWNSTREAM_URL)
 def test_mobile_app_gateway_jwt_header(
-    _mock_determine_grafana_incident_api_url,
+    _mock_get_downstream_url,
     _mock_construct_jwt,
     mock_requests,
     make_organization_and_user_with_mobile_app_auth_token,
 ):
-    path = "test/123"
     mock_requests.post.return_value = MockResponse()
 
     _, _, auth_token = make_organization_and_user_with_mobile_app_auth_token()
 
     client = APIClient()
-    url = reverse("mobile_app:gateway", kwargs={"downstream_backend": DOWNSTREAM_BACKEND, "downstream_path": path})
+    url = reverse("mobile_app:gateway", kwargs={"downstream_backend": DOWNSTREAM_BACKEND, "downstream_path": "test"})
 
     response = client.post(url, HTTP_AUTHORIZATION=auth_token)
     assert response.status_code == status.HTTP_200_OK
 
     mock_requests.post.assert_called_once_with(
-        f"{MOCK_DOWNSTREAM_INCIDENT_API_URL}/{path}",
+        MOCK_DOWNSTREAM_URL,
         data={},
         params={},
         headers={"Authorization": f"Bearer {MOCK_JWT}"},
