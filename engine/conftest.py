@@ -961,6 +961,8 @@ def make_label_key():
         if key_name is not None:
             kwargs["name"] = key_name
 
+        return LabelKeyFactory(organization=organization, **kwargs)
+
     return _make_label_key
 
 
@@ -972,6 +974,8 @@ def make_label_value():
 
         if value_name is not None:
             kwargs["name"] = value_name
+
+        return LabelValueFactory(key=key, **kwargs)
 
     return _make_label_value
 
