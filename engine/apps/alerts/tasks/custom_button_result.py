@@ -1,5 +1,6 @@
 import json
 import logging
+from functools import partial
 
 from django.conf import settings
 from django.db import transaction
@@ -79,5 +80,5 @@ def custom_button_result(custom_button_pk, alert_group_pk, user_pk=None, escalat
             f"call send_alert_group_signal for alert_group {alert_group_pk}, "
             f"log record {log_record.pk} with type '{log_record.get_type_display()}'"
         )
-        transaction.on_commit(lambda: send_alert_group_signal.apply_async((log_record.pk,)))
+        transaction.on_commit(partial(send_alert_group_signal.apply_async, (log_record.pk,)))
     task_logger.debug(f"Finish custom_button_result for alert_group {alert_group_pk}, custom_button {custom_button_pk}")

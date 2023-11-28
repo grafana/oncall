@@ -1,4 +1,5 @@
 import time
+from functools import partial
 
 from django.conf import settings
 from django.db import transaction
@@ -191,11 +192,11 @@ def notify_user_task(
 
             log_record.save()
             if notify_user_task.request.retries == 0:
-                transaction.on_commit(lambda: send_user_notification_signal.apply_async((log_record.pk,)))
+                transaction.on_commit(partial(send_user_notification_signal.apply_async, (log_record.pk,)))
 
         if not stop_escalation:
             if notification_policy.step != UserNotificationPolicy.Step.WAIT:
-                transaction.on_commit(lambda: perform_notification.apply_async((log_record.pk,)))
+                transaction.on_commit(partial(perform_notification.apply_async, (log_record.pk,)))
 
             delay = NEXT_ESCALATION_DELAY
             if countdown is not None:
@@ -206,7 +207,8 @@ def notify_user_task(
             user_has_notification.save(update_fields=["active_notification_policy_id"])
 
             transaction.on_commit(
-                lambda: notify_user_task.apply_async(
+                partial(
+                    notify_user_task.apply_async,
                     (user.pk, alert_group.pk, notification_policy.pk, reason),
                     {
                         "notify_even_acknowledged": notify_even_acknowledged,
