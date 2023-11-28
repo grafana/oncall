@@ -69,3 +69,4 @@ def get_alert_group_labels_dict(alert_group: "AlertGroup") -> typing.Dict[str, s
     get_alert_group_labels_dict returns dict of labels' key and values names for the given alert group.
     It's different from get_labels_dict, because AlertGroupAssociated labels store key/value_name, not key/value_id
     """
+    return {label.key_name: label.value_name for label in alert_group.labels.all()}
