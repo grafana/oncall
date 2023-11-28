@@ -29,6 +29,7 @@ class AlertGroupTableColumn(typing.TypedDict):
 class AlertGroupTableColumns(typing.TypedDict):
     visible: typing.List[AlertGroupTableColumn]
     hidden: typing.List[AlertGroupTableColumn]
+    default: bool
 
 
 def default_columns() -> typing.List[AlertGroupTableColumn]:

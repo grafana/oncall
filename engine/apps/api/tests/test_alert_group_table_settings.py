@@ -11,7 +11,7 @@ DEFAULT_COLUMNS = default_columns()
 
 
 def columns_settings(add_column=None):
-    default_settings = {"visible": DEFAULT_COLUMNS[:], "hidden": []}
+    default_settings = {"visible": DEFAULT_COLUMNS[:], "hidden": [], "default": True}
     if add_column:
         default_settings["hidden"].append(add_column)
     return default_settings
@@ -133,6 +133,7 @@ def test_update_columns_settings(
     response = client.put(url, data=updated_columns_settings, format="json", **make_user_auth_headers(user, token))
     assert response.status_code == status_code
     if status_code == status.HTTP_200_OK:
+        updated_columns_settings["default"] = updated_columns_settings["visible"] == DEFAULT_COLUMNS
         assert response.json() == updated_columns_settings
 
 
@@ -260,7 +261,7 @@ def test_reset_user_columns_permissions(
         (
             None,
             DEFAULT_COLUMNS,
-            {"visible": DEFAULT_COLUMNS, "hidden": []},
+            {"visible": DEFAULT_COLUMNS, "hidden": [], "default": True},
         ),
         # user doesn't have settings, organization has updated settings - only default columns are visible
         (
@@ -269,13 +270,14 @@ def test_reset_user_columns_permissions(
             {
                 "visible": DEFAULT_COLUMNS,
                 "hidden": [{"name": "Test", "id": "test", "type": AlertGroupTableColumnTypeChoices.LABEL.value}],
+                "default": True,
             },
         ),
         # user has settings, organization has default settings - only selected columns are visible
         (
             DEFAULT_COLUMNS[:3],
             DEFAULT_COLUMNS,
-            {"visible": DEFAULT_COLUMNS[:3], "hidden": DEFAULT_COLUMNS[3:]},
+            {"visible": DEFAULT_COLUMNS[:3], "hidden": DEFAULT_COLUMNS[3:], "default": False},
         ),
         # user has settings, organization has unchanged settings - only selected columns are visible
         (
@@ -288,6 +290,7 @@ def test_reset_user_columns_permissions(
                     + [{"name": "Test", "id": "test", "type": AlertGroupTableColumnTypeChoices.LABEL.value}]
                 ),
                 "hidden": DEFAULT_COLUMNS[3:],
+                "default": False,
             },
         ),
         # user has settings, organization has updated settings - column was removed, remove from settings
@@ -295,7 +298,7 @@ def test_reset_user_columns_permissions(
             DEFAULT_COLUMNS[:3]
             + [{"name": "Test", "id": "test", "type": AlertGroupTableColumnTypeChoices.LABEL.value}],
             DEFAULT_COLUMNS,
-            {"visible": DEFAULT_COLUMNS[:3], "hidden": DEFAULT_COLUMNS[3:]},
+            {"visible": DEFAULT_COLUMNS[:3], "hidden": DEFAULT_COLUMNS[3:], "default": False},
         ),
         # user has settings with reordered columns, organization has unchanged settings - selected columns in particular
         # order are visible
@@ -315,6 +318,7 @@ def test_reset_user_columns_permissions(
                     DEFAULT_COLUMNS[2],
                 ],
                 "hidden": DEFAULT_COLUMNS[:1] + DEFAULT_COLUMNS[4:],
+                "default": False,
             },
         ),
     ],
