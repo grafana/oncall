@@ -53,7 +53,7 @@ const PhoneVerification = observer((props: PhoneVerificationProps) => {
     }),
     {
       code: '',
-      phone: user.verified_phone_number || '+',
+      phone: user.verified_phone_number || user.unverified_phone_number || '+',
       isLoading: false,
       isCodeSent: false,
       isPhoneCallInitiated: false,

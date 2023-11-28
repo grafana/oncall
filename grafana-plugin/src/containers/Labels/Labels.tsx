@@ -2,17 +2,12 @@ import React, { forwardRef, useCallback, useImperativeHandle, useState } from 'r
 
 import { ServiceLabels, ServiceLabelsProps } from '@grafana/labels';
 import { Field } from '@grafana/ui';
-import cn from 'classnames/bind';
 import { isEmpty } from 'lodash-es';
 import { observer } from 'mobx-react';
 
 import { LabelKeyValue } from 'models/label/label.types';
 import { useStore } from 'state/useStore';
 import { openErrorNotification } from 'utils';
-
-import styles from './Labels.module.css';
-
-const cx = cn.bind(styles);
 
 export interface LabelsProps {
   value: LabelKeyValue[];
@@ -107,7 +102,7 @@ const Labels = observer(
     }, []);
 
     return (
-      <div className={cx('root')}>
+      <div>
         <Field label="Labels">
           <ServiceLabels
             loadById
