@@ -42,6 +42,7 @@ if typing.TYPE_CHECKING:
     from django.db.models.manager import RelatedManager
 
     from apps.alerts.models import AlertGroup, ChannelFilter
+    from apps.labels.models import AlertReceiveChannelAssociatedLabel
     from apps.user_management.models import Organization, Team
 
 logger = logging.getLogger(__name__)
@@ -87,10 +88,6 @@ def number_to_smiles_translator(number):
     return "".join(reversed(smileset))
 
 
-class IntegrationAlertGroupLabels(typing.TypedDict):
-    inheritable: typing.Dict[str, bool]
-
-
 class AlertReceiveChannelQueryset(models.QuerySet):
     def delete(self):
         self.update(deleted_at=timezone.now())
@@ -123,6 +120,7 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
     channel_filters: "RelatedManager['ChannelFilter']"
     organization: "Organization"
     team: typing.Optional["Team"]
+    labels: "RelatedManager['AlertReceiveChannelAssociatedLabel']"
 
     objects = AlertReceiveChannelManager()
     objects_with_maintenance = AlertReceiveChannelManagerWithMaintenance()
@@ -205,6 +203,17 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
 
     rate_limited_in_slack_at = models.DateTimeField(null=True, default=None)
     rate_limit_message_task_id = models.CharField(max_length=100, null=True, default=None)
+
+    AlertGroupCustomLabels = list[tuple[str, str | None, str | None]] | None
+    alert_group_labels_custom: AlertGroupCustomLabels = models.JSONField(null=True, default=None)
+    """
+    Stores "custom labels" for alert group labels. Custom labels can be either "plain" or "templated".
+    For plain labels, the format is: [<LABEL_KEY_ID>, <LABEL_VALUE_ID>, None]
+    For templated labels, the format is: [<LABEL_KEY_ID>, None, <JINJA2_TEMPLATE>]
+    """
+
+    alert_group_labels_template: str | None = models.TextField(null=True, default=None)
+    """Stores a Jinja2 template for "advanced label templating" for alert group labels."""
 
     class Meta:
         constraints = [
@@ -649,21 +658,6 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
         else:
             result["team"] = "General"
         return result
-
-    @property
-    def alert_group_labels(self) -> IntegrationAlertGroupLabels:
-        """
-        Alert group labels configuration for the integration used by AlertReceiveChannelSerializer.
-        See AlertReceiveChannelAssociatedLabel.inheritable for more details.
-        """
-        return {"inheritable": {label.key_id: label.inheritable for label in self.labels.all()}}
-
-    @alert_group_labels.setter
-    def alert_group_labels(self, value: IntegrationAlertGroupLabels) -> None:
-        """Setter for alert_group_labels used by AlertReceiveChannelSerializer"""
-        inheritable_key_ids = [key_id for key_id, inheritable in value["inheritable"].items() if inheritable]
-        self.labels.filter(key_id__in=inheritable_key_ids).update(inheritable=True)
-        self.labels.filter(~Q(key_id__in=inheritable_key_ids)).update(inheritable=False)
 
 
 @receiver(post_save, sender=AlertReceiveChannel)
