@@ -283,10 +283,10 @@ const CustomLabels = (props: CustomLabelsProps) => {
         value={alertGroupLabels.custom}
         onLoadKeys={cachedOnLoadKeys()}
         onLoadValuesForKey={cachedOnLoadValuesForKey()}
-        onCreateKey={labelsStore.createKey.bind(labelsStore)}
-        onUpdateKey={labelsStore.updateKey.bind(labelsStore)}
-        onCreateValue={labelsStore.createValue.bind(labelsStore)}
-        onUpdateValue={labelsStore.updateKeyValue.bind(labelsStore)}
+        onCreateKey={labelsStore.createKey}
+        onUpdateKey={labelsStore.updateKey}
+        onCreateValue={labelsStore.createValue}
+        onUpdateValue={labelsStore.updateKeyValue}
         onUpdateError={(res) => {
           if (res?.response?.status === 409) {
             openErrorNotification(`Duplicate values are not allowed`);

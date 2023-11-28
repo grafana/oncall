@@ -114,10 +114,10 @@ const Labels = observer(
             value={value}
             onLoadKeys={cachedOnLoadKeys()}
             onLoadValuesForKey={cachedOnLoadValuesForKey()}
-            onCreateKey={labelsStore.createKey.bind(labelsStore)}
-            onUpdateKey={labelsStore.updateKey.bind(labelsStore)}
-            onCreateValue={labelsStore.createValue.bind(labelsStore)}
-            onUpdateValue={labelsStore.updateKeyValue.bind(labelsStore)}
+            onCreateKey={labelsStore.createKey}
+            onUpdateKey={labelsStore.updateKey}
+            onCreateValue={labelsStore.createValue}
+            onUpdateValue={labelsStore.updateKeyValue}
             onRowItemRemoval={(_pair, _index) => {}}
             onUpdateError={onUpdateError}
             errors={isValid() ? {} : { ...propsErrors }}

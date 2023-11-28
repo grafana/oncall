@@ -25,15 +25,10 @@ const LabelsFilter = observer((props: LabelsFilterProps) => {
   const [keys, setKeys] = useState([]);
   const { alertGroupStore, labelsStore } = useStore();
 
-  const loadKeys =
-    filterType === 'alert_group_labels'
-      ? alertGroupStore.loadLabelsKeys.bind(alertGroupStore)
-      : labelsStore.loadKeys.bind(labelsStore);
+  const loadKeys = filterType === 'alert_group_labels' ? alertGroupStore.loadLabelsKeys : labelsStore.loadKeys;
 
   const loadValuesForKey =
-    filterType === 'alert_group_labels'
-      ? alertGroupStore.loadValuesForLabelKey.bind(alertGroupStore)
-      : labelsStore.loadValuesForKey.bind(labelsStore);
+    filterType === 'alert_group_labels' ? alertGroupStore.loadValuesForLabelKey : labelsStore.loadValuesForKey;
 
   useEffect(() => {
     loadKeys().then(setKeys);
