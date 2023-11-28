@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+### Added
+
+- Add `datetimeformat_as_timezone` Jinja2 template helper filter by @jorgeav ([#3426](https://github.com/grafana/oncall/pull/3426))
+
 ## v1.3.64 (2023-11-28)
 
 ### Fixed
@@ -19,7 +25,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 endpoint currently) @mderynck ([#3189](https://github.com/grafana/oncall/pull/3189))
 - Add ability for webhook presets to mask sensitive headers @mderynck
 ([#3189](https://github.com/grafana/oncall/pull/3189))
-- Add `datetimeformat_as_timezone` Jinja2 template helper filter by @jorgeav ([#3426](https://github.com/grafana/oncall/pull/3426))
 
 ### Fixed
 
