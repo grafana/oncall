@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## v1.3.62 (2023-11-28)
+
 ### Added
 
 - Add ability to use Grafana Service Account Tokens for OnCall API (This is only enabled for resolution_notes
