@@ -1,12 +1,15 @@
+import logging
 import typing
 
 from django.apps import apps  # noqa: I251
 from django.conf import settings
 
 if typing.TYPE_CHECKING:
-    from apps.alerts.models import AlertGroup, AlertReceiveChannel
+    from apps.alerts.models import AlertGroup
     from apps.labels.models import AssociatedLabel
     from apps.user_management.models import Organization
+
+logger = logging.getLogger(__name__)
 
 
 LABEL_OUTDATED_TIMEOUT_MINUTES = 30
@@ -54,35 +57,10 @@ def is_labels_feature_enabled(organization: "Organization") -> bool:
     )
 
 
-def assign_labels(alert_group: "AlertGroup", alert_receive_channel: "AlertReceiveChannel") -> None:
-    from apps.labels.models import AlertGroupAssociatedLabel
-
-    if not is_labels_feature_enabled(alert_receive_channel.organization):
-        return
-
-    # inherit labels from the integration
-    alert_group_labels = [
-        AlertGroupAssociatedLabel(
-            alert_group=alert_group,
-            organization=alert_receive_channel.organization,
-            key_name=label.key.name,
-            value_name=label.value.name,
-        )
-        for label in alert_receive_channel.labels.filter(inheritable=True).select_related("key", "value")
-    ]
-    AlertGroupAssociatedLabel.objects.bulk_create(alert_group_labels)
+def get_label_verbal(obj: typing.Any) -> dict[str, str]:
+    return {label.key.name: label.value.name for label in obj.labels.all().select_related("key", "value")}
 
 
-def get_label_verbal(labelable) -> typing.Dict[str, str]:
-    """
-    label_verbal returns dict of labels' key and values names for the given object
-    """
-    return {label.key.name: label.value.name for label in labelable.labels.all().select_related("key", "value")}
-
-
-def get_alert_group_label_verbal(alert_group: "AlertGroup") -> typing.Dict[str, str]:
-    """
-    get_alert_group_label_verbal returns dict of labels' key and values names for the given alert group.
-    It's different from get_label_verbal, because AlertGroupAssociated labels store key/value_name, not key/value_id
-    """
+def get_alert_group_label_verbal(alert_group: "AlertGroup") -> dict[str, str]:
+    """This is different from get_label_verbal because alert group labels store key/value names, not IDs"""
     return {label.key_name: label.value_name for label in alert_group.labels.all()}

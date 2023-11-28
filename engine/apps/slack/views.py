@@ -209,6 +209,21 @@ class SlackEventApiEndpointView(APIView):
 
         if payload_event:
             if payload_event_user and slack_team_identity:
+                if payload_event_bot_id and payload_event_bot_id == slack_team_identity.bot_id:
+                    """
+                    messages from slack apps have both user and bot_id in the payload:
+                    {...
+                        "bot_id":"BSVC95WJZ",
+                        "type":"message",
+                        "text":"HELLO",
+                        "user":"USX7UADC7",
+                        "ts":"1701082318.471149",
+                        "app_id":"ASUTJU5U4",
+                    ...}
+                    So check bot_id even if payload has a user to not to react on own bot messages.
+                    """
+                    return Response(status=200)
+
                 if "id" in payload_event_user:
                     slack_user_id = payload_event_user["id"]
                 elif type(payload_event_user) is str:
@@ -219,13 +234,22 @@ class SlackEventApiEndpointView(APIView):
             elif (
                 payload_event_bot_id and slack_team_identity and payload_event_channel_type == EventType.MESSAGE_CHANNEL
             ):
-                response = sc.bots_info(bot=payload_event_bot_id)
-                bot_user_id = response.get("bot", {}).get("user_id", "")
+                """
+                Another case of incoming messages from bots. These payloads has only bot_id, but no user field:
+                {..
+                    "type":"message",
+                    "subtype":"bot_message",
+                    "text":"",
+                    "ts":"1701143460.869349",
+                    "username":"some_bot_username",
+                ...}
 
+                It looks like it's a payload from legacy slack "Incoming Webhooks" integration
+                https://raintank-corp.slack.com/apps/A0F7XDUAZ-incoming-webhooks?tab=more_info
+                """
                 # Don't react on own bot's messages.
-                if bot_user_id == slack_team_identity.bot_user_id:
+                if payload_event_bot_id == slack_team_identity.bot_id:
                     return Response(status=200)
-
             elif payload_event_message_user:
                 slack_user_id = payload_event_message_user
             # event subtype 'message_deleted'

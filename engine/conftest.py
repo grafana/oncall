@@ -954,7 +954,13 @@ def webhook_preset_api_setup():
 
 @pytest.fixture
 def make_label_key():
-    def _make_label_key(organization, **kwargs):
+    def _make_label_key(organization, key_id=None, key_name=None, **kwargs):
+        if key_id is not None:
+            kwargs["id"] = key_id
+
+        if key_name is not None:
+            kwargs["name"] = key_name
+
         return LabelKeyFactory(organization=organization, **kwargs)
 
     return _make_label_key
@@ -962,7 +968,13 @@ def make_label_key():
 
 @pytest.fixture
 def make_label_value():
-    def _make_label_value(key, **kwargs):
+    def _make_label_value(key, value_id=None, value_name=None, **kwargs):
+        if value_id is not None:
+            kwargs["id"] = value_id
+
+        if value_name is not None:
+            kwargs["name"] = value_name
+
         return LabelValueFactory(key=key, **kwargs)
 
     return _make_label_value
@@ -970,9 +982,9 @@ def make_label_value():
 
 @pytest.fixture
 def make_label_key_and_value(make_label_key, make_label_value):
-    def _make_label_key_and_value(organization):
-        key = make_label_key(organization=organization)
-        value = make_label_value(key=key)
+    def _make_label_key_and_value(organization, key_id=None, key_name=None, value_id=None, value_name=None):
+        key = make_label_key(organization=organization, key_id=key_id, key_name=key_name)
+        value = make_label_value(key=key, value_id=value_id, value_name=value_name)
         return key, value
 
     return _make_label_key_and_value
@@ -980,8 +992,12 @@ def make_label_key_and_value(make_label_key, make_label_value):
 
 @pytest.fixture
 def make_integration_label_association(make_label_key_and_value):
-    def _make_integration_label_association(organization, alert_receive_channel, **kwargs):
-        key, value = make_label_key_and_value(organization)
+    def _make_integration_label_association(
+        organization, alert_receive_channel, key_id=None, key_name=None, value_id=None, value_name=None, **kwargs
+    ):
+        key, value = make_label_key_and_value(
+            organization, key_id=key_id, key_name=key_name, value_id=value_id, value_name=value_name
+        )
         return AlertReceiveChannelAssociatedLabelFactory(
             alert_receive_channel=alert_receive_channel, organization=organization, key=key, value=value, **kwargs
         )
