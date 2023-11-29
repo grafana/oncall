@@ -110,6 +110,7 @@ export class RootBaseStore {
   filtersStore = new FiltersStore(this);
   labelsStore = new LabelStore(this);
 
+  @action.bound
   async loadBasicData() {
     const updateFeatures = async () => {
       await this.updateFeatures();
@@ -130,6 +131,7 @@ export class RootBaseStore {
     runInAction(() => (this.isBasicDataLoaded = true));
   }
 
+  @action.bound
   async loadMasterData() {
     retryFailingPromises([
       this.userStore.updateNotificationPolicyOptions,
