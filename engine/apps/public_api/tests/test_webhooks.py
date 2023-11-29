@@ -297,7 +297,7 @@ def test_get_webhook_responses(
     webhook.refresh_from_db()
 
     response_count = 20
-    for i in range(0, response_count):
+    for _ in range(0, response_count):
         make_webhook_response(
             webhook=webhook,
             trigger_type=webhook.trigger_type,

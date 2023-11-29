@@ -187,7 +187,7 @@ def mock_apply_async(monkeypatch):
 
 @pytest.fixture(autouse=True)
 def mock_is_labels_feature_enabled(settings):
-    setattr(settings, "FEATURE_LABELS_ENABLED_FOR_ALL", True)
+    settings.FEATURE_LABELS_ENABLED_FOR_ALL = True
 
 
 @pytest.fixture(autouse=True)
@@ -199,8 +199,8 @@ def clear_ical_users_cache():
 @pytest.fixture
 def mock_is_labels_feature_enabled_for_org(settings):
     def _mock_is_labels_feature_enabled_for_org(org_id):
-        setattr(settings, "FEATURE_LABELS_ENABLED_FOR_ALL", False)
-        setattr(settings, "FEATURE_LABELS_ENABLED_FOR_GRAFANA_ORGS", [org_id])
+        settings.FEATURE_LABELS_ENABLED_FOR_ALL = False
+        settings.FEATURE_LABELS_ENABLED_FOR_GRAFANA_ORGS = [org_id]
 
     return _mock_is_labels_feature_enabled_for_org
 

@@ -35,6 +35,7 @@ repos:
         files: ^engine
         args: [--config=engine/tox.ini]
         additional_dependencies:
+          - flake8-bugbear
           - flake8-tidy-imports
       - id: flake8
         name: flake8 - pd-migrator
