@@ -7,7 +7,6 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ViewSet
 
-from apps.alerts.models import AlertReceiveChannel
 from apps.api.permissions import BasicRolePermission, LegacyAccessControlRole
 from apps.api.serializers.labels import (
     LabelKeySerializer,
@@ -181,30 +180,8 @@ class AlertGroupLabelsViewSet(LabelsFeatureFlagViewSet):
         )
 
 
-class LabelsAssociatingMixin:  # use for labelable objects views (ex. AlertReceiveChannelView)
-    def filter_by_labels(self, queryset):
-        """Call this method in `get_queryset()` to add filtering by labels"""
-        if not is_labels_feature_enabled(self.request.auth.organization):
-            return queryset
-        labels = self.request.query_params.getlist("label")  # ["key1:value1", "key2:value2"]
-        if not labels:
-            return queryset
-        for label in labels:
-            label_data = label.split(":")
-            if len(label_data) != 2:  # ["key1", "value1"]
-                continue
-            key_id, value_id = label_data
-            queryset &= AlertReceiveChannel.objects_with_deleted.filter(
-                labels__key_id=key_id, labels__value_id=value_id
-            ).distinct()
-        return queryset
-
-    def paginate_queryset(self, queryset):
-        organization = self.request.auth.organization
-        data = super().paginate_queryset(queryset)
-        if not is_labels_feature_enabled(self.request.auth.organization):
-            return data
-        ids = [d.id for d in data]
-        logger.info(f"start update_instances_labels_cache for ids: {ids}")
-        update_instances_labels_cache.apply_async((organization.id, ids, self.model.__name__))
-        return data
+def schedule_update_label_cache(model_name, org, ids):
+    if not is_labels_feature_enabled(org):
+        return
+    logger.info(f"start update_instances_labels_cache for ids: {ids}")
+    update_instances_labels_cache.apply_async((org.id, ids, model_name))

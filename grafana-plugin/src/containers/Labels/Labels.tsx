@@ -1,8 +1,7 @@
 import React, { forwardRef, useCallback, useImperativeHandle, useState } from 'react';
 
-import ServiceLabels from '@grafana/labels';
+import { ServiceLabels, ServiceLabelsProps } from '@grafana/labels';
 import { Field } from '@grafana/ui';
-import cn from 'classnames/bind';
 import { isEmpty } from 'lodash-es';
 import { observer } from 'mobx-react';
 
@@ -10,18 +9,15 @@ import { LabelKeyValue } from 'models/label/label.types';
 import { useStore } from 'state/useStore';
 import { openErrorNotification } from 'utils';
 
-import styles from './Labels.module.css';
-
-const cx = cn.bind(styles);
-
-interface LabelsProps {
+export interface LabelsProps {
   value: LabelKeyValue[];
   errors: any;
+  onDataUpdate?: ServiceLabelsProps['onDataUpdate'];
 }
 
 const Labels = observer(
   forwardRef(function Labels2(props: LabelsProps, ref) {
-    const { value: defaultValue, errors: propsErrors } = props;
+    const { value: defaultValue, errors: propsErrors, onDataUpdate } = props;
 
     // propsErrors are 'external' caused by attaching/detaching labels to oncall entities,
     // state errors are errors caused by CRUD operations on labels storage
@@ -29,6 +25,13 @@ const Labels = observer(
     const [value, setValue] = useState<LabelKeyValue[]>(defaultValue);
 
     const { labelsStore } = useStore();
+
+    const onChange = (value: LabelKeyValue[]) => {
+      if (onDataUpdate) {
+        onDataUpdate(value);
+      }
+      setValue(value);
+    };
 
     useImperativeHandle(
       ref,
@@ -99,21 +102,21 @@ const Labels = observer(
     }, []);
 
     return (
-      <div className={cx('root')}>
+      <div>
         <Field label="Labels">
           <ServiceLabels
             loadById
             value={value}
             onLoadKeys={cachedOnLoadKeys()}
             onLoadValuesForKey={cachedOnLoadValuesForKey()}
-            onCreateKey={labelsStore.createKey.bind(labelsStore)}
-            onUpdateKey={labelsStore.updateKey.bind(labelsStore)}
-            onCreateValue={labelsStore.createValue.bind(labelsStore)}
-            onUpdateValue={labelsStore.updateKeyValue.bind(labelsStore)}
+            onCreateKey={labelsStore.createKey}
+            onUpdateKey={labelsStore.updateKey}
+            onCreateValue={labelsStore.createValue}
+            onUpdateValue={labelsStore.updateKeyValue}
             onRowItemRemoval={(_pair, _index) => {}}
             onUpdateError={onUpdateError}
             errors={isValid() ? {} : { ...propsErrors }}
-            onDataUpdate={setValue}
+            onDataUpdate={onChange}
           />
         </Field>
       </div>

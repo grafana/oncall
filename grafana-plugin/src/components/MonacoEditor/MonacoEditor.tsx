@@ -34,6 +34,7 @@ const PREDEFINED_TERMS = [
   'grafana_oncall_incident_id',
   'source_link',
   'tojson_pretty',
+  'tojson',
 ];
 
 const MonacoEditor: FC<MonacoEditorProps> = (props) => {
@@ -99,6 +100,7 @@ const MonacoEditor: FC<MonacoEditorProps> = (props) => {
       height={height}
       onEditorDidMount={handleMount}
       getSuggestions={useAutoCompleteList ? autoCompleteList : undefined}
+      containerStyles="u-width-100"
     />
   );
 };

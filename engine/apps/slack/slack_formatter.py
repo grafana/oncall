@@ -37,6 +37,18 @@ class SlackFormatter(SlackFormatterBase):
 
         return message
 
+    def slack_to_accepted_emoji(self, message):
+        """Overridden original method to fix regex that replaces dashes in links"""
+        message = re.sub(
+            r":([a-zA-Z0-9<>/:])([^ <>/:]+):",  # overridden regex
+            lambda x: ":{}{}:".format(x.group(1), x.group(2).replace("-", "_")),
+            message,
+        )
+
+        # https://github.com/Ranks/emojione/issues/114
+        message = message.replace(":simple_smile:", ":slightly_smiling_face:")
+        return message
+
     def _sub_hyperlink(self, matchobj):
         compound = matchobj.group(0)[1:-1]
         if len(compound.split("|")) == 2:

@@ -16,7 +16,7 @@ from apps.public_api.helpers import is_valid_group_creation_date, team_has_slack
 from apps.public_api.serializers import IncidentSerializer
 from apps.public_api.throttlers.user_throttle import UserThrottle
 from common.api_helpers.exceptions import BadRequest
-from common.api_helpers.filters import ByTeamModelFieldFilterMixin, get_team_queryset
+from common.api_helpers.filters import NO_TEAM_VALUE, ByTeamModelFieldFilterMixin, get_team_queryset
 from common.api_helpers.mixins import RateLimitHeadersMixin
 from common.api_helpers.paginators import FiftyPageSizePaginator
 
@@ -27,7 +27,7 @@ class IncidentByTeamFilter(ByTeamModelFieldFilterMixin, filters.FilterSet):
         queryset=get_team_queryset,
         to_field_name="public_primary_key",
         null_label="noteam",
-        null_value="null",
+        null_value=NO_TEAM_VALUE,
         method=ByTeamModelFieldFilterMixin.filter_model_field_with_single_value.__name__,
     )
 

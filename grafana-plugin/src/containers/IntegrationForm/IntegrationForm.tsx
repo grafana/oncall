@@ -21,8 +21,7 @@ import { useHistory } from 'react-router-dom';
 
 import Collapse from 'components/Collapse/Collapse';
 import Block from 'components/GBlock/Block';
-import GForm from 'components/GForm/GForm';
-import { FormItem } from 'components/GForm/GForm.types';
+import GForm, { CustomFieldSectionRendererProps } from 'components/GForm/GForm';
 import IntegrationLogo from 'components/IntegrationLogo/IntegrationLogo';
 import Text from 'components/Text/Text';
 import Labels from 'containers/Labels/Labels';
@@ -261,14 +260,6 @@ const IntegrationForm = observer((props: IntegrationFormProps) => {
     return id === 'new' ? `New ${selectedOption?.display_name} integration` : `Edit integration`;
   }
 });
-
-export interface CustomFieldSectionRendererProps {
-  control: any;
-  formItem: FormItem;
-  errors: any;
-  register: any;
-  setValue: (fieldName: string, fieldValue: any) => void;
-}
 
 interface CustomFieldSectionRendererState {
   isExistingContactPoint: boolean;
