@@ -1,7 +1,7 @@
 import { retryFailingPromises } from './async';
 
 describe('retryFailingPromises', () => {
-  it('should retry failing promises X times and return correct result', async () => {
+  it('should retry only failing promises X times and return correct result', async () => {
     const MAX_ATTEMPTS = 5;
 
     // We mimic that fetch1 always resolves, fetch2 always rejects and fetch3 resolves only on 2nd attempt
