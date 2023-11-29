@@ -98,7 +98,7 @@ def build_paged_responses(page_size, pages, total_items):
             remaining -= page_size
 
         items = []
-        for j in range(page_item_count):
+        for _ in range(page_item_count):
             items.append({"id": str(uuid.uuid4())})
         next_cursor = None if i == pages - 1 else i * page_size
         response.append(({"items": items, "nextCursor": next_cursor}, {}))
