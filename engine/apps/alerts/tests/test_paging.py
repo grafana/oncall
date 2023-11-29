@@ -249,11 +249,17 @@ def test_direct_paging_always_create_group(make_organization, make_user_for_orga
     assert alert_groups.count() == 2
 
     # notifications sent
-    notify_task.apply_async.assert_called_with(
-        (user.pk, alert_groups[0].pk), {"important": False, "notify_even_acknowledged": True, "notify_anyway": True}
-    )
-    notify_task.apply_async.assert_called_with(
-        (user.pk, alert_groups[1].pk), {"important": False, "notify_even_acknowledged": True, "notify_anyway": True}
+    notify_task.apply_async.assert_has_calls(
+        [
+            call(
+                (user.pk, alert_groups[0].pk),
+                {"important": False, "notify_even_acknowledged": True, "notify_anyway": True},
+            ),
+            call(
+                (user.pk, alert_groups[1].pk),
+                {"important": False, "notify_even_acknowledged": True, "notify_anyway": True},
+            ),
+        ]
     )
 
 
