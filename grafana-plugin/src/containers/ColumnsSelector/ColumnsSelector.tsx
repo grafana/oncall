@@ -24,7 +24,7 @@ import { CSSTransition, TransitionGroup } from 'react-transition-group';
 import RenderConditionally from 'components/RenderConditionally/RenderConditionally';
 import Text from 'components/Text/Text';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
-import { AGColumn, AGColumnType } from 'models/alertgroup/alertgroup.types';
+import { AlertGroupColumn, AlertGroupColumnType } from 'models/alertgroup/alertgroup.types';
 import { ActionKey } from 'models/loader/action-keys';
 import { useStore } from 'state/useStore';
 import { openErrorNotification } from 'utils';
@@ -36,9 +36,9 @@ import { getColumnsSelectorStyles } from './ColumnsSelector.styles';
 const TRANSITION_MS = 500;
 
 interface ColumnRowProps {
-  column: AGColumn;
+  column: AlertGroupColumn;
   onItemChange: (id: number | string) => void;
-  onColumnRemoval: (column: AGColumn) => void;
+  onColumnRemoval: (column: AlertGroupColumn) => void;
 }
 
 const ColumnRow: React.FC<ColumnRowProps> = ({ column, onItemChange, onColumnRemoval }) => {
@@ -59,7 +59,7 @@ const ColumnRow: React.FC<ColumnRowProps> = ({ column, onItemChange, onColumnRem
       <div className={styles.columnItem} ref={columnElRef}>
         <span className={styles.columnName}>{column.name}</span>
 
-        {column.type === AGColumnType.LABEL && (
+        {column.type === AlertGroupColumnType.LABEL && (
           <Tooltip content="Label Column">
             <Icon aria-label="Label" name="tag-alt" className={styles.labelIcon} />
           </Tooltip>
@@ -75,7 +75,7 @@ const ColumnRow: React.FC<ColumnRowProps> = ({ column, onItemChange, onColumnRem
           />
         </RenderConditionally>
 
-        <RenderConditionally shouldRender={!column.isVisible && column.type === AGColumnType.LABEL}>
+        <RenderConditionally shouldRender={!column.isVisible && column.type === AlertGroupColumnType.LABEL}>
           <WithPermissionControlTooltip userAction={UserActions.OtherSettingsWrite}>
             <IconButton
               className={[styles.columnsIcon, styles.columnsIconTrash, 'columns-icon-trash'].join(' ')}
@@ -100,7 +100,7 @@ const ColumnRow: React.FC<ColumnRowProps> = ({ column, onItemChange, onColumnRem
 
 interface ColumnsSelectorProps {
   onColumnAddModalOpen(): void;
-  onConfirmRemovalModalOpen(column: AGColumn): void;
+  onConfirmRemovalModalOpen(column: AlertGroupColumn): void;
 }
 
 export const ColumnsSelector: React.FC<ColumnsSelectorProps> = observer(
@@ -218,8 +218,8 @@ export const ColumnsSelector: React.FC<ColumnsSelectorProps> = observer(
         return;
       }
 
-      alertGroupStore.columns = alertGroupStore.columns.map((item): AGColumn => {
-        let newItem: AGColumn = { ...item, isVisible: !item.isVisible };
+      alertGroupStore.columns = alertGroupStore.columns.map((item): AlertGroupColumn => {
+        let newItem: AlertGroupColumn = { ...item, isVisible: !item.isVisible };
         return item.id === id ? newItem : item;
       });
 
@@ -229,7 +229,7 @@ export const ColumnsSelector: React.FC<ColumnsSelectorProps> = observer(
     function handleDragEnd(event: DragEndEvent, isVisible: boolean) {
       const { active, over } = event;
 
-      let searchableList: AGColumn[] = isVisible ? visibleColumns : hiddenColumns;
+      let searchableList: AlertGroupColumn[] = isVisible ? visibleColumns : hiddenColumns;
 
       if (active.id !== over.id) {
         const oldIndex = searchableList.findIndex((item) => item.id === active.id);
@@ -244,10 +244,13 @@ export const ColumnsSelector: React.FC<ColumnsSelectorProps> = observer(
   }
 );
 
-export function convertColumnsToTableSettings(columns: AGColumn[]): { visible: AGColumn[]; hidden: AGColumn[] } {
-  const tableSettings: { visible: AGColumn[]; hidden: AGColumn[] } = {
-    visible: columns.filter((col: AGColumn) => col.isVisible),
-    hidden: columns.filter((col: AGColumn) => !col.isVisible),
+export function convertColumnsToTableSettings(columns: AlertGroupColumn[]): {
+  visible: AlertGroupColumn[];
+  hidden: AlertGroupColumn[];
+} {
+  const tableSettings: { visible: AlertGroupColumn[]; hidden: AlertGroupColumn[] } = {
+    visible: columns.filter((col: AlertGroupColumn) => col.isVisible),
+    hidden: columns.filter((col: AlertGroupColumn) => !col.isVisible),
   };
 
   return tableSettings;

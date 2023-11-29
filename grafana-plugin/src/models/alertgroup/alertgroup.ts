@@ -14,7 +14,7 @@ import { openErrorNotification, refreshPageError, showApiError } from 'utils';
 import LocationHelper from 'utils/LocationHelper';
 import { AutoLoadingState } from 'utils/decorators';
 
-import { AGColumn, Alert, AlertAction, IncidentStatus } from './alertgroup.types';
+import { AlertGroupColumn, Alert, AlertAction, IncidentStatus } from './alertgroup.types';
 
 export class AlertGroupStore extends BaseStore {
   @observable.shallow
@@ -72,7 +72,7 @@ export class AlertGroupStore extends BaseStore {
   liveUpdatesPaused = false;
 
   @observable
-  columns: AGColumn[] = [];
+  columns: AlertGroupColumn[] = [];
 
   @observable
   isDefaultColumnOrder = false;
@@ -444,15 +444,15 @@ export class AlertGroupStore extends BaseStore {
 
     this.isDefaultColumnOrder = isDefaultOrder;
     this.columns = [
-      ...visible.map((item: AGColumn): AGColumn => ({ ...item, isVisible: true })),
-      ...hidden.map((item: AGColumn): AGColumn => ({ ...item, isVisible: false })),
+      ...visible.map((item: AlertGroupColumn): AlertGroupColumn => ({ ...item, isVisible: true })),
+      ...hidden.map((item: AlertGroupColumn): AlertGroupColumn => ({ ...item, isVisible: false })),
     ];
   }
 
   @action
   @AutoLoadingState(ActionKey.ADD_NEW_COLUMN_TO_ALERT_GROUP)
   async updateTableSettings(
-    columns: { visible: AGColumn[]; hidden: AGColumn[] },
+    columns: { visible: AlertGroupColumn[]; hidden: AlertGroupColumn[] },
     isUserUpdate: boolean
   ): Promise<void> {
     const method = isUserUpdate ? 'PUT' : 'POST';

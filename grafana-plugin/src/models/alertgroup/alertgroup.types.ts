@@ -90,14 +90,14 @@ export interface Alert {
   undoAction?: AlertAction;
 }
 
-export interface AGColumn {
+export interface AlertGroupColumn {
   id: string;
   name: string;
   isVisible: boolean;
-  type?: AGColumnType;
+  type?: AlertGroupColumnType;
 }
 
-export enum AGColumnType {
+export enum AlertGroupColumnType {
   DEFAULT = 'default',
   LABEL = 'label',
 }

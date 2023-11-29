@@ -7,7 +7,7 @@ import Text from 'components/Text/Text';
 import { ColumnsSelector, convertColumnsToTableSettings } from 'containers/ColumnsSelector/ColumnsSelector';
 import { getColumnsSelectorWrapperStyles } from 'containers/ColumnsSelectorWrapper/ColumnsSelectorWrapper.styles';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
-import { AGColumn } from 'models/alertgroup/alertgroup.types';
+import { AlertGroupColumn } from 'models/alertgroup/alertgroup.types';
 import { ActionKey } from 'models/loader/action-keys';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
@@ -20,7 +20,7 @@ interface ColumnsSelectorWrapperProps {}
 
 const ColumnsSelectorWrapper: React.FC<ColumnsSelectorWrapperProps> = observer(() => {
   const [isConfirmRemovalModalOpen, setIsConfirmRemovalModalOpen] = useState(false);
-  const [columnToBeRemoved, setColumnToBeRemoved] = useState<AGColumn>(undefined);
+  const [columnToBeRemoved, setColumnToBeRemoved] = useState<AlertGroupColumn>(undefined);
   const [isColumnAddModalOpen, setIsColumnAddModalOpen] = useState(false);
   const [isFloatingDisplayOpen, setIsFloatingDisplayOpen] = useState(false);
 
@@ -96,7 +96,7 @@ const ColumnsSelectorWrapper: React.FC<ColumnsSelectorWrapperProps> = observer((
             >
               <ColumnsSelector
                 onColumnAddModalOpen={() => setIsColumnAddModalOpen(!isColumnAddModalOpen)}
-                onConfirmRemovalModalOpen={(column: AGColumn) => {
+                onConfirmRemovalModalOpen={(column: AlertGroupColumn) => {
                   setIsConfirmRemovalModalOpen(!isConfirmRemovalModalOpen);
                   setColumnToBeRemoved(column);
                 }}

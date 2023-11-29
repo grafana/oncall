@@ -31,8 +31,8 @@ import {
   Alert as AlertType,
   AlertAction,
   IncidentStatus,
-  AGColumn,
-  AGColumnType,
+  AlertGroupColumn,
+  AlertGroupColumnType,
 } from 'models/alertgroup/alertgroup.types';
 import { LabelKeyValue } from 'models/label/label.types';
 import { renderRelatedUsers } from 'pages/incident/Incident.helpers';
@@ -719,7 +719,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
     };
   };
 
-  renderCustomColumn = (column: AGColumn, alert: AlertType) => {
+  renderCustomColumn = (column: AlertGroupColumn, alert: AlertType) => {
     const matchingLabel = alert.labels?.find((label) => label.key.name === column.name)?.value.name;
 
     return (
@@ -817,8 +817,8 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
 
     const mappedColumns: TableColumn[] = store.alertGroupStore.columns
       .filter((col) => col.isVisible)
-      .map((column: AGColumn): TableColumn => {
-        if (column.type === AGColumnType.DEFAULT && columnMapping[column.name]) {
+      .map((column: AlertGroupColumn): TableColumn => {
+        if (column.type === AlertGroupColumnType.DEFAULT && columnMapping[column.name]) {
           return columnMapping[column.name];
         }
 
