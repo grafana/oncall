@@ -32,6 +32,7 @@ import { UserGroupStore } from 'models/user_group/user_group';
 import { makeRequest } from 'network';
 import { AppFeature } from 'state/features';
 import PluginState from 'state/plugin';
+import { retryFailingPromises } from 'utils/async';
 import {
   APP_VERSION,
   CLOUD_VERSION_REGEX,
@@ -40,7 +41,6 @@ import {
   PLUGIN_ROOT,
 } from 'utils/consts';
 import FaroHelper from 'utils/faro';
-import { retryFailingPromises } from 'utils/async';
 
 // ------ Dashboard ------ //
 
