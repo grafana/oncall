@@ -177,7 +177,7 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
                         </GList>
                       ) : (
                         <VerticalGroup>
-                          <Text type="primary" className={cx('loading')}>
+                          <Text type="primary" className={cx('loadingPlaceholder')}>
                             Loading...
                           </Text>
                         </VerticalGroup>

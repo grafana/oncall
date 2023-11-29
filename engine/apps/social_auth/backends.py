@@ -85,7 +85,8 @@ class SlackOAuth2V2(SlackOAuth2):
         )
         self.process_error(response)
         access_token = response["authed_user"]["access_token"]
-        return self.do_auth(access_token, response=response, *args, **kwargs)
+        kwargs.update(response=response)
+        return self.do_auth(access_token, *args, **kwargs)
 
     @handle_http_errors
     def do_auth(self, access_token, *args, **kwargs):

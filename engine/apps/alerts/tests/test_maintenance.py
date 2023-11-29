@@ -46,7 +46,7 @@ def test_start_maintenance_integration_multiple_previous_instances(
         organization, integration=AlertReceiveChannel.INTEGRATION_GRAFANA, author=user
     )
     # 2 maintenance integrations were created in the past
-    for i in range(2):
+    for _ in range(2):
         AlertReceiveChannel.create(
             organization=organization, integration=AlertReceiveChannel.INTEGRATION_MAINTENANCE, author=user
         )

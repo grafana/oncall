@@ -1,3 +1,5 @@
+from functools import partial
+
 from django.conf import settings
 from django.db import transaction
 from kombu.utils.uuid import uuid as celery_uuid
@@ -77,7 +79,7 @@ def escalate_alert_group(alert_group_pk):
             task_id = celery_uuid()
             alert_group.active_escalation_id = task_id
             transaction.on_commit(
-                lambda: escalate_alert_group.apply_async((alert_group.pk,), immutable=True, eta=eta, task_id=task_id)
+                partial(escalate_alert_group.apply_async, (alert_group.pk,), immutable=True, eta=eta, task_id=task_id)
             )
             alert_group.save(update_fields=["active_escalation_id", "raw_escalation_snapshot"])
             log_message += "Next escalation poked, id: {} ".format(task_id)

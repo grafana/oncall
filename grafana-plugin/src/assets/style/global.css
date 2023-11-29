@@ -44,9 +44,8 @@
   margin-bottom: 16px;
 }
 
-.rc-table-cell {
-  padding-left: 4px;
-  padding-right: 4px;
+td.rc-table-cell {
+  height: 44px !important;
 
   /* works better than break-all, especially for table headers */
   word-break: break-word;

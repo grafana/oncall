@@ -245,7 +245,7 @@ def test_ordered_model_create_concurrent():
     exceptions = []
 
     def create():
-        for loop in range(LOOPS):
+        for _ in range(LOOPS):
             try:
                 TestOrderedModel.objects.create(test_field="test")
             except Exception as e:

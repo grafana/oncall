@@ -259,7 +259,7 @@ NOTIFICATION_CHANNEL_TO_TEMPLATER_MAP = {
 }
 
 # add additionally supported messaging backends
-for backend_id, backend in get_messaging_backends():
+for _, backend in get_messaging_backends():
     if backend.templater is not None:
         NOTIFICATION_CHANNEL_OPTIONS.append(backend.slug)
         NOTIFICATION_CHANNEL_TO_TEMPLATER_MAP[backend.slug] = backend.get_templater_class()

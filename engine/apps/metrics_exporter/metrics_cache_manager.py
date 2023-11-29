@@ -43,10 +43,10 @@ class MetricsCacheManager:
     def update_integration_states_diff(metrics_dict, integration_id, previous_state=None, new_state=None):
         metrics_dict.setdefault(integration_id, MetricsCacheManager.get_default_states_diff_dict())
         if previous_state:
-            state_value = previous_state.value
+            state_value = previous_state
             metrics_dict[integration_id]["previous_states"][state_value] += 1
         if new_state:
-            state_value = new_state.value
+            state_value = new_state
             metrics_dict[integration_id]["new_states"][state_value] += 1
         return metrics_dict
 

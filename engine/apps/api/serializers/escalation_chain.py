@@ -24,11 +24,11 @@ class EscalationChainListSerializer(EscalationChainSerializer):
 
     def get_number_of_integrations(self, obj):
         # num_integrations param added in queryset via annotate. Check EscalationChainViewSet.get_queryset
-        return getattr(obj, "num_integrations")
+        return getattr(obj, "num_integrations", 0)
 
     def get_number_of_routes(self, obj):
         # num_routes param added in queryset via annotate. Check EscalationChainViewSet.get_queryset
-        return getattr(obj, "num_routes")
+        return getattr(obj, "num_routes", 0)
 
 
 class FilterEscalationChainSerializer(serializers.ModelSerializer):

@@ -57,10 +57,16 @@ def is_labels_feature_enabled(organization: "Organization") -> bool:
     )
 
 
-def get_label_verbal(obj: typing.Any) -> dict[str, str]:
-    return {label.key.name: label.value.name for label in obj.labels.all().select_related("key", "value")}
+def get_labels_dict(labelable) -> dict[str, str]:
+    """
+    get_labels_dict returns dict of labels' key and values names for the given object
+    """
+    return {label.key.name: label.value.name for label in labelable.labels.all().select_related("key", "value")}
 
 
-def get_alert_group_label_verbal(alert_group: "AlertGroup") -> dict[str, str]:
-    """This is different from get_label_verbal because alert group labels store key/value names, not IDs"""
+def get_alert_group_labels_dict(alert_group: "AlertGroup") -> dict[str, str]:
+    """
+    get_alert_group_labels_dict returns dict of labels' key and values names for the given alert group.
+    It's different from get_labels_dict, because AlertGroupAssociated labels store key/value_name, not key/value_id
+    """
     return {label.key_name: label.value_name for label in alert_group.labels.all()}
