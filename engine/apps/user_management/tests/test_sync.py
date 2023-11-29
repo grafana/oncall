@@ -358,7 +358,7 @@ def test_sync_organization_is_rbac_permissions_enabled_cloud(mocked_gcom_client,
 
     organization.refresh_from_db()
 
-    mocked_gcom_client.return_value.assert_called_once_with("mockedToken")
+    mocked_gcom_client.assert_called_once_with("mockedToken")
     mocked_gcom_client.return_value.is_rbac_enabled_for_stack.assert_called_once_with(stack_id)
     assert organization.is_rbac_permissions_enabled == gcom_api_response
 

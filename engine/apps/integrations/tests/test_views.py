@@ -15,6 +15,9 @@ from apps.integrations.mixins import AlertChannelDefiningMixin
 class DatabaseBlocker(DjangoDbBlocker):
     """Customize pytest_django db blocker to raise OperationalError exception."""
 
+    def __init__(self, *args) -> None:
+        super().__init__(_ispytest=True)
+
     def _blocking_wrapper(*args, **kwargs):
         __tracebackhide__ = True
         __tracebackhide__  # Silence pyflakes
