@@ -1,4 +1,3 @@
-import json
 import logging
 import typing
 
@@ -168,23 +167,26 @@ class MobileAppGatewayView(APIView):
 
             return Response(status=downstream_response.status_code, data=downstream_response.json())
         except (
-            requests.exceptions.ConnectionError,
-            requests.exceptions.HTTPError,
-            requests.exceptions.TooManyRedirects,
-            requests.exceptions.Timeout,
-            json.JSONDecodeError,
-        ):
+            requests.exceptions.RequestException,
+            requests.exceptions.JSONDecodeError,
+        ) as e:
+            if isinstance(e, requests.exceptions.JSONDecodeError):
+                final_status = status.HTTP_400_BAD_REQUEST
+            else:
+                final_status = status.HTTP_502_BAD_GATEWAY
+
             logger.error(
                 (
                     f"MobileAppGatewayView: error while proxying request\n"
                     f"method={method}\n"
                     f"downstream_backend={downstream_backend}\n"
                     f"downstream_path={downstream_path}\n"
-                    f"downstream_url={downstream_url}"
+                    f"downstream_url={downstream_url}\n"
+                    f"final_status={final_status}"
                 ),
                 exc_info=True,
             )
-            return Response(status=status.HTTP_502_BAD_GATEWAY)
+            return Response(status=final_status)
 
 
 """

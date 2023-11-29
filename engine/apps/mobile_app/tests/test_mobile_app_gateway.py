@@ -2,6 +2,7 @@ import json
 from unittest.mock import patch
 
 import pytest
+import requests
 from django.urls import reverse
 from django.utils import timezone
 from rest_framework import status
@@ -192,6 +193,43 @@ def test_mobile_app_gateway_supported_downstream_backends(
     url = reverse(
         "mobile_app:gateway", kwargs={"downstream_backend": downstream_backend, "downstream_path": "test/123"}
     )
+
+    response = client.post(url, HTTP_AUTHORIZATION=auth_token)
+    assert response.status_code == expected_status
+
+
+@pytest.mark.django_db
+@patch("apps.mobile_app.views.requests.post")
+@patch("apps.mobile_app.views.MobileAppGatewayView._get_downstream_url", return_value=MOCK_DOWNSTREAM_URL)
+@patch("apps.mobile_app.views.MobileAppGatewayView._get_downstream_headers", return_value=MOCK_DOWNSTREAM_HEADERS)
+@pytest.mark.parametrize(
+    "ExceptionClass,exception_args,expected_status",
+    [
+        (requests.exceptions.ConnectionError, (), status.HTTP_502_BAD_GATEWAY),
+        (requests.exceptions.HTTPError, (), status.HTTP_502_BAD_GATEWAY),
+        (requests.exceptions.TooManyRedirects, (), status.HTTP_502_BAD_GATEWAY),
+        (requests.exceptions.Timeout, (), status.HTTP_502_BAD_GATEWAY),
+        (requests.exceptions.JSONDecodeError, ("", "", 5), status.HTTP_400_BAD_REQUEST),
+    ],
+)
+def test_mobile_app_gateway_catches_errors_from_downstream_server(
+    _mock_get_downstream_headers,
+    _mock_get_downstream_url,
+    mock_requests_post,
+    make_organization_and_user_with_mobile_app_auth_token,
+    ExceptionClass,
+    exception_args,
+    expected_status,
+):
+    def _raise_exception(*args, **kwargs):
+        raise ExceptionClass(*exception_args)
+
+    mock_requests_post.side_effect = _raise_exception
+
+    _, _, auth_token = make_organization_and_user_with_mobile_app_auth_token()
+
+    client = APIClient()
+    url = reverse("mobile_app:gateway", kwargs={"downstream_backend": DOWNSTREAM_BACKEND, "downstream_path": "test"})
 
     response = client.post(url, HTTP_AUTHORIZATION=auth_token)
     assert response.status_code == expected_status
