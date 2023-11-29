@@ -481,7 +481,10 @@ export class AlertGroupStore extends BaseStore {
   }
 
   @action
-  async loadValuesForLabelKey(key: LabelKey['id'], search = ''): Promise<{ key: LabelKey; values: LabelValue[] }> {
+  async loadValuesForLabelKey(
+    key: ApiSchemas['LabelKey']['id'],
+    search = ''
+  ): Promise<{ key: LabelKey; values: LabelValue[] }> {
     if (!key) {
       return { key: undefined, values: [] };
     }
