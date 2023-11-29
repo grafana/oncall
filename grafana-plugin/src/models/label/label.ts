@@ -1,18 +1,18 @@
-import { action, observable } from 'mobx';
+import { action, observable, runInAction } from 'mobx';
 
 import BaseStore from 'models/base_store';
 import { makeRequest } from 'network';
+import { ApiSchemas } from 'network/oncall-api/api.types';
+import onCallApi from 'network/oncall-api/http-client';
 import { RootStore } from 'state';
 import { WithGlobalNotification } from 'utils/decorators';
 
-import { LabelKey, LabelValue } from './label.types';
-
 export class LabelStore extends BaseStore {
   @observable.shallow
-  keys: LabelKey[] = [];
+  public keys: Array<ApiSchemas['LabelKey']> = [];
 
   @observable.shallow
-  values: { [key: string]: LabelValue[] } = {};
+  public values: { [key: string]: Array<ApiSchemas['LabelValue']> } = {};
 
   constructor(rootStore: RootStore) {
     super(rootStore);
@@ -21,16 +21,18 @@ export class LabelStore extends BaseStore {
   }
 
   @action.bound
-  async loadKeys() {
-    const result = await makeRequest(`${this.path}keys/`, {});
+  public async loadKeys() {
+    const { data } = await onCallApi.GET('/labels/keys/', undefined);
 
-    this.keys = result;
+    runInAction(() => {
+      this.keys = data;
+    });
 
-    return result;
+    return data;
   }
 
   @action.bound
-  async loadValuesForKey(key: LabelKey['id'], search = '') {
+  async loadValuesForKey(key: ApiSchemas['LabelKey']['id'], search = '') {
     if (!key) {
       return [];
     }
@@ -61,7 +63,7 @@ export class LabelStore extends BaseStore {
 
   @action.bound
   @WithGlobalNotification({ success: 'New value has been added', failure: 'Failed to add new value' })
-  async createValue(keyId: LabelKey['id'], value: string) {
+  async createValue(keyId: ApiSchemas['LabelKey']['id'], value: string) {
     const result = await makeRequest(`${this.path}id/${keyId}/values`, {
       method: 'POST',
       data: { name: value },
@@ -71,7 +73,7 @@ export class LabelStore extends BaseStore {
 
   @action.bound
   @WithGlobalNotification({ success: 'Key has been renamed', failure: 'Failed to rename key' })
-  async updateKey(keyId: LabelKey['id'], name: string) {
+  async updateKey(keyId: ApiSchemas['LabelKey']['id'], name: string) {
     const result = await makeRequest(`${this.path}id/${keyId}`, {
       method: 'PUT',
       data: { name },
@@ -81,7 +83,7 @@ export class LabelStore extends BaseStore {
 
   @action.bound
   @WithGlobalNotification({ success: 'Value has been renamed', failure: 'Failed to rename value' })
-  async updateKeyValue(keyId: LabelKey['id'], valueId: LabelValue['id'], name: string) {
+  async updateKeyValue(keyId: ApiSchemas['LabelKey']['id'], valueId: ApiSchemas['LabelValue']['id'], name: string) {
     const result = await makeRequest(`${this.path}id/${keyId}/values/${valueId}`, {
       method: 'PUT',
       data: { name },

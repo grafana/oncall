@@ -3,9 +3,9 @@ import qs from 'query-string';
 
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import BaseStore from 'models/base_store';
-import { LabelKey } from 'models/label/label.types';
 import { User } from 'models/user/user.types';
 import { makeRequest } from 'network';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 import { Mixpanel } from 'services/mixpanel';
 import { RootStore } from 'state';
 import { SelectOption } from 'state/types';
@@ -62,9 +62,6 @@ export class AlertGroupStore extends BaseStore {
 
   @observable
   silencedIncidents: any = {};
-
-  @observable
-  alertGroupStats: any = {};
 
   @observable
   liveUpdatesEnabled = false;
@@ -359,11 +356,6 @@ export class AlertGroupStore extends BaseStore {
   }
 
   @action
-  async getAlertGroupsStats() {
-    this.alertGroupStats = await makeRequest('/alertgroups/stats/', {});
-  }
-
-  @action
   async doIncidentAction(alertId: Alert['pk'], action: AlertAction, isUndo = false, data?: any) {
     this.updateAlert(alertId, { loading: true });
 
@@ -442,7 +434,7 @@ export class AlertGroupStore extends BaseStore {
   }
 
   @action
-  public async loadValuesForLabelKey(key: LabelKey['id'], search = '') {
+  public async loadValuesForLabelKey(key: ApiSchemas['LabelKey']['id'], search = '') {
     if (!key) {
       return [];
     }
