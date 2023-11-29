@@ -170,7 +170,7 @@ const TeamModal = ({ teamId, onHide }: TeamModalProps) => {
                   { label: 'Team members and admins', value: '0' },
                 ]}
                 value={shareResourceToAll}
-                onChange={setShareResourceToAll}
+                onChange={setShareResourceToAll as (res: string) => void}
               />
             </div>
           </Field>

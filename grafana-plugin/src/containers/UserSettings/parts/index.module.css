@@ -28,3 +28,26 @@
   text-align: center;
   justify-content: center;
 }
+
+.tag-container {
+  display: flex;
+  gap: 4px;
+  width: 100%;
+}
+
+.tag {
+  font-weight: 500;
+  font-size: 12px;
+  height: 32px;
+  line-height: 32px;
+  padding: 0 8px;
+  width: 120px;
+}
+
+.tag-left {
+  flex-basis: 120px;
+}
+
+.tag-right {
+  flex-basis: calc(100% - 120px);
+}

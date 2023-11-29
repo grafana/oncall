@@ -55,20 +55,17 @@ export const filterAlertGroupsTableByIntegrationAndGoToDetailPage = async (
   await selectElement.type(integrationName);
   await selectValuePickerValue(page, integrationName, false);
 
-  /**
-   * wait for the alert groups to be filtered then by this particular integration (toBeVisible assertion),
-   * then click on the alert group and go to the individual alert group page
-   */
-  const firstTableRow = page.locator('table > tbody > tr:first-child');
-
   try {
     /**
-     * wait for up to 5 seconds for the alert groups to be filtered, if the first row does not correspond
+     * wait for up to 2 seconds for the alert groups to be filtered, if the first row does not correspond
      * to `integrationName` assume that the background workers have not created it yet and lets
      * recursively retry this function
      */
-    await firstTableRow.getByText(integrationName).waitFor({ state: 'visible', timeout: 5000 });
-    await firstTableRow.locator('td:nth-child(4) a').click();
+
+    await page.waitForTimeout(2000);
+
+    expect(await page.locator('table > tbody > tr [data-testid=integration-name]').textContent()).toBe(integrationName);
+    await page.locator('table > tbody > tr [data-testid=integration-url]').click();
   } catch (err) {
     return filterAlertGroupsTableByIntegrationAndGoToDetailPage(page, integrationName, (retryNum += 1));
   }

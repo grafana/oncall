@@ -1,3 +1,5 @@
+from functools import partial
+
 from django.conf import settings
 from django.db import transaction
 from django.db.models import ExpressionWrapper, F, fields
@@ -57,8 +59,9 @@ def disable_maintenance(*args, **kwargs):
             # because after transaction maintenance_mode is None.
             if organization.slack_team_identity:
                 transaction.on_commit(
-                    lambda: object_under_maintenance.notify_about_maintenance_action(
-                        f"{mode_verbal} of {object_under_maintenance.get_verbal()} finished."
+                    partial(
+                        object_under_maintenance.notify_about_maintenance_action,
+                        f"{mode_verbal} of {object_under_maintenance.get_verbal()} finished.",
                     )
                 )
 

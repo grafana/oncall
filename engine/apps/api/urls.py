@@ -4,6 +4,7 @@ from common.api_helpers.optional_slash_router import OptionalSlashRouter, option
 
 from .views import UserNotificationPolicyView, auth
 from .views.alert_group import AlertGroupView
+from .views.alert_group_table_settings import AlertGroupTableColumnsViewSet
 from .views.alert_receive_channel import AlertReceiveChannelView
 from .views.alert_receive_channel_template import AlertReceiveChannelTemplateView
 from .views.alerts import AlertDetailView
@@ -141,5 +142,21 @@ urlpatterns += [
         r"^alertgroups/labels/id/(?P<key_id>.+/?$)",
         AlertGroupLabelsViewSet.as_view({"get": "get_key"}),
         name="alert_group_labels-get_key",
+    ),
+]
+
+# Alert group table settings
+urlpatterns += [
+    re_path(
+        r"^alertgroup_table_settings/?$",
+        AlertGroupTableColumnsViewSet.as_view(
+            {"get": "get_columns", "put": "update_user_columns", "post": "update_organization_columns"}
+        ),
+        name="alert_group_table-columns_settings",
+    ),
+    re_path(
+        r"^alertgroup_table_settings/reset?$",
+        AlertGroupTableColumnsViewSet.as_view({"post": "reset_user_columns"}),
+        name="alert_group_table-reset_columns_settings",
     ),
 ]

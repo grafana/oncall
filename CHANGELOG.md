@@ -9,10 +9,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Add options to customize table columns in AlertGroup page ([3281](https://github.com/grafana/oncall/pull/3281))
+
+### Fixed
+
+- User profile UI tweaks ([#3443](https://github.com/grafana/oncall/pull/3443))
+
+## v1.3.64 (2023-11-28)
+
+### Fixed
+
+- Fix excess usage of bots_info slack api call to avoid ratelimits ([#3440](https://github.com/grafana/oncall/pull/3440))
+
+## v1.3.63 (2023-11-28)
+
+### Added
+
 - Add ability to use Grafana Service Account Tokens for OnCall API (This is only enabled for resolution_notes
 endpoint currently) @mderynck ([#3189](https://github.com/grafana/oncall/pull/3189))
 - Add ability for webhook presets to mask sensitive headers @mderynck
 ([#3189](https://github.com/grafana/oncall/pull/3189))
+
+### Changed
+
+- Use instance ID for cloud Grafana service token auth @mderynck ([#3435](https://github.com/grafana/oncall/pull/3435))
 
 ### Fixed
 

@@ -338,6 +338,37 @@ def test_preview_alert_receive_channel_backend_templater(
 
 
 @pytest.mark.django_db
+def test_preview_alert_group_labels(
+    make_organization_and_user_with_plugin_token,
+    make_user_auth_headers,
+    make_alert_receive_channel,
+    make_channel_filter,
+    make_alert_group,
+    make_alert,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+    alert_receive_channel = make_alert_receive_channel(organization)
+    default_channel_filter = make_channel_filter(alert_receive_channel, is_default=True)
+    alert_group = make_alert_group(alert_receive_channel, channel_filter=default_channel_filter)
+    make_alert(alert_group=alert_group, raw_request_data={"labels": {"1": "2"}})
+
+    client = APIClient()
+    url = reverse(
+        "api-internal:alert_receive_channel-preview-template",
+        kwargs={"pk": alert_receive_channel.public_primary_key},
+    )
+
+    data = {
+        "template_body": "{{ payload.labels | tojson }}",
+        "template_name": "alert_group_labels",
+    }
+    response = client.post(url, format="json", data=data, **make_user_auth_headers(user, token))
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == {"preview": '{"1": "2"}'}
+
+
+@pytest.mark.django_db
 def test_update_alert_receive_channel_templates(
     make_organization_and_user_with_plugin_token,
     make_user_auth_headers,

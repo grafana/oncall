@@ -11,8 +11,6 @@ from django.conf import settings
 from django.core.validators import MinLengthValidator
 from django.db import IntegrityError, models, transaction
 from django.db.models import JSONField, Q, QuerySet
-from django.db.models.signals import post_save
-from django.dispatch import receiver
 from django.utils import timezone
 from django.utils.functional import cached_property
 
@@ -24,7 +22,7 @@ from apps.alerts.incident_appearance.renderers.slack_renderer import AlertGroupS
 from apps.alerts.incident_log_builder import IncidentLogBuilder
 from apps.alerts.signals import alert_group_action_triggered_signal, alert_group_created_signal
 from apps.alerts.tasks import acknowledge_reminder_task, send_alert_group_signal, unsilence_task
-from apps.metrics_exporter.metrics_cache_manager import MetricsCacheManager
+from apps.metrics_exporter.tasks import update_metrics_for_alert_group
 from apps.slack.slack_formatter import SlackFormatter
 from apps.user_management.models import User
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
@@ -43,6 +41,7 @@ if typing.TYPE_CHECKING:
         ResolutionNoteSlackMessage,
     )
     from apps.base.models import UserNotificationPolicyLogRecord
+    from apps.labels.models import AlertGroupAssociatedLabel
     from apps.slack.models import SlackMessage
 
 logger = logging.getLogger(__name__)
@@ -194,6 +193,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
     slack_log_message: typing.Optional["SlackMessage"]
     slack_messages: "RelatedManager['SlackMessage']"
     users: "RelatedManager['User']"
+    labels: "RelatedManager['AlertGroupAssociatedLabel']"
 
     objects: models.Manager["AlertGroup"] = AlertGroupQuerySet.as_manager()
 
@@ -596,18 +596,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
 
     def _update_metrics(self, organization_id, previous_state, state):
         """Update metrics cache for response time and state as needed."""
-        updated_response_time = self.response_time
-        if previous_state != AlertGroupState.FIRING or self.restarted_at:
-            # only consider response time from the first action
-            updated_response_time = None
-        MetricsCacheManager.metrics_update_cache_for_alert_group(
-            self.channel_id,
-            organization_id=organization_id,
-            old_state=previous_state,
-            new_state=state,
-            response_time=updated_response_time,
-            started_at=self.started_at,
-        )
+        update_metrics_for_alert_group.apply_async((self.id, organization_id, previous_state, state))
 
     def acknowledge_by_user(self, user: User, action_source: typing.Optional[ActionSource] = None) -> None:
         from apps.alerts.models import AlertGroupLogRecord
@@ -1933,15 +1922,3 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
         """
         count = self.alerts.all()[: max_alerts + 1].count()
         return count > max_alerts
-
-
-@receiver(post_save, sender=AlertGroup)
-def listen_for_alertgroup_model_save(sender, instance, created, *args, **kwargs):
-    if created and not instance.is_maintenance_incident:
-        # Update alert group state and response time metrics cache
-        instance._update_metrics(
-            organization_id=instance.channel.organization_id, previous_state=None, state=AlertGroupState.FIRING
-        )
-
-
-post_save.connect(listen_for_alertgroup_model_save, AlertGroup)

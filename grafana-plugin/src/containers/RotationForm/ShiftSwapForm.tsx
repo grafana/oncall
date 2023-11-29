@@ -158,7 +158,7 @@ const ShiftSwapForm = (props: ShiftSwapFormProps) => {
                   </WithConfirm>
                 </WithPermissionControlTooltip>
               )}
-              <IconButton variant="secondary" className={cx('drag-handler')} name="draggabledots" />
+              <IconButton aria-label="Drag" variant="secondary" className={cx('drag-handler')} name="draggabledots" />
               <IconButton name="times" variant="secondary" tooltip="Close" onClick={handleHide} />
             </HorizontalGroup>
           </HorizontalGroup>

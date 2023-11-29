@@ -218,7 +218,7 @@ const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
                 <IconButton variant="secondary" tooltip="Delete" name="trash-alt" onClick={handleDeleteClick} />
               </WithConfirm>
             )}
-            <IconButton variant="secondary" className={cx('drag-handler')} name="draggabledots" />
+            <IconButton aria-label="Drag" variant="secondary" className={cx('drag-handler')} name="draggabledots" />
             <IconButton
               name="times"
               variant="secondary"

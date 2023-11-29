@@ -112,7 +112,7 @@ const IntegrationCollapsibleTreeItem: React.FC<{
     <div className={cx('integrationTree__group', { 'integrationTree__group--hidden': item.isHidden })}>
       <div className={cx('integrationTree__icon')}>
         {item.canHoverIcon ? (
-          <IconButton name={getIconName()} onClick={iconOnClickFn} size="lg" />
+          <IconButton aria-label="" name={getIconName()} onClick={iconOnClickFn} size="lg" />
         ) : (
           <Icon name={getIconName()} onClick={iconOnClickFn} size="lg" />
         )}
