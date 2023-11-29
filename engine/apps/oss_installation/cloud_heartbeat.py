@@ -47,7 +47,7 @@ def setup_heartbeat_integration(name=None):
                         }
                     )
                 else:
-                    setup_heartbeat_integration(f"{name} { random.randint(1, 1024)}")
+                    setup_heartbeat_integration(f"{name} {random.randint(1, 1024)}")
     except requests.Timeout:
         logger.warning("Unable to create cloud heartbeat integration. Request timeout.")
     except requests.exceptions.RequestException as e:
