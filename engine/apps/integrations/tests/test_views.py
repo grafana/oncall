@@ -4,7 +4,7 @@ import pytest
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.db import OperationalError
 from django.urls import reverse
-from pytest_django.plugin import _DatabaseBlocker
+from pytest_django import DjangoDbBlocker
 from rest_framework import status
 from rest_framework.test import APIClient
 
@@ -12,7 +12,7 @@ from apps.alerts.models import AlertReceiveChannel
 from apps.integrations.mixins import AlertChannelDefiningMixin
 
 
-class DatabaseBlocker(_DatabaseBlocker):
+class DatabaseBlocker(DjangoDbBlocker):
     """Customize pytest_django db blocker to raise OperationalError exception."""
 
     def _blocking_wrapper(*args, **kwargs):
