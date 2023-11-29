@@ -473,7 +473,7 @@ export class AlertGroupStore extends BaseStore {
   }
 
   @action
-  async loadLabelsKeys(): Promise<ApiSchemas['LabelKey'][]> {
+  async loadLabelsKeys(): Promise<Array<ApiSchemas['LabelKey']>> {
     return await makeRequest(`/alertgroups/labels/keys/`, {}).catch(() =>
       openErrorNotification('There was an error processing your request')
     );
@@ -483,7 +483,7 @@ export class AlertGroupStore extends BaseStore {
   async loadValuesForLabelKey(
     key: ApiSchemas['LabelKey']['id'],
     search = ''
-  ): Promise<{ key: ApiSchemas['LabelKey']; values: ApiSchemas['LabelValue'][] }> {
+  ): Promise<{ key: ApiSchemas['LabelKey']; values: Array<ApiSchemas['LabelValue']> }> {
     if (!key) {
       return { key: undefined, values: [] };
     }

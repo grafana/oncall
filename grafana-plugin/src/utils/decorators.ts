@@ -1,5 +1,5 @@
-import { openErrorNotification, openNotification, openWarningNotification } from 'utils';
 import { LoaderStore } from 'models/loader/loader';
+import { openErrorNotification, openNotification, openWarningNotification } from 'utils';
 
 export function AutoLoadingState(actionKey: string) {
   return function (_target: object, _key: string, descriptor: PropertyDescriptor) {
