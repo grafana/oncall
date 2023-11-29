@@ -99,8 +99,7 @@ class LabelsViewSet(LabelsFeatureFlagViewSet):
         if not label_data:
             raise BadRequest(detail="key data (name, values) is required")
         result, response = LabelsAPIClient(organization.grafana_url, organization.api_token).create_label(label_data)
-        status = response.status_code
-        return Response(result, status=status)
+        return Response(result, status=response.status_code)
 
     @extend_schema(request=LabelReprSerializer, responses=LabelKeyValuesSerializer)
     def add_value(self, request, key_id):

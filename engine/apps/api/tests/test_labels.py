@@ -9,9 +9,14 @@ from rest_framework.test import APIClient
 from apps.api.permissions import LegacyAccessControlRole
 
 
+class MockResponse:
+    def __init__(self, status_code):
+        self.status_code = status_code
+
+
 @patch(
     "apps.labels.client.LabelsAPIClient.get_keys",
-    return_value=([{"name": "team", "id": "keyid123"}], {"status_code": status.HTTP_200_OK}),
+    return_value=([{"name": "team", "id": "keyid123"}], MockResponse(status_code=200)),
 )
 @pytest.mark.django_db
 def test_labels_get_keys(
@@ -35,7 +40,7 @@ def test_labels_get_keys(
     "apps.labels.client.LabelsAPIClient.get_values",
     return_value=(
         {"key": {"id": "keyid123", "name": "team"}, "values": [{"id": "valueid123", "name": "yolo"}]},
-        {"status_code": status.HTTP_200_OK},
+        MockResponse(status_code=200),
     ),
 )
 @pytest.mark.django_db
@@ -60,7 +65,7 @@ def test_get_update_key_get(
     "apps.labels.client.LabelsAPIClient.rename_key",
     return_value=(
         {"key": {"id": "keyid123", "name": "team"}, "values": [{"id": "valueid123", "name": "yolo"}]},
-        {"status_code": status.HTTP_200_OK},
+        MockResponse(status_code=200),
     ),
 )
 @pytest.mark.django_db
@@ -86,7 +91,7 @@ def test_get_update_key_put(
     "apps.labels.client.LabelsAPIClient.add_value",
     return_value=(
         {"key": {"id": "keyid123", "name": "team"}, "values": [{"id": "valueid123", "name": "yolo"}]},
-        {"status_code": status.HTTP_200_OK},
+        MockResponse(status_code=200),
     ),
 )
 @pytest.mark.django_db
@@ -112,7 +117,7 @@ def test_add_value(
     "apps.labels.client.LabelsAPIClient.rename_value",
     return_value=(
         {"key": {"id": "keyid123", "name": "team"}, "values": [{"id": "valueid123", "name": "yolo"}]},
-        {"status_code": status.HTTP_200_OK},
+        MockResponse(status_code=200),
     ),
 )
 @pytest.mark.django_db
@@ -138,7 +143,7 @@ def test_rename_value(
     "apps.labels.client.LabelsAPIClient.get_value",
     return_value=(
         {"id": "valueid123", "name": "yolo"},
-        {"status_code": status.HTTP_200_OK},
+        MockResponse(status_code=200),
     ),
 )
 @pytest.mark.django_db
@@ -163,7 +168,7 @@ def test_get_value(
     "apps.labels.client.LabelsAPIClient.create_label",
     return_value=(
         {"key": {"id": "keyid123", "name": "team"}, "values": [{"id": "valueid123", "name": "yolo"}]},
-        {"status_code": status.HTTP_201_CREATED},
+        MockResponse(status_code=201),
     ),
 )
 @pytest.mark.django_db
