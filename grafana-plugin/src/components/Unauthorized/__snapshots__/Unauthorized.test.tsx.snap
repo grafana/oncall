@@ -5,7 +5,7 @@ exports[`Unauthorized renders properly - access control enabled: false 1`] = `
   className="not-found"
 >
   <div
-    className="css-9ztktj-vertical-group"
+    className="css-8tu8mo-vertical-group"
     style={
       Object {
         "height": "100%",
@@ -14,7 +14,7 @@ exports[`Unauthorized renders properly - access control enabled: false 1`] = `
     }
   >
     <div
-      className="css-1ec9088-layoutChildrenWrapper"
+      className="css-qxdyop-layoutChildrenWrapper"
     >
       <h1
         className="title error-code"
@@ -32,7 +32,7 @@ exports[`Unauthorized renders properly - access control enabled: false 1`] = `
       </h1>
     </div>
     <div
-      className="css-1ec9088-layoutChildrenWrapper"
+      className="css-qxdyop-layoutChildrenWrapper"
     >
       <h4
         className="title"
@@ -63,7 +63,7 @@ exports[`Unauthorized renders properly - access control enabled: true 1`] = `
   className="not-found"
 >
   <div
-    className="css-9ztktj-vertical-group"
+    className="css-8tu8mo-vertical-group"
     style={
       Object {
         "height": "100%",
@@ -72,7 +72,7 @@ exports[`Unauthorized renders properly - access control enabled: true 1`] = `
     }
   >
     <div
-      className="css-1ec9088-layoutChildrenWrapper"
+      className="css-qxdyop-layoutChildrenWrapper"
     >
       <h1
         className="title error-code"
@@ -90,7 +90,7 @@ exports[`Unauthorized renders properly - access control enabled: true 1`] = `
       </h1>
     </div>
     <div
-      className="css-1ec9088-layoutChildrenWrapper"
+      className="css-qxdyop-layoutChildrenWrapper"
     >
       <h4
         className="title"
@@ -121,7 +121,7 @@ exports[`Unauthorized renders properly the grammar for different roles - Admin 1
   className="not-found"
 >
   <div
-    className="css-9ztktj-vertical-group"
+    className="css-8tu8mo-vertical-group"
     style={
       Object {
         "height": "100%",
@@ -130,7 +130,7 @@ exports[`Unauthorized renders properly the grammar for different roles - Admin 1
     }
   >
     <div
-      className="css-1ec9088-layoutChildrenWrapper"
+      className="css-qxdyop-layoutChildrenWrapper"
     >
       <h1
         className="title error-code"
@@ -148,7 +148,7 @@ exports[`Unauthorized renders properly the grammar for different roles - Admin 1
       </h1>
     </div>
     <div
-      className="css-1ec9088-layoutChildrenWrapper"
+      className="css-qxdyop-layoutChildrenWrapper"
     >
       <h4
         className="title"
@@ -179,7 +179,7 @@ exports[`Unauthorized renders properly the grammar for different roles - Editor 
   className="not-found"
 >
   <div
-    className="css-9ztktj-vertical-group"
+    className="css-8tu8mo-vertical-group"
     style={
       Object {
         "height": "100%",
@@ -188,7 +188,7 @@ exports[`Unauthorized renders properly the grammar for different roles - Editor 
     }
   >
     <div
-      className="css-1ec9088-layoutChildrenWrapper"
+      className="css-qxdyop-layoutChildrenWrapper"
     >
       <h1
         className="title error-code"
@@ -206,7 +206,7 @@ exports[`Unauthorized renders properly the grammar for different roles - Editor 
       </h1>
     </div>
     <div
-      className="css-1ec9088-layoutChildrenWrapper"
+      className="css-qxdyop-layoutChildrenWrapper"
     >
       <h4
         className="title"
@@ -237,7 +237,7 @@ exports[`Unauthorized renders properly the grammar for different roles - Viewer 
   className="not-found"
 >
   <div
-    className="css-9ztktj-vertical-group"
+    className="css-8tu8mo-vertical-group"
     style={
       Object {
         "height": "100%",
@@ -246,7 +246,7 @@ exports[`Unauthorized renders properly the grammar for different roles - Viewer 
     }
   >
     <div
-      className="css-1ec9088-layoutChildrenWrapper"
+      className="css-qxdyop-layoutChildrenWrapper"
     >
       <h1
         className="title error-code"
@@ -264,7 +264,7 @@ exports[`Unauthorized renders properly the grammar for different roles - Viewer 
       </h1>
     </div>
     <div
-      className="css-1ec9088-layoutChildrenWrapper"
+      className="css-qxdyop-layoutChildrenWrapper"
     >
       <h4
         className="title"

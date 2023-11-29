@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+
+- Add options to customize table columns in AlertGroup page ([3281](https://github.com/grafana/oncall/pull/3281))
+
 ### Fixed
 
 - User profile UI tweaks ([#3443](https://github.com/grafana/oncall/pull/3443))
