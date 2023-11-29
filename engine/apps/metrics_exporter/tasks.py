@@ -5,6 +5,7 @@ from django.core.cache import cache
 from django.db.models import Count, Q
 
 from apps.alerts.constants import AlertGroupState
+from apps.alerts.models import AlertGroup
 from apps.metrics_exporter.constants import (
     METRICS_ORGANIZATIONS_IDS,
     METRICS_ORGANIZATIONS_IDS_CACHE_TIMEOUT,
@@ -209,3 +210,15 @@ def calculate_and_cache_user_was_notified_metric(organization_id):
     recalculate_timeout = get_metrics_recalculation_timeout()
     metrics_cache_timeout = recalculate_timeout + TWO_HOURS
     cache.set(metric_user_was_notified_key, metric_user_was_notified, timeout=metrics_cache_timeout)
+
+
+@shared_dedicated_queue_retry_task(
+    autoretry_for=(Exception,), retry_backoff=True, max_retries=1 if settings.DEBUG else None
+)
+def update_metrics_for_new_alert_group(alert_group_id):
+    alert_group = AlertGroup.objects.get(pk=alert_group_id)
+    if alert_group.is_maintenance_incident is True:
+        return
+    alert_group._update_metrics(
+        organization_id=alert_group.channel.organization_id, previous_state=None, state=AlertGroupState.FIRING
+    )

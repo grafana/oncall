@@ -11,8 +11,6 @@ from django.conf import settings
 from django.core.validators import MinLengthValidator
 from django.db import IntegrityError, models, transaction
 from django.db.models import JSONField, Q, QuerySet
-from django.db.models.signals import post_save
-from django.dispatch import receiver
 from django.utils import timezone
 from django.utils.functional import cached_property
 
@@ -1933,15 +1931,3 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
         """
         count = self.alerts.all()[: max_alerts + 1].count()
         return count > max_alerts
-
-
-@receiver(post_save, sender=AlertGroup)
-def listen_for_alertgroup_model_save(sender, instance, created, *args, **kwargs):
-    if created and not instance.is_maintenance_incident:
-        # Update alert group state and response time metrics cache
-        instance._update_metrics(
-            organization_id=instance.channel.organization_id, previous_state=None, state=AlertGroupState.FIRING
-        )
-
-
-post_save.connect(listen_for_alertgroup_model_save, AlertGroup)
