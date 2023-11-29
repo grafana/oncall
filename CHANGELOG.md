@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add options to customize table columns in AlertGroup page ([3281](https://github.com/grafana/oncall/pull/3281))
 
+### Changed
+
+- Upgrade to Python 3.12 by @joeyorlando ([TBD](https://github.com/grafana/oncall/pull/TBD))
+
 ### Fixed
 
 - User profile UI tweaks ([#3443](https://github.com/grafana/oncall/pull/3443))
@@ -26,9 +30,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Add ability to use Grafana Service Account Tokens for OnCall API (This is only enabled for resolution_notes
-endpoint currently) @mderynck ([#3189](https://github.com/grafana/oncall/pull/3189))
+  endpoint currently) @mderynck ([#3189](https://github.com/grafana/oncall/pull/3189))
 - Add ability for webhook presets to mask sensitive headers @mderynck
-([#3189](https://github.com/grafana/oncall/pull/3189))
+  ([#3189](https://github.com/grafana/oncall/pull/3189))
 
 ### Changed
 
@@ -37,7 +41,7 @@ endpoint currently) @mderynck ([#3189](https://github.com/grafana/oncall/pull/31
 ### Fixed
 
 - Fixed issue that blocked saving webhooks with presets if the preset is controlling the URL @mderynck
-([#3189](https://github.com/grafana/oncall/pull/3189))
+  ([#3189](https://github.com/grafana/oncall/pull/3189))
 - User filter doesn't display current value on Alert Groups page ([1714](https://github.com/grafana/oncall/issues/1714))
 - Remove displaying rotation modal for Terraform/API based schedules
 - Filters polishing ([3183](https://github.com/grafana/oncall/issues/3183))
