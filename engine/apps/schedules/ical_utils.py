@@ -79,7 +79,7 @@ def users_in_ical(
     organization : apps.user_management.models.organization.Organization
         The organization in question
     """
-    required_permission = RBACPermission.Permissions.SCHEDULES_WRITE
+    required_permission = RBACPermission.Permissions.NOTIFICATIONS_READ
 
     emails_from_ical = [username.lower() for username in usernames_from_ical]
 

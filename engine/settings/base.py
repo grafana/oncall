@@ -219,11 +219,11 @@ if REDIS_USE_SSL:
 # Cache
 CACHES = {
     "default": {
-        "BACKEND": "redis_cache.RedisCache",
+        "BACKEND": "django_redis.cache.RedisCache",
         "LOCATION": REDIS_URI,
         "OPTIONS": {
             "DB": REDIS_DATABASE,
-            "PARSER_CLASS": "redis.connection.HiredisParser",
+            "PARSER_CLASS": "redis.connection._HiredisParser",
             "CONNECTION_POOL_CLASS": "redis.BlockingConnectionPool",
             "CONNECTION_POOL_CLASS_KWARGS": REDIS_SSL_CONFIG
             | {
@@ -290,7 +290,7 @@ REST_FRAMEWORK = {
 }
 
 
-DRF_SPECTACULAR_ENABLED = getenv_boolean("DRF_SPECTACULAR_ENABLED", default=False)
+DRF_SPECTACULAR_ENABLED = getenv_boolean("DRF_SPECTACULAR_ENABLED", default=True)
 
 SPECTACULAR_SETTINGS = {
     "TITLE": "Grafana OnCall Private API",

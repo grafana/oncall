@@ -176,8 +176,26 @@ class GrafanaAPIClient(APIClient):
             avatarUrl: str
             memberCount: int
 
+        class GrafanaServiceAccount(typing.TypedDict):
+            id: int
+            name: str
+            login: str
+            orgId: int
+            isDisabled: bool
+            role: str
+            tokens: int
+            avatarUrl: str
+
+        class GrafanaServiceAccountToken(typing.TypedDict):
+            id: int
+            name: str
+            key: str
+
         class TeamsResponse(_BaseGrafanaAPIResponse):
             teams: typing.List["GrafanaAPIClient.Types.GrafanaTeam"]
+
+        class ServiceAccountResponse(_BaseGrafanaAPIResponse):
+            serviceAccounts: typing.List["GrafanaAPIClient.Types.GrafanaServiceAccount"]
 
     def __init__(self, api_url: str, api_token: str) -> None:
         super().__init__(api_url, api_token)
@@ -273,6 +291,25 @@ class GrafanaAPIClient(APIClient):
 
     def get_grafana_plugin_settings(self, recipient: str) -> APIClientResponse:
         return self.api_get(f"api/plugins/{recipient}/settings")
+
+    def get_service_account(self, login: str) -> APIClientResponse["GrafanaAPIClient.Types.ServiceAccountResponse"]:
+        return self.api_get(f"api/serviceaccounts/search?query={login}")
+
+    def create_service_account(
+        self, name: str, role: str
+    ) -> APIClientResponse["GrafanaAPIClient.Types.GrafanaServiceAccount"]:
+        return self.api_post("api/serviceaccounts", {"name": name, "role": role})
+
+    def create_service_account_token(
+        self, service_account_id: int, name: str, seconds_to_live=int | None
+    ) -> APIClientResponse["GrafanaAPIClient.Types.GrafanaServiceAccountToken"]:
+        token_config = {"name": name}
+        if seconds_to_live:
+            token_config["secondsToLive"] = seconds_to_live
+        return self.api_post(f"api/serviceaccounts/{service_account_id}/tokens", token_config)
+
+    def get_service_account_token_permissions(self) -> APIClientResponse[typing.Dict[str, typing.List[str]]]:
+        return self.api_get("api/access-control/user/permissions")
 
 
 class GcomAPIClient(APIClient):

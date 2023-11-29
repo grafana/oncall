@@ -268,3 +268,29 @@ tests:
       - failedTemplate:
           errorMessage: externalRabbitmq.host is required if not rabbitmq.enabled
         template: engine/job-migrate.yaml
+
+  - it: |
+      rabbitmq.enabled=false and migrate.useHook=>true -> should add "helm.sh/hook" annotations
+      to secret with rabbitmq credentials
+    templates:
+      - secrets.yaml
+    set:
+      migrate.useHook: true
+      broker.type: rabbitmq
+      rabbitmq.enabled: false
+      externalRabbitmq:
+        host: rabbitmq-host
+        user: user
+        password: password
+    asserts:
+      - containsDocument:
+          kind: Secret
+          apiVersion: v1
+          name: oncall-rabbitmq-external
+        documentIndex: 1
+      - isSubset:
+          path: metadata.annotations
+          content:
+            "helm.sh/hook": pre-install,pre-upgrade
+            "helm.sh/hook-weight": "-5"
+        documentIndex: 1

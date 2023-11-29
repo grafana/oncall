@@ -18,6 +18,7 @@ from apps.alerts.models import Alert, AlertGroup, AlertReceiveChannel, Escalatio
 from apps.alerts.paging import unpage_user
 from apps.alerts.tasks import delete_alert_group, send_update_resolution_note_signal
 from apps.api.errors import AlertGroupAPIError
+from apps.api.label_filtering import parse_label_query
 from apps.api.permissions import RBACPermission
 from apps.api.serializers.alert_group import AlertGroupListSerializer, AlertGroupSerializer
 from apps.api.serializers.team import TeamSerializer
@@ -27,12 +28,7 @@ from apps.labels.utils import is_labels_feature_enabled
 from apps.mobile_app.auth import MobileAppAuthTokenAuthentication
 from apps.user_management.models import Team, User
 from common.api_helpers.exceptions import BadRequest
-from common.api_helpers.filters import (
-    ByTeamModelFieldFilterMixin,
-    DateRangeFilterMixin,
-    ModelFieldFilterMixin,
-    TeamModelMultipleChoiceFilter,
-)
+from common.api_helpers.filters import NO_TEAM_VALUE, DateRangeFilterMixin, ModelFieldFilterMixin
 from common.api_helpers.mixins import PreviewTemplateMixin, PublicPrimaryKeyMixin, TeamFilteringMixin
 from common.api_helpers.paginators import TwentyFiveCursorPaginator
 
@@ -83,7 +79,7 @@ class AlertGroupFilterBackend(filters.DjangoFilterBackend):
         return filterset
 
 
-class AlertGroupFilter(DateRangeFilterMixin, ByTeamModelFieldFilterMixin, ModelFieldFilterMixin, filters.FilterSet):
+class AlertGroupFilter(DateRangeFilterMixin, ModelFieldFilterMixin, filters.FilterSet):
     """
     Examples of possible date formats here https://docs.djangoproject.com/en/1.9/ref/settings/#datetime-input-formats
     """
@@ -140,7 +136,6 @@ class AlertGroupFilter(DateRangeFilterMixin, ByTeamModelFieldFilterMixin, ModelF
     )
     with_resolution_note = filters.BooleanFilter(method="filter_with_resolution_note")
     mine = filters.BooleanFilter(method="filter_mine")
-    team = TeamModelMultipleChoiceFilter(field_name="channel__team")
 
     class Meta:
         model = AlertGroup
@@ -336,22 +331,28 @@ class AlertGroupView(
         if not ignore_filtering_by_available_teams:
             alert_receive_channels_qs = alert_receive_channels_qs.filter(*self.available_teams_lookup_args)
 
+        # Filter by team(s). Since we really filter teams from integrations, this is not an AlertGroup model filter.
+        # This is based on the common.api_helpers.ByTeamModelFieldFilterMixin implementation
+        team_values = self.request.query_params.getlist("team", [])
+        if team_values:
+            null_team_lookup = Q(team__isnull=True) if NO_TEAM_VALUE in team_values else None
+            teams_lookup = Q(team__public_primary_key__in=[ppk for ppk in team_values if ppk != NO_TEAM_VALUE])
+            if null_team_lookup:
+                teams_lookup = teams_lookup | null_team_lookup
+            alert_receive_channels_qs = alert_receive_channels_qs.filter(teams_lookup)
+
         alert_receive_channels_ids = list(alert_receive_channels_qs.values_list("id", flat=True))
         queryset = AlertGroup.objects.filter(channel__in=alert_receive_channels_ids)
 
-        # filter by labels
-        labels = self.request.query_params.getlist("label")
-        for label in labels:
-            label_split = label.split(":")
-            if len(label_split) != 2:
-                continue
-            key_name, value_name = label_split
-
+        # Filter by labels. Since alert group labels are "static" filter by names, not IDs.
+        label_query = self.request.query_params.getlist("label", [])
+        kv_pairs = parse_label_query(label_query)
+        for key, value in kv_pairs:
             # Utilize (organization, key_name, value_name, alert_group) index on AlertGroupAssociatedLabel
             queryset = queryset.filter(
                 labels__organization=self.request.auth.organization,
-                labels__key_name=key_name,
-                labels__value_name=value_name,
+                labels__key_name=key,
+                labels__value_name=value,
             )
 
         queryset = queryset.only("id")
