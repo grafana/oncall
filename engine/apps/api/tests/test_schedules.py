@@ -1610,7 +1610,7 @@ def test_related_escalation_chains(
     )
     # setup escalation chains linked to web schedule
     escalation_chains = []
-    for i in range(3):
+    for _ in range(3):
         chain = make_escalation_chain(user.organization)
         make_escalation_policy(
             escalation_chain=chain,

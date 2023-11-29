@@ -331,7 +331,7 @@ def test_create_schedules_same_name(make_organization_and_user_with_token):
         "time_zone": "UTC",
     }
 
-    for i in range(2):
+    for _ in range(2):
         response = client.post(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
         assert response.status_code == status.HTTP_201_CREATED
 

@@ -488,7 +488,7 @@ def parse_username_from_string(string: str) -> str:
     Example output:
     bob@company.com
     """
-    return re.sub(RE_PRIORITY, "", string.strip(), 1).strip()
+    return re.sub(RE_PRIORITY, "", string.strip(), count=1).strip()
 
 
 def parse_priority_from_string(string: str) -> int:

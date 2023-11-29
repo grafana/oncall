@@ -256,7 +256,7 @@ class Webhook(models.Model):
         elif self.http_method == "OPTIONS":
             r = requests.options(url, timeout=OUTGOING_WEBHOOK_TIMEOUT, **request_kwargs)
         else:
-            raise Exception(f"Unsupported http method: {self.http_method}")
+            raise ValueError(f"Unsupported http method: {self.http_method}")
         return r
 
     # Insight logs

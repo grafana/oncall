@@ -52,9 +52,9 @@ def test_integration_does_not_raise_exception_organization_moved(
 
     try:
         integration_view.dispatch(alert_channel_key=alert_receive_channel.token)
-        assert False
+        raise AssertionError()
     except OrganizationMovedException:
-        assert False
+        raise AssertionError()
     except Exception:
         assert True
 
@@ -83,7 +83,7 @@ def test_integration_raises_exception_organization_moved(
 
     try:
         integration_view.dispatch(alert_channel_key=alert_receive_channel.token)
-        assert False
+        raise AssertionError()
     except OrganizationMovedException as e:
         assert e.organization == organization
 
@@ -137,7 +137,7 @@ def test_api_token_does_not_raise_exception_organization_moved(
         api_auth.authenticate_credentials(token)
         assert True
     except OrganizationMovedException:
-        assert False
+        raise AssertionError()
 
 
 @pytest.mark.django_db
@@ -155,7 +155,7 @@ def test_api_token_raises_exception_organization_moved(
     try:
         api_auth = ApiTokenAuthentication()
         api_auth.authenticate_credentials(token)
-        assert False
+        raise AssertionError()
     except OrganizationMovedException as e:
         assert e.organization == organization
 
@@ -178,7 +178,7 @@ def test_schedule_export_token_does_not_raise_exception_organization_moved(
         schedule_auth.authenticate_credentials(token, schedule.public_primary_key)
         assert True
     except OrganizationMovedException:
-        assert False
+        raise AssertionError()
 
 
 @pytest.mark.django_db
@@ -198,7 +198,7 @@ def test_schedule_export_token_raises_exception_organization_moved(
     try:
         schedule_auth = ScheduleExportAuthentication()
         schedule_auth.authenticate_credentials(token, schedule.public_primary_key)
-        assert False
+        raise AssertionError()
     except OrganizationMovedException as e:
         assert e.organization == organization
 
@@ -218,7 +218,7 @@ def test_user_schedule_export_token_does_not_raise_exception_organization_moved(
         user_schedule_auth.authenticate_credentials(token, admin.public_primary_key)
         assert True
     except OrganizationMovedException:
-        assert False
+        raise AssertionError()
 
 
 @pytest.mark.django_db
@@ -236,7 +236,7 @@ def test_user_schedule_export_token_raises_exception_organization_moved(
     try:
         user_schedule_auth = UserScheduleExportAuthentication()
         user_schedule_auth.authenticate_credentials(token, admin.public_primary_key)
-        assert False
+        raise AssertionError()
     except OrganizationMovedException as e:
         assert e.organization == organization
 

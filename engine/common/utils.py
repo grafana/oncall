@@ -223,7 +223,7 @@ def urlize_with_respect_to_a(html):
     soup = BeautifulSoup(html, features="html.parser")
     textNodes = soup.find_all(string=True)
     for textNode in textNodes:
-        if textNode.parent and getattr(textNode.parent, "name") == "a":
+        if textNode.parent and getattr(textNode.parent, "name", None) == "a":
             continue
         urlizedText = urlize(textNode)
         textNode.replaceWith(BeautifulSoup(urlizedText, features="html.parser"))
