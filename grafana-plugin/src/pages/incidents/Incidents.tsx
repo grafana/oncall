@@ -633,16 +633,29 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
     );
   };
 
-  renderStartedAt(alert: AlertType) {
+  renderStartedAt = (alert: AlertType) => {
     const m = moment(alert.started_at);
+    const { isHorizontalScrolling } = this.state;
+
+    const date = m.format('MMM DD, YYYY');
+    const time = m.format('HH:mm');
+
+    if (isHorizontalScrolling) {
+      // display date as 1 line
+      return (
+        <Text type="secondary">
+          {date} {time}
+        </Text>
+      );
+    }
 
     return (
       <VerticalGroup spacing="none">
-        <Text type="secondary">{m.format('MMM DD, YYYY')}</Text>
-        <Text type="secondary">{m.format('HH:mm')}</Text>
+        <Text type="secondary">{date}</Text>
+        <Text type="secondary">{time}</Text>
       </VerticalGroup>
     );
-  }
+  };
 
   renderLabels = (item: AlertType) => {
     if (!item.labels.length) {

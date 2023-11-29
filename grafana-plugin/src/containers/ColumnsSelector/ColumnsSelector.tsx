@@ -109,7 +109,7 @@ export const ColumnsSelector: React.FC<ColumnsSelectorProps> = observer(
 
     const styles = useStyles2(getColumnsSelectorStyles);
 
-    const { columns } = alertGroupStore;
+    const { columns, isDefaultColumnOrder } = alertGroupStore;
 
     const visibleColumns = columns.filter((col) => col.isVisible);
     const hiddenColumns = columns
@@ -192,7 +192,7 @@ export const ColumnsSelector: React.FC<ColumnsSelectorProps> = observer(
             variant={'secondary'}
             tooltipPlacement="top"
             tooltip={'Reset table to default columns'}
-            disabled={isResetLoading}
+            disabled={isResetLoading || isDefaultColumnOrder}
             onClick={WrapAutoLoadingState(onReset, ActionKey.RESET_COLUMNS_FROM_ALERT_GROUP)}
           >
             {isResetLoading ? <LoadingPlaceholder text="Loading..." className="loadingPlaceholder" /> : 'Reset'}

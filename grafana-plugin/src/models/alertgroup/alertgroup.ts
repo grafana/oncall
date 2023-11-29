@@ -77,6 +77,9 @@ export class AlertGroupStore extends BaseStore {
   @observable
   columns: AGColumn[] = [];
 
+  @observable
+  isDefaultColumnOrder = false;
+
   constructor(rootStore: RootStore) {
     super(rootStore);
 
@@ -445,8 +448,9 @@ export class AlertGroupStore extends BaseStore {
   async fetchTableSettings(): Promise<void> {
     const tableSettings = await makeRequest('/alertgroup_table_settings', {});
 
-    const { hidden, visible } = tableSettings;
+    const { hidden, visible, default: isDefaultOrder } = tableSettings;
 
+    this.isDefaultColumnOrder = isDefaultOrder;
     this.columns = [
       ...visible.map((item: AGColumn): AGColumn => ({ ...item, isVisible: true })),
       ...hidden.map((item: AGColumn): AGColumn => ({ ...item, isVisible: false })),
@@ -461,10 +465,12 @@ export class AlertGroupStore extends BaseStore {
   ): Promise<void> {
     const method = isUserUpdate ? 'PUT' : 'POST';
 
-    await makeRequest('/alertgroup_table_settings', {
+    const { default: isDefaultOrder } = await makeRequest('/alertgroup_table_settings', {
       method,
       data: { ...columns },
     });
+
+    this.isDefaultColumnOrder = isDefaultOrder;
   }
 
   @action
