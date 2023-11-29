@@ -110,15 +110,7 @@ export class RootBaseStore {
   filtersStore = new FiltersStore(this);
   labelsStore = new LabelStore(this);
 
-  constructor() {
-    this.updateBasicData();
-    // defer loading master data as it's not used in first sec by user in order to prioritize fetching base data
-    setTimeout(() => {
-      this.loadMasterData();
-    }, 1000);
-  }
-
-  async updateBasicData() {
+  async loadBasicData() {
     const updateFeatures = async () => {
       await this.updateFeatures();
 

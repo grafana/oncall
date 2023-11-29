@@ -68,11 +68,21 @@ export const GrafanaPluginRootPage = (props: AppRootProps) => {
 };
 
 export const Root = observer((props: AppRootProps) => {
-  const { isBasicDataLoaded } = useStore();
+  const { isBasicDataLoaded, loadBasicData, loadMasterData } = useStore();
 
   const [pageTitle, setPageTitle] = useState('');
 
   const location = useLocation();
+
+  useEffect(() => {
+    loadBasicData();
+    // defer loading master data as it's not used in first sec by user in order to prioritize fetching base data
+    const timeout = setTimeout(() => {
+      loadMasterData();
+    }, 1000);
+
+    return () => clearTimeout(timeout);
+  }, []);
 
   useEffect(() => {
     let link = document.createElement('link');

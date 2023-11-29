@@ -59,7 +59,7 @@ export class UserStore extends BaseStore {
     return this.items[this.currentUserPk as User['pk']];
   }
 
-  @action.bound
+  @action
   async loadCurrentUser() {
     const response = await makeRequest('/user/', {});
     const timezone = await this.refreshTimezone(response.pk);
