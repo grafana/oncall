@@ -1,5 +1,6 @@
 import logging
 
+import requests
 from drf_spectacular.utils import extend_schema, inline_serializer
 from rest_framework.exceptions import NotFound
 from rest_framework.permissions import IsAuthenticated
@@ -137,7 +138,11 @@ class LabelsViewSet(LabelsFeatureFlagViewSet):
 
     def handle_exception(self, exc):
         if isinstance(exc, LabelsRepoAPIException):
+            logging.error(f'msg="LabelsViewSet: LabelRepo error: {exc}"')
             return Response({"message": exc.msg}, status=exc.status)
+        elif isinstance(exc, requests.RequestException):
+            logging.error(f'msg="LabelsViewSet: error while requesting LabelRepo: {exc}"')
+            return Response({"message": "Something went wrong"}, status=500)
         else:
             return super().handle_exception(exc)
 

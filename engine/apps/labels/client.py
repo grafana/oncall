@@ -11,7 +11,7 @@ if typing.TYPE_CHECKING:
 class LabelsRepoAPIException(Exception):
     """A generic 400 or 500 level exception from the Label Repo API"""
 
-    def __init__(self, status, url, msg="", code=None, method="GET", exc=None):
+    def __init__(self, status, url, msg="", method="GET"):
         self.url = url
         self.status = status
         self.method = method
@@ -19,6 +19,9 @@ class LabelsRepoAPIException(Exception):
         # Error-message returned by label repo.
         # If status is 400 level it will contain user-visible error message.
         self.msg = msg
+
+    def __str__(self):
+        return f"LabelsRepoAPIException: status={self.status} url={self.url} method={self.method}"
 
 
 TIMEOUT = 5
