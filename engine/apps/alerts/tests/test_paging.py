@@ -75,7 +75,7 @@ def test_direct_paging_user(make_organization, make_user_for_organization):
 
     # notifications sent
     for u, important in ((user, False), (other_user, True)):
-        assert notify_task.apply_async.called_with(
+        notify_task.apply_async.assert_called_with(
             (u.pk, ag.pk), {"important": important, "notify_even_acknowledged": True, "notify_anyway": True}
         )
         expected_info = {"user": u.public_primary_key, "important": important}
@@ -173,7 +173,7 @@ def test_direct_paging_reusing_alert_group(
 
     # notifications sent
     ag = alert_groups.get()
-    assert notify_task.apply_async.called_with(
+    notify_task.apply_async.assert_called_with(
         (user.pk, ag.pk), {"important": False, "notify_even_acknowledged": True, "notify_anyway": True}
     )
 
@@ -243,10 +243,10 @@ def test_direct_paging_always_create_group(make_organization, make_user_for_orga
     assert alert_groups.count() == 2
 
     # notifications sent
-    assert notify_task.apply_async.called_with(
+    notify_task.apply_async.assert_called_with(
         (user.pk, alert_groups[0].pk), {"important": False, "notify_even_acknowledged": True, "notify_anyway": True}
     )
-    assert notify_task.apply_async.called_with(
+    notify_task.apply_async.assert_called_with(
         (user.pk, alert_groups[1].pk), {"important": False, "notify_even_acknowledged": True, "notify_anyway": True}
     )
 
