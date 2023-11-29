@@ -4,6 +4,7 @@ import pytest
 from django.core.cache import cache
 from django.test import override_settings
 
+from apps.alerts.signals import alert_group_created_signal
 from apps.alerts.tasks import notify_user_task
 from apps.base.models import UserNotificationPolicy, UserNotificationPolicyLogRecord
 from apps.metrics_exporter.helpers import (
@@ -22,6 +23,12 @@ from apps.metrics_exporter.tests.conftest import (
 )
 
 
+@pytest.fixture
+def mock_apply_async(monkeypatch):
+    """Override 'mock_apply_async' fixture"""
+    return
+
+
 @patch("apps.alerts.models.alert_group_log_record.tasks.send_update_log_report_signal.apply_async")
 @patch("apps.alerts.models.alert_group.alert_group_action_triggered_signal.send")
 @pytest.mark.django_db
@@ -29,6 +36,7 @@ from apps.metrics_exporter.tests.conftest import (
 def test_update_metric_alert_groups_total_cache_on_action(
     mocked_send_log_signal,
     mocked_action_signal_send,
+    mock_apply_async,
     make_organization,
     make_user_for_organization,
     make_alert_receive_channel,
@@ -106,6 +114,8 @@ def test_update_metric_alert_groups_total_cache_on_action(
         arg_idx = 0
         alert_group = make_alert_group(alert_receive_channel)
         make_alert(alert_group=alert_group, raw_request_data={})
+        # this signal is normally called in get_or_create_grouping on create alert
+        alert_group_created_signal.send(sender=alert_group.__class__, alert_group=alert_group)
 
         # check alert_groups_total metric cache, get called args
         mock_cache_set_called_args = mock_cache_set.call_args_list
@@ -137,6 +147,7 @@ def test_update_metric_alert_groups_total_cache_on_action(
 def test_update_metric_alert_groups_response_time_cache_on_action(
     mocked_send_log_signal,
     mocked_action_signal_send,
+    mock_apply_async,
     make_organization,
     make_user_for_organization,
     make_alert_receive_channel,
@@ -461,6 +472,7 @@ def test_update_metrics_cache_on_update_team(
 @pytest.mark.django_db
 def test_update_metrics_cache_on_user_notification(
     mocked_perform_notification_task,
+    mock_apply_async,
     make_organization,
     make_user_for_organization,
     make_alert_receive_channel,

@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Add options to customize table columns in AlertGroup page ([3281](https://github.com/grafana/oncall/pull/3281))
 - Add proxying capabilities for the OnCall mobile API by @joeyorlando ([#3449](https://github.com/grafana/oncall/pull/3449))
 
 ### Fixed
