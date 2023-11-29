@@ -43,6 +43,29 @@ def test_plugin_authentication_gcom_success(make_organization, make_user, make_t
 
 
 @pytest.mark.django_db
+def test_plugin_authentication_gcom_success_big_ids(make_organization, make_user, make_token_for_organization):
+    # Setting gcom_token_org_last_time_synced to now, so it doesn't try to sync with gcom
+    organization = make_organization(
+        stack_id=1000432, org_id=2000432, gcom_token="123", gcom_token_org_last_time_synced=timezone.now()
+    )
+    user = make_user(organization=organization, user_id=12)
+
+    headers = {
+        "HTTP_AUTHORIZATION": "gcom:123",
+        # we get values using scientific notation for big integers
+        "HTTP_X-Instance-Context": '{{"stack_id": "{:e}", "org_id": "{:e}"}}'.format(
+            organization.stack_id, organization.org_id
+        ),
+        "HTTP_X-Grafana-Context": '{"UserId": 12}',
+    }
+    request = APIRequestFactory().get("/", **headers)
+
+    ret_user, ret_token = PluginAuthentication().authenticate(request)
+    assert ret_user == user
+    assert ret_token.organization == organization
+
+
+@pytest.mark.django_db
 @pytest.mark.parametrize("grafana_context", [None, "", "non-json", '"string"', "{}", '{"UserId": 1}'])
 def test_plugin_authentication_fail_grafana_context(
     make_organization, make_user, make_token_for_organization, grafana_context

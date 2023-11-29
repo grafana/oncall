@@ -89,6 +89,12 @@ class BasePluginAuthentication(BaseAuthentication):
             raise exceptions.AuthenticationFailed("Invalid instance context.")
 
         try:
+            context["stack_id"] = int(float(context["stack_id"]))
+            context["org_id"] = int(float(context["org_id"]))
+        except ValueError:
+            raise exceptions.AuthenticationFailed("Invalid instance context.")
+
+        try:
             auth_token = check_token(token_string, context=context)
             if not auth_token.organization:
                 raise exceptions.AuthenticationFailed("No organization associated with token.")
