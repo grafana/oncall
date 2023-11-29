@@ -3,12 +3,12 @@
 exports[`DisconnectButton it renders properly 1`] = `
 <div>
   <button
-    class="css-1ed0qk5-button disconnect-button"
+    class="css-ttl745-button disconnect-button"
     data-testid="test__disconnect"
     type="button"
   >
     <span
-      class="css-1mhnkuh"
+      class="css-1riaxdn"
     >
       Disconnect
     </span>

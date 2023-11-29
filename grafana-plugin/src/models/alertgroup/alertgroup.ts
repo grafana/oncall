@@ -3,6 +3,7 @@ import qs from 'query-string';
 
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import BaseStore from 'models/base_store';
+import { ActionKey } from 'models/loader/action-keys';
 import { User } from 'models/user/user.types';
 import { makeRequest } from 'network';
 import { ApiSchemas } from 'network/oncall-api/api.types';
@@ -11,8 +12,9 @@ import { RootStore } from 'state';
 import { SelectOption } from 'state/types';
 import { openErrorNotification, refreshPageError, showApiError } from 'utils';
 import LocationHelper from 'utils/LocationHelper';
+import { AutoLoadingState } from 'utils/decorators';
 
-import { Alert, AlertAction, IncidentStatus } from './alertgroup.types';
+import { AlertGroupColumn, Alert, AlertAction, IncidentStatus } from './alertgroup.types';
 
 export class AlertGroupStore extends BaseStore {
   @observable.shallow
@@ -68,6 +70,12 @@ export class AlertGroupStore extends BaseStore {
 
   @observable
   liveUpdatesPaused = false;
+
+  @observable
+  columns: AlertGroupColumn[] = [];
+
+  @observable
+  isDefaultColumnOrder = false;
 
   constructor(rootStore: RootStore) {
     super(rootStore);
@@ -429,21 +437,64 @@ export class AlertGroupStore extends BaseStore {
   }
 
   @action
-  public async loadLabelsKeys() {
-    return await makeRequest(`/alertgroups/labels/keys/`, {});
+  async fetchTableSettings(): Promise<void> {
+    const tableSettings = await makeRequest('/alertgroup_table_settings', {});
+
+    const { hidden, visible, default: isDefaultOrder } = tableSettings;
+
+    this.isDefaultColumnOrder = isDefaultOrder;
+    this.columns = [
+      ...visible.map((item: AlertGroupColumn): AlertGroupColumn => ({ ...item, isVisible: true })),
+      ...hidden.map((item: AlertGroupColumn): AlertGroupColumn => ({ ...item, isVisible: false })),
+    ];
   }
 
   @action
-  public async loadValuesForLabelKey(key: ApiSchemas['LabelKey']['id'], search = '') {
+  @AutoLoadingState(ActionKey.ADD_NEW_COLUMN_TO_ALERT_GROUP)
+  async updateTableSettings(
+    columns: { visible: AlertGroupColumn[]; hidden: AlertGroupColumn[] },
+    isUserUpdate: boolean
+  ): Promise<void> {
+    const method = isUserUpdate ? 'PUT' : 'POST';
+
+    const { default: isDefaultOrder } = await makeRequest('/alertgroup_table_settings', {
+      method,
+      data: { ...columns },
+    });
+
+    this.isDefaultColumnOrder = isDefaultOrder;
+  }
+
+  @action
+  async resetTableSettings(): Promise<void> {
+    return await makeRequest('/alertgroup_table_settings/reset', { method: 'POST' }).catch(() =>
+      openErrorNotification('There was an error resetting the table settings')
+    );
+  }
+
+  @action
+  async loadLabelsKeys(): Promise<Array<ApiSchemas['LabelKey']>> {
+    return await makeRequest(`/alertgroups/labels/keys/`, {}).catch(() =>
+      openErrorNotification('There was an error processing your request')
+    );
+  }
+
+  @action
+  async loadValuesForLabelKey(
+    key: ApiSchemas['LabelKey']['id'],
+    search = ''
+  ): Promise<{ key: ApiSchemas['LabelKey']; values: Array<ApiSchemas['LabelValue']> }> {
     if (!key) {
-      return [];
+      return { key: undefined, values: [] };
     }
 
     const result = await makeRequest(`/alertgroups/labels/id/${key}`, {
       params: { search },
     });
 
-    const filteredValues = result.values.filter((v) => v.name.toLowerCase().includes(search.toLowerCase())); // TODO remove after backend search implementation
+    const filteredValues = result.values.filter((v: ApiSchemas['LabelValue']) =>
+      v.name.toLowerCase().includes(search.toLowerCase())
+    );
 
     return { ...result, values: filteredValues };
   }

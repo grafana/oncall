@@ -3,11 +3,11 @@
 exports[`MobileAppConnection if we disconnect the app, it disconnects and fetches a new QR code 1`] = `
 <div>
   <div
-    class="css-1j7sh2x-vertical-group"
+    class="css-gjl87o-vertical-group"
     style="width: 100%; height: 100%;"
   >
     <div
-      class="css-bxa289-layoutChildrenWrapper"
+      class="css-gxt817-layoutChildrenWrapper"
     >
       <div
         class="container"
@@ -16,11 +16,11 @@ exports[`MobileAppConnection if we disconnect the app, it disconnects and fetche
           class="root root_bordered root_shadowed root--withBackGround container__box"
         >
           <div
-            class="css-1j7sh2x-vertical-group"
+            class="css-gjl87o-vertical-group"
             style="width: 100%; height: 100%;"
           >
             <div
-              class="css-ztyofd-layoutChildrenWrapper"
+              class="css-12oo3x0-layoutChildrenWrapper"
             >
               <span
                 class="root text text--primary text--medium text--strong"
@@ -29,7 +29,7 @@ exports[`MobileAppConnection if we disconnect the app, it disconnects and fetche
               </span>
             </div>
             <div
-              class="css-ztyofd-layoutChildrenWrapper"
+              class="css-12oo3x0-layoutChildrenWrapper"
             >
               <span
                 class="root text text--primary text--medium"
@@ -38,14 +38,14 @@ exports[`MobileAppConnection if we disconnect the app, it disconnects and fetche
               </span>
             </div>
             <div
-              class="css-ztyofd-layoutChildrenWrapper"
+              class="css-12oo3x0-layoutChildrenWrapper"
             >
               <div
-                class="css-1j7sh2x-vertical-group"
+                class="css-gjl87o-vertical-group"
                 style="width: 100%; height: 100%;"
               >
                 <div
-                  class="css-bxa289-layoutChildrenWrapper"
+                  class="css-gxt817-layoutChildrenWrapper"
                 >
                   <a
                     href="https://apps.apple.com/us/app/grafana-oncall-preview/id1669759048"
@@ -70,7 +70,7 @@ exports[`MobileAppConnection if we disconnect the app, it disconnects and fetche
                   </a>
                 </div>
                 <div
-                  class="css-bxa289-layoutChildrenWrapper"
+                  class="css-gxt817-layoutChildrenWrapper"
                 >
                   <a
                     href="https://play.google.com/store/apps/details?id=com.grafana.oncall.prod"
@@ -102,11 +102,11 @@ exports[`MobileAppConnection if we disconnect the app, it disconnects and fetche
           class="root root_bordered root_shadowed root--withBackGround container__box"
         >
           <div
-            class="css-1j7sh2x-vertical-group"
+            class="css-gjl87o-vertical-group"
             style="width: 100%; height: 100%;"
           >
             <div
-              class="css-ztyofd-layoutChildrenWrapper"
+              class="css-12oo3x0-layoutChildrenWrapper"
             >
               <span
                 class="root text text--primary text--medium text--strong"
@@ -115,7 +115,7 @@ exports[`MobileAppConnection if we disconnect the app, it disconnects and fetche
               </span>
             </div>
             <div
-              class="css-ztyofd-layoutChildrenWrapper"
+              class="css-12oo3x0-layoutChildrenWrapper"
             >
               <span
                 class="root text text--primary text--medium"
@@ -124,7 +124,7 @@ exports[`MobileAppConnection if we disconnect the app, it disconnects and fetche
               </span>
             </div>
             <div
-              class="css-ztyofd-layoutChildrenWrapper"
+              class="css-12oo3x0-layoutChildrenWrapper"
             >
               <div
                 class="u-width-100 u-flex u-flex-center u-position-relative"
@@ -162,11 +162,11 @@ exports[`MobileAppConnection if we disconnect the app, it disconnects and fetche
 exports[`MobileAppConnection it shows a QR code if the app isn't already connected 1`] = `
 <div>
   <div
-    class="css-1j7sh2x-vertical-group"
+    class="css-gjl87o-vertical-group"
     style="width: 100%; height: 100%;"
   >
     <div
-      class="css-bxa289-layoutChildrenWrapper"
+      class="css-gxt817-layoutChildrenWrapper"
     >
       <div
         class="container"
@@ -175,11 +175,11 @@ exports[`MobileAppConnection it shows a QR code if the app isn't already connect
           class="root root_bordered root_shadowed root--withBackGround container__box"
         >
           <div
-            class="css-1j7sh2x-vertical-group"
+            class="css-gjl87o-vertical-group"
             style="width: 100%; height: 100%;"
           >
             <div
-              class="css-ztyofd-layoutChildrenWrapper"
+              class="css-12oo3x0-layoutChildrenWrapper"
             >
               <span
                 class="root text text--primary text--medium text--strong"
@@ -188,7 +188,7 @@ exports[`MobileAppConnection it shows a QR code if the app isn't already connect
               </span>
             </div>
             <div
-              class="css-ztyofd-layoutChildrenWrapper"
+              class="css-12oo3x0-layoutChildrenWrapper"
             >
               <span
                 class="root text text--primary text--medium"
@@ -197,14 +197,14 @@ exports[`MobileAppConnection it shows a QR code if the app isn't already connect
               </span>
             </div>
             <div
-              class="css-ztyofd-layoutChildrenWrapper"
+              class="css-12oo3x0-layoutChildrenWrapper"
             >
               <div
-                class="css-1j7sh2x-vertical-group"
+                class="css-gjl87o-vertical-group"
                 style="width: 100%; height: 100%;"
               >
                 <div
-                  class="css-bxa289-layoutChildrenWrapper"
+                  class="css-gxt817-layoutChildrenWrapper"
                 >
                   <a
                     href="https://apps.apple.com/us/app/grafana-oncall-preview/id1669759048"
@@ -229,7 +229,7 @@ exports[`MobileAppConnection it shows a QR code if the app isn't already connect
                   </a>
                 </div>
                 <div
-                  class="css-bxa289-layoutChildrenWrapper"
+                  class="css-gxt817-layoutChildrenWrapper"
                 >
                   <a
                     href="https://play.google.com/store/apps/details?id=com.grafana.oncall.prod"
@@ -261,15 +261,16 @@ exports[`MobileAppConnection it shows a QR code if the app isn't already connect
           class="root root_bordered root_shadowed root--withBackGround container__box"
         >
           <div
-            class="css-lq6a48"
+            class="css-1yjvs5a"
           >
             Loading...
              
             <div
-              class="css-13pg8vy"
+              class="css-1tqtz24"
               data-testid="Spinner"
             >
               <i
+                aria-label="loading spinner"
                 class="fa fa-spinner fa-spin fa-spin"
               />
             </div>
@@ -284,11 +285,11 @@ exports[`MobileAppConnection it shows a QR code if the app isn't already connect
 exports[`MobileAppConnection it shows a loading message if it is currently disconnecting 1`] = `
 <div>
   <div
-    class="css-1j7sh2x-vertical-group"
+    class="css-gjl87o-vertical-group"
     style="width: 100%; height: 100%;"
   >
     <div
-      class="css-bxa289-layoutChildrenWrapper"
+      class="css-gxt817-layoutChildrenWrapper"
     >
       <div
         class="container"
@@ -297,11 +298,11 @@ exports[`MobileAppConnection it shows a loading message if it is currently disco
           class="root root_bordered root_shadowed root--withBackGround container__box"
         >
           <div
-            class="css-1j7sh2x-vertical-group"
+            class="css-gjl87o-vertical-group"
             style="width: 100%; height: 100%;"
           >
             <div
-              class="css-ztyofd-layoutChildrenWrapper"
+              class="css-12oo3x0-layoutChildrenWrapper"
             >
               <span
                 class="root text text--primary text--medium text--strong"
@@ -310,7 +311,7 @@ exports[`MobileAppConnection it shows a loading message if it is currently disco
               </span>
             </div>
             <div
-              class="css-ztyofd-layoutChildrenWrapper"
+              class="css-12oo3x0-layoutChildrenWrapper"
             >
               <span
                 class="root text text--primary text--medium"
@@ -319,14 +320,14 @@ exports[`MobileAppConnection it shows a loading message if it is currently disco
               </span>
             </div>
             <div
-              class="css-ztyofd-layoutChildrenWrapper"
+              class="css-12oo3x0-layoutChildrenWrapper"
             >
               <div
-                class="css-1j7sh2x-vertical-group"
+                class="css-gjl87o-vertical-group"
                 style="width: 100%; height: 100%;"
               >
                 <div
-                  class="css-bxa289-layoutChildrenWrapper"
+                  class="css-gxt817-layoutChildrenWrapper"
                 >
                   <a
                     href="https://apps.apple.com/us/app/grafana-oncall-preview/id1669759048"
@@ -351,7 +352,7 @@ exports[`MobileAppConnection it shows a loading message if it is currently disco
                   </a>
                 </div>
                 <div
-                  class="css-bxa289-layoutChildrenWrapper"
+                  class="css-gxt817-layoutChildrenWrapper"
                 >
                   <a
                     href="https://play.google.com/store/apps/details?id=com.grafana.oncall.prod"
@@ -383,15 +384,16 @@ exports[`MobileAppConnection it shows a loading message if it is currently disco
           class="root root_bordered root_shadowed root--withBackGround container__box"
         >
           <div
-            class="css-lq6a48"
+            class="css-1yjvs5a"
           >
             Loading...
              
             <div
-              class="css-13pg8vy"
+              class="css-1tqtz24"
               data-testid="Spinner"
             >
               <i
+                aria-label="loading spinner"
                 class="fa fa-spinner fa-spin fa-spin"
               />
             </div>
@@ -406,11 +408,11 @@ exports[`MobileAppConnection it shows a loading message if it is currently disco
 exports[`MobileAppConnection it shows a loading message if it is currently fetching the QR code 1`] = `
 <div>
   <div
-    class="css-1j7sh2x-vertical-group"
+    class="css-gjl87o-vertical-group"
     style="width: 100%; height: 100%;"
   >
     <div
-      class="css-bxa289-layoutChildrenWrapper"
+      class="css-gxt817-layoutChildrenWrapper"
     >
       <div
         class="container"
@@ -419,11 +421,11 @@ exports[`MobileAppConnection it shows a loading message if it is currently fetch
           class="root root_bordered root_shadowed root--withBackGround container__box"
         >
           <div
-            class="css-1j7sh2x-vertical-group"
+            class="css-gjl87o-vertical-group"
             style="width: 100%; height: 100%;"
           >
             <div
-              class="css-ztyofd-layoutChildrenWrapper"
+              class="css-12oo3x0-layoutChildrenWrapper"
             >
               <span
                 class="root text text--primary text--medium text--strong"
@@ -432,7 +434,7 @@ exports[`MobileAppConnection it shows a loading message if it is currently fetch
               </span>
             </div>
             <div
-              class="css-ztyofd-layoutChildrenWrapper"
+              class="css-12oo3x0-layoutChildrenWrapper"
             >
               <span
                 class="root text text--primary text--medium"
@@ -441,14 +443,14 @@ exports[`MobileAppConnection it shows a loading message if it is currently fetch
               </span>
             </div>
             <div
-              class="css-ztyofd-layoutChildrenWrapper"
+              class="css-12oo3x0-layoutChildrenWrapper"
             >
               <div
-                class="css-1j7sh2x-vertical-group"
+                class="css-gjl87o-vertical-group"
                 style="width: 100%; height: 100%;"
               >
                 <div
-                  class="css-bxa289-layoutChildrenWrapper"
+                  class="css-gxt817-layoutChildrenWrapper"
                 >
                   <a
                     href="https://apps.apple.com/us/app/grafana-oncall-preview/id1669759048"
@@ -473,7 +475,7 @@ exports[`MobileAppConnection it shows a loading message if it is currently fetch
                   </a>
                 </div>
                 <div
-                  class="css-bxa289-layoutChildrenWrapper"
+                  class="css-gxt817-layoutChildrenWrapper"
                 >
                   <a
                     href="https://play.google.com/store/apps/details?id=com.grafana.oncall.prod"
@@ -505,15 +507,16 @@ exports[`MobileAppConnection it shows a loading message if it is currently fetch
           class="root root_bordered root_shadowed root--withBackGround container__box"
         >
           <div
-            class="css-lq6a48"
+            class="css-1yjvs5a"
           >
             Loading...
              
             <div
-              class="css-13pg8vy"
+              class="css-1tqtz24"
               data-testid="Spinner"
             >
               <i
+                aria-label="loading spinner"
                 class="fa fa-spinner fa-spin fa-spin"
               />
             </div>
@@ -528,11 +531,11 @@ exports[`MobileAppConnection it shows a loading message if it is currently fetch
 exports[`MobileAppConnection it shows a message when the mobile app is already connected 1`] = `
 <div>
   <div
-    class="css-1j7sh2x-vertical-group"
+    class="css-gjl87o-vertical-group"
     style="width: 100%; height: 100%;"
   >
     <div
-      class="css-bxa289-layoutChildrenWrapper"
+      class="css-gxt817-layoutChildrenWrapper"
     >
       <div
         class="container"
@@ -541,11 +544,11 @@ exports[`MobileAppConnection it shows a message when the mobile app is already c
           class="root root_bordered root_shadowed root--withBackGround container__box"
         >
           <div
-            class="css-1j7sh2x-vertical-group"
+            class="css-gjl87o-vertical-group"
             style="width: 100%; height: 100%;"
           >
             <div
-              class="css-ztyofd-layoutChildrenWrapper"
+              class="css-12oo3x0-layoutChildrenWrapper"
             >
               <span
                 class="root text text--primary text--medium text--strong"
@@ -554,7 +557,7 @@ exports[`MobileAppConnection it shows a message when the mobile app is already c
               </span>
             </div>
             <div
-              class="css-ztyofd-layoutChildrenWrapper"
+              class="css-12oo3x0-layoutChildrenWrapper"
             >
               <span
                 class="root text text--primary text--medium"
@@ -563,14 +566,14 @@ exports[`MobileAppConnection it shows a message when the mobile app is already c
               </span>
             </div>
             <div
-              class="css-ztyofd-layoutChildrenWrapper"
+              class="css-12oo3x0-layoutChildrenWrapper"
             >
               <div
-                class="css-1j7sh2x-vertical-group"
+                class="css-gjl87o-vertical-group"
                 style="width: 100%; height: 100%;"
               >
                 <div
-                  class="css-bxa289-layoutChildrenWrapper"
+                  class="css-gxt817-layoutChildrenWrapper"
                 >
                   <a
                     href="https://apps.apple.com/us/app/grafana-oncall-preview/id1669759048"
@@ -595,7 +598,7 @@ exports[`MobileAppConnection it shows a message when the mobile app is already c
                   </a>
                 </div>
                 <div
-                  class="css-bxa289-layoutChildrenWrapper"
+                  class="css-gxt817-layoutChildrenWrapper"
                 >
                   <a
                     href="https://play.google.com/store/apps/details?id=com.grafana.oncall.prod"
@@ -627,35 +630,23 @@ exports[`MobileAppConnection it shows a message when the mobile app is already c
           class="root root_bordered root_shadowed root--withBackGround container__box"
         >
           <div
-            class="css-1j7sh2x-vertical-group"
+            class="css-gjl87o-vertical-group"
             style="width: 100%; height: 100%;"
           >
             <div
-              class="css-ztyofd-layoutChildrenWrapper"
+              class="css-12oo3x0-layoutChildrenWrapper"
             >
               <span
                 class="root text text--primary text--medium text--strong"
               >
                 App connected 
                 <div
-                  class="css-wf08df-Icon"
-                >
-                  <svg
-                    class="css-eyx4do icon"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    width="16"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M14.72,8.79l-4.29,4.3L8.78,11.44a1,1,0,1,0-1.41,1.41l2.35,2.36a1,1,0,0,0,.71.29,1,1,0,0,0,.7-.29l5-5a1,1,0,0,0,0-1.42A1,1,0,0,0,14.72,8.79ZM12,2A10,10,0,1,0,22,12,10,10,0,0,0,12,2Zm0,18a8,8,0,1,1,8-8A8,8,0,0,1,12,20Z"
-                    />
-                  </svg>
-                </div>
+                  class="css-1j2891d-Icon"
+                />
               </span>
             </div>
             <div
-              class="css-ztyofd-layoutChildrenWrapper"
+              class="css-12oo3x0-layoutChildrenWrapper"
             >
               <span
                 class="root text text--primary text--medium"
@@ -664,7 +655,7 @@ exports[`MobileAppConnection it shows a message when the mobile app is already c
               </span>
             </div>
             <div
-              class="css-ztyofd-layoutChildrenWrapper"
+              class="css-12oo3x0-layoutChildrenWrapper"
             >
               <div
                 class="disconnect__container"
@@ -674,12 +665,12 @@ exports[`MobileAppConnection it shows a message when the mobile app is already c
                   src="[object Object]"
                 />
                 <button
-                  class="css-1ed0qk5-button disconnect-button"
+                  class="css-ttl745-button disconnect-button"
                   data-testid="test__disconnect"
                   type="button"
                 >
                   <span
-                    class="css-1mhnkuh"
+                    class="css-1riaxdn"
                   >
                     Disconnect
                   </span>
@@ -697,11 +688,11 @@ exports[`MobileAppConnection it shows a message when the mobile app is already c
 exports[`MobileAppConnection it shows a warning when cloud is not connected 1`] = `
 <div>
   <div
-    class="css-1j7sh2x-vertical-group"
+    class="css-gjl87o-vertical-group"
     style="width: 100%; height: 100%;"
   >
     <div
-      class="css-ztyofd-layoutChildrenWrapper"
+      class="css-12oo3x0-layoutChildrenWrapper"
     >
       <span
         class="root text text--secondary text--medium"
@@ -710,33 +701,21 @@ exports[`MobileAppConnection it shows a warning when cloud is not connected 1`] 
       </span>
     </div>
     <div
-      class="css-ztyofd-layoutChildrenWrapper"
+      class="css-12oo3x0-layoutChildrenWrapper"
     >
       <a
         class="root"
         href="/a/grafana-oncall-app/cloud"
       >
         <button
-          class="css-b2ba3d-button"
+          class="css-8b29hm-button"
           type="button"
         >
           <div
-            class="css-wf08df-Icon"
-          >
-            <svg
-              class="css-1gebccs"
-              height="16"
-              viewBox="0 0 24 24"
-              width="16"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M18,10.82a1,1,0,0,0-1,1V19a1,1,0,0,1-1,1H5a1,1,0,0,1-1-1V8A1,1,0,0,1,5,7h7.18a1,1,0,0,0,0-2H5A3,3,0,0,0,2,8V19a3,3,0,0,0,3,3H16a3,3,0,0,0,3-3V11.82A1,1,0,0,0,18,10.82Zm3.92-8.2a1,1,0,0,0-.54-.54A1,1,0,0,0,21,2H15a1,1,0,0,0,0,2h3.59L8.29,14.29a1,1,0,0,0,0,1.42,1,1,0,0,0,1.42,0L20,5.41V9a1,1,0,0,0,2,0V3A1,1,0,0,0,21.92,2.62Z"
-              />
-            </svg>
-          </div>
+            class="css-1j2891d-Icon"
+          />
           <span
-            class="css-1mhnkuh"
+            class="css-1riaxdn"
           >
             Connect Grafana Cloud OnCall
           </span>
@@ -750,11 +729,11 @@ exports[`MobileAppConnection it shows a warning when cloud is not connected 1`] 
 exports[`MobileAppConnection it shows an error message if there was an error disconnecting the mobile app 1`] = `
 <div>
   <div
-    class="css-1j7sh2x-vertical-group"
+    class="css-gjl87o-vertical-group"
     style="width: 100%; height: 100%;"
   >
     <div
-      class="css-bxa289-layoutChildrenWrapper"
+      class="css-gxt817-layoutChildrenWrapper"
     >
       <div
         class="container"
@@ -763,11 +742,11 @@ exports[`MobileAppConnection it shows an error message if there was an error dis
           class="root root_bordered root_shadowed root--withBackGround container__box"
         >
           <div
-            class="css-1j7sh2x-vertical-group"
+            class="css-gjl87o-vertical-group"
             style="width: 100%; height: 100%;"
           >
             <div
-              class="css-ztyofd-layoutChildrenWrapper"
+              class="css-12oo3x0-layoutChildrenWrapper"
             >
               <span
                 class="root text text--primary text--medium text--strong"
@@ -776,7 +755,7 @@ exports[`MobileAppConnection it shows an error message if there was an error dis
               </span>
             </div>
             <div
-              class="css-ztyofd-layoutChildrenWrapper"
+              class="css-12oo3x0-layoutChildrenWrapper"
             >
               <span
                 class="root text text--primary text--medium"
@@ -785,14 +764,14 @@ exports[`MobileAppConnection it shows an error message if there was an error dis
               </span>
             </div>
             <div
-              class="css-ztyofd-layoutChildrenWrapper"
+              class="css-12oo3x0-layoutChildrenWrapper"
             >
               <div
-                class="css-1j7sh2x-vertical-group"
+                class="css-gjl87o-vertical-group"
                 style="width: 100%; height: 100%;"
               >
                 <div
-                  class="css-bxa289-layoutChildrenWrapper"
+                  class="css-gxt817-layoutChildrenWrapper"
                 >
                   <a
                     href="https://apps.apple.com/us/app/grafana-oncall-preview/id1669759048"
@@ -817,7 +796,7 @@ exports[`MobileAppConnection it shows an error message if there was an error dis
                   </a>
                 </div>
                 <div
-                  class="css-bxa289-layoutChildrenWrapper"
+                  class="css-gxt817-layoutChildrenWrapper"
                 >
                   <a
                     href="https://play.google.com/store/apps/details?id=com.grafana.oncall.prod"
@@ -863,11 +842,11 @@ exports[`MobileAppConnection it shows an error message if there was an error dis
 exports[`MobileAppConnection it shows an error message if there was an error fetching the QR code 1`] = `
 <div>
   <div
-    class="css-1j7sh2x-vertical-group"
+    class="css-gjl87o-vertical-group"
     style="width: 100%; height: 100%;"
   >
     <div
-      class="css-bxa289-layoutChildrenWrapper"
+      class="css-gxt817-layoutChildrenWrapper"
     >
       <div
         class="container"
@@ -876,11 +855,11 @@ exports[`MobileAppConnection it shows an error message if there was an error fet
           class="root root_bordered root_shadowed root--withBackGround container__box"
         >
           <div
-            class="css-1j7sh2x-vertical-group"
+            class="css-gjl87o-vertical-group"
             style="width: 100%; height: 100%;"
           >
             <div
-              class="css-ztyofd-layoutChildrenWrapper"
+              class="css-12oo3x0-layoutChildrenWrapper"
             >
               <span
                 class="root text text--primary text--medium text--strong"
@@ -889,7 +868,7 @@ exports[`MobileAppConnection it shows an error message if there was an error fet
               </span>
             </div>
             <div
-              class="css-ztyofd-layoutChildrenWrapper"
+              class="css-12oo3x0-layoutChildrenWrapper"
             >
               <span
                 class="root text text--primary text--medium"
@@ -898,14 +877,14 @@ exports[`MobileAppConnection it shows an error message if there was an error fet
               </span>
             </div>
             <div
-              class="css-ztyofd-layoutChildrenWrapper"
+              class="css-12oo3x0-layoutChildrenWrapper"
             >
               <div
-                class="css-1j7sh2x-vertical-group"
+                class="css-gjl87o-vertical-group"
                 style="width: 100%; height: 100%;"
               >
                 <div
-                  class="css-bxa289-layoutChildrenWrapper"
+                  class="css-gxt817-layoutChildrenWrapper"
                 >
                   <a
                     href="https://apps.apple.com/us/app/grafana-oncall-preview/id1669759048"
@@ -930,7 +909,7 @@ exports[`MobileAppConnection it shows an error message if there was an error fet
                   </a>
                 </div>
                 <div
-                  class="css-bxa289-layoutChildrenWrapper"
+                  class="css-gxt817-layoutChildrenWrapper"
                 >
                   <a
                     href="https://play.google.com/store/apps/details?id=com.grafana.oncall.prod"

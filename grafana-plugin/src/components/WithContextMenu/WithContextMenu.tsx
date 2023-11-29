@@ -5,6 +5,8 @@ import { ContextMenu } from '@grafana/ui';
 export interface WithContextMenuProps {
   children: (props: { openMenu: React.MouseEventHandler<HTMLElement> }) => JSX.Element;
   renderMenuItems: ({ closeMenu }: { closeMenu?: () => void }) => React.ReactNode;
+  isOpen?: boolean;
+
   forceIsOpen?: boolean;
   focusOnOpen?: boolean;
 }

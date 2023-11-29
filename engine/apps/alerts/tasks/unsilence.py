@@ -1,3 +1,5 @@
+from functools import partial
+
 from django.conf import settings
 from django.db import transaction
 
@@ -44,7 +46,7 @@ def unsilence_task(alert_group_pk):
                 reason="auto unsilence",
             )
             un_silence_log_record.save()
-            transaction.on_commit(lambda: send_alert_group_signal.apply_async((un_silence_log_record.pk,)))
+            transaction.on_commit(partial(send_alert_group_signal.apply_async, (un_silence_log_record.pk,)))
         else:
             task_logger.info(
                 f"Failed to unsilence alert_group {alert_group_pk}: alert_group status: {alert_group.status}, "

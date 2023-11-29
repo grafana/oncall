@@ -68,33 +68,33 @@ exports[`PluginSetup there is an error message - retry setup 1`] = `
       class="configure-plugin"
     >
       <div
-        class="css-ve64a7-horizontal-group"
+        class="css-ffyaiw-horizontal-group"
         style="width: 100%; height: 100%;"
       >
         <div
-          class="css-cvef6c-layoutChildrenWrapper"
+          class="css-18qv8yz-layoutChildrenWrapper"
         >
           <button
-            class="css-1pq88ji-button"
+            class="css-72lnkn-button"
             type="button"
           >
             <span
-              class="css-1mhnkuh"
+              class="css-1riaxdn"
             >
               Retry
             </span>
           </button>
         </div>
         <div
-          class="css-cvef6c-layoutChildrenWrapper"
+          class="css-18qv8yz-layoutChildrenWrapper"
         >
           <a
-            class="css-1pq88ji-button"
+            class="css-72lnkn-button"
             href="/plugins/grafana-oncall-app?page=configuration"
             tabindex="0"
           >
             <span
-              class="css-1mhnkuh"
+              class="css-1riaxdn"
             >
               Configure Plugin
             </span>
@@ -124,33 +124,33 @@ exports[`PluginSetup there is an error message 1`] = `
       class="configure-plugin"
     >
       <div
-        class="css-ve64a7-horizontal-group"
+        class="css-ffyaiw-horizontal-group"
         style="width: 100%; height: 100%;"
       >
         <div
-          class="css-cvef6c-layoutChildrenWrapper"
+          class="css-18qv8yz-layoutChildrenWrapper"
         >
           <button
-            class="css-1pq88ji-button"
+            class="css-72lnkn-button"
             type="button"
           >
             <span
-              class="css-1mhnkuh"
+              class="css-1riaxdn"
             >
               Retry
             </span>
           </button>
         </div>
         <div
-          class="css-cvef6c-layoutChildrenWrapper"
+          class="css-18qv8yz-layoutChildrenWrapper"
         >
           <a
-            class="css-1pq88ji-button"
+            class="css-72lnkn-button"
             href="/plugins/grafana-oncall-app?page=configuration"
             tabindex="0"
           >
             <span
-              class="css-1mhnkuh"
+              class="css-1riaxdn"
             >
               Configure Plugin
             </span>

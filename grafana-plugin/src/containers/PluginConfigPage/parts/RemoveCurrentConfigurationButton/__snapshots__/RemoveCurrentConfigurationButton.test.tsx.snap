@@ -4,12 +4,12 @@ exports[`RemoveCurrentConfigurationButton It renders properly when disabled 1`] 
 <body>
   <div>
     <button
-      class="css-1ed0qk5-button"
+      class="css-ttl745-button"
       disabled=""
       type="button"
     >
       <span
-        class="css-1mhnkuh"
+        class="css-1riaxdn"
       >
         Remove current configuration
       </span>
@@ -22,11 +22,11 @@ exports[`RemoveCurrentConfigurationButton It renders properly when enabled 1`] =
 <body>
   <div>
     <button
-      class="css-1ed0qk5-button"
+      class="css-ttl745-button"
       type="button"
     >
       <span
-        class="css-1mhnkuh"
+        class="css-1riaxdn"
       >
         Remove current configuration
       </span>
