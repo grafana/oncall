@@ -3,7 +3,6 @@ import qs from 'query-string';
 
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import BaseStore from 'models/base_store';
-import { Label, LabelKey, LabelValue } from 'models/label/label.types';
 import { ActionKey } from 'models/loader/action-keys';
 import { User } from 'models/user/user.types';
 import { makeRequest } from 'network';
@@ -474,7 +473,7 @@ export class AlertGroupStore extends BaseStore {
   }
 
   @action
-  async loadLabelsKeys(): Promise<Label[]> {
+  async loadLabelsKeys(): Promise<ApiSchemas['LabelKey'][]> {
     return await makeRequest(`/alertgroups/labels/keys/`, {}).catch(() =>
       openErrorNotification('There was an error processing your request')
     );
@@ -484,7 +483,7 @@ export class AlertGroupStore extends BaseStore {
   async loadValuesForLabelKey(
     key: ApiSchemas['LabelKey']['id'],
     search = ''
-  ): Promise<{ key: LabelKey; values: LabelValue[] }> {
+  ): Promise<{ key: ApiSchemas['LabelKey']; values: ApiSchemas['LabelValue'][] }> {
     if (!key) {
       return { key: undefined, values: [] };
     }
@@ -493,7 +492,9 @@ export class AlertGroupStore extends BaseStore {
       params: { search },
     });
 
-    const filteredValues = result.values.filter((v: LabelValue) => v.name.toLowerCase().includes(search.toLowerCase())); // TODO remove after backend search implementation
+    const filteredValues = result.values.filter((v: ApiSchemas['LabelValue']) =>
+      v.name.toLowerCase().includes(search.toLowerCase())
+    );
 
     return { ...result, values: filteredValues };
   }

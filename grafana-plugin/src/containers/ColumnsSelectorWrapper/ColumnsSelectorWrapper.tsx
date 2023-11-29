@@ -8,13 +8,13 @@ import { ColumnsSelector, convertColumnsToTableSettings } from 'containers/Colum
 import { getColumnsSelectorWrapperStyles } from 'containers/ColumnsSelectorWrapper/ColumnsSelectorWrapper.styles';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { AGColumn } from 'models/alertgroup/alertgroup.types';
-import { Label } from 'models/label/label.types';
 import { ActionKey } from 'models/loader/action-keys';
 import { useStore } from 'state/useStore';
 import { UserActions } from 'utils/authorization';
 import { WrapAutoLoadingState } from 'utils/decorators';
 
 import { ColumnsModal } from './ColumnsModal';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 
 interface ColumnsSelectorWrapperProps {}
 
@@ -24,7 +24,7 @@ const ColumnsSelectorWrapper: React.FC<ColumnsSelectorWrapperProps> = observer((
   const [isColumnAddModalOpen, setIsColumnAddModalOpen] = useState(false);
   const [isFloatingDisplayOpen, setIsFloatingDisplayOpen] = useState(false);
 
-  const [labelKeys, setLabelKeys] = useState<Label[]>([]);
+  const [labelKeys, setLabelKeys] = useState<ApiSchemas['LabelKey'][]>([]);
 
   const inputRef = useRef<HTMLInputElement>(null);
   const wrappingFloatingContainerRef = useRef<HTMLDivElement>(null);
