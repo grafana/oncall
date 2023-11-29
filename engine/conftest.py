@@ -870,13 +870,19 @@ def reload_urls(settings):
     Reloads Django URLs, especially useful when testing conditionally registered URLs
     """
 
-    def _reload_urls():
+    def _reload_urls(app_url_file_to_reload: str = None):
         clear_url_caches()
+
+        # this can be useful when testing conditionally registered URLs
+        # for example when a django app's urls.py file has conditional logic that is being
+        # overriden/tested, you will need to reload that urls.py file before relaoding the ROOT_URLCONF file
+        if app_url_file_to_reload is not None:
+            reload(import_module(app_url_file_to_reload))
+
         urlconf = settings.ROOT_URLCONF
         if urlconf in sys.modules:
             reload(sys.modules[urlconf])
-        else:
-            import_module(urlconf)
+        import_module(urlconf)
 
     return _reload_urls
 
