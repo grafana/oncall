@@ -248,6 +248,7 @@ ACKNOWLEDGE_CONDITION = "acknowledge_condition"
 GROUPING_ID = "grouping_id"
 SOURCE_LINK = "source_link"
 ROUTE = "route"
+ALERT_GROUP_LABELS = "alert_group_labels"
 
 NOTIFICATION_CHANNEL_TO_TEMPLATER_MAP = {
     SLACK: AlertSlackTemplater,
@@ -264,9 +265,15 @@ for backend_id, backend in get_messaging_backends():
         NOTIFICATION_CHANNEL_TO_TEMPLATER_MAP[backend.slug] = backend.get_templater_class()
 
 APPEARANCE_TEMPLATE_NAMES = [TITLE, MESSAGE, IMAGE_URL]
-BEHAVIOUR_TEMPLATE_NAMES = [RESOLVE_CONDITION, ACKNOWLEDGE_CONDITION, GROUPING_ID, SOURCE_LINK]
-ROUTE_TEMPLATE_NAMES = [ROUTE]
-ALL_TEMPLATE_NAMES = APPEARANCE_TEMPLATE_NAMES + BEHAVIOUR_TEMPLATE_NAMES + ROUTE_TEMPLATE_NAMES
+BEHAVIOUR_TEMPLATE_NAMES = [
+    RESOLVE_CONDITION,
+    ACKNOWLEDGE_CONDITION,
+    GROUPING_ID,
+    SOURCE_LINK,
+    ROUTE,
+    ALERT_GROUP_LABELS,
+]
+ALL_TEMPLATE_NAMES = APPEARANCE_TEMPLATE_NAMES + BEHAVIOUR_TEMPLATE_NAMES
 
 
 class PreviewTemplateException(Exception):
@@ -326,11 +333,6 @@ class PreviewTemplateMixin:
                 templated_attr = apply_jinja_template(template_body, payload=alert_to_template.raw_request_data)
             except (JinjaTemplateError, JinjaTemplateWarning) as e:
                 return Response({"preview": e.fallback_message}, status.HTTP_200_OK)
-        elif attr_name in ROUTE_TEMPLATE_NAMES:
-            try:
-                templated_attr = apply_jinja_template(template_body, payload=alert_to_template.raw_request_data)
-            except (JinjaTemplateError, JinjaTemplateWarning) as e:
-                return Response({"preview": e.fallback_message}, status.HTTP_200_OK)
         else:
             templated_attr = None
         response = {"preview": templated_attr}
@@ -345,8 +347,6 @@ class PreviewTemplateMixin:
         attr_name = None
         destination = None
         if template_param.startswith(tuple(BEHAVIOUR_TEMPLATE_NAMES)):
-            attr_name = template_param
-        if template_param.startswith(tuple(ROUTE_TEMPLATE_NAMES)):
             attr_name = template_param
         elif template_param.startswith(tuple(NOTIFICATION_CHANNEL_OPTIONS)):
             for notification_channel in NOTIFICATION_CHANNEL_OPTIONS:

@@ -22,8 +22,10 @@ import CopyToClipboard from 'react-copy-to-clipboard';
 import Emoji from 'react-emoji-render';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 import reactStringReplace from 'react-string-replace';
+import { OnCallPluginExtensionPoints } from 'types';
 
 import Collapse from 'components/Collapse/Collapse';
+import { ExtensionLinkDropdown } from 'components/ExtensionLinkMenu/ExtensionLinkDropdown';
 import Block from 'components/GBlock/Block';
 import IntegrationLogo from 'components/IntegrationLogo/IntegrationLogo';
 import PageErrorHandlingWrapper, { PageBaseState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
@@ -435,6 +437,12 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
                   </a>
                 </PluginBridge>
               )}
+              <ExtensionLinkDropdown
+                incident={incident}
+                extensionPointId={OnCallPluginExtensionPoints.AlertGroupAction}
+                declareIncidentLink={incident.declare_incident_link}
+                grafanaIncidentId={incident.grafana_incident_id}
+              />
             </HorizontalGroup>
 
             <Button

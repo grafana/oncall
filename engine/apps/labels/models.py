@@ -10,9 +10,13 @@ if typing.TYPE_CHECKING:
     from apps.user_management.models import Organization
 
 
+MAX_KEY_NAME_LENGTH = 200
+MAX_VALUE_NAME_LENGTH = 200
+
+
 class LabelKeyCache(models.Model):
     id = models.CharField(primary_key=True, editable=False, max_length=36)
-    name = models.CharField(max_length=200)
+    name = models.CharField(max_length=MAX_KEY_NAME_LENGTH)
     organization = models.ForeignKey("user_management.Organization", on_delete=models.CASCADE)
     last_synced = models.DateTimeField(auto_now=True)
 
@@ -23,7 +27,7 @@ class LabelKeyCache(models.Model):
 
 class LabelValueCache(models.Model):
     id = models.CharField(primary_key=True, editable=False, max_length=36)
-    name = models.CharField(max_length=200)
+    name = models.CharField(max_length=MAX_VALUE_NAME_LENGTH)
     key = models.ForeignKey("labels.LabelKeyCache", on_delete=models.CASCADE, related_name="values")
     last_synced = models.DateTimeField(auto_now=True)
 
@@ -129,8 +133,8 @@ class AlertGroupAssociatedLabel(models.Model):
         "user_management.Organization", on_delete=models.CASCADE, related_name="alert_group_labels"
     )
 
-    key_name = models.CharField(max_length=200)
-    value_name = models.CharField(max_length=200)
+    key_name = models.CharField(max_length=MAX_KEY_NAME_LENGTH)
+    value_name = models.CharField(max_length=MAX_VALUE_NAME_LENGTH)
 
     class Meta:
         constraints = [

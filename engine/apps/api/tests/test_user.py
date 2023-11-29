@@ -410,7 +410,7 @@ def test_user_update_other_permissions(
     [
         (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
         (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
-        (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.VIEWER, status.HTTP_200_OK),
         (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
@@ -1291,14 +1291,14 @@ def test_viewer_cant_update_himself(make_organization_and_user_with_plugin_token
 
 
 @pytest.mark.django_db
-def test_viewer_cant_list_users(make_organization_and_user_with_plugin_token, make_user_auth_headers):
+def test_viewer_can_list_users(make_organization_and_user_with_plugin_token, make_user_auth_headers):
     _, user, token = make_organization_and_user_with_plugin_token(role=LegacyAccessControlRole.VIEWER)
 
     client = APIClient()
     url = reverse("api-internal:user-list")
 
     response = client.get(url, format="json", **make_user_auth_headers(user, token))
-    assert response.status_code == status.HTTP_403_FORBIDDEN
+    assert response.status_code == status.HTTP_200_OK
 
 
 @pytest.mark.django_db

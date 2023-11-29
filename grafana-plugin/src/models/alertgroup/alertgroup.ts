@@ -7,6 +7,7 @@ import { Label, LabelKey, LabelValue } from 'models/label/label.types';
 import { ActionKey } from 'models/loader/action-keys';
 import { User } from 'models/user/user.types';
 import { makeRequest } from 'network';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 import { Mixpanel } from 'services/mixpanel';
 import { RootStore } from 'state';
 import { SelectOption } from 'state/types';
@@ -64,9 +65,6 @@ export class AlertGroupStore extends BaseStore {
 
   @observable
   silencedIncidents: any = {};
-
-  @observable
-  alertGroupStats: any = {};
 
   @observable
   liveUpdatesEnabled = false;
@@ -364,11 +362,6 @@ export class AlertGroupStore extends BaseStore {
     });
 
     this.silencedIncidents = result;
-  }
-
-  @action
-  async getAlertGroupsStats() {
-    this.alertGroupStats = await makeRequest('/alertgroups/stats/', {});
   }
 
   @action
