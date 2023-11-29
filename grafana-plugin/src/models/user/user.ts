@@ -1,7 +1,7 @@
 import { config } from '@grafana/runtime';
 import dayjs from 'dayjs';
 import { get } from 'lodash-es';
-import { action, computed, observable } from 'mobx';
+import { action, computed, observable, runInAction } from 'mobx';
 
 import BaseStore from 'models/base_store';
 import { NotificationPolicyType } from 'models/notification_policy';
@@ -59,18 +59,18 @@ export class UserStore extends BaseStore {
     return this.items[this.currentUserPk as User['pk']];
   }
 
-  @action
+  @action.bound
   async loadCurrentUser() {
     const response = await makeRequest('/user/', {});
-
     const timezone = await this.refreshTimezone(response.pk);
 
-    this.items = {
-      ...this.items,
-      [response.pk]: { ...response, timezone },
-    };
-
-    this.currentUserPk = response.pk;
+    runInAction(() => {
+      this.items = {
+        ...this.items,
+        [response.pk]: { ...response, timezone },
+      };
+      this.currentUserPk = response.pk;
+    });
   }
 
   @action
@@ -371,13 +371,12 @@ export class UserStore extends BaseStore {
     this.updateItem(userPk); // to update notification_chain_verbal
   }
 
-  @action
+  @action.bound
   async updateNotificationPolicyOptions() {
     const response = await makeRequest('/notification_policies/', {
       method: 'OPTIONS',
     });
-
-    this.notificationChoices = get(response, 'actions.POST', []);
+    runInAction(() => (this.notificationChoices = get(response, 'actions.POST', [])));
   }
 
   @action
@@ -390,11 +389,10 @@ export class UserStore extends BaseStore {
     });
   }
 
-  @action
+  @action.bound
   async updateNotifyByOptions() {
     const response = await makeRequest('/notification_policies/notify_by_options/', {});
-
-    this.notifyByOptions = response;
+    runInAction(() => (this.notifyByOptions = response));
   }
 
   async makeTestCall(userPk: User['pk']) {

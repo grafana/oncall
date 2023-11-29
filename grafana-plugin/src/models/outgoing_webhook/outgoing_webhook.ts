@@ -1,4 +1,4 @@
-import { action, observable } from 'mobx';
+import { action, observable, runInAction } from 'mobx';
 
 import BaseStore from 'models/base_store';
 import { makeRequest } from 'network';
@@ -101,9 +101,9 @@ export class OutgoingWebhookStore extends BaseStore {
     });
   }
 
-  @action
-  async updateOutgoingWebhookPresets() {
+  @action.bound
+  async updateOutgoingWebhookPresetsOptions() {
     const response = await makeRequest(`/webhooks/preset_options/`, {});
-    this.outgoingWebhookPresets = response;
+    runInAction(() => (this.outgoingWebhookPresets = response));
   }
 }

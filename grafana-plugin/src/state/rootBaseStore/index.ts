@@ -1,6 +1,6 @@
 import { locationService } from '@grafana/runtime';
 import { contextSrv } from 'grafana/app/core/core';
-import { action, observable } from 'mobx';
+import { action, observable, runInAction } from 'mobx';
 import moment from 'moment-timezone';
 import qs from 'query-string';
 import { OnCallAppPluginMeta } from 'types';
@@ -40,10 +40,14 @@ import {
   PLUGIN_ROOT,
 } from 'utils/consts';
 import FaroHelper from 'utils/faro';
+import { retryFailingPromises } from 'utils/async';
 
 // ------ Dashboard ------ //
 
 export class RootBaseStore {
+  @observable
+  isBasicDataLoaded = false;
+
   @observable
   currentTimezone: Timezone = moment.tz.guess() as Timezone;
 
@@ -82,7 +86,7 @@ export class RootBaseStore {
   @observable
   onCallApiUrl: string;
 
-  // --------------------------
+  // stores
   userStore = new UserStore(this);
   cloudStore = new CloudStore(this);
   directPagingStore = new DirectPagingStore(this);
@@ -106,7 +110,13 @@ export class RootBaseStore {
   filtersStore = new FiltersStore(this);
   labelsStore = new LabelStore(this);
 
-  // stores
+  constructor() {
+    this.updateBasicData();
+    // defer loading master data as it's not used in first sec by user in order to prioritize fetching base data
+    setTimeout(() => {
+      this.loadMasterData();
+    }, 1000);
+  }
 
   async updateBasicData() {
     const updateFeatures = async () => {
@@ -119,18 +129,24 @@ export class RootBaseStore {
       }
     };
 
-    return Promise.all([
-      this.userStore.loadCurrentUser(),
-      this.organizationStore.loadCurrentOrganization(),
-      this.grafanaTeamStore.updateItems(),
-      updateFeatures(),
-      this.userStore.updateNotificationPolicyOptions(),
-      this.userStore.updateNotifyByOptions(),
-      this.alertReceiveChannelStore.updateAlertReceiveChannelOptions(),
-      this.outgoingWebhookStore.updateOutgoingWebhookPresets(),
-      this.escalationPolicyStore.updateWebEscalationPolicyOptions(),
-      this.escalationPolicyStore.updateEscalationPolicyOptions(),
-      this.escalationPolicyStore.updateNumMinutesInWindowOptions(),
+    await retryFailingPromises([
+      this.userStore.loadCurrentUser,
+      this.organizationStore.loadCurrentOrganization,
+      this.grafanaTeamStore.updateItems,
+      updateFeatures,
+    ]);
+    runInAction(() => (this.isBasicDataLoaded = true));
+  }
+
+  async loadMasterData() {
+    retryFailingPromises([
+      this.userStore.updateNotificationPolicyOptions,
+      this.userStore.updateNotifyByOptions,
+      this.alertReceiveChannelStore.updateAlertReceiveChannelOptions,
+      this.outgoingWebhookStore.updateOutgoingWebhookPresetsOptions,
+      this.escalationPolicyStore.updateWebEscalationPolicyOptions,
+      this.escalationPolicyStore.updateEscalationPolicyOptions,
+      this.escalationPolicyStore.updateNumMinutesInWindowOptions,
     ]);
   }
 
@@ -280,16 +296,18 @@ export class RootBaseStore {
     return this.license === GRAFANA_LICENSE_OSS;
   }
 
-  @observable
+  @action.bound
   async updateFeatures() {
     const response = await makeRequest('/features/', {});
-    this.features = response.reduce(
-      (acc: any, key: string) => ({
-        ...acc,
-        [key]: true,
-      }),
-      {}
-    );
+    runInAction(() => {
+      this.features = response.reduce(
+        (acc: any, key: string) => ({
+          ...acc,
+          [key]: true,
+        }),
+        {}
+      );
+    });
   }
 
   @action

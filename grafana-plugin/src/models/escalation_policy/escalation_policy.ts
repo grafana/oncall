@@ -1,5 +1,5 @@
 import { get } from 'lodash-es';
-import { action, observable } from 'mobx';
+import { action, observable, runInAction } from 'mobx';
 
 import BaseStore from 'models/base_store';
 import { EscalationChain } from 'models/escalation_chain/escalation_chain.types';
@@ -34,27 +34,24 @@ export class EscalationPolicyStore extends BaseStore {
     this.path = '/escalation_policies/';
   }
 
-  @action
+  @action.bound
   async updateWebEscalationPolicyOptions() {
     const response = await makeRequest('/escalation_policies/escalation_options/', {});
-
-    this.webEscalationChoices = response;
+    runInAction(() => (this.webEscalationChoices = response));
   }
 
-  @action
+  @action.bound
   async updateEscalationPolicyOptions() {
     const response = await makeRequest('/escalation_policies/', {
       method: 'OPTIONS',
     });
-
-    this.escalationChoices = get(response, 'actions.POST', []);
+    runInAction(() => (this.escalationChoices = get(response, 'actions.POST', [])));
   }
 
-  @action
+  @action.bound
   async updateNumMinutesInWindowOptions() {
     const response = await makeRequest('/escalation_policies/num_minutes_in_window_options/', {});
-
-    this.numMinutesInWindowOptions = response;
+    runInAction(() => (this.numMinutesInWindowOptions = response));
   }
 
   @action

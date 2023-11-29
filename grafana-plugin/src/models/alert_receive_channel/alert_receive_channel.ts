@@ -1,5 +1,5 @@
 import { omit } from 'lodash-es';
-import { action, observable } from 'mobx';
+import { action, observable, runInAction } from 'mobx';
 
 import { AlertTemplatesDTO } from 'models/alert_templates';
 import { Alert } from 'models/alertgroup/alertgroup.types';
@@ -317,11 +317,10 @@ export class AlertReceiveChannelStore extends BaseStore {
     return this.updateChannelFilters(channelFilter.alert_receive_channel, true);
   }
 
-  @action
+  @action.bound
   async updateAlertReceiveChannelOptions() {
     const response = await makeRequest(`/alert_receive_channels/integration_options/`, {});
-
-    this.alertReceiveChannelOptions = response;
+    runInAction(() => (this.alertReceiveChannelOptions = response));
   }
 
   getIntegration(alertReceiveChannel: Partial<AlertReceiveChannel>): SelectOption {
