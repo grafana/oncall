@@ -22,7 +22,7 @@ from apps.alerts.incident_appearance.renderers.slack_renderer import AlertGroupS
 from apps.alerts.incident_log_builder import IncidentLogBuilder
 from apps.alerts.signals import alert_group_action_triggered_signal, alert_group_created_signal
 from apps.alerts.tasks import acknowledge_reminder_task, send_alert_group_signal, unsilence_task
-from apps.metrics_exporter.metrics_cache_manager import MetricsCacheManager
+from apps.metrics_exporter.tasks import update_metrics_for_alert_group
 from apps.slack.slack_formatter import SlackFormatter
 from apps.user_management.models import User
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
@@ -594,18 +594,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
 
     def _update_metrics(self, organization_id, previous_state, state):
         """Update metrics cache for response time and state as needed."""
-        updated_response_time = self.response_time
-        if previous_state != AlertGroupState.FIRING or self.restarted_at:
-            # only consider response time from the first action
-            updated_response_time = None
-        MetricsCacheManager.metrics_update_cache_for_alert_group(
-            self.channel_id,
-            organization_id=organization_id,
-            old_state=previous_state,
-            new_state=state,
-            response_time=updated_response_time,
-            started_at=self.started_at,
-        )
+        update_metrics_for_alert_group.apply_async((self.id, organization_id, previous_state, state))
 
     def acknowledge_by_user(self, user: User, action_source: typing.Optional[ActionSource] = None) -> None:
         from apps.alerts.models import AlertGroupLogRecord
