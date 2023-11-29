@@ -9,11 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Add options to customize table columns in AlertGroup page ([3281](https://github.com/grafana/oncall/pull/3281))
+- Add options to customize table columns in AlertGroup page ([#3281](https://github.com/grafana/oncall/pull/3281))
 
 ### Changed
 
-- Upgrade to Python 3.12 by @joeyorlando ([TBD](https://github.com/grafana/oncall/pull/TBD))
+- Upgrade to Python 3.12 by @joeyorlando ([#3456](https://github.com/grafana/oncall/pull/3456))
 
 ### Fixed
 
