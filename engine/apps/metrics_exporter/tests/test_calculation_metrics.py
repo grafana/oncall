@@ -11,7 +11,7 @@ from apps.metrics_exporter.helpers import (
 from apps.metrics_exporter.tasks import calculate_and_cache_metrics, calculate_and_cache_user_was_notified_metric
 
 
-@patch("apps.alerts.models.alert_group.MetricsCacheManager.metrics_update_state_cache_for_alert_group")
+@patch("apps.alerts.models.alert_group.update_metrics_for_alert_group.apply_async")
 @pytest.mark.django_db
 def test_calculate_and_cache_metrics_task(
     mocked_update_state_cache,
@@ -114,7 +114,7 @@ def test_calculate_and_cache_metrics_task(
         assert metric_alert_groups_response_time_values[1] == expected_result_metric_alert_groups_response_time
 
 
-@patch("apps.alerts.models.alert_group.MetricsCacheManager.metrics_update_state_cache_for_alert_group")
+@patch("apps.alerts.models.alert_group.update_metrics_for_alert_group.apply_async")
 @pytest.mark.django_db
 def test_calculate_and_cache_user_was_notified_metric_task(
     mocked_update_state_cache,
