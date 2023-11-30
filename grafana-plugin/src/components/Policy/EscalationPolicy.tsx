@@ -110,6 +110,8 @@ class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
         return this._renderWaitDelays();
       case 'slack_user_group':
         return this._renderNotifyUserGroup();
+      case 'team':
+        return this._renderNotifyTeam();
       case 'schedule':
         return this._renderNotifySchedule();
       case 'custom_webhook':
@@ -374,6 +376,40 @@ class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
           className={cx('select', 'control')}
           value={notify_to_group}
           onChange={this._getOnChangeHandler('notify_to_group')}
+          width={'auto'}
+        />
+      </WithPermissionControlTooltip>
+    );
+  }
+
+  private _renderNotifyTeam() {
+    const { data, isDisabled } = this.props;
+    const { notify_to_team } = data;
+    return (
+      <WithPermissionControlTooltip
+        key="notify_to_team"
+        disableByPaywall
+        userAction={UserActions.EscalationChainsWrite}
+      >
+        <GSelect
+          showSearch
+          disabled={isDisabled}
+          modelName="grafanaTeamStore"
+          displayField="name"
+          valueField="id"
+          placeholder="Select Team"
+          filterOptions={(id: any) => {
+              console.log(id);
+              if (id == "null") {
+                return false
+              } else {
+                return true
+              }
+            }
+          }
+          className={cx('select', 'control')}
+          value={notify_to_team}
+          onChange={this._getOnChangeHandler('notify_to_team')}
           width={'auto'}
         />
       </WithPermissionControlTooltip>

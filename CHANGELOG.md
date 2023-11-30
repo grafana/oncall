@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## v1.3.106 (2024-02-14)
+
+### Fixed
+
+- Add escalation to notify entire Grafana team ([#3477](https://github.com/grafana/oncall/pull/3477))
+
 ## v1.3.105 (2024-02-13)
 
 ### Fixed

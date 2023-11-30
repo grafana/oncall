@@ -45,7 +45,9 @@ class EscalationPolicy(OrderedModel):
         STEP_NOTIFY_MULTIPLE_USERS_IMPORTANT,
         STEP_NOTIFY_IF_NUM_ALERTS_IN_TIME_WINDOW,
         STEP_TRIGGER_CUSTOM_WEBHOOK,
-    ) = range(17)
+        STEP_NOTIFY_TEAM,
+        STEP_NOTIFY_TEAM_IMPORTANT,
+    ) = range(19)
 
     # Must be the same order as previous
     STEP_CHOICES = (
@@ -66,6 +68,8 @@ class EscalationPolicy(OrderedModel):
         (STEP_NOTIFY_MULTIPLE_USERS_IMPORTANT, "Notify multiple Users (Important)"),
         (STEP_NOTIFY_IF_NUM_ALERTS_IN_TIME_WINDOW, "Continue escalation if >X alerts per Y minutes"),
         (STEP_TRIGGER_CUSTOM_WEBHOOK, "Trigger Webhook"),
+        (STEP_NOTIFY_TEAM, "Notify all users in a Team"),
+        (STEP_NOTIFY_TEAM_IMPORTANT, "Notify all users in a Team (Important)"),
     )
 
     # Ordered step choices available for internal api.
@@ -74,6 +78,7 @@ class EscalationPolicy(OrderedModel):
         # Common
         STEP_WAIT,
         STEP_NOTIFY_MULTIPLE_USERS,
+        STEP_NOTIFY_TEAM,
         STEP_NOTIFY_SCHEDULE,
         STEP_FINAL_RESOLVE,
         # Slack
@@ -100,6 +105,8 @@ class EscalationPolicy(OrderedModel):
         STEP_NOTIFY_USERS_QUEUE,
         STEP_NOTIFY_IF_TIME,
         STEP_NOTIFY_IF_NUM_ALERTS_IN_TIME_WINDOW,
+        STEP_NOTIFY_TEAM,
+        STEP_NOTIFY_TEAM_IMPORTANT,
         STEP_NOTIFY_MULTIPLE_USERS,
         STEP_NOTIFY_MULTIPLE_USERS_IMPORTANT,
         STEP_TRIGGER_CUSTOM_BUTTON,
@@ -113,6 +120,7 @@ class EscalationPolicy(OrderedModel):
         # Common steps
         STEP_WAIT: ("Wait {{wait_delay}} minute(s)", "Wait"),
         STEP_NOTIFY_MULTIPLE_USERS: ("Start {{importance}} notification for {{users}}", "Notify users"),
+        STEP_NOTIFY_TEAM: ("Start {{importance}} notification for team {{team}}", "Notify team"),
         STEP_NOTIFY_SCHEDULE: (
             "Start {{importance}} notification for schedule {{schedule}}",
             "Notify users from on-call schedule",
@@ -157,11 +165,13 @@ class EscalationPolicy(OrderedModel):
         STEP_NOTIFY_GROUP: STEP_NOTIFY_GROUP_IMPORTANT,
         STEP_NOTIFY_SCHEDULE: STEP_NOTIFY_SCHEDULE_IMPORTANT,
         STEP_NOTIFY_MULTIPLE_USERS: STEP_NOTIFY_MULTIPLE_USERS_IMPORTANT,
+        STEP_NOTIFY_TEAM: STEP_NOTIFY_TEAM_IMPORTANT,
     }
     IMPORTANT_TO_DEFAULT_STEP_MAPPING = {
         STEP_NOTIFY_GROUP_IMPORTANT: STEP_NOTIFY_GROUP,
         STEP_NOTIFY_SCHEDULE_IMPORTANT: STEP_NOTIFY_SCHEDULE,
         STEP_NOTIFY_MULTIPLE_USERS_IMPORTANT: STEP_NOTIFY_MULTIPLE_USERS,
+        STEP_NOTIFY_TEAM_IMPORTANT: STEP_NOTIFY_TEAM,
     }
 
     # Default steps are just usual version of important steps. E.g. notify group - notify group important
@@ -169,12 +179,14 @@ class EscalationPolicy(OrderedModel):
         STEP_NOTIFY_GROUP,
         STEP_NOTIFY_SCHEDULE,
         STEP_NOTIFY_MULTIPLE_USERS,
+        STEP_NOTIFY_TEAM,
     }
 
     IMPORTANT_STEPS_SET = {
         STEP_NOTIFY_GROUP_IMPORTANT,
         STEP_NOTIFY_SCHEDULE_IMPORTANT,
         STEP_NOTIFY_MULTIPLE_USERS_IMPORTANT,
+        STEP_NOTIFY_TEAM_IMPORTANT,
     }
 
     SLACK_INTEGRATION_REQUIRED_STEPS = [
@@ -187,6 +199,7 @@ class EscalationPolicy(OrderedModel):
         STEP_WAIT,
         STEP_NOTIFY_SCHEDULE,
         STEP_NOTIFY_MULTIPLE_USERS,
+        STEP_NOTIFY_TEAM,
         STEP_NOTIFY_USERS_QUEUE,
         STEP_NOTIFY_GROUP,
         STEP_FINAL_RESOLVE,
@@ -213,6 +226,8 @@ class EscalationPolicy(OrderedModel):
         STEP_NOTIFY_USERS_QUEUE: "notify_person_next_each_time",
         STEP_NOTIFY_MULTIPLE_USERS: "notify_persons",
         STEP_NOTIFY_MULTIPLE_USERS_IMPORTANT: "notify_persons",
+        STEP_NOTIFY_TEAM: "notify_team",
+        STEP_NOTIFY_TEAM_IMPORTANT: "notify_team",
         STEP_NOTIFY_IF_TIME: "notify_if_time_from_to",
         STEP_NOTIFY_IF_NUM_ALERTS_IN_TIME_WINDOW: "notify_if_num_alerts_in_window",
         STEP_REPEAT_ESCALATION_N_TIMES: "repeat_escalation",
@@ -243,6 +258,14 @@ class EscalationPolicy(OrderedModel):
     )
 
     step = models.IntegerField(choices=STEP_CHOICES, default=None, null=True)
+
+    notify_to_team = models.ForeignKey(
+        "user_management.Team",
+        on_delete=models.SET_NULL,
+        related_name="escalation_policies",
+        default=None,
+        null=True,
+    )
 
     notify_to_group = models.ForeignKey(
         "slack.SlackUserGroup",
@@ -368,6 +391,10 @@ class EscalationPolicy(OrderedModel):
             if self.notify_to_group:
                 result["user_group"] = self.notify_to_group.name
                 result["user_group_id"] = self.notify_to_group.public_primary_key
+        elif self.step in [EscalationPolicy.STEP_NOTIFY_TEAM, EscalationPolicy.STEP_NOTIFY_TEAM_IMPORTANT]:
+            if self.notify_to_team:
+                result["team"] = self.notify_to_team.name
+                result["team_id"] = self.notify_to_team.public_primary_key
         elif self.step in [EscalationPolicy.STEP_NOTIFY_SCHEDULE, EscalationPolicy.STEP_NOTIFY_SCHEDULE_IMPORTANT]:
             if self.notify_schedule:
                 result["on-call_schedule"] = self.notify_schedule.insight_logs_verbal

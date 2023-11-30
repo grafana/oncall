@@ -15,6 +15,7 @@ from apps.alerts.tasks import (
     custom_webhook_result,
     notify_all_task,
     notify_group_task,
+    notify_team_task,
     notify_user_task,
     resolve_by_last_step_task,
 )
@@ -41,6 +42,7 @@ class EscalationPolicySnapshot:
         "custom_webhook",
         "notify_schedule",
         "notify_to_group",
+        "notify_to_team",
         "escalation_counter",
         "passed_last_time",
         "pause_escalation",
@@ -69,6 +71,7 @@ class EscalationPolicySnapshot:
         custom_webhook,
         notify_schedule,
         notify_to_group,
+        notify_to_team,
         escalation_counter,
         passed_last_time,
         pause_escalation,
@@ -87,6 +90,7 @@ class EscalationPolicySnapshot:
         self.custom_webhook = custom_webhook
         self.notify_schedule = notify_schedule
         self.notify_to_group = notify_to_group
+        self.notify_to_team = notify_to_team
         self.escalation_counter = escalation_counter  # used for STEP_REPEAT_ESCALATION_N_TIMES
         self.passed_last_time = passed_last_time  # used for building escalation plan
         self.pause_escalation = pause_escalation  # used for STEP_NOTIFY_IF_NUM_ALERTS_IN_TIME_WINDOW
@@ -124,6 +128,8 @@ class EscalationPolicySnapshot:
             EscalationPolicy.STEP_FINAL_RESOLVE: self._escalation_step_resolve,
             EscalationPolicy.STEP_NOTIFY_GROUP: self._escalation_step_notify_user_group,
             EscalationPolicy.STEP_NOTIFY_GROUP_IMPORTANT: self._escalation_step_notify_user_group,
+            EscalationPolicy.STEP_NOTIFY_TEAM: self._escalation_step_notify_team,
+            EscalationPolicy.STEP_NOTIFY_TEAM_IMPORTANT: self._escalation_step_notify_team,
             EscalationPolicy.STEP_NOTIFY_SCHEDULE: self._escalation_step_notify_on_call_schedule,
             EscalationPolicy.STEP_NOTIFY_SCHEDULE_IMPORTANT: self._escalation_step_notify_on_call_schedule,
             EscalationPolicy.STEP_TRIGGER_CUSTOM_BUTTON: self._escalation_step_trigger_custom_button,
@@ -356,6 +362,33 @@ class EscalationPolicySnapshot:
                 immutable=True,
             )
             tasks.append(notify_group)
+        self._execute_tasks(tasks)
+
+    def _escalation_step_notify_team(self, alert_group: "AlertGroup", reason: str) -> None:
+        tasks = []
+
+        if self.notify_to_team is None:
+            log_record = AlertGroupLogRecord(
+                type=AlertGroupLogRecord.TYPE_ESCALATION_FAILED,
+                alert_group=alert_group,
+                reason=reason,
+                escalation_policy=self.escalation_policy,
+                escalation_error_code=AlertGroupLogRecord.ERROR_ESCALATION_NOTIFY_TEAM_STEP_IS_NOT_CONFIGURED,
+                escalation_policy_step=self.step,
+            )
+            log_record.save()
+        else:
+            notify_team = notify_team_task.signature(
+                args=(
+                    self.notify_to_team.pk,
+                    alert_group.pk,
+                ),
+                kwargs={
+                    "reason": reason,
+                },
+                immutable=True,
+            )
+            tasks.append(notify_team)
         self._execute_tasks(tasks)
 
     def _escalation_step_notify_if_time(self, alert_group: "AlertGroup", _reason: str) -> StepExecutionResultData:
