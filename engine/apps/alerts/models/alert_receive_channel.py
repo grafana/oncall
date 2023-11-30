@@ -1,5 +1,6 @@
 import logging
 import typing
+from collections import defaultdict
 from functools import cached_property
 from urllib.parse import urljoin
 
@@ -25,7 +26,7 @@ from apps.integrations.legacy_prefix import remove_legacy_prefix
 from apps.integrations.metadata import heartbeat
 from apps.integrations.tasks import create_alert, create_alertmanager_alerts
 from apps.metrics_exporter.helpers import (
-    metrics_add_integration_to_cache,
+    metrics_add_integrations_to_cache,
     metrics_remove_deleted_integration_from_cache,
     metrics_update_integration_cache,
 )
@@ -114,7 +115,7 @@ class AlertReceiveChannelManager(models.Manager):
         )
 
         # fetch integrations for teams (some of them are created above, but some may already exist previously)
-        integrations = AlertReceiveChannel.objects.filter(
+        team_integrations = AlertReceiveChannel.objects.filter(
             team__in=teams, integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING
         )
 
@@ -127,15 +128,19 @@ class AlertReceiveChannelManager(models.Manager):
                     is_default=True,
                     order=0,
                 )
-                for integration in integrations
+                for integration in team_integrations
             ],
             batch_size=5000,
             ignore_conflicts=True,  # ignore if default route already exists for integration
         )
 
-        # add integrations to metrics cache
-        for integration in integrations:
-            metrics_add_integration_to_cache(integration)
+        # add integrations to metrics cache (one function call per organization)
+        organization_integrations = defaultdict(list)
+        for integration in team_integrations:
+            organization_integrations[integration.organization_id].append(integration)
+
+        for organization, integrations in organization_integrations.items():
+            metrics_add_integrations_to_cache(integrations, organization)
 
     def get_queryset(self):
         return AlertReceiveChannelQueryset(self.model, using=self._db).filter(
@@ -721,7 +726,7 @@ def listen_for_alertreceivechannel_model_save(
             heartbeat = IntegrationHeartBeat.objects.create(alert_receive_channel=instance, timeout_seconds=TEN_MINUTES)
             write_resource_insight_log(instance=heartbeat, author=instance.author, event=EntityEvent.CREATED)
 
-        metrics_add_integration_to_cache(instance)
+        metrics_add_integrations_to_cache([instance], instance.organization)
 
     elif instance.deleted_at:
         if instance.is_alerting_integration:
