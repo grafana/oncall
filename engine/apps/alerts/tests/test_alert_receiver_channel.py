@@ -234,7 +234,7 @@ def test_delete_duplicate_names(make_organization, make_alert_receive_channel):
 
 @patch("apps.alerts.models.alert_receive_channel.metrics_add_integrations_to_cache")
 @pytest.mark.django_db
-def test_bulk_create_direct_paging_for_teams(
+def test_bulk_create_direct_paging_for_organization(
     mock_metrics_add_integrations_to_cache,
     make_organization,
     make_team,
@@ -246,24 +246,20 @@ def test_bulk_create_direct_paging_for_teams(
     # team with no direct paging integration
     team1 = make_team(organization)
 
-    # team with direct paging integration, but no default route
+    # team with direct paging integration
     team2 = make_team(organization)
-    make_alert_receive_channel(organization, team=team2, integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING)
-
-    # team with direct paging integration and default route
-    team3 = make_team(organization)
     alert_receive_channel = make_alert_receive_channel(
-        organization, team=team3, integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING
+        organization, team=team2, integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING
     )
     make_channel_filter(alert_receive_channel, is_default=True, order=0)
 
-    # bulk create direct paging integration for all teams
-    AlertReceiveChannel.objects.bulk_create_direct_paging_for_teams(organization.teams.all())
+    # create missing direct paging integration for organization
+    AlertReceiveChannel.objects.create_missing_direct_paging_integrations(organization)
 
     # check that missing integrations and default routes were created
-    assert organization.alert_receive_channels.count() == 3
+    assert organization.alert_receive_channels.count() == 2
     mock_metrics_add_integrations_to_cache.assert_called_once()
-    for team in [team1, team2, team3]:
+    for team in [team1, team2]:
         alert_receive_channel = organization.alert_receive_channels.get(
             team=team, integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING
         )

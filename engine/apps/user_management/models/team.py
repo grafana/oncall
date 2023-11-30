@@ -2,7 +2,7 @@ import typing
 
 from django.conf import settings
 from django.core.validators import MinLengthValidator
-from django.db import models, transaction
+from django.db import models
 
 from apps.alerts.models import AlertReceiveChannel
 from apps.metrics_exporter.helpers import metrics_bulk_update_team_label_cache
@@ -52,18 +52,10 @@ class TeamManager(models.Manager["Team"]):
             for team in grafana_teams.values()
             if team["id"] not in existing_team_ids
         )
+        organization.teams.bulk_create(teams_to_create, batch_size=5000)
 
-        with transaction.atomic():
-            organization.teams.bulk_create(teams_to_create, batch_size=5000)
-            # Retrieve primary keys for the newly created teams.
-            # If the model’s primary key is an AutoField, the primary key attribute can only be retrieved
-            # on certain databases (currently PostgreSQL, MariaDB 10.5+, and SQLite 3.35+).
-            # On other databases, it will not be set.
-            # https://docs.djangoproject.com/en/4.1/ref/models/querysets/#django.db.models.query.QuerySet.bulk_create
-            created_teams = organization.teams.exclude(team_id__in=existing_team_ids)
-
-            # create direct paging integrations for created teams
-            AlertReceiveChannel.objects.bulk_create_direct_paging_for_teams(created_teams)
+        # create missing direct paging integrations
+        AlertReceiveChannel.objects.create_missing_direct_paging_integrations(organization)
 
         # delete excess teams and their direct paging integrations
         team_ids_to_delete = existing_team_ids - grafana_teams.keys()

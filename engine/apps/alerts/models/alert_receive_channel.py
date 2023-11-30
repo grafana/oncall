@@ -1,6 +1,5 @@
 import logging
 import typing
-from collections import defaultdict
 from functools import cached_property
 from urllib.parse import urljoin
 
@@ -96,10 +95,19 @@ class AlertReceiveChannelQueryset(models.QuerySet):
 
 class AlertReceiveChannelManager(models.Manager):
     @staticmethod
-    def bulk_create_direct_paging_for_teams(teams: models.QuerySet["Team"]):
+    def create_missing_direct_paging_integrations(organization: "Organization"):
         from apps.alerts.models import ChannelFilter
 
-        # create integrations
+        # fetch teams without direct paging integration
+        teams_missing_direct_paging = list(
+            organization.teams.exclude(
+                pk__in=organization.alert_receive_channels.filter(
+                    team__isnull=False, integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING
+                ).values_list("team_id", flat=True)
+            )
+        )
+
+        # create missing integrations
         AlertReceiveChannel.objects.bulk_create(
             [
                 AlertReceiveChannel(
@@ -108,15 +116,15 @@ class AlertReceiveChannelManager(models.Manager):
                     integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING,
                     verbal_name=f"Direct paging ({team.name} team)",
                 )
-                for team in teams
+                for team in teams_missing_direct_paging
             ],
             batch_size=5000,
             ignore_conflicts=True,  # ignore if direct paging integration already exists for team
         )
 
         # fetch integrations for teams (some of them are created above, but some may already exist previously)
-        team_integrations = AlertReceiveChannel.objects.filter(
-            team__in=teams, integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING
+        alert_receive_channels = organization.alert_receive_channels.filter(
+            team__in=teams_missing_direct_paging, integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING
         )
 
         # create default routes
@@ -128,19 +136,14 @@ class AlertReceiveChannelManager(models.Manager):
                     is_default=True,
                     order=0,
                 )
-                for integration in team_integrations
+                for integration in alert_receive_channels
             ],
             batch_size=5000,
             ignore_conflicts=True,  # ignore if default route already exists for integration
         )
 
-        # add integrations to metrics cache (one function call per organization)
-        organization_integrations = defaultdict(list)
-        for integration in team_integrations:
-            organization_integrations[integration.organization].append(integration)
-
-        for organization, integrations in organization_integrations.items():
-            metrics_add_integrations_to_cache(integrations, organization)
+        # add integrations to metrics cache
+        metrics_add_integrations_to_cache(list(alert_receive_channels), organization)
 
     def get_queryset(self):
         return AlertReceiveChannelQueryset(self.model, using=self._db).filter(
