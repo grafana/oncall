@@ -23,7 +23,6 @@ import { AlertTemplatesDTO } from 'models/alert_templates';
 import { Alert } from 'models/alertgroup/alertgroup.types';
 import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
 import { TemplateOptions } from 'pages/integration/Integration.config';
-import { waitForElement } from 'utils/DOM';
 import LocationHelper from 'utils/LocationHelper';
 import { UserActions } from 'utils/authorization';
 
@@ -179,7 +178,7 @@ const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
       width={'95%'}
     >
       <div className={cx('container-wrapper')}>
-        <div className={cx('container')} id={'content-container-id'}>
+        <div className={cx('container')}>
           <TemplatesAlertGroupsList
             templatePage={TEMPLATE_PAGE.Integrations}
             alertReceiveChannelId={id}
