@@ -1,4 +1,4 @@
-import { action, observable, runInAction } from 'mobx';
+import { action, observable } from 'mobx';
 
 import BaseStore from 'models/base_store';
 import { makeRequest } from 'network';
@@ -23,10 +23,7 @@ export class LabelStore extends BaseStore {
   @action.bound
   public async loadKeys() {
     const { data } = await onCallApi.GET('/labels/keys/', undefined);
-
-    runInAction(() => {
-      this.keys = data;
-    });
+    this.keys = data;
 
     return data;
   }

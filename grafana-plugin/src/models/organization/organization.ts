@@ -1,4 +1,4 @@
-import { action, observable, runInAction } from 'mobx';
+import { action, observable } from 'mobx';
 
 import BaseStore from 'models/base_store';
 import { makeRequest } from 'network';

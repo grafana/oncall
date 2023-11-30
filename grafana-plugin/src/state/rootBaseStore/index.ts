@@ -1,6 +1,6 @@
 import { locationService } from '@grafana/runtime';
 import { contextSrv } from 'grafana/app/core/core';
-import { action, observable, runInAction } from 'mobx';
+import { action, observable } from 'mobx';
 import moment from 'moment-timezone';
 import qs from 'query-string';
 import { OnCallAppPluginMeta } from 'types';
@@ -135,14 +135,10 @@ export class RootBaseStore {
 
   @action.bound
   async loadMasterData() {
-    retryFailingPromises([
+    Promise.all([
       this.userStore.updateNotificationPolicyOptions,
       this.userStore.updateNotifyByOptions,
       this.alertReceiveChannelStore.updateAlertReceiveChannelOptions,
-      this.outgoingWebhookStore.updateOutgoingWebhookPresetsOptions,
-      this.escalationPolicyStore.updateWebEscalationPolicyOptions,
-      this.escalationPolicyStore.updateEscalationPolicyOptions,
-      this.escalationPolicyStore.updateNumMinutesInWindowOptions,
     ]);
   }
 
@@ -295,15 +291,13 @@ export class RootBaseStore {
   @action.bound
   async updateFeatures() {
     const response = await makeRequest('/features/', {});
-    runInAction(() => {
-      this.features = response.reduce(
-        (acc: any, key: string) => ({
-          ...acc,
-          [key]: true,
-        }),
-        {}
-      );
-    });
+    this.features = response.reduce(
+      (acc: any, key: string) => ({
+        ...acc,
+        [key]: true,
+      }),
+      {}
+    );
   }
 
   @action

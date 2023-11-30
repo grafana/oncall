@@ -1,5 +1,5 @@
 import { get } from 'lodash-es';
-import { action, observable, runInAction } from 'mobx';
+import { action, observable } from 'mobx';
 
 import BaseStore from 'models/base_store';
 import { EscalationChain } from 'models/escalation_chain/escalation_chain.types';

@@ -1,7 +1,7 @@
 import { config } from '@grafana/runtime';
 import dayjs from 'dayjs';
 import { get } from 'lodash-es';
-import { action, computed, observable, runInAction } from 'mobx';
+import { action, computed, observable } from 'mobx';
 
 import BaseStore from 'models/base_store';
 import { NotificationPolicyType } from 'models/notification_policy';
@@ -162,7 +162,7 @@ export class UserStore extends BaseStore {
     return {
       page_size: this.searchResult.page_size,
       count: this.searchResult.count,
-      results: this.searchResult.results && this.searchResult.results.map((userPk: User['pk']) => this.items?.[userPk]),
+      results: this.searchResult.results?.map((userPk: User['pk']) => this.items?.[userPk]),
     };
   }
 
