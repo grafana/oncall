@@ -25,7 +25,7 @@ from apps.integrations.legacy_prefix import remove_legacy_prefix
 from apps.integrations.metadata import heartbeat
 from apps.integrations.tasks import create_alert, create_alertmanager_alerts
 from apps.metrics_exporter.helpers import (
-    metrics_add_integration_to_cache,
+    metrics_add_integrations_to_cache,
     metrics_remove_deleted_integration_from_cache,
     metrics_update_integration_cache,
 )
@@ -94,6 +94,59 @@ class AlertReceiveChannelQueryset(models.QuerySet):
 
 
 class AlertReceiveChannelManager(models.Manager):
+    @staticmethod
+    def create_missing_direct_paging_integrations(organization: "Organization") -> None:
+        from apps.alerts.models import ChannelFilter
+
+        # fetch teams without direct paging integration
+        teams_missing_direct_paging = list(
+            organization.teams.exclude(
+                pk__in=organization.alert_receive_channels.filter(
+                    team__isnull=False, integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING
+                ).values_list("team_id", flat=True)
+            )
+        )
+        if not teams_missing_direct_paging:
+            return
+
+        # create missing integrations
+        AlertReceiveChannel.objects.bulk_create(
+            [
+                AlertReceiveChannel(
+                    organization=organization,
+                    team=team,
+                    integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING,
+                    verbal_name=f"Direct paging ({team.name} team)",
+                )
+                for team in teams_missing_direct_paging
+            ],
+            batch_size=5000,
+            ignore_conflicts=True,  # ignore if direct paging integration already exists for team
+        )
+
+        # fetch integrations for teams (some of them are created above, but some may already exist previously)
+        alert_receive_channels = organization.alert_receive_channels.filter(
+            team__in=teams_missing_direct_paging, integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING
+        )
+
+        # create default routes
+        ChannelFilter.objects.bulk_create(
+            [
+                ChannelFilter(
+                    alert_receive_channel=alert_receive_channel,
+                    filtering_term=None,
+                    is_default=True,
+                    order=0,
+                )
+                for alert_receive_channel in alert_receive_channels
+            ],
+            batch_size=5000,
+            ignore_conflicts=True,  # ignore if default route already exists for integration
+        )
+
+        # add integrations to metrics cache
+        metrics_add_integrations_to_cache(list(alert_receive_channels), organization)
+
     def get_queryset(self):
         return AlertReceiveChannelQueryset(self.model, using=self._db).filter(
             ~Q(integration=AlertReceiveChannel.INTEGRATION_MAINTENANCE), Q(deleted_at=None)
@@ -678,7 +731,7 @@ def listen_for_alertreceivechannel_model_save(
             heartbeat = IntegrationHeartBeat.objects.create(alert_receive_channel=instance, timeout_seconds=TEN_MINUTES)
             write_resource_insight_log(instance=heartbeat, author=instance.author, event=EntityEvent.CREATED)
 
-        metrics_add_integration_to_cache(instance)
+        metrics_add_integrations_to_cache([instance], instance.organization)
 
     elif instance.deleted_at:
         if instance.is_alerting_integration:
