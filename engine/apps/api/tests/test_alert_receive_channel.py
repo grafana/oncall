@@ -871,7 +871,6 @@ def test_cant_delete_direct_paging_integration(
     url = reverse("api-internal:alert_receive_channel-detail", kwargs={"pk": integration.public_primary_key})
     response = client.delete(url, **make_user_auth_headers(user, token))
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert response.data["detail"] == AlertReceiveChannel.CantDeleteDirectPagingError.DETAIL
 
 
 @pytest.mark.django_db

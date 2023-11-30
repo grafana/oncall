@@ -318,25 +318,17 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
             channel.save()
         return channel
 
-    class DuplicateDirectPagingError(Exception):
-        """Only one Direct Paging integration is allowed per team."""
-
-        DETAIL = "Direct paging integration already exists for this team"  # Returned in BadRequest responses
-
-    class CantDeleteDirectPagingError(Exception):
-        """Direct Paging integrations cannot be deleted."""
-
-        DETAIL = "Direct paging integrations cannot be deleted"  # Returned in BadRequest responses
-
     def delete(self):
-        if self.integration == AlertReceiveChannel.INTEGRATION_DIRECT_PAGING:
-            raise self.CantDeleteDirectPagingError
-
         self.deleted_at = timezone.now()
         self.save()
 
     def hard_delete(self):
         super(AlertReceiveChannel, self).delete()
+
+    class DuplicateDirectPagingError(Exception):
+        """Only one Direct Paging integration is allowed per team."""
+
+        DETAIL = "Direct paging integration already exists for this team"  # Returned in BadRequest responses
 
     def save(self, *args, **kwargs):
         # Don't allow multiple Direct Paging integrations per team
