@@ -94,6 +94,49 @@ class AlertReceiveChannelQueryset(models.QuerySet):
 
 
 class AlertReceiveChannelManager(models.Manager):
+    @staticmethod
+    def bulk_create_direct_paging_for_teams(teams: models.QuerySet["Team"]):
+        from apps.alerts.models import ChannelFilter
+
+        # create integrations
+        AlertReceiveChannel.objects.bulk_create(
+            [
+                AlertReceiveChannel(
+                    organization=team.organization,
+                    team=team,
+                    integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING,
+                    verbal_name=f"Direct paging ({team.name} team)",
+                )
+                for team in teams
+            ],
+            batch_size=5000,
+            ignore_conflicts=True,  # ignore if direct paging integration already exists for team
+        )
+
+        # fetch integrations for teams (some of them are created above, but some may already exist previously)
+        integrations = AlertReceiveChannel.objects.filter(
+            team__in=teams, integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING
+        )
+
+        # create default routes
+        ChannelFilter.objects.bulk_create(
+            [
+                ChannelFilter(
+                    alert_receive_channel=integration,
+                    filtering_term=None,
+                    is_default=True,
+                    order=0,
+                )
+                for integration in integrations
+            ],
+            batch_size=5000,
+            ignore_conflicts=True,  # ignore if default route already exists for integration
+        )
+
+        # add integrations to metrics cache
+        for integration in integrations:
+            metrics_add_integration_to_cache(integration)
+
     def get_queryset(self):
         return AlertReceiveChannelQueryset(self.model, using=self._db).filter(
             ~Q(integration=AlertReceiveChannel.INTEGRATION_MAINTENANCE), Q(deleted_at=None)
