@@ -19,6 +19,8 @@ from apps.telegram.models import TelegramMessage, TelegramToOrganizationConnecto
 from common.custom_celery_tasks import shared_dedicated_queue_retry_task
 from common.utils import OkToRetry
 
+from .alert_group_representative import AlertGroupTelegramRepresentative
+
 logger = get_task_logger(__name__)
 logger.setLevel(logging.DEBUG)
 
@@ -215,3 +217,19 @@ def on_create_alert_telegram_representative_async(self, alert_pk):
     )
     for message in messages_to_edit:
         edit_message.delay(message_pk=message.pk)
+
+
+@shared_dedicated_queue_retry_task(
+    autoretry_for=(Exception,), retry_backoff=True, max_retries=1 if settings.DEBUG else None
+)
+def on_alert_group_action_triggered_async(log_record_id):
+    from apps.alerts.models import AlertGroupLogRecord
+
+    logger.info(f"AlertGroupTelegramRepresentative ACTION SIGNAL, log record {log_record_id}")
+
+    log_record = AlertGroupLogRecord.objects.get(pk=log_record_id)
+
+    instance = AlertGroupTelegramRepresentative(log_record)
+    if instance.is_applicable():
+        handler = instance.get_handler()
+        handler()

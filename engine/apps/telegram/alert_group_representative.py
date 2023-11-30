@@ -5,6 +5,8 @@ from apps.alerts.representative import AlertGroupAbstractRepresentative
 from apps.telegram.models import TelegramMessage
 from apps.telegram.tasks import edit_message, on_create_alert_telegram_representative_async
 
+from .tasks import on_alert_group_action_triggered_async
+
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
@@ -78,15 +80,11 @@ class AlertGroupTelegramRepresentative(AlertGroupAbstractRepresentative):
         from apps.alerts.models import AlertGroupLogRecord
 
         log_record = kwargs["log_record"]
-        logger.info(f"AlertGroupTelegramRepresentative ACTION SIGNAL, log record {log_record}")
-
         if not isinstance(log_record, AlertGroupLogRecord):
-            log_record = AlertGroupLogRecord.objects.get(pk=log_record)
-
-        instance = cls(log_record)
-        if instance.is_applicable():
-            handler = instance.get_handler()
-            handler()
+            log_record_id = log_record.pk
+        else:
+            log_record_id = log_record
+        on_alert_group_action_triggered_async.apply_async((log_record_id,))
 
     @staticmethod
     def on_create_alert(**kwargs):
