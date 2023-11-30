@@ -234,7 +234,7 @@ def test_delete_duplicate_names(make_organization, make_alert_receive_channel):
 
 @patch("apps.alerts.models.alert_receive_channel.metrics_add_integrations_to_cache")
 @pytest.mark.django_db
-def test_bulk_create_direct_paging_for_organization(
+def test_create_missing_direct_paging_integrations(
     mock_metrics_add_integrations_to_cache,
     make_organization,
     make_team,
