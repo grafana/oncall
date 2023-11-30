@@ -169,7 +169,9 @@ def test_teams_number_of_users_currently_oncall_attribute_works_properly(
     team2.users.set([user1])
     team3.users.set([user3])
 
-    def _make_schedule(team=None, oncall_users=[]):
+    def _make_schedule(team=None, oncall_users=None):
+        if oncall_users is None:
+            oncall_users = []
         schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
 
         if team:

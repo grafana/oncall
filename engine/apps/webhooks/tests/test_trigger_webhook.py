@@ -260,7 +260,7 @@ def test_execute_webhook_ok_forward_all(
     alert_group = make_alert_group(
         alert_receive_channel, acknowledged_at=timezone.now(), acknowledged=True, acknowledged_by=user.pk
     )
-    for i in range(3):
+    for _ in range(3):
         make_user_notification_policy_log_record(
             author=notified_user,
             alert_group=alert_group,

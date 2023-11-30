@@ -9,8 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- User profile UI tweaks ([#3443](https://github.com/grafana/oncall/pull/3443))
 - Delete duplicate direct paging integrations by @vadimkerr ([#3412](https://github.com/grafana/oncall/pull/3412))
+
+## v1.3.65 (2023-11-29)
+
+### Added
+
+- Add options to customize table columns in AlertGroup page ([3281](https://github.com/grafana/oncall/pull/3281))
+
+### Fixed
+
+- User profile UI tweaks ([#3443](https://github.com/grafana/oncall/pull/3443))
+- Ensure stack_id and org_id are ints @mderynck [(#3458](https://github.com/grafana/oncall/pull/3458))
 
 ## v1.3.64 (2023-11-28)
 
