@@ -64,6 +64,10 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
     confirmationModal: undefined,
   };
 
+  componentDidMount() {
+    this.props.store.outgoingWebhookStore.updateOutgoingWebhookPresetsOptions();
+  }
+
   componentDidUpdate(prevProps: OutgoingWebhooksProps) {
     if (prevProps.match.params.id !== this.props.match.params.id && !this.state.outgoingWebhookAction) {
       this.parseQueryParams();

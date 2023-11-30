@@ -2,6 +2,7 @@ from unittest import mock
 from unittest.mock import patch
 
 import pytest
+from django.db import IntegrityError
 from django.urls import reverse
 
 from apps.alerts.models import AlertReceiveChannel
@@ -229,3 +230,20 @@ def test_delete_duplicate_names(make_organization, make_alert_receive_channel):
     for _ in range(2):
         make_alert_receive_channel(organization, verbal_name="duplicate")
     organization.alert_receive_channels.all().delete()
+
+
+@pytest.mark.django_db
+def test_create_duplicate_direct_paging_integrations(make_organization, make_team, make_alert_receive_channel):
+    """Check that it's not possible to have more than one active direct paging integration per team."""
+
+    organization = make_organization()
+    team = make_team(organization)
+    make_alert_receive_channel(organization, team=team, integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING)
+
+    with pytest.raises(IntegrityError):
+        arc = AlertReceiveChannel(
+            organization=organization,
+            team=team,
+            integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING,
+        )
+        super(AlertReceiveChannel, arc).save()  # bypass the custom save method, so that IntegrityError is raised

@@ -8,7 +8,7 @@ from celery import uuid as celery_uuid
 from django.conf import settings
 from django.core.validators import MinLengthValidator
 from django.db import models, transaction
-from django.db.models import Q
+from django.db.models import BigIntegerField, Case, F, Q, When
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils import timezone
@@ -214,6 +214,21 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
 
     alert_group_labels_template: str | None = models.TextField(null=True, default=None)
     """Stores a Jinja2 template for "advanced label templating" for alert group labels."""
+
+    class Meta:
+        constraints = [
+            # This constraint ensures that there's at most one active direct paging integration per team
+            # This should work with SQLite, PostgreSQL and MySQL >= 8.0.13.
+            # From the docs: Functional indexes are ignored with MySQL < 8.0.13 and MariaDB as neither supports them.
+            # https://docs.djangoproject.com/en/4.2/ref/models/constraints/#expressions
+            models.UniqueConstraint(
+                F("organization"),
+                Case(When(team=None, then=0), default=F("team"), output_field=BigIntegerField()),
+                Case(When(deleted_at__isnull=True, then=True), default=None),
+                Case(When(integration="direct_paging", then=True), default=None),
+                name="unique_direct_paging_integration_per_team",
+            )
+        ]
 
     def __str__(self):
         short_name_with_emojis = emojize(self.short_name, language="alias")
