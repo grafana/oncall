@@ -130,7 +130,7 @@ export class RootBaseStore {
       this.grafanaTeamStore.updateItems,
       updateFeatures,
     ]);
-    runInAction(() => (this.isBasicDataLoaded = true));
+    this.isBasicDataLoaded = true;
   }
 
   @action.bound

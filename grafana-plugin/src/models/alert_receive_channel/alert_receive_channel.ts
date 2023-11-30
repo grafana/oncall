@@ -320,7 +320,7 @@ export class AlertReceiveChannelStore extends BaseStore {
   @action.bound
   async updateAlertReceiveChannelOptions() {
     const response = await makeRequest(`/alert_receive_channels/integration_options/`, {});
-    runInAction(() => (this.alertReceiveChannelOptions = response));
+    this.alertReceiveChannelOptions = response;
   }
 
   getIntegration(alertReceiveChannel: Partial<AlertReceiveChannel>): SelectOption {

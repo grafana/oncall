@@ -64,13 +64,11 @@ export class UserStore extends BaseStore {
     const response = await makeRequest('/user/', {});
     const timezone = await this.refreshTimezone(response.pk);
 
-    runInAction(() => {
-      this.items = {
-        ...this.items,
-        [response.pk]: { ...response, timezone },
-      };
-      this.currentUserPk = response.pk;
-    });
+    this.items = {
+      ...this.items,
+      [response.pk]: { ...response, timezone },
+    };
+    this.currentUserPk = response.pk;
   }
 
   @action
@@ -376,7 +374,7 @@ export class UserStore extends BaseStore {
     const response = await makeRequest('/notification_policies/', {
       method: 'OPTIONS',
     });
-    runInAction(() => (this.notificationChoices = get(response, 'actions.POST', [])));
+    this.notificationChoices = get(response, 'actions.POST', []);
   }
 
   @action
@@ -392,7 +390,7 @@ export class UserStore extends BaseStore {
   @action.bound
   async updateNotifyByOptions() {
     const response = await makeRequest('/notification_policies/notify_by_options/', {});
-    runInAction(() => (this.notifyByOptions = response));
+    this.notifyByOptions = response;
   }
 
   async makeTestCall(userPk: User['pk']) {

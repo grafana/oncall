@@ -40,20 +40,16 @@ export class GrafanaTeamStore extends BaseStore {
         only_include_notifiable_teams: onlyIncludeNotifiableTeams ? 'true' : 'false',
       },
     });
-
-    runInAction(
-      () =>
-        (this.items = {
-          ...this.items,
-          ...result.reduce<TeamItems>(
-            (acc, item) => ({
-              ...acc,
-              [item.id]: item,
-            }),
-            {}
-          ),
-        })
-    );
+    this.items = {
+      ...this.items,
+      ...result.reduce<TeamItems>(
+        (acc, item) => ({
+          ...acc,
+          [item.id]: item,
+        }),
+        {}
+      ),
+    };
 
     this.searchResult = result.map((item: GrafanaTeam) => item.id);
   }

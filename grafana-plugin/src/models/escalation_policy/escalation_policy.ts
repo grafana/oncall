@@ -37,7 +37,7 @@ export class EscalationPolicyStore extends BaseStore {
   @action.bound
   async updateWebEscalationPolicyOptions() {
     const response = await makeRequest('/escalation_policies/escalation_options/', {});
-    runInAction(() => (this.webEscalationChoices = response));
+    this.webEscalationChoices = response;
   }
 
   @action.bound
@@ -45,13 +45,13 @@ export class EscalationPolicyStore extends BaseStore {
     const response = await makeRequest('/escalation_policies/', {
       method: 'OPTIONS',
     });
-    runInAction(() => (this.escalationChoices = get(response, 'actions.POST', [])));
+    this.escalationChoices = get(response, 'actions.POST', []);
   }
 
   @action.bound
   async updateNumMinutesInWindowOptions() {
     const response = await makeRequest('/escalation_policies/num_minutes_in_window_options/', {});
-    runInAction(() => (this.numMinutesInWindowOptions = response));
+    this.numMinutesInWindowOptions = response;
   }
 
   @action
