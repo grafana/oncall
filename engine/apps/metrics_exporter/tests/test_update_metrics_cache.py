@@ -595,7 +595,7 @@ def test_metrics_add_integrations_to_cache(make_organization, make_alert_receive
     )
     cache.set(
         get_metric_alert_groups_response_time_key(organization.id),
-        {alert_receive_channel2.id: _expected_alert_groups_response_time(alert_receive_channel2, response_time=[42])},
+        {alert_receive_channel2.id: _expected_alert_groups_response_time(alert_receive_channel2, response_time=[12])},
     )
 
     # add integrations to cache
@@ -610,5 +610,5 @@ def test_metrics_add_integrations_to_cache(make_organization, make_alert_receive
     # check alert groups response time
     assert cache.get(get_metric_alert_groups_response_time_key(organization.id)) == {
         alert_receive_channel1.id: _expected_alert_groups_response_time(alert_receive_channel1),
-        alert_receive_channel2.id: _expected_alert_groups_response_time(alert_receive_channel2, response_time=[42]),
+        alert_receive_channel2.id: _expected_alert_groups_response_time(alert_receive_channel2, response_time=[12]),
     }
