@@ -95,7 +95,7 @@ class AlertReceiveChannelQueryset(models.QuerySet):
 
 class AlertReceiveChannelManager(models.Manager):
     @staticmethod
-    def create_missing_direct_paging_integrations(organization: "Organization"):
+    def create_missing_direct_paging_integrations(organization: "Organization") -> None:
         from apps.alerts.models import ChannelFilter
 
         # fetch teams without direct paging integration
@@ -106,6 +106,8 @@ class AlertReceiveChannelManager(models.Manager):
                 ).values_list("team_id", flat=True)
             )
         )
+        if not teams_missing_direct_paging:
+            return
 
         # create missing integrations
         AlertReceiveChannel.objects.bulk_create(
