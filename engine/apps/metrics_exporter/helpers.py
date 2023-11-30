@@ -158,7 +158,9 @@ def metrics_remove_deleted_integration_from_cache(integration: "AlertReceiveChan
 
 
 def metrics_add_integrations_to_cache(integrations: list["AlertReceiveChannel"], organization: "Organization"):
-    """Bulk add new integration data to metrics cache"""
+    """
+    Bulk add new integration data to metrics cache. This method is safe to call multiple times on the same integrations.
+    """
     metrics_cache_timeout = get_metrics_cache_timeout(organization.id)
     metric_alert_groups_total_key = get_metric_alert_groups_total_key(organization.id)
 
