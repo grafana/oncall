@@ -74,8 +74,8 @@ def test_it_properly_handles_errors_from_the_grafana_api(
     url = reverse("grafana-plugin:self-hosted-install")
     response = client.post(url, format="json", **make_self_hosted_install_header(GRAFANA_TOKEN))
 
-    assert mocked_grafana_api_client.called_once_with(api_url=GRAFANA_API_URL, api_token=GRAFANA_TOKEN)
-    assert mocked_grafana_api_client.return_value.check_token.called_once_with()
+    mocked_grafana_api_client.assert_called_once_with(api_url=GRAFANA_API_URL, api_token=GRAFANA_TOKEN)
+    mocked_grafana_api_client.return_value.check_token.assert_called_once_with()
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert response.data["error"] == expected_error_msg
@@ -106,13 +106,13 @@ def test_if_organization_exists_it_is_updated(
     url = reverse("grafana-plugin:self-hosted-install")
     response = client.post(url, format="json", **make_self_hosted_install_header(GRAFANA_TOKEN))
 
-    assert mocked_grafana_api_client.called_once_with(api_url=GRAFANA_API_URL, api_token=GRAFANA_TOKEN)
-    assert mocked_grafana_api_client.return_value.check_token.called_once_with()
-    assert mocked_grafana_api_client.return_value.is_rbac_enabled_for_organization.called_once_with()
+    mocked_grafana_api_client.assert_called_once_with(api_url=GRAFANA_API_URL, api_token=GRAFANA_TOKEN)
+    mocked_grafana_api_client.return_value.check_token.assert_called_once_with()
+    mocked_grafana_api_client.return_value.is_rbac_enabled_for_organization.assert_called_once_with()
 
-    assert mocked_sync_organization.called_once_with(organization)
-    assert mocked_provision_plugin.called_once_with()
-    assert mocked_revoke_plugin.called_once_with()
+    mocked_sync_organization.assert_called_once_with(organization)
+    mocked_provision_plugin.assert_called_once_with()
+    mocked_revoke_plugin.assert_called_once_with()
 
     assert response.status_code == status.HTTP_201_CREATED
     assert response.data == {"error": None, **provision_plugin_response}
@@ -151,12 +151,12 @@ def test_if_organization_does_not_exist_it_is_created(
 
     organization = Organization.objects.filter(stack_id=STACK_ID, org_id=ORG_ID).first()
 
-    assert mocked_grafana_api_client.called_once_with(api_url=GRAFANA_API_URL, api_token=GRAFANA_TOKEN)
-    assert mocked_grafana_api_client.return_value.check_token.called_once_with()
-    assert mocked_grafana_api_client.return_value.is_rbac_enabled_for_organization.called_once_with()
+    mocked_grafana_api_client.assert_called_once_with(api_url=GRAFANA_API_URL, api_token=GRAFANA_TOKEN)
+    mocked_grafana_api_client.return_value.check_token.assert_called_once_with()
+    mocked_grafana_api_client.return_value.is_rbac_enabled_for_organization.assert_called_once_with()
 
-    assert mocked_sync_organization.called_once_with(organization)
-    assert mocked_provision_plugin.called_once_with()
+    mocked_sync_organization.assert_called_once_with(organization)
+    mocked_provision_plugin.assert_called_once_with()
     assert not mocked_revoke_plugin.called
 
     assert response.status_code == status.HTTP_201_CREATED

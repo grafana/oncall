@@ -31,7 +31,7 @@ class TestIsRbacEnabledForStack:
 
         api_client = GcomAPIClient("someFakeApiToken")
         assert api_client.is_rbac_enabled_for_stack(stack_id) == expected
-        assert mocked_gcom_api_client_api_get.called_once_with(f"instances/{stack_id}?config=true")
+        mocked_gcom_api_client_api_get.assert_called_once_with(f"instances/{stack_id}?config=true")
 
     @pytest.mark.parametrize(
         "instance_info_feature_toggles,delimiter,expected",
