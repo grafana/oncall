@@ -52,7 +52,7 @@ def create_missing_direct_paging_integrations(apps, schema_editor):
     # add integrations to metrics cache (one function call per organization)
     organization_integrations = defaultdict(list)
     for integration in team_integrations:
-        organization_integrations[integration.organization_id].append(integration)
+        organization_integrations[integration.organization].append(integration)
 
     for organization, integrations in organization_integrations.items():
         metrics_add_integrations_to_cache(integrations, organization)
