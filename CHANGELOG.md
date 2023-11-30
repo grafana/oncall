@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## v1.3.67 (2023-11-30)
+
+Minor bugfixes + dependency updates :)
+
+## v1.3.66 (2023-11-30)
+
+### Fixed
+
+- Delete duplicate direct paging integrations by @vadimkerr ([#3412](https://github.com/grafana/oncall/pull/3412))
+
+## v1.3.65 (2023-11-29)
+
 ### Added
 
 - Add options to customize table columns in AlertGroup page ([#3281](https://github.com/grafana/oncall/pull/3281))
