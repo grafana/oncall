@@ -532,27 +532,27 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
 
     @property
     def heartbeat_restored_title(self):
-        return getattr(self.heartbeat_module, "heartbeat_restored_title")
+        return self.heartbeat_module.heartbeat_restored_title
 
     @property
     def heartbeat_restored_message(self):
-        return getattr(self.heartbeat_module, "heartbeat_restored_message")
+        return self.heartbeat_module.heartbeat_restored_message
 
     @property
     def heartbeat_restored_payload(self):
-        return getattr(self.heartbeat_module, "heartbeat_restored_payload")
+        return self.heartbeat_module.heartbeat_restored_payload
 
     @property
     def heartbeat_expired_title(self):
-        return getattr(self.heartbeat_module, "heartbeat_expired_title")
+        return self.heartbeat_module.heartbeat_expired_title
 
     @property
     def heartbeat_expired_message(self):
-        return getattr(self.heartbeat_module, "heartbeat_expired_message")
+        return self.heartbeat_module.heartbeat_expired_message
 
     @property
     def heartbeat_expired_payload(self):
-        return getattr(self.heartbeat_module, "heartbeat_expired_payload")
+        return self.heartbeat_module.heartbeat_expired_payload
 
     @property
     def heartbeat_module(self):

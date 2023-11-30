@@ -9,7 +9,7 @@ from kombu.utils.uuid import uuid as celery_uuid
 from apps.alerts.constants import NEXT_ESCALATION_DELAY
 from apps.alerts.signals import user_notification_action_triggered_signal
 from apps.base.messaging import get_messaging_backend_from_id
-from apps.metrics_exporter.helpers import metrics_update_user_cache
+from apps.metrics_exporter.tasks import update_metrics_for_user
 from apps.phone_notifications.phone_backend import PhoneBackend
 from common.custom_celery_tasks import shared_dedicated_queue_retry_task
 
@@ -188,7 +188,7 @@ def notify_user_task(
                     alert_group_id=alert_group_pk,
                 ).exists()
             ):
-                metrics_update_user_cache(user)
+                update_metrics_for_user.apply_async((user.id,))
 
             log_record.save()
             if notify_user_task.request.retries == 0:

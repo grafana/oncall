@@ -17,7 +17,7 @@ class BaseChannelFilterSerializer(OrderedModelSerializer):
         """Update existing fields of the serializer with messaging backends fields"""
 
         super().__init__(*args, **kwargs)
-        for backend_id, backend in get_messaging_backends():
+        for _, backend in get_messaging_backends():
             if backend is None:
                 continue
             field = backend.slug

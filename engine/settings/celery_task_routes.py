@@ -16,6 +16,8 @@ CELERY_TASK_ROUTES = {
     "apps.labels.tasks.update_labels_cache": {"queue": "default"},
     "apps.labels.tasks.update_instances_labels_cache": {"queue": "default"},
     "apps.metrics_exporter.tasks.start_calculate_and_cache_metrics": {"queue": "default"},
+    "apps.metrics_exporter.tasks.update_metrics_for_alert_group": {"queue": "default"},
+    "apps.metrics_exporter.tasks.update_metrics_for_user": {"queue": "default"},
     "apps.metrics_exporter.tasks.start_recalculation_for_new_metric": {"queue": "default"},
     "apps.metrics_exporter.tasks.save_organizations_ids_in_cache": {"queue": "default"},
     "apps.mobile_app.tasks.new_shift_swap_request.notify_shift_swap_requests": {"queue": "default"},

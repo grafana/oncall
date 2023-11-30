@@ -123,7 +123,7 @@ def format_state_for_insight_log(diff_dict):
     """
     fields_to_prune = ()
     fields_to_hide = ("verified_phone_number", "unverified_phone_number")
-    for k, v in diff_dict.items():
+    for k, _ in diff_dict.items():
         if k in fields_to_prune:
             diff_dict[k] = "Diff not supported"
         if k in fields_to_hide:
