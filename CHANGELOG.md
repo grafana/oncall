@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## v1.3.68 (2023-11-30)
+
 ### Fixed
 
 - Create missing direct paging integrations on organization sync by @vadimkerr ([#3468](https://github.com/grafana/oncall/pull/3468))
