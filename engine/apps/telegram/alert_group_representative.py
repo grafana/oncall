@@ -80,7 +80,7 @@ class AlertGroupTelegramRepresentative(AlertGroupAbstractRepresentative):
         from apps.alerts.models import AlertGroupLogRecord
 
         log_record = kwargs["log_record"]
-        if not isinstance(log_record, AlertGroupLogRecord):
+        if isinstance(log_record, AlertGroupLogRecord):
             log_record_id = log_record.pk
         else:
             log_record_id = log_record
