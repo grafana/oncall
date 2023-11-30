@@ -53,7 +53,7 @@ steps:
         - refs/tags/v*.*.*
 
   - name: Lint Backend
-    image: python:3.11.4
+    image: python:3.12.0
     environment:
       DJANGO_SETTINGS_MODULE: settings.ci-test
     commands:
@@ -63,7 +63,7 @@ steps:
       - pre-commit run flake8 --all-files
 
   - name: Unit Test Backend
-    image: python:3.11.4
+    image: python:3.12.0
     environment:
       RABBITMQ_URI: amqp://rabbitmq:rabbitmq@rabbit_test:5672
       DJANGO_SETTINGS_MODULE: settings.ci-test
@@ -379,4 +379,4 @@ kind: secret
 name: github_api_token
 ---
 kind: signature
-hmac: b9e499a424faecd9a8f41552cc307bd3431cb0e3fac77f3ee99ce19258fc0fec
+hmac: 36a7d2e2906bad4f186adfa488057ffb9107ef1cdbb3e4d7cb61165b00870c6b

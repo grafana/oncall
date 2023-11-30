@@ -1,4 +1,4 @@
-from unittest.mock import patch
+from unittest.mock import call, patch
 
 import pytest
 from django.utils import timezone
@@ -74,10 +74,16 @@ def test_direct_paging_user(make_organization, make_user_for_organization):
     assert alert.message == msg
 
     # notifications sent
-    for u, important in ((user, False), (other_user, True)):
-        assert notify_task.apply_async.called_with(
-            (u.pk, ag.pk), {"important": important, "notify_even_acknowledged": True, "notify_anyway": True}
-        )
+    notifications_sent = ((user, False), (other_user, True))
+
+    notify_task.apply_async.assert_has_calls(
+        [
+            call((u.pk, ag.pk), {"important": important, "notify_even_acknowledged": True, "notify_anyway": True})
+            for u, important in notifications_sent
+        ]
+    )
+
+    for u, important in notifications_sent:
         expected_info = {"user": u.public_primary_key, "important": important}
         assert_log_record(ag, f"{from_user.username} paged user {u.username}", expected_info=expected_info)
 
@@ -173,7 +179,7 @@ def test_direct_paging_reusing_alert_group(
 
     # notifications sent
     ag = alert_groups.get()
-    assert notify_task.apply_async.called_with(
+    notify_task.apply_async.assert_called_with(
         (user.pk, ag.pk), {"important": False, "notify_even_acknowledged": True, "notify_anyway": True}
     )
 
@@ -243,11 +249,17 @@ def test_direct_paging_always_create_group(make_organization, make_user_for_orga
     assert alert_groups.count() == 2
 
     # notifications sent
-    assert notify_task.apply_async.called_with(
-        (user.pk, alert_groups[0].pk), {"important": False, "notify_even_acknowledged": True, "notify_anyway": True}
-    )
-    assert notify_task.apply_async.called_with(
-        (user.pk, alert_groups[1].pk), {"important": False, "notify_even_acknowledged": True, "notify_anyway": True}
+    notify_task.apply_async.assert_has_calls(
+        [
+            call(
+                (user.pk, alert_groups[0].pk),
+                {"important": False, "notify_even_acknowledged": True, "notify_anyway": True},
+            ),
+            call(
+                (user.pk, alert_groups[1].pk),
+                {"important": False, "notify_even_acknowledged": True, "notify_anyway": True},
+            ),
+        ]
     )
 
 

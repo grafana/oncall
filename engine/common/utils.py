@@ -150,7 +150,7 @@ def isoformat_with_tz_suffix(value):
 
 
 def is_string_with_visible_characters(string):
-    return type(string) == str and not string.isspace() and not string == ""
+    return type(string) is str and not string.isspace() and not string == ""
 
 
 def str_or_backup(string, backup):

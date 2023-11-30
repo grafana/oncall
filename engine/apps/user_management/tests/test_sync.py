@@ -103,19 +103,20 @@ def test_sync_users_for_organization_role_none(make_organization, make_user_for_
 @pytest.mark.django_db
 def test_sync_teams_for_organization(make_organization, make_team, make_alert_receive_channel):
     organization = make_organization()
-    teams = tuple(make_team(organization, team_id=team_id) for team_id in (1, 2))
+    teams = tuple(make_team(organization, team_id=team_id) for team_id in (1, 2, 3))
     direct_paging_integrations = tuple(
         make_alert_receive_channel(organization, integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING, team=team)
-        for team in teams
+        for team in teams[:2]
     )
 
     api_teams = tuple(
-        {"id": team_id, "name": "Test", "email": "test@test.test", "avatarUrl": "test.test/test"} for team_id in (2, 3)
+        {"id": team_id, "name": "Test", "email": "test@test.test", "avatarUrl": "test.test/test"}
+        for team_id in (2, 3, 4)
     )
 
     Team.objects.sync_for_organization(organization, api_teams=api_teams)
 
-    assert organization.teams.count() == 2
+    assert organization.teams.count() == 3
 
     # check that excess teams and direct paging integrations are deleted
     assert not organization.teams.filter(pk=teams[0].pk).exists()
@@ -129,15 +130,24 @@ def test_sync_teams_for_organization(make_organization, make_team, make_alert_re
     assert organization.alert_receive_channels.filter(pk=direct_paging_integrations[1].pk).exists()
 
     # check that missing teams are created
-    created_team = organization.teams.filter(team_id=api_teams[1]["id"]).first()
+    created_team = organization.teams.filter(team_id=api_teams[2]["id"]).first()
     assert created_team is not None
-    assert created_team.team_id == api_teams[1]["id"]
-    assert created_team.name == api_teams[1]["name"]
+    assert created_team.team_id == api_teams[2]["id"]
+    assert created_team.name == api_teams[2]["name"]
 
+    # check that direct paging is created for created team
     direct_paging_integration = AlertReceiveChannel.objects.get(
         organization=organization,
         integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING,
         team=created_team,
+    )
+    assert direct_paging_integration.channel_filters.count() == 1
+    assert direct_paging_integration.channel_filters.first().order == 0
+    assert direct_paging_integration.channel_filters.first().is_default
+
+    # check that direct paging is created for existing team
+    direct_paging_integration = AlertReceiveChannel.objects.get(
+        organization=organization, integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING, team=teams[2]
     )
     assert direct_paging_integration.channel_filters.count() == 1
     assert direct_paging_integration.channel_filters.first().order == 0
@@ -358,8 +368,8 @@ def test_sync_organization_is_rbac_permissions_enabled_cloud(mocked_gcom_client,
 
     organization.refresh_from_db()
 
-    assert mocked_gcom_client.return_value.called_once_with("mockedToken")
-    assert mocked_gcom_client.return_value.is_rbac_enabled_for_stack.called_once_with(stack_id)
+    mocked_gcom_client.assert_called_once_with("mockedToken")
+    mocked_gcom_client.return_value.is_rbac_enabled_for_stack.assert_called_once_with(stack_id)
     assert organization.is_rbac_permissions_enabled == gcom_api_response
 
 
