@@ -317,10 +317,9 @@ export class AlertReceiveChannelStore extends BaseStore {
     return this.updateChannelFilters(channelFilter.alert_receive_channel, true);
   }
 
-  @action
+  @action.bound
   async updateAlertReceiveChannelOptions() {
     const response = await makeRequest(`/alert_receive_channels/integration_options/`, {});
-
     this.alertReceiveChannelOptions = response;
   }
 
