@@ -853,6 +853,28 @@ def test_update_alert_receive_channels_direct_paging(
 
 
 @pytest.mark.django_db
+def test_cant_delete_direct_paging_integration(
+    make_organization_and_user_with_plugin_token, make_alert_receive_channel, make_user_auth_headers
+):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+    integration = make_alert_receive_channel(organization, integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING)
+
+    # check allow_delete is False (so the frontend can hide the delete button)
+    client = APIClient()
+    url = reverse("api-internal:alert_receive_channel-detail", kwargs={"pk": integration.public_primary_key})
+    response = client.get(url, **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()["allow_delete"] is False
+
+    # check delete is not allowed
+    client = APIClient()
+    url = reverse("api-internal:alert_receive_channel-detail", kwargs={"pk": integration.public_primary_key})
+    response = client.delete(url, **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.data["detail"] == AlertReceiveChannel.CantDeleteDirectPagingError.DETAIL
+
+
+@pytest.mark.django_db
 def test_start_maintenance_integration(
     make_user_auth_headers,
     make_organization_and_user_with_plugin_token,

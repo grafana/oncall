@@ -939,3 +939,15 @@ def test_update_integration_type_legacy(
     assert response.status_code == status.HTTP_200_OK
     assert response.data["description_short"] == "Updated description"
     assert response.data["type"] == "alertmanager"
+
+
+@pytest.mark.django_db
+def test_cant_delete_direct_paging_integration(make_organization_and_user_with_token, make_alert_receive_channel):
+    organization, user, token = make_organization_and_user_with_token()
+    integration = make_alert_receive_channel(organization, integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING)
+
+    client = APIClient()
+    url = reverse("api-public:integrations-detail", args=[integration.public_primary_key])
+    response = client.delete(url, HTTP_AUTHORIZATION=token)
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.data["detail"] == AlertReceiveChannel.CantDeleteDirectPagingError.DETAIL

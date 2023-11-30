@@ -372,7 +372,8 @@ class AlertReceiveChannelSerializer(
         return IntegrationHeartBeatSerializer(heartbeat).data
 
     def get_allow_delete(self, obj: "AlertReceiveChannel"):
-        return True
+        # don't allow deleting direct paging integrations
+        return obj.integration != AlertReceiveChannel.INTEGRATION_DIRECT_PAGING
 
     def get_alert_count(self, obj: "AlertReceiveChannel"):
         return 0
