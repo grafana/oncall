@@ -10,7 +10,7 @@ capable of generating the following objects:
 
 ## Prerequisites
 
-1. Create/active a Python 3.11 virtual environment
+1. Create/active a Python 3.12 virtual environment
 2. `pip install -r requirements.txt`
 3. Must have a local version of Grafana and OnCall up and running
 4. Generate an API key inside of Grafana OnCall
