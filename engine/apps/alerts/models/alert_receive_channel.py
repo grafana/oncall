@@ -113,7 +113,7 @@ class AlertReceiveChannelManager(models.Manager):
         AlertReceiveChannel.objects.bulk_create(
             [
                 AlertReceiveChannel(
-                    organization=team.organization,
+                    organization=organization,
                     team=team,
                     integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING,
                     verbal_name=f"Direct paging ({team.name} team)",
@@ -133,12 +133,12 @@ class AlertReceiveChannelManager(models.Manager):
         ChannelFilter.objects.bulk_create(
             [
                 ChannelFilter(
-                    alert_receive_channel=integration,
+                    alert_receive_channel=alert_receive_channel,
                     filtering_term=None,
                     is_default=True,
                     order=0,
                 )
-                for integration in alert_receive_channels
+                for alert_receive_channel in alert_receive_channels
             ],
             batch_size=5000,
             ignore_conflicts=True,  # ignore if default route already exists for integration
