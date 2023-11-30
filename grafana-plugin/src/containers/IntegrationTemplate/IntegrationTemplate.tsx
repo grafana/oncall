@@ -50,7 +50,6 @@ const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
   const [alertGroupPayload, setAlertGroupPayload] = useState<JSON>(undefined);
   const [changedTemplateBody, setChangedTemplateBody] = useState<string>(templateBody);
   const [resultError, setResultError] = useState<string>(undefined);
-  const [editorHeight, setEditorHeight] = useState<string>(undefined);
   const [isRecentAlertGroupExisting, setIsRecentAlertGroupExisting] = useState<boolean>(false);
 
   useEffect(() => {
@@ -61,14 +60,6 @@ const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
       }
       LocationHelper.update(locationParams, 'partial');
     }
-  }, []);
-
-  useEffect(() => {
-    waitForElement('#content-container-id').then(() => {
-      const mainDiv = document.getElementById('content-container-id');
-      const height = mainDiv?.getBoundingClientRect().height - 59;
-      setEditorHeight(`${height}px`);
-    });
   }, []);
 
   const onShowCheatSheet = useCallback(() => {
@@ -241,7 +232,7 @@ const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
               value={changedTemplateBody}
               data={templates}
               showLineNumbers={true}
-              height={editorHeight}
+              height="100%"
               onChange={getChangeHandler()}
             />
           </div>
