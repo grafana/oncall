@@ -23,6 +23,7 @@ import {
 import { OutgoingWebhook } from 'models/outgoing_webhook/outgoing_webhook.types';
 import { Schedule } from 'models/schedule/schedule.types';
 import { User } from 'models/user/user.types';
+import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
 import { UserGroup } from 'models/user_group/user_group.types';
 import { SelectOption, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
@@ -109,6 +110,8 @@ class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
         return this.renderWaitDelays();
       case 'slack_user_group':
         return this.renderNotifyUserGroup();
+      case 'team':
+        return this.renderNotifyTeam();
       case 'schedule':
         return this.renderNotifySchedule();
       case 'custom_webhook':
@@ -415,6 +418,33 @@ class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
             const webhook = outgoingWebhookStore.items[id];
             return webhook.trigger_type_name === 'Escalation step';
           }}
+        />
+      </WithPermissionControlTooltip>
+    );
+  }
+
+  renderNotifyTeam() {
+    const {
+      data,
+      isDisabled,
+      store: { grafanaTeamStore },
+    } = this.props;
+    const { notify_to_team } = data;
+
+    return (
+      <WithPermissionControlTooltip key="notify_to_team" userAction={UserActions.EscalationChainsWrite}>
+        <GSelect<GrafanaTeam>
+          disabled={isDisabled}
+          items={grafanaTeamStore.items}
+          fetchItemsFn={grafanaTeamStore.updateItems}
+          getSearchResult={grafanaTeamStore.getSearchResult}
+          displayField="name"
+          valueField="id"
+          placeholder="Select Team"
+          className={cx('select', 'control')}
+          value={notify_to_team}
+          onChange={this.getOnChangeHandler('notify_to_team')}
+          width={'auto'}
         />
       </WithPermissionControlTooltip>
     );

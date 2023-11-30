@@ -1,5 +1,6 @@
 import { Channel } from 'models/channel/channel';
 import { EscalationChain } from 'models/escalation_chain/escalation_chain.types';
+import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
 import { OutgoingWebhook } from 'models/outgoing_webhook/outgoing_webhook.types';
 import { Schedule } from 'models/schedule/schedule.types';
 import { User } from 'models/user/user.types';
@@ -19,6 +20,7 @@ export interface EscalationPolicy {
   notify_to_channel: Channel['id'] | null;
   custom_webhook: OutgoingWebhook['id'] | null;
   notify_to_group: UserGroup['id'] | null;
+  notify_to_team: GrafanaTeam['id'] | null;
   notify_schedule: Schedule['id'] | null;
   important: boolean | null;
   num_alerts_in_window: number;
