@@ -20,7 +20,7 @@ export interface EscalationPolicy {
   notify_to_channel: Channel['id'] | null;
   custom_webhook: OutgoingWebhook['id'] | null;
   notify_to_group: UserGroup['id'] | null;
-  notify_to_team: GrafanaTeam['id'] | null;
+  notify_to_team_members: GrafanaTeam['id'] | null;
   notify_schedule: Schedule['id'] | null;
   important: boolean | null;
   num_alerts_in_window: number;

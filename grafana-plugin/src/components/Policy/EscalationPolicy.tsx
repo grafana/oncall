@@ -429,7 +429,7 @@ class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
       isDisabled,
       store: { grafanaTeamStore },
     } = this.props;
-    const { notify_to_team } = data;
+    const { notify_to_team_members } = data;
 
     return (
       <WithPermissionControlTooltip key="notify_to_team" userAction={UserActions.EscalationChainsWrite}>
@@ -442,7 +442,7 @@ class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
           valueField="id"
           placeholder="Select Team"
           className={cx('select', 'control')}
-          value={notify_to_team}
+          value={notify_to_team_members}
           onChange={this.getOnChangeHandler('notify_to_team')}
           width={'auto'}
         />

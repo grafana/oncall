@@ -10,7 +10,7 @@ from .notify_user import notify_user_task
 @shared_dedicated_queue_retry_task(
     autoretry_for=(Exception,), retry_backoff=True, max_retries=1 if settings.DEBUG else None
 )
-def notify_team_task(
+def notify_team_members_task(
     team_pk,
     alert_group_pk,
     previous_notification_policy_pk=None,
@@ -27,12 +27,12 @@ def notify_team_task(
         try:
             team = Team.objects.filter(pk=team_pk).first()
         except Team.DoesNotExist:
-            return f"notify_team_task: team {team_pk} doesn't exist"
+            return f"notify_team_members_task: team {team_pk} doesn't exist"
 
 
         for user in team.users.all():
             try:
-                task_logger.debug(f"notify_team_task: notifying {user.pk}")
+                task_logger.debug(f"notify_team_members_task: notifying {user.pk}")
                 notify_user_task(user.pk, alert_group_pk, previous_notification_policy_pk, reason, prevent_posting_to_thread, notify_even_acknowledged, important, notify_anyway)
             except:
-                  task_logger.info(f"notify_team_task: user {user.pk} failed")
+                  task_logger.info(f"notify_team_members_task: user {user.pk} failed")

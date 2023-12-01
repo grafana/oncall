@@ -21,7 +21,7 @@ export interface EscalationPolicyType {
   notify_to_schedule: ScheduleDTO['id'] | null;
   notify_to_channel: Channel['id'] | null;
   notify_to_group: UserGroup['id'];
-  notify_to_team: GrafanaTeam['id'];
+  notify_to_team_members: GrafanaTeam['id'];
   notify_schedule: Schedule['id'];
 }
 

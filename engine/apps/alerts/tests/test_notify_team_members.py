@@ -1,13 +1,13 @@
 from unittest.mock import patch, call
 
 import pytest
-from apps.alerts.tasks.notify_team import notify_team_task
+from apps.alerts.tasks.notify_team_members import notify_team_members_task
 from apps.api.permissions import LegacyAccessControlRole
 
 
 
 @pytest.mark.django_db
-def test_notify_team(
+def test_notify_team_members(
     make_organization,
     make_user,
     make_alert_receive_channel,
@@ -31,8 +31,8 @@ def test_notify_team(
     team_1.users.add(user_2)
     alert_receive_channel = make_alert_receive_channel(organization=organization)
     alert_group = make_alert_group(alert_receive_channel=alert_receive_channel)
-    with patch("apps.alerts.tasks.notify_team.notify_user_task") as mock_execute:
-        notify_team_task(team_1.pk, alert_group.pk)
+    with patch("apps.alerts.tasks.notify_team_members.notify_user_task") as mock_execute:
+        notify_team_members_task(team_1.pk, alert_group.pk)
     
     assert mock_execute.call_args_list[0] == call(user_1.pk, alert_group.pk, None, None, False, False, False, False)
     assert mock_execute.call_args_list[1] == call(user_2.pk, alert_group.pk, None, None, False, False, False, False)

@@ -713,7 +713,7 @@ def test_escalation_policy_update_drop_non_step_type_related_data(
         "notify_schedule",
         "notify_to_users_queue",
         "notify_to_group",
-        "notify_to_team",
+        "notify_to_team_members",
         "from_time",
         "to_time",
         "custom_button_trigger",
@@ -771,7 +771,7 @@ def test_escalation_policy_switch_importance(
         "custom_webhook": None,
         "notify_schedule": None,
         "notify_to_group": None,
-        "notify_to_team": None,
+        "notify_to_team_members": None,
         "important": True,
         "wait_delay": None,
     }
@@ -829,7 +829,7 @@ def test_escalation_policy_filter_by_user(
             "custom_webhook": None,
             "notify_schedule": None,
             "notify_to_group": None,
-            "notify_to_team": None,
+            "notify_to_team_members": None,
             "important": False,
         },
         {
@@ -847,7 +847,7 @@ def test_escalation_policy_filter_by_user(
             "custom_webhook": None,
             "notify_schedule": None,
             "notify_to_group": None,
-            "notify_to_team": None,
+            "notify_to_team_members": None,
             "important": False,
         },
     ]
@@ -913,7 +913,7 @@ def test_escalation_policy_filter_by_slack_channel(
             "custom_webhook": None,
             "notify_schedule": None,
             "notify_to_group": None,
-            "notify_to_team": None,
+            "notify_to_team_members": None,
             "important": False,
         },
     ]

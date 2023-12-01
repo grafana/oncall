@@ -7,13 +7,13 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('alerts', '0040_alertreceivechannel_alert_group_labels_custom_and_more'),
+        ('alerts', '0041_alertreceivechannel_unique_direct_paging_integration_per_team'),
     ]
 
     operations = [
         migrations.AddField(
             model_name='escalationpolicy',
-            name='notify_to_team',
+            name='notify_to_team_members',
             field=models.ForeignKey(default=None, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='escalation_policies', to='user_management.Team'),
         ),
     ]
