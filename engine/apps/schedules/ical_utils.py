@@ -184,7 +184,7 @@ def list_of_oncall_shifts_from_ical(
         pytz_tz = pytz.timezone("UTC")
         return (
             datetime.datetime.combine(e["start"], datetime.datetime.min.time(), tzinfo=pytz_tz)
-            if type(e["start"]) is datetime.date
+            if type(e["start"]) == datetime.date
             else e["start"]
         )
 
@@ -231,7 +231,7 @@ def get_shifts_dict(
             )
         # Define on-call shift out of ical event that has the actual user
         if len(users) > 0 or with_empty_shifts:
-            if type(event[ICAL_DATETIME_START].dt) is datetime.date:
+            if type(event[ICAL_DATETIME_START].dt) == datetime.date:
                 start = event[ICAL_DATETIME_START].dt
                 end = event[ICAL_DATETIME_END].dt
                 result_date.append(
@@ -623,7 +623,7 @@ def is_icals_equal(first, second):
 def ical_date_to_datetime(date, tz, start):
     datetime_to_combine = datetime.time.min
     all_day = False
-    if type(date) is datetime.date:
+    if type(date) == datetime.date:
         all_day = True
         calendar_timezone_offset = datetime.datetime.now().astimezone(tz).utcoffset()
         date = datetime.datetime.combine(date, datetime_to_combine).astimezone(tz) - calendar_timezone_offset
@@ -776,7 +776,7 @@ def start_end_with_respect_to_all_day(event: IcalEvent, calendar_tz):
 
 def event_start_end_all_day_with_respect_to_type(event: IcalEvent, calendar_tz):
     all_day = False
-    if type(event[ICAL_DATETIME_START].dt) is datetime.date:
+    if type(event[ICAL_DATETIME_START].dt) == datetime.date:
         start, end = start_end_with_respect_to_all_day(event, calendar_tz)
         all_day = True
     else:
