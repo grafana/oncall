@@ -3,9 +3,11 @@ import logging
 from apps.alerts.models import AlertGroup
 from apps.alerts.representative import AlertGroupAbstractRepresentative
 from apps.telegram.models import TelegramMessage
-from apps.telegram.tasks import edit_message, on_create_alert_telegram_representative_async
-
-from .tasks import on_alert_group_action_triggered_async
+from apps.telegram.tasks import (
+    edit_message,
+    on_alert_group_action_triggered_async,
+    on_create_alert_telegram_representative_async,
+)
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
