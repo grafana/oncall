@@ -125,10 +125,10 @@ export class RootBaseStore {
     };
 
     await retryFailingPromises([
-      this.userStore.loadCurrentUser,
-      this.organizationStore.loadCurrentOrganization,
-      this.grafanaTeamStore.updateItems,
-      updateFeatures,
+      () => this.userStore.loadCurrentUser(),
+      () => this.organizationStore.loadCurrentOrganization(),
+      () => this.grafanaTeamStore.updateItems(),
+      () => updateFeatures(),
     ]);
     this.isBasicDataLoaded = true;
   }

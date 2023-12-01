@@ -68,13 +68,11 @@ const IntegrationLabelsForm = observer((props: IntegrationLabelsFormProps) => {
     onOpenIntegraionSettings(id);
   };
 
-  const getInheritanceChangeHandler = (keyId: ApiSchemas['LabelKey']['id']) => {
-    return (event: React.ChangeEvent<HTMLInputElement>) => {
-      setAlertGroupLabels((alertGroupLabels) => ({
-        ...alertGroupLabels,
-        inheritable: { ...alertGroupLabels.inheritable, [keyId]: event.target.checked },
-      }));
-    };
+  const onInheritanceChange = (keyId: ApiSchemas['LabelKey']['id']) => {
+    setAlertGroupLabels((alertGroupLabels) => ({
+      ...alertGroupLabels,
+      inheritable: { ...alertGroupLabels.inheritable, [keyId]: !alertGroupLabels.inheritable[keyId] },
+    }));
   };
 
   return (
@@ -98,7 +96,7 @@ const IntegrationLabelsForm = observer((props: IntegrationLabelsFormProps) => {
                       <InlineSwitch
                         value={alertGroupLabels.inheritable[label.key.id]}
                         transparent
-                        onChange={getInheritanceChangeHandler(label.key.id)}
+                        onChange={() => onInheritanceChange(label.key.id)}
                       />
                     </HorizontalGroup>
                   </li>
