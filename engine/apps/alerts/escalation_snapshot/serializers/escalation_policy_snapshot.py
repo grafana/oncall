@@ -83,7 +83,7 @@ class EscalationPolicySnapshotSerializer(serializers.ModelSerializer):
             "custom_webhook",
             "notify_schedule",
             "notify_to_group",
-            "notify_to_team",
+            "notify_to_team_members",
             "escalation_counter",
             "passed_last_time",
             "pause_escalation",

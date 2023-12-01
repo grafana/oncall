@@ -18,7 +18,7 @@ WAIT_DELAY = "wait_delay"
 NOTIFY_SCHEDULE = "notify_schedule"
 NOTIFY_TO_USERS_QUEUE = "notify_to_users_queue"
 NOTIFY_GROUP = "notify_to_group"
-NOTIFY_TEAM = "notify_to_team"
+NOTIFY_TEAM_MEMBERS = "notify_to_team_members"
 FROM_TIME = "from_time"
 TO_TIME = "to_time"
 NUM_ALERTS_IN_WINDOW = "num_alerts_in_window"
@@ -32,7 +32,7 @@ STEP_TYPE_TO_RELATED_FIELD_MAP = {
     EscalationPolicy.STEP_NOTIFY_USERS_QUEUE: [NOTIFY_TO_USERS_QUEUE],
     EscalationPolicy.STEP_NOTIFY_MULTIPLE_USERS: [NOTIFY_TO_USERS_QUEUE],
     EscalationPolicy.STEP_NOTIFY_GROUP: [NOTIFY_GROUP],
-    EscalationPolicy.STEP_NOTIFY_TEAM: [NOTIFY_TEAM],
+    EscalationPolicy.STEP_NOTIFY_TEAM_MEMBERS: [NOTIFY_TEAM_MEMBERS],
     EscalationPolicy.STEP_NOTIFY_IF_TIME: [FROM_TIME, TO_TIME],
     EscalationPolicy.STEP_NOTIFY_IF_NUM_ALERTS_IN_TIME_WINDOW: [NUM_ALERTS_IN_WINDOW, NUM_MINUTES_IN_WINDOW],
     EscalationPolicy.STEP_TRIGGER_CUSTOM_BUTTON: [CUSTOM_BUTTON_TRIGGER],
@@ -64,7 +64,7 @@ class EscalationPolicySerializer(EagerLoadingMixin, serializers.ModelSerializer)
         required=False,
         allow_null=True,
     )
-    notify_to_team = OrganizationFilteredPrimaryKeyRelatedField(
+    notify_to_team_members = OrganizationFilteredPrimaryKeyRelatedField(
         queryset=Team.objects,
         required=False,
         allow_null=True,
@@ -105,7 +105,7 @@ class EscalationPolicySerializer(EagerLoadingMixin, serializers.ModelSerializer)
             "custom_webhook",
             "notify_schedule",
             "notify_to_group",
-            "notify_to_team",
+            "notify_to_team_members",
             "important",
         ]
 
@@ -113,7 +113,7 @@ class EscalationPolicySerializer(EagerLoadingMixin, serializers.ModelSerializer)
         "escalation_chain",
         "notify_schedule",
         "notify_to_group",
-        "notify_to_team",
+        "notify_to_team_members",
         "custom_button_trigger",
         "custom_webhook",
     ]
@@ -124,7 +124,7 @@ class EscalationPolicySerializer(EagerLoadingMixin, serializers.ModelSerializer)
             WAIT_DELAY,
             NOTIFY_SCHEDULE,
             NOTIFY_TO_USERS_QUEUE,
-            NOTIFY_TEAM,
+            NOTIFY_TEAM_MEMBERS,
             NOTIFY_GROUP,
             FROM_TIME,
             TO_TIME,
@@ -234,7 +234,7 @@ class EscalationPolicyUpdateSerializer(EscalationPolicySerializer):
             NOTIFY_SCHEDULE,
             NOTIFY_TO_USERS_QUEUE,
             NOTIFY_GROUP,
-            NOTIFY_TEAM,
+            NOTIFY_TEAM_MEMBERS,
             FROM_TIME,
             TO_TIME,
             NUM_ALERTS_IN_WINDOW,

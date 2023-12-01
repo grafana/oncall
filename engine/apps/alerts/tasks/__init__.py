@@ -17,7 +17,7 @@ from .notify_all import notify_all_task  # noqa: F401
 from .notify_group import notify_group_task  # noqa: F401
 from .notify_ical_schedule_shift import notify_ical_schedule_shift  # noqa: F401
 from .notify_user import notify_user_task  # noqa: F401
-from .notify_team import notify_team_task  # noqa: F401
+from .notify_team_members import notify_team_members_task  # noqa: F401
 from .resolve_alert_group_by_source_if_needed import resolve_alert_group_by_source_if_needed  # noqa: F401
 from .resolve_by_last_step import resolve_by_last_step_task  # noqa: F401
 from .send_alert_group_signal import send_alert_group_signal  # noqa: F401

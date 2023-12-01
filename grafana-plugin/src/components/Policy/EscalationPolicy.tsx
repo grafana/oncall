@@ -384,10 +384,10 @@ class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
 
   private _renderNotifyTeam() {
     const { data, isDisabled } = this.props;
-    const { notify_to_team } = data;
+    const { notify_to_team_members } = data;
     return (
       <WithPermissionControlTooltip
-        key="notify_to_team"
+        key="notify_to_team_members"
         disableByPaywall
         userAction={UserActions.EscalationChainsWrite}
       >
@@ -408,8 +408,8 @@ class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
             }
           }
           className={cx('select', 'control')}
-          value={notify_to_team}
-          onChange={this._getOnChangeHandler('notify_to_team')}
+          value={notify_to_team_members}
+          onChange={this._getOnChangeHandler('notify_to_team_members')}
           width={'auto'}
         />
       </WithPermissionControlTooltip>

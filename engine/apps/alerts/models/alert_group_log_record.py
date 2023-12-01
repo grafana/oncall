@@ -159,7 +159,7 @@ class AlertGroupLogRecord(models.Model):
         ERROR_ESCALATION_NOTIFY_IN_SLACK,
         ERROR_ESCALATION_NOTIFY_IF_NUM_ALERTS_IN_WINDOW_STEP_IS_NOT_CONFIGURED,
         ERROR_ESCALATION_TRIGGER_CUSTOM_WEBHOOK_ERROR,
-        ERROR_ESCALATION_NOTIFY_TEAM_STEP_IS_NOT_CONFIGURED,
+        ERROR_ESCALATION_NOTIFY_TEAM_MEMBERS_STEP_IS_NOT_CONFIGURED,
     ) = range(19)
 
     type = models.IntegerField(choices=TYPE_CHOICES)
@@ -520,7 +520,7 @@ class AlertGroupLogRecord(models.Model):
                 result += 'skipped escalation step "Notify Schedule" because it is not configured'
             elif self.escalation_error_code == AlertGroupLogRecord.ERROR_ESCALATION_NOTIFY_GROUP_STEP_IS_NOT_CONFIGURED:
                 result += 'skipped escalation step "Notify Group" because it is not configured'
-            elif self.escalation_error_code == AlertGroupLogRecord.ERROR_ESCALATION_NOTIFY_TEAM_STEP_IS_NOT_CONFIGURED:
+            elif self.escalation_error_code == AlertGroupLogRecord.ERROR_ESCALATION_NOTIFY_TEAM_MEMBERS_STEP_IS_NOT_CONFIGURED:
                 result += 'skipped escalation step "Notify Team" because it is not configured'
             elif (
                 self.escalation_error_code

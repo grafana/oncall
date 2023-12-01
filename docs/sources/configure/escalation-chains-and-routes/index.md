@@ -80,7 +80,7 @@ need a larger time interval, use multiple wait steps in a row.
 * `Notify users` - send a notification to a user or a group of users.
 * `Notify users from on-call schedule` - send a notification to a user or a group of users
 from an on-call schedule.
-* `Notify team` - send a notification to all users in a team.
+* `Notify all users from a team` - send a notification to all users in a team.
 * `Resolve incident automatically` - resolve the alert group right now with status
 `Resolved automatically`.
 * `Notify whole slack channel` - send a notification to the users in the slack channel.
