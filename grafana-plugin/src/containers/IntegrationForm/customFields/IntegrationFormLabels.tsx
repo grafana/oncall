@@ -8,7 +8,6 @@ import { LabelKeyValue } from 'models/label/label.types';
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
 
-
 const IntegrationFormLabels: FC<CustomFieldSectionRendererProps> = ({ setValue, getValues, errors }) => {
   const { hasFeature } = useStore();
   const onDataUpdate: LabelsProps['onDataUpdate'] = (val) => setValue(IntegrationFormFieldName.Labels, val);
