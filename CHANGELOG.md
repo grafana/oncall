@@ -23,6 +23,7 @@ endpoint currently) @mderynck ([#3189](https://github.com/grafana/oncall/pull/31
 - Filters polishing ([3183](https://github.com/grafana/oncall/issues/3183))
 - Fixed permissions so User settings reader role included list users @mderynck ([#3419](https://github.com/grafana/oncall/pull/3419))
 - Fixed alert group rendering when some links were broken because of replacing `-` to `_` @Ferril ([#3424](https://github.com/grafana/oncall/pull/3424))
+- Make telegram on_alert_group_action_triggered asynchronous([#3471](https://github.com/grafana/oncall/pull/3471))
 
 ## v1.3.62 (2023-11-21)
 
