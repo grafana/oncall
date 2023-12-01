@@ -155,8 +155,12 @@ cleanup: stop  ## this will remove all of the images, containers, volumes, and n
 	docker system prune --filter label="$(DOCKER_COMPOSE_DEV_LABEL)" --all --volumes
 
 install-pre-commit:
-	echo "installing pre-commit"
-	pip install $$(grep "pre-commit" $(ENGINE_DIR)/requirements-dev.txt)
+	@if [ ! -x "$$(command -v pre-commit)" ]; then \
+		echo "installing pre-commit"; \
+		pip install $$(grep "pre-commit" $(ENGINE_DIR)/requirements-dev.txt); \
+	else \
+		echo "pre-commit already installed"; \
+	fi
 
 lint: install-pre-commit  ## run both frontend and backend linters
                           ## may need to run `yarn install` from within `grafana-plugin`
