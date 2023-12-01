@@ -233,16 +233,12 @@ const IntegrationForm = observer((props: IntegrationFormProps) => {
   }
 });
 
-const CustomFieldSectionRenderer: React.FC<CustomFieldSectionRendererProps> = (config) => {
-  const {
-    formItem: { name },
-  } = config;
-
-  if (name === IntegrationFormFieldName.Alerting) {
-    return <IntegrationFormContactPoint {...config} />;
-  }
-  return <IntegrationFormLabels {...config} />;
-};
+const CustomFieldSectionRenderer: React.FC<CustomFieldSectionRendererProps> = (config) =>
+  config.formItem.name === IntegrationFormFieldName.Alerting ? (
+    <IntegrationFormContactPoint {...config} />
+  ) : (
+    <IntegrationFormLabels {...config} />
+  );
 
 const HowTheIntegrationWorks: React.FC<{ selectedOption: AlertReceiveChannelOption }> = ({ selectedOption }) => {
   if (!selectedOption) {
