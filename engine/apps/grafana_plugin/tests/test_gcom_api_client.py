@@ -12,7 +12,7 @@ class TestIsRbacEnabledForStack:
     TEST_FEATURE_TOGGLE = "helloWorld"
 
     @pytest.mark.parametrize(
-        "gcom_api_response,expected",
+        "instance_info,expected",
         [
             (None, False),
             ({}, False),
@@ -22,16 +22,9 @@ class TestIsRbacEnabledForStack:
             ({"config": {"feature_toggles": {"accessControlOnCall": "true"}}}, True),
         ],
     )
-    @patch("apps.grafana_plugin.helpers.client.GcomAPIClient.api_get")
-    def test_it_returns_based_on_feature_toggle_value(
-        self, mocked_gcom_api_client_api_get, gcom_api_response, expected
-    ):
-        stack_id = 5
-        mocked_gcom_api_client_api_get.return_value = (gcom_api_response, {"status_code": 200})
-
+    def test_it_returns_based_on_feature_toggle_value(self, instance_info, expected):
         api_client = GcomAPIClient("someFakeApiToken")
-        assert api_client.is_rbac_enabled_for_stack(stack_id) == expected
-        assert mocked_gcom_api_client_api_get.called_once_with(f"instances/{stack_id}?config=true")
+        assert api_client.is_rbac_enabled_for_instance(instance_info) == expected
 
     @pytest.mark.parametrize(
         "instance_info_feature_toggles,delimiter,expected",
