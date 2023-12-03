@@ -853,35 +853,6 @@ def test_update_alert_receive_channels_direct_paging(
 
 
 @pytest.mark.django_db
-def test_delete_alert_receive_channel_direct_paging_duplicate(
-    make_organization_and_user_with_plugin_token, make_team, make_alert_receive_channel, make_user_auth_headers
-):
-    """Check that it's possible to delete direct paging integration even if there is a duplicate for the team."""
-    organization, user, token = make_organization_and_user_with_plugin_token()
-    integration = make_alert_receive_channel(
-        organization, integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING, team=None
-    )
-
-    # Create a team, add direct paging integration to it, then delete the team.
-    # There will be 2 direct paging integrations for the team "No team" as a result.
-    team = make_team(organization)
-    make_alert_receive_channel(organization, integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING, team=team)
-    team.delete()
-    assert (
-        organization.alert_receive_channels.filter(
-            integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING, team=None
-        ).count()
-        == 2
-    )
-
-    client = APIClient()
-    url = reverse("api-internal:alert_receive_channel-detail", kwargs={"pk": integration.public_primary_key})
-    response = client.delete(url, **make_user_auth_headers(user, token))
-
-    assert response.status_code == status.HTTP_204_NO_CONTENT
-
-
-@pytest.mark.django_db
 def test_start_maintenance_integration(
     make_user_auth_headers,
     make_organization_and_user_with_plugin_token,

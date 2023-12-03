@@ -62,14 +62,12 @@ export class UserStore extends BaseStore {
   @action
   async loadCurrentUser() {
     const response = await makeRequest('/user/', {});
-
     const timezone = await this.refreshTimezone(response.pk);
 
     this.items = {
       ...this.items,
       [response.pk]: { ...response, timezone },
     };
-
     this.currentUserPk = response.pk;
   }
 
@@ -164,7 +162,7 @@ export class UserStore extends BaseStore {
     return {
       page_size: this.searchResult.page_size,
       count: this.searchResult.count,
-      results: this.searchResult.results && this.searchResult.results.map((userPk: User['pk']) => this.items?.[userPk]),
+      results: this.searchResult.results?.map((userPk: User['pk']) => this.items?.[userPk]),
     };
   }
 
@@ -371,12 +369,11 @@ export class UserStore extends BaseStore {
     this.updateItem(userPk); // to update notification_chain_verbal
   }
 
-  @action
+  @action.bound
   async updateNotificationPolicyOptions() {
     const response = await makeRequest('/notification_policies/', {
       method: 'OPTIONS',
     });
-
     this.notificationChoices = get(response, 'actions.POST', []);
   }
 
@@ -390,10 +387,9 @@ export class UserStore extends BaseStore {
     });
   }
 
-  @action
+  @action.bound
   async updateNotifyByOptions() {
     const response = await makeRequest('/notification_policies/notify_by_options/', {});
-
     this.notifyByOptions = response;
   }
 

@@ -22,8 +22,10 @@ import CopyToClipboard from 'react-copy-to-clipboard';
 import Emoji from 'react-emoji-render';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 import reactStringReplace from 'react-string-replace';
+import { OnCallPluginExtensionPoints } from 'types';
 
 import Collapse from 'components/Collapse/Collapse';
+import { ExtensionLinkDropdown } from 'components/ExtensionLinkMenu/ExtensionLinkDropdown';
 import Block from 'components/GBlock/Block';
 import IntegrationLogo from 'components/IntegrationLogo/IntegrationLogo';
 import PageErrorHandlingWrapper, { PageBaseState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
@@ -281,7 +283,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
           <HorizontalGroup justify="space-between">
             <HorizontalGroup className={cx('title')}>
               <PluginLink query={{ page: 'alert-groups', ...query }}>
-                <IconButton name="arrow-left" size="xl" />
+                <IconButton aria-label="Go Back" name="arrow-left" size="xl" />
               </PluginLink>
               {/* @ts-ignore*/}
               <HorizontalGroup align="baseline">
@@ -435,6 +437,12 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
                   </a>
                 </PluginBridge>
               )}
+              <ExtensionLinkDropdown
+                incident={incident}
+                extensionPointId={OnCallPluginExtensionPoints.AlertGroupAction}
+                declareIncidentLink={incident.declare_incident_link}
+                grafanaIncidentId={incident.grafana_incident_id}
+              />
             </HorizontalGroup>
 
             <Button
@@ -757,7 +765,7 @@ function GroupedIncident({ incident, datetimeReference }: { incident: GroupedAle
           <div className={cx('incident-row-right')}>
             <HorizontalGroup wrap={false} justify={'flex-end'}>
               <Tooltip placement="top" content="Alert Payload">
-                <IconButton name="arrow" onClick={() => openIncidentResponse(incident)} />
+                <IconButton aria-label="Alert Payload" name="arrow" onClick={() => openIncidentResponse(incident)} />
               </Tooltip>
             </HorizontalGroup>
           </div>

@@ -91,3 +91,7 @@ export function getPaths(obj?: any, parentKey?: string): string[] {
   }
   return concat(result, parentKey || []);
 }
+
+export function pluralize(word: string, count: number): string {
+  return count === 1 ? word : `${word}s`;
+}

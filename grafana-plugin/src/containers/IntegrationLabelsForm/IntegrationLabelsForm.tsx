@@ -22,7 +22,7 @@ import MonacoEditor, { MONACO_LANGUAGE } from 'components/MonacoEditor/MonacoEdi
 import Text from 'components/Text/Text';
 import IntegrationTemplate from 'containers/IntegrationTemplate/IntegrationTemplate';
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
-import { LabelKey } from 'models/label/label.types';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
 import { openErrorNotification } from 'utils';
 
@@ -68,13 +68,11 @@ const IntegrationLabelsForm = observer((props: IntegrationLabelsFormProps) => {
     onOpenIntegraionSettings(id);
   };
 
-  const getInheritanceChangeHandler = (keyId: LabelKey['id']) => {
-    return (event: React.ChangeEvent<HTMLInputElement>) => {
-      setAlertGroupLabels((alertGroupLabels) => ({
-        ...alertGroupLabels,
-        inheritable: { ...alertGroupLabels.inheritable, [keyId]: event.target.checked },
-      }));
-    };
+  const onInheritanceChange = (keyId: ApiSchemas['LabelKey']['id']) => {
+    setAlertGroupLabels((alertGroupLabels) => ({
+      ...alertGroupLabels,
+      inheritable: { ...alertGroupLabels.inheritable, [keyId]: !alertGroupLabels.inheritable[keyId] },
+    }));
   };
 
   return (
@@ -98,7 +96,7 @@ const IntegrationLabelsForm = observer((props: IntegrationLabelsFormProps) => {
                       <InlineSwitch
                         value={alertGroupLabels.inheritable[label.key.id]}
                         transparent
-                        onChange={getInheritanceChangeHandler(label.key.id)}
+                        onChange={() => onInheritanceChange(label.key.id)}
                       />
                     </HorizontalGroup>
                   </li>
@@ -283,10 +281,10 @@ const CustomLabels = (props: CustomLabelsProps) => {
         value={alertGroupLabels.custom}
         onLoadKeys={cachedOnLoadKeys()}
         onLoadValuesForKey={cachedOnLoadValuesForKey()}
-        onCreateKey={labelsStore.createKey.bind(labelsStore)}
-        onUpdateKey={labelsStore.updateKey.bind(labelsStore)}
-        onCreateValue={labelsStore.createValue.bind(labelsStore)}
-        onUpdateValue={labelsStore.updateKeyValue.bind(labelsStore)}
+        onCreateKey={labelsStore.createKey}
+        onUpdateKey={labelsStore.updateKey}
+        onCreateValue={labelsStore.createValue}
+        onUpdateValue={labelsStore.updateKeyValue}
         onUpdateError={(res) => {
           if (res?.response?.status === 409) {
             openErrorNotification(`Duplicate values are not allowed`);

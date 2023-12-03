@@ -90,6 +90,18 @@ export interface Alert {
   undoAction?: AlertAction;
 }
 
+export interface AlertGroupColumn {
+  id: string;
+  name: string;
+  isVisible: boolean;
+  type?: AlertGroupColumnType;
+}
+
+export enum AlertGroupColumnType {
+  DEFAULT = 'default',
+  LABEL = 'label',
+}
+
 interface RenderForWeb {
   message: any;
   title: any;

@@ -2,17 +2,17 @@ import { action, observable } from 'mobx';
 
 import BaseStore from 'models/base_store';
 import { makeRequest } from 'network';
+import { ApiSchemas } from 'network/oncall-api/api.types';
+import onCallApi from 'network/oncall-api/http-client';
 import { RootStore } from 'state';
-import { openNotification } from 'utils';
-
-import { LabelKey, LabelValue } from './label.types';
+import { WithGlobalNotification } from 'utils/decorators';
 
 export class LabelStore extends BaseStore {
   @observable.shallow
-  public keys: LabelKey[] = [];
+  public keys: Array<ApiSchemas['LabelKey']> = [];
 
   @observable.shallow
-  public values: { [key: string]: LabelValue[] } = {};
+  public values: { [key: string]: Array<ApiSchemas['LabelValue']> } = {};
 
   constructor(rootStore: RootStore) {
     super(rootStore);
@@ -20,17 +20,16 @@ export class LabelStore extends BaseStore {
     this.path = '/labels/';
   }
 
-  @action
+  @action.bound
   public async loadKeys() {
-    const result = await makeRequest(`${this.path}keys/`, {});
+    const { data } = await onCallApi.GET('/labels/keys/', undefined);
+    this.keys = data;
 
-    this.keys = result;
-
-    return result;
+    return data;
   }
 
-  @action
-  public async loadValuesForKey(key: LabelKey['id'], search = '') {
+  @action.bound
+  async loadValuesForKey(key: ApiSchemas['LabelKey']['id'], search = '') {
     if (!key) {
       return [];
     }
@@ -49,57 +48,43 @@ export class LabelStore extends BaseStore {
     return { ...result, values: filteredValues };
   }
 
-  public async createKey(name: string) {
-    const { key } = await makeRequest(`${this.path}`, {
+  @action.bound
+  @WithGlobalNotification({ success: 'New key has been added', failure: 'Failed to add new key' })
+  async createKey(name: string) {
+    const data = await makeRequest(`${this.path}`, {
       method: 'POST',
       data: { key: { name }, values: [] },
-    }).then((data) => {
-      openNotification(`New key has been added`);
-
-      return data;
     });
-
-    return key;
+    return data.key;
   }
 
-  public async createValue(keyId: LabelKey['id'], value: string) {
+  @action.bound
+  @WithGlobalNotification({ success: 'New value has been added', failure: 'Failed to add new value' })
+  async createValue(keyId: ApiSchemas['LabelKey']['id'], value: string) {
     const result = await makeRequest(`${this.path}id/${keyId}/values`, {
       method: 'POST',
       data: { name: value },
-    }).then((data) => {
-      openNotification(`New value has been added`);
-
-      return data;
     });
-
     return result.values.find((v) => v.name === value); // TODO remove after backend API change
   }
 
-  @action
-  public async updateKey(keyId: LabelKey['id'], name: string) {
+  @action.bound
+  @WithGlobalNotification({ success: 'Key has been renamed', failure: 'Failed to rename key' })
+  async updateKey(keyId: ApiSchemas['LabelKey']['id'], name: string) {
     const result = await makeRequest(`${this.path}id/${keyId}`, {
       method: 'PUT',
       data: { name },
-    }).then((data) => {
-      openNotification(`Key has been renamed`);
-
-      return data;
     });
-
     return result.key;
   }
 
-  @action
-  public async updateKeyValue(keyId: LabelKey['id'], valueId: LabelValue['id'], name: string) {
+  @action.bound
+  @WithGlobalNotification({ success: 'Value has been renamed', failure: 'Failed to rename value' })
+  async updateKeyValue(keyId: ApiSchemas['LabelKey']['id'], valueId: ApiSchemas['LabelValue']['id'], name: string) {
     const result = await makeRequest(`${this.path}id/${keyId}/values/${valueId}`, {
       method: 'PUT',
       data: { name },
-    }).then((data) => {
-      openNotification(`Value has been renamed`);
-
-      return data;
     });
-
     return result.values.find((v) => v.name === name);
   }
 }

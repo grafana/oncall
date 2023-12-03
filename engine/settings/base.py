@@ -290,7 +290,7 @@ REST_FRAMEWORK = {
 }
 
 
-DRF_SPECTACULAR_ENABLED = getenv_boolean("DRF_SPECTACULAR_ENABLED", default=False)
+DRF_SPECTACULAR_ENABLED = getenv_boolean("DRF_SPECTACULAR_ENABLED", default=True)
 
 SPECTACULAR_SETTINGS = {
     "TITLE": "Grafana OnCall Private API",

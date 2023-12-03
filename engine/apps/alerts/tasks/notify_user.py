@@ -1,4 +1,5 @@
 import time
+from functools import partial
 
 from django.conf import settings
 from django.db import transaction
@@ -8,7 +9,7 @@ from kombu.utils.uuid import uuid as celery_uuid
 from apps.alerts.constants import NEXT_ESCALATION_DELAY
 from apps.alerts.signals import user_notification_action_triggered_signal
 from apps.base.messaging import get_messaging_backend_from_id
-from apps.metrics_exporter.helpers import metrics_update_user_cache
+from apps.metrics_exporter.tasks import update_metrics_for_user
 from apps.phone_notifications.phone_backend import PhoneBackend
 from common.custom_celery_tasks import shared_dedicated_queue_retry_task
 
@@ -187,15 +188,15 @@ def notify_user_task(
                     alert_group_id=alert_group_pk,
                 ).exists()
             ):
-                metrics_update_user_cache(user)
+                update_metrics_for_user.apply_async((user.id,))
 
             log_record.save()
             if notify_user_task.request.retries == 0:
-                transaction.on_commit(lambda: send_user_notification_signal.apply_async((log_record.pk,)))
+                transaction.on_commit(partial(send_user_notification_signal.apply_async, (log_record.pk,)))
 
         if not stop_escalation:
             if notification_policy.step != UserNotificationPolicy.Step.WAIT:
-                transaction.on_commit(lambda: perform_notification.apply_async((log_record.pk,)))
+                transaction.on_commit(partial(perform_notification.apply_async, (log_record.pk,)))
 
             delay = NEXT_ESCALATION_DELAY
             if countdown is not None:
@@ -206,7 +207,8 @@ def notify_user_task(
             user_has_notification.save(update_fields=["active_notification_policy_id"])
 
             transaction.on_commit(
-                lambda: notify_user_task.apply_async(
+                partial(
+                    notify_user_task.apply_async,
                     (user.pk, alert_group.pk, notification_policy.pk, reason),
                     {
                         "notify_even_acknowledged": notify_even_acknowledged,

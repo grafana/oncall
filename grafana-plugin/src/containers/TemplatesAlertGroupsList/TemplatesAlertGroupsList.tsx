@@ -17,8 +17,6 @@ import { useStore } from 'state/useStore';
 import styles from './TemplatesAlertGroupsList.module.css';
 
 const cx = cn.bind(styles);
-const HEADER_OF_CONTAINER_HEIGHT = 59;
-const BADGE_WITH_PADDINGS_HEIGHT = 42;
 
 export enum TEMPLATE_PAGE {
   Integrations,
@@ -70,18 +68,6 @@ const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) => {
       });
     }
   }, []);
-
-  const getCodeEditorHeight = () => {
-    const mainDiv = document.getElementById('alerts-content-container-id');
-    const height = mainDiv?.getBoundingClientRect().height - HEADER_OF_CONTAINER_HEIGHT;
-    return `${height}px`;
-  };
-
-  const getCodeEditorHeightWithBadge = () => {
-    const mainDiv = document.getElementById('alerts-content-container-id');
-    const height = mainDiv?.getBoundingClientRect().height - HEADER_OF_CONTAINER_HEIGHT - BADGE_WITH_PADDINGS_HEIGHT;
-    return `${height}px`;
-  };
 
   const getChangeHandler = () => {
     return debounce((value: string) => {
@@ -143,7 +129,7 @@ const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) => {
               <Text>Edit custom payload</Text>
 
               <HorizontalGroup>
-                <IconButton name="times" onClick={returnToListView} />
+                <IconButton aria-label="List View" name="times" onClick={returnToListView} />
               </HorizontalGroup>
             </HorizontalGroup>
           </div>
@@ -158,7 +144,7 @@ const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) => {
                 ...MONACO_EDITABLE_CONFIG,
                 readOnly: false,
               }}
-              height={getCodeEditorHeight()}
+              height="100%"
               onChange={getChangeHandler()}
             />
           </div>
@@ -263,7 +249,7 @@ const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) => {
             <Text>Edit custom payload</Text>
 
             <HorizontalGroup>
-              <IconButton name="times" onClick={() => returnToListView()} />
+              <IconButton aria-label="List View" name="times" onClick={() => returnToListView()} />
             </HorizontalGroup>
           </HorizontalGroup>
         </div>
@@ -271,7 +257,7 @@ const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) => {
           <MonacoEditor
             value={JSON.stringify(selectedPayload, null, 4)}
             data={templates}
-            height={getCodeEditorHeight()}
+            height="100%"
             onChange={getChangeHandler()}
             showLineNumbers
             useAutoCompleteList={false}
@@ -292,8 +278,8 @@ const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) => {
               <Text>{selectedTitle}</Text>
             </div>
             <div className={cx('title-action-icons')}>
-              <IconButton name="edit" onClick={() => setIsEditMode(true)} />
-              <IconButton name="times" onClick={() => returnToListView()} />
+              <IconButton aria-label="Edit" name="edit" onClick={() => setIsEditMode(true)} />
+              <IconButton aria-label="List View" name="times" onClick={() => returnToListView()} />
             </div>
           </div>
         </div>
@@ -310,7 +296,7 @@ const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) => {
               value={JSON.stringify(selectedPayload, null, 4)}
               data={undefined}
               disabled
-              height={getCodeEditorHeightWithBadge()}
+              height="100%"
               onChange={getChangeHandler()}
               useAutoCompleteList={false}
               language={MONACO_LANGUAGE.json}

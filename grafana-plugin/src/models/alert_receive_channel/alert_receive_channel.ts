@@ -14,6 +14,7 @@ import { RootStore } from 'state';
 import { move } from 'state/helpers';
 import { SelectOption } from 'state/types';
 import { showApiError } from 'utils';
+import { WithGlobalNotification } from 'utils/decorators';
 
 import {
   AlertReceiveChannel,
@@ -84,11 +85,9 @@ export class AlertReceiveChannelStore extends BaseStore {
     return {
       page_size: this.paginatedSearchResult.page_size,
       count: this.paginatedSearchResult.count,
-      results:
-        this.paginatedSearchResult.results &&
-        this.paginatedSearchResult.results.map(
-          (alertReceiveChannelId: AlertReceiveChannel['id']) => this.items?.[alertReceiveChannelId]
-        ),
+      results: this.paginatedSearchResult.results?.map(
+        (alertReceiveChannelId: AlertReceiveChannel['id']) => this.items?.[alertReceiveChannelId]
+      ),
     };
   }
 
@@ -318,10 +317,9 @@ export class AlertReceiveChannelStore extends BaseStore {
     return this.updateChannelFilters(channelFilter.alert_receive_channel, true);
   }
 
-  @action
+  @action.bound
   async updateAlertReceiveChannelOptions() {
     const response = await makeRequest(`/alert_receive_channels/integration_options/`, {});
-
     this.alertReceiveChannelOptions = response;
   }
 
@@ -335,7 +333,8 @@ export class AlertReceiveChannelStore extends BaseStore {
     );
   }
 
-  @action
+  @action.bound
+  @WithGlobalNotification({ success: 'Integration has been saved', failure: 'Failed to save integration' })
   async saveAlertReceiveChannel(id: AlertReceiveChannel['id'], data: Partial<AlertReceiveChannel>) {
     const item = await this.update(id, data);
 

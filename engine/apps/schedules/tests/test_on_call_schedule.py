@@ -1762,7 +1762,7 @@ def test_refresh_ical_final_schedule_ok(
         ),
     }
 
-    for i in range(2):
+    for _ in range(2):
         # running multiple times keeps the same events in place
         with patch("apps.schedules.models.on_call_schedule.EXPORT_WINDOW_DAYS_AFTER", 1):
             with patch("apps.schedules.models.on_call_schedule.EXPORT_WINDOW_DAYS_BEFORE", 0):

@@ -100,7 +100,7 @@ const MonacoEditor: FC<MonacoEditorProps> = (props) => {
       height={height}
       onEditorDidMount={handleMount}
       getSuggestions={useAutoCompleteList ? autoCompleteList : undefined}
-      containerStyles="u-width-100"
+      containerStyles="u-width-height-100"
     />
   );
 };

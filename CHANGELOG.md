@@ -11,6 +11,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add `datetimeformat_as_timezone` Jinja2 template helper filter by @jorgeav ([#3426](https://github.com/grafana/oncall/pull/3426))
 
+## v1.3.70 (2023-12-01)
+
+Maintenance release
+
+## v1.3.69 (2023-12-01)
+
+Maintenance release + bugfixes
+
+## v1.3.68 (2023-11-30)
+
+### Fixed
+
+- Create missing direct paging integrations on organization sync by @vadimkerr ([#3468](https://github.com/grafana/oncall/pull/3468))
+
+## v1.3.67 (2023-11-30)
+
+Minor bugfixes + dependency updates :)
+
+## v1.3.66 (2023-11-30)
+
+### Fixed
+
+- Delete duplicate direct paging integrations by @vadimkerr ([#3412](https://github.com/grafana/oncall/pull/3412))
+
+## v1.3.65 (2023-11-29)
+
+### Added
+
+- Add options to customize table columns in AlertGroup page ([3281](https://github.com/grafana/oncall/pull/3281))
+
+### Fixed
+
+- User profile UI tweaks ([#3443](https://github.com/grafana/oncall/pull/3443))
+- Ensure stack_id and org_id are ints @mderynck [(#3458](https://github.com/grafana/oncall/pull/3458))
+
 ## v1.3.64 (2023-11-28)
 
 ### Fixed
@@ -26,6 +61,10 @@ endpoint currently) @mderynck ([#3189](https://github.com/grafana/oncall/pull/31
 - Add ability for webhook presets to mask sensitive headers @mderynck
 ([#3189](https://github.com/grafana/oncall/pull/3189))
 
+### Changed
+
+- Use instance ID for cloud Grafana service token auth @mderynck ([#3435](https://github.com/grafana/oncall/pull/3435))
+
 ### Fixed
 
 - Fixed issue that blocked saving webhooks with presets if the preset is controlling the URL @mderynck
@@ -35,6 +74,7 @@ endpoint currently) @mderynck ([#3189](https://github.com/grafana/oncall/pull/31
 - Filters polishing ([3183](https://github.com/grafana/oncall/issues/3183))
 - Fixed permissions so User settings reader role included list users @mderynck ([#3419](https://github.com/grafana/oncall/pull/3419))
 - Fixed alert group rendering when some links were broken because of replacing `-` to `_` @Ferril ([#3424](https://github.com/grafana/oncall/pull/3424))
+- Make telegram on_alert_group_action_triggered asynchronous([#3471](https://github.com/grafana/oncall/pull/3471))
 
 ## v1.3.62 (2023-11-21)
 

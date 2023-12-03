@@ -239,8 +239,8 @@ def test_make_request(make_organization, make_custom_webhook):
             assert expected_call.call_args == call("url", timeout=OUTGOING_WEBHOOK_TIMEOUT, foo="bar")
 
     # invalid
-    with pytest.raises(Exception):
-        webhook = make_custom_webhook(organization=organization, http_method="NOT")
+    webhook = make_custom_webhook(organization=organization, http_method="NOT")
+    with pytest.raises(ValueError):
         webhook.make_request("url", {"foo": "bar"})
 
 

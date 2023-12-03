@@ -4,12 +4,14 @@ import pytest
 from django.core.cache import cache
 from django.test import override_settings
 
+from apps.alerts.signals import alert_group_created_signal
 from apps.alerts.tasks import notify_user_task
 from apps.base.models import UserNotificationPolicy, UserNotificationPolicyLogRecord
 from apps.metrics_exporter.helpers import (
     get_metric_alert_groups_response_time_key,
     get_metric_alert_groups_total_key,
     get_metric_user_was_notified_of_alert_groups_key,
+    metrics_add_integrations_to_cache,
     metrics_bulk_update_team_label_cache,
 )
 from apps.metrics_exporter.metrics_cache_manager import MetricsCacheManager
@@ -22,6 +24,12 @@ from apps.metrics_exporter.tests.conftest import (
 )
 
 
+@pytest.fixture
+def mock_apply_async(monkeypatch):
+    """Override 'mock_apply_async' fixture"""
+    return
+
+
 @patch("apps.alerts.models.alert_group_log_record.tasks.send_update_log_report_signal.apply_async")
 @patch("apps.alerts.models.alert_group.alert_group_action_triggered_signal.send")
 @pytest.mark.django_db
@@ -29,6 +37,7 @@ from apps.metrics_exporter.tests.conftest import (
 def test_update_metric_alert_groups_total_cache_on_action(
     mocked_send_log_signal,
     mocked_action_signal_send,
+    mock_apply_async,
     make_organization,
     make_user_for_organization,
     make_alert_receive_channel,
@@ -106,6 +115,8 @@ def test_update_metric_alert_groups_total_cache_on_action(
         arg_idx = 0
         alert_group = make_alert_group(alert_receive_channel)
         make_alert(alert_group=alert_group, raw_request_data={})
+        # this signal is normally called in get_or_create_grouping on create alert
+        alert_group_created_signal.send(sender=alert_group.__class__, alert_group=alert_group)
 
         # check alert_groups_total metric cache, get called args
         mock_cache_set_called_args = mock_cache_set.call_args_list
@@ -137,6 +148,7 @@ def test_update_metric_alert_groups_total_cache_on_action(
 def test_update_metric_alert_groups_response_time_cache_on_action(
     mocked_send_log_signal,
     mocked_action_signal_send,
+    mock_apply_async,
     make_organization,
     make_user_for_organization,
     make_alert_receive_channel,
@@ -461,6 +473,7 @@ def test_update_metrics_cache_on_update_team(
 @pytest.mark.django_db
 def test_update_metrics_cache_on_user_notification(
     mocked_perform_notification_task,
+    mock_apply_async,
     make_organization,
     make_user_for_organization,
     make_alert_receive_channel,
@@ -535,3 +548,67 @@ def test_update_metrics_cache_on_user_notification(
         # counter doesn't grow after the second notification of alert group
         notify_user_task(user.id, alert_group_2.id, previous_notification_policy_pk=notification_policy_1.id)
         arg_idx = get_called_arg_index_and_compare_results()
+
+
+@pytest.mark.django_db
+def test_metrics_add_integrations_to_cache(make_organization, make_alert_receive_channel):
+    organization = make_organization(
+        org_id=METRICS_TEST_ORG_ID,
+        stack_slug=METRICS_TEST_INSTANCE_SLUG,
+        stack_id=METRICS_TEST_INSTANCE_ID,
+    )
+    alert_receive_channel1 = make_alert_receive_channel(organization)
+    alert_receive_channel2 = make_alert_receive_channel(organization)
+
+    def _expected_alert_groups_total(alert_receive_channel, firing=0):
+        return {
+            "integration_name": alert_receive_channel.emojized_verbal_name,
+            "team_name": alert_receive_channel.team_name,
+            "team_id": alert_receive_channel.team_id_or_no_team,
+            "org_id": organization.org_id,
+            "slug": organization.stack_slug,
+            "id": organization.stack_id,
+            "firing": firing,
+            "silenced": 0,
+            "acknowledged": 0,
+            "resolved": 0,
+        }
+
+    def _expected_alert_groups_response_time(alert_receive_channel, response_time=None):
+        if response_time is None:
+            response_time = []
+
+        return {
+            "integration_name": alert_receive_channel.emojized_verbal_name,
+            "team_name": alert_receive_channel.team_name,
+            "team_id": alert_receive_channel.team_id_or_no_team,
+            "org_id": organization.org_id,
+            "slug": organization.stack_slug,
+            "id": organization.stack_id,
+            "response_time": response_time,
+        }
+
+    # clear cache, add some data
+    cache.set(
+        get_metric_alert_groups_total_key(organization.id),
+        {alert_receive_channel2.id: _expected_alert_groups_total(alert_receive_channel2, firing=42)},
+    )
+    cache.set(
+        get_metric_alert_groups_response_time_key(organization.id),
+        {alert_receive_channel2.id: _expected_alert_groups_response_time(alert_receive_channel2, response_time=[12])},
+    )
+
+    # add integrations to cache
+    metrics_add_integrations_to_cache([alert_receive_channel1, alert_receive_channel2], organization)
+
+    # check alert groups total
+    assert cache.get(get_metric_alert_groups_total_key(organization.id)) == {
+        alert_receive_channel1.id: _expected_alert_groups_total(alert_receive_channel1),
+        alert_receive_channel2.id: _expected_alert_groups_total(alert_receive_channel2, firing=42),
+    }
+
+    # check alert groups response time
+    assert cache.get(get_metric_alert_groups_response_time_key(organization.id)) == {
+        alert_receive_channel1.id: _expected_alert_groups_response_time(alert_receive_channel1),
+        alert_receive_channel2.id: _expected_alert_groups_response_time(alert_receive_channel2, response_time=[12]),
+    }

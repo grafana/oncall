@@ -21,10 +21,11 @@ class AlertGroupForAlertManager(AlertGroup):  # type: ignore[django-manager-miss
         non_resolved_hashes = set()
         hash = alert.get_integration_optimization_hash()
         if alert.calculated_is_resolve_signal:
-            # Calculate leftover hashes
-            for alert in AlertForAlertManager.objects.filter(group=self).exclude(pk=alert.pk)[
+            other_alerts = AlertForAlertManager.objects.filter(group=self).exclude(pk=alert.pk)[
                 : AlertGroupForAlertManager.MAX_ALERTS_IN_GROUP_FOR_AUTO_RESOLVE
-            ]:
+            ]
+            # Calculate leftover hashes
+            for alert in other_alerts:
                 if alert.calculated_is_resolve_signal:
                     try:
                         non_resolved_hashes.remove(alert.get_integration_optimization_hash())
