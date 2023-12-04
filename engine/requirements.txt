@@ -54,3 +54,4 @@ lxml==4.9.2
 babel==2.12.1
 drf-spectacular==0.26.5
 grpcio==1.57.0
+markdown2==2.4.10
