@@ -1,4 +1,4 @@
-FROM python:3.12.0-alpine3.18 AS base
+FROM python:3.11.4-alpine3.18 AS base
 
 # Create a group and user to run an app
 ENV APP_USER=appuser

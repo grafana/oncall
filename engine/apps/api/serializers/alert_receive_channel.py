@@ -349,6 +349,10 @@ class AlertReceiveChannelSerializer(
     def validate_integration(integration):
         if integration is None or integration not in AlertReceiveChannel.WEB_INTEGRATION_CHOICES:
             raise BadRequest(detail="invalid integration")
+
+        if integration == AlertReceiveChannel.INTEGRATION_DIRECT_PAGING:
+            raise BadRequest(detail="Direct paging integrations can't be created")
+
         return integration
 
     def validate_verbal_name(self, verbal_name):
@@ -372,7 +376,8 @@ class AlertReceiveChannelSerializer(
         return IntegrationHeartBeatSerializer(heartbeat).data
 
     def get_allow_delete(self, obj: "AlertReceiveChannel"):
-        return True
+        # don't allow deleting direct paging integrations
+        return obj.integration != AlertReceiveChannel.INTEGRATION_DIRECT_PAGING
 
     def get_alert_count(self, obj: "AlertReceiveChannel"):
         return 0

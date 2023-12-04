@@ -134,6 +134,14 @@ class AlertReceiveChannelView(
             new_state=new_state,
         )
 
+    def destroy(self, request, *args, **kwargs):
+        # don't allow deleting direct paging integrations
+        instance = self.get_object()
+        if instance.integration == AlertReceiveChannel.INTEGRATION_DIRECT_PAGING:
+            raise BadRequest(detail="Direct paging integrations can't be deleted")
+
+        return super().destroy(request, *args, **kwargs)
+
     def perform_destroy(self, instance):
         write_resource_insight_log(
             instance=instance,
@@ -271,7 +279,7 @@ class AlertReceiveChannelView(
             if payload is None:
                 return channel.alert_groups.last().alerts.first()
             else:
-                if type(payload) is not dict:
+                if type(payload) != dict:
                     raise PreviewTemplateException("Payload must be a valid json object")
                 # Build Alert and AlertGroup objects to pass to templater without saving them to db
                 alert_group_to_template = AlertGroup(channel=channel)
@@ -336,7 +344,7 @@ class AlertReceiveChannelView(
         try:
             instance.start_maintenance(mode, duration, request.user)
         except MaintenanceCouldNotBeStartedError as e:
-            if type(instance) is AlertReceiveChannel:
+            if type(instance) == AlertReceiveChannel:
                 detail = {"alert_receive_channel_id": ["Already on maintenance"]}
             else:
                 detail = str(e)

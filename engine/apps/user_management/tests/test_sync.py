@@ -312,18 +312,36 @@ def test_sync_organization_is_rbac_permissions_enabled_open_source(make_organiza
     assert organization.is_rbac_permissions_enabled == grafana_api_response
 
 
-@pytest.mark.parametrize("gcom_api_response", [False, True])
-@patch("apps.user_management.sync.GcomAPIClient")
-@override_settings(LICENSE=settings.CLOUD_LICENSE_NAME)
-@override_settings(GRAFANA_COM_ADMIN_API_TOKEN="mockedToken")
+@patch("apps.user_management.sync.GcomAPIClient.api_get")
+@pytest.mark.parametrize(
+    "instance_info,expected",
+    [
+        ({"config": {"feature_toggles": {}}}, False),
+        ({"config": {"feature_toggles": {"accessControlOnCall": "false"}}}, False),
+        ({"config": {"feature_toggles": {"accessControlOnCall": "true"}}}, True),
+    ],
+)
 @pytest.mark.django_db
-def test_sync_organization_is_rbac_permissions_enabled_cloud(mocked_gcom_client, make_organization, gcom_api_response):
+def test_sync_organization_is_rbac_permissions_enabled_cloud(
+    mocked_gcom_client, make_organization, instance_info, expected
+):
     stack_id = 5
-    organization = make_organization(stack_id=stack_id)
+    organization = make_organization(stack_id=stack_id, gcom_token="TEST_GCOM_TOKEN")
 
     api_check_token_call_status = {"connected": True}
 
-    mocked_gcom_client.return_value.is_rbac_enabled_for_stack.return_value = gcom_api_response
+    instance_info.update(
+        {
+            "orgId": organization.org_id,
+            "slug": organization.stack_slug,
+            "orgSlug": organization.org_slug,
+            "orgName": organization.org_title,
+            "regionSlug": organization.region_slug,
+            "url": organization.grafana_url,
+            "clusterSlug": organization.cluster_slug,
+        }
+    )
+    mocked_gcom_client.return_value = (instance_info, {"status_code": 200})
 
     api_users_response = (
         {
@@ -367,10 +385,7 @@ def test_sync_organization_is_rbac_permissions_enabled_cloud(mocked_gcom_client,
                         sync_organization(organization)
 
     organization.refresh_from_db()
-
-    mocked_gcom_client.assert_called_once_with("mockedToken")
-    mocked_gcom_client.return_value.is_rbac_enabled_for_stack.assert_called_once_with(stack_id)
-    assert organization.is_rbac_permissions_enabled == gcom_api_response
+    assert organization.is_rbac_permissions_enabled == expected
 
 
 @pytest.mark.django_db

@@ -13,24 +13,9 @@ logger.setLevel(logging.DEBUG)
 
 
 def sync_organization(organization: Organization) -> None:
-    grafana_api_client = GrafanaAPIClient(api_url=organization.grafana_url, api_token=organization.api_token)
-
-    # NOTE: checking whether or not RBAC is enabled depends on whether we are dealing with an open-source or cloud
-    # stack. For Cloud we should make a call to the GCOM API, using an admin API token, and get the list of
-    # feature_toggles enabled for the stack. For open-source, simply make a HEAD request to the grafana instance's API
-    # and consider RBAC enabled if the list RBAC permissions endpoint returns 200. We cannot simply rely on the HEAD
-    # call in cloud because if an instance is not active, the grafana gateway will still return 200 for the
-    # HEAD request.
-    if settings.LICENSE == settings.CLOUD_LICENSE_NAME:
-        gcom_client = GcomAPIClient(settings.GRAFANA_COM_ADMIN_API_TOKEN)
-        rbac_is_enabled = gcom_client.is_rbac_enabled_for_stack(organization.stack_id)
-    else:
-        rbac_is_enabled = grafana_api_client.is_rbac_enabled_for_organization()
-
-    organization.is_rbac_permissions_enabled = rbac_is_enabled
-
     _sync_instance_info(organization)
 
+    grafana_api_client = GrafanaAPIClient(api_url=organization.grafana_url, api_token=organization.api_token)
     _, check_token_call_status = grafana_api_client.check_token()
     if check_token_call_status["connected"]:
         organization.api_token_status = Organization.API_TOKEN_STATUS_OK
@@ -62,7 +47,7 @@ def sync_organization(organization: Organization) -> None:
 def _sync_instance_info(organization: Organization) -> None:
     if organization.gcom_token:
         gcom_client = GcomAPIClient(organization.gcom_token)
-        instance_info = gcom_client.get_instance_info(organization.stack_id)
+        instance_info = gcom_client.get_instance_info(organization.stack_id, include_config_query_param=True)
 
         if not instance_info or instance_info["orgId"] != organization.org_id:
             return
@@ -73,7 +58,17 @@ def _sync_instance_info(organization: Organization) -> None:
         organization.region_slug = instance_info["regionSlug"]
         organization.grafana_url = instance_info["url"]
         organization.cluster_slug = instance_info["clusterSlug"]
+        organization.is_rbac_permissions_enabled = gcom_client.is_rbac_enabled_for_instance(instance_info)
         organization.gcom_token_org_last_time_synced = timezone.now()
+    else:
+        # NOTE: checking whether or not RBAC is enabled depends on whether we are dealing with an open-source or cloud
+        # stack. For Cloud we should make a call to the GCOM API, using an admin API token, and get the list of
+        # feature_toggles enabled for the stack. For open-source, simply make a HEAD request to the grafana instance's API
+        # and consider RBAC enabled if the list RBAC permissions endpoint returns 200. We cannot simply rely on the HEAD
+        # call in cloud because if an instance is not active, the grafana gateway will still return 200 for the
+        # HEAD request.
+        grafana_api_client = GrafanaAPIClient(api_url=organization.grafana_url, api_token=organization.api_token)
+        organization.is_rbac_permissions_enabled = grafana_api_client.is_rbac_enabled_for_organization()
 
 
 def sync_users_and_teams(client: GrafanaAPIClient, organization: Organization) -> None:

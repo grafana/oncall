@@ -22,6 +22,7 @@ from apps.metrics_exporter.constants import (
     RecalculateMetricsTimer,
     UserWasNotifiedOfAlertGroupsMetricsDict,
 )
+from common.cache import ensure_cache_key_allocates_to_the_same_hash_slot
 
 if typing.TYPE_CHECKING:
     from apps.alerts.models import AlertReceiveChannel
@@ -98,24 +99,27 @@ def get_metrics_cache_timeout(organization_id):
 
 
 def get_metrics_cache_timer_key(organization_id) -> str:
-    return f"{METRICS_CACHE_TIMER}_{organization_id}"
-
-
-def get_metrics_cache_timer_for_organization(organization_id):
-    key = get_metrics_cache_timer_key(organization_id)
-    return cache.get(key)
+    return ensure_cache_key_allocates_to_the_same_hash_slot(
+        f"{METRICS_CACHE_TIMER}_{organization_id}", METRICS_CACHE_TIMER
+    )
 
 
 def get_metric_alert_groups_total_key(organization_id) -> str:
-    return f"{ALERT_GROUPS_TOTAL}_{organization_id}"
+    return ensure_cache_key_allocates_to_the_same_hash_slot(
+        f"{ALERT_GROUPS_TOTAL}_{organization_id}", ALERT_GROUPS_TOTAL
+    )
 
 
 def get_metric_alert_groups_response_time_key(organization_id) -> str:
-    return f"{ALERT_GROUPS_RESPONSE_TIME}_{organization_id}"
+    return ensure_cache_key_allocates_to_the_same_hash_slot(
+        f"{ALERT_GROUPS_RESPONSE_TIME}_{organization_id}", ALERT_GROUPS_RESPONSE_TIME
+    )
 
 
 def get_metric_user_was_notified_of_alert_groups_key(organization_id) -> str:
-    return f"{USER_WAS_NOTIFIED_OF_ALERT_GROUPS}_{organization_id}"
+    return ensure_cache_key_allocates_to_the_same_hash_slot(
+        f"{USER_WAS_NOTIFIED_OF_ALERT_GROUPS}_{organization_id}", USER_WAS_NOTIFIED_OF_ALERT_GROUPS
+    )
 
 
 def get_metric_calculation_started_key(metric_name) -> str:

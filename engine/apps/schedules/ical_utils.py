@@ -35,6 +35,7 @@ from apps.schedules.constants import (
     RE_PRIORITY,
 )
 from apps.schedules.ical_events import ical_events
+from common.cache import ensure_cache_key_allocates_to_the_same_hash_slot
 from common.timezones import is_valid_timezone
 from common.utils import timed_lru_cache
 
@@ -184,7 +185,7 @@ def list_of_oncall_shifts_from_ical(
         pytz_tz = pytz.timezone("UTC")
         return (
             datetime.datetime.combine(e["start"], datetime.datetime.min.time(), tzinfo=pytz_tz)
-            if type(e["start"]) is datetime.date
+            if type(e["start"]) == datetime.date
             else e["start"]
         )
 
@@ -231,7 +232,7 @@ def get_shifts_dict(
             )
         # Define on-call shift out of ical event that has the actual user
         if len(users) > 0 or with_empty_shifts:
-            if type(event[ICAL_DATETIME_START].dt) is datetime.date:
+            if type(event[ICAL_DATETIME_START].dt) == datetime.date:
                 start = event[ICAL_DATETIME_START].dt
                 end = event[ICAL_DATETIME_END].dt
                 result_date.append(
@@ -403,15 +404,24 @@ def get_cached_oncall_users_for_multiple_schedules(schedules: typing.List["OnCal
     from apps.schedules.models import OnCallSchedule
     from apps.user_management.models import User
 
+    CACHE_KEY_PREFIX = "schedule_oncall_users_"
+
     def _generate_cache_key_for_schedule_oncall_users(schedule: "OnCallSchedule") -> str:
-        return f"schedule_{schedule.public_primary_key}_oncall_users"
+        return ensure_cache_key_allocates_to_the_same_hash_slot(
+            f"{CACHE_KEY_PREFIX}{schedule.public_primary_key}", CACHE_KEY_PREFIX
+        )
 
     def _get_schedule_public_primary_key_from_schedule_oncall_users_cache_key(cache_key: str) -> str:
-        return cache_key.replace("schedule_", "").replace("_oncall_users", "")
+        """
+        remove any brackets that might be included in the cache key (when redis cluster is active).
+        See `_generate_cache_key_for_schedule_oncall_users` just above
+        """
+        cache_key = cache_key.replace("{", "").replace("}", "")
+        return cache_key.replace(CACHE_KEY_PREFIX, "")
 
     CACHE_TTL = 15 * 60  # 15 minutes in seconds
 
-    cache_keys: typing.List[str] = [_generate_cache_key_for_schedule_oncall_users(schedule) for schedule in schedules]
+    cache_keys = [_generate_cache_key_for_schedule_oncall_users(schedule) for schedule in schedules]
 
     # get_many returns a dictionary with all the keys we asked for that actually exist
     # in the cache (and haven’t expired)
@@ -623,7 +633,7 @@ def is_icals_equal(first, second):
 def ical_date_to_datetime(date, tz, start):
     datetime_to_combine = datetime.time.min
     all_day = False
-    if type(date) is datetime.date:
+    if type(date) == datetime.date:
         all_day = True
         calendar_timezone_offset = datetime.datetime.now().astimezone(tz).utcoffset()
         date = datetime.datetime.combine(date, datetime_to_combine).astimezone(tz) - calendar_timezone_offset
@@ -776,7 +786,7 @@ def start_end_with_respect_to_all_day(event: IcalEvent, calendar_tz):
 
 def event_start_end_all_day_with_respect_to_type(event: IcalEvent, calendar_tz):
     all_day = False
-    if type(event[ICAL_DATETIME_START].dt) is datetime.date:
+    if type(event[ICAL_DATETIME_START].dt) == datetime.date:
         start, end = start_end_with_respect_to_all_day(event, calendar_tz)
         all_day = True
     else:

@@ -23,7 +23,6 @@ import { AlertTemplatesDTO } from 'models/alert_templates';
 import { Alert } from 'models/alertgroup/alertgroup.types';
 import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
 import { TemplateOptions } from 'pages/integration/Integration.config';
-import { waitForElement } from 'utils/DOM';
 import LocationHelper from 'utils/LocationHelper';
 import { UserActions } from 'utils/authorization';
 
@@ -50,7 +49,6 @@ const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
   const [alertGroupPayload, setAlertGroupPayload] = useState<JSON>(undefined);
   const [changedTemplateBody, setChangedTemplateBody] = useState<string>(templateBody);
   const [resultError, setResultError] = useState<string>(undefined);
-  const [editorHeight, setEditorHeight] = useState<string>(undefined);
   const [isRecentAlertGroupExisting, setIsRecentAlertGroupExisting] = useState<boolean>(false);
 
   useEffect(() => {
@@ -61,14 +59,6 @@ const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
       }
       LocationHelper.update(locationParams, 'partial');
     }
-  }, []);
-
-  useEffect(() => {
-    waitForElement('#content-container-id').then(() => {
-      const mainDiv = document.getElementById('content-container-id');
-      const height = mainDiv?.getBoundingClientRect().height - 59;
-      setEditorHeight(`${height}px`);
-    });
   }, []);
 
   const onShowCheatSheet = useCallback(() => {
@@ -188,7 +178,7 @@ const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
       width={'95%'}
     >
       <div className={cx('container-wrapper')}>
-        <div className={cx('container')} id={'content-container-id'}>
+        <div className={cx('container')}>
           <TemplatesAlertGroupsList
             templatePage={TEMPLATE_PAGE.Integrations}
             alertReceiveChannelId={id}
@@ -241,7 +231,7 @@ const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
               value={changedTemplateBody}
               data={templates}
               showLineNumbers={true}
-              height={editorHeight}
+              height="100%"
               onChange={getChangeHandler()}
             />
           </div>
