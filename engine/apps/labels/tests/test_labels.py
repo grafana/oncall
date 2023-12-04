@@ -16,18 +16,18 @@ def test_labels_feature_flag(mock_is_labels_feature_enabled_for_org, make_organi
     organization = make_organization()
     # returns True if feature flag is enabled
     assert settings.FEATURE_LABELS_ENABLED_FOR_ALL
-    assert organization.id not in settings.FEATURE_LABELS_ENABLED_PER_OR
+    assert organization.id not in settings.FEATURE_LABELS_ENABLED_PER_ORG
     assert is_labels_feature_enabled(organization)
 
     mock_is_labels_feature_enabled_for_org(organization.id)
     # returns True if feature flag is disabled and organization is in the feature list
     assert not settings.FEATURE_LABELS_ENABLED_FOR_ALL
-    assert organization.id in settings.FEATURE_LABELS_ENABLED_PER_OR
+    assert organization.id in settings.FEATURE_LABELS_ENABLED_PER_ORG
     assert is_labels_feature_enabled(organization)
 
     mock_is_labels_feature_enabled_for_org(12345)
     # returns False if feature flag is disabled and organization is not in the feature list
-    assert organization.org_id not in settings.FEATURE_LABELS_ENABLED_PER_OR
+    assert organization.org_id not in settings.FEATURE_LABELS_ENABLED_PER_ORG
     assert not is_labels_feature_enabled(organization)
 
 
