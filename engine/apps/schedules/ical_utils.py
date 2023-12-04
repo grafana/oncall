@@ -412,6 +412,11 @@ def get_cached_oncall_users_for_multiple_schedules(schedules: typing.List["OnCal
         )
 
     def _get_schedule_public_primary_key_from_schedule_oncall_users_cache_key(cache_key: str) -> str:
+        """
+        remove any brackets that might be included in the cache key (when redis cluster is active).
+        See `_generate_cache_key_for_schedule_oncall_users` just above
+        """
+        cache_key = cache_key.replace("{", "").replace("}", "")
         return cache_key.replace(CACHE_KEY_PREFIX, "")
 
     CACHE_TTL = 15 * 60  # 15 minutes in seconds
