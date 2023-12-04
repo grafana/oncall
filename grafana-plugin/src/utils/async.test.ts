@@ -8,7 +8,10 @@ describe('retryFailingPromises', () => {
     let attempts1 = 0;
     let attempts2 = 0;
     let attempts3 = 0;
-    const fetch1 = async () => Promise.resolve(++attempts1);
+    const fetch1 = (param = 'param') => {
+      ++attempts1;
+      return Promise.resolve(param);
+    };
     const fetch2 = async () => Promise.reject(++attempts2);
     const fetch3 = async () =>
       new Promise((resolve, reject) => {
@@ -19,13 +22,16 @@ describe('retryFailingPromises', () => {
         reject(attempts3);
       });
 
-    const result = await retryFailingPromises([fetch1, fetch2, fetch3], { maxAttempts: MAX_ATTEMPTS, delayInMs: 50 });
+    const result = await retryFailingPromises([() => fetch1(), fetch2, fetch3], {
+      maxAttempts: MAX_ATTEMPTS,
+      delayInMs: 50,
+    });
 
     expect(attempts1).toBe(1);
     expect(attempts2).toBe(MAX_ATTEMPTS);
     expect(attempts3).toBe(2);
     expect(result).toEqual([
-      { status: 'fulfilled', value: 1 },
+      { status: 'fulfilled', value: 'param' },
       { status: 'rejected', reason: 5 },
       { status: 'fulfilled', value: 2 },
     ]);

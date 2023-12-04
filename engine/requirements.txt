@@ -7,7 +7,7 @@ phonenumbers==8.10.0
 celery[amqp,redis]==5.3.1
 redis==5.0.1
 humanize==0.5.1
-uwsgi==2.0.23
+uwsgi==2.0.21
 django-cors-headers==3.7.0
 django-debug-toolbar==4.1
 django-sns-view==0.1.2
@@ -50,7 +50,7 @@ pymdown-extensions==10.0
 requests==2.31.0
 urllib3==1.26.18
 prometheus_client==0.16.0
-lxml==4.9.3
+lxml==4.9.2
 babel==2.12.1
 drf-spectacular==0.26.5
-grpcio==1.59.0
+grpcio==1.57.0

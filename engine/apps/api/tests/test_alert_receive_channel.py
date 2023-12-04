@@ -85,10 +85,10 @@ def test_list_alert_receive_channel_skip_pagination_for_grafana_alerting(
     assert response.status_code == status.HTTP_200_OK
 
     if should_be_unpaginated:
-        assert type(results) is list
+        assert type(results) == list
         assert len(results) > 0
     else:
-        assert type(results["results"]) is list
+        assert type(results["results"]) == list
         assert len(results["results"]) > 0
 
 

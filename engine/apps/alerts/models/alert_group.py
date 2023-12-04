@@ -1845,11 +1845,11 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
         result_log_report = list()
 
         for log_record in log_records_list:
-            if type(log_record) is AlertGroupLogRecord:
+            if type(log_record) == AlertGroupLogRecord:
                 result_log_report.append(log_record.render_log_line_json())
-            elif type(log_record) is UserNotificationPolicyLogRecord:
+            elif type(log_record) == UserNotificationPolicyLogRecord:
                 result_log_report.append(log_record.rendered_notification_log_line_json)
-            elif type(log_record) is ResolutionNote:
+            elif type(log_record) == ResolutionNote:
                 result_log_report.append(log_record.render_log_line_json())
         return result_log_report
 
