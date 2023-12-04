@@ -19,7 +19,17 @@ class ScenarioRoute:
     class EventCallbackScenarioRoute(_Base):
         payload_type: typing.Literal[PayloadType.EVENT_CALLBACK]
         event_type: EventType
-        message_channel_type: typing.NotRequired[typing.Literal[EventType.MESSAGE_CHANNEL]]
+
+    class EventCallbackChannelMessageScenarioRoute(EventCallbackScenarioRoute):
+        """
+        NOTE: the reason why we need to subclass `EventCallbackScenarioRoute` is because in Python 3.11 there is currently
+        no way to specify keys as optional in a `typing.TypedDict`. See [PEP-692](https://peps.python.org/pep-0692/) which
+        will implement this typing feature in Python 3.12.
+
+        When we upgrade to 3.12 we should update this type.
+        """
+
+        message_channel_type: typing.Literal[EventType.MESSAGE_CHANNEL]
 
     class InteractiveMessageScenarioRoute(_Base):
         payload_type: typing.Literal[PayloadType.INTERACTIVE_MESSAGE]
@@ -41,6 +51,7 @@ class ScenarioRoute:
     RoutingStep = (
         BlockActionsScenarioRoute
         | EventCallbackScenarioRoute
+        | EventCallbackChannelMessageScenarioRoute
         | InteractiveMessageScenarioRoute
         | MessageActionScenarioRoute
         | SlashCommandScenarioRoute

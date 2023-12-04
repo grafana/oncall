@@ -2,13 +2,12 @@
 profile = "black"
 line_length=120
 float_to_top=true
-# TODO: update py_version to 312 once isort supports it
 py_version=311
 extend_skip_glob = "**/migrations/**"
 
 [tool.black]
 line-length = 120
-target-version = ["py312"]
+target-version = ["py311"]
 force-exclude = "migrations"
 
 [tool.mypy]
