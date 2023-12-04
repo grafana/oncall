@@ -41,7 +41,9 @@ def test_ensure_cache_key_allocates_to_the_same_hash_slot() -> None:
         }
 
         # if the pattern doesn't exist, we don't wrap it in brackets
-        assert ensure_cache_key_allocates_to_the_same_hash_slot(SINGLE_CACHE_KEY, PATTERN) == SINGLE_CACHE_KEY
+        assert (
+            ensure_cache_key_allocates_to_the_same_hash_slot(SINGLE_CACHE_KEY, NON_EXISTENT_PATTERN) == SINGLE_CACHE_KEY
+        )
         assert ensure_cache_key_allocates_to_the_same_hash_slot(CACHE_KEYS, NON_EXISTENT_PATTERN) == CACHE_KEYS
         assert (
             ensure_cache_key_allocates_to_the_same_hash_slot(SET_MANY_CACHE_KEYS_DICT, NON_EXISTENT_PATTERN)
