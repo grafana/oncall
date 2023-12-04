@@ -22,6 +22,17 @@ class DatabaseBlocker(_DatabaseBlocker):
         raise OperationalError("Database access disabled")
 
 
+def setup_failing_redis_cache(settings):
+    settings.DJANGO_REDIS_IGNORE_EXCEPTIONS = True
+    settings.RATELIMIT_FAIL_OPEN = True
+    settings.CACHES = {
+        "default": {
+            "BACKEND": "django_redis.cache.RedisCache",
+            "LOCATION": "redis://no-redis-here/",
+        }
+    }
+
+
 @pytest.mark.django_db
 def test_integration_json_data_too_big(settings, make_organization_and_user, make_alert_receive_channel):
     settings.DATA_UPLOAD_MAX_MEMORY_SIZE = 50
@@ -284,6 +295,99 @@ def test_integration_grafana_endpoint_without_db_has_alerts(
     # disable DB access
     with DatabaseBlocker().block():
         response = client.post(url, data, format="json")
+
+    assert response.status_code == status.HTTP_200_OK
+
+    mock_create_alertmanager_alerts.apply_async.assert_has_calls(
+        [
+            call((alert_receive_channel.pk, data["alerts"][0])),
+            call((alert_receive_channel.pk, data["alerts"][1])),
+        ]
+    )
+
+
+@patch("apps.integrations.views.create_alert")
+@pytest.mark.parametrize(
+    "integration_type",
+    [
+        arc_type
+        for arc_type in AlertReceiveChannel.INTEGRATION_TYPES
+        if arc_type not in ["amazon_sns", "grafana", "alertmanager", "grafana_alerting", "maintenance"]
+    ],
+)
+@pytest.mark.django_db
+def test_integration_universal_endpoint_works_without_cache(
+    mock_create_alert,
+    make_organization_and_user,
+    make_alert_receive_channel,
+    integration_type,
+    settings,
+):
+    # setup failing redis cache and ignore exception settings
+    setup_failing_redis_cache(settings)
+
+    organization, user = make_organization_and_user()
+    alert_receive_channel = make_alert_receive_channel(
+        organization=organization,
+        author=user,
+        integration=integration_type,
+    )
+
+    client = APIClient()
+    url = reverse(
+        "integrations:universal",
+        kwargs={"integration_type": integration_type, "alert_channel_key": alert_receive_channel.token},
+    )
+    data = {"foo": "bar"}
+    response = client.post(url, data, format="json")
+
+    assert response.status_code == status.HTTP_200_OK
+
+    mock_create_alert.apply_async.assert_called_once_with(
+        [],
+        {
+            "title": None,
+            "message": None,
+            "image_url": None,
+            "link_to_upstream_details": None,
+            "alert_receive_channel_pk": alert_receive_channel.pk,
+            "integration_unique_data": None,
+            "raw_request_data": data,
+        },
+    )
+
+
+@patch("apps.integrations.views.create_alertmanager_alerts")
+@pytest.mark.django_db
+def test_integration_grafana_endpoint_without_cache_has_alerts(
+    mock_create_alertmanager_alerts, settings, make_organization_and_user, make_alert_receive_channel
+):
+    settings.DEBUG = False
+    # setup failing redis cache and ignore exception settings
+    setup_failing_redis_cache(settings)
+
+    integration_type = "grafana"
+    organization, user = make_organization_and_user()
+    alert_receive_channel = make_alert_receive_channel(
+        organization=organization,
+        author=user,
+        integration=integration_type,
+    )
+
+    client = APIClient()
+    url = reverse("integrations:grafana", kwargs={"alert_channel_key": alert_receive_channel.token})
+
+    data = {
+        "alerts": [
+            {
+                "foo": 123,
+            },
+            {
+                "foo": 456,
+            },
+        ]
+    }
+    response = client.post(url, data, format="json")
 
     assert response.status_code == status.HTTP_200_OK
 
