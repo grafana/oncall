@@ -46,6 +46,7 @@ def test_assign_labels(
     label_key_1 = make_label_key(organization=organization, key_name="c")
     label_key_2 = make_label_key(organization=organization)
     label_key_3 = make_label_key(organization=organization)
+    label_key_4 = make_label_key(organization=organization)
 
     # create alert receive channel with all 3 types of labels
     alert_receive_channel = make_alert_receive_channel(
@@ -56,6 +57,7 @@ def test_assign_labels(
             [label_key_2.id, "nonexistent", None],  # plain label with nonexistent value ID
             [label_key_1.id, None, "{{ payload.c }}"],  # templated label
             [label_key_3.id, None, TOO_LONG_VALUE_NAME],  # templated label too long
+            [label_key_4.id, None, "{{ payload.nonexistent }}"],  # templated label with nonexistent key
         ],
         alert_group_labels_template="{{ payload.advanced_template | tojson }}",
     )
@@ -94,8 +96,6 @@ def test_assign_labels(
 def test_assign_labels_custom_labels_none(
     make_organization,
     make_alert_receive_channel,
-    make_label_key_and_value,
-    make_label_key,
     make_integration_label_association,
 ):
     organization = make_organization()
