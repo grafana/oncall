@@ -12,7 +12,7 @@ export const EDITOR_USER_STORAGE_STATE = path.join(__dirname, 'e2e-tests/.auth/e
 export const ADMIN_USER_STORAGE_STATE = path.join(__dirname, 'e2e-tests/.auth/admin.json');
 
 const IS_CI = !!process.env.CI;
-const BROWSERS = process.env.BROWSERS || 'chromium firefox webkit';
+const BROWSERS = process.env.BROWSERS || 'chromium';
 
 const SETUP_PROJECT_NAME = 'setup';
 const getEnabledBrowsers = (browsers: PlaywrightTestProject[]) =>
@@ -27,14 +27,16 @@ export default defineConfig({
   /* Maximum time all the tests can run for. */
   globalTimeout: 20 * 60 * 1000, // 20 minutes
 
+  reporter: [['html', { open: 'never' }]],
+
   /* Maximum time one test can run for. */
-  timeout: 60 * 1000,
+  timeout: 30 * 1000,
   expect: {
     /**
      * Maximum time expect() should wait for the condition to be met.
      * For example in `await expect(locator).toHaveText();`
      */
-    timeout: 10000,
+    timeout: 6 * 1000,
   },
   /* Run tests in files in parallel */
   fullyParallel: false,
@@ -47,9 +49,9 @@ export default defineConfig({
    * to flaky tests.. let's allow 1 retry per test
    */
   retries: IS_CI ? 1 : 0,
-  workers: 2,
+  workers: 1,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
-  reporter: 'html',
+  // reporter: 'html',
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /* Maximum time each action such as `click()` can take. Defaults to 0 (no limit). */
@@ -59,7 +61,7 @@ export default defineConfig({
 
     trace: 'on',
     video: 'on',
-    headless: IS_CI,
+    headless: true,
   },
 
   /* Configure projects for major browsers. The final list is filtered based on BROWSERS env var */

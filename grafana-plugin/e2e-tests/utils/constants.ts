@@ -1,5 +1,5 @@
 export const BASE_URL = process.env.BASE_URL || 'http://localhost:3000';
-export const ONCALL_API_URL = process.env.ONCALL_API_URL || 'http://host.docker.internal:8080';
+export const ONCALL_API_URL = process.env.ONCALL_API_URL || 'http://oncall-dev-engine:8080';
 export const MAILSLURP_API_KEY = process.env.MAILSLURP_API_KEY;
 
 export const GRAFANA_VIEWER_USERNAME = process.env.GRAFANA_VIEWER_USERNAME || 'viewer';

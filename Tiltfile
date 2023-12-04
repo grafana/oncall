@@ -1,3 +1,4 @@
+load('ext://uibutton', 'cmd_button', 'location', 'text_input')
 running_under_parent_tiltfile = os.getenv("TILT_PARENT", "false") == "true"
 # The user/pass that you will login to Grafana with
 grafana_admin_user_pass = os.getenv("GRAFANA_ADMIN_USER_PASS", "oncall")
@@ -54,8 +55,29 @@ local_resource(
     "build-ui",
     labels=["OnCallUI"],
     cmd="cd grafana-plugin && yarn install && yarn build:dev",
-    serve_cmd="cd grafana-plugin && ONCALL_API_URL=http://oncall-dev-engine:8080 yarn watch",
+    serve_cmd="cd grafana-plugin && yarn watch",
     allow_parallel=True,
+)
+
+local_resource(
+    "e2e-tests",
+    labels=["e2etests"],
+    cmd="cd grafana-plugin && yarn test:e2e",
+    trigger_mode=TRIGGER_MODE_MANUAL,
+    auto_init=False,
+    resource_deps=["build-ui", "grafana", "grafana-oncall-app-provisioning-configmap", "engine"]
+)
+
+# UI buttons
+cmd_button(
+    name="E2E Tests",
+    argv=["cd grafana-plugin", "ls"],
+    text="teeeeest",
+    resource="e2e-tests",
+    icon_name="checklist",
+    inputs=[
+        text_input("BROWSERS", "chromium", "chromium,firefox,webkit"), 
+    ],
 )
 
 yaml = helm("helm/oncall", name=HELM_PREFIX, values=["./dev/helm-local.yml", "./dev/helm-local.dev.yml"])

@@ -38,13 +38,10 @@ export const createIntegration = async ({
     .click();
 
   // fill in the required inputs
-  (await page.waitForSelector('input[name="verbal_name"]', { state: 'attached' })).fill(integrationName);
-  (await page.waitForSelector('textarea[name="description_short"]', { state: 'attached' })).fill(
-    'Here goes your integration description'
-  );
-
-  const grafanaUpdateBtn = page.getByTestId('update-integration-button');
-  await grafanaUpdateBtn.click();
+  await page.getByPlaceholder('Integration Name').fill(integrationName);
+  await page.getByPlaceholder('Integration Description').fill('Here goes your integration description');
+  await page.getByRole('heading', { name: 'New Webhook integration' }).click();
+  await page.getByTestId('update-integration-button').click();
 };
 
 export const assignEscalationChainToIntegration = async (page: Page, escalationChainName: string): Promise<void> => {
