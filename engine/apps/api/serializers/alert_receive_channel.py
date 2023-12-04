@@ -349,6 +349,10 @@ class AlertReceiveChannelSerializer(
     def validate_integration(integration):
         if integration is None or integration not in AlertReceiveChannel.WEB_INTEGRATION_CHOICES:
             raise BadRequest(detail="invalid integration")
+
+        if integration == AlertReceiveChannel.INTEGRATION_DIRECT_PAGING:
+            raise BadRequest(detail="Direct paging integrations can't be created")
+
         return integration
 
     def validate_verbal_name(self, verbal_name):
