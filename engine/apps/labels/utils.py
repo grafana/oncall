@@ -51,10 +51,7 @@ def get_associating_label_model(obj_model_name: str) -> typing.Type["AssociatedL
 
 
 def is_labels_feature_enabled(organization: "Organization") -> bool:
-    return (
-        settings.FEATURE_LABELS_ENABLED_FOR_ALL
-        or organization.org_id in settings.FEATURE_LABELS_ENABLED_FOR_GRAFANA_ORGS  # Grafana org ID, not OnCall org ID
-    )
+    return settings.FEATURE_LABELS_ENABLED_FOR_ALL or organization.id in settings.FEATURE_LABELS_ENABLED_PER_OR
 
 
 def get_labels_dict(labelable) -> dict[str, str]:
