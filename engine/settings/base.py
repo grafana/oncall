@@ -495,7 +495,7 @@ CELERY_BEAT_SCHEDULE = {
     },
     "start_refresh_ical_files": {
         "task": "apps.schedules.tasks.refresh_ical_files.start_refresh_ical_files",
-        "schedule": 10 * 60,
+        "schedule": crontab(minute="*/10"),  # every 10 minutes
         "args": (),
     },
     "start_notify_about_gaps_in_schedule": {
@@ -545,24 +545,24 @@ CELERY_BEAT_SCHEDULE = {
     },
     "process_failed_to_invoke_celery_tasks": {
         "task": "apps.base.tasks.process_failed_to_invoke_celery_tasks",
-        "schedule": 60 * 10,
+        "schedule": crontab(minute="*/10"),  # every 10 minutes
         "args": (),
     },
     "conditionally_send_going_oncall_push_notifications_for_all_schedules": {
         "task": "apps.mobile_app.tasks.going_oncall_notification.conditionally_send_going_oncall_push_notifications_for_all_schedules",
-        "schedule": 10 * 60,
+        "schedule": crontab(minute="*/10"),  # every 10 minutes
     },
     "notify_shift_swap_requests": {
         "task": "apps.mobile_app.tasks.new_shift_swap_request.notify_shift_swap_requests",
-        "schedule": getenv_integer("NOTIFY_SHIFT_SWAP_REQUESTS_INTERVAL", default=10 * 60),
+        "schedule": crontab(minute="*/{}".format(getenv_integer("NOTIFY_SHIFT_SWAP_REQUESTS_INTERVAL", default=10))),
     },
     "send_shift_swap_request_slack_followups": {
         "task": "apps.schedules.tasks.shift_swaps.slack_followups.send_shift_swap_request_slack_followups",
-        "schedule": 10 * 60,
+        "schedule": crontab(minute="*/10"),  # every 10 minutes
     },
     "save_organizations_ids_in_cache": {
         "task": "apps.metrics_exporter.tasks.save_organizations_ids_in_cache",
-        "schedule": 60 * 30,
+        "schedule": crontab(minute="*/30"),  # every 30 minutes
         "args": (),
     },
     "check_heartbeats": {
@@ -579,7 +579,11 @@ if ESCALATION_AUDITOR_ENABLED:
         #
         # ex. if the integration is configured to expect a heartbeat every 15 minutes then this value should be set
         # to something like 13 * 60 (every 13 minutes)
-        "schedule": getenv_integer("ALERT_GROUP_ESCALATION_AUDITOR_CELERY_TASK_HEARTBEAT_INTERVAL", 13 * 60),
+        "schedule": crontab(
+            minute="*/{}".format(
+                getenv_integer("ALERT_GROUP_ESCALATION_AUDITOR_CELERY_TASK_HEARTBEAT_INTERVAL", default=13)
+            )
+        ),
         "args": (),
     }
 
