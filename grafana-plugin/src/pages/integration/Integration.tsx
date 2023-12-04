@@ -419,7 +419,7 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
                         Autoresolve:
                       </Text>
                       <Text type="primary">
-                        {IntegrationHelper.truncateLine(templates['resolve_condition_template'] || 'disabled')}
+                        {IntegrationHelper.truncateLine(templates?.['resolve_condition_template'] || 'disabled')}
                       </Text>
                     </div>
 
@@ -1187,15 +1187,16 @@ const IntegrationHeader: React.FC<IntegrationHeaderProps> = ({
     const heartbeatStatus = Boolean(heartbeat?.status);
 
     return (
-      <TooltipBadge
-        data-testid="heartbeat-badge"
-        text={undefined}
-        className={cx('heartbeat-badge')}
-        borderType={heartbeatStatus ? 'success' : 'danger'}
-        customIcon={heartbeatStatus ? <HeartIcon /> : <HeartRedIcon />}
-        tooltipTitle={`Last heartbeat: ${heartbeat?.last_heartbeat_time_verbal}`}
-        tooltipContent={undefined}
-      />
+      <div data-testid="heartbeat-badge">
+        <TooltipBadge
+          text={undefined}
+          className={cx('heartbeat-badge')}
+          borderType={heartbeatStatus ? 'success' : 'danger'}
+          customIcon={heartbeatStatus ? <HeartIcon /> : <HeartRedIcon />}
+          tooltipTitle={`Last heartbeat: ${heartbeat?.last_heartbeat_time_verbal}`}
+          tooltipContent={undefined}
+        />
+      </div>
     );
   }
 };

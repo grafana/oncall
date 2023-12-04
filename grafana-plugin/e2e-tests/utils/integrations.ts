@@ -16,11 +16,13 @@ export const createIntegration = async ({
   integrationName = `integration-${generateRandomValue()}`,
   integrationSearchText = 'Webhook',
   shouldGoToIntegrationsPage = true,
+  shouldNavigateToIntegrationDetailAfterCreation = true,
 }: {
   page: Page;
   integrationName?: string;
   integrationSearchText?: string;
   shouldGoToIntegrationsPage?: boolean;
+  shouldNavigateToIntegrationDetailAfterCreation?: boolean;
 }): Promise<void> => {
   if (shouldGoToIntegrationsPage) {
     // go to the integrations page
@@ -41,7 +43,14 @@ export const createIntegration = async ({
   await page.getByPlaceholder('Integration Name').fill(integrationName);
   await page.getByPlaceholder('Integration Description').fill('Here goes your integration description');
   await page.getByRole('heading', { name: 'New Webhook integration' }).click();
+  await page.getByTestId('update-integration-button').focus();
   await page.getByTestId('update-integration-button').click();
+
+  if (shouldNavigateToIntegrationDetailAfterCreation) {
+    const integrationsTable = page.getByTestId('integrations-table');
+    await searchIntegrationAndAssertItsPresence({ page, integrationsTable, integrationName });
+    await page.getByRole('link', { name: integrationName }).click();
+  }
 };
 
 export const assignEscalationChainToIntegration = async (page: Page, escalationChainName: string): Promise<void> => {

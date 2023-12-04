@@ -1,6 +1,8 @@
 import { OrgRole } from '@grafana/data';
 import { test as setup, chromium, expect, Page, BrowserContext, FullConfig, APIRequestContext } from '@playwright/test';
 
+import { getOnCallApiUrl } from 'utils/consts';
+
 import { VIEWER_USER_STORAGE_STATE, EDITOR_USER_STORAGE_STATE, ADMIN_USER_STORAGE_STATE } from '../playwright.config';
 
 import GrafanaAPIClient from './utils/clients/grafana';
@@ -13,7 +15,6 @@ import {
   GRAFANA_VIEWER_USERNAME,
   IS_CLOUD,
   IS_OPEN_SOURCE,
-  ONCALL_API_URL,
 } from './utils/constants';
 import { clickButton, getInputByName } from './utils/forms';
 import { goToGrafanaPage } from './utils/navigation';
@@ -75,7 +76,7 @@ const configureOnCallPlugin = async (page: Page): Promise<void> => {
     await clickButton({ page, buttonText: /^Remove$/ });
   }
   await page.waitForTimeout(2000);
-  await getInputByName(page, 'onCallApiUrl').fill(ONCALL_API_URL);
+  await getInputByName(page, 'onCallApiUrl').fill(getOnCallApiUrl());
   await clickButton({ page, buttonText: 'Connect' });
 
   /**

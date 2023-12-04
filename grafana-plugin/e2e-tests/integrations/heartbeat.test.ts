@@ -11,7 +11,8 @@ test.describe("updating an integration's heartbeat interval works", async () => 
   };
 
   test('change heartbeat interval', async ({ adminRolePage: { page } }) => {
-    await createIntegration({ page, integrationName: generateRandomValue() });
+    const integrationName = generateRandomValue();
+    await createIntegration({ page, integrationName });
 
     await _openHeartbeatSettingsForm(page);
 

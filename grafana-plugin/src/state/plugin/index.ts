@@ -241,6 +241,10 @@ class PluginState {
     onCallApiUrl: string,
     onCallApiUrlIsConfiguredThroughEnvVar: boolean
   ): Promise<string | null> => {
+    console.log('HERE', {
+      onCallApiUrl,
+      onCallApiUrlIsConfiguredThroughEnvVar,
+    });
     let pluginInstallationOnCallResponse: InstallPluginResponse<SelfHostedProvisioningConfigResponse>;
     const errorMsgVerb: InstallationVerb = 'install';
 

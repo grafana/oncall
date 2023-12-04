@@ -1,4 +1,4 @@
-base_url: localhost:30001
+base_url: localhost:8080
 base_url_protocol: http
 env:
   - name: GRAFANA_CLOUD_NOTIFICATIONS_ENABLED

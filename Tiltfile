@@ -61,23 +61,38 @@ local_resource(
 
 local_resource(
     "e2e-tests",
-    labels=["e2etests"],
+    labels=["E2eTests"],
     cmd="cd grafana-plugin && yarn test:e2e",
     trigger_mode=TRIGGER_MODE_MANUAL,
     auto_init=False,
     resource_deps=["build-ui", "grafana", "grafana-oncall-app-provisioning-configmap", "engine"]
 )
 
-# UI buttons
 cmd_button(
-    name="E2E Tests",
-    argv=["cd grafana-plugin", "ls"],
-    text="teeeeest",
+    name="E2E Tests - headless run",
+    argv=["sh", "-c", "yarn --cwd ./grafana-plugin test:e2e"],
+    text="Restart headless run",
     resource="e2e-tests",
-    icon_name="checklist",
+    icon_name="replay",
     inputs=[
-        text_input("BROWSERS", "chromium", "chromium,firefox,webkit"), 
+        text_input("BROWSERS", "Browsers (e.g. \"chromium,firefox,webkit\")", "chromium", "chromium,firefox,webkit"), 
     ],
+)
+
+cmd_button(
+    name="E2E Tests2 - open watch mode",
+    argv=["sh", "-c", "yarn --cwd grafana-plugin test:e2e:watch"],
+    text="Open watch mode",
+    resource="e2e-tests",
+    icon_name="visibility",
+)
+
+cmd_button(
+    name="E2E Tests2 - show report",
+    argv=["sh", "-c", "yarn --cwd grafana-plugin playwright show-report"],
+    text="Show report",
+    resource="e2e-tests",
+    icon_name="assignment",
 )
 
 yaml = helm("helm/oncall", name=HELM_PREFIX, values=["./dev/helm-local.yml", "./dev/helm-local.dev.yml"])
