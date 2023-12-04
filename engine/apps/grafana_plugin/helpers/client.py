@@ -371,7 +371,11 @@ class GcomAPIClient(APIClient):
             or feature_enabled_via_enable_key_comma_delimited
         )
 
-    def is_rbac_enabled_for_instance(self, instance_info: GCOMInstanceInfo = None) -> bool:
+    def is_rbac_enabled_for_stack(self, stack_id: str) -> bool:
+        """
+        NOTE: must use an "Admin" GCOM token when calling this method
+        """
+        instance_info = self.get_instance_info(stack_id, True)
         if not instance_info:
             return False
         return self._feature_toggle_is_enabled(instance_info, "accessControlOnCall")
