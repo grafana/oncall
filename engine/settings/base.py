@@ -69,8 +69,8 @@ GRAFANA_CLOUD_ONCALL_HEARTBEAT_ENABLED = getenv_boolean("GRAFANA_CLOUD_ONCALL_HE
 GRAFANA_CLOUD_NOTIFICATIONS_ENABLED = getenv_boolean("GRAFANA_CLOUD_NOTIFICATIONS_ENABLED", default=True)
 # Enable labels feature fo all organizations. This flag overrides FEATURE_LABELS_ENABLED_FOR_GRAFANA_ORGS
 FEATURE_LABELS_ENABLED_FOR_ALL = getenv_boolean("FEATURE_LABELS_ENABLED_FOR_ALL", default=False)
-# Enable labels feature for organizations from the list. Use Grafana org_id, not OnCall id, for this flag
-FEATURE_LABELS_ENABLED_FOR_GRAFANA_ORGS = getenv_list("FEATURE_LABELS_ENABLED_FOR_GRAFANA_ORGS", default=list())
+# Enable labels feature for organizations from the list. Use OnCall organization ID, for this flag
+FEATURE_LABELS_ENABLED_PER_ORG = getenv_list("FEATURE_LABELS_ENABLED_PER_ORG", default=list())
 
 TWILIO_API_KEY_SID = os.environ.get("TWILIO_API_KEY_SID")
 TWILIO_API_KEY_SECRET = os.environ.get("TWILIO_API_KEY_SECRET")
@@ -194,6 +194,7 @@ REDIS_URI = os.getenv("REDIS_URI")
 if not REDIS_URI:
     REDIS_URI = f"{REDIS_PROTOCOL}://{REDIS_USERNAME}:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}/{REDIS_DATABASE}"
 
+USE_REDIS_CLUSTER = getenv_boolean("USE_REDIS_CLUSTER", default=False)
 REDIS_USE_SSL = os.getenv("REDIS_USE_SSL")
 REDIS_SSL_CONFIG = {}
 

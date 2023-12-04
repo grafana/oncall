@@ -8,6 +8,7 @@ from apps.alerts.models import AlertReceiveChannel
 from apps.auth_token.auth import ApiTokenAuthentication
 from apps.public_api.serializers import IntegrationSerializer, IntegrationUpdateSerializer
 from apps.public_api.throttlers.user_throttle import UserThrottle
+from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.filters import ByTeamFilter
 from common.api_helpers.mixins import FilterSerializerMixin, RateLimitHeadersMixin, UpdateSerializerMixin
 from common.api_helpers.paginators import FiftyPageSizePaginator
@@ -69,6 +70,14 @@ class IntegrationView(
             prev_state=prev_state,
             new_state=new_state,
         )
+
+    def destroy(self, request, *args, **kwargs):
+        # don't allow deleting direct paging integrations
+        instance = self.get_object()
+        if instance.integration == AlertReceiveChannel.INTEGRATION_DIRECT_PAGING:
+            raise BadRequest(detail="Direct paging integrations can't be deleted")
+
+        return super().destroy(request, *args, **kwargs)
 
     def perform_destroy(self, instance):
         write_resource_insight_log(instance=instance, author=self.request.user, event=EntityEvent.DELETED)

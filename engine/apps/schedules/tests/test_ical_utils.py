@@ -584,7 +584,7 @@ def test_get_cached_oncall_users_for_multiple_schedules(
         return users, (schedule1, schedule2, schedule3)
 
     def _generate_cache_key(schedule):
-        return f"schedule_{schedule.public_primary_key}_oncall_users"
+        return f"schedule_oncall_users_{schedule.public_primary_key}"
 
     # scenario: nothing is cached, need to recalculate everything and cache it
     users, schedules = _test_setup()
