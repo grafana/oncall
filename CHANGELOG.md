@@ -53,6 +53,7 @@ Minor bugfixes + dependency updates :)
 ### Added
 
 - Add options to customize table columns in AlertGroup page ([3281](https://github.com/grafana/oncall/pull/3281))
+- Add proxying capabilities for the OnCall mobile API by @joeyorlando ([#3449](https://github.com/grafana/oncall/pull/3449))
 
 ### Fixed
 

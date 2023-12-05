@@ -1,5 +1,13 @@
+from django.conf import settings
+from django.urls import re_path
+
 from apps.mobile_app.fcm_relay import FCMRelayView
-from apps.mobile_app.views import FCMDeviceAuthorizedViewSet, MobileAppAuthTokenAPIView, MobileAppUserSettingsViewSet
+from apps.mobile_app.views import (
+    FCMDeviceAuthorizedViewSet,
+    MobileAppAuthTokenAPIView,
+    MobileAppGatewayView,
+    MobileAppUserSettingsViewSet,
+)
 from common.api_helpers.optional_slash_router import OptionalSlashRouter, optional_slash_path
 
 app_name = "mobile_app"
@@ -25,3 +33,12 @@ urlpatterns = [
 urlpatterns += [
     optional_slash_path("fcm_relay", FCMRelayView.as_view(), name="fcm_relay"),
 ]
+
+if settings.MOBILE_APP_GATEWAY_ENABLED:
+    urlpatterns += [
+        re_path(
+            r"^gateway/(?P<downstream_backend>\w*)/(?P<downstream_path>.*)$",
+            MobileAppGatewayView.as_view(),
+            name="gateway",
+        ),
+    ]
