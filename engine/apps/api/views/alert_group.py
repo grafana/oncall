@@ -30,7 +30,7 @@ from apps.user_management.models import Team, User
 from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.filters import NO_TEAM_VALUE, DateRangeFilterMixin, ModelFieldFilterMixin
 from common.api_helpers.mixins import PreviewTemplateMixin, PublicPrimaryKeyMixin, TeamFilteringMixin
-from common.api_helpers.paginators import TwentyFiveCursorPaginator
+from common.api_helpers.paginators import AlertGroupCursorPaginator
 
 
 def get_integration_queryset(request):
@@ -309,7 +309,7 @@ class AlertGroupView(
 
     serializer_class = AlertGroupSerializer
 
-    pagination_class = TwentyFiveCursorPaginator
+    pagination_class = AlertGroupCursorPaginator
 
     filter_backends = [SearchFilter, AlertGroupFilterBackend]
     # search_fields = ["=public_primary_key", "=inside_organization_number", "web_title_cache"]
@@ -442,7 +442,7 @@ class AlertGroupView(
 
         # enrich alert groups with select_related and prefetch_related
         alert_group_pks = [alert_group.pk for alert_group in alert_groups]
-        queryset = AlertGroup.objects.filter(pk__in=alert_group_pks).order_by("-started_at")
+        queryset = AlertGroup.objects.filter(pk__in=alert_group_pks).order_by("-id")
 
         queryset = self.get_serializer_class().setup_eager_loading(queryset)
         alert_groups = list(queryset)
