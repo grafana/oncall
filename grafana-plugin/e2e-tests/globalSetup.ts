@@ -98,13 +98,6 @@ const configureOnCallPlugin = async (page: Page): Promise<void> => {
  * https://github.com/grafana/incident/blob/main/plugin/e2e/global-setup.ts
  */
 setup('Configure Grafana OnCall plugin', async ({ request }, { config }) => {
-  /**
-   * Unconditionally marks the setup as "slow", giving it triple the default timeout.
-   * This is mostly useful for the rare case for Cloud Grafana instances where the instance may be down/unavailable
-   * and we need to poll it until it is available
-   */
-  setup.slow();
-
   if (IS_CLOUD) {
     await grafanaApiClient.pollInstanceUntilItIsHealthy(request);
   }

@@ -10,3 +10,5 @@ venv
 
 yarn.lock
 node_modules
+
+test-results

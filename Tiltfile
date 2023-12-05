@@ -1,4 +1,4 @@
-load('ext://uibutton', 'cmd_button', 'location', 'text_input')
+load('ext://uibutton', 'cmd_button', 'location', 'text_input', 'bool_input')
 running_under_parent_tiltfile = os.getenv("TILT_PARENT", "false") == "true"
 # The user/pass that you will login to Grafana with
 grafana_admin_user_pass = os.getenv("GRAFANA_ADMIN_USER_PASS", "oncall")
@@ -37,7 +37,7 @@ docker_build_sub(
     "localhost:63628/oncall/engine:dev",
     context="./engine",
     cache_from=["grafana/oncall:latest"],
-    ignore=["./grafana-plugin/test-results/", "./grafana-plugin/dist/", "./grafana-plugin/e2e-tests/"],
+    ignore=["./test-results/", "./grafana-plugin/dist/", "./grafana-plugin/e2e-tests/"],
     child_context=".",
     target="dev",
     extra_cmds=["ADD ./grafana-plugin/src/plugin.json /etc/grafana-plugin/src/plugin.json"],
@@ -76,6 +76,7 @@ cmd_button(
     icon_name="replay",
     inputs=[
         text_input("BROWSERS", "Browsers (e.g. \"chromium,firefox,webkit\")", "chromium", "chromium,firefox,webkit"), 
+        bool_input("USE_HTML_REPORTER", "Use HTML reporter", False, 'true', 'false'), 
     ],
 )
 
@@ -90,7 +91,7 @@ cmd_button(
 cmd_button(
     name="E2E Tests - show report",
     argv=["sh", "-c", "yarn --cwd grafana-plugin playwright show-report"],
-    text="Show report",
+    text="Show last HTML report",
     resource="e2e-tests",
     icon_name="assignment",
 )

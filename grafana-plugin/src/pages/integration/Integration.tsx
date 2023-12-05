@@ -1127,7 +1127,7 @@ const IntegrationHeader: React.FC<IntegrationHeaderProps> = ({
 
       {alertReceiveChannel.maintenance_till && (
         <TooltipBadge
-          data-testid="maintenance-mode-remaining-time-tooltip"
+          testId="maintenance-mode-remaining-time-tooltip"
           borderType="primary"
           icon="pause"
           text={IntegrationHelper.getMaintenanceText(alertReceiveChannel.maintenance_till)}
@@ -1188,16 +1188,14 @@ const IntegrationHeader: React.FC<IntegrationHeaderProps> = ({
     const heartbeatStatus = Boolean(heartbeat?.status);
 
     return (
-      <div data-testid="heartbeat-badge">
-        <TooltipBadge
-          text={undefined}
-          className={cx('heartbeat-badge')}
-          borderType={heartbeatStatus ? 'success' : 'danger'}
-          customIcon={heartbeatStatus ? <HeartIcon /> : <HeartRedIcon />}
-          tooltipTitle={`Last heartbeat: ${heartbeat?.last_heartbeat_time_verbal}`}
-          tooltipContent={undefined}
-        />
-      </div>
+      <TooltipBadge
+        text={undefined}
+        className={cx('heartbeat-badge')}
+        borderType={heartbeatStatus ? 'success' : 'danger'}
+        customIcon={heartbeatStatus ? <HeartIcon /> : <HeartRedIcon />}
+        tooltipTitle={`Last heartbeat: ${heartbeat?.last_heartbeat_time_verbal}`}
+        tooltipContent={undefined}
+      />
     );
   }
 };

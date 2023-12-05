@@ -46,8 +46,7 @@ export const createIntegration = async ({
   await page.getByTestId('update-integration-button').click();
 
   await goToOnCallPage(page, 'integrations');
-  const integrationsTable = page.getByTestId('integrations-table');
-  await searchIntegrationAndAssertItsPresence({ page, integrationsTable, integrationName });
+  await searchIntegrationAndAssertItsPresence({ page, integrationName });
 
   // if (shouldNavigateToIntegrationDetailAfterCreation) {
   await page.getByRole('link', { name: integrationName }).click();

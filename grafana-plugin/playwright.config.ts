@@ -13,6 +13,7 @@ export const ADMIN_USER_STORAGE_STATE = path.join(__dirname, 'e2e-tests/.auth/ad
 
 const IS_CI = !!process.env.CI;
 const BROWSERS = process.env.BROWSERS || 'chromium';
+const USE_HTML_REPORTER = process.env.USE_HTML_REPORTER === 'true';
 
 const SETUP_PROJECT_NAME = 'setup';
 const getEnabledBrowsers = (browsers: PlaywrightTestProject[]) =>
@@ -27,10 +28,10 @@ export default defineConfig({
   /* Maximum time all the tests can run for. */
   globalTimeout: 20 * 60 * 1000, // 20 minutes
 
-  // reporter: [['html', { open: 'never' }]],
+  reporter: USE_HTML_REPORTER ? [['html', { open: 'never' }]] : 'line',
 
   /* Maximum time one test can run for. */
-  timeout: 30 * 1000,
+  timeout: 60 * 1000,
   expect: {
     /**
      * Maximum time expect() should wait for the condition to be met.
@@ -49,7 +50,7 @@ export default defineConfig({
    * to flaky tests.. let's allow 1 retry per test
    */
   retries: IS_CI ? 1 : 0,
-  workers: IS_CI ? 2 : 1,
+  workers: 2,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   // reporter: 'html',
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
@@ -61,7 +62,7 @@ export default defineConfig({
 
     trace: 'on',
     video: 'on',
-    headless: false,
+    headless: true,
   },
 
   /* Configure projects for major browsers. The final list is filtered based on BROWSERS env var */
@@ -111,8 +112,9 @@ export default defineConfig({
     // },
   ]),
 
-  /* Folder for test artifacts such as screenshots, videos, traces, etc. */
-  // outputDir: 'test-results/',
+  /* Folder for test artifacts such as screenshots, videos, traces, etc. 
+  Set outside of grafana-plugin to prevent refreshing Grafana during e2e test runs */
+  outputDir: '../test-results/',
 
   /* Run your local dev server before starting the tests */
   // webServer: {
