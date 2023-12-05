@@ -2,7 +2,9 @@ import { test } from '../fixtures';
 import { generateRandomValue } from '../utils/forms';
 import { createIntegration, searchIntegrationAndAssertItsPresence } from '../utils/integrations';
 
-test('Integrations table shows data in Connections and Direct Paging tabs', async ({ adminRolePage: { page } }) => {
+test('Integrations table shows data in Monitoring Systems and Direct Paging tabs', async ({
+  adminRolePage: { page },
+}) => {
   const ID = generateRandomValue();
   const WEBHOOK_INTEGRATION_NAME = `Webhook-${ID}`;
   const ALERTMANAGER_INTEGRATION_NAME = `Alertmanager-${ID}`;
@@ -21,7 +23,7 @@ test('Integrations table shows data in Connections and Direct Paging tabs', asyn
   await page.getByRole('tab', { name: 'Tab Integrations' }).click();
 
   // Create 1 Direct Paging integration if it doesn't exist
-  await page.getByRole('tab', { name: 'Tab Direct Paging' }).click();
+  await page.getByRole('tab', { name: 'Tab Manual Direct Paging' }).click();
   const integrationsTable = page.getByTestId('integrations-table');
   await page.waitForTimeout(2000);
   const isDirectPagingAlreadyCreated = (await integrationsTable.getByText('Direct paging').count()) >= 1;
@@ -35,7 +37,7 @@ test('Integrations table shows data in Connections and Direct Paging tabs', asyn
   }
   await page.getByRole('tab', { name: 'Tab Integrations' }).click();
 
-  // By default Connections tab is opened and newly created integrations are visible except Direct Paging one
+  // By default Monitoring Systems tab is opened and newly created integrations are visible except Direct Paging one
   await searchIntegrationAndAssertItsPresence({ page, integrationsTable, integrationName: WEBHOOK_INTEGRATION_NAME });
   await searchIntegrationAndAssertItsPresence({
     page,
@@ -48,7 +50,7 @@ test('Integrations table shows data in Connections and Direct Paging tabs', asyn
   });
 
   // Then after switching to Direct Paging tab only Direct Paging integration is visible
-  await page.getByRole('tab', { name: 'Tab Direct Paging' }).click();
+  await page.getByRole('tab', { name: 'Tab Manual Direct Paging' }).click();
   await searchIntegrationAndAssertItsPresence({
     page,
     integrationName: WEBHOOK_INTEGRATION_NAME,
