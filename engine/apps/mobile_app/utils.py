@@ -15,6 +15,7 @@ from common.api_helpers.utils import create_engine_url
 
 if typing.TYPE_CHECKING:
     from apps.mobile_app.models import FCMDevice
+    from apps.user_management.models import Organization
 
 
 MAX_RETRIES = 1 if settings.DEBUG else 10
@@ -123,5 +124,5 @@ def construct_fcm_message(
     )
 
 
-def add_stack_slug_to_message_title(title, organization):
+def add_stack_slug_to_message_title(title: str, organization: "Organization") -> str:
     return f"[{organization.stack_slug}] {title}"
