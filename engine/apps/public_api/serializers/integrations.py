@@ -67,6 +67,8 @@ class IntegrationTypeField(fields.CharField):
             raise BadRequest(detail="Invalid integration type")
         if has_legacy_prefix(data):
             raise BadRequest("This integration type is deprecated")
+        if data == AlertReceiveChannel.INTEGRATION_DIRECT_PAGING:
+            raise BadRequest(detail="Direct paging integrations can't be created")
         return data
 
 
