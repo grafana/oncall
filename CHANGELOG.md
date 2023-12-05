@@ -7,10 +7,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
-### Changed
-
-- Renamed "Connections" tab to "Monitoring Systems" and "Direct Paging" to "Manual Direct Paging" on Integrations page
-
 ### Added
 
 - Add `datetimeformat_as_timezone` Jinja2 template helper filter by @jorgeav ([#3426](https://github.com/grafana/oncall/pull/3426))
@@ -18,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Disallow creating and deleting direct paging integrations by @vadimkerr ([#3475](https://github.com/grafana/oncall/pull/3475))
+- Renamed "Connections" tab to "Monitoring Systems" and "Direct Paging" to "Manual Direct Paging" on Integrations page
 
 ## v1.3.70 (2023-12-01)
 
