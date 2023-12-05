@@ -28,9 +28,13 @@ from apps.metrics_exporter.tasks import start_calculate_and_cache_metrics, start
 application_metrics_registry = CollectorRegistry()
 
 
-RE_ALERT_GROUPS_TOTAL = re.compile(r"{}_(\d+)".format(ALERT_GROUPS_TOTAL))
-RE_ALERT_GROUPS_RESPONSE_TIME = re.compile(r"{}_(\d+)".format(ALERT_GROUPS_RESPONSE_TIME))
-RE_USER_WAS_NOTIFIED_OF_ALERT_GROUPS = re.compile(r"{}_(\d+)".format(USER_WAS_NOTIFIED_OF_ALERT_GROUPS))
+# _RE_BASE_PATTERN allows for optional curly-brackets around the metric name as in some cases this may occur
+# see common.cache.ensure_cache_key_allocates_to_the_same_hash_slot for more details regarding this
+_RE_BASE_PATTERN = r"{{?{}}}?_(\d+)"
+
+RE_ALERT_GROUPS_TOTAL = re.compile(_RE_BASE_PATTERN.format(ALERT_GROUPS_TOTAL))
+RE_ALERT_GROUPS_RESPONSE_TIME = re.compile(_RE_BASE_PATTERN.format(ALERT_GROUPS_RESPONSE_TIME))
+RE_USER_WAS_NOTIFIED_OF_ALERT_GROUPS = re.compile(_RE_BASE_PATTERN.format(USER_WAS_NOTIFIED_OF_ALERT_GROUPS))
 
 
 # https://github.com/prometheus/client_python#custom-collectors
