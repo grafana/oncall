@@ -18,6 +18,7 @@ from apps.mobile_app.tasks.going_oncall_notification import (
     conditionally_send_going_oncall_push_notifications_for_schedule,
 )
 from apps.mobile_app.types import MessageType, Platform
+from apps.mobile_app.utils import add_stack_slug_to_message_title
 from apps.schedules.models import OnCallScheduleCalendar, OnCallScheduleICal, OnCallScheduleWeb
 from apps.schedules.models.on_call_schedule import ScheduleEvent
 
@@ -182,8 +183,15 @@ def test_get_fcm_message(
     make_user_for_organization,
     make_schedule,
 ):
+    organization = make_organization()
+    user_tz = "Europe/Amsterdam"
+    user = make_user_for_organization(organization)
+    user_pk = user.public_primary_key
+    schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
+    notification_thread_id = f"{schedule.public_primary_key}:{user_pk}:going-oncall"
+
     mock_fcm_message = "mncvmnvcmnvcnmvcmncvmn"
-    mock_notification_title = "asdfasdf"
+    mock_notification_title = add_stack_slug_to_message_title("asdfasdf", organization)
     mock_notification_subtitle = "9:06\u202fAM - 9:06\u202fAM\nSchedule XYZ"
     shift_pk = "mncvmnvc"
     seconds_until_going_oncall = 600
@@ -191,13 +199,6 @@ def test_get_fcm_message(
     mock_construct_fcm_message.return_value = mock_fcm_message
     mock_get_notification_title.return_value = mock_notification_title
     mock_get_notification_subtitle.return_value = mock_notification_subtitle
-
-    organization = make_organization()
-    user_tz = "Europe/Amsterdam"
-    user = make_user_for_organization(organization)
-    user_pk = user.public_primary_key
-    schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
-    notification_thread_id = f"{schedule.public_primary_key}:{user_pk}:going-oncall"
 
     schedule_event = _create_schedule_event(
         timezone.now(),
