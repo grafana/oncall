@@ -1,4 +1,6 @@
+from django.core.exceptions import ObjectDoesNotExist
 from fcm_django.api.rest_framework import FCMDeviceAuthorizedViewSet as BaseFCMDeviceAuthorizedViewSet
+from fcm_django.settings import FCM_DJANGO_SETTINGS as SETTINGS
 from rest_framework import mixins, status, viewsets
 from rest_framework.exceptions import NotFound
 from rest_framework.permissions import IsAuthenticated
@@ -6,12 +8,47 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.mobile_app.auth import MobileAppAuthTokenAuthentication, MobileAppVerificationTokenAuthentication
-from apps.mobile_app.models import MobileAppAuthToken, MobileAppUserSettings
-from apps.mobile_app.serializers import MobileAppUserSettingsSerializer
+from apps.mobile_app.models import FCMDevice, MobileAppAuthToken, MobileAppUserSettings
+from apps.mobile_app.serializers import FCMDeviceSerializer, MobileAppUserSettingsSerializer
 
 
 class FCMDeviceAuthorizedViewSet(BaseFCMDeviceAuthorizedViewSet):
     authentication_classes = (MobileAppAuthTokenAuthentication,)
+    serializer_class = FCMDeviceSerializer
+    model = FCMDevice
+
+    def create(self, request, *args, **kwargs):
+        """Overrides `create` from BaseFCMDeviceAuthorizedViewSet to add filtering by user on getting instance"""
+        serializer = None
+        is_update = False
+        if SETTINGS.get("UPDATE_ON_DUPLICATE_REG_ID") and "registration_id" in request.data:
+            instance = self.model.objects.filter(
+                registration_id=request.data["registration_id"], user=self.request.user
+            ).first()
+            if instance:
+                serializer = self.get_serializer(instance, data=request.data)
+                is_update = True
+        if not serializer:
+            serializer = self.get_serializer(data=request.data)
+
+        serializer.is_valid(raise_exception=True)
+        if is_update:
+            self.perform_update(serializer)
+            return Response(serializer.data)
+        else:
+            self.perform_create(serializer)
+            headers = self.get_success_headers(serializer.data)
+            return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+    def get_object(self):
+        """Overrides original method to add filtering by user"""
+        try:
+            obj = self.model.objects.get(registration_id=self.kwargs["registration_id"], user=self.request.user)
+        except ObjectDoesNotExist:
+            raise NotFound
+        # May raise a permission denied
+        self.check_object_permissions(self.request, obj)
+        return obj
 
 
 class MobileAppAuthTokenAPIView(APIView):
