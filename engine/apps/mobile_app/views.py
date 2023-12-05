@@ -66,6 +66,7 @@ class MobileAppAuthTokenAPIView(APIView):
             "organization_id": token.organization_id,
             "created_at": token.created_at,
             "revoked_at": token.revoked_at,
+            "stack_slug": self.request.auth.organization.stack_slug,
         }
         return Response(response, status=status.HTTP_200_OK)
 
@@ -78,7 +79,12 @@ class MobileAppAuthTokenAPIView(APIView):
             pass
 
         instance, token = MobileAppAuthToken.create_auth_token(self.request.user, self.request.user.organization)
-        data = {"id": instance.pk, "token": token, "created_at": instance.created_at}
+        data = {
+            "id": instance.pk,
+            "token": token,
+            "created_at": instance.created_at,
+            "stack_slug": self.request.auth.organization.stack_slug,
+        }
         return Response(data, status=status.HTTP_201_CREATED)
 
     def delete(self, request):
