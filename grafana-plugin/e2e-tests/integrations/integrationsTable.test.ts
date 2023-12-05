@@ -15,7 +15,6 @@ test('Integrations table shows data in Connections and Direct Paging tabs', asyn
   await createIntegration({
     page,
     integrationSearchText: 'Alertmanager',
-    shouldGoToIntegrationsPage: false,
     integrationName: ALERTMANAGER_INTEGRATION_NAME,
   });
   await page.waitForTimeout(1000);
@@ -30,7 +29,6 @@ test('Integrations table shows data in Connections and Direct Paging tabs', asyn
     await createIntegration({
       page,
       integrationSearchText: 'Direct paging',
-      shouldGoToIntegrationsPage: false,
       integrationName: DIRECT_PAGING_INTEGRATION_NAME,
     });
     await page.waitForTimeout(1000);
@@ -41,12 +39,10 @@ test('Integrations table shows data in Connections and Direct Paging tabs', asyn
   await searchIntegrationAndAssertItsPresence({ page, integrationsTable, integrationName: WEBHOOK_INTEGRATION_NAME });
   await searchIntegrationAndAssertItsPresence({
     page,
-    integrationsTable,
     integrationName: ALERTMANAGER_INTEGRATION_NAME,
   });
   await searchIntegrationAndAssertItsPresence({
     page,
-    integrationsTable,
     integrationName: DIRECT_PAGING_INTEGRATION_NAME,
     visibleExpected: false,
   });
@@ -55,19 +51,16 @@ test('Integrations table shows data in Connections and Direct Paging tabs', asyn
   await page.getByRole('tab', { name: 'Tab Direct Paging' }).click();
   await searchIntegrationAndAssertItsPresence({
     page,
-    integrationsTable,
     integrationName: WEBHOOK_INTEGRATION_NAME,
     visibleExpected: false,
   });
   await searchIntegrationAndAssertItsPresence({
     page,
-    integrationsTable,
     integrationName: ALERTMANAGER_INTEGRATION_NAME,
     visibleExpected: false,
   });
   await searchIntegrationAndAssertItsPresence({
     page,
-    integrationsTable,
     integrationName: 'Direct paging',
   });
 });

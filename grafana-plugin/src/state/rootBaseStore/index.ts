@@ -169,6 +169,7 @@ export class RootBaseStore {
   async setupPlugin(meta: OnCallAppPluginMeta) {
     this.initializationError = null;
     this.onCallApiUrl = getOnCallApiUrl(meta);
+    console.log(this.onCallApiUrl);
 
     if (!FaroHelper.faro) {
       FaroHelper.initializeFaro(this.onCallApiUrl);
@@ -180,6 +181,7 @@ export class RootBaseStore {
     }
 
     if (this.isOpenSource() && !meta.secureJsonFields?.onCallApiToken) {
+      console.log('asdsadsad');
       // Reinstall plugin if onCallApiToken is missing
       const errorMsg = await PluginState.selfHostedInstallPlugin(this.onCallApiUrl, true);
       if (errorMsg) {
@@ -212,6 +214,7 @@ export class RootBaseStore {
 
     // If the plugin is not installed in the OnCall backend, or token is not valid, then we need to install it
     if (!is_installed || !token_ok) {
+      console.log('token not valid');
       if (!allow_signup) {
         return this.setupPluginError('🚫 OnCall has temporarily disabled signup of new users. Please try again later.');
       }

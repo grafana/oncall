@@ -80,7 +80,7 @@ cmd_button(
 )
 
 cmd_button(
-    name="E2E Tests2 - open watch mode",
+    name="E2E Tests - open watch mode",
     argv=["sh", "-c", "yarn --cwd grafana-plugin test:e2e:watch"],
     text="Open watch mode",
     resource="e2e-tests",
@@ -88,11 +88,19 @@ cmd_button(
 )
 
 cmd_button(
-    name="E2E Tests2 - show report",
+    name="E2E Tests - show report",
     argv=["sh", "-c", "yarn --cwd grafana-plugin playwright show-report"],
     text="Show report",
     resource="e2e-tests",
     icon_name="assignment",
+)
+
+cmd_button(
+    name="E2E Tests - stop current run",
+    argv=["sh", "-c", "kill -9 $(pgrep -f test:e2e)"],
+    text="Stop",
+    resource="e2e-tests",
+    icon_name="dangerous",
 )
 
 yaml = helm("helm/oncall", name=HELM_PREFIX, values=["./dev/helm-local.yml", "./dev/helm-local.dev.yml"])

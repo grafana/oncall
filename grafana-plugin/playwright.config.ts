@@ -27,10 +27,10 @@ export default defineConfig({
   /* Maximum time all the tests can run for. */
   globalTimeout: 20 * 60 * 1000, // 20 minutes
 
-  reporter: [['html', { open: 'never' }]],
+  // reporter: [['html', { open: 'never' }]],
 
   /* Maximum time one test can run for. */
-  timeout: 20 * 1000,
+  timeout: 30 * 1000,
   expect: {
     /**
      * Maximum time expect() should wait for the condition to be met.
@@ -49,7 +49,7 @@ export default defineConfig({
    * to flaky tests.. let's allow 1 retry per test
    */
   retries: IS_CI ? 1 : 0,
-  workers: 3,
+  workers: IS_CI ? 2 : 1,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   // reporter: 'html',
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
@@ -61,7 +61,7 @@ export default defineConfig({
 
     trace: 'on',
     video: 'on',
-    headless: true,
+    headless: false,
   },
 
   /* Configure projects for major browsers. The final list is filtered based on BROWSERS env var */

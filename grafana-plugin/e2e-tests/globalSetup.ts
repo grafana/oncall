@@ -76,8 +76,12 @@ const configureOnCallPlugin = async (page: Page): Promise<void> => {
     await clickButton({ page, buttonText: /^Remove$/ });
   }
   await page.waitForTimeout(2000);
-  await getInputByName(page, 'onCallApiUrl').fill(getOnCallApiUrl());
-  await clickButton({ page, buttonText: 'Connect' });
+
+  const needToEnterOnCallApiUrl = await page.getByText(/Connected to OnCall/).isHidden();
+  if (needToEnterOnCallApiUrl) {
+    await getInputByName(page, 'onCallApiUrl').fill(getOnCallApiUrl());
+    await clickButton({ page, buttonText: 'Connect' });
+  }
 
   /**
    * wait for the "Connected to OnCall" message to know that everything is properly configured
