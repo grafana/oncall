@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## v1.3.71 (2023-12-05)
+
+### Added
+
+- Add `datetimeformat_as_timezone` Jinja2 template helper filter by @jorgeav ([#3426](https://github.com/grafana/oncall/pull/3426))
+
+### Changed
+
+- Disallow creating and deleting direct paging integrations by @vadimkerr ([#3475](https://github.com/grafana/oncall/pull/3475))
+
 ## v1.3.70 (2023-12-01)
 
 Maintenance release
