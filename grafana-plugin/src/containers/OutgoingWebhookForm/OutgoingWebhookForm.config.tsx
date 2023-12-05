@@ -22,7 +22,7 @@ export const WebhookTriggerType = {
 };
 
 export function createForm(
-  presets: OutgoingWebhookPreset[],
+  presets: OutgoingWebhookPreset[] = [],
   hasLabelsFeature?: boolean
 ): {
   name: string;

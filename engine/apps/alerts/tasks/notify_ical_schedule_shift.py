@@ -155,7 +155,10 @@ def notify_ical_schedule_shift(schedule_pk):
     if len(new_shifts) > 0 or schedule.empty_oncall:
         task_logger.info(f"new_shifts: {new_shifts}")
         if schedule.notify_oncall_shift_freq != OnCallSchedule.NotifyOnCallShiftFreq.NEVER:
-            slack_client = SlackClient(schedule.organization.slack_team_identity)
+            slack_client = SlackClient(
+                schedule.organization.slack_team_identity,
+                enable_ratelimit_retry=True,
+            )
             step = scenario_step.ScenarioStep.get_step("schedules", "EditScheduleShiftNotifyStep")
             report_blocks = step.get_report_blocks_ical(new_shifts, upcoming_shifts, schedule, schedule.empty_oncall)
 

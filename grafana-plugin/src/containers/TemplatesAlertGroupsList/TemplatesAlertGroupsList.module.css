@@ -40,9 +40,17 @@
   background-color: var(--background-secondary);
 }
 
+.alert-groups-editor {
+  height: calc(100% - 60px);
+}
+
 .alert-groups-editor div[aria-label='Code editor container'] {
   border-bottom: none;
   border-right: none;
+}
+
+.alert-groups-editor-withBadge {
+  height: calc(100% - 60px);
 }
 
 .alert-groups-editor-withBadge div[aria-label='Code editor container'] {

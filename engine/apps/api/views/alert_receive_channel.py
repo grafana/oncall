@@ -134,6 +134,14 @@ class AlertReceiveChannelView(
             new_state=new_state,
         )
 
+    def destroy(self, request, *args, **kwargs):
+        # don't allow deleting direct paging integrations
+        instance = self.get_object()
+        if instance.integration == AlertReceiveChannel.INTEGRATION_DIRECT_PAGING:
+            raise BadRequest(detail="Direct paging integrations can't be deleted")
+
+        return super().destroy(request, *args, **kwargs)
+
     def perform_destroy(self, instance):
         write_resource_insight_log(
             instance=instance,

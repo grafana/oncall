@@ -200,7 +200,7 @@ def clear_ical_users_cache():
 def mock_is_labels_feature_enabled_for_org(settings):
     def _mock_is_labels_feature_enabled_for_org(org_id):
         settings.FEATURE_LABELS_ENABLED_FOR_ALL = False
-        settings.FEATURE_LABELS_ENABLED_FOR_GRAFANA_ORGS = [org_id]
+        settings.FEATURE_LABELS_ENABLED_PER_ORG = [org_id]
 
     return _mock_is_labels_feature_enabled_for_org
 

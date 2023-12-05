@@ -101,8 +101,8 @@ export class OutgoingWebhookStore extends BaseStore {
     });
   }
 
-  @action
-  async updateOutgoingWebhookPresets() {
+  @action.bound
+  async updateOutgoingWebhookPresetsOptions() {
     const response = await makeRequest(`/webhooks/preset_options/`, {});
     this.outgoingWebhookPresets = response;
   }

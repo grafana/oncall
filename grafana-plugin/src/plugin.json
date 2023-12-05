@@ -57,7 +57,7 @@
     {
       "type": "page",
       "name": "Integrations",
-      "path": "/a/grafana-oncall-app/integrations?tab=connections",
+      "path": "/a/grafana-oncall-app/integrations?tab=monitoring-systems",
       "role": "Viewer",
       "action": "grafana-oncall-app.integrations:read",
       "addToNav": true
@@ -108,7 +108,7 @@
       "headers": [
         {
           "name": "X-Instance-Context",
-          "content": "{ \"stack_id\": \"{{ .JsonData.stackId }}\", \"org_id\": \"{{ .JsonData.orgId }}\", \"grafana_token\": \"{{ .SecureJsonData.grafanaToken }}\" }"
+          "content": "{ \"stack_id\": \"{{ printf \"%.0f\" .JsonData.stackId }}\", \"org_id\": \"{{ printf \"%.0f\" .JsonData.orgId }}\", \"grafana_token\": \"{{ .SecureJsonData.grafanaToken }}\" }"
         },
         {
           "name": "Authorization",
@@ -134,7 +134,7 @@
       "headers": [
         {
           "name": "X-Instance-Context",
-          "content": "{ \"stack_id\": \"{{ .JsonData.stackId }}\", \"org_id\": \"{{ .JsonData.orgId }}\" }"
+          "content": "{ \"stack_id\": \"{{ printf \"%.0f\" .JsonData.stackId }}\", \"org_id\": \"{{ printf \"%.0f\" .JsonData.orgId }}\" }"
         },
         {
           "name": "Authorization",
@@ -149,7 +149,7 @@
       "headers": [
         {
           "name": "X-Instance-Context",
-          "content": "{ \"stack_id\": \"{{ .JsonData.stackId }}\", \"org_id\": \"{{ .JsonData.orgId }}\" }"
+          "content": "{ \"stack_id\": \"{{ printf \"%.0f\" .JsonData.stackId }}\", \"org_id\": \"{{ printf \"%.0f\" .JsonData.orgId }}\" }"
         },
         {
           "name": "Authorization",
@@ -164,7 +164,7 @@
       "headers": [
         {
           "name": "X-Instance-Context",
-          "content": "{ \"stack_id\": \"{{ .JsonData.stackId }}\", \"org_id\": \"{{ .JsonData.orgId }}\" }"
+          "content": "{ \"stack_id\": \"{{ printf \"%.0f\" .JsonData.stackId }}\", \"org_id\": \"{{ printf \"%.0f\" .JsonData.orgId }}\" }"
         },
         {
           "name": "Authorization",
@@ -179,7 +179,7 @@
       "headers": [
         {
           "name": "X-Instance-Context",
-          "content": "{ \"stack_id\": \"{{ .JsonData.stackId }}\", \"org_id\": \"{{ .JsonData.orgId }}\" }"
+          "content": "{ \"stack_id\": \"{{ printf \"%.0f\" .JsonData.stackId }}\", \"org_id\": \"{{ printf \"%.0f\" .JsonData.orgId }}\" }"
         },
         {
           "name": "Authorization",

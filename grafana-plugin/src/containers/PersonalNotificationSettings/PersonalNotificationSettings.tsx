@@ -63,7 +63,6 @@ const PersonalNotificationSettings = observer((props: PersonalNotificationSettin
   );
 
   const allNotificationPolicies = userStore.notificationPolicies[userPk];
-
   const title = (
     <Text.Title level={5}>
       <HorizontalGroup>
@@ -91,11 +90,9 @@ const PersonalNotificationSettings = observer((props: PersonalNotificationSettin
     );
   }
 
-  const notificationPolicies =
-    allNotificationPolicies &&
-    allNotificationPolicies.filter(
-      (notificationPolicy: NotificationPolicyType) => notificationPolicy.important === isImportant
-    );
+  const notificationPolicies = allNotificationPolicies?.filter(
+    (notificationPolicy: NotificationPolicyType) => notificationPolicy.important === isImportant
+  );
 
   const offset = isImportant
     ? allNotificationPolicies.findIndex((notificationPolicy: NotificationPolicyType) => notificationPolicy.important)

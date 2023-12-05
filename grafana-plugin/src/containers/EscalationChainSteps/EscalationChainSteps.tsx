@@ -37,6 +37,12 @@ const EscalationChainSteps = observer((props: EscalationChainStepsProps) => {
     escalationPolicyStore.updateEscalationPolicies(id);
   }, [id]);
 
+  useEffect(() => {
+    escalationPolicyStore.updateWebEscalationPolicyOptions();
+    escalationPolicyStore.updateEscalationPolicyOptions();
+    escalationPolicyStore.updateNumMinutesInWindowOptions();
+  }, []);
+
   const handleSortEnd = useCallback(
     ({ oldIndex, newIndex }: any) => {
       escalationPolicyStore.moveEscalationPolicyToPosition(oldIndex, newIndex, id);

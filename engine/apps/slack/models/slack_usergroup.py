@@ -116,7 +116,7 @@ class SlackUserGroup(models.Model):
             pass
 
     def update_members(self, slack_ids):
-        sc = SlackClient(self.slack_team_identity)
+        sc = SlackClient(self.slack_team_identity, enable_ratelimit_retry=True)
 
         try:
             sc.usergroups_users_update(usergroup=self.slack_id, users=slack_ids)
