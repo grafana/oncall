@@ -73,6 +73,11 @@ const IntegrationForm = observer((props: IntegrationFormProps) => {
           return false;
         }
 
+        // don't allow creating direct paging integrations
+        if (option.value === 'direct_paging') {
+          return false;
+        }
+
         return (
           option.display_name.toLowerCase().includes(filterValue.toLowerCase()) &&
           !option.value.toLowerCase().startsWith('legacy_')
