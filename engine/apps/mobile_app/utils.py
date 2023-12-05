@@ -121,3 +121,7 @@ def construct_fcm_message(
             },
         ),
     )
+
+
+def add_stack_slug_to_message_title(title, organization):
+    return f"[{organization.stack_slug}] {title}"
