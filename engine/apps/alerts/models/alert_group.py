@@ -101,7 +101,7 @@ class AlertGroupQuerySet(models.QuerySet):
         inside_organization_number = AlertGroupCounter.objects.get_value(organization=organization) + 1
         return super().create(**kwargs, inside_organization_number=inside_organization_number)
 
-    def get_or_create_grouping(self, channel, channel_filter, group_data):
+    def get_or_create_grouping(self, channel, channel_filter, group_data, received_at=None):
         """
         This method is similar to default Django QuerySet.get_or_create(), please see the original get_or_create method.
         The difference is that this method is trying to get an object using multiple queries with different filters.
@@ -131,7 +131,10 @@ class AlertGroupQuerySet(models.QuerySet):
         # Create a new group if we couldn't group it to any existing ones
         try:
             alert_group = self.create(
-                **search_params, is_open_for_grouping=True, web_title_cache=group_data.web_title_cache
+                **search_params,
+                is_open_for_grouping=True,
+                web_title_cache=group_data.web_title_cache,
+                received_at=received_at,
             )
             alert_group_created_signal.send(sender=self.__class__, alert_group=alert_group)
             return (alert_group, True)
@@ -334,6 +337,8 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
 
     response_time = models.DurationField(null=True, default=None)
 
+    received_at = models.DateTimeField(blank=True, null=True, default=None)
+
     @property
     def is_silenced_forever(self):
         return self.silenced and self.silenced_until is None
@@ -452,7 +457,10 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
             "is_open_for_grouping",
         ]
         indexes = [
-            models.Index(fields=["channel_id", "resolved", "acknowledged", "silenced", "root_alert_group_id"]),
+            models.Index(
+                fields=["channel_id", "resolved", "acknowledged", "silenced", "root_alert_group_id", "started_at"],
+                name="alert_group_list_index",
+            ),
         ]
 
     def __str__(self):
