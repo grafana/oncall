@@ -25,9 +25,9 @@ logger = logging.getLogger(__name__)
 
 class LabelsFeatureFlagViewSet(ViewSet):
     def initial(self, request, *args, **kwargs):
-        super().initial(request, *args, **kwargs)
         if not is_labels_feature_enabled(self.request.auth.organization):
             raise NotFound
+        super().initial(request, *args, **kwargs)
 
 
 class LabelsViewSet(LabelsFeatureFlagViewSet):

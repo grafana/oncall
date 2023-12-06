@@ -99,6 +99,12 @@ class MobileAppGatewayView(APIView):
         SupportedDownstreamBackends.INCIDENT,
     ]
 
+    def initial(self, request, *args, **kwargs):
+        # If the mobile app gateway is not enabled, return a 404
+        if not settings.MOBILE_APP_GATEWAY_ENABLED:
+            raise NotFound
+        super().initial(request, *args, **kwargs)
+
     @classmethod
     def _construct_jwt_payload(cls, user: "User") -> typing.Dict[str, typing.Any]:
         organization = user.organization
