@@ -53,8 +53,6 @@ test.describe("updating an integration's heartbeat interval works", async () => 
       .locator('input[class*="input-input"]')
       .inputValue();
 
-    console.log(endpoint);
-
     /**
      * make an HTTP call to the integration's hearbeat URL and assert that it was called
      * (ie. the greenheart badge is shown)

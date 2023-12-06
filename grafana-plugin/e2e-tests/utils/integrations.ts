@@ -22,7 +22,6 @@ export const createIntegration = async ({
   integrationName?: string;
   integrationSearchText?: string;
   shouldGoToIntegrationsPage?: boolean;
-  // shouldNavigateToIntegrationDetailAfterCreation?: boolean;
 }): Promise<void> => {
   if (shouldGoToIntegrationsPage) {
     // go to the integrations page
@@ -48,9 +47,7 @@ export const createIntegration = async ({
   await goToOnCallPage(page, 'integrations');
   await searchIntegrationAndAssertItsPresence({ page, integrationName });
 
-  // if (shouldNavigateToIntegrationDetailAfterCreation) {
   await page.getByRole('link', { name: integrationName }).click();
-  // }
 };
 
 export const assignEscalationChainToIntegration = async (page: Page, escalationChainName: string): Promise<void> => {

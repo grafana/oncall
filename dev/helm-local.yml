@@ -2,7 +2,7 @@ base_url: localhost:8080
 base_url_protocol: http
 env:
   - name: GRAFANA_CLOUD_NOTIFICATIONS_ENABLED
-    value: 'False'
+    value: "False"
 image:
   repository: localhost:63628/oncall/engine
   tag: dev
@@ -43,7 +43,7 @@ grafana:
   grafana.ini:
     server:
       domain: localhost:3000
-      root_url: '%(protocol)s://%(domain)s'
+      root_url: "%(protocol)s://%(domain)s"
   replicas: 1
   image:
     tag: 10.0.2
@@ -53,8 +53,8 @@ grafana:
       command:
         # yamllint disable rule:line-length
         [
-          'bash',
-          '-c',
+          "bash",
+          "-c",
           'while ! mysqladmin ping -h "$DATABASE_HOST" --silent; do echo ''awaiting mysql db to be available'' && sleep 1; done && mysql -h "$DATABASE_HOST" -u "$DATABASE_USER" -p"$DATABASE_PASSWORD" -e ''CREATE DATABASE IF NOT EXISTS grafana CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;''',
         ]
       # yamllint enable rule:line-length
@@ -114,7 +114,7 @@ mariadb:
       # apparently sending too much data to mariadb at once
       # https://mariadb.com/docs/skysql-dbaas/ref/mdb/system-variables/max_allowed_packet/
       - name: MARIADB_EXTRA_FLAGS
-        value: '--max_allowed_packet=134217728 --max_connections=1024'
+        value: "--max_allowed_packet=134217728 --max_connections=1024"
       - name: MARIADB_CHARACTER_SET
         value: utf8mb4
       - name: MARIADB_COLLATE

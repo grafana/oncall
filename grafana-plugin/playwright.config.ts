@@ -1,4 +1,4 @@
-import { PlaywrightTestProject, defineConfig, devices } from '@playwright/test';
+import { PlaywrightTestProject, defineConfig, devices, PlaywrightTestConfig } from '@playwright/test';
 
 import path from 'path';
 /**
@@ -13,7 +13,9 @@ export const ADMIN_USER_STORAGE_STATE = path.join(__dirname, 'e2e-tests/.auth/ad
 
 const IS_CI = !!process.env.CI;
 const BROWSERS = process.env.BROWSERS || 'chromium';
-const USE_HTML_REPORTER = process.env.USE_HTML_REPORTER === 'true';
+const REPORTER = (
+  process.env.REPORTER === 'html' ? [['html', { open: 'never' }]] : process.env.REPORTER
+) as PlaywrightTestConfig['reporter'];
 
 const SETUP_PROJECT_NAME = 'setup';
 const getEnabledBrowsers = (browsers: PlaywrightTestProject[]) =>
@@ -26,18 +28,18 @@ export default defineConfig({
   testDir: './e2e-tests',
 
   /* Maximum time all the tests can run for. */
-  globalTimeout: 20 * 60 * 1000, // 20 minutes
+  globalTimeout: 20 * 6_000, // 20 minutes
 
-  reporter: USE_HTML_REPORTER ? [['html', { open: 'never' }]] : 'line',
+  reporter: REPORTER,
 
   /* Maximum time one test can run for. */
-  timeout: 60 * 1000,
+  timeout: 6_000,
   expect: {
     /**
      * Maximum time expect() should wait for the condition to be met.
      * For example in `await expect(locator).toHaveText();`
      */
-    timeout: 6 * 1000,
+    timeout: 6_000,
   },
   /* Run tests in files in parallel */
   fullyParallel: false,
@@ -113,7 +115,7 @@ export default defineConfig({
   ]),
 
   /* Folder for test artifacts such as screenshots, videos, traces, etc. 
-  Set outside of grafana-plugin to prevent refreshing Grafana during e2e test runs */
+  Set outside of grafana-plugin to prevent refreshing Grafana UI during e2e test runs */
   outputDir: '../test-results/',
 
   /* Run your local dev server before starting the tests */

@@ -76,7 +76,7 @@ cmd_button(
     icon_name="replay",
     inputs=[
         text_input("BROWSERS", "Browsers (e.g. \"chromium,firefox,webkit\")", "chromium", "chromium,firefox,webkit"), 
-        bool_input("USE_HTML_REPORTER", "Use HTML reporter", False, 'true', 'false'), 
+        bool_input("REPORTER", "Use HTML reporter", False, 'html', 'list'), 
     ],
 )
 
