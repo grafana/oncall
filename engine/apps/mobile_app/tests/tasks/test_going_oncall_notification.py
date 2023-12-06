@@ -191,7 +191,7 @@ def test_get_fcm_message(
     notification_thread_id = f"{schedule.public_primary_key}:{user_pk}:going-oncall"
 
     mock_fcm_message = "mncvmnvcmnvcnmvcmncvmn"
-    mock_notification_title = add_stack_slug_to_message_title("asdfasdf", organization)
+    mock_notification_title = "asdfasdf"
     mock_notification_subtitle = "9:06\u202fAM - 9:06\u202fAM\nSchedule XYZ"
     shift_pk = "mncvmnvc"
     seconds_until_going_oncall = 600
@@ -215,8 +215,9 @@ def test_get_fcm_message(
     maus = MobileAppUserSettings.objects.create(user=user, time_zone=user_tz)
 
     data = {
-        "title": mock_notification_title,
+        "title": add_stack_slug_to_message_title(mock_notification_title, organization),
         "subtitle": mock_notification_subtitle,
+        "orgName": organization.stack_slug,
         "info_notification_sound_name": maus.get_notification_sound_name(MessageType.INFO, Platform.ANDROID),
         "info_notification_volume_type": maus.info_notification_volume_type,
         "info_notification_volume": str(maus.info_notification_volume),
