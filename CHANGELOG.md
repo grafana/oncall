@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Add backend for multi-slack support for mobile-app @Ferril ([#3500](https://github.com/grafana/oncall/pull/3500))
+- Track alert received timestamp on alert group creation ([#3513](https://github.com/grafana/oncall/pull/3513))
 
 ## v1.3.72 (2023-12-05)
 
