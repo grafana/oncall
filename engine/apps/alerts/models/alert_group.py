@@ -452,7 +452,10 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
             "is_open_for_grouping",
         ]
         indexes = [
-            models.Index(fields=["channel_id", "resolved", "acknowledged", "silenced", "root_alert_group_id"]),
+            models.Index(
+                fields=["channel_id", "resolved", "acknowledged", "silenced", "root_alert_group_id", "started_at"],
+                name="alert_group_list_index",
+            ),
         ]
 
     def __str__(self):
