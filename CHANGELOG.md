@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## v1.3.73 (2023-12-06)
+
 ### Added
 
 - Add backend for multi-slack support for mobile-app @Ferril ([#3500](https://github.com/grafana/oncall/pull/3500))
