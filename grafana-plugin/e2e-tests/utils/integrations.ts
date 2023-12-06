@@ -51,7 +51,12 @@ export const createIntegration = async ({
 };
 
 export const assignEscalationChainToIntegration = async (page: Page, escalationChainName: string): Promise<void> => {
-  await page.getByTestId('integration-escalation-chain-not-selected').click();
+  const notSelected = page.getByTestId('integration-escalation-chain-not-selected');
+  if (await notSelected.isHidden()) {
+    await clickButton({ page, buttonText: 'Add route' });
+    await page.waitForTimeout(500);
+  }
+  await notSelected.last().click();
 
   // assign the escalation chain to the integration
   await selectDropdownValue({
@@ -59,7 +64,7 @@ export const assignEscalationChainToIntegration = async (page: Page, escalationC
     selectType: 'grafanaSelect',
     placeholderText: 'Select Escalation Chain',
     value: escalationChainName,
-    startingLocator: page.getByTestId('escalation-chain-select'),
+    startingLocator: page.getByTestId('escalation-chain-select').last(),
   });
 };
 

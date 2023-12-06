@@ -38,7 +38,9 @@ const Header = observer(() => {
     if (store.isOpenSource()) {
       return (
         <div className={cx('heading')}>
-          <h1 className={cx('page-header__title')}>Grafana OnCall</h1>
+          <h1 className={cx('page-header__title')} data-testid="oncall-header">
+            Grafana OnCall
+          </h1>
           <div className={cx('navbar-heading-container')}>
             <div className={cx('page-header__sub-title')}>{APP_SUBTITLE}</div>
             <Card heading={undefined} className={cx('navbar-heading')}>

@@ -38,13 +38,8 @@ class StatusView(GrafanaHeadersMixin, APIView):
         allow_signup = True
         api_url = create_engine_url("")
 
-        print("MYLOG", "wooow") 
-        print("MYLOG", organization.api_token_status)
-        print("MYLOG", request.user)
-
         # Check if organization is in OnCall database
         if organization:
-            print("MYLOG", "ORGGG")
             is_installed = True
             token_ok = organization.api_token_status == Organization.API_TOKEN_STATUS_OK
             if organization.is_moved:

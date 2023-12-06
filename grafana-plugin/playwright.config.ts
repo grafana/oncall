@@ -13,7 +13,7 @@ export const ADMIN_USER_STORAGE_STATE = path.join(__dirname, 'e2e-tests/.auth/ad
 
 const IS_CI = !!process.env.CI;
 const BROWSERS = process.env.BROWSERS || 'chromium';
-const REPORTER_WITH_DEFAULT = process.env.REPORTER || 'list';
+const REPORTER_WITH_DEFAULT = process.env.REPORTER || 'line';
 const REPORTER = (
   process.env.REPORTER === 'html' ? [['html', { open: 'never' }]] : REPORTER_WITH_DEFAULT
 ) as PlaywrightTestConfig['reporter'];
@@ -29,12 +29,12 @@ export default defineConfig({
   testDir: './e2e-tests',
 
   /* Maximum time all the tests can run for. */
-  globalTimeout: 20 * 6_000, // 20 minutes
+  globalTimeout: 20 * 60 * 1_000, // 20 minutes
 
   reporter: REPORTER,
 
   /* Maximum time one test can run for. */
-  timeout: 6_000,
+  timeout: 60_000,
   expect: {
     /**
      * Maximum time expect() should wait for the condition to be met.
@@ -52,7 +52,7 @@ export default defineConfig({
    * NOTE: until we fix this issue (https://github.com/grafana/oncall/issues/1692) which occasionally leads
    * to flaky tests.. let's allow 1 retry per test
    */
-  retries: IS_CI ? 1 : 0,
+  retries: 1,
   workers: 2,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   // reporter: 'html',
