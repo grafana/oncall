@@ -41,6 +41,7 @@ export const getColumnsSelectorStyles = (_theme: GrafanaTheme2) => {
       gap: 12px;
       display: flex;
       padding-left: 25px;
+      align-items: center;
 
       &:hover .columns-icon-trash {
         display: block;
