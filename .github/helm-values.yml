@@ -1,4 +1,4 @@
-base_url: 172.17.0.1:30001
+base_url: 172.17.0.1:8080
 base_url_protocol: http
 
 env:
