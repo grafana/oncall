@@ -442,8 +442,7 @@ class AlertGroupView(
 
         # enrich alert groups with select_related and prefetch_related
         alert_group_pks = [alert_group.pk for alert_group in alert_groups]
-        # ordering by "-id" so it uses the right index (see AlertGroup.Meta.indexes)
-        queryset = AlertGroup.objects.filter(pk__in=alert_group_pks).order_by("-id")
+        queryset = AlertGroup.objects.filter(pk__in=alert_group_pks).order_by("-started_at")
 
         queryset = self.get_serializer_class().setup_eager_loading(queryset)
         alert_groups = list(queryset)
