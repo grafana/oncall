@@ -50,6 +50,7 @@ const PluginConfigPage: FC<OnCallPluginConfigPageProps> = ({
     meta: { enabled: pluginIsEnabled },
   },
 }) => {
+  console.log('AAAAAA');
   const { search } = useLocation();
   const queryParams = new URLSearchParams(search);
   const pluginConfiguredQueryParam = queryParams.get(PLUGIN_CONFIGURED_QUERY_PARAM);
@@ -108,7 +109,7 @@ const PluginConfigPage: FC<OnCallPluginConfigPageProps> = ({
        * Supplying the env var basically allows to skip the configuration form
        * (check webpack.config.js to see how this is set)
        */
-      if (!hasPluginBeenConfigured(meta)) {
+      if (!hasPluginBeenConfigured(meta) && onCallApiUrl) {
         /**
          * onCallApiUrl is not yet saved in the grafana plugin settings, but has been supplied as an env var
          * lets auto-trigger a self-hosted plugin install w/ the onCallApiUrl passed in as an env var
@@ -144,7 +145,7 @@ const PluginConfigPage: FC<OnCallPluginConfigPageProps> = ({
     if (!pluginConfiguredRedirect) {
       configurePluginAndUpdatePluginStatus();
     }
-  }, [onCallApiUrl, onCallApiUrl, pluginConfiguredRedirect]);
+  }, [onCallApiUrl, pluginConfiguredRedirect]);
 
   const resetMessages = useCallback(() => {
     setPluginResetError(null);
