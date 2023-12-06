@@ -250,6 +250,7 @@ class Organization(MaintainableObject):
     is_grafana_incident_enabled = models.BooleanField(default=False)
 
     alert_group_table_columns: list[AlertGroupTableColumn] | None = JSONField(default=None, null=True)
+    grafana_incident_backend_url = models.CharField(max_length=300, null=True, default=None)
 
     class Meta:
         unique_together = ("stack_id", "org_id")

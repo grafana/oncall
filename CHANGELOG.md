@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## v1.3.73 (2023-12-06)
+
+### Added
+
+- Track alert received timestamp on alert group creation ([#3513](https://github.com/grafana/oncall/pull/3513))
+
 ## v1.3.72 (2023-12-05)
 
 ### Fixed
@@ -53,6 +59,7 @@ Minor bugfixes + dependency updates :)
 ### Added
 
 - Add options to customize table columns in AlertGroup page ([3281](https://github.com/grafana/oncall/pull/3281))
+- Add proxying capabilities for the OnCall mobile API by @joeyorlando ([#3449](https://github.com/grafana/oncall/pull/3449))
 
 ### Fixed
 

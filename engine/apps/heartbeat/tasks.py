@@ -56,6 +56,7 @@ def check_heartbeats() -> str:
             .select_related("alert_receive_channel")
         )
         # Schedule alert creation for each expired heartbeat after transaction commit
+        timestamp = timezone.now().isoformat()
         for heartbeat in expired_heartbeats:
             transaction.on_commit(
                 partial(
@@ -68,6 +69,7 @@ def check_heartbeats() -> str:
                         "alert_receive_channel_pk": heartbeat.alert_receive_channel.pk,
                         "integration_unique_data": {},
                         "raw_request_data": heartbeat.alert_receive_channel.heartbeat_expired_payload,
+                        "received_at": timestamp,
                     },
                 )
             )
@@ -82,6 +84,7 @@ def check_heartbeats() -> str:
             last_heartbeat_time__gte=F("period_start"), previous_alerted_state_was_life=False
         )
         # Schedule auto-resolve alert creation for each expired heartbeat after transaction commit
+        timestamp = timezone.now().isoformat()
         for heartbeat in restored_heartbeats:
             transaction.on_commit(
                 partial(
@@ -94,6 +97,7 @@ def check_heartbeats() -> str:
                         "alert_receive_channel_pk": heartbeat.alert_receive_channel.pk,
                         "integration_unique_data": {},
                         "raw_request_data": heartbeat.alert_receive_channel.heartbeat_restored_payload,
+                        "received_at": timestamp,
                     },
                 )
             )
