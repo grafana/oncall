@@ -8,7 +8,9 @@ from apps.alerts.models import AlertReceiveChannel
 from apps.api.permissions import LegacyAccessControlRole
 from apps.grafana_plugin.helpers.client import GcomAPIClient, GrafanaAPIClient
 from apps.user_management.models import Team, User
-from apps.user_management.sync import check_grafana_incident_is_enabled, cleanup_organization, sync_organization
+from apps.user_management.sync import cleanup_organization, sync_organization
+
+MOCK_GRAFANA_INCIDENT_BACKEND_URL = "https://grafana-incident.test"
 
 
 @pytest.mark.django_db
@@ -210,11 +212,15 @@ def test_sync_users_for_team(make_organization, make_user_for_organization, make
     ),
 )
 @patch.object(GrafanaAPIClient, "check_token", return_value=(None, {"connected": True}))
-@patch.object(GrafanaAPIClient, "get_grafana_plugin_settings", return_value=({"enabled": True}, None))
+@patch.object(
+    GrafanaAPIClient,
+    "get_grafana_incident_plugin_settings",
+    return_value=({"enabled": True, "jsonData": {"backendUrl": MOCK_GRAFANA_INCIDENT_BACKEND_URL}}, None),
+)
 @patch("apps.user_management.sync.org_sync_signal")
 def test_sync_organization(
     mocked_org_sync_signal,
-    _mock_get_grafana_plugin_settings,
+    _mock_get_grafana_incident_plugin_settings,
     _mock_check_token,
     _mock_get_teams,
     _mock_get_users,
@@ -253,6 +259,7 @@ def test_sync_organization(
 
     # check that is_grafana_incident_enabled flag is set
     assert organization.is_grafana_incident_enabled is True
+    assert organization.grafana_incident_backend_url == MOCK_GRAFANA_INCIDENT_BACKEND_URL
 
     mocked_org_sync_signal.send.assert_called_once_with(sender=None, organization=organization)
 
@@ -304,7 +311,12 @@ def test_sync_organization_is_rbac_permissions_enabled_open_source(make_organiza
                         GrafanaAPIClient, "check_token", return_value=(None, api_check_token_call_status)
                     ):
                         with patch.object(
-                            GrafanaAPIClient, "get_grafana_plugin_settings", return_value=({"enabled": True}, None)
+                            GrafanaAPIClient,
+                            "get_grafana_incident_plugin_settings",
+                            return_value=(
+                                {"enabled": True, "jsonData": {"backendUrl": MOCK_GRAFANA_INCIDENT_BACKEND_URL}},
+                                None,
+                            ),
                         ):
                             sync_organization(organization)
 
@@ -362,7 +374,12 @@ def test_sync_organization_is_rbac_permissions_enabled_cloud(mocked_gcom_client,
             with patch.object(GrafanaAPIClient, "get_teams", return_value=(api_teams_response, None)):
                 with patch.object(GrafanaAPIClient, "get_team_members", return_value=(api_members_response, None)):
                     with patch.object(
-                        GrafanaAPIClient, "get_grafana_plugin_settings", return_value=({"enabled": True}, None)
+                        GrafanaAPIClient,
+                        "get_grafana_incident_plugin_settings",
+                        return_value=(
+                            {"enabled": True, "jsonData": {"backendUrl": MOCK_GRAFANA_INCIDENT_BACKEND_URL}},
+                            None,
+                        ),
                     ):
                         sync_organization(organization)
 
@@ -416,19 +433,3 @@ def test_cleanup_organization_deleted(make_organization):
 
     organization.refresh_from_db()
     assert organization.deleted_at is not None
-
-
-@pytest.mark.django_db
-@pytest.mark.parametrize(
-    "response,expected_result",
-    [
-        (({"enabled": True}, {}), True),
-        (({"enabled": False}, {}), False),
-        ((None, {}), False),
-    ],
-)
-def test_check_grafana_incident_is_enabled(response, expected_result):
-    client = GrafanaAPIClient("", "")
-    with patch.object(GrafanaAPIClient, "get_grafana_plugin_settings", return_value=response):
-        result = check_grafana_incident_is_enabled(client)
-        assert result == expected_result

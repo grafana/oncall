@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## v1.3.72 (2023-12-05)
+
+### Fixed
+
+- Address metrics calculation issue which occurred when `USE_REDIS_CLUSTER` env var was set by @joeyorlando ([#3510](https://github.com/grafana/oncall/pull/3510))
+
+## v1.3.71 (2023-12-05)
+
 ### Added
 
 - Add `datetimeformat_as_timezone` Jinja2 template helper filter by @jorgeav ([#3426](https://github.com/grafana/oncall/pull/3426))
@@ -14,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Disallow creating and deleting direct paging integrations by @vadimkerr ([#3475](https://github.com/grafana/oncall/pull/3475))
+- Renamed "Connections" tab to "Monitoring Systems" and "Direct Paging" to "Manual Direct Paging" on Integrations page
 
 ## v1.3.70 (2023-12-01)
 
@@ -44,6 +53,7 @@ Minor bugfixes + dependency updates :)
 ### Added
 
 - Add options to customize table columns in AlertGroup page ([3281](https://github.com/grafana/oncall/pull/3281))
+- Add proxying capabilities for the OnCall mobile API by @joeyorlando ([#3449](https://github.com/grafana/oncall/pull/3449))
 
 ### Fixed
 
@@ -61,9 +71,9 @@ Minor bugfixes + dependency updates :)
 ### Added
 
 - Add ability to use Grafana Service Account Tokens for OnCall API (This is only enabled for resolution_notes
-endpoint currently) @mderynck ([#3189](https://github.com/grafana/oncall/pull/3189))
+  endpoint currently) @mderynck ([#3189](https://github.com/grafana/oncall/pull/3189))
 - Add ability for webhook presets to mask sensitive headers @mderynck
-([#3189](https://github.com/grafana/oncall/pull/3189))
+  ([#3189](https://github.com/grafana/oncall/pull/3189))
 
 ### Changed
 
@@ -72,7 +82,7 @@ endpoint currently) @mderynck ([#3189](https://github.com/grafana/oncall/pull/31
 ### Fixed
 
 - Fixed issue that blocked saving webhooks with presets if the preset is controlling the URL @mderynck
-([#3189](https://github.com/grafana/oncall/pull/3189))
+  ([#3189](https://github.com/grafana/oncall/pull/3189))
 - User filter doesn't display current value on Alert Groups page ([1714](https://github.com/grafana/oncall/issues/1714))
 - Remove displaying rotation modal for Terraform/API based schedules
 - Filters polishing ([3183](https://github.com/grafana/oncall/issues/3183))

@@ -79,7 +79,7 @@ export const ColumnsModal: React.FC<ColumnsModalProps> = observer(
               )}
 
               {inputRef?.current?.value && searchResults.length && (
-                <VerticalGroup spacing="xs">
+                <VerticalGroup spacing="none">
                   {searchResults.map((result, index) => (
                     <VerticalGroup key={index}>
                       <div className={styles.fieldRow}>

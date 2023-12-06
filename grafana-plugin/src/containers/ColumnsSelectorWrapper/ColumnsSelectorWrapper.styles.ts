@@ -12,6 +12,7 @@ export const getColumnsSelectorWrapperStyles = (theme: GrafanaTheme2) => {
       flex-direction: row;
       align-items: 'center';
       gap: 16px;
+      padding: 7px;
     `,
     content: css`
       width: 100%;
