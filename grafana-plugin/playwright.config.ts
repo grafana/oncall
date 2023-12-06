@@ -13,7 +13,7 @@ export const ADMIN_USER_STORAGE_STATE = path.join(__dirname, 'e2e-tests/.auth/ad
 
 const IS_CI = !!process.env.CI;
 const BROWSERS = process.env.BROWSERS || 'chromium';
-const REPORTER_WITH_DEFAULT = process.env.REPORTER || 'line';
+const REPORTER_WITH_DEFAULT = process.env.REPORTER || 'html';
 const REPORTER = (
   process.env.REPORTER === 'html' ? [['html', { open: 'never' }]] : REPORTER_WITH_DEFAULT
 ) as PlaywrightTestConfig['reporter'];
