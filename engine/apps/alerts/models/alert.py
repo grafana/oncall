@@ -90,6 +90,7 @@ class Alert(models.Model):
         is_demo=False,
         channel_filter=None,
         force_route_id=None,
+        received_at=None,
     ):
         """
         Creates an alert and a group if needed.
@@ -105,6 +106,7 @@ class Alert(models.Model):
             channel=alert_receive_channel,
             channel_filter=channel_filter,
             group_data=group_data,
+            received_at=received_at,
         )
 
         if group_created:

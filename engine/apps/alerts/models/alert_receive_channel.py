@@ -650,6 +650,7 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
             for alert in alerts:
                 create_alertmanager_alerts.delay(alert_receive_channel_pk=self.pk, alert=alert, is_demo=True)
         else:
+            timestamp = timezone.now().isoformat()
             create_alert.delay(
                 title="Demo alert",
                 message="Demo alert",
@@ -659,6 +660,7 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
                 integration_unique_data=None,
                 raw_request_data=payload,
                 is_demo=True,
+                received_at=timestamp,
             )
 
     @property
