@@ -103,6 +103,10 @@ def _custom_labels(alert_receive_channel: "AlertReceiveChannel", raw_request_dat
         value = rendered_labels[key]
 
         # check value length
+        if len(value) == 0:
+            logger.warning("Template result value is empty. %s", value)
+            continue
+
         if len(value) > MAX_VALUE_NAME_LENGTH:
             logger.warning("Template result value is too long. %s", value)
             continue
@@ -147,11 +151,19 @@ def _template_labels(alert_receive_channel: "AlertReceiveChannel", raw_request_d
         value = str(value)
 
         # check key length
+        if len(key) == 0:
+            logger.warning("Template result key is empty. %s", key)
+            continue
+
         if len(key) > MAX_KEY_NAME_LENGTH:
             logger.warning("Template result key is too long. %s", key)
             continue
 
         # check value length
+        if len(value) == 0:
+            logger.warning("Template result value is empty. %s", value)
+            continue
+
         if len(value) > MAX_VALUE_NAME_LENGTH:
             logger.warning("Template result value is too long. %s", value)
             continue

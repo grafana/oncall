@@ -35,6 +35,7 @@ from apps.schedules.constants import (
     RE_PRIORITY,
 )
 from apps.schedules.ical_events import ical_events
+from common.cache import ensure_cache_key_allocates_to_the_same_hash_slot
 from common.timezones import is_valid_timezone
 from common.utils import timed_lru_cache
 
@@ -403,15 +404,24 @@ def get_cached_oncall_users_for_multiple_schedules(schedules: typing.List["OnCal
     from apps.schedules.models import OnCallSchedule
     from apps.user_management.models import User
 
+    CACHE_KEY_PREFIX = "schedule_oncall_users_"
+
     def _generate_cache_key_for_schedule_oncall_users(schedule: "OnCallSchedule") -> str:
-        return f"schedule_{schedule.public_primary_key}_oncall_users"
+        return ensure_cache_key_allocates_to_the_same_hash_slot(
+            f"{CACHE_KEY_PREFIX}{schedule.public_primary_key}", CACHE_KEY_PREFIX
+        )
 
     def _get_schedule_public_primary_key_from_schedule_oncall_users_cache_key(cache_key: str) -> str:
-        return cache_key.replace("schedule_", "").replace("_oncall_users", "")
+        """
+        remove any brackets that might be included in the cache key (when redis cluster is active).
+        See `_generate_cache_key_for_schedule_oncall_users` just above
+        """
+        cache_key = cache_key.replace("{", "").replace("}", "")
+        return cache_key.replace(CACHE_KEY_PREFIX, "")
 
     CACHE_TTL = 15 * 60  # 15 minutes in seconds
 
-    cache_keys: typing.List[str] = [_generate_cache_key_for_schedule_oncall_users(schedule) for schedule in schedules]
+    cache_keys = [_generate_cache_key_for_schedule_oncall_users(schedule) for schedule in schedules]
 
     # get_many returns a dictionary with all the keys we asked for that actually exist
     # in the cache (and haven’t expired)

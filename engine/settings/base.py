@@ -69,8 +69,8 @@ GRAFANA_CLOUD_ONCALL_HEARTBEAT_ENABLED = getenv_boolean("GRAFANA_CLOUD_ONCALL_HE
 GRAFANA_CLOUD_NOTIFICATIONS_ENABLED = getenv_boolean("GRAFANA_CLOUD_NOTIFICATIONS_ENABLED", default=True)
 # Enable labels feature fo all organizations. This flag overrides FEATURE_LABELS_ENABLED_FOR_GRAFANA_ORGS
 FEATURE_LABELS_ENABLED_FOR_ALL = getenv_boolean("FEATURE_LABELS_ENABLED_FOR_ALL", default=False)
-# Enable labels feature for organizations from the list. Use Grafana org_id, not OnCall id, for this flag
-FEATURE_LABELS_ENABLED_FOR_GRAFANA_ORGS = getenv_list("FEATURE_LABELS_ENABLED_FOR_GRAFANA_ORGS", default=list())
+# Enable labels feature for organizations from the list. Use OnCall organization ID, for this flag
+FEATURE_LABELS_ENABLED_PER_ORG = getenv_list("FEATURE_LABELS_ENABLED_PER_ORG", default=list())
 
 TWILIO_API_KEY_SID = os.environ.get("TWILIO_API_KEY_SID")
 TWILIO_API_KEY_SECRET = os.environ.get("TWILIO_API_KEY_SECRET")
@@ -194,6 +194,7 @@ REDIS_URI = os.getenv("REDIS_URI")
 if not REDIS_URI:
     REDIS_URI = f"{REDIS_PROTOCOL}://{REDIS_USERNAME}:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}/{REDIS_DATABASE}"
 
+USE_REDIS_CLUSTER = getenv_boolean("USE_REDIS_CLUSTER", default=False)
 REDIS_USE_SSL = os.getenv("REDIS_USE_SSL")
 REDIS_SSL_CONFIG = {}
 
@@ -494,7 +495,7 @@ CELERY_BEAT_SCHEDULE = {
     },
     "start_refresh_ical_files": {
         "task": "apps.schedules.tasks.refresh_ical_files.start_refresh_ical_files",
-        "schedule": 10 * 60,
+        "schedule": crontab(minute="*/10"),  # every 10 minutes
         "args": (),
     },
     "start_notify_about_gaps_in_schedule": {
@@ -544,24 +545,24 @@ CELERY_BEAT_SCHEDULE = {
     },
     "process_failed_to_invoke_celery_tasks": {
         "task": "apps.base.tasks.process_failed_to_invoke_celery_tasks",
-        "schedule": 60 * 10,
+        "schedule": crontab(minute="*/10"),  # every 10 minutes
         "args": (),
     },
     "conditionally_send_going_oncall_push_notifications_for_all_schedules": {
         "task": "apps.mobile_app.tasks.going_oncall_notification.conditionally_send_going_oncall_push_notifications_for_all_schedules",
-        "schedule": 10 * 60,
+        "schedule": crontab(minute="*/10"),  # every 10 minutes
     },
     "notify_shift_swap_requests": {
         "task": "apps.mobile_app.tasks.new_shift_swap_request.notify_shift_swap_requests",
-        "schedule": getenv_integer("NOTIFY_SHIFT_SWAP_REQUESTS_INTERVAL", default=10 * 60),
+        "schedule": crontab(minute="*/{}".format(getenv_integer("NOTIFY_SHIFT_SWAP_REQUESTS_INTERVAL", default=10))),
     },
     "send_shift_swap_request_slack_followups": {
         "task": "apps.schedules.tasks.shift_swaps.slack_followups.send_shift_swap_request_slack_followups",
-        "schedule": 10 * 60,
+        "schedule": crontab(minute="*/10"),  # every 10 minutes
     },
     "save_organizations_ids_in_cache": {
         "task": "apps.metrics_exporter.tasks.save_organizations_ids_in_cache",
-        "schedule": 60 * 30,
+        "schedule": crontab(minute="*/30"),  # every 30 minutes
         "args": (),
     },
     "check_heartbeats": {
@@ -578,7 +579,11 @@ if ESCALATION_AUDITOR_ENABLED:
         #
         # ex. if the integration is configured to expect a heartbeat every 15 minutes then this value should be set
         # to something like 13 * 60 (every 13 minutes)
-        "schedule": getenv_integer("ALERT_GROUP_ESCALATION_AUDITOR_CELERY_TASK_HEARTBEAT_INTERVAL", 13 * 60),
+        "schedule": crontab(
+            minute="*/{}".format(
+                getenv_integer("ALERT_GROUP_ESCALATION_AUDITOR_CELERY_TASK_HEARTBEAT_INTERVAL", default=13)
+            )
+        ),
         "args": (),
     }
 
@@ -711,6 +716,11 @@ FCM_DJANGO_SETTINGS = {
     "UPDATE_ON_DUPLICATE_REG_ID": True,
     "USER_MODEL": "user_management.User",
 }
+
+MOBILE_APP_GATEWAY_ENABLED = getenv_boolean("MOBILE_APP_GATEWAY_ENABLED", default=False)
+MOBILE_APP_GATEWAY_RSA_PRIVATE_KEY = os.environ.get("MOBILE_APP_GATEWAY_RSA_PRIVATE_KEY", None)
+if MOBILE_APP_GATEWAY_ENABLED and not MOBILE_APP_GATEWAY_RSA_PRIVATE_KEY:
+    raise RuntimeError("MOBILE_APP_GATEWAY_RSA_PRIVATE_KEY is required when MOBILE_APP_GATEWAY_ENABLED is True")
 
 SELF_HOSTED_SETTINGS = {
     "STACK_ID": 5,
