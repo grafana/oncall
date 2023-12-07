@@ -536,7 +536,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
         <GTable
           emptyText={isLoading ? 'Loading...' : 'No alert groups found'}
           loading={isLoading}
-          className={cx('incidents-table')}
+          className={cx({ 'horizontal-scroll-table': isHorizontalScrolling })}
           rowSelection={{
             selectedRowKeys: selectedIncidentIds,
             onChange: this.handleSelectedIncidentIdsChange,
