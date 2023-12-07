@@ -20,7 +20,6 @@ from apps.user_management.models import Organization
 from common.api_helpers.custom_fields import TeamPrimaryKeyRelatedField
 from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.mixins import APPEARANCE_TEMPLATE_NAMES, EagerLoadingMixin
-from common.api_helpers.utils import CurrentTeamDefault
 from common.jinja_templater import jinja_template_env
 
 from .integration_heartbeat import IntegrationHeartBeatSerializer
@@ -211,7 +210,7 @@ class AlertReceiveChannelSerializer(
     alert_groups_count = serializers.SerializerMethodField()
     author = serializers.CharField(read_only=True, source="author.public_primary_key")
     organization = serializers.CharField(read_only=True, source="organization.public_primary_key")
-    team = TeamPrimaryKeyRelatedField(allow_null=True, default=CurrentTeamDefault())
+    team = TeamPrimaryKeyRelatedField(allow_null=True, required=False)
     is_able_to_autoresolve = serializers.ReadOnlyField()
     default_channel_filter = serializers.SerializerMethodField()
     instructions = serializers.SerializerMethodField()
@@ -320,7 +319,12 @@ class AlertReceiveChannelSerializer(
 
         return instance
 
+    def to_internal_value(self, data):
+        print("TO INTERNAL: ", data)
+        return super().to_internal_value(data)
+
     def update(self, instance, validated_data):
+        print(validated_data)
         # update associated labels
         labels = validated_data.pop("labels", None)
         self.update_labels_association_if_needed(labels, instance, self.context["request"].auth.organization)
