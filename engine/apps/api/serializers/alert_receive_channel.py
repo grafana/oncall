@@ -320,11 +320,9 @@ class AlertReceiveChannelSerializer(
         return instance
 
     def to_internal_value(self, data):
-        print("TO INTERNAL: ", data)
         return super().to_internal_value(data)
 
     def update(self, instance, validated_data):
-        print(validated_data)
         # update associated labels
         labels = validated_data.pop("labels", None)
         self.update_labels_association_if_needed(labels, instance, self.context["request"].auth.organization)
