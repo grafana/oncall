@@ -319,9 +319,6 @@ class AlertReceiveChannelSerializer(
 
         return instance
 
-    def to_internal_value(self, data):
-        return super().to_internal_value(data)
-
     def update(self, instance, validated_data):
         # update associated labels
         labels = validated_data.pop("labels", None)
