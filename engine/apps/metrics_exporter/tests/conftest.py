@@ -22,11 +22,11 @@ METRICS_TEST_USER_USERNAME = "Alex"
 @pytest.fixture()
 def mock_cache_get_metrics_for_collector(monkeypatch):
     def _mock_cache_get(key, *args, **kwargs):
-        if key.startswith(ALERT_GROUPS_TOTAL):
+        if ALERT_GROUPS_TOTAL in key:
             key = ALERT_GROUPS_TOTAL
-        elif key.startswith(ALERT_GROUPS_RESPONSE_TIME):
+        elif ALERT_GROUPS_RESPONSE_TIME in key:
             key = ALERT_GROUPS_RESPONSE_TIME
-        elif key.startswith(USER_WAS_NOTIFIED_OF_ALERT_GROUPS):
+        elif USER_WAS_NOTIFIED_OF_ALERT_GROUPS in key:
             key = USER_WAS_NOTIFIED_OF_ALERT_GROUPS
         test_metrics = {
             ALERT_GROUPS_TOTAL: {

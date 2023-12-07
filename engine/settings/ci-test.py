@@ -40,3 +40,21 @@ TWILIO_ACCOUNT_SID = "dummy_twilio_account_sid"
 TWILIO_AUTH_TOKEN = "dummy_twilio_auth_token"
 
 EXTRA_MESSAGING_BACKENDS = [("apps.base.tests.messaging_backend.TestOnlyBackend", 42)]
+
+# if you have django-silk enabled when running the tests it can lead to some weird errors like:
+# RuntimeError: Database access not allowed, use the "django_db" mark, or the "db" or "transactional_db"
+# fixtures to enable it.
+#
+# ERROR    django.request:log.py:241 Internal Server Error: /startupprobe/
+# Traceback (most recent call last):
+#   File "/usr/local/lib/python3.11/site-packages/django/core/handlers/exception.py", line 55, in inner
+#     response = get_response(request)
+#                ^^^^^^^^^^^^^^^^^^^^^
+#   File "/usr/local/lib/python3.11/site-packages/silk/middleware.py", line 70, in __call__
+#     self.process_request(request)
+#   File "/usr/local/lib/python3.11/site-packages/silk/middleware.py", line 120, in process_request
+#     request_model = RequestModelFactory(request).construct_request_model()
+#                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#   File "/usr/local/lib/python3.11/site-packages/silk/model_factory.py", line 243, in construct_request_model
+#     request_model = models.Request.objects.create(
+SILK_PROFILER_ENABLED = False
