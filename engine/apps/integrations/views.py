@@ -289,6 +289,7 @@ class GrafanaAPIView(
                 },
             )
         else:
+            timestamp = timezone.now().isoformat()
             create_alert.apply_async(
                 [],
                 {
