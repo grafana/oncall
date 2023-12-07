@@ -7,7 +7,6 @@ from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils import timezone
 from fcm_django.api.rest_framework import FCMDeviceAuthorizedViewSet as BaseFCMDeviceAuthorizedViewSet
-from fcm_django.settings import FCM_DJANGO_SETTINGS as SETTINGS
 from rest_framework import mixins, status, viewsets
 from rest_framework.exceptions import NotFound, ParseError
 from rest_framework.permissions import IsAuthenticated
@@ -35,7 +34,7 @@ class FCMDeviceAuthorizedViewSet(BaseFCMDeviceAuthorizedViewSet):
         """Overrides `create` from BaseFCMDeviceAuthorizedViewSet to add filtering by user on getting instance"""
         serializer = None
         is_update = False
-        if SETTINGS.get("UPDATE_ON_DUPLICATE_REG_ID") and "registration_id" in request.data:
+        if settings.FCM_DJANGO_SETTINGS["UPDATE_ON_DUPLICATE_REG_ID"] and "registration_id" in request.data:
             instance = self.model.objects.filter(
                 registration_id=request.data["registration_id"], user=self.request.user
             ).first()

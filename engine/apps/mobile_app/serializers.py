@@ -56,21 +56,19 @@ class FCMDeviceSerializer(BaseFCMDeviceSerializer):
         """
         devices = None
         request_method = None
+        request = self.context["request"]
 
         if self.initial_data.get("registration_id", None):
-            if self.instance:
-                request_method = "update"
-            else:
-                request_method = "create"
+            request_method = "update" if self.instance else "create"
         else:
-            if self.context["request"].method in ["PUT", "PATCH"]:
+            if request.method in ["PUT", "PATCH"]:
                 request_method = "update"
-            elif self.context["request"].method == "POST":
+            elif request.method == "POST":
                 request_method = "create"
 
         Device = self.Meta.model
         # unique together with registration_id and user
-        user = self.context["request"].user
+        user = request.user
         registration_id = attrs.get("registration_id")
 
         if request_method == "update":
