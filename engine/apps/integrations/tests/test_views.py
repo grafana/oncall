@@ -4,6 +4,7 @@ import pytest
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.db import OperationalError
 from django.urls import reverse
+from django.utils import timezone
 from pytest_django.plugin import _DatabaseBlocker
 from rest_framework import status
 from rest_framework.test import APIClient
@@ -98,7 +99,10 @@ def test_integration_universal_endpoint(
     )
 
     data = {"foo": "bar"}
-    response = client.post(url, data, format="json")
+    now = timezone.now()
+    with patch("django.utils.timezone.now") as mock_now:
+        mock_now.return_value = now
+        response = client.post(url, data, format="json")
     assert response.status_code == status.HTTP_200_OK
 
     mock_create_alert.apply_async.assert_called_once_with(
@@ -111,6 +115,7 @@ def test_integration_universal_endpoint(
             "alert_receive_channel_pk": alert_receive_channel.pk,
             "integration_unique_data": None,
             "raw_request_data": data,
+            "received_at": now.isoformat(),
         },
     )
 
@@ -165,14 +170,57 @@ def test_integration_grafana_endpoint_has_alerts(
             },
         ]
     }
-    response = client.post(url, data, format="json")
+    now = timezone.now()
+    with patch("django.utils.timezone.now") as mock_now:
+        mock_now.return_value = now
+        response = client.post(url, data, format="json")
     assert response.status_code == status.HTTP_200_OK
 
     mock_create_alertmanager_alerts.apply_async.assert_has_calls(
         [
-            call((alert_receive_channel.pk, data["alerts"][0])),
-            call((alert_receive_channel.pk, data["alerts"][1])),
+            call((alert_receive_channel.pk, data["alerts"][0]), kwargs={"received_at": now.isoformat()}),
+            call((alert_receive_channel.pk, data["alerts"][1]), kwargs={"received_at": now.isoformat()}),
         ]
+    )
+
+
+@patch("apps.integrations.views.create_alert")
+@pytest.mark.django_db
+def test_integration_old_grafana_endpoint(
+    mock_create_alert, settings, make_organization_and_user, make_alert_receive_channel
+):
+    settings.DEBUG = False
+
+    integration_type = "grafana"
+    organization, user = make_organization_and_user()
+    alert_receive_channel = make_alert_receive_channel(
+        organization=organization,
+        author=user,
+        integration=integration_type,
+    )
+
+    client = APIClient()
+    url = reverse("integrations:grafana", kwargs={"alert_channel_key": alert_receive_channel.token})
+
+    data = {}
+    now = timezone.now()
+    with patch("django.utils.timezone.now") as mock_now:
+        mock_now.return_value = now
+        response = client.post(url, data, format="json")
+    assert response.status_code == status.HTTP_200_OK
+
+    mock_create_alert.apply_async.assert_called_once_with(
+        [],
+        {
+            "title": "Title",
+            "message": None,
+            "image_url": None,
+            "link_to_upstream_details": None,
+            "alert_receive_channel_pk": alert_receive_channel.pk,
+            "integration_unique_data": '{"evalMatches": []}',
+            "raw_request_data": data,
+            "received_at": now.isoformat(),
+        },
     )
 
 
@@ -239,10 +287,13 @@ def test_integration_universal_endpoint_works_without_db(
     # populate cache
     AlertChannelDefiningMixin().update_alert_receive_channel_cache()
 
-    # disable DB access
-    with DatabaseBlocker().block():
-        data = {"foo": "bar"}
-        response = client.post(url, data, format="json")
+    now = timezone.now()
+    with patch("django.utils.timezone.now") as mock_now:
+        mock_now.return_value = now
+        # disable DB access
+        with DatabaseBlocker().block():
+            data = {"foo": "bar"}
+            response = client.post(url, data, format="json")
 
     assert response.status_code == status.HTTP_200_OK
 
@@ -256,6 +307,7 @@ def test_integration_universal_endpoint_works_without_db(
             "alert_receive_channel_pk": alert_receive_channel.pk,
             "integration_unique_data": None,
             "raw_request_data": data,
+            "received_at": now.isoformat(),
         },
     )
 
@@ -292,16 +344,19 @@ def test_integration_grafana_endpoint_without_db_has_alerts(
     # populate cache
     AlertChannelDefiningMixin().update_alert_receive_channel_cache()
 
-    # disable DB access
-    with DatabaseBlocker().block():
-        response = client.post(url, data, format="json")
+    now = timezone.now()
+    with patch("django.utils.timezone.now") as mock_now:
+        mock_now.return_value = now
+        # disable DB access
+        with DatabaseBlocker().block():
+            response = client.post(url, data, format="json")
 
     assert response.status_code == status.HTTP_200_OK
 
     mock_create_alertmanager_alerts.apply_async.assert_has_calls(
         [
-            call((alert_receive_channel.pk, data["alerts"][0])),
-            call((alert_receive_channel.pk, data["alerts"][1])),
+            call((alert_receive_channel.pk, data["alerts"][0]), kwargs={"received_at": now.isoformat()}),
+            call((alert_receive_channel.pk, data["alerts"][1]), kwargs={"received_at": now.isoformat()}),
         ]
     )
 
@@ -339,7 +394,10 @@ def test_integration_universal_endpoint_works_without_cache(
         kwargs={"integration_type": integration_type, "alert_channel_key": alert_receive_channel.token},
     )
     data = {"foo": "bar"}
-    response = client.post(url, data, format="json")
+    now = timezone.now()
+    with patch("django.utils.timezone.now") as mock_now:
+        mock_now.return_value = now
+        response = client.post(url, data, format="json")
 
     assert response.status_code == status.HTTP_200_OK
 
@@ -353,6 +411,7 @@ def test_integration_universal_endpoint_works_without_cache(
             "alert_receive_channel_pk": alert_receive_channel.pk,
             "integration_unique_data": None,
             "raw_request_data": data,
+            "received_at": now.isoformat(),
         },
     )
 
@@ -387,13 +446,16 @@ def test_integration_grafana_endpoint_without_cache_has_alerts(
             },
         ]
     }
-    response = client.post(url, data, format="json")
+    now = timezone.now()
+    with patch("django.utils.timezone.now") as mock_now:
+        mock_now.return_value = now
+        response = client.post(url, data, format="json")
 
     assert response.status_code == status.HTTP_200_OK
 
     mock_create_alertmanager_alerts.apply_async.assert_has_calls(
         [
-            call((alert_receive_channel.pk, data["alerts"][0])),
-            call((alert_receive_channel.pk, data["alerts"][1])),
+            call((alert_receive_channel.pk, data["alerts"][0]), kwargs={"received_at": now.isoformat()}),
+            call((alert_receive_channel.pk, data["alerts"][1]), kwargs={"received_at": now.isoformat()}),
         ]
     )

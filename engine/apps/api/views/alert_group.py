@@ -30,7 +30,7 @@ from apps.user_management.models import Team, User
 from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.filters import NO_TEAM_VALUE, DateRangeFilterMixin, ModelFieldFilterMixin
 from common.api_helpers.mixins import PreviewTemplateMixin, PublicPrimaryKeyMixin, TeamFilteringMixin
-from common.api_helpers.paginators import TwentyFiveCursorPaginator
+from common.api_helpers.paginators import AlertGroupCursorPaginator
 
 
 def get_integration_queryset(request):
@@ -309,7 +309,7 @@ class AlertGroupView(
 
     serializer_class = AlertGroupSerializer
 
-    pagination_class = TwentyFiveCursorPaginator
+    pagination_class = AlertGroupCursorPaginator
 
     filter_backends = [SearchFilter, AlertGroupFilterBackend]
     # search_fields = ["=public_primary_key", "=inside_organization_number", "web_title_cache"]
