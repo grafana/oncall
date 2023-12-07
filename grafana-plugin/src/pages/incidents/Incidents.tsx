@@ -790,6 +790,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
         key: 'title',
         render: this.renderTitle,
         width: isHorizontalScrolling ? undefined : '35%',
+        className: 'u-max-width-1000',
       },
       Created: {
         title: 'Created',
