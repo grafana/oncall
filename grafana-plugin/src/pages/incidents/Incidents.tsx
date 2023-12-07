@@ -545,7 +545,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
           data={results}
           columns={tableColumns}
           tableLayout="auto"
-          scroll={{ x: isHorizontalScrolling ? `${Math.max(2000, tableColumns.length * 250)}px` : true }}
+          scroll={{ x: isHorizontalScrolling ? 'max-content' : undefined }}
         />
         {this.shouldShowPagination() && (
           <div className={cx('pagination')}>
