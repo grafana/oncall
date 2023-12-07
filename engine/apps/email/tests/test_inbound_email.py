@@ -5,8 +5,7 @@ from rest_framework.test import APIClient
 
 @pytest.mark.django_db
 def test_amazon_ses_provider_load(
-    settings,
-    client_with_user
+    settings
 ):
     settings.INBOUND_EMAIL_ESP = "amazon_ses"
 
