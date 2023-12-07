@@ -1,21 +1,20 @@
-import pytest, anymail
+import pytest, anymail, json
 from apps.email.inbound import InboundEmailWebhookView
-from django.test.client import RequestFactory
+from django.urls import reverse
+from rest_framework.test import APIClient
 
 @pytest.mark.django_db
 def test_amazon_ses_provider_load(
-    settings
+    settings,
+    client_with_user
 ):
-    result = False
-    
     settings.INBOUND_EMAIL_ESP = "amazon_ses"
-    rf = RequestFactory()
 
+    test_data = {
+        "foo" : "bar"
+    }
     inbound_view = InboundEmailWebhookView()
-    try:
-        inbound_view.post(rf.post('/fake-mock-location'))
-        result = True
-    except anymail.exceptions.AnymailAPIError:
-        # We don't test anymail, but it's invocation ability
-        result = True
-    assert result
+    client = APIClient()
+    url = reverse("integrations:inbound_email_webhook")
+    with pytest.raises(anymail.exceptions.AnymailAPIError):
+        response = client.post(url, data=test_data)
