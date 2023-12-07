@@ -6,6 +6,8 @@ from django.test.client import RequestFactory
 def test_amazon_ses_provider_load(
     settings
 ):
+    result = False
+    
     settings.INBOUND_EMAIL_ESP = "amazon_ses"
     rf = RequestFactory()
 
