@@ -294,6 +294,9 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
             }}
             onSubmit={this.update}
             id={alertReceiveChannelId}
+            navigateToAlertGroupLabels={(id: AlertReceiveChannel['id']) => {
+              this.setState({ alertReceiveChannelId: undefined, alertReceiveChannelIdToShowLabels: id });
+            }}
           />
         )}
 
@@ -304,7 +307,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
             }}
             onSubmit={this.update}
             id={alertReceiveChannelIdToShowLabels}
-            onOpenIntegraionSettings={(id: AlertReceiveChannel['id']) => {
+            onOpenIntegrationSettings={(id: AlertReceiveChannel['id']) => {
               this.setState({ alertReceiveChannelId: id });
             }}
           />

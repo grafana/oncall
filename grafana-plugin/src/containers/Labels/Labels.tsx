@@ -1,7 +1,8 @@
 import React, { forwardRef, useCallback, useImperativeHandle, useState } from 'react';
 
 import { ServiceLabels, ServiceLabelsProps } from '@grafana/labels';
-import { Field } from '@grafana/ui';
+import { Field, Icon, Label } from '@grafana/ui';
+
 import { isEmpty } from 'lodash-es';
 import { observer } from 'mobx-react';
 
@@ -13,11 +14,12 @@ export interface LabelsProps {
   value: LabelKeyValue[];
   errors: any;
   onDataUpdate?: ServiceLabelsProps['onDataUpdate'];
+  description?: React.ComponentProps<typeof Label>['description'];
 }
 
 const Labels = observer(
   forwardRef(function Labels2(props: LabelsProps, ref) {
-    const { value: defaultValue, errors: propsErrors, onDataUpdate } = props;
+    const { value: defaultValue, errors: propsErrors, onDataUpdate, description } = props;
 
     // propsErrors are 'external' caused by attaching/detaching labels to oncall entities,
     // state errors are errors caused by CRUD operations on labels storage
@@ -103,7 +105,14 @@ const Labels = observer(
 
     return (
       <div>
-        <Field label="Labels">
+        <Field
+          label={
+            <Label description={description}>
+              <span>Labels</span>&nbsp;
+              <Icon name="info-circle" />
+            </Label>
+          }
+        >
           <ServiceLabels
             loadById
             value={value}

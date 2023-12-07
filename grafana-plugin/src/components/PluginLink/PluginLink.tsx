@@ -14,12 +14,13 @@ interface PluginLinkProps {
   children: any;
   query?: Record<string, any>;
   target?: string;
+  onClick?: () => void;
 }
 
 const cx = cn.bind(styles);
 
 const PluginLink: FC<PluginLinkProps> = (props) => {
-  const { children, query, disabled, className, wrap = true, target } = props;
+  const { children, query, disabled, className, wrap = true, target, onClick } = props;
 
   const newPath = useMemo(() => getPathFromQueryParams(query), [query]);
 
@@ -27,11 +28,15 @@ const PluginLink: FC<PluginLinkProps> = (props) => {
     (event) => {
       event.stopPropagation();
 
-      if (disabled) {
+      if (disabled || onClick) {
         event.preventDefault();
       }
+
+      if (onClick) {
+        onClick();
+      }
     },
-    [disabled]
+    [disabled, onClick]
   );
 
   return (

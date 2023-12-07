@@ -12,8 +12,8 @@ import {
   RadioButtonGroup,
   Select,
   Icon,
-  Label,
   Field,
+  Link,
 } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
@@ -40,6 +40,7 @@ import { PLUGIN_ROOT } from 'utils/consts';
 import { form } from './IntegrationForm.config';
 import { prepareForEdit } from './IntegrationForm.helpers';
 import styles from './IntegrationForm.module.scss';
+import PluginLink from 'components/PluginLink/PluginLink';
 
 const cx = cn.bind(styles);
 
@@ -48,6 +49,7 @@ interface IntegrationFormProps {
   isTableView?: boolean;
   onHide: () => void;
   onSubmit: () => Promise<void>;
+  navigateToAlertGroupLabels: (id: AlertReceiveChannel['id']) => void;
 }
 
 const IntegrationForm = observer((props: IntegrationFormProps) => {
@@ -56,7 +58,7 @@ const IntegrationForm = observer((props: IntegrationFormProps) => {
 
   const labelsRef = useRef(null);
 
-  const { id, onHide, onSubmit, isTableView = true } = props;
+  const { id, onHide, onSubmit, isTableView = true, navigateToAlertGroupLabels } = props;
   const {
     alertReceiveChannelStore,
     userStore: { currentUser: user },
@@ -139,7 +141,28 @@ const IntegrationForm = observer((props: IntegrationFormProps) => {
 
               {store.hasFeature(AppFeature.Labels) && (
                 <div className={cx('labels')}>
-                  <Labels ref={labelsRef} errors={errors?.labels} value={data.labels} />
+                  <Labels
+                    ref={labelsRef}
+                    errors={errors?.labels}
+                    value={data.labels}
+                    description={
+                      <>
+                        Labels applied to the integration and inherited by alert groups. You can modify behaviour in{' '}
+                        {id === 'new' ? (
+                          'Alert group labels'
+                        ) : (
+                          <PluginLink
+                            onClick={() => {
+                              navigateToAlertGroupLabels(id);
+                            }}
+                          >
+                            Alert group labels
+                          </PluginLink>
+                        )}{' '}
+                        drawer. .
+                      </>
+                    }
+                  />
                 </div>
               )}
 
@@ -338,8 +361,10 @@ const CustomFieldSectionRenderer: React.FC<CustomFieldSectionRendererProps> = ({
     <div className={cx('extra-fields')}>
       <VerticalGroup spacing="md">
         <HorizontalGroup spacing="xs" align="center">
-          <Label>Grafana Alerting Contact point</Label>
-          <Icon name="info-circle" className={cx('extra-fields__icon')} />
+          <Text type="primary" size="small">
+            Grafana Alerting Contact point
+          </Text>
+          <Icon name="info-circle" />
         </HorizontalGroup>
 
         <div className={cx('extra-fields__radio')}>

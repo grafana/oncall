@@ -27,6 +27,7 @@ import { useStore } from 'state/useStore';
 import { openErrorNotification } from 'utils';
 
 import styles from './IntegrationLabelsForm.module.css';
+import { DOCS_ROOT } from 'utils/consts';
 
 const cx = cn.bind(styles);
 
@@ -36,11 +37,11 @@ interface IntegrationLabelsFormProps {
   id: AlertReceiveChannel['id'];
   onSubmit: () => void;
   onHide: () => void;
-  onOpenIntegraionSettings: (id: AlertReceiveChannel['id']) => void;
+  onOpenIntegrationSettings: (id: AlertReceiveChannel['id']) => void;
 }
 
 const IntegrationLabelsForm = observer((props: IntegrationLabelsFormProps) => {
-  const { id, onHide, onSubmit, onOpenIntegraionSettings } = props;
+  const { id, onHide, onSubmit, onOpenIntegrationSettings } = props;
 
   const store = useStore();
 
@@ -65,7 +66,7 @@ const IntegrationLabelsForm = observer((props: IntegrationLabelsFormProps) => {
   const handleOpenIntegrationSettings = () => {
     onHide();
 
-    onOpenIntegraionSettings(id);
+    onOpenIntegrationSettings(id);
   };
 
   const onInheritanceChange = (keyId: ApiSchemas['LabelKey']['id']) => {
@@ -77,13 +78,28 @@ const IntegrationLabelsForm = observer((props: IntegrationLabelsFormProps) => {
 
   return (
     <>
-      <Drawer scrollableContent title="Alert group labels" onClose={onHide} closeOnMaskClick={false} width="640px">
+      <Drawer
+        scrollableContent
+        title="Alert group labeling"
+        subtitle={
+          <>
+            Combination of settings that manage the labeling of alert groups. More information in{' '}
+            <a href={DOCS_ROOT} target="_blank" rel="noreferrer">
+              <Text type="link">documentation</Text>
+            </a>
+            .
+          </>
+        }
+        onClose={onHide}
+        closeOnMaskClick={false}
+        width="640px"
+      >
         <VerticalGroup spacing="lg">
           <VerticalGroup>
             <HorizontalGroup spacing="xs" align="flex-start">
               <Label>Inherited labels</Label>
               <Tooltip content="Labels inherited from integration">
-                <Icon name="info-circle" className={cx('extra-fields__icon')} />
+                <Icon name="info-circle" />
               </Tooltip>
             </HorizontalGroup>
             {alertReceiveChannel.labels.length ? (
