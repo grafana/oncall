@@ -57,22 +57,23 @@ export const WebhookTabs = {
   LastRun: new KeyValuePair('LastRun', 'Last Run'),
 };
 
-const CustomFieldSectionRenderer: React.FC<CustomFieldSectionRendererProps> = observer(
-  ({ errors, setValue, getValues }) => {
-    const { hasFeature } = useStore();
-    const onDataUpdate: LabelsProps['onDataUpdate'] = (val) => setValue(WebhookFormFieldName.Labels, val);
+const CustomFieldSectionRenderer: React.FC<CustomFieldSectionRendererProps> = observer(({ setValue, getValues }) => {
+  const {
+    hasFeature,
+    outgoingWebhookStore: { labelsFormErrors },
+  } = useStore();
+  const onDataUpdate: LabelsProps['onDataUpdate'] = (val) => setValue(WebhookFormFieldName.Labels, val);
 
-    return (
-      <RenderConditionally shouldRender={hasFeature(AppFeature.Labels)}>
-        <Labels
-          value={getValues<LabelKeyValue[]>(WebhookFormFieldName.Labels) || []}
-          errors={errors?.[WebhookFormFieldName.Labels]}
-          onDataUpdate={onDataUpdate}
-        />
-      </RenderConditionally>
-    );
-  }
-);
+  return (
+    <RenderConditionally shouldRender={hasFeature(AppFeature.Labels)}>
+      <Labels
+        value={getValues<LabelKeyValue[]>(WebhookFormFieldName.Labels) || []}
+        errors={labelsFormErrors}
+        onDataUpdate={onDataUpdate}
+      />
+    </RenderConditionally>
+  );
+});
 
 const OutgoingWebhookForm = observer((props: OutgoingWebhookFormProps) => {
   const history = useHistory();
@@ -93,11 +94,21 @@ const OutgoingWebhookForm = observer((props: OutgoingWebhookFormProps) => {
   const form = createForm(outgoingWebhookStore.outgoingWebhookPresets, hasFeature(AppFeature.Labels));
 
   const handleSubmit = useCallback(
-    (data: Partial<OutgoingWebhook>) => {
-      (isNewOrCopy ? outgoingWebhookStore.create(data) : outgoingWebhookStore.update(id, data)).then(() => {
+    async (data: Partial<OutgoingWebhook>) => {
+      try {
+        if (isNewOrCopy) {
+          await outgoingWebhookStore.create(data);
+        } else {
+          await outgoingWebhookStore.update(id, data);
+        }
+        outgoingWebhookStore.setLabelsFormErrors(undefined);
         onHide();
         onUpdate();
-      });
+      } catch (err) {
+        if (err.response?.data?.labels) {
+          outgoingWebhookStore.setLabelsFormErrors(err.response.data.labels);
+        }
+      }
     },
     [id]
   );

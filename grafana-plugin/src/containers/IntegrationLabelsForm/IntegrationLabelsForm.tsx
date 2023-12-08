@@ -65,8 +65,8 @@ const IntegrationLabelsForm = observer((props: IntegrationLabelsFormProps) => {
       onSubmit();
       onHide();
     } catch (err) {
-      if (err.response?.data.alert_group_labels?.custom) {
-        setCustomLabelsErrors(err.response?.data.alert_group_labels?.custom);
+      if (err.response?.data?.alert_group_labels?.custom) {
+        setCustomLabelsErrors(err.response.data.alert_group_labels.custom);
       }
     }
   };
