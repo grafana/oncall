@@ -5,4 +5,5 @@ export interface TableColumn {
   title: string;
   key: string;
   render: (value: any, record: any, index: number) => React.ReactNode | RenderedCell<any>;
+  className?: string;
 }

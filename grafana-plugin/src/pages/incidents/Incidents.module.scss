@@ -25,6 +25,11 @@
   align-items: center;
 }
 
+.horizontal-scroll-table table td:global(.rc-table-cell) {
+  white-space: nowrap;
+  padding-right: 16px;
+}
+
 .bulk-actions-container {
   margin: 10px 0 10px 0;
   display: flex;
