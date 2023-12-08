@@ -5,13 +5,13 @@ from apps.schedules.models import OnCallSchedule
 from apps.schedules.tasks import schedule_notify_about_empty_shifts_in_schedule, schedule_notify_about_gaps_in_schedule
 from common.api_helpers.custom_fields import TeamPrimaryKeyRelatedField
 from common.api_helpers.mixins import EagerLoadingMixin
-from common.api_helpers.utils import CurrentOrganizationDefault, CurrentTeamDefault
+from common.api_helpers.utils import CurrentOrganizationDefault
 
 
 class ScheduleBaseSerializer(EagerLoadingMixin, serializers.ModelSerializer):
     id = serializers.CharField(read_only=True, source="public_primary_key")
     organization = serializers.HiddenField(default=CurrentOrganizationDefault())
-    team = TeamPrimaryKeyRelatedField(allow_null=True, default=CurrentTeamDefault())
+    team = TeamPrimaryKeyRelatedField(allow_null=True, required=False)
     slack_channel = serializers.SerializerMethodField()
     user_group = UserGroupSerializer()
     warnings = serializers.SerializerMethodField()
