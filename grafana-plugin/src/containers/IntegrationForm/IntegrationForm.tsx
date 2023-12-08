@@ -22,6 +22,7 @@ import Collapse from 'components/Collapse/Collapse';
 import Block from 'components/GBlock/Block';
 import GForm, { CustomFieldSectionRendererProps } from 'components/GForm/GForm';
 import IntegrationLogo from 'components/IntegrationLogo/IntegrationLogo';
+import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
 import Labels from 'containers/Labels/Labels';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
@@ -39,7 +40,6 @@ import { PLUGIN_ROOT } from 'utils/consts';
 import { form } from './IntegrationForm.config';
 import { prepareForEdit } from './IntegrationForm.helpers';
 import styles from './IntegrationForm.module.scss';
-import PluginLink from 'components/PluginLink/PluginLink';
 
 const cx = cn.bind(styles);
 
@@ -146,7 +146,9 @@ const IntegrationForm = observer((props: IntegrationFormProps) => {
                     value={data.labels}
                     description={
                       <>
-                        Labels applied to the integration and inherited by alert groups. You can modify behaviour in{' '}
+                        Labels {id === 'new' ? 'will be' : ''} applied to the integration and inherited by alert groups.
+                        <br />
+                        You can modify behaviour in{' '}
                         {id === 'new' ? (
                           'Alert group labels'
                         ) : (
@@ -158,7 +160,7 @@ const IntegrationForm = observer((props: IntegrationFormProps) => {
                             Alert group labels
                           </PluginLink>
                         )}{' '}
-                        drawer. .
+                        drawer.
                       </>
                     }
                   />
