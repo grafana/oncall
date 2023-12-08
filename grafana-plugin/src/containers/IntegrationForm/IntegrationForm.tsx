@@ -13,7 +13,6 @@ import {
   Select,
   Icon,
   Field,
-  Link,
 } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
