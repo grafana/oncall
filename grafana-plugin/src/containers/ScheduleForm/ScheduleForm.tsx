@@ -77,16 +77,18 @@ const ScheduleForm = observer((props: ScheduleFormProps) => {
       <div className={cx('content')}>
         <VerticalGroup>
           <GForm form={formConfig} data={data} onSubmit={handleSubmit} />
-          <HorizontalGroup justify="flex-end">
-            <Button variant="secondary" onClick={onHide}>
-              Cancel
-            </Button>
-            <WithPermissionControlTooltip userAction={UserActions.SchedulesWrite}>
-              <Button form={formConfig.name} type="submit">
-                {id === 'new' ? 'Create' : 'Update'} Schedule
+          <div className="buttons">
+            <HorizontalGroup justify="flex-end">
+              <Button variant="secondary" onClick={onHide}>
+                Cancel
               </Button>
-            </WithPermissionControlTooltip>
-          </HorizontalGroup>
+              <WithPermissionControlTooltip userAction={UserActions.SchedulesWrite}>
+                <Button form={formConfig.name} type="submit">
+                  {id === 'new' ? 'Create' : 'Update'} Schedule
+                </Button>
+              </WithPermissionControlTooltip>
+            </HorizontalGroup>
+          </div>
         </VerticalGroup>
       </div>
     </Drawer>
