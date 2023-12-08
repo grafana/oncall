@@ -140,4 +140,4 @@ function onUpdateError(res) {
   }
 }
 
-export default Labels;
+export default React.memo(Labels);

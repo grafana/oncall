@@ -62,7 +62,10 @@ const CustomFieldSectionRenderer: React.FC<CustomFieldSectionRendererProps> = ob
     hasFeature,
     outgoingWebhookStore: { labelsFormErrors },
   } = useStore();
-  const onDataUpdate: LabelsProps['onDataUpdate'] = (val) => setValue(WebhookFormFieldName.Labels, val);
+  const onDataUpdate: LabelsProps['onDataUpdate'] = useCallback(
+    (val) => setValue(WebhookFormFieldName.Labels, val),
+    []
+  );
 
   return (
     <RenderConditionally shouldRender={hasFeature(AppFeature.Labels)}>
