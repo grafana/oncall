@@ -1503,3 +1503,28 @@ def test_alert_group_labels_post(alert_receive_channel_internal_api_setup, make_
     alert_receive_channel = AlertReceiveChannel.objects.get(public_primary_key=response.json()["id"])
     assert alert_receive_channel.alert_group_labels_custom == [["test", "123", None]]
     assert alert_receive_channel.alert_group_labels_template == "{{ payload.labels | tojson }}"
+
+
+@pytest.mark.django_db
+def test_team_not_updated_if_not_in_data(
+    make_organization_and_user_with_plugin_token,
+    make_alert_receive_channel,
+    make_team,
+    make_user_auth_headers,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+    team = make_team(organization)
+    alert_receive_channel = make_alert_receive_channel(organization, team=team)
+
+    assert alert_receive_channel.team == team
+
+    client = APIClient()
+    url = reverse("api-internal:alert_receive_channel-detail", kwargs={"pk": alert_receive_channel.public_primary_key})
+    data = {"verbal_name": "test integration"}
+    response = client.put(url, data, format="json", **make_user_auth_headers(user, token))
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()["team"] == alert_receive_channel.team.public_primary_key
+
+    alert_receive_channel.refresh_from_db()
+    assert alert_receive_channel.team == team

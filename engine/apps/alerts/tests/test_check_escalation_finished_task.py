@@ -20,9 +20,12 @@ yesterday = now - timezone.timedelta(days=1)
 
 @pytest.fixture
 def make_alert_group_that_started_at_specific_date(make_alert_group):
-    def _make_alert_group_that_started_at_specific_date(alert_receive_channel, started_at=yesterday, **kwargs):
+    def _make_alert_group_that_started_at_specific_date(
+        alert_receive_channel, started_at=yesterday, received_delta=1, **kwargs
+    ):
         # we can't simply pass started_at to the fixture because started_at is being "auto-set" on the Model
         alert_group = make_alert_group(alert_receive_channel, **kwargs)
+        alert_group.received_at = started_at - timezone.timedelta(seconds=received_delta)
         alert_group.started_at = started_at
         alert_group.save()
 
@@ -352,9 +355,9 @@ def test_check_escalation_finished_task_calls_audit_alert_group_escalation_for_e
     organization, _ = make_organization_and_user()
     alert_receive_channel = make_alert_receive_channel(organization)
 
-    alert_group1 = make_alert_group_that_started_at_specific_date(alert_receive_channel)
-    alert_group2 = make_alert_group_that_started_at_specific_date(alert_receive_channel)
-    alert_group3 = make_alert_group_that_started_at_specific_date(alert_receive_channel)
+    alert_group1 = make_alert_group_that_started_at_specific_date(alert_receive_channel, received_delta=1)
+    alert_group2 = make_alert_group_that_started_at_specific_date(alert_receive_channel, received_delta=5)
+    alert_group3 = make_alert_group_that_started_at_specific_date(alert_receive_channel, received_delta=12)
 
     def _mocked_audit_alert_group_escalation(alert_group):
         if not alert_group.id == alert_group3.id:
@@ -371,6 +374,8 @@ def test_check_escalation_finished_task_calls_audit_alert_group_escalation_for_e
     assert str(alert_group1.id) in error_msg
     assert str(alert_group2.id) in error_msg
 
+    assert "Alert group ingestion/creation avg delta seconds: 6" in caplog.text
+    assert "Alert group ingestion/creation max delta seconds: 12" in caplog.text
     assert "Alert group notifications success ratio: 33.33" in caplog.text
 
     mocked_audit_alert_group_escalation.assert_any_call(alert_group1)

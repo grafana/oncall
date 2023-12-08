@@ -4,6 +4,7 @@ import typing
 import requests
 from celery import shared_task
 from django.conf import settings
+from django.db.models import Avg, F, Max
 from django.utils import timezone
 
 from apps.alerts.tasks.task_logger import task_logger
@@ -104,6 +105,16 @@ def check_escalation_finished_task() -> None:
         started_at__range=(two_days_ago, now),
     )
     total_alert_groups_count = alert_groups.count()
+
+    creation_deltas = alert_groups.filter(received_at__isnull=False).aggregate(
+        avg_delta=Avg(F("started_at") - F("received_at")),
+        max_delta=Max(F("started_at") - F("received_at")),
+    )
+    avg_delta = creation_deltas["avg_delta"]
+    max_delta = creation_deltas["max_delta"]
+    if avg_delta:
+        task_logger.info(f"Alert group ingestion/creation avg delta seconds: {avg_delta.total_seconds():.2f}")
+        task_logger.info(f"Alert group ingestion/creation max delta seconds: {max_delta.total_seconds():.2f}")
 
     # Filter alert groups with active escalations (that could fail)
     alert_groups = alert_groups.filter_active()
