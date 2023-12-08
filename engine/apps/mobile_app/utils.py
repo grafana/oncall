@@ -36,6 +36,25 @@ def _send_push_notification_to_fcm_relay(message: Message) -> requests.Response:
     return response
 
 
+def send_message_to_fcm_device(device: "FCMDevice", message: Message) -> None:
+    """
+    https://firebase.google.com/docs/cloud-messaging/http-server-ref#interpret-downstream
+    """
+    response = device.send_message(message)
+    logger.debug(f"FCM response: {response}")
+
+    if isinstance(response, FirebaseError):
+        logger.exception(
+            f"FCM error occured in mobile_app.utils.send_message_to_fcm_device\n"
+            f"FCMDevice info: {device}\n"
+            f"FirebaseError code: {response._code}\n"
+            f"FirebaseError cause: {response._cause}\n"
+            f"FirebaseError http_response: {response._http_response}\n"
+        )
+
+        raise response
+
+
 def send_push_notification(
     device_to_notify: "FCMDevice", message: Message, error_cb: typing.Optional[typing.Callable[..., None]] = None
 ) -> None:
@@ -68,12 +87,7 @@ def send_push_notification(
             else:
                 raise
     else:
-        # https://firebase.google.com/docs/cloud-messaging/http-server-ref#interpret-downstream
-        response = device_to_notify.send_message(message)
-        logger.debug(f"FCM response: {response}")
-
-        if isinstance(response, FirebaseError):
-            raise response
+        send_message_to_fcm_device(device_to_notify, message)
 
 
 def construct_fcm_message(

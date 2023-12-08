@@ -215,7 +215,7 @@ const IntegrationForm = observer((props: IntegrationFormProps) => {
     onHide();
 
     function createNewIntegration(): Promise<void | AlertReceiveChannel> {
-      let promise = alertReceiveChannelStore.create<AlertReceiveChannel>(data);
+      let promise = alertReceiveChannelStore.create<AlertReceiveChannel>(data, true);
 
       const pushHistory = (id) => history.push(`${PLUGIN_ROOT}/integrations/${id}`);
 
