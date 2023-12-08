@@ -49,11 +49,13 @@ export default class BaseStore {
   }
 
   @action
-  async create<RT = any>(data: any): Promise<RT | void> {
+  async create<RT = any>(data: any, skipErrorHandling = false): Promise<RT | void> {
     return await makeRequest<RT>(this.path, {
       method: 'POST',
       data,
-    }).catch(this.onApiError);
+    }).catch((error) => {
+      this.onApiError(error, skipErrorHandling);
+    });
   }
 
   @action
