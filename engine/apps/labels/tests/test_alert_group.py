@@ -113,3 +113,35 @@ def test_assign_labels_custom_labels_none(
     )
 
     assert [(label.key_name, label.value_name) for label in alert.group.labels.all()] == [("a", "b")]
+
+
+@pytest.mark.django_db
+def test_assign_labels_too_many(
+    make_organization, make_alert_receive_channel, make_integration_label_association, make_label_key_and_value
+):
+    organization = make_organization()
+
+    label_key, label_value = make_label_key_and_value(organization, key_name="a", value_name="test")
+    alert_receive_channel = make_alert_receive_channel(
+        organization,
+        alert_group_labels_custom=[[label_key.id, label_value.id, None]],
+        alert_group_labels_template='{{ {"b": payload.b} | tojson }}',
+    )
+    make_integration_label_association(organization, alert_receive_channel, key_name="c", value_name="test")
+
+    with mock.patch("apps.labels.alert_group_labels.MAX_LABELS_PER_ALERT_GROUP", 2):
+        alert = Alert.create(
+            title="the title",
+            message="the message",
+            alert_receive_channel=alert_receive_channel,
+            raw_request_data={"b": "test"},
+            integration_unique_data={},
+            image_url=None,
+            link_to_upstream_details=None,
+        )
+
+    # check only 2 labels are assigned and 3rd label is dropped
+    assert [(label.key_name, label.value_name) for label in alert.group.labels.all()] == [
+        ("a", "test"),
+        ("b", "test"),
+    ]
