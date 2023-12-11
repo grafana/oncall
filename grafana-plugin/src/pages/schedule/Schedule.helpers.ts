@@ -16,10 +16,13 @@ const mondayDayOffset = {
 };
 
 export const getWeekStartString = () => {
-  if (!config.bootData.user.weekStart || config.bootData.user.weekStart === 'browser') {
+  const weekStart = (config.bootData.user.weekStart || '').toLowerCase();
+
+  if (!weekStart || weekStart === 'browser') {
     return 'monday';
   }
-  return config.bootData.user.weekStart;
+
+  return weekStart;
 };
 
 export const getNow = (tz: Timezone) => {
