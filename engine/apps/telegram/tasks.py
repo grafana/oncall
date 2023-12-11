@@ -231,7 +231,7 @@ def on_alert_group_action_triggered_async(log_record_id):
         log_record = AlertGroupLogRecord.objects.get(pk=log_record_id)
     except AlertGroupLogRecord.DoesNotExist as e:
         retries_count = on_alert_group_action_triggered_async.request.retries
-        if retries_count >= 50:
+        if retries_count >= 10:
             logger.error(
                 f"AlertGroupTelegramRepresentative: was not able to get AlertGroupLogRecord, probably alert group "
                 f"was deleted. log record {log_record_id}, retries: {retries_count}"
