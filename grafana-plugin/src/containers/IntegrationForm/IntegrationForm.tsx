@@ -146,19 +146,14 @@ const IntegrationForm = observer((props: IntegrationFormProps) => {
                     value={data.labels}
                     description={
                       <>
-                        Labels {id === 'new' ? 'will be' : ''} applied to the integration and inherited by alert groups.
+                        Labels{id === 'new' ? ' will be ' : ' '}applied to the integration and inherited by alert
+                        groups.
                         <br />
                         You can modify behaviour in{' '}
                         {id === 'new' ? (
                           'Alert group labels'
                         ) : (
-                          <PluginLink
-                            onClick={() => {
-                              navigateToAlertGroupLabels(id);
-                            }}
-                          >
-                            Alert group labels
-                          </PluginLink>
+                          <PluginLink onClick={() => navigateToAlertGroupLabels(id)}>Alert group labels</PluginLink>
                         )}{' '}
                         drawer.
                       </>
