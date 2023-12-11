@@ -7,23 +7,14 @@ const HEARTBEAT_SETTINGS_FORM_TEST_ID = 'heartbeat-settings-form';
 test.describe("updating an integration's heartbeat interval works", async () => {
   const _openHeartbeatSettingsForm = async (page: Page) => {
     await page.getByTestId('integration-settings-context-menu-wrapper').getByRole('img').click();
+    await page.waitForTimeout(1000);
     await page.getByTestId('integration-heartbeat-settings').click();
   };
-
-  const _tryOpenSettingsForm = async (page: Page) => {
-    try {
-      await _openHeartbeatSettingsForm(page);
-    } catch {
-      return false;
-    }
-
-    return true;
-  }
 
   test('change heartbeat interval', async ({ adminRolePage: { page } }) => {
     await createIntegration({ page, integrationName: generateRandomValue() });
 
-    if (!_tryOpenSettingsForm(page)) return;
+    await _openHeartbeatSettingsForm(page);
 
     const heartbeatSettingsForm = page.getByTestId(HEARTBEAT_SETTINGS_FORM_TEST_ID);
 
@@ -39,6 +30,8 @@ test.describe("updating an integration's heartbeat interval works", async () => 
 
     await heartbeatSettingsForm.getByTestId('update-heartbeat').click();
 
+    await page.waitForTimeout(1000);
+
     await _openHeartbeatSettingsForm(page);
 
     const heartbeatIntervalValue = await heartbeatSettingsForm
@@ -51,7 +44,7 @@ test.describe("updating an integration's heartbeat interval works", async () => 
   test('send heartbeat', async ({ adminRolePage: { page } }) => {
     await createIntegration({ page, integrationName: generateRandomValue() });
 
-    if (!_tryOpenSettingsForm(page)) return;
+    await _openHeartbeatSettingsForm(page);
 
     const heartbeatSettingsForm = page.getByTestId(HEARTBEAT_SETTINGS_FORM_TEST_ID);
 
