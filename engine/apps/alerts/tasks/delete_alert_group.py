@@ -24,6 +24,8 @@ def delete_alert_group(alert_group_pk, user_pk):
         logger.debug("User not found, skipping delete_alert_group")
         return
 
+    logger.debug(f"User {user} is deleting alert group {alert_group} (channel: {alert_group.channel})")
+
     try:
         alert_group.delete_by_user(user)
     except SlackAPIRatelimitError as e:
