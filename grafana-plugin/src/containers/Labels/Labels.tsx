@@ -1,7 +1,7 @@
 import React, { forwardRef, useCallback, useImperativeHandle, useState } from 'react';
 
 import { ServiceLabels, ServiceLabelsProps } from '@grafana/labels';
-import { Field, Icon, Label } from '@grafana/ui';
+import { Field, Label } from '@grafana/ui';
 import { isEmpty } from 'lodash-es';
 import { observer } from 'mobx-react';
 
@@ -104,14 +104,7 @@ const Labels = observer(
 
     return (
       <div>
-        <Field
-          label={
-            <Label description={<div className="u-padding-vertical-xs">{description}</div>}>
-              <span>Labels</span>&nbsp;
-              <Icon name="info-circle" />
-            </Label>
-          }
-        >
+        <Field label={<Label description={<div className="u-padding-vertical-xs">{description}</div>}>Labels</Label>}>
           <ServiceLabels
             loadById
             value={value}

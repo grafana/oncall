@@ -11,6 +11,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fix schedules invalid dates issue ([#support-escalations/issues/8084](https://github.com/grafana/support-escalations/issues/8084))
 
+## v1.3.76 (2023-12-11)
+
+### Fixed
+
+– Fix minor UI bugs
+
 ## v1.3.75 (2023-12-08)
 
 ### Fixed
