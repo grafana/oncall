@@ -1191,8 +1191,6 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
     def delete_by_user(self, user: User):
         from apps.alerts.models import AlertGroupLogRecord
 
-        initial_state = self.state
-
         self.stop_escalation()
         # prevent creating multiple logs
         # filter instead of get_or_create cause it can be multiple logs of this type due deleting error
@@ -1219,13 +1217,10 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
             force_sync=True,
         )
 
-        dependent_alerts = list(self.dependent_alert_groups.all())
-
         self.hard_delete()
-        # Update alert group state metric cache
-        self._update_metrics(organization_id=user.organization_id, previous_state=initial_state, state=None)
 
-        for dependent_alert_group in dependent_alerts:  # unattach dependent incidents
+        # unattach dependent incidents
+        for dependent_alert_group in self.dependent_alert_groups.all():
             dependent_alert_group.un_attach_by_delete()
 
     def hard_delete(self):
