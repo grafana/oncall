@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## v1.3.75 (2023-12-08)
+
 ### Fixed
 
 - Fix setting integration team to default on update @Ferril ([#3530](https://github.com/grafana/oncall/pull/3530))
