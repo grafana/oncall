@@ -1217,10 +1217,12 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
             force_sync=True,
         )
 
+        dependent_alerts = list(self.dependent_alert_groups.all())
+
         self.hard_delete()
 
         # unattach dependent incidents
-        for dependent_alert_group in self.dependent_alert_groups.all():
+        for dependent_alert_group in dependent_alerts:
             dependent_alert_group.un_attach_by_delete()
 
     def hard_delete(self):
