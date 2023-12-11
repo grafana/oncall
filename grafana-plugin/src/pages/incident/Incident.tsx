@@ -33,7 +33,6 @@ import {
   getWrongTeamResponseInfo,
   initErrorDataState,
 } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper.helpers';
-import { PluginBridge, SupportedPlugin } from 'components/PluginBridge/PluginBridge';
 import PluginLink from 'components/PluginLink/PluginLink';
 import SourceCode from 'components/SourceCode/SourceCode';
 import Text from 'components/Text/Text';
@@ -428,15 +427,6 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
                 onSilence: this.getSilenceClickHandler(incident),
                 onUnsilence: this.getUnsilenceClickHandler(incident),
               })}
-              {incident.grafana_incident_id === null && (
-                <PluginBridge plugin={SupportedPlugin.Incident}>
-                  <a href={incident.declare_incident_link} target="_blank" rel="noreferrer">
-                    <Button variant="secondary" size="md" icon="fire">
-                      Declare incident
-                    </Button>
-                  </a>
-                </PluginBridge>
-              )}
               <ExtensionLinkDropdown
                 incident={incident}
                 extensionPointId={OnCallPluginExtensionPoints.AlertGroupAction}
