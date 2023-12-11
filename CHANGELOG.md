@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fix schedules invalid dates issue ([#support-escalations/issues/8084](https://github.com/grafana/support-escalations/issues/8084))
 - Fix issue related to updating alert group metrics when deleting an alert group via the public API by @joeyorlando ([#3544](https://github.com/grafana/oncall/pull/3544))
+- Fix issue with `amazon_ses` inbound email ESP provider by @Lutseslav ([#3509](https://github.com/grafana/oncall/pull/3509))
 
 ## v1.3.76 (2023-12-11)
 
@@ -23,7 +24,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Fix setting integration team to default on update @Ferril ([#3530](https://github.com/grafana/oncall/pull/3530))
-- Fix issue with `amazon_ses` inbound email ESP provider by @Lutseslav ([#3509](https://github.com/grafana/oncall/pull/3509))
 
 ## v1.3.74 (2023-12-06)
 
