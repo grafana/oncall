@@ -25,6 +25,7 @@
 .navbar-left {
   display: flex;
   flex-basis: 100%;
+  align-items: flex-start;
 }
 
 .navbar-heading-container {
@@ -57,6 +58,10 @@
 .logo-container,
 .page-header__img {
   height: 32px;
+}
+
+.logo-container {
+  margin-top: 2px;
 }
 
 .page-header__title {
