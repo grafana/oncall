@@ -6,7 +6,7 @@ import cn from 'classnames/bind';
 import dayjs from 'dayjs';
 
 import Text from 'components/Text/Text';
-import { toDate } from 'containers/RotationForm/RotationForm.helpers';
+import { forceCurrentDateToPreventDSTIssues, toDate } from 'containers/RotationForm/RotationForm.helpers';
 import { Timezone } from 'models/timezone/timezone.types';
 
 import styles from 'containers/RotationForm/RotationForm.module.css';
@@ -28,17 +28,6 @@ const DateTimePicker = (props: DateTimePickerProps) => {
   const { value: propValue, minMoment, timezone, onChange, disabled, onFocus, onBlur, error } = props;
 
   const value = useMemo(() => toDate(propValue, timezone), [propValue, timezone]);
-
-  const getValueForTimePicker = () => {
-    const now = dayjs();
-    /**
-     * We need to consider time from current date instead of original date in the past.
-     * Otherwise, if DST change happened between the original and current date, user will see time in current timezone but before DST change.
-     * As a result there is a mismatch of 1 hour.
-     */
-    const result = propValue.utc().year(now.year()).month(now.month()).day(now.day());
-    return result.toDate();
-  };
 
   const minDate = useMemo(() => (minMoment ? toDate(minMoment, timezone) : undefined), [minMoment, timezone]);
 
@@ -86,7 +75,11 @@ const DateTimePicker = (props: DateTimePickerProps) => {
           style={{ width: '42%' }}
           className={cx({ 'control--error': Boolean(error) })}
         >
-          <TimeOfDayPicker disabled={disabled} value={dateTime(getValueForTimePicker())} onChange={handleTimeChange} />
+          <TimeOfDayPicker
+            disabled={disabled}
+            value={dateTime(forceCurrentDateToPreventDSTIssues(propValue))}
+            onChange={handleTimeChange}
+          />
         </div>
       </div>
       {error && <Text type="danger">{error}</Text>}

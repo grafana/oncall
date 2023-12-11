@@ -4,6 +4,17 @@
  */
 import '@testing-library/jest-dom';
 
+import dayjs from 'dayjs';
+import customParseFormat from 'dayjs/plugin/customParseFormat';
+import isBetween from 'dayjs/plugin/isBetween';
+import isSameOrAfter from 'dayjs/plugin/isSameOrAfter';
+import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
+import isoWeek from 'dayjs/plugin/isoWeek';
+import localeData from 'dayjs/plugin/localeData';
+import timezone from 'dayjs/plugin/timezone';
+import utc from 'dayjs/plugin/utc';
+import weekday from 'dayjs/plugin/weekday';
+
 // https://stackoverflow.com/a/66055672
 // https://jestjs.io/docs/manual-mocks#mocking-methods-which-are-not-implemented-in-jsdom
 Object.defineProperty(window, 'matchMedia', {
@@ -50,3 +61,13 @@ Object.defineProperty(window, 'ResizeObserver', {
     unobserve() {}
   },
 });
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
+dayjs.extend(weekday);
+dayjs.extend(localeData);
+dayjs.extend(isSameOrBefore);
+dayjs.extend(isSameOrAfter);
+dayjs.extend(isoWeek);
+dayjs.extend(isBetween);
+dayjs.extend(customParseFormat);
