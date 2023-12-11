@@ -536,7 +536,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
         <GTable
           emptyText={isLoading ? 'Loading...' : 'No alert groups found'}
           loading={isLoading}
-          className={cx('incidents-table')}
+          className={cx({ 'horizontal-scroll-table': isHorizontalScrolling })}
           rowSelection={{
             selectedRowKeys: selectedIncidentIds,
             onChange: this.handleSelectedIncidentIdsChange,
@@ -545,7 +545,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
           data={results}
           columns={tableColumns}
           tableLayout="auto"
-          scroll={{ x: isHorizontalScrolling ? `${Math.max(2000, tableColumns.length * 250)}px` : true }}
+          scroll={{ x: isHorizontalScrolling ? 'max-content' : undefined }}
         />
         {this.shouldShowPagination() && (
           <div className={cx('pagination')}>
@@ -790,6 +790,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
         key: 'title',
         render: this.renderTitle,
         width: isHorizontalScrolling ? undefined : '35%',
+        className: 'u-max-width-1000',
       },
       Created: {
         title: 'Created',
