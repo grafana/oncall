@@ -36,12 +36,32 @@
   margin-right: 4px;
 }
 
+.u-margin-bottom-none {
+  margin-bottom: 0;
+}
+
+.u-margin-bottom-md {
+  margin-bottom: 12px;
+}
+
+.u-margin-top-xs {
+  margin-top: 4px;
+}
+
 .u-padding-top-md {
   padding-top: 12px;
 }
 
-.u-margin-bottom-none {
-  margin-bottom: 0;
+.u-padding-top-none {
+  padding-top: 0;
+}
+
+.u-padding-left-lg {
+  padding-left: 24px;
+}
+
+.u-padding-vertical-xs {
+  padding: 4px 0;
 }
 
 .u-pull-right {
