@@ -135,7 +135,7 @@ export const ColumnsModal: React.FC<ColumnsModalProps> = observer(
                 variant="primary"
                 onClick={onAddNewColumns}
               >
-                {isLoading ? <LoadingPlaceholder className={'loader'} text="Loading..." /> : 'Add'}
+                {isLoading ? <LoadingPlaceholder className={'loadingPlaceholder'} text="Loading..." /> : 'Add'}
               </Button>
             </WithPermissionControlTooltip>
           </HorizontalGroup>
