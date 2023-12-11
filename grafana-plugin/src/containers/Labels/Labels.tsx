@@ -104,14 +104,7 @@ const Labels = observer(
 
     return (
       <div>
-        <Field
-          label={
-            <Label description={<div className="u-padding-vertical-xs">{description}</div>}>
-              <span>Labels</span>&nbsp;
-              <Icon name="info-circle" />
-            </Label>
-          }
-        >
+        <Field label={<Label description={<div className="u-padding-vertical-xs">{description}</div>}>Labels</Label>}>
           <ServiceLabels
             loadById
             value={value}
