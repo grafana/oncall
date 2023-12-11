@@ -254,7 +254,7 @@ const CustomLabels = (props: CustomLabelsProps) => {
 
   const { labelsStore } = useStore();
 
-  const handlePlainLabelAdd = () => {
+  const handleStaticLabelAdd = () => {
     onChange({
       ...alertGroupLabels,
       custom: [
@@ -266,7 +266,7 @@ const CustomLabels = (props: CustomLabelsProps) => {
       ],
     });
   };
-  const handleTemplatedLabelAdd = () => {
+  const handleDynamicLabelAdd = () => {
     onChange({
       ...alertGroupLabels,
       custom: [
@@ -379,8 +379,8 @@ const CustomLabels = (props: CustomLabelsProps) => {
       <Dropdown
         overlay={
           <Menu>
-            <Menu.Item label="Plain label" onClick={handlePlainLabelAdd} />
-            <Menu.Item label="Templated label" onClick={handleTemplatedLabelAdd} />
+            <Menu.Item label="Static label" onClick={handleStaticLabelAdd} />
+            <Menu.Item label="Dynamic label" onClick={handleDynamicLabelAdd} />
           </Menu>
         }
       >
