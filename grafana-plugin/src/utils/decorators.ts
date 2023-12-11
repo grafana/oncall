@@ -52,7 +52,7 @@ export function WithGlobalNotification({
         const open = failureType === 'error' ? openErrorNotification : openWarningNotification;
         const message = composeFailureMessageFn ? composeFailureMessageFn(err) : failure;
         open(message);
-        throw new Error(err);
+        throw err;
       }
     };
   };
