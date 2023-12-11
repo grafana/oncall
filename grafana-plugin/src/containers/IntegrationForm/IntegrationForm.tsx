@@ -151,7 +151,7 @@ const IntegrationForm = observer((props: IntegrationFormProps) => {
                         <br />
                         You can modify behaviour in{' '}
                         {id === 'new' ? (
-                          'Alert group labels'
+                          'Alert group labeling'
                         ) : (
                           <PluginLink onClick={() => navigateToAlertGroupLabels(id)}>Alert group labels</PluginLink>
                         )}{' '}

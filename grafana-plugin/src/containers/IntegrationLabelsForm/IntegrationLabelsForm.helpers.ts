@@ -16,5 +16,5 @@ export const getIsTooManyLabelsWarningVisible = (
 
 export const getIsAddBtnDisabled = ({ custom }: AlertReceiveChannel['alert_group_labels']) => {
   const lastItem = custom.at(-1);
-  return lastItem?.key.id === undefined || lastItem?.value.id === undefined;
+  return lastItem && (lastItem?.key.id === undefined || lastItem?.value.id === undefined);
 };

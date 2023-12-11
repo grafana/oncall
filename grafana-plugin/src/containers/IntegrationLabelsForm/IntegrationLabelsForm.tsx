@@ -254,7 +254,7 @@ const CustomLabels = (props: CustomLabelsProps) => {
 
   const { labelsStore } = useStore();
 
-  const handlePlainLabelAdd = () => {
+  const handleStaticLabelAdd = () => {
     onChange({
       ...alertGroupLabels,
       custom: [
@@ -266,7 +266,7 @@ const CustomLabels = (props: CustomLabelsProps) => {
       ],
     });
   };
-  const handleTemplatedLabelAdd = () => {
+  const handleDynamicLabelAdd = () => {
     onChange({
       ...alertGroupLabels,
       custom: [
@@ -312,7 +312,7 @@ const CustomLabels = (props: CustomLabelsProps) => {
 
   return (
     <VerticalGroup>
-      <Text>Dynamic & Static labels ss</Text>
+      <Text>Dynamic & Static labels</Text>
       <Text type="secondary" size="small">
         Dynamic: label values are extracted from the alert payload using Jinja. Keys remain static.
         <br />
@@ -379,8 +379,8 @@ const CustomLabels = (props: CustomLabelsProps) => {
       <Dropdown
         overlay={
           <Menu>
-            <Menu.Item label="Plain label" onClick={handlePlainLabelAdd} />
-            <Menu.Item label="Templated label" onClick={handleTemplatedLabelAdd} />
+            <Menu.Item label="Static label" onClick={handleStaticLabelAdd} />
+            <Menu.Item label="Dynamic label" onClick={handleDynamicLabelAdd} />
           </Menu>
         }
       >

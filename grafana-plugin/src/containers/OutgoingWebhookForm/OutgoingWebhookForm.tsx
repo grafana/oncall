@@ -73,6 +73,7 @@ const CustomFieldSectionRenderer: React.FC<CustomFieldSectionRendererProps> = ob
         value={getValues<LabelKeyValue[]>(WebhookFormFieldName.Labels) || []}
         errors={labelsFormErrors}
         onDataUpdate={onDataUpdate}
+        description="Labels applied to the webhook will be included in the webhook payload, along with alert group and integration labels."
       />
     </RenderConditionally>
   );
