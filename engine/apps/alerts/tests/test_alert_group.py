@@ -577,3 +577,47 @@ def test_filter_active_alert_groups(
     assert active_alert_groups.count() == 2
     assert alert_group_active in active_alert_groups
     assert alert_group_active_silenced in active_alert_groups
+
+
+@patch("apps.alerts.models.AlertGroup.hard_delete")
+@patch("apps.alerts.models.AlertGroup.un_attach_by_delete")
+@patch("apps.alerts.models.AlertGroup.stop_escalation")
+@patch("apps.alerts.models.alert_group.alert_group_action_triggered_signal")
+@pytest.mark.django_db
+def test_delete_by_user(
+    mock_alert_group_action_triggered_signal,
+    _mock_stop_escalation,
+    _mock_un_attach_by_delete,
+    _mock_hard_delete,
+    make_organization_and_user,
+    make_alert_receive_channel,
+    make_alert_group,
+):
+    organization, user = make_organization_and_user()
+    alert_receive_channel = make_alert_receive_channel(organization)
+
+    alert_group = make_alert_group(alert_receive_channel)
+
+    # make a few dependent alert groups
+    dependent_alert_groups = [make_alert_group(alert_receive_channel, root_alert_group=alert_group) for _ in range(3)]
+
+    assert alert_group.log_records.filter(type=AlertGroupLogRecord.TYPE_DELETED).count() == 0
+
+    alert_group.delete_by_user(user)
+
+    assert alert_group.log_records.filter(type=AlertGroupLogRecord.TYPE_DELETED).count() == 1
+    deleted_log_record = alert_group.log_records.get(type=AlertGroupLogRecord.TYPE_DELETED)
+
+    alert_group.stop_escalation.assert_called_once_with()
+
+    mock_alert_group_action_triggered_signal.send.assert_called_once_with(
+        sender=alert_group.delete_by_user,
+        log_record=deleted_log_record.pk,
+        action_source=None,
+        force_sync=True,
+    )
+
+    alert_group.hard_delete.assert_called_once_with()
+
+    for dependent_alert_group in dependent_alert_groups:
+        dependent_alert_group.un_attach_by_delete.assert_called_with()
