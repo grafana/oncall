@@ -238,11 +238,13 @@ class GForm extends React.Component<GFormProps, {}> {
                 error={formItem.label ? `${formItem.label} is required` : `${capitalCase(formItem.name)} is required`}
                 description={formItem.description}
               >
-                {onFieldRender
-                  ? onFieldRender(formItem, disabled, formControl, getValues(), (value) =>
-                      setValue(formItem.name, value)
-                    )
-                  : formControl}
+                <div className="u-margin-top-xs">
+                  {onFieldRender
+                    ? onFieldRender(formItem, disabled, formControl, getValues(), (value) =>
+                        setValue(formItem.name, value)
+                      )
+                    : formControl}
+                </div>
               </Field>
             );
           };
