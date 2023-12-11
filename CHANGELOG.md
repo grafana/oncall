@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Fix setting integration team to default on update @Ferril ([#3530](https://github.com/grafana/oncall/pull/3530))
+- Fix wrong time in rotation form ([#8467](https://github.com/grafana/support-escalations/issues/8467))
 
 ## v1.3.74 (2023-12-06)
 
