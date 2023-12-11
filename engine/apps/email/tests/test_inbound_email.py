@@ -3,6 +3,7 @@ from django.urls import reverse
 from rest_framework.test import APIClient
 from rest_framework import status
 
+
 @pytest.mark.django_db
 def test_amazon_ses_provider_load(
     settings,
