@@ -15,9 +15,10 @@ def test_amazon_ses_provider_load(settings, make_organization_and_user_with_toke
     organization, _, token = make_organization_and_user_with_token()
     _ = make_alert_receive_channel(organization, token=dummy_channel_token)
 
+    recipient = f"{dummy_channel_token}@example.com"
     mime = f"""From: sender@example.com
     Subject: Dummy email message
-    To: {dummy_channel_token}@example.com
+    To: {recipient}
     Content-Type: text/plain
 
     Hello!
@@ -25,14 +26,14 @@ def test_amazon_ses_provider_load(settings, make_organization_and_user_with_toke
 
     message = {
         "notificationType": "Received",
-        "receipt": {"action": {"type": "SNS"}, "recipients": [f"{dummy_channel_token}@example.com"]},
+        "receipt": {"action": {"type": "SNS"}, "recipients": [recipient]},
         "content": mime,
     }
 
     dummy_sns_message_id = "22b80b92-fdea-4c2c-8f9d-bdfb0c7bf324"
     dummy_sns_payload = {
         "Type": "Notification",
-        "MessageId": f"{dummy_sns_message_id}",
+        "MessageId": dummy_sns_message_id,
         "TopicArn": "arn:aws:sns:us-east-1:123456789012:MyTopic",
         "Subject": "My First Message",
         "Message": json.dumps(message),
@@ -44,9 +45,9 @@ def test_amazon_ses_provider_load(settings, make_organization_and_user_with_toke
         reverse("integrations:inbound_email_webhook"),
         data=json.dumps(dummy_sns_payload),
         content_type="application/json",
-        HTTP_AUTHORIZATION=f"{token}",
+        HTTP_AUTHORIZATION=token,
         HTTP_X_AMZ_SNS_MESSAGE_TYPE="Notification",
-        HTTP_X_AMZ_SNS_MESSAGE_ID=f"{dummy_sns_message_id}",
+        HTTP_X_AMZ_SNS_MESSAGE_ID=dummy_sns_message_id,
     )
 
     assert response.status_code == status.HTTP_200_OK
