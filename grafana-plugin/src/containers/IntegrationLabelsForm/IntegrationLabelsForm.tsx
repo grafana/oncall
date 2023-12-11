@@ -312,7 +312,7 @@ const CustomLabels = (props: CustomLabelsProps) => {
 
   return (
     <VerticalGroup>
-      <Text>Dynamic & Static labels ss</Text>
+      <Text>Dynamic & Static labels</Text>
       <Text type="secondary" size="small">
         Dynamic: label values are extracted from the alert payload using Jinja. Keys remain static.
         <br />
