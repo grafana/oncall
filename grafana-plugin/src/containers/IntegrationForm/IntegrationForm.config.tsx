@@ -1,3 +1,7 @@
+import React from 'react';
+
+import { Icon, Label, Tooltip } from '@grafana/ui';
+
 import { FormItem, FormItemType } from 'components/GForm/GForm.types';
 import { generateAssignToTeamInputDescription } from 'utils/consts';
 
@@ -19,8 +23,14 @@ export const form: { name: string; fields: FormItem[] } = {
     },
     {
       name: 'team',
-      label: 'Assign to team',
-      description: generateAssignToTeamInputDescription('Integrations'),
+      label: (
+        <Label>
+          <span>Assign to team</span>&nbsp;
+          <Tooltip content={generateAssignToTeamInputDescription('Integrations')} placement="right">
+            <Icon name="info-circle" />
+          </Tooltip>
+        </Label>
+      ),
       type: FormItemType.GSelect,
       extra: {
         modelName: 'grafanaTeamStore',

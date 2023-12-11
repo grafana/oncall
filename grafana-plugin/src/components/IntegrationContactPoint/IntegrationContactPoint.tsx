@@ -128,7 +128,7 @@ const IntegrationContactPoint: React.FC<{
                       <HorizontalGroup justify="space-between">
                         <HorizontalGroup spacing="xs" align="center">
                           <Text type="primary">Grafana Alerting Contact point</Text>
-                          <Icon name="info-circle" className={cx('extra-fields__icon')} />
+                          <Icon name="info-circle" />
                         </HorizontalGroup>
 
                         {isConnectOpen ? <Icon name="arrow-down" /> : <Icon name="arrow-right" />}
