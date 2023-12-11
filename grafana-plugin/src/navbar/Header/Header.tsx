@@ -23,7 +23,7 @@ const Header = observer(() => {
       <div className={cx('root')}>
         <div className={cx('page-header__inner', { 'header-topnavbar': isTopNavbar() })}>
           <div className={cx('navbar-left')}>
-            <span className={['page-header__logo', cx('logo-container')].join(' ')}>
+            <span className={cx('page-header__logo', 'logo-container')}>
               <img className={cx('page-header__img')} src={logo} alt="Grafana OnCall" />
             </span>
             <div className="page-header__info-block">{renderHeading()}</div>

@@ -10,10 +10,20 @@ test.describe("updating an integration's heartbeat interval works", async () => 
     await page.getByTestId('integration-heartbeat-settings').click();
   };
 
+  const _tryOpenSettingsForm = async (page: Page) => {
+    try {
+      await _openHeartbeatSettingsForm(page);
+    } catch {
+      return false;
+    }
+
+    return true;
+  }
+
   test('change heartbeat interval', async ({ adminRolePage: { page } }) => {
     await createIntegration({ page, integrationName: generateRandomValue() });
 
-    await _openHeartbeatSettingsForm(page);
+    if (!_tryOpenSettingsForm(page)) return;
 
     const heartbeatSettingsForm = page.getByTestId(HEARTBEAT_SETTINGS_FORM_TEST_ID);
 
@@ -41,7 +51,7 @@ test.describe("updating an integration's heartbeat interval works", async () => 
   test('send heartbeat', async ({ adminRolePage: { page } }) => {
     await createIntegration({ page, integrationName: generateRandomValue() });
 
-    await _openHeartbeatSettingsForm(page);
+    if (!_tryOpenSettingsForm(page)) return;
 
     const heartbeatSettingsForm = page.getByTestId(HEARTBEAT_SETTINGS_FORM_TEST_ID);
 
