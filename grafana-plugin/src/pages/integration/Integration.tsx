@@ -850,7 +850,7 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
                 {store.hasFeature(AppFeature.Labels) && (
                   <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
                     <div className={cx('integration__actionItem')} onClick={() => openLabelsForm()}>
-                      <Text type="primary">Alert group labels</Text>
+                      <Text type="primary">Alert group labeling</Text>
                     </div>
                   </WithPermissionControlTooltip>
                 )}
