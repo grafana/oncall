@@ -171,7 +171,7 @@ export const repeatEveryInSeconds = (repeatEveryPeriod: RepeatEveryPeriod, repea
   return repeatEveryPeriodMultiplier[repeatEveryPeriod] * repeatEveryValue;
 };
 
-export const forceCurrentDateToPreventDSTIssues = (originalDate: dayjs.Dayjs, now = dayjs()) => {
+export const forceCurrentDateToPreventDSTIssues = (originalDate: dayjs.Dayjs, now = new Date()) => {
   /**
    * https://github.com/grafana/support-escalations/issues/8467
    * When parsing a date, JS will automatically apply the time according to DST from the day of input date itself.
@@ -180,6 +180,15 @@ export const forceCurrentDateToPreventDSTIssues = (originalDate: dayjs.Dayjs, no
    * To achieve it we need to set year, month, day to current date so that JS will apply the time according to DST from today.
    * The value is only used for time picker so manipulated date is not exposed to the user.
    */
-  const result = originalDate.utc().year(now.year()).month(now.month()).day(now.day());
-  return result.toDate();
+
+  const original = new Date(originalDate.utc().format());
+  const corrected = Date.UTC(
+    now.getUTCFullYear(),
+    now.getUTCMonth(),
+    now.getUTCDate(),
+    original.getUTCHours(),
+    original.getUTCMinutes(),
+    original.getUTCSeconds()
+  );
+  return corrected;
 };

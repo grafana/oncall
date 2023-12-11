@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 
-import { DateTime, dateTime } from '@grafana/data';
+import { DateTime, dateTimeForTimeZone } from '@grafana/data';
 import { DatePickerWithInput, TimeOfDayPicker, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
@@ -25,9 +25,10 @@ interface DateTimePickerProps {
 }
 
 const DateTimePicker = (props: DateTimePickerProps) => {
-  const { value: propValue, minMoment, timezone, onChange, disabled, onFocus, onBlur, error } = props;
+  const { value, minMoment, timezone, onChange, disabled, onFocus, onBlur, error } = props;
 
-  const value = useMemo(() => toDate(propValue, timezone), [propValue, timezone]);
+  const currentDateTime = dateTimeForTimeZone(timezone, forceCurrentDateToPreventDSTIssues(value));
+  const currentDate = currentDateTime.toDate();
 
   const minDate = useMemo(() => (minMoment ? toDate(minMoment, timezone) : undefined), [minMoment, timezone]);
 
@@ -38,22 +39,21 @@ const DateTimePicker = (props: DateTimePickerProps) => {
       .set('year', newDate.getFullYear())
       .set('month', newDate.getMonth())
       .set('date', newDate.getDate())
-      .set('hour', value.getHours())
-      .set('minute', value.getMinutes())
-      .set('second', value.getSeconds());
+      .set('hour', currentDate.getHours())
+      .set('minute', currentDate.getMinutes())
+      .set('second', currentDate.getSeconds());
 
     onChange(newValue);
   };
   const handleTimeChange = (newMoment: DateTime) => {
     const localMoment = dayjs().tz(timezone).utcOffset() === 0 ? dayjs().utc() : dayjs().tz(timezone);
-    const newDate = newMoment.toDate();
+    const newDate = dateTimeForTimeZone(timezone, newMoment);
     const newValue = localMoment
-      .set('year', value.getFullYear())
-      .set('month', value.getMonth())
-      .set('date', value.getDate())
-      .set('hour', newDate.getHours())
-      .set('minute', newDate.getMinutes())
-      .set('second', newDate.getSeconds());
+      .set('year', currentDate.getFullYear())
+      .set('month', currentDate.getMonth())
+      .set('date', currentDate.getDate())
+      .set('hour', newDate.hour())
+      .set('minute', newDate.minute());
 
     onChange(newValue);
   };
@@ -67,7 +67,13 @@ const DateTimePicker = (props: DateTimePickerProps) => {
           style={{ width: '58%' }}
           className={cx({ 'control--error': Boolean(error) })}
         >
-          <DatePickerWithInput open minDate={minDate} disabled={disabled} value={value} onChange={handleDateChange} />
+          <DatePickerWithInput
+            open
+            minDate={minDate}
+            disabled={disabled}
+            value={currentDate}
+            onChange={handleDateChange}
+          />
         </div>
         <div
           onFocus={onFocus}
@@ -75,11 +81,7 @@ const DateTimePicker = (props: DateTimePickerProps) => {
           style={{ width: '42%' }}
           className={cx({ 'control--error': Boolean(error) })}
         >
-          <TimeOfDayPicker
-            disabled={disabled}
-            value={dateTime(forceCurrentDateToPreventDSTIssues(propValue))}
-            onChange={handleTimeChange}
-          />
+          <TimeOfDayPicker disabled={disabled} value={currentDateTime} onChange={handleTimeChange} />
         </div>
       </div>
       {error && <Text type="danger">{error}</Text>}
