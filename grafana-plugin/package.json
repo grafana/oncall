@@ -122,7 +122,7 @@
     "@grafana/data": "^9.2.4",
     "@grafana/faro-web-sdk": "^1.0.0-beta4",
     "@grafana/faro-web-tracing": "^1.0.0-beta4",
-    "@grafana/labels": "~1.4.2",
+    "@grafana/labels": "~1.4.3",
     "@grafana/runtime": "9.3.0-beta1",
     "@grafana/ui": "^10.2.0",
     "@lifeomic/attempt": "^3.0.3",

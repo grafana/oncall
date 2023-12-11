@@ -4,7 +4,7 @@
 
 .header-topnavbar {
   padding-top: 0;
-  padding-bottom: 36px;
+  padding-bottom: 12px;
 }
 
 .navbar-heading {
@@ -34,6 +34,7 @@
   flex-direction: row;
   column-gap: 8px;
   row-gap: 8px;
+  margin-left: -50px;
 }
 
 .irm-icon {
@@ -51,4 +52,13 @@
     padding-top: 0;
     margin-bottom: 0;
   }
+}
+
+.logo-container,
+.page-header__img {
+  height: 32px;
+}
+
+.page-header__title {
+  margin-bottom: 8px;
 }

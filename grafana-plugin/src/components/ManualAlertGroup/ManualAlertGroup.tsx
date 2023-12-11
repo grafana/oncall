@@ -66,14 +66,16 @@ const ManualAlertGroup: FC<ManualAlertGroupProps> = observer(({ onCreate, onHide
       <VerticalGroup>
         <GForm form={manualAlertFormConfig} data={data} onSubmit={handleFormSubmit} onChange={setFormIsValid} />
         <AddResponders mode="create" />
-        <HorizontalGroup justify="flex-end">
-          <Button variant="secondary" onClick={onHideDrawer}>
-            Cancel
-          </Button>
-          <Button type="submit" form={manualAlertFormConfig.name} disabled={!formIsSubmittable}>
-            Create
-          </Button>
-        </HorizontalGroup>
+        <div className="buttons">
+          <HorizontalGroup justify="flex-end">
+            <Button variant="secondary" onClick={onHideDrawer}>
+              Cancel
+            </Button>
+            <Button type="submit" form={manualAlertFormConfig.name} disabled={!formIsSubmittable}>
+              Create
+            </Button>
+          </HorizontalGroup>
+        </div>
       </VerticalGroup>
     </Drawer>
   );
