@@ -20,13 +20,23 @@ export default class BaseStore {
 
     if (error.response.status >= 400 && error.response.status < 500) {
       const payload = error.response.data;
+
       const text =
         typeof payload === 'string'
           ? payload
           : Object.keys(payload)
-              .map((key) => `${sentenceCase(key)}: ${payload[key]}`)
+              .map((key) => {
+                const candidate = `${sentenceCase(key)}: ${payload[key]}`;
+                if (candidate.includes('object Object')) {
+                  return undefined;
+                }
+                return candidate;
+              })
               .join('\n');
-      openWarningNotification(text);
+
+      if (text?.length) {
+        openWarningNotification(text);
+      }
     }
 
     throw error;
