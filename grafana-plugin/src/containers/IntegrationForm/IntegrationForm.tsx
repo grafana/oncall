@@ -153,7 +153,7 @@ const IntegrationForm = observer((props: IntegrationFormProps) => {
                         {id === 'new' ? (
                           'Alert group labeling'
                         ) : (
-                          <PluginLink onClick={() => navigateToAlertGroupLabels(id)}>Alert group labels</PluginLink>
+                          <PluginLink onClick={() => navigateToAlertGroupLabels(id)}>Alert group labeling</PluginLink>
                         )}{' '}
                         drawer.
                       </>

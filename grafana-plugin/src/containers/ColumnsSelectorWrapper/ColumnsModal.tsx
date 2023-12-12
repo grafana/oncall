@@ -12,8 +12,10 @@ import {
   VerticalGroup,
   useStyles2,
 } from '@grafana/ui';
+import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
+import styles from 'assets/style/utils.css';
 import Block from 'components/GBlock/Block';
 import Text from 'components/Text/Text';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
@@ -27,6 +29,8 @@ import { UserActions } from 'utils/authorization';
 import { useDebouncedCallback } from 'utils/hooks';
 
 import { getColumnsSelectorWrapperStyles } from './ColumnsSelectorWrapper.styles';
+
+const cx = cn.bind(styles);
 
 interface ColumnsModalProps {
   isModalOpen: boolean;
@@ -108,7 +112,7 @@ export const ColumnsModal: React.FC<ColumnsModalProps> = observer(
                       {!result.isCollapsed && (
                         <Block bordered withBackground fullWidth className={styles.valuesBlock}>
                           {result.values === undefined ? (
-                            <LoadingPlaceholder text="Loading..." className="loadingPlaceholder" />
+                            <LoadingPlaceholder text="Loading..." className={cx('loadingPlaceholder')} />
                           ) : (
                             renderLabelValues(result.name, result.values)
                           )}
@@ -135,7 +139,7 @@ export const ColumnsModal: React.FC<ColumnsModalProps> = observer(
                 variant="primary"
                 onClick={onAddNewColumns}
               >
-                {isLoading ? <LoadingPlaceholder className={'loader'} text="Loading..." /> : 'Add'}
+                {isLoading ? <LoadingPlaceholder className={cx('loadingPlaceholder')} text="Loading..." /> : 'Add'}
               </Button>
             </WithPermissionControlTooltip>
           </HorizontalGroup>

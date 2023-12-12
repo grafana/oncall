@@ -113,7 +113,7 @@ def notify_user_about_new_alert_group(user_pk, alert_group_pk, notification_poli
         logger.warning(f"User notification policy {notification_policy_pk} does not exist")
         return
 
-    def _create_error_log_record():
+    def _create_error_log_record(notification_error_code=None):
         """
         Utility method to create a UserNotificationPolicyLogRecord with error
         """
@@ -125,13 +125,14 @@ def notify_user_about_new_alert_group(user_pk, alert_group_pk, notification_poli
             reason="Mobile push notification error",
             notification_step=notification_policy.step,
             notification_channel=notification_policy.notify_by,
+            notification_error_code=notification_error_code,
         )
 
     device_to_notify = FCMDevice.get_active_device_for_user(user)
 
     # create an error log in case user has no devices set up
     if not device_to_notify:
-        _create_error_log_record()
+        _create_error_log_record(UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_MOBILE_USER_HAS_NO_ACTIVE_DEVICE)
         logger.error(f"Error while sending a mobile push notification: user {user_pk} has no device set up")
         return
 
