@@ -1,4 +1,4 @@
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -178,6 +178,7 @@ def test_fcm_message_user_settings_critical_override_dnd_disabled(
     assert message.apns.payload.aps.custom_data["interruption-level"] == "time-sensitive"
 
 
+@patch("apps.base.messaging.get_messaging_backend_from_id", return_value=MagicMock())
 @pytest.mark.django_db
 @pytest.mark.parametrize(
     "alert_title",
@@ -187,6 +188,7 @@ def test_fcm_message_user_settings_critical_override_dnd_disabled(
     ],
 )
 def test_get_push_notification_subtitle(
+    mocked_messaging_backend,
     alert_title,
     make_organization_and_user,
     make_alert_receive_channel,

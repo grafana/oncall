@@ -11,11 +11,8 @@ class AlertMobileAppTemplater(AlertTemplater):
 
 def get_push_notification_subtitle(alert_group):
     MAX_ALERT_TITLE_LENGTH = 200
-    print(f"ALERTS COUNT: {alert_group.alerts.count}")  # TODO: debugging test. remove after debugging
     alert = alert_group.alerts.first()
-    print(f"ALERT TITLE: {alert.title}, DATA: {alert.raw_request_data}")  # TODO: debugging test. remove after debugging
     templated_alert = AlertMobileAppTemplater(alert).render()
-    print(f"TEMPLATED ALERT: {templated_alert}")  # TODO: debugging test. remove after debugging
     alert_title = str_or_backup(templated_alert.title, "Alert Group")
     # limit alert title length to prevent FCM `message is too big` exception
     # https://firebase.google.com/docs/cloud-messaging/concept-options#notifications_and_data_messages
