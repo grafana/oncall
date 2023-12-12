@@ -27,8 +27,8 @@ interface DateTimePickerProps {
 const DateTimePicker = (props: DateTimePickerProps) => {
   const { value, minMoment, timezone, onChange, disabled, onFocus, onBlur, error } = props;
 
-  const currentDateTime = dateTimeForTimeZone(timezone, forceCurrentDateToPreventDSTIssues(value));
-  const currentDate = currentDateTime.toDate();
+  const currentDateForTimePicker = dateTimeForTimeZone(timezone, forceCurrentDateToPreventDSTIssues(value));
+  const originalValue = value.toDate();
 
   const minDate = useMemo(() => (minMoment ? toDate(minMoment, timezone) : undefined), [minMoment, timezone]);
 
@@ -39,9 +39,9 @@ const DateTimePicker = (props: DateTimePickerProps) => {
       .set('year', newDate.getFullYear())
       .set('month', newDate.getMonth())
       .set('date', newDate.getDate())
-      .set('hour', currentDate.getHours())
-      .set('minute', currentDate.getMinutes())
-      .set('second', currentDate.getSeconds());
+      .set('hour', originalValue.getHours())
+      .set('minute', originalValue.getMinutes())
+      .set('second', originalValue.getSeconds());
 
     onChange(newValue);
   };
@@ -49,9 +49,9 @@ const DateTimePicker = (props: DateTimePickerProps) => {
     const localMoment = dayjs().tz(timezone).utcOffset() === 0 ? dayjs().utc() : dayjs().tz(timezone);
     const newDate = dateTimeForTimeZone(timezone, newMoment);
     const newValue = localMoment
-      .set('year', currentDate.getFullYear())
-      .set('month', currentDate.getMonth())
-      .set('date', currentDate.getDate())
+      .set('year', originalValue.getFullYear())
+      .set('month', originalValue.getMonth())
+      .set('date', originalValue.getDate())
       .set('hour', newDate.hour())
       .set('minute', newDate.minute());
 
@@ -71,7 +71,7 @@ const DateTimePicker = (props: DateTimePickerProps) => {
             open
             minDate={minDate}
             disabled={disabled}
-            value={currentDate}
+            value={originalValue}
             onChange={handleDateChange}
           />
         </div>
@@ -81,7 +81,7 @@ const DateTimePicker = (props: DateTimePickerProps) => {
           style={{ width: '42%' }}
           className={cx({ 'control--error': Boolean(error) })}
         >
-          <TimeOfDayPicker disabled={disabled} value={currentDateTime} onChange={handleTimeChange} />
+          <TimeOfDayPicker disabled={disabled} value={currentDateForTimePicker} onChange={handleTimeChange} />
         </div>
       </div>
       {error && <Text type="danger">{error}</Text>}

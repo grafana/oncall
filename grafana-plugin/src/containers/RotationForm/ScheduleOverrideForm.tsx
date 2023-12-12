@@ -52,7 +52,7 @@ const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
     onDelete,
     shiftId,
     startMoment,
-    shiftStart: propsShiftStart = dayjs().startOf('day').add(1, 'day'),
+    shiftStart: propsShiftStart = dayjs().startOf('day'),
     shiftEnd: propsShiftEnd,
     shiftColor = getVar('--tag-warning'),
   } = props;
