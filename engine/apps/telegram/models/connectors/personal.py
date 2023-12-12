@@ -167,6 +167,13 @@ class TelegramToUserConnector(models.Model):
                     notification_policy,
                     UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_TELEGRAM_TOKEN_ERROR,
                 )
+            elif e.message == "Forbidden: user is deactivated":
+                TelegramToUserConnector.create_telegram_notification_error(
+                    alert_group,
+                    self.user,
+                    notification_policy,
+                    UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_TELEGRAM_USER_IS_DEACTIVATED,
+                )
             else:
                 raise e
 
