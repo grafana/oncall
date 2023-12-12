@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Changed
+
+- Add error code for mobile push notification logs when device is not set up @Ferril ([#3554](https://github.com/grafana/oncall/pull/3554))
+
 ## v1.3.77 (2023-12-11)
 
 ### Fixed

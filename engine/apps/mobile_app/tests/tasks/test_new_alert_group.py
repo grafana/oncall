@@ -82,6 +82,10 @@ def test_notify_user_about_new_alert_group_no_device_connected(
 
     log_record = alert_group.personal_log_records.last()
     assert log_record.type == UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED
+    assert (
+        log_record.notification_error_code
+        == UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_MOBILE_USER_HAS_NO_ACTIVE_DEVICE
+    )
 
 
 @pytest.mark.django_db
