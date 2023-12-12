@@ -59,6 +59,7 @@ import { getQueryParams, isTopNavbar } from './GrafanaPluginRootPage.helpers';
 import PluginSetup from './PluginSetup';
 
 import grafanaGlobalStyle from '!raw-loader!assets/style/grafanaGlobalStyles.css';
+import Insights from 'pages/insights/Insights';
 
 export const GrafanaPluginRootPage = (props: AppRootProps) => {
   return (
@@ -143,7 +144,8 @@ export const Root = observer((props: AppRootProps) => {
           >
             <Switch>
               <Route path={getRoutesForPage('alert-groups')} exact>
-                <Incidents query={query} />
+                {/* TODO: revert */}
+                <Insights />
               </Route>
               <Route path={getRoutesForPage('alert-group')} exact>
                 <Incident query={query} pageTitle={pageTitle} setPageTitle={setPageTitle} />
@@ -180,6 +182,9 @@ export const Root = observer((props: AppRootProps) => {
               </Route>
               <Route path={getRoutesForPage('cloud')} exact>
                 <CloudPage />
+              </Route>
+              <Route path={getRoutesForPage('insights')} exact>
+                <Insights />
               </Route>
 
               {/* Backwards compatibility redirect routes */}
