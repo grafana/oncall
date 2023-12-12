@@ -178,7 +178,10 @@ def test_fcm_message_user_settings_critical_override_dnd_disabled(
     assert message.apns.payload.aps.custom_data["interruption-level"] == "time-sensitive"
 
 
-@patch("apps.base.messaging.get_messaging_backend_from_id", return_value=MagicMock())
+@patch(
+    "apps.alerts.incident_appearance.templaters.alert_templater.get_messaging_backend_from_id",
+    return_value=MagicMock(),
+)
 @pytest.mark.django_db
 @pytest.mark.parametrize(
     "alert_title",
