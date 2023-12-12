@@ -68,6 +68,7 @@ export class CloudStore extends BaseStore {
     return await makeRequest(`${this.path}${id}`, { method: 'GET' });
   }
 
+  @action.bound
   async loadCloudConnectionStatus() {
     this.cloudConnectionStatus = await this.getCloudConnectionStatus();
   }

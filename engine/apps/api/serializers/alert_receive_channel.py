@@ -20,7 +20,6 @@ from apps.user_management.models import Organization
 from common.api_helpers.custom_fields import TeamPrimaryKeyRelatedField
 from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.mixins import APPEARANCE_TEMPLATE_NAMES, EagerLoadingMixin
-from common.api_helpers.utils import CurrentTeamDefault
 from common.jinja_templater import jinja_template_env
 
 from .integration_heartbeat import IntegrationHeartBeatSerializer
@@ -211,7 +210,7 @@ class AlertReceiveChannelSerializer(
     alert_groups_count = serializers.SerializerMethodField()
     author = serializers.CharField(read_only=True, source="author.public_primary_key")
     organization = serializers.CharField(read_only=True, source="organization.public_primary_key")
-    team = TeamPrimaryKeyRelatedField(allow_null=True, default=CurrentTeamDefault())
+    team = TeamPrimaryKeyRelatedField(allow_null=True, required=False)
     is_able_to_autoresolve = serializers.ReadOnlyField()
     default_channel_filter = serializers.SerializerMethodField()
     instructions = serializers.SerializerMethodField()
@@ -349,6 +348,10 @@ class AlertReceiveChannelSerializer(
     def validate_integration(integration):
         if integration is None or integration not in AlertReceiveChannel.WEB_INTEGRATION_CHOICES:
             raise BadRequest(detail="invalid integration")
+
+        if integration == AlertReceiveChannel.INTEGRATION_DIRECT_PAGING:
+            raise BadRequest(detail="Direct paging integrations can't be created")
+
         return integration
 
     def validate_verbal_name(self, verbal_name):
@@ -372,7 +375,8 @@ class AlertReceiveChannelSerializer(
         return IntegrationHeartBeatSerializer(heartbeat).data
 
     def get_allow_delete(self, obj: "AlertReceiveChannel"):
-        return True
+        # don't allow deleting direct paging integrations
+        return obj.integration != AlertReceiveChannel.INTEGRATION_DIRECT_PAGING
 
     def get_alert_count(self, obj: "AlertReceiveChannel"):
         return 0

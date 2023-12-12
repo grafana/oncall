@@ -11,6 +11,7 @@ from apps.metrics_exporter.helpers import (
     get_metric_alert_groups_response_time_key,
     get_metric_alert_groups_total_key,
     get_metric_user_was_notified_of_alert_groups_key,
+    metrics_add_integrations_to_cache,
     metrics_bulk_update_team_label_cache,
 )
 from apps.metrics_exporter.metrics_cache_manager import MetricsCacheManager
@@ -547,3 +548,67 @@ def test_update_metrics_cache_on_user_notification(
         # counter doesn't grow after the second notification of alert group
         notify_user_task(user.id, alert_group_2.id, previous_notification_policy_pk=notification_policy_1.id)
         arg_idx = get_called_arg_index_and_compare_results()
+
+
+@pytest.mark.django_db
+def test_metrics_add_integrations_to_cache(make_organization, make_alert_receive_channel):
+    organization = make_organization(
+        org_id=METRICS_TEST_ORG_ID,
+        stack_slug=METRICS_TEST_INSTANCE_SLUG,
+        stack_id=METRICS_TEST_INSTANCE_ID,
+    )
+    alert_receive_channel1 = make_alert_receive_channel(organization)
+    alert_receive_channel2 = make_alert_receive_channel(organization)
+
+    def _expected_alert_groups_total(alert_receive_channel, firing=0):
+        return {
+            "integration_name": alert_receive_channel.emojized_verbal_name,
+            "team_name": alert_receive_channel.team_name,
+            "team_id": alert_receive_channel.team_id_or_no_team,
+            "org_id": organization.org_id,
+            "slug": organization.stack_slug,
+            "id": organization.stack_id,
+            "firing": firing,
+            "silenced": 0,
+            "acknowledged": 0,
+            "resolved": 0,
+        }
+
+    def _expected_alert_groups_response_time(alert_receive_channel, response_time=None):
+        if response_time is None:
+            response_time = []
+
+        return {
+            "integration_name": alert_receive_channel.emojized_verbal_name,
+            "team_name": alert_receive_channel.team_name,
+            "team_id": alert_receive_channel.team_id_or_no_team,
+            "org_id": organization.org_id,
+            "slug": organization.stack_slug,
+            "id": organization.stack_id,
+            "response_time": response_time,
+        }
+
+    # clear cache, add some data
+    cache.set(
+        get_metric_alert_groups_total_key(organization.id),
+        {alert_receive_channel2.id: _expected_alert_groups_total(alert_receive_channel2, firing=42)},
+    )
+    cache.set(
+        get_metric_alert_groups_response_time_key(organization.id),
+        {alert_receive_channel2.id: _expected_alert_groups_response_time(alert_receive_channel2, response_time=[12])},
+    )
+
+    # add integrations to cache
+    metrics_add_integrations_to_cache([alert_receive_channel1, alert_receive_channel2], organization)
+
+    # check alert groups total
+    assert cache.get(get_metric_alert_groups_total_key(organization.id)) == {
+        alert_receive_channel1.id: _expected_alert_groups_total(alert_receive_channel1),
+        alert_receive_channel2.id: _expected_alert_groups_total(alert_receive_channel2, firing=42),
+    }
+
+    # check alert groups response time
+    assert cache.get(get_metric_alert_groups_response_time_key(organization.id)) == {
+        alert_receive_channel1.id: _expected_alert_groups_response_time(alert_receive_channel1),
+        alert_receive_channel2.id: _expected_alert_groups_response_time(alert_receive_channel2, response_time=[12]),
+    }

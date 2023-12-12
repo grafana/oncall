@@ -49,12 +49,14 @@ def overridden_complete_slack_auth(request, backend, *args, **kwargs):
         # if this was a user login/linking account, redirect to profile
         redirect_to = "/a/grafana-oncall-app/users/me"
 
-    result = do_complete(
-        request.backend,
-        _do_login,
+    kwargs.update(
         user=request.user,
         redirect_name=REDIRECT_FIELD_NAME,
         request=request,
+    )
+    result = do_complete(
+        request.backend,
+        _do_login,
         *args,
         **kwargs,
     )

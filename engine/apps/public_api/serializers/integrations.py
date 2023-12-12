@@ -53,7 +53,7 @@ TEMPLATE_PUBLIC_API_NAME_TO_DB_FIELD = {
 TEMPLATES_WITH_SEPARATE_DB_FIELD = [SLACK, WEB, PHONE_CALL, SMS, TELEGRAM] + PUBLIC_BEHAVIOUR_TEMPLATES_FIELDS
 
 PUBLIC_API_CUSTOMIZABLE_NOTIFICATION_CHANNEL_TEMPLATES = [SLACK, WEB, PHONE_CALL, SMS, TELEGRAM]
-for backend_id, backend in get_messaging_backends():
+for _, backend in get_messaging_backends():
     if backend.customizable_templates:
         PUBLIC_API_CUSTOMIZABLE_NOTIFICATION_CHANNEL_TEMPLATES.append(backend.slug)
 
@@ -67,6 +67,8 @@ class IntegrationTypeField(fields.CharField):
             raise BadRequest(detail="Invalid integration type")
         if has_legacy_prefix(data):
             raise BadRequest("This integration type is deprecated")
+        if data == AlertReceiveChannel.INTEGRATION_DIRECT_PAGING:
+            raise BadRequest(detail="Direct paging integrations can't be created")
         return data
 
 

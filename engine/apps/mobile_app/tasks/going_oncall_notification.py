@@ -15,6 +15,7 @@ from apps.mobile_app.types import FCMMessageData, MessageType, Platform
 from apps.mobile_app.utils import MAX_RETRIES, construct_fcm_message, send_push_notification
 from apps.schedules.models.on_call_schedule import OnCallSchedule, ScheduleEvent
 from apps.user_management.models import User
+from common.cache import ensure_cache_key_allocates_to_the_same_hash_slot
 from common.custom_celery_tasks import shared_dedicated_queue_retry_task
 from common.l10n import format_localized_datetime, format_localized_time
 
@@ -164,7 +165,10 @@ def _should_we_send_push_notification(
 
 
 def _generate_cache_key(user_pk: str, schedule_event: ScheduleEvent) -> str:
-    return f"going_oncall_push_notification:{user_pk}:{schedule_event['shift']['pk']}"
+    KEY_PREFIX = "going_oncall_push_notification"
+    return ensure_cache_key_allocates_to_the_same_hash_slot(
+        f"{KEY_PREFIX}:{user_pk}:{schedule_event['shift']['pk']}", KEY_PREFIX
+    )
 
 
 @shared_dedicated_queue_retry_task(autoretry_for=(Exception,), retry_backoff=True, max_retries=MAX_RETRIES)

@@ -1610,7 +1610,7 @@ def test_related_escalation_chains(
     )
     # setup escalation chains linked to web schedule
     escalation_chains = []
-    for i in range(3):
+    for _ in range(3):
         chain = make_escalation_chain(user.organization)
         make_escalation_policy(
             escalation_chain=chain,
@@ -2384,3 +2384,27 @@ def test_current_user_events_multiple_schedules(
     assert result["schedules"][1]["name"] in (schedule_1.name, schedule_2.name)
     assert len(result["schedules"][0]["events"]) > 0
     assert len(result["schedules"][1]["events"]) > 0
+
+
+@pytest.mark.django_db
+def test_team_not_updated_if_not_in_data(
+    make_organization_and_user_with_plugin_token,
+    make_team,
+    make_schedule,
+    make_user_auth_headers,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+    team = make_team(organization)
+    schedule = make_schedule(organization, team=team, schedule_class=OnCallScheduleWeb)
+
+    assert schedule.team == team
+
+    client = APIClient()
+    url = reverse("api-internal:schedule-detail", kwargs={"pk": schedule.public_primary_key})
+    data = {"name": "renamed", "type": 2}
+    response = client.put(url, data=data, format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()["team"] == schedule.team.public_primary_key
+
+    schedule.refresh_from_db()
+    assert schedule.team == team

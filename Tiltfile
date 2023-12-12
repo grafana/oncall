@@ -35,7 +35,7 @@ allow_k8s_contexts(["kind-kind"])
 docker_build_sub(
     "localhost:63628/oncall/engine:dev",
     context="./engine",
-    cache_from=["grafana/oncall:latest"],
+    cache_from=["grafana/oncall:latest", "grafana/oncall:dev"],
     ignore=["./grafana-plugin/test-results/", "./grafana-plugin/dist/", "./grafana-plugin/e2e-tests/"],
     child_context=".",
     target="dev",
@@ -102,7 +102,11 @@ k8s_resource(
     labels=["OnCallBackend"],
 )
 k8s_resource(workload="redis-master", labels=["OnCallDeps"])
-k8s_resource(workload="mariadb", labels=["OnCallDeps"])
+k8s_resource(
+    workload="mariadb",
+    port_forwards='3307:3306', # <host_port>:<container_port>
+    labels=["OnCallDeps"],
+)
 
 
 # name all tilt resources after the k8s object namespace + name

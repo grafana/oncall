@@ -15,9 +15,10 @@ export class OrganizationStore extends BaseStore {
     this.path = '/organization/';
   }
 
-  @action
+  @action.bound
   async loadCurrentOrganization() {
-    this.currentOrganization = await makeRequest(this.path, {});
+    const organization = await makeRequest(this.path, {});
+    this.currentOrganization = organization;
   }
 
   @action

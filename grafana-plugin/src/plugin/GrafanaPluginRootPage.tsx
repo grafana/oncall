@@ -18,6 +18,7 @@ import LegacyNavTabsBar from 'navbar/LegacyNavTabsBar';
 import { Redirect, Route, Switch, useLocation } from 'react-router-dom';
 import { AppRootProps } from 'types';
 
+import RenderConditionally from 'components/RenderConditionally/RenderConditionally';
 import Unauthorized from 'components/Unauthorized';
 import DefaultPageLayout from 'containers/DefaultPageLayout/DefaultPageLayout';
 import { getMatchedPage, getRoutesForPage, pages } from 'pages';
@@ -68,17 +69,21 @@ export const GrafanaPluginRootPage = (props: AppRootProps) => {
 };
 
 export const Root = observer((props: AppRootProps) => {
-  const store = useStore();
-
-  const [basicDataLoaded, setBasicDataLoaded] = useState(false);
+  const { isBasicDataLoaded, loadBasicData, loadMasterData } = useStore();
 
   const [pageTitle, setPageTitle] = useState('');
 
-  useEffect(() => {
-    runQueuedUpdateData(0);
-  }, []);
-
   const location = useLocation();
+
+  useEffect(() => {
+    loadBasicData();
+    // defer loading master data as it's not used in first sec by user in order to prioritize fetching base data
+    const timeout = setTimeout(() => {
+      loadMasterData();
+    }, 1000);
+
+    return () => clearTimeout(timeout);
+  }, []);
 
   useEffect(() => {
     let link = document.createElement('link');
@@ -109,6 +114,10 @@ export const Root = observer((props: AppRootProps) => {
     return (pages[page] || pages[DEFAULT_PAGE]).getPageNav(pageTitle);
   };
 
+  if (!userHasAccess) {
+    return <Unauthorized requiredUserAction={pagePermissionAction} />;
+  }
+
   return (
     <DefaultPageLayout {...props} page={page} pageNav={getPageNav()}>
       {!isTopNavbar() && (
@@ -124,11 +133,14 @@ export const Root = observer((props: AppRootProps) => {
           'page-body': !isTopNavbar(),
         })}
       >
-        {userHasAccess ? (
-          // Otherwise we'll run into concurrency issues
-          !basicDataLoaded ? (
-            <LoadingPlaceholder text="Loading..." />
-          ) : (
+        <RenderConditionally
+          shouldRender={userHasAccess}
+          backupChildren={<Unauthorized requiredUserAction={pagePermissionAction} />}
+        >
+          <RenderConditionally
+            shouldRender={isBasicDataLoaded}
+            backupChildren={<LoadingPlaceholder text="Loading..." />}
+          >
             <Switch>
               <Route path={getRoutesForPage('alert-groups')} exact>
                 <Incidents query={query} />
@@ -182,7 +194,7 @@ export const Root = observer((props: AppRootProps) => {
                     }}
                   ></Redirect>
                 )}
-              ></Route>
+              />
               <Route
                 path={getRoutesForPage('incidents')}
                 exact
@@ -194,30 +206,14 @@ export const Root = observer((props: AppRootProps) => {
                     }}
                   ></Redirect>
                 )}
-              ></Route>
-
+              />
               <Route path="*">
                 <NoMatch />
               </Route>
             </Switch>
-          )
-        ) : (
-          <Unauthorized requiredUserAction={pagePermissionAction} />
-        )}
+          </RenderConditionally>
+        </RenderConditionally>
       </div>
     </DefaultPageLayout>
   );
-
-  async function runQueuedUpdateData(attemptCount: number) {
-    if (attemptCount === 10) {
-      return;
-    }
-
-    try {
-      await store.updateBasicData();
-      setBasicDataLoaded(true);
-    } catch {
-      setTimeout(() => runQueuedUpdateData(attemptCount + 1), 1000);
-    }
-  }
 });

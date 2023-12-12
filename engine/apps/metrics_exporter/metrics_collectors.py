@@ -28,9 +28,13 @@ from apps.metrics_exporter.tasks import start_calculate_and_cache_metrics, start
 application_metrics_registry = CollectorRegistry()
 
 
-RE_ALERT_GROUPS_TOTAL = re.compile(r"{}_(\d+)".format(ALERT_GROUPS_TOTAL))
-RE_ALERT_GROUPS_RESPONSE_TIME = re.compile(r"{}_(\d+)".format(ALERT_GROUPS_RESPONSE_TIME))
-RE_USER_WAS_NOTIFIED_OF_ALERT_GROUPS = re.compile(r"{}_(\d+)".format(USER_WAS_NOTIFIED_OF_ALERT_GROUPS))
+# _RE_BASE_PATTERN allows for optional curly-brackets around the metric name as in some cases this may occur
+# see common.cache.ensure_cache_key_allocates_to_the_same_hash_slot for more details regarding this
+_RE_BASE_PATTERN = r"{{?{}}}?_(\d+)"
+
+RE_ALERT_GROUPS_TOTAL = re.compile(_RE_BASE_PATTERN.format(ALERT_GROUPS_TOTAL))
+RE_ALERT_GROUPS_RESPONSE_TIME = re.compile(_RE_BASE_PATTERN.format(ALERT_GROUPS_RESPONSE_TIME))
+RE_USER_WAS_NOTIFIED_OF_ALERT_GROUPS = re.compile(_RE_BASE_PATTERN.format(USER_WAS_NOTIFIED_OF_ALERT_GROUPS))
 
 
 # https://github.com/prometheus/client_python#custom-collectors
@@ -82,7 +86,7 @@ class ApplicationMetricsCollector:
             alert_groups_total_keys
         )
         for org_key, ag_states in org_ag_states.items():
-            for integration, integration_data in ag_states.items():
+            for _, integration_data in ag_states.items():
                 # Labels values should have the same order as _integration_labels_with_state
                 labels_values = [
                     integration_data["integration_name"],  # integration
@@ -111,7 +115,7 @@ class ApplicationMetricsCollector:
             alert_groups_response_time_keys
         )
         for org_key, ag_response_time in org_ag_response_times.items():
-            for integration, integration_data in ag_response_time.items():
+            for _, integration_data in ag_response_time.items():
                 # Labels values should have the same order as _integration_labels
                 labels_values = [
                     integration_data["integration_name"],  # integration
@@ -143,7 +147,7 @@ class ApplicationMetricsCollector:
             user_was_notified_keys
         )
         for org_key, users in org_users.items():
-            for user, user_data in users.items():
+            for _, user_data in users.items():
                 # Labels values should have the same order as _user_labels
                 labels_values = [
                     user_data["user_username"],  # username

@@ -4,6 +4,7 @@ import logging
 from django.conf import settings
 from django.core.exceptions import PermissionDenied
 from django.http import HttpResponseBadRequest, JsonResponse
+from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django_sns_view.views import SNSEndpoint
@@ -75,6 +76,7 @@ class AmazonSNS(BrowsableInstructionMixin, AlertChannelDefiningMixin, Integratio
             link_to_upstream = None
             raw_request_data = {"message": message}
 
+        timestamp = timezone.now().isoformat()
         create_alert.apply_async(
             [],
             {
@@ -85,6 +87,7 @@ class AmazonSNS(BrowsableInstructionMixin, AlertChannelDefiningMixin, Integratio
                 "alert_receive_channel_pk": alert_receive_channel.pk,
                 "integration_unique_data": None,
                 "raw_request_data": raw_request_data,
+                "received_at": timestamp,
             },
         )
 
@@ -119,16 +122,19 @@ class AlertManagerAPIView(
         """
         process_v1 creates alerts from each alert in incoming AlertManager payload.
         """
+        now = timezone.now()
         for alert in request.data.get("alerts", []):
             if settings.DEBUG:
-                create_alertmanager_alerts(alert_receive_channel.pk, alert)
+                create_alertmanager_alerts(alert_receive_channel.pk, alert, received_at=now.isoformat())
             else:
                 self.execute_rate_limit_with_notification_logic()
 
                 if self.request.limited and not is_ratelimit_ignored(alert_receive_channel):
                     return self.get_ratelimit_http_response()
 
-                create_alertmanager_alerts.apply_async((alert_receive_channel.pk, alert))
+                create_alertmanager_alerts.apply_async(
+                    (alert_receive_channel.pk, alert), kwargs={"received_at": now.isoformat()}
+                )
 
     def process_v2(self, request, alert_receive_channel):
         """
@@ -143,6 +149,7 @@ class AlertManagerAPIView(
             num_resolved = len(list(filter(lambda a: a.get("status", "") == "resolved", alerts)))
             data = {**request.data, "numFiring": num_firing, "numResolved": num_resolved}
 
+        timestamp = timezone.now().isoformat()
         create_alert.apply_async(
             [],
             {
@@ -153,6 +160,7 @@ class AlertManagerAPIView(
                 "alert_receive_channel_pk": alert_receive_channel.pk,
                 "integration_unique_data": None,
                 "raw_request_data": data,
+                "received_at": timestamp,
             },
         )
 
@@ -191,16 +199,19 @@ class GrafanaAPIView(
 
         # Grafana Alerting 9 has the same payload structure as AlertManager
         if "alerts" in request.data:
+            now = timezone.now()
             for alert in request.data.get("alerts", []):
                 if settings.DEBUG:
-                    create_alertmanager_alerts(alert_receive_channel.pk, alert)
+                    create_alertmanager_alerts(alert_receive_channel.pk, alert, received_at=now.isoformat())
                 else:
                     self.execute_rate_limit_with_notification_logic()
 
                     if self.request.limited and not is_ratelimit_ignored(alert_receive_channel):
                         return self.get_ratelimit_http_response()
 
-                    create_alertmanager_alerts.apply_async((alert_receive_channel.pk, alert))
+                    create_alertmanager_alerts.apply_async(
+                        (alert_receive_channel.pk, alert), kwargs={"received_at": now.isoformat()}
+                    )
             return Response("Ok.")
 
         """
@@ -254,6 +265,7 @@ class GrafanaAPIView(
             """
             attachment = request.data["attachments"][0]
 
+            timestamp = timezone.now().isoformat()
             create_alert.apply_async(
                 [],
                 {
@@ -273,9 +285,11 @@ class GrafanaAPIView(
                         }
                     ),
                     "raw_request_data": request.data,
+                    "received_at": timestamp,
                 },
             )
         else:
+            timestamp = timezone.now().isoformat()
             create_alert.apply_async(
                 [],
                 {
@@ -286,6 +300,7 @@ class GrafanaAPIView(
                     "alert_receive_channel_pk": alert_receive_channel.pk,
                     "integration_unique_data": json.dumps({"evalMatches": request.data.get("evalMatches", [])}),
                     "raw_request_data": request.data,
+                    "received_at": timestamp,
                 },
             )
         return Response("Ok.")
@@ -305,6 +320,7 @@ class UniversalAPIView(BrowsableInstructionMixin, AlertChannelDefiningMixin, Int
                 f"This url is for integration with {alert_receive_channel.config.title}."
                 f"Key is for {alert_receive_channel.get_integration_display()}"
             )
+        timestamp = timezone.now().isoformat()
         create_alert.apply_async(
             [],
             {
@@ -315,6 +331,7 @@ class UniversalAPIView(BrowsableInstructionMixin, AlertChannelDefiningMixin, Int
                 "alert_receive_channel_pk": alert_receive_channel.pk,
                 "integration_unique_data": None,
                 "raw_request_data": request.data,
+                "received_at": timestamp,
             },
         )
         return Response("Ok.")

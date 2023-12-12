@@ -34,6 +34,7 @@ import IntegrationBlock from 'components/Integrations/IntegrationBlock';
 import PageErrorHandlingWrapper, { PageBaseState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
 import { initErrorDataState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper.helpers';
 import PluginLink from 'components/PluginLink/PluginLink';
+import RenderConditionally from 'components/RenderConditionally/RenderConditionally';
 import Tag from 'components/Tag/Tag';
 import Text from 'components/Text/Text';
 import TooltipBadge from 'components/TooltipBadge/TooltipBadge';
@@ -789,6 +790,10 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
           onHide={() => setIsIntegrationSettingsOpen(false)}
           onSubmit={() => alertReceiveChannelStore.updateItem(alertReceiveChannel['id'])}
           id={alertReceiveChannel['id']}
+          navigateToAlertGroupLabels={(_id: AlertReceiveChannel['id']) => {
+            setIsIntegrationSettingsOpen(false);
+            setLabelsFormOpen(true);
+          }}
         />
       )}
 
@@ -799,7 +804,7 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
           }}
           onSubmit={() => alertReceiveChannelStore.updateItem(alertReceiveChannel['id'])}
           id={alertReceiveChannel['id']}
-          onOpenIntegraionSettings={() => {
+          onOpenIntegrationSettings={() => {
             setIsIntegrationSettingsOpen(true);
           }}
         />
@@ -845,7 +850,7 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
                 {store.hasFeature(AppFeature.Labels) && (
                   <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
                     <div className={cx('integration__actionItem')} onClick={() => openLabelsForm()}>
-                      <Text type="primary">Alert group labels</Text>
+                      <Text type="primary">Alert group labeling</Text>
                     </div>
                   </WithPermissionControlTooltip>
                 )}
@@ -958,37 +963,37 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
                     </HorizontalGroup>
                   </div>
                 </CopyToClipboard>
-
-                <div className={cx('thin-line-break')} />
-
-                <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
-                  <div className={cx('integration__actionItem')}>
-                    <div
-                      onClick={() => {
-                        setConfirmModal({
-                          isOpen: true,
-                          title: 'Delete Integration?',
-                          body: (
-                            <Text type="primary">
-                              Are you sure you want to delete <Emoji text={alertReceiveChannel.verbal_name} /> ?
-                            </Text>
-                          ),
-                          onConfirm: deleteIntegration,
-                          dismissText: 'Cancel',
-                          confirmText: 'Delete',
-                        });
-                      }}
-                      className="u-width-100"
-                    >
-                      <Text type="danger">
-                        <HorizontalGroup spacing={'xs'}>
-                          <Icon name="trash-alt" />
-                          <span>Delete Integration</span>
-                        </HorizontalGroup>
-                      </Text>
+                <RenderConditionally shouldRender={alertReceiveChannel.allow_delete}>
+                  <div className={cx('thin-line-break')} />
+                  <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
+                    <div className={cx('integration__actionItem')}>
+                      <div
+                        onClick={() => {
+                          setConfirmModal({
+                            isOpen: true,
+                            title: 'Delete Integration?',
+                            body: (
+                              <Text type="primary">
+                                Are you sure you want to delete <Emoji text={alertReceiveChannel.verbal_name} /> ?
+                              </Text>
+                            ),
+                            onConfirm: deleteIntegration,
+                            dismissText: 'Cancel',
+                            confirmText: 'Delete',
+                          });
+                        }}
+                        className="u-width-100"
+                      >
+                        <Text type="danger">
+                          <HorizontalGroup spacing={'xs'}>
+                            <Icon name="trash-alt" />
+                            <span>Delete Integration</span>
+                          </HorizontalGroup>
+                        </Text>
+                      </div>
                     </div>
-                  </div>
-                </WithPermissionControlTooltip>
+                  </WithPermissionControlTooltip>
+                </RenderConditionally>
               </div>
             )}
           >

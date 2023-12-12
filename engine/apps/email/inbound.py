@@ -6,6 +6,7 @@ from anymail.inbound import AnymailInboundMessage
 from anymail.signals import AnymailInboundEvent
 from anymail.webhooks import amazon_ses, mailgun, mailjet, mandrill, postal, postmark, sendgrid, sparkpost
 from django.http import HttpResponse, HttpResponseNotAllowed
+from django.utils import timezone
 from rest_framework import status
 from rest_framework.request import Request
 from rest_framework.response import Response
@@ -61,6 +62,7 @@ class InboundEmailWebhookView(AlertChannelDefiningMixin, APIView):
         return super().dispatch(request, alert_channel_key=integration_token)
 
     def post(self, request):
+        timestamp = timezone.now().isoformat()
         for message in self.get_messages_from_esp_request(request):
             payload = self.get_alert_payload_from_email_message(message)
             create_alert.delay(
@@ -71,6 +73,7 @@ class InboundEmailWebhookView(AlertChannelDefiningMixin, APIView):
                 link_to_upstream_details=None,
                 integration_unique_data=None,
                 raw_request_data=payload,
+                received_at=timestamp,
             )
 
         return Response("OK", status=status.HTTP_200_OK)

@@ -1,6 +1,7 @@
 import { action, observable } from 'mobx';
 
 import BaseStore from 'models/base_store';
+import { LabelsErrors } from 'models/label/label.types';
 import { makeRequest } from 'network';
 import { RootStore } from 'state';
 
@@ -15,6 +16,9 @@ export class OutgoingWebhookStore extends BaseStore {
 
   @observable.shallow
   outgoingWebhookPresets: OutgoingWebhookPreset[] = [];
+
+  @observable
+  labelsFormErrors?: LabelsErrors;
 
   constructor(rootStore: RootStore) {
     super(rootStore);
@@ -101,9 +105,14 @@ export class OutgoingWebhookStore extends BaseStore {
     });
   }
 
-  @action
-  async updateOutgoingWebhookPresets() {
+  @action.bound
+  async updateOutgoingWebhookPresetsOptions() {
     const response = await makeRequest(`/webhooks/preset_options/`, {});
     this.outgoingWebhookPresets = response;
+  }
+
+  @action.bound
+  setLabelsFormErrors(errors: LabelsErrors) {
+    this.labelsFormErrors = errors;
   }
 }

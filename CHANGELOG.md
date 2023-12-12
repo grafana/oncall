@@ -7,13 +7,90 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## v1.3.77 (2023-12-11)
+
+### Fixed
+
+- Fix schedules invalid dates issue ([#support-escalations/issues/8084](https://github.com/grafana/support-escalations/issues/8084))
+- Fix issue related to updating alert group metrics when deleting an alert group via the public API by @joeyorlando ([#3544](https://github.com/grafana/oncall/pull/3544))
+- Fix issue with `amazon_ses` inbound email ESP provider by @Lutseslav ([#3509](https://github.com/grafana/oncall/pull/3509))
+
+## v1.3.76 (2023-12-11)
+
+### Fixed
+
+– Fix minor UI bugs
+
+## v1.3.75 (2023-12-08)
+
+### Fixed
+
+- Fix setting integration team to default on update @Ferril ([#3530](https://github.com/grafana/oncall/pull/3530))
+
+## v1.3.74 (2023-12-06)
+
+### Fixed
+
+- Fix missing timestamp value in old grafana API endpoint ([#3522](https://github.com/grafana/oncall/pull/3522))
+
+## v1.3.73 (2023-12-06)
+
+### Added
+
+- Track alert received timestamp on alert group creation ([#3513](https://github.com/grafana/oncall/pull/3513))
+
+## v1.3.72 (2023-12-05)
+
+### Fixed
+
+- Address metrics calculation issue which occurred when `USE_REDIS_CLUSTER` env var was set by @joeyorlando ([#3510](https://github.com/grafana/oncall/pull/3510))
+
+## v1.3.71 (2023-12-05)
+
+### Added
+
+- Add `datetimeformat_as_timezone` Jinja2 template helper filter by @jorgeav ([#3426](https://github.com/grafana/oncall/pull/3426))
+
+### Changed
+
+- Disallow creating and deleting direct paging integrations by @vadimkerr ([#3475](https://github.com/grafana/oncall/pull/3475))
+- Renamed "Connections" tab to "Monitoring Systems" and "Direct Paging" to "Manual Direct Paging" on Integrations page
+
+## v1.3.70 (2023-12-01)
+
+Maintenance release
+
+## v1.3.69 (2023-12-01)
+
+Maintenance release + bugfixes
+
+## v1.3.68 (2023-11-30)
+
+### Fixed
+
+- Create missing direct paging integrations on organization sync by @vadimkerr ([#3468](https://github.com/grafana/oncall/pull/3468))
+
+## v1.3.67 (2023-11-30)
+
+Minor bugfixes + dependency updates :)
+
+## v1.3.66 (2023-11-30)
+
+### Fixed
+
+- Delete duplicate direct paging integrations by @vadimkerr ([#3412](https://github.com/grafana/oncall/pull/3412))
+
+## v1.3.65 (2023-11-29)
+
 ### Added
 
 - Add options to customize table columns in AlertGroup page ([3281](https://github.com/grafana/oncall/pull/3281))
+- Add proxying capabilities for the OnCall mobile API by @joeyorlando ([#3449](https://github.com/grafana/oncall/pull/3449))
 
 ### Fixed
 
 - User profile UI tweaks ([#3443](https://github.com/grafana/oncall/pull/3443))
+- Ensure stack_id and org_id are ints @mderynck [(#3458](https://github.com/grafana/oncall/pull/3458))
 
 ## v1.3.64 (2023-11-28)
 
@@ -26,9 +103,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Add ability to use Grafana Service Account Tokens for OnCall API (This is only enabled for resolution_notes
-endpoint currently) @mderynck ([#3189](https://github.com/grafana/oncall/pull/3189))
+  endpoint currently) @mderynck ([#3189](https://github.com/grafana/oncall/pull/3189))
 - Add ability for webhook presets to mask sensitive headers @mderynck
-([#3189](https://github.com/grafana/oncall/pull/3189))
+  ([#3189](https://github.com/grafana/oncall/pull/3189))
 
 ### Changed
 
@@ -37,12 +114,13 @@ endpoint currently) @mderynck ([#3189](https://github.com/grafana/oncall/pull/31
 ### Fixed
 
 - Fixed issue that blocked saving webhooks with presets if the preset is controlling the URL @mderynck
-([#3189](https://github.com/grafana/oncall/pull/3189))
+  ([#3189](https://github.com/grafana/oncall/pull/3189))
 - User filter doesn't display current value on Alert Groups page ([1714](https://github.com/grafana/oncall/issues/1714))
 - Remove displaying rotation modal for Terraform/API based schedules
 - Filters polishing ([3183](https://github.com/grafana/oncall/issues/3183))
 - Fixed permissions so User settings reader role included list users @mderynck ([#3419](https://github.com/grafana/oncall/pull/3419))
 - Fixed alert group rendering when some links were broken because of replacing `-` to `_` @Ferril ([#3424](https://github.com/grafana/oncall/pull/3424))
+- Make telegram on_alert_group_action_triggered asynchronous([#3471](https://github.com/grafana/oncall/pull/3471))
 
 ## v1.3.62 (2023-11-21)
 

@@ -58,7 +58,7 @@ import { PAGE, TEXT_ELLIPSIS_CLASS } from 'utils/consts';
 import styles from './Integrations.module.scss';
 
 enum TabType {
-  Connections = 'connections',
+  MonitoringSystems = 'monitoring-systems',
   DirectPaging = 'direct-paging',
 }
 
@@ -66,11 +66,11 @@ const TAB_QUERY_PARAM_KEY = 'tab';
 
 const TABS = [
   {
-    label: 'Connections',
-    value: TabType.Connections,
+    label: 'Monitoring Systems',
+    value: TabType.MonitoringSystems,
   },
   {
-    label: 'Direct Paging',
+    label: 'Manual Direct Paging',
     value: TabType.DirectPaging,
   },
 ];
@@ -106,7 +106,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
       integrationsFilters: { searchTerm: '', integration_ne: ['direct_paging'] },
       errorData: initErrorDataState(),
       confirmationModal: undefined,
-      activeTab: props.query[TAB_QUERY_PARAM_KEY] || TabType.Connections,
+      activeTab: props.query[TAB_QUERY_PARAM_KEY] || TabType.MonitoringSystems,
     };
   }
 
@@ -204,8 +204,8 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
     const { alertReceiveChannelStore } = store;
 
     const { count, results, page_size } = alertReceiveChannelStore.getPaginatedSearchResult();
-    const isDirectPagingSelectedOnConnectionsTab =
-      activeTab === TabType.Connections && integrationsFilters.integration?.includes('direct_paging');
+    const isDirectPagingSelectedOnMonitoringSystemsTab =
+      activeTab === TabType.MonitoringSystems && integrationsFilters.integration?.includes('direct_paging');
 
     return (
       <>
@@ -253,7 +253,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
                   skipFilterOptionFn: ({ name }) => name === 'integration',
                 })}
               />
-              {isDirectPagingSelectedOnConnectionsTab && (
+              {isDirectPagingSelectedOnMonitoringSystemsTab && (
                 <Alert
                   className={cx('goToDirectPagingAlert')}
                   severity="info"
@@ -294,6 +294,9 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
             }}
             onSubmit={this.update}
             id={alertReceiveChannelId}
+            navigateToAlertGroupLabels={(id: AlertReceiveChannel['id']) => {
+              this.setState({ alertReceiveChannelId: undefined, alertReceiveChannelIdToShowLabels: id });
+            }}
           />
         )}
 
@@ -304,7 +307,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
             }}
             onSubmit={this.update}
             id={alertReceiveChannelIdToShowLabels}
-            onOpenIntegraionSettings={(id: AlertReceiveChannel['id']) => {
+            onOpenIntegrationSettings={(id: AlertReceiveChannel['id']) => {
               this.setState({ alertReceiveChannelId: id });
             }}
           />
@@ -495,7 +498,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
             {store.hasFeature(AppFeature.Labels) && (
               <WithPermissionControlTooltip key="edit" userAction={UserActions.IntegrationsWrite}>
                 <div className={cx('integrations-actionItem')} onClick={() => this.onLabelsEditClick(item.id)}>
-                  <Text type="primary">Alert group labels</Text>
+                  <Text type="primary">Alert group labeling</Text>
                 </div>
               </WithPermissionControlTooltip>
             )}
@@ -556,7 +559,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
       alertReceiveChannelStore,
       filtersStore: { applyLabelFilter },
     } = this.props.store;
-    const isConnectionsTab = this.state.activeTab === TabType.Connections;
+    const isMonitoringSystemsTab = this.state.activeTab === TabType.MonitoringSystems;
 
     const columns = [
       {
@@ -578,7 +581,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
         key: 'datasource',
         render: (item: AlertReceiveChannel) => this.renderDatasource(item, alertReceiveChannelStore),
       },
-      ...(isConnectionsTab
+      ...(isMonitoringSystemsTab
         ? [
             {
               width: '10%',
@@ -595,7 +598,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
           ]
         : []),
       {
-        width: isConnectionsTab ? '15%' : '30%',
+        width: isMonitoringSystemsTab ? '15%' : '30%',
         title: 'Team',
         render: (item: AlertReceiveChannel) => this.renderTeam(item, grafanaTeamStore.items),
       },

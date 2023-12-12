@@ -23,7 +23,7 @@ logger.setLevel(logging.DEBUG)
     retry_backoff=True,
     max_retries=1 if settings.DEBUG else None,
 )
-def create_alertmanager_alerts(alert_receive_channel_pk, alert, is_demo=False, force_route_id=None):
+def create_alertmanager_alerts(alert_receive_channel_pk, alert, is_demo=False, force_route_id=None, received_at=None):
     from apps.alerts.models import Alert, AlertReceiveChannel
 
     alert_receive_channel = AlertReceiveChannel.objects_with_deleted.get(pk=alert_receive_channel_pk)
@@ -46,6 +46,7 @@ def create_alertmanager_alerts(alert_receive_channel_pk, alert, is_demo=False, f
             enable_autoresolve=False,
             is_demo=is_demo,
             force_route_id=force_route_id,
+            received_at=received_at,
         )
     except ConcurrentUpdateError:
         # This error is raised when there are concurrent updates on AlertGroupCounter due to optimistic lock on it.
@@ -83,6 +84,7 @@ def create_alert(
     raw_request_data,
     is_demo=False,
     force_route_id=None,
+    received_at=None,
 ):
     from apps.alerts.models import Alert, AlertReceiveChannel
 
@@ -105,6 +107,7 @@ def create_alert(
             raw_request_data=raw_request_data,
             force_route_id=force_route_id,
             is_demo=is_demo,
+            received_at=received_at,
         )
         logger.info(
             f"Created alert alert_id={alert.pk} alert_group_id={alert.group.pk} channel_id={alert_receive_channel.pk}"
@@ -123,6 +126,9 @@ def create_alert(
                 integration_unique_data,
                 raw_request_data,
             ),
+            kwargs={
+                "received_at": received_at,
+            },
             countdown=countdown,
         )
         logger.warning(f"Retrying the task gracefully in {countdown} seconds due to ConcurrentUpdateError")
@@ -162,7 +168,7 @@ def notify_about_integration_ratelimit_in_slack(organization_id, text, **kwargs)
         slack_team_identity = organization.slack_team_identity
         if slack_team_identity is not None:
             try:
-                sc = SlackClient(slack_team_identity)
+                sc = SlackClient(slack_team_identity, enable_ratelimit_retry=True)
                 sc.chat_postMessage(channel=organization.general_log_channel_id, text=text, team=slack_team_identity)
             except SlackAPIError as e:
                 logger.warning(f"Slack exception {e} while sending message for organization {organization_id}")

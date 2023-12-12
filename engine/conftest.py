@@ -187,7 +187,7 @@ def mock_apply_async(monkeypatch):
 
 @pytest.fixture(autouse=True)
 def mock_is_labels_feature_enabled(settings):
-    setattr(settings, "FEATURE_LABELS_ENABLED_FOR_ALL", True)
+    settings.FEATURE_LABELS_ENABLED_FOR_ALL = True
 
 
 @pytest.fixture(autouse=True)
@@ -199,8 +199,8 @@ def clear_ical_users_cache():
 @pytest.fixture
 def mock_is_labels_feature_enabled_for_org(settings):
     def _mock_is_labels_feature_enabled_for_org(org_id):
-        setattr(settings, "FEATURE_LABELS_ENABLED_FOR_ALL", False)
-        setattr(settings, "FEATURE_LABELS_ENABLED_FOR_GRAFANA_ORGS", [org_id])
+        settings.FEATURE_LABELS_ENABLED_FOR_ALL = False
+        settings.FEATURE_LABELS_ENABLED_PER_ORG = [org_id]
 
     return _mock_is_labels_feature_enabled_for_org
 
@@ -870,13 +870,19 @@ def reload_urls(settings):
     Reloads Django URLs, especially useful when testing conditionally registered URLs
     """
 
-    def _reload_urls():
+    def _reload_urls(app_url_file_to_reload: str = None):
         clear_url_caches()
+
+        # this can be useful when testing conditionally registered URLs
+        # for example when a django app's urls.py file has conditional logic that is being
+        # overriden/tested, you will need to reload that urls.py file before relaoding the ROOT_URLCONF file
+        if app_url_file_to_reload is not None:
+            reload(import_module(app_url_file_to_reload))
+
         urlconf = settings.ROOT_URLCONF
         if urlconf in sys.modules:
             reload(sys.modules[urlconf])
-        else:
-            import_module(urlconf)
+        import_module(urlconf)
 
     return _reload_urls
 

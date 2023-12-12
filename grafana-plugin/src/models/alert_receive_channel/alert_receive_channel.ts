@@ -317,10 +317,9 @@ export class AlertReceiveChannelStore extends BaseStore {
     return this.updateChannelFilters(channelFilter.alert_receive_channel, true);
   }
 
-  @action
+  @action.bound
   async updateAlertReceiveChannelOptions() {
     const response = await makeRequest(`/alert_receive_channels/integration_options/`, {});
-
     this.alertReceiveChannelOptions = response;
   }
 
@@ -337,7 +336,7 @@ export class AlertReceiveChannelStore extends BaseStore {
   @action.bound
   @WithGlobalNotification({ success: 'Integration has been saved', failure: 'Failed to save integration' })
   async saveAlertReceiveChannel(id: AlertReceiveChannel['id'], data: Partial<AlertReceiveChannel>) {
-    const item = await this.update(id, data);
+    const item = await this.update(id, data, undefined, true);
 
     this.items = {
       ...this.items,

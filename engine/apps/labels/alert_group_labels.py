@@ -16,6 +16,9 @@ logger = logging.getLogger(__name__)
 # What can be used as a label key/value coming out from the template
 LABEL_VALUE_TYPES = (str, int, float, bool)
 
+# Maximum number of labels per alert group, excess labels will be dropped
+MAX_LABELS_PER_ALERT_GROUP = 15
+
 
 def assign_labels(
     alert_group: "AlertGroup", alert_receive_channel: "AlertReceiveChannel", raw_request_data: typing.Any
@@ -49,6 +52,16 @@ def assign_labels(
     ]
     # sort associated labels by key and value
     alert_group_labels.sort(key=lambda label: (label.key_name, label.value_name))
+
+    # only keep up to MAX_LABELS_PER_ALERT_GROUP labels per alert group
+    if len(alert_group_labels) > MAX_LABELS_PER_ALERT_GROUP:
+        logger.warning(
+            "Too many labels for alert group %s. Dropping %d labels.",
+            alert_group.id,
+            len(alert_group_labels) - MAX_LABELS_PER_ALERT_GROUP,
+        )
+        alert_group_labels = alert_group_labels[:MAX_LABELS_PER_ALERT_GROUP]
+
     # bulk create associated labels
     AlertGroupAssociatedLabel.objects.bulk_create(alert_group_labels)
 
@@ -103,6 +116,10 @@ def _custom_labels(alert_receive_channel: "AlertReceiveChannel", raw_request_dat
         value = rendered_labels[key]
 
         # check value length
+        if len(value) == 0:
+            logger.warning("Template result value is empty. %s", value)
+            continue
+
         if len(value) > MAX_VALUE_NAME_LENGTH:
             logger.warning("Template result value is too long. %s", value)
             continue
@@ -147,11 +164,19 @@ def _template_labels(alert_receive_channel: "AlertReceiveChannel", raw_request_d
         value = str(value)
 
         # check key length
+        if len(key) == 0:
+            logger.warning("Template result key is empty. %s", key)
+            continue
+
         if len(key) > MAX_KEY_NAME_LENGTH:
             logger.warning("Template result key is too long. %s", key)
             continue
 
         # check value length
+        if len(value) == 0:
+            logger.warning("Template result value is empty. %s", value)
+            continue
+
         if len(value) > MAX_VALUE_NAME_LENGTH:
             logger.warning("Template result value is too long. %s", value)
             continue

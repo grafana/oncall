@@ -132,3 +132,27 @@ def test_escalation_chain_copy_empty_name(
     )
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+@pytest.mark.django_db
+def test_team_not_updated_if_not_in_data(
+    make_organization_and_user_with_plugin_token,
+    make_team,
+    make_escalation_chain,
+    make_user_auth_headers,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+    team = make_team(organization)
+    escalation_chain = make_escalation_chain(organization, team=team)
+
+    assert escalation_chain.team == team
+
+    client = APIClient()
+    url = reverse("api-internal:escalation_chain-detail", kwargs={"pk": escalation_chain.public_primary_key})
+    data = {"name": "escalation_chain_updated"}
+    response = client.put(url, data=data, format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()["team"] == escalation_chain.team.public_primary_key
+
+    escalation_chain.refresh_from_db()
+    assert escalation_chain.team == team

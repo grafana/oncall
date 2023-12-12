@@ -215,3 +215,32 @@ def on_create_alert_telegram_representative_async(self, alert_pk):
     )
     for message in messages_to_edit:
         edit_message.delay(message_pk=message.pk)
+
+
+@shared_dedicated_queue_retry_task(
+    autoretry_for=(Exception,), retry_backoff=True, max_retries=1 if settings.DEBUG else None
+)
+def on_alert_group_action_triggered_async(log_record_id):
+    from apps.alerts.models import AlertGroupLogRecord
+
+    from .alert_group_representative import AlertGroupTelegramRepresentative
+
+    logger.info(f"AlertGroupTelegramRepresentative ACTION SIGNAL, log record {log_record_id}")
+    # temporary solution to handle cases when alert group and related log records were deleted
+    try:
+        log_record = AlertGroupLogRecord.objects.get(pk=log_record_id)
+    except AlertGroupLogRecord.DoesNotExist as e:
+        retries_count = on_alert_group_action_triggered_async.request.retries
+        if retries_count >= 10:
+            logger.error(
+                f"AlertGroupTelegramRepresentative: was not able to get AlertGroupLogRecord, probably alert group "
+                f"was deleted. log record {log_record_id}, retries: {retries_count}"
+            )
+            return
+        else:
+            raise e
+
+    instance = AlertGroupTelegramRepresentative(log_record)
+    if instance.is_applicable():
+        handler = instance.get_handler()
+        handler()

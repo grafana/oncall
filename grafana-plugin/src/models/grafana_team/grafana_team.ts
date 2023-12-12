@@ -30,7 +30,7 @@ export class GrafanaTeamStore extends BaseStore {
     };
   }
 
-  @action
+  @action.bound
   async updateItems(query = '', includeNoTeam = true, onlyIncludeNotifiableTeams = false, short = true) {
     const result = await makeRequest<GrafanaTeam[]>(`${this.path}`, {
       params: {
@@ -40,7 +40,6 @@ export class GrafanaTeamStore extends BaseStore {
         only_include_notifiable_teams: onlyIncludeNotifiableTeams ? 'true' : 'false',
       },
     });
-
     this.items = {
       ...this.items,
       ...result.reduce<TeamItems>(
