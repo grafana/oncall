@@ -3,6 +3,7 @@ from unittest.mock import patch
 import pytest
 
 from apps.base.models import UserNotificationPolicy, UserNotificationPolicyLogRecord
+from apps.mobile_app.alert_rendering import get_push_notification_subtitle
 from apps.mobile_app.models import FCMDevice, MobileAppUserSettings
 from apps.mobile_app.tasks.new_alert_group import _get_fcm_message, notify_user_about_new_alert_group
 
@@ -175,3 +176,34 @@ def test_fcm_message_user_settings_critical_override_dnd_disabled(
     apns_sound = message.apns.payload.aps.sound
     assert apns_sound.critical is False
     assert message.apns.payload.aps.custom_data["interruption-level"] == "time-sensitive"
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "alert_title",
+    [
+        "Some short title",
+        "Some long title" * 100,
+    ],
+)
+def test_get_push_notification_subtitle(
+    alert_title,
+    make_organization_and_user,
+    make_alert_receive_channel,
+    make_alert_group,
+    make_alert,
+):
+    MAX_ALERT_TITLE_LENGTH = 200
+    organization, user = make_organization_and_user()
+    alert_receive_channel = make_alert_receive_channel(organization=organization)
+    alert_group = make_alert_group(alert_receive_channel)
+    make_alert(alert_group=alert_group, raw_request_data={"title": alert_title})
+    expected_alert_title = (
+        f"{alert_title[:MAX_ALERT_TITLE_LENGTH]}..." if len(alert_title) > MAX_ALERT_TITLE_LENGTH else alert_title
+    )
+    expected_result = (
+        f"#1 {expected_alert_title}\n" + f"via {alert_group.channel.short_name}" + "\nStatus: Firing, alerts: 1"
+    )
+    result = get_push_notification_subtitle(alert_group)
+    assert len(expected_alert_title) <= MAX_ALERT_TITLE_LENGTH + 3
+    assert result == expected_result
