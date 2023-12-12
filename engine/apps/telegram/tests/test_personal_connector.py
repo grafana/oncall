@@ -96,3 +96,85 @@ def test_personal_connector_send_link_to_channel_message_handle_exceptions(
     log_records = user.personal_log_records.filter(alert_group=alert_group)
     assert log_records.count() == 1
     assert log_records.first().notification_error_code == notification_error_code
+
+
+@patch.object(TelegramClient, "send_message")
+@pytest.mark.django_db
+def test_personal_connector_send_link_to_channel_message(
+    mock_send_message,
+    make_organization_and_user,
+    make_telegram_user_connector,
+    make_user_notification_policy,
+    make_alert_receive_channel,
+    make_alert_group,
+    make_alert,
+    make_telegram_channel,
+    make_telegram_message,
+):
+    # set up a user with Telegram account connected
+    organization, user = make_organization_and_user()
+    make_telegram_user_connector(user)
+    notification_policy = make_user_notification_policy(
+        user,
+        UserNotificationPolicy.Step.NOTIFY,
+        notify_by=UserNotificationPolicy.NotificationChannel.TELEGRAM,
+        important=False,
+    )
+
+    # create an alert group with an existing Telegram message in channel
+    alert_receive_channel = make_alert_receive_channel(organization)
+    alert_group = make_alert_group(alert_receive_channel)
+    make_alert(alert_group=alert_group, raw_request_data=alert_receive_channel.config.example_payload)
+    telegram_channel = make_telegram_channel(organization, is_default_channel=True)
+    make_telegram_message(
+        alert_group=alert_group,
+        message_type=TelegramMessage.ALERT_GROUP_MESSAGE,
+        chat_id=str(telegram_channel.channel_chat_id),
+    )
+
+    user.telegram_connection.send_link_to_channel_message(alert_group, notification_policy)
+    mock_send_message.assert_called_once_with(
+        chat_id=user.telegram_connection.telegram_chat_id,
+        message_type=TelegramMessage.LINK_TO_CHANNEL_MESSAGE,
+        alert_group=alert_group,
+    )
+
+    log_record = notification_policy.personal_log_records.last()
+    assert log_record.type == UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_SUCCESS
+
+
+@patch.object(TelegramClient, "send_message")
+@pytest.mark.django_db
+def test_personal_connector_send_full_alert_group(
+    mock_send_message,
+    make_organization_and_user,
+    make_telegram_user_connector,
+    make_user_notification_policy,
+    make_alert_receive_channel,
+    make_alert_group,
+    make_alert,
+):
+    # set up a user with Telegram account connected
+    organization, user = make_organization_and_user()
+    make_telegram_user_connector(user)
+    notification_policy = make_user_notification_policy(
+        user,
+        UserNotificationPolicy.Step.NOTIFY,
+        notify_by=UserNotificationPolicy.NotificationChannel.TELEGRAM,
+        important=False,
+    )
+
+    # create an alert group with an existing Telegram message in channel
+    alert_receive_channel = make_alert_receive_channel(organization)
+    alert_group = make_alert_group(alert_receive_channel)
+    make_alert(alert_group=alert_group, raw_request_data=alert_receive_channel.config.example_payload)
+
+    user.telegram_connection.send_full_alert_group(alert_group, notification_policy)
+    mock_send_message.assert_called_once_with(
+        chat_id=user.telegram_connection.telegram_chat_id,
+        message_type=TelegramMessage.PERSONAL_MESSAGE,
+        alert_group=alert_group,
+    )
+
+    log_record = notification_policy.personal_log_records.last()
+    assert log_record.type == UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_SUCCESS
