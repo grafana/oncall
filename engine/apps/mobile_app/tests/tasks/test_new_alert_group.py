@@ -1,9 +1,10 @@
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 
+from apps.alerts.incident_appearance.templaters.alert_templater import TemplatedAlert
 from apps.base.models import UserNotificationPolicy, UserNotificationPolicyLogRecord
-from apps.mobile_app.alert_rendering import get_push_notification_subtitle
+from apps.mobile_app.alert_rendering import AlertMobileAppTemplater, get_push_notification_subtitle
 from apps.mobile_app.models import FCMDevice, MobileAppUserSettings
 from apps.mobile_app.tasks.new_alert_group import _get_fcm_message, notify_user_about_new_alert_group
 
@@ -178,10 +179,6 @@ def test_fcm_message_user_settings_critical_override_dnd_disabled(
     assert message.apns.payload.aps.custom_data["interruption-level"] == "time-sensitive"
 
 
-@patch(
-    "apps.alerts.incident_appearance.templaters.alert_templater.get_messaging_backend_from_id",
-    return_value=MagicMock(),
-)
 @pytest.mark.django_db
 @pytest.mark.parametrize(
     "alert_title",
@@ -191,7 +188,6 @@ def test_fcm_message_user_settings_critical_override_dnd_disabled(
     ],
 )
 def test_get_push_notification_subtitle(
-    mocked_messaging_backend,
     alert_title,
     make_organization_and_user,
     make_alert_receive_channel,
@@ -209,6 +205,9 @@ def test_get_push_notification_subtitle(
     expected_result = (
         f"#1 {expected_alert_title}\n" + f"via {alert_group.channel.short_name}" + "\nStatus: Firing, alerts: 1"
     )
-    result = get_push_notification_subtitle(alert_group)
+    templated_alert = TemplatedAlert()
+    templated_alert.title = alert_title
+    with patch.object(AlertMobileAppTemplater, "render", return_value=templated_alert):
+        result = get_push_notification_subtitle(alert_group)
     assert len(expected_alert_title) <= MAX_ALERT_TITLE_LENGTH + 3
     assert result == expected_result
