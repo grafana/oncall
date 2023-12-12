@@ -1,79 +1,57 @@
 import React from 'react';
 
 import {
-  SceneQueryRunner,
   EmbeddedScene,
   SceneTimeRange,
   SceneFlexLayout,
-  SceneFlexItem,
-  PanelBuilders,
+  SceneControlsSpacer,
+  SceneRefreshPicker,
+  SceneTimePicker,
+  SceneVariableSet,
+  VariableValueSelectors,
+  NestedScene,
 } from '@grafana/scenes';
 
-export function getDataAndTimeRangeScene() {
-  // Scene data, used by Panel A
-  const queryRunner1 = new SceneQueryRunner({
-    datasource: {
-      type: 'prometheus',
-      uid: 'grafanacloud-usage',
-    },
-    queries: [
-      {
-        refId: 'A',
-        expr: 'grafanacloud_instance_alertmanager_alerts',
-        format: 'table',
-        instant: true,
-        // refId: 'A',
-        // expr: 'max_over_time(sum(avg without(pod, instance) ($alert_groups_total{slug=~"$instance", team=~"$team", integration=~"$integration"}))[1d:])',
-      },
-    ],
-  });
+import { getNewAlertGroupsDuringTimePeriodScene } from './scenes/NewAlertGroupsDuringTimePeriod';
+import { getTotalAlertGroupsScene } from './scenes/TotalAlertGroups';
+import { getTotalAlertGroupsByStateScene } from './scenes/TotalAlertGroupsByState';
+import VARIABLES from './variables';
 
-  // Panel B data
-  const queryRunner2 = new SceneQueryRunner({
-    datasource: {
-      type: 'prometheus',
-      uid: 'grafanacloud-usage',
-    },
-    queries: [
-      {
-        refId: 'A',
-        expr: 'avg by (job, instance, mode) (rate(node_cpu_seconds_total[5m]))',
-      },
-    ],
-  });
-
-  const scene = new EmbeddedScene({
-    $data: queryRunner1,
-    // Global time range. queryRunner1 will use this time range.
-    $timeRange: new SceneTimeRange({ from: 'now-5m', to: 'now' }),
-    body: new SceneFlexLayout({
-      direction: 'row',
-      children: [
-        new SceneFlexItem({
-          width: '50%',
-          height: 300,
-          body: PanelBuilders.timeseries().setTitle('Panel using global time range').build(),
+const rootScene = new EmbeddedScene({
+  $timeRange: new SceneTimeRange({ from: 'now-7d', to: 'now' }),
+  $variables: new SceneVariableSet({
+    variables: VARIABLES,
+  }),
+  controls: [
+    new VariableValueSelectors({}),
+    new SceneControlsSpacer(),
+    new SceneTimePicker({}),
+    new SceneRefreshPicker({}),
+  ],
+  body: new SceneFlexLayout({
+    children: [
+      new NestedScene({
+        title: 'Overview',
+        canCollapse: true,
+        isCollapsed: false,
+        body: new SceneFlexLayout({
+          direction: 'column',
+          children: [
+            new SceneFlexLayout({
+              height: 200,
+              children: [getTotalAlertGroupsScene(), getTotalAlertGroupsByStateScene()],
+            }),
+            new SceneFlexLayout({
+              height: 400,
+              children: [getNewAlertGroupsDuringTimePeriodScene()],
+            }),
+          ],
         }),
-        new SceneFlexItem({
-          width: '50%',
-          height: 300,
-          body: PanelBuilders.timeseries()
-            .setTitle('Panel using local time range')
-            // Time range defined on VizPanel object. queryRunner2 will use this time range.
-            .setTimeRange(new SceneTimeRange({ from: 'now-6h', to: 'now' }))
-            .setData(queryRunner2)
-            .build(),
-        }),
-      ],
-    }),
-  });
+      }),
+    ],
+  }),
+});
 
-  return scene;
-}
-
-const Insights = () => {
-  const scene = getDataAndTimeRangeScene();
-  return <scene.Component model={scene} />;
-};
+const Insights = () => <rootScene.Component model={rootScene} />;
 
 export default Insights;

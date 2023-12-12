@@ -25,7 +25,7 @@ import { getMatchedPage, getRoutesForPage, pages } from 'pages';
 import NoMatch from 'pages/NoMatch';
 import EscalationChains from 'pages/escalation-chains/EscalationChains';
 import Incident from 'pages/incident/Incident';
-import Incidents from 'pages/incidents/Incidents';
+// import Incidents from 'pages/incidents/Incidents';
 import Integration from 'pages/integration/Integration';
 import Integrations from 'pages/integrations/Integrations';
 import OutgoingWebhooks from 'pages/outgoing_webhooks/OutgoingWebhooks';
