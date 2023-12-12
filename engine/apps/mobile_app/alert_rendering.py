@@ -15,6 +15,7 @@ def get_push_notification_subtitle(alert_group):
     templated_alert = AlertMobileAppTemplater(alert).render()
     alert_title = str_or_backup(templated_alert.title, "Alert Group")
     # limit alert title length to prevent FCM `message is too big` exception
+    # https://firebase.google.com/docs/cloud-messaging/concept-options#notifications_and_data_messages
     if len(alert_title) > MAX_ALERT_TITLE_LENGTH:
         alert_title = f"{alert_title[:MAX_ALERT_TITLE_LENGTH]}..."
 
