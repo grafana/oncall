@@ -4,7 +4,8 @@
 
 .header-topnavbar {
   padding-top: 0;
-  padding-bottom: 12px;
+  padding-bottom: 0;
+  margin-bottom: 32px;
 }
 
 .navbar-heading {
@@ -46,7 +47,6 @@
 }
 
 .banners {
-  padding-top: 12px;
   margin-bottom: 24px;
 
   &:empty {
