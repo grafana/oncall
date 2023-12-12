@@ -7,7 +7,7 @@ from .task_logger import task_logger
 
 
 @shared_dedicated_queue_retry_task(
-    autoretry_for=(Exception,), retry_backoff=True, max_retries=1 if settings.DEBUG else None
+    autoretry_for=(Exception,), retry_backoff=True, max_retries=1 if settings.DEBUG else 10
 )
 def send_update_log_report_signal(log_record_pk=None, alert_group_pk=None):
     from apps.alerts.models import AlertGroup, AlertReceiveChannel
