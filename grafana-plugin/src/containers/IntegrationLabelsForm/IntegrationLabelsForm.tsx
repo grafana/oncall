@@ -156,7 +156,7 @@ const IntegrationLabelsForm = observer((props: IntegrationLabelsFormProps) => {
 
           <Collapse isOpen={false} label="Multi-label extraction template" contentClassName="u-padding-top-none">
             <VerticalGroup>
-              <HorizontalGroup justify="space-between" style={{ marginBottom: '10px' }}>
+              <HorizontalGroup justify="space-between" style={{ marginBottom: '10px' }} align="flex-end">
                 <Text type="secondary" size="small" className="u-padding-left-lg">
                   Allows for the extraction and modification of multiple labels from the alert payload using a single
                   template. Supports not only dynamic values but also dynamic keys. The Jinja template must result in
