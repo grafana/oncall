@@ -197,7 +197,7 @@ def test_get_push_notification_subtitle(
     organization, user = make_organization_and_user()
     alert_receive_channel = make_alert_receive_channel(organization=organization)
     alert_group = make_alert_group(alert_receive_channel)
-    make_alert(alert_group=alert_group, raw_request_data={"title": alert_title})
+    make_alert(alert_group=alert_group, title=alert_title, raw_request_data={"title": alert_title})
     expected_alert_title = (
         f"{alert_title[:MAX_ALERT_TITLE_LENGTH]}..." if len(alert_title) > MAX_ALERT_TITLE_LENGTH else alert_title
     )
