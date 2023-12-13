@@ -5,6 +5,22 @@ import { Datasource } from './config';
 const VARIABLES = [
   // Selectable
   new QueryVariable({
+    text: 'grafanacloud-usage',
+    value: 'grafanacloud-usage',
+    hide: 0,
+    includeAll: false,
+    label: 'Data source',
+    isMulti: false,
+    name: 'datasource',
+    options: [],
+    query: 'prometheus',
+    // queryValue: '',
+    refresh: 1,
+    regex: '',
+    skipUrlSync: false,
+    // type: 'datasource',
+  }),
+  new QueryVariable({
     name: 'instance',
     label: 'Instance',
     text: ['All'],
