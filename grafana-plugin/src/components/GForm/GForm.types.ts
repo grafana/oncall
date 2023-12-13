@@ -1,3 +1,5 @@
+import { ReactNode } from 'react';
+
 export enum FormItemType {
   'Input' = 'input',
   'Password' = 'password',
@@ -13,10 +15,10 @@ export enum FormItemType {
 
 export interface FormItem {
   name: string;
-  label?: string;
+  label?: ReactNode;
   type: FormItemType;
   disabled?: boolean;
-  description?: string;
+  description?: ReactNode;
   placeholder?: string;
   normalize?: (value: any) => any;
   isVisible?: (data: any) => any;

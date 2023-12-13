@@ -11,6 +11,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add backend for multi-stack support for mobile-app @Ferril ([#3500](https://github.com/grafana/oncall/pull/3500))
 
+## v1.3.78 (2023-12-12)
+
+### Changed
+
+- Add error code for mobile push notification logs when device is not set up @Ferril ([#3554](https://github.com/grafana/oncall/pull/3554))
+
+### Fixed
+
+- Fix issue when mobile push notification message is too big @Ferril ([#3556](https://github.com/grafana/oncall/pull/3556)
+
+## v1.3.77 (2023-12-11)
+
+### Fixed
+
+- Fix schedules invalid dates issue ([#support-escalations/issues/8084](https://github.com/grafana/support-escalations/issues/8084))
+- Fix issue related to updating alert group metrics when deleting an alert group via the public API by @joeyorlando ([#3544](https://github.com/grafana/oncall/pull/3544))
+- Fix issue with `amazon_ses` inbound email ESP provider by @Lutseslav ([#3509](https://github.com/grafana/oncall/pull/3509))
+
+## v1.3.76 (2023-12-11)
+
+### Fixed
+
+– Fix minor UI bugs
+
+## v1.3.75 (2023-12-08)
+
+### Fixed
+
+- Fix setting integration team to default on update @Ferril ([#3530](https://github.com/grafana/oncall/pull/3530))
+
+
 ## v1.3.74 (2023-12-06)
 
 ### Fixed

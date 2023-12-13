@@ -184,8 +184,14 @@ def on_create_alert_telegram_representative_async(self, alert_pk):
     """
     It's async in order to prevent Telegram downtime or formatting issues causing delay with SMS and other destinations.
     """
-
-    alert = Alert.objects.get(pk=alert_pk)
+    try:
+        alert = Alert.objects.get(pk=alert_pk)
+    except Alert.DoesNotExist as e:
+        if on_create_alert_telegram_representative_async.request.retries >= 10:
+            logger.error(f"Alert {alert_pk} was not found. Probably it was deleted. Stop retrying")
+            return
+        else:
+            raise e
     alert_group = alert.group
 
     alert_group_messages = alert_group.telegram_messages.filter(
@@ -226,8 +232,19 @@ def on_alert_group_action_triggered_async(log_record_id):
     from .alert_group_representative import AlertGroupTelegramRepresentative
 
     logger.info(f"AlertGroupTelegramRepresentative ACTION SIGNAL, log record {log_record_id}")
-
-    log_record = AlertGroupLogRecord.objects.get(pk=log_record_id)
+    # temporary solution to handle cases when alert group and related log records were deleted
+    try:
+        log_record = AlertGroupLogRecord.objects.get(pk=log_record_id)
+    except AlertGroupLogRecord.DoesNotExist as e:
+        retries_count = on_alert_group_action_triggered_async.request.retries
+        if retries_count >= 10:
+            logger.error(
+                f"AlertGroupTelegramRepresentative: was not able to get AlertGroupLogRecord, probably alert group "
+                f"was deleted. log record {log_record_id}, retries: {retries_count}"
+            )
+            return
+        else:
+            raise e
 
     instance = AlertGroupTelegramRepresentative(log_record)
     if instance.is_applicable():

@@ -898,3 +898,33 @@ def test_update_webhook_labels_duplicate_key(
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert webhook.labels.count() == 0
+
+
+@pytest.mark.django_db
+def test_team_not_updated_if_not_in_data(
+    make_organization_and_user_with_plugin_token,
+    make_team,
+    make_custom_webhook,
+    make_user_auth_headers,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+    team = make_team(organization)
+    webhook = make_custom_webhook(
+        name="some_webhook",
+        url="https://github.com/",
+        organization=organization,
+        forward_all=False,
+        team=team,
+    )
+
+    assert webhook.team == team
+
+    client = APIClient()
+    url = reverse("api-internal:webhooks-detail", kwargs={"pk": webhook.public_primary_key})
+    data = {"name": "renamed"}
+    response = client.put(url, data=data, format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()["team"] == webhook.team.public_primary_key
+
+    webhook.refresh_from_db()
+    assert webhook.team == team
