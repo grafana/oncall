@@ -19,6 +19,7 @@ import { useStore } from 'state/useStore';
 import CloudPhoneSettings from './tabs/CloudPhoneSettings/CloudPhoneSettings';
 
 import styles from 'containers/UserSettings/parts/index.module.css';
+import { shouldUseProfileExtensionPoint } from 'utils';
 
 const cx = cn.bind(styles);
 
@@ -73,7 +74,7 @@ export const Tabs = ({
         onChangeTab={getTabClickHandler(UserSettingsTab.PhoneVerification)}
         data-testid="tab-phone-verification"
       />
-      {showMobileAppConnectionTab && (
+      {showMobileAppConnectionTab && !shouldUseProfileExtensionPoint() && (
         <Tab
           active={activeTab === UserSettingsTab.MobileAppConnection}
           label="Mobile App Connection"
@@ -140,7 +141,9 @@ export const TabsContent = observer(({ id, activeTab, onTabChange, isDesktopOrLa
         ) : (
           <PhoneVerification userPk={id} />
         ))}
-      {activeTab === UserSettingsTab.MobileAppConnection && <MobileAppConnection userPk={id} />}
+      {!shouldUseProfileExtensionPoint() && activeTab === UserSettingsTab.MobileAppConnection && (
+        <MobileAppConnection userPk={id} />
+      )}
       {activeTab === UserSettingsTab.SlackInfo && <SlackTab />}
       {activeTab === UserSettingsTab.TelegramInfo && <TelegramInfo />}
     </TabContent>

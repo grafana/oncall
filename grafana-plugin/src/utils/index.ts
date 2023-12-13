@@ -6,6 +6,7 @@ import appEvents from 'grafana/app/core/app_events';
 import { isArray, concat, isPlainObject, flatMap, map, keys } from 'lodash-es';
 
 import { isNetworkError } from 'network';
+import { getGrafanaVersion } from 'plugin/GrafanaPluginRootPage.helpers';
 
 export class KeyValuePair<T = string | number> {
   key: T;
@@ -94,4 +95,11 @@ export function getPaths(obj?: any, parentKey?: string): string[] {
 
 export function pluralize(word: string, count: number): string {
   return count === 1 ? word : `${word}s`;
+}
+
+export function shouldUseProfileExtensionPoint(): boolean {
+  const { major, minor } = getGrafanaVersion();
+  const isRequiredGrafanaVersion = major > 10 || (major === 10 && minor >= 3);
+
+  return isRequiredGrafanaVersion;
 }

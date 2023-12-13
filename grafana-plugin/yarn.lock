@@ -1762,7 +1762,7 @@
     uplot "1.6.26"
     xss "^1.0.14"
 
-"@grafana/data@10.2.2":
+"@grafana/data@10.2.2", "@grafana/data@^10.2.2":
   version "10.2.2"
   resolved "https://registry.yarnpkg.com/@grafana/data/-/data-10.2.2.tgz#fca2c0029acf41e79f2e84e837758faa7519567b"
   integrity sha512-ofiUOQw8E9qG9FKIERWSSHdAU2p+w1jzuqy49giDJfxDaskcin5We5VWamSONqYPYP/tCjZcGkvnsVa/uwU37A==

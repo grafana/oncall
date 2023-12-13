@@ -1,13 +1,14 @@
 import { ComponentClass } from 'react';
 
-import { AppPlugin, PluginExtensionPoints } from '@grafana/data';
-import IRMSettings from 'irmSettings';
+import { AppPlugin } from '@grafana/data';
 
-// import MobileAppConnection from 'containers/MobileAppConnection/MobileAppConnection';
+import MobileAppConnection from 'containers/MobileAppConnection/MobileAppConnection';
 import PluginConfigPage from 'containers/PluginConfigPage/PluginConfigPage';
 import { GrafanaPluginRootPage } from 'plugin/GrafanaPluginRootPage';
 
 import { OnCallPluginConfigPageProps, OnCallPluginMetaJSONData } from './types';
+import { PluginExtensionPoints } from '@grafana/data';
+import { getGrafanaVersion } from 'plugin/GrafanaPluginRootPage.helpers';
 
 const plugin = new AppPlugin<OnCallPluginMetaJSONData>().setRootPage(GrafanaPluginRootPage).addConfigPage({
   title: 'Configuration',
@@ -16,52 +17,32 @@ const plugin = new AppPlugin<OnCallPluginMetaJSONData>().setRootPage(GrafanaPlug
   id: 'configuration',
 });
 
-if (
-  'configureExtensionComponent' in plugin &&
-  PluginExtensionPoints != null &&
-  'UserProfileTab' in PluginExtensionPoints
-) {
-  const IRMSettingsTabTitle = 'IRM';
-  // const OnCallSettingsTabTitle = 'OnCall';
-
-  // TODO: change this to use the PluginExtensionPoints enum once we update the @grafana/data package
+if (shouldUseProfileExtensionPoint()) {
+  // TODO Change this to use the PluginExtensionPoints enum once that is available in @grafana/data (>10.2.2)
   const extensionPointId = 'grafana/user/profile/tab';
 
   plugin.configureExtensionComponent({
-    title: IRMSettingsTabTitle,
-    description: 'hello world',
+    title: 'OnCall',
+    description: 'OnCall settings',
     extensionPointId,
     /**
-     * typing IRMSettings as any until 10.2.0 is released
+     * typing MobileAppConnection as any until 10.2.0 is released
      * https://github.com/grafana/grafana/pull/75019#issuecomment-1724997540
      */
-    component: IRMSettings as any,
+    component: MobileAppConnection as any,
   });
+}
 
-  console.log('passed');
+function shouldUseProfileExtensionPoint(): boolean {
+  const { major, minor } = getGrafanaVersion();
+  const isRequiredGrafanaVersion = major > 10 || (major === 10 && minor >= 3);
 
-  // plugin.configureExtensionComponent({
-  //   title: IRMSettingsTabTitle,
-  //   description: 'hello world123',
-  //   extensionPointId,
-  //   /**
-  //    * typing IRMSettings as any until 10.2.0 is released
-  //    * https://github.com/grafana/grafana/pull/75019#issuecomment-1724997540
-  //    */
-  //   component: SomeMoreIRMSettings as any,
-  // });
-
-  // plugin.configureExtensionComponent({
-  //   title: OnCallSettingsTabTitle,
-  //   // TODO: what is the description needed for? I don't think we actually need it but it is a required attribute
-  //   description: 'hello world',
-  //   extensionPointId,
-  //   /**
-  //    * typing MobileAppConnection as any until 10.2.0 is released
-  //    * https://github.com/grafana/grafana/pull/75019#issuecomment-1724997540
-  //    */
-  //   component: MobileAppConnection as any,
-  // });
+  return (
+    isRequiredGrafanaVersion &&
+    'configureExtensionComponent' in plugin &&
+    PluginExtensionPoints != null &&
+    'UserProfileTab' in PluginExtensionPoints
+  );
 }
 
 export { plugin };
