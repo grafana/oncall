@@ -1,5 +1,5 @@
 import dayjs from 'dayjs';
-import { action, observable } from 'mobx';
+import { action, makeObservable, observable } from 'mobx';
 
 import { RemoteFiltersType } from 'containers/RemoteFilters/RemoteFilters.types';
 import BaseStore from 'models/base_store';
@@ -117,6 +117,8 @@ export class ScheduleStore extends BaseStore {
 
   constructor(rootStore: RootStore) {
     super(rootStore);
+
+    makeObservable(this);
 
     this.path = '/schedules/';
   }

@@ -1,6 +1,6 @@
 import { locationService } from '@grafana/runtime';
 import { contextSrv } from 'grafana/app/core/core';
-import { action, observable } from 'mobx';
+import { action, makeObservable, observable } from 'mobx';
 import moment from 'moment-timezone';
 import qs from 'query-string';
 import { OnCallAppPluginMeta } from 'types';
@@ -112,8 +112,11 @@ export class RootBaseStore {
   labelsStore = new LabelStore(this);
   loaderStore = LoaderStore;
 
+  constructor() {
+    makeObservable(this);
+  }
   @action.bound
-  async loadBasicData() {
+  loadBasicData = async () => {
     const updateFeatures = async () => {
       await this.updateFeatures();
 
@@ -131,16 +134,16 @@ export class RootBaseStore {
       () => updateFeatures(),
     ]);
     this.isBasicDataLoaded = true;
-  }
+  };
 
-  @action.bound
-  async loadMasterData() {
+  @action
+  loadMasterData = async () => {
     Promise.all([
       this.userStore.updateNotificationPolicyOptions(),
       this.userStore.updateNotifyByOptions(),
       this.alertReceiveChannelStore.updateAlertReceiveChannelOptions(),
     ]);
-  }
+  };
 
   setupPluginError(errorMsg: string) {
     this.initializationError = errorMsg;

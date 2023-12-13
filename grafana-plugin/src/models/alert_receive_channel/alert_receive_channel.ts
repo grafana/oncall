@@ -1,7 +1,7 @@
 import { omit } from 'lodash-es';
 import { action, observable } from 'mobx';
 
-import { AlertTemplatesDTO } from 'models/alert_templates';
+import { AlertTemplatesDTO } from 'models/alert_templates/alert_templates';
 import { Alert } from 'models/alertgroup/alertgroup.types';
 import BaseStore from 'models/base_store';
 import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
