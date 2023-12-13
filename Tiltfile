@@ -76,8 +76,8 @@ cmd_button(
     icon_name="replay",
     inputs=[
         text_input("BROWSERS", "Browsers (e.g. \"chromium,firefox,webkit\")", "chromium", "chromium,firefox,webkit"), 
-        bool_input("REPORTER", "Use HTML reporter", False, 'html', 'line'),
-        bool_input("STOP_ON_FIRST_FAILURE", "Stop on first failure", False, "-x", ""),
+        bool_input("REPORTER", "Use HTML reporter", True, 'html', 'line'),
+        bool_input("STOP_ON_FIRST_FAILURE", "Stop on first failure", True, "-x", ""),
     ]
 )
 

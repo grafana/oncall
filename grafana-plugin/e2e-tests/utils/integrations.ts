@@ -1,4 +1,4 @@
-import { Locator, Page, expect } from '@playwright/test';
+import { Page, expect } from '@playwright/test';
 
 import { clickButton, generateRandomValue, selectDropdownValue } from './forms';
 import { goToOnCallPage } from './navigation';
@@ -16,8 +16,7 @@ export const createIntegration = async ({
   integrationName = `integration-${generateRandomValue()}`,
   integrationSearchText = 'Webhook',
   shouldGoToIntegrationsPage = true,
-}: // shouldNavigateToIntegrationDetailAfterCreation,
-{
+}: {
   page: Page;
   integrationName?: string;
   integrationSearchText?: string;
