@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+### Added
+
+- Add backend for multi-stack support for mobile-app @Ferril ([#3500](https://github.com/grafana/oncall/pull/3500))
+
 ## v1.3.78 (2023-12-12)
 
 ### Changed
