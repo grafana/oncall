@@ -115,6 +115,7 @@ $LARGE-MARGIN: 24px;
 .input {
   flex-grow: 1;
   max-width: calc(100% - 80px);
+  border: var(--border-weak);
 }
 .input-with-toggler {
   max-width: calc(100% - 134px);
@@ -213,6 +214,7 @@ $LARGE-MARGIN: 24px;
 
 .inline-switch {
   height: 34px;
+  border: var(--border-weak);
 }
 
 .contactpoints {
