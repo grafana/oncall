@@ -112,11 +112,17 @@ $LARGE-MARGIN: 24px;
   }
 }
 
+:global(.theme-light) {
+  .input {
+    border: var(--border-weak);
+  }
+}
+
 .input {
   flex-grow: 1;
   max-width: calc(100% - 80px);
-  border: var(--border-weak);
 }
+
 .input-with-toggler {
   max-width: calc(100% - 134px);
 }
