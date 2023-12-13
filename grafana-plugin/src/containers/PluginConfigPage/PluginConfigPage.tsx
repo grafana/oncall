@@ -50,7 +50,6 @@ const PluginConfigPage: FC<OnCallPluginConfigPageProps> = ({
     meta: { enabled: pluginIsEnabled },
   },
 }) => {
-  console.log('AAAAAA');
   const { search } = useLocation();
   const queryParams = new URLSearchParams(search);
   const pluginConfiguredQueryParam = queryParams.get(PLUGIN_CONFIGURED_QUERY_PARAM);

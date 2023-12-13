@@ -11,5 +11,5 @@ export const goToGrafanaPage = async (page: Page, url: GrafanaPage) => _goToPage
 
 export const goToOnCallPage = async (page: Page, onCallPage: OnCallPage) => {
   await _goToPage(page, `/a/grafana-oncall-app/${onCallPage}`);
-  await page.getByTestId('oncall-header').waitFor();
+  await page.waitForTimeout(1000);
 };

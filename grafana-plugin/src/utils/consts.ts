@@ -32,8 +32,6 @@ export const ONCALL_PROD = 'https://oncall-prod-us-central-0.grafana.net/oncall'
 export const ONCALL_OPS = 'https://oncall-ops-us-east-0.grafana.net/oncall';
 export const ONCALL_DEV = 'https://oncall-dev-us-central-0.grafana.net/oncall';
 
-export const DEFAULT_ONCALL_API_URL = 'http://oncall-dev-engine:8080';
-
 // Single source of truth on the frontend for OnCall API URL
 export const getOnCallApiUrl = (meta?: OnCallAppPluginMeta) =>
   meta?.jsonData?.onCallApiUrl || process.env.ONCALL_API_URL;

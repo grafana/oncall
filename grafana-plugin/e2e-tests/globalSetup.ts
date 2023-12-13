@@ -79,7 +79,7 @@ const configureOnCallPlugin = async (page: Page): Promise<void> => {
 
   const needToEnterOnCallApiUrl = await page.getByText(/Connected to OnCall/).isHidden();
   if (needToEnterOnCallApiUrl) {
-    await getInputByName(page, 'onCallApiUrl').fill(getOnCallApiUrl());
+    await getInputByName(page, 'onCallApiUrl').fill(getOnCallApiUrl() || 'http://oncall-dev-engine:8080');
     await clickButton({ page, buttonText: 'Connect' });
   }
 

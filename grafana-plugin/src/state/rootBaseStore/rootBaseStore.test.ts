@@ -7,8 +7,6 @@ import { isUserActionAllowed as isUserActionAllowedOriginal } from 'utils/author
 
 import { RootBaseStore } from './';
 
-import { DEFAULT_ONCALL_API_URL } from 'utils/consts';
-
 jest.mock('state/plugin');
 jest.mock('utils/authorization');
 jest.mock('grafana/app/core/core', () => ({
@@ -19,7 +17,7 @@ jest.mock('grafana/app/core/core', () => ({
   },
 }));
 
-const onCallApiUrl = DEFAULT_ONCALL_API_URL;
+const onCallApiUrl = 'http://oncall-dev-engine:8080';
 
 const isUserActionAllowed = isUserActionAllowedOriginal as jest.Mock<ReturnType<typeof isUserActionAllowedOriginal>>;
 
