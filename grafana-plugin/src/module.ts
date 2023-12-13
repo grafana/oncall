@@ -17,7 +17,7 @@ const plugin = new AppPlugin<OnCallPluginMetaJSONData>().setRootPage(GrafanaPlug
   id: 'configuration',
 });
 
-if (shouldUseProfileExtensionPoint()) {
+if (isUseProfileExtensionPointEnabled()) {
   // TODO Change this to use the PluginExtensionPoints enum once that is available in @grafana/data (>10.2.2)
   const extensionPointId = 'grafana/user/profile/tab';
 
@@ -33,7 +33,7 @@ if (shouldUseProfileExtensionPoint()) {
   });
 }
 
-function shouldUseProfileExtensionPoint(): boolean {
+function isUseProfileExtensionPointEnabled(): boolean {
   const { major, minor } = getGrafanaVersion();
   const isRequiredGrafanaVersion = major > 10 || (major === 10 && minor >= 3);
 

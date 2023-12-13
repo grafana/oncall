@@ -97,7 +97,7 @@ export function pluralize(word: string, count: number): string {
   return count === 1 ? word : `${word}s`;
 }
 
-export function shouldUseProfileExtensionPoint(): boolean {
+export function isUseProfileExtensionPointEnabled(): boolean {
   const { major, minor } = getGrafanaVersion();
   const isRequiredGrafanaVersion = major > 10 || (major === 10 && minor >= 3);
 
