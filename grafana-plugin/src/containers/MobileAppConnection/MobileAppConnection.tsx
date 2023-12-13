@@ -82,7 +82,10 @@ const MobileAppConnection = observer(({ userPk = 'UXX4F8SLKK3LV' }: Props) => {
 
   useEffect(() => {
     (async () => {
-      await store.updateBasicData();
+      if (!store.isBasicDataLoaded) {
+        await store.loadBasicData();
+      }
+
       setBasicDataLoaded(true);
     })();
   }, []);
@@ -150,8 +153,7 @@ const MobileAppConnection = observer(({ userPk = 'UXX4F8SLKK3LV' }: Props) => {
   }, [mobileAppIsCurrentlyConnected]);
 
   if (!basicDataLoaded) {
-    // TODO:
-    return <p>Loading...</p>;
+    return <LoadingPlaceholder text="Loading" />;
   }
 
   let content: React.ReactNode = null;
