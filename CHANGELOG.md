@@ -5,7 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Unreleased
+## v1.3.78 (2023-12-12)
+
+### Changed
+
+- Add error code for mobile push notification logs when device is not set up @Ferril ([#3554](https://github.com/grafana/oncall/pull/3554))
+
+### Fixed
+
+- Fix issue when mobile push notification message is too big @Ferril ([#3556](https://github.com/grafana/oncall/pull/3556)
 
 ## v1.3.77 (2023-12-11)
 

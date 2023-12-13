@@ -69,7 +69,8 @@ class UserNotificationPolicyLogRecord(models.Model):
         ERROR_NOTIFICATION_MESSAGING_BACKEND_ERROR,
         ERROR_NOTIFICATION_FORBIDDEN,
         ERROR_NOTIFICATION_TELEGRAM_USER_IS_DEACTIVATED,
-    ) = range(27)
+        ERROR_NOTIFICATION_MOBILE_USER_HAS_NO_ACTIVE_DEVICE,
+    ) = range(28)
 
     # for this errors we want to send message to general log channel
     ERRORS_TO_SEND_IN_SLACK_CHANNEL = [
@@ -264,6 +265,11 @@ class UserNotificationPolicyLogRecord(models.Model):
                 == UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_TELEGRAM_USER_IS_DEACTIVATED
             ):
                 result += f"failed to send telegram message to {user_verbal} because user has been deactivated"
+            elif (
+                self.notification_error_code
+                == UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_MOBILE_USER_HAS_NO_ACTIVE_DEVICE
+            ):
+                result += f"failed to send push notification to {user_verbal} because user has no device set up"
             else:
                 # TODO: handle specific backend errors
                 try:
