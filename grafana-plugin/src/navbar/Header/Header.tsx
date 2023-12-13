@@ -23,8 +23,8 @@ const Header = observer(() => {
       <div className={cx('root')}>
         <div className={cx('page-header__inner', { 'header-topnavbar': isTopNavbar() })}>
           <div className={cx('navbar-left')}>
-            <span className="page-header__logo">
-              <img className="page-header__img" src={logo} alt="Grafana OnCall" />
+            <span className={cx('page-header__logo', 'logo-container')}>
+              <img className={cx('page-header__img')} src={logo} alt="Grafana OnCall" />
             </span>
             <div className="page-header__info-block">{renderHeading()}</div>
           </div>
@@ -43,6 +43,7 @@ const Header = observer(() => {
           </h1>
           <div className={cx('navbar-heading-container')}>
             <div className={cx('page-header__sub-title')}>{APP_SUBTITLE}</div>
+
             <Card heading={undefined} className={cx('navbar-heading')}>
               <a
                 href="https://github.com/grafana/oncall"

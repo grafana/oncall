@@ -45,6 +45,7 @@ opentelemetry-exporter-otlp-proto-grpc==1.15.0
 django-dbconn-retry==0.1.7
 django-ipware==4.0.2
 django-anymail==8.6
+django-amazon-ses==4.0.1
 django-deprecate-fields==0.1.1
 pymdown-extensions==10.0
 requests==2.31.0
@@ -55,3 +56,4 @@ babel==2.12.1
 drf-spectacular==0.26.5
 grpcio==1.57.0
 markdown2==2.4.10
+PyJWT==2.8.0

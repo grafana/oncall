@@ -5,7 +5,53 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Unreleased
+## v1.3.78 (2023-12-12)
+
+### Changed
+
+- Add error code for mobile push notification logs when device is not set up @Ferril ([#3554](https://github.com/grafana/oncall/pull/3554))
+
+### Fixed
+
+- Fix issue when mobile push notification message is too big @Ferril ([#3556](https://github.com/grafana/oncall/pull/3556)
+
+## v1.3.77 (2023-12-11)
+
+### Fixed
+
+- Fix schedules invalid dates issue ([#support-escalations/issues/8084](https://github.com/grafana/support-escalations/issues/8084))
+- Fix issue related to updating alert group metrics when deleting an alert group via the public API by @joeyorlando ([#3544](https://github.com/grafana/oncall/pull/3544))
+- Fix issue with `amazon_ses` inbound email ESP provider by @Lutseslav ([#3509](https://github.com/grafana/oncall/pull/3509))
+
+## v1.3.76 (2023-12-11)
+
+### Fixed
+
+– Fix minor UI bugs
+
+## v1.3.75 (2023-12-08)
+
+### Fixed
+
+- Fix setting integration team to default on update @Ferril ([#3530](https://github.com/grafana/oncall/pull/3530))
+
+## v1.3.74 (2023-12-06)
+
+### Fixed
+
+- Fix missing timestamp value in old grafana API endpoint ([#3522](https://github.com/grafana/oncall/pull/3522))
+
+## v1.3.73 (2023-12-06)
+
+### Added
+
+- Track alert received timestamp on alert group creation ([#3513](https://github.com/grafana/oncall/pull/3513))
+
+## v1.3.72 (2023-12-05)
+
+### Fixed
+
+- Address metrics calculation issue which occurred when `USE_REDIS_CLUSTER` env var was set by @joeyorlando ([#3510](https://github.com/grafana/oncall/pull/3510))
 
 ## v1.3.71 (2023-12-05)
 
@@ -47,6 +93,7 @@ Minor bugfixes + dependency updates :)
 ### Added
 
 - Add options to customize table columns in AlertGroup page ([3281](https://github.com/grafana/oncall/pull/3281))
+- Add proxying capabilities for the OnCall mobile API by @joeyorlando ([#3449](https://github.com/grafana/oncall/pull/3449))
 
 ### Fixed
 

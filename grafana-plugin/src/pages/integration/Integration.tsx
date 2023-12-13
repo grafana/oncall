@@ -790,6 +790,10 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
           onHide={() => setIsIntegrationSettingsOpen(false)}
           onSubmit={() => alertReceiveChannelStore.updateItem(alertReceiveChannel['id'])}
           id={alertReceiveChannel['id']}
+          navigateToAlertGroupLabels={(_id: AlertReceiveChannel['id']) => {
+            setIsIntegrationSettingsOpen(false);
+            setLabelsFormOpen(true);
+          }}
         />
       )}
 
@@ -800,7 +804,7 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
           }}
           onSubmit={() => alertReceiveChannelStore.updateItem(alertReceiveChannel['id'])}
           id={alertReceiveChannel['id']}
-          onOpenIntegraionSettings={() => {
+          onOpenIntegrationSettings={() => {
             setIsIntegrationSettingsOpen(true);
           }}
         />
@@ -846,7 +850,7 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
                 {store.hasFeature(AppFeature.Labels) && (
                   <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
                     <div className={cx('integration__actionItem')} onClick={() => openLabelsForm()}>
-                      <Text type="primary">Alert group labels</Text>
+                      <Text type="primary">Alert group labeling</Text>
                     </div>
                   </WithPermissionControlTooltip>
                 )}

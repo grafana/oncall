@@ -1,7 +1,8 @@
 import React, { SyntheticEvent } from 'react';
 
+import { SelectableValue } from '@grafana/data';
 import { LabelTag } from '@grafana/labels';
-import { Button, HorizontalGroup, Icon, RadioButtonGroup, VerticalGroup } from '@grafana/ui';
+import { Button, HorizontalGroup, Icon, RadioButtonGroup, Tooltip, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { capitalize } from 'lodash-es';
 import { observer } from 'mobx-react';
@@ -75,11 +76,22 @@ const PAGINATION_OPTIONS = [
   { label: '100', value: 100 },
 ];
 
-const TABLE_SCROLL_OPTIONS: Array<{ value: boolean; icon: string }> = [
-  { value: false, icon: 'wrap-text' },
+const TABLE_SCROLL_OPTIONS: SelectableValue[] = [
+  {
+    value: false,
+    component: () => (
+      <Tooltip content="Wrapped columns content">
+        <Icon aria-label="Wrap text" name="wrap-text" />
+      </Tooltip>
+    ),
+  },
   {
     value: true,
-    icon: 'arrow-from-right',
+    component: () => (
+      <Tooltip content="One row content with horizontal scrolling">
+        <Icon aria-label="One row content" name="arrow-from-right" />
+      </Tooltip>
+    ),
   },
 ];
 
@@ -480,9 +492,6 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
                 value={isHorizontalScrolling}
                 onChange={this.onEnableHorizontalScroll}
               />
-            </RenderConditionally>
-
-            <RenderConditionally shouldRender={store.hasFeature(AppFeature.Labels)}>
               <ColumnsSelectorWrapper />
             </RenderConditionally>
           </div>
@@ -527,7 +536,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
         <GTable
           emptyText={isLoading ? 'Loading...' : 'No alert groups found'}
           loading={isLoading}
-          className={cx('incidents-table')}
+          className={cx({ 'horizontal-scroll-table': isHorizontalScrolling })}
           rowSelection={{
             selectedRowKeys: selectedIncidentIds,
             onChange: this.handleSelectedIncidentIdsChange,
@@ -536,7 +545,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
           data={results}
           columns={tableColumns}
           tableLayout="auto"
-          scroll={{ x: isHorizontalScrolling ? `${Math.max(2000, tableColumns.length * 250)}px` : true }}
+          scroll={{ x: isHorizontalScrolling ? 'max-content' : undefined }}
         />
         {this.shouldShowPagination() && (
           <div className={cx('pagination')}>
@@ -781,6 +790,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
         key: 'title',
         render: this.renderTitle,
         width: isHorizontalScrolling ? undefined : '35%',
+        className: 'u-max-width-1000',
       },
       Created: {
         title: 'Created',

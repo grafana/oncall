@@ -49,6 +49,7 @@ export const FARO_ENDPOINT_OPS =
 export const FARO_ENDPOINT_PROD =
   'https://faro-collector-prod-us-central-0.grafana.net/collect/03a11ed03c3af04dcfc3be9755f2b053';
 
+export const DOCS_ROOT = 'https://grafana.com/docs/oncall/latest';
 export const DOCS_SLACK_SETUP = 'https://grafana.com/docs/oncall/latest/open-source/#slack-setup';
 export const DOCS_TELEGRAM_SETUP = 'https://grafana.com/docs/oncall/latest/notify/telegram/';
 

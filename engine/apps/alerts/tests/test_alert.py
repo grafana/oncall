@@ -1,6 +1,7 @@
 from unittest.mock import PropertyMock, patch
 
 import pytest
+from django.utils import timezone
 
 from apps.alerts.models import Alert, EscalationPolicy
 from apps.alerts.tasks import distribute_alert, escalate_alert_group
@@ -54,6 +55,28 @@ def test_alert_create_custom_channel_filter(make_organization, make_alert_receiv
     )
 
     assert alert.group.channel_filter == other_channel_filter
+
+
+@pytest.mark.django_db
+def test_alert_create_track_received_at_timestamp(make_organization, make_alert_receive_channel):
+    organization = make_organization()
+    alert_receive_channel = make_alert_receive_channel(organization)
+
+    now = timezone.now()
+    alert = Alert.create(
+        title="the title",
+        message="the message",
+        alert_receive_channel=alert_receive_channel,
+        raw_request_data={},
+        integration_unique_data={},
+        image_url=None,
+        link_to_upstream_details=None,
+        received_at=now.isoformat(),
+    )
+
+    alert_group = alert.group
+    alert_group.refresh_from_db()
+    assert alert_group.received_at == now
 
 
 @pytest.mark.django_db

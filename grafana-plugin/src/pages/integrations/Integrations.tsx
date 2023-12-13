@@ -294,6 +294,9 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
             }}
             onSubmit={this.update}
             id={alertReceiveChannelId}
+            navigateToAlertGroupLabels={(id: AlertReceiveChannel['id']) => {
+              this.setState({ alertReceiveChannelId: undefined, alertReceiveChannelIdToShowLabels: id });
+            }}
           />
         )}
 
@@ -304,7 +307,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
             }}
             onSubmit={this.update}
             id={alertReceiveChannelIdToShowLabels}
-            onOpenIntegraionSettings={(id: AlertReceiveChannel['id']) => {
+            onOpenIntegrationSettings={(id: AlertReceiveChannel['id']) => {
               this.setState({ alertReceiveChannelId: id });
             }}
           />
@@ -496,7 +499,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
             {store.hasFeature(AppFeature.Labels) && (
               <WithPermissionControlTooltip key="edit" userAction={UserActions.IntegrationsWrite}>
                 <div className={cx('integrations-actionItem')} onClick={() => this.onLabelsEditClick(item.id)}>
-                  <Text type="primary">Alert group labels</Text>
+                  <Text type="primary">Alert group labeling</Text>
                 </div>
               </WithPermissionControlTooltip>
             )}
