@@ -35,6 +35,7 @@ class TelegramToUserConnector(models.Model):
                 alert_group=alert_group,
                 user=user,
                 notification_policy=notification_policy,
+                reason="No linked telegram account",
                 error_code=UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_TELEGRAM_IS_NOT_LINKED_TO_SLACK_ACC,
             )
 
@@ -65,7 +66,11 @@ class TelegramToUserConnector(models.Model):
 
     @staticmethod
     def create_telegram_notification_error(
-        alert_group: AlertGroup, user: User, notification_policy: UserNotificationPolicy, error_code: int
+        alert_group: AlertGroup,
+        user: User,
+        notification_policy: UserNotificationPolicy,
+        error_code: int,
+        reason: str | None,
     ) -> None:
         UserNotificationPolicyLogRecord.objects.create(
             author=user,
@@ -73,6 +78,7 @@ class TelegramToUserConnector(models.Model):
             notification_policy=notification_policy,
             alert_group=alert_group,
             notification_error_code=error_code,
+            reason=reason,
             notification_step=notification_policy.step if notification_policy else None,
             notification_channel=notification_policy.notify_by if notification_policy else None,
         )
@@ -87,6 +93,7 @@ class TelegramToUserConnector(models.Model):
                 self.user,
                 notification_policy,
                 UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_TELEGRAM_TOKEN_ERROR,
+                reason="Invalid token",
             )
             return
 
@@ -118,6 +125,7 @@ class TelegramToUserConnector(models.Model):
                         self.user,
                         notification_policy,
                         UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_TELEGRAM_BOT_IS_DELETED,
+                        reason="Bot was blocked by the user",
                     )
                 elif e.message == "Invalid token":
                     TelegramToUserConnector.create_telegram_notification_error(
@@ -125,6 +133,7 @@ class TelegramToUserConnector(models.Model):
                         self.user,
                         notification_policy,
                         UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_TELEGRAM_TOKEN_ERROR,
+                        reason="Invalid token",
                     )
                 elif e.message == "Forbidden: user is deactivated":
                     TelegramToUserConnector.create_telegram_notification_error(
@@ -132,6 +141,7 @@ class TelegramToUserConnector(models.Model):
                         self.user,
                         notification_policy,
                         UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_TELEGRAM_USER_IS_DEACTIVATED,
+                        reason="Telegram user was disabled",
                     )
                 else:
                     raise e
@@ -152,6 +162,7 @@ class TelegramToUserConnector(models.Model):
                 self.user,
                 notification_policy,
                 UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_TELEGRAM_TOKEN_ERROR,
+                reason="Invalid token",
             )
             return
 
@@ -175,6 +186,7 @@ class TelegramToUserConnector(models.Model):
                     self.user,
                     notification_policy,
                     UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_TELEGRAM_BOT_IS_DELETED,
+                    reason="Bot was blocked by the user",
                 )
             elif e.message == "Invalid token":
                 TelegramToUserConnector.create_telegram_notification_error(
@@ -182,6 +194,7 @@ class TelegramToUserConnector(models.Model):
                     self.user,
                     notification_policy,
                     UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_TELEGRAM_TOKEN_ERROR,
+                    reason="Invalid token",
                 )
             elif e.message == "Forbidden: user is deactivated":
                 TelegramToUserConnector.create_telegram_notification_error(
@@ -189,6 +202,7 @@ class TelegramToUserConnector(models.Model):
                     self.user,
                     notification_policy,
                     UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_TELEGRAM_USER_IS_DEACTIVATED,
+                    reason="Telegram user was disabled",
                 )
             else:
                 raise e

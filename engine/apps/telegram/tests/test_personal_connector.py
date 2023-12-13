@@ -50,16 +50,22 @@ def test_personal_connector_replied_message_not_found(
 
 
 @pytest.mark.parametrize(
-    "side_effect,notification_error_code",
+    "side_effect,notification_error_code,reason",
     [
         (
             error.Unauthorized("Forbidden: bot was blocked by the user"),
             UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_TELEGRAM_BOT_IS_DELETED,
+            "Bot was blocked by the user",
         ),
-        (error.Unauthorized("Invalid token"), UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_TELEGRAM_TOKEN_ERROR),
+        (
+            error.Unauthorized("Invalid token"),
+            UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_TELEGRAM_TOKEN_ERROR,
+            "Invalid token",
+        ),
         (
             error.Unauthorized("Forbidden: user is deactivated"),
             UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_TELEGRAM_USER_IS_DEACTIVATED,
+            "Telegram user was disabled",
         ),
     ],
 )
@@ -67,6 +73,7 @@ def test_personal_connector_replied_message_not_found(
 def test_personal_connector_send_link_to_channel_message_handle_exceptions(
     side_effect,
     notification_error_code,
+    reason,
     make_organization_and_user,
     make_telegram_user_connector,
     make_user_notification_policy,
@@ -96,6 +103,7 @@ def test_personal_connector_send_link_to_channel_message_handle_exceptions(
     log_records = user.personal_log_records.filter(alert_group=alert_group)
     assert log_records.count() == 1
     assert log_records.first().notification_error_code == notification_error_code
+    assert log_records.first().reason == reason
 
 
 @patch.object(TelegramClient, "send_message")
