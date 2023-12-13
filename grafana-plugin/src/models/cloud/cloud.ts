@@ -1,4 +1,4 @@
-import { action, observable } from 'mobx';
+import { action, observable, makeObservable } from 'mobx';
 
 import BaseStore from 'models/base_store';
 import { makeRequest } from 'network';
@@ -18,6 +18,8 @@ export class CloudStore extends BaseStore {
 
   constructor(rootStore: RootStore) {
     super(rootStore);
+
+    makeObservable(this);
 
     this.path = '/cloud_users/';
   }

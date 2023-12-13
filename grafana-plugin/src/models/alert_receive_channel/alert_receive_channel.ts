@@ -1,5 +1,5 @@
 import { omit } from 'lodash-es';
-import { action, observable } from 'mobx';
+import { action, observable, makeObservable } from 'mobx';
 
 import { AlertTemplatesDTO } from 'models/alert_templates/alert_templates';
 import { Alert } from 'models/alertgroup/alertgroup.types';
@@ -63,6 +63,8 @@ export class AlertReceiveChannelStore extends BaseStore {
 
   constructor(rootStore: RootStore) {
     super(rootStore);
+
+    makeObservable(this);
 
     this.path = '/alert_receive_channels/';
   }

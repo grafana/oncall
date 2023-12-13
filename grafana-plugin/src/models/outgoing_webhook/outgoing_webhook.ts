@@ -1,4 +1,4 @@
-import { action, observable } from 'mobx';
+import { action, observable, makeObservable } from 'mobx';
 
 import BaseStore from 'models/base_store';
 import { LabelsErrors } from 'models/label/label.types';
@@ -22,6 +22,8 @@ export class OutgoingWebhookStore extends BaseStore {
 
   constructor(rootStore: RootStore) {
     super(rootStore);
+
+    makeObservable(this);
 
     this.path = '/webhooks/';
   }

@@ -1,4 +1,4 @@
-import { action, observable } from 'mobx';
+import { action, observable, makeObservable } from 'mobx';
 
 import BaseStore from 'models/base_store';
 import { LabelKeyValue } from 'models/label/label.types';
@@ -30,6 +30,8 @@ export class FiltersStore extends BaseStore {
 
   constructor(rootStore: RootStore) {
     super(rootStore);
+
+    makeObservable(this);
 
     const savedFilters = getItem(LOCAL_STORAGE_FILTERS_KEY);
     if (savedFilters) {

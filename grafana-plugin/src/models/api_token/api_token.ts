@@ -1,4 +1,4 @@
-import { action, observable } from 'mobx';
+import { action, observable, makeObservable } from 'mobx';
 
 import BaseStore from 'models/base_store';
 import { makeRequest } from 'network';
@@ -16,6 +16,8 @@ export class ApiTokenStore extends BaseStore {
 
   constructor(rootStore: RootStore) {
     super(rootStore);
+
+    makeObservable(this);
 
     this.path = '/tokens/';
   }

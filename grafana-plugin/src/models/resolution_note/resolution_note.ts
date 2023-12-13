@@ -1,4 +1,4 @@
-import { observable } from 'mobx';
+import { observable, makeObservable } from 'mobx';
 
 import { Alert } from 'models/alertgroup/alertgroup.types';
 import BaseStore from 'models/base_store';
@@ -13,6 +13,8 @@ export class ResolutionNotesStore extends BaseStore {
 
   constructor(rootStore: RootStore) {
     super(rootStore);
+
+    makeObservable(this);
 
     this.path = '/resolution_notes/';
   }

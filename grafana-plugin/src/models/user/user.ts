@@ -1,7 +1,7 @@
 import { config } from '@grafana/runtime';
 import dayjs from 'dayjs';
 import { get } from 'lodash-es';
-import { action, computed, observable } from 'mobx';
+import { action, computed, observable, makeObservable } from 'mobx';
 
 import BaseStore from 'models/base_store';
 import { NotificationPolicyType } from 'models/notification_policy/notification_policy';
@@ -47,6 +47,8 @@ export class UserStore extends BaseStore {
 
   constructor(rootStore: RootStore) {
     super(rootStore);
+
+    makeObservable(this);
 
     this.path = '/users/';
   }

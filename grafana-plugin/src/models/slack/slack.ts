@@ -1,4 +1,4 @@
-import { action, observable } from 'mobx';
+import { action, observable, makeObservable } from 'mobx';
 
 import BaseStore from 'models/base_store';
 import { SlackChannel } from 'models/slack_channel/slack_channel.types';
@@ -16,6 +16,7 @@ export class SlackStore extends BaseStore {
 
   constructor(rootStore: RootStore) {
     super(rootStore);
+    makeObservable(this);
   }
 
   @action

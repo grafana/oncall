@@ -1,5 +1,5 @@
 import { get } from 'lodash-es';
-import { action, observable } from 'mobx';
+import { action, observable, makeObservable } from 'mobx';
 
 import BaseStore from 'models/base_store';
 import { EscalationChain } from 'models/escalation_chain/escalation_chain.types';
@@ -30,6 +30,8 @@ export class EscalationPolicyStore extends BaseStore {
 
   constructor(rootStore: RootStore) {
     super(rootStore);
+
+    makeObservable(this);
 
     this.path = '/escalation_policies/';
   }
