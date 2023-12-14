@@ -1,6 +1,8 @@
 import typing
 
+from fcm_django.api.rest_framework import FCMDeviceSerializer as BaseFCMDeviceSerializer
 from rest_framework import serializers
+from rest_framework.serializers import ValidationError
 
 from apps.mobile_app.models import MobileAppUserSettings
 from common.api_helpers.custom_fields import TimeZoneField
@@ -43,3 +45,38 @@ class MobileAppUserSettingsSerializer(serializers.ModelSerializer):
                 if option not in notification_timing_options:
                     raise serializers.ValidationError(detail="invalid timing options")
         return going_oncall_notification_timing
+
+
+class FCMDeviceSerializer(BaseFCMDeviceSerializer):
+    def validate(self, attrs):
+        """
+        Overrides `validate` method from BaseFCMDeviceSerializer to allow different users have same device
+        `registration_id` (multi-stack support).
+        Removed deactivating devices with the same `registration_id` during validation.
+        """
+        devices = None
+        request_method = None
+        request = self.context["request"]
+
+        if self.initial_data.get("registration_id", None):
+            request_method = "update" if self.instance else "create"
+        else:
+            if request.method in ["PUT", "PATCH"]:
+                request_method = "update"
+            elif request.method == "POST":
+                request_method = "create"
+
+        Device = self.Meta.model
+        # unique together with registration_id and user
+        user = request.user
+        registration_id = attrs.get("registration_id")
+
+        if request_method == "update":
+            if registration_id:
+                devices = Device.objects.filter(registration_id=registration_id, user=user).exclude(id=self.instance.id)
+        elif request_method == "create":
+            devices = Device.objects.filter(user=user, registration_id=registration_id)
+
+        if devices:
+            raise ValidationError({"registration_id": "This field must be unique per us."})
+        return attrs
