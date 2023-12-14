@@ -12,12 +12,7 @@ import Text from 'components/Text/Text';
 import { User } from 'models/user/user.types';
 // import { AppFeature } from 'state/features';
 import { rootStore as store } from 'state';
-import {
-  openErrorNotification,
-  openNotification,
-  openWarningNotification,
-  isUseProfileExtensionPointEnabled,
-} from 'utils';
+import { openErrorNotification, openNotification, openWarningNotification } from 'utils';
 // import { UserActions } from 'utils/authorization';
 
 import styles from './MobileAppConnection.module.scss';
@@ -25,8 +20,8 @@ import DisconnectButton from './parts/DisconnectButton/DisconnectButton';
 import DownloadIcons from './parts/DownloadIcons';
 import QRCode from './parts/QRCode/QRCode';
 import { AppFeature } from 'state/features';
-import { UserActions } from 'utils/authorization';
 import { WithPermissionControlDisplay } from 'containers/WithPermissionControl/WithPermissionControlDisplay';
+import { UserActions } from 'utils/authorization';
 import PluginLink from 'components/PluginLink/PluginLink';
 
 const cx = cn.bind(styles);
@@ -48,17 +43,9 @@ const BACKEND = 'MOBILE_APP';
 
 const MobileAppConnection = observer(({ userPk }: Props) => {
   const { userStore, cloudStore } = store;
+
   const [basicDataLoaded, setBasicDataLoaded] = useState(false);
   const userId = userPk || userStore.currentUserPk;
-
-  if (
-    store.isOpenSource() &&
-    store.hasFeature(AppFeature.CloudConnection) &&
-    !cloudStore.cloudConnectionStatus.cloud_connection_status
-  ) {
-    // Show link to cloud page for OSS instances with no cloud connection
-    return renderConnectToCloud();
-  }
 
   const isMounted = useRef(false);
   const [mobileAppIsCurrentlyConnected, setMobileAppIsCurrentlyConnected] = useState<boolean>(isUserConnected());
@@ -73,7 +60,7 @@ const MobileAppConnection = observer(({ userPk }: Props) => {
   const [refreshTimeoutId, setRefreshTimeoutId] = useState<NodeJS.Timeout>(undefined);
   const [isQRBlurry, setIsQRBlurry] = useState<boolean>(false);
   const [isAttemptingTestNotification, setIsAttemptingTestNotification] = useState(false);
-  const isCurrentUser = userStore.currentUserPk === userId && !isUseProfileExtensionPointEnabled();
+  const isCurrentUser = userPk === undefined || userStore.currentUserPk === userPk;
 
   useEffect(() => {
     (async () => {
@@ -91,6 +78,8 @@ const MobileAppConnection = observer(({ userPk }: Props) => {
 
   const fetchQRCode = useCallback(
     async (showLoader = true) => {
+      if (!userId) return;
+
       if (showLoader) {
         setFetchingQRCode(true);
       }
@@ -117,6 +106,7 @@ const MobileAppConnection = observer(({ userPk }: Props) => {
   }, []);
 
   const disconnectMobileApp = useCallback(async () => {
+    if (!userId) return;
     setDisconnectingMobileApp(true);
 
     try {
@@ -151,13 +141,18 @@ const MobileAppConnection = observer(({ userPk }: Props) => {
     }
   }, [mobileAppIsCurrentlyConnected]);
 
-  if (!basicDataLoaded || userId === undefined) {
-    return <LoadingPlaceholder text="Loading" />;
+  // Show link to cloud page for OSS instances with no cloud connection
+  if (
+    store.isOpenSource() &&
+    store.hasFeature(AppFeature.CloudConnection) &&
+    !cloudStore.cloudConnectionStatus.cloud_connection_status
+  ) {
+    return renderConnectToCloud();
   }
 
   let content: React.ReactNode = null;
 
-  if (fetchingQRCode || disconnectingMobileApp) {
+  if (fetchingQRCode || disconnectingMobileApp || !userId || !basicDataLoaded) {
     content = <LoadingPlaceholder text="Loading..." />;
   } else if (errorFetchingQRCode || errorDisconnectingMobileApp) {
     content = <Text type="primary">{errorFetchingQRCode || errorDisconnectingMobileApp}</Text>;
@@ -260,6 +255,7 @@ const MobileAppConnection = observer(({ userPk }: Props) => {
   }
 
   async function onSendTestNotification(isCritical = false) {
+    if (!userId) return;
     setIsAttemptingTestNotification(true);
 
     try {

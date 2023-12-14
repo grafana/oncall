@@ -22,8 +22,8 @@ if (isUseProfileExtensionPointEnabled()) {
   const extensionPointId = 'grafana/user/profile/tab';
 
   plugin.configureExtensionComponent({
-    title: 'OnCall',
-    description: 'OnCall settings',
+    title: 'IRM',
+    description: 'IRM settings',
     extensionPointId,
     /**
      * typing MobileAppConnection as any until 10.2.0 is released
