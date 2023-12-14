@@ -5,15 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
 ## v1.3.80 (2023-12-14)
-
-### Added
-
-- Create success log records for delivered personal notifications ([3557](https://github.com/grafana/oncall/pull/3557))
 
 ### Changed
 
 - Limit acknowledge reminders to stop repeating after 1 month @mderynck ([#3571](https://github.com/grafana/oncall/pull/3571))
+
+### Added
+
+- Create success log records for delivered personal notifications ([3557](https://github.com/grafana/oncall/pull/3557))
 
 ## v1.3.79 (2023-12-14)
 
