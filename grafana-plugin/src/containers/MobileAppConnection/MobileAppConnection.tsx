@@ -13,7 +13,6 @@ import { User } from 'models/user/user.types';
 import { rootStore as store } from 'state';
 import { AppFeature } from 'state/features';
 import { openErrorNotification, openNotification, openWarningNotification } from 'utils';
-
 import { UserActions } from 'utils/authorization';
 
 import styles from './MobileAppConnection.module.scss';

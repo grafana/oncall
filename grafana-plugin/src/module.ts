@@ -1,7 +1,6 @@
 import { ComponentClass } from 'react';
 
-import { AppPlugin } from '@grafana/data';
-import { PluginExtensionPoints } from '@grafana/data';
+import { AppPlugin, PluginExtensionPoints } from '@grafana/data';
 
 import MobileAppConnection from 'containers/MobileAppConnection/MobileAppConnection';
 import PluginConfigPage from 'containers/PluginConfigPage/PluginConfigPage';
