@@ -121,3 +121,13 @@ def notify_user_async(user_pk, alert_group_pk, notification_policy_pk):
         )
         logger.error(f"Error while sending email: {e}")
         return
+
+    # record success log
+    UserNotificationPolicyLogRecord.objects.create(
+        author=user,
+        type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_SUCCESS,
+        notification_policy=notification_policy,
+        alert_group=alert_group,
+        notification_step=notification_policy.step,
+        notification_channel=notification_policy.notify_by,
+    )

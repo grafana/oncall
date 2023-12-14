@@ -45,6 +45,9 @@ def test_notify_user(
     notify_user_async(user.pk, alert_group.pk, notification_policy.pk)
     assert len(mail.outbox) == 1
 
+    log_record = notification_policy.personal_log_records.last()
+    assert log_record.type == UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_SUCCESS
+
 
 @pytest.mark.django_db
 def test_notify_empty_email_host(
