@@ -197,6 +197,15 @@ engine-manage:  ## run Django's `manage.py` script, inside of a docker container
                 ## https://docs.djangoproject.com/en/4.1/ref/django-admin/#django-admin-makemigrations
 	$(call run_engine_docker_command,python manage.py $(CMD))
 
+test-e2e:  ## run the e2e tests in headless mode
+	yarn --cwd grafana-plugin test:e2e
+
+test-e2e-watch:  ## start e2e tests in watch mode
+	yarn --cwd grafana-plugin test:e2e:watch
+
+test-e2e-show-report:  ## open last e2e test report
+	yarn --cwd grafana-plugin playwright show-report
+
 ui-test:  ## run the UI tests
 	$(call run_ui_docker_command,yarn test)
 
