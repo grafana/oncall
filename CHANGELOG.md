@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add backend for multi-stack support for mobile-app @Ferril ([#3500](https://github.com/grafana/oncall/pull/3500))
 
+### Fixed
+
+- Check reason to skip notification in Slack to avoid task perform_notification retries @Ferril ([#3562](https://github.com/grafana/oncall/pull/3562))
+
 ## v1.3.78 (2023-12-12)
 
 ### Changed
