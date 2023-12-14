@@ -7,11 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
-## v1.3.80 (2023-12-14)
-
 ### Changed
 
 - Limit acknowledge reminders to stop repeating after 1 month @mderynck ([#3571](https://github.com/grafana/oncall/pull/3571))
+
+## v1.3.80 (2023-12-14)
 
 ### Added
 
