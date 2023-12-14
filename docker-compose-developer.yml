@@ -52,7 +52,7 @@ services:
       dockerfile: Dockerfile.dev
       labels: *oncall-labels
     environment:
-      ONCALL_API_URL: http://localhost:8080
+      ONCALL_API_URL: http://host.docker.internal:8080
     volumes:
       - ./grafana-plugin:/etc/app
       - node_modules_dev:/etc/app/node_modules

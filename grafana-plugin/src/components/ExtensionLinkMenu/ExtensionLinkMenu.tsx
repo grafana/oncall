@@ -60,7 +60,6 @@ function DeclareIncidentMenuItem({ extensions, declareIncidentLink, grafanaIncid
     <PluginBridge plugin={SupportedPlugin.Incident}>
       <Menu.Group key={'Declare incident'} label={'Incident'}>
         {renderItems([
-          // TODO: fix this.....
           {
             type: 'link',
             path: declareIncidentLink,
@@ -79,7 +78,6 @@ function renderItems(extensions: PluginExtensionLink[]): JSX.Element[] {
   return extensions.map((extension) => (
     <Menu.Item
       ariaLabel={extension.title}
-      // @ts-ignore
       icon={extension?.icon || 'plug'}
       key={extension.id}
       label={truncateTitle(extension.title, 25)}

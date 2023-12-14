@@ -15,11 +15,11 @@ import { UserInfoTab } from 'containers/UserSettings/parts/tabs/UserInfoTab/User
 import { User } from 'models/user/user.types';
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
+import { isUseProfileExtensionPointEnabled } from 'utils';
 
 import CloudPhoneSettings from './tabs/CloudPhoneSettings/CloudPhoneSettings';
 
 import styles from 'containers/UserSettings/parts/index.module.css';
-import { isUseProfileExtensionPointEnabled } from 'utils';
 
 const cx = cn.bind(styles);
 

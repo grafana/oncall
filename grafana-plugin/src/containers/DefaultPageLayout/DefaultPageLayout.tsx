@@ -30,7 +30,6 @@ const DefaultPageLayout: FC<DefaultPageLayoutProps> = observer((props) => {
 
   function renderTopNavbar(): JSX.Element {
     return (
-      // @ts-ignore TODO:
       <PluginPage page={page} pageNav={pageNav}>
         <div className={cx('root')}>{children}</div>
       </PluginPage>

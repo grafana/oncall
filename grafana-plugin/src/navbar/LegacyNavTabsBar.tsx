@@ -24,7 +24,6 @@ export default function LegacyNavTabsBar({ currentPage }: { currentPage: string 
         {navigationPages.map((page, index) => (
           <Tab
             key={index}
-            // @ts-ignore TODO:
             icon={page.icon as IconName}
             label={page.text}
             href={page.path}

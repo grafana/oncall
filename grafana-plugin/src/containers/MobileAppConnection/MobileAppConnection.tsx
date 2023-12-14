@@ -6,23 +6,20 @@ import { observer } from 'mobx-react';
 
 import qrCodeImage from 'assets/img/qr-code.png';
 import Block from 'components/GBlock/Block';
-// import PluginLink from 'components/PluginLink/PluginLink';
+import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
-// import { WithPermissionControlDisplay } from 'containers/WithPermissionControl/WithPermissionControlDisplay';
+import { WithPermissionControlDisplay } from 'containers/WithPermissionControl/WithPermissionControlDisplay';
 import { User } from 'models/user/user.types';
-// import { AppFeature } from 'state/features';
 import { rootStore as store } from 'state';
+import { AppFeature } from 'state/features';
 import { openErrorNotification, openNotification, openWarningNotification } from 'utils';
-// import { UserActions } from 'utils/authorization';
+
+import { UserActions } from 'utils/authorization';
 
 import styles from './MobileAppConnection.module.scss';
 import DisconnectButton from './parts/DisconnectButton/DisconnectButton';
 import DownloadIcons from './parts/DownloadIcons';
 import QRCode from './parts/QRCode/QRCode';
-import { AppFeature } from 'state/features';
-import { WithPermissionControlDisplay } from 'containers/WithPermissionControl/WithPermissionControlDisplay';
-import { UserActions } from 'utils/authorization';
-import PluginLink from 'components/PluginLink/PluginLink';
 
 const cx = cn.bind(styles);
 
@@ -78,7 +75,9 @@ const MobileAppConnection = observer(({ userPk }: Props) => {
 
   const fetchQRCode = useCallback(
     async (showLoader = true) => {
-      if (!userId) return;
+      if (!userId) {
+        return;
+      }
 
       if (showLoader) {
         setFetchingQRCode(true);
@@ -106,7 +105,9 @@ const MobileAppConnection = observer(({ userPk }: Props) => {
   }, []);
 
   const disconnectMobileApp = useCallback(async () => {
-    if (!userId) return;
+    if (!userId) {
+      return;
+    }
     setDisconnectingMobileApp(true);
 
     try {
@@ -255,7 +256,9 @@ const MobileAppConnection = observer(({ userPk }: Props) => {
   }
 
   async function onSendTestNotification(isCritical = false) {
-    if (!userId) return;
+    if (!userId) {
+      return;
+    }
     setIsAttemptingTestNotification(true);
 
     try {

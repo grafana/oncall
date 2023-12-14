@@ -1,14 +1,14 @@
 import { ComponentClass } from 'react';
 
 import { AppPlugin } from '@grafana/data';
+import { PluginExtensionPoints } from '@grafana/data';
 
 import MobileAppConnection from 'containers/MobileAppConnection/MobileAppConnection';
 import PluginConfigPage from 'containers/PluginConfigPage/PluginConfigPage';
 import { GrafanaPluginRootPage } from 'plugin/GrafanaPluginRootPage';
+import { getGrafanaVersion } from 'plugin/GrafanaPluginRootPage.helpers';
 
 import { OnCallPluginConfigPageProps, OnCallPluginMetaJSONData } from './types';
-import { PluginExtensionPoints } from '@grafana/data';
-import { getGrafanaVersion } from 'plugin/GrafanaPluginRootPage.helpers';
 
 const plugin = new AppPlugin<OnCallPluginMetaJSONData>().setRootPage(GrafanaPluginRootPage).addConfigPage({
   title: 'Configuration',
