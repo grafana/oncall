@@ -41,6 +41,7 @@ def test_mobile_app_auth_token(
     assert response.data["organization_id"] == organization.id
     assert response.data["created_at"] == original_auth_token_created_at
     assert response.data["revoked_at"] is None
+    assert response.data["stack_slug"] == organization.stack_slug
 
     # can only ever have one mobile app auth token.. old one gets deleted if we try
     # creating a new one

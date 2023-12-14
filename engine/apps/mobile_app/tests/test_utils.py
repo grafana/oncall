@@ -6,6 +6,7 @@ from requests import HTTPError
 
 from apps.mobile_app import utils
 from apps.mobile_app.models import FCMDevice
+from apps.mobile_app.utils import add_stack_slug_to_message_title
 from apps.oss_installation.models import CloudConnector
 
 MOBILE_APP_BACKEND_ID = 5
@@ -159,3 +160,13 @@ def test_send_push_notification_oss_fcm_relay_returns_server_error(
 
     mock_error_cb.assert_not_called()
     mock_send_push_notification_to_fcm_relay.assert_called_once_with(mock_message)
+
+
+@pytest.mark.django_db
+def test_add_stack_slug_to_message_title(make_organization):
+    test_stack_slug = "my-org"
+    organization = make_organization(stack_slug=test_stack_slug)
+    some_message_title = "Test title"
+    expected_result = "[my-org] Test title"
+    result = add_stack_slug_to_message_title(some_message_title, organization)
+    assert result == expected_result
