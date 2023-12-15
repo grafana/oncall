@@ -1,5 +1,12 @@
-import { type OrgRole } from '@grafana/data';
-import { test as setup, chromium, expect, type Page, type BrowserContext, type FullConfig, type APIRequestContext } from '@playwright/test';
+import {
+  test as setup,
+  chromium,
+  expect,
+  type Page,
+  type BrowserContext,
+  type FullConfig,
+  type APIRequestContext,
+} from '@playwright/test';
 
 import { VIEWER_USER_STORAGE_STATE, EDITOR_USER_STORAGE_STATE, ADMIN_USER_STORAGE_STATE } from '../playwright.config';
 
@@ -19,6 +26,13 @@ import { clickButton, getInputByName } from './utils/forms';
 import { goToGrafanaPage } from './utils/navigation';
 
 const grafanaApiClient = new GrafanaAPIClient(GRAFANA_ADMIN_USERNAME, GRAFANA_ADMIN_PASSWORD);
+
+enum OrgRole {
+  None = 'None',
+  Viewer = 'Viewer',
+  Editor = 'Editor',
+  Admin = 'Admin',
+}
 
 type UserCreationSettings = {
   adminAuthedRequest: APIRequestContext;
