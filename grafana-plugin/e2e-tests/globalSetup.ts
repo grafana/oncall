@@ -1,5 +1,5 @@
 import { OrgRole } from '@grafana/data';
-import { test as setup, chromium, expect, Page, BrowserContext, FullConfig, APIRequestContext } from '@playwright/test';
+import { test as setup, chromium, expect, type Page, type BrowserContext, type FullConfig, type APIRequestContext } from '@playwright/test';
 
 import { VIEWER_USER_STORAGE_STATE, EDITOR_USER_STORAGE_STATE, ADMIN_USER_STORAGE_STATE } from '../playwright.config';
 
