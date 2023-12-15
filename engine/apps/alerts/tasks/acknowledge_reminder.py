@@ -1,7 +1,9 @@
+from datetime import timedelta
 from functools import partial
 
 from django.conf import settings
 from django.db import transaction
+from django.utils import timezone
 
 from common.custom_celery_tasks import shared_dedicated_queue_retry_task
 
@@ -61,6 +63,11 @@ def acknowledge_reminder_task(alert_group_pk: int, unacknowledge_process_id: str
             (alert_group.pk, unacknowledge_process_id), countdown=unacknowledge_timeout
         )
     else:
+        if alert_group.started_at < timezone.now() - timedelta(days=settings.ACKNOWLEDGE_REMINDER_TASK_EXPIRY_DAYS):
+            task_logger.info(
+                f"alert group {alert_group_pk} not renewing acknowledgement reminder, started_at is too old. {log_info}"
+            )
+            return
         acknowledge_reminder_task.apply_async(
             (alert_group.pk, unacknowledge_process_id), countdown=acknowledge_reminder_timeout
         )
