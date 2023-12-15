@@ -440,6 +440,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
       <div>
         {alertReceiveChannel.is_available_for_integration_heartbeat && heartbeat?.last_heartbeat_time_verbal && (
           <TooltipBadge
+            testId="heartbeat-badge"
             text={undefined}
             className={cx('heartbeat-badge')}
             placement="top"

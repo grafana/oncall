@@ -15,6 +15,7 @@ from common.api_helpers.utils import create_engine_url
 
 if typing.TYPE_CHECKING:
     from apps.mobile_app.models import FCMDevice
+    from apps.user_management.models import Organization
 
 
 MAX_RETRIES = 1 if settings.DEBUG else 10
@@ -57,7 +58,7 @@ def send_message_to_fcm_device(device: "FCMDevice", message: Message) -> None:
 
 def send_push_notification(
     device_to_notify: "FCMDevice", message: Message, error_cb: typing.Optional[typing.Callable[..., None]] = None
-) -> None:
+) -> bool:
     logger.debug(f"Sending push notification to device type {device_to_notify.type} with message: {message}")
 
     def _error_cb():
@@ -71,7 +72,7 @@ def send_push_notification(
         if not CloudConnector.objects.exists():
             _error_cb()
             logger.error("Error while sending a mobile push notification: not connected to cloud")
-            return
+            return False
 
         try:
             response = _send_push_notification_to_fcm_relay(message)
@@ -83,11 +84,14 @@ def send_push_notification(
                 logger.error(
                     f"Error while sending a mobile push notification: HTTP client error {e.response.status_code}"
                 )
-                return
+                return False
             else:
                 raise
     else:
         send_message_to_fcm_device(device_to_notify, message)
+
+    # notification succeeded (otherwise raised exception before)
+    return True
 
 
 def construct_fcm_message(
@@ -135,3 +139,7 @@ def construct_fcm_message(
             },
         ),
     )
+
+
+def add_stack_slug_to_message_title(title: str, organization: "Organization") -> str:
+    return f"[{organization.stack_slug}] {title}"
