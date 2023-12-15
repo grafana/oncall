@@ -243,13 +243,18 @@ are run on pull request CI builds. New features should ideally include a new/mod
 
 To run these tests locally simply do the following:
 
-```bash
-npx playwright install  # install playwright dependencies
-cp ./grafana-plugin/e2e-tests/.env.example ./grafana-plugin/e2e-tests/.env
-# you may need to tweak the values in ./grafana-plugin/.env according to your local setup
-cd grafana-plugin
-yarn test:e2e
-```
+1. Install Playwright dependencies with `npx playwright install`
+2. [Launch the environment](#launch-the-environment)
+3. Then you interact with tests in 2 different ways:
+   1. Using `Tilt` - open _E2eTests_ section where you will find 4 buttons:
+      1. Restart headless run (you can configure browsers, reporter and failure allowance there)
+      2. Open watch mode
+      3. Show last HTML report
+      4. Stop (stops any pending e2e test process)
+   2. Using `make`:
+      1. `make test:e2e` to start headless run
+      2. `make test:e2e:watch` to open watch mode
+      3. `make test:e2e:show:report` to open last HTML report
 
 ## Helm unit tests
 

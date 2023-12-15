@@ -1,6 +1,7 @@
 import { test, Page, expect } from '../fixtures';
 import { generateRandomValue, selectDropdownValue } from '../utils/forms';
-import { createIntegration } from '../utils/integrations';
+import { createIntegration, searchIntegrationAndAssertItsPresence } from '../utils/integrations';
+import { goToOnCallPage } from '../utils/navigation';
 
 const HEARTBEAT_SETTINGS_FORM_TEST_ID = 'heartbeat-settings-form';
 
@@ -12,7 +13,8 @@ test.describe("updating an integration's heartbeat interval works", async () => 
   };
 
   test('change heartbeat interval', async ({ adminRolePage: { page } }) => {
-    await createIntegration({ page, integrationName: generateRandomValue() });
+    const integrationName = generateRandomValue();
+    await createIntegration({ page, integrationName });
 
     await _openHeartbeatSettingsForm(page);
 
@@ -42,7 +44,8 @@ test.describe("updating an integration's heartbeat interval works", async () => 
   });
 
   test('send heartbeat', async ({ adminRolePage: { page } }) => {
-    await createIntegration({ page, integrationName: generateRandomValue() });
+    const integrationName = generateRandomValue();
+    await createIntegration({ page, integrationName });
 
     await _openHeartbeatSettingsForm(page);
 
@@ -59,6 +62,9 @@ test.describe("updating an integration's heartbeat interval works", async () => 
      */
     await page.request.get(endpoint);
     await page.reload({ waitUntil: 'networkidle' });
+
+    await goToOnCallPage(page, 'integrations');
+    await searchIntegrationAndAssertItsPresence({ page, integrationName });
     await page.getByTestId('heartbeat-badge').waitFor();
   });
 });

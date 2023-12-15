@@ -103,6 +103,7 @@ test.describe('maintenance mode works', () => {
 
     await createEscalationChain(page, escalationChainName, EscalationStep.NotifyUsers, userName);
     await createIntegration({ page, integrationName });
+    await page.waitForTimeout(1000);
     await assignEscalationChainToIntegration(page, escalationChainName);
     await enableMaintenanceMode(page, maintenanceModeType);
 
@@ -110,8 +111,6 @@ test.describe('maintenance mode works', () => {
   };
 
   test('debug mode', async ({ adminRolePage: { page, userName } }) => {
-    test.slow();
-
     const { escalationChainName, integrationName } = await createIntegrationAndEscalationChainAndEnableMaintenanceMode(
       page,
       userName,
@@ -128,7 +127,6 @@ test.describe('maintenance mode works', () => {
   });
 
   test('"maintenance" mode', async ({ adminRolePage: { page, userName } }) => {
-    test.slow();
     const { integrationName } = await createIntegrationAndEscalationChainAndEnableMaintenanceMode(
       page,
       userName,
