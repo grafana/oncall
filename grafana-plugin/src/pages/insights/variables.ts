@@ -1,31 +1,18 @@
-import { QueryVariable } from '@grafana/scenes';
-
-import { Datasource } from './config';
+import { DataSourceVariable, QueryVariable } from '@grafana/scenes';
 
 const VARIABLES = [
   // Selectable
-  new QueryVariable({
-    text: 'grafanacloud-usage',
-    value: 'grafanacloud-usage',
-    hide: 0,
-    includeAll: false,
-    label: 'Data source',
-    isMulti: false,
+  new DataSourceVariable({
     name: 'datasource',
-    options: [],
-    query: 'prometheus',
-    // queryValue: '',
-    refresh: 1,
-    regex: '',
-    skipUrlSync: false,
-    // type: 'datasource',
+    label: 'Data source',
+    pluginId: 'prometheus',
   }),
   new QueryVariable({
     name: 'instance',
     label: 'Instance',
     text: ['All'],
     value: ['$__all'],
-    datasource: Datasource.GrafanaCloudPrometheus,
+    datasource: { uid: '$datasource' },
     definition: 'label_values(${alert_groups_total},slug)',
     hide: 0,
     includeAll: true,
@@ -46,7 +33,7 @@ const VARIABLES = [
     label: 'Team',
     text: ['All'],
     value: ['$__all'],
-    datasource: Datasource.GrafanaCloudPrometheus,
+    datasource: { uid: '$datasource' },
     definition: 'label_values(${alert_groups_total}{slug=~"$instance"},team)',
     hide: 0,
     includeAll: true,
@@ -67,7 +54,7 @@ const VARIABLES = [
     label: 'Integration',
     text: ['All'],
     value: ['$__all'],
-    datasource: Datasource.GrafanaCloudPrometheus,
+    datasource: { uid: '$datasource' },
     definition: 'label_values(${alert_groups_total}{team=~"$team",slug=~"$instance"},integration)',
     hide: 0,
     includeAll: true,
@@ -88,7 +75,7 @@ const VARIABLES = [
   new QueryVariable({
     name: 'alert_groups_total',
     label: 'alert_groups_total',
-    datasource: Datasource.GrafanaCloudPrometheus,
+    datasource: { uid: '$datasource' },
     query: {
       query: 'metrics(alert_groups_total)',
       refId: 'PrometheusVariableQueryEditor-VariableQuery',
@@ -109,7 +96,7 @@ const VARIABLES = [
   new QueryVariable({
     name: 'user_was_notified_of_alert_groups_total',
     label: 'user_was_notified_of_alert_groups_total',
-    datasource: Datasource.GrafanaCloudPrometheus,
+    datasource: { uid: '$datasource' },
     definition: 'metrics(user_was_notified_of_alert_groups_total)',
     hide: 2,
     includeAll: false,
@@ -128,7 +115,7 @@ const VARIABLES = [
   new QueryVariable({
     name: 'alert_groups_response_time_seconds_bucket',
     label: 'alert_groups_response_time_seconds_bucket',
-    datasource: Datasource.GrafanaCloudPrometheus,
+    datasource: { uid: '$datasource' },
     definition: 'metrics(alert_groups_response_time_seconds_bucket)',
     hide: 2,
     includeAll: false,
@@ -147,7 +134,7 @@ const VARIABLES = [
   new QueryVariable({
     name: 'alert_groups_response_time_seconds_sum',
     label: 'alert_groups_response_time_seconds_sum',
-    datasource: Datasource.GrafanaCloudPrometheus,
+    datasource: { uid: '$datasource' },
     definition: 'metrics(alert_groups_response_time_seconds_sum)',
     hide: 2,
     includeAll: false,
@@ -166,7 +153,7 @@ const VARIABLES = [
   new QueryVariable({
     name: 'alert_groups_response_time_seconds_count',
     label: 'alert_groups_response_time_seconds_count',
-    datasource: Datasource.GrafanaCloudPrometheus,
+    datasource: { uid: '$datasource' },
     definition: 'metrics(alert_groups_response_time_seconds_count)',
     hide: 2,
     includeAll: false,

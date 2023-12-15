@@ -1,16 +1,9 @@
-
 import { ThresholdsMode } from '@grafana/data';
-import {
-  SceneFlexItem,
-  SceneQueryRunner,
-  VizPanel,
-} from '@grafana/scenes';
-
-import { Datasource } from 'pages/insights/config';
+import { SceneFlexItem, SceneQueryRunner, VizPanel } from '@grafana/scenes';
 
 export function getTotalAlertGroupsScene() {
   const query = new SceneQueryRunner({
-    datasource: Datasource.GrafanaCloudPrometheus,
+    datasource: { uid: '$datasource' },
     queries: [
       {
         disableTextWrap: false,
