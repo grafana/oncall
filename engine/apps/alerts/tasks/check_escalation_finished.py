@@ -29,26 +29,26 @@ def send_alert_group_escalation_auditor_task_heartbeat() -> None:
 
 
 def audit_alert_group_escalation(alert_group: "AlertGroup") -> None:
-    escalation_snapshot = alert_group.escalation_snapshot
+    raw_escalation_snapshot: dict = alert_group.raw_escalation_snapshot
     alert_group_id = alert_group.id
     base_msg = f"Alert group {alert_group_id}"
 
-    if not alert_group.escalation_chain_exists:
+    if not raw_escalation_snapshot:
+        msg = f"{base_msg} does not have an escalation snapshot associated with it, this should never occur"
+
+        task_logger.warning(msg)
+        raise AlertGroupEscalationPolicyExecutionAuditException(msg)
+
+    if not raw_escalation_snapshot.get("escalation_chain_snapshot"):
         task_logger.info(
             f"{base_msg} does not have an escalation chain associated with it, and therefore it is expected "
             "that it will not have an escalation snapshot, skipping further validation"
         )
         return
 
-    if not escalation_snapshot:
-        msg = f"{base_msg} does not have an escalation snapshot associated with it, this should never occur"
-
-        task_logger.warning(msg)
-        raise AlertGroupEscalationPolicyExecutionAuditException(msg)
-
     task_logger.info(f"{base_msg} has an escalation snapshot associated with it, auditing if it executed properly")
 
-    escalation_policies_snapshots = escalation_snapshot.escalation_policies_snapshots
+    escalation_policies_snapshots = raw_escalation_snapshot.get("escalation_policies_snapshots")
 
     if not escalation_policies_snapshots:
         task_logger.info(
@@ -59,18 +59,17 @@ def audit_alert_group_escalation(alert_group: "AlertGroup") -> None:
         f"{base_msg}'s escalation snapshot has a populated escalation_policies_snapshots, continuing validation"
     )
 
-    if escalation_snapshot.next_step_eta_is_valid() is False:
-        msg = (
-            f"{base_msg}'s escalation snapshot does not have a valid next_step_eta: {escalation_snapshot.next_step_eta}"
-        )
+    if alert_group.next_step_eta_is_valid() is False:
+        msg = f"{base_msg}'s escalation snapshot does not have a valid next_step_eta: {alert_group.next_step_eta}"
 
         task_logger.warning(msg)
         raise AlertGroupEscalationPolicyExecutionAuditException(msg)
 
-    task_logger.info(f"{base_msg}'s escalation snapshot has a valid next_step_eta: {escalation_snapshot.next_step_eta}")
+    task_logger.info(f"{base_msg}'s escalation snapshot has a valid next_step_eta: {alert_group.next_step_eta}")
 
-    executed_escalation_policy_snapshots = escalation_snapshot.executed_escalation_policy_snapshots
-    num_of_executed_escalation_policy_snapshots = len(executed_escalation_policy_snapshots)
+    num_of_executed_escalation_policy_snapshots = (
+        alert_group.last_active_escalation_policy_order + 1 if alert_group.last_active_escalation_policy_order else 0
+    )
 
     if num_of_executed_escalation_policy_snapshots == 0:
         task_logger.info(
