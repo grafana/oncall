@@ -30,7 +30,8 @@ def test_send_push_notification_cloud(
     settings.LICENSE = CLOUD_LICENSE_NAME
     settings.IS_OPEN_SOURCE = False
 
-    utils.send_push_notification(device, mock_message)
+    succeeded = utils.send_push_notification(device, mock_message)
+    assert succeeded
     mock_send_message.assert_called_once_with(mock_message)
 
 
@@ -77,8 +78,8 @@ def test_send_push_notification_oss(
     device = FCMDevice.objects.create(user=user, registration_id="test_device_id")
     mock_message = {"foo": "bar"}
 
-    utils.send_push_notification(device, mock_message, mock_error_cb)
-
+    succeeded = utils.send_push_notification(device, mock_message, mock_error_cb)
+    assert succeeded
     mock_error_cb.assert_not_called()
     mock_send_push_notification_to_fcm_relay.assert_called_once_with(mock_message)
 
@@ -99,8 +100,9 @@ def test_send_push_notification_oss_no_cloud_connector(
     device = FCMDevice.objects.create(user=user, registration_id="test_device_id")
     mock_message = {"foo": "bar"}
 
-    utils.send_push_notification(device, mock_message, mock_error_cb)
+    succeeded = utils.send_push_notification(device, mock_message, mock_error_cb)
 
+    assert not succeeded
     mock_error_cb.assert_called_once_with()
     mock_send_push_notification_to_fcm_relay.assert_not_called()
 
@@ -128,7 +130,8 @@ def test_send_push_notification_oss_fcm_relay_returns_client_error(
     device = FCMDevice.objects.create(user=user, registration_id="test_device_id")
     mock_message = {"foo": "bar"}
 
-    utils.send_push_notification(device, mock_message, mock_error_cb)
+    succeeded = utils.send_push_notification(device, mock_message, mock_error_cb)
+    assert not succeeded
     mock_send_push_notification_to_fcm_relay.assert_called_once_with(mock_message)
 
 

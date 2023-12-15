@@ -106,7 +106,7 @@ def check_escalation_finished_task() -> None:
     )
     total_alert_groups_count = alert_groups.count()
 
-    creation_deltas = alert_groups.filter(received_at__isnull=False).aggregate(
+    creation_deltas = alert_groups.aggregate(
         avg_delta=Avg(F("started_at") - F("received_at")),
         max_delta=Max(F("started_at") - F("received_at")),
     )
