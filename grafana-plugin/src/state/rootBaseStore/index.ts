@@ -1,6 +1,6 @@
 import { locationService } from '@grafana/runtime';
 import { contextSrv } from 'grafana/app/core/core';
-import { action, makeObservable, observable } from 'mobx';
+import { action, makeObservable, observable, runInAction } from 'mobx';
 import moment from 'moment-timezone';
 import qs from 'query-string';
 import { OnCallAppPluginMeta } from 'types';
@@ -133,7 +133,7 @@ export class RootBaseStore {
       () => this.grafanaTeamStore.updateItems(),
       () => updateFeatures(),
     ]);
-    this.isBasicDataLoaded = true;
+    this.setIsBasicDataLoaded(true);
   };
 
   @action
@@ -145,6 +145,12 @@ export class RootBaseStore {
     ]);
   };
 
+  @action
+  setIsBasicDataLoaded(value: boolean) {
+    this.isBasicDataLoaded = value;
+  }
+
+  @action
   setupPluginError(errorMsg: string) {
     this.initializationError = errorMsg;
   }
@@ -169,7 +175,7 @@ export class RootBaseStore {
    * Finally, try to load the current user from the OnCall backend
    */
   async setupPlugin(meta: OnCallAppPluginMeta) {
-    this.initializationError = null;
+    this.setupPluginError(null);
     this.onCallApiUrl = meta.jsonData?.onCallApiUrl;
 
     if (!FaroHelper.faro) {
@@ -247,9 +253,11 @@ export class RootBaseStore {
       }
     } else {
       // everything is all synced successfully at this point..
-      this.backendVersion = pluginConnectionStatus.version;
-      this.backendLicense = pluginConnectionStatus.license;
-      this.recaptchaSiteKey = pluginConnectionStatus.recaptcha_site_key;
+      runInAction(() => {
+        this.backendVersion = pluginConnectionStatus.version;
+        this.backendLicense = pluginConnectionStatus.license;
+        this.recaptchaSiteKey = pluginConnectionStatus.recaptcha_site_key;
+      });
     }
 
     if (!this.userStore.currentUser) {
@@ -294,13 +302,16 @@ export class RootBaseStore {
   @action.bound
   async updateFeatures() {
     const response = await makeRequest('/features/', {});
-    this.features = response.reduce(
-      (acc: any, key: string) => ({
-        ...acc,
-        [key]: true,
-      }),
-      {}
-    );
+
+    runInAction(() => {
+      this.features = response.reduce(
+        (acc: any, key: string) => ({
+          ...acc,
+          [key]: true,
+        }),
+        {}
+      );
+    });
   }
 
   @action

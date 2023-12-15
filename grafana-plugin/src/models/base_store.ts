@@ -1,5 +1,5 @@
 import { sentenceCase } from 'change-case';
-import { action, makeObservable } from 'mobx';
+import { action } from 'mobx';
 
 import { makeRequest } from 'network';
 import { RootStore } from 'state';
@@ -10,7 +10,6 @@ export default class BaseStore {
   protected path = '';
 
   constructor(rootStore: RootStore) {
-    makeObservable(this);
     this.rootStore = rootStore;
   }
 

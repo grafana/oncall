@@ -1,20 +1,11 @@
-import { observable, makeObservable } from 'mobx';
-
 import { Alert } from 'models/alertgroup/alertgroup.types';
 import BaseStore from 'models/base_store';
 import { makeRequest } from 'network';
 import { RootStore } from 'state';
 
-import { ResolutionNote } from './resolution_note.types';
-
 export class ResolutionNotesStore extends BaseStore {
-  @observable.shallow
-  resolutionNotes: { [id: string]: ResolutionNote[] } = {};
-
   constructor(rootStore: RootStore) {
     super(rootStore);
-
-    makeObservable(this);
 
     this.path = '/resolution_notes/';
   }

@@ -1,4 +1,4 @@
-import { action, observable, makeObservable } from 'mobx';
+import { action, observable, makeObservable, runInAction } from 'mobx';
 
 import BaseStore from 'models/base_store';
 import { makeRequest } from 'network';
@@ -30,21 +30,23 @@ export class CloudStore extends BaseStore {
       params: { page },
     });
 
-    this.items = {
-      ...this.items,
-      ...results.reduce(
-        (acc: { [key: number]: Cloud }, item: Cloud) => ({
-          ...acc,
-          [item.id]: item,
-        }),
-        {}
-      ),
-    };
+    runInAction(() => {
+      this.items = {
+        ...this.items,
+        ...results.reduce(
+          (acc: { [key: number]: Cloud }, item: Cloud) => ({
+            ...acc,
+            [item.id]: item,
+          }),
+          {}
+        ),
+      };
 
-    this.searchResult = {
-      matched_users_count,
-      results: results.map((item: Cloud) => item.id),
-    };
+      this.searchResult = {
+        matched_users_count,
+        results: results.map((item: Cloud) => item.id),
+      };
+    });
   }
 
   getSearchResult() {
@@ -72,14 +74,17 @@ export class CloudStore extends BaseStore {
 
   @action.bound
   async loadCloudConnectionStatus() {
-    this.cloudConnectionStatus = await this.getCloudConnectionStatus();
+    const result = await this.getCloudConnectionStatus();
+
+    runInAction(() => {
+      this.cloudConnectionStatus = result;
+    });
   }
 
   async getCloudConnectionStatus() {
     return await makeRequest(`/cloud_connection/`, { method: 'GET' });
   }
 
-  @action
   async disconnectToCloud() {
     return await makeRequest(`/cloud_connection/`, { method: 'DELETE' });
   }

@@ -1,4 +1,4 @@
-import { action, observable, makeObservable } from 'mobx';
+import { action, observable, makeObservable, runInAction } from 'mobx';
 
 import BaseStore from 'models/base_store';
 import { makeRequest } from 'network';
@@ -25,20 +25,24 @@ export class SlackChannelStore extends BaseStore {
   async updateById(id: SlackChannel['id']) {
     const response = await this.getById(id);
 
-    this.items = {
-      ...this.items,
-      [id]: response,
-    };
+    runInAction(() => {
+      this.items = {
+        ...this.items,
+        [id]: response,
+      };
+    });
   }
 
   @action
   async updateItem(id: SlackChannel['id']) {
     const response = await this.getById(id);
 
-    this.items = {
-      ...this.items,
-      [id]: response,
-    };
+    runInAction(() => {
+      this.items = {
+        ...this.items,
+        [id]: response,
+      };
+    });
   }
 
   @action
@@ -47,21 +51,23 @@ export class SlackChannelStore extends BaseStore {
       params: { search: query },
     });
 
-    this.items = {
-      ...this.items,
-      ...results.reduce(
-        (acc: { [key: number]: SlackChannel }, item: SlackChannel) => ({
-          ...acc,
-          [item.id]: item,
-        }),
-        {}
-      ),
-    };
+    runInAction(() => {
+      this.items = {
+        ...this.items,
+        ...results.reduce(
+          (acc: { [key: number]: SlackChannel }, item: SlackChannel) => ({
+            ...acc,
+            [item.id]: item,
+          }),
+          {}
+        ),
+      };
 
-    this.searchResult = {
-      ...this.searchResult,
-      [query]: results.map((item: SlackChannel) => item.id),
-    };
+      this.searchResult = {
+        ...this.searchResult,
+        [query]: results.map((item: SlackChannel) => item.id),
+      };
+    });
   }
 
   getSearchResult(query = '') {

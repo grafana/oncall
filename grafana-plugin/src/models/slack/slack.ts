@@ -1,4 +1,4 @@
-import { action, observable, makeObservable } from 'mobx';
+import { action, observable, makeObservable, runInAction } from 'mobx';
 
 import BaseStore from 'models/base_store';
 import { SlackChannel } from 'models/slack_channel/slack_channel.types';
@@ -21,14 +21,22 @@ export class SlackStore extends BaseStore {
 
   @action
   async updateSlackSettings() {
-    this.slackSettings = await makeRequest('/slack_settings/', {});
+    const result = await makeRequest('/slack_settings/', {});
+
+    runInAction(() => {
+      this.slackSettings = result;
+    });
   }
 
   @action
   async saveSlackSettings(data: Partial<SlackSettings>) {
-    this.slackSettings = await makeRequest('/slack_settings/', {
+    const result = await makeRequest('/slack_settings/', {
       data,
       method: 'PUT',
+    });
+
+    runInAction(() => {
+      this.slackSettings = result;
     });
   }
 
@@ -42,12 +50,17 @@ export class SlackStore extends BaseStore {
 
   @action
   async updateSlackIntegrationData(slack_id: string) {
-    return (this.slackIntegrationData = await makeRequest('/slack_integration/', {
+    const result = await makeRequest('/slack_integration/', {
       params: { slack_id },
-    }));
+    });
+
+    runInAction(() => {
+      this.slackIntegrationData = result;
+    });
+
+    return result;
   }
 
-  @action
   async reinstallSlackIntegration(slack_id: string) {
     return await makeRequest('/slack_integration/', {
       validateStatus: function (status) {
@@ -58,7 +71,6 @@ export class SlackStore extends BaseStore {
     }).catch(this.onApiError);
   }
 
-  @action
   async slackLogin() {
     const url_for_redirect = await makeRequest('/login/slack-login/', {});
     window.location = url_for_redirect;

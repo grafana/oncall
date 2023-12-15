@@ -1,8 +1,7 @@
-import { action, observable, makeObservable } from 'mobx';
+import { action, observable, makeObservable, runInAction } from 'mobx';
 
 import BaseStore from 'models/base_store';
 import { makeRequest } from 'network';
-import { Mixpanel } from 'services/mixpanel';
 import { RootStore } from 'state';
 
 import { ApiToken } from './api_token.types';
@@ -28,21 +27,23 @@ export class ApiTokenStore extends BaseStore {
       params: { search: query },
     });
 
-    this.items = {
-      ...this.items,
-      ...results.reduce(
-        (acc: { [key: number]: ApiToken }, item: ApiToken) => ({
-          ...acc,
-          [item.id]: item,
-        }),
-        {}
-      ),
-    };
+    runInAction(() => {
+      this.items = {
+        ...this.items,
+        ...results.reduce(
+          (acc: { [key: number]: ApiToken }, item: ApiToken) => ({
+            ...acc,
+            [item.id]: item,
+          }),
+          {}
+        ),
+      };
 
-    this.searchResult = {
-      ...this.searchResult,
-      [query]: results.map((item: ApiToken) => item.id),
-    };
+      this.searchResult = {
+        ...this.searchResult,
+        [query]: results.map((item: ApiToken) => item.id),
+      };
+    });
   }
 
   getSearchResult(query = '') {
@@ -54,8 +55,6 @@ export class ApiTokenStore extends BaseStore {
   }
 
   async revokeApiToken(id: ApiToken['id']) {
-    Mixpanel.track('Revoke ApiToken', null);
-
     return await makeRequest(`${this.path}${id}/`, {
       method: 'DELETE',
     });
