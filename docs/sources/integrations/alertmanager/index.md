@@ -171,6 +171,10 @@ You can read more about AlertManager Data model [here](https://prometheus.io/doc
 3. Send demo alert to make sure everything went well.
 4. Adjust routes to the new shape of payload. You can use payload of the demo alert from previous step as an example.
 
+<img width="1646" alt="Screenshot 2023-12-14 at 1 14 21 PM" src="https://github.com/grafana/oncall/assets/85312870/7e281416-edbc-4384-8d15-7efaec2de311">
+
+<img width="1644" alt="Screenshot 2023-12-14 at 1 14 32 PM" src="https://github.com/grafana/oncall/assets/85312870/b62cfa1d-2ff6-4b46-9cec-459b14cd1996">
+
 {{% docs/reference %}}
 [user-and-team-management]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/user-and-team-management"
 [user-and-team-management]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/user-and-team-management"
