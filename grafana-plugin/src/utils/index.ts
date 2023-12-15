@@ -101,7 +101,5 @@ export function isUseProfileExtensionPointEnabled(): boolean {
   const { major, minor } = getGrafanaVersion();
   const isRequiredGrafanaVersion = major > 10 || (major === 10 && minor >= 3);
 
-  console.log({ major, minor, isRequiredGrafanaVersion });
-
   return isRequiredGrafanaVersion;
 }

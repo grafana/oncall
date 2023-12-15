@@ -39,7 +39,7 @@ export default class GrafanaAPIClient {
    * instance is currently unavailable. Poll until it is available
    */
   pollInstanceUntilItIsHealthy = async (request: APIRequestContext): Promise<boolean> => {
-    console.log('Polling the grafana instance to make sure it is healthy ' + BASE_URL);
+    console.log('Polling the grafana instance to make sure it is healthy');
 
     const res = await request.get(`${BASE_URL}/api/health`);
 

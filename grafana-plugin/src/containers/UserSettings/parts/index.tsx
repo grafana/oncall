@@ -49,8 +49,6 @@ export const Tabs = ({
     [onTabChange]
   );
 
-  console.log({ showMobileAppConnectionTab });
-
   return (
     <TabsBar>
       <Tab
@@ -120,8 +118,6 @@ export const TabsContent = observer(({ id, activeTab, onTabChange, isDesktopOrLa
   useEffect(() => {
     store.updateFeatures();
   }, []);
-
-  console.log({ cond: !isUseProfileExtensionPointEnabled, activeTab });
 
   return (
     <TabContent className={cx('content')}>
