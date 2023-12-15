@@ -22,7 +22,7 @@ type SelectDropdownValueArgs = {
 
 type ClickButtonArgs = {
   page: Page;
-  buttonText: string;
+  buttonText: string | RegExp;
   // if provided, use this Locator as the root of our search for the button
   startingLocator?: Locator;
 };
