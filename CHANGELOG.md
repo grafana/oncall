@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Support e2e tests in Tilt and Makefile ([#3516](https://github.com/grafana/oncall/pull/3516))
 
+### Changed
+
+- Upgrade mobx lib to the latest version 6.12.0 ([#3453](https://github.com/grafana/oncall/issues/3453))
+
 ### Fixed
 
 - Check reason to skip notification in Slack to avoid task perform_notification retries @Ferril ([#3562](https://github.com/grafana/oncall/pull/3562))
