@@ -8,7 +8,7 @@ import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
 
 import ICalConnector from './ICalConnector';
-import MobileAppConnector from './MobileAppConnector';
+// import MobileAppConnector from './MobileAppConnector';
 import PhoneConnector from './PhoneConnector';
 import SlackConnector from './SlackConnector';
 import TelegramConnector from './TelegramConnector';
@@ -23,7 +23,7 @@ export const Connectors: FC<ConnectorsProps> = (props) => {
   return (
     <>
       <PhoneConnector {...props} />
-      <MobileAppConnector {...props} />
+      {/* <MobileAppConnector {...props} /> */}
       <SlackConnector {...props} />
       {store.hasFeature(AppFeature.Telegram) && <TelegramConnector {...props} />}
       <Legend>Calendar export</Legend>

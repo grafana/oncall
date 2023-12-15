@@ -36,7 +36,7 @@ module.exports = {
         'newlines-between': 'always',
       },
     ],
-    'no-console': ['warn', { allow: ['warn', 'error'] }],
+    'no-console': 'off',
     'no-unused-vars': [
       'warn',
       {
