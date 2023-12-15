@@ -5,7 +5,11 @@ from rest_framework.test import APIClient
 
 from apps.api.alert_group_table_columns import alert_group_table_user_settings
 from apps.api.permissions import LegacyAccessControlRole
-from apps.user_management.constants import AlertGroupTableColumnTypeChoices, default_columns
+from apps.user_management.constants import (
+    AlertGroupTableColumnTypeChoices,
+    AlertGroupTableDefaultColumnChoices,
+    default_columns,
+)
 
 DEFAULT_COLUMNS = default_columns()
 
@@ -41,6 +45,18 @@ def test_get_columns(
             columns_settings({"name": "Test", "id": "test", "type": AlertGroupTableColumnTypeChoices.LABEL.value}),
             status.HTTP_200_OK,
         ),
+        # add label column with the same id as default
+        (
+            columns_settings(),
+            columns_settings({"name": "Status", "id": "status", "type": AlertGroupTableColumnTypeChoices.LABEL.value}),
+            status.HTTP_200_OK,
+        ),
+        # add unexisting default column
+        (
+            columns_settings(),
+            columns_settings({"name": "Hello", "id": "hello", "type": AlertGroupTableColumnTypeChoices.DEFAULT.value}),
+            status.HTTP_400_BAD_REQUEST,
+        ),
         # remove column
         (
             columns_settings({"name": "Test", "id": "test", "type": AlertGroupTableColumnTypeChoices.LABEL.value}),
@@ -60,7 +76,13 @@ def test_get_columns(
         # duplicate id
         (
             columns_settings(),
-            columns_settings({"name": "Test", "id": 1, "type": AlertGroupTableColumnTypeChoices.DEFAULT.value}),
+            columns_settings(
+                {
+                    "name": "Test",
+                    "id": AlertGroupTableDefaultColumnChoices.STATUS.value,
+                    "type": AlertGroupTableColumnTypeChoices.DEFAULT.value,
+                }
+            ),
             status.HTTP_400_BAD_REQUEST,
         ),
         # remove default column
