@@ -10,6 +10,7 @@ from apps.alerts.tasks.check_escalation_finished import (
     AlertGroupEscalationPolicyExecutionAuditException,
     audit_alert_group_escalation,
     check_escalation_finished_task,
+    check_personal_notifications_task,
     send_alert_group_escalation_auditor_task_heartbeat,
 )
 from apps.base.models import UserNotificationPolicy, UserNotificationPolicyLogRecord
@@ -427,7 +428,8 @@ def test_check_escalation_finished_task_calls_audit_alert_group_personal_notific
     alert_group2 = make_alert_group_that_started_at_specific_date(alert_receive_channel, channel_filter=channel_filter)
     alert_group3 = make_alert_group_that_started_at_specific_date(alert_receive_channel, channel_filter=channel_filter)
     alert_group4 = make_alert_group_that_started_at_specific_date(alert_receive_channel, channel_filter=channel_filter)
-    for alert_group in (alert_group1, alert_group2, alert_group3, alert_group4):
+    alert_groups = [alert_group1, alert_group2, alert_group3, alert_group4]
+    for alert_group in alert_groups:
         alert_group.raw_escalation_snapshot = alert_group.build_raw_escalation_snapshot()
         alert_group.raw_escalation_snapshot["last_active_escalation_policy_order"] = 1
         alert_group.save()
@@ -500,11 +502,15 @@ def test_check_escalation_finished_task_calls_audit_alert_group_personal_notific
     alert_group4.personal_log_records.update(created_at=now - timezone.timedelta(minutes=2))
 
     # trigger task
-    check_escalation_finished_task()
+    with patch("apps.alerts.tasks.check_escalation_finished.check_personal_notifications_task") as mock_check_notif:
+        check_escalation_finished_task()
 
-    assert f"Alert group {alert_group1.id} personal notifications check passed" in caplog.text
-    assert f"Alert group {alert_group2.id} personal notifications check passed" in caplog.text
-    assert f"Alert group {alert_group3.id} has (1) uncompleted personal notifications triggered" in caplog.text
-    assert f"Alert group {alert_group4.id} personal notifications check passed" in caplog.text
+    for alert_group in alert_groups:
+        mock_check_notif.apply_async.assert_any_call((alert_group.id,))
+        check_personal_notifications_task(alert_group.id)
+        if alert_group == alert_group3:
+            assert f"Alert group {alert_group3.id} has (1) uncompleted personal notifications" in caplog.text
+        else:
+            assert f"Alert group {alert_group.id} personal notifications check passed" in caplog.text
 
     mocked_send_alert_group_escalation_auditor_task_heartbeat.assert_called()
