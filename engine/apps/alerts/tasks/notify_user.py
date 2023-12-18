@@ -161,7 +161,7 @@ def notify_user_task(
                         type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED,
                         notification_policy=notification_policy,
                         alert_group=alert_group,
-                        reason=reason,
+                        reason="Alert group slack notifications are disabled",
                         slack_prevent_posting=prevent_posting_to_thread,
                         notification_step=notification_policy.step,
                         notification_channel=notification_policy.notify_by,
@@ -287,19 +287,29 @@ def perform_notification(log_record_pk):
         # Code below is not consistent.
         # We check various slack reasons to skip escalation in this task, in send_slack_notification,
         # before and after posting of slack message.
-        if alert_group.reason_to_skip_escalation == alert_group.RATE_LIMITED:
+        if alert_group.skip_escalation_in_slack:
+            notification_error_code = UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_IN_SLACK
+            if alert_group.reason_to_skip_escalation == alert_group.RATE_LIMITED:
+                notification_error_code = UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_IN_SLACK_RATELIMIT
+            elif alert_group.reason_to_skip_escalation == alert_group.CHANNEL_ARCHIVED:
+                notification_error_code = (
+                    UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_IN_SLACK_CHANNEL_IS_ARCHIVED
+                )
+            elif alert_group.reason_to_skip_escalation == alert_group.ACCOUNT_INACTIVE:
+                notification_error_code = UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_IN_SLACK_TOKEN_ERROR
             task_logger.debug(
-                f"send_slack_notification for alert_group {alert_group.pk} failed because of slack ratelimit."
+                f"send_slack_notification for alert_group {alert_group.pk} failed because escalation in slack is "
+                f"skipped, reason: '{alert_group.get_reason_to_skip_escalation_display()}'"
             )
             UserNotificationPolicyLogRecord(
                 author=user,
                 type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED,
                 notification_policy=notification_policy,
-                reason="Slack ratelimit",
+                reason=f"Skipped escalation in Slack, reason: '{alert_group.get_reason_to_skip_escalation_display()}'",
                 alert_group=alert_group,
                 notification_step=notification_policy.step,
                 notification_channel=notification_channel,
-                notification_error_code=UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_IN_SLACK_RATELIMIT,
+                notification_error_code=notification_error_code,
             ).save()
             return
 

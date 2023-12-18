@@ -37,6 +37,7 @@ import { retryFailingPromises } from 'utils/async';
 import {
   APP_VERSION,
   CLOUD_VERSION_REGEX,
+  getOnCallApiUrl,
   GRAFANA_LICENSE_CLOUD,
   GRAFANA_LICENSE_OSS,
   PLUGIN_ROOT,
@@ -167,7 +168,7 @@ export class RootBaseStore {
    */
   async setupPlugin(meta: OnCallAppPluginMeta) {
     this.initializationError = null;
-    this.onCallApiUrl = meta.jsonData?.onCallApiUrl;
+    this.onCallApiUrl = getOnCallApiUrl(meta);
 
     if (!FaroHelper.faro) {
       FaroHelper.initializeFaro(this.onCallApiUrl);
@@ -180,7 +181,7 @@ export class RootBaseStore {
 
     if (this.isOpenSource() && !meta.secureJsonFields?.onCallApiToken) {
       // Reinstall plugin if onCallApiToken is missing
-      const errorMsg = await PluginState.selfHostedInstallPlugin(process.env.ONCALL_API_URL, true);
+      const errorMsg = await PluginState.selfHostedInstallPlugin(this.onCallApiUrl, true);
       if (errorMsg) {
         return this.setupPluginError(errorMsg);
       }
@@ -310,8 +311,8 @@ export class RootBaseStore {
     await this.slackStore.installSlackIntegration();
   }
 
+  @action.bound
   async getApiUrlForSettings() {
-    const settings = await PluginState.getGrafanaPluginSettings();
-    return settings.jsonData?.onCallApiUrl;
+    return this.onCallApiUrl;
   }
 }

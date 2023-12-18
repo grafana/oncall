@@ -420,7 +420,7 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
                         Autoresolve:
                       </Text>
                       <Text type="primary">
-                        {IntegrationHelper.truncateLine(templates['resolve_condition_template'] || 'disabled')}
+                        {IntegrationHelper.truncateLine(templates?.['resolve_condition_template'] || 'disabled')}
                       </Text>
                     </div>
 
@@ -850,7 +850,7 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
                 {store.hasFeature(AppFeature.Labels) && (
                   <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
                     <div className={cx('integration__actionItem')} onClick={() => openLabelsForm()}>
-                      <Text type="primary">Alert group labels</Text>
+                      <Text type="primary">Alert group labeling</Text>
                     </div>
                   </WithPermissionControlTooltip>
                 )}
@@ -1131,7 +1131,7 @@ const IntegrationHeader: React.FC<IntegrationHeaderProps> = ({
 
       {alertReceiveChannel.maintenance_till && (
         <TooltipBadge
-          data-testid="maintenance-mode-remaining-time-tooltip"
+          testId="maintenance-mode-remaining-time-tooltip"
           borderType="primary"
           icon="pause"
           text={IntegrationHelper.getMaintenanceText(alertReceiveChannel.maintenance_till)}
@@ -1193,7 +1193,6 @@ const IntegrationHeader: React.FC<IntegrationHeaderProps> = ({
 
     return (
       <TooltipBadge
-        data-testid="heartbeat-badge"
         text={undefined}
         className={cx('heartbeat-badge')}
         borderType={heartbeatStatus ? 'success' : 'danger'}
