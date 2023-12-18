@@ -68,7 +68,9 @@ def audit_alert_group_escalation(alert_group: "AlertGroup") -> None:
     task_logger.info(f"{base_msg}'s escalation snapshot has a valid next_step_eta: {alert_group.next_step_eta}")
 
     num_of_executed_escalation_policy_snapshots = (
-        alert_group.last_active_escalation_policy_order + 1 if alert_group.last_active_escalation_policy_order else 0
+        alert_group.last_active_escalation_policy_order + 1
+        if alert_group.last_active_escalation_policy_order is not None
+        else 0
     )
 
     if num_of_executed_escalation_policy_snapshots == 0:
