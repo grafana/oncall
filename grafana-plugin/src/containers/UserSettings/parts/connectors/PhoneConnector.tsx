@@ -12,7 +12,7 @@ import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
 import { getVar } from 'utils/DOM';
 
-import styles from 'containers/UserSettings/parts/index.module.css';
+import styles from 'containers/UserSettings/parts/UserSettingsTabs.module.css';
 
 const cx = cn.bind(styles);
 

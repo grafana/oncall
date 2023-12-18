@@ -6,7 +6,7 @@ import { observer } from 'mobx-react';
 import { useMediaQuery } from 'react-responsive';
 
 import Avatar from 'components/Avatar/Avatar';
-import { Tabs, TabsContent } from 'containers/UserSettings/parts';
+import { Tabs, TabsContent } from 'containers/UserSettings/parts/UserSettingsTabs';
 import { User as UserType } from 'models/user/user.types';
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';

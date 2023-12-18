@@ -57,3 +57,4 @@ export enum PAGE {
 export const TEXT_ELLIPSIS_CLASS = 'overflow-child';
 
 export const INCIDENT_HORIZONTAL_SCROLLING_STORAGE = 'isIncidentalTableHorizontalScrolling';
+export const IRM_TAB = 'IRM';

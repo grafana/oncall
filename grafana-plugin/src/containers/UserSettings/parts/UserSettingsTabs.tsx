@@ -15,11 +15,11 @@ import { UserInfoTab } from 'containers/UserSettings/parts/tabs/UserInfoTab/User
 import { User } from 'models/user/user.types';
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
-import { isUseProfileExtensionPointEnabled } from 'utils';
-
 import CloudPhoneSettings from './tabs/CloudPhoneSettings/CloudPhoneSettings';
 
-import styles from 'containers/UserSettings/parts/index.module.css';
+import styles from 'containers/UserSettings/parts/UserSettingsTabs.module.css';
+import { isUseProfileExtensionPointEnabled } from 'utils';
+import { MobileAppConnectionTab } from 'containers/MobileAppConnection/MobileAppConnectionTab';
 
 const cx = cn.bind(styles);
 
@@ -74,7 +74,7 @@ export const Tabs = ({
         onChangeTab={getTabClickHandler(UserSettingsTab.PhoneVerification)}
         data-testid="tab-phone-verification"
       />
-      {showMobileAppConnectionTab && !isUseProfileExtensionPointEnabled() && (
+      {showMobileAppConnectionTab && (
         <Tab
           active={activeTab === UserSettingsTab.MobileAppConnection}
           label="Mobile App Connection"
@@ -141,11 +141,17 @@ export const TabsContent = observer(({ id, activeTab, onTabChange, isDesktopOrLa
         ) : (
           <PhoneVerification userPk={id} />
         ))}
-      {!isUseProfileExtensionPointEnabled() && activeTab === UserSettingsTab.MobileAppConnection && (
-        <MobileAppConnection userPk={id} />
-      )}
+      {activeTab === UserSettingsTab.MobileAppConnection && renderMobileTab()}
       {activeTab === UserSettingsTab.SlackInfo && <SlackTab />}
       {activeTab === UserSettingsTab.TelegramInfo && <TelegramInfo />}
     </TabContent>
   );
+
+  function renderMobileTab() {
+    if (!isUseProfileExtensionPointEnabled()) {
+      return <MobileAppConnection userPk={id} />;
+    }
+
+    return <MobileAppConnectionTab userPk={id} />;
+  }
 });

@@ -8,6 +8,7 @@ import { GrafanaPluginRootPage } from 'plugin/GrafanaPluginRootPage';
 import { getGrafanaVersion } from 'plugin/GrafanaPluginRootPage.helpers';
 
 import { OnCallPluginConfigPageProps, OnCallPluginMetaJSONData } from './types';
+import { IRM_TAB } from 'utils/consts';
 
 const plugin = new AppPlugin<OnCallPluginMetaJSONData>().setRootPage(GrafanaPluginRootPage).addConfigPage({
   title: 'Configuration',
@@ -21,7 +22,7 @@ if (isUseProfileExtensionPointEnabled()) {
   const extensionPointId = 'grafana/user/profile/tab';
 
   plugin.configureExtensionComponent({
-    title: 'IRM',
+    title: IRM_TAB,
     description: 'IRM settings',
     extensionPointId,
     /**

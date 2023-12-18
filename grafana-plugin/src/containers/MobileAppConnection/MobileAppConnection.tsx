@@ -68,6 +68,12 @@ const MobileAppConnection = observer(({ userPk }: Props) => {
         await userStore.loadCurrentUser();
       }
 
+      if (!isUserConnected()) {
+        triggerTimeouts();
+      } else {
+        setMobileAppIsCurrentlyConnected(true);
+      }
+
       setBasicDataLoaded(true);
     })();
   }, []);
@@ -124,10 +130,6 @@ const MobileAppConnection = observer(({ userPk }: Props) => {
   useEffect(() => {
     isMounted.current = true;
 
-    if (!isUserConnected()) {
-      triggerTimeouts();
-    }
-
     // clear on unmount
     return () => {
       isMounted.current = false;
@@ -139,7 +141,7 @@ const MobileAppConnection = observer(({ userPk }: Props) => {
     if (!mobileAppIsCurrentlyConnected) {
       fetchQRCode();
     }
-  }, [mobileAppIsCurrentlyConnected]);
+  }, [mobileAppIsCurrentlyConnected, userId]);
 
   // Show link to cloud page for OSS instances with no cloud connection
   if (
