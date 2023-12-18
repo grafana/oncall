@@ -5,7 +5,7 @@ import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
 import Block from 'components/GBlock/Block';
-import MobileAppConnection from 'containers/MobileAppConnection/MobileAppConnection';
+import { MobileAppConnection } from 'containers/MobileAppConnection/MobileAppConnection';
 import { MobileAppConnectionTab } from 'containers/MobileAppConnection/MobileAppConnectionTab';
 import { UserSettingsTab } from 'containers/UserSettings/UserSettings.types';
 import { SlackTab } from 'containers/UserSettings/parts/tabs//SlackTab/SlackTab';

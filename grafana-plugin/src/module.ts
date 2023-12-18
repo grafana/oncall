@@ -2,7 +2,7 @@ import { ComponentClass } from 'react';
 
 import { AppPlugin, PluginExtensionPoints } from '@grafana/data';
 
-import MobileAppConnection from 'containers/MobileAppConnection/MobileAppConnection';
+import { MobileAppConnectionWrapper } from 'containers/MobileAppConnection/MobileAppConnection';
 import PluginConfigPage from 'containers/PluginConfigPage/PluginConfigPage';
 import { GrafanaPluginRootPage } from 'plugin/GrafanaPluginRootPage';
 import { getGrafanaVersion } from 'plugin/GrafanaPluginRootPage.helpers';
@@ -26,10 +26,10 @@ if (isUseProfileExtensionPointEnabled()) {
     description: 'IRM settings',
     extensionPointId,
     /**
-     * typing MobileAppConnection as any until 10.2.0 is released
+     * typing MobileAppConnectionWrapper as any until 10.2.0 is released
      * https://github.com/grafana/grafana/pull/75019#issuecomment-1724997540
      */
-    component: MobileAppConnection as any,
+    component: MobileAppConnectionWrapper as any,
   });
 }
 

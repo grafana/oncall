@@ -10,10 +10,11 @@ import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
 import { WithPermissionControlDisplay } from 'containers/WithPermissionControl/WithPermissionControlDisplay';
 import { User } from 'models/user/user.types';
-import { rootStore as store } from 'state';
 import { AppFeature } from 'state/features';
 import { openErrorNotification, openNotification, openWarningNotification } from 'utils';
 import { UserActions } from 'utils/authorization';
+
+import { rootStore as store } from 'state';
 
 import styles from './MobileAppConnection.module.scss';
 import DisconnectButton from './parts/DisconnectButton/DisconnectButton';
@@ -37,11 +38,10 @@ const INTERVAL_QUEUE_QR = 290_000;
 const INTERVAL_POLLING = 5000;
 const BACKEND = 'MOBILE_APP';
 
-const MobileAppConnection = observer(({ userPk }: Props) => {
+export const MobileAppConnection = observer(({ userPk }: Props) => {
   const { userStore, cloudStore } = store;
 
   const [basicDataLoaded, setBasicDataLoaded] = useState(false);
-  const userId = userPk || userStore.currentUserPk;
 
   const isMounted = useRef(false);
   const [mobileAppIsCurrentlyConnected, setMobileAppIsCurrentlyConnected] = useState<boolean>(isUserConnected());
@@ -60,14 +60,6 @@ const MobileAppConnection = observer(({ userPk }: Props) => {
 
   useEffect(() => {
     (async () => {
-      if (!store.isBasicDataLoaded) {
-        await store.loadBasicData();
-      }
-
-      if (!userStore.currentUserPk) {
-        await userStore.loadCurrentUser();
-      }
-
       if (!isUserConnected()) {
         triggerTimeouts();
       } else {
@@ -80,7 +72,7 @@ const MobileAppConnection = observer(({ userPk }: Props) => {
 
   const fetchQRCode = useCallback(
     async (showLoader = true) => {
-      if (!userId) {
+      if (!userPk) {
         return;
       }
 
@@ -90,7 +82,7 @@ const MobileAppConnection = observer(({ userPk }: Props) => {
 
       try {
         // backend verification code that we receive is a JSON object that has been "stringified"
-        const qrCodeContent = await userStore.sendBackendConfirmationCode(userId, BACKEND);
+        const qrCodeContent = await userStore.sendBackendConfirmationCode(userPk, BACKEND);
         setQRCodeValue(qrCodeContent);
       } catch (e) {
         setErrorFetchingQRCode('There was an error fetching your QR code. Please try again.');
@@ -100,7 +92,7 @@ const MobileAppConnection = observer(({ userPk }: Props) => {
         setFetchingQRCode(false);
       }
     },
-    [userId]
+    [userPk]
   );
 
   const resetState = useCallback(() => {
@@ -110,13 +102,13 @@ const MobileAppConnection = observer(({ userPk }: Props) => {
   }, []);
 
   const disconnectMobileApp = useCallback(async () => {
-    if (!userId) {
+    if (!userPk) {
       return;
     }
     setDisconnectingMobileApp(true);
 
     try {
-      await userStore.unlinkBackend(userId, BACKEND);
+      await userStore.unlinkBackend(userPk, BACKEND);
       resetState();
     } catch (e) {
       setErrorDisconnectingMobileApp('There was an error disconnecting your mobile app. Please try again.');
@@ -125,7 +117,7 @@ const MobileAppConnection = observer(({ userPk }: Props) => {
     setDisconnectingMobileApp(false);
     clearTimeouts();
     triggerTimeouts();
-  }, [userId, resetState]);
+  }, [userPk, resetState]);
 
   useEffect(() => {
     isMounted.current = true;
@@ -141,7 +133,7 @@ const MobileAppConnection = observer(({ userPk }: Props) => {
     if (!mobileAppIsCurrentlyConnected) {
       fetchQRCode();
     }
-  }, [mobileAppIsCurrentlyConnected, userId]);
+  }, [mobileAppIsCurrentlyConnected, userPk]);
 
   // Show link to cloud page for OSS instances with no cloud connection
   if (
@@ -154,7 +146,7 @@ const MobileAppConnection = observer(({ userPk }: Props) => {
 
   let content: React.ReactNode = null;
 
-  if (fetchingQRCode || disconnectingMobileApp || !userId || !basicDataLoaded) {
+  if (fetchingQRCode || disconnectingMobileApp || !userPk || !basicDataLoaded) {
     content = <LoadingPlaceholder text="Loading..." />;
   } else if (errorFetchingQRCode || errorDisconnectingMobileApp) {
     content = <Text type="primary">{errorFetchingQRCode || errorDisconnectingMobileApp}</Text>;
@@ -257,13 +249,13 @@ const MobileAppConnection = observer(({ userPk }: Props) => {
   }
 
   async function onSendTestNotification(isCritical = false) {
-    if (!userId) {
+    if (!userPk) {
       return;
     }
     setIsAttemptingTestNotification(true);
 
     try {
-      await userStore.sendTestPushNotification(userId, isCritical);
+      await userStore.sendTestPushNotification(userPk, isCritical);
       openNotification(isCritical ? 'Push Important Notification has been sent' : 'Push Notification has been sent');
     } catch (ex) {
       if (ex.response?.status === 429) {
@@ -299,14 +291,14 @@ const MobileAppConnection = observer(({ userPk }: Props) => {
   }
 
   async function queueRefreshQR(): Promise<void> {
-    if (!isMounted.current || !userId) {
+    if (!isMounted.current || !userPk) {
       return;
     }
 
     clearTimeout(refreshTimeoutId);
     setRefreshTimeoutId(undefined);
 
-    const user = await userStore.loadUser(userId);
+    const user = await userStore.loadUser(userPk);
     if (!isUserConnected(user)) {
       let didCallThrottleWithNoEffect = false;
       let isRequestDone = false;
@@ -337,14 +329,14 @@ const MobileAppConnection = observer(({ userPk }: Props) => {
   }
 
   async function pollUserProfile(): Promise<void> {
-    if (!isMounted.current || !userId) {
+    if (!isMounted.current || !userPk) {
       return;
     }
 
     clearTimeout(userTimeoutId);
     setUserTimeoutId(undefined);
 
-    const user = await userStore.loadUser(userId);
+    const user = await userStore.loadUser(userPk);
     if (!isUserConnected(user)) {
       setUserTimeoutId(setTimeout(pollUserProfile, INTERVAL_POLLING));
     } else {
@@ -364,4 +356,26 @@ function QRLoading() {
   );
 }
 
-export default MobileAppConnection;
+export const MobileAppConnectionWrapper: React.FC<{}> = observer(() => {
+  const { userStore } = store;
+
+  useEffect(() => {
+    loadData();
+  });
+
+  const loadData = async () => {
+    if (!store.isBasicDataLoaded) {
+      await store.loadBasicData();
+    }
+
+    if (!userStore.currentUserPk) {
+      await userStore.loadCurrentUser();
+    }
+  };
+
+  if (store.isBasicDataLoaded && userStore.currentUserPk) {
+    return <MobileAppConnection userPk={userStore.currentUserPk} />;
+  }
+
+  return <LoadingPlaceholder text="Loading..." />;
+});
