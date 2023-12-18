@@ -110,14 +110,17 @@ class CustomTimeField(fields.TimeField):
         return result
 
     def to_internal_value(self, data):
-        TIME_FORMAT_LEN = len("00:00:00Z")
-        if len(data) == TIME_FORMAT_LEN:
-            try:
-                time.strptime(data, "%H:%M:%SZ")
-            except ValueError:
-                raise BadRequest(detail="Invalid time format, should be '00:00:00Z'")
-        else:
-            raise BadRequest(detail="Invalid time format, should be '00:00:00Z'")
+        validation_error_msg = "Invalid time format, should be '00:00:00Z'"
+
+        # validate that the user doesn't try to pass an int
+        if type(data) is not str:
+            raise ValidationError(detail=validation_error_msg)
+
+        try:
+            time.strptime(data, "%H:%M:%SZ")
+        except ValueError:
+            raise ValidationError(detail=validation_error_msg)
+
         return data
 
 

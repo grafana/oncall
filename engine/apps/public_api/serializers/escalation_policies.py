@@ -288,4 +288,5 @@ class EscalationPolicyUpdateSerializer(EscalationPolicySerializer):
                     instance.num_alerts_in_window = None
                     instance.num_minutes_in_window = None
 
-        return super().update(instance, validated_data)
+        instance.save()
+        return instance

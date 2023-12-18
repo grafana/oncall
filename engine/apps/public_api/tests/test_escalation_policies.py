@@ -418,3 +418,41 @@ def test_update_escalation_policy_using_button_to_webhook(
     assert response.data == serializer.data
     # step is migrated
     assert escalation_policy.step == EscalationPolicy.STEP_TRIGGER_CUSTOM_WEBHOOK
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "value,expected_status",
+    [
+        (5, status.HTTP_400_BAD_REQUEST),
+        ("5", status.HTTP_400_BAD_REQUEST),
+        ("5:00", status.HTTP_400_BAD_REQUEST),
+        ("05:00:00", status.HTTP_400_BAD_REQUEST),
+        ("05:00:00Z", status.HTTP_200_OK),
+    ],
+)
+def test_update_escalation_policy_from_and_to_time(
+    make_organization_and_user_with_token,
+    make_escalation_chain,
+    make_escalation_policy,
+    value,
+    expected_status,
+):
+    organization, _, token = make_organization_and_user_with_token()
+    escalation_chain = make_escalation_chain(organization)
+    escalation_policy = make_escalation_policy(escalation_chain, EscalationPolicy.STEP_NOTIFY_IF_TIME)
+
+    client = APIClient()
+    url = reverse("api-public:escalation_policies-detail", kwargs={"pk": escalation_policy.public_primary_key})
+
+    for field in ["notify_if_time_from", "notify_if_time_to"]:
+        response = client.put(url, data={field: value}, format="json", HTTP_AUTHORIZATION=token)
+
+        assert response.status_code == expected_status
+
+        if expected_status == status.HTTP_200_OK:
+            escalation_policy = EscalationPolicy.objects.get(public_primary_key=response.data["id"])
+            serializer = EscalationPolicySerializer(escalation_policy)
+            assert response.data == serializer.data
+        else:
+            assert response.json()[field][0] == "Invalid time format, should be '00:00:00Z'"
