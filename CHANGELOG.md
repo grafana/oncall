@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Support e2e tests in Tilt and Makefile ([#3516](https://github.com/grafana/oncall/pull/3516))
+- Moved Mobile Connection Tab to separate user profile in Grafana ([#3296](https://github.com/grafana/oncall/pull/3296)
 
 ### Changed
 
