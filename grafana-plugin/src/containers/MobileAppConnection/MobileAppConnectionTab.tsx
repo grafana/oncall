@@ -1,11 +1,10 @@
-import Text from 'components/Text/Text';
-import { observer } from 'mobx-react';
 import React from 'react';
-import { isUseProfileExtensionPointEnabled } from 'utils';
 
-const MobileAppConnectionTab: React.FC<{ userPk: string }> = observer(() => {
-  !isUseProfileExtensionPointEnabled();
+import { observer } from 'mobx-react';
 
+import Text from 'components/Text/Text';
+
+const MobileAppConnectionTab: React.FC<{ userPk?: string }> = observer(() => {
   return (
     <Text type="secondary">
       Mobile settings have been moved to{' '}

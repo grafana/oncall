@@ -9,10 +9,10 @@ import { useStore } from 'state/useStore';
 
 import ICalConnector from './ICalConnector';
 // import MobileAppConnector from './MobileAppConnector';
+import MobileAppConnector from './MobileAppConnector';
 import PhoneConnector from './PhoneConnector';
 import SlackConnector from './SlackConnector';
 import TelegramConnector from './TelegramConnector';
-import MobileAppConnector from './MobileAppConnector';
 
 interface ConnectorsProps {
   id: User['pk'];

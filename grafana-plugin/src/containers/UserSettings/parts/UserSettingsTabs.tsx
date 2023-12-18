@@ -6,6 +6,7 @@ import { observer } from 'mobx-react';
 
 import Block from 'components/GBlock/Block';
 import MobileAppConnection from 'containers/MobileAppConnection/MobileAppConnection';
+import { MobileAppConnectionTab } from 'containers/MobileAppConnection/MobileAppConnectionTab';
 import { UserSettingsTab } from 'containers/UserSettings/UserSettings.types';
 import { SlackTab } from 'containers/UserSettings/parts/tabs//SlackTab/SlackTab';
 import { NotificationSettingsTab } from 'containers/UserSettings/parts/tabs/NotificationSettingsTab';
@@ -15,11 +16,11 @@ import { UserInfoTab } from 'containers/UserSettings/parts/tabs/UserInfoTab/User
 import { User } from 'models/user/user.types';
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
+import { isUseProfileExtensionPointEnabled } from 'utils';
+
 import CloudPhoneSettings from './tabs/CloudPhoneSettings/CloudPhoneSettings';
 
 import styles from 'containers/UserSettings/parts/UserSettingsTabs.module.css';
-import { isUseProfileExtensionPointEnabled } from 'utils';
-import { MobileAppConnectionTab } from 'containers/MobileAppConnection/MobileAppConnectionTab';
 
 const cx = cn.bind(styles);
 

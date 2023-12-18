@@ -6,9 +6,9 @@ import MobileAppConnection from 'containers/MobileAppConnection/MobileAppConnect
 import PluginConfigPage from 'containers/PluginConfigPage/PluginConfigPage';
 import { GrafanaPluginRootPage } from 'plugin/GrafanaPluginRootPage';
 import { getGrafanaVersion } from 'plugin/GrafanaPluginRootPage.helpers';
+import { IRM_TAB } from 'utils/consts';
 
 import { OnCallPluginConfigPageProps, OnCallPluginMetaJSONData } from './types';
-import { IRM_TAB } from 'utils/consts';
 
 const plugin = new AppPlugin<OnCallPluginMetaJSONData>().setRootPage(GrafanaPluginRootPage).addConfigPage({
   title: 'Configuration',
