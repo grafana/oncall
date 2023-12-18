@@ -147,6 +147,7 @@ IS_RBAC_ENABLED = os.getenv("ONCALL_TESTING_RBAC_ENABLED", "True") == "True"
 def mock_slack_api_call(monkeypatch):
     def mock_api_call(*args, **kwargs):
         return {
+            "ts": timezone.now().isoformat(),
             "status": 200,
             "usergroups": [],
             "channel": {"id": "TEST_CHANNEL_ID"},

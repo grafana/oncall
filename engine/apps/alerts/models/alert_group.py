@@ -489,6 +489,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
             AlertGroup.ACCOUNT_INACTIVE,
             AlertGroup.RATE_LIMITED,
             AlertGroup.CHANNEL_NOT_SPECIFIED,
+            AlertGroup.RESTRICTED_ACTION,
         )
 
     def is_alert_a_resolve_signal(self, alert):

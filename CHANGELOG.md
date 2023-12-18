@@ -7,9 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+
+- Support e2e tests in Tilt and Makefile ([#3516](https://github.com/grafana/oncall/pull/3516))
+
 ### Changed
 
-- Moved Mobile Connection Tab to separate user profile in Grafana ([#3296](https://github.com/grafana/oncall/pull/3296)
+- Limit acknowledge reminders to stop repeating after 1 month @mderynck ([#3571](https://github.com/grafana/oncall/pull/3571))
+
+### Fixed
+
+- Check reason to skip notification in Slack to avoid task perform_notification retries @Ferril ([#3562](https://github.com/grafana/oncall/pull/3562))
+- Fix alert group table columns validation @Ferril ([#3577](https://github.com/grafana/oncall/pull/3577))
+
+## v1.3.80 (2023-12-14)
+
+### Added
+
+- Create success log records for delivered personal notifications ([3557](https://github.com/grafana/oncall/pull/3557))
 
 ## v1.3.79 (2023-12-14)
 

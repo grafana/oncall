@@ -142,4 +142,16 @@ def notify_user_about_new_alert_group(user_pk, alert_group_pk, notification_poli
         return
 
     message = _get_fcm_message(alert_group, user, device_to_notify, critical)
-    send_push_notification(device_to_notify, message, _create_error_log_record)
+    succeeded = send_push_notification(device_to_notify, message, _create_error_log_record)
+
+    if succeeded:
+        # record success log
+        # (note: send_push_notification should have created a failed log entry if there was an error)
+        UserNotificationPolicyLogRecord.objects.create(
+            author=user,
+            type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_SUCCESS,
+            notification_policy=notification_policy,
+            alert_group=alert_group,
+            notification_step=notification_policy.step,
+            notification_channel=notification_policy.notify_by,
+        )

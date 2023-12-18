@@ -18,7 +18,7 @@ class TelegramToUserConnectorFactory(factory.DjangoModelFactory):
 
 
 class TelegramChannelFactory(factory.DjangoModelFactory):
-    channel_chat_id = factory.LazyAttribute(lambda v: str(UniqueFaker("pyint").generate()))
+    channel_chat_id = factory.LazyAttribute(lambda v: "-" + str(UniqueFaker("pyint").generate()))
     channel_name = factory.Faker("word")
     discussion_group_chat_id = factory.LazyAttribute(lambda v: str(UniqueFaker("pyint").generate()))
     discussion_group_name = factory.Faker("word")
