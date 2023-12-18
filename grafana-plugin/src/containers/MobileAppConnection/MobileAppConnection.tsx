@@ -297,7 +297,7 @@ const MobileAppConnection = observer(({ userPk }: Props) => {
   }
 
   async function queueRefreshQR(): Promise<void> {
-    if (!isMounted.current) {
+    if (!isMounted.current || !userId) {
       return;
     }
 
@@ -335,7 +335,7 @@ const MobileAppConnection = observer(({ userPk }: Props) => {
   }
 
   async function pollUserProfile(): Promise<void> {
-    if (!isMounted.current) {
+    if (!isMounted.current || !userId) {
       return;
     }
 
