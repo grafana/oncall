@@ -10,11 +10,10 @@ import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
 import { WithPermissionControlDisplay } from 'containers/WithPermissionControl/WithPermissionControlDisplay';
 import { User } from 'models/user/user.types';
+import { rootStore as store } from 'state';
 import { AppFeature } from 'state/features';
 import { openErrorNotification, openNotification, openWarningNotification } from 'utils';
 import { UserActions } from 'utils/authorization';
-
-import { rootStore as store } from 'state';
 
 import styles from './MobileAppConnection.module.scss';
 import DisconnectButton from './parts/DisconnectButton/DisconnectButton';
@@ -59,6 +58,8 @@ export const MobileAppConnection = observer(({ userPk }: Props) => {
   const isCurrentUser = userPk === undefined || userStore.currentUserPk === userPk;
 
   useEffect(() => {
+    isMounted.current = true;
+
     (async () => {
       if (!isUserConnected()) {
         triggerTimeouts();
@@ -68,6 +69,12 @@ export const MobileAppConnection = observer(({ userPk }: Props) => {
 
       setBasicDataLoaded(true);
     })();
+
+    // clear on unmount
+    return () => {
+      isMounted.current = false;
+      clearTimeouts();
+    };
   }, []);
 
   const fetchQRCode = useCallback(
@@ -118,16 +125,6 @@ export const MobileAppConnection = observer(({ userPk }: Props) => {
     clearTimeouts();
     triggerTimeouts();
   }, [userPk, resetState]);
-
-  useEffect(() => {
-    isMounted.current = true;
-
-    // clear on unmount
-    return () => {
-      isMounted.current = false;
-      clearTimeouts();
-    };
-  }, []);
 
   useEffect(() => {
     if (!mobileAppIsCurrentlyConnected) {
@@ -204,7 +201,7 @@ export const MobileAppConnection = observer(({ userPk }: Props) => {
           {content}
         </Block>
       </div>
-      {mobileAppIsCurrentlyConnected && isCurrentUser && (
+      {mobileAppIsCurrentlyConnected && isCurrentUser && !disconnectingMobileApp && (
         <div className={cx('notification-buttons')}>
           <HorizontalGroup spacing={'md'} justify={'flex-end'}>
             <Button
