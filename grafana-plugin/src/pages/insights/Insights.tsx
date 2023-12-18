@@ -16,6 +16,8 @@ import { getNewAlertGroupsDuringTimePeriodScene } from './scenes/NewAlertGroupsD
 import { getTotalAlertGroupsScene } from './scenes/TotalAlertGroups';
 import { getTotalAlertGroupsByStateScene } from './scenes/TotalAlertGroupsByState';
 import VARIABLES from './variables';
+import { getMeanTimeToRespondScene } from './scenes/MeanTimeToRespond';
+import { getNewAlertGroupsForSelectedPeriodScene } from './scenes/NewAlertGroupsForSelectedPeriod';
 
 const rootScene = new EmbeddedScene({
   $timeRange: new SceneTimeRange({ from: 'now-7d', to: 'now' }),
@@ -39,7 +41,12 @@ const rootScene = new EmbeddedScene({
           children: [
             new SceneFlexLayout({
               height: 200,
-              children: [getTotalAlertGroupsScene(), getTotalAlertGroupsByStateScene()],
+              children: [
+                getTotalAlertGroupsScene(),
+                getTotalAlertGroupsByStateScene(),
+                getNewAlertGroupsForSelectedPeriodScene(),
+                getMeanTimeToRespondScene(),
+              ],
             }),
             new SceneFlexLayout({
               height: 400,
