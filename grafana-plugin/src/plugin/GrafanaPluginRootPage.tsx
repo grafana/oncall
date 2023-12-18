@@ -25,7 +25,8 @@ import { getMatchedPage, getRoutesForPage, pages } from 'pages';
 import NoMatch from 'pages/NoMatch';
 import EscalationChains from 'pages/escalation-chains/EscalationChains';
 import Incident from 'pages/incident/Incident';
-// import Incidents from 'pages/incidents/Incidents';
+import Incidents from 'pages/incidents/Incidents';
+import Insights from 'pages/insights/Insights';
 import Integration from 'pages/integration/Integration';
 import Integrations from 'pages/integrations/Integrations';
 import OutgoingWebhooks from 'pages/outgoing_webhooks/OutgoingWebhooks';
@@ -59,7 +60,6 @@ import { getQueryParams, isTopNavbar } from './GrafanaPluginRootPage.helpers';
 import PluginSetup from './PluginSetup';
 
 import grafanaGlobalStyle from '!raw-loader!assets/style/grafanaGlobalStyles.css';
-import Insights from 'pages/insights/Insights';
 
 export const GrafanaPluginRootPage = (props: AppRootProps) => {
   return (
@@ -144,8 +144,7 @@ export const Root = observer((props: AppRootProps) => {
           >
             <Switch>
               <Route path={getRoutesForPage('alert-groups')} exact>
-                {/* TODO: revert */}
-                <Insights />
+                <Incidents query={query} />
               </Route>
               <Route path={getRoutesForPage('alert-group')} exact>
                 <Incident query={query} pageTitle={pageTitle} setPageTitle={setPageTitle} />
