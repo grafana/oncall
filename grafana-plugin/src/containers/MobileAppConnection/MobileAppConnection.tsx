@@ -24,7 +24,6 @@ const cx = cn.bind(styles);
 
 type Props = {
   userPk?: User['pk'];
-  // store: typeof rootStore;
 };
 
 const INTERVAL_MIN_THROTTLING = 500;
@@ -358,7 +357,7 @@ export const MobileAppConnectionWrapper: React.FC<{}> = observer(() => {
 
   useEffect(() => {
     loadData();
-  });
+  }, []);
 
   const loadData = async () => {
     if (!store.isBasicDataLoaded) {

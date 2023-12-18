@@ -18,7 +18,7 @@ const plugin = new AppPlugin<OnCallPluginMetaJSONData>().setRootPage(GrafanaPlug
 });
 
 if (isUseProfileExtensionPointEnabled()) {
-  // TODO Change this to use the PluginExtensionPoints enum once that is available in @grafana/data (>10.2.2)
+  // TODO Change this to use the PluginExtensionPoints enum once that is available in @grafana/data
   const extensionPointId = 'grafana/user/profile/tab';
 
   plugin.configureExtensionComponent({
