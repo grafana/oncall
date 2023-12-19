@@ -455,4 +455,4 @@ def test_update_escalation_policy_from_and_to_time(
             serializer = EscalationPolicySerializer(escalation_policy)
             assert response.data == serializer.data
         else:
-            assert response.json()[field][0] == "Invalid time format, should be '00:00:00Z'"
+            assert response.json()[field][0] == "Time has wrong format. Use one of these formats instead: hh:mm:ssZ."
