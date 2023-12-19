@@ -196,8 +196,10 @@ def test_next_step_eta_is_valid(escalation_snapshot_test_setup, next_step_eta, e
     escalation_snapshot = alert_group.escalation_snapshot
 
     escalation_snapshot.next_step_eta = next_step_eta
+    escalation_snapshot.save_to_alert_group()
+    alert_group.refresh_from_db()
 
-    assert escalation_snapshot.next_step_eta_is_valid() is expected
+    assert alert_group.next_step_eta_is_valid() is expected
 
 
 @pytest.mark.django_db

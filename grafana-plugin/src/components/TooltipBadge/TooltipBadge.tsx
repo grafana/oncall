@@ -18,6 +18,7 @@ interface TooltipBadgeProps {
   customIcon?: React.ReactNode;
   addPadding?: boolean;
   placement?;
+  testId?: string;
 
   onHover?: () => void;
 }
@@ -36,10 +37,8 @@ const TooltipBadge: FC<TooltipBadgeProps> = (props) => {
     icon,
     customIcon,
     className,
-    ...rest
+    testId,
   } = props;
-
-  const testId = rest['data-testid'];
 
   return (
     <Tooltip

@@ -4,7 +4,7 @@ import typing
 import requests
 from celery import shared_task
 from django.conf import settings
-from django.db.models import Avg, F, Max
+from django.db.models import Avg, F, Max, Q
 from django.utils import timezone
 
 from apps.alerts.tasks.task_logger import task_logger
@@ -29,26 +29,26 @@ def send_alert_group_escalation_auditor_task_heartbeat() -> None:
 
 
 def audit_alert_group_escalation(alert_group: "AlertGroup") -> None:
-    escalation_snapshot = alert_group.escalation_snapshot
+    raw_escalation_snapshot: dict = alert_group.raw_escalation_snapshot
     alert_group_id = alert_group.id
     base_msg = f"Alert group {alert_group_id}"
 
-    if not alert_group.escalation_chain_exists:
+    if not raw_escalation_snapshot:
+        msg = f"{base_msg} does not have an escalation snapshot associated with it, this should never occur"
+
+        task_logger.warning(msg)
+        raise AlertGroupEscalationPolicyExecutionAuditException(msg)
+
+    if not raw_escalation_snapshot.get("escalation_chain_snapshot"):
         task_logger.info(
             f"{base_msg} does not have an escalation chain associated with it, and therefore it is expected "
             "that it will not have an escalation snapshot, skipping further validation"
         )
         return
 
-    if not escalation_snapshot:
-        msg = f"{base_msg} does not have an escalation snapshot associated with it, this should never occur"
-
-        task_logger.warning(msg)
-        raise AlertGroupEscalationPolicyExecutionAuditException(msg)
-
     task_logger.info(f"{base_msg} has an escalation snapshot associated with it, auditing if it executed properly")
 
-    escalation_policies_snapshots = escalation_snapshot.escalation_policies_snapshots
+    escalation_policies_snapshots = raw_escalation_snapshot.get("escalation_policies_snapshots")
 
     if not escalation_policies_snapshots:
         task_logger.info(
@@ -59,18 +59,19 @@ def audit_alert_group_escalation(alert_group: "AlertGroup") -> None:
         f"{base_msg}'s escalation snapshot has a populated escalation_policies_snapshots, continuing validation"
     )
 
-    if escalation_snapshot.next_step_eta_is_valid() is False:
-        msg = (
-            f"{base_msg}'s escalation snapshot does not have a valid next_step_eta: {escalation_snapshot.next_step_eta}"
-        )
+    if alert_group.next_step_eta_is_valid() is False:
+        msg = f"{base_msg}'s escalation snapshot does not have a valid next_step_eta: {alert_group.next_step_eta}"
 
         task_logger.warning(msg)
         raise AlertGroupEscalationPolicyExecutionAuditException(msg)
 
-    task_logger.info(f"{base_msg}'s escalation snapshot has a valid next_step_eta: {escalation_snapshot.next_step_eta}")
+    task_logger.info(f"{base_msg}'s escalation snapshot has a valid next_step_eta: {alert_group.next_step_eta}")
 
-    executed_escalation_policy_snapshots = escalation_snapshot.executed_escalation_policy_snapshots
-    num_of_executed_escalation_policy_snapshots = len(executed_escalation_policy_snapshots)
+    num_of_executed_escalation_policy_snapshots = (
+        alert_group.last_active_escalation_policy_order + 1
+        if alert_group.last_active_escalation_policy_order is not None
+        else 0
+    )
 
     if num_of_executed_escalation_policy_snapshots == 0:
         task_logger.info(
@@ -81,7 +82,37 @@ def audit_alert_group_escalation(alert_group: "AlertGroup") -> None:
             f"{base_msg}'s escalation snapshot has {num_of_executed_escalation_policy_snapshots} executed escalation policies"
         )
 
+    check_personal_notifications_task.apply_async((alert_group_id,))
+
     task_logger.info(f"{base_msg} passed the audit checks")
+
+
+@shared_task
+def check_personal_notifications_task(alert_group_id) -> None:
+    # Check personal notifications are completed
+    # triggered (< 5min ago) == failed + success
+    from apps.base.models import UserNotificationPolicy, UserNotificationPolicyLogRecord
+
+    triggered = UserNotificationPolicyLogRecord.objects.filter(
+        alert_group_id=alert_group_id,
+        type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_TRIGGERED,
+        notification_step=UserNotificationPolicy.Step.NOTIFY,
+        created_at__lte=timezone.now() - timezone.timedelta(minutes=5),
+    ).count()
+    completed = UserNotificationPolicyLogRecord.objects.filter(
+        Q(type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED)
+        | Q(type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_SUCCESS),
+        alert_group_id=alert_group_id,
+        notification_step=UserNotificationPolicy.Step.NOTIFY,
+    ).count()
+
+    base_msg = f"Alert group {alert_group_id}"
+    delta = triggered - completed
+    if delta > 0:
+        # TODO: when success notifications are setup for every backend, raise exception here
+        task_logger.info(f"{base_msg} has ({delta}) uncompleted personal notifications")
+    else:
+        task_logger.info(f"{base_msg} personal notifications check passed")
 
 
 @shared_task
@@ -106,7 +137,7 @@ def check_escalation_finished_task() -> None:
     )
     total_alert_groups_count = alert_groups.count()
 
-    creation_deltas = alert_groups.filter(received_at__isnull=False).aggregate(
+    creation_deltas = alert_groups.aggregate(
         avg_delta=Avg(F("started_at") - F("received_at")),
         max_delta=Max(F("started_at") - F("received_at")),
     )
