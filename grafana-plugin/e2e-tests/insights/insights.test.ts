@@ -29,7 +29,7 @@ test.describe('Insights', () => {
     }
   });
 
-  test('Viewer can see OnCall insights', async ({ viewerRolePage: { page } }) => {
+  test('Viewer can see all the panels in OnCall insights', async ({ viewerRolePage: { page } }) => {
     await goToOnCallPage(page, 'insights');
 
     [
@@ -44,5 +44,11 @@ test.describe('Insights', () => {
     ].forEach(async (panelTitle) => {
       await expect(page.getByRole('heading', { name: new RegExp(`^${panelTitle}$`) }).first()).toBeVisible();
     });
+  });
+
+  test('There is no panel that misses data', async ({ viewerRolePage: { page } }) => {
+    await goToOnCallPage(page, 'insights');
+
+    await expect(page.getByText('No data')).toBeHidden();
   });
 });
