@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Limit acknowledge reminders to stop repeating after 1 month @mderynck ([#3571](https://github.com/grafana/oncall/pull/3571))
+- Handle message to reply to not found in Telegram send log ([#3587](https://github.com/grafana/oncall/pull/3587))
 
 ### Fixed
 
