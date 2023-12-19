@@ -11,6 +11,7 @@ import {
   VariableValueSelectors,
   NestedScene,
 } from '@grafana/scenes';
+import { observer } from 'mobx-react';
 
 import { useStore } from 'state/useStore';
 
@@ -31,13 +32,13 @@ import getTotalAlertGroupsScene from './scenes/TotalAlertGroups';
 import getTotalAlertGroupsByStateScene from './scenes/TotalAlertGroupsByState';
 import getVariables from './variables';
 
-const Insights = () => {
+const Insights = observer(() => {
   const { isOpenSource } = useStore();
 
   const rootScene = useMemo(() => getRootScene({ isOpenSource }), [isOpenSource]);
 
   return <rootScene.Component model={rootScene} />;
-};
+});
 
 const getRootScene = (config: InsightsConfig) =>
   new EmbeddedScene({
