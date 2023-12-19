@@ -92,11 +92,15 @@ const TimeRange = (props: TimeRangeProps) => {
   return (
     <div className={cx('root', className)}>
       <HorizontalGroup wrap>
-        {/* @ts-ignore actually TimeOfDayPicker uses Moment objects */}
-        <TimeOfDayPicker disabled={disabled} value={from} minuteStep={5} onChange={handleChangeFrom} />
+        <div data-testid="time-range-from">
+          {/* @ts-ignore actually TimeOfDayPicker uses Moment objects */}
+          <TimeOfDayPicker disabled={disabled} value={from} minuteStep={5} onChange={handleChangeFrom} />
+        </div>
         to
-        {/* @ts-ignore actually TimeOfDayPicker uses Moment objects */}
-        <TimeOfDayPicker disabled={disabled} value={to} minuteStep={5} onChange={handleChangeTo} />
+        <div data-testid="time-range-to">
+          {/* @ts-ignore actually TimeOfDayPicker uses Moment objects */}
+          <TimeOfDayPicker disabled={disabled} value={to} minuteStep={5} onChange={handleChangeTo} />
+        </div>
         {showNextDayTip && 'next day'}
       </HorizontalGroup>
     </div>
