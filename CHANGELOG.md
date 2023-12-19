@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Check reason to skip notification in Slack to avoid task perform_notification retries @Ferril ([#3562](https://github.com/grafana/oncall/pull/3562))
 - Fix alert group table columns validation @Ferril ([#3577](https://github.com/grafana/oncall/pull/3577))
+- Fix posting message about rate limit to Slack @Ferril ([#3582](https://github.com/grafana/oncall/pull/3582))
 
 ## v1.3.80 (2023-12-14)
 
