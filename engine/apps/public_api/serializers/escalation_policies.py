@@ -10,7 +10,6 @@ from apps.slack.models import SlackUserGroup
 from apps.user_management.models import User
 from apps.webhooks.models import Webhook
 from common.api_helpers.custom_fields import (
-    CustomTimeField,
     OrganizationFilteredPrimaryKeyRelatedField,
     UsersFilteredByOrganizationField,
 )
@@ -78,8 +77,14 @@ class EscalationPolicySerializer(EagerLoadingMixin, OrderedModelSerializer):
         source="custom_webhook",
     )
     important = serializers.BooleanField(required=False)
-    notify_if_time_from = CustomTimeField(required=False, source="from_time")
-    notify_if_time_to = CustomTimeField(required=False, source="to_time")
+
+    TIME_FORMAT = "%H:%M:%SZ"
+    notify_if_time_from = serializers.TimeField(
+        required=False, source="from_time", format=TIME_FORMAT, input_formats=[TIME_FORMAT]
+    )
+    notify_if_time_to = serializers.TimeField(
+        required=False, source="to_time", format=TIME_FORMAT, input_formats=[TIME_FORMAT]
+    )
 
     class Meta:
         model = EscalationPolicy
@@ -288,5 +293,4 @@ class EscalationPolicyUpdateSerializer(EscalationPolicySerializer):
                     instance.num_alerts_in_window = None
                     instance.num_minutes_in_window = None
 
-        instance.save()
-        return instance
+        return super().update(instance, validated_data)

@@ -8,30 +8,6 @@ from rest_framework import serializers
 import common.api_helpers.custom_fields as cf
 
 
-class TestCustomTimeField:
-    def test_valid_time(self):
-        class MySerializer(serializers.Serializer):
-            time = cf.CustomTimeField()
-
-        try:
-            valid_time = "05:00:00Z"
-            serializer = MySerializer(data={"time": valid_time})
-            serializer.is_valid(raise_exception=True)
-
-            assert serializer.validated_data["time"] == valid_time
-        except Exception:
-            pytest.fail()
-
-    @pytest.mark.parametrize("time", ["5", "5:00", "5:00:00", "05:00:00"])
-    def test_invalid_time(self, time):
-        class MySerializer(serializers.Serializer):
-            time = cf.CustomTimeField()
-
-        with pytest.raises(serializers.ValidationError, match="Invalid time format, should be '00:00:00Z'"):
-            serializer = MySerializer(data={"time": time})
-            serializer.is_valid(raise_exception=True)
-
-
 class TestTimeZoneField:
     @pytest.mark.parametrize("tz", pytz.all_timezones)
     def test_valid_timezones(self, tz):
