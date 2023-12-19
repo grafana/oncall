@@ -4,6 +4,8 @@ base_url_protocol: http
 env:
   - name: GRAFANA_CLOUD_NOTIFICATIONS_ENABLED
     value: "False"
+  - name: FEATURE_PROMETHEUS_EXPORTER_ENABLED
+    value: "True"
 image:
   tag: latest
   pullPolicy: Always
@@ -104,3 +106,5 @@ service:
   type: NodePort
   port: 8080
   nodePort: 30001
+prometheus:
+  enabled: true
