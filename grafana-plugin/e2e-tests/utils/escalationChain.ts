@@ -6,7 +6,7 @@ import { goToOnCallPage } from './navigation';
 export enum EscalationStep {
   NotifyUsers = 'Notify users',
   NotifyUsersFromOnCallSchedule = 'Notify users from on-call schedule',
-  ContinueEscalationIfCurrentUTCTimeIsIn = 'Continue escalation if current UTC time is in',
+  ContinueEscalationIfCurrentUTCTimeIsIn = 'Continue escalation if current UTC time is in range',
 }
 
 const escalationStepValuePlaceholder: Partial<Record<EscalationStep, string>> = {

@@ -16,11 +16,12 @@ test('escalation policy does not go back to "Default" after adding users to noti
   await expect(page.getByText('Important')).toBeVisible();
 });
 
-test.only('from_time and to_time for "Continue escalation if current UTC time is in" escalation step type can be properly updated', async ({
+// TODO: unskip when https://github.com/grafana/oncall/issues/3585 is patched
+test.skip('from_time and to_time for "Continue escalation if current UTC time is in range" escalation step type can be properly updated', async ({
   adminRolePage,
 }) => {
-  const FROM_TIME = '13:31';
-  const TO_TIME = '13:32';
+  const FROM_TIME = '10:31';
+  const TO_TIME = '10:32';
 
   const { page } = adminRolePage;
   const escalationChainName = generateRandomValue();
@@ -28,12 +29,21 @@ test.only('from_time and to_time for "Continue escalation if current UTC time is
   // create escalation step w/ Continue escalation if current UTC time is in policy step
   await createEscalationChain(page, escalationChainName, EscalationStep.ContinueEscalationIfCurrentUTCTimeIsIn);
 
-  const _getFromTimeInput = () => page.locator('[data-testid="time-range-from"] > input');
-  const _getToTimeInput = () => page.locator('[data-testid="time-range-to"] > input');
+  const _getFromTimeInput = () => page.locator('[data-testid="time-range-from"] >> input');
+  const _getToTimeInput = () => page.locator('[data-testid="time-range-to"] >> input');
 
   const clickAndInputValue = async (locator: Locator, value: string) => {
+    // the first click opens up dropdown which contains the time selector scrollable lists
     await locator.click();
-    await locator.pressSequentially(value);
+
+    // the second click focuses on the input where we can actually type the time instead, much easier
+    const actualInput = page.locator('input[class="rc-time-picker-panel-input"]');
+    await actualInput.click();
+    await actualInput.selectText();
+    await actualInput.fill(value);
+
+    // click anywhere to close the dropdown
+    await page.click('body');
   };
 
   // update from and to time values
