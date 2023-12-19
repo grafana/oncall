@@ -171,7 +171,7 @@ class UserNotificationPolicyLogRecord(models.Model):
                 result += f"SMS to {user_verbal} was delivered successfully"
             elif notification_channel == UserNotificationPolicy.NotificationChannel.PHONE_CALL:
                 result += f"phone call to {user_verbal} was successful"
-            elif notification_channel is None:
+            else:
                 result += f"notification to {user_verbal} was delivered successfully"
         elif self.type == UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED:
             if self.notification_error_code == UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_SMS_LIMIT_EXCEEDED:

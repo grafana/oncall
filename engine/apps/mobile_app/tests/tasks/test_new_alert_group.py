@@ -47,6 +47,8 @@ def test_notify_user_about_new_alert_group(
     )
 
     mock_send_push_notification.assert_called_once()
+    log_record = notification_policy.personal_log_records.last()
+    assert log_record.type == UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_SUCCESS
 
 
 @patch("apps.mobile_app.tasks.new_alert_group.send_push_notification")
