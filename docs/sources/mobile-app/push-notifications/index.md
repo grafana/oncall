@@ -60,6 +60,8 @@ Confusingly, this requires you to provide the **Override Do Not Disturb** permis
 The app will prompt for this if applicable.  Note that this is a different setting than the **Do Not Disturb** override needed for
 notifications triggered by the application, which is described above.
 
+>**Note**: Turning on **Volume Override** will disable DND and set the device sound mode to normal after receiving a notification. This is because there is no easy way of achieving this on Android, so we need to use a workaround.
+
 <img src="/static/img/oncall/mobile-app-v1-android-settings.png" width="300px">
 <img src="/static/img/oncall/mobile-app-v1-android-push-notifications-prompt.png" width="300px">
 <!-- not showing these images because we don't have a nice way to show this many -->
