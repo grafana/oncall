@@ -1,32 +1,41 @@
-import { getByRole } from '@testing-library/react';
 import { test, expect } from '../fixtures';
-import { clickButton } from '../utils/forms';
+import { resolveFirstFiringAlert } from '../utils/alertGroup';
+import { createEscalationChain, EscalationStep } from '../utils/escalationChain';
+import { clickButton, generateRandomValue } from '../utils/forms';
+import { createIntegrationAndSendDemoAlert } from '../utils/integrations';
 import { goToGrafanaPage, goToOnCallPage } from '../utils/navigation';
-import { viewUsers, accessProfileTabs } from '../utils/users';
+import { createOnCallSchedule } from '../utils/schedule';
 
 test.describe('Insights', () => {
-  test.beforeAll(async ({ adminRolePage: { page } }) => {
+  test.beforeAll(async ({ adminRolePage: { page, userName } }) => {
     const DATASOURCE_NAME = 'OnCall Prometheus';
     const DATASOURCE_URL = 'http://oncall-dev-prometheus-server.default.svc.cluster.local';
 
     await goToGrafanaPage(page);
-    // await page.waitForTimeout(1000);
-    // await page.getByLabel('Toggle menu').click();
     await goToGrafanaPage(page, '/connections/datasources');
-    // await page.waitForTimeout(1000);
-    // http://oncall-dev-prometheus-server.default.svc.cluster.local
     await page.waitForLoadState('networkidle');
     const isDataSourceAlreadyConnected = await page.getByText(DATASOURCE_NAME).isVisible();
     if (!isDataSourceAlreadyConnected) {
       await page.getByRole('link', { name: 'Add data source' }).click();
       await clickButton({ page, buttonText: 'Prometheus' });
-      //   await page.waitForTimeout(2000);
       await page.getByRole('textbox', { name: 'Data source settings page name input field' }).fill(DATASOURCE_NAME);
       await page.getByRole('textbox', { name: 'Data source connection URL' }).fill(DATASOURCE_URL);
-      //   await page.waitForTimeout(5000);
       await clickButton({ page, buttonText: 'Save & test' });
       await page.getByText('Successfully queried the Prometheus API').waitFor();
     }
+
+    const escalationChainName = generateRandomValue();
+    const integrationName = generateRandomValue();
+    const onCallScheduleName = generateRandomValue();
+    await createOnCallSchedule(page, onCallScheduleName, userName);
+    await createEscalationChain(
+      page,
+      escalationChainName,
+      EscalationStep.NotifyUsersFromOnCallSchedule,
+      onCallScheduleName
+    );
+    await createIntegrationAndSendDemoAlert(page, integrationName, escalationChainName);
+    await resolveFirstFiringAlert(page);
   });
 
   test('Viewer can see all the panels in OnCall insights', async ({ viewerRolePage: { page } }) => {
@@ -46,9 +55,8 @@ test.describe('Insights', () => {
     });
   });
 
-  test('There is no panel that misses data', async ({ viewerRolePage: { page } }) => {
+  test('There is no panel that misses data', async ({ adminRolePage: { page } }) => {
     await goToOnCallPage(page, 'insights');
-
     await expect(page.getByText('No data')).toBeHidden();
   });
 });
