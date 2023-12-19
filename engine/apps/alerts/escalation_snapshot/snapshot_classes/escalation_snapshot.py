@@ -3,7 +3,6 @@ import logging
 import typing
 
 from celery.utils.log import get_task_logger
-from django.utils import timezone
 
 from apps.alerts.escalation_snapshot.serializers import EscalationSnapshotSerializer
 from apps.alerts.models.alert_group_log_record import AlertGroupLogRecord
@@ -89,19 +88,6 @@ class EscalationSnapshot:
         if self.last_active_escalation_policy_order is None:
             return []
         return self.escalation_policies_snapshots[: self.last_active_escalation_policy_order + 1]
-
-    def next_step_eta_is_valid(self) -> typing.Optional[bool]:
-        """
-        `next_step_eta` should never be less than the current time (with a 5 minute buffer provided)
-        as this field should be updated as the escalation policy is executed over time. If it is, this means that
-        an escalation policy step has been missed, or is substantially delayed
-
-        if `next_step_eta` is `None` then `None` is returned, otherwise a boolean is returned
-        representing the result of the time comparision
-        """
-        if self.next_step_eta is None:
-            return None
-        return self.next_step_eta > (timezone.now() - datetime.timedelta(minutes=5))
 
     def save_to_alert_group(self) -> None:
         self.alert_group.raw_escalation_snapshot = self.convert_to_dict()
