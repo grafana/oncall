@@ -34,13 +34,13 @@ export default defineConfig({
   reporter: REPORTER,
 
   /* Maximum time one test can run for. */
-  timeout: 60_000,
+  timeout: 30_000,
   expect: {
     /**
      * Maximum time expect() should wait for the condition to be met.
      * For example in `await expect(locator).toHaveText();`
      */
-    timeout: 6_000,
+    timeout: 10_000,
   },
   /* Run tests in files in parallel */
   fullyParallel: false,
