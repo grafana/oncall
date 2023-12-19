@@ -1,17 +1,17 @@
 import { ThresholdsMode } from '@grafana/data';
 import { SceneFlexItem, SceneQueryRunner, VizPanel } from '@grafana/scenes';
 
-export function getMeanTimeToRespondScene() {
+export default function getMTTRChangedForPeriodStatScene() {
   const query = new SceneQueryRunner({
     datasource: { uid: '$datasource' },
     queries: [
       {
         editorMode: 'code',
         exemplar: false,
-        expr: 'avg_over_time((sum($alert_groups_response_time_seconds_sum{slug=~"$instance", team=~"$team", integration=~"$integration"}) / sum($alert_groups_response_time_seconds_count{slug=~"$instance", team=~"$team", integration=~"$integration"}))[$__range:])',
-        instant: true,
+        expr: 'avg(sum($alert_groups_response_time_seconds_sum{slug=~"$instance", team=~"$team", integration=~"$integration"}) / sum($alert_groups_response_time_seconds_count{slug=~"$instance", team=~"$team", integration=~"$integration"}))',
+        instant: false,
         legendFormat: '__auto',
-        range: false,
+        range: true,
         refId: 'A',
       },
     ],
@@ -20,8 +20,7 @@ export function getMeanTimeToRespondScene() {
   return new SceneFlexItem({
     $data: query,
     body: new VizPanel({
-      title: 'Mean time to respond (MTTR)',
-      description: 'Mean time between the start and first action of all alert groups for the last 7 days',
+      title: 'MTTR changed for period',
       pluginId: 'stat',
       fieldConfig: {
         defaults: {
@@ -33,27 +32,22 @@ export function getMeanTimeToRespondScene() {
             mode: ThresholdsMode.Absolute,
             steps: [
               {
-                color: 'text',
+                color: 'blue',
                 value: null,
+              },
+              {
+                color: 'green',
+                value: -10000000,
+              },
+              {
+                color: 'super-light-yellow',
+                value: 0,
               },
             ],
           },
           unit: 's',
         },
-        overrides: [
-          {
-            matcher: {
-              id: 'byName',
-              options: 'Value',
-            },
-            properties: [
-              {
-                id: 'displayName',
-                value: 'MTTR',
-              },
-            ],
-          },
-        ],
+        overrides: [],
       },
       options: {
         colorMode: 'value',
@@ -61,7 +55,7 @@ export function getMeanTimeToRespondScene() {
         justifyMode: 'center',
         orientation: 'auto',
         reduceOptions: {
-          calcs: ['lastNotNull'],
+          calcs: ['diff'],
           fields: '',
           values: false,
         },

@@ -133,3 +133,5 @@ service:
   type: NodePort
   port: 8080
   nodePort: 30001
+prometheus:
+  enabled: false

@@ -1,22 +1,18 @@
 import { ThresholdsMode } from '@grafana/data';
 import { SceneFlexItem, SceneQueryRunner, VizPanel } from '@grafana/scenes';
 
-export default function getNewAlertGroupsDuringTimePeriodScene() {
+export default function getMTTRChangedForPeriodTimeseriesScene() {
   const query = new SceneQueryRunner({
     datasource: { uid: '$datasource' },
     queries: [
       {
-        disableTextWrap: false,
         editorMode: 'code',
-        excludeNullMetadata: false,
         exemplar: false,
-        expr: 'increase(max_over_time(sum by (integration) (avg without(pod, instance) ($alert_groups_total{slug=~"$instance", team=~"$team", integration=~"$integration"}))[30m:])[1h:])',
-        fullMetaSearch: false,
+        expr: 'avg(sum($alert_groups_response_time_seconds_sum{slug=~"$instance", team=~"$team", integration=~"$integration"}) / sum($alert_groups_response_time_seconds_count{slug=~"$instance", team=~"$team", integration=~"$integration"}))',
         instant: false,
         legendFormat: '__auto',
         range: true,
         refId: 'A',
-        useBackend: false,
       },
     ],
   });
@@ -24,12 +20,14 @@ export default function getNewAlertGroupsDuringTimePeriodScene() {
   return new SceneFlexItem({
     $data: query,
     body: new VizPanel({
-      title: 'New alert groups during time period',
+      title: 'MTTR changed for period',
       pluginId: 'timeseries',
       fieldConfig: {
         defaults: {
           color: {
-            mode: 'palette-classic',
+            fixedColor: 'green',
+            mode: 'fixed',
+            seriesBy: 'min',
           },
           custom: {
             axisCenteredZero: false,
@@ -38,7 +36,7 @@ export default function getNewAlertGroupsDuringTimePeriodScene() {
             axisPlacement: 'auto',
             barAlignment: 0,
             drawStyle: 'line',
-            fillOpacity: 80,
+            fillOpacity: 54,
             gradientMode: 'opacity',
             hideFrom: {
               legend: false,
@@ -55,46 +53,37 @@ export default function getNewAlertGroupsDuringTimePeriodScene() {
               type: 'linear',
             },
             showPoints: 'auto',
-            spanNulls: false,
+            spanNulls: true,
             stacking: {
               group: 'A',
-              mode: 'normal',
+              mode: 'none',
             },
             thresholdsStyle: {
               mode: 'off',
             },
           },
-          decimals: 0,
-          displayName: '${__field.labels.integration}',
           mappings: [],
           thresholds: {
             mode: ThresholdsMode.Absolute,
             steps: [
               {
-                color: 'green',
-                value: null,
+                color: 'text',
+                value: 0,
               },
             ],
           },
+          unit: 's',
         },
         overrides: [
           {
             matcher: {
-              id: 'byValue',
-              options: {
-                op: 'gte',
-                reducer: 'allIsZero',
-                value: 0,
-              },
+              id: 'byName',
+              options: 'Value',
             },
             properties: [
               {
-                id: 'custom.hideFrom',
-                value: {
-                  legend: true,
-                  tooltip: true,
-                  viz: true,
-                },
+                id: 'displayName',
+                value: 'MTTR',
               },
             ],
           },
@@ -104,11 +93,11 @@ export default function getNewAlertGroupsDuringTimePeriodScene() {
         legend: {
           displayMode: 'list',
           placement: 'bottom',
-          showLegend: true,
+          showLegend: false,
         },
         tooltip: {
-          mode: 'multi',
-          sort: 'desc',
+          mode: 'single',
+          sort: 'none',
         },
       },
     }),

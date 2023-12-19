@@ -1,23 +1,18 @@
 import { ThresholdsMode } from '@grafana/data';
 import { SceneFlexItem, SceneQueryRunner, VizPanel } from '@grafana/scenes';
 
-export default function getTotalAlertGroupsScene() {
+export default function getMTTRScene() {
   const query = new SceneQueryRunner({
     datasource: { uid: '$datasource' },
     queries: [
       {
-        disableTextWrap: false,
         editorMode: 'code',
-        excludeNullMetadata: false,
         exemplar: false,
-        expr: 'max_over_time(sum(avg without(pod, instance) ($alert_groups_total{slug=~"$instance", team=~"$team", integration=~"$integration"}))[1d:])',
-        format: 'time_series',
-        fullMetaSearch: false,
-        instant: false,
+        expr: 'avg_over_time((sum($alert_groups_response_time_seconds_sum{slug=~"$instance", team=~"$team", integration=~"$integration"}) / sum($alert_groups_response_time_seconds_count{slug=~"$instance", team=~"$team", integration=~"$integration"}))[$__range:])',
+        instant: true,
         legendFormat: '__auto',
-        range: true,
+        range: false,
         refId: 'A',
-        useBackend: false,
       },
     ],
   });
@@ -25,6 +20,8 @@ export default function getTotalAlertGroupsScene() {
   return new SceneFlexItem({
     $data: query,
     body: new VizPanel({
+      title: 'Mean time to respond (MTTR)',
+      description: 'Mean time between the start and first action of all alert groups for the last 7 days',
       pluginId: 'stat',
       fieldConfig: {
         defaults: {
@@ -41,7 +38,7 @@ export default function getTotalAlertGroupsScene() {
               },
             ],
           },
-          unit: 'none',
+          unit: 's',
         },
         overrides: [
           {
@@ -52,7 +49,7 @@ export default function getTotalAlertGroupsScene() {
             properties: [
               {
                 id: 'displayName',
-                value: 'Total alert groups',
+                value: 'MTTR',
               },
             ],
           },
@@ -70,8 +67,6 @@ export default function getTotalAlertGroupsScene() {
         },
         textMode: 'auto',
       },
-      pluginVersion: '9.5.2',
-      title: 'Total alert groups',
     }),
   });
 }
