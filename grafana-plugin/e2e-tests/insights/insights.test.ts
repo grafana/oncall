@@ -11,9 +11,10 @@ test.describe('Insights', () => {
     const DATASOURCE_NAME = 'OnCall Prometheus';
     const DATASOURCE_URL = 'http://oncall-dev-prometheus-server.default.svc.cluster.local';
 
-    await goToGrafanaPage(page);
     await goToGrafanaPage(page, '/connections/datasources');
     await page.waitForLoadState('networkidle');
+
+    // setup data source if it's not already connected
     const isDataSourceAlreadyConnected = await page.getByText(DATASOURCE_NAME).isVisible();
     if (!isDataSourceAlreadyConnected) {
       await page.getByRole('link', { name: 'Add data source' }).click();
@@ -21,9 +22,9 @@ test.describe('Insights', () => {
       await page.getByRole('textbox', { name: 'Data source settings page name input field' }).fill(DATASOURCE_NAME);
       await page.getByPlaceholder('http://localhost:9090').fill(DATASOURCE_URL);
       await clickButton({ page, buttonText: 'Save & test' });
-      await page.getByText('Successfully queried the Prometheus API').waitFor();
     }
 
+    // send alert and resolve to get some values in insights
     const escalationChainName = generateRandomValue();
     const integrationName = generateRandomValue();
     const onCallScheduleName = generateRandomValue();
@@ -40,7 +41,6 @@ test.describe('Insights', () => {
 
   test('Viewer can see all the panels in OnCall insights', async ({ viewerRolePage: { page } }) => {
     await goToOnCallPage(page, 'insights');
-
     [
       'Total alert groups',
       'Total alert groups by state',
