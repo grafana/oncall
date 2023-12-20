@@ -1,7 +1,7 @@
 import logging
 from typing import Optional, TypedDict
 
-from anymail.exceptions import AnymailWebhookValidationFailure
+from anymail.exceptions import AnymailInvalidAddress, AnymailWebhookValidationFailure
 from anymail.inbound import AnymailInboundMessage
 from anymail.signals import AnymailInboundEvent
 from anymail.webhooks import amazon_ses, mailgun, mailjet, mandrill, postal, postmark, sendgrid, sparkpost
@@ -140,6 +140,18 @@ class InboundEmailWebhookView(AlertChannelDefiningMixin, APIView):
         subject = subject.strip()
         message = email.text or ""
         message = message.strip()
-        sender = email.from_email.addr_spec
+        sender = self.get_sender_from_email_message(email)
 
         return {"subject": subject, "message": message, "sender": sender}
+
+    def get_sender_from_email_message(self, email: AnymailInboundMessage) -> str:
+        try:
+            sender = email.from_email.addr_spec
+        except AnymailInvalidAddress as e:
+            # wasn't able to parse email address from message, return raw value from "From" header
+            logger.warning(
+                f"get_sender_from_email_message: issue during parsing sender from email message, getting raw value "
+                f"instead. Exception: {e}"
+            )
+            sender = ", ".join(email.get_all("From"))
+        return sender
