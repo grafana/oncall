@@ -10,7 +10,7 @@ import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
 import { WithPermissionControlDisplay } from 'containers/WithPermissionControl/WithPermissionControlDisplay';
 import { User } from 'models/user/user.types';
-import { rootStore as store } from 'state';
+import { RootStore, rootStore as store } from 'state';
 import { AppFeature } from 'state/features';
 import { openErrorNotification, openNotification, openWarningNotification } from 'utils';
 import { UserActions } from 'utils/authorization';
@@ -24,6 +24,7 @@ const cx = cn.bind(styles);
 
 type Props = {
   userPk?: User['pk'];
+  store?: RootStore;
 };
 
 const INTERVAL_MIN_THROTTLING = 500;
