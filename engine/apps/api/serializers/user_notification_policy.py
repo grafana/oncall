@@ -33,7 +33,7 @@ class UserNotificationPolicyBaseSerializer(EagerLoadingMixin, serializers.ModelS
 
     class Meta:
         model = UserNotificationPolicy
-        fields = ["id", "step", "notify_by", "wait_delay", "important", "user"]
+        fields = ["id", "step", "notify_by", "wait_delay", "important", "user", "category"]
 
         # Field "order" is not consumed by the plugin frontend, but is used by the mobile app
         # TODO: remove this field when the mobile app is updated
@@ -50,11 +50,19 @@ class UserNotificationPolicyBaseSerializer(EagerLoadingMixin, serializers.ModelS
                 except ValueError:
                     raise serializers.ValidationError("Invalid wait delay format")
         data = self._notify_by_to_internal_value(data)
+
+        if "important" in data and data["important"]:
+            data["category"] = UserNotificationPolicy.Category.IMPORTANT_NOTIFICATION
+        else:
+            data["category"] = UserNotificationPolicy.Category.DEFAULT_NOTIFICATION
+
         return super().to_internal_value(data)
 
     def to_representation(self, instance):
         result = super().to_representation(instance)
         result = self._notify_by_to_representation(instance, result)
+
+        result.pop("category")
         return result
 
     #  _notify_by_to_internal_value and _notify_by_to_representation are exists because of in EscalationPolicy model

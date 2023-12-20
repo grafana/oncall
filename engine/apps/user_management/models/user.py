@@ -434,6 +434,7 @@ class User(models.Model):
                 user=self,
                 step=UserNotificationPolicy.Step.NOTIFY,
                 notify_by=settings.EMAIL_BACKEND_INTERNAL_ID,
+                category=UserNotificationPolicy.Category.DEFAULT_NOTIFICATION,
                 order=0,
             ),
         )
@@ -448,6 +449,7 @@ class User(models.Model):
                 step=UserNotificationPolicy.Step.NOTIFY,
                 notify_by=settings.EMAIL_BACKEND_INTERNAL_ID,
                 important=True,
+                category=UserNotificationPolicy.Category.IMPORTANT_NOTIFICATION,
                 order=0,
             ),
         )

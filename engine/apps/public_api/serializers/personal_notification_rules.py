@@ -29,7 +29,7 @@ class PersonalNotificationRuleSerializer(EagerLoadingMixin, OrderedModelSerializ
 
     class Meta:
         model = UserNotificationPolicy
-        fields = OrderedModelSerializer.Meta.fields + ["id", "user_id", "type", "duration", "important"]
+        fields = OrderedModelSerializer.Meta.fields + ["id", "user_id", "type", "duration", "important", "category"]
 
     def create(self, validated_data):
         if "type" not in validated_data:
@@ -53,6 +53,12 @@ class PersonalNotificationRuleSerializer(EagerLoadingMixin, OrderedModelSerializ
                     data["duration"] = str(timedelta(seconds=data["duration"]))
                 except (ValueError, TypeError):
                     raise BadRequest(detail="Invalid duration format")
+
+        if "important" in data and data["important"]:
+            data["category"] = UserNotificationPolicy.Category.IMPORTANT_NOTIFICATION
+        else:
+            data["category"] = UserNotificationPolicy.Category.DEFAULT_NOTIFICATION
+
         return super().to_internal_value(data)
 
     def to_representation(self, instance):
@@ -68,6 +74,8 @@ class PersonalNotificationRuleSerializer(EagerLoadingMixin, OrderedModelSerializ
 
         if "duration" in result and result["duration"] is not None:
             result["duration"] = result["duration"].seconds
+
+        result.pop("category")
         return result
 
     # remove duration from response if step is not wait

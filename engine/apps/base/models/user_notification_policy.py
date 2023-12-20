@@ -132,6 +132,12 @@ class UserNotificationPolicy(OrderedModel):
 
     important = models.BooleanField(default=False)
 
+    class Category(models.IntegerChoices):
+        DEFAULT_NOTIFICATION = 0, "Default"
+        IMPORTANT_NOTIFICATION = 1, "Important"
+
+    category = models.PositiveSmallIntegerField(choices=Category.choices, default=None, null=True)
+
     class Meta:
         ordering = ("order",)
         constraints = [

@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Support e2e tests in Tilt and Makefile ([#3516](https://github.com/grafana/oncall/pull/3516))
 - Support PATCH method for outgoing webhooks by @ravishankar15 ([#3580](https://github.com/grafana/oncall/pull/3580))
+- Added category field to UserNotificationPolicy model ([#3591](https://github.com/grafana/oncall/pull/3591))
 
 ### Changed
 
