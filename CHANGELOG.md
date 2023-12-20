@@ -33,6 +33,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add backend for multi-stack support for mobile-app @Ferril ([#3500](https://github.com/grafana/oncall/pull/3500))
 
+### Fixed
+
+- Fix PUT /api/v1/escalation_policies/id issue when updating `from_time` and `to_time` by @joeyorlando ([#3581](https://github.com/grafana/oncall/pull/3581))
+
 ## v1.3.78 (2023-12-12)
 
 ### Changed
