@@ -701,7 +701,10 @@ def test_create_invalid_missing_fields(webhook_internal_api_setup, make_user_aut
     }
     response = client.post(url, data, format="json", **make_user_auth_headers(user, token))
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert response.json()["http_method"][0] == "This field must be one of ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH']."
+    assert (
+        response.json()["http_method"][0]
+        == "This field must be one of ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH']."
+    )
 
     data = {
         "name": "test webhook 3",
@@ -711,7 +714,10 @@ def test_create_invalid_missing_fields(webhook_internal_api_setup, make_user_aut
     }
     response = client.post(url, data, format="json", **make_user_auth_headers(user, token))
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert response.json()["http_method"][0] == "This field must be one of ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH']."
+    assert (
+        response.json()["http_method"][0]
+        == "This field must be one of ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH']."
+    )
 
     data = {"name": "test webhook 3", "url": TEST_URL, "trigger_type": 2000000, "http_method": "POST"}
     response = client.post(url, data, format="json", **make_user_auth_headers(user, token))
