@@ -1,12 +1,15 @@
 import React from 'react';
 
-import { render, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 
 import { MobileAppConnection } from './MobileAppConnection';
 import { rootStore } from 'state';
 import { User } from 'models/user/user.types';
 import { UserStore } from 'models/user/user';
 import { CloudStore } from 'models/cloud/cloud';
+import { mockUseStore } from 'jest/utils';
+import userEvent from '@testing-library/user-event';
+import { MemoryRouter } from 'react-router-dom';
 
 jest.mock('plugin/GrafanaPluginRootPage.helpers', () => ({
   isTopNavbar: () => false,
@@ -41,25 +44,23 @@ jest.mock('state', () => ({
 }));
 
 const mockRootStore = (rest?: any, connected = false, cloud_connected = true) => {
-  const store = {
-    userStore: {
-      loadUser: loadUserMock,
-      currentUser: {
-        messaging_backends: {
-          MOBILE_APP: { connected },
-        },
-      } as unknown as User,
-      ...(rest ? rest : {}),
-    } as unknown as UserStore,
-    cloudStore: {
-      getCloudConnectionStatus: jest.fn().mockReturnValue({ cloud_connection_status: cloud_connected }),
-      cloudConnectionStatus: { cloud_connection_status: cloud_connected },
-    } as unknown as CloudStore,
-    hasFeature: jest.fn().mockReturnValue(true),
-    isOpenSource: jest.fn().mockReturnValue(true),
+  rootStore.userStore = {
+    loadUser: loadUserMock,
+    currentUser: {
+      messaging_backends: {
+        MOBILE_APP: { connected },
+      },
+    } as unknown as User,
+    ...(rest ? rest : {}),
+  };
+
+  rootStore.cloudStore = {
+    getCloudConnectionStatus: jest.fn().mockReturnValue({ cloud_connection_status: cloud_connected }),
+    cloudConnectionStatus: { cloud_connection_status: cloud_connected },
   } as any;
 
-  (rootStore as any).mockReturnValue(store);
+  rootStore.hasFeature = jest.fn().mockReturnValue(true);
+  rootStore.isOpenSource = jest.fn().mockReturnValue(true);
 };
 
 const USER_PK = '8585';
@@ -91,197 +92,177 @@ describe('MobileAppConnection', () => {
     });
   });
 
-  // test('it shows a message when the mobile app is already connected', async () => {
-  //   rootStore.userStore.sendBackendConfirmationCode = jest.fn().mockResolvedValueOnce('dfd');
-  //   rootStore.userStore.loadUser = loadUserMock;
-  //   rootStore.userStore.currentUserPk = USER_PK;
-  //   rootStore.userStore.items = {
-  //     [USER_PK]: {
-  //       messaging_backends: {
-  //         MOBILE_APP: { connected: true },
-  //       },
-  //     } as any,
-  //   };
+  test('it shows an error message if there was an error fetching the QR code', async () => {
+    mockRootStore({
+      sendBackendConfirmationCode: jest.fn().mockRejectedValueOnce('dfd'),
+    });
 
-  //   const component = render(<MobileAppConnection userPk={USER_PK} />);
-  //   expect(component.container).toMatchSnapshot();
+    const component = render(<MobileAppConnection userPk={USER_PK} />);
+    await screen.findByText(/.*error fetching your QR code.*/);
 
-  //   await waitFor(() => {
-  //     expect(rootStore.userStore.sendBackendConfirmationCode).toHaveBeenCalledTimes(0);
-  //   });
-  // });
+    await waitFor(() => {
+      expect(component.container).toMatchSnapshot();
 
-  // test('it shows an error message if there was an error fetching the QR code', async () => {
-  //   const { userStore } = mockUseStore({
-  //     sendBackendConfirmationCode: jest.fn().mockRejectedValueOnce('dfd'),
-  //   });
+      expect(rootStore.userStore.sendBackendConfirmationCode).toHaveBeenCalledTimes(1);
+      expect(rootStore.userStore.sendBackendConfirmationCode).toHaveBeenCalledWith(USER_PK, BACKEND);
+    });
+  });
 
-  //   const component = render(<MobileAppConnection userPk={USER_PK} />);
-  //   await screen.findByText(/.*error fetching your QR code.*/);
+  test("it shows a QR code if the app isn't already connected", async () => {
+    mockRootStore({
+      sendBackendConfirmationCode: jest.fn().mockResolvedValueOnce('dfd'),
+    });
 
-  //   await waitFor(() => {
-  //     expect(component.container).toMatchSnapshot();
+    const component = render(<MobileAppConnection userPk={USER_PK} />);
+    expect(component.container).toMatchSnapshot();
 
-  //     expect(userStore.sendBackendConfirmationCode).toHaveBeenCalledTimes(1);
-  //     expect(userStore.sendBackendConfirmationCode).toHaveBeenCalledWith(USER_PK, BACKEND);
-  //   });
-  // });
+    await waitFor(() => {
+      expect(rootStore.userStore.sendBackendConfirmationCode).toHaveBeenCalledTimes(1);
+      expect(rootStore.userStore.sendBackendConfirmationCode).toHaveBeenCalledWith(USER_PK, BACKEND);
+    });
+  });
 
-  // test("it shows a QR code if the app isn't already connected", async () => {
-  //   const { userStore } = mockUseStore({
-  //     sendBackendConfirmationCode: jest.fn().mockResolvedValueOnce('dfd'),
-  //   });
+  test('if we disconnect the app, it disconnects and fetches a new QR code', async () => {
+    mockRootStore(
+      {
+        sendBackendConfirmationCode: jest.fn().mockResolvedValueOnce('dfd'),
+        unlinkBackend: jest.fn().mockResolvedValueOnce('asdfadsfafds'),
+      },
+      true
+    );
 
-  //   const component = render(<MobileAppConnection userPk={USER_PK} />);
-  //   expect(component.container).toMatchSnapshot();
+    const component = render(<MobileAppConnection userPk={USER_PK} />);
+    const button = await screen.findByRole('button');
 
-  //   await waitFor(() => {
-  //     expect(userStore.sendBackendConfirmationCode).toHaveBeenCalledTimes(1);
-  //     expect(userStore.sendBackendConfirmationCode).toHaveBeenCalledWith(USER_PK, BACKEND);
-  //   });
-  // });
+    // click the disconnect button, which opens the modal
+    await userEvent.click(button);
+    // click the confirm button within the modal, which actually triggers the callback
+    await userEvent.click(screen.getByText('Remove'));
 
-  // test('if we disconnect the app, it disconnects and fetches a new QR code', async () => {
-  //   const { userStore } = mockUseStore(
-  //     {
-  //       sendBackendConfirmationCode: jest.fn().mockResolvedValueOnce('dfd'),
-  //       unlinkBackend: jest.fn().mockResolvedValueOnce('asdfadsfafds'),
-  //     },
-  //     true
-  //   );
+    expect(component.container).toMatchSnapshot();
 
-  //   const component = render(<MobileAppConnection userPk={USER_PK} />);
-  //   const button = await screen.findByRole('button');
+    await waitFor(() => {
+      expect(rootStore.userStore.sendBackendConfirmationCode).toHaveBeenCalledTimes(1);
+      expect(rootStore.userStore.sendBackendConfirmationCode).toHaveBeenCalledWith(USER_PK, BACKEND);
 
-  //   // click the disconnect button, which opens the modal
-  //   await userEvent.click(button);
-  //   // click the confirm button within the modal, which actually triggers the callback
-  //   await userEvent.click(screen.getByText('Remove'));
+      expect(rootStore.userStore.unlinkBackend).toHaveBeenCalledTimes(1);
+      expect(rootStore.userStore.unlinkBackend).toHaveBeenCalledWith(USER_PK, BACKEND);
+    });
+  });
 
-  //   expect(component.container).toMatchSnapshot();
+  test('it shows a loading message if it is currently disconnecting', async () => {
+    mockRootStore(
+      {
+        sendBackendConfirmationCode: jest.fn().mockResolvedValueOnce('dfd'),
+        unlinkBackend: jest.fn().mockResolvedValueOnce(new Promise((resolve) => setTimeout(resolve, 500))),
+      },
+      true
+    );
 
-  //   await waitFor(() => {
-  //     expect(userStore.sendBackendConfirmationCode).toHaveBeenCalledTimes(1);
-  //     expect(userStore.sendBackendConfirmationCode).toHaveBeenCalledWith(USER_PK, BACKEND);
+    const component = render(<MobileAppConnection userPk={USER_PK} />);
+    const button = await screen.findByRole('button');
 
-  //     expect(userStore.unlinkBackend).toHaveBeenCalledTimes(1);
-  //     expect(userStore.unlinkBackend).toHaveBeenCalledWith(USER_PK, BACKEND);
-  //   });
-  // });
+    // click the disconnect button, which opens the modal
+    await userEvent.click(button);
+    // click the confirm button within the modal, which actually triggers the callback
+    await userEvent.click(screen.getByText('Remove'));
 
-  // test('it shows a loading message if it is currently disconnecting', async () => {
-  //   const { userStore } = mockUseStore(
-  //     {
-  //       sendBackendConfirmationCode: jest.fn().mockResolvedValueOnce('dfd'),
-  //       unlinkBackend: jest.fn().mockResolvedValueOnce(new Promise((resolve) => setTimeout(resolve, 500))),
-  //     },
-  //     true
-  //   );
+    // wait for loading state
+    await screen.findByText(/.*Loading.*/);
 
-  //   const component = render(<MobileAppConnection userPk={USER_PK} />);
-  //   const button = await screen.findByRole('button');
+    expect(component.container).toMatchSnapshot();
 
-  //   // click the disconnect button, which opens the modal
-  //   await userEvent.click(button);
-  //   // click the confirm button within the modal, which actually triggers the callback
-  //   await userEvent.click(screen.getByText('Remove'));
+    await waitFor(() => {
+      expect(rootStore.userStore.sendBackendConfirmationCode).toHaveBeenCalledTimes(1);
+      expect(rootStore.userStore.sendBackendConfirmationCode).toHaveBeenCalledWith(USER_PK, BACKEND);
 
-  //   // wait for loading state
-  //   await screen.findByText(/.*Loading.*/);
+      expect(rootStore.userStore.unlinkBackend).toHaveBeenCalledTimes(1);
+      expect(rootStore.userStore.unlinkBackend).toHaveBeenCalledWith(USER_PK, BACKEND);
+    });
+  });
 
-  //   expect(component.container).toMatchSnapshot();
+  test('it shows an error message if there was an error disconnecting the mobile app', async () => {
+    mockRootStore(
+      {
+        sendBackendConfirmationCode: jest.fn().mockResolvedValueOnce('dfd'),
+        unlinkBackend: jest.fn().mockRejectedValueOnce('asdfadsfafds'),
+      },
+      true
+    );
 
-  //   await waitFor(() => {
-  //     expect(userStore.sendBackendConfirmationCode).toHaveBeenCalledTimes(1);
-  //     expect(userStore.sendBackendConfirmationCode).toHaveBeenCalledWith(USER_PK, BACKEND);
+    const component = render(<MobileAppConnection userPk={USER_PK} />);
+    const button = await screen.findByTestId('test__disconnect');
 
-  //     expect(userStore.unlinkBackend).toHaveBeenCalledTimes(1);
-  //     expect(userStore.unlinkBackend).toHaveBeenCalledWith(USER_PK, BACKEND);
-  //   });
-  // });
+    // click the disconnect button, which opens the modal
+    await userEvent.click(button);
+    // click the confirm button within the modal, which actually triggers the callback
+    await userEvent.click(screen.getByText('Remove'));
 
-  // test('it shows an error message if there was an error disconnecting the mobile app', async () => {
-  //   const { userStore } = mockUseStore(
-  //     {
-  //       sendBackendConfirmationCode: jest.fn().mockResolvedValueOnce('dfd'),
-  //       unlinkBackend: jest.fn().mockRejectedValueOnce('asdfadsfafds'),
-  //     },
-  //     true
-  //   );
+    await screen.findByText(/.*error disconnecting your mobile app.*/);
 
-  //   const component = render(<MobileAppConnection userPk={USER_PK} />);
-  //   const button = await screen.findByTestId('test__disconnect');
+    expect(component.container).toMatchSnapshot();
 
-  //   // click the disconnect button, which opens the modal
-  //   await userEvent.click(button);
-  //   // click the confirm button within the modal, which actually triggers the callback
-  //   await userEvent.click(screen.getByText('Remove'));
+    await waitFor(() => {
+      expect(rootStore.userStore.sendBackendConfirmationCode).toHaveBeenCalledTimes(0);
 
-  //   await screen.findByText(/.*error disconnecting your mobile app.*/);
+      expect(rootStore.userStore.unlinkBackend).toHaveBeenCalledTimes(1);
+      expect(rootStore.userStore.unlinkBackend).toHaveBeenCalledWith(USER_PK, BACKEND);
+    });
+  });
 
-  //   expect(component.container).toMatchSnapshot();
+  test('it polls loadUser on first render if not connected', async () => {
+    mockRootStore(
+      {
+        sendBackendConfirmationCode: jest.fn().mockResolvedValueOnce('dfd'),
+        unlinkBackend: jest.fn().mockRejectedValueOnce('asdfadsfafds'),
+      },
+      false
+    );
 
-  //   await waitFor(() => {
-  //     expect(userStore.sendBackendConfirmationCode).toHaveBeenCalledTimes(0);
+    render(<MobileAppConnection userPk={USER_PK} />);
 
-  //     expect(userStore.unlinkBackend).toHaveBeenCalledTimes(1);
-  //     expect(userStore.unlinkBackend).toHaveBeenCalledWith(USER_PK, BACKEND);
-  //   });
-  // });
+    await waitFor(
+      () => {
+        expect(loadUserMock).toHaveBeenCalled();
+      },
+      { timeout: 6000 }
+    );
+  });
 
-  // test('it polls loadUser on first render if not connected', async () => {
-  //   mockUseStore(
-  //     {
-  //       sendBackendConfirmationCode: jest.fn().mockResolvedValueOnce('dfd'),
-  //       unlinkBackend: jest.fn().mockRejectedValueOnce('asdfadsfafds'),
-  //     },
-  //     false
-  //   );
+  test('it polls loadUser after disconnect', async () => {
+    mockRootStore(
+      {
+        sendBackendConfirmationCode: jest.fn().mockResolvedValueOnce('dff'),
+        unlinkBackend: jest.fn().mockRejectedValueOnce('asdff'),
+      },
+      true
+    );
 
-  //   render(<MobileAppConnection userPk={USER_PK} />);
+    render(<MobileAppConnection userPk={USER_PK} />);
+    const button = await screen.findByRole('button');
 
-  //   await waitFor(
-  //     () => {
-  //       expect(loadUserMock).toHaveBeenCalled();
-  //     },
-  //     { timeout: 6000 }
-  //   );
-  // });
+    loadUserMock.mockClear();
 
-  // test('it polls loadUser after disconnect', async () => {
-  //   mockUseStore(
-  //     {
-  //       sendBackendConfirmationCode: jest.fn().mockResolvedValueOnce('dff'),
-  //       unlinkBackend: jest.fn().mockRejectedValueOnce('asdff'),
-  //     },
-  //     true
-  //   );
+    await userEvent.click(button); // click the disconnect button, which opens the modal
+    await userEvent.click(screen.getByText('Remove')); // click the confirm button within the modal, which actually triggers the callback
 
-  //   render(<MobileAppConnection userPk={USER_PK} />);
-  //   const button = await screen.findByRole('button');
+    await waitFor(
+      () => {
+        expect(loadUserMock).toHaveBeenCalled();
+      },
+      { timeout: 6000 }
+    );
+  });
 
-  //   loadUserMock.mockClear();
+  test('it shows a warning when cloud is not connected', async () => {
+    mockRootStore({}, true, false);
 
-  //   await userEvent.click(button); // click the disconnect button, which opens the modal
-  //   await userEvent.click(screen.getByText('Remove')); // click the confirm button within the modal, which actually triggers the callback
-
-  //   await waitFor(
-  //     () => {
-  //       expect(loadUserMock).toHaveBeenCalled();
-  //     },
-  //     { timeout: 6000 }
-  //   );
-  // });
-
-  // test('it shows a warning when cloud is not connected', async () => {
-  //   mockUseStore({}, true, false);
-
-  //   // Using MemoryRouter to avoid "Invariant failed: You should not use <Link> outside a <Router>"
-  //   const component = render(
-  //     <MemoryRouter>
-  //       <MobileAppConnection userPk={USER_PK} />
-  //     </MemoryRouter>
-  //   );
-  //   expect(component.container).toMatchSnapshot();
-  // });
+    // Using MemoryRouter to avoid "Invariant failed: You should not use <Link> outside a <Router>"
+    const component = render(
+      <MemoryRouter>
+        <MobileAppConnection userPk={USER_PK} />
+      </MemoryRouter>
+    );
+    expect(component.container).toMatchSnapshot();
+  });
 });
