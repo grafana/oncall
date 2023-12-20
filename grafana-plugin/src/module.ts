@@ -18,7 +18,6 @@ const plugin = new AppPlugin<OnCallPluginMetaJSONData>().setRootPage(GrafanaPlug
 });
 
 if (isUseProfileExtensionPointEnabled()) {
-  // TODO Change this to use the PluginExtensionPoints enum once that is available in @grafana/data
   const extensionPointId = 'grafana/user/profile/tab';
 
   plugin.configureExtensionComponent({
@@ -29,7 +28,7 @@ if (isUseProfileExtensionPointEnabled()) {
      * typing MobileAppConnectionWrapper as any until 10.2.0 is released
      * https://github.com/grafana/grafana/pull/75019#issuecomment-1724997540
      */
-    component: MobileAppConnectionWrapper as any,
+    component: MobileAppConnectionWrapper,
   });
 }
 
