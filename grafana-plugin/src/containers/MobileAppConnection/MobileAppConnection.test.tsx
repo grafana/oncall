@@ -1,15 +1,13 @@
 import React from 'react';
 
 import { render, screen, waitFor } from '@testing-library/react';
-
-import { MobileAppConnection } from './MobileAppConnection';
-import { rootStore } from 'state';
-import { User } from 'models/user/user.types';
-import { UserStore } from 'models/user/user';
-import { CloudStore } from 'models/cloud/cloud';
-import { mockUseStore } from 'jest/utils';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
+
+import { User } from 'models/user/user.types';
+import { rootStore } from 'state';
+
+import { MobileAppConnection } from './MobileAppConnection';
 
 jest.mock('plugin/GrafanaPluginRootPage.helpers', () => ({
   isTopNavbar: () => false,
