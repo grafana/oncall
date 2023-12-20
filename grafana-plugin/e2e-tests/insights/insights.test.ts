@@ -1,5 +1,5 @@
 import { test, expect } from '../fixtures';
-import { resolveFirstFiringAlert } from '../utils/alertGroup';
+import { resolveFiringAlert } from '../utils/alertGroup';
 import { createEscalationChain, EscalationStep } from '../utils/escalationChain';
 import { clickButton, generateRandomValue } from '../utils/forms';
 import { createIntegrationAndSendDemoAlert } from '../utils/integrations';
@@ -19,7 +19,7 @@ test.describe('Insights', () => {
       await page.getByRole('link', { name: 'Add data source' }).click();
       await clickButton({ page, buttonText: 'Prometheus' });
       await page.getByRole('textbox', { name: 'Data source settings page name input field' }).fill(DATASOURCE_NAME);
-      await page.getByRole('textbox', { name: 'Data source connection URL' }).fill(DATASOURCE_URL);
+      await page.getByPlaceholder('http://localhost:9090').fill(DATASOURCE_URL);
       await clickButton({ page, buttonText: 'Save & test' });
       await page.getByText('Successfully queried the Prometheus API').waitFor();
     }
@@ -35,7 +35,7 @@ test.describe('Insights', () => {
       onCallScheduleName
     );
     await createIntegrationAndSendDemoAlert(page, integrationName, escalationChainName);
-    await resolveFirstFiringAlert(page);
+    await resolveFiringAlert(page);
   });
 
   test('Viewer can see all the panels in OnCall insights', async ({ viewerRolePage: { page } }) => {

@@ -99,7 +99,7 @@ export const verifyThatAlertGroupIsTriggered = async (
   expect(await incidentTimelineContainsStep(page, triggeredStepText)).toBe(true);
 };
 
-export const resolveFirstFiringAlert = async (page: Page) => {
+export const resolveFiringAlert = async (page: Page) => {
   await goToOnCallPage(page, 'alert-groups');
   await page.getByText('Firing').nth(1).click();
   await page.getByLabel('Context menu').getByText('Resolve').click();
