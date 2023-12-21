@@ -28,7 +28,7 @@ import { withMobXProviderContext } from 'state/withStore';
 import { isUserActionAllowed, UserActions } from 'utils/authorization';
 import { PLUGIN_ROOT } from 'utils/consts';
 
-import { getStartOfWeek } from './Schedule.helpers';
+import { getStartOfWeekBasedOnCurrentDate } from './Schedule.helpers';
 
 import styles from './Schedule.module.css';
 
@@ -58,7 +58,6 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
 
   constructor(props: SchedulePageProps) {
     super(props);
-    console.log('uououou');
 
     this.state = {
       schedulePeriodType: 'week',
@@ -297,8 +296,6 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
                     />
                     <ScheduleOverrides
                       scheduleId={scheduleId}
-                      currentTimezone={currentTimezone}
-                      startMoment={startMoment}
                       onCreate={this.handleCreateOverride}
                       onUpdate={this.handleUpdateOverride}
                       onDelete={this.handleDeleteOverride}
@@ -338,8 +335,6 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
               <ShiftSwapForm
                 id={shiftSwapIdToShowForm}
                 scheduleId={scheduleId}
-                startMoment={startMoment}
-                currentTimezone={currentTimezone}
                 params={shiftSwapParamsToShowForm}
                 onHide={this.handleHideShiftSwapForm}
                 onUpdate={this.handleUpdateShiftSwaps}
@@ -467,7 +462,9 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
 
   handleTodayClick = () => {
     const { store } = this.props;
-    store.timezoneStore.setCalendarStartDate(getStartOfWeek(store.currentTimezone));
+    store.timezoneStore.setCalendarStartDate(
+      getStartOfWeekBasedOnCurrentDate(store.timezoneStore.currentDateInSelectedTimezone)
+    );
     this.handleDateRangeUpdate();
   };
 

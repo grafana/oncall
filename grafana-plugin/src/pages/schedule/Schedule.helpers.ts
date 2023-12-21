@@ -41,7 +41,6 @@ export const getStartOfWeek = (tz: Timezone) => {
 };
 
 export const getStartOfWeekBasedOnCurrentDate = (date: dayjs.Dayjs) => {
-  console.log(date);
   return date
     .startOf('isoWeek') // it's Monday always
     .add(mondayDayOffset[getWeekStartString()], 'day');

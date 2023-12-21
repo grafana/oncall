@@ -2,7 +2,6 @@ import React, { SyntheticEvent } from 'react';
 
 import { Button, HorizontalGroup, IconButton, LoadingPlaceholder, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
-import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
 import qs from 'query-string';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
@@ -26,8 +25,6 @@ import TeamName from 'containers/TeamName/TeamName';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { Schedule } from 'models/schedule/schedule.types';
 import { getSlackChannelName } from 'models/slack_channel/slack_channel.helpers';
-import { Timezone } from 'models/timezone/timezone.types';
-import { getStartOfWeek } from 'pages/schedule/Schedule.helpers';
 import { WithStoreProps, PageProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import LocationHelper from 'utils/LocationHelper';
@@ -41,7 +38,6 @@ const cx = cn.bind(styles);
 interface SchedulesPageProps extends WithStoreProps, RouteComponentProps, PageProps {}
 
 interface SchedulesPageState {
-  startMoment: dayjs.Dayjs;
   filters: RemoteFiltersType;
   showNewScheduleSelector: boolean;
   expandedRowKeys: Array<Schedule['id']>;
@@ -53,10 +49,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
   constructor(props: SchedulesPageProps) {
     super(props);
 
-    const { store } = this.props;
-
     this.state = {
-      startMoment: getStartOfWeek(store.currentTimezone),
       filters: { searchTerm: '', type: undefined, used: undefined, mine: undefined },
       showNewScheduleSelector: false,
       expandedRowKeys: [],
@@ -74,7 +67,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
 
   render() {
     const { store, query } = this.props;
-    const { showNewScheduleSelector, expandedRowKeys, scheduleIdToEdit, startMoment } = this.state;
+    const { showNewScheduleSelector, expandedRowKeys, scheduleIdToEdit } = this.state;
 
     const { results, count, page_size } = store.scheduleStore.getSearchResult();
 
@@ -97,11 +90,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
             </HorizontalGroup>
           </div>
           <div className={cx('schedule', 'schedule-personal')}>
-            <SchedulePersonal
-              userPk={store.userStore.currentUserPk}
-              currentTimezone={store.currentTimezone}
-              startMoment={startMoment}
-            />
+            <SchedulePersonal userPk={store.userStore.currentUserPk} />
           </div>
           <div className={cx('schedules__filters-container')}>
             <RemoteFilters
@@ -161,15 +150,6 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
     );
   }
 
-  handleTimezoneChange = (value: Timezone) => {
-    console.log('🚀 ~ file: Schedules.tsx:174 ~ SchedulesPage ~ value:', value);
-    const { store } = this.props;
-
-    store.setCurrentTimezone(value);
-
-    this.setState({ startMoment: getStartOfWeek(value) }, this.updateEvents);
-  };
-
   handleCreateScheduleClick = () => {
     this.setState({ showNewScheduleSelector: true });
   };
@@ -184,45 +164,26 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
     const { expandedRowKeys } = this.state;
 
     if (expanded && !expandedRowKeys.includes(data.id)) {
-      this.setState({ expandedRowKeys: [...this.state.expandedRowKeys, data.id] }, this.updateEvents);
+      this.setState(
+        { expandedRowKeys: [...this.state.expandedRowKeys, data.id] },
+        this.props.store.scheduleStore.refreshEvents
+      );
     } else if (!expanded && expandedRowKeys.includes(data.id)) {
       const index = expandedRowKeys.indexOf(data.id);
       const newExpandedRowKeys = [...expandedRowKeys];
       newExpandedRowKeys.splice(index, 1);
-      this.setState({ expandedRowKeys: newExpandedRowKeys }, this.updateEvents);
+      this.setState({ expandedRowKeys: newExpandedRowKeys }, this.props.store.scheduleStore.refreshEvents);
     }
   };
 
-  updateEvents = () => {
-    const { store } = this.props;
-    const { expandedRowKeys, startMoment } = this.state;
-
-    expandedRowKeys.forEach((scheduleId) => {
-      store.scheduleStore.updateEvents(scheduleId, startMoment, 'rotation');
-      store.scheduleStore.updateEvents(scheduleId, startMoment, 'override');
-      store.scheduleStore.updateEvents(scheduleId, startMoment, 'final');
-    });
-  };
-
-  renderSchedule = (data: Schedule) => {
-    const { startMoment } = this.state;
-    const { store } = this.props;
-
-    return (
-      <div className={cx('schedule')}>
-        <TimelineMarks startMoment={startMoment} timezone={store.currentTimezone} />
-        <div className={cx('rotations')}>
-          <ScheduleFinal
-            simplified
-            scheduleId={data.id}
-            currentTimezone={store.currentTimezone}
-            startMoment={startMoment}
-            onSlotClick={this.getScheduleClickHandler(data.id)}
-          />
-        </div>
+  renderSchedule = (data: Schedule) => (
+    <div className={cx('schedule')}>
+      <TimelineMarks />
+      <div className={cx('rotations')}>
+        <ScheduleFinal simplified scheduleId={data.id} onSlotClick={this.getScheduleClickHandler(data.id)} />
       </div>
-    );
-  };
+    </div>
+  );
 
   getScheduleClickHandler = (scheduleId: Schedule['id']) => {
     const { history, query } = this.props;
@@ -397,10 +358,14 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
 
   update = () => {
     const { store } = this.props;
-    const { startMoment } = this.state;
     const page = store.filtersStore.currentTablePageNum[PAGE.Schedules];
 
-    store.scheduleStore.updatePersonalEvents(store.userStore.currentUserPk, startMoment, 9, true);
+    store.scheduleStore.updatePersonalEvents(
+      store.userStore.currentUserPk,
+      store.timezoneStore.calendarStartDate,
+      9,
+      true
+    );
 
     // For removal we need to check if count is 1, which means we should change the page to the previous one
     const { results } = store.scheduleStore.getSearchResult();

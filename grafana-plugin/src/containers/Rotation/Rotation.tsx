@@ -3,18 +3,18 @@ import React, { FC, useMemo, useState } from 'react';
 import { HorizontalGroup, LoadingPlaceholder } from '@grafana/ui';
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
+import { observer } from 'mobx-react';
 import hash from 'object-hash';
 
 import { ScheduleFiltersType } from 'components/ScheduleFilters/ScheduleFilters.types';
 import Text from 'components/Text/Text';
 import ScheduleSlot from 'containers/ScheduleSlot/ScheduleSlot';
 import { Event, RotationFormLiveParams, ShiftSwap } from 'models/schedule/schedule.types';
+import { useStore } from 'state/useStore';
 
 import RotationTutorial from './RotationTutorial';
 
 import styles from './Rotation.module.css';
-import { observer } from 'mobx-react';
-import { useStore } from 'state/useStore';
 
 const cx = cn.bind(styles);
 

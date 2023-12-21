@@ -1,13 +1,13 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 
 import { DateTime, dateTime } from '@grafana/data';
 import { DatePickerWithInput, TimeOfDayPicker, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
+import { observer } from 'mobx-react';
 
 import Text from 'components/Text/Text';
-import { toDate } from 'containers/RotationForm/RotationForm.helpers';
-import { Timezone } from 'models/timezone/timezone.types';
+import { useStore } from 'state/useStore';
 
 import styles from 'containers/RotationForm/RotationForm.module.css';
 
@@ -15,24 +15,23 @@ const cx = cn.bind(styles);
 
 interface DateTimePickerProps {
   value: dayjs.Dayjs;
-  timezone: Timezone;
   onChange: (value: dayjs.Dayjs) => void;
   disabled?: boolean;
-  minMoment?: dayjs.Dayjs;
   onFocus?: () => void;
   onBlur?: () => void;
   error?: string[];
 }
 
-const DateTimePicker = (props: DateTimePickerProps) => {
-  const { value: propValue, minMoment, timezone, onChange, disabled, onFocus, onBlur, error } = props;
+const DateTimePicker = observer((props: DateTimePickerProps) => {
+  const {
+    timezoneStore: { getDateInSelectedTimezone },
+  } = useStore();
+  const { value: propValue, onChange, disabled, onFocus, onBlur, error } = props;
 
-  const value = useMemo(() => toDate(propValue, timezone), [propValue, timezone]);
-
-  const minDate = useMemo(() => (minMoment ? toDate(minMoment, timezone) : undefined), [minMoment, timezone]);
+  const value = getDateInSelectedTimezone(propValue).toDate();
 
   const handleDateChange = (newDate: Date) => {
-    const localMoment = dayjs().tz(timezone).utcOffset() === 0 ? dayjs().utc() : dayjs().tz(timezone);
+    const localMoment = getDateInSelectedTimezone(dayjs(newDate));
 
     const newValue = localMoment
       .set('year', newDate.getFullYear())
@@ -45,7 +44,7 @@ const DateTimePicker = (props: DateTimePickerProps) => {
     onChange(newValue);
   };
   const handleTimeChange = (newMoment: DateTime) => {
-    const localMoment = dayjs().tz(timezone).utcOffset() === 0 ? dayjs().utc() : dayjs().tz(timezone);
+    const localMoment = getDateInSelectedTimezone(dayjs());
     const newDate = newMoment.toDate();
     const newValue = localMoment
       .set('year', value.getFullYear())
@@ -67,7 +66,7 @@ const DateTimePicker = (props: DateTimePickerProps) => {
           style={{ width: '58%' }}
           className={cx({ 'control--error': Boolean(error) })}
         >
-          <DatePickerWithInput open minDate={minDate} disabled={disabled} value={value} onChange={handleDateChange} />
+          <DatePickerWithInput open disabled={disabled} value={value} onChange={handleDateChange} />
         </div>
         <div
           onFocus={onFocus}
@@ -81,6 +80,6 @@ const DateTimePicker = (props: DateTimePickerProps) => {
       {error && <Text type="danger">{error}</Text>}
     </VerticalGroup>
   );
-};
+});
 
 export default DateTimePicker;

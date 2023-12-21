@@ -27,8 +27,6 @@ import { SlackStore } from 'models/slack/slack';
 import { SlackChannelStore } from 'models/slack_channel/slack_channel';
 import { TelegramChannelStore } from 'models/telegram_channel/telegram_channel';
 import { TimezoneStore } from 'models/timezone/timezone';
-import { getGMTTimezoneOfCurrentlyLoggedInUser } from 'models/timezone/timezone.helpers';
-import { Timezone } from 'models/timezone/timezone.types';
 import { UserStore } from 'models/user/user';
 import { UserGroupStore } from 'models/user_group/user_group';
 import { makeRequest } from 'network';
@@ -321,10 +319,5 @@ export class RootBaseStore {
   @action.bound
   async getApiUrlForSettings() {
     return this.onCallApiUrl;
-  }
-
-  @action.bound
-  setCurrentTimezone(timezone: string) {
-    this.currentTimezone = timezone;
   }
 }

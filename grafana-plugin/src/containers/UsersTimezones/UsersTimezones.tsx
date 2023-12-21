@@ -13,7 +13,7 @@ import Text from 'components/Text/Text';
 import WorkingHours from 'components/WorkingHours/WorkingHours';
 import { IsOncallIcon } from 'icons';
 import { Schedule } from 'models/schedule/schedule.types';
-import { Timezone } from 'models/timezone/timezone.types';
+import { getCurrentDateInTimezone } from 'models/timezone/timezone.helpers';
 import { User } from 'models/user/user.types';
 import { getColorSchemeMappingForUsers } from 'pages/schedule/Schedule.helpers';
 import { useStore } from 'state/useStore';
@@ -21,7 +21,6 @@ import { useStore } from 'state/useStore';
 import { calculateTimePassedInDayPercentage } from './UsersTimezones.helpers';
 
 import styles from './UsersTimezones.module.css';
-import { getCurrentDateInTimezone } from 'models/timezone/timezone.helpers';
 
 interface UsersTimezonesProps {
   userIds: Array<User['pk']>;
@@ -39,7 +38,7 @@ const UsersTimezones: FC<UsersTimezonesProps> = observer((props) => {
   const store = useStore();
   const {
     userStore,
-    timezoneStore: { selectedTimezoneLabel, currentDateInSelectedTimezone, calendarStartDate },
+    timezoneStore: { selectedTimezoneLabel, currentDateInSelectedTimezone },
   } = store;
 
   const { userIds, onCallNow, scheduleId } = props;

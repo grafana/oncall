@@ -2,7 +2,6 @@ import React, { Component } from 'react';
 
 import { Badge, Button, HorizontalGroup, Icon } from '@grafana/ui';
 import cn from 'classnames/bind';
-import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
@@ -13,9 +12,8 @@ import TimelineMarks from 'components/TimelineMarks/TimelineMarks';
 import Rotation from 'containers/Rotation/Rotation';
 import { getColorForSchedule, getPersonalShiftsFromStore } from 'models/schedule/schedule.helpers';
 import { Event } from 'models/schedule/schedule.types';
-import { Timezone } from 'models/timezone/timezone.types';
 import { User } from 'models/user/user.types';
-import { getStartOfWeek } from 'pages/schedule/Schedule.helpers';
+import { getStartOfWeekBasedOnCurrentDate } from 'pages/schedule/Schedule.helpers';
 import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import { PLUGIN_ROOT } from 'utils/consts';
@@ -27,20 +25,12 @@ import styles from './Rotations.module.css';
 const cx = cn.bind(styles);
 
 interface SchedulePersonalProps extends WithStoreProps, RouteComponentProps {
-  startMoment: dayjs.Dayjs;
-  currentTimezone: Timezone;
   userPk: User['pk'];
   onSlotClick?: (event: Event) => void;
 }
 
-interface SchedulePersonalState {
-  startMoment?: dayjs.Dayjs;
-}
-
 @observer
-class SchedulePersonal extends Component<SchedulePersonalProps, SchedulePersonalState> {
-  state: SchedulePersonalState = {};
-
+class SchedulePersonal extends Component<SchedulePersonalProps> {
   constructor(props) {
     super(props);
 
@@ -51,58 +41,52 @@ class SchedulePersonal extends Component<SchedulePersonalProps, SchedulePersonal
 
   componentDidMount() {
     const { store } = this.props;
-    const { startMoment } = this.state;
 
-    store.scheduleStore.updatePersonalEvents(store.userStore.currentUserPk, startMoment, 9, true);
+    store.scheduleStore.updatePersonalEvents(
+      store.userStore.currentUserPk,
+      store.timezoneStore.calendarStartDate,
+      9,
+      true
+    );
   }
 
-  componentDidUpdate(prevProps: Readonly<SchedulePersonalProps>, prevState: Readonly<SchedulePersonalState>): void {
+  componentDidUpdate(prevProps: Readonly<SchedulePersonalProps>): void {
     const { store } = this.props;
-    const { startMoment } = this.state;
 
-    if (prevProps.currentTimezone !== this.props.currentTimezone) {
-      const oldTimezone = prevProps.currentTimezone;
-
-      this.setState((oldState) => {
-        const wDiff = oldState.startMoment.diff(getStartOfWeek(oldTimezone), 'weeks');
-
-        return { ...oldState, startMoment: getStartOfWeek(this.props.currentTimezone).add(wDiff, 'weeks') };
-      });
-    }
-
-    if (prevState.startMoment !== startMoment) {
-      store.scheduleStore.updatePersonalEvents(store.userStore.currentUserPk, startMoment);
+    if (prevProps.store.timezoneStore.calendarStartDate !== this.props.store.timezoneStore.calendarStartDate) {
+      store.scheduleStore.updatePersonalEvents(store.userStore.currentUserPk, store.timezoneStore.calendarStartDate);
     }
   }
 
   handleTodayClick = () => {
     const { store } = this.props;
-
-    this.setState({ startMoment: getStartOfWeek(store.currentTimezone) });
+    store.timezoneStore.setCalendarStartDate(
+      getStartOfWeekBasedOnCurrentDate(store.timezoneStore.currentDateInSelectedTimezone)
+    );
   };
 
   handleLeftClick = () => {
-    const { startMoment } = this.state;
-
-    this.setState({ startMoment: startMoment.add(-7, 'day') });
+    const { store } = this.props;
+    store.timezoneStore.setCalendarStartDate(store.timezoneStore.calendarStartDate.subtract(7, 'day'));
   };
 
   handleRightClick = () => {
-    const { startMoment } = this.state;
-
-    this.setState({ startMoment: startMoment.add(7, 'day') });
+    const { store } = this.props;
+    store.timezoneStore.setCalendarStartDate(store.timezoneStore.calendarStartDate.add(7, 'day'));
   };
 
   render() {
-    const { userPk, currentTimezone, store, onSlotClick } = this.props;
-    const { startMoment } = this.state;
+    const { userPk, store, onSlotClick } = this.props;
 
     const base = 7 * 24 * 60; // in minutes
-    const diff = dayjs().tz(currentTimezone).diff(startMoment, 'minutes');
+    const diff = store.timezoneStore.currentDateInSelectedTimezone.diff(
+      store.timezoneStore.calendarStartDate,
+      'minutes'
+    );
 
     const currentTimeX = diff / base;
 
-    const shifts = getPersonalShiftsFromStore(store, userPk, startMoment);
+    const shifts = getPersonalShiftsFromStore(store, userPk, store.timezoneStore.calendarStartDate);
 
     const currentTimeHidden = currentTimeX < 0 || currentTimeX > 1;
 
@@ -133,7 +117,8 @@ class SchedulePersonal extends Component<SchedulePersonalProps, SchedulePersonal
                 <HorizontalGroup>
                   <HorizontalGroup>
                     <Text type="secondary">
-                      {startMoment.format('DD MMM')} - {startMoment.add(6, 'day').format('DD MMM')}
+                      {store.timezoneStore.calendarStartDate.format('DD MMM')} -{' '}
+                      {store.timezoneStore.calendarStartDate.add(6, 'day').format('DD MMM')}
                     </Text>
                     <Button variant="secondary" size="sm" onClick={this.handleTodayClick}>
                       Today
@@ -153,7 +138,7 @@ class SchedulePersonal extends Component<SchedulePersonalProps, SchedulePersonal
           </div>
           <div className={cx('header-plus-content')}>
             {!currentTimeHidden && <div className={cx('current-time')} style={{ left: `${currentTimeX * 100}%` }} />}
-            <TimelineMarks startMoment={startMoment} timezone={currentTimezone} />
+            <TimelineMarks />
             <TransitionGroup className={cx('rotations')}>
               {shifts && shifts.length ? (
                 shifts.map(({ events }, index) => {
@@ -163,8 +148,6 @@ class SchedulePersonal extends Component<SchedulePersonalProps, SchedulePersonal
                         simplified
                         key={index}
                         events={events}
-                        startMoment={startMoment}
-                        currentTimezone={currentTimezone}
                         getColor={getColor}
                         onSlotClick={onSlotClick}
                         handleOpenSchedule={this.openSchedule}
@@ -175,12 +158,7 @@ class SchedulePersonal extends Component<SchedulePersonalProps, SchedulePersonal
                 })
               ) : (
                 <CSSTransition key={0} timeout={DEFAULT_TRANSITION_TIMEOUT} classNames={{ ...styles }}>
-                  <Rotation
-                    events={[]}
-                    startMoment={startMoment}
-                    currentTimezone={currentTimezone}
-                    emptyText="There are no schedules relevant to user"
-                  />
+                  <Rotation events={[]} emptyText="There are no schedules relevant to user" />
                 </CSSTransition>
               )}
             </TransitionGroup>

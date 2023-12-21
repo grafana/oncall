@@ -2,12 +2,12 @@ import React, { FC, useMemo } from 'react';
 
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
+import { observer } from 'mobx-react';
 
 import Text from 'components/Text/Text';
+import { useStore } from 'state/useStore';
 
 import styles from './TimelineMarks.module.scss';
-import { observer } from 'mobx-react';
-import { useStore } from 'state/useStore';
 
 interface TimelineMarksProps {
   debug?: boolean;

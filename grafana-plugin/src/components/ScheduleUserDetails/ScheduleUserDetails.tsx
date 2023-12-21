@@ -3,6 +3,7 @@ import React, { FC } from 'react';
 import { HorizontalGroup, VerticalGroup, Icon, Badge } from '@grafana/ui';
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
+import { observer } from 'mobx-react';
 
 import Avatar from 'components/Avatar/Avatar';
 import ScheduleBorderedAvatar from 'components/ScheduleBorderedAvatar/ScheduleBorderedAvatar';
@@ -19,7 +20,6 @@ import { useStore } from 'state/useStore';
 import { isUserActionAllowed, UserActions } from 'utils/authorization';
 
 import styles from './ScheduleUserDetails.module.css';
-import { observer } from 'mobx-react';
 
 interface ScheduleUserDetailsProps {
   currentMoment: dayjs.Dayjs;

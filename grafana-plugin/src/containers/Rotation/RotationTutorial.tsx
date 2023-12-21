@@ -2,12 +2,12 @@ import React, { FC, useMemo } from 'react';
 
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
+import { observer } from 'mobx-react';
 
 import { RotationFormLiveParams } from 'models/schedule/schedule.types';
+import { useStore } from 'state/useStore';
 
 import styles from './Rotation.module.css';
-import { observer } from 'mobx-react';
-import { useStore } from 'state/useStore';
 
 const cx = cn.bind(styles);
 

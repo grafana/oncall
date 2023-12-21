@@ -2,7 +2,7 @@ import dayjs, { Dayjs } from 'dayjs';
 import { observable, action, computed } from 'mobx';
 
 // TODO: move utils from Schedule.helpers to common place
-import { getStartOfWeek, getStartOfWeekBasedOnCurrentDate } from 'pages/schedule/Schedule.helpers';
+import { getStartOfWeekBasedOnCurrentDate } from 'pages/schedule/Schedule.helpers';
 import { RootStore } from 'state';
 
 import { getOffsetOfCurrentUser, getGMTTimezoneLabelBasedOnOffset } from './timezone.helpers';

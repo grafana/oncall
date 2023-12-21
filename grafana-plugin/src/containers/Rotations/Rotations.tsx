@@ -15,7 +15,6 @@ import RotationForm from 'containers/RotationForm/RotationForm';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { getColor, getLayersFromStore } from 'models/schedule/schedule.helpers';
 import { Layer, Schedule, ScheduleType, Shift, ShiftSwap, Event } from 'models/schedule/schedule.types';
-import { Timezone } from 'models/timezone/timezone.types';
 import { User } from 'models/user/user.types';
 import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
@@ -296,7 +295,7 @@ class Rotations extends Component<RotationsProps, RotationsState> {
   };
 
   handleAddRotation = (option: SelectableValue) => {
-    const { startMoment, disabled } = this.props;
+    const { disabled, store } = this.props;
 
     if (disabled) {
       return;
@@ -305,7 +304,7 @@ class Rotations extends Component<RotationsProps, RotationsState> {
     this.setState(
       {
         layerPriority: option.value,
-        shiftStartToShowRotationForm: startMoment,
+        shiftStartToShowRotationForm: store.timezoneStore.calendarStartDate,
       },
       () => {
         this.onShowRotationForm('new');

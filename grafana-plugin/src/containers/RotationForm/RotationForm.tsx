@@ -47,13 +47,10 @@ import TimeUnitSelector from 'containers/RotationForm/parts/TimeUnitSelector';
 import UserItem from 'containers/RotationForm/parts/UserItem';
 import { getShiftName } from 'models/schedule/schedule.helpers';
 import { Schedule, Shift } from 'models/schedule/schedule.types';
-import { getTzOffsetString } from 'models/timezone/timezone.helpers';
-import { Timezone } from 'models/timezone/timezone.types';
 import { User } from 'models/user/user.types';
 import {
   getDateTime,
   getSelectedDays,
-  getStartOfWeek,
   getStartOfWeekBasedOnCurrentDate,
   getUTCByDay,
   getUTCString,
@@ -515,10 +512,8 @@ const RotationForm = observer((props: RotationFormProps) => {
                     }
                   >
                     <DateTimePicker
-                      //minMoment={shiftStart}
                       value={rotationStart}
                       onChange={handleRotationStartChange}
-                      timezone={currentTimezone}
                       error={errors.rotation_start}
                       disabled={disabled}
                     />
@@ -547,7 +542,6 @@ const RotationForm = observer((props: RotationFormProps) => {
                       <DateTimePicker
                         value={rotationEnd}
                         onChange={setRotationEnd}
-                        timezone={currentTimezone}
                         error={errors.until}
                         disabled={disabled}
                       />
@@ -631,7 +625,6 @@ const RotationForm = observer((props: RotationFormProps) => {
                             defaultValue={shiftPeriodDefaultValue}
                             shiftStart={shiftStart}
                             onChange={handleActivePeriodChange}
-                            currentTimezone={currentTimezone}
                             disabled={disabled}
                             errors={errors}
                           />
@@ -674,7 +667,7 @@ const RotationForm = observer((props: RotationFormProps) => {
           </div>
           <div>
             <HorizontalGroup justify="space-between">
-              <Text type="secondary">Current timezone: {getTzOffsetString(dayjs().tz(currentTimezone))}</Text>
+              <Text type="secondary">Current timezone: {store.timezoneStore.selectedTimezoneLabel}</Text>
               <HorizontalGroup>
                 {shiftId !== 'new' && (
                   <Tooltip content="Stop the current rotation and start a new one">
@@ -726,7 +719,6 @@ interface ShiftPeriodProps {
   defaultValue: number;
   shiftStart: dayjs.Dayjs;
   onChange: (value: number) => void;
-  currentTimezone: Timezone;
   disabled: boolean;
   errors: any;
 }
