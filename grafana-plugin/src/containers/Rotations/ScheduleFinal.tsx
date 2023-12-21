@@ -17,7 +17,6 @@ import {
   getShiftsFromStore,
 } from 'models/schedule/schedule.helpers';
 import { Schedule, ShiftSwap, Event } from 'models/schedule/schedule.types';
-import { Timezone } from 'models/timezone/timezone.types';
 import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 
@@ -29,8 +28,6 @@ import styles from './Rotations.module.css';
 const cx = cn.bind(styles);
 
 interface ScheduleFinalProps extends WithStoreProps {
-  startMoment: dayjs.Dayjs;
-  currentTimezone: Timezone;
   scheduleId: Schedule['id'];
   simplified?: boolean;
   onShowOverrideForm: (shiftId: 'new', shiftStart: dayjs.Dayjs, shiftEnd: dayjs.Dayjs) => void;
@@ -43,19 +40,18 @@ interface ScheduleFinalProps extends WithStoreProps {
 @observer
 class ScheduleFinal extends Component<ScheduleFinalProps> {
   render() {
-    const { startMoment, currentTimezone, store, simplified, scheduleId, filters, onShowShiftSwapForm, onSlotClick } =
-      this.props;
-
+    const { store, simplified, scheduleId, filters, onShowShiftSwapForm, onSlotClick } = this.props;
+    const { currentDateInSelectedTimezone, calendarStartDate } = store.timezoneStore;
     const base = 7 * 24 * 60; // in minutes
-    const diff = dayjs().tz(currentTimezone).diff(startMoment, 'minutes');
+    const diff = currentDateInSelectedTimezone.diff(calendarStartDate, 'minutes');
 
     const currentTimeX = diff / base;
 
-    const shifts = flattenShiftEvents(getShiftsFromStore(store, scheduleId, startMoment));
+    const shifts = flattenShiftEvents(getShiftsFromStore(store, scheduleId, calendarStartDate));
 
-    const layers = getLayersFromStore(store, scheduleId, startMoment);
+    const layers = getLayersFromStore(store, scheduleId, calendarStartDate);
 
-    const overrides = getOverridesFromStore(store, scheduleId, startMoment);
+    const overrides = getOverridesFromStore(store, scheduleId, calendarStartDate);
 
     const currentTimeHidden = currentTimeX < 0 || currentTimeX > 1;
 
@@ -77,7 +73,7 @@ class ScheduleFinal extends Component<ScheduleFinalProps> {
           )}
           <div className={cx('header-plus-content')}>
             {!currentTimeHidden && <div className={cx('current-time')} style={{ left: `${currentTimeX * 100}%` }} />}
-            <TimelineMarks startMoment={startMoment} timezone={currentTimezone} />
+            <TimelineMarks />
             <TransitionGroup className={cx('rotations')}>
               {shifts && shifts.length ? (
                 shifts.map(({ events }, index) => {
@@ -86,8 +82,6 @@ class ScheduleFinal extends Component<ScheduleFinalProps> {
                       <Rotation
                         key={index}
                         events={events}
-                        startMoment={startMoment}
-                        currentTimezone={currentTimezone}
                         handleAddOverride={this.handleShowOverrideForm}
                         handleAddShiftSwap={onShowShiftSwapForm}
                         onShiftSwapClick={onShowShiftSwapForm}
@@ -101,7 +95,7 @@ class ScheduleFinal extends Component<ScheduleFinalProps> {
                 })
               ) : (
                 <CSSTransition key={0} timeout={DEFAULT_TRANSITION_TIMEOUT} classNames={{ ...styles }}>
-                  <Rotation events={[]} startMoment={startMoment} currentTimezone={currentTimezone} />
+                  <Rotation events={[]} />
                 </CSSTransition>
               )}
             </TransitionGroup>

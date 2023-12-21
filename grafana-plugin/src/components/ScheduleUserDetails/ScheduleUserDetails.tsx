@@ -8,32 +8,39 @@ import Avatar from 'components/Avatar/Avatar';
 import ScheduleBorderedAvatar from 'components/ScheduleBorderedAvatar/ScheduleBorderedAvatar';
 import Text from 'components/Text/Text';
 import { isInWorkingHours } from 'components/WorkingHours/WorkingHours.helpers';
-import { getTzOffsetString } from 'models/timezone/timezone.helpers';
+import {
+  getCurrentDateInTimezone,
+  getCurrentlyLoggedInUserDate,
+  getTzOffsetString,
+} from 'models/timezone/timezone.helpers';
 import { User } from 'models/user/user.types';
 import { getColorSchemeMappingForUsers } from 'pages/schedule/Schedule.helpers';
 import { useStore } from 'state/useStore';
 import { isUserActionAllowed, UserActions } from 'utils/authorization';
 
 import styles from './ScheduleUserDetails.module.css';
+import { observer } from 'mobx-react';
 
 interface ScheduleUserDetailsProps {
   currentMoment: dayjs.Dayjs;
   user: User;
   isOncall: boolean;
   scheduleId: string;
-  startMoment: dayjs.Dayjs;
 }
 
 const cx = cn.bind(styles);
 
-const ScheduleUserDetails: FC<ScheduleUserDetailsProps> = (props) => {
-  const { user, currentMoment, isOncall, scheduleId, startMoment } = props;
+const ScheduleUserDetails: FC<ScheduleUserDetailsProps> = observer((props) => {
+  const {
+    timezoneStore: { calendarStartDate },
+  } = useStore();
+  const { user, currentMoment, isOncall, scheduleId } = props;
   const userMoment = currentMoment.tz(user.timezone);
   const userOffsetHoursStr = getTzOffsetString(userMoment);
   const isInWH = isInWorkingHours(currentMoment, user.working_hours, user.timezone);
 
   const store = useStore();
-  const colorSchemeMapping = getColorSchemeMappingForUsers(store, scheduleId, startMoment);
+  const colorSchemeMapping = getColorSchemeMappingForUsers(store, scheduleId, calendarStartDate);
   const colorSchemeList = Array.from(colorSchemeMapping[user.pk] || []);
 
   const { organizationStore } = store;
@@ -72,16 +79,16 @@ const ScheduleUserDetails: FC<ScheduleUserDetailsProps> = (props) => {
             <div className={cx('timezone-wrapper')}>
               <div className={cx('timezone-info')}>
                 <VerticalGroup spacing="none">
-                  <Text type="secondary">Local time</Text>
-                  <Text type="secondary">{currentMoment.tz().format('DD MMM, HH:mm')}</Text>
-                  <Text type="secondary">({getTzOffsetString(currentMoment)})</Text>
+                  <Text type="secondary">Your local time</Text>
+                  <Text type="secondary">{getCurrentlyLoggedInUserDate().format('DD MMM, HH:mm')}</Text>
+                  <Text type="secondary">({getTzOffsetString(getCurrentlyLoggedInUserDate())})</Text>
                 </VerticalGroup>
               </div>
 
               <div className={cx('timezone-info')}>
                 <VerticalGroup className={cx('timezone-info')} spacing="none">
                   <Text>User's time</Text>
-                  <Text>{`${userMoment.tz(user.timezone).format('DD MMM, HH:mm')}`}</Text>
+                  <Text>{`${getCurrentDateInTimezone(user.timezone).format('DD MMM, HH:mm')}`}</Text>
                   <Text>({userOffsetHoursStr})</Text>
                 </VerticalGroup>
               </div>
@@ -145,6 +152,6 @@ const ScheduleUserDetails: FC<ScheduleUserDetailsProps> = (props) => {
       </VerticalGroup>
     </div>
   );
-};
+});
 
 export default ScheduleUserDetails;

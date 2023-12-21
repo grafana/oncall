@@ -1,6 +1,8 @@
 import dayjs from 'dayjs';
-import { action, observable } from 'mobx';
+import { action, observable, runInAction } from 'mobx';
 
+import { PageErrorData } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
+import { getWrongTeamResponseInfo } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper.helpers';
 import { RemoteFiltersType } from 'containers/RemoteFilters/RemoteFilters.types';
 import BaseStore from 'models/base_store';
 import { EscalationChain } from 'models/escalation_chain/escalation_chain.types';
@@ -114,6 +116,12 @@ export class ScheduleStore extends BaseStore {
 
   @observable
   scheduleId: Schedule['id'];
+
+  @observable
+  refreshEventsError?: Partial<PageErrorData> = {
+    isWrongTeamError: false,
+    wrongTeamNoPermissions: false,
+  };
 
   constructor(rootStore: RootStore) {
     super(rootStore);
@@ -467,6 +475,34 @@ export class ScheduleStore extends BaseStore {
         },
       },
     };
+  }
+
+  @action.bound
+  async refreshEvents() {
+    this.refreshEventsError = {};
+    const startMoment = this.rootStore.timezoneStore.calendarStartDate;
+
+    try {
+      const schedule = await this.loadItem(this.scheduleId);
+      this.rootStore.setPageTitle(schedule?.name);
+    } catch (error) {
+      runInAction(() => {
+        this.refreshEventsError = getWrongTeamResponseInfo(error);
+      });
+    }
+
+    this.updateRelatedUsers(this.scheduleId); // to refresh related users
+    await Promise.all([
+      this.updateEvents(this.scheduleId, startMoment, 'rotation'),
+      this.updateEvents(this.scheduleId, startMoment, 'override'),
+      this.updateEvents(this.scheduleId, startMoment, 'final'),
+      this.updateShiftSwaps(this.scheduleId, startMoment),
+    ]);
+  }
+
+  @action.bound
+  setScheduleId(id: string) {
+    this.scheduleId = id;
   }
 
   async updateFrequencyOptions() {

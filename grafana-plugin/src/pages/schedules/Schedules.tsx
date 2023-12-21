@@ -80,8 +80,6 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
 
     const page = store.filtersStore.currentTablePageNum[PAGE.Schedules];
 
-    const users = store.userStore.getSearchResult().results;
-
     return (
       <>
         <div className={cx('root')}>
@@ -89,13 +87,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
             <HorizontalGroup justify="space-between">
               <Text.Title level={3}>Schedules</Text.Title>
               <div className={cx('schedules__actions')}>
-                {users && (
-                  <UserTimezoneSelect
-                    value={store.currentTimezone}
-                    users={users}
-                    onChange={this.handleTimezoneChange}
-                  />
-                )}
+                <UserTimezoneSelect />
                 <WithPermissionControlTooltip userAction={UserActions.SchedulesWrite}>
                   <Button variant="primary" onClick={this.handleCreateScheduleClick}>
                     + New schedule
@@ -170,9 +162,10 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
   }
 
   handleTimezoneChange = (value: Timezone) => {
+    console.log('🚀 ~ file: Schedules.tsx:174 ~ SchedulesPage ~ value:', value);
     const { store } = this.props;
 
-    store.currentTimezone = value;
+    store.setCurrentTimezone(value);
 
     this.setState({ startMoment: getStartOfWeek(value) }, this.updateEvents);
   };

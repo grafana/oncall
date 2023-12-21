@@ -1,8 +1,10 @@
-import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
+import React, { FC, useEffect, useMemo, useState } from 'react';
 
 import { HorizontalGroup, Icon, Tooltip } from '@grafana/ui';
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
+import { sortBy } from 'lodash-es';
+import { observer } from 'mobx-react';
 
 import Avatar from 'components/Avatar/Avatar';
 import ScheduleBorderedAvatar from 'components/ScheduleBorderedAvatar/ScheduleBorderedAvatar';
@@ -16,16 +18,15 @@ import { User } from 'models/user/user.types';
 import { getColorSchemeMappingForUsers } from 'pages/schedule/Schedule.helpers';
 import { useStore } from 'state/useStore';
 
+import { calculateTimePassedInDayPercentage } from './UsersTimezones.helpers';
+
 import styles from './UsersTimezones.module.css';
+import { getCurrentDateInTimezone } from 'models/timezone/timezone.helpers';
 
 interface UsersTimezonesProps {
   userIds: Array<User['pk']>;
-  tz: Timezone;
   onCallNow: Array<Partial<User>>;
   scheduleId: Schedule['id'];
-  startMoment: dayjs.Dayjs;
-
-  onTzChange: (tz: Timezone) => void;
 }
 
 const cx = cn.bind(styles);
@@ -34,11 +35,14 @@ const hoursToSplit = 3;
 
 const jLimit = 24 / hoursToSplit;
 
-const UsersTimezones: FC<UsersTimezonesProps> = (props) => {
+const UsersTimezones: FC<UsersTimezonesProps> = observer((props) => {
   const store = useStore();
-  const { userStore } = store;
+  const {
+    userStore,
+    timezoneStore: { selectedTimezoneLabel, currentDateInSelectedTimezone, calendarStartDate },
+  } = store;
 
-  const { userIds, tz, onTzChange, onCallNow, scheduleId, startMoment } = props;
+  const { userIds, onCallNow, scheduleId } = props;
 
   useEffect(() => {
     userIds.forEach((userId) => {
@@ -52,15 +56,6 @@ const UsersTimezones: FC<UsersTimezonesProps> = (props) => {
     () => userIds.map((userId) => store.userStore.items[userId]).filter(Boolean),
     [userIds, store.userStore.items]
   );
-
-  const currentMoment = useMemo(() => dayjs().tz(tz), [tz]);
-
-  const currentTimeX = useMemo(() => {
-    const midnight = dayjs().tz(tz).startOf('day');
-    const diff = currentMoment.diff(midnight, 'minutes');
-
-    return (diff / 1440) * 100;
-  }, [currentMoment, tz]);
 
   const momentsToRender = useMemo(() => {
     const momentsToRender = [];
@@ -78,14 +73,12 @@ const UsersTimezones: FC<UsersTimezonesProps> = (props) => {
     <div className={cx('root')}>
       <WorkingHours
         light
-        startMoment={currentMoment.startOf('day')}
+        startMoment={currentDateInSelectedTimezone.startOf('day')}
         duration={24 * 60 * 60}
         timezone={userStore.currentUser?.timezone}
         workingHours={userStore.currentUser?.working_hours}
         className={cx('working-hours')}
       />
-      {/*  <div className={cx('shades', 'shades--left')} />
-      <div className={cx('shades', 'shades--right')} /> */}
       <div className={cx('content')}>
         <div className={cx('header')}>
           <HorizontalGroup justify="space-between">
@@ -98,20 +91,18 @@ const UsersTimezones: FC<UsersTimezonesProps> = (props) => {
             </HorizontalGroup>
             <div className={cx('timezone-select')}>
               <Text type="secondary">
-                Current timezone: {tz}, local time: {currentMoment.format('HH:mm')}
+                Current timezone: {selectedTimezoneLabel}, local time: {currentDateInSelectedTimezone.format('HH:mm')}
               </Text>
             </div>
           </HorizontalGroup>
         </div>
         <div className={cx('users')}>
-          <div className={cx('current-time')} style={{ left: `${currentTimeX}%` }} />
-          {users && users.length ? (
+          <CurrentTimeLineIndicator />
+          {users?.length ? (
             <UserAvatars
               users={users}
               onCallNow={onCallNow}
-              onTzChange={onTzChange}
-              currentMoment={currentMoment}
-              startMoment={startMoment}
+              currentMoment={currentDateInSelectedTimezone}
               scheduleId={scheduleId}
             />
           ) : (
@@ -150,70 +141,66 @@ const UsersTimezones: FC<UsersTimezonesProps> = (props) => {
       </div>
     </div>
   );
-};
+});
+
+const CurrentTimeLineIndicator = observer(() => {
+  const {
+    timezoneStore: { currentDateInSelectedTimezone },
+  } = useStore();
+
+  return (
+    <div
+      className={cx('current-time')}
+      style={{ left: `${calculateTimePassedInDayPercentage(currentDateInSelectedTimezone)}%` }}
+    />
+  );
+});
 
 interface UserAvatarsProps {
   users: User[];
   currentMoment: dayjs.Dayjs;
-  startMoment: dayjs.Dayjs;
   scheduleId: Schedule['id'];
-  onTzChange: (timezone: Timezone) => void;
   onCallNow: Array<Partial<User>>;
 }
 
 const UserAvatars = (props: UserAvatarsProps) => {
-  const { users, currentMoment, onCallNow, scheduleId, startMoment } = props;
-  const userGroups = useMemo(() => {
-    return users
-      .reduce((memo, user) => {
-        const userUtcOffset = dayjs().tz(user.timezone).utcOffset();
-        let group = memo.find((group) => group.utcOffset === userUtcOffset);
-        if (!group) {
-          group = { utcOffset: userUtcOffset, users: [] };
-          memo.push(group);
-        }
-        group.users.push(user);
+  const { users, currentMoment, onCallNow, scheduleId } = props;
+  const userGroups = useMemo(
+    () =>
+      sortBy(
+        users.reduce((memo, user) => {
+          const userUtcOffset = dayjs().tz(user.timezone).utcOffset();
+          let group = memo.find((group) => group.utcOffset === userUtcOffset);
+          if (!group) {
+            group = { utcOffset: userUtcOffset, users: [] };
+            memo.push(group);
+          }
+          group.users.push(user);
 
-        return memo;
-      }, [])
-      .sort((a, b) => {
-        if (a.utcOffset > b.utcOffset) {
-          return 1;
-        }
-        if (a.utcOffset < b.utcOffset) {
-          return -1;
-        }
-
-        return 0;
-      });
-  }, [users]);
+          return memo;
+        }, []),
+        ({ utcOffset }) => utcOffset
+      ),
+    [users]
+  );
 
   const [activeUtcOffset, setActiveUtcOffset] = useState<number | undefined>(undefined);
 
   return (
     <div className={cx('user-avatars')}>
-      {userGroups.map((group, idx) => {
-        const userCurrentMoment = dayjs(currentMoment).tz(group.users[0].timezone); // TODO try using group.utcOffset
-        const diff = userCurrentMoment.diff(userCurrentMoment.startOf('day'), 'minutes');
-
-        const xPos = (diff / (60 * 24)) * 100;
-
-        return (
-          <AvatarGroup
-            key={idx}
-            activeUtcOffset={activeUtcOffset}
-            utcOffset={group.utcOffset}
-            onSetActiveUtcOffset={setActiveUtcOffset}
-            // onTzChange={onTzChange}
-            xPos={xPos}
-            users={group.users}
-            startMoment={startMoment}
-            currentMoment={currentMoment}
-            scheduleId={scheduleId}
-            onCallNow={onCallNow}
-          />
-        );
-      })}
+      {userGroups.map((group, idx) => (
+        <AvatarGroup
+          key={idx}
+          activeUtcOffset={activeUtcOffset}
+          utcOffset={group.utcOffset}
+          onSetActiveUtcOffset={setActiveUtcOffset}
+          xPos={calculateTimePassedInDayPercentage(getCurrentDateInTimezone(group.users[0].timezone))}
+          users={group.users}
+          currentMoment={currentMoment}
+          scheduleId={scheduleId}
+          onCallNow={onCallNow}
+        />
+      ))}
     </div>
   );
 };
@@ -221,13 +208,11 @@ const UserAvatars = (props: UserAvatarsProps) => {
 interface AvatarGroupProps {
   users: User[];
   xPos: number;
-  startMoment: dayjs.Dayjs;
   currentMoment: dayjs.Dayjs;
   utcOffset: number;
   scheduleId: Schedule['id'];
   onSetActiveUtcOffset: (utcOffset: number | undefined) => void;
   activeUtcOffset: number;
-  onTzChange?: (timezone: Timezone) => void;
   onCallNow: Array<Partial<User>>;
 }
 
@@ -235,18 +220,16 @@ const LIMIT = 3;
 const AVATAR_WIDTH = 32;
 const AVATAR_GAP = 5;
 
-const AvatarGroup = (props: AvatarGroupProps) => {
+const AvatarGroup = observer((props: AvatarGroupProps) => {
   const {
     users: propsUsers,
     currentMoment,
     xPos,
-    onTzChange,
     utcOffset,
     onSetActiveUtcOffset,
     activeUtcOffset,
     onCallNow,
     scheduleId,
-    startMoment,
   } = props;
 
   const store = useStore();
@@ -271,16 +254,7 @@ const AvatarGroup = (props: AvatarGroupProps) => {
     });
   }, [propsUsers, onCallNow]);
 
-  const getAvatarClickHandler = useCallback(
-    (timezone: Timezone) => {
-      return () => {
-        onTzChange(timezone);
-      };
-    },
-    [onTzChange]
-  );
-
-  const colorSchemeMapping = getColorSchemeMappingForUsers(store, scheduleId, startMoment);
+  const colorSchemeMapping = getColorSchemeMappingForUsers(store, scheduleId, store.timezoneStore.calendarStartDate);
   const width = active ? users.length * AVATAR_WIDTH + (users.length - 1) * AVATAR_GAP : AVATAR_WIDTH;
 
   return (
@@ -307,7 +281,6 @@ const AvatarGroup = (props: AvatarGroupProps) => {
                 user={user}
                 isOncall={isOncall}
                 scheduleId={scheduleId}
-                startMoment={startMoment}
               />
             }
           >
@@ -319,7 +292,7 @@ const AvatarGroup = (props: AvatarGroupProps) => {
                 visibility: !active && index >= LIMIT ? 'hidden' : 'visible',
                 zIndex: array.length - index - 1,
               }}
-              onClick={getAvatarClickHandler(user.timezone)}
+              onClick={() => store.timezoneStore.setSelectedTimezoneOffsetBasedOnTz(user.timezone)}
             >
               <ScheduleBorderedAvatar
                 colors={colorSchemeList}
@@ -329,7 +302,7 @@ const AvatarGroup = (props: AvatarGroupProps) => {
                 renderIcon={() =>
                   isOncall ? <IsOncallIcon className={cx('is-oncall-icon')} width={14} height={13} /> : null
                 }
-              ></ScheduleBorderedAvatar>
+              />
             </div>
           </Tooltip>
         );
@@ -346,6 +319,6 @@ const AvatarGroup = (props: AvatarGroupProps) => {
       </div>
     </div>
   );
-};
+});
 
 export default UsersTimezones;

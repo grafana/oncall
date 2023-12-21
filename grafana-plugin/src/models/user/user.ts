@@ -79,7 +79,7 @@ export class UserStore extends BaseStore {
       this.update(id, { timezone });
     }
 
-    this.rootStore.currentTimezone = timezone;
+    this.rootStore.setCurrentTimezone(timezone);
 
     return timezone;
   }

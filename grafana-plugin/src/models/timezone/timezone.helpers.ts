@@ -595,11 +595,50 @@ export const allTimezones = [
   'Zulu',
 ];
 
-export const getTzOffsetString = (moment: dayjs.Dayjs) => {
-  const userOffset = moment.utcOffset();
+// TODO: move it to utils
+
+export const getTzOffsetString = (date: dayjs.Dayjs) => {
+  const userOffset = date.utcOffset();
   const userOffsetHours = userOffset / 60;
   const userOffsetHoursStr =
     userOffsetHours > 0 ? `+${userOffsetHours} GMT` : userOffset < 0 ? `${userOffsetHours} GMT` : `GMT`;
 
   return userOffsetHoursStr;
 };
+
+export const getGMTTimezoneBasedOnOffset = (userOffset: number) => {
+  const userOffsetHours = userOffset / 60;
+  return `Etc/GMT${userOffsetHours >= 0 ? '+' : ''}${userOffsetHours}`;
+};
+
+export const getGMTTimezoneLabelBasedOnOffset = (offset: number) => {
+  const userOffsetHours = offset / 60;
+  return `GMT${userOffsetHours >= 0 ? '+' : ''}${userOffsetHours}`;
+};
+
+export const convertTimezoneToGMTTimezone = (timezone: string) => {
+  const offset = dayjs().tz(timezone).utcOffset();
+  return getGMTTimezoneBasedOnOffset(offset);
+};
+
+export const getCurrentDateInGMTTimezone = (timezone: string) => {
+  const offset = dayjs().tz(timezone);
+};
+
+export const getGMTTimezoneOfCurrentlyLoggedInUser = () => {
+  const offset = getCurrentlyLoggedInUserDate().utcOffset();
+  const result = getGMTTimezoneBasedOnOffset(offset);
+  console.log('🚀 ~ file: timezone.helpers.ts:617 ~ getGMTTimezoneOfCurrentlyLoggedInUser ~ result:', result);
+  return result;
+};
+
+export const getOffsetBasedOnGMTTimezone = (timezone: string) => {
+  console.log();
+  const result = Number(timezone.split('GMT')[1]) * 60;
+  console.log('🚀 ~ file: timezone.helpers.ts:624 ~ getOffsetBasedOnGMTTimezone ~ result:', result);
+  return result;
+};
+
+export const getCurrentlyLoggedInUserDate = () => dayjs();
+export const getOffsetOfCurrentUser = () => dayjs().utcOffset();
+export const getCurrentDateInTimezone = (timezone: string) => dayjs().tz(timezone);

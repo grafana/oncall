@@ -4,23 +4,22 @@ import cn from 'classnames/bind';
 import dayjs from 'dayjs';
 
 import Text from 'components/Text/Text';
-import { Timezone } from 'models/timezone/timezone.types';
-import { getNow } from 'pages/schedule/Schedule.helpers';
 
 import styles from './TimelineMarks.module.scss';
+import { observer } from 'mobx-react';
+import { useStore } from 'state/useStore';
 
 interface TimelineMarksProps {
-  startMoment: dayjs.Dayjs;
-  timezone: Timezone;
   debug?: boolean;
 }
 
 const cx = cn.bind(styles);
 
-const TimelineMarks: FC<TimelineMarksProps> = (props) => {
-  const { startMoment, timezone, debug } = props;
-
-  const currentMoment = useMemo(() => getNow(timezone), []);
+const TimelineMarks: FC<TimelineMarksProps> = observer((props) => {
+  const {
+    timezoneStore: { currentDateInSelectedTimezone, calendarStartDate },
+  } = useStore();
+  const { debug } = props;
 
   const momentsToRender = useMemo(() => {
     const hoursToSplit = 12;
@@ -29,7 +28,7 @@ const TimelineMarks: FC<TimelineMarksProps> = (props) => {
     const jLimit = 24 / hoursToSplit;
 
     for (let i = 0; i < 7; i++) {
-      const d = dayjs(startMoment).add(i, 'days');
+      const d = dayjs(calendarStartDate).add(i, 'days');
       const obj = { moment: d, moments: [] };
       for (let j = 0; j < jLimit; j++) {
         const m = dayjs(d).add(j * hoursToSplit, 'hour');
@@ -38,7 +37,7 @@ const TimelineMarks: FC<TimelineMarksProps> = (props) => {
       momentsToRender.push(obj);
     }
     return momentsToRender;
-  }, [startMoment]);
+  }, [calendarStartDate]);
 
   const cuts = useMemo(() => {
     const cuts = [];
@@ -67,7 +66,7 @@ const TimelineMarks: FC<TimelineMarksProps> = (props) => {
       )}
 
       {momentsToRender.map((m, i) => {
-        const isCurrentDay = currentMoment.isSame(m.moment, 'day');
+        const isCurrentDay = currentDateInSelectedTimezone.isSame(m.moment, 'day');
 
         // const isWeekend = m.moment.day() == 0 || m.moment.day() === 6;
 
@@ -96,6 +95,6 @@ const TimelineMarks: FC<TimelineMarksProps> = (props) => {
       })}
     </div>
   );
-};
+});
 
 export default TimelineMarks;
