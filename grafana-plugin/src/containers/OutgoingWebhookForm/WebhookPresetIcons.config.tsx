@@ -1,5 +1,18 @@
-import { ReactElement } from 'react';
+import React from 'react';
+
+import MachineLearningLogo from 'icons/MachineLearningLogo';
+import { AppFeature } from 'state/features';
 
 import { commonWebhookPresetIconsConfig } from './CommonWebhookPresetIcons.config';
 
-export const webhookPresetIcons: { [id: string]: () => ReactElement } = commonWebhookPresetIconsConfig;
+export const additionalWebhookPresetIcons: { [id: string]: () => React.ReactElement } = {
+  machine_learning: () => <MachineLearningLogo />,
+};
+
+export const getWebhookPresetIcons = (features: Record<string, boolean>) => {
+  if (features[AppFeature.MsTeams]) {
+    return Object.assign({}, commonWebhookPresetIconsConfig, additionalWebhookPresetIcons);
+  }
+
+  return commonWebhookPresetIconsConfig;
+};

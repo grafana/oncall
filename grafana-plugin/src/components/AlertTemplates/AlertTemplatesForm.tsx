@@ -6,8 +6,9 @@ import { capitalCase } from 'change-case';
 import cn from 'classnames/bind';
 import { omit } from 'lodash-es';
 
-import { templatesToRender, Template } from 'components/AlertTemplates/AlertTemplatesForm.config';
+import { templatesToRender } from 'components/AlertTemplates/AlertTemplatesForm.config';
 import { getLabelFromTemplateName } from 'components/AlertTemplates/AlertTemplatesForm.helper';
+import { Template } from 'components/AlertTemplates/CommonAlertTemplatesForm.config';
 import Block from 'components/GBlock/Block';
 import MonacoEditor from 'components/MonacoEditor/MonacoEditor';
 import SourceCode from 'components/SourceCode/SourceCode';

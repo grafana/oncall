@@ -6,6 +6,7 @@ import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
 import VerticalTabsBar, { VerticalTab } from 'components/VerticalTabsBar/VerticalTabsBar';
+import MSTeamsSettings from 'pages/settings/tabs/ChatOps/tabs/MSTeamsSettings/MSTeamsSettings';
 import SlackSettings from 'pages/settings/tabs/ChatOps/tabs/SlackSettings/SlackSettings';
 import TelegramSettings from 'pages/settings/tabs/ChatOps/tabs/TelegramSettings/TelegramSettings';
 import { AppFeature } from 'state/features';
@@ -21,6 +22,7 @@ const cx = cn.bind(styles);
 export enum ChatOpsTab {
   Slack = 'Slack',
   Telegram = 'Telegram',
+  MSTeams = 'MSTeams',
 }
 interface ChatOpsProps extends AppRootProps, WithStoreProps {}
 interface ChatOpsState {
@@ -122,6 +124,14 @@ const Tabs = (props: TabsProps) => {
           </HorizontalGroup>
         </VerticalTab>
       )}
+      {store.hasFeature(AppFeature.MsTeams) && (
+        <VerticalTab id={ChatOpsTab.MSTeams}>
+          <HorizontalGroup>
+            <Icon name="microsoft" />
+            Microsoft Teams
+          </HorizontalGroup>
+        </VerticalTab>
+      )}
     </VerticalTabsBar>
   );
 };
@@ -144,6 +154,11 @@ const TabsContent = (props: TabsContentProps) => {
       {store.hasFeature(AppFeature.Telegram) && activeTab === ChatOpsTab.Telegram && (
         <div className={cx('messenger-settings')}>
           <TelegramSettings />
+        </div>
+      )}
+      {store.hasFeature(AppFeature.MsTeams) && activeTab === ChatOpsTab.MSTeams && (
+        <div className={cx('messenger-settings')}>
+          <MSTeamsSettings />
         </div>
       )}
     </>

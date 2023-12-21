@@ -1,0 +1,25 @@
+.msteams-bot {
+  color: var(--primary-text-link);
+}
+
+.msteams-instruction-container {
+  display: block;
+  text-align: left;
+  margin-bottom: 12px;
+}
+
+.verification-code {
+  text-decoration: underline;
+}
+
+.copy-icon {
+  color: var(--primary-text-link);
+}
+
+.msteams-instruction-cancel {
+  margin-top: 24px;
+}
+
+.msTeams-modal {
+  min-width: 800px;
+}

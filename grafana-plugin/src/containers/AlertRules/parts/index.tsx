@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 
 import { VerticalGroup } from '@grafana/ui';
 
 import Timeline from 'components/Timeline/Timeline';
+import MSTeamsConnector from 'containers/AlertRules/parts/connectors/MSTeamsConnector';
 import SlackConnector from 'containers/AlertRules/parts/connectors/SlackConnector';
 import TelegramConnector from 'containers/AlertRules/parts/connectors/TelegramConnector';
 import { ChannelFilter } from 'models/channel_filter';
@@ -19,13 +20,19 @@ export const ChatOpsConnectors = (props: ChatOpsConnectorsProps) => {
   const { channelFilterId, showLineNumber = true } = props;
 
   const store = useStore();
-  const { telegramChannelStore, organizationStore } = store;
+  const { organizationStore, telegramChannelStore, msteamsChannelStore } = store;
 
   const isSlackInstalled = Boolean(organizationStore.currentOrganization?.slack_team_identity);
   const isTelegramInstalled =
     store.hasFeature(AppFeature.Telegram) && telegramChannelStore.currentTeamToTelegramChannel?.length > 0;
 
-  if (!isSlackInstalled && !isTelegramInstalled) {
+  useEffect(() => {
+    msteamsChannelStore.updateMSTeamsChannels();
+  }, []);
+
+  const isMSTeamsInstalled = Boolean(msteamsChannelStore.currentTeamToMSTeamsChannel?.length > 0);
+
+  if (!isSlackInstalled && !isTelegramInstalled && !isMSTeamsInstalled) {
     return null;
   }
 
@@ -34,6 +41,7 @@ export const ChatOpsConnectors = (props: ChatOpsConnectorsProps) => {
       <VerticalGroup>
         {isSlackInstalled && <SlackConnector channelFilterId={channelFilterId} />}
         {isTelegramInstalled && <TelegramConnector channelFilterId={channelFilterId} />}
+        {isMSTeamsInstalled && <MSTeamsConnector channelFilterId={channelFilterId} />}
       </VerticalGroup>
     </Timeline.Item>
   );

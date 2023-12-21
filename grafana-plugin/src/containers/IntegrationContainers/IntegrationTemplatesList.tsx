@@ -8,7 +8,7 @@ import IntegrationTemplateBlock from 'components/Integrations/IntegrationTemplat
 import MonacoEditor from 'components/MonacoEditor/MonacoEditor';
 import { MONACO_READONLY_CONFIG } from 'components/MonacoEditor/MonacoEditor.config';
 import Text from 'components/Text/Text';
-import { templatesToRender } from 'containers/IntegrationContainers/IntegrationTemplatesList.config';
+import { getTemplatesToRender } from 'containers/IntegrationContainers/IntegrationTemplatesList.config';
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { AlertTemplatesDTO } from 'models/alert_templates';
 import IntegrationHelper from 'pages/integration/Integration.helper';
@@ -40,6 +40,8 @@ const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = ({
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [autoresolveValue, setAutoresolveValue] = useState<boolean>(alertReceiveChannelAllowSourceBasedResolving);
 
+  const store = useStore();
+
   const handleSaveClick = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     setAutoresolveValue(event.target.checked);
     alertReceiveChannelStore
@@ -50,6 +52,8 @@ const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = ({
         openNotification('Autoresolve ' + (event.target.checked ? 'enabled' : 'disabled'));
       });
   }, []);
+
+  const templatesToRender = getTemplatesToRender(store.features);
 
   return (
     <div className={cx('integration__templates')}>

@@ -24,7 +24,7 @@ import { logoCoors } from 'components/IntegrationLogo/IntegrationLogo.config';
 import RenderConditionally from 'components/RenderConditionally/RenderConditionally';
 import Text from 'components/Text/Text';
 import Labels, { LabelsProps } from 'containers/Labels/Labels';
-import { webhookPresetIcons } from 'containers/OutgoingWebhookForm/WebhookPresetIcons.config';
+import { getWebhookPresetIcons } from 'containers/OutgoingWebhookForm/WebhookPresetIcons.config';
 import OutgoingWebhookStatus from 'containers/OutgoingWebhookStatus/OutgoingWebhookStatus';
 import WebhooksTemplateEditor from 'containers/WebhooksTemplateEditor/WebhooksTemplateEditor';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
@@ -453,6 +453,10 @@ const WebhookPresetBlocks: React.FC<{
   presets: OutgoingWebhookPreset[];
   onBlockClick: (preset: OutgoingWebhookPreset) => void;
 }> = ({ presets, onBlockClick }) => {
+  const store = useStore();
+
+  const webhookPresetIcons = getWebhookPresetIcons(store.features);
+
   return (
     <div className={cx('cards')} data-testid="create-outgoing-webhook-modal">
       {presets.length ? (
