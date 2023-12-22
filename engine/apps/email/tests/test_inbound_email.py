@@ -1,9 +1,12 @@
 import json
 
 import pytest
+from anymail.inbound import AnymailInboundMessage
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
+
+from apps.email.inbound import InboundEmailWebhookView
 
 
 @pytest.mark.django_db
@@ -52,3 +55,18 @@ def test_amazon_ses_provider_load(settings, make_organization_and_user_with_toke
     )
 
     assert response.status_code == status.HTTP_200_OK
+
+
+@pytest.mark.parametrize(
+    "sender_value,expected_result",
+    [
+        ("'Alex Smith' <test@example.com>", "test@example.com"),
+        ("'Alex Smith' via [TEST] mail <test@example.com>", "'Alex Smith' via [TEST] mail <test@example.com>"),
+    ],
+)
+def test_get_sender_from_email_message(sender_value, expected_result):
+    email = AnymailInboundMessage()
+    email["From"] = sender_value
+    view = InboundEmailWebhookView()
+    result = view.get_sender_from_email_message(email)
+    assert result == expected_result
