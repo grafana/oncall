@@ -5,14 +5,11 @@ help:
 		-e 's/^\(.\+\):\(.*\)/$(shell tput setaf 6)\1$(shell tput sgr0):\2/' \
 		$(MAKEFILE_LIST) | column -c2 -t -s :
 
-ENGINE_DIR = ./engine
-DEV_ENV_DIR = ./dev
-DEV_ENV_FILE = $(DEV_ENV_DIR)/.env.dev
-DEV_HELM_USER_SPECIFIC_FILE = $(DEV_ENV_DIR)/helm-local.dev.yml
+DEV_HELM_CONFIG_FILE = ./dev/helm-local.dev.yml
 
-# make sure that DEV_HELM_USER_SPECIFIC_FILE exists
+# make sure that DEV_HELM_CONFIG_FILE exists
 # (NOTE: touch will only create the file if it doesn't already exist)
-$(shell touch $(DEV_HELM_USER_SPECIFIC_FILE))
+$(shell touch $(DEV_HELM_CONFIG_FILE))
 
 # switch the k8s context to always run commands against the local kind cluster
 # the "kubectl get pods" + grep command essentially finds the pod name of the currently running engine pod
@@ -53,7 +50,7 @@ cluster/down: ## delete local development k8s cluster
 install-pre-commit:
 	@if [ ! -x "$$(command -v pre-commit)" ]; then \
 		echo "installing pre-commit"; \
-		pip install $$(grep "pre-commit" $(ENGINE_DIR)/requirements-dev.txt); \
+		pip install $$(grep "pre-commit" ./engine/requirements-dev.txt); \
 	else \
 		echo "pre-commit already installed"; \
 	fi
@@ -111,10 +108,21 @@ ui-build:  ## build the UI
 test-helm:  ## run helm unit tests
 	helm unittest ./helm/oncall $(ARGS)
 
+# upsert the env var value
+# https://stackoverflow.com/a/73231082
+define upsert_local_helm_config_engine_env_var
+	@if [ ! -x "$$(command -v yq)" ]; then \
+		echo "yq could not be found. Please install it https://github.com/mikefarah/yq?tab=readme-ov-file#install"; \
+    	exit 1; \
+	fi
+
+    yq eval -i "with(.env; select(all_c(.name != \"$1\")) | . += {\"name\": \"$1\", \"value\": \"$2\"}) | (.env[] | select(.name == \"$1\") | .value) = \"$2\"" $(DEV_HELM_CONFIG_FILE)
+endef
+
 backend-debug-enable:  ## enable Django's debug mode and Silk profiling (this is disabled by default for performance reasons)
-	$(shell ./dev/add_env_var.sh DEBUG True $(DEV_ENV_FILE))
-	$(shell ./dev/add_env_var.sh SILK_PROFILER_ENABLED True $(DEV_ENV_FILE))
+	$(call upsert_local_helm_config_engine_env_var,DEBUG,"True")
+	$(call upsert_local_helm_config_engine_env_var,SILK_PROFILER_ENABLED,"True")
 
 backend-debug-disable:  ## disable Django's debug mode and Silk profiling
-	$(shell ./dev/add_env_var.sh DEBUG False $(DEV_ENV_FILE))
-	$(shell ./dev/add_env_var.sh SILK_PROFILER_ENABLED False $(DEV_ENV_FILE))
+	$(call upsert_local_helm_config_engine_env_var,DEBUG,"False")
+	$(call upsert_local_helm_config_engine_env_var,SILK_PROFILER_ENABLED,"False")

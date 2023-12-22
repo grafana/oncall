@@ -53,14 +53,6 @@ This file is ignored from source control.
 
 This section is applicable for when you would like to modify your Grafana instance's provisioning configuration.
 
-The following commands assume you run them from the root of the project:
-
-```bash
-touch ./dev/grafana.dev.ini
-# make desired changes to ./dev/grafana.dev.ini then run
-touch .env && ./dev/add_env_var.sh GRAFANA_DEV_PROVISIONING ./dev/grafana/grafana.dev.ini .env
-```
-
 For example, if you would like to enable the `topnav` feature toggle, you can modify your `./dev/grafana.dev.ini` as
 such:
 
@@ -69,8 +61,7 @@ such:
 enable = top_nav
 ```
 
-The next time you start the project via `docker-compose`, the `grafana` container will have `./dev/grafana/grafana.dev.ini`
-volume mounted inside the container.
+The `grafana` container will have `./dev/grafana/grafana.dev.ini` volume mounted inside the container.
 
 #### Modifying Provisioning Configuration
 
