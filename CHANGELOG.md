@@ -22,6 +22,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix alert group table columns validation @Ferril ([#3577](https://github.com/grafana/oncall/pull/3577))
 - Fix posting message about rate limit to Slack @Ferril ([#3582](https://github.com/grafana/oncall/pull/3582))
 - Fix issue with parsing sender email address from email message for inbound email integration endpoint @Ferril ([#3586](https://github.com/grafana/oncall/pull/3586))
+- Fix PUT /api/v1/escalation_policies/id issue when updating `from_time` and `to_time` by @joeyorlando ([#3581](https://github.com/grafana/oncall/pull/3581))
+- Fix issue where duplicate team options would show up in the teams dropdown for the `/escalate` Slack command
+  by @joeyorlando ([#3590](https://github.com/grafana/oncall/pull/3590))
 
 ## v1.3.80 (2023-12-14)
 
@@ -34,10 +37,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Add backend for multi-stack support for mobile-app @Ferril ([#3500](https://github.com/grafana/oncall/pull/3500))
-
-### Fixed
-
-- Fix PUT /api/v1/escalation_policies/id issue when updating `from_time` and `to_time` by @joeyorlando ([#3581](https://github.com/grafana/oncall/pull/3581))
 
 ## v1.3.78 (2023-12-12)
 

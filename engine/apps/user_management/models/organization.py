@@ -323,16 +323,20 @@ class Organization(MaintainableObject):
         """
         from apps.alerts.models import AlertReceiveChannel
 
-        return self.alert_receive_channels.annotate(
-            num_channel_filters=Count("channel_filters"),
-            # used to determine if the organization has telegram configured
-            num_org_telegram_channels=Count("organization__telegram_channel"),
-        ).filter(
-            Q(num_channel_filters__gt=1)
-            | (Q(organization__slack_team_identity__isnull=False) | Q(num_org_telegram_channels__gt=0))
-            | Q(channel_filters__is_default=True, channel_filters__escalation_chain__isnull=False)
-            | Q(channel_filters__is_default=True, channel_filters__notification_backends__isnull=False),
-            integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING,
+        return (
+            self.alert_receive_channels.annotate(
+                num_channel_filters=Count("channel_filters"),
+                # used to determine if the organization has telegram configured
+                num_org_telegram_channels=Count("organization__telegram_channel"),
+            )
+            .filter(
+                Q(num_channel_filters__gt=1)
+                | (Q(organization__slack_team_identity__isnull=False) | Q(num_org_telegram_channels__gt=0))
+                | Q(channel_filters__is_default=True, channel_filters__escalation_chain__isnull=False)
+                | Q(channel_filters__is_default=True, channel_filters__notification_backends__isnull=False),
+                integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING,
+            )
+            .distinct()
         )
 
     @property
