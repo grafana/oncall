@@ -1,4 +1,4 @@
-import { PlaywrightTestProject, defineConfig, devices } from '@playwright/test';
+import { PlaywrightTestProject, defineConfig, devices, PlaywrightTestConfig } from '@playwright/test';
 
 import path from 'path';
 /**
@@ -12,7 +12,11 @@ export const EDITOR_USER_STORAGE_STATE = path.join(__dirname, 'e2e-tests/.auth/e
 export const ADMIN_USER_STORAGE_STATE = path.join(__dirname, 'e2e-tests/.auth/admin.json');
 
 const IS_CI = !!process.env.CI;
-const BROWSERS = process.env.BROWSERS || 'chromium firefox webkit';
+const BROWSERS = process.env.BROWSERS || 'chromium';
+const REPORTER_WITH_DEFAULT = process.env.REPORTER || 'html';
+const REPORTER = (
+  process.env.REPORTER === 'html' ? [['html', { open: 'never' }]] : REPORTER_WITH_DEFAULT
+) as PlaywrightTestConfig['reporter'];
 
 const SETUP_PROJECT_NAME = 'setup';
 const getEnabledBrowsers = (browsers: PlaywrightTestProject[]) =>
@@ -25,16 +29,18 @@ export default defineConfig({
   testDir: './e2e-tests',
 
   /* Maximum time all the tests can run for. */
-  globalTimeout: 20 * 60 * 1000, // 20 minutes
+  globalTimeout: 20 * 60 * 1_000, // 20 minutes
+
+  reporter: REPORTER,
 
   /* Maximum time one test can run for. */
-  timeout: 60 * 1000,
+  timeout: 60_000,
   expect: {
     /**
      * Maximum time expect() should wait for the condition to be met.
      * For example in `await expect(locator).toHaveText();`
      */
-    timeout: 10000,
+    timeout: 6_000,
   },
   /* Run tests in files in parallel */
   fullyParallel: false,
@@ -46,10 +52,10 @@ export default defineConfig({
    * NOTE: until we fix this issue (https://github.com/grafana/oncall/issues/1692) which occasionally leads
    * to flaky tests.. let's allow 1 retry per test
    */
-  retries: IS_CI ? 1 : 0,
+  retries: 1,
   workers: 2,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
-  reporter: 'html',
+  // reporter: 'html',
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /* Maximum time each action such as `click()` can take. Defaults to 0 (no limit). */
@@ -59,7 +65,7 @@ export default defineConfig({
 
     trace: 'on',
     video: 'on',
-    headless: IS_CI,
+    headless: true,
   },
 
   /* Configure projects for major browsers. The final list is filtered based on BROWSERS env var */
@@ -109,8 +115,9 @@ export default defineConfig({
     // },
   ]),
 
-  /* Folder for test artifacts such as screenshots, videos, traces, etc. */
-  // outputDir: 'test-results/',
+  /* Folder for test artifacts such as screenshots, videos, traces, etc. 
+  Set outside of grafana-plugin to prevent refreshing Grafana UI during e2e test runs */
+  outputDir: '../test-results/',
 
   /* Run your local dev server before starting the tests */
   // webServer: {

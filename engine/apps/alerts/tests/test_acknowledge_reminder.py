@@ -1,3 +1,4 @@
+from datetime import timedelta
 from unittest.mock import patch
 
 import pytest
@@ -334,6 +335,29 @@ def test_unacknowledge_timeout_task_skip_deleted_org(
     organization.save()
 
     unacknowledge_timeout_task(alert_group.pk, TASK_ID)
+
+    mock_unacknowledge_timeout_task.assert_not_called()
+    mock_acknowledge_reminder_task.assert_not_called()
+
+    assert not alert_group.log_records.exists()
+
+
+@patch.object(acknowledge_reminder_task, "apply_async")
+@patch.object(unacknowledge_timeout_task, "apply_async")
+@pytest.mark.django_db
+def test_ack_reminder_cancel_too_old(
+    mock_acknowledge_reminder_task,
+    mock_unacknowledge_timeout_task,
+    ack_reminder_test_setup,
+    settings,
+):
+    organization, alert_group, user = ack_reminder_test_setup(
+        unacknowledge_timeout=Organization.UNACKNOWLEDGE_TIMEOUT_NEVER
+    )
+    alert_group.started_at = timezone.now() - timedelta(days=settings.ACKNOWLEDGE_REMINDER_TASK_EXPIRY_DAYS + 1)
+    alert_group.save()
+
+    acknowledge_reminder_task(alert_group.pk, TASK_ID)
 
     mock_unacknowledge_timeout_task.assert_not_called()
     mock_acknowledge_reminder_task.assert_not_called()
