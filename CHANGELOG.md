@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## v1.3.80 (2023-12-28)
+
 ### Added
 
 - Support e2e tests in Tilt and Makefile ([#3516](https://github.com/grafana/oncall/pull/3516))
