@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+
+- Add ability to create an Outgoing Webhook with the PATCH HTTP method via the UI by @joeyorlando ([#TBD](https://github.com/grafana/oncall/pull/TBD))
+
 ## v1.3.81 (2023-12-28)
 
 ### Added
