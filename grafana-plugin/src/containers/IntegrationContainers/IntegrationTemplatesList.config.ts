@@ -3,7 +3,7 @@ import { AppFeature } from 'state/features';
 
 import { TemplateBlock, commonTemplatesToRender } from './IntegrationCommonTemplatesList.config';
 
-let additionalTemplatesToRender: TemplateBlock[] = [
+const additionalTemplatesToRender: TemplateBlock[] = [
   {
     name: 'MS Teams',
     contents: [

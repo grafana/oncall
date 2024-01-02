@@ -85,7 +85,11 @@ class ChatOpsPage extends React.Component<ChatOpsProps, ChatOpsState> {
 
   isChatOpsConfigured(): boolean {
     const { store } = this.props;
-    return store.hasFeature(AppFeature.Slack) || store.hasFeature(AppFeature.Telegram);
+    return (
+      store.hasFeature(AppFeature.Slack) ||
+      store.hasFeature(AppFeature.Telegram) ||
+      store.hasFeature(AppFeature.MsTeams)
+    );
   }
 
   handleChatopsTabChange(tab: ChatOpsTab) {
