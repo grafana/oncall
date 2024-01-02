@@ -1,8 +1,3 @@
-/*
-  [oncall-private]
-  Any change to this file needs to be done in the oncall-private also
-*/
-
 import { IconName } from '@grafana/ui';
 import dayjs from 'dayjs';
 
