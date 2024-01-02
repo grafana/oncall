@@ -1,9 +1,9 @@
 {
   "extends": "@grafana/toolkit/src/config/tsconfig.plugin.json",
-  "include": ["src", "frontend_enterprise/src", "e2e-tests", "playwright.config.ts"],
+  "include": ["src", "e2e-tests", "playwright.config.ts"],
   "types": ["node", "@emotion/core"],
   "compilerOptions": {
-    "rootDirs": ["src", "frontend_enterprise/src"],
+    "rootDirs": ["src"],
     "baseUrl": "src",
     "typeRoots": ["./node_modules/@types"],
     "noUnusedLocals": true,
