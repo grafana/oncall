@@ -170,6 +170,12 @@ def send_log_and_actions_message(self, channel_chat_id, group_chat_id, channel_m
                         f"due to 'Chat not found'. alert_group {alert_group.pk}"
                     )
                     return
+                elif e.message == "Message to reply not found":
+                    logger.warning(
+                        f"Could not send log and actions messages to Telegram group with id {group_chat_id} "
+                        f"due to 'Message to reply not found'. alert_group {alert_group.pk}"
+                    )
+                    return
                 else:
                     raise
 
