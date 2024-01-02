@@ -38,7 +38,10 @@ export class TimezoneStore {
   }
 
   @action.bound
-  getDateInSelectedTimezone(date: Dayjs) {
+  getDateInSelectedTimezone(date: Dayjs | string) {
+    if (typeof date === 'string') {
+      date = dayjs(date);
+    }
     return date.utcOffset(this.selectedTimezoneOffset);
   }
 

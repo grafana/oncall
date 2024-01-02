@@ -428,9 +428,9 @@ const ScheduleSlotDetails = observer((props: ScheduleSlotDetailsProps) => {
           <Text type="primary" className={cx('second-column')}>
             This shift
             <br />
-            {getDateInSelectedTimezone(dayjs(event.start)).tz(user?.timezone).format('DD MMM, HH:mm')}
+            {dayjs(event.start).tz(user?.timezone).format('DD MMM, HH:mm')}
             <br />
-            {getDateInSelectedTimezone(dayjs(event.end)).tz(user?.timezone).format('DD MMM, HH:mm')}
+            {dayjs(event.end).tz(user?.timezone).format('DD MMM, HH:mm')}
           </Text>
           <Text type="secondary">
             &nbsp; <br />
