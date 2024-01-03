@@ -1,4 +1,4 @@
-import { action, computed, observable } from 'mobx';
+import { action, computed, observable, makeObservable, runInAction } from 'mobx';
 
 import BaseStore from 'models/base_store';
 import { makeRequest } from 'network';
@@ -21,6 +21,8 @@ export class MSTeamsChannelStore extends BaseStore {
   constructor(rootStore: RootStore) {
     super(rootStore);
 
+    makeObservable(this);
+
     this.path = '/msteams/channels/';
   }
 
@@ -36,43 +38,49 @@ export class MSTeamsChannelStore extends BaseStore {
       {}
     );
 
-    this.items = {
-      ...this.items,
-      ...items,
-    };
+    runInAction(() => {
+      this.items = {
+        ...this.items,
+        ...items,
+      };
 
-    this.currentTeamToMSTeamsChannel = response.map((msteamsChannel: MSTeamsChannel) => msteamsChannel.id);
+      this.currentTeamToMSTeamsChannel = response.map((msteamsChannel: MSTeamsChannel) => msteamsChannel.id);
+    });
   }
 
   @action
   async updateById(id: MSTeamsChannel['id']) {
     const response = await this.getById(id);
 
-    this.items = {
-      ...this.items,
-      [id]: response,
-    };
+    runInAction(() => {
+      this.items = {
+        ...this.items,
+        [id]: response,
+      };
+    });
   }
 
   @action
   async updateItems(query = '') {
     const result = await this.getAll();
 
-    this.items = {
-      ...this.items,
-      ...result.reduce(
-        (acc: { [key: number]: MSTeamsChannel }, item: MSTeamsChannel) => ({
-          ...acc,
-          [item.id]: item,
-        }),
-        {}
-      ),
-    };
+    runInAction(() => {
+      this.items = {
+        ...this.items,
+        ...result.reduce(
+          (acc: { [key: number]: MSTeamsChannel }, item: MSTeamsChannel) => ({
+            ...acc,
+            [item.id]: item,
+          }),
+          {}
+        ),
+      };
 
-    this.searchResult = {
-      ...this.searchResult,
-      [query]: result.map((item: MSTeamsChannel) => item.id),
-    };
+      this.searchResult = {
+        ...this.searchResult,
+        [query]: result.map((item: MSTeamsChannel) => item.id),
+      };
+    });
   }
 
   getSearchResult(query = '') {
@@ -103,14 +111,11 @@ export class MSTeamsChannelStore extends BaseStore {
     });
   }
 
-  @action
   async makeMSTeamsChannelDefault(id: MSTeamsChannel['id']) {
     return makeRequest(`/msteams/channels/${id}/set_default/`, {
       method: 'POST',
     });
   }
-
-  @action
   async deleteMSTeamsChannel(id: MSTeamsChannel['id']) {
     return super.delete(id);
   }
