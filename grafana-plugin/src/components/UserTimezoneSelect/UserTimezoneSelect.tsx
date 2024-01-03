@@ -7,7 +7,7 @@ import dayjs from 'dayjs';
 import { sortBy } from 'lodash-es';
 import { observer } from 'mobx-react';
 
-import { getGMTTimezoneLabelBasedOnOffset } from 'models/timezone/timezone.helpers';
+import { allTimezones, getGMTTimezoneLabelBasedOnOffset, getTzOffsetString } from 'models/timezone/timezone.helpers';
 import { useStore } from 'state/useStore';
 
 import styles from './UserTimezoneSelect.module.css';
@@ -68,37 +68,37 @@ const UserTimezoneSelect = observer(() => {
       if (data.__isNew_) {
         return true;
       }
-      return data[key] && data[key].toLowerCase().includes(searchQuery.toLowerCase());
+      return data[key]?.toLowerCase().includes(searchQuery.toLowerCase());
     });
   }, []);
 
-  // const handleCreateOption = useCallback(
-  //   (value: string) => {
-  //     const matched = allTimezones.find((tz) => tz.toLowerCase().includes(value.toLowerCase()));
-  //     if (matched) {
-  //       const now = dayjs().tz(matched);
-  //       const utcOffset = now.utcOffset();
-  //       onChange(matched);
+  const handleCreateOption = useCallback(
+    (value: string) => {
+      const matched = allTimezones.find((tz) => tz.toLowerCase().includes(value.toLowerCase()));
+      if (matched) {
+        const now = dayjs().tz(matched);
+        const utcOffset = now.utcOffset();
+        store.timezoneStore.setSelectedTimezoneOffset(utcOffset);
 
-  //       if (options.some((option) => option.value === utcOffset)) {
-  //         return;
-  //       }
+        if (options.some((option) => option.value === utcOffset)) {
+          return;
+        }
 
-  //       setExtraOptions((extraOptions) => [
-  //         ...extraOptions,
-  //         {
-  //           value: utcOffset,
-  //           timezone: matched,
-  //           label: getTzOffsetString(now),
-  //           description: '',
-  //         },
-  //       ]);
+        setExtraOptions((extraOptions) => [
+          ...extraOptions,
+          {
+            value: utcOffset,
+            timezone: matched,
+            label: getTzOffsetString(now),
+            description: '',
+          },
+        ]);
 
-  //       onChange(matched);
-  //     }
-  //   },
-  //   [options]
-  // );
+        store.timezoneStore.setSelectedTimezoneOffset(utcOffset);
+      }
+    },
+    [options]
+  );
 
   return (
     <div className={cx('root')}>
@@ -106,22 +106,19 @@ const UserTimezoneSelect = observer(() => {
         value={options.find(({ value }) => value === store.timezoneStore.selectedTimezoneOffset)}
         onChange={(option) => store.timezoneStore.setSelectedTimezoneOffset(option.value)}
         width={30}
-        // placeholder={propValue}
         options={options}
         filterOption={filterOption}
-        // TODO: fix custom value
-
-        // allowCustomValue
-        // onCreateOption={handleCreateOption}
-        // formatCreateLabel={(input: string) => {
-        //   const matched = allTimezones.find((tz) => tz.toLowerCase().includes(input.toLowerCase()));
-        //   const now = dayjs().tz(matched);
-        //   if (matched) {
-        //     return `Select ${getTzOffsetString(now)} (${matched})`;
-        //   } else {
-        //     return `Not found`;
-        //   }
-        // }}
+        allowCustomValue
+        onCreateOption={handleCreateOption}
+        formatCreateLabel={(input: string) => {
+          const matched = allTimezones.find((tz) => tz.toLowerCase().includes(input.toLowerCase()));
+          const now = dayjs().tz(matched);
+          if (matched) {
+            return `Select ${getTzOffsetString(now)} (${matched})`;
+          } else {
+            return `Not found`;
+          }
+        }}
       />
     </div>
   );
