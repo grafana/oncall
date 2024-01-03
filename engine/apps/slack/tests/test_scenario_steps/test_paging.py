@@ -284,6 +284,9 @@ def test_get_team_select_blocks(
 
     input_id_prefix = "nmxcnvmnxv"
 
+    def _contstruct_team_option(team):
+        return {"text": {"emoji": True, "text": team.name, "type": "plain_text"}, "value": str(team.pk)}
+
     # no team selected - no team direct paging integrations available
     organization, _, _, slack_user_identity = make_organization_and_user_with_slack_identities()
     blocks = _get_team_select_blocks(slack_user_identity, organization, False, None, input_id_prefix)
@@ -309,11 +312,9 @@ def test_get_team_select_blocks(
     assert len(blocks) == 2
     input_block, context_block = blocks
 
-    team_option = {"text": {"emoji": True, "text": team.name, "type": "plain_text"}, "value": str(team.pk)}
-
     assert input_block["type"] == "input"
     assert len(input_block["element"]["options"]) == 1
-    assert input_block["element"]["options"] == [team_option]
+    assert input_block["element"]["options"] == [_contstruct_team_option(team)]
     assert context_block["elements"][0]["text"] == info_msg
 
     # team selected
@@ -337,9 +338,6 @@ def test_get_team_select_blocks(
     assert len(blocks) == 2
     input_block, context_block = blocks
 
-    def _contstruct_team_option(team):
-        return {"text": {"emoji": True, "text": team.name, "type": "plain_text"}, "value": str(team.pk)}
-
     team1_option = _contstruct_team_option(team1)
     team2_option = _contstruct_team_option(team2)
 
@@ -355,3 +353,23 @@ def test_get_team_select_blocks(
         context_block["elements"][0]["text"]
         == f"Integration <{team2_direct_paging_arc.web_link}|{team2_direct_paging_arc.verbal_name}> will be used for notification."
     )
+
+    # team's direct paging integration has two routes associated with it
+    # the team should only be displayed once
+    organization, _, _, slack_user_identity = make_organization_and_user_with_slack_identities()
+    team = make_team(organization)
+
+    arc = make_alert_receive_channel(organization, team=team, integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING)
+    escalation_chain = make_escalation_chain(organization)
+    make_channel_filter(arc, is_default=True, escalation_chain=escalation_chain)
+    make_channel_filter(arc, escalation_chain=escalation_chain)
+
+    blocks = _get_team_select_blocks(slack_user_identity, organization, False, None, input_id_prefix)
+
+    assert len(blocks) == 2
+    input_block, context_block = blocks
+
+    assert input_block["type"] == "input"
+    assert len(input_block["element"]["options"]) == 1
+    assert input_block["element"]["options"] == [_contstruct_team_option(team)]
+    assert context_block["elements"][0]["text"] == info_msg

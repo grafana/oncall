@@ -313,7 +313,7 @@ def perform_notification(log_record_pk):
             ).save()
             return
 
-        if alert_group.notify_in_slack_enabled is True and not log_record.slack_prevent_posting:
+        if alert_group.notify_in_slack_enabled is True:
             # we cannot notify users in Slack if their team does not have Slack integration
             if alert_group.channel.organization.slack_team_identity is None:
                 task_logger.debug(
@@ -329,6 +329,22 @@ def perform_notification(log_record_pk):
                     notification_step=notification_policy.step,
                     notification_channel=notification_channel,
                     notification_error_code=UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_IN_SLACK_TOKEN_ERROR,
+                ).save()
+                return
+
+            if log_record.slack_prevent_posting:
+                task_logger.debug(
+                    f"send_slack_notification for alert_group {alert_group.pk} failed because slack posting is disabled."
+                )
+                UserNotificationPolicyLogRecord(
+                    author=user,
+                    type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED,
+                    notification_policy=notification_policy,
+                    reason="Prevented from posting in Slack",
+                    alert_group=alert_group,
+                    notification_step=notification_policy.step,
+                    notification_channel=notification_channel,
+                    notification_error_code=UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_POSTING_TO_SLACK_IS_DISABLED,
                 ).save()
                 return
 

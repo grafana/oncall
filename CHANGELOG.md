@@ -9,7 +9,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Add ability to create an Outgoing Webhook with the PATCH HTTP method via the UI by @joeyorlando ([#3604](https://github.com/grafana/oncall/pull/3604))
+
+### Changed
+
+- Handle message to reply to not found in Telegram send log ([#3587](https://github.com/grafana/oncall/pull/3587))
+
+## v1.3.81 (2023-12-28)
+
+### Added
+
 - Support e2e tests in Tilt and Makefile ([#3516](https://github.com/grafana/oncall/pull/3516))
+- Support PATCH method for outgoing webhooks by @ravishankar15 ([#3580](https://github.com/grafana/oncall/pull/3580))
+
+### Changed
+
+- Limit acknowledge reminders to stop repeating after 1 month @mderynck ([#3571](https://github.com/grafana/oncall/pull/3571))
 
 ### Changed
 
@@ -18,6 +33,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Check reason to skip notification in Slack to avoid task perform_notification retries @Ferril ([#3562](https://github.com/grafana/oncall/pull/3562))
+- Fix alert group table columns validation @Ferril ([#3577](https://github.com/grafana/oncall/pull/3577))
+- Fix posting message about rate limit to Slack @Ferril ([#3582](https://github.com/grafana/oncall/pull/3582))
+- Fix issue with parsing sender email address from email message for inbound email integration endpoint @Ferril ([#3586](https://github.com/grafana/oncall/pull/3586))
+- Fix PUT /api/v1/escalation_policies/id issue when updating `from_time` and `to_time` by @joeyorlando ([#3581](https://github.com/grafana/oncall/pull/3581))
+- Fix issue where duplicate team options would show up in the teams dropdown for the `/escalate` Slack command
+  by @joeyorlando ([#3590](https://github.com/grafana/oncall/pull/3590))
 
 ## v1.3.80 (2023-12-14)
 
