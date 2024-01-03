@@ -433,3 +433,19 @@ def test_cleanup_organization_deleted(make_organization):
 
     organization.refresh_from_db()
     assert organization.deleted_at is not None
+
+
+@pytest.mark.django_db
+def test_sync_organization_lock(make_organization):
+    organization = make_organization()
+
+    random_uuid = "random"
+    with patch("apps.user_management.sync.GrafanaAPIClient") as mock_client:
+        with patch("apps.user_management.sync.uuid.uuid4", return_value=random_uuid):
+            with patch("apps.user_management.sync.task_lock") as mock_task_lock:
+                # lock couldn't be acquired
+                mock_task_lock.return_value.__enter__.return_value = False
+                sync_organization(organization)
+
+    mock_task_lock.assert_called_once_with(f"sync-organization-lock-{organization.id}", random_uuid)
+    assert not mock_client.called

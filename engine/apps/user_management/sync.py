@@ -1,4 +1,5 @@
 import logging
+import uuid
 
 from celery.utils.log import get_task_logger
 from django.conf import settings
@@ -7,12 +8,21 @@ from django.utils import timezone
 from apps.grafana_plugin.helpers.client import GcomAPIClient, GrafanaAPIClient
 from apps.user_management.models import Organization, Team, User
 from apps.user_management.signals import org_sync_signal
+from common.utils import task_lock
 
 logger = get_task_logger(__name__)
 logger.setLevel(logging.DEBUG)
 
 
 def sync_organization(organization: Organization) -> None:
+    # ensure one sync task is running at most for a given org at a given time
+    lock_id = "sync-organization-lock-{}".format(organization.id)
+    random_value = str(uuid.uuid4())
+    with task_lock(lock_id, random_value) as acquired:
+        if not acquired:
+            # sync already running
+            return
+
     grafana_api_client = GrafanaAPIClient(api_url=organization.grafana_url, api_token=organization.api_token)
 
     # NOTE: checking whether or not RBAC is enabled depends on whether we are dealing with an open-source or cloud
