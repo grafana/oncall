@@ -55,8 +55,8 @@ import {
   AlertReceiveChannel,
   AlertReceiveChannelCounters,
 } from 'models/alert_receive_channel/alert_receive_channel.types';
-import { AlertTemplatesDTO } from 'models/alert_templates';
-import { ChannelFilter } from 'models/channel_filter';
+import { AlertTemplatesDTO } from 'models/alert_templates/alert_templates';
+import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
 import IntegrationHelper from 'pages/integration/Integration.helper';
 import styles from 'pages/integration/Integration.module.scss';
 import { AppFeature } from 'state/features';

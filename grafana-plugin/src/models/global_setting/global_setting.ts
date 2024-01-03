@@ -1,4 +1,4 @@
-import { action, observable } from 'mobx';
+import { action, observable, makeObservable, runInAction } from 'mobx';
 
 import BaseStore from 'models/base_store';
 import { RootStore } from 'state';
@@ -15,6 +15,8 @@ export class GlobalSettingStore extends BaseStore {
   constructor(rootStore: RootStore) {
     super(rootStore);
 
+    makeObservable(this);
+
     this.path = '/live_settings/';
   }
 
@@ -22,31 +24,35 @@ export class GlobalSettingStore extends BaseStore {
   async updateById(id: GlobalSetting['id']) {
     const response = await this.getById(id);
 
-    this.items = {
-      ...this.items,
-      [id]: response,
-    };
+    runInAction(() => {
+      this.items = {
+        ...this.items,
+        [id]: response,
+      };
+    });
   }
 
   @action
   async updateItems(query = '') {
     const results = await this.getAll();
 
-    this.items = {
-      ...this.items,
-      ...results.reduce(
-        (acc: { [key: number]: GlobalSetting }, item: GlobalSetting) => ({
-          ...acc,
-          [item.id]: item,
-        }),
-        {}
-      ),
-    };
+    runInAction(() => {
+      this.items = {
+        ...this.items,
+        ...results.reduce(
+          (acc: { [key: number]: GlobalSetting }, item: GlobalSetting) => ({
+            ...acc,
+            [item.id]: item,
+          }),
+          {}
+        ),
+      };
 
-    this.searchResult = {
-      ...this.searchResult,
-      [query]: results.map((item: GlobalSetting) => item.id),
-    };
+      this.searchResult = {
+        ...this.searchResult,
+        [query]: results.map((item: GlobalSetting) => item.id),
+      };
+    });
   }
 
   getSearchResult(query = '') {

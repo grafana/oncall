@@ -6,7 +6,7 @@ import Timeline from 'components/Timeline/Timeline';
 import MSTeamsConnector from 'containers/AlertRules/parts/connectors/MSTeamsConnector';
 import SlackConnector from 'containers/AlertRules/parts/connectors/SlackConnector';
 import TelegramConnector from 'containers/AlertRules/parts/connectors/TelegramConnector';
-import { ChannelFilter } from 'models/channel_filter';
+import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
 import { getVar } from 'utils/DOM';

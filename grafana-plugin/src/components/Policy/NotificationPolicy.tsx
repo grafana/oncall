@@ -8,13 +8,12 @@ import { SortableElement } from 'react-sortable-hoc';
 import PluginLink from 'components/PluginLink/PluginLink';
 import Timeline from 'components/Timeline/Timeline';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
-import { Channel } from 'models/channel';
-import { NotificationPolicyType, prepareNotificationPolicy } from 'models/notification_policy';
-import { NotifyBy } from 'models/notify_by';
+import { Channel } from 'models/channel/channel';
+import { NotificationPolicyType, prepareNotificationPolicy } from 'models/notification_policy/notification_policy';
 import { User } from 'models/user/user.types';
-import { WaitDelay } from 'models/wait_delay';
 import { RootStore } from 'state';
 import { AppFeature } from 'state/features';
+import { SelectOption } from 'state/types';
 import { UserAction } from 'utils/authorization';
 
 import DragHandle from './DragHandle';
@@ -34,8 +33,8 @@ export interface NotificationPolicyProps {
   onDelete: (id: string) => void;
   notificationChoices: any[];
   channels?: any[];
-  waitDelays?: WaitDelay[];
-  notifyByOptions?: NotifyBy[];
+  waitDelays?: SelectOption[];
+  notifyByOptions?: SelectOption[];
   telegramVerified: boolean;
   phoneStatus: number;
   isMobileAppConnected: boolean;
@@ -185,7 +184,7 @@ export class NotificationPolicy extends React.Component<NotificationPolicyProps,
           value={wait_delay}
           disabled={disabled}
           onChange={this._getOnChangeHandler('wait_delay')}
-          options={waitDelays.map((waitDelay: WaitDelay) => ({
+          options={waitDelays.map((waitDelay: SelectOption) => ({
             label: waitDelay.display_name,
             value: waitDelay.value,
           }))}
@@ -208,7 +207,7 @@ export class NotificationPolicy extends React.Component<NotificationPolicyProps,
           value={notify_by}
           disabled={disabled}
           onChange={this._getOnChangeHandler('notify_by')}
-          options={notifyByOptions.map((notifyByOption: NotifyBy) => ({
+          options={notifyByOptions.map((notifyByOption: SelectOption) => ({
             label: notifyByOption.display_name,
             value: notifyByOption.value,
           }))}

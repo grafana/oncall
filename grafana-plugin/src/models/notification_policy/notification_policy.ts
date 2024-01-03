@@ -1,4 +1,4 @@
-import { User } from './user/user.types';
+import { User } from 'models/user/user.types';
 
 export interface NotificationPolicyType {
   id: string;

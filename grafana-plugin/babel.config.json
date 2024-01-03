@@ -8,7 +8,7 @@
     ["@babel/plugin-proposal-decorators", { "legacy": true }],
     ["@babel/plugin-transform-destructuring", { "useBuiltIns": true }],
     "@babel/plugin-transform-runtime",
-    "@babel/proposal-class-properties",
+    ["@babel/plugin-proposal-class-properties", { "loose": false }],
     "@babel/transform-regenerator",
     "@babel/plugin-transform-template-literals"
   ]

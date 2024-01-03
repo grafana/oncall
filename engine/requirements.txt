@@ -5,7 +5,10 @@ whitenoise==5.3.0
 twilio~=6.37.0
 phonenumbers==8.10.0
 celery[amqp,redis]==5.3.1
-redis==5.0.1
+# NOTE: temporarily installing a forked version of redis-py which adds some more debug logging
+# in an effort to fix https://github.com/grafana/oncall-private/issues/2406
+# revert this change once done debugging
+git+https://github.com/grafana/redis-py@0c88554
 humanize==0.5.1
 uwsgi==2.0.21
 django-cors-headers==3.7.0

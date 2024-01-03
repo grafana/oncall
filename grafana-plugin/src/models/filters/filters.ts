@@ -1,4 +1,4 @@
-import { action, observable } from 'mobx';
+import { action, observable, makeObservable, runInAction } from 'mobx';
 
 import BaseStore from 'models/base_store';
 import { LabelKeyValue } from 'models/label/label.types';
@@ -31,6 +31,8 @@ export class FiltersStore extends BaseStore {
   constructor(rootStore: RootStore) {
     super(rootStore);
 
+    makeObservable(this);
+
     const savedFilters = getItem(LOCAL_STORAGE_FILTERS_KEY);
     if (savedFilters) {
       this._globalValues = { ...savedFilters };
@@ -61,10 +63,12 @@ export class FiltersStore extends BaseStore {
       result.unshift({ name: 'search', type: 'search' });
     }
 
-    this.options = {
-      ...this.options,
-      [page]: result,
-    };
+    runInAction(() => {
+      this.options = {
+        ...this.options,
+        [page]: result,
+      };
+    });
 
     return result;
   }

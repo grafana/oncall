@@ -388,6 +388,7 @@ const RotationForm = observer((props: RotationFormProps) => {
       setShowActiveOnSelectedDays(Boolean(shift.by_day?.length));
 
       const activeOnSelectedPartOfDay =
+        shift.frequency !== RepeatEveryPeriod.MONTHS &&
         repeatEveryInSeconds(shift.frequency, shift.interval) !== shiftEnd.diff(shiftStart, 'seconds');
 
       setShowActiveOnSelectedPartOfDay(activeOnSelectedPartOfDay);
