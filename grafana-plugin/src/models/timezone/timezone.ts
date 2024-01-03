@@ -42,7 +42,7 @@ export class TimezoneStore {
     if (typeof date === 'string') {
       date = dayjs(date);
     }
-    return date.utcOffset(this.selectedTimezoneOffset);
+    return dayjs(date.format()).utcOffset(this.selectedTimezoneOffset);
   }
 
   @computed

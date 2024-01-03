@@ -22,64 +22,77 @@ interface DateTimePickerProps {
   error?: string[];
 }
 
-const DateTimePicker = observer((props: DateTimePickerProps) => {
-  const {
-    timezoneStore: { getDateInSelectedTimezone },
-  } = useStore();
-  const { value: propValue, onChange, disabled, onFocus, onBlur, error } = props;
+const DateTimePicker = observer(
+  ({ value: propValue, onChange, disabled, onFocus, onBlur, error }: DateTimePickerProps) => {
+    const {
+      timezoneStore: { getDateInSelectedTimezone },
+    } = useStore();
+    const valueInSelectedTimezone = getDateInSelectedTimezone(propValue);
+    const valueAsDate = valueInSelectedTimezone.toDate();
 
-  const value = getDateInSelectedTimezone(propValue).toDate();
+    const handleDateChange = (newDate: Date) => {
+      const localMoment = getDateInSelectedTimezone(dayjs(newDate));
+      const newValue = localMoment
+        .set('year', newDate.getFullYear())
+        .set('month', newDate.getMonth())
+        .set('date', newDate.getDate())
+        .set('hour', valueAsDate.getHours())
+        .set('minute', valueAsDate.getMinutes())
+        .set('second', valueAsDate.getSeconds());
 
-  const handleDateChange = (newDate: Date) => {
-    const localMoment = getDateInSelectedTimezone(dayjs(newDate));
+      onChange(newValue);
+    };
+    const handleTimeChange = (newMoment: DateTime) => {
+      const selectedHour = newMoment.hour();
+      const selectedMinute = newMoment.minute();
+      const newValue = valueInSelectedTimezone.set('hour', selectedHour).set('minute', selectedMinute);
 
-    const newValue = localMoment
-      .set('year', newDate.getFullYear())
-      .set('month', newDate.getMonth())
-      .set('date', newDate.getDate())
-      .set('hour', value.getHours())
-      .set('minute', value.getMinutes())
-      .set('second', value.getSeconds());
+      onChange(newValue);
+    };
 
-    onChange(newValue);
-  };
-  const handleTimeChange = (newMoment: DateTime) => {
-    const localMoment = getDateInSelectedTimezone(dayjs());
-    const newDate = newMoment.toDate();
-    const newValue = localMoment
-      .set('year', value.getFullYear())
-      .set('month', value.getMonth())
-      .set('date', value.getDate())
-      .set('hour', newDate.getHours())
-      .set('minute', newDate.getMinutes())
-      .set('second', newDate.getSeconds());
+    const getTimeValueInSelectedTimezone = () => {
+      const time = dateTime(valueInSelectedTimezone.format());
+      time.set('hour', valueInSelectedTimezone.hour());
+      time.set('minute', valueInSelectedTimezone.minute());
+      time.set('second', valueInSelectedTimezone.second());
+      return time;
+    };
 
-    onChange(newValue);
-  };
+    const getDateForDatePicker = () => {
+      const date = new Date();
+      date.setFullYear(valueInSelectedTimezone.year());
+      date.setMonth(valueInSelectedTimezone.month());
+      date.setDate(valueInSelectedTimezone.date());
+      date.setHours(valueInSelectedTimezone.hour());
+      date.setMinutes(valueInSelectedTimezone.minute());
+      date.setSeconds(valueInSelectedTimezone.second());
+      return date;
+    };
 
-  return (
-    <VerticalGroup>
-      <div style={{ display: 'flex', flexWrap: 'nowrap', gap: '8px' }}>
-        <div
-          onFocus={onFocus}
-          onBlur={onBlur}
-          style={{ width: '58%' }}
-          className={cx({ 'control--error': Boolean(error) })}
-        >
-          <DatePickerWithInput open disabled={disabled} value={value} onChange={handleDateChange} />
+    return (
+      <VerticalGroup>
+        <div style={{ display: 'flex', flexWrap: 'nowrap', gap: '8px' }}>
+          <div
+            onFocus={onFocus}
+            onBlur={onBlur}
+            style={{ width: '58%' }}
+            className={cx({ 'control--error': Boolean(error) })}
+          >
+            <DatePickerWithInput open disabled={disabled} value={getDateForDatePicker()} onChange={handleDateChange} />
+          </div>
+          <div
+            onFocus={onFocus}
+            onBlur={onBlur}
+            style={{ width: '42%' }}
+            className={cx({ 'control--error': Boolean(error) })}
+          >
+            <TimeOfDayPicker disabled={disabled} value={getTimeValueInSelectedTimezone()} onChange={handleTimeChange} />
+          </div>
         </div>
-        <div
-          onFocus={onFocus}
-          onBlur={onBlur}
-          style={{ width: '42%' }}
-          className={cx({ 'control--error': Boolean(error) })}
-        >
-          <TimeOfDayPicker disabled={disabled} value={dateTime(value)} onChange={handleTimeChange} />
-        </div>
-      </div>
-      {error && <Text type="danger">{error}</Text>}
-    </VerticalGroup>
-  );
-});
+        {error && <Text type="danger">{error}</Text>}
+      </VerticalGroup>
+    );
+  }
+);
 
 export default DateTimePicker;
