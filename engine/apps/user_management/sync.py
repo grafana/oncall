@@ -19,10 +19,12 @@ def sync_organization(organization: Organization) -> None:
     lock_id = "sync-organization-lock-{}".format(organization.id)
     random_value = str(uuid.uuid4())
     with task_lock(lock_id, random_value) as acquired:
-        if not acquired:
-            # sync already running
-            return
+        if acquired:
+            _sync_organization(organization)
+        # else, sync already running
 
+
+def _sync_organization(organization: Organization) -> None:
     grafana_api_client = GrafanaAPIClient(api_url=organization.grafana_url, api_token=organization.api_token)
 
     # NOTE: checking whether or not RBAC is enabled depends on whether we are dealing with an open-source or cloud
