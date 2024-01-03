@@ -1,11 +1,10 @@
 import { get } from 'lodash-es';
-import { action, observable } from 'mobx';
+import { action, observable, makeObservable, runInAction } from 'mobx';
 
 import BaseStore from 'models/base_store';
 import { EscalationChain } from 'models/escalation_chain/escalation_chain.types';
 import { EscalationPolicy } from 'models/escalation_policy/escalation_policy.types';
 import { makeRequest } from 'network';
-import { Mixpanel } from 'services/mixpanel';
 import { RootStore } from 'state';
 import { move } from 'state/helpers';
 import { SelectOption } from 'state/types';
@@ -31,13 +30,18 @@ export class EscalationPolicyStore extends BaseStore {
   constructor(rootStore: RootStore) {
     super(rootStore);
 
+    makeObservable(this);
+
     this.path = '/escalation_policies/';
   }
 
   @action.bound
   async updateWebEscalationPolicyOptions() {
     const response = await makeRequest('/escalation_policies/escalation_options/', {});
-    this.webEscalationChoices = response;
+
+    runInAction(() => {
+      this.webEscalationChoices = response;
+    });
   }
 
   @action.bound
@@ -45,13 +49,19 @@ export class EscalationPolicyStore extends BaseStore {
     const response = await makeRequest('/escalation_policies/', {
       method: 'OPTIONS',
     });
-    this.escalationChoices = get(response, 'actions.POST', []);
+
+    runInAction(() => {
+      this.escalationChoices = get(response, 'actions.POST', []);
+    });
   }
 
   @action.bound
   async updateNumMinutesInWindowOptions() {
     const response = await makeRequest('/escalation_policies/num_minutes_in_window_options/', {});
-    this.numMinutesInWindowOptions = response;
+
+    runInAction(() => {
+      this.numMinutesInWindowOptions = response;
+    });
   }
 
   @action
@@ -68,15 +78,17 @@ export class EscalationPolicyStore extends BaseStore {
       {}
     );
 
-    this.items = {
-      ...this.items,
-      ...escalationPolicies,
-    };
+    runInAction(() => {
+      this.items = {
+        ...this.items,
+        ...escalationPolicies,
+      };
 
-    this.escalationChainToEscalationPolicy = {
-      ...this.escalationChainToEscalationPolicy,
-      [escalationChainId]: response.map((escalationPolicy: EscalationPolicy) => escalationPolicy.id),
-    };
+      this.escalationChainToEscalationPolicy = {
+        ...this.escalationChainToEscalationPolicy,
+        [escalationChainId]: response.map((escalationPolicy: EscalationPolicy) => escalationPolicy.id),
+      };
+    });
   }
 
   @action
@@ -103,8 +115,6 @@ export class EscalationPolicyStore extends BaseStore {
 
   @action
   async moveEscalationPolicyToPosition(oldIndex: any, newIndex: any, escalationChainId: EscalationChain['id']) {
-    Mixpanel.track('Move EscalationPolicy', null);
-
     const escalationPolicyId = this.escalationChainToEscalationPolicy[escalationChainId][oldIndex];
 
     this.escalationChainToEscalationPolicy[escalationChainId] = move(

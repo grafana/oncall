@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Handle message to reply to not found in Telegram send log ([#3587](https://github.com/grafana/oncall/pull/3587))
+- Upgrade mobx lib to the latest version 6.12.0 ([#3453](https://github.com/grafana/oncall/issues/3453))
 
 ## v1.3.81 (2023-12-28)
 
