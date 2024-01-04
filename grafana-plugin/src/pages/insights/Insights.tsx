@@ -11,10 +11,14 @@ import {
   VariableValueSelectors,
   NestedScene,
 } from '@grafana/scenes';
+import { Alert } from '@grafana/ui';
 import { observer } from 'mobx-react';
 
+import Text from 'components/Text/Text';
 import { useStore } from 'state/useStore';
+import { DOCS_ROOT } from 'utils/consts';
 
+import { getDataSource } from './Insights.helpers';
 import { InsightsConfig } from './Insights.types';
 import getAlertGroupsByIntegrationScene from './scenes/AlertGroupsByIntegration';
 import getAlertGroupsByTeamScene from './scenes/AlertGroupsByTeam';
@@ -31,10 +35,6 @@ import getNewAlertGroupsNotificationsInTotalScene from './scenes/NewAlertGroupsN
 import getTotalAlertGroupsScene from './scenes/TotalAlertGroups';
 import getTotalAlertGroupsByStateScene from './scenes/TotalAlertGroupsByState';
 import getVariables from './variables';
-import { getDataSource } from './Insights.helpers';
-import { Alert } from '@grafana/ui';
-import Text from 'components/Text/Text';
-import { DOCS_ROOT } from 'utils/consts';
 
 const Insights = observer(() => {
   const { isOpenSource } = useStore();

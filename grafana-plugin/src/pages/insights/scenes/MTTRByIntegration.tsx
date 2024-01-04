@@ -1,6 +1,8 @@
 import { ThresholdsMode } from '@grafana/data';
 import { SceneDataTransformer, SceneFlexItem, SceneQueryRunner, VizPanel } from '@grafana/scenes';
 
+import { InsightsConfig } from 'pages/insights/Insights.types';
+
 export default function getMTTRByIntegrationScene({ datasource }: InsightsConfig) {
   const query = new SceneQueryRunner({
     datasource,

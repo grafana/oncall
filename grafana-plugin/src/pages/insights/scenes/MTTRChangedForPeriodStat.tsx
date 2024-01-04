@@ -1,6 +1,7 @@
 import { ThresholdsMode } from '@grafana/data';
 import { SceneFlexItem, SceneQueryRunner, VizPanel } from '@grafana/scenes';
-import { InsightsConfig } from '../Insights.types';
+
+import { InsightsConfig } from 'pages/insights/Insights.types';
 
 export default function getMTTRChangedForPeriodStatScene({ datasource }: InsightsConfig) {
   const query = new SceneQueryRunner({
