@@ -5,7 +5,7 @@ from django.db.models import Count, Max, Q
 from django.utils import timezone
 from django_filters import rest_framework as filters
 from django_filters.widgets import RangeWidget
-from drf_spectacular.utils import extend_schema, extend_schema_view, inline_serializer
+from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import mixins, serializers, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound
@@ -480,7 +480,10 @@ class AlertGroupView(
         delete_alert_group.apply_async((instance.pk, request.user.pk))
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    @extend_schema(responses=inline_serializer(name="AlertGroupStats", fields={"count": serializers.IntegerField()}))
+    class AlertGroupStatsSerializer(serializers.Serializer):
+        count = serializers.IntegerField()
+
+    @extend_schema(responses=AlertGroupStatsSerializer)
     @action(detail=False)
     def stats(self, *args, **kwargs):
         """
@@ -490,12 +493,9 @@ class AlertGroupView(
         alert_groups = self.filter_queryset(self.get_queryset())[:MAX_COUNT]
         count = alert_groups.count()
         count = f"{MAX_COUNT-1}+" if count == MAX_COUNT else str(count)
-        return Response(
-            {
-                "count": count,
-            }
-        )
+        return Response({"count": count})
 
+    @extend_schema(responses=AlertGroupSerializer)
     @action(methods=["post"], detail=True)
     def acknowledge(self, request, pk):
         """
@@ -510,6 +510,7 @@ class AlertGroupView(
 
         return Response(AlertGroupSerializer(alert_group, context={"request": self.request}).data)
 
+    @extend_schema(responses=AlertGroupSerializer)
     @action(methods=["post"], detail=True)
     def unacknowledge(self, request, pk):
         """
@@ -532,6 +533,10 @@ class AlertGroupView(
 
         return Response(AlertGroupSerializer(alert_group, context={"request": self.request}).data)
 
+    class AlertGroupResolveRequestSerializer(serializers.Serializer):
+        resolution_note = serializers.CharField(required=False, allow_null=True)
+
+    @extend_schema(request=AlertGroupResolveRequestSerializer, responses=AlertGroupSerializer)
     @action(methods=["post"], detail=True)
     def resolve(self, request, pk):
         """
@@ -546,7 +551,9 @@ class AlertGroupView(
         if alert_group.is_maintenance_incident:
             alert_group.stop_maintenance(self.request.user)
         else:
-            resolution_note_text = request.data.get("resolution_note")
+            request_serializer = self.AlertGroupResolveRequestSerializer(data=request.data)
+            request_serializer.is_valid(raise_exception=True)
+            resolution_note_text = request_serializer.validated_data.get("resolution_note")
             if resolution_note_text:
                 rn = ResolutionNote.objects.create(
                     alert_group=alert_group,
@@ -577,6 +584,7 @@ class AlertGroupView(
             alert_group.resolve_by_user(self.request.user, action_source=ActionSource.WEB)
         return Response(AlertGroupSerializer(alert_group, context={"request": self.request}).data)
 
+    @extend_schema(responses=AlertGroupSerializer)
     @action(methods=["post"], detail=True)
     def unresolve(self, request, pk):
         """
@@ -595,6 +603,10 @@ class AlertGroupView(
         alert_group.un_resolve_by_user(self.request.user, action_source=ActionSource.WEB)
         return Response(AlertGroupSerializer(alert_group, context={"request": self.request}).data)
 
+    class AlertGroupAttachRequestSerializer(serializers.Serializer):
+        root_alert_group_pk = serializers.CharField()
+
+    @extend_schema(request=AlertGroupAttachRequestSerializer, responses=AlertGroupSerializer)
     @action(methods=["post"], detail=True)
     def attach(self, request, pk=None):
         """
@@ -608,8 +620,12 @@ class AlertGroupView(
         if not alert_group.is_root_alert_group:
             raise BadRequest(detail="Can't attach an alert group because it has already been attached")
 
+        request_serializer = self.AlertGroupAttachRequestSerializer(data=request.data)
+        request_serializer.is_valid(raise_exception=True)
+        root_alert_group_pk = request_serializer.validated_data["root_alert_group_pk"]
+
         try:
-            root_alert_group = self.get_queryset().get(public_primary_key=request.data["root_alert_group_pk"])
+            root_alert_group = self.get_queryset().get(public_primary_key=root_alert_group_pk)
         except AlertGroup.DoesNotExist:
             return Response(status=status.HTTP_400_BAD_REQUEST)
         if root_alert_group.resolved or root_alert_group.root_alert_group is not None:
@@ -620,6 +636,7 @@ class AlertGroupView(
         alert_group.attach_by_user(self.request.user, root_alert_group, action_source=ActionSource.WEB)
         return Response(AlertGroupSerializer(alert_group, context={"request": self.request}).data)
 
+    @extend_schema(responses=AlertGroupSerializer)
     @action(methods=["post"], detail=True)
     def unattach(self, request, pk=None):
         """
@@ -634,6 +651,10 @@ class AlertGroupView(
         alert_group.un_attach_by_user(self.request.user, action_source=ActionSource.WEB)
         return Response(AlertGroupSerializer(alert_group, context={"request": self.request}).data)
 
+    class AlertGroupSilenceRequestSerializer(serializers.Serializer):
+        delay = serializers.IntegerField()
+
+    @extend_schema(request=AlertGroupSilenceRequestSerializer, responses=AlertGroupSerializer)
     @action(methods=["post"], detail=True)
     def silence(self, request, pk=None):
         """
@@ -641,9 +662,9 @@ class AlertGroupView(
         """
         alert_group = self.get_object()
 
-        delay = request.data.get("delay")
-        if delay is None:
-            raise BadRequest(detail="Please specify a delay for silence")
+        request_serializer = self.AlertGroupSilenceRequestSerializer(data=request.data)
+        request_serializer.is_valid(raise_exception=True)
+        delay = request_serializer.validated_data["delay"]
 
         if alert_group.root_alert_group is not None:
             raise BadRequest(detail="Can't silence an attached alert group")
@@ -651,23 +672,29 @@ class AlertGroupView(
         alert_group.silence_by_user(request.user, silence_delay=delay, action_source=ActionSource.WEB)
         return Response(AlertGroupSerializer(alert_group, context={"request": request}).data)
 
-    @extend_schema(
-        responses=inline_serializer(
-            name="silence_options",
-            fields={"value": serializers.CharField(), "display_name": serializers.CharField()},
-            many=True,
+    class AlertGroupSilenceOptionsSerializer(serializers.Serializer):
+        value = serializers.ChoiceField(choices=[value for value, _ in AlertGroup.SILENCE_DELAY_OPTIONS])
+        display_name = serializers.ChoiceField(
+            choices=[display_name for _, display_name in AlertGroup.SILENCE_DELAY_OPTIONS]
         )
-    )
+
+    @extend_schema(responses=AlertGroupSilenceOptionsSerializer(many=True))
     @action(methods=["get"], detail=False)
     def silence_options(self, request):
         """
         Retrieve a list of valid silence options
         """
-        data = [
-            {"value": value, "display_name": display_name} for value, display_name in AlertGroup.SILENCE_DELAY_OPTIONS
-        ]
-        return Response(data)
+        response_serializer = self.AlertGroupSilenceOptionsSerializer(
+            data=[
+                {"value": value, "display_name": display_name}
+                for value, display_name in AlertGroup.SILENCE_DELAY_OPTIONS
+            ],
+            many=True,
+        )
+        assert response_serializer.is_valid()
+        return Response(response_serializer.data)
 
+    @extend_schema(responses=AlertGroupSerializer)
     @action(methods=["post"], detail=True)
     def unsilence(self, request, pk=None):
         """
@@ -691,6 +718,10 @@ class AlertGroupView(
 
         return Response(AlertGroupSerializer(alert_group, context={"request": request}).data)
 
+    class AlertGroupUnpageUserRequestSerializer(serializers.Serializer):
+        user_id = serializers.CharField()
+
+    @extend_schema(request=AlertGroupUnpageUserRequestSerializer, responses=AlertGroupSerializer)
     @action(methods=["post"], detail=True)
     def unpage_user(self, request, pk=None):
         """
@@ -700,10 +731,9 @@ class AlertGroupView(
         from_user = request.user
         alert_group = self.get_object()
 
-        try:
-            user_id = request.data["user_id"]
-        except KeyError:
-            raise BadRequest(detail="Please specify user_id")
+        request_serializer = self.AlertGroupUnpageUserRequestSerializer(data=request.data)
+        request_serializer.is_valid(raise_exception=True)
+        user_id = request_serializer.validated_data["user_id"]
 
         try:
             user = organization.users.get(public_primary_key=user_id)
@@ -715,10 +745,11 @@ class AlertGroupView(
 
     @action(methods=["get"], detail=False)
     def filters(self, request):
+        # TODO: FIXME
+
         """
         Retrieve a list of valid filter options that can be used to filter alert groups
         """
-        filter_name = request.query_params.get("search", None)
         api_root = "/api/internal/v1/"
 
         now = timezone.now()
@@ -810,49 +841,60 @@ class AlertGroupView(
                 }
             )
 
-        if filter_name is not None:
-            filter_options = list(filter(lambda f: filter_name in f["name"], filter_options))
-
         return Response(filter_options)
 
+    class AlertGroupBulkActionRequestSerializer(serializers.Serializer):
+        alert_group_pks = serializers.ListField(child=serializers.CharField())
+        action = serializers.ChoiceField(choices=AlertGroup.BULK_ACTIONS)
+        delay = serializers.IntegerField(required=False, allow_null=True, help_text="only applicable for silence")
+
+    @extend_schema(request=AlertGroupBulkActionRequestSerializer)
     @action(methods=["post"], detail=False)
     def bulk_action(self, request):
         """
         Perform a bulk action on a list of alert groups
         """
-        alert_group_public_pks = self.request.data.get("alert_group_pks", [])
-        action_with_incidents = self.request.data.get("action", None)
-        delay = self.request.data.get("delay")
+        request_serializer = self.AlertGroupBulkActionRequestSerializer(data=request.data)
+        request_serializer.is_valid(raise_exception=True)
+
+        alert_group_pks = request_serializer.validated_data["alert_group_pks"]
+        action_name = request_serializer.validated_data["action"]
+        delay = request_serializer.validated_data.get("delay")
         kwargs = {}
 
-        if action_with_incidents not in AlertGroup.BULK_ACTIONS:
-            return Response("Unknown action", status=status.HTTP_400_BAD_REQUEST)
-
-        if action_with_incidents == AlertGroup.SILENCE:
+        if action_name == AlertGroup.SILENCE:
             if delay is None:
                 raise BadRequest(detail="Please specify a delay for silence")
             kwargs["silence_delay"] = delay
 
         alert_groups = AlertGroup.objects.filter(
-            channel__organization=self.request.auth.organization, public_primary_key__in=alert_group_public_pks
+            channel__organization=request.auth.organization, public_primary_key__in=alert_group_pks
         )
 
-        kwargs["user"] = self.request.user
+        kwargs["user"] = request.user
         kwargs["alert_groups"] = alert_groups
 
-        method = getattr(AlertGroup, f"bulk_{action_with_incidents}")
+        method = getattr(AlertGroup, f"bulk_{action_name}")
         method(**kwargs)
 
         return Response(status=status.HTTP_200_OK)
 
+    class AlertGroupBulkActionOptionsSerializer(serializers.Serializer):
+        value = serializers.ChoiceField(choices=AlertGroup.BULK_ACTIONS)
+        display_name = serializers.ChoiceField(choices=AlertGroup.BULK_ACTIONS)
+
+    @extend_schema(responses=AlertGroupBulkActionOptionsSerializer(many=True))
     @action(methods=["get"], detail=False)
     def bulk_action_options(self, request):
         """
         Retrieve a list of valid bulk action options
         """
-        return Response(
-            [{"value": action_name, "display_name": action_name} for action_name in AlertGroup.BULK_ACTIONS]
+        response_serializer = self.AlertGroupBulkActionOptionsSerializer(
+            data=[{"value": action_name, "display_name": action_name} for action_name in AlertGroup.BULK_ACTIONS],
+            many=True,
         )
+        assert response_serializer.is_valid()
+        return Response(response_serializer.data)
 
     # This method is required for PreviewTemplateMixin
     def get_alert_to_template(self, payload=None):

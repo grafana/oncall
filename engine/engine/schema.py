@@ -1,21 +1,26 @@
-import typing
-
 from drf_spectacular.openapi import AutoSchema
 
 
 class CustomAutoSchema(AutoSchema):
-    def get_request_serializer(self) -> typing.Any:
-        """Makes so that extra actions (@action on viewset) don't inherit request serializer from the viewset."""
+    def _get_serializer(self):
+        """Makes so that extra actions (@action on viewset) don't inherit serializer from the viewset."""
         if self._is_extra_action:
             return None
-        return super().get_request_serializer()
+        return super()._get_serializer()
 
-    def get_response_serializers(self) -> typing.Any:
-        """Makes so that extra actions (@action on viewset) don't inherit response serializer from the viewset."""
+    def _get_paginator(self):
         if self._is_extra_action:
             return None
-        return super().get_response_serializers()
+        return super()._get_paginator()
+
+    def _get_filter_parameters(self):
+        if self._is_extra_action:
+            return []
+        return super()._get_filter_parameters()
 
     @property
     def _is_extra_action(self) -> bool:
-        return self.view.action in [action.__name__ for action in self.view.get_extra_actions()]
+        try:
+            return self.view.action in [action.__name__ for action in self.view.get_extra_actions()]
+        except AttributeError:
+            return False

@@ -6,7 +6,8 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 from django.db.models import Q
 from django.utils.functional import cached_property
-from rest_framework import status
+from drf_spectacular.utils import extend_schema
+from rest_framework import serializers, status
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound, Throttled
 from rest_framework.request import Request
@@ -281,11 +282,23 @@ class PreviewTemplateException(Exception):
 
 
 class PreviewTemplateMixin:
+    class PreviewTemplateRequestSerializer(serializers.Serializer):
+        template_body = serializers.CharField(required=False, allow_null=True)
+        template_name = serializers.CharField(required=False, allow_null=True)
+        payload = serializers.DictField(required=False, allow_null=True)
+
+    class PreviewTemplateResponseSerializer(serializers.Serializer):
+        preview = serializers.CharField(allow_null=True)
+
+    @extend_schema(request=PreviewTemplateRequestSerializer, responses=PreviewTemplateResponseSerializer)
     @action(methods=["post"], detail=True)
     def preview_template(self, request, pk):
-        template_body = request.data.get("template_body", None)
-        template_name = request.data.get("template_name", None)
-        payload = request.data.get("payload", None)
+        request_serializer = self.PreviewTemplateRequestSerializer(data=request.data)
+        request_serializer.is_valid(raise_exception=True)
+
+        template_body = request_serializer.validated_data.get("template_body")
+        template_name = request_serializer.validated_data.get("template_name")
+        payload = request_serializer.validated_data.get("payload")
 
         try:
             alert_to_template = self.get_alert_to_template(payload=payload)
