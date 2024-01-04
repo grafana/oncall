@@ -19,7 +19,7 @@ import TemplateResult from 'containers/TemplateResult/TemplateResult';
 import TemplatesAlertGroupsList, { TEMPLATE_PAGE } from 'containers/TemplatesAlertGroupsList/TemplatesAlertGroupsList';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
-import { AlertTemplatesDTO } from 'models/alert_templates';
+import { AlertTemplatesDTO } from 'models/alert_templates/alert_templates';
 import { Alert } from 'models/alertgroup/alertgroup.types';
 import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
 import { TemplateOptions } from 'pages/integration/Integration.config';

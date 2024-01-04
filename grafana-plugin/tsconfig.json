@@ -11,6 +11,7 @@
     "strict": false,
     "resolveJsonModule": true,
     "noImplicitAny": false,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "useDefineForClassFields": true
   }
 }

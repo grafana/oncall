@@ -1,4 +1,4 @@
-import { Channel } from 'models/channel';
+import { Channel } from 'models/channel/channel';
 import { EscalationChain } from 'models/escalation_chain/escalation_chain.types';
 import { OutgoingWebhook } from 'models/outgoing_webhook/outgoing_webhook.types';
 import { Schedule } from 'models/schedule/schedule.types';

@@ -8,6 +8,7 @@ from apps.api.views.features import (
     FEATURE_GRAFANA_CLOUD_CONNECTION,
     FEATURE_GRAFANA_CLOUD_NOTIFICATIONS,
     FEATURE_LIVE_SETTINGS,
+    FEATURE_MSTEAMS,
     FEATURE_SLACK,
     FEATURE_TELEGRAM,
 )
@@ -77,6 +78,22 @@ def test_oss_features_enabled_in_oss_installation_by_default(
     assert response.status_code == status.HTTP_200_OK
     assert FEATURE_GRAFANA_CLOUD_CONNECTION in response.json()
     assert FEATURE_GRAFANA_CLOUD_NOTIFICATIONS in response.json()
+    assert FEATURE_MSTEAMS not in response.json()
+
+
+@pytest.mark.django_db
+@override_settings(IS_OPEN_SOURCE=False)
+def test_non_oss_features_enabled(
+    make_organization_and_user_with_plugin_token,
+    make_user_auth_headers,
+):
+    _, user, token = make_organization_and_user_with_plugin_token()
+    client = APIClient()
+    url = reverse("api-internal:features")
+    response = client.get(url, format="json", **make_user_auth_headers(user, token))
+
+    assert response.status_code == status.HTTP_200_OK
+    assert FEATURE_MSTEAMS in response.json()
 
 
 @pytest.mark.django_db

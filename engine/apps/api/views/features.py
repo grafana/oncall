@@ -8,6 +8,7 @@ from apps.auth_token.auth import PluginAuthentication
 from apps.base.utils import live_settings
 from apps.labels.utils import is_labels_feature_enabled
 
+FEATURE_MSTEAMS = "msteams"
 FEATURE_SLACK = "slack"
 FEATURE_TELEGRAM = "telegram"
 FEATURE_LIVE_SETTINGS = "live_settings"
@@ -55,6 +56,8 @@ class FeaturesAPIView(APIView):
                 enabled_features.append(FEATURE_LIVE_SETTINGS)
             if live_settings.GRAFANA_CLOUD_NOTIFICATIONS_ENABLED:
                 enabled_features.append(FEATURE_GRAFANA_CLOUD_NOTIFICATIONS)
+        else:
+            enabled_features.append(FEATURE_MSTEAMS)
 
         if settings.FEATURE_GRAFANA_ALERTING_V2_ENABLED:
             enabled_features.append(FEATURE_GRAFANA_ALERTING_V2)
