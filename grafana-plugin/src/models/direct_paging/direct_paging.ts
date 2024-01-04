@@ -1,4 +1,4 @@
-import { action, observable } from 'mobx';
+import { action, observable, makeObservable } from 'mobx';
 
 import { UserResponders } from 'containers/AddResponders/AddResponders.types';
 import { Alert } from 'models/alertgroup/alertgroup.types';
@@ -23,6 +23,8 @@ export class DirectPagingStore extends BaseStore {
 
   constructor(rootStore: RootStore) {
     super(rootStore);
+
+    makeObservable(this);
 
     this.path = '/direct_paging/';
   }
