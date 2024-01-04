@@ -21,7 +21,9 @@ def sync_organization(organization: Organization) -> None:
     with task_lock(lock_id, random_value) as acquired:
         if acquired:
             _sync_organization(organization)
-        # else, sync already running
+        else:
+            # sync already running
+            logger.info(f"Sync for Organization {organization.pk} already in progress.")
 
 
 def _sync_organization(organization: Organization) -> None:
