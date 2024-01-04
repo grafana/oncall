@@ -14,21 +14,25 @@ const DEFAULT_VARIABLE_CONFIG: Partial<ConstructorParameters<typeof QueryVariabl
   type: 'query',
 };
 
-const getVariables = ({ isOpenSource }: InsightsConfig) => [
+const getVariables = ({ isOpenSource, datasource }: InsightsConfig) => [
   // Selectable
-  new DataSourceVariable({
-    name: 'datasource',
-    label: 'Data source',
-    pluginId: 'prometheus',
-    ...(isOpenSource && { value: 'grafanacloud-usage' }),
-  }),
+  ...(isOpenSource
+    ? [
+        new DataSourceVariable({
+          name: 'datasource',
+          label: 'Data source',
+          pluginId: 'prometheus',
+          value: 'grafanacloud-usage',
+        }),
+      ]
+    : []),
   new QueryVariable({
     ...DEFAULT_VARIABLE_CONFIG,
     name: 'instance',
     label: 'Instance',
     text: ['All'],
     value: ['$__all'],
-    datasource: { uid: '$datasource' },
+    datasource,
     definition: 'label_values(${alert_groups_total},slug)',
     query: {
       query: 'label_values(${alert_groups_total},slug)',
@@ -41,7 +45,7 @@ const getVariables = ({ isOpenSource }: InsightsConfig) => [
     label: 'Team',
     text: ['All'],
     value: ['$__all'],
-    datasource: { uid: '$datasource' },
+    datasource,
     definition: 'label_values(${alert_groups_total}{slug=~"$instance"},team)',
     query: {
       query: 'label_values(${alert_groups_total}{slug=~"$instance"},team)',
@@ -55,7 +59,7 @@ const getVariables = ({ isOpenSource }: InsightsConfig) => [
     label: 'Integration',
     text: ['All'],
     value: ['$__all'],
-    datasource: { uid: '$datasource' },
+    datasource,
     definition: 'label_values(${alert_groups_total}{team=~"$team",slug=~"$instance"},integration)',
     query: {
       query: 'label_values(${alert_groups_total}{team=~"$team",slug=~"$instance"},integration)',
@@ -69,7 +73,7 @@ const getVariables = ({ isOpenSource }: InsightsConfig) => [
     ...DEFAULT_VARIABLE_CONFIG,
     name: 'alert_groups_total',
     label: 'alert_groups_total',
-    datasource: { uid: '$datasource' },
+    datasource,
     query: {
       query: 'metrics(alert_groups_total)',
       refId: 'PrometheusVariableQueryEditor-VariableQuery',
@@ -84,7 +88,7 @@ const getVariables = ({ isOpenSource }: InsightsConfig) => [
     ...DEFAULT_VARIABLE_CONFIG,
     name: 'user_was_notified_of_alert_groups_total',
     label: 'user_was_notified_of_alert_groups_total',
-    datasource: { uid: '$datasource' },
+    datasource,
     definition: 'metrics(user_was_notified_of_alert_groups_total)',
     query: {
       query: 'metrics(user_was_notified_of_alert_groups_total)',
@@ -97,7 +101,7 @@ const getVariables = ({ isOpenSource }: InsightsConfig) => [
     ...DEFAULT_VARIABLE_CONFIG,
     name: 'alert_groups_response_time_seconds_bucket',
     label: 'alert_groups_response_time_seconds_bucket',
-    datasource: { uid: '$datasource' },
+    datasource,
     definition: 'metrics(alert_groups_response_time_seconds_bucket)',
     query: {
       query: 'metrics(alert_groups_response_time_seconds_bucket)',
@@ -109,7 +113,7 @@ const getVariables = ({ isOpenSource }: InsightsConfig) => [
     ...DEFAULT_VARIABLE_CONFIG,
     name: 'alert_groups_response_time_seconds_sum',
     label: 'alert_groups_response_time_seconds_sum',
-    datasource: { uid: '$datasource' },
+    datasource,
     definition: 'metrics(alert_groups_response_time_seconds_sum)',
     query: {
       query: 'metrics(alert_groups_response_time_seconds_sum)',
@@ -121,7 +125,7 @@ const getVariables = ({ isOpenSource }: InsightsConfig) => [
     ...DEFAULT_VARIABLE_CONFIG,
     name: 'alert_groups_response_time_seconds_count',
     label: 'alert_groups_response_time_seconds_count',
-    datasource: { uid: '$datasource' },
+    datasource,
     definition: 'metrics(alert_groups_response_time_seconds_count)',
     query: {
       query: 'metrics(alert_groups_response_time_seconds_count)',

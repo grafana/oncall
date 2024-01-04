@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 
 import {
   EmbeddedScene,
@@ -31,13 +31,46 @@ import getNewAlertGroupsNotificationsInTotalScene from './scenes/NewAlertGroupsN
 import getTotalAlertGroupsScene from './scenes/TotalAlertGroups';
 import getTotalAlertGroupsByStateScene from './scenes/TotalAlertGroupsByState';
 import getVariables from './variables';
+import { getDataSource } from './Insights.helpers';
+import { Alert } from '@grafana/ui';
+import Text from 'components/Text/Text';
+import { DOCS_ROOT } from 'utils/consts';
 
 const Insights = observer(() => {
   const { isOpenSource } = useStore();
+  const [alertVisible, setAlertVisible] = useState(true);
 
-  const rootScene = useMemo(() => getRootScene({ isOpenSource }), [isOpenSource]);
+  const rootScene = useMemo(
+    () => getRootScene({ isOpenSource, datasource: getDataSource(isOpenSource) }),
+    [isOpenSource]
+  );
 
-  return <rootScene.Component model={rootScene} />;
+  return (
+    <>
+      {isOpenSource && alertVisible && (
+        <Alert onRemove={() => setAlertVisible(false)} severity="info" title="">
+          {
+            <>
+              In order to see insights you need to set up Prometheus, add it to your Grafana instance as a data source
+              and select in Data source dropdown.{' '}
+              <>
+                You can find out more in
+                <a
+                  href={`${DOCS_ROOT}/insights-and-metrics/#for-open-source-customers`}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  <Text type="link"> documentation</Text>
+                </a>
+                .
+              </>
+            </>
+          }
+        </Alert>
+      )}
+      <rootScene.Component model={rootScene} />
+    </>
+  );
 });
 
 const getRootScene = (config: InsightsConfig) =>
@@ -65,20 +98,20 @@ const getRootScene = (config: InsightsConfig) =>
               new SceneFlexLayout({
                 height: 200,
                 children: [
-                  getTotalAlertGroupsScene(),
-                  getTotalAlertGroupsByStateScene(),
-                  getNewAlertGroupsForSelectedPeriodScene(),
-                  getMTTRScene(),
-                  getMTTRChangedForPeriodStatScene(),
+                  getTotalAlertGroupsScene(config),
+                  getTotalAlertGroupsByStateScene(config),
+                  getNewAlertGroupsForSelectedPeriodScene(config),
+                  getMTTRScene(config),
+                  getMTTRChangedForPeriodStatScene(config),
                 ],
               }),
               new SceneFlexLayout({
                 height: 400,
-                children: [getNewAlertGroupsDuringTimePeriodScene()],
+                children: [getNewAlertGroupsDuringTimePeriodScene(config)],
               }),
               new SceneFlexLayout({
                 height: 400,
-                children: [getMTTRChangedForPeriodTimeseriesScene()],
+                children: [getMTTRChangedForPeriodTimeseriesScene(config)],
               }),
             ],
           }),
@@ -89,7 +122,7 @@ const getRootScene = (config: InsightsConfig) =>
           isCollapsed: false,
           body: new SceneFlexLayout({
             height: 400,
-            children: [getAlertGroupsByIntegrationScene(), getMTTRByIntegrationScene()],
+            children: [getAlertGroupsByIntegrationScene(config), getMTTRByIntegrationScene(config)],
           }),
         }),
         new NestedScene({
@@ -101,13 +134,13 @@ const getRootScene = (config: InsightsConfig) =>
             children: [
               new SceneFlexLayout({
                 height: 400,
-                children: [getNewAlertGroupsNotificationsDuringTimePeriodScene()],
+                children: [getNewAlertGroupsNotificationsDuringTimePeriodScene(config)],
               }),
               new SceneFlexLayout({
                 height: 400,
                 children: [
-                  getNewAlertGroupsNotificationsInTotalScene(),
-                  getNewAlertGroupsNotificationsForPeriodTableScene(),
+                  getNewAlertGroupsNotificationsInTotalScene(config),
+                  getNewAlertGroupsNotificationsForPeriodTableScene(config),
                 ],
               }),
             ],
@@ -122,7 +155,7 @@ const getRootScene = (config: InsightsConfig) =>
             children: [
               new SceneFlexLayout({
                 height: 400,
-                children: [getAlertGroupsByTeamScene(), getMTTRByTeamScene()],
+                children: [getAlertGroupsByTeamScene(config), getMTTRByTeamScene(config)],
               }),
             ],
           }),

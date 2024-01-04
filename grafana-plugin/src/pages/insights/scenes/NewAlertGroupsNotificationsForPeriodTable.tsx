@@ -1,9 +1,10 @@
 import { ThresholdsMode } from '@grafana/data';
 import { SceneDataTransformer, SceneFlexItem, SceneQueryRunner, VizPanel } from '@grafana/scenes';
+import { InsightsConfig } from '../Insights.types';
 
-export default function getNewAlertGroupsNotificationsForPeriodTableScene() {
+export default function getNewAlertGroupsNotificationsForPeriodTableScene({ datasource }: InsightsConfig) {
   const query = new SceneQueryRunner({
-    datasource: { uid: '$datasource' },
+    datasource,
     queries: [
       {
         editorMode: 'code',
