@@ -2,9 +2,8 @@ import React from 'react';
 
 import { Button, Checkbox, HorizontalGroup, Icon } from '@grafana/ui';
 import cn from 'classnames/bind';
-import { observe } from 'mobx';
+import { Lambda, observe } from 'mobx';
 import { observer } from 'mobx-react';
-import { Lambda } from 'mobx/lib/internal';
 
 import GTable from 'components/GTable/GTable';
 import Text from 'components/Text/Text';

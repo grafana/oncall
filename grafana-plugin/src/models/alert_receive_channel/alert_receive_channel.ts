@@ -1,7 +1,7 @@
 import { omit } from 'lodash-es';
-import { action, observable } from 'mobx';
+import { action, observable, makeObservable, runInAction } from 'mobx';
 
-import { AlertTemplatesDTO } from 'models/alert_templates';
+import { AlertTemplatesDTO } from 'models/alert_templates/alert_templates';
 import { Alert } from 'models/alertgroup/alertgroup.types';
 import BaseStore from 'models/base_store';
 import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
@@ -9,7 +9,6 @@ import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
 import { Heartbeat } from 'models/heartbeat/heartbeat.types';
 import { OutgoingWebhook } from 'models/outgoing_webhook/outgoing_webhook.types';
 import { makeRequest } from 'network';
-import { Mixpanel } from 'services/mixpanel';
 import { RootStore } from 'state';
 import { move } from 'state/helpers';
 import { SelectOption } from 'state/types';
@@ -64,6 +63,8 @@ export class AlertReceiveChannelStore extends BaseStore {
   constructor(rootStore: RootStore) {
     super(rootStore);
 
+    makeObservable(this);
+
     this.path = '/alert_receive_channels/';
   }
 
@@ -95,11 +96,13 @@ export class AlertReceiveChannelStore extends BaseStore {
   async loadItem(id: AlertReceiveChannel['id'], skipErrorHandling = false): Promise<AlertReceiveChannel> {
     const alertReceiveChannel = await this.getById(id, skipErrorHandling);
 
-    // @ts-ignore
-    this.items = {
-      ...this.items,
-      [id]: omit(alertReceiveChannel, 'heartbeat'),
-    };
+    runInAction(() => {
+      // @ts-ignore
+      this.items = {
+        ...this.items,
+        [id]: omit(alertReceiveChannel, 'heartbeat'),
+      };
+    });
 
     this.populateHearbeats([alertReceiveChannel]);
 
@@ -112,20 +115,24 @@ export class AlertReceiveChannelStore extends BaseStore {
 
     const { results } = await makeRequest(this.path, { params });
 
-    this.items = {
-      ...this.items,
-      ...results.reduce(
-        (acc: { [key: number]: AlertReceiveChannel }, item: AlertReceiveChannel) => ({
-          ...acc,
-          [item.id]: omit(item, 'heartbeat'),
-        }),
-        {}
-      ),
-    };
+    runInAction(() => {
+      this.items = {
+        ...this.items,
+        ...results.reduce(
+          (acc: { [key: number]: AlertReceiveChannel }, item: AlertReceiveChannel) => ({
+            ...acc,
+            [item.id]: omit(item, 'heartbeat'),
+          }),
+          {}
+        ),
+      };
+    });
 
     this.populateHearbeats(results);
 
-    this.searchResult = results.map((item: AlertReceiveChannel) => item.id);
+    runInAction(() => {
+      this.searchResult = results.map((item: AlertReceiveChannel) => item.id);
+    });
 
     this.updateCounters();
 
@@ -149,24 +156,28 @@ export class AlertReceiveChannelStore extends BaseStore {
       return undefined;
     }
 
-    this.items = {
-      ...this.items,
-      ...results.reduce(
-        (acc: { [key: number]: AlertReceiveChannel }, item: AlertReceiveChannel) => ({
-          ...acc,
-          [item.id]: omit(item, 'heartbeat'),
-        }),
-        {}
-      ),
-    };
+    runInAction(() => {
+      this.items = {
+        ...this.items,
+        ...results.reduce(
+          (acc: { [key: number]: AlertReceiveChannel }, item: AlertReceiveChannel) => ({
+            ...acc,
+            [item.id]: omit(item, 'heartbeat'),
+          }),
+          {}
+        ),
+      };
+    });
 
     this.populateHearbeats(results);
 
-    this.paginatedSearchResult = {
-      count,
-      results: results.map((item: AlertReceiveChannel) => item.id),
-      page_size,
-    };
+    runInAction(() => {
+      this.paginatedSearchResult = {
+        count,
+        results: results.map((item: AlertReceiveChannel) => item.id),
+        page_size,
+      };
+    });
 
     if (updateCounters) {
       this.updateCounters();
@@ -184,10 +195,12 @@ export class AlertReceiveChannelStore extends BaseStore {
       return acc;
     }, {});
 
-    this.rootStore.heartbeatStore.items = {
-      ...this.rootStore.heartbeatStore.items,
-      ...heartbeats,
-    };
+    runInAction(() => {
+      this.rootStore.heartbeatStore.items = {
+        ...this.rootStore.heartbeatStore.items,
+        ...heartbeats,
+      };
+    });
 
     const alertReceiveChannelToHeartbeat = alertReceiveChannels.reduce(
       (acc: any, alertReceiveChannel: AlertReceiveChannel) => {
@@ -200,10 +213,12 @@ export class AlertReceiveChannelStore extends BaseStore {
       {}
     );
 
-    this.alertReceiveChannelToHeartbeat = {
-      ...this.alertReceiveChannelToHeartbeat,
-      ...alertReceiveChannelToHeartbeat,
-    };
+    runInAction(() => {
+      this.alertReceiveChannelToHeartbeat = {
+        ...this.alertReceiveChannelToHeartbeat,
+        ...alertReceiveChannelToHeartbeat,
+      };
+    });
   }
 
   @action
@@ -220,42 +235,48 @@ export class AlertReceiveChannelStore extends BaseStore {
       {}
     );
 
-    this.channelFilters = {
-      ...this.channelFilters,
-      ...channelFilters,
-    };
-
-    if (isOverwrite) {
-      // This is needed because on Move Up/Down/Removal the store no longer reflects the correct state
+    runInAction(() => {
       this.channelFilters = {
+        ...this.channelFilters,
         ...channelFilters,
       };
+    });
+
+    if (isOverwrite) {
+      runInAction(() => {
+        // This is needed because on Move Up/Down/Removal the store no longer reflects the correct state
+        this.channelFilters = {
+          ...channelFilters,
+        };
+      });
     }
 
-    this.channelFilterIds = {
-      ...this.channelFilterIds,
-      [alertReceiveChannelId]: response.map((channelFilter: ChannelFilter) => channelFilter.id),
-    };
+    runInAction(() => {
+      this.channelFilterIds = {
+        ...this.channelFilterIds,
+        [alertReceiveChannelId]: response.map((channelFilter: ChannelFilter) => channelFilter.id),
+      };
+    });
   }
 
   @action
   async updateChannelFilter(channelFilterId: ChannelFilter['id']) {
     const response = await makeRequest(`/channel_filters/${channelFilterId}/`, {});
 
-    this.channelFilters = {
-      ...this.channelFilters,
-      [channelFilterId]: response,
-    };
+    runInAction(() => {
+      this.channelFilters = {
+        ...this.channelFilters,
+        [channelFilterId]: response,
+      };
+    });
   }
 
-  @action
   async migrateChannel(id: AlertReceiveChannel['id']) {
     return await makeRequest(`/alert_receive_channels/${id}/migrate`, {
       method: 'POST',
     });
   }
 
-  @action
   async createChannelFilter(data: Partial<ChannelFilter>) {
     return await makeRequest('/channel_filters/', {
       method: 'POST',
@@ -270,10 +291,12 @@ export class AlertReceiveChannelStore extends BaseStore {
       data,
     });
 
-    this.channelFilters = {
-      ...this.channelFilters,
-      [response.id]: response,
-    };
+    runInAction(() => {
+      this.channelFilters = {
+        ...this.channelFilters,
+        [response.id]: response,
+      };
+    });
 
     return response;
   }
@@ -284,8 +307,6 @@ export class AlertReceiveChannelStore extends BaseStore {
     oldIndex: number,
     newIndex: number
   ) {
-    Mixpanel.track('Move ChannelFilter', null);
-
     const channelFilterId = this.channelFilterIds[alertReceiveChannelId][oldIndex];
 
     this.channelFilterIds[alertReceiveChannelId] = move(
@@ -301,8 +322,6 @@ export class AlertReceiveChannelStore extends BaseStore {
 
   @action
   async deleteChannelFilter(channelFilterId: ChannelFilter['id']) {
-    Mixpanel.track('Delete ChannelFilter', null);
-
     const channelFilter = this.channelFilters[channelFilterId];
 
     this.channelFilterIds[channelFilter.alert_receive_channel].splice(
@@ -320,7 +339,10 @@ export class AlertReceiveChannelStore extends BaseStore {
   @action.bound
   async updateAlertReceiveChannelOptions() {
     const response = await makeRequest(`/alert_receive_channels/integration_options/`, {});
-    this.alertReceiveChannelOptions = response;
+
+    runInAction(() => {
+      this.alertReceiveChannelOptions = response;
+    });
   }
 
   getIntegration(alertReceiveChannel: Partial<AlertReceiveChannel>): SelectOption {
@@ -338,13 +360,14 @@ export class AlertReceiveChannelStore extends BaseStore {
   async saveAlertReceiveChannel(id: AlertReceiveChannel['id'], data: Partial<AlertReceiveChannel>) {
     const item = await this.update(id, data, undefined, true);
 
-    this.items = {
-      ...this.items,
-      [id]: item,
-    };
+    runInAction(() => {
+      this.items = {
+        ...this.items,
+        [id]: item,
+      };
+    });
   }
 
-  @action
   async deleteAlertReceiveChannel(id: AlertReceiveChannel['id']) {
     return await this.delete(id);
   }
@@ -356,20 +379,24 @@ export class AlertReceiveChannelStore extends BaseStore {
       withCredentials: true,
     });
 
-    this.templates = {
-      ...this.templates,
-      [alertReceiveChannelId]: response,
-    };
+    runInAction(() => {
+      this.templates = {
+        ...this.templates,
+        [alertReceiveChannelId]: response,
+      };
+    });
   }
 
   @action
   async updateItem(id: AlertReceiveChannel['id']) {
     const item = await this.getById(id);
 
-    this.items = {
-      ...this.items,
-      [id]: item,
-    };
+    runInAction(() => {
+      this.items = {
+        ...this.items,
+        [id]: item,
+      };
+    });
   }
 
   @action
@@ -380,10 +407,12 @@ export class AlertReceiveChannelStore extends BaseStore {
       withCredentials: true,
     });
 
-    this.templates = {
-      ...this.templates,
-      [alertReceiveChannelId]: response,
-    };
+    runInAction(() => {
+      this.templates = {
+        ...this.templates,
+        [alertReceiveChannelId]: response,
+      };
+    });
   }
 
   async getGrafanaAlertingContactPoints() {
@@ -394,22 +423,24 @@ export class AlertReceiveChannelStore extends BaseStore {
   async updateConnectedContactPoints(alertReceiveChannelId: AlertReceiveChannel['id']) {
     const response = await makeRequest(`${this.path}${alertReceiveChannelId}/connected_contact_points `, {});
 
-    this.connectedContactPoints = {
-      ...this.connectedContactPoints,
+    runInAction(() => {
+      this.connectedContactPoints = {
+        ...this.connectedContactPoints,
 
-      [alertReceiveChannelId]: response.reduce((list: ContactPoint[], payload) => {
-        payload.contact_points.forEach((contactPoint: { name: string; notification_connected: boolean }) => {
-          list.push({
-            dataSourceName: payload.name,
-            dataSourceId: payload.uid,
-            contactPoint: contactPoint.name,
-            notificationConnected: contactPoint.notification_connected,
-          } as ContactPoint);
-        });
+        [alertReceiveChannelId]: response.reduce((list: ContactPoint[], payload) => {
+          payload.contact_points.forEach((contactPoint: { name: string; notification_connected: boolean }) => {
+            list.push({
+              dataSourceName: payload.name,
+              dataSourceId: payload.uid,
+              contactPoint: contactPoint.name,
+              notificationConnected: contactPoint.notification_connected,
+            } as ContactPoint);
+          });
 
-        return list;
-      }, []),
-    };
+          return list;
+        }, []),
+      };
+    });
   }
 
   async connectContactPoint(
@@ -460,13 +491,6 @@ export class AlertReceiveChannelStore extends BaseStore {
     return integration_log;
   }
 
-  async installSentry(sentry_payload: string) {
-    return await makeRequest('/sentry_complete_install/', {
-      method: 'POST',
-      params: { sentry_payload },
-    });
-  }
-
   async sendDemoAlert(id: AlertReceiveChannel['id'], payload: string = undefined) {
     const requestConfig: any = {
       method: 'POST',
@@ -479,8 +503,6 @@ export class AlertReceiveChannelStore extends BaseStore {
     }
 
     await makeRequest(`${this.path}${id}/send_demo_alert/`, requestConfig).catch(showApiError);
-
-    Mixpanel.track('Send Demo Incident', null);
   }
 
   async sendDemoAlertToParticularRoute(id: ChannelFilter['id']) {
@@ -508,25 +530,31 @@ export class AlertReceiveChannelStore extends BaseStore {
     });
   }
 
+  @action
   async updateCounters() {
     const counters = await makeRequest(`${this.path}counters`, {
       method: 'GET',
     });
 
-    this.counters = counters;
+    runInAction(() => {
+      this.counters = counters;
+    });
   }
 
+  @action
   async updateCountersForIntegration(id: AlertReceiveChannel['id']): Promise<any> {
     const counters = await makeRequest(`${this.path}${id}/counters`, {
       method: 'GET',
     });
 
-    this.counters = {
-      ...this.counters,
-      [id]: {
-        ...counters[id],
-      },
-    };
+    runInAction(() => {
+      this.counters = {
+        ...this.counters,
+        [id]: {
+          ...counters[id],
+        },
+      };
+    });
 
     return counters;
   }

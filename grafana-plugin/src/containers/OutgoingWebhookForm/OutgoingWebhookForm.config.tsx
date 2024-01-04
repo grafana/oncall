@@ -123,6 +123,10 @@ export function createForm(
               label: 'PUT',
             },
             {
+              value: 'PATCH',
+              label: 'PATCH',
+            },
+            {
               value: 'DELETE',
               label: 'DELETE',
             },

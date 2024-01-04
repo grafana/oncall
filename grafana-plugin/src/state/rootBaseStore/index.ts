@@ -1,6 +1,6 @@
 import { locationService } from '@grafana/runtime';
 import { contextSrv } from 'grafana/app/core/core';
-import { action, computed, observable } from 'mobx';
+import { action, computed, makeObservable, observable, runInAction } from 'mobx';
 import moment from 'moment-timezone';
 import qs from 'query-string';
 import { OnCallAppPluginMeta } from 'types';
@@ -113,8 +113,11 @@ export class RootBaseStore {
   labelsStore = new LabelStore(this);
   loaderStore = LoaderStore;
 
+  constructor() {
+    makeObservable(this);
+  }
   @action.bound
-  async loadBasicData() {
+  loadBasicData = async () => {
     const updateFeatures = async () => {
       await this.updateFeatures();
 
@@ -131,18 +134,24 @@ export class RootBaseStore {
       () => this.grafanaTeamStore.updateItems(),
       () => updateFeatures(),
     ]);
-    this.isBasicDataLoaded = true;
-  }
+    this.setIsBasicDataLoaded(true);
+  };
 
-  @action.bound
-  async loadMasterData() {
+  @action
+  loadMasterData = async () => {
     Promise.all([
       this.userStore.updateNotificationPolicyOptions(),
       this.userStore.updateNotifyByOptions(),
       this.alertReceiveChannelStore.updateAlertReceiveChannelOptions(),
     ]);
+  };
+
+  @action
+  setIsBasicDataLoaded(value: boolean) {
+    this.isBasicDataLoaded = value;
   }
 
+  @action
   setupPluginError(errorMsg: string) {
     this.initializationError = errorMsg;
   }
@@ -167,7 +176,7 @@ export class RootBaseStore {
    * Finally, try to load the current user from the OnCall backend
    */
   async setupPlugin(meta: OnCallAppPluginMeta) {
-    this.initializationError = null;
+    this.setupPluginError(null);
     this.onCallApiUrl = getOnCallApiUrl(meta);
 
     if (!FaroHelper.faro) {
@@ -245,9 +254,11 @@ export class RootBaseStore {
       }
     } else {
       // everything is all synced successfully at this point..
-      this.backendVersion = pluginConnectionStatus.version;
-      this.backendLicense = pluginConnectionStatus.license;
-      this.recaptchaSiteKey = pluginConnectionStatus.recaptcha_site_key;
+      runInAction(() => {
+        this.backendVersion = pluginConnectionStatus.version;
+        this.backendLicense = pluginConnectionStatus.license;
+        this.recaptchaSiteKey = pluginConnectionStatus.recaptcha_site_key;
+      });
     }
 
     if (!this.userStore.currentUser) {
@@ -293,13 +304,16 @@ export class RootBaseStore {
   @action.bound
   async updateFeatures() {
     const response = await makeRequest('/features/', {});
-    this.features = response.reduce(
-      (acc: any, key: string) => ({
-        ...acc,
-        [key]: true,
-      }),
-      {}
-    );
+
+    runInAction(() => {
+      this.features = response.reduce(
+        (acc: any, key: string) => ({
+          ...acc,
+          [key]: true,
+        }),
+        {}
+      );
+    });
   }
 
   @action

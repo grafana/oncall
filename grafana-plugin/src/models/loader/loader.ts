@@ -1,4 +1,4 @@
-import { action, observable } from 'mobx';
+import { action, observable, makeObservable } from 'mobx';
 
 interface LoadingResult {
   [key: string]: boolean;
@@ -7,6 +7,10 @@ interface LoadingResult {
 class LoaderStoreClass {
   @observable
   items: LoadingResult = {};
+
+  constructor() {
+    makeObservable(this);
+  }
 
   @action
   setLoadingAction(actionKey: string, isLoading: boolean) {
