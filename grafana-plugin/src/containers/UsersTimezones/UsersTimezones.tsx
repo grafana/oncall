@@ -291,7 +291,6 @@ const AvatarGroup = observer((props: AvatarGroupProps) => {
                 visibility: !active && index >= LIMIT ? 'hidden' : 'visible',
                 zIndex: array.length - index - 1,
               }}
-              onClick={() => store.timezoneStore.setSelectedTimezoneOffsetBasedOnTz(user.timezone)}
             >
               <ScheduleBorderedAvatar
                 colors={colorSchemeList}
