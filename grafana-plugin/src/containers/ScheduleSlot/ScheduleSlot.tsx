@@ -11,7 +11,7 @@ import Text from 'components/Text/Text';
 import WorkingHours from 'components/WorkingHours/WorkingHours';
 import { getShiftName, SHIFT_SWAP_COLOR } from 'models/schedule/schedule.helpers';
 import { Event, ShiftSwap } from 'models/schedule/schedule.types';
-import { getTzOffsetString } from 'models/timezone/timezone.helpers';
+import { getOffsetOfCurrentUser, getTzOffsetString } from 'models/timezone/timezone.helpers';
 import { User } from 'models/user/user.types';
 import { useStore } from 'state/useStore';
 
@@ -409,7 +409,7 @@ const ScheduleSlotDetails = observer((props: ScheduleSlotDetailsProps) => {
             <Icon className={cx('icon')} name="clock-nine" />
           </div>
           <Text type="primary" className={cx('second-column')}>
-            User local time
+            User's local time
             <br />
             {currentMoment.tz(user?.timezone).format('DD MMM, HH:mm')}
             <br />({getTzOffsetString(currentMoment.tz(user?.timezone))})
@@ -428,9 +428,9 @@ const ScheduleSlotDetails = observer((props: ScheduleSlotDetailsProps) => {
           <Text type="primary" className={cx('second-column')}>
             This shift
             <br />
-            {dayjs(event.start).tz(user?.timezone).format('DD MMM, HH:mm')}
+            {dayjs(event.start).utcOffset(getOffsetOfCurrentUser()).format('DD MMM, HH:mm')}
             <br />
-            {dayjs(event.end).tz(user?.timezone).format('DD MMM, HH:mm')}
+            {dayjs(event.end).utcOffset(getOffsetOfCurrentUser()).format('DD MMM, HH:mm')}
           </Text>
           <Text type="secondary">
             &nbsp; <br />

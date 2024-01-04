@@ -56,7 +56,7 @@ const ScheduleUserDetails: FC<ScheduleUserDetailsProps> = observer((props) => {
           height={35}
           renderAvatar={() => <Avatar src={user.avatar} size="large" />}
           renderIcon={() => null}
-        ></ScheduleBorderedAvatar>
+        />
 
         <VerticalGroup spacing="xs" width="100%">
           <div className={cx('username')}>
@@ -79,7 +79,7 @@ const ScheduleUserDetails: FC<ScheduleUserDetailsProps> = observer((props) => {
             <div className={cx('timezone-wrapper')}>
               <div className={cx('timezone-info')}>
                 <VerticalGroup spacing="none">
-                  <Text type="secondary">Your local time</Text>
+                  <Text type="secondary">Your current time</Text>
                   <Text type="secondary">{getCurrentlyLoggedInUserDate().format('DD MMM, HH:mm')}</Text>
                   <Text type="secondary">({getTzOffsetString(getCurrentlyLoggedInUserDate())})</Text>
                 </VerticalGroup>
@@ -87,7 +87,7 @@ const ScheduleUserDetails: FC<ScheduleUserDetailsProps> = observer((props) => {
 
               <div className={cx('timezone-info')}>
                 <VerticalGroup className={cx('timezone-info')} spacing="none">
-                  <Text>User's time</Text>
+                  <Text>User's local time</Text>
                   <Text>{`${getCurrentDateInTimezone(user.timezone).format('DD MMM, HH:mm')}`}</Text>
                   <Text>({userOffsetHoursStr})</Text>
                 </VerticalGroup>
