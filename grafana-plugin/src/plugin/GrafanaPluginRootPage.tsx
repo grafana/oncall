@@ -144,8 +144,7 @@ export const Root = observer((props: AppRootProps) => {
           >
             <Switch>
               <Route path={getRoutesForPage('alert-groups')} exact>
-                <Insights />
-                {/* <Incidents query={query} /> */}
+                <Incidents query={query} />
               </Route>
               <Route path={getRoutesForPage('alert-group')} exact>
                 <Incident query={query} pageTitle={pageTitle} setPageTitle={setPageTitle} />
