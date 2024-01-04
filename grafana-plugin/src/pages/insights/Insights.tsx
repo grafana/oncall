@@ -51,8 +51,11 @@ const Insights = observer(() => {
         <Alert onRemove={() => setAlertVisible(false)} severity="info" title="">
           {
             <>
-              In order to see insights you need to set up Prometheus, add it to your Grafana instance as a data source
-              and select in Data source dropdown.{' '}
+              In order to see insights you need to set up Prometheus, add it to your Grafana instance as a data source,
+              set FEATURE_PROMETHEUS_EXPORTER_ENABLED environment variable to true and then select your Data source in
+              the dropdown below.
+              <br />
+              <br />
               <>
                 You can find out more in
                 <a
