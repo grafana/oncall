@@ -69,3 +69,11 @@ class CustomButtonSerializer(serializers.ModelSerializer):
         if data is None:
             return False
         return data
+
+
+class CustomButtonFastSerializer(serializers.ModelSerializer):
+    id = serializers.CharField(read_only=True, source="public_primary_key")
+
+    class Meta:
+        model = CustomButton
+        fields = ["id", "name"]
