@@ -1,5 +1,5 @@
 import dayjs, { Dayjs } from 'dayjs';
-import { observable, action, computed } from 'mobx';
+import { observable, action, computed, makeObservable } from 'mobx';
 
 // TODO: move utils from Schedule.helpers to common place
 import { getStartOfWeekBasedOnCurrentDate } from 'pages/schedule/Schedule.helpers';
@@ -9,6 +9,8 @@ import { getOffsetOfCurrentUser, getGMTTimezoneLabelBasedOnOffset } from './time
 
 export class TimezoneStore {
   constructor(rootStore: RootStore) {
+    makeObservable(this);
+
     this.rootStore = rootStore;
   }
 
