@@ -711,9 +711,9 @@ ui:
 
 prometheus:
   enabled: false
-  extraScrapeConfigs: |
-    - job_name: 'oncall-exporter'
-      metrics_path: /metrics/
-      static_configs:
-        - targets:
-          - oncall-dev-engine.default.svc.cluster.local:8080
+  # extraScrapeConfigs: |
+  #   - job_name: 'oncall-exporter'
+  #     metrics_path: /metrics/
+  #     static_configs:
+  #       - targets:
+  #         - oncall-dev-engine.default.svc.cluster.local:8080
