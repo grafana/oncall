@@ -9,6 +9,8 @@ import { createOnCallSchedule } from '../utils/schedule';
 dayjs.extend(utc);
 
 test.use({ timezoneId: 'Europe/Moscow' }); // GMT+3 the whole year
+const currentUtcTime = dayjs().utc().format('HH:mm');
+const currentMoscowTime = dayjs().utcOffset(180).format('HH:mm');
 
 test('default dates in override creation modal are correct', async ({ adminRolePage }) => {
   const { page, userName } = adminRolePage;
@@ -24,6 +26,15 @@ test('default dates in override creation modal are correct', async ({ adminRoleP
   await page.getByText('GMT', { exact: true }).click();
 
   // Selected timezone and local time is correctly displayed
-  const currentTime = dayjs().utc().format('HH:mm');
-  await expect(page.getByText(`Current timezone: GMT, local time: ${currentTime}`)).toBeVisible();
+  await expect(page.getByText(`Current timezone: GMT, local time: ${currentUtcTime}`)).toBeVisible();
+
+  // User avatar tooltip shows correct time and timezones
+  await page.getByTestId('user-avatar-in-schedule').hover();
+  await expect(page.getByTestId('schedule-user-details_your-current-time')).toHaveText(/GMT\+3/);
+  await expect(page.getByTestId('schedule-user-details_your-current-time')).toHaveText(new RegExp(currentMoscowTime));
+  await expect(page.getByTestId('schedule-user-details_user-local-time')).toHaveText(/GMT\+3/);
+  await expect(page.getByTestId('schedule-user-details_user-local-time')).toHaveText(new RegExp(currentMoscowTime));
+
+  // Schedule slot shows correct times and timezones
+  await page.getByTestId('schedule-slot').hover();
 });

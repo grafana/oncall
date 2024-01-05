@@ -138,7 +138,7 @@ const ShiftSwapEvent = (props: ShiftSwapEventProps) => {
   const benefactorStoreUser = store.userStore.items[shiftSwap?.benefactor?.pk];
 
   const scheduleSlotContent = (
-    <div className={cx('root', { 'root__type_shift-swap': true })}>
+    <div className={cx('root', { 'root__type_shift-swap': true })} data-testid="schedule-slot">
       {shiftSwap && (
         <HorizontalGroup spacing="xs">
           {beneficiary && <Avatar size="xs" src={beneficiary.avatar_full} />}

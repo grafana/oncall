@@ -285,6 +285,7 @@ const AvatarGroup = observer((props: AvatarGroupProps) => {
           >
             <div
               className={cx('avatar')}
+              data-testid="user-avatar-in-schedule"
               style={{
                 left: active ? `${index * (AVATAR_WIDTH + AVATAR_GAP)}px` : `${index * 10}px`,
                 opacity: active ? 1 : Math.max(1 - index * 0.25, 0.25),

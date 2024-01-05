@@ -77,7 +77,7 @@ const ScheduleUserDetails: FC<ScheduleUserDetailsProps> = observer((props) => {
               </Text>
             </div>
             <div className={cx('timezone-wrapper')}>
-              <div className={cx('timezone-info')}>
+              <div className={cx('timezone-info')} data-testid="schedule-user-details_your-current-time">
                 <VerticalGroup spacing="none">
                   <Text type="secondary">Your current time</Text>
                   <Text type="secondary">{getCurrentlyLoggedInUserDate().format('DD MMM, HH:mm')}</Text>
@@ -85,7 +85,7 @@ const ScheduleUserDetails: FC<ScheduleUserDetailsProps> = observer((props) => {
                 </VerticalGroup>
               </div>
 
-              <div className={cx('timezone-info')}>
+              <div className={cx('timezone-info')} data-testid="schedule-user-details_user-local-time">
                 <VerticalGroup className={cx('timezone-info')} spacing="none">
                   <Text>User's local time</Text>
                   <Text>{`${getCurrentDateInTimezone(user.timezone).format('DD MMM, HH:mm')}`}</Text>
