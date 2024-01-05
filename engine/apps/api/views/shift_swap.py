@@ -101,7 +101,7 @@ class BaseShiftSwapViewSet(ModelViewSet):
         update_shift_swap_request_message.apply_async((shift_swap_request.pk,))
 
 
-class ShiftSwapViewSet(PublicPrimaryKeyMixin[ShiftSwapRequest], BaseShiftSwapViewSet):
+class ShiftSwapViewSet(PublicPrimaryKeyMixin, BaseShiftSwapViewSet):
     authentication_classes = (MobileAppAuthTokenAuthentication, PluginAuthentication)
     permission_classes = (IsAuthenticated, RBACPermission)
 

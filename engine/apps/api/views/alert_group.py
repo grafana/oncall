@@ -332,7 +332,7 @@ class AlertGroupView(
         obj = self.enrich([obj])[0]
         return obj
 
-    def retrieve(self, request, pk, *args, **kwargs):
+    def retrieve(self, request, *args, **kwargs):
         """Return alert group details.
 
         It is worth mentioning that `render_after_resolve_report_json` property will return a list
@@ -390,7 +390,7 @@ class AlertGroupView(
         - 1: web
 
         """
-        return super().retrieve(request, pk, *args, **kwargs)
+        return super().retrieve(request, *args, **kwargs)
 
     def enrich(self, alert_groups):
         """

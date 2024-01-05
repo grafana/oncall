@@ -1,4 +1,7 @@
 from drf_spectacular.openapi import AutoSchema
+from drf_spectacular.plumbing import get_view_model
+
+from common.api_helpers.mixins import PublicPrimaryKeyMixin
 
 
 class CustomAutoSchema(AutoSchema):
@@ -17,6 +20,21 @@ class CustomAutoSchema(AutoSchema):
         if self._is_extra_action:
             return []
         return super()._get_filter_parameters()
+
+    def _resolve_path_parameters(self, variables):
+        """A workaround to make public primary keys appear as strings in the OpenAPI schema."""
+
+        parameters = super()._resolve_path_parameters(variables)
+        if not isinstance(self.view, PublicPrimaryKeyMixin):
+            return parameters
+
+        for parameter in parameters:
+            if parameter["name"] == "id" and parameter["in"] == "path":
+                parameter["schema"]["type"] = "string"
+                model_name = get_view_model(self.view, emit_warnings=False)._meta.verbose_name
+                parameter["description"] = f"A string identifying this {model_name}."
+
+        return parameters
 
     @property
     def _is_extra_action(self) -> bool:
