@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Changed
+
+- Move Insights to OnCall as a separate page ([#2382](https://github.com/grafana/oncall-private/issues/2382))
+
+## v1.3.82 (2024-01-04)
+
 ### Added
 
 - Add ability to create an Outgoing Webhook with the PATCH HTTP method via the UI by @joeyorlando ([#3604](https://github.com/grafana/oncall/pull/3604))
