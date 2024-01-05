@@ -2,6 +2,7 @@ import React, { useCallback } from 'react';
 
 import { Button, HorizontalGroup, InlineField, Input } from '@grafana/ui';
 import cn from 'classnames/bind';
+import { observer } from 'mobx-react';
 
 import WithConfirm from 'components/WithConfirm/WithConfirm';
 import { UserSettingsTab } from 'containers/UserSettings/UserSettings.types';
@@ -17,7 +18,7 @@ interface MSTeamsConnectorProps {
   onTabChange: (tab: UserSettingsTab) => void;
 }
 
-const MSTeamsConnector = (props: MSTeamsConnectorProps) => {
+const MSTeamsConnector = observer((props: MSTeamsConnectorProps) => {
   const { id, onTabChange } = props;
 
   const store = useStore();
@@ -61,6 +62,6 @@ const MSTeamsConnector = (props: MSTeamsConnectorProps) => {
       )}
     </div>
   );
-};
+});
 
 export default MSTeamsConnector;

@@ -452,7 +452,7 @@ const WebhookTabsContent: React.FC<WebhookTabsProps> = ({
 const WebhookPresetBlocks: React.FC<{
   presets: OutgoingWebhookPreset[];
   onBlockClick: (preset: OutgoingWebhookPreset) => void;
-}> = ({ presets, onBlockClick }) => {
+}> = observer(({ presets, onBlockClick }) => {
   const store = useStore();
 
   const webhookPresetIcons = getWebhookPresetIcons(store.features);
@@ -490,6 +490,6 @@ const WebhookPresetBlocks: React.FC<{
       )}
     </div>
   );
-};
+});
 
 export default OutgoingWebhookForm;

@@ -3,8 +3,8 @@ import React, { useEffect, useState } from 'react';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
-import MSTeamsInstructions from 'components/MSTeams/MSTeamsInstructions';
 import Text from 'components/Text/Text';
+import MSTeamsInstructions from 'containers/MSTeams/MSTeamsInstructions';
 import { useStore } from 'state/useStore';
 
 import styles from 'containers/UserSettings/parts/tabs/MSTeamsInfo/MSTeamsInfo.module.css';
@@ -12,11 +12,10 @@ import styles from 'containers/UserSettings/parts/tabs/MSTeamsInfo/MSTeamsInfo.m
 const cx = cn.bind(styles);
 
 const MSTeamsInfo = observer(() => {
-  const store = useStore();
-  const { userStore, msteamsChannelStore } = store;
+  const { userStore, msteamsChannelStore } = useStore();
 
   const [verificationCode, setVerificationCode] = useState<string>();
-  const [onCallisAdded, setOnCallisAdded] = useState<boolean>(false);
+  const [onCallisAdded, setOnCallisAdded] = useState(false);
 
   useEffect(() => {
     userStore.sendBackendConfirmationCode(userStore.currentUserPk, 'MSTEAMS').then(setVerificationCode);

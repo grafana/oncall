@@ -30,7 +30,7 @@ export const ChatOpsConnectors = (props: ChatOpsConnectorsProps) => {
     msteamsChannelStore.updateMSTeamsChannels();
   }, []);
 
-  const isMSTeamsInstalled = Boolean(msteamsChannelStore.currentTeamToMSTeamsChannel?.length > 0);
+  const isMSTeamsInstalled = msteamsChannelStore.currentTeamToMSTeamsChannel?.length > 0;
 
   if (!isSlackInstalled && !isTelegramInstalled && !isMSTeamsInstalled) {
     return null;

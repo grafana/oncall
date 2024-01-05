@@ -2,6 +2,7 @@ import React, { FC } from 'react';
 
 import { Button, Icon, VerticalGroup, Field, Input } from '@grafana/ui';
 import cn from 'classnames/bind';
+import { observer } from 'mobx-react';
 import CopyToClipboard from 'react-copy-to-clipboard';
 
 import Block from 'components/GBlock/Block';
@@ -23,10 +24,9 @@ interface MSTeamsInstructionsProps {
 
 const cx = cn.bind(styles);
 
-const MSTeamsInstructions: FC<MSTeamsInstructionsProps> = (props) => {
+const MSTeamsInstructions: FC<MSTeamsInstructionsProps> = observer((props) => {
   const { onCallisAdded, showInfoBox, personalSettings, onHide = () => {}, verificationCode } = props;
-  const store = useStore();
-  const { msteamsChannelStore } = store;
+  const { msteamsChannelStore } = useStore();
 
   const handleMSTeamsGetChannels = () => {
     msteamsChannelStore.updateItems().then(() => {
@@ -128,6 +128,6 @@ const MSTeamsInstructions: FC<MSTeamsInstructionsProps> = (props) => {
       )}
     </VerticalGroup>
   );
-};
+});
 
 export default MSTeamsInstructions;

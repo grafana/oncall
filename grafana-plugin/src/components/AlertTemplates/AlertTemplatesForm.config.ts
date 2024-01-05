@@ -4,7 +4,7 @@ import { TemplateForEdit, commonTemplateForEdit } from './CommonAlertTemplatesFo
 
 export const getTemplatesForEdit = (features: Record<string, boolean>) => {
   if (features[AppFeature.MsTeams]) {
-    return Object.assign({}, commonTemplateForEdit, additionalTemplateForEdit);
+    return { ...commonTemplateForEdit, ...additionalTemplateForEdit };
   }
   return commonTemplateForEdit;
 };

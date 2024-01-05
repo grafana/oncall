@@ -5,9 +5,9 @@ import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
 import GTable from 'components/GTable/GTable';
-import MSTeamsInstructions from 'components/MSTeams/MSTeamsInstructions';
 import Text from 'components/Text/Text';
 import WithConfirm from 'components/WithConfirm/WithConfirm';
+import MSTeamsInstructions from 'containers/MSTeams/MSTeamsInstructions';
 import MSTeamsIntegrationButton from 'containers/MSTeamsIntegrationButton/MSTeamsIntegrationButton';
 import { MSTeamsChannel } from 'models/msteams_channel/msteams_channel.types';
 import { WithStoreProps } from 'state/types';

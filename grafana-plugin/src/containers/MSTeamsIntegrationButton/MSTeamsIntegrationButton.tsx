@@ -4,7 +4,7 @@ import { Button, Modal } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
-import MSTeamsInstructions from 'components/MSTeams/MSTeamsInstructions';
+import MSTeamsInstructions from 'containers/MSTeams/MSTeamsInstructions';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { useStore } from 'state/useStore';
 import { UserActions } from 'utils/authorization';
@@ -22,7 +22,7 @@ interface MSTeamsIntegrationProps {
 const MSTeamsIntegrationButton = observer((props: MSTeamsIntegrationProps) => {
   const { disabled, size = 'md', onUpdate } = props;
 
-  const [showModal, setShowModal] = useState<boolean>(false);
+  const [showModal, setShowModal] = useState(false);
 
   const onInstallModalHideCallback = useCallback(() => {
     setShowModal(false);
