@@ -306,8 +306,6 @@ SPECTACULAR_SETTINGS = {
     "SWAGGER_UI_SETTINGS": {
         "supportedSubmitMethods": [],  # Disable "Try it out" button for all endpoints
     },
-    # TODO: FIXME
-    "EXTENSIONS": {"FILTER_EXTENSIONS": True},
 }
 # Use custom scheme if env var exists
 SWAGGER_UI_SETTINGS_URL = os.getenv("SWAGGER_UI_SETTINGS_URL")

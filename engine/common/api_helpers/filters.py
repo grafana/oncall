@@ -12,6 +12,8 @@ NO_TEAM_VALUE = "null"
 
 class DateRangeFilterMixin:
     DATE_FORMAT = "%Y-%m-%dT%H:%M:%S"
+    DELIMITER = "/"
+    DATE_RANGE_FORMAT = f"<START_DATE>/<END_DATE> ({DATE_FORMAT}{DELIMITER}{DATE_FORMAT})"
 
     def filter_date_range(self, queryset, name, value):
         start_time, end_time = self.parse_custom_datetime_range(value)
@@ -28,7 +30,7 @@ class DateRangeFilterMixin:
         if not value:
             return None, None
 
-        date_entries = value.split("/")
+        date_entries = value.split(cls.DELIMITER)
 
         if len(date_entries) != 2:
             raise BadRequest(detail="Invalid range value")

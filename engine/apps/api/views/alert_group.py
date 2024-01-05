@@ -4,7 +4,6 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Count, Max, Q
 from django.utils import timezone
 from django_filters import rest_framework as filters
-from django_filters.widgets import RangeWidget
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import mixins, serializers, status, viewsets
 from rest_framework.decorators import action
@@ -54,31 +53,6 @@ def get_user_queryset(request):
     return User.objects.filter(organization=request.user.organization).distinct()
 
 
-class AlertGroupFilterBackend(filters.DjangoFilterBackend):
-    """
-    See here for more context on how this works
-
-    https://github.com/carltongibson/django-filter/discussions/1572
-    https://youtu.be/e52S1SjuUeM?t=841
-    """
-
-    def get_filterset(self, request, queryset, view):
-        filterset = super().get_filterset(request, queryset, view)
-
-        filterset.form.fields["integration"].queryset = get_integration_queryset(request)
-        filterset.form.fields["escalation_chain"].queryset = get_escalation_chain_queryset(request)
-
-        user_queryset = get_user_queryset(request)
-
-        filterset.form.fields["silenced_by"].queryset = user_queryset
-        filterset.form.fields["acknowledged_by"].queryset = user_queryset
-        filterset.form.fields["resolved_by"].queryset = user_queryset
-        filterset.form.fields["invitees_are"].queryset = user_queryset
-        filterset.form.fields["involved_users_are"].queryset = user_queryset
-
-        return filterset
-
-
 class AlertGroupFilter(DateRangeFilterMixin, ModelFieldFilterMixin, filters.FilterSet):
     """
     Examples of possible date formats here https://docs.djangoproject.com/en/1.9/ref/settings/#datetime-input-formats
@@ -86,68 +60,56 @@ class AlertGroupFilter(DateRangeFilterMixin, ModelFieldFilterMixin, filters.Filt
 
     FILTER_BY_INVOLVED_USERS_ALERT_GROUPS_CUTOFF = 1000
 
-    started_at_gte = filters.DateTimeFilter(field_name="started_at", lookup_expr="gte")
-    started_at_lte = filters.DateTimeFilter(field_name="started_at", lookup_expr="lte")
-    resolved_at_lte = filters.DateTimeFilter(field_name="resolved_at", lookup_expr="lte")
     is_root = filters.BooleanFilter(field_name="root_alert_group", lookup_expr="isnull")
-    id__in = filters.BaseInFilter(field_name="public_primary_key", lookup_expr="in")
     status = filters.MultipleChoiceFilter(choices=AlertGroup.STATUS_CHOICES, method="filter_status")
-    started_at = filters.CharFilter(field_name="started_at", method=DateRangeFilterMixin.filter_date_range.__name__)
-    resolved_at = filters.CharFilter(field_name="resolved_at", method=DateRangeFilterMixin.filter_date_range.__name__)
-    silenced_at = filters.CharFilter(field_name="silenced_at", method=DateRangeFilterMixin.filter_date_range.__name__)
-    silenced_by = filters.ModelMultipleChoiceFilter(
-        field_name="silenced_by_user",
-        queryset=None,
-        to_field_name="public_primary_key",
-        method=ModelFieldFilterMixin.filter_model_field.__name__,
+    started_at = filters.CharFilter(
+        field_name="started_at",
+        method=DateRangeFilterMixin.filter_date_range.__name__,
+        label=f"Format: {DateRangeFilterMixin.DATE_RANGE_FORMAT}",
+    )
+    resolved_at = filters.CharFilter(
+        field_name="resolved_at",
+        method=DateRangeFilterMixin.filter_date_range.__name__,
+        label=f"Format: {DateRangeFilterMixin.DATE_RANGE_FORMAT}",
     )
     integration = filters.ModelMultipleChoiceFilter(
         field_name="channel",
-        queryset=None,
+        queryset=get_integration_queryset,
         to_field_name="public_primary_key",
         method=ModelFieldFilterMixin.filter_model_field.__name__,
     )
     escalation_chain = filters.ModelMultipleChoiceFilter(
         field_name="channel_filter__escalation_chain",
-        queryset=None,
+        queryset=get_escalation_chain_queryset,
         to_field_name="public_primary_key",
         method=ModelFieldFilterMixin.filter_model_field.__name__,
     )
-    started_at_range = filters.DateFromToRangeFilter(
-        field_name="started_at", widget=RangeWidget(attrs={"type": "date"})
-    )
     resolved_by = filters.ModelMultipleChoiceFilter(
         field_name="resolved_by_user",
-        queryset=None,
+        queryset=get_user_queryset,
         to_field_name="public_primary_key",
         method=ModelFieldFilterMixin.filter_model_field.__name__,
     )
     acknowledged_by = filters.ModelMultipleChoiceFilter(
         field_name="acknowledged_by_user",
-        queryset=None,
+        queryset=get_user_queryset,
+        to_field_name="public_primary_key",
+        method=ModelFieldFilterMixin.filter_model_field.__name__,
+    )
+    silenced_by = filters.ModelMultipleChoiceFilter(
+        field_name="silenced_by_user",
+        queryset=get_user_queryset,
         to_field_name="public_primary_key",
         method=ModelFieldFilterMixin.filter_model_field.__name__,
     )
     invitees_are = filters.ModelMultipleChoiceFilter(
-        queryset=None, to_field_name="public_primary_key", method="filter_invitees_are"
+        queryset=get_user_queryset, to_field_name="public_primary_key", method="filter_invitees_are"
     )
     involved_users_are = filters.ModelMultipleChoiceFilter(
-        queryset=None, to_field_name="public_primary_key", method="filter_by_involved_users"
+        queryset=get_user_queryset, to_field_name="public_primary_key", method="filter_by_involved_users"
     )
     with_resolution_note = filters.BooleanFilter(method="filter_with_resolution_note")
     mine = filters.BooleanFilter(method="filter_mine")
-
-    class Meta:
-        model = AlertGroup
-        fields = [
-            "id__in",
-            "started_at_gte",
-            "started_at_lte",
-            "resolved_at_lte",
-            "is_root",
-            "resolved_by",
-            "acknowledged_by",
-        ]
 
     def filter_status(self, queryset, name, value):
         if not value:
@@ -305,15 +267,12 @@ class AlertGroupView(
         "preview_template": [RBACPermission.Permissions.INTEGRATIONS_TEST],
     }
 
-    http_method_names = ["get", "post", "delete"]
-
+    queryset = AlertGroup.objects.none()
     serializer_class = AlertGroupSerializer
 
     pagination_class = AlertGroupCursorPaginator
 
-    filter_backends = [SearchFilter, AlertGroupFilterBackend]
-    # search_fields = ["=public_primary_key", "=inside_organization_number", "web_title_cache"]
-
+    filter_backends = [SearchFilter, filters.DjangoFilterBackend]
     filterset_class = AlertGroupFilter
 
     def get_serializer_class(self):
@@ -808,7 +767,6 @@ class AlertGroupView(
                     {"display_name": "silenced", "value": AlertGroup.SILENCED},
                 ],
             },
-            # {'name': 'is_root', 'type': 'boolean', 'default': True},
             {
                 "name": "started_at",
                 "type": "daterange",
