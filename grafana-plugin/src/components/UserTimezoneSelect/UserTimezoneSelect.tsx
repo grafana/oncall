@@ -101,7 +101,7 @@ const UserTimezoneSelect = observer(() => {
   );
 
   return (
-    <div className={cx('root')}>
+    <div className={cx('root')} data-testid="timezone-select">
       <Select
         value={options.find(({ value }) => value === store.timezoneStore.selectedTimezoneOffset)}
         onChange={(option) => store.timezoneStore.setSelectedTimezoneOffset(option.value)}
