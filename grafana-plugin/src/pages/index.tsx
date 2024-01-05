@@ -143,6 +143,12 @@ export const pages: { [id: string]: PageDefinition } = [
     action: UserActions.OtherSettingsWrite,
   },
   {
+    icon: 'cloud',
+    id: 'insights',
+    text: 'Insights',
+    path: getPath('insights'),
+  },
+  {
     icon: 'cog',
     id: 'test',
     text: 'Test',
@@ -180,6 +186,7 @@ export const ROUTES = {
   'chat-ops': ['chat-ops'],
   'live-settings': ['live-settings'],
   cloud: ['cloud'],
+  insights: ['insights'],
   test: ['test'],
 
   // backwards compatible to redirect to new alert-groups
