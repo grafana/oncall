@@ -59,6 +59,10 @@ class UpdateManager:
 
     @staticmethod
     def _update_channel_and_group_names(update: Update) -> None:
+        # TODO: some updates may not necessarily come from the channel
+        # (in which case they would contain the forward_from_chat object). Some updates
+        # may come directly from the discussion group, in which case forward_from_chat is not present
+
         channel_chat_id = update.message.forward_from_chat.id
         channel_name = update.message.forward_from_chat.title
 
