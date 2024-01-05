@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Changed
+
+- Move Insights to OnCall as a separate page ([#2382](https://github.com/grafana/oncall-private/issues/2382))
+
+## v1.3.82 (2024-01-04)
+
 ### Added
 
 - Add ability to create an Outgoing Webhook with the PATCH HTTP method via the UI by @joeyorlando ([#3604](https://github.com/grafana/oncall/pull/3604))
@@ -15,7 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Handle message to reply to not found in Telegram send log ([#3587](https://github.com/grafana/oncall/pull/3587))
 - Upgrade mobx lib to the latest version 6.12.0 ([#3453](https://github.com/grafana/oncall/issues/3453))
-- Move Insights to OnCall as a separate page ([#2382](https://github.com/grafana/oncall-private/issues/2382))
+- Add task lock to avoid running multiple sync_organization tasks in parallel for the same org ([#3612](https://github.com/grafana/oncall/pull/3612))
 
 ## v1.3.81 (2023-12-28)
 
