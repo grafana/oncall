@@ -88,6 +88,9 @@ export class RootBaseStore {
   @observable
   onCallApiUrl: string;
 
+  @observable
+  insightsDatasource?: string;
+
   // stores
   userStore = new UserStore(this);
   cloudStore = new CloudStore(this);
@@ -178,6 +181,7 @@ export class RootBaseStore {
   async setupPlugin(meta: OnCallAppPluginMeta) {
     this.setupPluginError(null);
     this.onCallApiUrl = getOnCallApiUrl(meta);
+    this.insightsDatasource = meta.jsonData.insightsDatasource || 'grafanacloud-usage';
 
     if (!FaroHelper.faro) {
       FaroHelper.initializeFaro(this.onCallApiUrl);

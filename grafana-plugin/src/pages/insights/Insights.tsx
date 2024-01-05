@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useState } from 'react';
 
 import {
   EmbeddedScene,
@@ -10,6 +10,9 @@ import {
   SceneVariableSet,
   VariableValueSelectors,
   NestedScene,
+  SceneApp,
+  SceneAppPage,
+  useSceneApp,
 } from '@grafana/scenes';
 import { Alert } from '@grafana/ui';
 import { observer } from 'mobx-react';
@@ -18,7 +21,6 @@ import Text from 'components/Text/Text';
 import { useStore } from 'state/useStore';
 import { DOCS_ROOT } from 'utils/consts';
 
-import { getDataSource } from './Insights.helpers';
 import { InsightsConfig } from './Insights.types';
 import getAlertGroupsByIntegrationScene from './scenes/AlertGroupsByIntegration';
 import getAlertGroupsByTeamScene from './scenes/AlertGroupsByTeam';
@@ -37,13 +39,11 @@ import getTotalAlertGroupsByStateScene from './scenes/TotalAlertGroupsByState';
 import getVariables from './variables';
 
 const Insights = observer(() => {
-  const { isOpenSource } = useStore();
+  const { isOpenSource, insightsDatasource } = useStore();
   const [alertVisible, setAlertVisible] = useState(true);
 
-  const rootScene = useMemo(
-    () => getRootScene({ isOpenSource, datasource: getDataSource(isOpenSource) }),
-    [isOpenSource]
-  );
+  const datasource = { uid: isOpenSource ? '$datasource' : insightsDatasource };
+  const appScene = useSceneApp(() => getAppScene({ isOpenSource, datasource }));
 
   return (
     <>
@@ -71,10 +71,21 @@ const Insights = observer(() => {
           }
         </Alert>
       )}
-      <rootScene.Component model={rootScene} />
+      <appScene.Component model={appScene} />
     </>
   );
 });
+
+const getAppScene = (config: InsightsConfig) =>
+  new SceneApp({
+    pages: [
+      new SceneAppPage({
+        title: 'OnCall Insights',
+        url: '/a/grafana-oncall-app/insights',
+        getScene: () => getRootScene(config),
+      }),
+    ],
+  });
 
 const getRootScene = (config: InsightsConfig) =>
   new EmbeddedScene({
