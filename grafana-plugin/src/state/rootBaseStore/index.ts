@@ -181,7 +181,7 @@ export class RootBaseStore {
   async setupPlugin(meta: OnCallAppPluginMeta) {
     this.setupPluginError(null);
     this.onCallApiUrl = getOnCallApiUrl(meta);
-    this.insightsDatasource = meta.jsonData.insightsDatasource || 'grafanacloud-usage';
+    this.insightsDatasource = meta?.jsonData?.insightsDatasource || 'grafanacloud-usage';
 
     if (!FaroHelper.faro) {
       FaroHelper.initializeFaro(this.onCallApiUrl);
