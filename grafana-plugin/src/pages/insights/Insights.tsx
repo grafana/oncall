@@ -40,40 +40,50 @@ import getVariables from './variables';
 
 const Insights = observer(() => {
   const { isOpenSource, insightsDatasource } = useStore();
-  const [alertVisible, setAlertVisible] = useState(true);
 
   const datasource = { uid: isOpenSource ? '$datasource' : insightsDatasource };
   const appScene = useSceneApp(() => getAppScene({ isOpenSource, datasource }));
 
   return (
     <>
-      {isOpenSource && alertVisible && (
-        <Alert onRemove={() => setAlertVisible(false)} severity="info" title="">
-          {
-            <>
-              In order to see insights you need to set up Prometheus, add it to your Grafana instance as a data source,
-              set FEATURE_PROMETHEUS_EXPORTER_ENABLED environment variable to true and then select your Data source in
-              the dropdown below.
-              <br />
-              <br />
-              <>
-                You can find out more in
-                <a
-                  href={`${DOCS_ROOT}/insights-and-metrics/#for-open-source-customers`}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  <Text type="link"> documentation</Text>
-                </a>
-                .
-              </>
-            </>
-          }
-        </Alert>
-      )}
+      <InsightsInfoAlert />
       <appScene.Component model={appScene} />
     </>
   );
+});
+
+const InsightsInfoAlert = observer(() => {
+  const { isOpenSource } = useStore();
+  const [alertVisible, setAlertVisible] = useState(true);
+
+  const docsLink = (
+    <a
+      href={`${DOCS_ROOT}/insights-and-metrics/${isOpenSource ? '#for-open-source-customers' : ''}`}
+      target="_blank"
+      rel="noreferrer"
+    >
+      <Text type="link">documentation</Text>
+    </a>
+  );
+
+  const content = isOpenSource ? (
+    <>
+      In order to see insights you need to set up Prometheus, add it to your Grafana instance as a data source, set
+      FEATURE_PROMETHEUS_EXPORTER_ENABLED environment variable to true and then select your Data source in the dropdown
+      below.
+      <br />
+      <br />
+      <>You can find out more in our {docsLink}.</>
+    </>
+  ) : (
+    <>Find out more about OnCall Insights and Metrics in our {docsLink}.</>
+  );
+
+  return alertVisible ? (
+    <Alert onRemove={() => setAlertVisible(false)} severity="info" title="">
+      {content}
+    </Alert>
+  ) : null;
 });
 
 const getAppScene = (config: InsightsConfig) =>
