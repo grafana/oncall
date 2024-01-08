@@ -145,6 +145,7 @@ class LabelsViewSet(LabelsFeatureFlagViewSet):
             return super().handle_exception(exc)
 
 
+@extend_schema(tags=["alert group labels"])
 class AlertGroupLabelsViewSet(LabelsFeatureFlagViewSet):
     """
     This viewset is similar to LabelsViewSet, but it works with alert group labels.

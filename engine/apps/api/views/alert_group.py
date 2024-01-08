@@ -442,9 +442,9 @@ class AlertGroupView(
     class AlertGroupStatsSerializer(serializers.Serializer):
         count = serializers.IntegerField()
 
-    @extend_schema(responses=AlertGroupStatsSerializer)
-    @action(detail=False)
-    def stats(self, *args, **kwargs):
+    @extend_schema(filters=True, responses=AlertGroupStatsSerializer)
+    @action(methods=["get"], detail=False)
+    def stats(self, request):
         """
         Return number of alert groups capped at 100001
         """

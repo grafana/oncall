@@ -16,10 +16,10 @@ class CustomAutoSchema(AutoSchema):
             return None
         return super()._get_paginator()
 
-    def _get_filter_parameters(self):
+    def get_filter_backends(self):
         if self._is_extra_action:
             return []
-        return super()._get_filter_parameters()
+        return super().get_filter_backends()
 
     def _resolve_path_parameters(self, variables):
         """A workaround to make public primary keys appear as strings in the OpenAPI schema."""
