@@ -8,8 +8,8 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.functional import cached_property
 from django_filters import rest_framework as filters
-from drf_spectacular.utils import PolymorphicProxySerializer, extend_schema
-from rest_framework import mixins, status, viewsets
+from drf_spectacular.utils import PolymorphicProxySerializer, extend_schema, inline_serializer
+from rest_framework import mixins, serializers, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound
 from rest_framework.filters import SearchFilter
@@ -378,6 +378,7 @@ class UserView(
         serializer = UserSerializer(self.get_queryset().get(pk=self.request.user.pk))
         return Response(serializer.data)
 
+    @extend_schema(responses=list)
     @action(detail=False, methods=["get"])
     def timezone_options(self, request) -> Response:
         return Response(pytz.common_timezones)
@@ -436,6 +437,7 @@ class UserView(
             )
         return Response(status=status.HTTP_200_OK)
 
+    @extend_schema(parameters=[inline_serializer(name="UserVerifyNumber", fields={"token": serializers.CharField()})])
     @action(
         detail=True,
         methods=["put"],
@@ -515,6 +517,13 @@ class UserView(
 
         return Response(status=status.HTTP_200_OK)
 
+    @extend_schema(
+        parameters=[
+            inline_serializer(
+                name="UserSendTestPush", fields={"critical": serializers.BooleanField(required=False, default=False)}
+            )
+        ]
+    )
     @action(detail=True, methods=["post"], throttle_classes=[TestPushThrottler])
     def send_test_push(self, request, pk) -> Response:
         user = self.get_object()
@@ -534,6 +543,11 @@ class UserView(
             )
         return Response(status=status.HTTP_200_OK)
 
+    @extend_schema(
+        parameters=[
+            inline_serializer(name="UserGetBackendVerificationCode", fields={"backend": serializers.CharField()})
+        ]
+    )
     @action(detail=True, methods=["get"])
     def get_backend_verification_code(self, request, pk) -> Response:
         user = self.get_object()
@@ -546,6 +560,15 @@ class UserView(
         code = backend.generate_user_verification_code(user)
         return Response(code)
 
+    @extend_schema(
+        responses=inline_serializer(
+            name="UserGetTelegramVerificationCode",
+            fields={
+                "telegram_code": serializers.CharField(),
+                "bot_link": serializers.CharField(),
+            },
+        )
+    )
     @action(detail=True, methods=["get"])
     def get_telegram_verification_code(self, request, pk) -> Response:
         user = self.get_object()
@@ -603,6 +626,9 @@ class UserView(
             return Response(status=status.HTTP_400_BAD_REQUEST)
         return Response(status=status.HTTP_200_OK)
 
+    @extend_schema(
+        parameters=[inline_serializer(name="UserUnlinkBackend", fields={"backend": serializers.CharField()})]
+    )
     @action(detail=True, methods=["post"])
     def unlink_backend(self, request, pk) -> Response:
         # TODO: insight logs support
@@ -626,6 +652,15 @@ class UserView(
             return Response(status=status.HTTP_400_BAD_REQUEST)
         return Response(status=status.HTTP_200_OK)
 
+    @extend_schema(
+        parameters=[
+            inline_serializer(
+                name="UserUpcomingShiftsParams",
+                fields={"days": serializers.IntegerField(required=False, default=UPCOMING_SHIFTS_DEFAULT_DAYS)},
+            )
+        ],
+        responses=list,
+    )
     @action(detail=True, methods=["get"])
     def upcoming_shifts(self, request, pk) -> Response:
         user = self.get_object()
@@ -665,6 +700,28 @@ class UserView(
 
         return Response(upcoming, status=status.HTTP_200_OK)
 
+    @extend_schema(
+        methods=["get"],
+        responses=inline_serializer(
+            name="UserExportTokenGetResponse",
+            fields={
+                "created_at": serializers.DateTimeField(),
+                "revoked_at": serializers.DateTimeField(allow_null=True),
+                "active": serializers.BooleanField(),
+            },
+        ),
+    )
+    @extend_schema(
+        methods=["post"],
+        responses=inline_serializer(
+            name="UserExportTokenPostResponse",
+            fields={
+                "token": serializers.CharField(),
+                "created_at": serializers.DateTimeField(),
+                "export_url": serializers.CharField(),
+            },
+        ),
+    )
     @action(detail=True, methods=["get", "post", "delete"])
     def export_token(self, request, pk) -> Response:
         user = self.get_object()
