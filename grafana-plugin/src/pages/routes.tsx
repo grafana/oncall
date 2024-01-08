@@ -1,6 +1,7 @@
 import EscalationsChainsPage from 'pages/escalation-chains/EscalationChains';
 import IncidentPage from 'pages/incident/Incident';
 import IncidentsPage from 'pages/incidents/Incidents';
+import Insights from 'pages/insights/Insights';
 import OutgoingWebhooks from 'pages/outgoing_webhooks/OutgoingWebhooks';
 import SchedulePage from 'pages/schedule/Schedule';
 import SchedulesPage from 'pages/schedules/Schedules';
@@ -65,6 +66,10 @@ export const routes: { [id: string]: NavRoute } = [
   {
     component: CloudPage,
     id: 'cloud',
+  },
+  {
+    component: Insights,
+    id: 'insights',
   },
 ].reduce((prev, current) => {
   prev[current.id] = {

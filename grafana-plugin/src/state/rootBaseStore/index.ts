@@ -1,6 +1,6 @@
 import { locationService } from '@grafana/runtime';
 import { contextSrv } from 'grafana/app/core/core';
-import { action, makeObservable, observable, runInAction } from 'mobx';
+import { action, computed, makeObservable, observable, runInAction } from 'mobx';
 import moment from 'moment-timezone';
 import qs from 'query-string';
 import { OnCallAppPluginMeta } from 'types';
@@ -190,7 +190,7 @@ export class RootBaseStore {
       return this.setupPluginError('🚫 Plugin has not been initialized');
     }
 
-    if (this.isOpenSource() && !meta.secureJsonFields?.onCallApiToken) {
+    if (this.isOpenSource && !meta.secureJsonFields?.onCallApiToken) {
       // Reinstall plugin if onCallApiToken is missing
       const errorMsg = await PluginState.selfHostedInstallPlugin(this.onCallApiUrl, true);
       if (errorMsg) {
@@ -298,7 +298,8 @@ export class RootBaseStore {
     return GRAFANA_LICENSE_OSS;
   }
 
-  isOpenSource(): boolean {
+  @computed
+  get isOpenSource(): boolean {
     return this.license === GRAFANA_LICENSE_OSS;
   }
 

@@ -49,7 +49,7 @@ class ChatOpsPage extends React.Component<ChatOpsProps, ChatOpsState> {
     const { activeTab } = this.state;
     const { store } = this.props;
 
-    if (!this.isChatOpsConfigured() && store.isOpenSource()) {
+    if (!this.isChatOpsConfigured() && store.isOpenSource) {
       return this.renderNoChatOpsBannerInfo();
     }
 

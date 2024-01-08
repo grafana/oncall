@@ -95,6 +95,14 @@
       "addToNav": true
     },
     {
+      "type": "page",
+      "name": "Insights",
+      "path": "/a/grafana-oncall-app/insights",
+      "role": "Viewer",
+      "action": "grafana-oncall-app.other-settings:read",
+      "addToNav": true
+    },
+    {
       "type": "dashboard",
       "path": "dashboards/oncall_metrics_dashboard.json",
       "name": "OnCall Insights"
