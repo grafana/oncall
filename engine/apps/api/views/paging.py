@@ -7,11 +7,15 @@ from apps.alerts.paging import DirectPagingAlertGroupResolvedError, DirectPaging
 from apps.api.permissions import RBACPermission
 from apps.api.serializers.paging import DirectPagingSerializer
 from apps.auth_token.auth import PluginAuthentication
+from apps.mobile_app.auth import MobileAppAuthTokenAuthentication
 from common.api_helpers.exceptions import BadRequest
 
 
 class DirectPagingAPIView(APIView):
-    authentication_classes = (PluginAuthentication,)
+    authentication_classes = (
+        MobileAppAuthTokenAuthentication,
+        PluginAuthentication,
+    )
     permission_classes = (IsAuthenticated, RBACPermission)
 
     rbac_permissions = {
