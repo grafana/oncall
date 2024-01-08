@@ -1,4 +1,4 @@
-import React, { Component, FC, useEffect } from 'react';
+import React, { FC, useEffect } from 'react';
 
 import { HorizontalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
