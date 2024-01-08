@@ -147,7 +147,7 @@ export default function Alerts() {
 
   function showMismatchWarning(): boolean {
     return (
-      store.isOpenSource() &&
+      store.isOpenSource &&
       store.backendVersion &&
       plugin?.version &&
       store.backendVersion !== plugin?.version &&

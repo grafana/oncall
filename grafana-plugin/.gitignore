@@ -13,7 +13,6 @@ yarn-error.log*
 
 # This file is generated
 grafana-plugin.yml
-frontend_enterprise
 
 # playwright
 /playwright-report/
