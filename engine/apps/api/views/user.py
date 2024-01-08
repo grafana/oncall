@@ -8,6 +8,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.functional import cached_property
 from django_filters import rest_framework as filters
+from drf_spectacular.utils import PolymorphicProxySerializer, extend_schema
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound
@@ -206,6 +207,7 @@ class UserView(
         ],
     }
 
+    queryset = User.objects.none()
     filter_serializer_class = FilterUserSerializer
 
     pagination_class = HundredPageSizePaginator
@@ -285,6 +287,13 @@ class UserView(
 
         return queryset.order_by("id")
 
+    @extend_schema(
+        responses=PolymorphicProxySerializer(
+            component_name="User",
+            serializers=[FilterUserSerializer, UserIsCurrentlyOnCallSerializer, UserSerializer],
+            resource_type_field_name=None,
+        )
+    )
     def list(self, request, *args, **kwargs) -> Response:
         queryset = self.filter_queryset(self.get_queryset())
 

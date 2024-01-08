@@ -316,6 +316,7 @@ SPECTACULAR_INCLUDED_PATHS = [
     "/features",
     "/alertgroups",
     "/alert_receive_channels",
+    "/users",
     "/labels",
 ]
 

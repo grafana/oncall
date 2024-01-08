@@ -31,7 +31,8 @@ class CustomAutoSchema(AutoSchema):
         for parameter in parameters:
             if parameter["name"] == "id" and parameter["in"] == "path":
                 parameter["schema"]["type"] = "string"
-                model_name = get_view_model(self.view, emit_warnings=False)._meta.verbose_name
+                model = get_view_model(self.view, emit_warnings=False)
+                model_name = model._meta.verbose_name if model else "resource"
                 parameter["description"] = f"A string identifying this {model_name}."
 
         return parameters
