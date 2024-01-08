@@ -16,7 +16,7 @@ const mondayDayOffset = {
 };
 
 export const getWeekStartString = () => {
-  const weekStart = (config.bootData.user.weekStart || '').toLowerCase();
+  const weekStart = (config?.bootData?.user?.weekStart || '').toLowerCase();
 
   if (!weekStart || weekStart === 'browser') {
     return 'monday';
