@@ -3,14 +3,16 @@ import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 
 import { test } from '../fixtures';
-import { generateRandomValue } from '../utils/forms';
+import { clickButton, generateRandomValue } from '../utils/forms';
 import { createOnCallSchedule } from '../utils/schedule';
 
 dayjs.extend(utc);
 
 test.use({ timezoneId: 'Europe/Moscow' }); // GMT+3 the whole year
 const currentUtcTime = dayjs().utc().format('HH:mm');
+const currentUtcDate = dayjs().utc().format('DD MMM');
 const currentMoscowTime = dayjs().utcOffset(180).format('HH:mm');
+const currentMoscowDate = dayjs().utcOffset(180).format('DD MMM');
 
 test('default dates in override creation modal are correct', async ({ adminRolePage }) => {
   const { page, userName } = adminRolePage;
@@ -28,7 +30,7 @@ test('default dates in override creation modal are correct', async ({ adminRoleP
   // Selected timezone and local time is correctly displayed
   await expect(page.getByText(`Current timezone: GMT, local time: ${currentUtcTime}`)).toBeVisible();
 
-  // User avatar tooltip shows correct time and timezones
+  // // User avatar tooltip shows correct time and timezones
   await page.getByTestId('user-avatar-in-schedule').hover();
   await expect(page.getByTestId('schedule-user-details_your-current-time')).toHaveText(/GMT\+3/);
   await expect(page.getByTestId('schedule-user-details_your-current-time')).toHaveText(new RegExp(currentMoscowTime));
@@ -36,5 +38,18 @@ test('default dates in override creation modal are correct', async ({ adminRoleP
   await expect(page.getByTestId('schedule-user-details_user-local-time')).toHaveText(new RegExp(currentMoscowTime));
 
   // Schedule slot shows correct times and timezones
-  await page.getByTestId('schedule-slot').hover();
+  await page.getByTestId('schedule-slot').first().hover();
+  await expect(page.getByText(`User's local time${currentMoscowDate}, ${currentMoscowTime}(GMT+3)`)).toBeVisible();
+  await expect(page.getByText(`Current timezone${currentUtcDate}, ${currentUtcTime}(GMT)`)).toBeVisible();
+
+  // Rotation form has correct start date and current timezone information
+  await clickButton({ page, buttonText: 'Add rotation' });
+  await page.getByText('Layer 1 rotation').click();
+  await expect(page.getByTestId('rotation-form').getByText('Current timezone: GMT')).toBeVisible();
+  await expect(page.getByTestId('rotation-form').getByPlaceholder('Date')).toHaveValue(
+    dayjs().utcOffset(0).format('MM/DD/YYYY')
+  );
+  await expect(page.getByTestId('rotation-form').getByTestId('date-time-picker').getByRole('textbox')).toHaveValue(
+    '00:00'
+  );
 });

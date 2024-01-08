@@ -447,7 +447,7 @@ const RotationForm = observer((props: RotationFormProps) => {
           </Draggable>
         )}
       >
-        <div className={cx('root')}>
+        <div className={cx('root')} data-testid="rotation-form">
           <div>
             <HorizontalGroup justify="space-between">
               <HorizontalGroup spacing="sm">

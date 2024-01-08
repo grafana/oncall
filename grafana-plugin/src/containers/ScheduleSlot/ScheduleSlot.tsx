@@ -252,6 +252,7 @@ const RegularEvent = (props: RegularEventProps) => {
               backgroundColor,
             }}
             onClick={swap_request ? getShiftSwapClickHandler(swap_request.pk) : undefined}
+            data-testid="schedule-slot"
           >
             {storeUser && (!swap_request || swap_request.user) && (
               <WorkingHours

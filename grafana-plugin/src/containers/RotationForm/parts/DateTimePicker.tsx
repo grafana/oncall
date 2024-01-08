@@ -85,6 +85,7 @@ const DateTimePicker = observer(
             onBlur={onBlur}
             style={{ width: '42%' }}
             className={cx({ 'control--error': Boolean(error) })}
+            data-testid="date-time-picker"
           >
             <TimeOfDayPicker disabled={disabled} value={getTimeValueInSelectedTimezone()} onChange={handleTimeChange} />
           </div>
