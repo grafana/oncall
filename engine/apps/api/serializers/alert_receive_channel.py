@@ -5,6 +5,7 @@ from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db.models import Q
+from drf_spectacular.utils import extend_schema_field
 from jinja2 import TemplateSyntaxError
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
@@ -334,12 +335,12 @@ class AlertReceiveChannelSerializer(
         except AlertReceiveChannel.DuplicateDirectPagingError:
             raise BadRequest(detail=AlertReceiveChannel.DuplicateDirectPagingError.DETAIL)
 
-    def get_instructions(self, obj: "AlertReceiveChannel"):
+    def get_instructions(self, obj: "AlertReceiveChannel") -> str:
         # Deprecated, kept for api-backward compatibility
         return ""
 
     # MethodFields are used instead of relevant properties because of properties hit db on each instance in queryset
-    def get_default_channel_filter(self, obj: "AlertReceiveChannel"):
+    def get_default_channel_filter(self, obj: "AlertReceiveChannel") -> str | None:
         for filter in obj.channel_filters.all():
             if filter.is_default:
                 return filter.public_primary_key
@@ -367,6 +368,7 @@ class AlertReceiveChannelSerializer(
         else:
             raise serializers.ValidationError(detail="Integration with this name already exists")
 
+    @extend_schema_field(IntegrationHeartBeatSerializer)
     def get_heartbeat(self, obj: "AlertReceiveChannel"):
         try:
             heartbeat = obj.integration_heartbeat
@@ -374,14 +376,14 @@ class AlertReceiveChannelSerializer(
             return None
         return IntegrationHeartBeatSerializer(heartbeat).data
 
-    def get_allow_delete(self, obj: "AlertReceiveChannel"):
+    def get_allow_delete(self, obj: "AlertReceiveChannel") -> bool:
         # don't allow deleting direct paging integrations
         return obj.integration != AlertReceiveChannel.INTEGRATION_DIRECT_PAGING
 
-    def get_alert_count(self, obj: "AlertReceiveChannel"):
+    def get_alert_count(self, obj: "AlertReceiveChannel") -> int:
         return 0
 
-    def get_alert_groups_count(self, obj: "AlertReceiveChannel"):
+    def get_alert_groups_count(self, obj: "AlertReceiveChannel") -> int:
         return 0
 
     def get_routes_count(self, obj: "AlertReceiveChannel") -> int:

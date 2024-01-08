@@ -595,7 +595,7 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
 
     # Heartbeat
     @property
-    def is_available_for_integration_heartbeat(self):
+    def is_available_for_integration_heartbeat(self) -> bool:
         return self.heartbeat_module is not None
 
     @property
