@@ -43,8 +43,6 @@ const UsersTimezones: FC<UsersTimezonesProps> = observer((props) => {
 
   const { userIds, onCallNow, scheduleId } = props;
 
-  console.log(onCallNow);
-
   useEffect(() => {
     userIds.forEach((userId) => {
       if (!store.userStore.items[userId]) {
