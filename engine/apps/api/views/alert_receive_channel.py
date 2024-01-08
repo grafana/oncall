@@ -86,6 +86,7 @@ class AlertReceiveChannelView(
     permission_classes = (IsAuthenticated, RBACPermission)
 
     model = AlertReceiveChannel
+    queryset = AlertReceiveChannel.objects.none()
     serializer_class = AlertReceiveChannelSerializer
     filter_serializer_class = FilterAlertReceiveChannelSerializer
     update_serializer_class = AlertReceiveChannelUpdateSerializer
