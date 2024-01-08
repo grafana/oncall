@@ -366,8 +366,6 @@ export class ScheduleStore extends BaseStore {
       data: { ...params },
       method: 'PUT',
     });
-    await this.rootStore.scheduleStore.refreshEvents(shiftId);
-    await this.getScoreQuality(shiftId);
 
     runInAction(() => {
       this.shifts = {
