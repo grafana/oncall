@@ -4,7 +4,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Count, Max, Q
 from django.utils import timezone
 from django_filters import rest_framework as filters
-from drf_spectacular.utils import extend_schema, extend_schema_view, inline_serializer
+from drf_spectacular.utils import extend_schema, inline_serializer
 from rest_framework import mixins, serializers, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound
@@ -222,11 +222,6 @@ class AlertGroupTeamFilteringMixin(TeamFilteringMixin):
             return Response(data={"error_code": "wrong_team"}, status=status.HTTP_403_FORBIDDEN)
 
 
-@extend_schema_view(
-    list=extend_schema(description="Fetch a list of alert groups"),
-    retrieve=extend_schema(description="Fetch a single alert group"),
-    destroy=extend_schema(description="Delete an alert group"),
-)
 class AlertGroupView(
     PreviewTemplateMixin,
     AlertGroupTeamFilteringMixin,
@@ -236,6 +231,10 @@ class AlertGroupView(
     mixins.DestroyModelMixin,
     viewsets.GenericViewSet,
 ):
+    """
+    Internal API endpoints for alert groups.
+    """
+
     authentication_classes = (
         MobileAppAuthTokenAuthentication,
         PluginAuthentication,

@@ -79,6 +79,10 @@ class AlertReceiveChannelView(
     UpdateSerializerMixin,
     ModelViewSet,
 ):
+    """
+    Internal API endpoints for alert receive channels (integrations).
+    """
+
     authentication_classes = (
         MobileAppAuthTokenAuthentication,
         PluginAuthentication,

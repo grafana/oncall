@@ -273,7 +273,11 @@ class PreviewTemplateMixin:
     class PreviewTemplateResponseSerializer(serializers.Serializer):
         preview = serializers.CharField(allow_null=True)
 
-    @extend_schema(request=PreviewTemplateRequestSerializer, responses=PreviewTemplateResponseSerializer)
+    @extend_schema(
+        description="Preview template",
+        request=PreviewTemplateRequestSerializer,
+        responses=PreviewTemplateResponseSerializer,
+    )
     @action(methods=["post"], detail=True)
     def preview_template(self, request, pk):
         request_serializer = self.PreviewTemplateRequestSerializer(data=request.data)
