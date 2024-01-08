@@ -31,6 +31,10 @@ logger = get_task_logger(__name__)
 logger.setLevel(logging.DEBUG)
 
 
+EXECUTE_WEBHOOK_RETRIES = 3
+# these exceptions are fully out of our control (e.g. customer's network issues)
+# let's manually retry them without raising an exception
+EXECUTE_WEBHOOK_EXCEPTIONS_TO_MANUALLY_RETRY = (requests.exceptions.Timeout,)
 TRIGGER_TYPE_TO_LABEL = {
     Webhook.TRIGGER_ALERT_GROUP_CREATED: "alert group created",
     Webhook.TRIGGER_ACKNOWLEDGE: "acknowledge",
@@ -189,14 +193,9 @@ def make_request(
 
 
 @shared_dedicated_queue_retry_task(
-    autoretry_for=(Exception,),
-    # This allows to exclude some exceptions that match autoretry_for but for which you don’t want a retry.
-    # https://docs.celeryq.dev/en/stable/userguide/tasks.html#Task.dont_autoretry_for
-    dont_autoretry_for=(requests.exceptions.Timeout,),
-    retry_backoff=True,
-    max_retries=1 if settings.DEBUG else 3,
+    autoretry_for=(Exception,), retry_backoff=True, max_retries=1 if settings.DEBUG else EXECUTE_WEBHOOK_RETRIES
 )
-def execute_webhook(webhook_pk, alert_group_id, user_id, escalation_policy_id):
+def execute_webhook(webhook_pk, alert_group_id, user_id, escalation_policy_id, manual_retry_num=0):
     from apps.webhooks.models import Webhook
 
     try:
@@ -265,6 +264,28 @@ def execute_webhook(webhook_pk, alert_group_id, user_id, escalation_policy_id):
             escalation_policy_step=step,
             escalation_error_code=error_code,
         )
+
+    if isinstance(exception, EXECUTE_WEBHOOK_EXCEPTIONS_TO_MANUALLY_RETRY):
+        msg_details = (
+            f"\nwebhook - {webhook_pk}\n"
+            f"alert group - {alert_group_id}\n"
+            f"user - {user_id}\n"
+            f"escalation policy - {escalation_policy_id}"
+        )
+
+        if manual_retry_num < EXECUTE_WEBHOOK_RETRIES:
+            retry_num = manual_retry_num + 1
+            logger.warning(f"Manually retrying execute_webhook for{msg_details}\nmanual retry num - {retry_num}")
+
+            execute_webhook.apply_async(
+                (webhook_pk, alert_group_id, user_id, escalation_policy_id, retry_num),
+                countdown=10,
+            )
+        else:
+            # don't raise an exception if we've exhausted retries for
+            # exceptions within EXECUTE_WEBHOOK_EXCEPTIONS_TO_MANUALLY_RETRY, simply give up trying
+            logger.warning(f"Exhausted execute_webhook retries for{msg_details}")
+            return
 
     if exception:
         raise exception
