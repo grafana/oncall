@@ -117,9 +117,6 @@ export class ScheduleStore extends BaseStore {
   byDayOptions: SelectOption[] = [];
 
   @observable
-  scheduleId: Schedule['id'];
-
-  @observable
   refreshEventsError?: Partial<PageErrorData> = {
     isWrongTeamError: false,
     wrongTeamNoPermissions: false,
@@ -517,12 +514,12 @@ export class ScheduleStore extends BaseStore {
   }
 
   @action.bound
-  async refreshEvents() {
+  async refreshEvents(scheduleId: string) {
     this.refreshEventsError = {};
     const startMoment = this.rootStore.timezoneStore.calendarStartDate;
 
     try {
-      const schedule = await this.loadItem(this.scheduleId);
+      const schedule = await this.loadItem(scheduleId);
       this.rootStore.setPageTitle(schedule?.name);
     } catch (error) {
       runInAction(() => {
@@ -530,18 +527,13 @@ export class ScheduleStore extends BaseStore {
       });
     }
 
-    this.updateRelatedUsers(this.scheduleId); // to refresh related users
+    this.updateRelatedUsers(scheduleId); // to refresh related users
     await Promise.all([
-      this.updateEvents(this.scheduleId, startMoment, 'rotation'),
-      this.updateEvents(this.scheduleId, startMoment, 'override'),
-      this.updateEvents(this.scheduleId, startMoment, 'final'),
-      this.updateShiftSwaps(this.scheduleId, startMoment),
+      this.updateEvents(scheduleId, startMoment, 'rotation'),
+      this.updateEvents(scheduleId, startMoment, 'override'),
+      this.updateEvents(scheduleId, startMoment, 'final'),
+      this.updateShiftSwaps(scheduleId, startMoment),
     ]);
-  }
-
-  @action.bound
-  setScheduleId(id: string) {
-    this.scheduleId = id;
   }
 
   async updateFrequencyOptions() {

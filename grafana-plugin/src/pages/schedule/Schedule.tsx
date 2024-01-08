@@ -55,6 +55,7 @@ interface SchedulePageState {
 @observer
 class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState> {
   highlightMyShiftsWasToggled = false;
+  scheduleId = this.props.match.params.id;
 
   constructor(props: SchedulePageProps) {
     super(props);
@@ -73,21 +74,14 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
   }
 
   async componentDidMount() {
-    const {
-      store,
-      match: {
-        params: { id },
-      },
-    } = this.props;
-
-    store.scheduleStore.setScheduleId(id);
+    const { store } = this.props;
 
     store.userStore.updateItems();
 
     store.scheduleStore.updateFrequencyOptions();
     store.scheduleStore.updateDaysOptions();
-    await store.scheduleStore.updateOncallShifts(id); // TODO we should know shifts to render Rotations
-    await store.scheduleStore.refreshEvents();
+    await store.scheduleStore.updateOncallShifts(this.scheduleId); // TODO we should know shifts to render Rotations
+    await store.scheduleStore.refreshEvents(this.scheduleId);
 
     this.setState({ isLoading: false });
   }
@@ -189,7 +183,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
                         {users && (
                           <HorizontalGroup>
                             <Text type="secondary">Current timezone:</Text>
-                            <UserTimezoneSelect />
+                            <UserTimezoneSelect scheduleId={scheduleId} />
                           </HorizontalGroup>
                         )}
                         <HorizontalGroup>
@@ -394,7 +388,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
   handleCreateRotation = () => {
     const { store } = this.props;
 
-    store.scheduleStore.refreshEvents().then(() => {
+    store.scheduleStore.refreshEvents(this.scheduleId).then(() => {
       store.scheduleStore.clearPreview();
     });
   };
@@ -402,7 +396,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
   handleCreateOverride = () => {
     const { store } = this.props;
 
-    store.scheduleStore.refreshEvents().then(() => {
+    store.scheduleStore.refreshEvents(this.scheduleId).then(() => {
       store.scheduleStore.clearPreview();
     });
   };
@@ -410,7 +404,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
   handleUpdateRotation = () => {
     const { store } = this.props;
 
-    store.scheduleStore.refreshEvents().then(() => {
+    store.scheduleStore.refreshEvents(this.scheduleId).then(() => {
       store.scheduleStore.clearPreview();
     });
   };
@@ -418,7 +412,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
   handleUpdateShiftSwaps = () => {
     const { store } = this.props;
 
-    store.scheduleStore.refreshEvents().then(() => {
+    store.scheduleStore.refreshEvents(this.scheduleId).then(() => {
       store.scheduleStore.clearPreview();
     });
   };
@@ -426,7 +420,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
   handleDeleteRotation = () => {
     const { store } = this.props;
 
-    store.scheduleStore.refreshEvents().then(() => {
+    store.scheduleStore.refreshEvents(this.scheduleId).then(() => {
       store.scheduleStore.clearPreview();
     });
   };
@@ -434,7 +428,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
   handleDeleteOverride = () => {
     const { store } = this.props;
 
-    store.scheduleStore.refreshEvents().then(() => {
+    store.scheduleStore.refreshEvents(this.scheduleId).then(() => {
       store.scheduleStore.clearPreview();
     });
   };
@@ -442,7 +436,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
   handleUpdateOverride = () => {
     const { store } = this.props;
 
-    store.scheduleStore.refreshEvents().then(() => {
+    store.scheduleStore.refreshEvents(this.scheduleId).then(() => {
       store.scheduleStore.clearPreview();
     });
   };
@@ -456,7 +450,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
   };
 
   handleDateRangeUpdate = async () => {
-    await this.props.store.scheduleStore.refreshEvents();
+    await this.props.store.scheduleStore.refreshEvents(this.scheduleId);
     this.forceUpdate();
   };
 
@@ -495,7 +489,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
       await scheduleStore.reloadIcal(scheduleId);
 
       store.scheduleStore.updateOncallShifts(scheduleId);
-      store.scheduleStore.refreshEvents();
+      store.scheduleStore.refreshEvents(scheduleId);
     };
   };
 

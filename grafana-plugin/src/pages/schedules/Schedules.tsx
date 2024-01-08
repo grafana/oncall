@@ -164,15 +164,16 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
     const { expandedRowKeys } = this.state;
 
     if (expanded && !expandedRowKeys.includes(data.id)) {
-      this.setState(
-        { expandedRowKeys: [...this.state.expandedRowKeys, data.id] },
-        this.props.store.scheduleStore.refreshEvents
-      );
+      this.setState({ expandedRowKeys: [...this.state.expandedRowKeys, data.id] }, () => {
+        this.props.store.scheduleStore.refreshEvents(data.id);
+      });
     } else if (!expanded && expandedRowKeys.includes(data.id)) {
       const index = expandedRowKeys.indexOf(data.id);
       const newExpandedRowKeys = [...expandedRowKeys];
       newExpandedRowKeys.splice(index, 1);
-      this.setState({ expandedRowKeys: newExpandedRowKeys }, this.props.store.scheduleStore.refreshEvents);
+      this.setState({ expandedRowKeys: newExpandedRowKeys }, () => {
+        this.props.store.scheduleStore.refreshEvents(data.id);
+      });
     }
   };
 

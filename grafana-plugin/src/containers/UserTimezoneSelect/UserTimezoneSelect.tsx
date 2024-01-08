@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { FC, useCallback, useMemo, useState } from 'react';
 
 import { SelectableValue } from '@grafana/data';
 import { Select } from '@grafana/ui';
@@ -20,7 +20,11 @@ interface TimezoneOption {
   description: string;
 }
 
-const UserTimezoneSelect = observer(() => {
+interface UserTimezoneSelectProps {
+  scheduleId?: string;
+}
+
+const UserTimezoneSelect: FC<UserTimezoneSelectProps> = observer(({ scheduleId }) => {
   const store = useStore();
   const users = store.userStore.getSearchResult().results || [];
 
@@ -79,6 +83,7 @@ const UserTimezoneSelect = observer(() => {
         const now = dayjs().tz(matched);
         const utcOffset = now.utcOffset();
         store.timezoneStore.setSelectedTimezoneOffset(utcOffset);
+        store.scheduleStore.refreshEvents(scheduleId);
 
         if (options.some((option) => option.value === utcOffset)) {
           return;
@@ -95,6 +100,7 @@ const UserTimezoneSelect = observer(() => {
         ]);
 
         store.timezoneStore.setSelectedTimezoneOffset(utcOffset);
+        store.scheduleStore.refreshEvents(scheduleId);
       }
     },
     [options]

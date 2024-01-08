@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { Component, FC, useEffect } from 'react';
 
 import { HorizontalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
@@ -37,11 +37,12 @@ interface ScheduleFinalProps extends WithStoreProps {
   onSlotClick?: (event: Event) => void;
 }
 
-@observer
-class ScheduleFinal extends Component<ScheduleFinalProps> {
-  render() {
-    const { store, simplified, scheduleId, filters, onShowShiftSwapForm, onSlotClick } = this.props;
-    const { currentDateInSelectedTimezone, calendarStartDate } = store.timezoneStore;
+const ScheduleFinal: FC<ScheduleFinalProps> = observer(
+  ({ store, simplified, scheduleId, filters, onShowShiftSwapForm, onShowOverrideForm, onSlotClick }) => {
+    const {
+      timezoneStore: { currentDateInSelectedTimezone, calendarStartDate, selectedTimezoneOffset },
+      scheduleStore: { refreshEvents },
+    } = store;
     const base = 7 * 24 * 60; // in minutes
     const diff = currentDateInSelectedTimezone.diff(calendarStartDate, 'minutes');
 
@@ -57,59 +58,59 @@ class ScheduleFinal extends Component<ScheduleFinalProps> {
 
     const getColor = (event: Event) => findColor(event.shift?.pk, layers, overrides);
 
+    const handleShowOverrideForm = (shiftStart: dayjs.Dayjs, shiftEnd: dayjs.Dayjs) => {
+      onShowOverrideForm('new', shiftStart, shiftEnd);
+    };
+
+    useEffect(() => {
+      refreshEvents(scheduleId);
+    }, [selectedTimezoneOffset]);
+
     return (
-      <>
-        <div className={cx('root')}>
-          {!simplified && (
-            <div className={cx('header')}>
-              <HorizontalGroup justify="space-between">
-                <div className={cx('title')}>
-                  <Text.Title level={4} type="primary">
-                    Final schedule
-                  </Text.Title>
-                </div>
-              </HorizontalGroup>
-            </div>
-          )}
-          <div className={cx('header-plus-content')}>
-            {!currentTimeHidden && <div className={cx('current-time')} style={{ left: `${currentTimeX * 100}%` }} />}
-            <TimelineMarks />
-            <TransitionGroup className={cx('rotations')}>
-              {shifts && shifts.length ? (
-                shifts.map(({ events }, index) => {
-                  return (
-                    <CSSTransition key={index} timeout={DEFAULT_TRANSITION_TIMEOUT} classNames={{ ...styles }}>
-                      <Rotation
-                        key={index}
-                        events={events}
-                        handleAddOverride={this.handleShowOverrideForm}
-                        handleAddShiftSwap={onShowShiftSwapForm}
-                        onShiftSwapClick={onShowShiftSwapForm}
-                        simplified={simplified}
-                        filters={filters}
-                        getColor={getColor}
-                        onSlotClick={onSlotClick}
-                      />
-                    </CSSTransition>
-                  );
-                })
-              ) : (
-                <CSSTransition key={0} timeout={DEFAULT_TRANSITION_TIMEOUT} classNames={{ ...styles }}>
-                  <Rotation events={[]} />
-                </CSSTransition>
-              )}
-            </TransitionGroup>
+      <div className={cx('root')}>
+        {!simplified && (
+          <div className={cx('header')}>
+            <HorizontalGroup justify="space-between">
+              <div className={cx('title')}>
+                <Text.Title level={4} type="primary">
+                  Final schedule
+                </Text.Title>
+              </div>
+            </HorizontalGroup>
           </div>
+        )}
+        <div className={cx('header-plus-content')}>
+          {!currentTimeHidden && <div className={cx('current-time')} style={{ left: `${currentTimeX * 100}%` }} />}
+          <TimelineMarks />
+          <TransitionGroup className={cx('rotations')}>
+            {shifts && shifts.length ? (
+              shifts.map(({ events }, index) => {
+                return (
+                  <CSSTransition key={index} timeout={DEFAULT_TRANSITION_TIMEOUT} classNames={{ ...styles }}>
+                    <Rotation
+                      key={index}
+                      events={events}
+                      handleAddOverride={handleShowOverrideForm}
+                      handleAddShiftSwap={onShowShiftSwapForm}
+                      onShiftSwapClick={onShowShiftSwapForm}
+                      simplified={simplified}
+                      filters={filters}
+                      getColor={getColor}
+                      onSlotClick={onSlotClick}
+                    />
+                  </CSSTransition>
+                );
+              })
+            ) : (
+              <CSSTransition key={0} timeout={DEFAULT_TRANSITION_TIMEOUT} classNames={{ ...styles }}>
+                <Rotation events={[]} />
+              </CSSTransition>
+            )}
+          </TransitionGroup>
         </div>
-      </>
+      </div>
     );
   }
-
-  handleShowOverrideForm = (shiftStart: dayjs.Dayjs, shiftEnd: dayjs.Dayjs) => {
-    const { onShowOverrideForm } = this.props;
-
-    onShowOverrideForm('new', shiftStart, shiftEnd);
-  };
-}
+);
 
 export default withMobXProviderContext(ScheduleFinal);

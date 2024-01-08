@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { FC, useEffect } from 'react';
 
 import { Badge, Button, HorizontalGroup, Icon } from '@grafana/ui';
 import cn from 'classnames/bind';
@@ -15,8 +15,7 @@ import { getColorForSchedule, getPersonalShiftsFromStore } from 'models/schedule
 import { Event } from 'models/schedule/schedule.types';
 import { User } from 'models/user/user.types';
 import { getStartOfWeekBasedOnCurrentDate } from 'pages/schedule/Schedule.helpers';
-import { WithStoreProps } from 'state/types';
-import { withMobXProviderContext } from 'state/withStore';
+import { useStore } from 'state/useStore';
 import { PLUGIN_ROOT } from 'utils/consts';
 
 import { DEFAULT_TRANSITION_TIMEOUT } from './Rotations.config';
@@ -25,150 +24,127 @@ import styles from './Rotations.module.css';
 
 const cx = cn.bind(styles);
 
-interface SchedulePersonalProps extends WithStoreProps, RouteComponentProps {
+interface SchedulePersonalProps extends RouteComponentProps {
   userPk: User['pk'];
   onSlotClick?: (event: Event) => void;
 }
 
-@observer
-class SchedulePersonal extends Component<SchedulePersonalProps> {
-  constructor(props) {
-    super(props);
+const SchedulePersonal: FC<SchedulePersonalProps> = observer(({ userPk, onSlotClick, history }) => {
+  const store = useStore();
+  const { timezoneStore, scheduleStore, userStore, loaderStore } = store;
 
-    this.state = {
-      startMoment: props.startMoment,
-    };
-  }
+  useEffect(() => {
+    updatePersonalEvents();
+  }, [timezoneStore.selectedTimezoneOffset]);
 
-  componentDidMount() {
-    const { store } = this.props;
-
-    store.scheduleStore.updatePersonalEvents(
-      store.userStore.currentUserPk,
-      store.timezoneStore.calendarStartDate,
-      9,
-      true
-    );
-  }
-
-  handleTodayClick = () => {
-    const { store } = this.props;
-    store.timezoneStore.setCalendarStartDate(
-      getStartOfWeekBasedOnCurrentDate(store.timezoneStore.currentDateInSelectedTimezone)
-    );
+  const updatePersonalEvents = () => {
+    scheduleStore.updatePersonalEvents(userStore.currentUserPk, timezoneStore.calendarStartDate, 9, true);
   };
 
-  handleLeftClick = () => {
-    const { store } = this.props;
-    store.timezoneStore.setCalendarStartDate(store.timezoneStore.calendarStartDate.subtract(7, 'day'));
-    store.scheduleStore.updatePersonalEvents(store.userStore.currentUserPk, store.timezoneStore.calendarStartDate);
+  const handleTodayClick = () => {
+    timezoneStore.setCalendarStartDate(getStartOfWeekBasedOnCurrentDate(timezoneStore.currentDateInSelectedTimezone));
   };
 
-  handleRightClick = () => {
-    const { store } = this.props;
-    store.timezoneStore.setCalendarStartDate(store.timezoneStore.calendarStartDate.add(7, 'day'));
-    store.scheduleStore.updatePersonalEvents(store.userStore.currentUserPk, store.timezoneStore.calendarStartDate);
+  const handleLeftClick = () => {
+    timezoneStore.setCalendarStartDate(timezoneStore.calendarStartDate.subtract(7, 'day'));
+    scheduleStore.updatePersonalEvents(userStore.currentUserPk, timezoneStore.calendarStartDate);
   };
 
-  render() {
-    const { userPk, store, onSlotClick } = this.props;
+  const handleRightClick = () => {
+    timezoneStore.setCalendarStartDate(timezoneStore.calendarStartDate.add(7, 'day'));
+    scheduleStore.updatePersonalEvents(userStore.currentUserPk, timezoneStore.calendarStartDate);
+  };
 
-    const base = 7 * 24 * 60; // in minutes
-    const diff = store.timezoneStore.currentDateInSelectedTimezone.diff(
-      store.timezoneStore.calendarStartDate,
-      'minutes'
-    );
+  const openSchedule = (event: Event) => {
+    history.push(`${PLUGIN_ROOT}/schedules/${event.schedule?.id}`);
+  };
 
-    const currentTimeX = diff / base;
+  const base = 7 * 24 * 60; // in minutes
+  const diff = timezoneStore.currentDateInSelectedTimezone.diff(timezoneStore.calendarStartDate, 'minutes');
 
-    const shifts = getPersonalShiftsFromStore(store, userPk, store.timezoneStore.calendarStartDate);
+  const currentTimeX = diff / base;
 
-    const currentTimeHidden = currentTimeX < 0 || currentTimeX > 1;
+  const shifts = getPersonalShiftsFromStore(store, userPk, timezoneStore.calendarStartDate);
 
-    const getColor = (event: Event) => getColorForSchedule(event.schedule?.id);
+  const currentTimeHidden = currentTimeX < 0 || currentTimeX > 1;
 
-    const isOncall = store.scheduleStore.onCallNow[userPk];
+  const getColor = (event: Event) => getColorForSchedule(event.schedule?.id);
 
-    const storeUser = store.userStore.items[userPk];
+  const isOncall = scheduleStore.onCallNow[userPk];
 
-    const emptyRotationsText = store.loaderStore.isLoading(ActionKey.UPDATE_PERSONAL_EVENTS)
-      ? 'Loading ...'
-      : 'There are no schedules relevant to user';
+  const storeUser = userStore.items[userPk];
 
-    return (
-      <div className={cx('root')}>
-        <div className={cx('header')}>
-          <div className={cx('title')}>
-            <HorizontalGroup justify="space-between">
+  const emptyRotationsText = loaderStore.isLoading(ActionKey.UPDATE_PERSONAL_EVENTS)
+    ? 'Loading ...'
+    : 'There are no schedules relevant to user';
+
+  return (
+    <div className={cx('root')}>
+      <div className={cx('header')}>
+        <div className={cx('title')}>
+          <HorizontalGroup justify="space-between">
+            <HorizontalGroup>
+              <Text type="secondary">
+                On-call schedule <Avatar src={storeUser.avatar} size="small" /> {storeUser.username}
+              </Text>
+              {isOncall ? (
+                <Badge text="On-call now" color="green" />
+              ) : (
+                /*  @ts-ignore */
+                <Badge text="Not on-call now" color="gray" />
+              )}
+            </HorizontalGroup>
+            <HorizontalGroup>
               <HorizontalGroup>
                 <Text type="secondary">
-                  On-call schedule <Avatar src={storeUser.avatar} size="small" /> {storeUser.username}
+                  {timezoneStore.calendarStartDate.format('DD MMM')} -{' '}
+                  {timezoneStore.calendarStartDate.add(6, 'day').format('DD MMM')}
                 </Text>
-                {isOncall ? (
-                  <Badge text="On-call now" color="green" />
-                ) : (
-                  /*  @ts-ignore */
-                  <Badge text="Not on-call now" color="gray" />
-                )}
-              </HorizontalGroup>
-              <HorizontalGroup>
-                <HorizontalGroup>
-                  <Text type="secondary">
-                    {store.timezoneStore.calendarStartDate.format('DD MMM')} -{' '}
-                    {store.timezoneStore.calendarStartDate.add(6, 'day').format('DD MMM')}
-                  </Text>
-                  <Button variant="secondary" size="sm" onClick={this.handleTodayClick}>
-                    Today
+                <Button variant="secondary" size="sm" onClick={handleTodayClick}>
+                  Today
+                </Button>
+                <HorizontalGroup spacing="xs">
+                  <Button variant="secondary" size="sm" onClick={handleLeftClick}>
+                    <Icon name="angle-left" />
                   </Button>
-                  <HorizontalGroup spacing="xs">
-                    <Button variant="secondary" size="sm" onClick={this.handleLeftClick}>
-                      <Icon name="angle-left" />
-                    </Button>
-                    <Button variant="secondary" size="sm" onClick={this.handleRightClick}>
-                      <Icon name="angle-right" />
-                    </Button>
-                  </HorizontalGroup>
+                  <Button variant="secondary" size="sm" onClick={handleRightClick}>
+                    <Icon name="angle-right" />
+                  </Button>
                 </HorizontalGroup>
               </HorizontalGroup>
             </HorizontalGroup>
-          </div>
-        </div>
-        <div className={cx('header-plus-content')}>
-          {!currentTimeHidden && <div className={cx('current-time')} style={{ left: `${currentTimeX * 100}%` }} />}
-          <TimelineMarks />
-          <TransitionGroup className={cx('rotations')}>
-            {shifts?.length ? (
-              shifts.map(({ events }, index) => {
-                return (
-                  <CSSTransition key={index} timeout={DEFAULT_TRANSITION_TIMEOUT} classNames={{ ...styles }}>
-                    <Rotation
-                      simplified
-                      key={index}
-                      events={events}
-                      getColor={getColor}
-                      onSlotClick={onSlotClick}
-                      handleOpenSchedule={this.openSchedule}
-                      showScheduleNameAsSlotTitle
-                    />
-                  </CSSTransition>
-                );
-              })
-            ) : (
-              <CSSTransition key={0} timeout={DEFAULT_TRANSITION_TIMEOUT} classNames={{ ...styles }}>
-                <Rotation events={[]} emptyText={emptyRotationsText} />
-              </CSSTransition>
-            )}
-          </TransitionGroup>
+          </HorizontalGroup>
         </div>
       </div>
-    );
-  }
+      <div className={cx('header-plus-content')}>
+        {!currentTimeHidden && <div className={cx('current-time')} style={{ left: `${currentTimeX * 100}%` }} />}
+        <TimelineMarks />
+        <TransitionGroup className={cx('rotations')}>
+          {shifts?.length ? (
+            shifts.map(({ events }, index) => {
+              return (
+                <CSSTransition key={index} timeout={DEFAULT_TRANSITION_TIMEOUT} classNames={{ ...styles }}>
+                  <Rotation
+                    simplified
+                    key={index}
+                    events={events}
+                    getColor={getColor}
+                    onSlotClick={onSlotClick}
+                    handleOpenSchedule={openSchedule}
+                    showScheduleNameAsSlotTitle
+                  />
+                </CSSTransition>
+              );
+            })
+          ) : (
+            <CSSTransition key={0} timeout={DEFAULT_TRANSITION_TIMEOUT} classNames={{ ...styles }}>
+              <Rotation events={[]} emptyText={emptyRotationsText} />
+            </CSSTransition>
+          )}
+        </TransitionGroup>
+      </div>
+    </div>
+  );
+});
 
-  openSchedule = (event: Event) => {
-    const { history } = this.props;
-
-    history.push(`${PLUGIN_ROOT}/schedules/${event.schedule?.id}`);
-  };
-}
-
-export default withRouter(withMobXProviderContext(SchedulePersonal));
+export default withRouter(SchedulePersonal);
