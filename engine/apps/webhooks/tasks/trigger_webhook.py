@@ -1,7 +1,10 @@
 import json
 import logging
+import typing
+from datetime import datetime
 from json import JSONDecodeError
 
+import requests
 from celery.utils.log import get_task_logger
 from django.conf import settings
 from django.db.models import Prefetch
@@ -40,6 +43,17 @@ TRIGGER_TYPE_TO_LABEL = {
 }
 
 
+class WebhookRequestStatus(typing.TypedDict):
+    url: typing.Optional[str]
+    request_trigger: typing.Optional[str]
+    request_headers: typing.Optional[str]
+    request_data: typing.Optional[str]
+    status_code: typing.Optional[int]
+    content: typing.Optional[str]
+    webhook: Webhook
+    event_data: str
+
+
 @shared_dedicated_queue_retry_task(
     autoretry_for=(Exception,), retry_backoff=True, max_retries=1 if settings.DEBUG else None
 )
@@ -52,15 +66,14 @@ def send_webhook_event(trigger_type, alert_group_id, organization_id=None, user_
     ).exclude(is_webhook_enabled=False)
 
     for webhook in webhooks_qs:
-        print(webhook.name)
         execute_webhook.apply_async((webhook.pk, alert_group_id, user_id, None))
 
 
-def _isoformat_date(date_value):
+def _isoformat_date(date_value: datetime) -> typing.Optional[str]:
     return date_value.isoformat() if date_value else None
 
 
-def _build_payload(webhook, alert_group, user):
+def _build_payload(webhook: Webhook, alert_group: AlertGroup, user: User) -> typing.Dict[str, typing.Any]:
     trigger_type = webhook.trigger_type
     event = {
         "type": TRIGGER_TYPE_TO_LABEL[trigger_type],
@@ -96,7 +109,9 @@ def _build_payload(webhook, alert_group, user):
     return data
 
 
-def mask_authorization_header(headers, header_keys_to_mask):
+def mask_authorization_header(
+    headers: typing.Dict[str, str], header_keys_to_mask: typing.List[str]
+) -> typing.Dict[str, str]:
     masked_headers = headers.copy()
     lower_keys = set(k.lower() for k in header_keys_to_mask)
     for k in headers.keys():
@@ -105,8 +120,10 @@ def mask_authorization_header(headers, header_keys_to_mask):
     return masked_headers
 
 
-def make_request(webhook, alert_group, data):
-    status = {
+def make_request(
+    webhook: Webhook, alert_group: AlertGroup, data: typing.Dict[str, typing.Any]
+) -> typing.Tuple[bool, WebhookRequestStatus, typing.Optional[str], typing.Optional[Exception]]:
+    status: WebhookRequestStatus = {
         "url": None,
         "request_trigger": None,
         "request_headers": None,
@@ -172,7 +189,12 @@ def make_request(webhook, alert_group, data):
 
 
 @shared_dedicated_queue_retry_task(
-    autoretry_for=(Exception,), retry_backoff=True, max_retries=1 if settings.DEBUG else 3
+    autoretry_for=(Exception,),
+    # This allows to exclude some exceptions that match autoretry_for but for which you don’t want a retry.
+    # https://docs.celeryq.dev/en/stable/userguide/tasks.html#Task.dont_autoretry_for
+    dont_autoretry_for=(requests.exceptions.Timeout,),
+    retry_backoff=True,
+    max_retries=1 if settings.DEBUG else 3,
 )
 def execute_webhook(webhook_pk, alert_group_id, user_id, escalation_policy_id):
     from apps.webhooks.models import Webhook
