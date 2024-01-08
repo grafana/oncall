@@ -150,12 +150,6 @@ module.exports.getWebpackConfig = (config, options) => {
         'process.env': JSON.stringify(dotenv.config().parsed),
       }),
     ],
-
-    resolve: {
-      ...config.resolve,
-      symlinks: false,
-      modules: [path.resolve(__dirname, './frontend_enterprise/src'), ...config.resolve.modules],
-    },
   };
 
   return newConfig;

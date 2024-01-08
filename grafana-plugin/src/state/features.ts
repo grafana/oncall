@@ -5,4 +5,5 @@ export enum AppFeature {
   CloudNotifications = 'grafana_cloud_notifications',
   CloudConnection = 'grafana_cloud_connection',
   Labels = 'labels',
+  MsTeams = 'msteams',
 }
