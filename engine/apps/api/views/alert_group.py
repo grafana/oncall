@@ -65,12 +65,10 @@ class AlertGroupFilter(DateRangeFilterMixin, ModelFieldFilterMixin, filters.Filt
     started_at = filters.CharFilter(
         field_name="started_at",
         method=DateRangeFilterMixin.filter_date_range.__name__,
-        label=f"Format: {DateRangeFilterMixin.DATE_RANGE_FORMAT}",
     )
     resolved_at = filters.CharFilter(
         field_name="resolved_at",
         method=DateRangeFilterMixin.filter_date_range.__name__,
-        label=f"Format: {DateRangeFilterMixin.DATE_RANGE_FORMAT}",
     )
     integration = filters.ModelMultipleChoiceFilter(
         field_name="channel",
