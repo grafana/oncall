@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Move Insights to OnCall as a separate page ([#2382](https://github.com/grafana/oncall-private/issues/2382))
 
+### Fixed
+
+- Fixed schedule timezone issues ([#3576](https://github.com/grafana/oncall/issues/3576))
+
 ## v1.3.82 (2024-01-04)
 
 ### Added
