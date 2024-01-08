@@ -26,6 +26,7 @@ import NoMatch from 'pages/NoMatch';
 import EscalationChains from 'pages/escalation-chains/EscalationChains';
 import Incident from 'pages/incident/Incident';
 import Incidents from 'pages/incidents/Incidents';
+import Insights from 'pages/insights/Insights';
 import Integration from 'pages/integration/Integration';
 import Integrations from 'pages/integrations/Integrations';
 import OutgoingWebhooks from 'pages/outgoing_webhooks/OutgoingWebhooks';
@@ -180,6 +181,9 @@ export const Root = observer((props: AppRootProps) => {
               </Route>
               <Route path={getRoutesForPage('cloud')} exact>
                 <CloudPage />
+              </Route>
+              <Route path={getRoutesForPage('insights')} exact>
+                <Insights />
               </Route>
 
               {/* Backwards compatibility redirect routes */}

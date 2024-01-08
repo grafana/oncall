@@ -35,7 +35,7 @@ const Header = observer(() => {
   );
 
   function renderHeading() {
-    if (store.isOpenSource()) {
+    if (store.isOpenSource) {
       return (
         <div className={cx('heading')}>
           <h1 className={cx('page-header__title')}>Grafana OnCall</h1>

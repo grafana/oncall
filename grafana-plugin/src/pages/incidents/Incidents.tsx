@@ -179,9 +179,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
     );
   }
 
-  renderCards(filtersState, setFiltersState, filtersOnFiltersValueChange) {
-    const { store } = this.props;
-
+  renderCards(filtersState, setFiltersState, filtersOnFiltersValueChange, store) {
     const { values } = filtersState;
 
     const { newIncidents, acknowledgedIncidents, resolvedIncidents, silencedIncidents } = store.alertGroupStore;
@@ -301,7 +299,9 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
           query={query}
           page={PAGE.Incidents}
           onChange={this.handleFiltersChange}
-          extraFilters={this.renderCards.bind(this)}
+          extraFilters={(...args) => {
+            return this.renderCards(...args, store);
+          }}
           grafanaTeamStore={store.grafanaTeamStore}
           defaultFilters={{
             team: [],

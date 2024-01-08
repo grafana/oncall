@@ -4,7 +4,7 @@ import typing
 import requests
 from celery import shared_task
 from django.conf import settings
-from django.db.models import Avg, F, Max
+from django.db.models import Avg, F, Max, Q
 from django.utils import timezone
 
 from apps.alerts.tasks.task_logger import task_logger
@@ -82,7 +82,37 @@ def audit_alert_group_escalation(alert_group: "AlertGroup") -> None:
             f"{base_msg}'s escalation snapshot has {num_of_executed_escalation_policy_snapshots} executed escalation policies"
         )
 
+    check_personal_notifications_task.apply_async((alert_group_id,))
+
     task_logger.info(f"{base_msg} passed the audit checks")
+
+
+@shared_task
+def check_personal_notifications_task(alert_group_id) -> None:
+    # Check personal notifications are completed
+    # triggered (< 5min ago) == failed + success
+    from apps.base.models import UserNotificationPolicy, UserNotificationPolicyLogRecord
+
+    triggered = UserNotificationPolicyLogRecord.objects.filter(
+        alert_group_id=alert_group_id,
+        type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_TRIGGERED,
+        notification_step=UserNotificationPolicy.Step.NOTIFY,
+        created_at__lte=timezone.now() - timezone.timedelta(minutes=5),
+    ).count()
+    completed = UserNotificationPolicyLogRecord.objects.filter(
+        Q(type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED)
+        | Q(type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_SUCCESS),
+        alert_group_id=alert_group_id,
+        notification_step=UserNotificationPolicy.Step.NOTIFY,
+    ).count()
+
+    base_msg = f"Alert group {alert_group_id}"
+    delta = triggered - completed
+    if delta > 0:
+        # TODO: when success notifications are setup for every backend, raise exception here
+        task_logger.info(f"{base_msg} has ({delta}) uncompleted personal notifications")
+    else:
+        task_logger.info(f"{base_msg} personal notifications check passed")
 
 
 @shared_task

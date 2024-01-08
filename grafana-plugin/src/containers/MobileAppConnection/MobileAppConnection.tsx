@@ -178,7 +178,7 @@ export const MobileAppConnection = observer(({ userPk }: Props) => {
           <QRCode className={cx({ 'qr-code': true, blurry: isQRBlurry })} value={QRCodeValue} />
           {isQRBlurry && <QRLoading />}
         </div>
-        {store.isOpenSource() && QRCodeDataParsed && (
+        {store.isOpenSource && QRCodeDataParsed && (
           <Text type="secondary">
             Server URL embedded in this QR:
             <br />
