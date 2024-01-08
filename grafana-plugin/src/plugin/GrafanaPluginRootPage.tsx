@@ -1,17 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
+
+import './dayjs';
 
 import { LoadingPlaceholder } from '@grafana/ui';
 import classnames from 'classnames';
-import dayjs from 'dayjs';
-import customParseFormat from 'dayjs/plugin/customParseFormat';
-import isBetween from 'dayjs/plugin/isBetween';
-import isSameOrAfter from 'dayjs/plugin/isSameOrAfter';
-import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
-import isoWeek from 'dayjs/plugin/isoWeek';
-import localeData from 'dayjs/plugin/localeData';
-import timezone from 'dayjs/plugin/timezone';
-import utc from 'dayjs/plugin/utc';
-import weekday from 'dayjs/plugin/weekday';
 import { observer, Provider } from 'mobx-react';
 import Header from 'navbar/Header/Header';
 import LegacyNavTabsBar from 'navbar/LegacyNavTabsBar';
@@ -42,16 +34,6 @@ import { useStore } from 'state/useStore';
 import { isUserActionAllowed } from 'utils/authorization';
 import { DEFAULT_PAGE } from 'utils/consts';
 
-dayjs.extend(utc);
-dayjs.extend(timezone);
-dayjs.extend(weekday);
-dayjs.extend(localeData);
-dayjs.extend(isSameOrBefore);
-dayjs.extend(isSameOrAfter);
-dayjs.extend(isoWeek);
-dayjs.extend(isBetween);
-dayjs.extend(customParseFormat);
-
 import 'assets/style/vars.css';
 import 'assets/style/global.css';
 import 'assets/style/utils.css';
@@ -70,9 +52,7 @@ export const GrafanaPluginRootPage = (props: AppRootProps) => {
 };
 
 export const Root = observer((props: AppRootProps) => {
-  const { isBasicDataLoaded, loadBasicData, loadMasterData } = useStore();
-
-  const [pageTitle, setPageTitle] = useState('');
+  const { isBasicDataLoaded, loadBasicData, loadMasterData, pageTitle } = useStore();
 
   const location = useLocation();
 
@@ -147,7 +127,7 @@ export const Root = observer((props: AppRootProps) => {
                 <Incidents query={query} />
               </Route>
               <Route path={getRoutesForPage('alert-group')} exact>
-                <Incident query={query} pageTitle={pageTitle} setPageTitle={setPageTitle} />
+                <Incident query={query} />
               </Route>
               <Route path={getRoutesForPage('users')} exact>
                 <Users query={query} />
@@ -165,7 +145,7 @@ export const Root = observer((props: AppRootProps) => {
                 <Schedules query={query} />
               </Route>
               <Route path={getRoutesForPage('schedule')} exact>
-                <Schedule query={query} pageTitle={pageTitle} setPageTitle={setPageTitle} />
+                <Schedule query={query} />
               </Route>
               <Route path={getRoutesForPage('outgoing_webhooks')} exact>
                 <OutgoingWebhooks query={query} />

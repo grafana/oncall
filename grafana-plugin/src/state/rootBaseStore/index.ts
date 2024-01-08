@@ -1,7 +1,6 @@
 import { locationService } from '@grafana/runtime';
 import { contextSrv } from 'grafana/app/core/core';
 import { action, computed, makeObservable, observable, runInAction } from 'mobx';
-import moment from 'moment-timezone';
 import qs from 'query-string';
 import { OnCallAppPluginMeta } from 'types';
 
@@ -20,6 +19,7 @@ import { GrafanaTeamStore } from 'models/grafana_team/grafana_team';
 import { HeartbeatStore } from 'models/heartbeat/heartbeat';
 import { LabelStore } from 'models/label/label';
 import { LoaderStore } from 'models/loader/loader';
+import { MSTeamsChannelStore } from 'models/msteams_channel/msteams_channel';
 import { OrganizationStore } from 'models/organization/organization';
 import { OutgoingWebhookStore } from 'models/outgoing_webhook/outgoing_webhook';
 import { ResolutionNotesStore } from 'models/resolution_note/resolution_note';
@@ -27,7 +27,7 @@ import { ScheduleStore } from 'models/schedule/schedule';
 import { SlackStore } from 'models/slack/slack';
 import { SlackChannelStore } from 'models/slack_channel/slack_channel';
 import { TelegramChannelStore } from 'models/telegram_channel/telegram_channel';
-import { Timezone } from 'models/timezone/timezone.types';
+import { TimezoneStore } from 'models/timezone/timezone';
 import { UserStore } from 'models/user/user';
 import { UserGroupStore } from 'models/user_group/user_group';
 import { makeRequest } from 'network';
@@ -49,9 +49,6 @@ import FaroHelper from 'utils/faro';
 export class RootBaseStore {
   @observable
   isBasicDataLoaded = false;
-
-  @observable
-  currentTimezone: Timezone = moment.tz.guess() as Timezone;
 
   @observable
   backendVersion = '';
@@ -83,10 +80,16 @@ export class RootBaseStore {
   incidentFilters: any;
 
   @observable
+  pageTitle = '';
+
+  @observable
   incidentsPage: any = this.initialQuery.p ? Number(this.initialQuery.p) : 1;
 
   @observable
   onCallApiUrl: string;
+
+  @observable
+  insightsDatasource?: string;
 
   // stores
   userStore = new UserStore(this);
@@ -111,6 +114,8 @@ export class RootBaseStore {
   globalSettingStore = new GlobalSettingStore(this);
   filtersStore = new FiltersStore(this);
   labelsStore = new LabelStore(this);
+  timezoneStore = new TimezoneStore(this);
+  msteamsChannelStore: MSTeamsChannelStore = new MSTeamsChannelStore(this);
   loaderStore = LoaderStore;
 
   constructor() {
@@ -178,6 +183,7 @@ export class RootBaseStore {
   async setupPlugin(meta: OnCallAppPluginMeta) {
     this.setupPluginError(null);
     this.onCallApiUrl = getOnCallApiUrl(meta);
+    this.insightsDatasource = meta.jsonData?.insightsDatasource || 'grafanacloud-usage';
 
     if (!FaroHelper.faro) {
       FaroHelper.initializeFaro(this.onCallApiUrl);
@@ -314,6 +320,11 @@ export class RootBaseStore {
         {}
       );
     });
+  }
+
+  @action.bound
+  setPageTitle(title: string) {
+    this.pageTitle = title;
   }
 
   @action

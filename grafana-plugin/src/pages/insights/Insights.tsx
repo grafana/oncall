@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useState } from 'react';
 
 import {
   EmbeddedScene,
@@ -10,6 +10,9 @@ import {
   SceneVariableSet,
   VariableValueSelectors,
   NestedScene,
+  SceneApp,
+  SceneAppPage,
+  useSceneApp,
 } from '@grafana/scenes';
 import { Alert } from '@grafana/ui';
 import { observer } from 'mobx-react';
@@ -18,7 +21,7 @@ import Text from 'components/Text/Text';
 import { useStore } from 'state/useStore';
 import { DOCS_ROOT } from 'utils/consts';
 
-import { getDataSource } from './Insights.helpers';
+import styles from './Insights.module.scss';
 import { InsightsConfig } from './Insights.types';
 import getAlertGroupsByIntegrationScene from './scenes/AlertGroupsByIntegration';
 import getAlertGroupsByTeamScene from './scenes/AlertGroupsByTeam';
@@ -37,44 +40,63 @@ import getTotalAlertGroupsByStateScene from './scenes/TotalAlertGroupsByState';
 import getVariables from './variables';
 
 const Insights = observer(() => {
+  const { isOpenSource, insightsDatasource } = useStore();
+
+  const datasource = { uid: isOpenSource ? '$datasource' : insightsDatasource };
+  const appScene = useSceneApp(() => getAppScene({ isOpenSource, datasource }));
+
+  return (
+    <div className={styles.insights}>
+      <InsightsInfoAlert />
+      <appScene.Component model={appScene} />
+    </div>
+  );
+});
+
+const InsightsInfoAlert = observer(() => {
   const { isOpenSource } = useStore();
   const [alertVisible, setAlertVisible] = useState(true);
 
-  const rootScene = useMemo(
-    () => getRootScene({ isOpenSource, datasource: getDataSource(isOpenSource) }),
-    [isOpenSource]
+  const docsLink = (
+    <a
+      href={`${DOCS_ROOT}/insights-and-metrics/${isOpenSource ? '#for-open-source-customers' : ''}`}
+      target="_blank"
+      rel="noreferrer"
+    >
+      <Text type="link">documentation</Text>
+    </a>
   );
 
-  return (
+  const content = isOpenSource ? (
     <>
-      {isOpenSource && alertVisible && (
-        <Alert onRemove={() => setAlertVisible(false)} severity="info" title="">
-          {
-            <>
-              In order to see insights you need to set up Prometheus, add it to your Grafana instance as a data source,
-              set FEATURE_PROMETHEUS_EXPORTER_ENABLED environment variable to true and then select your Data source in
-              the dropdown below.
-              <br />
-              <br />
-              <>
-                You can find out more in
-                <a
-                  href={`${DOCS_ROOT}/insights-and-metrics/#for-open-source-customers`}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  <Text type="link"> documentation</Text>
-                </a>
-                .
-              </>
-            </>
-          }
-        </Alert>
-      )}
-      <rootScene.Component model={rootScene} />
+      In order to see insights you need to set up Prometheus, add it to your Grafana instance as a data source, set
+      FEATURE_PROMETHEUS_EXPORTER_ENABLED environment variable to true and then select your Data source in the dropdown
+      below.
+      <br />
+      <br />
+      <>You can find out more in our {docsLink}.</>
     </>
+  ) : (
+    <>Find out more about OnCall Insights and Metrics in our {docsLink}.</>
   );
+
+  return alertVisible ? (
+    <Alert onRemove={() => setAlertVisible(false)} severity="info" title="">
+      {content}
+    </Alert>
+  ) : null;
 });
+
+const getAppScene = (config: InsightsConfig) =>
+  new SceneApp({
+    pages: [
+      new SceneAppPage({
+        title: 'OnCall Insights',
+        url: '/a/grafana-oncall-app/insights',
+        getScene: () => getRootScene(config),
+      }),
+    ],
+  });
 
 const getRootScene = (config: InsightsConfig) =>
   new EmbeddedScene({
