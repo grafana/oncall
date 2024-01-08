@@ -6,10 +6,12 @@ import { getWrongTeamResponseInfo } from 'components/PageErrorHandlingWrapper/Pa
 import { RemoteFiltersType } from 'containers/RemoteFilters/RemoteFilters.types';
 import BaseStore from 'models/base_store';
 import { EscalationChain } from 'models/escalation_chain/escalation_chain.types';
+import { ActionKey } from 'models/loader/action-keys';
 import { User } from 'models/user/user.types';
 import { makeRequest } from 'network';
 import { RootStore } from 'state';
 import { SelectOption } from 'state/types';
+import { AutoLoadingState } from 'utils/decorators';
 
 import {
   createShiftSwapEventFromShiftSwap,
@@ -623,6 +625,7 @@ export class ScheduleStore extends BaseStore {
     });
   }
 
+  @AutoLoadingState(ActionKey.UPDATE_PERSONAL_EVENTS)
   @action
   async updatePersonalEvents(userPk: User['pk'], startMoment: dayjs.Dayjs, days = 9, isUpdateOnCallNow = false) {
     const fromString = getFromString(startMoment);

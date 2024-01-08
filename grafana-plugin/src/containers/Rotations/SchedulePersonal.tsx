@@ -10,6 +10,7 @@ import Avatar from 'components/Avatar/Avatar';
 import Text from 'components/Text/Text';
 import TimelineMarks from 'components/TimelineMarks/TimelineMarks';
 import Rotation from 'containers/Rotation/Rotation';
+import { ActionKey } from 'models/loader/action-keys';
 import { getColorForSchedule, getPersonalShiftsFromStore } from 'models/schedule/schedule.helpers';
 import { Event } from 'models/schedule/schedule.types';
 import { User } from 'models/user/user.types';
@@ -50,14 +51,6 @@ class SchedulePersonal extends Component<SchedulePersonalProps> {
     );
   }
 
-  componentDidUpdate(prevProps: Readonly<SchedulePersonalProps>): void {
-    const { store } = this.props;
-
-    if (prevProps.store.timezoneStore.calendarStartDate !== this.props.store.timezoneStore.calendarStartDate) {
-      store.scheduleStore.updatePersonalEvents(store.userStore.currentUserPk, store.timezoneStore.calendarStartDate);
-    }
-  }
-
   handleTodayClick = () => {
     const { store } = this.props;
     store.timezoneStore.setCalendarStartDate(
@@ -68,11 +61,13 @@ class SchedulePersonal extends Component<SchedulePersonalProps> {
   handleLeftClick = () => {
     const { store } = this.props;
     store.timezoneStore.setCalendarStartDate(store.timezoneStore.calendarStartDate.subtract(7, 'day'));
+    store.scheduleStore.updatePersonalEvents(store.userStore.currentUserPk, store.timezoneStore.calendarStartDate);
   };
 
   handleRightClick = () => {
     const { store } = this.props;
     store.timezoneStore.setCalendarStartDate(store.timezoneStore.calendarStartDate.add(7, 'day'));
+    store.scheduleStore.updatePersonalEvents(store.userStore.currentUserPk, store.timezoneStore.calendarStartDate);
   };
 
   render() {
@@ -96,75 +91,76 @@ class SchedulePersonal extends Component<SchedulePersonalProps> {
 
     const storeUser = store.userStore.items[userPk];
 
+    const emptyRotationsText = store.loaderStore.isLoading(ActionKey.UPDATE_PERSONAL_EVENTS)
+      ? 'Loading ...'
+      : 'There are no schedules relevant to user';
+
     return (
-      <>
-        <div className={cx('root')}>
-          <div className={cx('header')}>
-            <div className={cx('title')}>
-              <HorizontalGroup justify="space-between">
+      <div className={cx('root')}>
+        <div className={cx('header')}>
+          <div className={cx('title')}>
+            <HorizontalGroup justify="space-between">
+              <HorizontalGroup>
+                <Text type="secondary">
+                  On-call schedule <Avatar src={storeUser.avatar} size="small" /> {storeUser.username}
+                </Text>
+                {isOncall ? (
+                  <Badge text="On-call now" color="green" />
+                ) : (
+                  /*  @ts-ignore */
+                  <Badge text="Not on-call now" color="gray" />
+                )}
+              </HorizontalGroup>
+              <HorizontalGroup>
                 <HorizontalGroup>
                   <Text type="secondary">
-                    On-call schedule <Avatar src={storeUser.avatar} size="small" /> {storeUser.username}
+                    {store.timezoneStore.calendarStartDate.format('DD MMM')} -{' '}
+                    {store.timezoneStore.calendarStartDate.add(6, 'day').format('DD MMM')}
                   </Text>
-
-                  {isOncall ? (
-                    <Badge text="On-call now" color="green" />
-                  ) : (
-                    /*  @ts-ignore */
-                    <Badge text="Not on-call now" color="gray" />
-                  )}
-                </HorizontalGroup>
-                <HorizontalGroup>
-                  <HorizontalGroup>
-                    <Text type="secondary">
-                      {store.timezoneStore.calendarStartDate.format('DD MMM')} -{' '}
-                      {store.timezoneStore.calendarStartDate.add(6, 'day').format('DD MMM')}
-                    </Text>
-                    <Button variant="secondary" size="sm" onClick={this.handleTodayClick}>
-                      Today
+                  <Button variant="secondary" size="sm" onClick={this.handleTodayClick}>
+                    Today
+                  </Button>
+                  <HorizontalGroup spacing="xs">
+                    <Button variant="secondary" size="sm" onClick={this.handleLeftClick}>
+                      <Icon name="angle-left" />
                     </Button>
-                    <HorizontalGroup spacing="xs">
-                      <Button variant="secondary" size="sm" onClick={this.handleLeftClick}>
-                        <Icon name="angle-left" />
-                      </Button>
-                      <Button variant="secondary" size="sm" onClick={this.handleRightClick}>
-                        <Icon name="angle-right" />
-                      </Button>
-                    </HorizontalGroup>
+                    <Button variant="secondary" size="sm" onClick={this.handleRightClick}>
+                      <Icon name="angle-right" />
+                    </Button>
                   </HorizontalGroup>
                 </HorizontalGroup>
               </HorizontalGroup>
-            </div>
-          </div>
-          <div className={cx('header-plus-content')}>
-            {!currentTimeHidden && <div className={cx('current-time')} style={{ left: `${currentTimeX * 100}%` }} />}
-            <TimelineMarks />
-            <TransitionGroup className={cx('rotations')}>
-              {shifts && shifts.length ? (
-                shifts.map(({ events }, index) => {
-                  return (
-                    <CSSTransition key={index} timeout={DEFAULT_TRANSITION_TIMEOUT} classNames={{ ...styles }}>
-                      <Rotation
-                        simplified
-                        key={index}
-                        events={events}
-                        getColor={getColor}
-                        onSlotClick={onSlotClick}
-                        handleOpenSchedule={this.openSchedule}
-                        showScheduleNameAsSlotTitle
-                      />
-                    </CSSTransition>
-                  );
-                })
-              ) : (
-                <CSSTransition key={0} timeout={DEFAULT_TRANSITION_TIMEOUT} classNames={{ ...styles }}>
-                  <Rotation events={[]} emptyText="There are no schedules relevant to user" />
-                </CSSTransition>
-              )}
-            </TransitionGroup>
+            </HorizontalGroup>
           </div>
         </div>
-      </>
+        <div className={cx('header-plus-content')}>
+          {!currentTimeHidden && <div className={cx('current-time')} style={{ left: `${currentTimeX * 100}%` }} />}
+          <TimelineMarks />
+          <TransitionGroup className={cx('rotations')}>
+            {shifts?.length ? (
+              shifts.map(({ events }, index) => {
+                return (
+                  <CSSTransition key={index} timeout={DEFAULT_TRANSITION_TIMEOUT} classNames={{ ...styles }}>
+                    <Rotation
+                      simplified
+                      key={index}
+                      events={events}
+                      getColor={getColor}
+                      onSlotClick={onSlotClick}
+                      handleOpenSchedule={this.openSchedule}
+                      showScheduleNameAsSlotTitle
+                    />
+                  </CSSTransition>
+                );
+              })
+            ) : (
+              <CSSTransition key={0} timeout={DEFAULT_TRANSITION_TIMEOUT} classNames={{ ...styles }}>
+                <Rotation events={[]} emptyText={emptyRotationsText} />
+              </CSSTransition>
+            )}
+          </TransitionGroup>
+        </div>
+      </div>
     );
   }
 
