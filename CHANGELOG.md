@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Move Insights to OnCall as a separate page ([#2382](https://github.com/grafana/oncall-private/issues/2382))
+- Allow mobile app to access paging endpoint @imtoori ([#3619](https://github.com/grafana/oncall/pull/3619))
 
 ### Fixed
 
