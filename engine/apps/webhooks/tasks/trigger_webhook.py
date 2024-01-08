@@ -276,7 +276,6 @@ def execute_webhook(webhook_pk, alert_group_id, user_id, escalation_policy_id, m
         if manual_retry_num < EXECUTE_WEBHOOK_RETRIES:
             retry_num = manual_retry_num + 1
             logger.warning(f"Manually retrying execute_webhook for{msg_details}\nmanual retry num - {retry_num}")
-
             execute_webhook.apply_async(
                 (webhook_pk, alert_group_id, user_id, escalation_policy_id, retry_num),
                 countdown=10,
@@ -285,7 +284,5 @@ def execute_webhook(webhook_pk, alert_group_id, user_id, escalation_policy_id, m
             # don't raise an exception if we've exhausted retries for
             # exceptions within EXECUTE_WEBHOOK_EXCEPTIONS_TO_MANUALLY_RETRY, simply give up trying
             logger.warning(f"Exhausted execute_webhook retries for{msg_details}")
-            return
-
-    if exception:
+    elif exception:
         raise exception
