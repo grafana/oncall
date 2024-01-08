@@ -1,13 +1,17 @@
 import dayjs from 'dayjs';
 import { action, makeObservable, observable, runInAction } from 'mobx';
 
+import { PageErrorData } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
+import { getWrongTeamResponseInfo } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper.helpers';
 import { RemoteFiltersType } from 'containers/RemoteFilters/RemoteFilters.types';
 import BaseStore from 'models/base_store';
 import { EscalationChain } from 'models/escalation_chain/escalation_chain.types';
+import { ActionKey } from 'models/loader/action-keys';
 import { User } from 'models/user/user.types';
 import { makeRequest } from 'network';
 import { RootStore } from 'state';
 import { SelectOption } from 'state/types';
+import { AutoLoadingState } from 'utils/decorators';
 
 import {
   createShiftSwapEventFromShiftSwap,
@@ -41,6 +45,9 @@ export class ScheduleStore extends BaseStore {
 
   @observable.shallow
   items: { [id: string]: Schedule } = {};
+
+  @observable
+  quality: ScheduleScoreQualityResponse;
 
   @observable.shallow
   shifts: { [id: string]: Shift } = {};
@@ -113,7 +120,10 @@ export class ScheduleStore extends BaseStore {
   byDayOptions: SelectOption[] = [];
 
   @observable
-  scheduleId: Schedule['id'];
+  refreshEventsError?: Partial<PageErrorData> = {
+    isWrongTeamError: false,
+    wrongTeamNoPermissions: false,
+  };
 
   constructor(rootStore: RootStore) {
     super(rootStore);
@@ -209,8 +219,15 @@ export class ScheduleStore extends BaseStore {
     };
   }
 
-  async getScoreQuality(scheduleId: Schedule['id']): Promise<ScheduleScoreQualityResponse> {
-    return await makeRequest(`/schedules/${scheduleId}/quality`, { method: 'GET' });
+  @action.bound
+  async getScoreQuality(scheduleId: Schedule['id']) {
+    const [quality] = await Promise.all([
+      makeRequest(`/schedules/${scheduleId}/quality`, { method: 'GET' }),
+      this.updateRelatedEscalationChains(scheduleId),
+    ]);
+    runInAction(() => {
+      this.quality = quality;
+    });
   }
 
   async reloadIcal(scheduleId: Schedule['id']) {
@@ -247,6 +264,8 @@ export class ScheduleStore extends BaseStore {
       data: { type, schedule: scheduleId, ...params },
       method: 'POST',
     });
+    await this.rootStore.scheduleStore.refreshEvents(scheduleId);
+    await this.getScoreQuality(scheduleId);
 
     runInAction(() => {
       this.shifts = {
@@ -506,6 +525,29 @@ export class ScheduleStore extends BaseStore {
     });
   }
 
+  @action.bound
+  async refreshEvents(scheduleId: string) {
+    this.refreshEventsError = {};
+    const startMoment = this.rootStore.timezoneStore.calendarStartDate;
+
+    try {
+      const schedule = await this.loadItem(scheduleId);
+      this.rootStore.setPageTitle(schedule?.name);
+    } catch (error) {
+      runInAction(() => {
+        this.refreshEventsError = getWrongTeamResponseInfo(error);
+      });
+    }
+
+    this.updateRelatedUsers(scheduleId); // to refresh related users
+    await Promise.all([
+      this.updateEvents(scheduleId, startMoment, 'rotation'),
+      this.updateEvents(scheduleId, startMoment, 'override'),
+      this.updateEvents(scheduleId, startMoment, 'final'),
+      this.updateShiftSwaps(scheduleId, startMoment),
+    ]);
+  }
+
   async updateFrequencyOptions() {
     return await makeRequest(`/oncall_shifts/frequency_options/`, {
       method: 'GET',
@@ -587,6 +629,7 @@ export class ScheduleStore extends BaseStore {
     });
   }
 
+  @AutoLoadingState(ActionKey.UPDATE_PERSONAL_EVENTS)
   @action
   async updatePersonalEvents(userPk: User['pk'], startMoment: dayjs.Dayjs, days = 9, isUpdateOnCallNow = false) {
     const fromString = getFromString(startMoment);
