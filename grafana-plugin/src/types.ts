@@ -4,6 +4,7 @@ export type OnCallPluginMetaJSONData = {
   stackId: number;
   orgId: number;
   onCallApiUrl: string;
+  insightsDatasource?: string;
   license: string;
 };
 
