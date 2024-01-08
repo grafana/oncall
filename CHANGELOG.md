@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Move Insights to OnCall as a separate page ([#2382](https://github.com/grafana/oncall-private/issues/2382))
 - Allow mobile app to access paging endpoint @imtoori ([#3619](https://github.com/grafana/oncall/pull/3619))
+- Create log record when there is a telegram formatting error in notification ([#3628](https://github.com/grafana/oncall/pull/3628))
 
 ### Fixed
 
