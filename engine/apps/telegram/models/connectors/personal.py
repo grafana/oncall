@@ -113,6 +113,13 @@ class TelegramToUserConnector(models.Model):
                     alert_group=alert_group,
                 )
             except error.BadRequest:
+                TelegramToUserConnector.create_telegram_notification_error(
+                    alert_group,
+                    self.user,
+                    notification_policy,
+                    UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_FORMATTING_ERROR,
+                    reason="Notification sent but there was a formatting error in the rendered template",
+                )
                 telegram_client.send_message(
                     chat_id=self.telegram_chat_id,
                     message_type=TelegramMessage.FORMATTING_ERROR,
