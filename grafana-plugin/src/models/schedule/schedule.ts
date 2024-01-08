@@ -46,6 +46,9 @@ export class ScheduleStore extends BaseStore {
   @observable.shallow
   items: { [id: string]: Schedule } = {};
 
+  @observable
+  quality: ScheduleScoreQualityResponse;
+
   @observable.shallow
   shifts: { [id: string]: Shift } = {};
 
@@ -216,8 +219,15 @@ export class ScheduleStore extends BaseStore {
     };
   }
 
-  async getScoreQuality(scheduleId: Schedule['id']): Promise<ScheduleScoreQualityResponse> {
-    return await makeRequest(`/schedules/${scheduleId}/quality`, { method: 'GET' });
+  @action.bound
+  async getScoreQuality(scheduleId: Schedule['id']) {
+    const [quality] = await Promise.all([
+      makeRequest(`/schedules/${scheduleId}/quality`, { method: 'GET' }),
+      this.updateRelatedEscalationChains(scheduleId),
+    ]);
+    runInAction(() => {
+      this.quality = quality;
+    });
   }
 
   async reloadIcal(scheduleId: Schedule['id']) {
@@ -254,6 +264,8 @@ export class ScheduleStore extends BaseStore {
       data: { type, schedule: scheduleId, ...params },
       method: 'POST',
     });
+    await this.rootStore.scheduleStore.refreshEvents(scheduleId);
+    await this.getScoreQuality(scheduleId);
 
     runInAction(() => {
       this.shifts = {
@@ -354,6 +366,8 @@ export class ScheduleStore extends BaseStore {
       data: { ...params },
       method: 'PUT',
     });
+    await this.rootStore.scheduleStore.refreshEvents(shiftId);
+    await this.getScoreQuality(shiftId);
 
     runInAction(() => {
       this.shifts = {
