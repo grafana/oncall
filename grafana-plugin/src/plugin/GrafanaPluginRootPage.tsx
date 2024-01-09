@@ -1,7 +1,5 @@
 import React, { useEffect } from 'react';
 
-import 'plugin/dayjs';
-
 import { LoadingPlaceholder } from '@grafana/ui';
 import classnames from 'classnames';
 import { observer, Provider } from 'mobx-react';
