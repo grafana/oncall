@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Fixed schedule timezone issues ([#3576](https://github.com/grafana/oncall/issues/3576))
+- Ignore `requests.exceptions.Timeout` exceptions when attempting to send outgoing webhook requests by @joeyorlando ([#3632](https://github.com/grafana/oncall/pull/3632))
 
 ## v1.3.82 (2024-01-04)
 
