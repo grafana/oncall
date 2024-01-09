@@ -8,13 +8,6 @@ import { Timezone } from 'models/timezone/timezone.types';
 import { RootStore } from 'state';
 import { SelectOption } from 'state/types';
 
-const mondayDayOffset = {
-  saturday: -2,
-  sunday: -1,
-  monday: 0,
-  browser: 0,
-};
-
 export const getWeekStartString = () => {
   const weekStart = (config?.bootData?.user?.weekStart || '').toLowerCase();
 
