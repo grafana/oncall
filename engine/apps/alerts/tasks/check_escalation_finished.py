@@ -138,9 +138,8 @@ def check_personal_notifications_task() -> None:
     triggered = log_records_qs.filter(
         type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_TRIGGERED,
         notification_step=UserNotificationPolicy.Step.NOTIFY,
-        created_at__gte=since,
-        # do not consider the notifications triggered in the last 5 mins from the 20 min window
-        created_at__lte=now - timezone.timedelta(minutes=5),
+        # do not consider the notifications triggered in the last 5 mins in the window
+        created_at__range=(since, now - timezone.timedelta(minutes=5)),
     )
 
     alert_groups_ids = triggered.values_list("alert_group_id", flat=True).distinct()
