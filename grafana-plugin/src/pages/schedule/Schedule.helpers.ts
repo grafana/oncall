@@ -35,15 +35,11 @@ export const getStartOfDay = (tz: Timezone) => {
 };
 
 export const getStartOfWeek = (tz: Timezone) => {
-  return getNow(tz)
-    .startOf('isoWeek') // it's Monday always
-    .add(mondayDayOffset[getWeekStartString()], 'day');
+  return getNow(tz).startOf('isoWeek'); // it's Monday always
 };
 
 export const getStartOfWeekBasedOnCurrentDate = (date: dayjs.Dayjs) => {
-  return date
-    .startOf('isoWeek') // it's Monday always
-    .add(mondayDayOffset[getWeekStartString()], 'day');
+  return date.startOf('isoWeek'); // it's Monday always
 };
 
 export const getUTCString = (moment: dayjs.Dayjs) => {
