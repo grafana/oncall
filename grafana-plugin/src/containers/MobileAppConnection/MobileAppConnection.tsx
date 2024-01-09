@@ -134,7 +134,7 @@ export const MobileAppConnection = observer(({ userPk }: Props) => {
 
   // Show link to cloud page for OSS instances with no cloud connection
   if (
-    store.isOpenSource() &&
+    store.isOpenSource &&
     store.hasFeature(AppFeature.CloudConnection) &&
     !cloudStore.cloudConnectionStatus.cloud_connection_status
   ) {

@@ -1,7 +1,7 @@
 import React, { ReactElement, useMemo } from 'react';
 
 import { locationUtil, PluginExtensionLink } from '@grafana/data';
-import { Menu } from '@grafana/ui';
+import { IconName, Menu } from '@grafana/ui';
 
 import { PluginBridge, SupportedPlugin } from 'components/PluginBridge/PluginBridge';
 import { truncateTitle } from 'utils/string';
@@ -78,7 +78,7 @@ function renderItems(extensions: PluginExtensionLink[]): JSX.Element[] {
   return extensions.map((extension) => (
     <Menu.Item
       ariaLabel={extension.title}
-      icon={extension?.icon || 'plug'}
+      icon={(extension?.icon || 'plug') as IconName}
       key={extension.id}
       label={truncateTitle(extension.title, 25)}
       onClick={(event) => {

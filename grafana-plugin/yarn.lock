@@ -1762,7 +1762,7 @@
     uplot "1.6.26"
     xss "^1.0.14"
 
-"@grafana/data@10.2.2", "@grafana/data@^10.2.2":
+"@grafana/data@10.2.2":
   version "10.2.2"
   resolved "https://registry.yarnpkg.com/@grafana/data/-/data-10.2.2.tgz#fca2c0029acf41e79f2e84e837758faa7519567b"
   integrity sha512-ofiUOQw8E9qG9FKIERWSSHdAU2p+w1jzuqy49giDJfxDaskcin5We5VWamSONqYPYP/tCjZcGkvnsVa/uwU37A==
@@ -1821,31 +1821,36 @@
     uplot "1.6.24"
     xss "^1.0.14"
 
-"@grafana/data@^9.2.4":
-  version "9.2.4"
-  resolved "https://registry.yarnpkg.com/@grafana/data/-/data-9.2.4.tgz#38067f207006c07754c3ed5a8835dc1909df7e2d"
-  integrity sha512-ukrvtQ0CzijpRZhBriv3LX935BKXRX4jf9l+jgK2uZJSYFAMbgz/Fvfagfr7sYmIPe8Ms4r3hslu2hbynWHzTw==
+"@grafana/data@^10.2.3":
+  version "10.2.3"
+  resolved "https://registry.yarnpkg.com/@grafana/data/-/data-10.2.3.tgz#1e454ef319aaecfe1318d57abb3966bbf3a5f0ba"
+  integrity sha512-AmPPSVvgnUP26ZbItPrlmwdMq5CV5qOPokPnH4XWKWjCRJPRK/OMkDI1L6NxYFyq89dKEzElFdRhRRI2TIk29g==
   dependencies:
-    "@braintree/sanitize-url" "6.0.0"
-    "@grafana/schema" "9.2.4"
-    "@types/d3-interpolate" "^1.4.0"
-    d3-interpolate "1.4.0"
-    date-fns "2.29.1"
-    eventemitter3 "4.0.7"
+    "@braintree/sanitize-url" "6.0.2"
+    "@grafana/schema" "10.2.3"
+    "@types/d3-interpolate" "^3.0.0"
+    "@types/string-hash" "1.1.1"
+    d3-interpolate "3.0.1"
+    date-fns "2.30.0"
+    dompurify "^2.4.3"
+    eventemitter3 "5.0.1"
     fast_array_intersect "1.1.0"
     history "4.10.1"
     lodash "4.17.21"
-    marked "4.1.0"
+    marked "5.1.1"
+    marked-mangle "1.1.0"
     moment "2.29.4"
-    moment-timezone "0.5.35"
-    ol "6.15.1"
-    papaparse "5.3.2"
-    regenerator-runtime "0.13.9"
-    rxjs "7.5.6"
-    tinycolor2 "1.4.2"
-    tslib "2.4.0"
-    uplot "1.6.22"
-    xss "1.0.13"
+    moment-timezone "0.5.43"
+    ol "7.4.0"
+    papaparse "5.4.1"
+    react-use "17.4.0"
+    regenerator-runtime "0.14.0"
+    rxjs "7.8.1"
+    string-hash "^1.1.3"
+    tinycolor2 "1.6.0"
+    tslib "2.6.0"
+    uplot "1.6.27"
+    xss "^1.0.14"
 
 "@grafana/e2e-selectors@10.0.2":
   version "10.0.2"
@@ -2054,10 +2059,17 @@
   dependencies:
     tslib "2.6.0"
 
-"@grafana/schema@10.2.2":
+"@grafana/schema@10.2.2", "@grafana/schema@^10.2.2":
   version "10.2.2"
   resolved "https://registry.yarnpkg.com/@grafana/schema/-/schema-10.2.2.tgz#7bcb44ffccd72c2a30f99c85bcc188dd4bddfd19"
   integrity sha512-VDMO2Ev/mSsQxOkwo2u3uQocoyfxJGaGTfAMRGgeejmYJVQsK3Ka6/ImGmqvCViE5uade5/rx7kKfLnj6Yc0Yg==
+  dependencies:
+    tslib "2.6.0"
+
+"@grafana/schema@10.2.3":
+  version "10.2.3"
+  resolved "https://registry.yarnpkg.com/@grafana/schema/-/schema-10.2.3.tgz#a33db1c890da6d7d4cbb9d749ee3a070a1ba7d2b"
+  integrity sha512-D/fcdvRy58uBlw6JljItgzzh+ZCazxRgZm61RZ6wQjuk810sW+P9D9J5aDy8z5qWAzDrnroB5/+uMiNwdk4CBA==
   dependencies:
     tslib "2.6.0"
 
@@ -2067,13 +2079,6 @@
   integrity sha512-EbJLpdS4Zt7e8p40DVWOdGrTz0M8LRrCHGuHZnpz7xcFmwWTwu5bh/i1n4i98QYmF5cD+oAcRaHqRqT15HYORw==
   dependencies:
     tslib "2.5.0"
-
-"@grafana/schema@^10.2.2":
-  version "10.2.2"
-  resolved "https://registry.yarnpkg.com/@grafana/schema/-/schema-10.2.2.tgz#7bcb44ffccd72c2a30f99c85bcc188dd4bddfd19"
-  integrity sha512-VDMO2Ev/mSsQxOkwo2u3uQocoyfxJGaGTfAMRGgeejmYJVQsK3Ka6/ImGmqvCViE5uade5/rx7kKfLnj6Yc0Yg==
-  dependencies:
-    tslib "2.6.0"
 
 "@grafana/toolkit@^9.5.2":
   version "9.5.2"
@@ -12935,15 +12940,6 @@ react-grid-layout@1.3.4:
     react-draggable "^4.0.0"
     react-resizable "^3.0.4"
 
-react-highlight-words@0.18.0:
-  version "0.18.0"
-  resolved "https://registry.yarnpkg.com/react-highlight-words/-/react-highlight-words-0.18.0.tgz#ff3b3ef7cb497fa2e8fa4d54c1a1a98ac6390d0e"
-  integrity sha512-5z+46eLPjB4JWgOhuQ0E+6iUPTD1U3amiy5KKjzZmeJ5zyvHr91hnzBT3UHya/KlySm5KRTKpYpba9vs67oO2A==
-  dependencies:
-    highlight-words-core "^1.2.0"
-    memoize-one "^4.0.0"
-    prop-types "^15.5.8"
-
 react-highlight-words@0.20.0:
   version "0.20.0"
   resolved "https://registry.yarnpkg.com/react-highlight-words/-/react-highlight-words-0.20.0.tgz#c60bfff5d14678c8f0e8fbe4bdcf083e6c70d507"
@@ -13339,6 +13335,11 @@ regenerator-runtime@0.13.11, regenerator-runtime@^0.13.11:
   resolved "https://registry.yarnpkg.com/regenerator-runtime/-/regenerator-runtime-0.13.11.tgz#f6dca3e7ceec20590d07ada785636a90cdca17f9"
   integrity sha512-kY1AZVr2Ra+t+piVaJ4gxaFaReZVH40AKNo7UCX6W+dEwBo/2oZJzqfuN1qLq1oL45o56cPaTXELwrTh8Fpggg==
 
+regenerator-runtime@0.14.0, regenerator-runtime@^0.14.0:
+  version "0.14.0"
+  resolved "https://registry.yarnpkg.com/regenerator-runtime/-/regenerator-runtime-0.14.0.tgz#5e19d68eb12d486f797e15a3c6a918f7cec5eb45"
+  integrity sha512-srw17NI0TUWHuGa5CFGGmhfNIeja30WMBfbslPNhf6JrqQlLN5gcrvig1oqPxiVaXb0oW0XRKtH6Nngs5lKCIA==
+
 regenerator-runtime@^0.11.0:
   version "0.11.1"
   resolved "https://registry.yarnpkg.com/regenerator-runtime/-/regenerator-runtime-0.11.1.tgz#be05ad7f9bf7d22e056f9726cee5017fbf19e2e9"
@@ -13348,11 +13349,6 @@ regenerator-runtime@^0.13.10:
   version "0.13.10"
   resolved "https://registry.yarnpkg.com/regenerator-runtime/-/regenerator-runtime-0.13.10.tgz#ed07b19616bcbec5da6274ebc75ae95634bfc2ee"
   integrity sha512-KepLsg4dU12hryUO7bp/axHAKvwGOCV0sGloQtpagJ12ai+ojVDqkeGSiRX1zlq+kjIMZ1t7gpze+26QqtdGqw==
-
-regenerator-runtime@^0.14.0:
-  version "0.14.0"
-  resolved "https://registry.yarnpkg.com/regenerator-runtime/-/regenerator-runtime-0.14.0.tgz#5e19d68eb12d486f797e15a3c6a918f7cec5eb45"
-  integrity sha512-srw17NI0TUWHuGa5CFGGmhfNIeja30WMBfbslPNhf6JrqQlLN5gcrvig1oqPxiVaXb0oW0XRKtH6Nngs5lKCIA==
 
 regenerator-transform@^0.15.0:
   version "0.15.0"

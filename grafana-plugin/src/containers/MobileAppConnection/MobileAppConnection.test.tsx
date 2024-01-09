@@ -57,8 +57,9 @@ const mockRootStore = (rest?: any, connected = false, cloud_connected = true) =>
     cloudConnectionStatus: { cloud_connection_status: cloud_connected },
   } as any;
 
-  rootStore.hasFeature = jest.fn().mockReturnValue(true);
+  // @ts-ignore
   rootStore.isOpenSource = jest.fn().mockReturnValue(true);
+  rootStore.hasFeature = jest.fn().mockReturnValue(true);
 };
 
 const USER_PK = '8585';
