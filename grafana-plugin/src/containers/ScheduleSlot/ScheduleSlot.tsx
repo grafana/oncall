@@ -11,8 +11,7 @@ import Text from 'components/Text/Text';
 import WorkingHours from 'components/WorkingHours/WorkingHours';
 import { getShiftName, SHIFT_SWAP_COLOR } from 'models/schedule/schedule.helpers';
 import { Event, ShiftSwap } from 'models/schedule/schedule.types';
-import { getTzOffsetString } from 'models/timezone/timezone.helpers';
-import { Timezone } from 'models/timezone/timezone.types';
+import { getOffsetOfCurrentUser, getTzOffsetString } from 'models/timezone/timezone.helpers';
 import { User } from 'models/user/user.types';
 import { useStore } from 'state/useStore';
 
@@ -22,8 +21,6 @@ import styles from './ScheduleSlot.module.css';
 
 interface ScheduleSlotProps {
   event: Event;
-  startMoment: dayjs.Dayjs;
-  currentTimezone: Timezone;
   handleAddOverride: (event: React.MouseEvent<HTMLDivElement>) => void;
   handleAddShiftSwap: (event: React.MouseEvent<HTMLDivElement>) => void;
   handleOpenSchedule: (event: React.MouseEvent<HTMLDivElement>) => void;
@@ -39,7 +36,6 @@ const cx = cn.bind(styles);
 const ScheduleSlot: FC<ScheduleSlotProps> = observer((props) => {
   const {
     event,
-    currentTimezone,
     color,
     handleAddOverride,
     handleAddShiftSwap,
@@ -63,12 +59,12 @@ const ScheduleSlot: FC<ScheduleSlotProps> = observer((props) => {
 
   const renderEvent = (event): React.ReactElement | React.ReactElement[] => {
     if (event.shiftSwapId) {
-      return <ShiftSwapEvent currentMoment={currentMoment} event={event} currentTimezone={currentTimezone} />;
+      return <ShiftSwapEvent currentMoment={currentMoment} event={event} />;
     }
 
     if (event.is_gap) {
       return (
-        <Tooltip content={<ScheduleGapDetails event={event} currentTimezone={currentTimezone} />}>
+        <Tooltip content={<ScheduleGapDetails event={event} />}>
           <div className={cx('root', 'root__type_gap')} />
         </Tooltip>
       );
@@ -95,7 +91,6 @@ const ScheduleSlot: FC<ScheduleSlotProps> = observer((props) => {
         filters={filters}
         start={start}
         duration={duration}
-        currentTimezone={currentTimezone}
         color={color}
         currentMoment={currentMoment}
         showScheduleNameAsSlotTitle={showScheduleNameAsSlotTitle}
@@ -114,12 +109,11 @@ export default ScheduleSlot;
 
 interface ShiftSwapEventProps {
   event: Event;
-  currentTimezone: Timezone;
   currentMoment: dayjs.Dayjs;
 }
 
 const ShiftSwapEvent = (props: ShiftSwapEventProps) => {
-  const { event, currentTimezone, currentMoment } = props;
+  const { event, currentMoment } = props;
 
   const store = useStore();
 
@@ -144,7 +138,7 @@ const ShiftSwapEvent = (props: ShiftSwapEventProps) => {
   const benefactorStoreUser = store.userStore.items[shiftSwap?.benefactor?.pk];
 
   const scheduleSlotContent = (
-    <div className={cx('root', { 'root__type_shift-swap': true })}>
+    <div className={cx('root', { 'root__type_shift-swap': true })} data-testid="schedule-slot">
       {shiftSwap && (
         <HorizontalGroup spacing="xs">
           {beneficiary && <Avatar size="xs" src={beneficiary.avatar_full} />}
@@ -176,7 +170,6 @@ const ShiftSwapEvent = (props: ShiftSwapEventProps) => {
           beneficiaryName={beneficiary?.display_name}
           user={benefactorStoreUser || beneficiaryStoreUser}
           benefactorName={benefactor?.display_name}
-          currentTimezone={currentTimezone}
           event={event}
           color={SHIFT_SWAP_COLOR}
           currentMoment={currentMoment}
@@ -190,7 +183,6 @@ const ShiftSwapEvent = (props: ShiftSwapEventProps) => {
 
 interface RegularEventProps {
   event: Event;
-  currentTimezone: Timezone;
   handleAddOverride: (event: React.MouseEvent<HTMLDivElement>) => void;
   handleAddShiftSwap: (event: React.MouseEvent<HTMLDivElement>) => void;
   handleOpenSchedule: (event: React.MouseEvent<HTMLDivElement>) => void;
@@ -209,7 +201,6 @@ const RegularEvent = (props: RegularEventProps) => {
     onShiftSwapClick,
     filters,
     color,
-    currentTimezone,
     start,
     duration,
     handleAddOverride,
@@ -261,6 +252,7 @@ const RegularEvent = (props: RegularEventProps) => {
               backgroundColor,
             }}
             onClick={swap_request ? getShiftSwapClickHandler(swap_request.pk) : undefined}
+            data-testid="schedule-slot"
           >
             {storeUser && (!swap_request || swap_request.user) && (
               <WorkingHours
@@ -294,7 +286,6 @@ const RegularEvent = (props: RegularEventProps) => {
                 }
                 benefactorName={isShiftSwap ? (swap_request.user ? display_name : undefined) : undefined}
                 user={storeUser}
-                currentTimezone={currentTimezone}
                 event={event}
                 handleAddOverride={
                   !handleAddOverride || event.is_override || isShiftSwap || currentMoment.isAfter(dayjs(event.end))
@@ -323,7 +314,6 @@ const RegularEvent = (props: RegularEventProps) => {
 interface ScheduleSlotDetailsProps {
   user: User;
   isOncall?: boolean;
-  currentTimezone: Timezone;
   event: Event;
   handleAddOverride?: (event: React.SyntheticEvent) => void;
   handleAddShiftSwap?: (event: React.SyntheticEvent) => void;
@@ -336,10 +326,9 @@ interface ScheduleSlotDetailsProps {
   title: string;
 }
 
-const ScheduleSlotDetails = (props: ScheduleSlotDetailsProps) => {
+const ScheduleSlotDetails = observer((props: ScheduleSlotDetailsProps) => {
   const {
     user,
-    currentTimezone,
     event,
     handleAddOverride,
     handleAddShiftSwap,
@@ -352,7 +341,10 @@ const ScheduleSlotDetails = (props: ScheduleSlotDetailsProps) => {
     title,
   } = props;
 
-  const { scheduleStore } = useStore();
+  const {
+    scheduleStore,
+    timezoneStore: { currentDateInSelectedTimezone, getDateInSelectedTimezone },
+  } = useStore();
 
   const shiftId = event.shift?.pk;
   const shift = scheduleStore.shifts[shiftId];
@@ -418,7 +410,7 @@ const ScheduleSlotDetails = (props: ScheduleSlotDetailsProps) => {
             <Icon className={cx('icon')} name="clock-nine" />
           </div>
           <Text type="primary" className={cx('second-column')}>
-            User local time
+            User's local time
             <br />
             {currentMoment.tz(user?.timezone).format('DD MMM, HH:mm')}
             <br />({getTzOffsetString(currentMoment.tz(user?.timezone))})
@@ -426,8 +418,8 @@ const ScheduleSlotDetails = (props: ScheduleSlotDetailsProps) => {
           <Text type="secondary">
             Current timezone
             <br />
-            {currentMoment.tz(currentTimezone).format('DD MMM, HH:mm')}
-            <br />({getTzOffsetString(currentMoment.tz(currentTimezone))})
+            {currentDateInSelectedTimezone.format('DD MMM, HH:mm')}
+            <br />({getTzOffsetString(currentDateInSelectedTimezone)})
           </Text>
         </HorizontalGroup>
         <HorizontalGroup align="flex-start">
@@ -437,15 +429,15 @@ const ScheduleSlotDetails = (props: ScheduleSlotDetailsProps) => {
           <Text type="primary" className={cx('second-column')}>
             This shift
             <br />
-            {dayjs(event.start).tz(user?.timezone).format('DD MMM, HH:mm')}
+            {dayjs(event.start).utcOffset(getOffsetOfCurrentUser()).format('DD MMM, HH:mm')}
             <br />
-            {dayjs(event.end).tz(user?.timezone).format('DD MMM, HH:mm')}
+            {dayjs(event.end).utcOffset(getOffsetOfCurrentUser()).format('DD MMM, HH:mm')}
           </Text>
           <Text type="secondary">
             &nbsp; <br />
-            {dayjs(event.start).tz(currentTimezone).format('DD MMM, HH:mm')}
+            {getDateInSelectedTimezone(dayjs(event.start)).format('DD MMM, HH:mm')}
             <br />
-            {dayjs(event.end).tz(currentTimezone).format('DD MMM, HH:mm')}
+            {getDateInSelectedTimezone(dayjs(event.end)).format('DD MMM, HH:mm')}
           </Text>
         </HorizontalGroup>
         <HorizontalGroup justify="flex-end">
@@ -468,27 +460,29 @@ const ScheduleSlotDetails = (props: ScheduleSlotDetailsProps) => {
       </VerticalGroup>
     </div>
   );
-};
+});
 
 interface ScheduleGapDetailsProps {
-  currentTimezone: Timezone;
   event: Event;
 }
 
-const ScheduleGapDetails = (props: ScheduleGapDetailsProps) => {
-  const { currentTimezone, event } = props;
+const ScheduleGapDetails = observer((props: ScheduleGapDetailsProps) => {
+  const {
+    timezoneStore: { selectedTimezoneLabel, getDateInSelectedTimezone },
+  } = useStore();
+  const { event } = props;
 
   return (
     <div className={cx('details')}>
       <VerticalGroup>
         <HorizontalGroup spacing="sm">
           <VerticalGroup spacing="none">
-            <Text type="primary">{currentTimezone}</Text>
-            <Text type="primary">{dayjs(event.start).tz(currentTimezone).format('DD MMM, HH:mm')}</Text>
-            <Text type="primary">{dayjs(event.end).tz(currentTimezone).format('DD MMM, HH:mm')}</Text>
+            <Text type="primary">{selectedTimezoneLabel}</Text>
+            <Text type="primary">{getDateInSelectedTimezone(dayjs(event.start)).format('DD MMM, HH:mm')}</Text>
+            <Text type="primary">{getDateInSelectedTimezone(dayjs(event.end)).format('DD MMM, HH:mm')}</Text>
           </VerticalGroup>
         </HorizontalGroup>
       </VerticalGroup>
     </div>
   );
-};
+});

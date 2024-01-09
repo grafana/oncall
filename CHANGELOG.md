@@ -7,9 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## v1.3.83 (2024-01-08)
+
 ### Changed
 
 - Move Insights to OnCall as a separate page ([#2382](https://github.com/grafana/oncall-private/issues/2382))
+- Allow mobile app to access paging endpoint @imtoori ([#3619](https://github.com/grafana/oncall/pull/3619))
+- Create log record when there is a telegram formatting error in notification ([#3628](https://github.com/grafana/oncall/pull/3628))
+
+### Fixed
+
+- Fixed schedule timezone issues ([#3576](https://github.com/grafana/oncall/issues/3576))
+- Ignore `requests.exceptions.Timeout` exceptions when attempting to send outgoing webhook requests by @joeyorlando ([#3632](https://github.com/grafana/oncall/pull/3632))
 
 ## v1.3.82 (2024-01-04)
 

@@ -89,16 +89,16 @@
     },
     {
       "type": "page",
-      "name": "Settings",
-      "path": "/a/grafana-oncall-app/settings",
+      "name": "Insights",
+      "path": "/a/grafana-oncall-app/insights",
       "role": "Viewer",
       "action": "grafana-oncall-app.other-settings:read",
       "addToNav": true
     },
     {
       "type": "page",
-      "name": "Insights",
-      "path": "/a/grafana-oncall-app/insights",
+      "name": "Settings",
+      "path": "/a/grafana-oncall-app/settings",
       "role": "Viewer",
       "action": "grafana-oncall-app.other-settings:read",
       "addToNav": true

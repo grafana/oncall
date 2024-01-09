@@ -16,7 +16,7 @@ const mondayDayOffset = {
 };
 
 export const getWeekStartString = () => {
-  const weekStart = (config.bootData.user.weekStart || '').toLowerCase();
+  const weekStart = (config?.bootData?.user?.weekStart || '').toLowerCase();
 
   if (!weekStart || weekStart === 'browser') {
     return 'monday';
@@ -36,6 +36,12 @@ export const getStartOfDay = (tz: Timezone) => {
 
 export const getStartOfWeek = (tz: Timezone) => {
   return getNow(tz)
+    .startOf('isoWeek') // it's Monday always
+    .add(mondayDayOffset[getWeekStartString()], 'day');
+};
+
+export const getStartOfWeekBasedOnCurrentDate = (date: dayjs.Dayjs) => {
+  return date
     .startOf('isoWeek') // it's Monday always
     .add(mondayDayOffset[getWeekStartString()], 'day');
 };

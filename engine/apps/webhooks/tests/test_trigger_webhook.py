@@ -2,6 +2,7 @@ import json
 from unittest.mock import call, patch
 
 import pytest
+import requests
 from django.utils import timezone
 
 from apps.alerts.models import AlertGroupLogRecord, EscalationPolicy
@@ -555,3 +556,56 @@ def test_response_content_limit(
     assert log.status_code == 200
     assert log.content == f"Response content {content_length} exceeds {WEBHOOK_RESPONSE_LIMIT} character limit"
     assert log.url == "https://test/"
+
+
+@patch("apps.webhooks.tasks.trigger_webhook.execute_webhook", wraps=execute_webhook)
+@patch("apps.webhooks.models.webhook.requests")
+@patch("apps.webhooks.utils.socket.gethostbyname", return_value="8.8.8.8")
+@pytest.mark.django_db
+@pytest.mark.parametrize("exception", [requests.exceptions.ConnectTimeout, requests.exceptions.ReadTimeout])
+def test_manually_retried_exceptions(
+    _mock_gethostbyname,
+    mock_requests,
+    spy_execute_webhook,
+    make_organization,
+    make_user_for_organization,
+    make_alert_receive_channel,
+    make_alert_group,
+    make_custom_webhook,
+    exception,
+):
+    mock_requests.post.side_effect = exception("foo bar")
+
+    organization = make_organization()
+    user = make_user_for_organization(organization)
+    alert_receive_channel = make_alert_receive_channel(organization)
+    alert_group = make_alert_group(
+        alert_receive_channel, acknowledged_at=timezone.now(), acknowledged=True, acknowledged_by=user.pk
+    )
+    webhook = make_custom_webhook(
+        organization=organization,
+        url="https://test/",
+        http_method="POST",
+        trigger_type=Webhook.TRIGGER_ACKNOWLEDGE,
+        forward_all=False,
+    )
+
+    execute_webhook_args = webhook.pk, alert_group.pk, user.pk, None
+
+    # should retry
+    execute_webhook(*execute_webhook_args)
+
+    mock_requests.post.assert_called_once_with("https://test/", timeout=10, headers={})
+    spy_execute_webhook.apply_async.assert_called_once_with((*execute_webhook_args, 1), countdown=10)
+
+    mock_requests.reset_mock()
+    spy_execute_webhook.reset_mock()
+
+    # should stop retrying after 3 attempts without raising issue
+    try:
+        execute_webhook(*execute_webhook_args, manual_retry_num=3)
+    except Exception:
+        pytest.fail()
+
+    mock_requests.post.assert_called_once_with("https://test/", timeout=10, headers={})
+    spy_execute_webhook.apply_async.assert_not_called()

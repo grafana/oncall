@@ -21,6 +21,7 @@ import Text from 'components/Text/Text';
 import { useStore } from 'state/useStore';
 import { DOCS_ROOT } from 'utils/consts';
 
+import styles from './Insights.module.scss';
 import { InsightsConfig } from './Insights.types';
 import getAlertGroupsByIntegrationScene from './scenes/AlertGroupsByIntegration';
 import getAlertGroupsByTeamScene from './scenes/AlertGroupsByTeam';
@@ -45,10 +46,10 @@ const Insights = observer(() => {
   const appScene = useSceneApp(() => getAppScene({ isOpenSource, datasource }));
 
   return (
-    <>
+    <div className={styles.insights}>
       <InsightsInfoAlert />
       <appScene.Component model={appScene} />
-    </>
+    </div>
   );
 });
 
