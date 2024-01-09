@@ -13,13 +13,13 @@ weight: 500
 
 # Outgoing Webhooks
 
-> ⚠️ A note about **(Legacy)** webhooks:  Webhooks that were created before version **v1.3.11** are marked as
-> **(Legacy)**.  Do not worry! They are still connected to their respective escalation chains and will continue to to
+> ⚠️ A note about **(Legacy)** webhooks: Webhooks that were created before version **v1.3.11** are marked as
+> **(Legacy)**. Do not worry! They are still connected to their respective escalation chains and will continue to to
 > execute as they always have.
 > <br/><br/>
 > The **(Legacy)** webhook is no longer editable due to changes to the internal representation. If you need to edit it
-> you must use the `Make a copy` action in the menu and make your changes there.  This will create the webhook in the
-> new format.  Be sure to change your escalation chains to point to the new copy otherwise it will not be active. The
+> you must use the `Make a copy` action in the menu and make your changes there. This will create the webhook in the
+> new format. Be sure to change your escalation chains to point to the new copy otherwise it will not be active. The
 > **(Legacy)** webhook can then be deleted.
 
 Outgoing webhooks are used by Grafana OnCall to send data to a URL in a flexible way. These webhooks can be
@@ -33,7 +33,7 @@ To create an outgoing webhook navigate to **Outgoing Webhooks** and click **+ Cr
 webhooks can be viewed, edited and deleted. To create the outgoing webhook click **New Outgoing Webhook** and then
 select a preset based on what you want to do. A simple webhook will POST alert group data as a selectable escalation
 step to the specified url. If you require more customization use the advanced webhook which provides all of the
-fields described below.  
+fields described below.
 
 ### Outgoing webhook fields
 
@@ -110,6 +110,9 @@ If no integrations are selected the outgoing webhook will trigger for any integr
 #### Webhook URL
 
 The destination URL the outgoing webhook will make a request to. This must be a FQDN.
+
+> ⚠️ **Note** the destination server must respond back within 4 seconds or it will result in a timeout
+> (this can be seen in the "Response Body" under the "Last Run" section)
 
 | Required | [Template Accepted](#outgoing-webhook-templates) | Default Value |
 | :------: | :----------------------------------------------: | :-----------: |
@@ -365,7 +368,7 @@ It will result in the following (Invalid JSON due to single quotes):
 
 ```json
 {
-  "labels": {'region': 'eu-1', 'alertname': 'TestAlert'}
+  "labels": { "region": "eu-1", "alertname": "TestAlert" }
 }
 ```
 
