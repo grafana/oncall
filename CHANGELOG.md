@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## v1.3.83 (2024-01-08)
+
 ### Changed
 
 - Move Insights to OnCall as a separate page ([#2382](https://github.com/grafana/oncall-private/issues/2382))
