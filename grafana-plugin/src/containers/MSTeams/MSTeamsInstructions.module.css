@@ -1,0 +1,30 @@
+.info-block {
+  width: 752px;
+  text-align: center;
+  font-style: normal;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.field-command {
+  margin-top: 8px;
+  width: 752px;
+}
+
+.field-command input {
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--primary-text-link);
+}
+
+.infoblock-text {
+  margin-left: 48px;
+  margin-right: 48px;
+}
+
+.done-button {
+  width: 752px;
+  direction: rtl;
+}

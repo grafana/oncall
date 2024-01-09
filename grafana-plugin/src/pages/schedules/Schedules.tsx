@@ -2,7 +2,6 @@ import React, { SyntheticEvent } from 'react';
 
 import { Button, HorizontalGroup, IconButton, LoadingPlaceholder, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
-import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
 import qs from 'query-string';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
@@ -13,9 +12,7 @@ import PluginLink from 'components/PluginLink/PluginLink';
 import Table from 'components/Table/Table';
 import Text from 'components/Text/Text';
 import TextEllipsisTooltip from 'components/TextEllipsisTooltip/TextEllipsisTooltip';
-import TimelineMarks from 'components/TimelineMarks/TimelineMarks';
 import TooltipBadge from 'components/TooltipBadge/TooltipBadge';
-import UserTimezoneSelect from 'components/UserTimezoneSelect/UserTimezoneSelect';
 import WithConfirm from 'components/WithConfirm/WithConfirm';
 import RemoteFilters from 'containers/RemoteFilters/RemoteFilters';
 import { RemoteFiltersType } from 'containers/RemoteFilters/RemoteFilters.types';
@@ -23,11 +20,11 @@ import ScheduleFinal from 'containers/Rotations/ScheduleFinal';
 import SchedulePersonal from 'containers/Rotations/SchedulePersonal';
 import ScheduleForm from 'containers/ScheduleForm/ScheduleForm';
 import TeamName from 'containers/TeamName/TeamName';
+import TimelineMarks from 'containers/TimelineMarks/TimelineMarks';
+import UserTimezoneSelect from 'containers/UserTimezoneSelect/UserTimezoneSelect';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { Schedule } from 'models/schedule/schedule.types';
 import { getSlackChannelName } from 'models/slack_channel/slack_channel.helpers';
-import { Timezone } from 'models/timezone/timezone.types';
-import { getStartOfWeek } from 'pages/schedule/Schedule.helpers';
 import { WithStoreProps, PageProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import LocationHelper from 'utils/LocationHelper';
@@ -41,7 +38,6 @@ const cx = cn.bind(styles);
 interface SchedulesPageProps extends WithStoreProps, RouteComponentProps, PageProps {}
 
 interface SchedulesPageState {
-  startMoment: dayjs.Dayjs;
   filters: RemoteFiltersType;
   showNewScheduleSelector: boolean;
   expandedRowKeys: Array<Schedule['id']>;
@@ -53,10 +49,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
   constructor(props: SchedulesPageProps) {
     super(props);
 
-    const { store } = this.props;
-
     this.state = {
-      startMoment: getStartOfWeek(store.currentTimezone),
       filters: { searchTerm: '', type: undefined, used: undefined, mine: undefined },
       showNewScheduleSelector: false,
       expandedRowKeys: [],
@@ -74,13 +67,11 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
 
   render() {
     const { store, query } = this.props;
-    const { showNewScheduleSelector, expandedRowKeys, scheduleIdToEdit, startMoment } = this.state;
+    const { showNewScheduleSelector, expandedRowKeys, scheduleIdToEdit } = this.state;
 
     const { results, count, page_size } = store.scheduleStore.getSearchResult();
 
     const page = store.filtersStore.currentTablePageNum[PAGE.Schedules];
-
-    const users = store.userStore.getSearchResult().results;
 
     return (
       <>
@@ -89,13 +80,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
             <HorizontalGroup justify="space-between">
               <Text.Title level={3}>Schedules</Text.Title>
               <div className={cx('schedules__actions')}>
-                {users && (
-                  <UserTimezoneSelect
-                    value={store.currentTimezone}
-                    users={users}
-                    onChange={this.handleTimezoneChange}
-                  />
-                )}
+                <UserTimezoneSelect />
                 <WithPermissionControlTooltip userAction={UserActions.SchedulesWrite}>
                   <Button variant="primary" onClick={this.handleCreateScheduleClick}>
                     + New schedule
@@ -105,11 +90,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
             </HorizontalGroup>
           </div>
           <div className={cx('schedule', 'schedule-personal')}>
-            <SchedulePersonal
-              userPk={store.userStore.currentUserPk}
-              currentTimezone={store.currentTimezone}
-              startMoment={startMoment}
-            />
+            <SchedulePersonal userPk={store.userStore.currentUserPk} />
           </div>
           <div className={cx('schedules__filters-container')}>
             <RemoteFilters
@@ -169,14 +150,6 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
     );
   }
 
-  handleTimezoneChange = (value: Timezone) => {
-    const { store } = this.props;
-
-    store.currentTimezone = value;
-
-    this.setState({ startMoment: getStartOfWeek(value) }, this.updateEvents);
-  };
-
   handleCreateScheduleClick = () => {
     this.setState({ showNewScheduleSelector: true });
   };
@@ -191,45 +164,27 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
     const { expandedRowKeys } = this.state;
 
     if (expanded && !expandedRowKeys.includes(data.id)) {
-      this.setState({ expandedRowKeys: [...this.state.expandedRowKeys, data.id] }, this.updateEvents);
+      this.setState({ expandedRowKeys: [...this.state.expandedRowKeys, data.id] }, () => {
+        this.props.store.scheduleStore.refreshEvents(data.id);
+      });
     } else if (!expanded && expandedRowKeys.includes(data.id)) {
       const index = expandedRowKeys.indexOf(data.id);
       const newExpandedRowKeys = [...expandedRowKeys];
       newExpandedRowKeys.splice(index, 1);
-      this.setState({ expandedRowKeys: newExpandedRowKeys }, this.updateEvents);
+      this.setState({ expandedRowKeys: newExpandedRowKeys }, () => {
+        this.props.store.scheduleStore.refreshEvents(data.id);
+      });
     }
   };
 
-  updateEvents = () => {
-    const { store } = this.props;
-    const { expandedRowKeys, startMoment } = this.state;
-
-    expandedRowKeys.forEach((scheduleId) => {
-      store.scheduleStore.updateEvents(scheduleId, startMoment, 'rotation');
-      store.scheduleStore.updateEvents(scheduleId, startMoment, 'override');
-      store.scheduleStore.updateEvents(scheduleId, startMoment, 'final');
-    });
-  };
-
-  renderSchedule = (data: Schedule) => {
-    const { startMoment } = this.state;
-    const { store } = this.props;
-
-    return (
-      <div className={cx('schedule')}>
-        <TimelineMarks startMoment={startMoment} timezone={store.currentTimezone} />
-        <div className={cx('rotations')}>
-          <ScheduleFinal
-            simplified
-            scheduleId={data.id}
-            currentTimezone={store.currentTimezone}
-            startMoment={startMoment}
-            onSlotClick={this.getScheduleClickHandler(data.id)}
-          />
-        </div>
+  renderSchedule = (data: Schedule) => (
+    <div className={cx('schedule')}>
+      <TimelineMarks />
+      <div className={cx('rotations')}>
+        <ScheduleFinal simplified scheduleId={data.id} onSlotClick={this.getScheduleClickHandler(data.id)} />
       </div>
-    );
-  };
+    </div>
+  );
 
   getScheduleClickHandler = (scheduleId: Schedule['id']) => {
     const { history, query } = this.props;
@@ -404,10 +359,14 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
 
   update = () => {
     const { store } = this.props;
-    const { startMoment } = this.state;
     const page = store.filtersStore.currentTablePageNum[PAGE.Schedules];
 
-    store.scheduleStore.updatePersonalEvents(store.userStore.currentUserPk, startMoment, 9, true);
+    store.scheduleStore.updatePersonalEvents(
+      store.userStore.currentUserPk,
+      store.timezoneStore.calendarStartDate,
+      9,
+      true
+    );
 
     // For removal we need to check if count is 1, which means we should change the page to the previous one
     const { results } = store.scheduleStore.getSearchResult();

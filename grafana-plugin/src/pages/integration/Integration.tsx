@@ -7,7 +7,6 @@ import {
   VerticalGroup,
   Icon,
   LoadingPlaceholder,
-  CascaderOption,
   IconButton,
   ConfirmModal,
   Drawer,
@@ -20,7 +19,7 @@ import CopyToClipboard from 'react-copy-to-clipboard';
 import Emoji from 'react-emoji-render';
 import { RouteComponentProps, useHistory, withRouter } from 'react-router-dom';
 
-import { templateForEdit } from 'components/AlertTemplates/AlertTemplatesForm.config';
+import { getTemplatesForEdit } from 'components/AlertTemplates/AlertTemplatesForm.config';
 import { TemplateForEdit } from 'components/AlertTemplates/CommonAlertTemplatesForm.config';
 import HamburgerMenu from 'components/HamburgerMenu/HamburgerMenu';
 import IntegrationCollapsibleTreeView, {
@@ -58,7 +57,6 @@ import {
 } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { AlertTemplatesDTO } from 'models/alert_templates/alert_templates';
 import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
-import { INTEGRATION_TEMPLATES_LIST } from 'pages/integration/Integration.config';
 import IntegrationHelper from 'pages/integration/Integration.helper';
 import styles from 'pages/integration/Integration.module.scss';
 import { AppFeature } from 'state/features';
@@ -648,9 +646,11 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
       });
   };
 
-  getTemplatesList = (): CascaderOption[] => INTEGRATION_TEMPLATES_LIST;
-
   openEditTemplateModal = (templateName, channelFilterId?: ChannelFilter['id']) => {
+    const { store } = this.props;
+
+    const templateForEdit = getTemplatesForEdit(store.features);
+
     if (templateForEdit[templateName]) {
       this.setState({
         isEditTemplateModalOpen: true,

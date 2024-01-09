@@ -33,3 +33,7 @@ dependencies:
     version: 4.1.4
     repository: https://kubernetes.github.io/ingress-nginx
     condition: ingress-nginx.enabled
+  - name: prometheus
+    version: 25.8.2
+    repository: https://prometheus-community.github.io/helm-charts
+    condition: prometheus.enabled
