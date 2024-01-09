@@ -73,7 +73,6 @@ CELERY_TASK_ROUTES = {
     "apps.migration_tool.tasks.migrate_log": {"queue": "default"},
     "apps.migration_tool.tasks.start_migration_user_data": {"queue": "default"},
     "apps.migration_tool.tasks.migrate_user_data": {"queue": "default"},
-    "apps.schedules.tasks.notify_about_gaps_in_schedule.notify_about_gaps_in_schedule": {"queue": "default"},
     "celery.backend_cleanup": {"queue": "default"},
     "apps.heartbeat.tasks.check_heartbeats": {"queue": "default"},
     "apps.oss_installation.tasks.send_cloud_heartbeat_task": {"queue": "default"},
