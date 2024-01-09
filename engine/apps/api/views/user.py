@@ -289,7 +289,7 @@ class UserView(
 
     @extend_schema(
         responses=PolymorphicProxySerializer(
-            component_name="User",
+            component_name="UserPolymorphic",
             serializers=[FilterUserSerializer, UserIsCurrentlyOnCallSerializer, UserSerializer],
             resource_type_field_name=None,
         )
@@ -331,6 +331,7 @@ class UserView(
         serializer = self.get_serializer(queryset, many=True, context=context)
         return Response(serializer.data)
 
+    @extend_schema(responses=UserSerializer)
     def retrieve(self, request, *args, **kwargs) -> Response:
         context = self.get_serializer_context()
 
@@ -351,6 +352,14 @@ class UserView(
 
         serializer = self.get_serializer(instance, context=context)
         return Response(serializer.data)
+
+    @extend_schema(request=UserSerializer, responses=UserSerializer)
+    def update(self, request, *args, **kwargs):
+        return super().update(request, *args, **kwargs)
+
+    @extend_schema(request=UserSerializer, responses=UserSerializer)
+    def partial_update(self, request, *args, **kwargs):
+        return super().partial_update(request, *args, **kwargs)
 
     def wrong_team_response(self) -> Response:
         """

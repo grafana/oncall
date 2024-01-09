@@ -412,7 +412,7 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
         return Alert.objects.filter(group__channel=self).count()
 
     @property
-    def is_able_to_autoresolve(self):
+    def is_able_to_autoresolve(self) -> bool:
         return self.config.is_able_to_autoresolve
 
     @property
@@ -420,7 +420,7 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
         return self.config.is_demo_alert_enabled
 
     @property
-    def description(self):
+    def description(self) -> str | None:
         # TODO: AMV2: Remove this check after legacy integrations are migrated.
         if self.integration == AlertReceiveChannel.INTEGRATION_LEGACY_GRAFANA_ALERTING:
             contact_points = self.contact_points.all()
@@ -496,7 +496,7 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
         return urljoin(self.organization.web_link, f"integrations/{self.public_primary_key}")
 
     @property
-    def integration_url(self):
+    def integration_url(self) -> str | None:
         if self.integration in [
             AlertReceiveChannel.INTEGRATION_MANUAL,
             AlertReceiveChannel.INTEGRATION_SLACK_CHANNEL,

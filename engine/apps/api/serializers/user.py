@@ -3,12 +3,14 @@ import time
 import typing
 
 from django.conf import settings
+from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
 from apps.api.serializers.telegram import TelegramToUserConnectorSerializer
 from apps.base.messaging import get_messaging_backends
 from apps.base.models import UserNotificationPolicy
 from apps.base.utils import live_settings
+from apps.oss_installation.constants import CloudSyncStatus
 from apps.oss_installation.utils import cloud_user_identity_status
 from apps.schedules.ical_utils import SchedulesOnCallUsers
 from apps.user_management.models import User
@@ -31,6 +33,31 @@ class UserPermissionSerializer(serializers.Serializer):
     action = serializers.CharField(read_only=True)
 
 
+class NotificationChainVerbal(typing.TypedDict):
+    default: str
+    important: str
+
+
+class WorkingHoursPeriodSerializer(serializers.Serializer):
+    start = serializers.CharField()
+    end = serializers.CharField()
+
+
+class WorkingHoursSerializer(serializers.Serializer):
+    monday = serializers.ListField(child=WorkingHoursPeriodSerializer())
+    tuesday = serializers.ListField(child=WorkingHoursPeriodSerializer())
+    wednesday = serializers.ListField(child=WorkingHoursPeriodSerializer())
+    thursday = serializers.ListField(child=WorkingHoursPeriodSerializer())
+    friday = serializers.ListField(child=WorkingHoursPeriodSerializer())
+    saturday = serializers.ListField(child=WorkingHoursPeriodSerializer())
+    sunday = serializers.ListField(child=WorkingHoursPeriodSerializer())
+
+
+@extend_schema_field(WorkingHoursSerializer)
+class WorkingHoursField(serializers.JSONField):
+    required = False
+
+
 class UserSerializer(DynamicFieldsModelSerializer, EagerLoadingMixin):
     pk = serializers.CharField(read_only=True, source="public_primary_key")
     slack_user_identity = SlackUserIdentitySerializer(read_only=True)
@@ -47,6 +74,7 @@ class UserSerializer(DynamicFieldsModelSerializer, EagerLoadingMixin):
     avatar_full = serializers.URLField(source="avatar_full_url", read_only=True)
     notification_chain_verbal = serializers.SerializerMethodField()
     cloud_connection_status = serializers.SerializerMethodField()
+    working_hours = WorkingHoursField()
 
     SELECT_RELATED = ["telegram_verification_code", "telegram_connection", "organization", "slack_user_identity"]
 
@@ -127,18 +155,18 @@ class UserSerializer(DynamicFieldsModelSerializer, EagerLoadingMixin):
         else:
             return None
 
-    def get_messaging_backends(self, obj: User):
+    def get_messaging_backends(self, obj: User) -> dict[str, dict]:
         serialized_data = {}
         supported_backends = get_messaging_backends()
         for backend_id, backend in supported_backends:
             serialized_data[backend_id] = backend.serialize_user(obj)
         return serialized_data
 
-    def get_notification_chain_verbal(self, obj: User):
+    def get_notification_chain_verbal(self, obj: User) -> NotificationChainVerbal:
         default, important = UserNotificationPolicy.get_short_verbals_for_user(user=obj)
         return {"default": " - ".join(default), "important": " - ".join(important)}
 
-    def get_cloud_connection_status(self, obj: User):
+    def get_cloud_connection_status(self, obj: User) -> CloudSyncStatus | None:
         if settings.IS_OPEN_SOURCE and live_settings.GRAFANA_CLOUD_NOTIFICATIONS_ENABLED:
             connector = self.context.get("connector", None)
             identities = self.context.get("cloud_identities", {})
