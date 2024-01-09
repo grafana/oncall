@@ -82,13 +82,13 @@ def audit_alert_group_escalation(alert_group: "AlertGroup") -> None:
             f"{base_msg}'s escalation snapshot has {num_of_executed_escalation_policy_snapshots} executed escalation policies"
         )
 
-    check_personal_notifications_task.apply_async((alert_group_id,))
+    check_alert_group_personal_notifications_task.apply_async((alert_group_id,))
 
     task_logger.info(f"{base_msg} passed the audit checks")
 
 
 @shared_task
-def check_personal_notifications_task(alert_group_id) -> None:
+def check_alert_group_personal_notifications_task(alert_group_id) -> None:
     # Check personal notifications are completed
     # triggered (< 5min ago) == failed + success
     from apps.base.models import UserNotificationPolicy, UserNotificationPolicyLogRecord
@@ -113,6 +113,50 @@ def check_personal_notifications_task(alert_group_id) -> None:
         task_logger.info(f"{base_msg} has ({delta}) uncompleted personal notifications")
     else:
         task_logger.info(f"{base_msg} personal notifications check passed")
+
+
+@shared_task
+def check_personal_notifications_task() -> None:
+    """
+    This task checks that triggered personal notifications are completed (allowing a 5 minute delay).
+    It will log the triggered/completed values to be used as metrics.
+
+    Attention: don't retry this task, the idea is to be alerted of failures
+    """
+    from apps.base.models import UserNotificationPolicy, UserNotificationPolicyLogRecord
+
+    # consider a 20-minute window (task should run periodically every 15 minutes or less)
+    now = timezone.now()
+    since = now - timezone.timedelta(minutes=20)
+
+    # use readonly database if available
+    log_records_qs = UserNotificationPolicyLogRecord.objects.using(
+        get_random_readonly_database_key_if_present_otherwise_default()
+    )
+
+    # personal notifications triggered
+    triggered = log_records_qs.filter(
+        type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_TRIGGERED,
+        notification_step=UserNotificationPolicy.Step.NOTIFY,
+        created_at__gte=since,
+        # do not consider the notifications triggered in the last 5 mins from the 20 min window
+        created_at__lte=now - timezone.timedelta(minutes=5),
+    )
+
+    alert_groups_ids = triggered.values_list("alert_group_id", flat=True).distinct()
+    # check how many are completed
+    completed = log_records_qs.filter(
+        Q(type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED)
+        | Q(type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_SUCCESS),
+        notification_step=UserNotificationPolicy.Step.NOTIFY,
+        created_at__gte=since,
+        alert_group_id__in=alert_groups_ids,
+    )
+
+    triggered_notifications = triggered.count()
+    completed_notifications = completed.count()
+    task_logger.info(f"Personal notifications triggered: {triggered_notifications}")
+    task_logger.info(f"Personal notifications completed: {completed_notifications}")
 
 
 @shared_task
