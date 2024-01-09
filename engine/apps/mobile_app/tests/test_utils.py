@@ -1,5 +1,6 @@
 from unittest.mock import Mock, patch
 
+import firebase_admin.messaging
 import pytest
 from firebase_admin.exceptions import FirebaseError
 from requests import HTTPError
@@ -55,6 +56,40 @@ def test_send_push_notification_cloud_firebase_error(
 
     with pytest.raises(FirebaseError):
         utils.send_push_notification(device, mock_message)
+
+    mock_send_message.assert_called_once_with(mock_message)
+
+
+@patch.object(FCMDevice, "send_message")
+@pytest.mark.parametrize(
+    "ExceptionClass,exception_kwargs",
+    [
+        (firebase_admin.messaging.UnregisteredError, {"message": "test_error_message"}),
+    ],
+)
+@pytest.mark.django_db
+def test_send_push_notification_cloud_ignores_certain_errors(
+    mock_send_message,
+    settings,
+    make_organization_and_user,
+    ExceptionClass,
+    exception_kwargs,
+):
+    mock_send_message.return_value = ExceptionClass(**exception_kwargs)
+
+    # create a user and connect a mobile device
+    _, user = make_organization_and_user()
+    device = FCMDevice.objects.create(user=user, registration_id="test_device_id")
+    mock_message = {"foo": "bar"}
+
+    # check FCM is contacted directly when using the cloud license
+    settings.LICENSE = CLOUD_LICENSE_NAME
+    settings.IS_OPEN_SOURCE = False
+
+    try:
+        utils.send_push_notification(device, mock_message)
+    except Exception:
+        pytest.fail(f"send_push_notification should not raise an exception for {ExceptionClass.__name__} errors")
 
     mock_send_message.assert_called_once_with(mock_message)
 
