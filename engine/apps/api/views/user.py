@@ -65,7 +65,7 @@ from apps.telegram.client import TelegramClient
 from apps.telegram.models import TelegramVerificationCode
 from apps.user_management.models import Team, User
 from common.api_helpers.exceptions import Conflict
-from common.api_helpers.mixins import FilterSerializerMixin, PublicPrimaryKeyMixin
+from common.api_helpers.mixins import PublicPrimaryKeyMixin
 from common.api_helpers.paginators import HundredPageSizePaginator
 from common.api_helpers.utils import create_engine_url
 from common.insight_log import (
@@ -142,7 +142,6 @@ class UserFilter(filters.FilterSet):
 
 class UserView(
     PublicPrimaryKeyMixin,
-    FilterSerializerMixin,
     mixins.RetrieveModelMixin,
     mixins.UpdateModelMixin,
     mixins.ListModelMixin,
@@ -208,7 +207,6 @@ class UserView(
     }
 
     queryset = User.objects.none()
-    filter_serializer_class = FilterUserSerializer
 
     pagination_class = HundredPageSizePaginator
 

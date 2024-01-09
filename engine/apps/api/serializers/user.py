@@ -55,7 +55,7 @@ class WorkingHoursSerializer(serializers.Serializer):
 
 @extend_schema_field(WorkingHoursSerializer)
 class WorkingHoursField(serializers.JSONField):
-    required = False
+    pass
 
 
 class UserSerializer(DynamicFieldsModelSerializer, EagerLoadingMixin):
@@ -74,7 +74,7 @@ class UserSerializer(DynamicFieldsModelSerializer, EagerLoadingMixin):
     avatar_full = serializers.URLField(source="avatar_full_url", read_only=True)
     notification_chain_verbal = serializers.SerializerMethodField()
     cloud_connection_status = serializers.SerializerMethodField()
-    working_hours = WorkingHoursField()
+    working_hours = WorkingHoursField(required=False)
 
     SELECT_RELATED = ["telegram_verification_code", "telegram_connection", "organization", "slack_user_identity"]
 
