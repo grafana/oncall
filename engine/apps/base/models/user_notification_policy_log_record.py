@@ -104,7 +104,7 @@ class UserNotificationPolicyLogRecord(models.Model):
 
     slack_prevent_posting = models.BooleanField(default=False)
 
-    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     reason = models.TextField(null=True, default=None)
 
