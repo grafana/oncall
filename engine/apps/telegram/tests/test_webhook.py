@@ -5,8 +5,6 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
 
-url = reverse("telegram:incoming_webhook")
-
 TELEGRAM_USER_ID = 777000
 TELEGRAM_USER_NAME = "Telegram"
 TELEGRAM_USER = {"from_user_id": TELEGRAM_USER_ID, "from_user_name": TELEGRAM_USER_NAME}
@@ -96,6 +94,7 @@ def test_we_can_successfully_receive_an_update_for_a_message_within_a_channel(
     make_channel_message_webhook_payload,
     from_user,
 ):
+    url = reverse("telegram:incoming_webhook")
     client = APIClient()
     response = client.post(url, make_channel_message_webhook_payload(**from_user), format="json")
     assert response.status_code == status.HTTP_200_OK
@@ -109,6 +108,7 @@ def test_we_can_successfully_receive_an_update_for_a_message_within_a_channels_d
     make_discussion_group_message_webhook_payload,
     from_user,
 ):
+    url = reverse("telegram:incoming_webhook")
     client = APIClient()
     response = client.post(url, make_discussion_group_message_webhook_payload(**from_user), format="json")
     assert response.status_code == status.HTTP_200_OK
