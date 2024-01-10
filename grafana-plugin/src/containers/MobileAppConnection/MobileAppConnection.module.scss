@@ -1,6 +1,7 @@
 .container {
   display: flex;
   flex-direction: row;
+  min-width: 100%;
 
   &__box {
     flex-basis: 50%;
