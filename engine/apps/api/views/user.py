@@ -1,4 +1,5 @@
 import logging
+import typing
 
 import pytz
 from django.conf import settings
@@ -8,6 +9,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.functional import cached_property
 from django_filters import rest_framework as filters
+from drf_spectacular.plumbing import resolve_type_hint
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import PolymorphicProxySerializer, extend_schema, inline_serializer
 from rest_framework import mixins, serializers, status, viewsets
@@ -386,7 +388,7 @@ class UserView(
         serializer = UserSerializer(self.get_queryset().get(pk=self.request.user.pk))
         return Response(serializer.data)
 
-    @extend_schema(responses=OpenApiTypes.OBJECT)
+    @extend_schema(responses={status.HTTP_200_OK: resolve_type_hint(typing.List[str])})
     @action(detail=False, methods=["get"])
     def timezone_options(self, request) -> Response:
         return Response(pytz.common_timezones)

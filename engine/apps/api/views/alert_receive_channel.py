@@ -4,7 +4,6 @@ from django.db.models import Q
 from django_filters import rest_framework as filters
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.plumbing import resolve_type_hint
-from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import PolymorphicProxySerializer, extend_schema, extend_schema_view, inline_serializer
 from rest_framework import serializers, status
 from rest_framework.decorators import action
@@ -50,6 +49,15 @@ class AlertReceiveChannelCounter(typing.TypedDict):
 
 
 AlertReceiveChannelCounters = dict[str, AlertReceiveChannelCounter]
+
+
+class ContactPoint(typing.TypedDict):
+    uid: str
+    name: str
+    contact_points: list[str]
+
+
+ContactPoints = list[ContactPoint]
 
 
 class AlertReceiveChannelFilter(ByTeamModelFieldFilterMixin, filters.FilterSet):
@@ -506,7 +514,7 @@ class AlertReceiveChannelView(
 
         return r
 
-    @extend_schema(responses=OpenApiTypes.OBJECT)
+    @extend_schema(responses={status.HTTP_200_OK: resolve_type_hint(ContactPoints)})
     @action(detail=True, methods=["get"])
     def connected_contact_points(self, request, pk):
         instance = self.get_object()
@@ -515,7 +523,7 @@ class AlertReceiveChannelView(
         contact_points = instance.grafana_alerting_sync_manager.get_connected_contact_points()
         return Response(contact_points)
 
-    @extend_schema(responses=OpenApiTypes.OBJECT)
+    @extend_schema(responses={status.HTTP_200_OK: resolve_type_hint(ContactPoints)})
     @action(detail=False, methods=["get"])
     def contact_points(self, request):
         organization = request.auth.organization
