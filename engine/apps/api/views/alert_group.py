@@ -55,9 +55,7 @@ def get_user_queryset(request):
 
 @extend_schema_field(serializers.CharField)
 class MultipleChoiceCharFilter(filters.ModelMultipleChoiceFilter):
-    """
-    drf-spectacular can't infer that the individual choice type is string, so specifying it explicitly.
-    """
+    """drf-spectacular can't infer that the individual choice type is string, so specifying it explicitly."""
 
     pass
 
