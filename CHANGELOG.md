@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## v1.3.84 (2024-01-10)
+
 ### Added
 
 - Add endpoint for alert group escalation snapshot by @Ferril ([#3615](https://github.com/grafana/oncall/pull/3615))
