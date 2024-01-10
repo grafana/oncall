@@ -368,7 +368,7 @@ It will result in the following (Invalid JSON due to single quotes):
 
 ```json
 {
-  "labels": { 'region': 'eu-1', 'alertname': 'TestAlert' }
+  "labels": {'region': 'eu-1', 'alertname': 'TestAlert'}
 }
 ```
 
