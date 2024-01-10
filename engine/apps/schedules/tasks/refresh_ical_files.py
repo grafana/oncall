@@ -1,6 +1,6 @@
 from celery.utils.log import get_task_logger
 
-from apps.alerts.tasks import notify_ical_schedule_shift
+from apps.alerts.tasks import notify_ical_schedule_shift  # type: ignore[no-redef]
 from apps.schedules.ical_utils import is_icals_equal
 from apps.schedules.tasks import notify_about_empty_shifts_in_schedule_task, notify_about_gaps_in_schedule_task
 from apps.slack.tasks import start_update_slack_user_group_for_schedules
