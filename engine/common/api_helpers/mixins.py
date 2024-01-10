@@ -5,7 +5,7 @@ import typing
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Q
 from django.utils.functional import cached_property
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import extend_schema, inline_serializer
 from rest_framework import serializers, status
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound, Throttled
@@ -265,27 +265,26 @@ class PreviewTemplateException(Exception):
 
 
 class PreviewTemplateMixin:
-    class PreviewTemplateRequestSerializer(serializers.Serializer):
-        template_body = serializers.CharField(required=False, allow_null=True)
-        template_name = serializers.CharField(required=False, allow_null=True)
-        payload = serializers.DictField(required=False, allow_null=True)
-
-    class PreviewTemplateResponseSerializer(serializers.Serializer):
-        preview = serializers.CharField(allow_null=True)
-
     @extend_schema(
         description="Preview template",
-        request=PreviewTemplateRequestSerializer,
-        responses=PreviewTemplateResponseSerializer,
+        request=inline_serializer(
+            name="PreviewTemplateRequest",
+            fields={
+                "template_body": serializers.CharField(required=False, allow_null=True),
+                "template_name": serializers.CharField(required=False, allow_null=True),
+                "payload": serializers.DictField(required=False, allow_null=True),
+            },
+        ),
+        responses=inline_serializer(
+            name="PreviewTemplateResponse",
+            fields={"preview": serializers.CharField(allow_null=True)},
+        ),
     )
     @action(methods=["post"], detail=True)
     def preview_template(self, request, pk):
-        request_serializer = self.PreviewTemplateRequestSerializer(data=request.data)
-        request_serializer.is_valid(raise_exception=True)
-
-        template_body = request_serializer.validated_data.get("template_body")
-        template_name = request_serializer.validated_data.get("template_name")
-        payload = request_serializer.validated_data.get("payload")
+        template_body = request.data.get("template_body", None)
+        template_name = request.data.get("template_name", None)
+        payload = request.data.get("payload", None)
 
         try:
             alert_to_template = self.get_alert_to_template(payload=payload)
