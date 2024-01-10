@@ -12,7 +12,7 @@ export default function getTotalAlertGroupsScene({ datasource }: InsightsConfig)
         editorMode: 'code',
         excludeNullMetadata: false,
         exemplar: false,
-        expr: 'max_over_time(sum(avg without(pod, instance) ($alert_groups_total{slug=~"$instance", team=~"$team", integration=~"$integration"}))[1d:])',
+        expr: 'max_over_time(sum(avg without(pod, stack) ($alert_groups_total{slug=~"$stack", team=~"$team", integration=~"$integration"}))[1d:])',
         format: 'time_series',
         fullMetaSearch: false,
         instant: false,
