@@ -293,7 +293,7 @@ class AlertReceiveChannelView(
 
         return Response()
 
-    @extend_schema(responses=dict)
+    @extend_schema(responses=OpenApiTypes.OBJECT)
     @action(methods=["get"], detail=False)
     def counters(self, request):
         queryset = self.filter_queryset(self.get_queryset(eager=False))
@@ -305,7 +305,11 @@ class AlertReceiveChannelView(
             }
         return Response(response)
 
-    @extend_schema(responses=dict)
+    @extend_schema(
+        # make operation_id unique, otherwise drf-spectacular will issue a warning
+        operation_id="alert_receive_channels_counters_per_integration_retrieve",
+        responses=OpenApiTypes.OBJECT,
+    )
     @action(methods=["get"], detail=True, url_path="counters")
     def counters_per_integration(self, request, pk):
         alert_receive_channel = self.get_object()
