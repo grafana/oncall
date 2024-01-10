@@ -16,6 +16,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Address HTTP 500s occurring when receiving messages from Telegram user in a discussion group by @joeyorlando ([#3622](https://github.com/grafana/oncall/pull/3622))
+- Fix `module 'apps.schedules.tasks.notify_about_empty_shifts_in_schedule' has no attribute 'apply_async'`
+  `AttributeError` by @joeyorlando ([#3640](https://github.com/grafana/oncall/pull/3640))
 
 ## v1.3.83 (2024-01-08)
 
