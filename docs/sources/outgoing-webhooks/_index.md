@@ -63,7 +63,7 @@ Controls whether the outgoing webhook will trigger or is ignored.
 
 #### Assign to Team
 
-Sets which team owns the outgoing webhook for filtering and visibility.  
+Sets which team owns the outgoing webhook for filtering and visibility.
 This setting does not restrict outgoing webhook execution to events from the selected team.
 
 | Required | [Template Accepted](#outgoing-webhook-templates) | Default Value |
@@ -368,7 +368,7 @@ It will result in the following (Invalid JSON due to single quotes):
 
 ```json
 {
-  "labels": { "region": "eu-1", "alertname": "TestAlert" }
+  "labels": { 'region': 'eu-1', 'alertname': 'TestAlert' }
 }
 ```
 
@@ -470,7 +470,7 @@ otherwise it will only display the value. Fields which are not used are not show
 
 ### Using trigger template field
 
-The [trigger template field](#trigger-type) can be used to provide control over whether a webhook will execute.  
+The [trigger template field](#trigger-type) can be used to provide control over whether a webhook will execute.
 This is useful in situations where many different kinds of alerts are going to the same integration but only some of
 them should call the webhook. To accomplish this the trigger template field can contain a template that will process
 data from the alert group and evaluate to empty, True or 1 if the webhook should execute, any other values will result
