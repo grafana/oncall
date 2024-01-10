@@ -10,6 +10,7 @@ import { Alert } from 'models/alertgroup/alertgroup.types';
 import { OutgoingWebhook } from 'models/outgoing_webhook/outgoing_webhook.types';
 import { useStore } from 'state/useStore';
 import { openErrorNotification } from 'utils';
+import convertUnicode from 'utils/convertUnicode';
 import { useDebouncedCallback } from 'utils/hooks';
 import sanitize from 'utils/sanitize';
 
@@ -138,7 +139,7 @@ const TemplatePreview = observer((props: TemplatePreviewProps) => {
               <div
                 className={cx('message')}
                 dangerouslySetInnerHTML={{
-                  __html: sanitize(result.preview),
+                  __html: sanitize(convertUnicode(result.preview)),
                 }}
               />
             </HorizontalGroup>
@@ -153,7 +154,7 @@ const TemplatePreview = observer((props: TemplatePreviewProps) => {
       <div
         className={cx('message')}
         dangerouslySetInnerHTML={{
-          __html: sanitize(result.preview),
+          __html: sanitize(convertUnicode(result.preview)),
         }}
       />
     );
@@ -163,7 +164,7 @@ const TemplatePreview = observer((props: TemplatePreviewProps) => {
       <div
         className={cx('message', 'display-linebreak')}
         dangerouslySetInnerHTML={{
-          __html: sanitize(result.preview),
+          __html: sanitize(convertUnicode(result.preview)),
         }}
       />
     );
