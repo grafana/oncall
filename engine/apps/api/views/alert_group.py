@@ -4,7 +4,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Count, Max, Q
 from django.utils import timezone
 from django_filters import rest_framework as filters
-from drf_spectacular.utils import extend_schema, extend_schema_field, inline_serializer
+from drf_spectacular.utils import extend_schema, inline_serializer
 from rest_framework import mixins, serializers, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound
@@ -27,7 +27,12 @@ from apps.labels.utils import is_labels_feature_enabled
 from apps.mobile_app.auth import MobileAppAuthTokenAuthentication
 from apps.user_management.models import Team, User
 from common.api_helpers.exceptions import BadRequest
-from common.api_helpers.filters import NO_TEAM_VALUE, DateRangeFilterMixin, ModelFieldFilterMixin
+from common.api_helpers.filters import (
+    NO_TEAM_VALUE,
+    DateRangeFilterMixin,
+    ModelFieldFilterMixin,
+    MultipleChoiceCharFilter,
+)
 from common.api_helpers.mixins import PreviewTemplateMixin, PublicPrimaryKeyMixin, TeamFilteringMixin
 from common.api_helpers.paginators import AlertGroupCursorPaginator
 
@@ -51,13 +56,6 @@ def get_user_queryset(request):
         return User.objects.none()
 
     return User.objects.filter(organization=request.user.organization).distinct()
-
-
-@extend_schema_field(serializers.CharField)
-class MultipleChoiceCharFilter(filters.ModelMultipleChoiceFilter):
-    """drf-spectacular can't infer that the individual choice type is string, so specifying it explicitly."""
-
-    pass
 
 
 class AlertGroupFilter(DateRangeFilterMixin, ModelFieldFilterMixin, filters.FilterSet):

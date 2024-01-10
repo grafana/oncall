@@ -3,6 +3,8 @@ from datetime import datetime
 from django.db.models import Q
 from django_filters import rest_framework as filters
 from django_filters.utils import handle_timezone
+from drf_spectacular.utils import extend_schema_field
+from rest_framework import serializers
 
 from apps.user_management.models import Team
 from common.api_helpers.exceptions import BadRequest
@@ -46,6 +48,13 @@ class DateRangeFilterMixin:
         end_date = handle_timezone(end_date, False)
 
         return start_date, end_date
+
+
+@extend_schema_field(serializers.CharField)
+class MultipleChoiceCharFilter(filters.ModelMultipleChoiceFilter):
+    """MultipleChoiceCharFilter with an explicit schema. Otherwise, drf-specacular may generate a wrong schema."""
+
+    pass
 
 
 class ModelFieldFilterMixin:
@@ -107,6 +116,7 @@ class ByTeamFilter(ByTeamModelFieldFilterMixin, filters.FilterSet):
     )
 
 
+@extend_schema_field(serializers.CharField)
 class TeamModelMultipleChoiceFilter(filters.ModelMultipleChoiceFilter):
     def __init__(
         self,
