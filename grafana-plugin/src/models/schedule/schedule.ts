@@ -133,7 +133,7 @@ export class ScheduleStore extends BaseStore {
     this.path = '/schedules/';
   }
 
-  @action
+  @action.bound
   async loadItem(id: Schedule['id'], skipErrorHandling = false): Promise<Schedule> {
     const schedule = await this.getById(id, skipErrorHandling);
 
@@ -147,7 +147,7 @@ export class ScheduleStore extends BaseStore {
     return schedule;
   }
 
-  @action
+  @action.bound
   async updateItems(
     f: RemoteFiltersType | string = { searchTerm: '', type: undefined, used: undefined },
     page = 1,
@@ -182,7 +182,7 @@ export class ScheduleStore extends BaseStore {
     });
   }
 
-  @action
+  @action.bound
   async updateItem(id: Schedule['id'], fromOrganization = false) {
     if (id) {
       let schedule;
@@ -211,6 +211,7 @@ export class ScheduleStore extends BaseStore {
     }
   }
 
+  @action.bound
   getSearchResult() {
     return {
       page_size: this.searchResult.page_size,
@@ -230,24 +231,28 @@ export class ScheduleStore extends BaseStore {
     });
   }
 
+  @action.bound
   async reloadIcal(scheduleId: Schedule['id']) {
     await makeRequest(`/schedules/${scheduleId}/reload_ical/`, {
       method: 'POST',
     });
   }
 
+  @action.bound
   async getICalLink(scheduleId: Schedule['id']) {
     return await makeRequest(`/schedules/${scheduleId}/export_token/`, {
       method: 'GET',
     });
   }
 
+  @action.bound
   async createICalLink(scheduleId: Schedule['id']) {
     return await makeRequest(`/schedules/${scheduleId}/export_token/`, {
       method: 'POST',
     });
   }
 
+  @action.bound
   async deleteICalLink(scheduleId: Schedule['id']) {
     await makeRequest(`/schedules/${scheduleId}/export_token/`, {
       method: 'DELETE',
@@ -256,7 +261,7 @@ export class ScheduleStore extends BaseStore {
 
   // ------- NEW SCHEDULES API ENDPOINTS ---------
 
-  @action
+  @action.bound
   async createRotation(scheduleId: Schedule['id'], isOverride: boolean, params: Partial<Shift>) {
     const type = isOverride ? 3 : 2;
 
@@ -277,10 +282,12 @@ export class ScheduleStore extends BaseStore {
     return response;
   }
 
+  @action.bound
   setRotationFormLiveParams(params: RotationFormLiveParams) {
     this.rotationFormLiveParams = params;
   }
 
+  @action.bound
   async updateRotationPreview(
     scheduleId: Schedule['id'],
     shiftId: Shift['id'] | 'new',
@@ -324,7 +331,7 @@ export class ScheduleStore extends BaseStore {
     });
   }
 
-  @action
+  @action.bound
   async updateShiftsSwapPreview(scheduleId: Schedule['id'], startMoment: dayjs.Dayjs, params: Partial<ShiftSwap>) {
     const fromString = getFromString(startMoment);
 
@@ -350,7 +357,7 @@ export class ScheduleStore extends BaseStore {
     });
   }
 
-  @action
+  @action.bound
   clearPreview() {
     this.finalPreview = undefined;
     this.rotationPreview = undefined;
@@ -359,7 +366,7 @@ export class ScheduleStore extends BaseStore {
     this.rotationFormLiveParams = undefined;
   }
 
-  @action
+  @action.bound
   async updateRotation(shiftId: Shift['id'], params: Partial<Shift>) {
     const response = await makeRequest(`/oncall_shifts/${shiftId}`, {
       params: { force: true },
@@ -377,7 +384,7 @@ export class ScheduleStore extends BaseStore {
     return response;
   }
 
-  @action
+  @action.bound
   async updateRotationAsNew(shiftId: Shift['id'], params: Partial<Shift>) {
     const response = await makeRequest(`/oncall_shifts/${shiftId}`, {
       data: { ...params },
@@ -394,7 +401,7 @@ export class ScheduleStore extends BaseStore {
     return response;
   }
 
-  @action
+  @action.bound
   updateRelatedEscalationChains = async (id: Schedule['id']) => {
     const response = await makeRequest(`/schedules/${id}/related_escalation_chains`, {
       method: 'GET',
@@ -410,7 +417,7 @@ export class ScheduleStore extends BaseStore {
     return response;
   };
 
-  @action
+  @action.bound
   updateRelatedUsers = async (id: Schedule['id']) => {
     const { users } = await makeRequest(`/schedules/${id}/next_shifts_per_user`, {
       method: 'GET',
@@ -426,7 +433,7 @@ export class ScheduleStore extends BaseStore {
     return users;
   };
 
-  @action
+  @action.bound
   async updateOncallShifts(scheduleId: Schedule['id']) {
     const { results } = await makeRequest(`/oncall_shifts/`, {
       params: {
@@ -449,7 +456,7 @@ export class ScheduleStore extends BaseStore {
     });
   }
 
-  @action
+  @action.bound
   async updateOncallShift(shiftId: Shift['id']) {
     if (this.shiftsCurrentlyUpdating[shiftId]) {
       return;
@@ -471,7 +478,7 @@ export class ScheduleStore extends BaseStore {
     return response;
   }
 
-  @action
+  @action.bound
   async saveOncallShift(shiftId: Shift['id'], data: Partial<Shift>) {
     const response = await makeRequest(`/oncall_shifts/${shiftId}`, { method: 'PUT', data });
 
@@ -485,6 +492,7 @@ export class ScheduleStore extends BaseStore {
     return response;
   }
 
+  @action.bound
   async deleteOncallShift(shiftId: Shift['id'], force?: boolean) {
     return await makeRequest(`/oncall_shifts/${shiftId}`, {
       method: 'DELETE',
@@ -492,7 +500,7 @@ export class ScheduleStore extends BaseStore {
     }).catch(this.onApiError);
   }
 
-  @action
+  @action.bound
   async updateEvents(scheduleId: Schedule['id'], startMoment: dayjs.Dayjs, type: RotationType = 'rotation', days = 9) {
     const dayBefore = startMoment.subtract(1, 'day');
 
@@ -548,13 +556,14 @@ export class ScheduleStore extends BaseStore {
     ]);
   }
 
+  @action.bound
   async updateFrequencyOptions() {
     return await makeRequest(`/oncall_shifts/frequency_options/`, {
       method: 'GET',
     });
   }
 
-  @action
+  @action.bound
   async updateDaysOptions() {
     const result = await makeRequest(`/oncall_shifts/days_options/`, {
       method: 'GET',
@@ -565,19 +574,22 @@ export class ScheduleStore extends BaseStore {
     });
   }
 
+  @action.bound
   async createShiftSwap(params: Partial<ShiftSwap>) {
     return await makeRequest(`/shift_swaps/`, { method: 'POST', data: params }).catch(this.onApiError);
   }
 
+  @action.bound
   async deleteShiftSwap(shiftSwapId: ShiftSwap['id']) {
     return await makeRequest(`/shift_swaps/${shiftSwapId}`, { method: 'DELETE' }).catch(this.onApiError);
   }
 
+  @action.bound
   async takeShiftSwap(shiftSwapId: ShiftSwap['id']) {
     return await makeRequest(`/shift_swaps/${shiftSwapId}/take`, { method: 'POST' }).catch(this.onApiError);
   }
 
-  @action
+  @action.bound
   async loadShiftSwap(id: ShiftSwap['id']) {
     const result = await makeRequest(`/shift_swaps/${id}`, { params: { expand_users: true } });
 
@@ -588,7 +600,7 @@ export class ScheduleStore extends BaseStore {
     return result;
   }
 
-  @action
+  @action.bound
   async updateShiftSwaps(scheduleId: Schedule['id'], startMoment: dayjs.Dayjs, days = 9) {
     const fromString = getFromString(startMoment);
 
@@ -630,7 +642,7 @@ export class ScheduleStore extends BaseStore {
   }
 
   @AutoLoadingState(ActionKey.UPDATE_PERSONAL_EVENTS)
-  @action
+  @action.bound
   async updatePersonalEvents(userPk: User['pk'], startMoment: dayjs.Dayjs, days = 9, isUpdateOnCallNow = false) {
     const fromString = getFromString(startMoment);
 

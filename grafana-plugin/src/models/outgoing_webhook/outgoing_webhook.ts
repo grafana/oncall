@@ -28,7 +28,7 @@ export class OutgoingWebhookStore extends BaseStore {
     this.path = '/webhooks/';
   }
 
-  @action
+  @action.bound
   async loadItem(id: OutgoingWebhook['id'], skipErrorHandling = false): Promise<OutgoingWebhook> {
     const outgoingWebhook = await this.getById(id, skipErrorHandling);
 
@@ -42,7 +42,7 @@ export class OutgoingWebhookStore extends BaseStore {
     return outgoingWebhook;
   }
 
-  @action
+  @action.bound
   async updateById(id: OutgoingWebhook['id']) {
     const response = await this.getById(id);
 
@@ -54,7 +54,7 @@ export class OutgoingWebhookStore extends BaseStore {
     });
   }
 
-  @action
+  @action.bound
   async updateItem(id: OutgoingWebhook['id'], fromOrganization = false) {
     const response = await this.getById(id, false, fromOrganization);
 
@@ -66,7 +66,7 @@ export class OutgoingWebhookStore extends BaseStore {
     });
   }
 
-  @action
+  @action.bound
   async updateItems(query: any = '') {
     const params = typeof query === 'string' ? { search: query } : query;
 
@@ -95,6 +95,7 @@ export class OutgoingWebhookStore extends BaseStore {
     });
   }
 
+  @action.bound
   getSearchResult(query = '') {
     if (!this.searchResult[query]) {
       return undefined;
@@ -103,12 +104,14 @@ export class OutgoingWebhookStore extends BaseStore {
     return this.searchResult[query].map((outgoingWebhookId: OutgoingWebhook['id']) => this.items[outgoingWebhookId]);
   }
 
+  @action.bound
   async getLastResponses(id: OutgoingWebhook['id']) {
     const result = await makeRequest(`${this.path}${id}/responses`, {});
 
     return result;
   }
 
+  @action.bound
   async renderPreview(id: OutgoingWebhook['id'], template_name: string, template_body: string, payload) {
     return await makeRequest(`${this.path}${id}/preview_template/`, {
       method: 'POST',
