@@ -3,7 +3,6 @@ import time
 import typing
 
 from django.conf import settings
-from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
 from apps.api.serializers.telegram import TelegramToUserConnectorSerializer
@@ -14,7 +13,6 @@ from apps.oss_installation.constants import CloudSyncStatus
 from apps.oss_installation.utils import cloud_user_identity_status
 from apps.schedules.ical_utils import SchedulesOnCallUsers
 from apps.user_management.models import User
-from apps.user_management.models.user import default_working_hours
 from common.api_helpers.custom_fields import TeamPrimaryKeyRelatedField, TimeZoneField
 from common.api_helpers.mixins import EagerLoadingMixin
 from common.api_helpers.utils import check_phone_number_is_valid
@@ -53,11 +51,6 @@ class WorkingHoursSerializer(serializers.Serializer):
     sunday = serializers.ListField(child=WorkingHoursPeriodSerializer())
 
 
-@extend_schema_field(WorkingHoursSerializer)
-class WorkingHoursField(serializers.JSONField):
-    pass
-
-
 class UserSerializer(DynamicFieldsModelSerializer, EagerLoadingMixin):
     pk = serializers.CharField(read_only=True, source="public_primary_key")
     slack_user_identity = SlackUserIdentitySerializer(read_only=True)
@@ -74,7 +67,7 @@ class UserSerializer(DynamicFieldsModelSerializer, EagerLoadingMixin):
     avatar_full = serializers.URLField(source="avatar_full_url", read_only=True)
     notification_chain_verbal = serializers.SerializerMethodField()
     cloud_connection_status = serializers.SerializerMethodField()
-    working_hours = WorkingHoursField(required=False)
+    working_hours = WorkingHoursSerializer()
 
     SELECT_RELATED = ["telegram_verification_code", "telegram_connection", "organization", "slack_user_identity"]
 
@@ -110,29 +103,8 @@ class UserSerializer(DynamicFieldsModelSerializer, EagerLoadingMixin):
         ]
 
     def validate_working_hours(self, working_hours):
-        if not isinstance(working_hours, dict):
-            raise serializers.ValidationError("must be dict")
-
-        # check that all days are present
-        if sorted(working_hours.keys()) != sorted(default_working_hours().keys()):
-            raise serializers.ValidationError("missing some days")
-
         for day in working_hours:
-            periods = working_hours[day]
-
-            if not isinstance(periods, list):
-                raise serializers.ValidationError("periods must be list")
-
-            for period in periods:
-                if not isinstance(period, dict):
-                    raise serializers.ValidationError("period must be dict")
-
-                if sorted(period.keys()) != sorted(["start", "end"]):
-                    raise serializers.ValidationError("'start' and 'end' fields must be present")
-
-                if not isinstance(period["start"], str) or not isinstance(period["end"], str):
-                    raise serializers.ValidationError("'start' and 'end' fields must be str")
-
+            for period in working_hours[day]:
                 try:
                     start = time.strptime(period["start"], "%H:%M:%S")
                     end = time.strptime(period["end"], "%H:%M:%S")
@@ -141,7 +113,6 @@ class UserSerializer(DynamicFieldsModelSerializer, EagerLoadingMixin):
 
                 if start >= end:
                     raise serializers.ValidationError("'start' must be less than 'end'")
-
         return working_hours
 
     def validate_unverified_phone_number(self, value):
