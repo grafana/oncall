@@ -698,10 +698,29 @@ class AlertGroupView(
         unpage_user(alert_group=alert_group, user=user, from_user=from_user)
         return Response(status=status.HTTP_200_OK)
 
+    @extend_schema(
+        responses=inline_serializer(
+            name="AlertGroupFilters",
+            fields={
+                "name": serializers.CharField(),
+                "type": serializers.CharField(),
+                "href": serializers.CharField(required=False),
+                "global": serializers.BooleanField(required=False),
+                "default": serializers.JSONField(required=False),
+                "description": serializers.CharField(required=False),
+                "options": inline_serializer(
+                    name="AlertGroupFiltersOptions",
+                    fields={
+                        "value": serializers.CharField(),
+                        "display_name": serializers.IntegerField(),
+                    },
+                ),
+            },
+            many=True,
+        )
+    )
     @action(methods=["get"], detail=False)
     def filters(self, request):
-        # TODO: FIXME
-
         """
         Retrieve a list of valid filter options that can be used to filter alert groups
         """
