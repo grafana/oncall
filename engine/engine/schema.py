@@ -6,17 +6,19 @@ from common.api_helpers.mixins import PublicPrimaryKeyMixin
 
 class CustomAutoSchema(AutoSchema):
     def _get_serializer(self):
-        """Makes so that extra actions (@action on viewset) don't inherit serializer from the viewset."""
+        """Makes so that extra actions (@action on viewset) don't inherit the serializer from the viewset."""
         if self._is_extra_action:
             return None
         return super()._get_serializer()
 
     def _get_paginator(self):
+        """Makes so that extra actions (@action on viewset) don't inherit the paginator from the viewset."""
         if self._is_extra_action:
             return None
         return super()._get_paginator()
 
     def get_filter_backends(self):
+        """Makes so that extra actions (@action on viewset) don't inherit the filter backends from the viewset."""
         if self._is_extra_action:
             return []
         return super().get_filter_backends()

@@ -441,7 +441,8 @@ class AlertGroupView(
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     @extend_schema(
-        filters=True, responses=inline_serializer(name="AlertGroupStats", fields={"count": serializers.IntegerField()})
+        filters=True,  # filter alert groups before counting them
+        responses=inline_serializer(name="AlertGroupStats", fields={"count": serializers.IntegerField()}),
     )
     @action(methods=["get"], detail=False)
     def stats(self, request):
