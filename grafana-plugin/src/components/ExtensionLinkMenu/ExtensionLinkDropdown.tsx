@@ -1,9 +1,6 @@
 import React, { ReactElement, useMemo, useState } from 'react';
 
-// Note: these imports are available in Grafana>=10.0.
-// @ts-expect-error
 import { PluginExtensionLink } from '@grafana/data';
-// @ts-expect-error
 import { getPluginLinkExtensions } from '@grafana/runtime';
 import { Dropdown, ToolbarButton } from '@grafana/ui';
 import { OnCallPluginExtensionPoints } from 'types';
@@ -54,7 +51,10 @@ function useExtensionPointContext(incident: Alert): PluginExtensionOnCallAlertGr
   return { alertGroup: incident };
 }
 
-function useExtensionLinks<T>(context: T, extensionPointId: OnCallPluginExtensionPoints): PluginExtensionLink[] {
+function useExtensionLinks<T extends object>(
+  context: T,
+  extensionPointId: OnCallPluginExtensionPoints
+): PluginExtensionLink[] {
   return useMemo(() => {
     // getPluginLinkExtensions is available in Grafana>=10.0,
     // so will be undefined in earlier versions. Just return an
