@@ -10,7 +10,6 @@ from django.utils import timezone
 from django.utils.functional import cached_property
 from django_filters import rest_framework as filters
 from drf_spectacular.plumbing import resolve_type_hint
-from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import PolymorphicProxySerializer, extend_schema, inline_serializer
 from rest_framework import mixins, serializers, status, viewsets
 from rest_framework.decorators import action
@@ -64,6 +63,7 @@ from apps.phone_notifications.exceptions import (
 from apps.phone_notifications.phone_backend import PhoneBackend
 from apps.schedules.ical_utils import get_cached_oncall_users_for_multiple_schedules
 from apps.schedules.models import OnCallSchedule
+from apps.schedules.models.on_call_schedule import ScheduleEvent
 from apps.telegram.client import TelegramClient
 from apps.telegram.models import TelegramVerificationCode
 from apps.user_management.models import Team, User
@@ -87,6 +87,17 @@ IsOwnerOrHasUserSettingsReadPermission = IsOwnerOrHasRBACPermissions([RBACPermis
 
 UPCOMING_SHIFTS_DEFAULT_DAYS = 7
 UPCOMING_SHIFTS_MAX_DAYS = 65
+
+
+class UpcomingShift(typing.TypedDict):
+    schedule_id: str
+    schedule_name: str
+    is_oncall: bool
+    current_shift: ScheduleEvent | None
+    next_shift: ScheduleEvent | None
+
+
+UpcomingShifts = list[UpcomingShift]
 
 
 class CurrentUserView(APIView):
@@ -669,7 +680,7 @@ class UserView(
                 fields={"days": serializers.IntegerField(required=False, default=UPCOMING_SHIFTS_DEFAULT_DAYS)},
             )
         ],
-        responses=OpenApiTypes.OBJECT,
+        responses={status.HTTP_200_OK: resolve_type_hint(UpcomingShifts)},
     )
     @action(detail=True, methods=["get"])
     def upcoming_shifts(self, request, pk) -> Response:
