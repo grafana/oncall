@@ -21,7 +21,7 @@ export class UserGroupStore extends BaseStore {
     this.path = '/user_groups/';
   }
 
-  @action
+  @action.bound
   async updateItems(query = '') {
     const result = await makeRequest(`${this.path}`, {
       params: { search: query },
@@ -46,6 +46,7 @@ export class UserGroupStore extends BaseStore {
     });
   }
 
+  @action.bound
   getSearchResult(query = '') {
     if (!this.searchResult[query]) {
       return undefined;

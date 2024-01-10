@@ -2,6 +2,7 @@ import json
 from unittest.mock import call, patch
 
 import pytest
+import requests
 from django.utils import timezone
 
 from apps.alerts.models import AlertGroupLogRecord, EscalationPolicy
@@ -11,6 +12,8 @@ from apps.webhooks.models import Webhook
 from apps.webhooks.tasks import execute_webhook, send_webhook_event
 from apps.webhooks.tasks.trigger_webhook import NOT_FROM_SELECTED_INTEGRATION
 from settings.base import WEBHOOK_RESPONSE_LIMIT
+
+TIMEOUT = 4
 
 
 class MockResponse:
@@ -160,7 +163,7 @@ def test_execute_webhook_ok(
     assert mock_requests.post.called
     expected_call = call(
         "https://something/{}/".format(alert_group.public_primary_key),
-        timeout=10,
+        timeout=TIMEOUT,
         headers={"some-header": alert_group.public_primary_key},
         json={"value": alert_group.public_primary_key},
     )
@@ -323,7 +326,7 @@ def test_execute_webhook_ok_forward_all(
     }
     expected_call = call(
         "https://something/{}/".format(alert_group.public_primary_key),
-        timeout=10,
+        timeout=TIMEOUT,
         headers={},
         json=expected_data,
     )
@@ -404,7 +407,7 @@ def test_execute_webhook_using_responses_data(
     expected_data = {"value": "updated"}
     expected_call = call(
         "https://something/third-party-id/",
-        timeout=10,
+        timeout=TIMEOUT,
         headers={},
         json=expected_data,
     )
@@ -546,7 +549,7 @@ def test_response_content_limit(
     assert mock_requests.post.called
     expected_call = call(
         "https://test/",
-        timeout=10,
+        timeout=TIMEOUT,
         headers={},
     )
     assert mock_requests.post.call_args == expected_call
@@ -555,3 +558,56 @@ def test_response_content_limit(
     assert log.status_code == 200
     assert log.content == f"Response content {content_length} exceeds {WEBHOOK_RESPONSE_LIMIT} character limit"
     assert log.url == "https://test/"
+
+
+@patch("apps.webhooks.tasks.trigger_webhook.execute_webhook", wraps=execute_webhook)
+@patch("apps.webhooks.models.webhook.requests")
+@patch("apps.webhooks.utils.socket.gethostbyname", return_value="8.8.8.8")
+@pytest.mark.django_db
+@pytest.mark.parametrize("exception", [requests.exceptions.ConnectTimeout, requests.exceptions.ReadTimeout])
+def test_manually_retried_exceptions(
+    _mock_gethostbyname,
+    mock_requests,
+    spy_execute_webhook,
+    make_organization,
+    make_user_for_organization,
+    make_alert_receive_channel,
+    make_alert_group,
+    make_custom_webhook,
+    exception,
+):
+    mock_requests.post.side_effect = exception("foo bar")
+
+    organization = make_organization()
+    user = make_user_for_organization(organization)
+    alert_receive_channel = make_alert_receive_channel(organization)
+    alert_group = make_alert_group(
+        alert_receive_channel, acknowledged_at=timezone.now(), acknowledged=True, acknowledged_by=user.pk
+    )
+    webhook = make_custom_webhook(
+        organization=organization,
+        url="https://test/",
+        http_method="POST",
+        trigger_type=Webhook.TRIGGER_ACKNOWLEDGE,
+        forward_all=False,
+    )
+
+    execute_webhook_args = webhook.pk, alert_group.pk, user.pk, None
+
+    # should retry
+    execute_webhook(*execute_webhook_args)
+
+    mock_requests.post.assert_called_once_with("https://test/", timeout=TIMEOUT, headers={})
+    spy_execute_webhook.apply_async.assert_called_once_with((*execute_webhook_args, 1), countdown=10)
+
+    mock_requests.reset_mock()
+    spy_execute_webhook.reset_mock()
+
+    # should stop retrying after 3 attempts without raising issue
+    try:
+        execute_webhook(*execute_webhook_args, manual_retry_num=3)
+    except Exception:
+        pytest.fail()
+
+    mock_requests.post.assert_called_once_with("https://test/", timeout=TIMEOUT, headers={})
+    spy_execute_webhook.apply_async.assert_not_called()

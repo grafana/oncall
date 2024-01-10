@@ -7,6 +7,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Changed
+
+- Do not retry `firebase.messaging.UnregisteredError` exceptions for FCM relay tasks by @joeyorlando ([#3637](https://github.com/grafana/oncall/pull/3637))
+- Decrease outgoing webhook timeouts from 10secs to 4secs by @joeyorlando ([#3639](https://github.com/grafana/oncall/pull/3639))
+- Add stack slug to `/organization` endpoint response by @Ferril ([#3644](https://github.com/grafana/oncall/pull/3644))
+- Moved Mobile Connection Tab to separate user profile in Grafana ([#3296](https://github.com/grafana/oncall/pull/3296)
+
+### Fixed
+
+- Address HTTP 500s occurring when receiving messages from Telegram user in a discussion group by @joeyorlando ([#3622](https://github.com/grafana/oncall/pull/3622))
+- Fix `module 'apps.schedules.tasks.notify_about_empty_shifts_in_schedule' has no attribute 'apply_async'`
+  `AttributeError` by @joeyorlando ([#3640](https://github.com/grafana/oncall/pull/3640))
+
+## v1.3.83 (2024-01-08)
+
+### Changed
+
+- Move Insights to OnCall as a separate page ([#2382](https://github.com/grafana/oncall-private/issues/2382))
+- Allow mobile app to access paging endpoint @imtoori ([#3619](https://github.com/grafana/oncall/pull/3619))
+- Create log record when there is a telegram formatting error in notification ([#3628](https://github.com/grafana/oncall/pull/3628))
+
+### Fixed
+
+- Fixed schedule timezone issues ([#3576](https://github.com/grafana/oncall/issues/3576))
+- Ignore `requests.exceptions.Timeout` exceptions when attempting to send outgoing webhook requests by @joeyorlando ([#3632](https://github.com/grafana/oncall/pull/3632))
+
+## v1.3.82 (2024-01-04)
+
 ### Added
 
 - Add ability to create an Outgoing Webhook with the PATCH HTTP method via the UI by @joeyorlando ([#3604](https://github.com/grafana/oncall/pull/3604))
@@ -16,6 +44,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Handle message to reply to not found in Telegram send log ([#3587](https://github.com/grafana/oncall/pull/3587))
 - Upgrade mobx lib to the latest version 6.12.0 ([#3453](https://github.com/grafana/oncall/issues/3453))
+- Add task lock to avoid running multiple sync_organization tasks in parallel for the same org ([#3612](https://github.com/grafana/oncall/pull/3612))
 
 ## v1.3.81 (2023-12-28)
 

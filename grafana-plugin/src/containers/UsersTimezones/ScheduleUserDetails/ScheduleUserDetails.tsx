@@ -3,12 +3,17 @@ import React, { FC } from 'react';
 import { HorizontalGroup, VerticalGroup, Icon, Badge } from '@grafana/ui';
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
+import { observer } from 'mobx-react';
 
 import Avatar from 'components/Avatar/Avatar';
 import ScheduleBorderedAvatar from 'components/ScheduleBorderedAvatar/ScheduleBorderedAvatar';
 import Text from 'components/Text/Text';
 import { isInWorkingHours } from 'components/WorkingHours/WorkingHours.helpers';
-import { getTzOffsetString } from 'models/timezone/timezone.helpers';
+import {
+  getCurrentDateInTimezone,
+  getCurrentlyLoggedInUserDate,
+  getTzOffsetString,
+} from 'models/timezone/timezone.helpers';
 import { User } from 'models/user/user.types';
 import { getColorSchemeMappingForUsers } from 'pages/schedule/Schedule.helpers';
 import { useStore } from 'state/useStore';
@@ -21,19 +26,21 @@ interface ScheduleUserDetailsProps {
   user: User;
   isOncall: boolean;
   scheduleId: string;
-  startMoment: dayjs.Dayjs;
 }
 
 const cx = cn.bind(styles);
 
-const ScheduleUserDetails: FC<ScheduleUserDetailsProps> = (props) => {
-  const { user, currentMoment, isOncall, scheduleId, startMoment } = props;
+const ScheduleUserDetails: FC<ScheduleUserDetailsProps> = observer((props) => {
+  const {
+    timezoneStore: { calendarStartDate },
+  } = useStore();
+  const { user, currentMoment, isOncall, scheduleId } = props;
   const userMoment = currentMoment.tz(user.timezone);
   const userOffsetHoursStr = getTzOffsetString(userMoment);
   const isInWH = isInWorkingHours(currentMoment, user.working_hours, user.timezone);
 
   const store = useStore();
-  const colorSchemeMapping = getColorSchemeMappingForUsers(store, scheduleId, startMoment);
+  const colorSchemeMapping = getColorSchemeMappingForUsers(store, scheduleId, calendarStartDate);
   const colorSchemeList = Array.from(colorSchemeMapping[user.pk] || []);
 
   const { organizationStore } = store;
@@ -49,7 +56,7 @@ const ScheduleUserDetails: FC<ScheduleUserDetailsProps> = (props) => {
           height={35}
           renderAvatar={() => <Avatar src={user.avatar} size="large" />}
           renderIcon={() => null}
-        ></ScheduleBorderedAvatar>
+        />
 
         <VerticalGroup spacing="xs" width="100%">
           <div className={cx('username')}>
@@ -70,18 +77,18 @@ const ScheduleUserDetails: FC<ScheduleUserDetailsProps> = (props) => {
               </Text>
             </div>
             <div className={cx('timezone-wrapper')}>
-              <div className={cx('timezone-info')}>
+              <div className={cx('timezone-info')} data-testid="schedule-user-details_your-current-time">
                 <VerticalGroup spacing="none">
-                  <Text type="secondary">Local time</Text>
-                  <Text type="secondary">{currentMoment.tz().format('DD MMM, HH:mm')}</Text>
-                  <Text type="secondary">({getTzOffsetString(currentMoment)})</Text>
+                  <Text type="secondary">Your current time</Text>
+                  <Text type="secondary">{getCurrentlyLoggedInUserDate().format('DD MMM, HH:mm')}</Text>
+                  <Text type="secondary">({getTzOffsetString(getCurrentlyLoggedInUserDate())})</Text>
                 </VerticalGroup>
               </div>
 
-              <div className={cx('timezone-info')}>
+              <div className={cx('timezone-info')} data-testid="schedule-user-details_user-local-time">
                 <VerticalGroup className={cx('timezone-info')} spacing="none">
-                  <Text>User's time</Text>
-                  <Text>{`${userMoment.tz(user.timezone).format('DD MMM, HH:mm')}`}</Text>
+                  <Text>User's local time</Text>
+                  <Text>{`${getCurrentDateInTimezone(user.timezone).format('DD MMM, HH:mm')}`}</Text>
                   <Text>({userOffsetHoursStr})</Text>
                 </VerticalGroup>
               </div>
@@ -145,6 +152,6 @@ const ScheduleUserDetails: FC<ScheduleUserDetailsProps> = (props) => {
       </VerticalGroup>
     </div>
   );
-};
+});
 
 export default ScheduleUserDetails;

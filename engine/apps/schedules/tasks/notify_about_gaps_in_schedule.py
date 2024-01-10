@@ -57,27 +57,27 @@ def start_notify_about_gaps_in_schedule():
     )
 
     for schedule in schedules:
-        notify_about_gaps_in_schedule.apply_async((schedule.pk,))
+        notify_about_gaps_in_schedule_task.apply_async((schedule.pk,))
 
     task_logger.info("Finish start_notify_about_gaps_in_schedule")
 
 
 @shared_dedicated_queue_retry_task()
-def notify_about_gaps_in_schedule(schedule_pk):
+def notify_about_gaps_in_schedule_task(schedule_pk):
     from apps.schedules.models import OnCallSchedule
 
-    task_logger.info(f"Start notify_about_gaps_in_schedule {schedule_pk}")
+    task_logger.info(f"Start notify_about_gaps_in_schedule_task {schedule_pk}")
 
     cache_key = get_cache_key_notify_about_gaps_in_schedule(schedule_pk)
     cached_task_id = cache.get(cache_key)
-    current_task_id = notify_about_gaps_in_schedule.request.id
+    current_task_id = notify_about_gaps_in_schedule_task.request.id
     if current_task_id != cached_task_id and cached_task_id is not None:
         return
 
     try:
         schedule = OnCallSchedule.objects.get(pk=schedule_pk, channel__isnull=False)
     except OnCallSchedule.DoesNotExist:
-        task_logger.info(f"Tried to notify_about_gaps_in_schedule for non-existing schedule {schedule_pk}")
+        task_logger.info(f"Tried to notify_about_gaps_in_schedule_task for non-existing schedule {schedule_pk}")
         return
 
     now = timezone.now()
@@ -104,7 +104,7 @@ def notify_about_gaps_in_schedule(schedule_pk):
     else:
         schedule.has_gaps = False
     schedule.save(update_fields=["gaps_report_sent_at", "has_gaps"])
-    task_logger.info(f"Finish notify_about_gaps_in_schedule {schedule_pk}")
+    task_logger.info(f"Finish notify_about_gaps_in_schedule_task {schedule_pk}")
 
 
 def get_cache_key_notify_about_gaps_in_schedule(schedule_pk):
@@ -116,6 +116,6 @@ def get_cache_key_notify_about_gaps_in_schedule(schedule_pk):
 def schedule_notify_about_gaps_in_schedule(schedule_pk):
     CACHE_LIFETIME = 600
     START_TASK_DELAY = 60
-    task = notify_about_gaps_in_schedule.apply_async(args=[schedule_pk], countdown=START_TASK_DELAY)
+    task = notify_about_gaps_in_schedule_task.apply_async(args=[schedule_pk], countdown=START_TASK_DELAY)
     cache_key = get_cache_key_notify_about_gaps_in_schedule(schedule_pk)
     cache.set(cache_key, task.id, timeout=CACHE_LIFETIME)
