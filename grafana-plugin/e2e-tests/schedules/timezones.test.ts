@@ -1,5 +1,6 @@
 import { expect } from '@playwright/test';
 import dayjs from 'dayjs';
+import isoWeek from 'dayjs/plugin/isoWeek';
 import utc from 'dayjs/plugin/utc';
 import isoWeek from 'dayjs/plugin/isoWeek';
 
@@ -45,9 +46,10 @@ test('default dates in override creation modal are correct', async ({ adminRoleP
   // Schedule slot shows correct times and timezones
   await page.getByTestId('schedule-slot').first().hover();
   await page.waitForTimeout(500);
-
   await expect(page.getByText(`User's local time${currentMoscowDate}, ${currentMoscowTime}(GMT+3)`)).toBeVisible();
   await expect(page.getByText(`Current timezone${currentUtcDate}, ${currentUtcTime}(GMT)`)).toBeVisible();
+
+  const firstDayOfTheWeek = dayjs().utc().startOf('isoWeek');
 
   // Rotation form has correct start date and current timezone information
   await clickButton({ page, buttonText: 'Add rotation' });
