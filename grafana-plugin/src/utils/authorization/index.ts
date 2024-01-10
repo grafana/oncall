@@ -72,6 +72,7 @@ const roleMapping: Record<OrgRole, number> = {
   [OrgRole.Admin]: 0,
   [OrgRole.Editor]: 1,
   [OrgRole.Viewer]: 2,
+  [OrgRole.None]: 3,
 };
 
 /**
