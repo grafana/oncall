@@ -122,7 +122,7 @@ class AlertReceiveChannelView(
     permission_classes = (IsAuthenticated, RBACPermission)
 
     model = AlertReceiveChannel
-    queryset = AlertReceiveChannel.objects.none()
+    queryset = AlertReceiveChannel.objects.none()  # needed for drf-spectacular introspection
     serializer_class = AlertReceiveChannelSerializer
     filter_serializer_class = FilterAlertReceiveChannelSerializer
     update_serializer_class = AlertReceiveChannelUpdateSerializer

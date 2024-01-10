@@ -268,7 +268,7 @@ class AlertGroupView(
         "preview_template": [RBACPermission.Permissions.INTEGRATIONS_TEST],
     }
 
-    queryset = AlertGroup.objects.none()
+    queryset = AlertGroup.objects.none()  # needed for drf-spectacular introspection
     serializer_class = AlertGroupSerializer
 
     pagination_class = AlertGroupCursorPaginator

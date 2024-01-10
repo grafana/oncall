@@ -224,7 +224,7 @@ class UserView(
         ],
     }
 
-    queryset = User.objects.none()
+    queryset = User.objects.none()  # needed for drf-spectacular introspection
 
     pagination_class = HundredPageSizePaginator
 
