@@ -1,7 +1,7 @@
 from django.db.models import Q
 from django_filters import rest_framework as filters
 from django_filters.rest_framework import DjangoFilterBackend
-from drf_spectacular.utils import extend_schema, inline_serializer
+from drf_spectacular.utils import PolymorphicProxySerializer, extend_schema, extend_schema_view, inline_serializer
 from rest_framework import serializers, status
 from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter
@@ -72,6 +72,17 @@ class AlertReceiveChannelFilter(ByTeamModelFieldFilterMixin, filters.FilterSet):
         return queryset
 
 
+@extend_schema_view(
+    list=extend_schema(
+        responses=PolymorphicProxySerializer(
+            component_name="AlertReceiveChannelPolymorphic",
+            serializers=[AlertReceiveChannelSerializer, FilterAlertReceiveChannelSerializer],
+            resource_type_field_name=None,
+        )
+    ),
+    update=extend_schema(responses=AlertReceiveChannelUpdateSerializer),
+    partial_update=extend_schema(responses=AlertReceiveChannelUpdateSerializer),
+)
 class AlertReceiveChannelView(
     PreviewTemplateMixin,
     TeamFilteringMixin,
@@ -233,6 +244,7 @@ class AlertReceiveChannelView(
                 "featured": serializers.BooleanField(),
                 "featured_tag_name": serializers.CharField(allow_null=True),
             },
+            many=True,
         )
     )
     @action(detail=False, methods=["get"])
@@ -330,6 +342,7 @@ class AlertReceiveChannelView(
                 "href": serializers.CharField(),
                 "global": serializers.BooleanField(required=False),
             },
+            many=True,
         )
     )
     @action(methods=["get"], detail=False)

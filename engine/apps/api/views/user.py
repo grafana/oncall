@@ -262,7 +262,7 @@ class UserView(
         is_filters_request = query_params.get("filters", "false") == "true"
 
         if is_list_request and is_filters_request:
-            return self.get_filter_serializer_class()
+            return FilterUserSerializer
         elif is_list_request and self._is_currently_oncall_request():
             return UserIsCurrentlyOnCallSerializer
 
