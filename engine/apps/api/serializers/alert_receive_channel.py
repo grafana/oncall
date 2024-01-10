@@ -344,6 +344,7 @@ class AlertReceiveChannelSerializer(
         for filter in obj.channel_filters.all():
             if filter.is_default:
                 return filter.public_primary_key
+        return None
 
     @staticmethod
     def validate_integration(integration):
