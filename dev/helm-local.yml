@@ -11,6 +11,8 @@ env:
     value: "True"
   - name: SLACK_SLASH_COMMAND_NAME
     value: "/oncall"
+  - name: FEATURE_PROMETHEUS_EXPORTER_ENABLED
+    value: "True"
 image:
   repository: localhost:63628/oncall/engine
   tag: dev
@@ -142,7 +144,7 @@ service:
   port: 8080
   nodePort: 30001
 prometheus:
-  enabled: false
+  enabled: true
   extraScrapeConfigs: |
     - job_name: 'oncall-exporter'
       metrics_path: /metrics/

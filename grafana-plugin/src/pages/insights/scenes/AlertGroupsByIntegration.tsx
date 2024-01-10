@@ -10,7 +10,7 @@ export default function getAlertGroupsByIntegrationScene({ datasource }: Insight
       {
         editorMode: 'code',
         exemplar: false,
-        expr: 'sort_desc(max_over_time(sum by(integration) (avg without(pod, instance)($alert_groups_total{slug=~"$instance", team=~"$team", integration=~"$integration"}))[1d:]))',
+        expr: 'sort_desc(max_over_time(sum by(integration) (avg without(pod, stack)($alert_groups_total{slug=~"$stack", team=~"$team", integration=~"$integration"}))[1d:]))',
         format: 'table',
         instant: true,
         legendFormat: '__auto',
