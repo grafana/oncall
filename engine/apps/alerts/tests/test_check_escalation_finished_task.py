@@ -521,5 +521,4 @@ def test_check_escalation_finished_task_calls_audit_alert_group_personal_notific
     # also trigger the general personal notification checker
     check_personal_notifications_task()
 
-    assert "Personal notifications triggered: 4" in caplog.text
-    assert "Personal notifications completed: 2" in caplog.text
+    assert "personal_notifications_triggered=4 personal_notifications_completed=2" in caplog.text

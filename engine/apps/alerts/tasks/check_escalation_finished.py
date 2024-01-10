@@ -160,8 +160,7 @@ def check_personal_notifications_task() -> None:
         alert_group__in=alert_groups,
     ).count()
 
-    task_logger.info(f"Personal notifications triggered: {triggered}")
-    task_logger.info(f"Personal notifications completed: {completed}")
+    task_logger.info(f"personal_notifications_triggered={triggered} personal_notifications_completed={completed}")
 
 
 @shared_task
