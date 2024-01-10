@@ -72,8 +72,12 @@ const Insights = observer(() => {
         setDatasource(`${text}`);
       });
     return () => {
-      stackListener?.unsubscribe();
-      dataSourceListener?.unsubscribe();
+      if (stackListener?.unsubscribe) {
+        stackListener.unsubscribe();
+      }
+      if (dataSourceListener?.unsubscribe) {
+        dataSourceListener.unsubscribe();
+      }
     };
   }, []);
 
