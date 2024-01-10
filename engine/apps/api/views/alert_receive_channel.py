@@ -1,6 +1,9 @@
+import typing
+
 from django.db.models import Q
 from django_filters import rest_framework as filters
 from django_filters.rest_framework import DjangoFilterBackend
+from drf_spectacular.plumbing import resolve_type_hint
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import PolymorphicProxySerializer, extend_schema, extend_schema_view, inline_serializer
 from rest_framework import serializers, status
@@ -39,6 +42,14 @@ from common.api_helpers.mixins import (
 from common.api_helpers.paginators import FifteenPageSizePaginator
 from common.exceptions import MaintenanceCouldNotBeStartedError, TeamCanNotBeChangedError, UnableToSendDemoAlert
 from common.insight_log import EntityEvent, write_resource_insight_log
+
+
+class AlertReceiveChannelCounter(typing.TypedDict):
+    alerts_count: int
+    alert_groups_count: int
+
+
+AlertReceiveChannelCounters = dict[str, AlertReceiveChannelCounter]
 
 
 class AlertReceiveChannelFilter(ByTeamModelFieldFilterMixin, filters.FilterSet):
@@ -293,7 +304,7 @@ class AlertReceiveChannelView(
 
         return Response()
 
-    @extend_schema(responses=OpenApiTypes.OBJECT)
+    @extend_schema(responses={status.HTTP_200_OK: resolve_type_hint(AlertReceiveChannelCounters)})
     @action(methods=["get"], detail=False)
     def counters(self, request):
         queryset = self.filter_queryset(self.get_queryset(eager=False))
@@ -308,7 +319,7 @@ class AlertReceiveChannelView(
     @extend_schema(
         # make operation_id unique, otherwise drf-spectacular will issue a warning
         operation_id="alert_receive_channels_counters_per_integration_retrieve",
-        responses=OpenApiTypes.OBJECT,
+        responses={status.HTTP_200_OK: resolve_type_hint(AlertReceiveChannelCounters)},
     )
     @action(methods=["get"], detail=True, url_path="counters")
     def counters_per_integration(self, request, pk):
