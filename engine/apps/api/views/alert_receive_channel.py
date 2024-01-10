@@ -51,15 +51,6 @@ class AlertReceiveChannelCounter(typing.TypedDict):
 AlertReceiveChannelCounters = dict[str, AlertReceiveChannelCounter]
 
 
-class ContactPoint(typing.TypedDict):
-    uid: str
-    name: str
-    contact_points: list[str]
-
-
-ContactPoints = list[ContactPoint]
-
-
 class AlertReceiveChannelFilter(ByTeamModelFieldFilterMixin, filters.FilterSet):
     maintenance_mode = filters.MultipleChoiceFilter(
         choices=AlertReceiveChannel.MAINTENANCE_MODE_CHOICES, method="filter_maintenance_mode"
