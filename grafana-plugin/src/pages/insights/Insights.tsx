@@ -45,6 +45,7 @@ const getDefaultStackValue = (isOpenSource: boolean) =>
 const Insights = observer(() => {
   const { isOpenSource, insightsDatasource } = useStore();
   const [showAllStackInfo, setShowAllStackInfo] = useState(false);
+  const [datasource, setDatasource] = useState<string>();
 
   const config = useMemo(
     () => ({
@@ -62,46 +63,38 @@ const Insights = observer(() => {
   const appScene = useSceneApp(getAppScene);
 
   useEffect(() => {
-    const listener = variables.stack.subscribeToState(({ text }) => {
+    const stackListener = variables.stack.subscribeToState(({ text }) => {
       setShowAllStackInfo((text as string[]).includes('All'));
     });
-    return listener.unsubscribe;
+    const dataSourceListener =
+      isOpenSource &&
+      variables.datasource.subscribeToState(({ text }) => {
+        setDatasource(`${text}`);
+      });
+    return () => {
+      stackListener?.unsubscribe();
+      dataSourceListener?.unsubscribe();
+    };
   }, []);
 
   return (
     <div className={styles.insights}>
       <InsightsGeneralInfo />
       {showAllStackInfo && <AllStacksSelectedWarning />}
+      {isOpenSource && !datasource && <NoDatasourceWarning />}
       <appScene.Component model={appScene} />
     </div>
   );
 });
 
-const InsightsGeneralInfo = observer(() => {
-  const { isOpenSource } = useStore();
-
+const InsightsGeneralInfo = () => {
   const docsLink = (
-    <a
-      href={`${DOCS_ROOT}/insights-and-metrics/${isOpenSource ? '#for-open-source-customers' : ''}`}
-      target="_blank"
-      rel="noreferrer"
-    >
+    <a href={`${DOCS_ROOT}/insights-and-metrics`} target="_blank" rel="noreferrer">
       <Text type="link">documentation</Text>
     </a>
   );
-
-  const content = isOpenSource ? (
-    <>
-      In order to see insights you need to set up Prometheus, add it to your Grafana stack as a data source, set
-      FEATURE_PROMETHEUS_EXPORTER_ENABLED environment variable to true and then select your Data source in the dropdown
-      below. You can find out more in our {docsLink}.
-    </>
-  ) : (
-    <>Find out more about OnCall Insights and Metrics in our {docsLink}.</>
-  );
-
-  return <Text type="secondary">{content}</Text>;
-});
+  return <Text type="secondary">Find out more about OnCall Insights and Metrics in our {docsLink}.</Text>;
+};
 
 const AllStacksSelectedWarning = () => {
   const [alertVisible, setAlertVisible] = useState(true);
@@ -110,6 +103,18 @@ const AllStacksSelectedWarning = () => {
     <Alert onRemove={() => setAlertVisible(false)} severity="warning" title="" className={styles.alertBox}>
       Please be aware that retrieving insights from multiple stacks has performance impact and loading data might take
       significantly more time. We recommend to select only required stacks if possible.
+    </Alert>
+  ) : null;
+};
+
+const NoDatasourceWarning = () => {
+  const [alertVisible, setAlertVisible] = useState(true);
+
+  return alertVisible ? (
+    <Alert onRemove={() => setAlertVisible(false)} severity="warning" title="" className={styles.alertBox}>
+      In order to see insights you need to set up Prometheus, add it to your Grafana stack as a data source, set
+      FEATURE_PROMETHEUS_EXPORTER_ENABLED environment variable to true and then select connected Data source in the
+      dropdown below.
     </Alert>
   ) : null;
 };
