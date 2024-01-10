@@ -20,7 +20,7 @@ export class GlobalSettingStore extends BaseStore {
     this.path = '/live_settings/';
   }
 
-  @action
+  @action.bound
   async updateById(id: GlobalSetting['id']) {
     const response = await this.getById(id);
 
@@ -32,7 +32,7 @@ export class GlobalSettingStore extends BaseStore {
     });
   }
 
-  @action
+  @action.bound
   async updateItems(query = '') {
     const results = await this.getAll();
 
@@ -55,6 +55,7 @@ export class GlobalSettingStore extends BaseStore {
     });
   }
 
+  @action.bound
   getSearchResult(query = '') {
     if (!this.searchResult[query]) {
       return undefined;
@@ -63,6 +64,7 @@ export class GlobalSettingStore extends BaseStore {
     return this.searchResult[query].map((globalSettingId: GlobalSetting['id']) => this.items[globalSettingId]);
   }
 
+  @action.bound
   async getGlobalSettingItemByName(name: string) {
     const results = await this.getAll();
     return results.find((element: { name: string }) => element.name === name);

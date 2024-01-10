@@ -48,10 +48,10 @@ def test_refresh_ical_file_trigger_run(
             # do not trigger tasks for real
             with patch("apps.schedules.tasks.refresh_ical_files.notify_ical_schedule_shift"):
                 with patch(
-                    "apps.schedules.tasks.refresh_ical_files.notify_about_empty_shifts_in_schedule"
+                    "apps.schedules.tasks.refresh_ical_files.notify_about_empty_shifts_in_schedule_task"
                 ) as mock_notify_empty:
                     with patch(
-                        "apps.schedules.tasks.refresh_ical_files.notify_about_gaps_in_schedule"
+                        "apps.schedules.tasks.refresh_ical_files.notify_about_gaps_in_schedule_task"
                     ) as mock_notify_gaps:
                         refresh_ical_file(schedule.pk)
 

@@ -10,8 +10,8 @@ import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
 import { WithPermissionControlDisplay } from 'containers/WithPermissionControl/WithPermissionControlDisplay';
 import { User } from 'models/user/user.types';
+import { RootStore, rootStore as store } from 'state';
 import { AppFeature } from 'state/features';
-import { useStore } from 'state/useStore';
 import { openErrorNotification, openNotification, openWarningNotification } from 'utils';
 import { UserActions } from 'utils/authorization';
 
@@ -23,7 +23,8 @@ import QRCode from './parts/QRCode/QRCode';
 const cx = cn.bind(styles);
 
 type Props = {
-  userPk: User['pk'];
+  userPk?: User['pk'];
+  store?: RootStore;
 };
 
 const INTERVAL_MIN_THROTTLING = 500;
@@ -36,31 +37,10 @@ const INTERVAL_QUEUE_QR = 290_000;
 const INTERVAL_POLLING = 5000;
 const BACKEND = 'MOBILE_APP';
 
-const MobileAppConnection = observer(({ userPk }: Props) => {
-  const store = useStore();
+export const MobileAppConnection = observer(({ userPk }: Props) => {
   const { userStore, cloudStore } = store;
 
-  // Show link to cloud page for OSS instances with no cloud connection
-  if (store.hasFeature(AppFeature.CloudConnection) && !cloudStore.cloudConnectionStatus.cloud_connection_status) {
-    return (
-      <WithPermissionControlDisplay userAction={UserActions.UserSettingsWrite}>
-        <VerticalGroup spacing="lg">
-          <Text type="secondary">Please connect Grafana Cloud OnCall to use the mobile app</Text>
-          <WithPermissionControlDisplay
-            userAction={UserActions.OtherSettingsWrite}
-            message="You do not have permission to perform this action. Ask an admin to connect Grafana Cloud OnCall or upgrade your
-            permissions."
-          >
-            <PluginLink query={{ page: 'cloud' }}>
-              <Button variant="secondary" icon="external-link-alt">
-                Connect Grafana Cloud OnCall
-              </Button>
-            </PluginLink>
-          </WithPermissionControlDisplay>
-        </VerticalGroup>
-      </WithPermissionControlDisplay>
-    );
-  }
+  const [basicDataLoaded, setBasicDataLoaded] = useState(false);
 
   const isMounted = useRef(false);
   const [mobileAppIsCurrentlyConnected, setMobileAppIsCurrentlyConnected] = useState<boolean>(isUserConnected());
@@ -75,10 +55,34 @@ const MobileAppConnection = observer(({ userPk }: Props) => {
   const [refreshTimeoutId, setRefreshTimeoutId] = useState<NodeJS.Timeout>(undefined);
   const [isQRBlurry, setIsQRBlurry] = useState<boolean>(false);
   const [isAttemptingTestNotification, setIsAttemptingTestNotification] = useState(false);
-  const isCurrentUser = userStore.currentUserPk === userPk;
+  const isCurrentUser = userPk === undefined || userStore.currentUserPk === userPk;
+
+  useEffect(() => {
+    isMounted.current = true;
+
+    (async () => {
+      if (!isUserConnected()) {
+        triggerTimeouts();
+      } else {
+        setMobileAppIsCurrentlyConnected(true);
+      }
+
+      setBasicDataLoaded(true);
+    })();
+
+    // clear on unmount
+    return () => {
+      isMounted.current = false;
+      clearTimeouts();
+    };
+  }, []);
 
   const fetchQRCode = useCallback(
     async (showLoader = true) => {
+      if (!userPk) {
+        return;
+      }
+
       if (showLoader) {
         setFetchingQRCode(true);
       }
@@ -105,6 +109,9 @@ const MobileAppConnection = observer(({ userPk }: Props) => {
   }, []);
 
   const disconnectMobileApp = useCallback(async () => {
+    if (!userPk) {
+      return;
+    }
     setDisconnectingMobileApp(true);
 
     try {
@@ -120,28 +127,23 @@ const MobileAppConnection = observer(({ userPk }: Props) => {
   }, [userPk, resetState]);
 
   useEffect(() => {
-    isMounted.current = true;
-
-    if (!isUserConnected()) {
-      triggerTimeouts();
-    }
-
-    // clear on unmount
-    return () => {
-      isMounted.current = false;
-      clearTimeouts();
-    };
-  }, []);
-
-  useEffect(() => {
     if (!mobileAppIsCurrentlyConnected) {
       fetchQRCode();
     }
-  }, [mobileAppIsCurrentlyConnected]);
+  }, [mobileAppIsCurrentlyConnected, userPk]);
+
+  // Show link to cloud page for OSS instances with no cloud connection
+  if (
+    store.isOpenSource &&
+    store.hasFeature(AppFeature.CloudConnection) &&
+    !cloudStore.cloudConnectionStatus.cloud_connection_status
+  ) {
+    return renderConnectToCloud();
+  }
 
   let content: React.ReactNode = null;
 
-  if (fetchingQRCode || disconnectingMobileApp) {
+  if (fetchingQRCode || disconnectingMobileApp || !userPk || !basicDataLoaded) {
     content = <LoadingPlaceholder text="Loading..." />;
   } else if (errorFetchingQRCode || errorDisconnectingMobileApp) {
     content = <Text type="primary">{errorFetchingQRCode || errorDisconnectingMobileApp}</Text>;
@@ -199,7 +201,7 @@ const MobileAppConnection = observer(({ userPk }: Props) => {
           {content}
         </Block>
       </div>
-      {mobileAppIsCurrentlyConnected && isCurrentUser && (
+      {mobileAppIsCurrentlyConnected && isCurrentUser && !disconnectingMobileApp && (
         <div className={cx('notification-buttons')}>
           <HorizontalGroup spacing={'md'} justify={'flex-end'}>
             <Button
@@ -222,7 +224,31 @@ const MobileAppConnection = observer(({ userPk }: Props) => {
     </VerticalGroup>
   );
 
+  function renderConnectToCloud() {
+    return (
+      <WithPermissionControlDisplay userAction={UserActions.UserSettingsWrite}>
+        <VerticalGroup spacing="lg">
+          <Text type="secondary">Please connect Grafana Cloud OnCall to use the mobile app</Text>
+          <WithPermissionControlDisplay
+            userAction={UserActions.OtherSettingsWrite}
+            message="You do not have permission to perform this action. Ask an admin to connect Grafana Cloud OnCall or upgrade your
+            permissions."
+          >
+            <PluginLink query={{ page: 'cloud' }}>
+              <Button variant="secondary" icon="external-link-alt">
+                Connect Grafana Cloud OnCall
+              </Button>
+            </PluginLink>
+          </WithPermissionControlDisplay>
+        </VerticalGroup>
+      </WithPermissionControlDisplay>
+    );
+  }
+
   async function onSendTestNotification(isCritical = false) {
+    if (!userPk) {
+      return;
+    }
     setIsAttemptingTestNotification(true);
 
     try {
@@ -258,11 +284,11 @@ const MobileAppConnection = observer(({ userPk }: Props) => {
   }
 
   function isUserConnected(user?: User): boolean {
-    return !!(user || userStore.currentUser).messaging_backends[BACKEND]?.connected;
+    return !!(user || userStore.currentUser)?.messaging_backends[BACKEND]?.connected;
   }
 
   async function queueRefreshQR(): Promise<void> {
-    if (!isMounted.current) {
+    if (!isMounted.current || !userPk) {
       return;
     }
 
@@ -300,7 +326,7 @@ const MobileAppConnection = observer(({ userPk }: Props) => {
   }
 
   async function pollUserProfile(): Promise<void> {
-    if (!isMounted.current) {
+    if (!isMounted.current || !userPk) {
       return;
     }
 
@@ -327,4 +353,26 @@ function QRLoading() {
   );
 }
 
-export default MobileAppConnection;
+export const MobileAppConnectionWrapper: React.FC<{}> = observer(() => {
+  const { userStore } = store;
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = async () => {
+    if (!store.isBasicDataLoaded) {
+      await store.loadBasicData();
+    }
+
+    if (!userStore.currentUserPk) {
+      await userStore.loadCurrentUser();
+    }
+  };
+
+  if (store.isBasicDataLoaded && userStore.currentUserPk) {
+    return <MobileAppConnection userPk={userStore.currentUserPk} />;
+  }
+
+  return <LoadingPlaceholder text="Loading..." />;
+});

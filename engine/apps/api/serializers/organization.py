@@ -31,11 +31,13 @@ class OrganizationSerializer(EagerLoadingMixin, serializers.ModelSerializer):
         fields = [
             "pk",
             "name",
+            "stack_slug",
             "slack_team_identity",
             "slack_channel",
             "rbac_enabled",
         ]
         read_only_fields = [
+            "stack_slug",
             "slack_team_identity",
             "rbac_enabled",
         ]
