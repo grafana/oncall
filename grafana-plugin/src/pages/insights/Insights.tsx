@@ -52,7 +52,7 @@ const Insights = observer(() => {
     () => ({
       isOpenSource,
       datasource: { uid: isOpenSource ? '$datasource' : insightsDatasource },
-      stack: currentOrganization?.stack_slug || 'self_hosted_stack',
+      stack: currentOrganization?.stack_slug,
     }),
     []
   );
