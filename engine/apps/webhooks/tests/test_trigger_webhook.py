@@ -13,6 +13,8 @@ from apps.webhooks.tasks import execute_webhook, send_webhook_event
 from apps.webhooks.tasks.trigger_webhook import NOT_FROM_SELECTED_INTEGRATION
 from settings.base import WEBHOOK_RESPONSE_LIMIT
 
+TIMEOUT = 4
+
 
 class MockResponse:
     def __init__(self, status_code=200, content=None):
@@ -161,7 +163,7 @@ def test_execute_webhook_ok(
     assert mock_requests.post.called
     expected_call = call(
         "https://something/{}/".format(alert_group.public_primary_key),
-        timeout=10,
+        timeout=TIMEOUT,
         headers={"some-header": alert_group.public_primary_key},
         json={"value": alert_group.public_primary_key},
     )
@@ -324,7 +326,7 @@ def test_execute_webhook_ok_forward_all(
     }
     expected_call = call(
         "https://something/{}/".format(alert_group.public_primary_key),
-        timeout=10,
+        timeout=TIMEOUT,
         headers={},
         json=expected_data,
     )
@@ -405,7 +407,7 @@ def test_execute_webhook_using_responses_data(
     expected_data = {"value": "updated"}
     expected_call = call(
         "https://something/third-party-id/",
-        timeout=10,
+        timeout=TIMEOUT,
         headers={},
         json=expected_data,
     )
@@ -547,7 +549,7 @@ def test_response_content_limit(
     assert mock_requests.post.called
     expected_call = call(
         "https://test/",
-        timeout=10,
+        timeout=TIMEOUT,
         headers={},
     )
     assert mock_requests.post.call_args == expected_call
@@ -595,7 +597,7 @@ def test_manually_retried_exceptions(
     # should retry
     execute_webhook(*execute_webhook_args)
 
-    mock_requests.post.assert_called_once_with("https://test/", timeout=10, headers={})
+    mock_requests.post.assert_called_once_with("https://test/", timeout=TIMEOUT, headers={})
     spy_execute_webhook.apply_async.assert_called_once_with((*execute_webhook_args, 1), countdown=10)
 
     mock_requests.reset_mock()
@@ -607,5 +609,5 @@ def test_manually_retried_exceptions(
     except Exception:
         pytest.fail()
 
-    mock_requests.post.assert_called_once_with("https://test/", timeout=10, headers={})
+    mock_requests.post.assert_called_once_with("https://test/", timeout=TIMEOUT, headers={})
     spy_execute_webhook.apply_async.assert_not_called()

@@ -11,7 +11,7 @@ from apps.labels.utils import get_alert_group_labels_dict, get_labels_dict, is_l
 from apps.schedules.ical_utils import list_users_to_notify_from_ical
 from common.jinja_templater import apply_jinja_template
 
-OUTGOING_WEBHOOK_TIMEOUT = 10
+OUTGOING_WEBHOOK_TIMEOUT = 4
 
 
 class InvalidWebhookUrl(Exception):
