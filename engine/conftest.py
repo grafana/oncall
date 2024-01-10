@@ -12,7 +12,6 @@ from django.db.models.signals import post_save
 from django.urls import clear_url_caches
 from django.utils import timezone
 from pytest_factoryboy import register
-from rest_framework.test import APIClient
 from telegram import Bot
 
 from apps.alerts.models import (
@@ -441,19 +440,6 @@ def make_slack_message():
         return slack_message
 
     return _make_slack_message
-
-
-@pytest.fixture
-def client_with_user():
-    def _client_with_user(user):
-        """The client with logged in user"""
-
-        client = APIClient()
-        client.force_login(user)
-
-        return client
-
-    return _client_with_user
 
 
 @pytest.fixture

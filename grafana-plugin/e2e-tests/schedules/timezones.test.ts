@@ -1,5 +1,6 @@
 import { expect } from '@playwright/test';
 import dayjs from 'dayjs';
+import isoWeek from 'dayjs/plugin/isoWeek';
 import utc from 'dayjs/plugin/utc';
 
 import { test } from '../fixtures';
@@ -7,6 +8,7 @@ import { clickButton, generateRandomValue } from '../utils/forms';
 import { createOnCallSchedule } from '../utils/schedule';
 
 dayjs.extend(utc);
+dayjs.extend(isoWeek);
 
 test.use({ timezoneId: 'Europe/Moscow' }); // GMT+3 the whole year
 const currentUtcTime = dayjs().utc().format('HH:mm');
@@ -39,15 +41,18 @@ test('default dates in override creation modal are correct', async ({ adminRoleP
 
   // Schedule slot shows correct times and timezones
   await page.getByTestId('schedule-slot').first().hover();
+  await page.waitForTimeout(500);
   await expect(page.getByText(`User's local time${currentMoscowDate}, ${currentMoscowTime}(GMT+3)`)).toBeVisible();
   await expect(page.getByText(`Current timezone${currentUtcDate}, ${currentUtcTime}(GMT)`)).toBeVisible();
+
+  const firstDayOfTheWeek = dayjs().utc().startOf('isoWeek');
 
   // Rotation form has correct start date and current timezone information
   await clickButton({ page, buttonText: 'Add rotation' });
   await page.getByText('Layer 1 rotation').click();
   await expect(page.getByTestId('rotation-form').getByText('Current timezone: GMT')).toBeVisible();
   await expect(page.getByTestId('rotation-form').getByPlaceholder('Date')).toHaveValue(
-    dayjs().utcOffset(0).format('MM/DD/YYYY')
+    firstDayOfTheWeek.format('MM/DD/YYYY')
   );
   await expect(page.getByTestId('rotation-form').getByTestId('date-time-picker').getByRole('textbox')).toHaveValue(
     '00:00'

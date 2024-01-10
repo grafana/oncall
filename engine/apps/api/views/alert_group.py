@@ -20,6 +20,7 @@ from apps.api.errors import AlertGroupAPIError
 from apps.api.label_filtering import parse_label_query
 from apps.api.permissions import RBACPermission
 from apps.api.serializers.alert_group import AlertGroupListSerializer, AlertGroupSerializer
+from apps.api.serializers.alert_group_escalation_snapshot import AlertGroupEscalationSnapshotAPISerializer
 from apps.api.serializers.team import TeamSerializer
 from apps.auth_token.auth import PluginAuthentication
 from apps.base.models.user_notification_policy_log_record import UserNotificationPolicyLogRecord
@@ -266,6 +267,7 @@ class AlertGroupView(
         "unpage_user": [RBACPermission.Permissions.ALERT_GROUPS_WRITE],
         "bulk_action": [RBACPermission.Permissions.ALERT_GROUPS_WRITE],
         "preview_template": [RBACPermission.Permissions.INTEGRATIONS_TEST],
+        "escalation_snapshot": [RBACPermission.Permissions.ALERT_GROUPS_READ],
     }
 
     queryset = AlertGroup.objects.none()  # needed for drf-spectacular introspection
@@ -881,3 +883,10 @@ class AlertGroupView(
     # This method is required for PreviewTemplateMixin
     def get_alert_to_template(self, payload=None):
         return self.get_object().alerts.first()
+
+    @action(methods=["get"], detail=True)
+    def escalation_snapshot(self, request, pk=None):
+        alert_group = self.get_object()
+        escalation_snapshot = alert_group.escalation_snapshot
+        result = AlertGroupEscalationSnapshotAPISerializer(escalation_snapshot).data if escalation_snapshot else {}
+        return Response(result)

@@ -588,6 +588,11 @@ if ESCALATION_AUDITOR_ENABLED:
         ),
         "args": (),
     }
+    CELERY_BEAT_SCHEDULE["check_personal_notifications"] = {
+        "task": "apps.alerts.tasks.check_escalation_finished.check_personal_notifications_task",
+        "schedule": crontab(minute="*/15"),  # every 15 minutes
+        "args": (),
+    }
 
 INTERNAL_IPS = ["127.0.0.1"]
 

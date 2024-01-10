@@ -3,6 +3,7 @@
   "type": "app",
   "name": "Grafana OnCall",
   "id": "grafana-oncall-app",
+  "preload": true,
   "info": {
     "description": "Collect and analyze alerts, escalate based on schedules and deliver them to Slack, Phone Calls, SMS and others.",
     "author": {

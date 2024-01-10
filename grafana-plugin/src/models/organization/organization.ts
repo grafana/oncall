@@ -25,6 +25,7 @@ export class OrganizationStore extends BaseStore {
     });
   }
 
+  @action.bound
   async saveCurrentOrganization(data: Partial<Organization>) {
     this.currentOrganization = await makeRequest(this.path, {
       method: 'PUT',
