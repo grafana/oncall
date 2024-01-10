@@ -18,7 +18,7 @@ const plugin = new AppPlugin<OnCallPluginMetaJSONData>().setRootPage(GrafanaPlug
 });
 
 if (isUseProfileExtensionPointEnabled()) {
-  const extensionPointId = 'grafana/user/profile/tab';
+  const extensionPointId = PluginExtensionPoints.UserProfileTab;
 
   plugin.configureExtensionComponent({
     title: IRM_TAB,
@@ -34,7 +34,7 @@ if (isUseProfileExtensionPointEnabled()) {
 
 function isUseProfileExtensionPointEnabled(): boolean {
   const { major, minor } = getGrafanaVersion();
-  const isRequiredGrafanaVersion = major > 10 || (major === 10 && minor >= 3);
+  const isRequiredGrafanaVersion = major > 10 || (major === 10 && minor >= 3); // >= 10.3.0
 
   return (
     isRequiredGrafanaVersion &&

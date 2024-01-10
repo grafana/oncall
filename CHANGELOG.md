@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Do not retry `firebase.messaging.UnregisteredError` exceptions for FCM relay tasks by @joeyorlando ([#3637](https://github.com/grafana/oncall/pull/3637))
+- Moved Mobile Connection Tab to separate user profile in Grafana ([#3296](https://github.com/grafana/oncall/pull/3296)
 
 ## v1.3.83 (2024-01-08)
 
@@ -41,7 +42,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Support e2e tests in Tilt and Makefile ([#3516](https://github.com/grafana/oncall/pull/3516))
-- Moved Mobile Connection Tab to separate user profile in Grafana ([#3296](https://github.com/grafana/oncall/pull/3296)
 - Support PATCH method for outgoing webhooks by @ravishankar15 ([#3580](https://github.com/grafana/oncall/pull/3580))
 
 ### Changed
