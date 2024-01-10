@@ -184,25 +184,6 @@ export const alertGroupDynamicLabelCheatSheet: CheatSheetInterface = {
   description: 'Dynamic Label template is used to extract value for a specified key from the alert payload.',
   fields: [
     {
-      name: 'Jinja2 refresher ',
-      listItems: [
-        {
-          listItemName: 'Extract field value',
-          codeExample: '{{ payload.labels.foo }}',
-        },
-        {
-          listItemName: 'Conditions',
-          codeExample: '{%- if "status" in payload %} \n {{ payload.status }} \n {% endif -%}',
-        },
-        { listItemName: 'Booleans', codeExample: '{{ payload.status == “resolved” }}' },
-        { listItemName: 'Loops', codeExample: '{% for label in labels %} \n {{ label.title }} \n {% endfor %}' },
-      ],
-    },
-    {
-      name: 'Additional jinja2 variables',
-      listItems: [{ listItemName: 'payload - payload of the first alert in the group' }],
-    },
-    {
       name: 'Examples',
       listItems: [
         {
@@ -212,18 +193,9 @@ export const alertGroupDynamicLabelCheatSheet: CheatSheetInterface = {
         },
       ],
     },
-  ],
-};
-
-export const alertGroupMultiLabelExtractionCheatSheet: CheatSheetInterface = {
-  name: 'Multi-label extraction cheatsheet',
-  description:
-    'Multi-label extraction template allows extracting and modifying multiple labels from an alert payload. The Jinja template must result in string, representing valid JSON dictionary. See Examples for getting familiar with the idea',
-  fields: [
     {
       name: 'Jinja2 refresher ',
       listItems: [
-        { listItemName: 'Dump a structure to JSON string', codeExample: '{{ payload.labels | tojson }}' },
         {
           listItemName: 'Extract field value',
           codeExample: '{{ payload.labels.foo }}',
@@ -240,6 +212,14 @@ export const alertGroupMultiLabelExtractionCheatSheet: CheatSheetInterface = {
       name: 'Additional jinja2 variables',
       listItems: [{ listItemName: 'payload - payload of the first alert in the group' }],
     },
+  ],
+};
+
+export const alertGroupMultiLabelExtractionCheatSheet: CheatSheetInterface = {
+  name: 'Multi-label extraction cheatsheet',
+  description:
+    'Multi-label extraction template allows extracting and modifying multiple labels from an alert payload. The Jinja template must result in string, representing valid JSON dictionary. See Examples for getting familiar with the idea',
+  fields: [
     {
       name: 'Examples',
       listItems: [
@@ -262,6 +242,26 @@ export const alertGroupMultiLabelExtractionCheatSheet: CheatSheetInterface = {
         },
       ],
     },
+    {
+      name: 'Jinja2 refresher ',
+      listItems: [
+        { listItemName: 'Dump a structure to JSON string', codeExample: '{{ payload.labels | tojson }}' },
+        {
+          listItemName: 'Extract field value',
+          codeExample: '{{ payload.labels.foo }}',
+        },
+        {
+          listItemName: 'Conditions',
+          codeExample: '{%- if "status" in payload %} \n {{ payload.status }} \n {% endif -%}',
+        },
+        { listItemName: 'Booleans', codeExample: '{{ payload.status == “resolved” }}' },
+        { listItemName: 'Loops', codeExample: '{% for label in labels %} \n {{ label.title }} \n {% endfor %}' },
+      ],
+    },
+    {
+      name: 'Additional jinja2 variables',
+      listItems: [{ listItemName: 'payload - payload of the first alert in the group' }],
+    },
   ],
 };
 
@@ -270,6 +270,23 @@ export const webhookPayloadCheatSheet: CheatSheetInterface = {
   description:
     "Webhook payload template is powered by Jinja2. It's used to process webhook data and customize the output",
   fields: [
+    {
+      name: 'Examples',
+      listItems: [
+        {
+          listItemName:
+            'Construct a custom webhook payload from various webhook data fields and output it as a JSON string',
+          codeExample: `{%- set payload = {} -%}
+{# add alert group labels #}
+{%- set payload = dict(payload, **{"labels": alert_group.labels}) -%}
+{# add some other fields from webhook data just for example #}
+{%- set payload = dict(payload, **{"event": event.type, "integration": integration.name}) -%}
+{# encode payload dict to json #}
+{{ payload | tojson }}
+`,
+        },
+      ],
+    },
     {
       name: 'Jinja2 refresher ',
       listItems: [
@@ -293,23 +310,6 @@ export const webhookPayloadCheatSheet: CheatSheetInterface = {
     {
       name: 'Additional jinja2 variables',
       listItems: [{ listItemName: 'payload - payload of the first alert in the group' }],
-    },
-    {
-      name: 'Examples',
-      listItems: [
-        {
-          listItemName:
-            'Construct a custom webhook payload from various webhook data fields and output it as a JSON string',
-          codeExample: `{%- set payload = {} -%}
-{# add alert group labels #}
-{%- set payload = dict(payload, **{"labels": alert_group.labels}) -%}
-{# add some other fields from webhook data just for example #}
-{%- set payload = dict(payload, **{"event": event.type, "integration": integration.name}) -%}
-{# encode payload dict to json #}
-{{ payload | tojson }}
-`,
-        },
-      ],
     },
   ],
 };

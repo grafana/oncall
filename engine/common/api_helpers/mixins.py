@@ -335,8 +335,18 @@ class PreviewTemplateMixin:
                 return Response({"preview": e.fallback_message}, status.HTTP_200_OK)
         else:
             templated_attr = None
-        response = {"preview": templated_attr}
+        response = {"preview": templated_attr, "is_valid_json_dict": self.is_valid_json_dict(templated_alert)}
         return Response(response, status=status.HTTP_200_OK)
+
+    def is_valid_json_dict(self, json_str):
+        try:
+            json_object = json.loads(json_str)
+            if isinstance(json_object, dict):
+                return True
+            else:
+                return False
+        except ValueError:
+            return False
 
     def get_alert_to_template(self, payload=None):
         raise NotImplementedError
