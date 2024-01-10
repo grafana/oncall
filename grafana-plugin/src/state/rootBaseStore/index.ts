@@ -142,7 +142,7 @@ export class RootBaseStore {
     this.setIsBasicDataLoaded(true);
   };
 
-  @action
+  @action.bound
   loadMasterData = async () => {
     Promise.all([
       this.userStore.updateNotificationPolicyOptions(),
@@ -151,12 +151,12 @@ export class RootBaseStore {
     ]);
   };
 
-  @action
+  @action.bound
   setIsBasicDataLoaded(value: boolean) {
     this.isBasicDataLoaded = value;
   }
 
-  @action
+  @action.bound
   setupPluginError(errorMsg: string) {
     this.initializationError = errorMsg;
   }
@@ -327,12 +327,12 @@ export class RootBaseStore {
     this.pageTitle = title;
   }
 
-  @action
+  @action.bound
   async removeSlackIntegration() {
     await this.slackStore.removeSlackIntegration();
   }
 
-  @action
+  @action.bound
   async installSlackIntegration() {
     await this.slackStore.installSlackIntegration();
   }

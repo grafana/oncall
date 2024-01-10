@@ -84,6 +84,7 @@ export class AlertGroupStore extends BaseStore {
     this.path = '/alertgroups/';
   }
 
+  @action.bound
   async attachAlert(pk: Alert['pk'], rootPk: Alert['pk']) {
     return await makeRequest(`${this.path}${pk}/attach/`, {
       method: 'POST',
@@ -91,13 +92,14 @@ export class AlertGroupStore extends BaseStore {
     }).catch(showApiError);
   }
 
+  @action.bound
   async unattachAlert(pk: Alert['pk']) {
     return await makeRequest(`${this.path}${pk}/unattach/`, {
       method: 'POST',
     }).catch(showApiError);
   }
 
-  @action
+  @action.bound
   async updateItem(id: Alert['pk']) {
     const item = await this.getById(id);
 
@@ -109,6 +111,7 @@ export class AlertGroupStore extends BaseStore {
     });
   }
 
+  @action.bound
   getSearchResult(query = '') {
     if (!this.searchResult[query]) {
       return undefined;
@@ -117,6 +120,7 @@ export class AlertGroupStore extends BaseStore {
     return this.searchResult[query].map((id: Alert['pk']) => this.items[id]);
   }
 
+  @action.bound
   async getAlertGroupsForIntegration(integrationId: AlertReceiveChannel['id']) {
     const { results } = await makeRequest(`${this.path}`, {
       params: { integration: integrationId },
@@ -124,10 +128,12 @@ export class AlertGroupStore extends BaseStore {
     return results;
   }
 
+  @action.bound
   async getAlertsFromGroup(pk: Alert['pk']) {
     return await makeRequest(`${this.path}${pk}`, {});
   }
 
+  @action.bound
   async updateSilenceOptions() {
     const result = await makeRequest(`${this.path}silence_options/`, {});
 
@@ -136,6 +142,7 @@ export class AlertGroupStore extends BaseStore {
     });
   }
 
+  @action.bound
   async resolve(id: Alert['pk'], delay: number) {
     await makeRequest(`${this.path}${id}/silence/`, {
       method: 'POST',
@@ -143,24 +150,28 @@ export class AlertGroupStore extends BaseStore {
     });
   }
 
+  @action.bound
   async unresolve(id: Alert['pk']) {
     await makeRequest(`${this.path}${id}/unresolve/`, {
       method: 'POST',
     });
   }
 
+  @action.bound
   async acknowledge(id: Alert['pk']) {
     await makeRequest(`${this.path}${id}/acknowledge/`, {
       method: 'POST',
     });
   }
 
+  @action.bound
   async unacknowledge(id: Alert['pk']) {
     await makeRequest(`${this.path}${id}/unacknowledge/`, {
       method: 'POST',
     });
   }
 
+  @action.bound
   async silence(id: Alert['pk'], delay: number) {
     await makeRequest(`${this.path}${id}/silence/`, {
       method: 'POST',
@@ -168,13 +179,14 @@ export class AlertGroupStore extends BaseStore {
     });
   }
 
+  @action.bound
   async unsilence(id: Alert['pk']) {
     await makeRequest(`${this.path}${id}/unsilence/`, {
       method: 'POST',
     });
   }
 
-  @action
+  @action.bound
   async updateBulkActions() {
     const response = await makeRequest(`${this.path}bulk_action_options/`, {});
 
@@ -189,6 +201,7 @@ export class AlertGroupStore extends BaseStore {
     });
   }
 
+  @action.bound
   async bulkAction(data: any) {
     return await makeRequest(`${this.path}bulk_action/`, {
       method: 'POST',
@@ -196,6 +209,7 @@ export class AlertGroupStore extends BaseStore {
     });
   }
 
+  @action.bound
   async renderPreview(id: Alert['pk'], template_name: string, template_body: string) {
     return await makeRequest(`${this.path}${id}/preview_template/`, {
       method: 'POST',
@@ -205,6 +219,7 @@ export class AlertGroupStore extends BaseStore {
 
   // methods were moved from rootBaseStore.
   // TODO check if methods are dublicating existing ones
+  @action.bound
   async updateIncidents() {
     await Promise.all([
       this.getNewIncidentsStats(),
@@ -217,12 +232,12 @@ export class AlertGroupStore extends BaseStore {
     this.setLiveUpdatesPaused(false);
   }
 
-  @action
+  @action.bound
   setLiveUpdatesPaused(value: boolean) {
     this.liveUpdatesPaused = value;
   }
 
-  @action
+  @action.bound
   async updateIncidentFilters(params: any, keepCursor = false) {
     if (!keepCursor) {
       this.setIncidentsCursor(undefined);
@@ -233,28 +248,28 @@ export class AlertGroupStore extends BaseStore {
     await this.updateIncidents();
   }
 
-  @action
+  @action.bound
   async updateIncidentsCursor(cursor: string) {
     this.setIncidentsCursor(cursor);
 
     this.updateAlertGroups();
   }
 
-  @action
+  @action.bound
   async setIncidentsCursor(cursor: string) {
     this.incidentsCursor = cursor;
 
     LocationHelper.update({ cursor }, 'partial');
   }
 
-  @action
+  @action.bound
   async setIncidentsItemsPerPage() {
     this.setIncidentsCursor(undefined);
 
     this.updateAlertGroups();
   }
 
-  @action
+  @action.bound
   async updateAlertGroups() {
     this.alertGroupsLoading = true;
 
@@ -298,6 +313,7 @@ export class AlertGroupStore extends BaseStore {
     });
   }
 
+  @action.bound
   getAlertSearchResult(query: string) {
     const result = this.alertsSearchResult[query];
     if (!result) {
@@ -312,6 +328,7 @@ export class AlertGroupStore extends BaseStore {
     };
   }
 
+  @action.bound
   async getAlert(pk: Alert['pk']) {
     return await makeRequest(`${this.path}${pk}`, {}).then((alert: Alert) => {
       runInAction(() => {
@@ -326,7 +343,7 @@ export class AlertGroupStore extends BaseStore {
     return await makeRequest(`/alerts/${pk}`, {});
   }
 
-  @action
+  @action.bound
   async getNewIncidentsStats() {
     const result = await makeRequest(`${this.path}stats/`, {
       params: {
@@ -340,7 +357,7 @@ export class AlertGroupStore extends BaseStore {
     });
   }
 
-  @action
+  @action.bound
   async getAcknowledgedIncidentsStats() {
     const result = await makeRequest(`${this.path}stats/`, {
       params: {
@@ -354,7 +371,7 @@ export class AlertGroupStore extends BaseStore {
     });
   }
 
-  @action
+  @action.bound
   async getResolvedIncidentsStats() {
     const result = await makeRequest(`${this.path}stats/`, {
       params: {
@@ -368,7 +385,7 @@ export class AlertGroupStore extends BaseStore {
     });
   }
 
-  @action
+  @action.bound
   async getSilencedIncidentsStats() {
     const result = await makeRequest(`${this.path}stats/`, {
       params: {
@@ -382,7 +399,7 @@ export class AlertGroupStore extends BaseStore {
     });
   }
 
-  @action
+  @action.bound
   async doIncidentAction(alertId: Alert['pk'], action: AlertAction, isUndo = false, data?: any) {
     this.updateAlert(alertId, { loading: true });
 
@@ -429,7 +446,7 @@ export class AlertGroupStore extends BaseStore {
     }
   }
 
-  @action
+  @action.bound
   async updateAlert(pk: Alert['pk'], value: Partial<Alert>) {
     this.alerts.set(pk, {
       ...(this.alerts.get(pk) as Alert),
@@ -437,6 +454,7 @@ export class AlertGroupStore extends BaseStore {
     });
   }
 
+  @action.bound
   async unpageUser(alertId: Alert['pk'], userId: User['pk']) {
     return await makeRequest(`${this.path}${alertId}/unpage_user`, {
       method: 'POST',
@@ -444,7 +462,7 @@ export class AlertGroupStore extends BaseStore {
     }).catch(this.onApiError);
   }
 
-  @action
+  @action.bound
   async fetchTableSettings(): Promise<void> {
     const tableSettings = await makeRequest('/alertgroup_table_settings', {});
 
@@ -459,7 +477,7 @@ export class AlertGroupStore extends BaseStore {
     });
   }
 
-  @action
+  @action.bound
   @AutoLoadingState(ActionKey.ADD_NEW_COLUMN_TO_ALERT_GROUP)
   async updateTableSettings(
     columns: { visible: AlertGroupColumn[]; hidden: AlertGroupColumn[] },
@@ -477,18 +495,21 @@ export class AlertGroupStore extends BaseStore {
     });
   }
 
+  @action.bound
   async resetTableSettings(): Promise<void> {
     return await makeRequest('/alertgroup_table_settings/reset', { method: 'POST' }).catch(() =>
       openErrorNotification('There was an error resetting the table settings')
     );
   }
 
+  @action.bound
   async loadLabelsKeys(): Promise<Array<ApiSchemas['LabelKey']>> {
     return await makeRequest(`/alertgroups/labels/keys/`, {}).catch(() =>
       openErrorNotification('There was an error processing your request')
     );
   }
 
+  @action.bound
   async loadValuesForLabelKey(
     key: ApiSchemas['LabelKey']['id'],
     search = ''
