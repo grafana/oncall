@@ -101,20 +101,23 @@ const AllStacksSelectedWarning = () => {
 
   return alertVisible ? (
     <Alert onRemove={() => setAlertVisible(false)} severity="warning" title="" className={styles.alertBox}>
-      Please be aware that retrieving insights from multiple stacks has performance impact and loading data might take
-      significantly more time. We recommend to select only required stacks if possible.
+      Retrieving insights from multiple stacks has performance impact and loading data might take significantly more
+      time. We recommend to select only specific stacks.
     </Alert>
   ) : null;
 };
 
 const NoDatasourceWarning = () => {
   const [alertVisible, setAlertVisible] = useState(true);
+  const docsLink = (
+    <a href={`${DOCS_ROOT}/insights-and-metrics`} target="_blank" rel="noreferrer">
+      <Text type="link">documentation</Text>
+    </a>
+  );
 
   return alertVisible ? (
     <Alert onRemove={() => setAlertVisible(false)} severity="warning" title="" className={styles.alertBox}>
-      In order to see insights you need to set up Prometheus, add it to your Grafana stack as a data source, set
-      FEATURE_PROMETHEUS_EXPORTER_ENABLED environment variable to true and then select connected Data source in the
-      dropdown below.
+      Insights data has missing Prometheus configuration. Open OnCall {docsLink} to see how to setup it.
     </Alert>
   ) : null;
 };
