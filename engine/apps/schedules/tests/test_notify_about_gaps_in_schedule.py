@@ -5,7 +5,7 @@ import pytest
 from django.utils import timezone
 
 from apps.schedules.models import CustomOnCallShift, OnCallScheduleWeb
-from apps.schedules.tasks import notify_about_gaps_in_schedule
+from apps.schedules.tasks import notify_about_gaps_in_schedule_task
 
 
 @pytest.mark.django_db
@@ -46,7 +46,7 @@ def test_no_gaps_no_triggering_notification(
     gaps_report_sent_at = schedule.gaps_report_sent_at
 
     with patch("apps.slack.client.SlackClient.chat_postMessage") as mock_slack_api_call:
-        notify_about_gaps_in_schedule(schedule.pk)
+        notify_about_gaps_in_schedule_task(schedule.pk)
 
     assert not mock_slack_api_call.called
 
@@ -109,7 +109,7 @@ def test_gaps_in_the_past_no_triggering_notification(
     gaps_report_sent_at = schedule.gaps_report_sent_at
 
     with patch("apps.slack.client.SlackClient.chat_postMessage") as mock_slack_api_call:
-        notify_about_gaps_in_schedule(schedule.pk)
+        notify_about_gaps_in_schedule_task(schedule.pk)
 
     assert not mock_slack_api_call.called
 
@@ -159,7 +159,7 @@ def test_gaps_now_trigger_notification(
     assert schedule.has_gaps is False
 
     with patch("apps.slack.client.SlackClient.chat_postMessage") as mock_slack_api_call:
-        notify_about_gaps_in_schedule(schedule.pk)
+        notify_about_gaps_in_schedule_task(schedule.pk)
 
     assert mock_slack_api_call.called
 
@@ -211,7 +211,7 @@ def test_gaps_near_future_trigger_notification(
     assert schedule.has_gaps is False
 
     with patch("apps.slack.client.SlackClient.chat_postMessage") as mock_slack_api_call:
-        notify_about_gaps_in_schedule(schedule.pk)
+        notify_about_gaps_in_schedule_task(schedule.pk)
 
     assert mock_slack_api_call.called
 
@@ -261,7 +261,7 @@ def test_gaps_later_than_7_days_no_triggering_notification(
     gaps_report_sent_at = schedule.gaps_report_sent_at
 
     with patch("apps.slack.client.SlackClient.chat_postMessage") as mock_slack_api_call:
-        notify_about_gaps_in_schedule(schedule.pk)
+        notify_about_gaps_in_schedule_task(schedule.pk)
 
     assert not mock_slack_api_call.called
 
