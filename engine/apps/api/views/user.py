@@ -8,6 +8,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.functional import cached_property
 from django_filters import rest_framework as filters
+from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import PolymorphicProxySerializer, extend_schema, inline_serializer
 from rest_framework import mixins, serializers, status, viewsets
 from rest_framework.decorators import action
@@ -385,7 +386,7 @@ class UserView(
         serializer = UserSerializer(self.get_queryset().get(pk=self.request.user.pk))
         return Response(serializer.data)
 
-    @extend_schema(responses=list)
+    @extend_schema(responses=OpenApiTypes.OBJECT)
     @action(detail=False, methods=["get"])
     def timezone_options(self, request) -> Response:
         return Response(pytz.common_timezones)
@@ -666,7 +667,7 @@ class UserView(
                 fields={"days": serializers.IntegerField(required=False, default=UPCOMING_SHIFTS_DEFAULT_DAYS)},
             )
         ],
-        responses=list,
+        responses=OpenApiTypes.OBJECT,
     )
     @action(detail=True, methods=["get"])
     def upcoming_shifts(self, request, pk) -> Response:

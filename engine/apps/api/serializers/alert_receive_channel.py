@@ -54,17 +54,17 @@ class IntegrationAlertGroupLabels(typing.TypedDict):
 class CustomLabelSerializer(serializers.Serializer):
     """This serializer is consistent with apps.api.serializers.labels.LabelSerializer, but allows null for value ID."""
 
-    class KeySerializer(serializers.Serializer):
+    class CustomLabelKeySerializer(serializers.Serializer):
         id = serializers.CharField()
         name = serializers.CharField()
 
-    class ValueSerializer(serializers.Serializer):
+    class CustomLabelValueSerializer(serializers.Serializer):
         # ID is null for templated labels. For such labels, the "name" value is a Jinja2 template.
         id = serializers.CharField(allow_null=True)
         name = serializers.CharField()
 
-    key = KeySerializer()
-    value = ValueSerializer()
+    key = CustomLabelKeySerializer()
+    value = CustomLabelValueSerializer()
 
 
 class IntegrationAlertGroupLabelsSerializer(serializers.Serializer):
@@ -430,10 +430,10 @@ class FilterAlertReceiveChannelSerializer(serializers.ModelSerializer[AlertRecei
         model = AlertReceiveChannel
         fields = ["value", "display_name", "integration_url"]
 
-    def _get_value(self, obj: "AlertReceiveChannel"):
+    def _get_value(self, obj: "AlertReceiveChannel") -> str:
         return obj.public_primary_key
 
-    def get_display_name(self, obj: "AlertReceiveChannel"):
+    def get_display_name(self, obj: "AlertReceiveChannel") -> str:
         display_name = obj.verbal_name or AlertReceiveChannel.INTEGRATION_CHOICES[obj.integration][1]
         return display_name
 

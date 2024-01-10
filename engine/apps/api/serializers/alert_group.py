@@ -25,8 +25,8 @@ logger.setLevel(logging.DEBUG)
 class RenderForWeb(typing.TypedDict):
     title: str
     message: str
-    image_url: str
-    source_link: str
+    image_url: str | None
+    source_link: str | None
 
 
 class EmptyRenderForWeb(typing.TypedDict):

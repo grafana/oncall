@@ -1,6 +1,7 @@
 from django.db.models import Q
 from django_filters import rest_framework as filters
 from django_filters.rest_framework import DjangoFilterBackend
+from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import PolymorphicProxySerializer, extend_schema, extend_schema_view, inline_serializer
 from rest_framework import serializers, status
 from rest_framework.decorators import action
@@ -490,7 +491,7 @@ class AlertReceiveChannelView(
 
         return r
 
-    @extend_schema(responses=list)
+    @extend_schema(responses=OpenApiTypes.OBJECT)
     @action(detail=True, methods=["get"])
     def connected_contact_points(self, request, pk):
         instance = self.get_object()
@@ -499,7 +500,7 @@ class AlertReceiveChannelView(
         contact_points = instance.grafana_alerting_sync_manager.get_connected_contact_points()
         return Response(contact_points)
 
-    @extend_schema(responses=list)
+    @extend_schema(responses=OpenApiTypes.OBJECT)
     @action(detail=False, methods=["get"])
     def contact_points(self, request):
         organization = request.auth.organization

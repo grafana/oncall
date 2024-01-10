@@ -1,6 +1,6 @@
 from django.conf import settings
+from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import OpenApiExample, extend_schema
-from rest_framework import serializers
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -28,7 +28,7 @@ class FeaturesAPIView(APIView):
 
     @extend_schema(
         request=None,
-        responses=serializers.ListField(child=serializers.CharField()),
+        responses=OpenApiTypes.OBJECT,
         examples=[
             OpenApiExample(
                 name="Example response",
