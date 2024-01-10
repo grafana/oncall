@@ -236,18 +236,8 @@ class ScheduleView(
         get_from_organization: bool = self.request.query_params.get("from_organization", "false") == "true"
         if get_from_organization:
             return self.get_object_from_organization(annotate=annotate)
-
-        queryset = self.filter_queryset(self.get_queryset(annotate=annotate))
-
-        try:
-            obj = queryset.get(public_primary_key=self.kwargs["pk"])
-        except ObjectDoesNotExist:
-            raise NotFound
-
-        # May raise a permission denied
-        self.check_object_permissions(self.request, obj)
-
-        return obj
+        queryset_kwargs = {"annotate": annotate}
+        return super().get_object(queryset_kwargs)
 
     def get_object_from_organization(self, ignore_filtering_by_available_teams=False, annotate=True):
         # use this method to get the object from the whole organization instead of the current team
