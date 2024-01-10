@@ -3,6 +3,7 @@ import math
 import typing
 
 from django.core.exceptions import ObjectDoesNotExist
+from django.db import models
 from django.db.models import Q
 from django.utils.functional import cached_property
 from drf_spectacular.utils import extend_schema, inline_serializer
@@ -146,9 +147,25 @@ class RateLimitHeadersMixin:
         return super().handle_exception(exc)
 
 
-class PublicPrimaryKeyMixin:
-    lookup_field = "public_primary_key"
-    lookup_url_kwarg = "pk"
+_MT = typing.TypeVar("_MT", bound=models.Model)
+
+
+class PublicPrimaryKeyMixin(typing.Generic[_MT]):
+    def get_object(self, queryset_kwargs=None) -> _MT:
+        pk = self.kwargs["pk"]
+        if queryset_kwargs is None:
+            queryset_kwargs = {}
+        queryset = self.filter_queryset(self.get_queryset(**queryset_kwargs))
+
+        try:
+            obj = queryset.get(public_primary_key=pk)
+        except ObjectDoesNotExist:
+            raise NotFound
+
+        # May raise a permission denied
+        self.check_object_permissions(self.request, obj)
+
+        return obj
 
 
 class TeamFilteringMixin:
