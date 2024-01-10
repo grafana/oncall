@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Do not retry `firebase.messaging.UnregisteredError` exceptions for FCM relay tasks by @joeyorlando ([#3637](https://github.com/grafana/oncall/pull/3637))
 - Decrease outgoing webhook timeouts from 10secs to 4secs by @joeyorlando ([#3639](https://github.com/grafana/oncall/pull/3639))
+- Add stack slug to `/organization` endpoint response by @Ferril ([#3644](https://github.com/grafana/oncall/pull/3644))
 - Moved Mobile Connection Tab to separate user profile in Grafana ([#3296](https://github.com/grafana/oncall/pull/3296)
 
 ### Fixed
