@@ -1,7 +1,6 @@
 import React from 'react';
 
-import { IconName } from '@grafana/data';
-import { Tab, TabsBar } from '@grafana/ui';
+import { IconName, Tab, TabsBar } from '@grafana/ui';
 import cn from 'classnames/bind';
 
 import { pages } from 'pages';
