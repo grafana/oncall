@@ -33,7 +33,7 @@ CELERY_TASK_ROUTES = {
     "apps.schedules.tasks.notify_about_gaps_in_schedule.check_empty_shifts_in_schedule": {"queue": "default"},
     "apps.schedules.tasks.notify_about_gaps_in_schedule.start_notify_about_gaps_in_schedule": {"queue": "default"},
     "apps.schedules.tasks.notify_about_gaps_in_schedule.check_gaps_in_schedule": {"queue": "default"},
-    "apps.schedules.tasks.notify_about_gaps_in_schedule.notify_about_empty_shifts_in_schedule": {"queue": "default"},
+    "apps.schedules.tasks.notify_about_gaps_in_schedule.notify_about_gaps_in_schedule_task": {"queue": "default"},
     "apps.schedules.tasks.notify_about_gaps_in_schedule.schedule_notify_about_gaps_in_schedule": {"queue": "default"},
     "apps.schedules.tasks.notify_about_gaps_in_schedule.start_check_empty_shifts_in_schedule": {"queue": "default"},
     "apps.schedules.tasks.notify_about_gaps_in_schedule.start_check_gaps_in_schedule": {"queue": "default"},
@@ -41,7 +41,7 @@ CELERY_TASK_ROUTES = {
         "queue": "default"
     },
     "apps.schedules.tasks.notify_about_empty_shifts_in_schedule.check_empty_shifts_in_schedule": {"queue": "default"},
-    "apps.schedules.tasks.notify_about_empty_shifts_in_schedule.notify_about_empty_shifts_in_schedule": {
+    "apps.schedules.tasks.notify_about_empty_shifts_in_schedule.notify_about_empty_shifts_in_schedule_task": {
         "queue": "default"
     },
     "apps.schedules.tasks.notify_about_empty_shifts_in_schedule.start_check_empty_shifts_in_schedule": {
@@ -73,7 +73,6 @@ CELERY_TASK_ROUTES = {
     "apps.migration_tool.tasks.migrate_log": {"queue": "default"},
     "apps.migration_tool.tasks.start_migration_user_data": {"queue": "default"},
     "apps.migration_tool.tasks.migrate_user_data": {"queue": "default"},
-    "apps.schedules.tasks.notify_about_gaps_in_schedule.notify_about_gaps_in_schedule": {"queue": "default"},
     "celery.backend_cleanup": {"queue": "default"},
     "apps.heartbeat.tasks.check_heartbeats": {"queue": "default"},
     "apps.oss_installation.tasks.send_cloud_heartbeat_task": {"queue": "default"},
