@@ -41,7 +41,7 @@ describe('UserStore.unlinkBackend', () => {
   test('it makes the proper API call and returns the response', async () => {
     makeRequest.mockResolvedValueOnce('hello');
 
-    userStore.loadCurrentUser = jest.fn();
+    Object.defineProperty(userStore, 'loadCurrentUser', { value: jest.fn() });
 
     await userStore.unlinkBackend(userPk, backend);
 
