@@ -2,10 +2,8 @@ import typing
 from collections import OrderedDict
 
 from django.conf import settings
-from django.core.exceptions import ObjectDoesNotExist
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db.models import Q
-from drf_spectacular.utils import extend_schema_field
 from jinja2 import TemplateSyntaxError
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
@@ -218,7 +216,7 @@ class AlertReceiveChannelSerializer(
     demo_alert_enabled = serializers.BooleanField(source="is_demo_alert_enabled", read_only=True)
     is_based_on_alertmanager = serializers.BooleanField(source="based_on_alertmanager", read_only=True)
     maintenance_till = serializers.ReadOnlyField(source="till_maintenance_timestamp")
-    heartbeat = serializers.SerializerMethodField()
+    heartbeat = IntegrationHeartBeatSerializer(read_only=True, allow_null=True, source="integration_heartbeat")
     allow_delete = serializers.SerializerMethodField()
     description_short = serializers.CharField(max_length=250, required=False, allow_null=True)
     demo_alert_payload = serializers.JSONField(source="config.example_payload", read_only=True)
@@ -368,14 +366,6 @@ class AlertReceiveChannelSerializer(
             return verbal_name
         else:
             raise serializers.ValidationError(detail="Integration with this name already exists")
-
-    @extend_schema_field(IntegrationHeartBeatSerializer)
-    def get_heartbeat(self, obj: "AlertReceiveChannel"):
-        try:
-            heartbeat = obj.integration_heartbeat
-        except ObjectDoesNotExist:
-            return None
-        return IntegrationHeartBeatSerializer(heartbeat).data
 
     def get_allow_delete(self, obj: "AlertReceiveChannel") -> bool:
         # don't allow deleting direct paging integrations

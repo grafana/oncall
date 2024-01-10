@@ -161,6 +161,10 @@ class UserView(
     mixins.ListModelMixin,
     viewsets.GenericViewSet,
 ):
+    """
+    Internal API endpoints for users.
+    """
+
     authentication_classes = (
         MobileAppAuthTokenAuthentication,
         PluginAuthentication,
