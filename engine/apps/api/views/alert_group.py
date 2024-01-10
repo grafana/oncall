@@ -4,7 +4,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Count, Max, Q
 from django.utils import timezone
 from django_filters import rest_framework as filters
-from drf_spectacular.utils import extend_schema, inline_serializer
+from drf_spectacular.utils import extend_schema, extend_schema_field, inline_serializer
 from rest_framework import mixins, serializers, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound
@@ -53,6 +53,15 @@ def get_user_queryset(request):
     return User.objects.filter(organization=request.user.organization).distinct()
 
 
+@extend_schema_field(serializers.CharField)
+class MultipleChoiceCharFilter(filters.ModelMultipleChoiceFilter):
+    """
+    drf-spectacular can't infer that the individual choice type is string, so specifying it explicitly.
+    """
+
+    pass
+
+
 class AlertGroupFilter(DateRangeFilterMixin, ModelFieldFilterMixin, filters.FilterSet):
     """
     Examples of possible date formats here https://docs.djangoproject.com/en/1.9/ref/settings/#datetime-input-formats
@@ -70,40 +79,40 @@ class AlertGroupFilter(DateRangeFilterMixin, ModelFieldFilterMixin, filters.Filt
         field_name="resolved_at",
         method=DateRangeFilterMixin.filter_date_range.__name__,
     )
-    integration = filters.ModelMultipleChoiceFilter(
+    integration = MultipleChoiceCharFilter(
         field_name="channel",
         queryset=get_integration_queryset,
         to_field_name="public_primary_key",
         method=ModelFieldFilterMixin.filter_model_field.__name__,
     )
-    escalation_chain = filters.ModelMultipleChoiceFilter(
+    escalation_chain = MultipleChoiceCharFilter(
         field_name="channel_filter__escalation_chain",
         queryset=get_escalation_chain_queryset,
         to_field_name="public_primary_key",
         method=ModelFieldFilterMixin.filter_model_field.__name__,
     )
-    resolved_by = filters.ModelMultipleChoiceFilter(
+    resolved_by = MultipleChoiceCharFilter(
         field_name="resolved_by_user",
         queryset=get_user_queryset,
         to_field_name="public_primary_key",
         method=ModelFieldFilterMixin.filter_model_field.__name__,
     )
-    acknowledged_by = filters.ModelMultipleChoiceFilter(
+    acknowledged_by = MultipleChoiceCharFilter(
         field_name="acknowledged_by_user",
         queryset=get_user_queryset,
         to_field_name="public_primary_key",
         method=ModelFieldFilterMixin.filter_model_field.__name__,
     )
-    silenced_by = filters.ModelMultipleChoiceFilter(
+    silenced_by = MultipleChoiceCharFilter(
         field_name="silenced_by_user",
         queryset=get_user_queryset,
         to_field_name="public_primary_key",
         method=ModelFieldFilterMixin.filter_model_field.__name__,
     )
-    invitees_are = filters.ModelMultipleChoiceFilter(
+    invitees_are = MultipleChoiceCharFilter(
         queryset=get_user_queryset, to_field_name="public_primary_key", method="filter_invitees_are"
     )
-    involved_users_are = filters.ModelMultipleChoiceFilter(
+    involved_users_are = MultipleChoiceCharFilter(
         queryset=get_user_queryset, to_field_name="public_primary_key", method="filter_by_involved_users"
     )
     with_resolution_note = filters.BooleanFilter(method="filter_with_resolution_note")
