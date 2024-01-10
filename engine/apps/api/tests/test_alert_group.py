@@ -1424,6 +1424,41 @@ def test_alert_group_detail_permissions(
 
 
 @pytest.mark.django_db
+@pytest.mark.parametrize(
+    "role,expected_status",
+    [
+        (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
+        (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
+        (LegacyAccessControlRole.VIEWER, status.HTTP_200_OK),
+        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
+    ],
+)
+def test_alert_group_escalation_snapshot_permissions(
+    alert_group_internal_api_setup,
+    make_user_for_organization,
+    make_user_auth_headers,
+    role,
+    expected_status,
+):
+    _, token, alert_groups = alert_group_internal_api_setup
+    _, _, new_alert_group, _ = alert_groups
+    organization = new_alert_group.channel.organization
+    user = make_user_for_organization(organization, role)
+
+    client = APIClient()
+    url = reverse("api-internal:alertgroup-escalation-snapshot", kwargs={"pk": new_alert_group.public_primary_key})
+
+    with patch(
+        "apps.api.views.alert_group.AlertGroupView.escalation_snapshot",
+        return_value=Response(
+            status=status.HTTP_200_OK,
+        ),
+    ):
+        response = client.get(url, format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == expected_status
+
+
+@pytest.mark.django_db
 def test_silence(alert_group_internal_api_setup, make_user_auth_headers):
     client = APIClient()
     user, token, alert_groups = alert_group_internal_api_setup
