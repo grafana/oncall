@@ -34,14 +34,19 @@ class AlertGroupTableColumnsOrganizationSerializer(serializers.Serializer):
         """
         Validate that at least one column is selected as visible and that all default columns are in the list.
         """
-        columns = data["visible"] + data["hidden"]
-        request_columns_ids = [column["id"] for column in columns]
+        request_columns_by_type = {}
+        for column in data["visible"] + data["hidden"]:
+            request_columns_by_type.setdefault(column["type"], []).append(column["id"])
         if len(data["visible"]) == 0:
             raise ValidationError("At least one column should be selected as visible")
-        elif not set(request_columns_ids) >= set(AlertGroupTableDefaultColumnChoices.values):
+        elif not (
+            set(request_columns_by_type[AlertGroupTableColumnTypeChoices.DEFAULT])
+            == set(AlertGroupTableDefaultColumnChoices.values)
+        ):
             raise ValidationError("Default column cannot be removed")
-        elif len(request_columns_ids) > len(set(request_columns_ids)):
-            raise ValidationError("Duplicate column")
+        for columns_ids in request_columns_by_type.values():
+            if len(columns_ids) > len(set(columns_ids)):
+                raise ValidationError("Duplicate column")
         return data
 
 

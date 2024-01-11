@@ -1,7 +1,10 @@
 import json
 import logging
+import typing
+from datetime import datetime
 from json import JSONDecodeError
 
+import requests
 from celery.utils.log import get_task_logger
 from django.conf import settings
 from django.db.models import Prefetch
@@ -28,6 +31,10 @@ logger = get_task_logger(__name__)
 logger.setLevel(logging.DEBUG)
 
 
+EXECUTE_WEBHOOK_RETRIES = 3
+# these exceptions are fully out of our control (e.g. customer's network issues)
+# let's manually retry them without raising an exception
+EXECUTE_WEBHOOK_EXCEPTIONS_TO_MANUALLY_RETRY = (requests.exceptions.Timeout,)
 TRIGGER_TYPE_TO_LABEL = {
     Webhook.TRIGGER_ALERT_GROUP_CREATED: "alert group created",
     Webhook.TRIGGER_ACKNOWLEDGE: "acknowledge",
@@ -38,6 +45,17 @@ TRIGGER_TYPE_TO_LABEL = {
     Webhook.TRIGGER_ESCALATION_STEP: "escalation",
     Webhook.TRIGGER_UNACKNOWLEDGE: "unacknowledge",
 }
+
+
+class WebhookRequestStatus(typing.TypedDict):
+    url: typing.Optional[str]
+    request_trigger: typing.Optional[str]
+    request_headers: typing.Optional[str]
+    request_data: typing.Optional[str]
+    status_code: typing.Optional[int]
+    content: typing.Optional[str]
+    webhook: Webhook
+    event_data: str
 
 
 @shared_dedicated_queue_retry_task(
@@ -52,15 +70,14 @@ def send_webhook_event(trigger_type, alert_group_id, organization_id=None, user_
     ).exclude(is_webhook_enabled=False)
 
     for webhook in webhooks_qs:
-        print(webhook.name)
         execute_webhook.apply_async((webhook.pk, alert_group_id, user_id, None))
 
 
-def _isoformat_date(date_value):
+def _isoformat_date(date_value: datetime) -> typing.Optional[str]:
     return date_value.isoformat() if date_value else None
 
 
-def _build_payload(webhook, alert_group, user):
+def _build_payload(webhook: Webhook, alert_group: AlertGroup, user: User) -> typing.Dict[str, typing.Any]:
     trigger_type = webhook.trigger_type
     event = {
         "type": TRIGGER_TYPE_TO_LABEL[trigger_type],
@@ -96,7 +113,9 @@ def _build_payload(webhook, alert_group, user):
     return data
 
 
-def mask_authorization_header(headers, header_keys_to_mask):
+def mask_authorization_header(
+    headers: typing.Dict[str, str], header_keys_to_mask: typing.List[str]
+) -> typing.Dict[str, str]:
     masked_headers = headers.copy()
     lower_keys = set(k.lower() for k in header_keys_to_mask)
     for k in headers.keys():
@@ -105,8 +124,10 @@ def mask_authorization_header(headers, header_keys_to_mask):
     return masked_headers
 
 
-def make_request(webhook, alert_group, data):
-    status = {
+def make_request(
+    webhook: Webhook, alert_group: AlertGroup, data: typing.Dict[str, typing.Any]
+) -> typing.Tuple[bool, WebhookRequestStatus, typing.Optional[str], typing.Optional[Exception]]:
+    status: WebhookRequestStatus = {
         "url": None,
         "request_trigger": None,
         "request_headers": None,
@@ -172,9 +193,9 @@ def make_request(webhook, alert_group, data):
 
 
 @shared_dedicated_queue_retry_task(
-    autoretry_for=(Exception,), retry_backoff=True, max_retries=1 if settings.DEBUG else 3
+    autoretry_for=(Exception,), retry_backoff=True, max_retries=1 if settings.DEBUG else EXECUTE_WEBHOOK_RETRIES
 )
-def execute_webhook(webhook_pk, alert_group_id, user_id, escalation_policy_id):
+def execute_webhook(webhook_pk, alert_group_id, user_id, escalation_policy_id, manual_retry_num=0):
     from apps.webhooks.models import Webhook
 
     try:
@@ -244,5 +265,21 @@ def execute_webhook(webhook_pk, alert_group_id, user_id, escalation_policy_id):
             escalation_error_code=error_code,
         )
 
-    if exception:
+    if isinstance(exception, EXECUTE_WEBHOOK_EXCEPTIONS_TO_MANUALLY_RETRY):
+        msg_details = (
+            f"webhook={webhook_pk} alert_group={alert_group_id} user={user_id} escalation_policy={escalation_policy_id}"
+        )
+
+        if manual_retry_num < EXECUTE_WEBHOOK_RETRIES:
+            retry_num = manual_retry_num + 1
+            logger.warning(f"Manually retrying execute_webhook for {msg_details} manual_retry_num={retry_num}")
+            execute_webhook.apply_async(
+                (webhook_pk, alert_group_id, user_id, escalation_policy_id, retry_num),
+                countdown=10,
+            )
+        else:
+            # don't raise an exception if we've exhausted retries for
+            # exceptions within EXECUTE_WEBHOOK_EXCEPTIONS_TO_MANUALLY_RETRY, simply give up trying
+            logger.warning(f"Exhausted execute_webhook retries for {msg_details}")
+    elif exception:
         raise exception

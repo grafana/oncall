@@ -1,4 +1,4 @@
-import { action, observable } from 'mobx';
+import { action, observable, makeObservable, runInAction } from 'mobx';
 
 import BaseStore from 'models/base_store';
 import { LabelKeyValue } from 'models/label/label.types';
@@ -31,13 +31,15 @@ export class FiltersStore extends BaseStore {
   constructor(rootStore: RootStore) {
     super(rootStore);
 
+    makeObservable(this);
+
     const savedFilters = getItem(LOCAL_STORAGE_FILTERS_KEY);
     if (savedFilters) {
       this._globalValues = { ...savedFilters };
     }
   }
 
-  @action
+  @action.bound
   setNeedToParseFilters(value: boolean) {
     this.needToParseFilters = value;
   }
@@ -52,7 +54,7 @@ export class FiltersStore extends BaseStore {
     return this._globalValues;
   }
 
-  @action
+  @action.bound
   public async updateOptionsForPage(page: string) {
     const result = await makeRequest(`/${getApiPathByPage(page)}/filters/`, {});
 
@@ -61,15 +63,17 @@ export class FiltersStore extends BaseStore {
       result.unshift({ name: 'search', type: 'search' });
     }
 
-    this.options = {
-      ...this.options,
-      [page]: result,
-    };
+    runInAction(() => {
+      this.options = {
+        ...this.options,
+        [page]: result,
+      };
+    });
 
     return result;
   }
 
-  @action
+  @action.bound
   updateValuesForPage(page: string, value: FiltersValues) {
     this.values = {
       ...this.values,
@@ -77,12 +81,12 @@ export class FiltersStore extends BaseStore {
     };
   }
 
-  @action
+  @action.bound
   setCurrentTablePageNum(page: PAGE, currentTablePageNum: number) {
     this.currentTablePageNum[page] = currentTablePageNum;
   }
 
-  @action
+  @action.bound
   applyLabelFilter = (label: LabelKeyValue, page: PAGE) => {
     const currentLabelFilterValues = this.values[page]?.label || [];
     const labelToAddString = `${label.key.id}:${label.value.id}`;

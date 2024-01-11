@@ -17,6 +17,8 @@ jest.mock('grafana/app/core/core', () => ({
   },
 }));
 
+const onCallApiUrl = 'http://oncall-dev-engine:8080';
+
 const isUserActionAllowed = isUserActionAllowedOriginal as jest.Mock<ReturnType<typeof isUserActionAllowedOriginal>>;
 
 const generatePluginData = (
@@ -32,7 +34,6 @@ describe('rootBaseStore', () => {
   });
 
   test("onCallApiUrl is not set in the plugin's meta jsonData", async () => {
-    // mocks/setup
     const rootBaseStore = new RootBaseStore();
 
     // test
@@ -43,9 +44,7 @@ describe('rootBaseStore', () => {
   });
 
   test('when there is an issue checking the plugin connection, the error is properly handled', async () => {
-    // mocks/setup
     const errorMsg = 'ohhh noooo error';
-    const onCallApiUrl = 'http://asdfasdf.com';
     const rootBaseStore = new RootBaseStore();
 
     PluginState.updatePluginStatus = jest.fn().mockResolvedValueOnce(errorMsg);
@@ -61,8 +60,6 @@ describe('rootBaseStore', () => {
   });
 
   test('currently undergoing maintenance', async () => {
-    // mocks/setup
-    const onCallApiUrl = 'http://asdfasdf.com';
     const rootBaseStore = new RootBaseStore();
     const maintenanceMessage = 'mncvnmvcmnvkjdjkd';
 
@@ -82,8 +79,6 @@ describe('rootBaseStore', () => {
   });
 
   test('anonymous user', async () => {
-    // mocks/setup
-    const onCallApiUrl = 'http://asdfasdf.com';
     const rootBaseStore = new RootBaseStore();
 
     PluginState.updatePluginStatus = jest.fn().mockResolvedValueOnce({
@@ -108,8 +103,6 @@ describe('rootBaseStore', () => {
   });
 
   test('the plugin is not installed, and allow_signup is false', async () => {
-    // mocks/setup
-    const onCallApiUrl = 'http://asdfasdf.com';
     const rootBaseStore = new RootBaseStore();
 
     PluginState.updatePluginStatus = jest.fn().mockResolvedValueOnce({
@@ -137,8 +130,6 @@ describe('rootBaseStore', () => {
   });
 
   test('plugin is not installed, user is not an Admin', async () => {
-    // mocks/setup
-    const onCallApiUrl = 'http://asdfasdf.com';
     const rootBaseStore = new RootBaseStore();
 
     contextSrv.user.orgRole = OrgRole.Viewer;
@@ -174,8 +165,6 @@ describe('rootBaseStore', () => {
     { is_installed: false, token_ok: true },
     { is_installed: true, token_ok: false },
   ])('signup is allowed, user is an admin, plugin installation is triggered', async (scenario) => {
-    // mocks/setup
-    const onCallApiUrl = 'http://asdfasdf.com';
     const rootBaseStore = new RootBaseStore();
     const mockedLoadCurrentUser = jest.fn();
 
@@ -192,7 +181,7 @@ describe('rootBaseStore', () => {
     });
     isUserActionAllowed.mockReturnValueOnce(true);
     PluginState.installPlugin = jest.fn().mockResolvedValueOnce(null);
-    rootBaseStore.userStore.loadCurrentUser = mockedLoadCurrentUser;
+    Object.defineProperty(rootBaseStore.userStore, 'loadCurrentUser', { value: mockedLoadCurrentUser });
 
     // test
     await rootBaseStore.setupPlugin(generatePluginData(onCallApiUrl));
@@ -219,8 +208,6 @@ describe('rootBaseStore', () => {
       expected_result: false,
     },
   ])('signup is allowed, licensedAccessControlEnabled, various roles and permissions', async (scenario) => {
-    // mocks/setup
-    const onCallApiUrl = 'http://asdfasdf.com';
     const rootBaseStore = new RootBaseStore();
     const mockedLoadCurrentUser = jest.fn();
 
@@ -237,7 +224,7 @@ describe('rootBaseStore', () => {
     });
     isUserActionAllowed.mockReturnValueOnce(true);
     PluginState.installPlugin = jest.fn().mockResolvedValueOnce(null);
-    rootBaseStore.userStore.loadCurrentUser = mockedLoadCurrentUser;
+    Object.defineProperty(rootBaseStore.userStore, 'loadCurrentUser', { value: mockedLoadCurrentUser });
 
     // test
     await rootBaseStore.setupPlugin(generatePluginData(onCallApiUrl));
@@ -261,8 +248,6 @@ describe('rootBaseStore', () => {
   });
 
   test('plugin is not installed, signup is allowed, the user is an admin, and plugin installation throws an error', async () => {
-    // mocks/setup
-    const onCallApiUrl = 'http://asdfasdf.com';
     const rootBaseStore = new RootBaseStore();
     const installPluginError = new Error('asdasdfasdfasf');
     const humanReadableErrorMsg = 'asdfasldkfjaksdjflk';
@@ -304,8 +289,6 @@ describe('rootBaseStore', () => {
   });
 
   test('when the plugin is installed, a data sync is triggered', async () => {
-    // mocks/setup
-    const onCallApiUrl = 'http://asdfasdf.com';
     const rootBaseStore = new RootBaseStore();
     const mockedLoadCurrentUser = jest.fn();
 
@@ -317,7 +300,7 @@ describe('rootBaseStore', () => {
       version: 'asdfasdf',
       license: 'asdfasdf',
     });
-    rootBaseStore.userStore.loadCurrentUser = mockedLoadCurrentUser;
+    Object.defineProperty(rootBaseStore.userStore, 'loadCurrentUser', { value: mockedLoadCurrentUser });
 
     // test
     await rootBaseStore.setupPlugin(generatePluginData(onCallApiUrl));
@@ -333,8 +316,6 @@ describe('rootBaseStore', () => {
   });
 
   test('when the plugin is installed, and the data sync returns an error, it is properly handled', async () => {
-    // mocks/setup
-    const onCallApiUrl = 'http://asdfasdf.com';
     const rootBaseStore = new RootBaseStore();
     const mockedLoadCurrentUser = jest.fn();
     const updatePluginStatusError = 'asdasdfasdfasf';
@@ -348,7 +329,7 @@ describe('rootBaseStore', () => {
       license: 'asdfasdf',
     });
     PluginState.updatePluginStatus = jest.fn().mockResolvedValueOnce(updatePluginStatusError);
-    rootBaseStore.userStore.loadCurrentUser = mockedLoadCurrentUser;
+    Object.defineProperty(rootBaseStore.userStore, 'loadCurrentUser', { value: mockedLoadCurrentUser });
 
     // test
     await rootBaseStore.setupPlugin(generatePluginData(onCallApiUrl));

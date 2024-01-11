@@ -1,4 +1,4 @@
-import { action, observable } from 'mobx';
+import { action, observable, makeObservable, runInAction } from 'mobx';
 
 import BaseStore from 'models/base_store';
 import { makeRequest } from 'network';
@@ -19,32 +19,37 @@ export class CloudStore extends BaseStore {
   constructor(rootStore: RootStore) {
     super(rootStore);
 
+    makeObservable(this);
+
     this.path = '/cloud_users/';
   }
 
-  @action
+  @action.bound
   async updateItems(page = 1) {
     const { matched_users_count, results } = await makeRequest(this.path, {
       params: { page },
     });
 
-    this.items = {
-      ...this.items,
-      ...results.reduce(
-        (acc: { [key: number]: Cloud }, item: Cloud) => ({
-          ...acc,
-          [item.id]: item,
-        }),
-        {}
-      ),
-    };
+    runInAction(() => {
+      this.items = {
+        ...this.items,
+        ...results.reduce(
+          (acc: { [key: number]: Cloud }, item: Cloud) => ({
+            ...acc,
+            [item.id]: item,
+          }),
+          {}
+        ),
+      };
 
-    this.searchResult = {
-      matched_users_count,
-      results: results.map((item: Cloud) => item.id),
-    };
+      this.searchResult = {
+        matched_users_count,
+        results: results.map((item: Cloud) => item.id),
+      };
+    });
   }
 
+  @action.bound
   getSearchResult() {
     return {
       matched_users_count: this.searchResult.matched_users_count,
@@ -52,32 +57,41 @@ export class CloudStore extends BaseStore {
     };
   }
 
+  @action.bound
   async syncCloudUsers() {
     return await makeRequest(`${this.path}`, { method: 'POST' });
   }
 
+  @action.bound
   async syncCloudUser(id: string) {
     return await makeRequest(`${this.path}${id}/sync/`, { method: 'POST' });
   }
 
+  @action.bound
   async getCloudHeartbeat() {
     return await makeRequest(`/cloud_heartbeat/`, { method: 'POST' });
   }
 
+  @action.bound
   async getCloudUser(id: string) {
     return await makeRequest(`${this.path}${id}`, { method: 'GET' });
   }
 
   @action.bound
   async loadCloudConnectionStatus() {
-    this.cloudConnectionStatus = await this.getCloudConnectionStatus();
+    const result = await this.getCloudConnectionStatus();
+
+    runInAction(() => {
+      this.cloudConnectionStatus = result;
+    });
   }
 
+  @action.bound
   async getCloudConnectionStatus() {
     return await makeRequest(`/cloud_connection/`, { method: 'GET' });
   }
 
-  @action
+  @action.bound
   async disconnectToCloud() {
     return await makeRequest(`/cloud_connection/`, { method: 'DELETE' });
   }

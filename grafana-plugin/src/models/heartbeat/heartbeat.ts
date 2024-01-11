@@ -1,4 +1,4 @@
-import { action, observable } from 'mobx';
+import { action, observable, makeObservable, runInAction } from 'mobx';
 
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import BaseStore from 'models/base_store';
@@ -17,15 +17,21 @@ export class HeartbeatStore extends BaseStore {
   constructor(rootStore: RootStore) {
     super(rootStore);
 
+    makeObservable(this);
+
     this.path = '/heartbeats/';
   }
 
-  @action
+  @action.bound
   async updateTimeoutOptions() {
-    this.timeoutOptions = await makeRequest(`${this.path}timeout_options/`, {});
+    const result = await makeRequest(`${this.path}timeout_options/`, {});
+
+    runInAction(() => {
+      this.timeoutOptions = result;
+    });
   }
 
-  @action
+  @action.bound
   async saveHeartbeat(id: Heartbeat['id'], data: Partial<Heartbeat>) {
     const response = await super.update<Heartbeat>(id, data);
 
@@ -33,13 +39,15 @@ export class HeartbeatStore extends BaseStore {
       return;
     }
 
-    this.items = {
-      ...this.items,
-      [response.id]: response,
-    };
+    runInAction(() => {
+      this.items = {
+        ...this.items,
+        [response.id]: response,
+      };
+    });
   }
 
-  @action
+  @action.bound
   async createHeartbeat(alertReceiveChannelId: AlertReceiveChannel['id'], data: Partial<Heartbeat>) {
     const response = await super.create<Heartbeat>({
       alert_receive_channel: alertReceiveChannelId,
@@ -50,14 +58,16 @@ export class HeartbeatStore extends BaseStore {
       return;
     }
 
-    this.rootStore.alertReceiveChannelStore.alertReceiveChannelToHeartbeat = {
-      ...this.rootStore.alertReceiveChannelStore.alertReceiveChannelToHeartbeat,
-      [alertReceiveChannelId]: response.id,
-    };
+    runInAction(() => {
+      this.rootStore.alertReceiveChannelStore.alertReceiveChannelToHeartbeat = {
+        ...this.rootStore.alertReceiveChannelStore.alertReceiveChannelToHeartbeat,
+        [alertReceiveChannelId]: response.id,
+      };
 
-    this.items = {
-      ...this.items,
-      [response.id]: response,
-    };
+      this.items = {
+        ...this.items,
+        [response.id]: response,
+      };
+    });
   }
 }

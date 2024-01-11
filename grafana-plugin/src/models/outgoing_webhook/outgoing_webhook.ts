@@ -1,4 +1,4 @@
-import { action, observable } from 'mobx';
+import { action, observable, makeObservable, runInAction } from 'mobx';
 
 import BaseStore from 'models/base_store';
 import { LabelsErrors } from 'models/label/label.types';
@@ -23,41 +23,50 @@ export class OutgoingWebhookStore extends BaseStore {
   constructor(rootStore: RootStore) {
     super(rootStore);
 
+    makeObservable(this);
+
     this.path = '/webhooks/';
   }
 
-  @action
+  @action.bound
   async loadItem(id: OutgoingWebhook['id'], skipErrorHandling = false): Promise<OutgoingWebhook> {
     const outgoingWebhook = await this.getById(id, skipErrorHandling);
 
-    this.items = {
-      ...this.items,
-      [id]: outgoingWebhook,
-    };
+    runInAction(() => {
+      this.items = {
+        ...this.items,
+        [id]: outgoingWebhook,
+      };
+    });
 
     return outgoingWebhook;
   }
 
-  @action
+  @action.bound
   async updateById(id: OutgoingWebhook['id']) {
     const response = await this.getById(id);
 
-    this.items = {
-      ...this.items,
-      [id]: response,
-    };
+    runInAction(() => {
+      this.items = {
+        ...this.items,
+        [id]: response,
+      };
+    });
   }
 
-  @action
+  @action.bound
   async updateItem(id: OutgoingWebhook['id'], fromOrganization = false) {
     const response = await this.getById(id, false, fromOrganization);
-    this.items = {
-      ...this.items,
-      [id]: response,
-    };
+
+    runInAction(() => {
+      this.items = {
+        ...this.items,
+        [id]: response,
+      };
+    });
   }
 
-  @action
+  @action.bound
   async updateItems(query: any = '') {
     const params = typeof query === 'string' ? { search: query } : query;
 
@@ -65,25 +74,28 @@ export class OutgoingWebhookStore extends BaseStore {
       params,
     });
 
-    this.items = {
-      ...this.items,
-      ...results.reduce(
-        (acc: { [key: number]: OutgoingWebhook }, item: OutgoingWebhook) => ({
-          ...acc,
-          [item.id]: item,
-        }),
-        {}
-      ),
-    };
+    runInAction(() => {
+      this.items = {
+        ...this.items,
+        ...results.reduce(
+          (acc: { [key: number]: OutgoingWebhook }, item: OutgoingWebhook) => ({
+            ...acc,
+            [item.id]: item,
+          }),
+          {}
+        ),
+      };
 
-    const key = typeof query === 'string' ? query : '';
+      const key = typeof query === 'string' ? query : '';
 
-    this.searchResult = {
-      ...this.searchResult,
-      [key]: results.map((item: OutgoingWebhook) => item.id),
-    };
+      this.searchResult = {
+        ...this.searchResult,
+        [key]: results.map((item: OutgoingWebhook) => item.id),
+      };
+    });
   }
 
+  @action.bound
   getSearchResult(query = '') {
     if (!this.searchResult[query]) {
       return undefined;
@@ -92,12 +104,14 @@ export class OutgoingWebhookStore extends BaseStore {
     return this.searchResult[query].map((outgoingWebhookId: OutgoingWebhook['id']) => this.items[outgoingWebhookId]);
   }
 
+  @action.bound
   async getLastResponses(id: OutgoingWebhook['id']) {
     const result = await makeRequest(`${this.path}${id}/responses`, {});
 
     return result;
   }
 
+  @action.bound
   async renderPreview(id: OutgoingWebhook['id'], template_name: string, template_body: string, payload) {
     return await makeRequest(`${this.path}${id}/preview_template/`, {
       method: 'POST',
@@ -108,7 +122,10 @@ export class OutgoingWebhookStore extends BaseStore {
   @action.bound
   async updateOutgoingWebhookPresetsOptions() {
     const response = await makeRequest(`/webhooks/preset_options/`, {});
-    this.outgoingWebhookPresets = response;
+
+    runInAction(() => {
+      this.outgoingWebhookPresets = response;
+    });
   }
 
   @action.bound

@@ -8,18 +8,14 @@ import { Timezone } from 'models/timezone/timezone.types';
 import { RootStore } from 'state';
 import { SelectOption } from 'state/types';
 
-const mondayDayOffset = {
-  saturday: -2,
-  sunday: -1,
-  monday: 0,
-  browser: 0,
-};
-
 export const getWeekStartString = () => {
-  if (!config.bootData.user.weekStart || config.bootData.user.weekStart === 'browser') {
+  const weekStart = (config?.bootData?.user?.weekStart || '').toLowerCase();
+
+  if (!weekStart || weekStart === 'browser') {
     return 'monday';
   }
-  return config.bootData.user.weekStart;
+
+  return weekStart;
 };
 
 export const getNow = (tz: Timezone) => {
@@ -32,9 +28,11 @@ export const getStartOfDay = (tz: Timezone) => {
 };
 
 export const getStartOfWeek = (tz: Timezone) => {
-  return getNow(tz)
-    .startOf('isoWeek') // it's Monday always
-    .add(mondayDayOffset[getWeekStartString()], 'day');
+  return getNow(tz).startOf('isoWeek'); // it's Monday always
+};
+
+export const getStartOfWeekBasedOnCurrentDate = (date: dayjs.Dayjs) => {
+  return date.startOf('isoWeek'); // it's Monday always
 };
 
 export const getUTCString = (moment: dayjs.Dayjs) => {

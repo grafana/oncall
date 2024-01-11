@@ -1,4 +1,4 @@
-import { action, observable } from 'mobx';
+import { action, observable, makeObservable, runInAction } from 'mobx';
 
 import BaseStore from 'models/base_store';
 import { makeRequest } from 'network';
@@ -16,32 +16,37 @@ export class UserGroupStore extends BaseStore {
   constructor(rootStore: RootStore) {
     super(rootStore);
 
+    makeObservable(this);
+
     this.path = '/user_groups/';
   }
 
-  @action
+  @action.bound
   async updateItems(query = '') {
     const result = await makeRequest(`${this.path}`, {
       params: { search: query },
     });
 
-    this.items = {
-      ...this.items,
-      ...result.reduce(
-        (acc: { [key: number]: UserGroup }, item: UserGroup) => ({
-          ...acc,
-          [item.id]: item,
-        }),
-        {}
-      ),
-    };
+    runInAction(() => {
+      this.items = {
+        ...this.items,
+        ...result.reduce(
+          (acc: { [key: number]: UserGroup }, item: UserGroup) => ({
+            ...acc,
+            [item.id]: item,
+          }),
+          {}
+        ),
+      };
 
-    this.searchResult = {
-      ...(this.searchResult || {}),
-      [query]: result.map((item: UserGroup) => item.id),
-    };
+      this.searchResult = {
+        ...(this.searchResult || {}),
+        [query]: result.map((item: UserGroup) => item.id),
+      };
+    });
   }
 
+  @action.bound
   getSearchResult(query = '') {
     if (!this.searchResult[query]) {
       return undefined;

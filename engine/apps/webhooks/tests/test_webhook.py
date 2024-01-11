@@ -231,7 +231,7 @@ def test_make_request(make_organization, make_custom_webhook):
     organization = make_organization()
 
     with patch("apps.webhooks.models.webhook.requests") as mock_requests:
-        for method in ("GET", "POST", "PUT", "DELETE", "OPTIONS"):
+        for method in ("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"):
             webhook = make_custom_webhook(organization=organization, http_method=method)
             webhook.make_request("url", {"foo": "bar"})
             expected_call = getattr(mock_requests, method.lower())

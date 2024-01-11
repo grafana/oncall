@@ -82,6 +82,13 @@ engine:
 
   # Extra volume mounts for the main app container
   extraVolumeMounts: []
+  # - mountPath: /mnt/postgres-tls
+  #   name: postgres-tls
+  # - mountPath: /mnt/redis-tls
+  #   name: redis-tls
+
+  # Extra volumes for the pod
+  extraVolumes: []
   # - name: postgres-tls
   #   configMap:
   #     name: my-postgres-tls
@@ -90,13 +97,6 @@ engine:
   #   configMap:
   #     name: my-redis-tls
   #     defaultMode: 0640
-
-  # Extra volumes for the pod
-  extraVolumes: []
-  # - mountPath: /mnt/postgres-tls
-  #   name: postgres-tls
-  # - mountPath: /mnt/redis-tls
-  #   name: redis-tls
 
 detached_integrations_service:
   enabled: false
@@ -157,6 +157,13 @@ detached_integrations:
 
   # Extra volume mounts for the container
   extraVolumeMounts: []
+  # - mountPath: /mnt/postgres-tls
+  #   name: postgres-tls
+  # - mountPath: /mnt/redis-tls
+  #   name: redis-tls
+
+  # Extra volumes for the pod
+  extraVolumes: []
   # - name: postgres-tls
   #   configMap:
   #     name: my-postgres-tls
@@ -165,13 +172,6 @@ detached_integrations:
   #   configMap:
   #     name: my-redis-tls
   #     defaultMode: 0640
-
-  # Extra volumes for the pod
-  extraVolumes: []
-  # - mountPath: /mnt/postgres-tls
-  #   name: postgres-tls
-  # - mountPath: /mnt/redis-tls
-  #   name: redis-tls
 
 # Celery workers pods configuration
 celery:
@@ -235,6 +235,13 @@ celery:
 
   # Extra volume mounts for the main container
   extraVolumeMounts: []
+  # - mountPath: /mnt/postgres-tls
+  #   name: postgres-tls
+  # - mountPath: /mnt/redis-tls
+  #   name: redis-tls
+
+  # Extra volumes for the pod
+  extraVolumes: []
   # - name: postgres-tls
   #   configMap:
   #     name: my-postgres-tls
@@ -243,13 +250,6 @@ celery:
   #   configMap:
   #     name: my-redis-tls
   #     defaultMode: 0640
-
-  # Extra volumes for the pod
-  extraVolumes: []
-  # - mountPath: /mnt/postgres-tls
-  #   name: postgres-tls
-  # - mountPath: /mnt/redis-tls
-  #   name: redis-tls
 
 # Telegram polling pod configuration
 telegramPolling:
@@ -268,6 +268,13 @@ telegramPolling:
 
   # Extra volume mounts for the main container
   extraVolumeMounts: []
+  # - mountPath: /mnt/postgres-tls
+  #   name: postgres-tls
+  # - mountPath: /mnt/redis-tls
+  #   name: redis-tls
+
+  # Extra volumes for the pod
+  extraVolumes: []
   # - name: postgres-tls
   #   configMap:
   #     name: my-postgres-tls
@@ -276,13 +283,6 @@ telegramPolling:
   #   configMap:
   #     name: my-redis-tls
   #     defaultMode: 0640
-
-  # Extra volumes for the pod
-  extraVolumes: []
-  # - mountPath: /mnt/postgres-tls
-  #   name: postgres-tls
-  # - mountPath: /mnt/redis-tls
-  #   name: redis-tls
 
 oncall:
   # this is intended to be used for local development. In short, it will mount the ./engine dir into
@@ -420,6 +420,13 @@ migrate:
 
   # Extra volume mounts for the main container
   extraVolumeMounts: []
+  # - mountPath: /mnt/postgres-tls
+  #   name: postgres-tls
+  # - mountPath: /mnt/redis-tls
+  #   name: redis-tls
+
+  # Extra volumes for the pod
+  extraVolumes: []
   # - name: postgres-tls
   #   configMap:
   #     name: my-postgres-tls
@@ -428,13 +435,6 @@ migrate:
   #   configMap:
   #     name: my-redis-tls
   #     defaultMode: 0640
-
-  # Extra volumes for the pod
-  extraVolumes: []
-  # - mountPath: /mnt/postgres-tls
-  #   name: postgres-tls
-  # - mountPath: /mnt/redis-tls
-  #   name: redis-tls
 
 # Sets environment variables with name capitalized and prefixed with UWSGI_,
 # and dashes are substituted with underscores.
@@ -708,3 +708,12 @@ ui:
     tag: dev
   # Additional env vars for the ui container
   env: {}
+
+prometheus:
+  enabled: false
+  # extraScrapeConfigs: |
+  #   - job_name: 'oncall-exporter'
+  #     metrics_path: /metrics/
+  #     static_configs:
+  #       - targets:
+  #         - oncall-dev-engine.default.svc.cluster.local:8080

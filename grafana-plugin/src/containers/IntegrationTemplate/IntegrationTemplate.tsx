@@ -5,7 +5,7 @@ import cn from 'classnames/bind';
 import { debounce } from 'lodash-es';
 import { observer } from 'mobx-react';
 
-import { templateForEdit } from 'components/AlertTemplates/AlertTemplatesForm.config';
+import { getTemplatesForEdit } from 'components/AlertTemplates/AlertTemplatesForm.config';
 import { TemplateForEdit } from 'components/AlertTemplates/CommonAlertTemplatesForm.config';
 import CheatSheet from 'components/CheatSheet/CheatSheet';
 import {
@@ -19,10 +19,11 @@ import TemplateResult from 'containers/TemplateResult/TemplateResult';
 import TemplatesAlertGroupsList, { TEMPLATE_PAGE } from 'containers/TemplatesAlertGroupsList/TemplatesAlertGroupsList';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
-import { AlertTemplatesDTO } from 'models/alert_templates';
+import { AlertTemplatesDTO } from 'models/alert_templates/alert_templates';
 import { Alert } from 'models/alertgroup/alertgroup.types';
 import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
-import { TemplateOptions } from 'pages/integration/Integration.config';
+import { BaseTemplateOptions } from 'pages/integration/IntegrationCommon.config';
+import { useStore } from 'state/useStore';
 import LocationHelper from 'utils/LocationHelper';
 import { UserActions } from 'utils/authorization';
 
@@ -51,7 +52,11 @@ const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
   const [resultError, setResultError] = useState<string>(undefined);
   const [isRecentAlertGroupExisting, setIsRecentAlertGroupExisting] = useState<boolean>(false);
 
+  const store = useStore();
+
   useEffect(() => {
+    const templateForEdit = getTemplatesForEdit(store.features);
+
     if (templateForEdit[template.name]) {
       const locationParams: any = { template: template.name };
       if (template.isRoute) {
@@ -124,25 +129,25 @@ const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
 
   const getCheatSheet = (templateKey: string) => {
     switch (templateKey) {
-      case TemplateOptions.Grouping.key:
-      case TemplateOptions.Resolve.key:
+      case BaseTemplateOptions.Grouping.key:
+      case BaseTemplateOptions.Resolve.key:
         return groupingTemplateCheatSheet;
-      case TemplateOptions.WebTitle.key:
-      case TemplateOptions.WebMessage.key:
-      case TemplateOptions.WebImage.key:
+      case BaseTemplateOptions.WebTitle.key:
+      case BaseTemplateOptions.WebMessage.key:
+      case BaseTemplateOptions.WebImage.key:
         return genericTemplateCheatSheet;
-      case TemplateOptions.Autoacknowledge.key:
-      case TemplateOptions.SourceLink.key:
-      case TemplateOptions.Phone.key:
-      case TemplateOptions.SMS.key:
-      case TemplateOptions.SlackTitle.key:
-      case TemplateOptions.SlackMessage.key:
-      case TemplateOptions.SlackImage.key:
-      case TemplateOptions.TelegramTitle.key:
-      case TemplateOptions.TelegramMessage.key:
-      case TemplateOptions.TelegramImage.key:
-      case TemplateOptions.EmailTitle.key:
-      case TemplateOptions.EmailMessage.key:
+      case BaseTemplateOptions.Autoacknowledge.key:
+      case BaseTemplateOptions.SourceLink.key:
+      case BaseTemplateOptions.Phone.key:
+      case BaseTemplateOptions.SMS.key:
+      case BaseTemplateOptions.SlackTitle.key:
+      case BaseTemplateOptions.SlackMessage.key:
+      case BaseTemplateOptions.SlackImage.key:
+      case BaseTemplateOptions.TelegramTitle.key:
+      case BaseTemplateOptions.TelegramMessage.key:
+      case BaseTemplateOptions.TelegramImage.key:
+      case BaseTemplateOptions.EmailTitle.key:
+      case BaseTemplateOptions.EmailMessage.key:
         return slackMessageTemplateCheatSheet;
       default:
         return genericTemplateCheatSheet;

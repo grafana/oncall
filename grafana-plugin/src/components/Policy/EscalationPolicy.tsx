@@ -23,7 +23,6 @@ import {
 import { GrafanaTeamStore } from 'models/grafana_team/grafana_team';
 import { OutgoingWebhookStore } from 'models/outgoing_webhook/outgoing_webhook';
 import { ScheduleStore } from 'models/schedule/schedule';
-import { WaitDelay } from 'models/wait_delay';
 import { SelectOption } from 'state/types';
 import { getVar } from 'utils/DOM';
 import { UserActions } from 'utils/authorization';
@@ -255,7 +254,7 @@ export class EscalationPolicy extends React.Component<EscalationPolicyProps, any
           // @ts-ignore
           value={wait_delay}
           onChange={this._getOnSelectChangeHandler('wait_delay')}
-          options={waitDelays.map((waitDelay: WaitDelay) => ({
+          options={waitDelays.map((waitDelay: SelectOption) => ({
             value: waitDelay.value,
             label: waitDelay.display_name,
           }))}

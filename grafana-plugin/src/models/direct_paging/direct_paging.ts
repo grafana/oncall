@@ -1,4 +1,4 @@
-import { action, observable } from 'mobx';
+import { action, observable, makeObservable } from 'mobx';
 
 import { UserResponders } from 'containers/AddResponders/AddResponders.types';
 import { Alert } from 'models/alertgroup/alertgroup.types';
@@ -24,10 +24,12 @@ export class DirectPagingStore extends BaseStore {
   constructor(rootStore: RootStore) {
     super(rootStore);
 
+    makeObservable(this);
+
     this.path = '/direct_paging/';
   }
 
-  @action
+  @action.bound
   addUserToSelectedUsers = (user: UserCurrentlyOnCall) => {
     this.selectedUserResponders = [
       ...this.selectedUserResponders,
@@ -38,22 +40,22 @@ export class DirectPagingStore extends BaseStore {
     ];
   };
 
-  @action
+  @action.bound
   resetSelectedUsers = () => {
     this.selectedUserResponders = [];
   };
 
-  @action
+  @action.bound
   updateSelectedTeam = (team: GrafanaTeam) => {
     this.selectedTeamResponder = team;
   };
 
-  @action
+  @action.bound
   resetSelectedTeam = () => {
     this.selectedTeamResponder = null;
   };
 
-  @action
+  @action.bound
   removeSelectedUser(index: number) {
     this.selectedUserResponders = [
       ...this.selectedUserResponders.slice(0, index),
@@ -61,7 +63,7 @@ export class DirectPagingStore extends BaseStore {
     ];
   }
 
-  @action
+  @action.bound
   updateSelectedUserImportantStatus(index: number, important: boolean) {
     this.selectedUserResponders = [
       ...this.selectedUserResponders.slice(0, index),
@@ -73,6 +75,7 @@ export class DirectPagingStore extends BaseStore {
     ];
   }
 
+  @action.bound
   async createManualAlertRule(data: ManualAlertGroupPayload): Promise<DirectPagingResponse | void> {
     return await makeRequest<DirectPagingResponse>(this.path, {
       method: 'POST',
@@ -80,6 +83,7 @@ export class DirectPagingStore extends BaseStore {
     }).catch(this.onApiError);
   }
 
+  @action.bound
   async updateAlertGroup(alertId: Alert['pk'], data: ManualAlertGroupPayload): Promise<DirectPagingResponse | void> {
     return await makeRequest<DirectPagingResponse>(this.path, {
       method: 'POST',

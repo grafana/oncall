@@ -10,7 +10,7 @@ import SortableList from 'components/SortableList/SortableList';
 import Text from 'components/Text/Text';
 import Timeline from 'components/Timeline/Timeline';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
-import { NotificationPolicyType } from 'models/notification_policy';
+import { NotificationPolicyType } from 'models/notification_policy/notification_policy';
 import { User as UserType } from 'models/user/user.types';
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';

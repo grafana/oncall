@@ -7,7 +7,6 @@ import {
   VerticalGroup,
   Icon,
   LoadingPlaceholder,
-  CascaderOption,
   IconButton,
   ConfirmModal,
   Drawer,
@@ -20,7 +19,7 @@ import CopyToClipboard from 'react-copy-to-clipboard';
 import Emoji from 'react-emoji-render';
 import { RouteComponentProps, useHistory, withRouter } from 'react-router-dom';
 
-import { templateForEdit } from 'components/AlertTemplates/AlertTemplatesForm.config';
+import { getTemplatesForEdit } from 'components/AlertTemplates/AlertTemplatesForm.config';
 import { TemplateForEdit } from 'components/AlertTemplates/CommonAlertTemplatesForm.config';
 import HamburgerMenu from 'components/HamburgerMenu/HamburgerMenu';
 import IntegrationCollapsibleTreeView, {
@@ -56,9 +55,8 @@ import {
   AlertReceiveChannel,
   AlertReceiveChannelCounters,
 } from 'models/alert_receive_channel/alert_receive_channel.types';
-import { AlertTemplatesDTO } from 'models/alert_templates';
-import { ChannelFilter } from 'models/channel_filter';
-import { INTEGRATION_TEMPLATES_LIST } from 'pages/integration/Integration.config';
+import { AlertTemplatesDTO } from 'models/alert_templates/alert_templates';
+import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
 import IntegrationHelper from 'pages/integration/Integration.helper';
 import styles from 'pages/integration/Integration.module.scss';
 import { AppFeature } from 'state/features';
@@ -420,7 +418,7 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
                         Autoresolve:
                       </Text>
                       <Text type="primary">
-                        {IntegrationHelper.truncateLine(templates['resolve_condition_template'] || 'disabled')}
+                        {IntegrationHelper.truncateLine(templates?.['resolve_condition_template'] || 'disabled')}
                       </Text>
                     </div>
 
@@ -648,9 +646,11 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
       });
   };
 
-  getTemplatesList = (): CascaderOption[] => INTEGRATION_TEMPLATES_LIST;
-
   openEditTemplateModal = (templateName, channelFilterId?: ChannelFilter['id']) => {
+    const { store } = this.props;
+
+    const templateForEdit = getTemplatesForEdit(store.features);
+
     if (templateForEdit[templateName]) {
       this.setState({
         isEditTemplateModalOpen: true,
@@ -1131,7 +1131,7 @@ const IntegrationHeader: React.FC<IntegrationHeaderProps> = ({
 
       {alertReceiveChannel.maintenance_till && (
         <TooltipBadge
-          data-testid="maintenance-mode-remaining-time-tooltip"
+          testId="maintenance-mode-remaining-time-tooltip"
           borderType="primary"
           icon="pause"
           text={IntegrationHelper.getMaintenanceText(alertReceiveChannel.maintenance_till)}
@@ -1193,7 +1193,6 @@ const IntegrationHeader: React.FC<IntegrationHeaderProps> = ({
 
     return (
       <TooltipBadge
-        data-testid="heartbeat-badge"
         text={undefined}
         className={cx('heartbeat-badge')}
         borderType={heartbeatStatus ? 'success' : 'danger'}
