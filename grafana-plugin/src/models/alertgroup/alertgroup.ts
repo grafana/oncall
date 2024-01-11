@@ -479,7 +479,6 @@ export class AlertGroupStore extends BaseStore {
 
   @action.bound
   @AutoLoadingState(ActionKey.ADD_NEW_COLUMN_TO_ALERT_GROUP)
-  // @WithGlobalNotification({ failure: 'There was an error processing your request. Please try again' })
   async updateTableSettings(
     columns: { visible: AlertGroupColumn[]; hidden: AlertGroupColumn[] },
     isUserUpdate: boolean
