@@ -58,7 +58,6 @@ def parse_url(url):
 def apply_jinja_template_for_json(template, payload):
     escaped_payload = escape_payload(payload)
     return apply_jinja_template(template, **escaped_payload)
-    # return apply_jinja_template(template, **payload)
 
 
 def escape_payload(payload: dict):
