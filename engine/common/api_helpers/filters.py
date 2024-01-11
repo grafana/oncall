@@ -94,8 +94,7 @@ class ByTeamModelFieldFilterMixin:
         if null_team_lookup is not None:
             teams_lookup = teams_lookup | null_team_lookup
 
-        queryset = queryset.filter(teams_lookup)
-        return queryset
+        return queryset.filter(teams_lookup).distinct()
 
 
 def get_team_queryset(request):
