@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 
 import { useStyles2, Button, HorizontalGroup, Icon, LoadingPlaceholder, Modal, VerticalGroup } from '@grafana/ui';
+import { toJS } from 'mobx';
 import { observer } from 'mobx-react';
 
 import Text from 'components/Text/Text';
@@ -80,6 +81,7 @@ const ColumnsSelectorWrapper: React.FC<ColumnsSelectorWrapperProps> = observer((
                 variant={'destructive'}
                 onClick={WrapAutoLoadingState(
                   WrapWithGlobalNotification(onColumnRemovalClick, {
+                    success: 'Column has been removed from the list.',
                     failure: 'There was an error processing your request. Please try again',
                   }),
                   ActionKey.REMOVE_COLUMN_FROM_ALERT_GROUP
@@ -130,7 +132,10 @@ const ColumnsSelectorWrapper: React.FC<ColumnsSelectorWrapperProps> = observer((
   }
 
   async function onColumnRemovalClick(): Promise<void> {
-    const columns = store.alertGroupStore.columns.filter((col) => col.id !== columnToBeRemoved.id);
+    const columns = store.alertGroupStore.columns.filter(
+      (col) =>
+        col.id !== columnToBeRemoved.id || (col.id === columnToBeRemoved.id && col.type !== columnToBeRemoved.type)
+    );
 
     await store.alertGroupStore.updateTableSettings(convertColumnsToTableSettings(columns), false);
     await store.alertGroupStore.fetchTableSettings();

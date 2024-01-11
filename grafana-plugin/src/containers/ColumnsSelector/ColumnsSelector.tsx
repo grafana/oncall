@@ -9,7 +9,7 @@ import {
   useSensors,
   DragEndEvent,
 } from '@dnd-kit/core';
-import { restrictToVerticalAxis } from '@dnd-kit/modifiers';
+import { restrictToVerticalAxis, restrictToParentElement } from '@dnd-kit/modifiers';
 import {
   arrayMove,
   SortableContext,
@@ -38,7 +38,7 @@ const TRANSITION_MS = 500;
 
 interface ColumnRowProps {
   column: AlertGroupColumn;
-  onItemChange: (id: number | string) => void;
+  onItemChange: (column: AlertGroupColumn) => void;
   onColumnRemoval: (column: AlertGroupColumn) => void;
 }
 
@@ -93,7 +93,7 @@ const ColumnRow: React.FC<ColumnRowProps> = ({ column, onItemChange, onColumnRem
         className={styles.columnsCheckbox}
         type="checkbox"
         value={column.isVisible}
-        onChange={() => onItemChange(column.id)}
+        onChange={() => onItemChange(column)}
       />
     </div>
   );
@@ -142,7 +142,7 @@ export const ColumnsSelector: React.FC<ColumnsSelectorProps> = observer(
             sensors={sensors}
             collisionDetection={closestCenter}
             onDragEnd={(ev) => handleDragEnd(ev, true)}
-            modifiers={[restrictToVerticalAxis]}
+            modifiers={[restrictToVerticalAxis, restrictToParentElement]}
           >
             <SortableContext items={columns} strategy={verticalListSortingStrategy}>
               <TransitionGroup>
@@ -213,7 +213,7 @@ export const ColumnsSelector: React.FC<ColumnsSelectorProps> = observer(
       await alertGroupStore.fetchTableSettings();
     }
 
-    async function onItemChange(id: string | number) {
+    async function onItemChange({ id, type }: AlertGroupColumn) {
       const checkedItems = alertGroupStore.columns.filter((col) => col.isVisible);
       if (checkedItems.length === 1 && checkedItems[0].id === id) {
         openErrorNotification('At least one column should be selected');
@@ -222,7 +222,7 @@ export const ColumnsSelector: React.FC<ColumnsSelectorProps> = observer(
 
       alertGroupStore.columns = alertGroupStore.columns.map((item): AlertGroupColumn => {
         let newItem: AlertGroupColumn = { ...item, isVisible: !item.isVisible };
-        return item.id === id ? newItem : item;
+        return item.id === id && item.type === type ? newItem : item;
       });
 
       await alertGroupStore.updateTableSettings(convertColumnsToTableSettings(alertGroupStore.columns), true);
