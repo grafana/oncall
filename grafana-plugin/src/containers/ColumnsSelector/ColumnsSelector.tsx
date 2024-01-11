@@ -9,6 +9,7 @@ import {
   useSensors,
   DragEndEvent,
 } from '@dnd-kit/core';
+import { restrictToVerticalAxis } from '@dnd-kit/modifiers';
 import {
   arrayMove,
   SortableContext,
@@ -20,8 +21,6 @@ import { CSS } from '@dnd-kit/utilities';
 import { Button, Checkbox, Icon, IconButton, LoadingPlaceholder, Tooltip, useStyles2 } from '@grafana/ui';
 import { observer } from 'mobx-react';
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
-
-import { restrictToVerticalAxis } from '@dnd-kit/modifiers';
 
 import RenderConditionally from 'components/RenderConditionally/RenderConditionally';
 import Text from 'components/Text/Text';
