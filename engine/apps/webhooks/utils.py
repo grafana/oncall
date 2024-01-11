@@ -58,6 +58,7 @@ def parse_url(url):
 def apply_jinja_template_for_json(template, payload):
     escaped_payload = escape_payload(payload)
     return apply_jinja_template(template, **escaped_payload)
+    # return apply_jinja_template(template, **payload)
 
 
 def escape_payload(payload: dict):
@@ -82,7 +83,7 @@ def escape_string(string: str):
     json.dumps is the simples way to escape all special characters in string.
     First and last chars are quotes from json.dumps(), we don't need them, only escaping.
     """
-    return json.dumps(string)[1:-1]
+    return json.dumps(string, ensure_ascii=False)[1:-1]
 
 
 class EscapeDoubleQuotesDict(dict):
