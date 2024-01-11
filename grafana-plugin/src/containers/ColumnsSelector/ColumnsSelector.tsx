@@ -21,6 +21,8 @@ import { Button, Checkbox, Icon, IconButton, LoadingPlaceholder, Tooltip, useSty
 import { observer } from 'mobx-react';
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
 
+import { restrictToVerticalAxis } from '@dnd-kit/modifiers';
+
 import RenderConditionally from 'components/RenderConditionally/RenderConditionally';
 import Text from 'components/Text/Text';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
@@ -141,6 +143,7 @@ export const ColumnsSelector: React.FC<ColumnsSelectorProps> = observer(
             sensors={sensors}
             collisionDetection={closestCenter}
             onDragEnd={(ev) => handleDragEnd(ev, true)}
+            modifiers={[restrictToVerticalAxis]}
           >
             <SortableContext items={columns} strategy={verticalListSortingStrategy}>
               <TransitionGroup>

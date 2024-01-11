@@ -11,7 +11,7 @@ import { RootStore } from 'state';
 import { SelectOption } from 'state/types';
 import { openErrorNotification, refreshPageError, showApiError } from 'utils';
 import LocationHelper from 'utils/LocationHelper';
-import { AutoLoadingState } from 'utils/decorators';
+import { AutoLoadingState, WithGlobalNotification } from 'utils/decorators';
 
 import { AlertGroupColumn, Alert, AlertAction, IncidentStatus } from './alertgroup.types';
 
@@ -479,6 +479,7 @@ export class AlertGroupStore extends BaseStore {
 
   @action.bound
   @AutoLoadingState(ActionKey.ADD_NEW_COLUMN_TO_ALERT_GROUP)
+  // @WithGlobalNotification({ failure: 'There was an error processing your request. Please try again' })
   async updateTableSettings(
     columns: { visible: AlertGroupColumn[]; hidden: AlertGroupColumn[] },
     isUserUpdate: boolean
