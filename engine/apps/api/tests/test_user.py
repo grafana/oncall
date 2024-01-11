@@ -288,6 +288,48 @@ def test_list_users_filtered_by_public_primary_key(
 
 
 @pytest.mark.django_db
+def test_list_users_filtered_by_team(
+    make_organization,
+    make_team,
+    make_user_for_organization,
+    make_token_for_organization,
+    make_user_auth_headers,
+):
+    organization = make_organization()
+    user1 = make_user_for_organization(organization)
+    user2 = make_user_for_organization(organization)
+
+    team1 = make_team(organization)
+    team2 = make_team(organization)
+    team3 = make_team(organization)
+
+    user1.teams.add(team1)
+    user1.teams.add(team2)
+    user2.teams.add(team2)
+
+    _, token = make_token_for_organization(organization)
+    client = APIClient()
+    url = reverse("api-internal:user-list")
+
+    def _get_user_pks(teams):
+        response = client.get(
+            url,
+            data={"team": [team.public_primary_key for team in teams]},  # these are query params
+            **make_user_auth_headers(user1, token),
+        )
+        assert response.status_code == status.HTTP_200_OK
+        return [u["pk"] for u in response.json()["results"]]
+
+    assert _get_user_pks([team1]) == [user1.public_primary_key]
+    assert _get_user_pks([team1, team2]) == [user1.public_primary_key, user2.public_primary_key]
+    assert _get_user_pks([team3]) == []
+
+    # check non-existent team returns bad request
+    response = client.get(f"{url}?team=null", **make_user_auth_headers(user1, token))
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+@pytest.mark.django_db
 def test_notification_chain_verbal(
     make_organization,
     make_user_for_organization,
