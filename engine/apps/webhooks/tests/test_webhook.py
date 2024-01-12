@@ -278,3 +278,21 @@ def test_escaping_payload_with_single_quote_in_string(make_organization, make_cu
     }
     request_kwargs = webhook.build_request_kwargs(payload)
     assert request_kwargs == {"headers": {}, "json": {"data": "{'text': \"Hi, it's alert\"}"}}
+
+
+@pytest.mark.django_db
+def test_escaping_unicode_in_string(make_organization, make_custom_webhook):
+    organization = make_organization()
+    webhook = make_custom_webhook(
+        organization=organization,
+        data='{"data" : "{{ alert_payload.text }}"}',
+        forward_all=False,
+    )
+
+    payload = {
+        "alert_payload": {
+            "text": "東京",
+        }
+    }
+    request_kwargs = webhook.build_request_kwargs(payload)
+    assert request_kwargs == {"headers": {}, "json": {"data": "東京"}}
