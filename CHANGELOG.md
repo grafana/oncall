@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Fixed
+
+- Fix unicode characters not rendering correctly in webhooks @mderynck ([#3670](https://github.com/grafana/oncall/pull/3670))
+
+## v1.3.85 (2024-01-12)
+
+Maintenance release
+
 ## v1.3.84 (2024-01-10)
 
 ### Added
