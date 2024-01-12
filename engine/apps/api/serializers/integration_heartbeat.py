@@ -41,10 +41,10 @@ class IntegrationHeartBeatSerializer(EagerLoadingMixin, serializers.ModelSeriali
                 {"alert_receive_channel": "Heartbeat is not available for this integration"}
             )
 
-    def get_last_heartbeat_time_verbal(self, obj):
+    def get_last_heartbeat_time_verbal(self, obj) -> str | None:
         return self._last_heartbeat_time_verbal(obj) if obj.last_heartbeat_time else None
 
-    def get_instruction(self, obj):
+    def get_instruction(self, obj) -> str:
         # Deprecated. Kept for API backward compatibility.
         return ""
 
