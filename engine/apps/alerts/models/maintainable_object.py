@@ -151,7 +151,7 @@ class MaintainableObject(models.Model):
             )
 
     @property
-    def till_maintenance_timestamp(self):
+    def till_maintenance_timestamp(self) -> int | None:
         if self.maintenance_started_at is not None and self.maintenance_duration is not None:
             return int((self.maintenance_started_at + self.maintenance_duration).astimezone(pytz.UTC).timestamp())
         return None
