@@ -29,7 +29,7 @@ export class DirectPagingStore extends BaseStore {
     this.path = '/direct_paging/';
   }
 
-  @action.bound
+  @action
   addUserToSelectedUsers = (user: UserCurrentlyOnCall) => {
     this.selectedUserResponders = [
       ...this.selectedUserResponders,
@@ -40,22 +40,22 @@ export class DirectPagingStore extends BaseStore {
     ];
   };
 
-  @action.bound
+  @action
   resetSelectedUsers = () => {
     this.selectedUserResponders = [];
   };
 
-  @action.bound
+  @action
   updateSelectedTeam = (team: GrafanaTeam) => {
     this.selectedTeamResponder = team;
   };
 
-  @action.bound
+  @action
   resetSelectedTeam = () => {
     this.selectedTeamResponder = null;
   };
 
-  @action.bound
+  @action
   removeSelectedUser(index: number) {
     this.selectedUserResponders = [
       ...this.selectedUserResponders.slice(0, index),
@@ -63,7 +63,7 @@ export class DirectPagingStore extends BaseStore {
     ];
   }
 
-  @action.bound
+  @action
   updateSelectedUserImportantStatus(index: number, important: boolean) {
     this.selectedUserResponders = [
       ...this.selectedUserResponders.slice(0, index),
@@ -75,7 +75,6 @@ export class DirectPagingStore extends BaseStore {
     ];
   }
 
-  @action.bound
   async createManualAlertRule(data: ManualAlertGroupPayload): Promise<DirectPagingResponse | void> {
     return await makeRequest<DirectPagingResponse>(this.path, {
       method: 'POST',
@@ -83,7 +82,6 @@ export class DirectPagingStore extends BaseStore {
     }).catch(this.onApiError);
   }
 
-  @action.bound
   async updateAlertGroup(alertId: Alert['pk'], data: ManualAlertGroupPayload): Promise<DirectPagingResponse | void> {
     return await makeRequest<DirectPagingResponse>(this.path, {
       method: 'POST',

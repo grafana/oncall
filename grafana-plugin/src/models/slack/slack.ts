@@ -19,7 +19,7 @@ export class SlackStore extends BaseStore {
     makeObservable(this);
   }
 
-  @action.bound
+  @action
   async updateSlackSettings() {
     const result = await makeRequest('/slack_settings/', {});
 
@@ -28,7 +28,7 @@ export class SlackStore extends BaseStore {
     });
   }
 
-  @action.bound
+  @action
   async saveSlackSettings(data: Partial<SlackSettings>) {
     const result = await makeRequest('/slack_settings/', {
       data,
@@ -40,7 +40,7 @@ export class SlackStore extends BaseStore {
     });
   }
 
-  @action.bound
+  @action
   async setGeneralLogChannelId(id: SlackChannel['id']) {
     return await makeRequest('/set_general_channel/', {
       method: 'POST',
@@ -48,7 +48,7 @@ export class SlackStore extends BaseStore {
     });
   }
 
-  @action.bound
+  @action
   async updateSlackIntegrationData(slack_id: string) {
     const result = await makeRequest('/slack_integration/', {
       params: { slack_id },
@@ -61,7 +61,6 @@ export class SlackStore extends BaseStore {
     return result;
   }
 
-  @action.bound
   async reinstallSlackIntegration(slack_id: string) {
     return await makeRequest('/slack_integration/', {
       validateStatus: function (status) {
@@ -72,19 +71,16 @@ export class SlackStore extends BaseStore {
     }).catch(this.onApiError);
   }
 
-  @action.bound
   async slackLogin() {
     const url_for_redirect = await makeRequest('/login/slack-login/', {});
     window.location = url_for_redirect;
   }
 
-  @action.bound
   async installSlackIntegration() {
     const url_for_redirect = await makeRequest('/login/slack-install-free/', {});
     window.location = url_for_redirect;
   }
 
-  @action.bound
   async removeSlackIntegration() {
     return await makeRequest('/slack/reset_slack/', { method: 'POST' });
   }

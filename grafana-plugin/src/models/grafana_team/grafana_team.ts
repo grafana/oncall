@@ -22,7 +22,7 @@ export class GrafanaTeamStore extends BaseStore {
     this.path = '/teams/';
   }
 
-  @action.bound
+  @action
   async updateTeam(id: GrafanaTeam['id'], data: Partial<GrafanaTeam>) {
     const result = await this.update(id, data);
 
@@ -61,7 +61,6 @@ export class GrafanaTeamStore extends BaseStore {
     });
   }
 
-  @action.bound
   getSearchResult() {
     return this.searchResult.map((teamId: GrafanaTeam['id']) => this.items[teamId]);
   }
