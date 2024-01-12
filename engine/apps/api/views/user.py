@@ -64,6 +64,7 @@ from apps.telegram.client import TelegramClient
 from apps.telegram.models import TelegramVerificationCode
 from apps.user_management.models import Team, User
 from common.api_helpers.exceptions import Conflict
+from common.api_helpers.filters import ByTeamModelFieldFilterMixin, TeamModelMultipleChoiceFilter
 from common.api_helpers.mixins import FilterSerializerMixin, PublicPrimaryKeyMixin
 from common.api_helpers.paginators import HundredPageSizePaginator
 from common.api_helpers.utils import create_engine_url
@@ -113,7 +114,7 @@ class CurrentUserView(APIView):
         return Response(serializer.data)
 
 
-class UserFilter(filters.FilterSet):
+class UserFilter(ByTeamModelFieldFilterMixin, filters.FilterSet):
     """
     https://django-filter.readthedocs.io/en/master/guide/rest_framework.html
     """
@@ -122,6 +123,7 @@ class UserFilter(filters.FilterSet):
     # TODO: remove "roles" in next version
     roles = filters.MultipleChoiceFilter(field_name="role", choices=LegacyAccessControlRole.choices())
     permission = filters.ChoiceFilter(method="filter_by_permission", choices=ALL_PERMISSION_CHOICES)
+    team = TeamModelMultipleChoiceFilter(field_name="teams", null_label=None, null_value=None)
 
     class Meta:
         model = User
