@@ -37,6 +37,7 @@ test.describe('Insights', () => {
     );
     await createIntegrationAndSendDemoAlert(page, integrationName, escalationChainName);
     await resolveFiringAlert(page);
+    await page.waitForTimeout(5000);
   });
 
   test('Viewer can see all the panels in OnCall insights', async ({ viewerRolePage: { page } }) => {

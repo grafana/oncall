@@ -5,7 +5,8 @@ import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
 import Block from 'components/GBlock/Block';
-import MobileAppConnection from 'containers/MobileAppConnection/MobileAppConnection';
+import { MobileAppConnection } from 'containers/MobileAppConnection/MobileAppConnection';
+import { MobileAppConnectionTab } from 'containers/MobileAppConnection/MobileAppConnectionTab';
 import { UserSettingsTab } from 'containers/UserSettings/UserSettings.types';
 import { SlackTab } from 'containers/UserSettings/parts/tabs//SlackTab/SlackTab';
 import CloudPhoneSettings from 'containers/UserSettings/parts/tabs/CloudPhoneSettings/CloudPhoneSettings';
@@ -17,6 +18,7 @@ import { UserInfoTab } from 'containers/UserSettings/parts/tabs/UserInfoTab/User
 import { User } from 'models/user/user.types';
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
+import { isUseProfileExtensionPointEnabled } from 'utils';
 
 import styles from 'containers/UserSettings/parts/index.module.css';
 
@@ -151,10 +153,18 @@ export const TabsContent = observer(({ id, activeTab, onTabChange, isDesktopOrLa
         ) : (
           <PhoneVerification userPk={id} />
         ))}
-      {activeTab === UserSettingsTab.MobileAppConnection && <MobileAppConnection userPk={id} />}
+      {activeTab === UserSettingsTab.MobileAppConnection && renderMobileTab()}
       {activeTab === UserSettingsTab.SlackInfo && <SlackTab />}
       {activeTab === UserSettingsTab.TelegramInfo && <TelegramInfo />}
       {activeTab === UserSettingsTab.MSTeamsInfo && <MSTeamsInfo />}
     </TabContent>
   );
+
+  function renderMobileTab() {
+    if (!isUseProfileExtensionPointEnabled()) {
+      return <MobileAppConnection userPk={id} />;
+    }
+
+    return <MobileAppConnectionTab userPk={id} />;
+  }
 });

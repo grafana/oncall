@@ -10,7 +10,7 @@ export default function getMTTRByIntegrationScene({ datasource }: InsightsConfig
       {
         editorMode: 'code',
         exemplar: false,
-        expr: 'sort_desc(avg_over_time((sum by (integration)($alert_groups_response_time_seconds_sum{slug=~"$instance", team=~"$team", integration=~"$integration"}) / sum by (integration)($alert_groups_response_time_seconds_count{slug=~"$instance", team=~"$team", integration=~"$integration"}))[$__range:]))',
+        expr: 'sort_desc(avg_over_time((sum by (integration)($alert_groups_response_time_seconds_sum{slug=~"$stack", team=~"$team", integration=~"$integration"}) / sum by (integration)($alert_groups_response_time_seconds_count{slug=~"$stack", team=~"$team", integration=~"$integration"}))[$__range:]))',
         format: 'table',
         instant: true,
         legendFormat: '__auto',
@@ -35,7 +35,7 @@ export default function getMTTRByIntegrationScene({ datasource }: InsightsConfig
             cluster: true,
             container: true,
             id: true,
-            instance: true,
+            stack: true,
             job: true,
             namespace: true,
             org_id: true,
