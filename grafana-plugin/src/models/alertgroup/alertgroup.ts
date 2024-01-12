@@ -11,7 +11,7 @@ import { RootStore } from 'state';
 import { SelectOption } from 'state/types';
 import { openErrorNotification, refreshPageError, showApiError } from 'utils';
 import LocationHelper from 'utils/LocationHelper';
-import { AutoLoadingState, WithGlobalNotification } from 'utils/decorators';
+import { AutoLoadingState } from 'utils/decorators';
 
 import { AlertGroupColumn, Alert, AlertAction, IncidentStatus } from './alertgroup.types';
 
