@@ -2,12 +2,12 @@ import datetime
 import typing
 
 import requests
-from celery import shared_task
 from django.conf import settings
 from django.db.models import Avg, F, Max, Q
 from django.utils import timezone
 
 from apps.alerts.tasks.task_logger import task_logger
+from common.custom_celery_tasks.log_exception_on_failure_task import shared_log_exception_on_failure_task
 from common.database import get_random_readonly_database_key_if_present_otherwise_default
 
 if typing.TYPE_CHECKING:
@@ -87,7 +87,7 @@ def audit_alert_group_escalation(alert_group: "AlertGroup") -> None:
     task_logger.info(f"{base_msg} passed the audit checks")
 
 
-@shared_task
+@shared_log_exception_on_failure_task
 def check_alert_group_personal_notifications_task(alert_group_id) -> None:
     # Check personal notifications are completed
     # triggered (< 5min ago) == failed + success
@@ -115,7 +115,7 @@ def check_alert_group_personal_notifications_task(alert_group_id) -> None:
         task_logger.info(f"{base_msg} personal notifications check passed")
 
 
-@shared_task
+@shared_log_exception_on_failure_task
 def check_personal_notifications_task() -> None:
     """
     This task checks that triggered personal notifications are completed.
@@ -163,7 +163,7 @@ def check_personal_notifications_task() -> None:
     task_logger.info(f"personal_notifications_triggered={triggered} personal_notifications_completed={completed}")
 
 
-@shared_task
+@shared_log_exception_on_failure_task
 def check_escalation_finished_task() -> None:
     """
     This task takes alert groups with active escalation, checks if escalation snapshot with escalation policies

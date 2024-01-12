@@ -1,9 +1,11 @@
-from celery import Task, shared_task
+from celery import shared_task
+
+from common.custom_celery_tasks.log_exception_on_failure_task import LogExceptionOnFailureTask
 
 RETRY_QUEUE = "retry"
 
 
-class DedicatedQueueRetryTask(Task):
+class DedicatedQueueRetryTask(LogExceptionOnFailureTask):
     """
     Custom task sends all retried task to the dedicated retry queue.
     Is is needed to not to overload regular (high, medium, low) queues with retried tasks.
