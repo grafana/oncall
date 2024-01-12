@@ -12,6 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix unicode characters not rendering correctly in webhooks @mderynck ([#3670](https://github.com/grafana/oncall/pull/3670))
 - UI bug related to time inputs for "current UTC time is in" range escalation policy step ([#3585](https://github.com/grafana/oncall/issues/3585)]
 - MS Teams Connection user profile tab - shouldn't reshow connection steps if already connected ([#2427](https://github.com/grafana/oncall-private/issues/2427))
+- Fix internal schedule detail API to set oncall_now for a schedule in orgs with multiple entries ([#3671](https://github.com/grafana/oncall/pull/3671))
+
 
 ## v1.3.85 (2024-01-12)
 
