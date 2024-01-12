@@ -46,13 +46,13 @@ except ModuleNotFoundError:
 
 # CELERY_TASK_ROUTES = celery_task_routes.CELERY_TASK_ROUTES
 
-# REST_FRAMEWORK = {
-#     "DEFAULT_PARSER_CLASSES": (
-#         "rest_framework.parsers.JSONParser",
-#         "rest_framework.parsers.FormParser",
-#         "rest_framework.parsers.MultiPartParser",
-#     ),
-#     "DEFAULT_AUTHENTICATION_CLASSES": [],
-#     "DEFAULT_RENDERER_CLASSES": ("rest_framework.renderers.JSONRenderer",),
-#     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
-# }
+REST_FRAMEWORK = {
+    "DEFAULT_PARSER_CLASSES": (
+        "rest_framework.parsers.JSONParser",
+        "rest_framework.parsers.FormParser",
+        "rest_framework.parsers.MultiPartParser",
+    ),
+    "DEFAULT_AUTHENTICATION_CLASSES": [],
+    "DEFAULT_RENDERER_CLASSES": ("rest_framework.renderers.JSONRenderer",),
+    "DEFAULT_SCHEMA_CLASS": "engine.schema.CustomAutoSchema",
+}
