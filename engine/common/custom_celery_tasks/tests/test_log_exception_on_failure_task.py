@@ -22,7 +22,8 @@ def test_log_exception_on_failure_task_logs_stack_trace_on_task_failure(caplog):
         raise ValueError(EXCEPTION_MSG)
 
     def _assert_stack_trace_in_log():
-        assert 'File "/etc/app/common/custom_celery_tasks/tests/test_log_exception_on_failure_task.py"' in caplog.text
+        assert "Traceback (most recent call last):" in caplog.text
+        assert "An exception occured while executing a celery task" in caplog.text
         assert f"raise ValueError(EXCEPTION_MSG)\nValueError: {EXCEPTION_MSG}" in caplog.text
         caplog.clear()
 
