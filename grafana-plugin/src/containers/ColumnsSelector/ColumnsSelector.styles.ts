@@ -9,7 +9,7 @@ export const getColumnsSelectorStyles = (_theme: GrafanaTheme2) => {
 
     columnsVisibleSection: css`
       margin-bottom: 16px;
-      height: 250px;
+      max-height: 250px;
       overflow-y: scroll;
       overflow-x: hidden;
     `,

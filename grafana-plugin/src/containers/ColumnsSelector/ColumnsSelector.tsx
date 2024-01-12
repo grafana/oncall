@@ -19,6 +19,7 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Button, Checkbox, Icon, IconButton, LoadingPlaceholder, Tooltip, useStyles2 } from '@grafana/ui';
+import { toJS } from 'mobx';
 import { observer } from 'mobx-react';
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
 
@@ -147,9 +148,14 @@ export const ColumnsSelector: React.FC<ColumnsSelectorProps> = observer(
             <SortableContext items={columns} strategy={verticalListSortingStrategy}>
               <TransitionGroup>
                 {visibleColumns.map((column) => (
-                  <CSSTransition key={column.id} timeout={TRANSITION_MS} unmountOnExit classNames="fade">
+                  <CSSTransition
+                    key={`${column.id}-${column.type}`}
+                    timeout={TRANSITION_MS}
+                    unmountOnExit
+                    classNames="fade"
+                  >
                     <ColumnRow
-                      key={column.id}
+                      key={`${column.id}-${column.type}`}
                       column={column}
                       onItemChange={onItemChange}
                       onColumnRemoval={onConfirmRemovalModalOpen}
@@ -175,9 +181,9 @@ export const ColumnsSelector: React.FC<ColumnsSelectorProps> = observer(
             <SortableContext items={columns} strategy={verticalListSortingStrategy}>
               <TransitionGroup>
                 {hiddenColumns.map((column) => (
-                  <CSSTransition key={column.id} timeout={TRANSITION_MS} classNames="fade">
+                  <CSSTransition key={`${column.id}-${column.type}`} timeout={TRANSITION_MS} classNames="fade">
                     <ColumnRow
-                      key={column.id}
+                      key={`${column.id}-${column.type}`}
                       column={column}
                       onItemChange={onItemChange}
                       onColumnRemoval={onConfirmRemovalModalOpen}
