@@ -30,7 +30,7 @@ export class EscalationChainStore extends BaseStore {
     this.path = '/escalation_chains/';
   }
 
-  @action.bound
+  @action
   async loadItem(id: EscalationChain['id'], skipErrorHandling = false): Promise<EscalationChain> {
     const escalationChain = await this.getById(id, skipErrorHandling);
 
@@ -44,7 +44,7 @@ export class EscalationChainStore extends BaseStore {
     return escalationChain;
   }
 
-  @action.bound
+  @action
   async updateById(id: EscalationChain['id']) {
     const response = await this.getById(id);
 
@@ -56,7 +56,7 @@ export class EscalationChainStore extends BaseStore {
     });
   }
 
-  @action.bound
+  @action
   async save(id: EscalationChain['id'], data: Partial<EscalationChain>) {
     const response = await super.update(id, data);
 
@@ -68,7 +68,7 @@ export class EscalationChainStore extends BaseStore {
     });
   }
 
-  @action.bound
+  @action
   async updateEscalationChainDetails(id: EscalationChain['id']) {
     const response = await makeRequest(`${this.path}${id}/details/`, {});
 
@@ -80,7 +80,7 @@ export class EscalationChainStore extends BaseStore {
     });
   }
 
-  @action.bound
+  @action
   async updateItem(id: EscalationChain['id'], skipErrorHandling = false): Promise<EscalationChain> {
     let escalationChain;
     try {
@@ -107,7 +107,7 @@ export class EscalationChainStore extends BaseStore {
     return escalationChain;
   }
 
-  @action.bound
+  @action
   async updateItems(query: any = '') {
     const params = typeof query === 'string' ? { search: query } : query;
 
@@ -140,7 +140,6 @@ export class EscalationChainStore extends BaseStore {
     this.loading = false;
   }
 
-  @action.bound
   getSearchResult(query = '') {
     if (!this.searchResult[query]) {
       return undefined;
@@ -149,7 +148,6 @@ export class EscalationChainStore extends BaseStore {
     return this.searchResult[query].map((escalationChainId: EscalationChain['id']) => this.items[escalationChainId]);
   }
 
-  @action.bound
   clone = (escalationChainId: EscalationChain['id'], data: Partial<EscalationChain>): Promise<EscalationChain> =>
     makeRequest<EscalationChain>(`${this.path}${escalationChainId}/copy/`, {
       method: 'POST',
