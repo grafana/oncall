@@ -1,5 +1,7 @@
 import enum
 import json
+import logging
+import time
 import typing
 from uuid import uuid4
 
@@ -30,6 +32,7 @@ if typing.TYPE_CHECKING:
     from apps.slack.models import SlackTeamIdentity, SlackUserIdentity
     from apps.user_management.models import Organization, Team, User
 
+logger = logging.getLogger(__name__)
 
 DIRECT_PAGING_TEAM_SELECT_ID = "paging_team_select"
 DIRECT_PAGING_ORG_SELECT_ID = "paging_org_select"
@@ -386,6 +389,7 @@ def render_dialog(
     error_msg=None,
     validation_errors: typing.Optional[Block.AnyBlocks] = None,
 ) -> ModalView:
+    start_time = time.time()
     private_metadata = json.loads(payload["view"]["private_metadata"])
     submit_routing_uid = private_metadata.get("submit_routing_uid")
 
@@ -440,7 +444,9 @@ def render_dialog(
             ],
         }
     )
-
+    logger.info(
+        f"render_dialog selected_organization={selected_organization.public_primary_key} time={time.time() - start_time} "
+    )
     return _get_form_view(submit_routing_uid, blocks, json.dumps(new_private_metadata))
 
 
