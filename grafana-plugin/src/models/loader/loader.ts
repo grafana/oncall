@@ -12,7 +12,7 @@ class LoaderStoreClass {
     makeObservable(this);
   }
 
-  @action.bound
+  @action
   setLoadingAction(actionKey: string, isLoading: boolean) {
     this.items[actionKey] = isLoading;
   }
