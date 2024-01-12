@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Fix unicode characters not rendering correctly in webhooks @mderynck ([#3670](https://github.com/grafana/oncall/pull/3670))
+- Fix internal schedule detail API to set oncall_now for a schedule in orgs with multiple entries ([#3671](https://github.com/grafana/oncall/pull/3671))
 
 ## v1.3.85 (2024-01-12)
 
