@@ -60,7 +60,7 @@ export class UserStore extends BaseStore {
     return this.items[this.currentUserPk as User['pk']];
   }
 
-  @action.bound
+  @action
   async loadCurrentUser() {
     const response = await makeRequest('/user/', {});
     const timezone = await this.refreshTimezone(response.pk);
@@ -74,7 +74,7 @@ export class UserStore extends BaseStore {
     });
   }
 
-  @action.bound
+  @action
   async refreshTimezone(id: User['pk']) {
     const { timezone: grafanaPreferencesTimezone } = config.bootData.user;
     const timezone = grafanaPreferencesTimezone === 'browser' ? dayjs.tz.guess() : grafanaPreferencesTimezone;
@@ -87,7 +87,7 @@ export class UserStore extends BaseStore {
     return timezone;
   }
 
-  @action.bound
+  @action
   async loadUser(userPk: User['pk'], skipErrorHandling = false): Promise<User> {
     const user = await this.getById(userPk, skipErrorHandling);
 
@@ -101,7 +101,7 @@ export class UserStore extends BaseStore {
     return user;
   }
 
-  @action.bound
+  @action
   async updateItem(userPk: User['pk']) {
     if (this.itemsCurrentlyUpdating[userPk]) {
       return;
@@ -124,7 +124,6 @@ export class UserStore extends BaseStore {
   /**
    * NOTE: if is_currently_oncall=all the backend will not paginate the results, it will send back an array of ALL users
    */
-  @action.bound
   async search<RT = PaginatedUsersResponse<User>>(f: any = { searchTerm: '' }, page = 1): Promise<RT> {
     const filters = typeof f === 'string' ? { searchTerm: f } : f; // for GSelect compatibility
     const { searchTerm: search, ...restFilters } = filters;
@@ -133,7 +132,7 @@ export class UserStore extends BaseStore {
     });
   }
 
-  @action.bound
+  @action
   async updateItems(f: any = { searchTerm: '' }, page = 1, invalidateFn?: () => boolean): Promise<any> {
     const response = await this.search(f, page);
 
@@ -168,7 +167,6 @@ export class UserStore extends BaseStore {
     return response;
   }
 
-  @action.bound
   getSearchResult() {
     return {
       page_size: this.searchResult.page_size,
@@ -177,12 +175,11 @@ export class UserStore extends BaseStore {
     };
   }
 
-  @action.bound
   sendTelegramConfirmationCode = async (userPk: User['pk']) => {
     return await makeRequest(`/users/${userPk}/get_telegram_verification_code/`, {});
   };
 
-  @action.bound
+  @action
   unlinkSlack = async (userPk: User['pk']) => {
     await makeRequest(`/users/${userPk}/unlink_slack/`, {
       method: 'POST',
@@ -198,7 +195,7 @@ export class UserStore extends BaseStore {
     });
   };
 
-  @action.bound
+  @action
   unlinkTelegram = async (userPk: User['pk']) => {
     await makeRequest(`/users/${userPk}/unlink_telegram/`, {
       method: 'POST',
@@ -214,13 +211,12 @@ export class UserStore extends BaseStore {
     });
   };
 
-  @action.bound
   sendBackendConfirmationCode = (userPk: User['pk'], backend: string) =>
     makeRequest<string>(`/users/${userPk}/get_backend_verification_code?backend=${backend}`, {
       method: 'GET',
     });
 
-  @action.bound
+  @action
   unlinkBackend = async (userPk: User['pk'], backend: string) => {
     await makeRequest(`/users/${userPk}/unlink_backend/?backend=${backend}`, {
       method: 'POST',
@@ -229,7 +225,7 @@ export class UserStore extends BaseStore {
     this.loadCurrentUser();
   };
 
-  @action.bound
+  @action
   async createUser(data: any) {
     const user = await this.create(data);
 
@@ -243,7 +239,7 @@ export class UserStore extends BaseStore {
     return user;
   }
 
-  @action.bound
+  @action
   async updateUser(data: Partial<User>) {
     const user = await makeRequest(`/users/${data.pk}/`, {
       method: 'PUT',
@@ -265,7 +261,7 @@ export class UserStore extends BaseStore {
     });
   }
 
-  @action.bound
+  @action
   async updateCurrentUser(data: Partial<User>) {
     const user = await makeRequest(`/user/`, {
       method: 'PUT',
@@ -283,7 +279,7 @@ export class UserStore extends BaseStore {
     });
   }
 
-  @action.bound
+  @action
   async fetchVerificationCode(userPk: User['pk'], recaptchaToken: string) {
     await makeRequest(`/users/${userPk}/get_verification_code/`, {
       method: 'GET',
@@ -291,7 +287,7 @@ export class UserStore extends BaseStore {
     }).catch(throttlingError);
   }
 
-  @action.bound
+  @action
   async fetchVerificationCall(userPk: User['pk'], recaptchaToken: string) {
     await makeRequest(`/users/${userPk}/get_verification_call/`, {
       method: 'GET',
@@ -299,21 +295,21 @@ export class UserStore extends BaseStore {
     }).catch(throttlingError);
   }
 
-  @action.bound
+  @action
   async verifyPhone(userPk: User['pk'], token: string) {
     return await makeRequest(`/users/${userPk}/verify_number/?token=${token}`, {
       method: 'PUT',
     }).catch(throttlingError);
   }
 
-  @action.bound
+  @action
   async forgetPhone(userPk: User['pk']) {
     return await makeRequest(`/users/${userPk}/forget_number/`, {
       method: 'PUT',
     });
   }
 
-  @action.bound
+  @action
   async updateNotificationPolicies(id: User['pk']) {
     const importantEPs = await makeRequest('/notification_policies/', {
       params: { user: id, important: true },
@@ -331,7 +327,7 @@ export class UserStore extends BaseStore {
     });
   }
 
-  @action.bound
+  @action
   async moveNotificationPolicyToPosition(userPk: User['pk'], oldIndex: number, newIndex: number, offset: number) {
     const notificationPolicy = this.notificationPolicies[userPk][oldIndex + offset];
 
@@ -346,7 +342,7 @@ export class UserStore extends BaseStore {
     this.updateItem(userPk); // to update notification_chain_verbal
   }
 
-  @action.bound
+  @action
   async addNotificationPolicy(userPk: User['pk'], important: NotificationPolicyType['important']) {
     await makeRequest(`/notification_policies/`, {
       method: 'POST',
@@ -358,7 +354,7 @@ export class UserStore extends BaseStore {
     this.updateItem(userPk); // to update notification_chain_verbal
   }
 
-  @action.bound
+  @action
   async updateNotificationPolicy(userPk: User['pk'], id: NotificationPolicyType['id'], value: NotificationPolicyType) {
     this.notificationPolicies = {
       ...this.notificationPolicies,
@@ -384,7 +380,7 @@ export class UserStore extends BaseStore {
     this.updateItem(userPk); // to update notification_chain_verbal
   }
 
-  @action.bound
+  @action
   async deleteNotificationPolicy(userPk: User['pk'], id: NotificationPolicyType['id']) {
     await makeRequest(`/notification_policies/${id}`, { method: 'DELETE' }).catch(this.onApiError);
 
@@ -404,7 +400,7 @@ export class UserStore extends BaseStore {
     });
   }
 
-  @action.bound
+  @action
   async sendTestPushNotification(userId: User['pk'], isCritical: boolean) {
     return await makeRequest(`/users/${userId}/send_test_push`, {
       method: 'POST',
@@ -423,7 +419,7 @@ export class UserStore extends BaseStore {
     });
   }
 
-  @action.bound
+  @action
   async makeTestCall(userPk: User['pk']) {
     this.isTestCallInProgress = true;
 
@@ -438,7 +434,6 @@ export class UserStore extends BaseStore {
       });
   }
 
-  @action.bound
   async sendTestSms(userPk: User['pk']) {
     this.isTestCallInProgress = true;
 
@@ -451,21 +446,18 @@ export class UserStore extends BaseStore {
       });
   }
 
-  @action.bound
   async getiCalLink(userPk: User['pk']) {
     return await makeRequest(`/users/${userPk}/export_token/`, {
       method: 'GET',
     });
   }
 
-  @action.bound
   async createiCalLink(userPk: User['pk']) {
     return await makeRequest(`/users/${userPk}/export_token/`, {
       method: 'POST',
     });
   }
 
-  @action.bound
   async deleteiCalLink(userPk: User['pk']) {
     await makeRequest(`/users/${userPk}/export_token/`, {
       method: 'DELETE',

@@ -1,4 +1,5 @@
 from django.core.exceptions import ObjectDoesNotExist
+from drf_spectacular.utils import extend_schema_field
 from rest_framework import fields, serializers
 from rest_framework.exceptions import ValidationError
 from rest_framework.relations import RelatedField
@@ -9,6 +10,7 @@ from common.api_helpers.exceptions import BadRequest
 from common.timezones import raise_exception_if_not_valid_timezone
 
 
+@extend_schema_field(serializers.CharField)
 class OrganizationFilteredPrimaryKeyRelatedField(RelatedField):
     """
     This field is used to filter entities by organization
@@ -42,6 +44,7 @@ class OrganizationFilteredPrimaryKeyRelatedField(RelatedField):
         return self.display_func(instance)
 
 
+@extend_schema_field(serializers.CharField)
 class TeamPrimaryKeyRelatedField(RelatedField):
     """
     This field is used to get user teams

@@ -56,7 +56,6 @@ export class LabelStore extends BaseStore {
   }
 
   @WithGlobalNotification({ success: 'New key has been added', failure: 'Failed to add new key' })
-  @action.bound
   async createKey(name: string) {
     const data = await makeRequest(`${this.path}`, {
       method: 'POST',
@@ -66,7 +65,6 @@ export class LabelStore extends BaseStore {
   }
 
   @WithGlobalNotification({ success: 'New value has been added', failure: 'Failed to add new value' })
-  @action.bound
   async createValue(keyId: ApiSchemas['LabelKey']['id'], value: string) {
     const result = await makeRequest(`${this.path}id/${keyId}/values`, {
       method: 'POST',
@@ -76,7 +74,6 @@ export class LabelStore extends BaseStore {
   }
 
   @WithGlobalNotification({ success: 'Key has been renamed', failure: 'Failed to rename key' })
-  @action.bound
   async updateKey(keyId: ApiSchemas['LabelKey']['id'], name: string) {
     const result = await makeRequest(`${this.path}id/${keyId}`, {
       method: 'PUT',
@@ -86,7 +83,6 @@ export class LabelStore extends BaseStore {
   }
 
   @WithGlobalNotification({ success: 'Value has been renamed', failure: 'Failed to rename value' })
-  @action.bound
   async updateKeyValue(keyId: ApiSchemas['LabelKey']['id'], valueId: ApiSchemas['LabelValue']['id'], name: string) {
     const result = await makeRequest(`${this.path}id/${keyId}/values/${valueId}`, {
       method: 'PUT',

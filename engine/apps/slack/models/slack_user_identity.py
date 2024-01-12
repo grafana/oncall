@@ -147,7 +147,7 @@ class SlackUserIdentity(models.Model):
         )
 
     @property
-    def slack_verbal(self):
+    def slack_verbal(self) -> str | None:
         return (
             self.profile_real_name_normalized
             or self.profile_real_name

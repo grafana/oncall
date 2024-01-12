@@ -158,6 +158,7 @@ class TelegramToUserConnector(models.Model):
                 )
         else:
             self._nudge_about_alert_group_message(telegram_client, old_alert_group_message)
+            TelegramToUserConnector.create_telegram_notification_success(alert_group, self.user, notification_policy)
 
     # send DM message with the link to the alert group post in channel
     def send_link_to_channel_message(self, alert_group: AlertGroup, notification_policy: UserNotificationPolicy):

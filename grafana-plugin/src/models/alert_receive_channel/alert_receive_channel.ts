@@ -68,7 +68,6 @@ export class AlertReceiveChannelStore extends BaseStore {
     this.path = '/alert_receive_channels/';
   }
 
-  @action.bound
   getSearchResult(_query = '') {
     if (!this.searchResult) {
       return undefined;
@@ -79,7 +78,6 @@ export class AlertReceiveChannelStore extends BaseStore {
     );
   }
 
-  @action.bound
   getPaginatedSearchResult(_query = '') {
     if (!this.paginatedSearchResult) {
       return undefined;
@@ -94,7 +92,7 @@ export class AlertReceiveChannelStore extends BaseStore {
     };
   }
 
-  @action.bound
+  @action
   async loadItem(id: AlertReceiveChannel['id'], skipErrorHandling = false): Promise<AlertReceiveChannel> {
     const alertReceiveChannel = await this.getById(id, skipErrorHandling);
 
@@ -111,7 +109,7 @@ export class AlertReceiveChannelStore extends BaseStore {
     return alertReceiveChannel;
   }
 
-  @action.bound
+  @action
   async updateItems(query: any = '') {
     const params = typeof query === 'string' ? { search: query } : query;
 
@@ -141,7 +139,6 @@ export class AlertReceiveChannelStore extends BaseStore {
     return results;
   }
 
-  @action.bound
   async updatePaginatedItems({
     filters,
     page = 1,
@@ -189,7 +186,6 @@ export class AlertReceiveChannelStore extends BaseStore {
     return results;
   }
 
-  @action.bound
   populateHearbeats(alertReceiveChannels: AlertReceiveChannel[]) {
     const heartbeats = alertReceiveChannels.reduce((acc: any, alertReceiveChannel: AlertReceiveChannel) => {
       if (alertReceiveChannel.heartbeat) {
@@ -225,7 +221,7 @@ export class AlertReceiveChannelStore extends BaseStore {
     });
   }
 
-  @action.bound
+  @action
   async updateChannelFilters(alertReceiveChannelId: AlertReceiveChannel['id'], isOverwrite = false) {
     const response = await makeRequest(`/channel_filters/`, {
       params: { alert_receive_channel: alertReceiveChannelId },
@@ -263,7 +259,7 @@ export class AlertReceiveChannelStore extends BaseStore {
     });
   }
 
-  @action.bound
+  @action
   async updateChannelFilter(channelFilterId: ChannelFilter['id']) {
     const response = await makeRequest(`/channel_filters/${channelFilterId}/`, {});
 
@@ -274,14 +270,13 @@ export class AlertReceiveChannelStore extends BaseStore {
       };
     });
   }
-  @action.bound
+
   async migrateChannel(id: AlertReceiveChannel['id']) {
     return await makeRequest(`/alert_receive_channels/${id}/migrate`, {
       method: 'POST',
     });
   }
 
-  @action.bound
   async createChannelFilter(data: Partial<ChannelFilter>) {
     return await makeRequest('/channel_filters/', {
       method: 'POST',
@@ -289,7 +284,7 @@ export class AlertReceiveChannelStore extends BaseStore {
     });
   }
 
-  @action.bound
+  @action
   async saveChannelFilter(channelFilterId: ChannelFilter['id'], data: Partial<ChannelFilter>) {
     const response = await makeRequest(`/channel_filters/${channelFilterId}/`, {
       method: 'PUT',
@@ -306,7 +301,7 @@ export class AlertReceiveChannelStore extends BaseStore {
     return response;
   }
 
-  @action.bound
+  @action
   async moveChannelFilterToPosition(
     alertReceiveChannelId: AlertReceiveChannel['id'],
     oldIndex: number,
@@ -325,7 +320,7 @@ export class AlertReceiveChannelStore extends BaseStore {
     this.updateChannelFilters(alertReceiveChannelId, true);
   }
 
-  @action.bound
+  @action
   async deleteChannelFilter(channelFilterId: ChannelFilter['id']) {
     const channelFilter = this.channelFilters[channelFilterId];
 
@@ -350,7 +345,6 @@ export class AlertReceiveChannelStore extends BaseStore {
     });
   }
 
-  @action.bound
   getIntegration(alertReceiveChannel: Partial<AlertReceiveChannel>): SelectOption {
     return (
       this.alertReceiveChannelOptions &&
@@ -374,12 +368,11 @@ export class AlertReceiveChannelStore extends BaseStore {
     });
   }
 
-  @action.bound
   async deleteAlertReceiveChannel(id: AlertReceiveChannel['id']) {
     return await this.delete(id);
   }
 
-  @action.bound
+  @action
   async updateTemplates(alertReceiveChannelId: AlertReceiveChannel['id'], alertGroupId?: Alert['pk']) {
     const response = await makeRequest(`/alert_receive_channel_templates/${alertReceiveChannelId}/`, {
       params: { alert_group_id: alertGroupId },
@@ -394,7 +387,7 @@ export class AlertReceiveChannelStore extends BaseStore {
     });
   }
 
-  @action.bound
+  @action
   async updateItem(id: AlertReceiveChannel['id']) {
     const item = await this.getById(id);
 
@@ -406,7 +399,7 @@ export class AlertReceiveChannelStore extends BaseStore {
     });
   }
 
-  @action.bound
+  @action
   async saveTemplates(alertReceiveChannelId: AlertReceiveChannel['id'], data: Partial<AlertTemplatesDTO>) {
     const response = await makeRequest(`/alert_receive_channel_templates/${alertReceiveChannelId}/`, {
       method: 'PUT',
@@ -422,12 +415,11 @@ export class AlertReceiveChannelStore extends BaseStore {
     });
   }
 
-  @action.bound
   async getGrafanaAlertingContactPoints() {
     return await makeRequest(`${this.path}contact_points/`, {}).catch(showApiError);
   }
 
-  @action.bound
+  @action
   async updateConnectedContactPoints(alertReceiveChannelId: AlertReceiveChannel['id']) {
     const response = await makeRequest(`${this.path}${alertReceiveChannelId}/connected_contact_points `, {});
 
@@ -451,7 +443,6 @@ export class AlertReceiveChannelStore extends BaseStore {
     });
   }
 
-  @action.bound
   async connectContactPoint(
     alertReceiveChannelId: AlertReceiveChannel['id'],
     datasource_uid: string,
@@ -466,7 +457,6 @@ export class AlertReceiveChannelStore extends BaseStore {
     });
   }
 
-  @action.bound
   async disconnectContactPoint(
     alertReceiveChannelId: AlertReceiveChannel['id'],
     datasource_uid: string,
@@ -481,7 +471,6 @@ export class AlertReceiveChannelStore extends BaseStore {
     });
   }
 
-  @action.bound
   async createContactPoint(
     alertReceiveChannelId: AlertReceiveChannel['id'],
     datasource_uid: string,
@@ -496,14 +485,12 @@ export class AlertReceiveChannelStore extends BaseStore {
     });
   }
 
-  @action.bound
   async getAccessLogs(alertReceiveChannelId: AlertReceiveChannel['id']) {
     const { integration_log } = await makeRequest(`/alert_receive_channel_access_log/${alertReceiveChannelId}/`, {});
 
     return integration_log;
   }
 
-  @action.bound
   async sendDemoAlert(id: AlertReceiveChannel['id'], payload: string = undefined) {
     const requestConfig: any = {
       method: 'POST',
@@ -518,12 +505,10 @@ export class AlertReceiveChannelStore extends BaseStore {
     await makeRequest(`${this.path}${id}/send_demo_alert/`, requestConfig).catch(showApiError);
   }
 
-  @action.bound
   async sendDemoAlertToParticularRoute(id: ChannelFilter['id']) {
     await makeRequest(`/channel_filters/${id}/send_demo_alert/`, { method: 'POST' }).catch(showApiError);
   }
 
-  @action.bound
   async convertRegexpTemplateToJinja2Template(id: ChannelFilter['id']) {
     const result = await makeRequest(`/channel_filters/${id}/convert_from_regex_to_jinja2/`, { method: 'POST' }).catch(
       showApiError
@@ -531,7 +516,6 @@ export class AlertReceiveChannelStore extends BaseStore {
     return result;
   }
 
-  @action.bound
   async renderPreview(id: AlertReceiveChannel['id'], template_name: string, template_body: string, payload: JSON) {
     return await makeRequest(`${this.path}${id}/preview_template/`, {
       method: 'POST',
@@ -539,7 +523,6 @@ export class AlertReceiveChannelStore extends BaseStore {
     });
   }
 
-  @action.bound
   async changeTeam(id: AlertReceiveChannel['id'], teamId: GrafanaTeam['id']) {
     return await makeRequest(`${this.path}${id}/change_team`, {
       params: { team_id: String(teamId) },
@@ -547,7 +530,7 @@ export class AlertReceiveChannelStore extends BaseStore {
     });
   }
 
-  @action.bound
+  @action
   async updateCounters() {
     const counters = await makeRequest(`${this.path}counters`, {
       method: 'GET',
@@ -558,7 +541,7 @@ export class AlertReceiveChannelStore extends BaseStore {
     });
   }
 
-  @action.bound
+  @action
   async updateCountersForIntegration(id: AlertReceiveChannel['id']): Promise<any> {
     const counters = await makeRequest(`${this.path}${id}/counters`, {
       method: 'GET',
@@ -576,7 +559,6 @@ export class AlertReceiveChannelStore extends BaseStore {
     return counters;
   }
 
-  @action.bound
   startMaintenanceMode = (id: AlertReceiveChannel['id'], mode: MaintenanceMode, duration: number): Promise<void> =>
     makeRequest<null>(`${this.path}${id}/start_maintenance/`, {
       method: 'POST',
@@ -586,13 +568,11 @@ export class AlertReceiveChannelStore extends BaseStore {
       },
     });
 
-  @action.bound
   stopMaintenanceMode = (id: AlertReceiveChannel['id']) =>
     makeRequest<null>(`${this.path}${id}/stop_maintenance/`, {
       method: 'POST',
     });
 
-  @action.bound
   addLabel = (id: AlertReceiveChannel['id'], data) => {
     makeRequest(`${this.path}${id}/associate_label`, {
       method: 'POST',
