@@ -9,7 +9,7 @@ import { UserSettingsTab } from 'containers/UserSettings/UserSettings.types';
 import { User } from 'models/user/user.types';
 import { useStore } from 'state/useStore';
 
-import styles from 'containers/UserSettings/parts/connectors/index.module.css';
+import styles from 'containers/UserSettings/parts/connectors/Connectors.module.css';
 
 const cx = cn.bind(styles);
 
