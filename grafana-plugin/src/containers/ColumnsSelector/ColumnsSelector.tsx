@@ -9,7 +9,7 @@ import {
   useSensors,
   DragEndEvent,
 } from '@dnd-kit/core';
-import { restrictToVerticalAxis, restrictToParentElement } from '@dnd-kit/modifiers';
+import { restrictToVerticalAxis, restrictToFirstScrollableAncestor } from '@dnd-kit/modifiers';
 import {
   arrayMove,
   SortableContext,
@@ -19,6 +19,7 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Button, Checkbox, Icon, IconButton, LoadingPlaceholder, Tooltip, useStyles2 } from '@grafana/ui';
+import { toJS } from 'mobx';
 import { observer } from 'mobx-react';
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
 
@@ -30,11 +31,12 @@ import { ActionKey } from 'models/loader/action-keys';
 import { useStore } from 'state/useStore';
 import { openErrorNotification } from 'utils';
 import { UserActions } from 'utils/authorization';
-import { WrapAutoLoadingState } from 'utils/decorators';
+import { WrapAutoLoadingState, WrapWithGlobalNotification } from 'utils/decorators';
 
 import { getColumnsSelectorStyles } from './ColumnsSelector.styles';
 
 const TRANSITION_MS = 500;
+const KEY_DELIMITATOR = '/-/';
 
 interface ColumnRowProps {
   column: AlertGroupColumn;
@@ -42,8 +44,17 @@ interface ColumnRowProps {
   onColumnRemoval: (column: AlertGroupColumn) => void;
 }
 
+function getColumnCombinedID(column: AlertGroupColumn) {
+  return `${column.id}${KEY_DELIMITATOR}${column.type}`;
+}
+
 const ColumnRow: React.FC<ColumnRowProps> = ({ column, onItemChange, onColumnRemoval }) => {
-  const dnd = useSortable({ id: column.id });
+  const dnd = useSortable({
+    id: getColumnCombinedID(column),
+    data: {
+      id: column.id,
+    },
+  });
 
   const styles = useStyles2(getColumnsSelectorStyles);
 
@@ -142,19 +153,19 @@ export const ColumnsSelector: React.FC<ColumnsSelectorProps> = observer(
             sensors={sensors}
             collisionDetection={closestCenter}
             onDragEnd={(ev) => handleDragEnd(ev, true)}
-            modifiers={[restrictToVerticalAxis, restrictToParentElement]}
+            modifiers={[restrictToVerticalAxis, restrictToFirstScrollableAncestor]}
           >
-            <SortableContext items={columns} strategy={verticalListSortingStrategy}>
+            <SortableContext items={mapColumns(visibleColumns)} strategy={verticalListSortingStrategy}>
               <TransitionGroup>
                 {visibleColumns.map((column) => (
                   <CSSTransition
-                    key={`${column.id}-${column.type}`}
+                    key={getColumnCombinedID(column)}
                     timeout={TRANSITION_MS}
                     unmountOnExit
                     classNames="fade"
                   >
                     <ColumnRow
-                      key={`${column.id}-${column.type}`}
+                      key={getColumnCombinedID(column)}
                       column={column}
                       onItemChange={onItemChange}
                       onColumnRemoval={onConfirmRemovalModalOpen}
@@ -177,12 +188,12 @@ export const ColumnsSelector: React.FC<ColumnsSelectorProps> = observer(
             collisionDetection={closestCenter}
             onDragEnd={(ev) => handleDragEnd(ev, false)}
           >
-            <SortableContext items={columns} strategy={verticalListSortingStrategy}>
+            <SortableContext items={mapColumns(hiddenColumns)} strategy={verticalListSortingStrategy}>
               <TransitionGroup>
                 {hiddenColumns.map((column) => (
-                  <CSSTransition key={`${column.id}-${column.type}`} timeout={TRANSITION_MS} classNames="fade">
+                  <CSSTransition key={getColumnCombinedID(column)} timeout={TRANSITION_MS} classNames="fade">
                     <ColumnRow
-                      key={`${column.id}-${column.type}`}
+                      key={getColumnCombinedID(column)}
                       column={column}
                       onItemChange={onItemChange}
                       onColumnRemoval={onConfirmRemovalModalOpen}
@@ -200,7 +211,10 @@ export const ColumnsSelector: React.FC<ColumnsSelectorProps> = observer(
             tooltipPlacement="top"
             tooltip={'Reset table to default columns'}
             disabled={isResetLoading || isDefaultColumnOrder}
-            onClick={WrapAutoLoadingState(onReset, ActionKey.RESET_COLUMNS_FROM_ALERT_GROUP)}
+            onClick={WrapAutoLoadingState(
+              WrapWithGlobalNotification(onReset, { success: 'Columns list has been reset' }),
+              ActionKey.RESET_COLUMNS_FROM_ALERT_GROUP
+            )}
           >
             {isResetLoading ? <LoadingPlaceholder text="Loading..." className="loadingPlaceholder" /> : 'Reset'}
           </Button>
@@ -212,6 +226,13 @@ export const ColumnsSelector: React.FC<ColumnsSelectorProps> = observer(
         </div>
       </div>
     );
+
+    function mapColumns(columns: AlertGroupColumn[]) {
+      return columns.map((col) => ({
+        ...col,
+        id: getColumnCombinedID(col),
+      }));
+    }
 
     async function onReset() {
       await alertGroupStore.resetTableSettings();
@@ -239,12 +260,13 @@ export const ColumnsSelector: React.FC<ColumnsSelectorProps> = observer(
       let searchableList: AlertGroupColumn[] = isVisible ? visibleColumns : hiddenColumns;
 
       if (active.id !== over.id) {
-        const oldIndex = searchableList.findIndex((item) => item.id === active.id);
-        const newIndex = searchableList.findIndex((item) => item.id === over.id);
+        const oldIndex = searchableList.findIndex((item) => getColumnCombinedID(item) === active.id);
+        const newIndex = searchableList.findIndex((item) => getColumnCombinedID(item) === over.id);
 
         searchableList = arrayMove(searchableList, oldIndex, newIndex);
 
         const updatedList = isVisible ? [...searchableList, ...hiddenColumns] : [...visibleColumns, ...searchableList];
+
         alertGroupStore.columns = updatedList;
       }
     }
