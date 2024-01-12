@@ -57,10 +57,11 @@ export const ColumnsModal: React.FC<ColumnsModalProps> = observer(
     const debouncedOnInputChange = useDebouncedCallback(onInputChange, DEBOUNCE_MS);
 
     const isLoading = store.loaderStore.isLoading(ActionKey.ADD_NEW_COLUMN_TO_ALERT_GROUP);
-
     const availableKeysForSearching = useMemo(() => {
-      const currentAGColumns = store.alertGroupStore.columns.map((col) => col.name);
-      return labelKeys.filter((pair) => currentAGColumns.indexOf(pair.name) === -1);
+      const cols = store.alertGroupStore.columns;
+      return labelKeys.filter(
+        (pair) => !cols.find((col) => col.id === pair.id && col.type === AlertGroupColumnType.LABEL)
+      );
     }, [labelKeys, store.alertGroupStore.columns]);
 
     return (
