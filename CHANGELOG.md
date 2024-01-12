@@ -14,7 +14,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - MS Teams Connection user profile tab - shouldn't reshow connection steps if already connected ([#2427](https://github.com/grafana/oncall-private/issues/2427))
 - Fix internal schedule detail API to set oncall_now for a schedule in orgs with multiple entries ([#3671](https://github.com/grafana/oncall/pull/3671))
 
-
 ## v1.3.85 (2024-01-12)
 
 Maintenance release
