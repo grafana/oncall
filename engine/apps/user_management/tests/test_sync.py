@@ -177,6 +177,14 @@ def test_sync_users_for_team(make_organization, make_user_for_organization, make
 
 
 @pytest.mark.django_db
+@pytest.mark.parametrize(
+    "get_grafana_incident_plugin_settings_return_value",
+    [
+        ({"enabled": True, "jsonData": {"backendUrl": MOCK_GRAFANA_INCIDENT_BACKEND_URL}}, None),
+        # missing jsonData (sometimes this is what we get back from the Grafana API)
+        ({"enabled": True}, None),
+    ],
+)
 @patch.object(GrafanaAPIClient, "is_rbac_enabled_for_organization", return_value=False)
 @patch.object(
     GrafanaAPIClient,
@@ -212,21 +220,20 @@ def test_sync_users_for_team(make_organization, make_user_for_organization, make
     ),
 )
 @patch.object(GrafanaAPIClient, "check_token", return_value=(None, {"connected": True}))
-@patch.object(
-    GrafanaAPIClient,
-    "get_grafana_incident_plugin_settings",
-    return_value=({"enabled": True, "jsonData": {"backendUrl": MOCK_GRAFANA_INCIDENT_BACKEND_URL}}, None),
-)
+@patch.object(GrafanaAPIClient, "get_grafana_incident_plugin_settings")
 @patch("apps.user_management.sync.org_sync_signal")
 def test_sync_organization(
     mocked_org_sync_signal,
-    _mock_get_grafana_incident_plugin_settings,
+    mock_get_grafana_incident_plugin_settings,
     _mock_check_token,
     _mock_get_teams,
     _mock_get_users,
     _mock_is_rbac_enabled_for_organization,
+    get_grafana_incident_plugin_settings_return_value,
     make_organization,
 ):
+    mock_get_grafana_incident_plugin_settings.return_value = get_grafana_incident_plugin_settings_return_value
+
     organization = make_organization()
 
     api_members_response = (
@@ -259,7 +266,10 @@ def test_sync_organization(
 
     # check that is_grafana_incident_enabled flag is set
     assert organization.is_grafana_incident_enabled is True
-    assert organization.grafana_incident_backend_url == MOCK_GRAFANA_INCIDENT_BACKEND_URL
+    if get_grafana_incident_plugin_settings_return_value[0].get("jsonData"):
+        assert organization.grafana_incident_backend_url == MOCK_GRAFANA_INCIDENT_BACKEND_URL
+    else:
+        assert organization.grafana_incident_backend_url is None
 
     mocked_org_sync_signal.send.assert_called_once_with(sender=None, organization=organization)
 
