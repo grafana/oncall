@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Fix occasional `AttributeError` in `apps.grafana_plugin.tasks.sync.sync_organization_async` task by @joeyorlando ([#TBD](https://github.com/grafana/oncall/pull/TBD))
+- Fix occasional `AttributeError` in `apps.grafana_plugin.tasks.sync.sync_organization_async` task by @joeyorlando ([#3687](https://github.com/grafana/oncall/pull/3687))
 
 ## v1.3.86 (2024-01-12)
 
