@@ -25,7 +25,7 @@ test('schedule calendar and list of schedules is correctly displayed', async ({ 
   await page.keyboard.press('Enter');
   await page.waitForLoadState('networkidle');
 
-  // schedules table displays created schedule
+  // schedules table displays details created schedule
   const schedulesTable = page.getByTestId('schedules-table');
   await expect(schedulesTable.getByRole('cell', { name: onCallScheduleName })).toBeVisible();
   await expect(schedulesTable.getByRole('cell', { name: 'Web' })).toBeVisible();
