@@ -196,7 +196,7 @@ class GrafanaAPIClient(APIClient):
 
         class PluginSettings(typing.TypedDict):
             enabled: bool
-            jsonData: typing.Dict[str, str]
+            jsonData: typing.NotRequired[typing.Dict[str, str]]
 
         class TeamsResponse(_BaseGrafanaAPIResponse):
             teams: typing.List["GrafanaAPIClient.Types.GrafanaTeam"]
