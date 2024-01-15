@@ -95,7 +95,10 @@ class IntegrationHeartBeat(models.Model):
         return not self.is_expired
 
     @property
-    def link(self) -> str:
+    def link(self) -> str | None:
+        if not self.alert_receive_channel.integration_url:
+            return None
+
         return urljoin(self.alert_receive_channel.integration_url, "heartbeat/")
 
     # Insight logs

@@ -145,6 +145,8 @@ class LabelsViewSet(LabelsFeatureFlagViewSet):
             return super().handle_exception(exc)
 
 
+# specifying a tag explicitly to avoid these endpoints being grouped with alert group endpoints
+@extend_schema(tags=["alert group labels"])
 class AlertGroupLabelsViewSet(LabelsFeatureFlagViewSet):
     """
     This viewset is similar to LabelsViewSet, but it works with alert group labels.

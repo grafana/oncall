@@ -28,40 +28,43 @@ class BasePathPrefixedPagination(BasePagination):
 
     def paginate_queryset(self, queryset, request, view=None):
         request.build_absolute_uri = lambda: create_engine_url(request.get_full_path())
-
-        # we're setting the request object explicitly here because the way the paginate_quersey works
-        # between PageNumberPagination and CursorPagination is slightly different. In the latter class,
-        # it does not set self.request in the paginate_queryset method, whereas in the former it does.
-        # this leads to an issue in _get_base_paginated_response_data where the self.request would not be set
-        self.request = request
-
         return super().paginate_queryset(queryset, request, view)
-
-    def _get_base_paginated_response_data(self, data: PaginatedData) -> BasePaginatedResponseData:
-        return {
-            "next": self.get_next_link(),
-            "previous": self.get_previous_link(),
-            "results": data,
-            "page_size": self.get_page_size(self.request),
-        }
 
 
 class PathPrefixedPagePagination(BasePathPrefixedPagination, PageNumberPagination):
-    def _get_paginated_response_data(self, data: PaginatedData) -> PageBasedPaginationResponseData:
-        return {
-            **self._get_base_paginated_response_data(data),
-            "count": self.page.paginator.count,
-            "current_page_number": self.page.number,
-            "total_pages": self.page.paginator.num_pages,
-        }
-
     def get_paginated_response(self, data: PaginatedData) -> Response:
-        return Response(self._get_paginated_response_data(data))
+        response = super().get_paginated_response(data)
+        response.data.update(
+            {
+                "page_size": self.get_page_size(self.request),
+                "current_page_number": self.page.number,
+                "total_pages": self.page.paginator.num_pages,
+            }
+        )
+        return response
+
+    def get_paginated_response_schema(self, schema):
+        paginated_schema = super().get_paginated_response_schema(schema)
+        paginated_schema["properties"].update(
+            {
+                "page_size": {"type": "integer"},
+                "current_page_number": {"type": "integer"},
+                "total_pages": {"type": "integer"},
+            }
+        )
+        return paginated_schema
 
 
 class PathPrefixedCursorPagination(BasePathPrefixedPagination, CursorPagination):
     def get_paginated_response(self, data: PaginatedData) -> Response:
-        return Response(self._get_base_paginated_response_data(data))
+        response = super().get_paginated_response(data)
+        response.data.update({"page_size": self.page_size})
+        return response
+
+    def get_paginated_response_schema(self, schema):
+        paginated_schema = super().get_paginated_response_schema(schema)
+        paginated_schema["properties"].update({"page_size": {"type": "integer"}})
+        return paginated_schema
 
 
 class HundredPageSizePaginator(PathPrefixedPagePagination):
