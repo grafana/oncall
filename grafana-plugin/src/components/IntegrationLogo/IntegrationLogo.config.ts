@@ -24,4 +24,5 @@ export const logoCoors: { [key: string]: { x: number; y: number } } = {
   jira: { x: 8, y: 9 },
   zendesk: { x: 9, y: 14 },
   appdynamics: { x: 3, y: 3 },
+  servicenow: { x: 13, y: 1 },
 };
