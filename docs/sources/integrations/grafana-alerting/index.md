@@ -15,7 +15,8 @@ weight: 100
 # Grafana Alerting integration for Grafana OnCall
 
 > ⚠️ A note about **(Legacy)** integrations:
-> In the version <INSERT_VERSION> we changed internal behaviour of Grafana Alerting integration.
+> Integrations that were created before version 1.3.21 were marked as **(Legacy)** and recently migrated.
+> These integrations are receiving and escalating alerts, but some manual adjustments might be required.
 > [Here][legacy_integration] you can read more about changes.
 
 Grafana Alerting for Grafana OnCall can be set up using two methods:
