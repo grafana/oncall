@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+### Changed
+
+- Improvements for the columns selector ([3668](https://github.com/grafana/oncall/pull/3668))
+
 ## v1.3.86 (2024-01-12)
 
 ### Fixed
@@ -17,10 +23,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## v1.3.85 (2024-01-12)
 
 Maintenance release
-
-### Changed
-
-- Improvements for the columns selector ([3668](https://github.com/grafana/oncall/pull/3668))
 
 ## v1.3.84 (2024-01-10)
 
