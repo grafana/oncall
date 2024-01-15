@@ -2,12 +2,12 @@ import datetime
 import typing
 
 import requests
-from celery import shared_task
 from django.conf import settings
 from django.db.models import Avg, F, Max, Q
 from django.utils import timezone
 
 from apps.alerts.tasks.task_logger import task_logger
+from common.custom_celery_tasks.log_exception_on_failure_task import shared_log_exception_on_failure_task
 from common.database import get_random_readonly_database_key_if_present_otherwise_default
 
 if typing.TYPE_CHECKING:
@@ -82,13 +82,13 @@ def audit_alert_group_escalation(alert_group: "AlertGroup") -> None:
             f"{base_msg}'s escalation snapshot has {num_of_executed_escalation_policy_snapshots} executed escalation policies"
         )
 
-    check_personal_notifications_task.apply_async((alert_group_id,))
+    check_alert_group_personal_notifications_task.apply_async((alert_group_id,))
 
     task_logger.info(f"{base_msg} passed the audit checks")
 
 
-@shared_task
-def check_personal_notifications_task(alert_group_id) -> None:
+@shared_log_exception_on_failure_task
+def check_alert_group_personal_notifications_task(alert_group_id) -> None:
     # Check personal notifications are completed
     # triggered (< 5min ago) == failed + success
     from apps.base.models import UserNotificationPolicy, UserNotificationPolicyLogRecord
@@ -115,7 +115,55 @@ def check_personal_notifications_task(alert_group_id) -> None:
         task_logger.info(f"{base_msg} personal notifications check passed")
 
 
-@shared_task
+@shared_log_exception_on_failure_task
+def check_personal_notifications_task() -> None:
+    """
+    This task checks that triggered personal notifications are completed.
+    It will log the triggered/completed values to be used as metrics.
+
+    Attention: don't retry this task, the idea is to be alerted of failures
+    """
+    from apps.alerts.models import AlertGroup
+    from apps.base.models import UserNotificationPolicy, UserNotificationPolicyLogRecord
+
+    # use readonly database if available
+    readonly_db = get_random_readonly_database_key_if_present_otherwise_default()
+
+    now = timezone.now()
+
+    # consider alert groups from the last 2 days
+    alert_groups = AlertGroup.objects.using(readonly_db).filter(
+        started_at__range=(now - timezone.timedelta(days=2), now),
+    )
+
+    # review notifications triggered in the last 20-minute window
+    # (task should run periodically about every 15 minutes)
+    since = now - timezone.timedelta(minutes=20)
+
+    log_records_qs = UserNotificationPolicyLogRecord.objects.using(readonly_db)
+    # personal notifications triggered in the given window for those alert groups
+    triggered = log_records_qs.filter(
+        type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_TRIGGERED,
+        notification_step=UserNotificationPolicy.Step.NOTIFY,
+        created_at__gte=since,
+        created_at__lte=now,
+        alert_group__in=alert_groups,
+    ).count()
+
+    # personal notifications completed in the given window for those alert groups
+    completed = log_records_qs.filter(
+        Q(type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED)
+        | Q(type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_SUCCESS),
+        notification_step=UserNotificationPolicy.Step.NOTIFY,
+        created_at__gt=since,
+        created_at__lte=now,
+        alert_group__in=alert_groups,
+    ).count()
+
+    task_logger.info(f"personal_notifications_triggered={triggered} personal_notifications_completed={completed}")
+
+
+@shared_log_exception_on_failure_task
 def check_escalation_finished_task() -> None:
     """
     This task takes alert groups with active escalation, checks if escalation snapshot with escalation policies

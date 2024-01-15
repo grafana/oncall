@@ -8,6 +8,7 @@ import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
 
 import ICalConnector from './ICalConnector';
+// import MobileAppConnector from './MobileAppConnector';
 import MSTeamsConnector from './MSTeamsConnector';
 import MobileAppConnector from './MobileAppConnector';
 import PhoneConnector from './PhoneConnector';

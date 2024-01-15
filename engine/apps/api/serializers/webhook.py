@@ -220,3 +220,11 @@ class WebhookSerializer(LabelsSerializerMixin, serializers.ModelSerializer):
             if field_name not in preset.metadata.controlled_fields:
                 return False
         return True
+
+
+class WebhookFastSerializer(serializers.ModelSerializer):
+    id = serializers.CharField(read_only=True, source="public_primary_key")
+
+    class Meta:
+        model = Webhook
+        fields = ["id", "name"]

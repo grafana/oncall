@@ -190,7 +190,6 @@ class GForm extends React.Component<GFormProps, {}> {
         {({ register, errors, control, getValues, setValue }) => {
           const renderField = (formItem: FormItem, formIndex: number) => {
             if (formItem.isVisible && !formItem.isVisible(getValues())) {
-              setValue(formItem.name, undefined); // clear input value on hide
               return null;
             }
 

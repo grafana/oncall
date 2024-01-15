@@ -348,7 +348,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
         return self.silenced and self.silenced_until is not None
 
     @property
-    def status(self):
+    def status(self) -> int:
         if self.resolved:
             return AlertGroup.RESOLVED
         elif self.acknowledged:

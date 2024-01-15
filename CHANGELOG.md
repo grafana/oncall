@@ -5,16 +5,37 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Unreleased
+## v1.3.86 (2024-01-12)
+
+### Fixed
+
+- Fix unicode characters not rendering correctly in webhooks @mderynck ([#3670](https://github.com/grafana/oncall/pull/3670))
+- UI bug related to time inputs for "current UTC time is in" range escalation policy step ([#3585](https://github.com/grafana/oncall/issues/3585)]
+- MS Teams Connection user profile tab - shouldn't reshow connection steps if already connected ([#2427](https://github.com/grafana/oncall-private/issues/2427))
+- Fix internal schedule detail API to set oncall_now for a schedule in orgs with multiple entries ([#3671](https://github.com/grafana/oncall/pull/3671))
+
+## v1.3.85 (2024-01-12)
+
+Maintenance release
+
+## v1.3.84 (2024-01-10)
+
+### Added
+
+- Add endpoint for alert group escalation snapshot by @Ferril ([#3615](https://github.com/grafana/oncall/pull/3615))
 
 ### Changed
 
 - Do not retry `firebase.messaging.UnregisteredError` exceptions for FCM relay tasks by @joeyorlando ([#3637](https://github.com/grafana/oncall/pull/3637))
 - Decrease outgoing webhook timeouts from 10secs to 4secs by @joeyorlando ([#3639](https://github.com/grafana/oncall/pull/3639))
+- Add stack slug to `/organization` endpoint response by @Ferril ([#3644](https://github.com/grafana/oncall/pull/3644))
+- Moved Mobile Connection Tab to separate user profile in Grafana ([#3296](https://github.com/grafana/oncall/pull/3296)
 
 ### Fixed
 
 - Address HTTP 500s occurring when receiving messages from Telegram user in a discussion group by @joeyorlando ([#3622](https://github.com/grafana/oncall/pull/3622))
+- Fix `module 'apps.schedules.tasks.notify_about_empty_shifts_in_schedule' has no attribute 'apply_async'`
+  `AttributeError` by @joeyorlando ([#3640](https://github.com/grafana/oncall/pull/3640))
 
 ## v1.3.83 (2024-01-08)
 

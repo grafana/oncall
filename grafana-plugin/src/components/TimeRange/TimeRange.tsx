@@ -59,6 +59,9 @@ const TimeRange = (props: TimeRangeProps) => {
 
   const handleChangeFrom = useCallback(
     (value: moment.Moment) => {
+      if (!value.isValid()) {
+        return;
+      }
       setFrom(value);
 
       if (value.isSame(to, 'minute')) {
@@ -74,6 +77,9 @@ const TimeRange = (props: TimeRangeProps) => {
 
   const handleChangeTo = useCallback(
     (value: moment.Moment) => {
+      if (!value.isValid()) {
+        return;
+      }
       setTo(value);
 
       if (value.isSame(from, 'minute')) {
