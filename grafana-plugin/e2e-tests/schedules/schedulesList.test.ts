@@ -23,7 +23,7 @@ test('schedule calendar and list of schedules is correctly displayed', async ({ 
     .click();
   await page.keyboard.insertText(onCallScheduleName);
   await page.keyboard.press('Enter');
-  await page.waitForLoadState('networkidle');
+  await page.waitForTimeout(2000);
 
   // schedules table displays details created schedule
   const schedulesTable = page.getByTestId('schedules-table');
