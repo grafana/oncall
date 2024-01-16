@@ -127,7 +127,7 @@ To save your changes go to the "OnCall Metrics" dashboard settings, click "Save 
 The most useful insights are also present within Grafana OnCall itself. To see them follow the steps:
 
 1. Open Grafana OnCall.
-2. Click Insights in the left-side menu.
+2. Click **Insights** sub-section in the left-side menu.
 
 
 ## Insight Logs
