@@ -190,7 +190,7 @@ class GForm extends React.Component<GFormProps, {}> {
         {({ register, errors, control, getValues, setValue }) => {
           const renderField = (formItem: FormItem, formIndex: number) => {
             if (formItem.isVisible && !formItem.isVisible(getValues())) {
-              return null;
+              return null; // don't render the field
             }
 
             const disabled = formItem.disabled
@@ -276,7 +276,11 @@ class GForm extends React.Component<GFormProps, {}> {
     const normalizedData = Object.keys(data).reduce((acc, key) => {
       const formItem = form.fields.find((formItem) => formItem.name === key);
 
-      const value = formItem?.normalize ? formItem.normalize(data[key]) : nullNormalizer(data[key]);
+      let value = formItem?.normalize ? formItem.normalize(data[key]) : nullNormalizer(data[key]);
+
+      if (formItem?.isVisible && !formItem?.isVisible(data)) {
+        value = undefined;
+      }
 
       return {
         ...acc,
