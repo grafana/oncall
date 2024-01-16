@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+### Fixed
+
+- Fix updating a shift swap with no Slack message by @vadimkerr ([#3686](https://github.com/grafana/oncall/pull/3686))
+
+## v1.3.87 (2024-01-15)
+
+### Fixed
+
+- Fix occasional `AttributeError` in `apps.grafana_plugin.tasks.sync.sync_organization_async` task by @joeyorlando ([#3687](https://github.com/grafana/oncall/pull/3687))
+
 ## v1.3.86 (2024-01-12)
 
 ### Fixed
