@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fixed Webhooks UI not allowing simple webhooks to be created ([#3691](https://github.com/grafana/oncall/pull/3691))
 
+### Changed
+
+- Update schedules on-call users cache on every scheduled schedule refresh task ([#3699](https://github.com/grafana/oncall/pull/3699)).
+
 ## v1.3.88 (2024-01-16)
 
 ### Fixed
