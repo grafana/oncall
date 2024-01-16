@@ -431,6 +431,9 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
       is_legacy: false,
     };
 
+    // don't pass trigger_type to backend as it's not editable
+    delete data.trigger_type;
+
     outgoingWebhookStore
       .update(id, data)
       .then(() => this.update())
