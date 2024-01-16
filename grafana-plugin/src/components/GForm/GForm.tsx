@@ -189,7 +189,7 @@ class GForm extends React.Component<GFormProps, {}> {
       <Form maxWidth="none" id={form.name} defaultValues={data} onSubmit={this.handleSubmit}>
         {({ register, errors, control, getValues, setValue }) => {
           const renderField = (formItem: FormItem, formIndex: number) => {
-            if (formItem.isVisible && !formItem.isVisible(getValues())) {
+            if (this.isFormItemHidden(formItem, getValues())) {
               return null; // don't render the field
             }
 
@@ -270,6 +270,10 @@ class GForm extends React.Component<GFormProps, {}> {
     this.forceUpdate();
   };
 
+  isFormItemHidden(formItem: FormItem, data) {
+    return formItem?.isVisible && !formItem?.isVisible(data);
+  }
+
   handleSubmit = (data) => {
     const { form, onSubmit } = this.props;
 
@@ -278,7 +282,7 @@ class GForm extends React.Component<GFormProps, {}> {
 
       let value = formItem?.normalize ? formItem.normalize(data[key]) : nullNormalizer(data[key]);
 
-      if (formItem?.isVisible && !formItem?.isVisible(data)) {
+      if (this.isFormItemHidden(formItem, data)) {
         value = undefined;
       }
 
