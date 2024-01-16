@@ -271,7 +271,7 @@ class GForm extends React.Component<GFormProps, {}> {
   };
 
   isFormItemHidden(formItem: FormItem, data) {
-    return formItem?.isVisible && !formItem?.isVisible(data);
+    return formItem?.isHidden?.(data);
   }
 
   handleSubmit = (data) => {

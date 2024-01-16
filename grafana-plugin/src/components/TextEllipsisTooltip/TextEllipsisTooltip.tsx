@@ -9,7 +9,7 @@ import { TEXT_ELLIPSIS_CLASS } from 'utils/consts';
 const cx = cn.bind(styles);
 
 interface TextEllipsisTooltipProps {
-  content: string;
+  content?: string;
   queryClassName?: string;
   placement?: string;
   className?: string;

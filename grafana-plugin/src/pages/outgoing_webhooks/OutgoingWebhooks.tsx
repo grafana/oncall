@@ -269,11 +269,7 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
   };
 
   renderTeam(record: OutgoingWebhook, teams: any) {
-    return (
-      <TextEllipsisTooltip placement="top" content={teams[record.team]?.name}>
-        <TeamName className={TEXT_ELLIPSIS_CLASS} team={teams[record.team]} />
-      </TextEllipsisTooltip>
-    );
+    return <TeamName className={TEXT_ELLIPSIS_CLASS} team={teams[record.team]} />;
   }
 
   renderActionButtons = (record: OutgoingWebhook) => {
