@@ -7,12 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Fixed
+
+- Fixed Webhooks UI not allowing simple webhooks to be created ([#3691](https://github.com/grafana/oncall/pull/3691))
+
 ## v1.3.88 (2024-01-16)
 
 ### Fixed
 
 - Fix updating a shift swap with no Slack message by @vadimkerr ([#3686](https://github.com/grafana/oncall/pull/3686))
-- Fixed Webhooks UI not allowing simple webhooks to be created ([#3691](https://github.com/grafana/oncall/pull/3691))
 
 ## v1.3.87 (2024-01-15)
 
