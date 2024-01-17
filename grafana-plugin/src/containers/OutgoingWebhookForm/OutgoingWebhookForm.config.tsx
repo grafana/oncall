@@ -100,7 +100,7 @@ export function createForm(
             },
           ],
         },
-        isVisible: (data) => isPresetFieldVisible(data.preset, presets, WebhookFormFieldName.TriggerType),
+        isHidden: (data) => !isPresetFieldVisible(data.preset, presets, WebhookFormFieldName.TriggerType),
         normalize: (value) => value,
       },
       {
@@ -136,16 +136,16 @@ export function createForm(
             },
           ],
         },
-        isVisible: (data) => isPresetFieldVisible(data.preset, presets, WebhookFormFieldName.HttpMethod),
+        isHidden: (data) => !isPresetFieldVisible(data.preset, presets, WebhookFormFieldName.HttpMethod),
         normalize: (value) => value,
       },
       {
         name: WebhookFormFieldName.IntegrationFilter,
         label: 'Integrations',
         type: FormItemType.MultiSelect,
-        isVisible: (data) =>
-          isPresetFieldVisible(data.preset, presets, WebhookFormFieldName.IntegrationFilter) &&
-          data.trigger_type !== WebhookTriggerType.EscalationStep.key,
+        isHidden: (data) =>
+          !isPresetFieldVisible(data.preset, presets, WebhookFormFieldName.IntegrationFilter) ||
+          data.trigger_type === WebhookTriggerType.EscalationStep.key,
         extra: {
           placeholder: 'Choose (Optional)',
           modelName: 'alertReceiveChannelStore',
@@ -170,7 +170,7 @@ export function createForm(
         extra: {
           height: 30,
         },
-        isVisible: (data) => isPresetFieldVisible(data.preset, presets, WebhookFormFieldName.Url),
+        isHidden: (data) => !isPresetFieldVisible(data.preset, presets, WebhookFormFieldName.Url),
       },
       {
         name: WebhookFormFieldName.Headers,
@@ -180,24 +180,24 @@ export function createForm(
         extra: {
           rows: 3,
         },
-        isVisible: (data) => isPresetFieldVisible(data.preset, presets, WebhookFormFieldName.Headers),
+        isHidden: (data) => !isPresetFieldVisible(data.preset, presets, WebhookFormFieldName.Headers),
       },
       {
         name: WebhookFormFieldName.Username,
         type: FormItemType.Input,
-        isVisible: (data) => isPresetFieldVisible(data.preset, presets, WebhookFormFieldName.Username),
+        isHidden: (data) => !isPresetFieldVisible(data.preset, presets, WebhookFormFieldName.Username),
       },
       {
         name: WebhookFormFieldName.Password,
         type: FormItemType.Password,
-        isVisible: (data) => isPresetFieldVisible(data.preset, presets, WebhookFormFieldName.Password),
+        isHidden: (data) => !isPresetFieldVisible(data.preset, presets, WebhookFormFieldName.Password),
       },
       {
         name: WebhookFormFieldName.AuthorizationHeader,
         description:
           'Value of the Authorization header, do not need to prefix with "Authorization:". For example: Bearer AbCdEf123456',
         type: FormItemType.Password,
-        isVisible: (data) => isPresetFieldVisible(data.preset, presets, WebhookFormFieldName.AuthorizationHeader),
+        isHidden: (data) => !isPresetFieldVisible(data.preset, presets, WebhookFormFieldName.AuthorizationHeader),
       },
       {
         name: WebhookFormFieldName.TriggerTemplate,
@@ -207,14 +207,14 @@ export function createForm(
         extra: {
           rows: 2,
         },
-        isVisible: (data) => isPresetFieldVisible(data.preset, presets, WebhookFormFieldName.TriggerTemplate),
+        isHidden: (data) => !isPresetFieldVisible(data.preset, presets, WebhookFormFieldName.TriggerTemplate),
       },
       {
         name: WebhookFormFieldName.ForwardAll,
         normalize: (value) => (value ? Boolean(value) : value),
         type: FormItemType.Switch,
         description: "Forwards whole payload of the alert group and context data to the webhook's url as POST/PUT data",
-        isVisible: (data) => isPresetFieldVisible(data.preset, presets, WebhookFormFieldName.ForwardAll),
+        isHidden: (data) => !isPresetFieldVisible(data.preset, presets, WebhookFormFieldName.ForwardAll),
       },
       {
         name: WebhookFormFieldName.Data,
@@ -224,7 +224,7 @@ export function createForm(
           hasLabelsFeature ? ' {{ webhook }}' : ''
         }`,
         extra: {},
-        isVisible: (data) => isPresetFieldVisible(data.preset, presets, WebhookFormFieldName.Data),
+        isHidden: (data) => !isPresetFieldVisible(data.preset, presets, WebhookFormFieldName.Data),
       },
     ],
   };
