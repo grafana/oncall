@@ -401,12 +401,12 @@ def test_preview_alert_group_labels(
 
     data = {
         "template_body": "{{ payload.labels | tojson }}",
-        "template_name": "alert_group_labels",
+        "template_name": "alert_group_multi_label",
     }
     response = client.post(url, format="json", data=data, **make_user_auth_headers(user, token))
 
     assert response.status_code == status.HTTP_200_OK
-    assert response.json() == {"preview": '{"1": "2"}'}
+    assert response.json() == {"preview": '{"1": "2"}', "is_valid_json_object": True}
 
 
 @pytest.mark.django_db
