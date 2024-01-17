@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Fixed Webhooks UI not allowing simple webhooks to be created ([#3691](https://github.com/grafana/oncall/pull/3691))
+- Fix posting Slack message when route is deleted by @vadimkerr ([#3702](https://github.com/grafana/oncall/pull/3702))
 
 ## v1.3.88 (2024-01-16)
 
