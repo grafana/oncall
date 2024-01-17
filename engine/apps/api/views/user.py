@@ -138,7 +138,7 @@ class UserFilter(ByTeamModelFieldFilterMixin, filters.FilterSet):
     # TODO: remove "roles" in next version
     roles = filters.MultipleChoiceFilter(field_name="role", choices=LegacyAccessControlRole.choices())
     permission = filters.ChoiceFilter(method="filter_by_permission", choices=ALL_PERMISSION_CHOICES)
-    team = TeamModelMultipleChoiceFilter(field_name="teams", null_label=None, null_value=None)
+    team = TeamModelMultipleChoiceFilter(field_name="teams")
 
     class Meta:
         model = User
