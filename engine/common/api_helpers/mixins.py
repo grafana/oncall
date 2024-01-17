@@ -299,7 +299,7 @@ class PreviewTemplateMixin:
             name="PreviewTemplateResponse",
             fields={
                 "preview": serializers.CharField(allow_null=True),
-                "is_valid_json_object": serializers.BooleanField(allow_null=True),
+                "is_valid_json_object": serializers.BooleanField(),
             },
         ),
     )
