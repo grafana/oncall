@@ -3,12 +3,17 @@ import logging
 import requests
 from django.conf import settings
 
-from .oncall_gateway_client import OnCallGatewayAPIClient
+from .client import SERVICE_TYPE_ONCALL, ChatopsProxyAPIClient
+from .legacy_client import OnCallGatewayAPIClient
 from .tasks import (
     create_oncall_connector_async,
     create_slack_connector_async_v2,
     delete_oncall_connector_async,
     delete_slack_connector_async_v2,
+    link_slack_team_async,
+    register_oncall_tenant_async,
+    unlink_slack_team_async,
+    unregister_oncall_tenant_async,
 )
 
 logger = logging.getLogger(__name__)
@@ -44,7 +49,7 @@ def check_slack_installation_possible(oncall_org_id: str, slack_id: str, backend
 
 
 def create_slack_connector(oncall_org_id: str, slack_id: str, backend: str):
-    client = OnCallGatewayAPIClient(settings.ONCALL_GATEWAY_URL, settings.ONCALL_GATEWAY_API_TOKEN)
+    client = ChatopsProxyAPIClient(settings.ONCALL_GATEWAY_URL, settings.ONCALL_GATEWAY_API_TOKEN)
     try:
         client.post_slack_connector(oncall_org_id, slack_id, backend)
     except Exception as e:
@@ -59,3 +64,70 @@ def create_slack_connector(oncall_org_id: str, slack_id: str, backend: str):
 
 def delete_slack_connector(oncall_org_id: str):
     delete_slack_connector_async_v2.delay(oncall_org_id=oncall_org_id)
+
+
+# utils to work with v3 version
+def register_oncall_tenant(service_tenant_id: str, cluster_slug: str):
+    """
+    register_oncall_tenant tries to register oncall tenant synchronously and fall back to task in case of any exceptions
+    to make sure that tenant is registered.
+    First attempt is synchronous to register tenant ASAP to not miss any chatops requests.
+    """
+    client = ChatopsProxyAPIClient(settings.ONCALL_GATEWAY_URL, settings.ONCALL_GATEWAY_API_TOKEN)
+    try:
+        client.register_tenant(service_tenant_id, cluster_slug, SERVICE_TYPE_ONCALL)
+    except Exception as e:
+        logger.error(
+            f"create_oncall_connector: failed " f"oncall_org_id={service_tenant_id} backend={cluster_slug} exc={e}"
+        )
+        register_oncall_tenant_async.apply_async((service_tenant_id, cluster_slug, SERVICE_TYPE_ONCALL), countdown=2)
+
+
+def unregister_oncall_tenant(service_tenant_id: str):
+    """
+    unregister_oncall_tenant unregisters tenant asynchronously.
+    """
+    unregister_oncall_tenant_async.delay(service_tenant_id, settings.ONCALL_BACKEND_REGION, SERVICE_TYPE_ONCALL)
+
+
+def can_link_slack_team(service_tenant_id: str, cluster_slug: str, slack_team_id: str) -> bool:
+    client = ChatopsProxyAPIClient(settings.ONCALL_GATEWAY_URL, settings.ONCALL_GATEWAY_API_TOKEN)
+    try:
+        _, response = client.can_slack_link(service_tenant_id, cluster_slug, slack_team_id, SERVICE_TYPE_ONCALL)
+        return response.status_code == 200
+    except Exception as e:
+        logger.error(
+            f"can_link_slack_team: slack installation impossible: {e} "
+            f"service_tenant_id={service_tenant_id} slack_team_id={slack_team_id} cluster_slug={cluster_slug}"
+        )
+
+        return False
+
+
+def link_slack_team(service_tenant_id: str, slack_team_id: str):
+    client = ChatopsProxyAPIClient(settings.ONCALL_GATEWAY_URL, settings.ONCALL_GATEWAY_API_TOKEN)
+    try:
+        client.link_slack_team(service_tenant_id, slack_team_id, SERVICE_TYPE_ONCALL)
+    except Exception as e:
+        logger.error(
+            f'msg="Failed to link slack team: {e}"'
+            f"service_tenant_id={service_tenant_id} slack_team_id={slack_team_id}"
+        )
+        link_slack_team_async.apply_async(
+            kwargs={
+                "service_tenant_id": service_tenant_id,
+                "slack_team_id": slack_team_id,
+                "service_type": SERVICE_TYPE_ONCALL,
+            },
+            countdown=2,
+        )
+
+
+def unlink_slack_team(service_tenant_id: str, slack_team_id: str):
+    unlink_slack_team_async.apply_async(
+        kwargs={
+            "service_tenant_id": service_tenant_id,
+            "slack_team_id": slack_team_id,
+            "service_type": SERVICE_TYPE_ONCALL,
+        }
+    )
