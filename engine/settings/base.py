@@ -287,7 +287,7 @@ REST_FRAMEWORK = {
         "rest_framework.parsers.MultiPartParser",
     ),
     "DEFAULT_AUTHENTICATION_CLASSES": [],
-    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    "DEFAULT_SCHEMA_CLASS": "engine.schema.CustomAutoSchema",
 }
 
 
@@ -315,6 +315,8 @@ if SWAGGER_UI_SETTINGS_URL:
 SPECTACULAR_INCLUDED_PATHS = [
     "/features",
     "/alertgroups",
+    "/alert_receive_channels",
+    "/users",
     "/labels",
 ]
 
@@ -584,6 +586,11 @@ if ESCALATION_AUDITOR_ENABLED:
                 getenv_integer("ALERT_GROUP_ESCALATION_AUDITOR_CELERY_TASK_HEARTBEAT_INTERVAL", default=13)
             )
         ),
+        "args": (),
+    }
+    CELERY_BEAT_SCHEDULE["check_personal_notifications"] = {
+        "task": "apps.alerts.tasks.check_escalation_finished.check_personal_notifications_task",
+        "schedule": crontab(minute="*/15"),  # every 15 minutes
         "args": (),
     }
 

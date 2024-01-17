@@ -4,6 +4,7 @@ from typing import Tuple
 
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
+from drf_spectacular.extensions import OpenApiAuthenticationExtension
 from rest_framework import exceptions
 from rest_framework.authentication import BaseAuthentication, get_authorization_header
 from rest_framework.request import Request
@@ -140,6 +141,22 @@ class PluginAuthentication(BasePluginAuthentication):
         except User.DoesNotExist:
             logger.debug(f"Could not get user from grafana request. Context {context}")
             raise exceptions.AuthenticationFailed("Non-existent or anonymous user.")
+
+
+class PluginAuthenticationSchema(OpenApiAuthenticationExtension):
+    target_class = PluginAuthentication
+    name = "PluginAuthentication"
+
+    def get_security_definition(self, auto_schema):
+        return {
+            "type": "apiKey",
+            "in": "header",
+            "name": "Authorization",
+            "description": (
+                "Additional X-Instance-Context and X-Grafana-Context headers must be set. "
+                "THIS WILL NOT WORK IN SWAGGER UI."
+            ),
+        }
 
 
 class GrafanaIncidentUser(AnonymousUser):

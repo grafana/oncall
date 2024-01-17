@@ -6,7 +6,8 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 from django.db.models import Q
 from django.utils.functional import cached_property
-from rest_framework import status
+from drf_spectacular.utils import extend_schema, inline_serializer
+from rest_framework import serializers, status
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound, Throttled
 from rest_framework.request import Request
@@ -284,6 +285,21 @@ class PreviewTemplateException(Exception):
 
 
 class PreviewTemplateMixin:
+    @extend_schema(
+        description="Preview template",
+        request=inline_serializer(
+            name="PreviewTemplateRequest",
+            fields={
+                "template_body": serializers.CharField(required=False, allow_null=True),
+                "template_name": serializers.CharField(required=False, allow_null=True),
+                "payload": serializers.DictField(required=False, allow_null=True),
+            },
+        ),
+        responses=inline_serializer(
+            name="PreviewTemplateResponse",
+            fields={"preview": serializers.CharField(allow_null=True)},
+        ),
+    )
     @action(methods=["post"], detail=True)
     def preview_template(self, request, pk):
         template_body = request.data.get("template_body", None)

@@ -10,5 +10,6 @@ export const goToGrafanaPage = async (page: Page, url = '') => _goToPage(page, u
 
 export const goToOnCallPage = async (page: Page, onCallPage: OnCallPage) => {
   await _goToPage(page, `/a/grafana-oncall-app/${onCallPage}`);
+  await page.waitForLoadState('networkidle');
   await page.waitForTimeout(1000);
 };
