@@ -54,7 +54,7 @@ def _sync_organization(organization: Organization) -> None:
         grafana_incident_settings, _ = grafana_api_client.get_grafana_incident_plugin_settings()
         if grafana_incident_settings is not None:
             organization.is_grafana_incident_enabled = grafana_incident_settings["enabled"]
-            organization.grafana_incident_backend_url = grafana_incident_settings["jsonData"].get(
+            organization.grafana_incident_backend_url = grafana_incident_settings.get("jsonData", {}).get(
                 GrafanaAPIClient.GRAFANA_INCIDENT_PLUGIN_BACKEND_URL_KEY
             )
     else:
