@@ -89,19 +89,21 @@ const MonacoEditor: FC<MonacoEditorProps> = (props) => {
   }
 
   return (
-    <CodeEditor
-      monacoOptions={monacoOptions}
-      showMiniMap={false}
-      readOnly={disabled}
-      showLineNumbers={showLineNumbers}
-      value={value}
-      language={language}
-      width="100%"
-      height={height}
-      onEditorDidMount={handleMount}
-      getSuggestions={useAutoCompleteList ? autoCompleteList : undefined}
-      containerStyles="u-width-height-100"
-    />
+    <div data-testid="monaco-editor">
+      <CodeEditor
+        monacoOptions={monacoOptions}
+        showMiniMap={false}
+        readOnly={disabled}
+        showLineNumbers={showLineNumbers}
+        value={value}
+        language={language}
+        width="100%"
+        height={height}
+        onEditorDidMount={handleMount}
+        getSuggestions={useAutoCompleteList ? autoCompleteList : undefined}
+        containerStyles="u-width-height-100"
+      />
+    </div>
   );
 };
 

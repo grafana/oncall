@@ -1,7 +1,6 @@
-import { expect, test } from '../fixtures';
+import { test } from '../fixtures';
 import { clickButton, generateRandomValue } from '../utils/forms';
 import { goToOnCallPage } from '../utils/navigation';
-import { createOnCallSchedule } from '../utils/schedule';
 
 test('create simple webhook and check it is displayed on the list correctly', async ({ adminRolePage: { page } }) => {
   const webhookName = generateRandomValue();
@@ -20,5 +19,5 @@ test('create simple webhook and check it is displayed on the list correctly', as
   await page.getByText('No team', { exact: true }).click();
   await clickButton({ page, buttonText: 'Create Webhook' });
 
-  // const webhookName = generateRandomValue();
+  // assert that it is in webhooks table now
 });
