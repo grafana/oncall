@@ -17,8 +17,6 @@ weight: 1400
 Grafana OnCall Metrics represents certain parameters, such as:
 
 - A total count of alert groups for each integration in every state (firing, acknowledged, resolved, silenced).
-It is a counter, and its name has the suffix `alert_groups_total`
-- A total count of alert groups for each integration in every state (firing, acknowledged, resolved, silenced).
 It is a gauge, and its name has the suffix `alert_groups_total`
 - Response time on alert groups for each integration (mean time between the start and first action of all alert groups
 for the last 7 days in selected period). It is a histogram, and its name has the suffix `alert_groups_response_time`
@@ -129,6 +127,9 @@ The most useful insights are also present within Grafana OnCall itself. To see t
 1. Open Grafana OnCall.
 2. Click **Insights** sub-section in the left-side menu.
 
+## Logs
+
+> **Note:** Grafana OnCall insight logs are available in Grafana Cloud only.
 We're in the process of rolling out Insight Logs to all customers,
 if you don't see insight logs in your Grafana Cloud stack, please reach out to support.
 
