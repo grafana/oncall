@@ -62,7 +62,7 @@ def test_mobile_app_gateway_properly_proxies_paths(
 
     mock_requests.post.assert_called_once_with(
         f"{MOCK_DOWNSTREAM_INCIDENT_API_URL}/{path}",
-        data={},
+        data=b"",
         params={},
         headers=MOCK_DOWNSTREAM_HEADERS,
     )
@@ -116,7 +116,7 @@ def test_mobile_app_gateway_proxies_query_params(
 
     mock_requests.post.assert_called_once_with(
         MOCK_DOWNSTREAM_URL,
-        data={},
+        data=b"",
         params={"foo": "bar", "baz": "hello"},
         headers=MOCK_DOWNSTREAM_HEADERS,
     )
@@ -147,10 +147,11 @@ def test_mobile_app_gateway_properly_proxies_request_body(
 
     client = APIClient()
     url = reverse("mobile_app:gateway", kwargs={"downstream_backend": DOWNSTREAM_BACKEND, "downstream_path": "test"})
+    data = json.dumps(upstream_request_body)
 
     response = client.post(
         url,
-        data=json.dumps(upstream_request_body),
+        data=data,
         content_type="application/json",
         HTTP_AUTHORIZATION=auth_token,
     )
@@ -158,7 +159,7 @@ def test_mobile_app_gateway_properly_proxies_request_body(
 
     mock_requests.post.assert_called_once_with(
         MOCK_DOWNSTREAM_URL,
-        data=upstream_request_body,
+        data=data.encode("utf-8"),
         params={},
         headers=MOCK_DOWNSTREAM_HEADERS,
     )
@@ -291,7 +292,7 @@ def test_mobile_app_gateway_incident_api_url(
 @patch("apps.mobile_app.views.requests")
 @patch("apps.mobile_app.views.MobileAppGatewayView._construct_jwt", return_value=MOCK_JWT)
 @patch("apps.mobile_app.views.MobileAppGatewayView._get_downstream_url", return_value=MOCK_DOWNSTREAM_URL)
-def test_mobile_app_gateway_jwt_header(
+def test_mobile_app_gateway_proxies_headers(
     _mock_get_downstream_url,
     _mock_construct_jwt,
     mock_requests,
@@ -304,14 +305,15 @@ def test_mobile_app_gateway_jwt_header(
     client = APIClient()
     url = reverse("mobile_app:gateway", kwargs={"downstream_backend": DOWNSTREAM_BACKEND, "downstream_path": "test"})
 
-    response = client.post(url, HTTP_AUTHORIZATION=auth_token)
+    content_type_header = "foo/bar"
+    response = client.post(url, HTTP_AUTHORIZATION=auth_token, headers={"Content-Type": content_type_header})
     assert response.status_code == status.HTTP_200_OK
 
     mock_requests.post.assert_called_once_with(
         MOCK_DOWNSTREAM_URL,
-        data={},
+        data=b"",
         params={},
-        headers={"X-OnCall-Mobile-Proxy-Authorization": f"Bearer {MOCK_JWT}"},
+        headers={"X-OnCall-Mobile-Proxy-Authorization": f"Bearer {MOCK_JWT}", "Content-Type": content_type_header},
     )
 
 
