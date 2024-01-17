@@ -360,7 +360,7 @@ def test_alert_receive_channel_template_is_valid_json_check(
     # template which should produce valid json string
     data = {
         "template_body": "{{ payload | tojson }}",
-        "template_name": "testonly_title_template",
+        "template_name": "alert_group_multi_label",
     }
     response = client.post(url, format="json", data=data, **make_user_auth_headers(user, token))
 
@@ -370,7 +370,7 @@ def test_alert_receive_channel_template_is_valid_json_check(
     # template which produce not avalid json string
     data = {
         "template_body": "{{ payload.title }}",
-        "template_name": "testonly_title_template",
+        "template_name": "alert_group_multi_label",
     }
     response = client.post(url, format="json", data=data, **make_user_auth_headers(user, token))
 
