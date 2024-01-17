@@ -24,6 +24,7 @@ import IntegrationTemplate from 'containers/IntegrationTemplate/IntegrationTempl
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { LabelsErrors } from 'models/label/label.types';
 import { ApiSchemas } from 'network/oncall-api/api.types';
+import { LabelTemplateOptions } from 'pages/integration/IntegrationCommon.config';
 import { useStore } from 'state/useStore';
 import { openErrorNotification } from 'utils';
 import { DOCS_ROOT } from 'utils/consts';
@@ -199,8 +200,8 @@ const IntegrationLabelsForm = observer((props: IntegrationLabelsFormProps) => {
         <IntegrationTemplate
           id={id}
           template={{
-            name: 'alert_group_labels',
-            displayName: ``,
+            name: LabelTemplateOptions.AlertGroupDynamicLabel.key,
+            displayName: LabelTemplateOptions.AlertGroupDynamicLabel.value,
           }}
           templates={templates}
           templateBody={alertGroupLabels.custom[customLabelIndexToShowTemplateEditor].value.name}
@@ -222,8 +223,8 @@ const IntegrationLabelsForm = observer((props: IntegrationLabelsFormProps) => {
         <IntegrationTemplate
           id={id}
           template={{
-            name: 'alert_group_labels',
-            displayName: ``,
+            name: LabelTemplateOptions.AlertGroupMultiLabel.key,
+            displayName: LabelTemplateOptions.AlertGroupMultiLabel.value,
           }}
           templates={templates}
           templateBody={alertGroupLabels.template}
