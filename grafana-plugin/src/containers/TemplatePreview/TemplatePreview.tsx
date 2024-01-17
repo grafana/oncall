@@ -108,9 +108,13 @@ const TemplatePreview = observer((props: TemplatePreviewProps) => {
       switch (templateName) {
         case LabelTemplateOptions.AlertGroupMultiLabel.key:
           return result.is_valid_json_dict ? (
-            <Badge color="green" icon="check" text="JSON is valid" />
+            <Badge color="green" icon="check" text="Output is a valid labels dictionary" />
           ) : (
-            <Badge color="red" icon="times" text="JSON is invalid" />
+            <Badge
+              color="red"
+              icon="times"
+              text="Output is not a labels dictionary. Template should produce valid JSON string. Consider using tojson filter."
+            />
           );
         default:
           return null;
