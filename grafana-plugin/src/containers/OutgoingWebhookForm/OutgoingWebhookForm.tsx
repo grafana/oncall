@@ -12,6 +12,7 @@ import {
   TabsBar,
   VerticalGroup,
 } from '@grafana/ui';
+import { capitalCase } from 'change-case';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 import { useHistory } from 'react-router-dom';
@@ -120,7 +121,12 @@ const OutgoingWebhookForm = observer((props: OutgoingWebhookFormProps) => {
   const getTemplateEditClickHandler = (formItem: FormItem, values, setFormFieldValue) => {
     return () => {
       const formValue = values[formItem.name];
-      setTemplateToEdit({ value: formValue, displayName: undefined, description: undefined, name: formItem.name });
+      setTemplateToEdit({
+        value: formValue,
+        displayName: `Webhook ${capitalCase(formItem.name)}`,
+        description: undefined,
+        name: formItem.name,
+      });
       setOnFormChangeFn({ fn: (value) => setFormFieldValue(value) });
     };
   };
