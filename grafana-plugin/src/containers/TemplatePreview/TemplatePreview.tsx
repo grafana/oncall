@@ -103,6 +103,25 @@ const TemplatePreview = observer((props: TemplatePreviewProps) => {
     }
   };
 
+  function renderExtraChecks() {
+    function getExtraCheckResult() {
+      switch (templateName) {
+        case LabelTemplateOptions.AlertGroupMultiLabel.key:
+          return result.is_valid_json_dict ? (
+            <Badge color="green" icon="check" text="JSON is valid" />
+          ) : (
+            <Badge color="red" icon="times" text="JSON is invalid" />
+          );
+        default:
+          return null;
+      }
+    }
+
+    const checkResult = getExtraCheckResult();
+
+    return checkResult ? <div className={cx('extra-check')}>{checkResult}</div> : null;
+  }
+
   function renderResult() {
     switch (templateType) {
       case 'html': {
@@ -185,13 +204,7 @@ const TemplatePreview = observer((props: TemplatePreviewProps) => {
 
   return result ? (
     <>
-      {templateName === LabelTemplateOptions.AlertGroupMultiLabel.key ? (
-        result.is_valid_json_dict ? (
-          <Badge color="green" icon="check" text="JSON is valid" />
-        ) : (
-          <Badge color="red" icon="times" text="JSON is invalid" />
-        )
-      ) : null}
+      {renderExtraChecks()}
       {renderResult()}
     </>
   ) : (
