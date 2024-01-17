@@ -183,6 +183,19 @@ class TestBaseShiftSwapRequestStep:
                 channel=ssr.slack_channel_id, ts=ts, blocks=mock_generate_blocks.return_value
             )
 
+    @patch("apps.slack.scenarios.shift_swap_requests.BaseShiftSwapRequestStep._generate_blocks")
+    @pytest.mark.django_db
+    def test_update_message_no_slack_message(self, mock_generate_blocks, setup, make_slack_message) -> None:
+        ssr, _, _, _ = setup()  # SSR without a Slack message
+        organization = ssr.organization
+        slack_team_identity = organization.slack_team_identity
+
+        step = scenarios.BaseShiftSwapRequestStep(slack_team_identity, organization)
+
+        with patch.object(step, "_slack_client") as mock_slack_client:
+            step.update_message(ssr)
+            mock_slack_client.chat_update.assert_not_called()
+
     @pytest.mark.django_db
     def test_post_message_to_thread(self, setup, make_slack_message) -> None:
         ts = "12345.67"
