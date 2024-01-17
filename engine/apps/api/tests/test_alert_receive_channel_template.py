@@ -334,7 +334,48 @@ def test_preview_alert_receive_channel_backend_templater(
     response = client.post(url, format="json", data=data, **make_user_auth_headers(user, token))
 
     assert response.status_code == status.HTTP_200_OK
-    assert response.json() == {"preview": "title: alert!"}
+    assert response.json() == {"preview": "title: alert!", "is_valid_json_dict": False}
+
+
+@pytest.mark.django_db
+def test_alert_receive_channel_template_is_valid_json_check(
+    make_organization_and_user_with_plugin_token,
+    make_user_auth_headers,
+    make_alert_receive_channel,
+    make_channel_filter,
+    make_alert_group,
+    make_alert,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+    alert_receive_channel = make_alert_receive_channel(organization)
+    default_channel_filter = make_channel_filter(alert_receive_channel, is_default=True)
+    alert_group = make_alert_group(alert_receive_channel, channel_filter=default_channel_filter)
+    make_alert(alert_group=alert_group, raw_request_data={"title": "alert!"})
+    client = APIClient()
+
+    url = reverse(
+        "api-internal:alert_receive_channel-preview-template", kwargs={"pk": alert_receive_channel.public_primary_key}
+    )
+
+    # template which should produce valid json string
+    data = {
+        "template_body": "{{ payload | tojson }}",
+        "template_name": "testonly_title_template",
+    }
+    response = client.post(url, format="json", data=data, **make_user_auth_headers(user, token))
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()["is_valid_json_dict"] is True
+
+    # template which produce not avalid json string
+    data = {
+        "template_body": "{{ payload.title }}",
+        "template_name": "testonly_title_template",
+    }
+    response = client.post(url, format="json", data=data, **make_user_auth_headers(user, token))
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()["is_valid_json_dict"] is False
 
 
 @pytest.mark.django_db
