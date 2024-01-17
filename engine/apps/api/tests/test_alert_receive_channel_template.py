@@ -334,7 +334,7 @@ def test_preview_alert_receive_channel_backend_templater(
     response = client.post(url, format="json", data=data, **make_user_auth_headers(user, token))
 
     assert response.status_code == status.HTTP_200_OK
-    assert response.json() == {"preview": "title: alert!", "is_valid_json_dict": False}
+    assert response.json() == {"preview": "title: alert!", "is_valid_json_object": False}
 
 
 @pytest.mark.django_db
@@ -365,7 +365,7 @@ def test_alert_receive_channel_template_is_valid_json_check(
     response = client.post(url, format="json", data=data, **make_user_auth_headers(user, token))
 
     assert response.status_code == status.HTTP_200_OK
-    assert response.json()["is_valid_json_dict"] is True
+    assert response.json()["is_valid_json_object"] is True
 
     # template which produce not avalid json string
     data = {
@@ -375,7 +375,7 @@ def test_alert_receive_channel_template_is_valid_json_check(
     response = client.post(url, format="json", data=data, **make_user_auth_headers(user, token))
 
     assert response.status_code == status.HTTP_200_OK
-    assert response.json()["is_valid_json_dict"] is False
+    assert response.json()["is_valid_json_object"] is False
 
 
 @pytest.mark.django_db

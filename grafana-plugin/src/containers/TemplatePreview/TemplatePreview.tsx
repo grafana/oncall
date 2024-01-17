@@ -52,7 +52,9 @@ const TemplatePreview = observer((props: TemplatePreviewProps) => {
     templatePage,
   } = props;
 
-  const [result, setResult] = useState<{ preview: string | null; is_valid_json_dict?: boolean } | undefined>(undefined);
+  const [result, setResult] = useState<{ preview: string | null; is_valid_json_object?: boolean } | undefined>(
+    undefined
+  );
   const [conditionalResult, setConditionalResult] = useState<ConditionalResult>({});
 
   const store = useStore();
@@ -107,13 +109,13 @@ const TemplatePreview = observer((props: TemplatePreviewProps) => {
     function getExtraCheckResult() {
       switch (templateName) {
         case LabelTemplateOptions.AlertGroupMultiLabel.key:
-          return result.is_valid_json_dict ? (
+          return result.is_valid_json_object ? (
             <Badge color="green" icon="check" text="Output is a valid labels dictionary" />
           ) : (
             <Badge
               color="red"
               icon="times"
-              text="Output is not a labels dictionary. Template should produce valid JSON string. Consider using tojson filter."
+              text="Output is not a labels dictionary. Template should produce valid JSON object. Consider using tojson filter."
             />
           );
         default:

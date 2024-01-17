@@ -297,7 +297,10 @@ class PreviewTemplateMixin:
         ),
         responses=inline_serializer(
             name="PreviewTemplateResponse",
-            fields={"preview": serializers.CharField(allow_null=True)},
+            fields={
+                "preview": serializers.CharField(allow_null=True),
+                "is_valid_json_object": serializers.BooleanField(allow_null=True),
+            },
         ),
     )
     @action(methods=["post"], detail=True)
@@ -354,16 +357,12 @@ class PreviewTemplateMixin:
                 return Response({"preview": e.fallback_message}, status.HTTP_200_OK)
         else:
             templated_attr = None
-        response = {"preview": templated_attr, "is_valid_json_dict": self.is_valid_json_dict(templated_attr)}
+        response = {"preview": templated_attr, "is_valid_json_object": self.is_valid_json_object(templated_attr)}
         return Response(response, status=status.HTTP_200_OK)
 
-    def is_valid_json_dict(self, json_str):
+    def is_valid_json_object(self, json_str):
         try:
-            json_object = json.loads(json_str)
-            if isinstance(json_object, dict):
-                return True
-            else:
-                return False
+            return isinstance(json.loads(json_str), dict)
         except ValueError:
             return False
 
