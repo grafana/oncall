@@ -165,6 +165,9 @@ class BaseShiftSwapRequestStep(scenario_step.ScenarioStep):
         )
 
     def update_message(self, shift_swap_request: "ShiftSwapRequest") -> None:
+        if not shift_swap_request.slack_message:
+            return
+
         self._slack_client.chat_update(
             channel=shift_swap_request.slack_channel_id,
             ts=shift_swap_request.slack_message.slack_id,
