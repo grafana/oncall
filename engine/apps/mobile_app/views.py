@@ -158,6 +158,7 @@ class MobileAppGatewayView(APIView):
             "exp": now + timezone.timedelta(minutes=1),  # jwt is short lived. expires in 1 minute.
             # custom data
             "user_id": user.user_id,  # grafana user ID
+            "user_email": user.email,
             "stack_id": organization.stack_id,
             "organization_id": organization.org_id,  # grafana org ID
             "stack_slug": organization.stack_slug,
@@ -177,7 +178,7 @@ class MobileAppGatewayView(APIView):
     @classmethod
     def _get_downstream_headers(cls, user: "User") -> typing.Dict[str, str]:
         return {
-            "Authorization": f"Bearer {cls._construct_jwt(user)}",
+            "X-OnCall-Mobile-Proxy-Authorization": f"Bearer {cls._construct_jwt(user)}",
         }
 
     @classmethod
