@@ -250,6 +250,8 @@ GROUPING_ID = "grouping_id"
 SOURCE_LINK = "source_link"
 ROUTE = "route"
 ALERT_GROUP_LABELS = "alert_group_labels"
+ALERT_GROUP_MULTI_LABEL = "alert_group_multi_label"
+ALERT_GROUP_DYNAMIC_LABEL = "alert_group_dynamic_label"
 
 NOTIFICATION_CHANNEL_TO_TEMPLATER_MAP = {
     SLACK: AlertSlackTemplater,
@@ -272,7 +274,8 @@ BEHAVIOUR_TEMPLATE_NAMES = [
     GROUPING_ID,
     SOURCE_LINK,
     ROUTE,
-    ALERT_GROUP_LABELS,
+    ALERT_GROUP_MULTI_LABEL,
+    ALERT_GROUP_DYNAMIC_LABEL,
 ]
 ALL_TEMPLATE_NAMES = APPEARANCE_TEMPLATE_NAMES + BEHAVIOUR_TEMPLATE_NAMES
 
@@ -294,7 +297,10 @@ class PreviewTemplateMixin:
         ),
         responses=inline_serializer(
             name="PreviewTemplateResponse",
-            fields={"preview": serializers.CharField(allow_null=True)},
+            fields={
+                "preview": serializers.CharField(allow_null=True),
+                "is_valid_json_object": serializers.BooleanField(),
+            },
         ),
     )
     @action(methods=["post"], detail=True)
@@ -351,8 +357,14 @@ class PreviewTemplateMixin:
                 return Response({"preview": e.fallback_message}, status.HTTP_200_OK)
         else:
             templated_attr = None
-        response = {"preview": templated_attr}
+        response = {"preview": templated_attr, "is_valid_json_object": self.is_valid_json_object(templated_attr)}
         return Response(response, status=status.HTTP_200_OK)
+
+    def is_valid_json_object(self, json_str):
+        try:
+            return isinstance(json.loads(json_str), dict)
+        except ValueError:
+            return False
 
     def get_alert_to_template(self, payload=None):
         raise NotImplementedError
