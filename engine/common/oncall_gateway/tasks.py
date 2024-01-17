@@ -168,7 +168,7 @@ def link_slack_team_async(**kwargs):
             f'msg="Failed to link slack team: {api_exc.msg}" service_tenant_id={service_tenant_id} slack_team_id={slack_team_id}'
         )
         if api_exc.status == 409:
-            # 409 Indicates that it's impossible to register tenant, because tenant already registered.
+            # Impossible to register tenant, slack workspace already connected to another cluster.
             # Not retrying in this case, because manual conflict-resolution needed.
             return
         else:
@@ -192,13 +192,7 @@ def unlink_slack_team_async(**kwargs):
 
     client = ChatopsProxyAPIClient(settings.ONCALL_GATEWAY_URL, settings.ONCALL_GATEWAY_API_TOKEN)
     try:
-        client.link_slack_team(service_tenant_id, slack_team_id, service_type)
-    except ChatopsProxyAPIException as api_exc:
-        if api_exc.status == 404:
-            # 404 indicates that there is no slack link or tenant
-            return
-        else:
-            raise api_exc
+        client.unlink_slack_team(service_tenant_id, slack_team_id, service_type)
     except Exception as e:
         task_logger.error(
             f'msg="Failed to unlink slack_team: {e}" service_tenant_id={service_tenant_id} slack_team_id={slack_team_id}'

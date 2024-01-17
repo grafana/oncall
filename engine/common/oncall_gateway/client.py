@@ -87,16 +87,6 @@ class ChatopsProxyAPIClient:
 
         return response.json()["removed"], response
 
-    def get_tenant(
-        self, service_tenant_id: str, cluster_slug: str, service_type: str
-    ) -> tuple[Tenant, requests.models.Response]:
-        url = f"{self.api_base_url}/tenants/get"
-        d = {"service_tenant_id": service_tenant_id, "cluster_slug": cluster_slug, "service_type": service_type}
-
-        response = requests.post(url=url, json=d)
-        self._check_response(response)
-        return Tenant(**response.json()["tenant"]), response
-
     def can_slack_link(
         self, service_tenant_id: str, cluster_slug: str, slack_team_id: str, service_type: str
     ) -> requests.models.Response:
@@ -128,7 +118,7 @@ class ChatopsProxyAPIClient:
 
     def unlink_slack_team(
         self, service_tenant_id: str, slack_team_id: str, service_type: str
-    ) -> requests.models.Response:
+    ) -> tuple[bool, requests.models.Response]:
         url = f"{self.api_base_url}/providers/slack/unlink"
         d = {
             "slack_link": {
@@ -139,7 +129,7 @@ class ChatopsProxyAPIClient:
         }
         response = requests.post(url=url, json=d)
         self._check_response(response)
-        return response
+        return response.json()["removed"], response
 
     def _check_response(self, response: requests.models.Response):
         """
