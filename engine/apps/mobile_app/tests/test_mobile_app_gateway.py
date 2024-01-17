@@ -14,7 +14,7 @@ from apps.mobile_app.views import MobileAppGatewayView
 DOWNSTREAM_BACKEND = "incident"
 MOCK_DOWNSTREAM_URL = "https://mockdownstream.com"
 MOCK_DOWNSTREAM_INCIDENT_API_URL = "https://mockdownstreamincidentapi.com"
-MOCK_DOWNSTREAM_HEADERS = {"Authorization": "Bearer mock_jwt"}
+MOCK_DOWNSTREAM_HEADERS = {"X-OnCall-Mobile-Proxy-Authorization": "Bearer mock_jwt"}
 MOCK_DOWNSTREAM_RESPONSE_DATA = {"foo": "bar"}
 
 MOCK_TIMEZONE_NOW = timezone.datetime(2021, 1, 1, 3, 4, 5, tzinfo=timezone.utc)
@@ -311,7 +311,7 @@ def test_mobile_app_gateway_jwt_header(
         MOCK_DOWNSTREAM_URL,
         data={},
         params={},
-        headers={"Authorization": f"Bearer {MOCK_JWT}"},
+        headers={"X-OnCall-Mobile-Proxy-Authorization": f"Bearer {MOCK_JWT}"},
     )
 
 
@@ -343,6 +343,7 @@ def test_mobile_app_gateway_properly_generates_a_jwt(
             "iat": MOCK_TIMEZONE_NOW,
             "exp": MOCK_TIMEZONE_NOW + timezone.timedelta(minutes=1),
             "user_id": user.user_id,  # grafana user ID
+            "user_email": user.email,
             "stack_id": organization.stack_id,
             "organization_id": organization.org_id,  # grafana org ID
             "stack_slug": organization.stack_slug,
