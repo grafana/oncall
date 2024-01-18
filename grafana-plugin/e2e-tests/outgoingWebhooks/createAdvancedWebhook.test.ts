@@ -27,7 +27,7 @@ test('create advanced webhook and check it is displayed on the list correctly', 
 
   // Select trigger type
   await webhooksForm.filter({ hasText: 'Trigger Type' }).getByRole('img').click();
-  await webhooksForm.getByText('Resolved', { exact: true }).click();
+  await page.getByLabel('Select options menu').getByText('Resolved', { exact: true }).click();
 
   // Select integration
   await webhooksForm.filter({ hasText: 'Integrations' }).getByText('Choose').click();
