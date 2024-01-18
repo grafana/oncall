@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## v1.3.90 (2024-01-18)
+
+### Changed
+
+- Improvements for the columns selector ([3668](https://github.com/grafana/oncall/pull/3668))
+
+### Fixed
+
+- Address infinite retrying `apps.alerts.tasks.notify_user.perform_notification` task when `UserNotificationPolicyLogRecord`
+  object cannot be found by @joeyorlando ([#3708](https://github.com/grafana/oncall/pull/3708))
+
 ## v1.3.89 (2024-01-17)
 
 ### Fixed

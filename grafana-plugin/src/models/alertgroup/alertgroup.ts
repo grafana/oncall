@@ -11,7 +11,7 @@ import { RootStore } from 'state';
 import { SelectOption } from 'state/types';
 import { openErrorNotification, refreshPageError, showApiError } from 'utils';
 import LocationHelper from 'utils/LocationHelper';
-import { AutoLoadingState } from 'utils/decorators';
+import { AutoLoadingState, WithGlobalNotification } from 'utils/decorators';
 
 import { AlertGroupColumn, Alert, AlertAction, IncidentStatus } from './alertgroup.types';
 
@@ -172,6 +172,34 @@ export class AlertGroupStore extends BaseStore {
     await makeRequest(`${this.path}${id}/unsilence/`, {
       method: 'POST',
     });
+  }
+
+  @AutoLoadingState(ActionKey.RESET_COLUMNS_FROM_ALERT_GROUP)
+  @WithGlobalNotification({ success: 'Columns list has been reset' })
+  async resetColumns() {
+    await this.resetTableSettings();
+    await this.fetchTableSettings();
+  }
+
+  @AutoLoadingState(ActionKey.REMOVE_COLUMN_FROM_ALERT_GROUP)
+  @WithGlobalNotification({
+    success: 'Column has been removed from the list.',
+    failure: 'There was an error processing your request. Please try again',
+  })
+  async removeTableColumn(
+    columnToBeRemoved: AlertGroupColumn,
+    convertColumnsToTableSettings: (columns: AlertGroupColumn[]) => {
+      visible: AlertGroupColumn[];
+      hidden: AlertGroupColumn[];
+    }
+  ) {
+    const columns = this.columns.filter(
+      (col) =>
+        col.id !== columnToBeRemoved.id || (col.id === columnToBeRemoved.id && col.type !== columnToBeRemoved.type)
+    );
+
+    await this.updateTableSettings(convertColumnsToTableSettings(columns), false);
+    await this.fetchTableSettings();
   }
 
   @action
