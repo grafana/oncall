@@ -10,6 +10,7 @@ from fcm_django.api.rest_framework import FCMDeviceAuthorizedViewSet as BaseFCMD
 from rest_framework import mixins, status, viewsets
 from rest_framework.exceptions import NotFound, ParseError
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -141,7 +142,7 @@ class MobileAppGatewayView(APIView):
         SupportedDownstreamBackends.INCIDENT,
     ]
 
-    def initial(self, request, *args, **kwargs):
+    def initial(self, request: Request, *args, **kwargs):
         # If the mobile app gateway is not enabled, return a 404
         if not settings.MOBILE_APP_GATEWAY_ENABLED:
             raise NotFound
@@ -158,6 +159,7 @@ class MobileAppGatewayView(APIView):
             "exp": now + timezone.timedelta(minutes=1),  # jwt is short lived. expires in 1 minute.
             # custom data
             "user_id": user.user_id,  # grafana user ID
+            "user_email": user.email,
             "stack_id": organization.stack_id,
             "organization_id": organization.org_id,  # grafana org ID
             "stack_slug": organization.stack_slug,
@@ -175,10 +177,15 @@ class MobileAppGatewayView(APIView):
         )
 
     @classmethod
-    def _get_downstream_headers(cls, user: "User") -> typing.Dict[str, str]:
-        return {
-            "Authorization": f"Bearer {cls._construct_jwt(user)}",
+    def _get_downstream_headers(cls, request: Request, user: "User") -> typing.Dict[str, str]:
+        headers = {
+            "X-OnCall-Mobile-Proxy-Authorization": f"Bearer {cls._construct_jwt(user)}",
         }
+
+        if (v := request.META.get("CONTENT_TYPE", None)) is not None:
+            headers["Content-Type"] = v
+
+        return headers
 
     @classmethod
     def _get_downstream_url(cls, organization: "Organization", downstream_backend: str, downstream_path: str) -> str:
@@ -193,7 +200,7 @@ class MobileAppGatewayView(APIView):
 
         return f"{downstream_url}/{downstream_path}"
 
-    def _proxy_request(self, request, *args, **kwargs):
+    def _proxy_request(self, request: Request, *args, **kwargs) -> Response:
         downstream_backend = kwargs["downstream_backend"]
         downstream_path = kwargs["downstream_path"]
         method = request.method
@@ -208,9 +215,9 @@ class MobileAppGatewayView(APIView):
         try:
             downstream_response = downstream_request_handler(
                 downstream_url,
-                data=request.data,
+                data=request.body,
                 params=request.query_params.dict(),
-                headers=self._get_downstream_headers(user),
+                headers=self._get_downstream_headers(request, user),
             )
 
             return Response(status=downstream_response.status_code, data=downstream_response.json())
