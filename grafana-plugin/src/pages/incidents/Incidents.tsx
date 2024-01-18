@@ -5,6 +5,7 @@ import { LabelTag } from '@grafana/labels';
 import { Button, HorizontalGroup, Icon, RadioButtonGroup, Tooltip, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { capitalize } from 'lodash-es';
+import { toJS } from 'mobx';
 import { observer } from 'mobx-react';
 import moment from 'moment-timezone';
 import Emoji from 'react-emoji-render';
@@ -110,6 +111,8 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
 
     store.alertGroupStore.incidentsCursor = cursorQuery || undefined;
 
+    this.rootElRef = React.createRef<HTMLDivElement>();
+
     this.state = {
       selectedIncidentIds: [],
       affectedRows: {},
@@ -123,6 +126,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
     };
   }
 
+  private rootElRef: React.RefObject<HTMLDivElement>;
   private pollingIntervalId: NodeJS.Timer = undefined;
 
   componentDidMount() {
@@ -531,7 +535,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
     const tableColumns = this.getTableColumns();
 
     return (
-      <div className={cx('root')}>
+      <div className={cx('root')} ref={this.rootElRef}>
         {this.renderBulkActions()}
         <GTable
           emptyText={isLoading ? 'Loading...' : 'No alert groups found'}
@@ -765,50 +769,50 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
         title: 'ID',
         key: 'id',
         render: this.renderId,
-        width: isHorizontalScrolling ? '100px' : '10%',
+        width: 150,
       },
       Status: {
         title: 'Status',
         key: 'time',
         render: this.renderStatus,
-        width: '140px',
+        width: 140,
       },
       Alerts: {
         title: 'Alerts',
         key: 'alerts',
         render: this.renderAlertsCounter,
-        width: '100px',
+        width: 100,
       },
       Integration: {
         title: 'Integration',
         key: 'integration',
         render: this.renderSource,
-        width: isHorizontalScrolling ? undefined : '15%',
+        grow: 1.7,
       },
       Title: {
         title: 'Title',
         key: 'title',
         render: this.renderTitle,
-        width: isHorizontalScrolling ? undefined : '35%',
         className: 'u-max-width-1000',
+        grow: 3.5,
       },
       Created: {
         title: 'Created',
         key: 'created',
         render: this.renderStartedAt,
-        width: isHorizontalScrolling ? undefined : '10%',
+        grow: 1,
       },
       Team: {
         title: 'Team',
         key: 'team',
         render: (item: AlertType) => this.renderTeam(item, store.grafanaTeamStore.items),
-        width: isHorizontalScrolling ? undefined : '10%',
+        grow: 1,
       },
       Users: {
         title: 'Users',
         key: 'users',
         render: renderRelatedUsers,
-        width: isHorizontalScrolling ? undefined : '15%',
+        grow: 1.5,
       },
     };
 
@@ -825,15 +829,38 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
       return Object.keys(columnMapping).map((col) => columnMapping[col]);
     }
 
+    const visibleColumns = store.alertGroupStore.columns.filter((col) => col.isVisible);
+    const visibleColumnsWidth = visibleColumns
+      .filter((col) => col.type === AlertGroupColumnType.DEFAULT)
+      .reduce((total, current) => {
+        const column = columnMapping[current.name];
+        return typeof column.width === 'number' ? total + column.width : total;
+      }, 0);
+
+    const columnsGrowSum = visibleColumns.reduce((total, current) => {
+      const column = columnMapping[current.name];
+      return total + (column?.grow || 1);
+    }, 0);
+
+    const totalContainerWidth = this.rootElRef?.current?.offsetWidth;
+    const remainingContainerWidth = totalContainerWidth - visibleColumnsWidth;
+
     const mappedColumns: TableColumn[] = store.alertGroupStore.columns
       .filter((col) => col.isVisible)
       .map((column: AlertGroupColumn): TableColumn => {
+        const grow = columnMapping[column.name]?.grow || 1;
+        const growWidth = (grow / columnsGrowSum) * remainingContainerWidth;
+        const columnWidth = columnMapping[column.name]?.width || growWidth;
+
         if (column.type === AlertGroupColumnType.DEFAULT && columnMapping[column.name]) {
-          return columnMapping[column.name];
+          return {
+            ...columnMapping[column.name],
+            width: columnWidth,
+          };
         }
 
         return {
-          width: isHorizontalScrolling ? '200px' : '10%',
+          width: isHorizontalScrolling ? '200px' : columnWidth,
           title: capitalize(column.name),
           key: column.id,
           render: (item: AlertType) => this.renderCustomColumn(column, item),
