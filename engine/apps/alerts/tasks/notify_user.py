@@ -197,14 +197,14 @@ def notify_user_task(
         if not stop_escalation:
             if notification_policy.step != UserNotificationPolicy.Step.WAIT:
 
-                def _create_perform_notification_task():
-                    task = perform_notification.apply_async((log_record.pk,))
+                def _create_perform_notification_task(log_record_pk, alert_group_pk):
+                    task = perform_notification.apply_async((log_record_pk,))
                     task_logger.info(
-                        f"Created perform_notification task {task} log_record={log_record.pk} "
+                        f"Created perform_notification task {task} log_record={log_record_pk} "
                         f"alert_group={alert_group_pk}"
                     )
 
-                transaction.on_commit(_create_perform_notification_task)
+                transaction.on_commit(partial(_create_perform_notification_task, (log_record.pk, alert_group_pk)))
 
             delay = NEXT_ESCALATION_DELAY
             if countdown is not None:
