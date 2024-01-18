@@ -17,7 +17,7 @@ class DedicatedQueueRetryTask(LogExceptionOnFailureTask):
     def retry(
         self, args=None, kwargs=None, exc=None, throw=True, eta=None, countdown=None, max_retries=None, **options
     ):
-        logger.warn("Retrying celery task", exc_info=exc)
+        logger.warning("Retrying celery task", exc_info=exc)
 
         # Just call retry with queue argument
         return super().retry(
