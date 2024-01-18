@@ -35,6 +35,6 @@ with open("../../../grafana-plugin/src/plugin.json") as ifp:
                 if idx != num_permissions:
                     permissions += "<br /><br />"
 
-        txt += f"| {role['name']} | {role['description']} | {basic_role_grants} | {permissions}\n"
+        txt += f"| {role['name']} | {role['description']} | {permissions} | {basic_role_grants}\n"
 
 subprocess.run("pbcopy", text=True, input=txt)
