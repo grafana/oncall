@@ -285,3 +285,15 @@ def test_perform_notification_slack_prevent_posting(
         last_log_record.notification_error_code
         == UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_POSTING_TO_SLACK_IS_DISABLED
     )
+
+
+@pytest.mark.django_db
+def test_perform_notification_missing_user_notification_policy_log_record(caplog):
+    invalid_pk = 12345
+    perform_notification(invalid_pk)
+
+    assert (
+        f"perform_notification: log_record {invalid_pk} doesn't exist. Skipping remainder of task. "
+        "The alert group associated with this log record may have been deleted."
+    ) in caplog.text
+    assert f"perform_notification: found record for {invalid_pk}" not in caplog.text

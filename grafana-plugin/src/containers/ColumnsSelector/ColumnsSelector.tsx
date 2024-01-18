@@ -30,7 +30,6 @@ import { ActionKey } from 'models/loader/action-keys';
 import { useStore } from 'state/useStore';
 import { openErrorNotification } from 'utils';
 import { UserActions } from 'utils/authorization';
-import { WrapAutoLoadingState, WrapWithGlobalNotification } from 'utils/decorators';
 
 import { getColumnsSelectorStyles } from './ColumnsSelector.styles';
 
@@ -154,7 +153,7 @@ export const ColumnsSelector: React.FC<ColumnsSelectorProps> = observer(
             onDragEnd={(ev) => handleDragEnd(ev, true)}
             modifiers={[restrictToVerticalAxis, restrictToFirstScrollableAncestor]}
           >
-            <SortableContext items={mapColumns(visibleColumns)} strategy={verticalListSortingStrategy}>
+            <SortableContext items={mapColumnsToDndItems(visibleColumns)} strategy={verticalListSortingStrategy}>
               <TransitionGroup>
                 {visibleColumns.map((column) => (
                   <CSSTransition
@@ -187,7 +186,7 @@ export const ColumnsSelector: React.FC<ColumnsSelectorProps> = observer(
             collisionDetection={closestCenter}
             onDragEnd={(ev) => handleDragEnd(ev, false)}
           >
-            <SortableContext items={mapColumns(hiddenColumns)} strategy={verticalListSortingStrategy}>
+            <SortableContext items={mapColumnsToDndItems(hiddenColumns)} strategy={verticalListSortingStrategy}>
               <TransitionGroup>
                 {hiddenColumns.map((column) => (
                   <CSSTransition key={getColumnCombinedID(column)} timeout={TRANSITION_MS} classNames="fade">
@@ -210,10 +209,7 @@ export const ColumnsSelector: React.FC<ColumnsSelectorProps> = observer(
             tooltipPlacement="top"
             tooltip={'Reset table to default columns'}
             disabled={isResetLoading || isDefaultColumnOrder}
-            onClick={WrapAutoLoadingState(
-              WrapWithGlobalNotification(onReset, { success: 'Columns list has been reset' }),
-              ActionKey.RESET_COLUMNS_FROM_ALERT_GROUP
-            )}
+            onClick={() => alertGroupStore.resetColumns()}
           >
             {isResetLoading ? <LoadingPlaceholder text="Loading..." className="loadingPlaceholder" /> : 'Reset'}
           </Button>
@@ -226,16 +222,11 @@ export const ColumnsSelector: React.FC<ColumnsSelectorProps> = observer(
       </div>
     );
 
-    function mapColumns(columns: AlertGroupColumn[]) {
+    function mapColumnsToDndItems(columns: AlertGroupColumn[]) {
       return columns.map((col) => ({
         ...col,
         id: getColumnCombinedID(col),
       }));
-    }
-
-    async function onReset() {
-      await alertGroupStore.resetTableSettings();
-      await alertGroupStore.fetchTableSettings();
     }
 
     async function onItemChange({ id, type }: AlertGroupColumn) {

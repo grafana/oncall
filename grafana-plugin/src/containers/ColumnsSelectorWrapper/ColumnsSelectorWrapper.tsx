@@ -131,13 +131,7 @@ const ColumnsSelectorWrapper: React.FC<ColumnsSelectorWrapperProps> = observer((
   }
 
   async function onColumnRemovalClick(): Promise<void> {
-    const columns = store.alertGroupStore.columns.filter(
-      (col) =>
-        col.id !== columnToBeRemoved.id || (col.id === columnToBeRemoved.id && col.type !== columnToBeRemoved.type)
-    );
-
-    await store.alertGroupStore.updateTableSettings(convertColumnsToTableSettings(columns), false);
-    await store.alertGroupStore.fetchTableSettings();
+    await store.alertGroupStore.removeTableColumn(columnToBeRemoved, convertColumnsToTableSettings);
 
     setIsConfirmRemovalModalOpen(false);
     forceOpenToggletip();
