@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Address infinite retrying `apps.alerts.tasks.notify_user.perform_notification` task when `UserNotificationPolicyLogRecord`
-  object cannot be found by @joeyorlando ([#TBD](https://github.com/grafana/oncall/pull/TBD))
+  object cannot be found by @joeyorlando ([#3708](https://github.com/grafana/oncall/pull/3708))
 
 ## v1.3.89 (2024-01-17)
 
