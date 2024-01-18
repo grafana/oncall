@@ -5,7 +5,6 @@ import { LabelTag } from '@grafana/labels';
 import { Button, HorizontalGroup, Icon, RadioButtonGroup, Tooltip, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { capitalize } from 'lodash-es';
-import { toJS } from 'mobx';
 import { observer } from 'mobx-react';
 import moment from 'moment-timezone';
 import Emoji from 'react-emoji-render';
