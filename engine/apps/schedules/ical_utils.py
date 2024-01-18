@@ -33,6 +33,8 @@ from apps.schedules.constants import (
     RE_EVENT_UID_V1,
     RE_EVENT_UID_V2,
     RE_PRIORITY,
+    SCHEDULE_ONCALL_CACHE_KEY_PREFIX,
+    SCHEDULE_ONCALL_CACHE_TTL,
 )
 from apps.schedules.ical_events import ical_events
 from common.cache import ensure_cache_key_allocates_to_the_same_hash_slot
@@ -387,6 +389,22 @@ def get_oncall_users_for_multiple_schedules(
     return oncall_users
 
 
+def _generate_cache_key_for_schedule_oncall_users(schedule: "OnCallSchedule") -> str:
+    return ensure_cache_key_allocates_to_the_same_hash_slot(
+        f"{SCHEDULE_ONCALL_CACHE_KEY_PREFIX}{schedule.public_primary_key}", SCHEDULE_ONCALL_CACHE_KEY_PREFIX
+    )
+
+
+def update_cached_oncall_users_for_schedule(schedule: "OnCallSchedule"):
+    oncall_users = get_oncall_users_for_multiple_schedules([schedule])
+    users = oncall_users.get(schedule, [])
+    cache.set(
+        _generate_cache_key_for_schedule_oncall_users(schedule),
+        [user.public_primary_key for user in users],
+        timeout=SCHEDULE_ONCALL_CACHE_TTL,
+    )
+
+
 def get_cached_oncall_users_for_multiple_schedules(schedules: typing.List["OnCallSchedule"]) -> SchedulesOnCallUsers:
     """
     More "performant" version of `apps.schedules.ical_utils.get_oncall_users_for_multiple_schedules`
@@ -404,22 +422,13 @@ def get_cached_oncall_users_for_multiple_schedules(schedules: typing.List["OnCal
     from apps.schedules.models import OnCallSchedule
     from apps.user_management.models import User
 
-    CACHE_KEY_PREFIX = "schedule_oncall_users_"
-
-    def _generate_cache_key_for_schedule_oncall_users(schedule: "OnCallSchedule") -> str:
-        return ensure_cache_key_allocates_to_the_same_hash_slot(
-            f"{CACHE_KEY_PREFIX}{schedule.public_primary_key}", CACHE_KEY_PREFIX
-        )
-
     def _get_schedule_public_primary_key_from_schedule_oncall_users_cache_key(cache_key: str) -> str:
         """
         remove any brackets that might be included in the cache key (when redis cluster is active).
         See `_generate_cache_key_for_schedule_oncall_users` just above
         """
         cache_key = cache_key.replace("{", "").replace("}", "")
-        return cache_key.replace(CACHE_KEY_PREFIX, "")
-
-    CACHE_TTL = 15 * 60  # 15 minutes in seconds
+        return cache_key.replace(SCHEDULE_ONCALL_CACHE_KEY_PREFIX, "")
 
     cache_keys = [_generate_cache_key_for_schedule_oncall_users(schedule) for schedule in schedules]
 
@@ -464,7 +473,7 @@ def get_cached_oncall_users_for_multiple_schedules(schedules: typing.List["OnCal
             _generate_cache_key_for_schedule_oncall_users(schedule)
         ] = oncall_user_public_primary_keys
 
-    cache.set_many(new_results_to_update_in_cache, timeout=CACHE_TTL)
+    cache.set_many(new_results_to_update_in_cache, timeout=SCHEDULE_ONCALL_CACHE_TTL)
 
     # make two queries to the database, one to fetch the schedule objects we need and the other to fetch
     # the user objects we need

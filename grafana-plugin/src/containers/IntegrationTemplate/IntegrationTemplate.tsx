@@ -12,6 +12,8 @@ import {
   groupingTemplateCheatSheet,
   slackMessageTemplateCheatSheet,
   genericTemplateCheatSheet,
+  alertGroupDynamicLabelCheatSheet,
+  alertGroupMultiLabelExtractionCheatSheet,
 } from 'components/CheatSheet/CheatSheet.config';
 import MonacoEditor from 'components/MonacoEditor/MonacoEditor';
 import Text from 'components/Text/Text';
@@ -22,7 +24,7 @@ import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_
 import { AlertTemplatesDTO } from 'models/alert_templates/alert_templates';
 import { Alert } from 'models/alertgroup/alertgroup.types';
 import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
-import { BaseTemplateOptions } from 'pages/integration/IntegrationCommon.config';
+import { IntegrationTemplateOptions, LabelTemplateOptions } from 'pages/integration/IntegrationCommon.config';
 import { useStore } from 'state/useStore';
 import LocationHelper from 'utils/LocationHelper';
 import { UserActions } from 'utils/authorization';
@@ -129,26 +131,30 @@ const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
 
   const getCheatSheet = (templateKey: string) => {
     switch (templateKey) {
-      case BaseTemplateOptions.Grouping.key:
-      case BaseTemplateOptions.Resolve.key:
+      case IntegrationTemplateOptions.Grouping.key:
+      case IntegrationTemplateOptions.Resolve.key:
         return groupingTemplateCheatSheet;
-      case BaseTemplateOptions.WebTitle.key:
-      case BaseTemplateOptions.WebMessage.key:
-      case BaseTemplateOptions.WebImage.key:
+      case IntegrationTemplateOptions.WebTitle.key:
+      case IntegrationTemplateOptions.WebMessage.key:
+      case IntegrationTemplateOptions.WebImage.key:
         return genericTemplateCheatSheet;
-      case BaseTemplateOptions.Autoacknowledge.key:
-      case BaseTemplateOptions.SourceLink.key:
-      case BaseTemplateOptions.Phone.key:
-      case BaseTemplateOptions.SMS.key:
-      case BaseTemplateOptions.SlackTitle.key:
-      case BaseTemplateOptions.SlackMessage.key:
-      case BaseTemplateOptions.SlackImage.key:
-      case BaseTemplateOptions.TelegramTitle.key:
-      case BaseTemplateOptions.TelegramMessage.key:
-      case BaseTemplateOptions.TelegramImage.key:
-      case BaseTemplateOptions.EmailTitle.key:
-      case BaseTemplateOptions.EmailMessage.key:
+      case IntegrationTemplateOptions.Autoacknowledge.key:
+      case IntegrationTemplateOptions.SourceLink.key:
+      case IntegrationTemplateOptions.Phone.key:
+      case IntegrationTemplateOptions.SMS.key:
+      case IntegrationTemplateOptions.SlackTitle.key:
+      case IntegrationTemplateOptions.SlackMessage.key:
+      case IntegrationTemplateOptions.SlackImage.key:
+      case IntegrationTemplateOptions.TelegramTitle.key:
+      case IntegrationTemplateOptions.TelegramMessage.key:
+      case IntegrationTemplateOptions.TelegramImage.key:
+      case IntegrationTemplateOptions.EmailTitle.key:
+      case IntegrationTemplateOptions.EmailMessage.key:
         return slackMessageTemplateCheatSheet;
+      case LabelTemplateOptions.AlertGroupDynamicLabel.key:
+        return alertGroupDynamicLabelCheatSheet;
+      case LabelTemplateOptions.AlertGroupMultiLabel.key:
+        return alertGroupMultiLabelExtractionCheatSheet;
       default:
         return genericTemplateCheatSheet;
     }
