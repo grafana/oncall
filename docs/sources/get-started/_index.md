@@ -84,7 +84,7 @@ Review and customize templates to interpret monitoring alerts and minimize noise
 customize visualizations and notifications by extracting data from alerts. See more details in the
 [Jinja2 templating][jinja2-templating] section.
 
-### Configure scalation Chains
+### Configure Escalation Chains
 
 Escalation chains are a set of steps that define who to notify, and when.
 
