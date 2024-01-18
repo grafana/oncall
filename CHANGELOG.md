@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Changed
+
+- Improvements for the columns selector ([3668](https://github.com/grafana/oncall/pull/3668))
+- Improved alert group table columns spacing ([#3712](https://github.com/grafana/oncall/pull/3712))
+
+### Changed
+
 ## v1.3.89 (2024-01-17)
 
 ### Fixed
@@ -42,10 +49,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## v1.3.85 (2024-01-12)
 
 Maintenance release
-
-### Changed
-
-- Improvements for the columns selector ([3668](https://github.com/grafana/oncall/pull/3668))
 
 ## v1.3.84 (2024-01-10)
 
