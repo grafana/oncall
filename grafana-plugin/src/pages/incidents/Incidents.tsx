@@ -841,12 +841,19 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
       return total + (column?.grow || 1);
     }, 0);
 
-    const totalContainerWidth = this.rootElRef?.current?.offsetWidth;
+    // we set the total width based on the number of columns in the table (200xColCount)
+    const totalContainerWidth = isHorizontalScrolling
+      ? 200 * visibleColumns.length
+      : this.rootElRef?.current?.offsetWidth;
     const remainingContainerWidth = totalContainerWidth - visibleColumnsWidth;
 
     const mappedColumns: TableColumn[] = store.alertGroupStore.columns
       .filter((col) => col.isVisible)
       .map((column: AlertGroupColumn): TableColumn => {
+        // each column has a grow property, simillar to flex-grow
+        // and that dictates how much space it should take relative to the other columns
+        // we also keep in mind the remaining fixed width columns
+        // (such as Status/Alerts which always take up the same amount of space)
         const grow = columnMapping[column.name]?.grow || 1;
         const growWidth = (grow / columnsGrowSum) * remainingContainerWidth;
         const columnWidth = columnMapping[column.name]?.width || growWidth;
@@ -859,7 +866,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
         }
 
         return {
-          width: isHorizontalScrolling ? '200px' : columnWidth,
+          width: columnWidth,
           title: capitalize(column.name),
           key: column.id,
           render: (item: AlertType) => this.renderCustomColumn(column, item),
