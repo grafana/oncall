@@ -6,4 +6,5 @@ export interface TableColumn {
   key: string;
   render: (value: any, record: any, index: number) => React.ReactNode | RenderedCell<any>;
   className?: string;
+  grow?: number;
 }

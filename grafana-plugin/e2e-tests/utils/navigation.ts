@@ -2,7 +2,14 @@ import type { Page } from '@playwright/test';
 
 import { BASE_URL } from './constants';
 
-type OnCallPage = 'alert-groups' | 'integrations' | 'escalations' | 'schedules' | 'users' | 'insights';
+type OnCallPage =
+  | 'alert-groups'
+  | 'integrations'
+  | 'escalations'
+  | 'schedules'
+  | 'outgoing_webhooks'
+  | 'users'
+  | 'insights';
 
 const _goToPage = async (page: Page, url = '') => page.goto(`${BASE_URL}${url}`);
 
