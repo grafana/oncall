@@ -57,15 +57,12 @@ if settings.FEATURE_SLACK_INTEGRATION_ENABLED:
 
 if settings.FEATURE_TELEGRAM_INTEGRATION_ENABLED:
     urlpatterns += [path("telegram/", include("apps.telegram.urls"))]
-    urlpatterns += [path("telegram/v3", include("apps.telegram.urls"))]
 
 if settings.FEATURE_SLACK_INTEGRATION_ENABLED:
     urlpatterns += [
         path("slack/", include("apps.slack.urls")),
     ]
-    urlpatterns += [
-        path("slack/v3/", include("apps.slack.urls")),
-    ]
+
 
 if settings.IS_OPEN_SOURCE:
     urlpatterns += [

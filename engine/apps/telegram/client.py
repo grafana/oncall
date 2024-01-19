@@ -40,7 +40,7 @@ class TelegramClient:
     def register_webhook(self, webhook_url: Optional[str] = None) -> None:
         if settings.CHATOPS_V3:
             webhook_url = webhook_url or create_engine_url(
-                "/telegram/v3", override_base=live_settings.TELEGRAM_WEBHOOK_HOST
+                "/telegram/v3/", override_base=live_settings.TELEGRAM_WEBHOOK_HOST
             )
         else:
             webhook_url = webhook_url or create_engine_url(
