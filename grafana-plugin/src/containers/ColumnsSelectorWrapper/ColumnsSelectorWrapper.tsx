@@ -12,7 +12,7 @@ import { ActionKey } from 'models/loader/action-keys';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
 import { UserActions } from 'utils/authorization';
-import { WrapAutoLoadingState } from 'utils/decorators';
+import { WrapAutoLoadingState, WrapWithGlobalNotification } from 'utils/decorators';
 
 import { ColumnsModal } from './ColumnsModal';
 
@@ -78,7 +78,13 @@ const ColumnsSelectorWrapper: React.FC<ColumnsSelectorWrapperProps> = observer((
               <Button
                 disabled={isRemoveLoading}
                 variant={'destructive'}
-                onClick={WrapAutoLoadingState(onColumnRemovalClick, ActionKey.REMOVE_COLUMN_FROM_ALERT_GROUP)}
+                onClick={WrapAutoLoadingState(
+                  WrapWithGlobalNotification(onColumnRemovalClick, {
+                    success: 'Column has been removed from the list.',
+                    failure: 'There was an error processing your request. Please try again',
+                  }),
+                  ActionKey.REMOVE_COLUMN_FROM_ALERT_GROUP
+                )}
               >
                 {isRemoveLoading ? <LoadingPlaceholder text="Loading..." className="loadingPlaceholder" /> : 'Remove'}
               </Button>
@@ -125,10 +131,7 @@ const ColumnsSelectorWrapper: React.FC<ColumnsSelectorWrapperProps> = observer((
   }
 
   async function onColumnRemovalClick(): Promise<void> {
-    const columns = store.alertGroupStore.columns.filter((col) => col.id !== columnToBeRemoved.id);
-
-    await store.alertGroupStore.updateTableSettings(convertColumnsToTableSettings(columns), false);
-    await store.alertGroupStore.fetchTableSettings();
+    await store.alertGroupStore.removeTableColumn(columnToBeRemoved, convertColumnsToTableSettings);
 
     setIsConfirmRemovalModalOpen(false);
     forceOpenToggletip();
