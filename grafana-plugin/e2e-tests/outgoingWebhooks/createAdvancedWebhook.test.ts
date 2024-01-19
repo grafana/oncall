@@ -42,5 +42,5 @@ test('create advanced webhook and check it is displayed on the list correctly', 
 
   await clickButton({ page, buttonText: 'Create Webhook' });
 
-  await checkWebhookPresenceInTable(page, WEBHOOK_NAME);
+  await checkWebhookPresenceInTable({ page, webhookName: WEBHOOK_NAME, expectedTriggerType: 'Resolved' });
 });

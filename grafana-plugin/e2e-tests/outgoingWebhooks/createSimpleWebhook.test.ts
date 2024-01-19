@@ -20,5 +20,5 @@ test('create simple webhook and check it is displayed on the list correctly', as
   await page.getByLabel('Select options menu').getByText('No team').click();
   await clickButton({ page, buttonText: 'Create Webhook' });
 
-  await checkWebhookPresenceInTable(page, WEBHOOK_NAME);
+  await checkWebhookPresenceInTable({ page, webhookName: WEBHOOK_NAME, expectedTriggerType: 'Escalation step' });
 });

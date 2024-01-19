@@ -1,6 +1,14 @@
 import { Page, expect } from '@playwright/test';
 
-export const checkWebhookPresenceInTable = async (page: Page, webhookName: string) => {
+export const checkWebhookPresenceInTable = async ({
+  page,
+  webhookName,
+  expectedTriggerType,
+}: {
+  page: Page;
+  webhookName: string;
+  expectedTriggerType: string;
+}) => {
   // filter table to show only created schedule
   await page
     .locator('div')
@@ -14,7 +22,7 @@ export const checkWebhookPresenceInTable = async (page: Page, webhookName: strin
   // webhooks table displays details created webhook
   const webhooksTable = page.getByTestId('outgoing-webhooks-table');
   await expect(webhooksTable.getByRole('cell', { name: webhookName })).toBeVisible();
-  await expect(webhooksTable.getByRole('cell', { name: 'Resolved' })).toBeVisible();
+  await expect(webhooksTable.getByRole('cell', { name: expectedTriggerType })).toBeVisible();
   await expect(webhooksTable.getByRole('cell', { name: webhookName })).toBeVisible();
   await expect(webhooksTable.getByRole('cell', { name: 'No team' })).toBeVisible();
 };
