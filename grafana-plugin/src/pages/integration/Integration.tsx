@@ -15,6 +15,7 @@ import {
 import cn from 'classnames/bind';
 import { get } from 'lodash-es';
 import { observer } from 'mobx-react';
+import moment from 'moment-timezone';
 import CopyToClipboard from 'react-copy-to-clipboard';
 import Emoji from 'react-emoji-render';
 import { RouteComponentProps, useHistory, withRouter } from 'react-router-dom';
@@ -68,6 +69,7 @@ import { getVar } from 'utils/DOM';
 import LocationHelper from 'utils/LocationHelper';
 import { UserActions } from 'utils/authorization';
 import { PLUGIN_ROOT } from 'utils/consts';
+import { getItem, setItem } from 'utils/localStorage';
 import sanitize from 'utils/sanitize';
 
 const cx = cn.bind(styles);
@@ -194,6 +196,7 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
 
             <div className={cx('integration__subheading-container')}>
               {this.renderDeprecatedHeaderMaybe(integration, isLegacyIntegration)}
+              {this.renderAlertmanagerV2MigrationHeaderMaybe(alertReceiveChannel)}
 
               {this.renderDescriptionMaybe(alertReceiveChannel)}
 
@@ -309,6 +312,65 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
     function getIntegrationName() {
       return integration.value.toString().replace('legacy_', '').replace('_', '-');
     }
+  }
+
+  renderAlertmanagerV2MigrationHeaderMaybe(alertReceiveChannel: AlertReceiveChannel) {
+    if (!alertReceiveChannel.alertmanager_v2_migrated_at) {
+      return null;
+    }
+
+    const alertID = `alertmanager_v2_alert_hidden_${alertReceiveChannel.id}`;
+    if (getItem(alertID)) {
+      return null;
+    }
+    const onAlertRemove = () => {
+      setItem(alertID, true);
+      this.forceUpdate();
+    };
+
+    const migratedAt = moment(alertReceiveChannel.alertmanager_v2_migrated_at).toString();
+    const docsURL = `https://grafana.com/docs/oncall/latest/integrations/${alertReceiveChannel.integration.replace(
+      '_',
+      '-'
+    )}`;
+
+    return (
+      <div className="u-padding-top-md">
+        <Alert
+          severity="warning"
+          onRemove={onAlertRemove}
+          title={
+            (
+              <VerticalGroup>
+                <Text type="secondary">
+                  This legacy integration was automatically migrated at {migratedAt}. It now relies on Alertmanager's
+                  grouping and autoresolution mechanism.
+                </Text>
+                <Text type="secondary">Here are the steps you need to take to ensure a smooth transition:</Text>
+                <Text type="secondary">
+                  1. Check and adjust integration templates, as they were dropped back to default values during the
+                  migration.
+                </Text>
+                <Text type="secondary">
+                  2. Check and adjust integration routes so that they match the new payload shape.
+                </Text>
+                <Text type="secondary">
+                  3. Check and adjust outgoing webhooks that use alerts from this integration so that they match the new
+                  payload shape.
+                </Text>
+                <Text type="secondary">
+                  Refer to{' '}
+                  <a href={docsURL} target="_blank" rel="noreferrer">
+                    the docs
+                  </a>{' '}
+                  for more information.
+                </Text>
+              </VerticalGroup>
+            ) as any
+          }
+        />
+      </div>
+    );
   }
 
   renderDescriptionMaybe(alertReceiveChannel: AlertReceiveChannel) {
