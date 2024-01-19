@@ -86,13 +86,14 @@ class ByTeamModelFieldFilterMixin:
             return queryset
         filter = self.filters[ByTeamModelFieldFilterMixin.FILTER_FIELD_NAME]
         null_team_lookup = None
-        for value in values:
-            if filter.null_value == value:
-                null_team_lookup = Q(**{f"{name}__isnull": True})
-                values.remove(value)
-        teams_lookup = Q(**{f"{name}__in": values})
+        if filter.null_value in values:
+            null_team_lookup = Q(**{f"{name}__isnull": True})
+            values.remove(filter.null_value)
+        teams_lookup = None
+        if values:
+            teams_lookup = Q(**{f"{name}__in": values})
         if null_team_lookup is not None:
-            teams_lookup = teams_lookup | null_team_lookup
+            teams_lookup = teams_lookup | null_team_lookup if teams_lookup else null_team_lookup
 
         return queryset.filter(teams_lookup).distinct()
 

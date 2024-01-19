@@ -5,7 +5,7 @@ import cn from 'classnames/bind';
 import { debounce } from 'lodash-es';
 
 import CheatSheet from 'components/CheatSheet/CheatSheet';
-import { genericTemplateCheatSheet } from 'components/CheatSheet/CheatSheet.config';
+import { genericTemplateCheatSheet, webhookPayloadCheatSheet } from 'components/CheatSheet/CheatSheet.config';
 import MonacoEditor from 'components/MonacoEditor/MonacoEditor';
 import Text from 'components/Text/Text';
 import styles from 'containers/IntegrationTemplate/IntegrationTemplate.module.scss';
@@ -70,6 +70,15 @@ const WebhooksTemplateEditor: React.FC<WebhooksTemplateEditorProps> = ({ templat
     setIsCheatSheetVisible(false);
   }, []);
 
+  const getCheatSheet = (templateKey: string) => {
+    switch (templateKey) {
+      case 'data':
+        return webhookPayloadCheatSheet;
+      default:
+        return genericTemplateCheatSheet;
+    }
+  };
+
   return (
     <Drawer
       title={
@@ -118,8 +127,8 @@ const WebhooksTemplateEditor: React.FC<WebhooksTemplateEditorProps> = ({ templat
 
           {isCheatSheetVisible ? (
             <CheatSheet
-              cheatSheetName="Generic"
-              cheatSheetData={genericTemplateCheatSheet}
+              cheatSheetName={template.displayName}
+              cheatSheetData={getCheatSheet(template.name)}
               onClose={onCloseCheatSheet}
             />
           ) : (
