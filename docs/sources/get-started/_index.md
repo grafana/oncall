@@ -86,7 +86,7 @@ customize visualizations and notifications by extracting data from alerts. See m
 
 ### Configure Escalation Chains
 
-Escalation chains are a set of steps that define who to notify, and when.
+Escalation Chains are a set of steps that define who to notify, and when.
 
 See more details in the [Escalation Chains][escalation-chains] section.
 
