@@ -7,9 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## v1.3.90 (2024-01-18)
+
+### Changed
+
+- Improvements for the columns selector ([3668](https://github.com/grafana/oncall/pull/3668))
+
+### Fixed
+
+- Address infinite retrying `apps.alerts.tasks.notify_user.perform_notification` task when `UserNotificationPolicyLogRecord`
+  object cannot be found by @joeyorlando ([#3708](https://github.com/grafana/oncall/pull/3708))
+
+## v1.3.89 (2024-01-17)
+
 ### Fixed
 
 - Fixed Webhooks UI not allowing simple webhooks to be created ([#3691](https://github.com/grafana/oncall/pull/3691))
+- Fix posting Slack message when route is deleted by @vadimkerr ([#3702](https://github.com/grafana/oncall/pull/3702))
+
+### Changed
+
+- Update schedules on-call users cache on every scheduled schedule refresh task ([#3699](https://github.com/grafana/oncall/pull/3699)).
 
 ## v1.3.88 (2024-01-16)
 

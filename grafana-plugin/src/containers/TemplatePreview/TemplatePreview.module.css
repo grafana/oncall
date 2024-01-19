@@ -26,3 +26,7 @@
 .display-linebreak {
   white-space: pre-line;
 }
+
+.extra-check {
+  margin-bottom: 10px;
+}

@@ -7,6 +7,8 @@ from django.db.models import Avg, F, Max, Q
 from django.utils import timezone
 
 from apps.alerts.tasks.task_logger import task_logger
+from apps.phone_notifications.models import SMSRecord
+from apps.twilioapp.models import TwilioSMSstatuses
 from common.custom_celery_tasks.log_exception_on_failure_task import shared_log_exception_on_failure_task
 from common.database import get_random_readonly_database_key_if_present_otherwise_default
 
@@ -106,10 +108,17 @@ def check_alert_group_personal_notifications_task(alert_group_id) -> None:
         notification_step=UserNotificationPolicy.Step.NOTIFY,
     ).count()
 
+    # sent SMS messages are considered completed for our purpose here
+    # (ie. do not wait for Twilio delivered confirmation)
+    sent_but_not_delivered_sms = SMSRecord.objects.filter(
+        represents_alert_group_id=alert_group_id,
+        twilioapp_twiliosmss__status=TwilioSMSstatuses.SENT,
+    ).count()
+
     base_msg = f"Alert group {alert_group_id}"
+    completed += sent_but_not_delivered_sms
     delta = triggered - completed
     if delta > 0:
-        # TODO: when success notifications are setup for every backend, raise exception here
         task_logger.info(f"{base_msg} has ({delta}) uncompleted personal notifications")
     else:
         task_logger.info(f"{base_msg} personal notifications check passed")
