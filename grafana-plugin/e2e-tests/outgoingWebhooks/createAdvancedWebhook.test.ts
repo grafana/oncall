@@ -37,7 +37,7 @@ test('create advanced webhook and check it is displayed on the list correctly', 
   await page.getByText(WEBHOOK_INTEGRATION_NAME).click();
 
   // Enter webhook URL
-  await webhooksForm.filter({ hasText: 'Webhook URL' }).getByTestId('monaco-editor').click();
+  await webhooksForm.filter({ hasText: 'Webhook URL' }).getByTestId('data-testid Code editor container').click();
   await page.keyboard.insertText(WEBHOOK_URL);
 
   await clickButton({ page, buttonText: 'Create Webhook' });
