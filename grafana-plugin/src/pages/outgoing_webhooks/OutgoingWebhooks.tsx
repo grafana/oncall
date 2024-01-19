@@ -191,7 +191,7 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
               />
             )}
 
-            <div className={cx('root')}>
+            <div className={cx('root')} data-testid="outgoing-webhooks-table">
               {this.renderOutgoingWebhooksFilters()}
               <GTable
                 emptyText={webhooks ? 'No outgoing webhooks found' : 'Loading...'}
