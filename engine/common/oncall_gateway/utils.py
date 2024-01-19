@@ -80,20 +80,42 @@ def register_oncall_tenant(service_tenant_id: str, cluster_slug: str):
         logger.error(
             f"create_oncall_connector: failed " f"oncall_org_id={service_tenant_id} backend={cluster_slug} exc={e}"
         )
-        register_oncall_tenant_async.apply_async((service_tenant_id, cluster_slug, SERVICE_TYPE_ONCALL), countdown=2)
+        register_oncall_tenant_async.apply_async(
+            kwargs={
+                "service_tenant_id": service_tenant_id,
+                "cluster_slug": cluster_slug,
+                "service_type": SERVICE_TYPE_ONCALL,
+            },
+            countdown=2,
+        )
 
 
-def unregister_oncall_tenant(service_tenant_id: str):
+def unregister_oncall_tenant(service_tenant_id: str, cluster_slug: str):
     """
     unregister_oncall_tenant unregisters tenant asynchronously.
     """
-    unregister_oncall_tenant_async.delay(service_tenant_id, settings.ONCALL_BACKEND_REGION, SERVICE_TYPE_ONCALL)
+    unregister_oncall_tenant_async.apply_async(
+        kwargs={
+            "service_tenant_id": service_tenant_id,
+            "cluster_slug": cluster_slug,
+            "service_type": SERVICE_TYPE_ONCALL,
+        },
+        countdown=2,
+    )
 
 
-def can_link_slack_team(service_tenant_id: str, cluster_slug: str, slack_team_id: str) -> bool:
+def can_link_slack_team(
+    service_tenant_id: str,
+    slack_team_id: str,
+    cluster_slug: str,
+) -> bool:
+    """
+    can_link_slack_team checks if it's possible to link slack workspace to oncall tenant located in cluster.
+    All oncall tenants linked to same slack team should have same cluster.
+    """
     client = ChatopsProxyAPIClient(settings.ONCALL_GATEWAY_URL, settings.ONCALL_GATEWAY_API_TOKEN)
     try:
-        _, response = client.can_slack_link(service_tenant_id, cluster_slug, slack_team_id, SERVICE_TYPE_ONCALL)
+        response = client.can_slack_link(service_tenant_id, cluster_slug, slack_team_id, SERVICE_TYPE_ONCALL)
         return response.status_code == 200
     except Exception as e:
         logger.error(
