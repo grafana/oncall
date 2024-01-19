@@ -48,6 +48,34 @@ if typing.TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
+class MessagingBackendTemplatesItem:
+    title: str | None
+    message: str | None
+    image_url: str | None
+
+
+MessagingBackendTemplates = dict[str, MessagingBackendTemplatesItem]
+
+
+class AlertmanagerV2LegacyTemplates(typing.TypedDict):
+    web_title_template: str | None
+    web_message_template: str | None
+    web_image_url_template: str | None
+    sms_title_template: str | None
+    phone_call_title_template: str | None
+    source_link_template: str | None
+    grouping_id_template: str | None
+    resolve_condition_template: str | None
+    acknowledge_condition_template: str | None
+    slack_title_template: str | None
+    slack_message_template: str | None
+    slack_image_url_template: str | None
+    telegram_title_template: str | None
+    telegram_message_template: str | None
+    telegram_image_url_template: str | None
+    messaging_backends_templates: MessagingBackendTemplates | None
+
+
 def generate_public_primary_key_for_alert_receive_channel():
     prefix = "C"
     new_public_primary_key = generate_public_primary_key(prefix)
@@ -252,7 +280,16 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
 
     # additional messaging backends templates
     # e.g. {'<BACKEND-ID>': {'title': 'title template', 'message': 'message template', 'image_url': 'url template'}}
-    messaging_backends_templates = models.JSONField(null=True, default=None)
+    messaging_backends_templates: MessagingBackendTemplates | None = models.JSONField(null=True, default=None)
+
+    alertmanager_v2_migrated_at = models.DateTimeField(null=True, default=None)
+    """
+    Timestamp of when Alertmanager V2 migration was run for this integration using the 'alertmanager_v2_migrate'
+    Django management command.
+    """
+
+    alertmanager_v2_backup_templates: AlertmanagerV2LegacyTemplates | None = models.JSONField(null=True, default=None)
+    """Backing up templates before the Alertmanager V2 migration, so that they can be restored if needed."""
 
     rate_limited_in_slack_at = models.DateTimeField(null=True, default=None)
     rate_limit_message_task_id = models.CharField(max_length=100, null=True, default=None)
