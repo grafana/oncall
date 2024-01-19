@@ -12,7 +12,7 @@ export default function getNewAlertGroupsDuringTimePeriodScene({ datasource }: I
         editorMode: 'code',
         excludeNullMetadata: false,
         exemplar: false,
-        expr: 'increase(max_over_time(sum by (integration) (avg without(pod, stack) ($alert_groups_total{slug=~"$stack", team=~"$team", integration=~"$integration"}))[30m:])[1h:])',
+        expr: 'increase(max_over_time(sum by (integration) (avg without(pod, instance) ($alert_groups_total{slug=~"$stack", team=~"$team", integration=~"$integration"}))[30m:])[1h:])',
         fullMetaSearch: false,
         instant: false,
         legendFormat: '__auto',

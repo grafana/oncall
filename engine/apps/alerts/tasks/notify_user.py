@@ -204,7 +204,7 @@ def notify_user_task(
                         f"alert_group={alert_group_pk}"
                     )
 
-                transaction.on_commit(partial(_create_perform_notification_task, (log_record.pk, alert_group_pk)))
+                transaction.on_commit(partial(_create_perform_notification_task, log_record.pk, alert_group_pk))
 
             delay = NEXT_ESCALATION_DELAY
             if countdown is not None:
