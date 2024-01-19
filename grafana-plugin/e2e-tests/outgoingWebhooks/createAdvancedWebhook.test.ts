@@ -17,27 +17,27 @@ test('create advanced webhook and check it is displayed on the list correctly', 
   await page.getByText('Advanced').first().click();
   await page.waitForTimeout(2000);
 
-  const webhooksForm = page.locator('#OutgoingWebhook div');
+  const webhooksFormDivs = page.locator('#OutgoingWebhook div');
 
   // Enter webhook name
-  await webhooksForm.locator('[name=name]').fill(WEBHOOK_NAME);
+  await webhooksFormDivs.locator('[name=name]').fill(WEBHOOK_NAME);
 
   // Select team
   await page.getByLabel('New Outgoing Webhook').getByRole('img').nth(1).click(); // Open team dropdown
   await page.getByLabel('Select options menu').getByText('No team').click(); // Select "No team"
 
   // Select trigger type
-  await webhooksForm.filter({ hasText: 'Trigger Type' }).getByRole('img').click();
+  await webhooksFormDivs.filter({ hasText: 'Trigger Type' }).getByRole('img').click();
   await page.getByLabel('Select options menu').getByText('Resolved', { exact: true }).click();
 
   // Select integration
-  await webhooksForm.filter({ hasText: 'Integrations' }).getByText('Choose').click();
+  await webhooksFormDivs.filter({ hasText: 'Integrations' }).getByText('Choose').click();
   await page.keyboard.insertText(WEBHOOK_INTEGRATION_NAME.slice(0, -1));
   await page.waitForTimeout(1000);
   await page.getByText(WEBHOOK_INTEGRATION_NAME).click();
 
   // Enter webhook URL
-  await webhooksForm.locator('.monaco-editor').first().click();
+  await webhooksFormDivs.locator('.monaco-editor').first().click();
   await page.keyboard.insertText(WEBHOOK_URL);
 
   await clickButton({ page, buttonText: 'Create Webhook' });
