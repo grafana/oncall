@@ -11,7 +11,7 @@ export default function getTotalAlertGroupsByStateScene({ datasource }: Insights
         disableTextWrap: false,
         editorMode: 'code',
         excludeNullMetadata: false,
-        expr: 'sum by (state) (avg without(pod, stack) ($alert_groups_total{slug=~"$stack", team=~"$team", integration=~"$integration"}))',
+        expr: 'sum by (state) (avg without(pod, instance) ($alert_groups_total{slug=~"$stack", team=~"$team", integration=~"$integration"}))',
         fullMetaSearch: false,
         legendFormat: '__auto',
         range: true,
