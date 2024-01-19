@@ -11,7 +11,12 @@ from apps.slack.tasks import populate_slack_channels_for_team, populate_slack_us
 from apps.social_auth.exceptions import InstallMultiRegionSlackException
 from common.constants.slack_auth import SLACK_AUTH_SLACK_USER_ALREADY_CONNECTED_ERROR, SLACK_AUTH_WRONG_WORKSPACE_ERROR
 from common.insight_log import ChatOpsEvent, ChatOpsTypePlug, write_chatops_insight_log
-from common.oncall_gateway import check_slack_installation_possible, create_slack_connector
+from common.oncall_gateway import (
+    can_link_slack_team,
+    check_slack_installation_possible,
+    create_slack_connector,
+    link_slack_team,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -95,9 +100,13 @@ def populate_slack_identities(response, backend, user, organization, **kwargs):
         return HttpResponse(status=status.HTTP_400_BAD_REQUEST)
 
     slack_team_id = response["team"]["id"]
-    if settings.FEATURE_MULTIREGION_ENABLED and not check_slack_installation_possible(
-        str(organization.uuid), slack_team_id, settings.ONCALL_BACKEND_REGION
-    ):
+    if settings.CHATOPS_V3:
+        can_link = can_link_slack_team(str(organization.uuid), slack_team_id, settings.ONCALL_BACKEND_REGION)
+    else:
+        can_link = check_slack_installation_possible(
+            str(organization.uuid), slack_team_id, settings.ONCALL_BACKEND_REGION
+        )
+    if settings.FEATURE_MULTIREGION_ENABLED and not can_link:
         raise InstallMultiRegionSlackException
 
     slack_team_identity, is_slack_team_identity_created = SlackTeamIdentity.objects.get_or_create(
@@ -106,7 +115,10 @@ def populate_slack_identities(response, backend, user, organization, **kwargs):
     # update slack oauth fields by data from response
     slack_team_identity.update_oauth_fields(user, organization, response)
     if settings.FEATURE_MULTIREGION_ENABLED:
-        create_slack_connector(str(organization.uuid), slack_team_id, settings.ONCALL_BACKEND_REGION)
+        if settings.CHATOPS_V3:
+            link_slack_team(str(organization.uuid), slack_team_id)
+        else:
+            create_slack_connector(str(organization.uuid), slack_team_id, settings.ONCALL_BACKEND_REGION)
     populate_slack_channels_for_team.apply_async((slack_team_identity.pk,))
     user.slack_user_identity.update_profile_info()
     # todo slack: do we need update info for all existing slack users in slack team?

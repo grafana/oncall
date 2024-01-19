@@ -41,7 +41,7 @@ def create_oncall_connector_async(oncall_org_id, backend):
 def delete_oncall_connector_async(oncall_org_id):
     client = OnCallGatewayAPIClient(settings.ONCALL_GATEWAY_URL, settings.ONCALL_GATEWAY_API_TOKEN)
     try:
-        client.delete_slack_connector(oncall_org_id)
+        client.delete_oncall_connector(oncall_org_id)
     except requests.exceptions.HTTPError as http_exc:
         if http_exc.response.status_code == 404:
             # 404 indicates that connector was deleted already
