@@ -2,6 +2,7 @@ import { test } from '../fixtures';
 import { clickButton, generateRandomValue } from '../utils/forms';
 import { createIntegration } from '../utils/integrations';
 import { goToOnCallPage } from '../utils/navigation';
+import { checkWebhookPresenceInTable } from '../utils/outgoingWebhooks';
 
 test('create advanced webhook and check it is displayed on the list correctly', async ({ adminRolePage: { page } }) => {
   const WEBHOOK_NAME = generateRandomValue();
@@ -32,7 +33,8 @@ test('create advanced webhook and check it is displayed on the list correctly', 
   // Select integration
   await webhooksForm.filter({ hasText: 'Integrations' }).getByText('Choose').click();
   await page.keyboard.insertText(WEBHOOK_INTEGRATION_NAME.slice(0, -1));
-  await webhooksForm.getByText(WEBHOOK_INTEGRATION_NAME).click();
+  await page.waitForTimeout(1000);
+  await page.getByText(WEBHOOK_INTEGRATION_NAME).click();
 
   // Enter webhook URL
   await webhooksForm.filter({ hasText: 'Webhook URL' }).getByTestId('monaco-editor').click();
@@ -40,20 +42,5 @@ test('create advanced webhook and check it is displayed on the list correctly', 
 
   await clickButton({ page, buttonText: 'Create Webhook' });
 
-  // filter table to show only created schedule
-  await page
-    .locator('div')
-    .filter({ hasText: /^Search or filter results\.\.\.$/ })
-    .nth(1)
-    .click();
-  await page.keyboard.insertText(WEBHOOK_NAME);
-  await page.keyboard.press('Enter');
-  await page.waitForTimeout(2000);
-
-  // schedules table displays details created schedule
-  const webhooksTable = page.getByTestId('outgoing-webhooks-table');
-  await expect(webhooksTable.getByRole('cell', { name: WEBHOOK_NAME })).toBeVisible();
-  await expect(webhooksTable.getByRole('cell', { name: 'Resolved' })).toBeVisible();
-  await expect(webhooksTable.getByRole('cell', { name: WEBHOOK_URL })).toBeVisible();
-  await expect(webhooksTable.getByRole('cell', { name: 'No team' })).toBeVisible();
+  await checkWebhookPresenceInTable(page, WEBHOOK_NAME);
 });
