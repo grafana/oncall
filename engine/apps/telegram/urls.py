@@ -6,5 +6,4 @@ app_name = "telegram"
 
 urlpatterns = [
     path("", WebHookView.as_view(), name="incoming_webhook"),
-    path("v3/", WebHookView.as_view(), name="v3_incoming_webhook"),
 ]
