@@ -56,7 +56,7 @@ class ChatopsProxyAPIClient:
     # OnCall Tenant
     def register_tenant(
         self, service_tenant_id: str, cluster_slug: str, service_type: str
-    ) -> tuple[Optional[Tenant], requests.models.Response]:
+    ) -> tuple[Tenant, requests.models.Response]:
         url = f"{self.api_base_url}/tenants/register"
         d = {
             "tenant": {
