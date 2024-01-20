@@ -63,7 +63,6 @@ if settings.FEATURE_SLACK_INTEGRATION_ENABLED:
         path("slack/", include("apps.slack.urls")),
     ]
 
-
 if settings.IS_OPEN_SOURCE:
     urlpatterns += [
         path("api/internal/v1/", include("apps.oss_installation.urls", namespace="oss_installation")),
