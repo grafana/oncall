@@ -78,6 +78,10 @@ CELERY_TASK_ROUTES = {
     "apps.oss_installation.tasks.send_cloud_heartbeat_task": {"queue": "default"},
     "apps.oss_installation.tasks.send_usage_stats_report": {"queue": "default"},
     "apps.oss_installation.tasks.sync_users_with_cloud": {"queue": "default"},
+    "common.oncall_gateway.tasks.link_slack_team_async": {"queue": "default"},
+    "common.oncall_gateway.tasks.unlink_slack_team_async": {"queue": "default"},
+    "common.oncall_gateway.tasks.register_oncall_tenant_async": {"queue": "default"},
+    "common.oncall_gateway.tasks.unregister_oncall_tenant_async": {"queue": "default"},
     # CRITICAL
     "apps.alerts.tasks.acknowledge_reminder.acknowledge_reminder_task": {"queue": "critical"},
     "apps.alerts.tasks.acknowledge_reminder.unacknowledge_timeout_task": {"queue": "critical"},

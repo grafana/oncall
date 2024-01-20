@@ -14,7 +14,11 @@ from apps.alerts.models import MaintainableObject
 from apps.user_management.constants import AlertGroupTableColumn
 from apps.user_management.subscription_strategy import FreePublicBetaSubscriptionStrategy
 from common.insight_log import ChatOpsEvent, ChatOpsTypePlug, write_chatops_insight_log
-from common.oncall_gateway import create_oncall_connector, delete_oncall_connector, delete_slack_connector
+from common.oncall_gateway import (
+    register_oncall_tenant_wrapper,
+    unlink_slack_team_wrapper,
+    unregister_oncall_tenant_wrapper,
+)
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
 
 if typing.TYPE_CHECKING:
@@ -61,7 +65,7 @@ class OrganizationQuerySet(models.QuerySet):
     def create(self, **kwargs):
         instance = super().create(**kwargs)
         if settings.FEATURE_MULTIREGION_ENABLED:
-            create_oncall_connector(str(instance.uuid), settings.ONCALL_BACKEND_REGION)
+            register_oncall_tenant_wrapper(str(instance.uuid), settings.ONCALL_BACKEND_REGION)
         return instance
 
     def delete(self):
@@ -104,9 +108,9 @@ class Organization(MaintainableObject):
 
     def delete(self):
         if settings.FEATURE_MULTIREGION_ENABLED:
-            delete_oncall_connector(str(self.uuid))
+            unregister_oncall_tenant_wrapper(str(self.uuid), settings.ONCALL_BACKEND_REGION)
             if self.slack_team_identity:
-                delete_slack_connector(str(self.uuid))
+                unlink_slack_team_wrapper(str(self.uuid), self.slack_team_identity.slack_id)
         self.deleted_at = timezone.now()
         self.save(update_fields=["deleted_at"])
 
