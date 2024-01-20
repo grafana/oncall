@@ -31,6 +31,10 @@ DEFAULT_TIMEOUT = 5
 
 
 class OnCallGatewayAPIClient:
+    """
+    It's a legacy api client, which should be removed after chatops proxy v3 release.
+    """
+
     def __init__(self, url: str, token: str):
         self.base_url = url
         self.api_base_url = urljoin(self.base_url, "api/v1/")
