@@ -40,7 +40,7 @@ from apps.slack.tasks import clean_slack_integration_leftovers, unpopulate_slack
 from apps.slack.types import EventPayload, EventType, MessageEventSubtype, PayloadType, ScenarioRoute
 from apps.user_management.models import Organization
 from common.insight_log import ChatOpsEvent, ChatOpsTypePlug, write_chatops_insight_log
-from common.oncall_gateway import delete_slack_connector, unlink_slack_team
+from common.oncall_gateway import unlink_slack_team_wrapper
 
 from .errors import SlackAPITokenError
 from .models import SlackMessage, SlackTeamIdentity, SlackUserIdentity
@@ -578,10 +578,7 @@ class ResetSlackView(APIView):
             if slack_team_identity is not None:
                 clean_slack_integration_leftovers.apply_async((organization.pk,))
                 if settings.FEATURE_MULTIREGION_ENABLED:
-                    if settings.CHATOPS_V3:
-                        unlink_slack_team(str(organization.uuid), slack_team_identity.slack_id)
-                    else:
-                        delete_slack_connector(str(organization.uuid))
+                    unlink_slack_team_wrapper(str(organization.uuid), slack_team_identity.slack_id)
                 write_chatops_insight_log(
                     author=request.user,
                     event_name=ChatOpsEvent.WORKSPACE_DISCONNECTED,

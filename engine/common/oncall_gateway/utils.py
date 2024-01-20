@@ -1,3 +1,7 @@
+"""
+Set of utils to handle oncall and chatops-proxy interaction.
+TODO: Once chatops v3 will be released, remove legacy and wrapper functions
+"""
 import logging
 
 import requests
@@ -19,6 +23,7 @@ from .tasks import (
 logger = logging.getLogger(__name__)
 
 
+# Legacy to work with chatops-proxy v1.
 def create_oncall_connector(oncall_org_id: str, backend: str):
     client = OnCallGatewayAPIClient(settings.ONCALL_GATEWAY_URL, settings.ONCALL_GATEWAY_API_TOKEN)
     try:
@@ -153,3 +158,39 @@ def unlink_slack_team(service_tenant_id: str, slack_team_id: str):
             "service_type": SERVICE_TYPE_ONCALL,
         }
     )
+
+
+# Wrappers to choose whether legacy or v3 function should be call, depending on CHATOPS_V3 env var.
+def register_oncall_tenant_wrapper(service_tenant_id: str, cluster_slug: str):
+    if settings.CHATOPS_V3:
+        register_oncall_tenant(service_tenant_id, cluster_slug)
+    else:
+        create_oncall_connector(service_tenant_id, cluster_slug)
+
+
+def unregister_oncall_tenant_wrapper(service_tenant_id: str, cluster_slug: str):
+    if settings.CHATOPS_V3:
+        unregister_oncall_tenant(service_tenant_id, cluster_slug)
+    else:
+        delete_oncall_connector(service_tenant_id)
+
+
+def can_link_slack_team_wrapper(service_tenant_id: str, slack_team_id, cluster_slug: str):
+    if settings.CHATOPS_V3:
+        can_link_slack_team(service_tenant_id, slack_team_id, cluster_slug)
+    else:
+        check_slack_installation_possible(service_tenant_id, slack_team_id, cluster_slug)
+
+
+def link_slack_team_wrapper(service_tenant_id: str, slack_team_id: str):
+    if settings.CHATOPS_V3:
+        link_slack_team(service_tenant_id, slack_team_id)
+    else:
+        create_slack_connector(service_tenant_id, slack_team_id, settings.ONCALL_BACKEND_REGION)
+
+
+def unlink_slack_team_wrapper(service_tenant_id: str, slack_team_id: str):
+    if settings.CHATOPS_V3:
+        unlink_slack_team(service_tenant_id, slack_team_id)
+    else:
+        delete_slack_connector(service_tenant_id)

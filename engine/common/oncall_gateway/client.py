@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 from json import JSONDecodeError
-from typing import List, Optional
+from typing import List
 from urllib.parse import urljoin
 
 import requests
@@ -49,8 +49,7 @@ class ChatopsProxyAPIException(Exception):
 
 class ChatopsProxyAPIClient:
     def __init__(self, url: str, token: str):
-        self.base_url = url
-        self.api_base_url = urljoin(self.base_url, "api/v3")
+        self.api_base_url = urljoin(url, "api/v3")
         self.api_token = token
 
     # OnCall Tenant
