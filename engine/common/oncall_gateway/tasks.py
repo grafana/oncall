@@ -149,6 +149,7 @@ def unregister_oncall_tenant_async(**kwargs):
         client.unregister_tenant(service_tenant_id, cluster_slug, service_type)
     except Exception as e:
         task_logger.error(f"Failed to delete OnCallConnector: {e} service_tenant_id={service_tenant_id}")
+        raise e
 
 
 @shared_dedicated_queue_retry_task(
