@@ -47,7 +47,7 @@ and `oncall_user_was_notified_of_alert_groups_total`.
 
 Your metrics may also have additional labels, such as `pod`, `instance`, `container`, depending on your Prometheus setup.
 
-### Metric Alert groups total
+### Metrics: Alert groups total
 
 This metric has the following labels:
 
@@ -68,7 +68,7 @@ Get the number of alert groups in "firing" state in integration "Grafana Alertin
 grafanacloud_oncall_instance_alert_groups_total{slug="test_stack", integration="Grafana Alerting", state="firing"}
 ```
 
-### Metric Alert groups response time
+### Metrics: Alert groups response time
 
 This metric has the following labels:
 
@@ -90,7 +90,7 @@ in Grafana stack "test_stack":
 grafanacloud_oncall_instance_alert_groups_response_time_seconds_bucket{slug="test_stack", integration="Grafana Alerting", le="600"}
 ```
 
-### Metric Alert groups user was notified of
+### Metrics: Alert groups user was notified of
 
 This metric has the following labels:
 
@@ -111,7 +111,7 @@ grafanacloud_oncall_instance_user_was_notified_of_alert_groups_total{slug="test_
 
 ### Dashboard
 
-You can find the "OnCall Metrics" dashboard in the list of your dashboards in the folder `General`, it has the tag
+You can find the "OnCall Insights" dashboard in the list of your dashboards in the folder `General`, it has the tag
 `oncall`. In the datasource dropdown select your Prometheus datasource (for Cloud customers it's `grafanacloud_usage`).
 You can filter data by your Grafana instances, teams and integrations.
 
@@ -122,7 +122,14 @@ the "OnCall Metrics" dashboard in your dashboards list.
 Be aware: if you have made changes to the dashboard, they will be lost after re-importing or after the plugin update.
 To save your changes go to the "OnCall Metrics" dashboard settings, click "Save as" and save a copy of the dashboard.
 
-## Insight Logs
+You can also view Insights from Grafana OnCall.
+
+To view Insights, complete the following steps.
+
+1. Open Grafana OnCall.
+2. Click the **Insights** sub-section in the navigation menu.
+
+## Logs
 
 > **Note:** Grafana OnCall insight logs are available in Grafana Cloud only.
 We're in the process of rolling out Insight Logs to all customers,
@@ -141,7 +148,7 @@ You can use this query to retrieve all logs related to your OnCall instance.
 {instance_type="oncall"} | logfmt | __error__=``
 ```
 
-### Resource insight logs
+### Resource logs
 
 Logs are created each time a user modifies any resource in Grafana OnCall.
 
@@ -180,7 +187,7 @@ resource types are: `integration_heartbeat`, `escalation_chain`, `integration`, 
 `oncall_shift`, `web_schedule`, `ical_schedule`, `calendar_schedule`, `shift_swap_request`, `organization`,
 `user`, `webhook`.
 
-### Maintenance insight logs
+### Maintenance logs
 
 Logs are created every time when a maintenance mode is started or finished for an integration.
 
@@ -206,7 +213,7 @@ Logs of maintenance insights contain the following fields, where the fields foll
 | `team`*             |                Name of team to which integration belongs.                |
 | `team_id`           |                 ID of team to which integration belongs.                 |
 
-### ChatOps insight logs
+### ChatOps logs
 
 Logs are created when user modifies ChatOps settings.
 

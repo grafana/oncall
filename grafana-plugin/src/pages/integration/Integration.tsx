@@ -35,6 +35,7 @@ import PageErrorHandlingWrapper, { PageBaseState } from 'components/PageErrorHan
 import { initErrorDataState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper.helpers';
 import PluginLink from 'components/PluginLink/PluginLink';
 import RenderConditionally from 'components/RenderConditionally/RenderConditionally';
+import Tabs from 'components/Tabs/Tabs';
 import Tag from 'components/Tag/Tag';
 import Text from 'components/Text/Text';
 import TooltipBadge from 'components/TooltipBadge/TooltipBadge';
@@ -58,7 +59,7 @@ import {
 } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { AlertTemplatesDTO } from 'models/alert_templates/alert_templates';
 import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
-import IntegrationHelper from 'pages/integration/Integration.helper';
+import IntegrationHelper, { getIsBidirectionalIntegration } from 'pages/integration/Integration.helper';
 import styles from 'pages/integration/Integration.module.scss';
 import { AppFeature } from 'state/features';
 import { PageProps, SelectOption, WithStoreProps } from 'state/types';
@@ -157,6 +158,36 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
     const isLegacyIntegration = integration && (integration?.value as string).toLowerCase().startsWith('legacy_');
     const contactPoints = alertReceiveChannelStore.connectedContactPoints?.[alertReceiveChannel.id];
 
+    const incomingPart = (
+      <>
+        <IntegrationCollapsibleTreeView configElements={this.getConfigForTreeComponent(id, templates) as any} />
+        {isEditTemplateModalOpen && (
+          <IntegrationTemplate
+            id={id}
+            onHide={() => {
+              this.setState({
+                isEditTemplateModalOpen: undefined,
+              });
+              if (selectedTemplate?.name !== 'route_template') {
+                this.setState({ isTemplateSettingsOpen: true });
+              }
+              LocationHelper.update({ template: undefined, routeId: undefined }, 'partial');
+            }}
+            channelFilterId={channelFilterIdForEdit}
+            onUpdateTemplates={this.onUpdateTemplatesCallback}
+            onUpdateRoute={this.onUpdateRoutesCallback}
+            template={selectedTemplate}
+            templateBody={
+              selectedTemplate?.name === 'route_template'
+                ? this.getRoutingTemplate(channelFilterIdForEdit)
+                : templates[selectedTemplate?.name]
+            }
+            templates={templates}
+          />
+        )}
+      </>
+    );
+
     return (
       <PageErrorHandlingWrapper errorData={errorData} objectName="integration" pageName="Integration">
         {() => (
@@ -226,32 +257,17 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
               )}
             </div>
 
-            <IntegrationCollapsibleTreeView configElements={this.getConfigForTreeComponent(id, templates) as any} />
-
-            {isEditTemplateModalOpen && (
-              <IntegrationTemplate
-                id={id}
-                onHide={() => {
-                  this.setState({
-                    isEditTemplateModalOpen: undefined,
-                  });
-                  if (selectedTemplate?.name !== 'route_template') {
-                    this.setState({ isTemplateSettingsOpen: true });
-                  }
-                  LocationHelper.update({ template: undefined, routeId: undefined }, 'partial');
-                }}
-                channelFilterId={channelFilterIdForEdit}
-                onUpdateTemplates={this.onUpdateTemplatesCallback}
-                onUpdateRoute={this.onUpdateRoutesCallback}
-                template={selectedTemplate}
-                templateBody={
-                  selectedTemplate?.name === 'route_template'
-                    ? this.getRoutingTemplate(channelFilterIdForEdit)
-                    : templates[selectedTemplate?.name]
-                }
-                templates={templates}
+            {getIsBidirectionalIntegration(alertReceiveChannel) ? (
+              <Tabs
+                tabs={[
+                  { label: 'Incoming', content: incomingPart },
+                  { label: 'Outgoing', content: <div>outgoing tab content</div> },
+                ]}
               />
+            ) : (
+              <>{incomingPart}</>
             )}
+
             {isEditRegexpRouteTemplateModalOpen && (
               <EditRegexpRouteTemplateModal
                 alertReceiveChannelId={id}
