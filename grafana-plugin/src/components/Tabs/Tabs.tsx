@@ -1,6 +1,5 @@
 import React, { FC, useState } from 'react';
 
-
 import { css } from '@emotion/css';
 import { Tab, TabsBar, TabContent, useStyles2 } from '@grafana/ui';
 import cn from 'classnames';
