@@ -71,9 +71,7 @@ class StatusView(GrafanaHeadersMixin, APIView):
             organization.save(update_fields=["api_token_status"])
 
         # Start task to refresh organization data in OnCall database with Grafana
-        plugin_sync_organization_async.apply_async(
-            (organization.pk,),
-        )
+        plugin_sync_organization_async.apply_async((organization.pk,))
 
         return Response(
             data={
