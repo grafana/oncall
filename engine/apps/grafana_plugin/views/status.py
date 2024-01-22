@@ -1,3 +1,5 @@
+import logging
+
 from django.conf import settings
 from rest_framework.request import Request
 from rest_framework.response import Response
@@ -11,6 +13,8 @@ from apps.user_management.models import Organization
 from common.api_helpers.mixins import GrafanaHeadersMixin
 from common.api_helpers.utils import create_engine_url
 
+logger = logging.getLogger(__name__)
+
 
 class StatusView(GrafanaHeadersMixin, APIView):
     authentication_classes = (
@@ -19,8 +23,13 @@ class StatusView(GrafanaHeadersMixin, APIView):
     )
 
     def post(self, request: Request) -> Response:
+        logger.info(
+            f"authenticated via {type(request.successful_authenticator)}, user=[{request.user}] "
+            f"org=[{request.auth.organization.stack_slug if request.auth.organization else None}]"
+        )
+
         """
-        Called asyncronounsly on each start of the plugin
+        Called asynchronously on each start of the plugin
         Checks if plugin is correctly installed and async runs a task
         to sync users, teams and org
         """
@@ -42,7 +51,12 @@ class StatusView(GrafanaHeadersMixin, APIView):
         if organization:
             is_installed = True
             token_ok = organization.api_token_status == Organization.API_TOKEN_STATUS_OK
+            logger.info(
+                f"Status - check token org={organization.stack_slug} status={organization.api_token_status} "
+                f"token_ok={token_ok}"
+            )
             if organization.is_moved:
+                logger.info(f"Organization Moved! org={organization.stack_slug}")
                 api_url = create_engine_url("", override_base=organization.migration_destination.oncall_backend_url)
         else:
             allow_signup = DynamicSetting.objects.get_or_create(
@@ -51,12 +65,15 @@ class StatusView(GrafanaHeadersMixin, APIView):
 
         # If user is not present in OnCall database, set token_ok to False, which will trigger reinstall
         if not request.user:
+            logger.info(f"Status - user not found org={organization.stack_slug} " f"setting token_status to PENDING")
             token_ok = False
             organization.api_token_status = Organization.API_TOKEN_STATUS_PENDING
             organization.save(update_fields=["api_token_status"])
 
         # Start task to refresh organization data in OnCall database with Grafana
-        plugin_sync_organization_async.apply_async((organization.pk,))
+        plugin_sync_organization_async.apply_async(
+            (organization.pk,),
+        )
 
         return Response(
             data={
