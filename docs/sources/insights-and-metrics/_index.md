@@ -122,7 +122,7 @@ the "OnCall Metrics" dashboard in your dashboards list.
 Be aware: if you have made changes to the dashboard, they will be lost after re-importing or after the plugin update.
 To save your changes go to the "OnCall Metrics" dashboard settings, click "Save as" and save a copy of the dashboard.
 
-You can also view Insights from Grafana OnCall. 
+You can also view Insights from Grafana OnCall.
 
 To view Insights, complete the following steps.
 
