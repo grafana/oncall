@@ -361,7 +361,7 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
                 <Text type="secondary">
                   Refer to{' '}
                   <a href={docsURL} target="_blank" rel="noreferrer">
-                    the docs
+                    <Text type="link">the docs</Text>
                   </a>{' '}
                   for more information.
                 </Text>
