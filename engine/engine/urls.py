@@ -62,7 +62,7 @@ if settings.FEATURE_SLACK_INTEGRATION_ENABLED:
         path("api/internal/v1/slack/", include("apps.slack.urls")),
         path("slack/", include("apps.slack.urls")),
         # urls for chatops-proxy v3. Currently, they are experimental.
-        path("api/v3/webhook/slack/", include("apps.slack.urls")),
+        path("api/v3/webhook/slack/", include("apps.slack.urls"), name="slack_v3"),
     ]
 
 if settings.IS_OPEN_SOURCE:
