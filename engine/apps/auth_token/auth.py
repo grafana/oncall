@@ -104,7 +104,7 @@ class BasePluginAuthentication(BaseAuthentication):
         try:
             context = dict(json.loads(request.headers.get("X-Grafana-Context")))
         except (ValueError, TypeError):
-            logger.info("auth request user not found - missing valid X-Grafana-Context user not found")
+            logger.info("auth request user not found - missing valid X-Grafana-Context")
             return None
 
         if "UserId" not in context and "UserID" not in context:
