@@ -125,3 +125,6 @@ const IntegrationHelper = {
 };
 
 export default IntegrationHelper;
+
+export const getIsBidirectionalIntegration = (integration: AlertReceiveChannel) =>
+  integration.integration === 'servicenow';
