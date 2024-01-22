@@ -52,11 +52,11 @@ class StatusView(GrafanaHeadersMixin, APIView):
             is_installed = True
             token_ok = organization.api_token_status == Organization.API_TOKEN_STATUS_OK
             logger.info(
-                f"Status - check token org={organization.stack_slug} status={organization.api_token_status} "
+                f"Status - check token org={organization.pk} status={organization.api_token_status} "
                 f"token_ok={token_ok}"
             )
             if organization.is_moved:
-                logger.info(f"Organization Moved! org={organization.stack_slug}")
+                logger.info(f"Organization Moved! org={organization.pk}")
                 api_url = create_engine_url("", override_base=organization.migration_destination.oncall_backend_url)
         else:
             allow_signup = DynamicSetting.objects.get_or_create(
@@ -65,7 +65,7 @@ class StatusView(GrafanaHeadersMixin, APIView):
 
         # If user is not present in OnCall database, set token_ok to False, which will trigger reinstall
         if not request.user:
-            logger.info(f"Status - user not found org={organization.stack_slug} " f"setting token_status to PENDING")
+            logger.info(f"Status - user not found org={organization.pk} " f"setting token_status to PENDING")
             token_ok = False
             organization.api_token_status = Organization.API_TOKEN_STATUS_PENDING
             organization.save(update_fields=["api_token_status"])
