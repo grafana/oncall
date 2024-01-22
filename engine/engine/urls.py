@@ -50,17 +50,19 @@ if settings.FEATURE_PROMETHEUS_EXPORTER_ENABLED:
         path("metrics/", include("apps.metrics_exporter.urls")),
     ]
 
+if settings.FEATURE_TELEGRAM_INTEGRATION_ENABLED:
+    urlpatterns += [
+        path("telegram/", include("apps.telegram.urls")),
+        # urls for chatops-proxy v3. Currently, they are experimental.
+        path("api/v3/webhook/telegram/", include("apps.telegram.urls"), name="telegram_api_v3"),
+    ]
+
 if settings.FEATURE_SLACK_INTEGRATION_ENABLED:
     urlpatterns += [
         path("api/internal/v1/slack/", include("apps.slack.urls")),
-    ]
-
-if settings.FEATURE_TELEGRAM_INTEGRATION_ENABLED:
-    urlpatterns += [path("telegram/", include("apps.telegram.urls"))]
-
-if settings.FEATURE_SLACK_INTEGRATION_ENABLED:
-    urlpatterns += [
         path("slack/", include("apps.slack.urls")),
+        # urls for chatops-proxy v3. Currently, they are experimental.
+        path("api/v3/webhook/slack/", include("apps.slack.urls"), name="slack_api_v3"),
     ]
 
 if settings.IS_OPEN_SOURCE:
