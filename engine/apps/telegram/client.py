@@ -1,6 +1,7 @@
 import logging
 from typing import Optional, Tuple, Union
 
+from django.conf import settings
 from telegram import Bot, InlineKeyboardMarkup, Message, ParseMode
 from telegram.error import BadRequest, InvalidToken, Unauthorized
 from telegram.utils.request import Request
@@ -38,7 +39,14 @@ class TelegramClient:
 
     def register_webhook(self, webhook_url: Optional[str] = None) -> None:
         # Hack to test chatops-proxy v3, remove once v3 is release.
-        webhook_url = webhook_url or create_engine_url("/telegram/", override_base=live_settings.TELEGRAM_WEBHOOK_HOST)
+        if settings.CHATOPS_V3:
+            webhook_url = webhook_url or create_engine_url(
+                "api/v3/webhook/telegram/", override_base=live_settings.TELEGRAM_WEBHOOK_HOST
+            )
+        else:
+            webhook_url = webhook_url or create_engine_url(
+                "/telegram/", override_base=live_settings.TELEGRAM_WEBHOOK_HOST
+            )
         # avoid unnecessary set_webhook calls to make sure Telegram rate limits are not exceeded
         webhook_info = self.api_client.get_webhook_info()
         if webhook_info.url == webhook_url:
