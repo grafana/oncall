@@ -4,10 +4,12 @@ from unittest.mock import patch
 import pytest
 from django.db import IntegrityError
 from django.urls import reverse
+from django.utils import timezone
 
 from apps.alerts.models import AlertReceiveChannel
 from common.api_helpers.utils import create_engine_url
 from common.exceptions import UnableToSendDemoAlert
+from engine.management.commands import alertmanager_v2_migrate
 
 
 @pytest.mark.django_db
@@ -281,3 +283,133 @@ def test_create_duplicate_direct_paging_integrations(make_organization, make_tea
             integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING,
         )
         super(AlertReceiveChannel, arc).save()  # bypass the custom save method, so that IntegrityError is raised
+
+
+@pytest.mark.django_db
+def test_alertmanager_v2_migrate_forward(make_organization, make_alert_receive_channel):
+    organization = make_organization()
+
+    legacy_alertmanager = make_alert_receive_channel(
+        organization,
+        integration=AlertReceiveChannel.INTEGRATION_LEGACY_ALERTMANAGER,
+        slack_title_template="slack_title_template",
+        web_title_template="web_title_template",
+        grouping_id_template="grouping_id_template",
+        resolve_condition_template="resolve_condition_template",
+    )
+
+    alertmanager = make_alert_receive_channel(
+        organization,
+        integration=AlertReceiveChannel.INTEGRATION_ALERTMANAGER,
+        slack_title_template="slack_title_template",
+    )
+    legacy_grafana_alerting = make_alert_receive_channel(
+        organization, integration=AlertReceiveChannel.INTEGRATION_LEGACY_GRAFANA_ALERTING
+    )
+    grafana_alerting = make_alert_receive_channel(
+        organization,
+        integration=AlertReceiveChannel.INTEGRATION_GRAFANA_ALERTING,
+        slack_title_template="slack_title_template",
+    )
+
+    alertmanager_v2_migrate.Command().handle(backward=False)
+
+    legacy_alertmanager.refresh_from_db()
+    alertmanager.refresh_from_db()
+    legacy_grafana_alerting.refresh_from_db()
+    grafana_alerting.refresh_from_db()
+
+    assert legacy_alertmanager.integration == AlertReceiveChannel.INTEGRATION_ALERTMANAGER
+    assert legacy_alertmanager.alertmanager_v2_migrated_at is not None
+    assert legacy_alertmanager.slack_title_template is None
+    assert legacy_alertmanager.web_title_template is None
+    assert legacy_alertmanager.grouping_id_template is None
+    assert legacy_alertmanager.resolve_condition_template is None
+    assert legacy_alertmanager.alertmanager_v2_backup_templates["slack_title_template"] == "slack_title_template"
+    assert legacy_alertmanager.alertmanager_v2_backup_templates["web_title_template"] == "web_title_template"
+    assert legacy_alertmanager.alertmanager_v2_backup_templates["grouping_id_template"] == "grouping_id_template"
+    assert (
+        legacy_alertmanager.alertmanager_v2_backup_templates["resolve_condition_template"]
+        == "resolve_condition_template"
+    )
+    assert legacy_alertmanager.alertmanager_v2_backup_templates["messaging_backends_templates"] is None
+
+    assert legacy_grafana_alerting.integration == AlertReceiveChannel.INTEGRATION_GRAFANA_ALERTING
+    assert legacy_grafana_alerting.alertmanager_v2_migrated_at is not None
+    assert legacy_grafana_alerting.alertmanager_v2_backup_templates is None
+
+    assert alertmanager.integration == AlertReceiveChannel.INTEGRATION_ALERTMANAGER
+    assert alertmanager.alertmanager_v2_migrated_at is None
+    assert alertmanager.slack_title_template == "slack_title_template"
+    assert alertmanager.alertmanager_v2_backup_templates is None
+
+    assert grafana_alerting.integration == AlertReceiveChannel.INTEGRATION_GRAFANA_ALERTING
+    assert grafana_alerting.alertmanager_v2_migrated_at is None
+    assert grafana_alerting.slack_title_template == "slack_title_template"
+    assert grafana_alerting.alertmanager_v2_backup_templates is None
+
+
+@pytest.mark.django_db
+def test_alertmanager_v2_migrate_backward(make_organization, make_alert_receive_channel):
+    organization = make_organization()
+
+    migrated_alertmanager = make_alert_receive_channel(
+        organization,
+        integration=AlertReceiveChannel.INTEGRATION_ALERTMANAGER,
+        alertmanager_v2_migrated_at=timezone.now(),
+        alertmanager_v2_backup_templates={
+            "slack_title_template": "slack_title_template",
+            "web_title_template": "web_title_template",
+            "grouping_id_template": "grouping_id_template",
+            "resolve_condition_template": "resolve_condition_template",
+        },
+    )
+
+    alertmanager = make_alert_receive_channel(
+        organization,
+        integration=AlertReceiveChannel.INTEGRATION_ALERTMANAGER,
+        slack_title_template="slack_title_template",
+    )
+    migrated_grafana_alerting = make_alert_receive_channel(
+        organization,
+        integration=AlertReceiveChannel.INTEGRATION_GRAFANA_ALERTING,
+        alertmanager_v2_migrated_at=timezone.now(),
+    )
+    grafana_alerting = make_alert_receive_channel(
+        organization,
+        integration=AlertReceiveChannel.INTEGRATION_GRAFANA_ALERTING,
+        slack_title_template="slack_title_template",
+    )
+
+    alertmanager_v2_migrate.Command().handle(backward=True)
+
+    migrated_alertmanager.refresh_from_db()
+    alertmanager.refresh_from_db()
+    migrated_grafana_alerting.refresh_from_db()
+    grafana_alerting.refresh_from_db()
+
+    assert migrated_alertmanager.integration == AlertReceiveChannel.INTEGRATION_LEGACY_ALERTMANAGER
+    assert migrated_alertmanager.alertmanager_v2_migrated_at is None
+    assert migrated_alertmanager.slack_title_template == "slack_title_template"
+    assert migrated_alertmanager.web_title_template == "web_title_template"
+    assert migrated_alertmanager.grouping_id_template == "grouping_id_template"
+    assert migrated_alertmanager.resolve_condition_template == "resolve_condition_template"
+    assert migrated_alertmanager.alertmanager_v2_backup_templates is None
+
+    assert migrated_grafana_alerting.integration == AlertReceiveChannel.INTEGRATION_LEGACY_GRAFANA_ALERTING
+    assert migrated_grafana_alerting.alertmanager_v2_migrated_at is None
+    assert migrated_grafana_alerting.slack_title_template is None
+    assert migrated_grafana_alerting.web_title_template is None
+    assert migrated_grafana_alerting.grouping_id_template is None
+    assert migrated_grafana_alerting.resolve_condition_template is None
+    assert migrated_grafana_alerting.alertmanager_v2_backup_templates is None
+
+    assert alertmanager.integration == AlertReceiveChannel.INTEGRATION_ALERTMANAGER
+    assert alertmanager.alertmanager_v2_migrated_at is None
+    assert alertmanager.slack_title_template == "slack_title_template"
+    assert alertmanager.alertmanager_v2_backup_templates is None
+
+    assert grafana_alerting.integration == AlertReceiveChannel.INTEGRATION_GRAFANA_ALERTING
+    assert grafana_alerting.alertmanager_v2_migrated_at is None
+    assert grafana_alerting.slack_title_template == "slack_title_template"
+    assert grafana_alerting.alertmanager_v2_backup_templates is None
