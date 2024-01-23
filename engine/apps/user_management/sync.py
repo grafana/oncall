@@ -42,6 +42,7 @@ def _sync_organization(organization: Organization) -> None:
         rbac_is_enabled = grafana_api_client.is_rbac_enabled_for_organization()
 
     organization.is_rbac_permissions_enabled = rbac_is_enabled
+    logger.info(f"RBAC status org={organization.pk} rbac_enabled={organization.is_rbac_permissions_enabled}")
 
     _sync_instance_info(organization)
 
@@ -59,6 +60,7 @@ def _sync_organization(organization: Organization) -> None:
             )
     else:
         organization.api_token_status = Organization.API_TOKEN_STATUS_FAILED
+        logger.warning(f"Sync not successful org={organization.pk} token_status=FAILED")
 
     organization.save(
         update_fields=[
