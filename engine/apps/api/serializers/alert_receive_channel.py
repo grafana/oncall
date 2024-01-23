@@ -266,6 +266,7 @@ class AlertReceiveChannelSerializer(
             "is_legacy",
             "labels",
             "alert_group_labels",
+            "alertmanager_v2_migrated_at",
         ]
         read_only_fields = [
             "created_at",
@@ -282,6 +283,7 @@ class AlertReceiveChannelSerializer(
             "is_based_on_alertmanager",
             "inbound_email",
             "is_legacy",
+            "alertmanager_v2_migrated_at",
         ]
         extra_kwargs = {"integration": {"required": True}}
 
