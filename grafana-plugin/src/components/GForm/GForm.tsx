@@ -1,17 +1,6 @@
 import React from 'react';
 
-import {
-  Field,
-  Form,
-  FormFieldErrors,
-  Input,
-  InputControl,
-  Label,
-  Select,
-  Switch,
-  TextArea,
-  VerticalGroup,
-} from '@grafana/ui';
+import { Field, Form, FormFieldErrors, Input, InputControl, Label, Select, Switch, TextArea } from '@grafana/ui';
 import { capitalCase } from 'change-case';
 import cn from 'classnames/bind';
 import { isEmpty } from 'lodash-es';
