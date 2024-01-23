@@ -716,7 +716,7 @@ def create_base_icalendar(name: str) -> Calendar:
     cal.add("version", "2.0")
     cal.add("prodid", "//Grafana Labs//Grafana On-Call//")
     # suggested minimum interval for polling for changes
-    cal.add("REFRESH-INTERVAL;VALUE=DURATION", "P1H")
+    cal.add("REFRESH-INTERVAL;VALUE=DURATION", "PT1H")
 
     return cal
 
