@@ -6,6 +6,7 @@ CELERY_TASK_ROUTES = {
     "apps.alerts.tasks.delete_alert_group.delete_alert_group": {"queue": "default"},
     "apps.alerts.tasks.invalidate_web_cache_for_alert_group.invalidate_web_cache_for_alert_group": {"queue": "default"},
     "apps.alerts.tasks.send_alert_group_signal.send_alert_group_signal": {"queue": "default"},
+    "apps.alerts.tasks.send_alert_group_signal.send_alert_group_signal_force_sync": {"queue": "default"},
     "apps.alerts.tasks.wipe.wipe": {"queue": "default"},
     "common.oncall_gateway.tasks.create_oncall_connector_async": {"queue": "default"},
     "common.oncall_gateway.tasks.delete_oncall_connector_async": {"queue": "default"},

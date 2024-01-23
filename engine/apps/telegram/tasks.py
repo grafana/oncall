@@ -239,18 +239,14 @@ def on_alert_group_action_triggered_async(log_record_id):
 
     logger.info(f"AlertGroupTelegramRepresentative ACTION SIGNAL, log record {log_record_id}")
     # temporary solution to handle cases when alert group and related log records were deleted
+
     try:
         log_record = AlertGroupLogRecord.objects.get(pk=log_record_id)
-    except AlertGroupLogRecord.DoesNotExist as e:
-        retries_count = on_alert_group_action_triggered_async.request.retries
-        if retries_count >= 10:
-            logger.error(
-                f"AlertGroupTelegramRepresentative: was not able to get AlertGroupLogRecord, probably alert group "
-                f"was deleted. log record {log_record_id}, retries: {retries_count}"
-            )
-            return
-        else:
-            raise e
+    except AlertGroupLogRecord.DoesNotExist:
+        logger.warning(
+            f"AlertGroupTelegramRepresentative: log record {log_record_id} never created or has been deleted"
+        )
+        return
 
     instance = AlertGroupTelegramRepresentative(log_record)
     if instance.is_applicable():

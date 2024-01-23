@@ -56,7 +56,12 @@ def on_alert_group_action_triggered_async(log_record_id):
 
     logger.debug(f"SLACK representative: get log record {log_record_id}")
 
-    log_record = AlertGroupLogRecord.objects.get(pk=log_record_id)
+    try:
+        log_record = AlertGroupLogRecord.objects.get(pk=log_record_id)
+    except AlertGroupLogRecord.DoesNotExist:
+        logger.warning(f"SLACK representative: log record {log_record_id} never created or has been deleted")
+        return
+
     alert_group_id = log_record.alert_group_id
     logger.debug(f"Start on_alert_group_action_triggered for alert_group {alert_group_id}, log record {log_record_id}")
     instance = AlertGroupSlackRepresentative(log_record)
@@ -167,7 +172,11 @@ class AlertGroupSlackRepresentative(AlertGroupAbstractRepresentative):
             alert_group_id = alert_group.pk
         else:
             alert_group_id = alert_group
-            alert_group = AlertGroup.objects.get(pk=alert_group_id)
+            try:
+                alert_group = AlertGroup.objects.get(pk=alert_group_id)
+            except AlertGroup.DoesNotExist:
+                logger.warning(f"SLACK update log report: alert group {alert_group} has been deleted")
+                return
 
         logger.debug(
             f"Received alert_group_update_log_report signal in SLACK representative for alert_group {alert_group_id}"
