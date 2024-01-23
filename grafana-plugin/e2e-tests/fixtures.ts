@@ -7,8 +7,6 @@ import { GRAFANA_ADMIN_USERNAME, GRAFANA_EDITOR_USERNAME, GRAFANA_VIEWER_USERNAM
 import * as fs from 'fs';
 import * as path from 'path';
 
-
-
 export class BaseRolePage {
   page: Page;
   userName: string;
@@ -65,6 +63,9 @@ const _recordTestVideo = async (
     await use(page);
   } finally {
     await context.close();
+    if (!fs.existsSync(videoDir)) {
+      fs.mkdirSync(videoDir);
+    }
     const videoFiles = fs.readdirSync(videoDir);
 
     if (videoFiles.length > 0) {
