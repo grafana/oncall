@@ -3,9 +3,9 @@ This package is for interaction with OnCall-Gateway, service to provide multireg
 """
 
 from .utils import (  # noqa: F401
-    check_slack_installation_possible,
-    create_oncall_connector,
-    create_slack_connector,
-    delete_oncall_connector,
-    delete_slack_connector,
+    can_link_slack_team_wrapper,
+    link_slack_team_wrapper,
+    register_oncall_tenant_wrapper,
+    unlink_slack_team_wrapper,
+    unregister_oncall_tenant_wrapper,
 )
