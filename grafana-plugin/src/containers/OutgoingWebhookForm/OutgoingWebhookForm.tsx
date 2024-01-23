@@ -131,7 +131,7 @@ const OutgoingWebhookForm = observer((props: OutgoingWebhookFormProps) => {
     };
   };
 
-  const enrchField = (
+  const enrichField = (
     formItem: FormItem,
     disabled: boolean,
     renderedControl: React.ReactElement,
@@ -197,7 +197,7 @@ const OutgoingWebhookForm = observer((props: OutgoingWebhookFormProps) => {
       form={form}
       data={data}
       onSubmit={handleSubmit}
-      onFieldRender={enrchField}
+      onFieldRender={enrichField}
       customFieldSectionRenderer={CustomFieldSectionRenderer}
     />
   );
@@ -334,7 +334,7 @@ const OutgoingWebhookForm = observer((props: OutgoingWebhookFormProps) => {
             form={form}
             data={data}
             onSubmit={handleSubmit}
-            onFieldRender={enrchField}
+            onFieldRender={enrichField}
             customFieldSectionRenderer={CustomFieldSectionRenderer}
           />
           <div className={cx('buttons')}>

@@ -11,6 +11,7 @@ export enum FormItemType {
   'RemoteSelect' = 'remoteselect',
   'Monaco' = 'monaco',
   'Other' = 'other',
+  'PlainLabel' = 'plainlabel',
 }
 
 export interface FormItem {
