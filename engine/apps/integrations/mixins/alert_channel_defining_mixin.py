@@ -35,7 +35,13 @@ class AlertChannelDefiningMixin(object):
             cache_key_short_term = self.CACHE_KEY_SHORT_TERM + "_" + str(kwargs["alert_channel_key"])
             cached_alert_receive_channel_raw = cache.get(cache_key_short_term)
             if cached_alert_receive_channel_raw is not None:
-                alert_receive_channel = next(serializers.deserialize("json", cached_alert_receive_channel_raw)).object
+                try:
+                    alert_receive_channel = next(
+                        serializers.deserialize("json", cached_alert_receive_channel_raw)
+                    ).object
+                except serializers.base.DeserializationError:
+                    # cached object model is outdated
+                    alert_receive_channel = None
 
             if alert_receive_channel is None:
                 # Trying to define channel from DB
