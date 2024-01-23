@@ -25,7 +25,7 @@ import { AlertReceiveChannel, ContactPoint } from 'models/alert_receive_channel/
 import styles from 'pages/integration/Integration.module.scss';
 import { useStore } from 'state/useStore';
 import { openErrorNotification, openNotification } from 'utils';
-import { getVar } from 'utils/DOM';
+import IntegrationTag from 'components/Integrations/IntegrationTag';
 
 const cx = cn.bind(styles);
 
@@ -143,11 +143,7 @@ const IntegrationContactPoint: React.FC<{
           )}
 
           <HorizontalGroup spacing="md">
-            <Tag color={getVar('--tag-secondary-transparent')} border={getVar('--border-weak')} className={cx('tag')}>
-              <Text type="primary" size="small" className={cx('radius')}>
-                Contact point
-              </Text>
-            </Tag>
+            <IntegrationTag>Contact point</IntegrationTag>
 
             {contactPoints?.length ? (
               <HorizontalGroup>

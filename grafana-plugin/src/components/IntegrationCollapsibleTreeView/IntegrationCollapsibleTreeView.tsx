@@ -12,10 +12,10 @@ const cx = cn.bind(styles);
 export interface IntegrationCollapsibleItem {
   isHidden?: boolean;
   customIcon?: IconName;
-  canHoverIcon: boolean;
-  collapsedView: (toggle?: () => void) => React.ReactNode; // needs toggle param for toggling on click
+  canHoverIcon?: boolean;
+  collapsedView?: (toggle?: () => void) => React.ReactNode; // needs toggle param for toggling on click
   expandedView: () => React.ReactNode; // for consistency, this is also a function
-  isCollapsible: boolean;
+  isCollapsible?: boolean;
   isExpanded?: boolean;
   onStateChange?(isChecked: boolean): void;
 }

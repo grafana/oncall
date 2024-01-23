@@ -2,6 +2,7 @@ import React, { FC, useState } from 'react';
 
 import { css } from '@emotion/css';
 import { Tab, TabsBar, TabContent, useStyles2 } from '@grafana/ui';
+import LocationHelper from 'utils/LocationHelper';
 import cn from 'classnames';
 
 interface TabConfig {
@@ -11,24 +12,29 @@ interface TabConfig {
 
 interface TabsProps {
   tabs: TabConfig[];
-  defaultActiveLabel?: string;
   tabContentClassName?: string;
+  shouldBeSyncedWithQueryString?: boolean;
 }
 
-const Tabs: FC<TabsProps> = ({ tabs, defaultActiveLabel, tabContentClassName }) => {
+const Tabs: FC<TabsProps> = ({ tabs, tabContentClassName, shouldBeSyncedWithQueryString = true }) => {
   const styles = useStyles2(getStyles);
-  const [activeTabLabel, setActiveTabLabel] = useState(defaultActiveLabel || tabs[0].label);
+
+  const defaultActiveLabel =
+    (shouldBeSyncedWithQueryString && LocationHelper.getQueryParams('activeTab')) || tabs[0].label;
+  const [activeTabLabel, setActiveTabLabel] = useState(defaultActiveLabel);
+
+  const setLabel = (label: string) => {
+    setActiveTabLabel(label);
+    if (shouldBeSyncedWithQueryString) {
+      LocationHelper.update({ activeTab: label }, 'partial');
+    }
+  };
 
   return (
     <>
       <TabsBar>
         {tabs.map(({ label }) => (
-          <Tab
-            label={label}
-            key={label}
-            onChangeTab={() => setActiveTabLabel(label)}
-            active={activeTabLabel === label}
-          />
+          <Tab label={label} key={label} onChangeTab={() => setLabel(label)} active={activeTabLabel === label} />
         ))}
       </TabsBar>
       <TabContent className={cn(styles.content, tabContentClassName)}>

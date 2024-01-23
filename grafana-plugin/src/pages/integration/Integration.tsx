@@ -72,6 +72,8 @@ import { UserActions } from 'utils/authorization';
 import { PLUGIN_ROOT } from 'utils/consts';
 import { getItem, setItem } from 'utils/localStorage';
 import sanitize from 'utils/sanitize';
+import OutgoingTab from './OutgoingTab/OutgoingTab';
+import IntegrationTag from 'components/Integrations/IntegrationTag';
 
 const cx = cn.bind(styles);
 
@@ -261,7 +263,7 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
               <Tabs
                 tabs={[
                   { label: 'Incoming', content: incomingPart },
-                  { label: 'Outgoing', content: <div>outgoing tab content</div> },
+                  { label: 'Outgoing', content: <OutgoingTab /> },
                 ]}
               />
             ) : (
@@ -464,15 +466,7 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
             noContent
             heading={
               <div className={cx('templates__outer-container')}>
-                <Tag
-                  color={getVar('--tag-secondary-transparent')}
-                  border={getVar('--border-weak')}
-                  className={cx('tag')}
-                >
-                  <Text type="primary" size="small" className={cx('radius')}>
-                    Templates
-                  </Text>
-                </Tag>
+                <IntegrationTag>Templates</IntegrationTag>
 
                 <div className={cx('templates__content')}>
                   <div className={cx('templates__container')}>

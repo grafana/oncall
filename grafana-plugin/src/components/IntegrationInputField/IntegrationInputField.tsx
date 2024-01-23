@@ -7,6 +7,7 @@ import CopyToClipboard from 'react-copy-to-clipboard';
 import { openNotification } from 'utils';
 
 import styles from './IntegrationInputField.module.scss';
+import CopyToClipboardIcon from 'components/CopyToClipboardIcon/CopyToClipboardIcon';
 
 interface IntegrationInputFieldProps {
   value: string;
@@ -36,11 +37,7 @@ const IntegrationInputField: React.FC<IntegrationInputFieldProps> = ({
       <div className={cx('icons')}>
         <HorizontalGroup spacing={'xs'}>
           {showEye && <IconButton aria-label="Reveal" name={'eye'} size={'xs'} onClick={onInputReveal} />}
-          {showCopy && (
-            <CopyToClipboard text={value} onCopy={onCopy}>
-              <IconButton aria-label="Copy" name={'copy'} size={'xs'} />
-            </CopyToClipboard>
-          )}
+          {showCopy && <CopyToClipboardIcon text={value} iconButtonProps={{ size: 'xs' }} />}
           {showExternal && <IconButton aria-label="Open" name={'external-link-alt'} size={'xs'} onClick={onOpen} />}
         </HorizontalGroup>
       </div>
@@ -53,10 +50,6 @@ const IntegrationInputField: React.FC<IntegrationInputFieldProps> = ({
 
   function onInputReveal() {
     setIsMasked(!isInputMasked);
-  }
-
-  function onCopy() {
-    openNotification("Integration's HTTP Endpoint is copied");
   }
 
   function onOpen() {
