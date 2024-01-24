@@ -137,8 +137,25 @@ available in other templates as a variable `{{ source_link }}`.
 To edit the name of an integration:
 
 1. Navigate to the **Integrations** tab, select an integration from the list of enabled integrations.
-1. Click the **three dots** next to the integration name and select **Integration settings**.
-1. Provide a new name, description, and team, and click **Save**.
+2. Click the **three dots** next to the integration name and select **Integration settings**.
+3. Provide a new name, description, and team, and click **Save**.
+
+#### Labels
+
+To edit the integration's labels:
+
+1. Navigate to the **Integrations** tab, select an integration from the list of enabled integrations.
+2. Click the **three dots** next to the integration name and select **Integration settings**.
+3. Define a Key and Value of the label, either by selecting existing key and values from the dropdown list or by typing
+new keys and values into the fields and accepting with enter/return key
+4. If you want to add more labels click on Add button. You can also remove the label using X button next to the key-value pair
+5. Click **Save**.
+
+To filter integrations by labels:
+
+1. Navigate to the **Integrations** tab
+2. Find the Search or filter results… dropdown and select Label
+3. Start typing to find suggestions and select the key-value pair you’d like to filter by - currently it’s only possible to filter by key-value pairs.
 
 ## List of available integrations
 
