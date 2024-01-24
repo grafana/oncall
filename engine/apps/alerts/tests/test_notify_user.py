@@ -326,9 +326,8 @@ def test_perform_notification_telegram_retryafter_error(
     countdown = 15
     exc = RetryAfter(countdown)
     with patch.object(TelegramToUserConnector, "notify_user", side_effect=exc) as mock_notify_user:
-        with patch.object(perform_notification, "retry") as mock_perform_notification_retry:
+        with pytest.raises(RetryAfter):
             perform_notification(log_record.pk)
 
     mock_notify_user.assert_called_once_with(user, alert_group, user_notification_policy)
-    mock_perform_notification_retry.assert_called_once_with((log_record.pk,), countdown=countdown, exc=exc)
     assert alert_group.personal_log_records.last() == log_record
