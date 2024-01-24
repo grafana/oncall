@@ -25,7 +25,6 @@ MOCK_JWT_PRIVATE_KEY = "asd,mzcxn,vmnzxcv,mnzx,cvmnzaslkdjflaksjdf"
 @pytest.fixture(autouse=True)
 def enable_mobile_app_gateway(settings):
     settings.MOBILE_APP_GATEWAY_ENABLED = True
-    settings.MOBILE_APP_GATEWAY_RSA_PRIVATE_KEY = MOCK_JWT_PRIVATE_KEY
 
 
 class MockResponse:
