@@ -5,6 +5,7 @@ from django.conf import settings
 from django.db import transaction
 from django.utils import timezone
 from kombu.utils.uuid import uuid as celery_uuid
+from telegram.error import RetryAfter
 
 from apps.alerts.constants import NEXT_ESCALATION_DELAY
 from apps.alerts.signals import user_notification_action_triggered_signal
@@ -289,7 +290,11 @@ def perform_notification(log_record_pk):
         phone_backend.notify_by_call(user, alert_group, notification_policy)
 
     elif notification_channel == UserNotificationPolicy.NotificationChannel.TELEGRAM:
-        TelegramToUserConnector.notify_user(user, alert_group, notification_policy)
+        try:
+            TelegramToUserConnector.notify_user(user, alert_group, notification_policy)
+        except RetryAfter as e:
+            countdown = getattr(e, "retry_after", 3)
+            perform_notification.retry((log_record_pk,), countdown=countdown, exc=e)
 
     elif notification_channel == UserNotificationPolicy.NotificationChannel.SLACK:
         # TODO: refactor checking the possibility of sending a notification in slack
