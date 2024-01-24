@@ -1,7 +1,6 @@
-import { Icon, IconButton, useStyles2 } from '@grafana/ui';
 import React, { FC, useEffect, useState } from 'react';
-import { css } from '@emotion/css';
 
+import { Icon, IconButton } from '@grafana/ui';
 import CopyToClipboard from 'react-copy-to-clipboard';
 
 interface CopyToClipboardProps {

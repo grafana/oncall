@@ -31,12 +31,12 @@ import IntegrationHowToConnect from 'components/IntegrationHowToConnect/Integrat
 import IntegrationLogo from 'components/IntegrationLogo/IntegrationLogo';
 import IntegrationSendDemoAlertModal from 'components/IntegrationSendDemoAlertModal/IntegrationSendDemoAlertModal';
 import IntegrationBlock from 'components/Integrations/IntegrationBlock';
+import IntegrationTag from 'components/Integrations/IntegrationTag';
 import PageErrorHandlingWrapper, { PageBaseState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
 import { initErrorDataState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper.helpers';
 import PluginLink from 'components/PluginLink/PluginLink';
 import RenderConditionally from 'components/RenderConditionally/RenderConditionally';
 import Tabs from 'components/Tabs/Tabs';
-import Tag from 'components/Tag/Tag';
 import Text from 'components/Text/Text';
 import TooltipBadge from 'components/TooltipBadge/TooltipBadge';
 import { WithContextMenu } from 'components/WithContextMenu/WithContextMenu';
@@ -66,14 +66,13 @@ import { PageProps, SelectOption, WithStoreProps } from 'state/types';
 import { useStore } from 'state/useStore';
 import { withMobXProviderContext } from 'state/withStore';
 import { openNotification, openErrorNotification } from 'utils';
-import { getVar } from 'utils/DOM';
 import LocationHelper from 'utils/LocationHelper';
 import { UserActions } from 'utils/authorization';
 import { PLUGIN_ROOT } from 'utils/consts';
 import { getItem, setItem } from 'utils/localStorage';
 import sanitize from 'utils/sanitize';
+
 import OutgoingTab from './OutgoingTab/OutgoingTab';
-import IntegrationTag from 'components/Integrations/IntegrationTag';
 
 const cx = cn.bind(styles);
 

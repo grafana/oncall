@@ -6,12 +6,11 @@ import { noop } from 'lodash-es';
 
 import IntegrationInputField from 'components/IntegrationInputField/IntegrationInputField';
 import IntegrationBlock from 'components/Integrations/IntegrationBlock';
-import Tag from 'components/Tag/Tag';
+import IntegrationTag from 'components/Integrations/IntegrationTag';
 import Text from 'components/Text/Text';
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import styles from 'pages/integration/Integration.module.scss';
 import { useStore } from 'state/useStore';
-import IntegrationTag from 'components/Integrations/IntegrationTag';
 
 const cx = cn.bind(styles);
 

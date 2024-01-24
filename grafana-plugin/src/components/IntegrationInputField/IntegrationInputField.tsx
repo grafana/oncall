@@ -2,12 +2,10 @@ import React, { useState } from 'react';
 
 import { HorizontalGroup, IconButton, Input } from '@grafana/ui';
 import cn from 'classnames/bind';
-import CopyToClipboard from 'react-copy-to-clipboard';
 
-import { openNotification } from 'utils';
+import CopyToClipboardIcon from 'components/CopyToClipboardIcon/CopyToClipboardIcon';
 
 import styles from './IntegrationInputField.module.scss';
-import CopyToClipboardIcon from 'components/CopyToClipboardIcon/CopyToClipboardIcon';
 
 interface IntegrationInputFieldProps {
   value: string;

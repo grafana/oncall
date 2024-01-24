@@ -8,19 +8,25 @@ interface TagProps {
   color?: string;
   className?: string;
   border?: string;
+  text?: string;
   children?: any;
   onClick?: (ev) => void;
   forwardedRef?: React.MutableRefObject<HTMLSpanElement>;
+  size?: 'small' | 'medium';
 }
 
 const cx = cn.bind(styles);
 
 const Tag: FC<TagProps> = (props) => {
-  const { children, color, className, border, onClick } = props;
+  const { children, color, text, className, border, onClick, size = 'medium' } = props;
   const style: React.CSSProperties = {};
 
   if (color) {
     style.backgroundColor = color;
+  }
+
+  if (text) {
+    style.color = text;
   }
 
   if (border) {
@@ -28,7 +34,7 @@ const Tag: FC<TagProps> = (props) => {
   }
 
   return (
-    <span style={style} className={cx('root', className)} onClick={onClick} ref={props.forwardedRef}>
+    <span style={style} className={cx('root', `size-${size}`, className)} onClick={onClick} ref={props.forwardedRef}>
       {children}
     </span>
   );

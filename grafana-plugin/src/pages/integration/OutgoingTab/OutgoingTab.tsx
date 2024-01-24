@@ -1,33 +1,32 @@
-import IntegrationCollapsibleTreeView from 'components/IntegrationCollapsibleTreeView/IntegrationCollapsibleTreeView';
-import React, { FC, useState } from 'react';
+import React, { useState } from 'react';
+
 import { css } from '@emotion/css';
-import { Tab, TabsBar, TabContent, useStyles2, Input, Icon, IconButton, HorizontalGroup } from '@grafana/ui';
-import LocationHelper from 'utils/LocationHelper';
-import cn from 'classnames';
-import CopyToClipboard from 'react-copy-to-clipboard';
+import { GrafanaTheme2 } from '@grafana/data';
+import { useStyles2, Input, IconButton, Button } from '@grafana/ui';
+
 import CopyToClipboardIcon from 'components/CopyToClipboardIcon/CopyToClipboardIcon';
+import HamburgerContextMenu from 'components/HamburgerContextMenu/HamburgerContextMenu';
+import IntegrationCollapsibleTreeView from 'components/IntegrationCollapsibleTreeView/IntegrationCollapsibleTreeView';
 import IntegrationBlock from 'components/Integrations/IntegrationBlock';
 import IntegrationTag from 'components/Integrations/IntegrationTag';
+import Text from 'components/Text/Text';
 
-interface OutgoingTabProps {}
-
-const OutgoingTab: FC<OutgoingTabProps> = (props) => {
-  const styles = useStyles2(getStyles);
-
+const OutgoingTab = () => {
   return (
-    <>
-      <IntegrationCollapsibleTreeView
-        configElements={[
-          { customIcon: 'plug', expandedView: () => <Url /> },
-          { customIcon: 'plus', expandedView: () => <div>sss</div> },
-        ]}
-      />
-      outgoing tabsssa
-    </>
+    <IntegrationCollapsibleTreeView
+      configElements={[
+        { customIcon: 'plug', expandedView: () => <Url /> },
+        {
+          customIcon: 'plus',
+          expandedView: () => <AddEventTrigger />,
+        },
+      ]}
+    />
   );
 };
 
 const Url = () => {
+  const styles = useStyles2(getStyles);
   const FAKE_URL = 'https://example.com';
 
   const [isInputMasked, setIsInputMasked] = useState(true);
@@ -38,12 +37,14 @@ const Url = () => {
     <div>
       <IntegrationBlock
         noContent
+        className={styles.urlIntegrationBlock}
         heading={
-          <HorizontalGroup>
+          <div className={styles.horizontalGroup}>
             <IntegrationTag>ServiceNow URL</IntegrationTag>
             <Input
               value={isInputMasked ? value?.replace(/./g, '*') : value}
               disabled
+              className={styles.urlInput}
               suffix={
                 <>
                   <IconButton
@@ -60,16 +61,51 @@ const Url = () => {
                 </>
               }
             />
-          </HorizontalGroup>
+            <HamburgerContextMenu
+              items={[<div key="url">URL Settings</div>]}
+              hamburgerIconClassName={styles.hamburgerIcon}
+            />
+          </div>
         }
       />
+      <h4>Outgoing events</h4>
+      <div>
+        <Text type="secondary">Webhooks managed by this integration.</Text>
+      </div>
     </div>
   );
 };
 
-export const getStyles = () => ({
-  url: css({
-    paddingBottom: '46px',
+const AddEventTrigger = () => {
+  const styles = useStyles2(getStyles);
+
+  return (
+    <Button onClick={() => {}} className={styles.addEventTriggerBtn}>
+      Add Event Trigger
+    </Button>
+  );
+};
+
+export const getStyles = (theme: GrafanaTheme2) => ({
+  urlIntegrationBlock: css({
+    marginBottom: '32px',
+  }),
+  urlInput: css({
+    height: '25px',
+    background: theme.colors.background.canvas,
+    '& input': {
+      height: '25px',
+    },
+  }),
+  hamburgerIcon: css({
+    background: theme.colors.secondary.shade,
+  }),
+  horizontalGroup: css({
+    display: 'flex',
+    gap: '8px',
+  }),
+  addEventTriggerBtn: css({
+    marginTop: '16px',
   }),
 });
 

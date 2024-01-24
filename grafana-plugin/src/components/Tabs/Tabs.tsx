@@ -1,9 +1,10 @@
-import React, { FC, useState } from 'react';
+import React, { FC, useEffect, useState } from 'react';
 
 import { css } from '@emotion/css';
 import { Tab, TabsBar, TabContent, useStyles2 } from '@grafana/ui';
-import LocationHelper from 'utils/LocationHelper';
 import cn from 'classnames';
+
+import LocationHelper from 'utils/LocationHelper';
 
 interface TabConfig {
   label: string;
@@ -14,21 +15,37 @@ interface TabsProps {
   tabs: TabConfig[];
   tabContentClassName?: string;
   shouldBeSyncedWithQueryString?: boolean;
+  // in case there are more than 1 <Tabs /> in the page, we want to use different queryString keys
+  queryStringKey?: string;
 }
 
-const Tabs: FC<TabsProps> = ({ tabs, tabContentClassName, shouldBeSyncedWithQueryString = true }) => {
+const Tabs: FC<TabsProps> = ({
+  tabs,
+  tabContentClassName,
+  shouldBeSyncedWithQueryString = true,
+  queryStringKey = 'activeTab',
+}) => {
   const styles = useStyles2(getStyles);
 
   const defaultActiveLabel =
-    (shouldBeSyncedWithQueryString && LocationHelper.getQueryParams('activeTab')) || tabs[0].label;
+    (shouldBeSyncedWithQueryString && LocationHelper.getQueryParams(queryStringKey)) || tabs[0].label;
   const [activeTabLabel, setActiveTabLabel] = useState(defaultActiveLabel);
 
   const setLabel = (label: string) => {
     setActiveTabLabel(label);
     if (shouldBeSyncedWithQueryString) {
-      LocationHelper.update({ activeTab: label }, 'partial');
+      LocationHelper.update({ [queryStringKey]: label }, 'partial');
     }
   };
+
+  useEffect(
+    () => () => {
+      if (shouldBeSyncedWithQueryString) {
+        LocationHelper.update({ [queryStringKey]: tabs[0].label }, 'partial');
+      }
+    },
+    []
+  );
 
   return (
     <>

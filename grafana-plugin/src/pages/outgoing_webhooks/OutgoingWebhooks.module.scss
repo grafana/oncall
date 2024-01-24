@@ -10,28 +10,25 @@
   align-items: baseline;
 }
 
-.hamburgerMenu {
-  display: flex;
-  flex-direction: column;
-  width: 225px;
-  border-radius: 2px;
+.webhookName {
+  word-break: break-word;
+  padding: 0;
+  &:hover {
+    background: none;
+  }
 }
 
-.hamburgerMenu__item {
-  padding: 8px;
+.nameColumn {
   display: flex;
   align-items: center;
-  flex-direction: row;
-  flex-shrink: 0;
-  white-space: nowrap;
-  border-left: 2px solid transparent;
-  cursor: pointer;
-  min-width: 84px;
-  display: flex;
-  gap: 8px;
-  flex-direction: row;
+  gap: 4px;
+}
 
-  &:hover {
-    background: var(--cards-background);
-  }
+.lastEventDetailsIcon {
+  background: var(--secondary-background);
+  padding: 2px;
+}
+
+.disabledBadge {
+  word-break: keep-all;
 }
