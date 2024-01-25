@@ -15,6 +15,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fixed too frequent retry of `perform_notification` task on Telegram ratelimit error by @Ferril ([#3744](https://github.com/grafana/oncall/pull/3744))
 - Dynamic labels & multi-label extraction label are broken ([#3750](https://github.com/grafana/oncall/issues/3750))
+- Add check whether organization has Slack connection on update Slack related field using public api endpoints
+  by @Ferril ([#3751](https://github.com/grafana/oncall/pull/3751))
 
 ## v1.3.92 (2024-01-23)
 
