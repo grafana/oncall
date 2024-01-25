@@ -1,16 +1,24 @@
 ---
-canonical: https://grafana.com/docs/oncall/latest/
+title: Grafana OnCall
+menuTitle: OnCall
+description: Learn about the key features of Grafana OnCall and how improve your IRM solution
+weight: 500
+
+# This is the oncall index document
+# Please do not make changes to the weight of this document
+# The weight is set for ordering in the docs/grafana-cloud/alerting-and-irm/ folder
+
 keywords:
+  - OnCall
   - Grafana Cloud
   - Alerts
   - Notifications
-  - on-call
-  - amixr
-  - OnCall
-  - irm
-title: Grafana OnCall
-menuTitle: OnCall
-weight: 500
+  - On-call
+  - Escalation
+  - IRM
+canonical: https://grafana.com/docs/oncall/latest/
+aliases:
+  - /docs/grafana-cloud/alerting-and-irm/oncall/
 ---
 
 # Grafana OnCall documentation
