@@ -54,6 +54,7 @@ export interface AlertReceiveChannel {
     custom: LabelKeyValue[];
     template: string;
   };
+  alertmanager_v2_migrated_at?: string | null;
 }
 
 export interface AlertReceiveChannelChoice {
