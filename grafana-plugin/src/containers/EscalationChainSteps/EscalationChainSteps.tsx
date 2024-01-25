@@ -1,6 +1,8 @@
 import React, { ReactElement, useCallback, useEffect } from 'react';
 
-import { LoadingPlaceholder, Select } from '@grafana/ui';
+import { css } from '@emotion/css';
+import { GrafanaTheme2 } from '@grafana/data';
+import { LoadingPlaceholder, Select, useStyles2, useTheme2 } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { get } from 'lodash-es';
 import { observer } from 'mobx-react';
@@ -26,10 +28,19 @@ interface EscalationChainStepsProps {
   offset?: number;
 }
 
+const getStyles = (_theme: GrafanaTheme2) => {
+  return {
+    background: css`
+      background-color: ${_theme.colors.success.main};
+    `,
+  };
+};
+
 const EscalationChainSteps = observer((props: EscalationChainStepsProps) => {
   const { id, offset = 0, isDisabled = false, addonBefore } = props;
 
   const store = useStore();
+  const styles = useStyles2(getStyles);
 
   const { escalationPolicyStore } = store;
 
@@ -86,7 +97,10 @@ const EscalationChainSteps = observer((props: EscalationChainStepsProps) => {
               key={`item-${escalationPolicy.id}`}
               data={escalationPolicy}
               number={index + offset + 1}
-              backgroundColor={isDisabled ? getVar('--tag-background-success') : STEP_COLORS[index] || COLOR_RED}
+              backgroundColor={{
+                color: isDisabled ? styles.background : STEP_COLORS[index] || COLOR_RED,
+                isClassName: isDisabled,
+              }}
               escalationChoices={escalationPolicyStore.webEscalationChoices}
               waitDelays={get(escalationPolicyStore.escalationChoices, 'wait_delay.choices', [])}
               numMinutesInWindowOptions={escalationPolicyStore.numMinutesInWindowOptions}
@@ -106,7 +120,10 @@ const EscalationChainSteps = observer((props: EscalationChainStepsProps) => {
       {!isDisabled && (
         <Timeline.Item
           number={(escalationPolicyIds?.length || 0) + offset + 1}
-          backgroundColor={isDisabled ? getVar('--tag-background-success') : getVar('--tag-secondary')}
+          backgroundColor={{
+            color: isDisabled ? getVar('--tag-background-success') : getVar('--tag-secondary'),
+            isClassName: isDisabled,
+          }}
           textColor={isDisabled ? getVar('--tag-text-success') : undefined}
         >
           <WithPermissionControlTooltip userAction={UserActions.EscalationChainsWrite}>

@@ -130,14 +130,14 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
           expandedView: () =>
             isDefault ? (
               <div className={cx('adjust-element-padding', 'default-route-view')}>
-                <Text type="secondary">
+                <Text type="primary">
                   All unmatched alerts are directed to this route, grouped using the Grouping Template, sent to
                   messengers, and trigger the escalation chain
                 </Text>
               </div>
             ) : (
               <VerticalGroup>
-                <Text type="secondary">
+                <Text type="primary">
                   If the Routing Template is True, group alerts with the Grouping Template, send them to messengers, and
                   trigger the escalation chain.
                 </Text>
@@ -188,16 +188,12 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
           collapsedView: null,
           iconText: 3,
           expandedView: () => (
-            <div>
+            <div className={cx('adjust-element-padding')}>
               <VerticalGroup>
+                <Text type="primary">Trigger escalation chain</Text>
+
                 <div data-testid="escalation-chain-select">
                   <HorizontalGroup spacing={'xs'}>
-                    <InlineLabel
-                      width={20}
-                      tooltip="The escalation chain determines who and when to notify when an alert group starts."
-                    >
-                      Escalation chain
-                    </InlineLabel>
                     <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
                       <Select
                         isSearchable

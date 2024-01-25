@@ -48,7 +48,7 @@ export interface EscalationPolicyProps extends ElementSortableProps {
   onDelete: (data: EscalationPolicyType) => void;
   escalationChoices: any[];
   number: number;
-  backgroundColor: string;
+  backgroundColor: { color: string; isClassName: boolean };
   isSlackInstalled: boolean;
   teamStore: GrafanaTeamStore;
   outgoingWebhookStore: OutgoingWebhookStore;
@@ -57,7 +57,7 @@ export interface EscalationPolicyProps extends ElementSortableProps {
 
 export class EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
   render() {
-    const { data, escalationChoices, number, backgroundColor, isDisabled } = this.props;
+    const { data, escalationChoices, number, isDisabled, backgroundColor } = this.props;
     const { id, step, is_final } = data;
 
     const escalationOption = escalationChoices.find(
@@ -67,7 +67,7 @@ export class EscalationPolicy extends React.Component<EscalationPolicyProps, any
     return (
       <Timeline.Item
         key={id}
-        contentClassName={cx('root')}
+        contentClassName={cx('root', backgroundColor.isClassName ? backgroundColor.color : '')}
         number={number}
         textColor={isDisabled ? getVar('--tag-text-success') : undefined}
         backgroundColor={backgroundColor}
