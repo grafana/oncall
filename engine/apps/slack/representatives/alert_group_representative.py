@@ -150,14 +150,21 @@ class AlertGroupSlackRepresentative(AlertGroupAbstractRepresentative):
         from apps.alerts.models import AlertGroupLogRecord
 
         log_record = kwargs["log_record"]
-        action_source = kwargs.get("action_source")
         force_sync = kwargs.get("force_sync", False)
         if isinstance(log_record, AlertGroupLogRecord):
             log_record_id = log_record.pk
         else:
             log_record_id = log_record
 
-        if action_source == ActionSource.SLACK or force_sync:
+        try:
+            log_record = AlertGroupLogRecord.objects.get(pk=log_record_id)
+        except AlertGroupLogRecord.DoesNotExist:
+            logger.warning(
+                f"on_alert_group_action_triggered: log record {log_record_id} never created or has been deleted"
+            )
+            return
+
+        if log_record.action_source == ActionSource.SLACK or force_sync:
             on_alert_group_action_triggered_async(log_record_id)
         else:
             on_alert_group_action_triggered_async.apply_async((log_record_id,))

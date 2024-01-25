@@ -35,9 +35,8 @@ def delete_alert_group(alert_group_pk: int, user_pk: int) -> None:
 def send_alert_group_signal_for_delete(alert_group_pk: int, log_record_pk: int) -> None:
     try:
         alert_group_action_triggered_signal.send(
-            sender=None,
+            sender=send_alert_group_signal_for_delete,
             log_record=log_record_pk,
-            action_source=None,
             force_sync=True,
         )
     except SlackAPIRatelimitError as e:

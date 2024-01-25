@@ -654,9 +654,8 @@ def test_delete_by_user(
     assert mock_finish_delete_alert_group.call_count == 1
 
     mock_alert_group_action_triggered_signal.send.assert_called_once_with(
-        sender=None,
+        sender=send_alert_group_signal_for_delete,
         log_record=deleted_log_record.pk,
-        action_source=None,
         force_sync=True,
     )
 
