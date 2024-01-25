@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Improved alert group table columns spacing ([#3712](https://github.com/grafana/oncall/pull/3712))
+- Ensure alert group log records are committed to DB before signalling about them @mderyncl([#3731](https://github.com/grafana/oncall/pull/3731))
 
 ## v1.3.90 (2024-01-18)
 

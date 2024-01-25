@@ -20,8 +20,13 @@ from apps.alerts.escalation_snapshot.escalation_snapshot_mixin import START_ESCA
 from apps.alerts.incident_appearance.renderers.constants import DEFAULT_BACKUP_TITLE
 from apps.alerts.incident_appearance.renderers.slack_renderer import AlertGroupSlackRenderer
 from apps.alerts.incident_log_builder import IncidentLogBuilder
-from apps.alerts.signals import alert_group_action_triggered_signal, alert_group_created_signal
-from apps.alerts.tasks import acknowledge_reminder_task, send_alert_group_signal, unsilence_task
+from apps.alerts.signals import alert_group_created_signal
+from apps.alerts.tasks import (
+    acknowledge_reminder_task,
+    send_alert_group_signal,
+    send_alert_group_signal_for_delete,
+    unsilence_task,
+)
 from apps.metrics_exporter.tasks import update_metrics_for_alert_group
 from apps.slack.slack_formatter import SlackFormatter
 from apps.user_management.models import User
@@ -1143,7 +1148,16 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
             f"action source: delete"
         )
 
-        transaction.on_commit(partial(self._send_alert_group_signal_for_delete, log_record.pk))
+        transaction.on_commit(partial(send_alert_group_signal_for_delete.delay, self.pk, log_record.pk))
+
+    def finish_delete_by_user(self):
+        dependent_alerts = list(self.dependent_alert_groups.all())
+
+        self.hard_delete()
+
+        # unattach dependent incidents
+        for dependent_alert_group in dependent_alerts:
+            dependent_alert_group.un_attach_by_delete()
 
     def hard_delete(self):
         from apps.alerts.models import ResolutionNote
@@ -1159,22 +1173,6 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
         resolution_notes.delete()
         self.resolution_note_slack_messages.all().delete()
         self.delete()
-
-    def _send_alert_group_signal_for_delete(self, log_record_id) -> None:
-        alert_group_action_triggered_signal.send(
-            sender=None,
-            log_record=log_record_id,
-            action_source=None,
-            force_sync=True,
-        )
-
-        dependent_alerts = list(self.dependent_alert_groups.all())
-
-        self.hard_delete()
-
-        # unattach dependent incidents
-        for dependent_alert_group in dependent_alerts:
-            dependent_alert_group.un_attach_by_delete()
 
     @staticmethod
     def _bulk_acknowledge(user: User, alert_groups_to_acknowledge: "QuerySet[AlertGroup]") -> None:
