@@ -6,6 +6,9 @@ import requests
 from django.conf import settings
 from rest_framework import status
 
+if typing.TYPE_CHECKING:
+    from apps.user_management.models import Organization
+
 
 class CloudAuthApiException(Exception):
     """A generic 400 or 500 level exception from the Cloud Auth API"""
@@ -35,15 +38,20 @@ class CloudAuthApiClient:
         self.api_token = settings.GRAFANA_CLOUD_AUTH_API_SYSTEM_TOKEN
 
     def request_signed_token(
-        self, org_id: int, stack_id: int, scopes: typing.List[Scopes], claims: typing.Dict[str, typing.Any]
+        self, org: "Organization", scopes: typing.List[Scopes], claims: typing.Dict[str, typing.Any]
     ) -> str:
+        org_id = org.org_id
+        stack_id = org.stack_id
+
         headers = {
             "Authorization": f"Bearer {self.api_token}",
-            "X-Org-ID": org_id,
+            # need to cast to str otherwise - requests.exceptions.InvalidHeader: Header part ... from ('X-Org-ID', 5000)
+            # must be of type str or bytes, not <class 'int'>
+            "X-Org-ID": str(org_id),
             "X-Realms": [
                 {
                     "type": "stack",
-                    "identifier": stack_id,
+                    "identifier": str(stack_id),
                 },
             ],
         }

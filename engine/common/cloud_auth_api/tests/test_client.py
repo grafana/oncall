@@ -16,13 +16,17 @@ def configure_cloud_auth_api_client(settings):
 
 
 @patch("common.cloud_auth_api.client.requests")
+@pytest.mark.django_db
 @pytest.mark.parametrize("response_status_code", [status.HTTP_200_OK, status.HTTP_401_UNAUTHORIZED])
-def test_request_signed_token(mock_requests, response_status_code):
+def test_request_signed_token(mock_requests, make_organization, response_status_code):
     mock_auth_token = ",mnasdlkjlakjoqwejroiqwejr"
     mock_response_text = "error message"
 
     org_id = 1
     stack_id = 5
+
+    organization = make_organization(stack_id=stack_id, org_id=org_id)
+
     scopes = ["incident:write", "foo:bar"]
     claims = {"vegetable": "carrot", "fruit": "apple"}
 
@@ -42,7 +46,7 @@ def test_request_signed_token(mock_requests, response_status_code):
     mock_requests.post.return_value = MockResponse(response_status_code)
 
     def _make_request():
-        return CloudAuthApiClient().request_signed_token(org_id, stack_id, scopes, claims)
+        return CloudAuthApiClient().request_signed_token(organization, scopes, claims)
 
     url = f"{GRAFANA_CLOUD_AUTH_API_URL}/v1/sign"
 
@@ -61,11 +65,11 @@ def test_request_signed_token(mock_requests, response_status_code):
         url,
         headers={
             "Authorization": f"Bearer {GRAFANA_CLOUD_AUTH_API_SYSTEM_TOKEN}",
-            "X-Org-ID": org_id,
+            "X-Org-ID": str(org_id),
             "X-Realms": [
                 {
                     "type": "stack",
-                    "identifier": stack_id,
+                    "identifier": str(stack_id),
                 },
             ],
         },
