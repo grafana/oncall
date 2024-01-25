@@ -249,7 +249,6 @@ ACKNOWLEDGE_CONDITION = "acknowledge_condition"
 GROUPING_ID = "grouping_id"
 SOURCE_LINK = "source_link"
 ROUTE = "route"
-ALERT_GROUP_LABELS = "alert_group_labels"
 ALERT_GROUP_MULTI_LABEL = "alert_group_multi_label"
 ALERT_GROUP_DYNAMIC_LABEL = "alert_group_dynamic_label"
 
