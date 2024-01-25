@@ -45,6 +45,9 @@ class ScheduleBaseSerializer(serializers.ModelSerializer):
         organization = self.context["request"].auth.organization
         slack_team_identity = organization.slack_team_identity
 
+        if (slack_channel_id or user_group_id) and not slack_team_identity:
+            raise BadRequest(detail="Slack isn't connected to this workspace")
+
         if slack_channel_id is not None:
             slack_channel_id = slack_channel_id.upper()
             try:
