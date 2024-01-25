@@ -1,4 +1,5 @@
 import enum
+import json
 import typing
 from urllib.parse import urljoin
 
@@ -43,17 +44,20 @@ class CloudAuthApiClient:
         org_id = org.org_id
         stack_id = org.stack_id
 
+        # NOTE: header values must always be strings
         headers = {
             "Authorization": f"Bearer {self.api_token}",
             # need to cast to str otherwise - requests.exceptions.InvalidHeader: Header part ... from ('X-Org-ID', 5000)
             # must be of type str or bytes, not <class 'int'>
             "X-Org-ID": str(org_id),
-            "X-Realms": [
-                {
-                    "type": "stack",
-                    "identifier": str(stack_id),
-                },
-            ],
+            "X-Realms": json.dumps(
+                [
+                    {
+                        "type": "stack",
+                        "identifier": str(stack_id),
+                    },
+                ]
+            ),
         }
 
         url = urljoin(self.api_base_url, "v1/sign")

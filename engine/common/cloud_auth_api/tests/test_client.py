@@ -1,3 +1,4 @@
+import json
 from unittest.mock import patch
 
 import pytest
@@ -66,12 +67,14 @@ def test_request_signed_token(mock_requests, make_organization, response_status_
         headers={
             "Authorization": f"Bearer {GRAFANA_CLOUD_AUTH_API_SYSTEM_TOKEN}",
             "X-Org-ID": str(org_id),
-            "X-Realms": [
-                {
-                    "type": "stack",
-                    "identifier": str(stack_id),
-                },
-            ],
+            "X-Realms": json.dumps(
+                [
+                    {
+                        "type": "stack",
+                        "identifier": str(stack_id),
+                    },
+                ]
+            ),
         },
         json={
             "claims": claims,
