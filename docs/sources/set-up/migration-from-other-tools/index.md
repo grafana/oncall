@@ -1,13 +1,17 @@
 ---
 title: Migration from other tools
-aliases:
-  - /docs/oncall/latest/migration-from-other-tools/
+menuTitle: Migration guide
+description: Learn how to migrate to Grafana OnCall from other on-call tools
+weight: 200
 keywords:
-  - Mobile App
-  - oncall
-  - notification
-  - push notification
-weight: 1400
+  - OnCall
+  - Migration
+  - Pagerduty
+  - on-call tools
+canonical: https://grafana.com/docs/oncall/latest/set-up/migration-from-other-tools/
+aliases:
+  - /docs/grafana-cloud/alerting-and-irm/oncall/set-up/migration-from-other-tools
+  - /docs/oncall/latest/migration-from-other-tools/
 ---
 
 # Migration from other tools

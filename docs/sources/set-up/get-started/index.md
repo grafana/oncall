@@ -1,13 +1,20 @@
 ---
-aliases:
-  - /getting-started/
-canonical: https://grafana.com/docs/oncall/latest/get-started/
+title: Get started with Grafana OnCall
+menuTitle: Get started
+description: A Guide for getting started with Grafana OnCall in Grafana Cloud
+weight: 100
 keywords:
   - Get started
-  - On call
-  - Grafana Cloud
-title: Get started with Grafana OnCall
-weight: 300
+  - OnCall
+  - Configure
+  - Escalation chains
+  - Integrations
+  - On-call schedules
+canonical: https://grafana.com/docs/oncall/latest/set-up/get-started/
+aliases:
+  - /docs/grafana-cloud/alerting-and-irm/oncall/set-up/get-started/
+  - /docs/oncall/latest/get-started/
+  - ../getting-started/
 ---
 
 # Get started with Grafana OnCall

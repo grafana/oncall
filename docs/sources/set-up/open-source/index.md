@@ -1,8 +1,17 @@
 ---
+title: Grafana OnCall open source guide
+menuTitle: Open source
+description: Installation and setup configuration details for open source Grafana OnCall
+weight: 300
 keywords:
-  - Open Source
-title: Open Source
-weight: 400
+  - OnCall
+  - Open source
+  - OSS
+  - Install
+canonical: https://grafana.com/docs/oncall/latest/set-up/open-source/
+aliases:
+  - /docs/grafana-cloud/alerting-and-irm/oncall/set-up/open-source/
+  - /docs/oncall/latest/open-source/
 ---
 
 # Grafana OnCall open source guide
