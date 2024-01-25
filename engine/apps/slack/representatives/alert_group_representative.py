@@ -175,7 +175,7 @@ class AlertGroupSlackRepresentative(AlertGroupAbstractRepresentative):
             try:
                 alert_group = AlertGroup.objects.get(pk=alert_group_id)
             except AlertGroup.DoesNotExist:
-                logger.warning(f"SLACK update log report: alert group {alert_group} has been deleted")
+                logger.warning(f"SLACK update log report: alert group {alert_group_id} has been deleted")
                 return
 
         logger.debug(
