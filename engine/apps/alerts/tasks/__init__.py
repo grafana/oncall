@@ -18,7 +18,6 @@ from .notify_user import notify_user_task  # noqa: F401
 from .resolve_alert_group_by_source_if_needed import resolve_alert_group_by_source_if_needed  # noqa: F401
 from .resolve_by_last_step import resolve_by_last_step_task  # noqa: F401
 from .send_alert_group_signal import send_alert_group_signal  # noqa: F401
-from .send_alert_group_signal import send_alert_group_signal_force_sync  # noqa: F401
 from .send_update_log_report_signal import send_update_log_report_signal  # noqa: F401
 from .send_update_resolution_note_signal import send_update_resolution_note_signal  # noqa: F401
 from .sync_grafana_alerting_contact_points import disconnect_integration_from_alerting_contact_points  # noqa: F401

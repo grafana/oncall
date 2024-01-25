@@ -74,8 +74,10 @@ def test_wipe(
 
 @patch.object(SlackClient, "reactions_remove")
 @patch.object(SlackClient, "chat_delete")
+# @patch("apps.alerts.tasks.send_alert_group_signal.send_alert_group_signal_force_sync.delay", return_value=None)
 @pytest.mark.django_db
 def test_delete(
+    # mock_send_alert_group_signal,
     mock_chat_delete,
     mock_reactions_remove,
     make_organization_with_slack_team_identity,
@@ -85,9 +87,9 @@ def test_delete(
     make_alert,
     make_slack_message,
     make_resolution_note_slack_message,
+    django_capture_on_commit_callbacks,
 ):
     """test alert group deleting"""
-
     organization, slack_team_identity = make_organization_with_slack_team_identity()
     user = make_user(organization=organization)
 
@@ -119,7 +121,8 @@ def test_delete(
     assert alert_group.slack_messages.count() == 1
     assert alert_group.resolution_note_slack_messages.count() == 2
 
-    delete_alert_group(alert_group.pk, user.pk)
+    with django_capture_on_commit_callbacks(execute=True):
+        delete_alert_group(alert_group.pk, user.pk)
 
     assert not alert_group.alerts.exists()
     assert not alert_group.slack_messages.exists()
@@ -129,6 +132,8 @@ def test_delete(
         alert_group.refresh_from_db()
 
     # Check that appropriate Slack API calls are made
+    # assert mock_send_alert_group_signal.called
+
     assert mock_chat_delete.call_count == 2
     assert mock_chat_delete.call_args_list[0] == call(
         channel=resolution_note_1.slack_channel_id, ts=resolution_note_1.ts
@@ -152,6 +157,7 @@ def test_delete_slack_ratelimit(
     make_alert,
     make_slack_message,
     make_resolution_note_slack_message,
+    django_capture_on_commit_callbacks,
 ):
     organization, slack_team_identity = make_organization_with_slack_team_identity()
     user = make_user(organization=organization)
@@ -180,14 +186,15 @@ def test_delete_slack_ratelimit(
         ts="test2_ts",
     )
 
-    with patch.object(
-        SlackClient,
-        api_method,
-        side_effect=SlackAPIRatelimitError(
-            response=build_slack_response({"ok": False, "error": "ratelimited"}, headers={"Retry-After": 42})
-        ),
-    ):
-        delete_alert_group(alert_group.pk, user.pk)
+    with django_capture_on_commit_callbacks(execute=True):
+        with patch.object(
+            SlackClient,
+            api_method,
+            side_effect=SlackAPIRatelimitError(
+                response=build_slack_response({"ok": False, "error": "ratelimited"}, headers={"Retry-After": 42})
+            ),
+        ):
+            delete_alert_group(alert_group.pk, user.pk)
 
     # Check task is retried gracefully
     mock_delete_alert_group.assert_called_once_with((alert_group.pk, user.pk), countdown=42)
@@ -592,6 +599,7 @@ def test_delete_by_user(
     make_organization_and_user,
     make_alert_receive_channel,
     make_alert_group,
+    django_capture_on_commit_callbacks,
 ):
     organization, user = make_organization_and_user()
     alert_receive_channel = make_alert_receive_channel(organization)
@@ -603,7 +611,8 @@ def test_delete_by_user(
 
     assert alert_group.log_records.filter(type=AlertGroupLogRecord.TYPE_DELETED).count() == 0
 
-    alert_group.delete_by_user(user)
+    with django_capture_on_commit_callbacks(execute=True):
+        alert_group.delete_by_user(user)
 
     assert alert_group.log_records.filter(type=AlertGroupLogRecord.TYPE_DELETED).count() == 1
     deleted_log_record = alert_group.log_records.get(type=AlertGroupLogRecord.TYPE_DELETED)
@@ -611,7 +620,7 @@ def test_delete_by_user(
     alert_group.stop_escalation.assert_called_once_with()
 
     mock_alert_group_action_triggered_signal.send.assert_called_once_with(
-        sender=alert_group.delete_by_user,
+        sender=None,
         log_record=deleted_log_record.pk,
         action_source=None,
         force_sync=True,
