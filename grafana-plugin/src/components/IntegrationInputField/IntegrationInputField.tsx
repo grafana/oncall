@@ -20,7 +20,7 @@ interface IntegrationInputFieldProps {
 const cx = cn.bind(styles);
 
 const IntegrationInputField: React.FC<IntegrationInputFieldProps> = ({
-  isMasked = true,
+  isMasked = false,
   value,
   showEye = true,
   showCopy = true,

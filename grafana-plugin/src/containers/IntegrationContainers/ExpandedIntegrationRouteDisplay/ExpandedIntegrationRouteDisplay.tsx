@@ -17,6 +17,7 @@ import { observer } from 'mobx-react';
 import CopyToClipboard from 'react-copy-to-clipboard';
 
 import HamburgerMenu from 'components/HamburgerMenu/HamburgerMenu';
+import IntegrationCollapsibleTreeView from 'components/IntegrationCollapsibleTreeView/IntegrationCollapsibleTreeView';
 import IntegrationBlock from 'components/Integrations/IntegrationBlock';
 import MonacoEditor from 'components/MonacoEditor/MonacoEditor';
 import { MONACO_READONLY_CONFIG } from 'components/MonacoEditor/MonacoEditor.config';
@@ -117,82 +118,77 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
     }
 
     const escChainDisplayName = escalationChainStore.items[channelFilter.escalation_chain]?.name;
-
-    return (
-      <>
-        <IntegrationBlock
-          noContent={false}
-          key={channelFilterId}
-          heading={
-            <HorizontalGroup justify={'space-between'}>
-              <HorizontalGroup spacing={'md'}>
-                <TooltipBadge
-                  borderType="success"
-                  text={CommonIntegrationHelper.getRouteConditionWording(channelFilterIds, routeIndex)}
-                  tooltipTitle={CommonIntegrationHelper.getRouteConditionTooltipWording(channelFilterIds, routeIndex)}
-                  tooltipContent={undefined}
-                  className={cx('u-margin-right-xs')}
-                />
-              </HorizontalGroup>
-              <HorizontalGroup spacing={'xs'}>
-                <RouteButtonsDisplay
-                  alertReceiveChannelId={alertReceiveChannelId}
-                  channelFilterId={channelFilterId}
-                  routeIndex={routeIndex}
-                  onItemMove={onItemMove}
-                  setRouteIdForDeletion={() => setState({ routeIdForDeletion: channelFilterId })}
-                  openRouteTemplateEditor={() => handleEditRoutingTemplate(channelFilter, channelFilterId)}
-                />
-              </HorizontalGroup>
-            </HorizontalGroup>
-          }
-          content={
-            <VerticalGroup>
-              {isDefault ? (
+    const getTreeViewElements = () => {
+      return [
+        {
+          isHidden: false,
+          isCollapsible: false,
+          isExpanded: false,
+          isTextIcon: true,
+          collapsedView: null,
+          iconText: 1,
+          expandedView: () =>
+            isDefault ? (
+              <div className={cx('adjust-element-padding', 'default-route-view')}>
                 <Text type="secondary">
                   All unmatched alerts are directed to this route, grouped using the Grouping Template, sent to
                   messengers, and trigger the escalation chain
                 </Text>
-              ) : (
-                <VerticalGroup>
-                  <Text type="secondary">
-                    If the Routing Template is True, group alerts with the Grouping Template, send them to messengers,
-                    and trigger the escalation chain.
-                  </Text>
-                  <HorizontalGroup spacing="xs">
-                    <InlineLabel
-                      width={20}
-                      tooltip="Routing Template should be True for the alert to go to this route."
-                    >
-                      Routing Template
-                    </InlineLabel>
-                    <div className={cx('input', 'input--short')}>
-                      <MonacoEditor
-                        value={channelFilterTemplate}
-                        disabled={true}
-                        height={MONACO_INPUT_HEIGHT_SMALL}
-                        data={templates}
-                        showLineNumbers={false}
-                        monacoOptions={MONACO_READONLY_CONFIG}
-                      />
-                    </div>
-                    <Button
-                      variant={'secondary'}
-                      icon="edit"
-                      size={'md'}
-                      onClick={() => handleEditRoutingTemplate(channelFilter, channelFilterId)}
+              </div>
+            ) : (
+              <VerticalGroup>
+                <Text type="secondary">
+                  If the Routing Template is True, group alerts with the Grouping Template, send them to messengers, and
+                  trigger the escalation chain.
+                </Text>
+                <HorizontalGroup spacing="xs">
+                  <InlineLabel width={20} tooltip="Routing Template should be True for the alert to go to this route.">
+                    Routing Template
+                  </InlineLabel>
+                  <div className={cx('input', 'input--short')}>
+                    <MonacoEditor
+                      value={channelFilterTemplate}
+                      disabled={true}
+                      height={MONACO_INPUT_HEIGHT_SMALL}
+                      data={templates}
+                      showLineNumbers={false}
+                      monacoOptions={MONACO_READONLY_CONFIG}
                     />
-                  </HorizontalGroup>
-                </VerticalGroup>
-              )}
-
-              {IntegrationHelper.hasChatopsInstalled(store) && (
-                <VerticalGroup spacing="md">
-                  <Text type="primary">Publish to ChatOps</Text>
-                  <ChatOpsConnectors channelFilterId={channelFilterId} showLineNumber={false} />
-                </VerticalGroup>
-              )}
-
+                  </div>
+                  <Button
+                    variant={'secondary'}
+                    icon="edit"
+                    size={'md'}
+                    onClick={() => handleEditRoutingTemplate(channelFilter, channelFilterId)}
+                  />
+                </HorizontalGroup>
+              </VerticalGroup>
+            ),
+        },
+        IntegrationHelper.hasChatopsInstalled(store) && {
+          isHidden: false,
+          isCollapsible: false,
+          isTextIcon: true,
+          collapsedView: null,
+          iconText: 2,
+          expandedView: () => (
+            <div className={cx('adjust-element-padding')}>
+              <VerticalGroup spacing="md">
+                <Text type="primary">Publish to ChatOps</Text>
+                <ChatOpsConnectors channelFilterId={channelFilterId} showLineNumber={false} />
+              </VerticalGroup>
+            </div>
+          ),
+        },
+        {
+          isHidden: false,
+          isCollapsible: false,
+          isExpanded: false,
+          isTextIcon: true,
+          collapsedView: null,
+          iconText: 3,
+          expandedView: () => (
+            <div>
               <VerticalGroup>
                 <div data-testid="escalation-chain-select">
                   <HorizontalGroup spacing={'xs'}>
@@ -264,7 +260,46 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
                   <ReadOnlyEscalationChain escalationChainId={channelFilter.escalation_chain} />
                 )}
               </VerticalGroup>
-            </VerticalGroup>
+            </div>
+          ),
+        },
+      ];
+    };
+
+    return (
+      <>
+        <IntegrationBlock
+          noContent={false}
+          key={channelFilterId}
+          heading={
+            <HorizontalGroup justify={'space-between'}>
+              <HorizontalGroup spacing={'md'}>
+                <TooltipBadge
+                  borderType="success"
+                  text={CommonIntegrationHelper.getRouteConditionWording(channelFilterIds, routeIndex)}
+                  tooltipTitle={CommonIntegrationHelper.getRouteConditionTooltipWording(channelFilterIds, routeIndex)}
+                  tooltipContent={undefined}
+                  className={cx('u-margin-right-xs')}
+                />
+              </HorizontalGroup>
+              <HorizontalGroup spacing={'xs'}>
+                <RouteButtonsDisplay
+                  alertReceiveChannelId={alertReceiveChannelId}
+                  channelFilterId={channelFilterId}
+                  routeIndex={routeIndex}
+                  onItemMove={onItemMove}
+                  setRouteIdForDeletion={() => setState({ routeIdForDeletion: channelFilterId })}
+                  openRouteTemplateEditor={() => handleEditRoutingTemplate(channelFilter, channelFilterId)}
+                />
+              </HorizontalGroup>
+            </HorizontalGroup>
+          }
+          content={
+            <IntegrationCollapsibleTreeView
+              configElements={getTreeViewElements() as any}
+              customContainerClassName="timeline-view"
+              startingElemPosition="0%"
+            />
           }
         />
         {routeIdForDeletion && (

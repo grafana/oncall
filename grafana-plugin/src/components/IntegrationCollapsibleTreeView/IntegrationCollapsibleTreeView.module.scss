@@ -5,11 +5,17 @@
   &:before {
     content: '';
     position: absolute;
-    height: calc(100% - 20px);
+    height: 100%;
     border: var(--border-weak);
-    margin-top: 20px;
+    margin-top: 4px;
     margin-left: -20px;
   }
+}
+
+.integrationTree__container--timeline-view:before {
+  margin-left: -20px; // 32/2 minus the border width
+  border-width: 4px;
+  height: calc(100% - 10px);
 }
 
 .integrationTree__element {
@@ -36,11 +42,10 @@
 .integrationTree__icon {
   position: absolute;
   top: 0px;
-  transform: translateY(50%);
   left: -30px;
   color: var(--always-gray);
   width: 25px;
-  height: 32px;
+  height: 25px;
   text-align: center;
   background-color: var(--primary-background) !important;
   border: 1px solid var(--primary-background);
@@ -50,9 +55,23 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  margin-top: 4px;
 
   path {
     // this will overwrite all icons below to be gray
     fill: var(--always-gray);
   }
+}
+
+.number-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  text-align: center;
+  line-height: 28px;
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--primary-text-color);
+  background-color: var(--secondary-background);
+  flex-shrink: 0;
 }
