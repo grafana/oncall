@@ -13,7 +13,7 @@
 }
 
 .integrationTree__container--timeline-view:before {
-  margin-left: -20px; // 32/2 minus the border width
+  margin-left: -20px;
   border-width: 4px;
   height: calc(100% - 10px);
 }
@@ -44,8 +44,8 @@
   top: 0px;
   left: -30px;
   color: var(--always-gray);
-  width: 25px;
-  height: 25px;
+  width: 28px;
+  height: 28px;
   text-align: center;
   background-color: var(--primary-background) !important;
   border: 1px solid var(--primary-background);
