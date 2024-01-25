@@ -174,14 +174,14 @@ class MobileAppGatewayView(APIView):
         """
         token_claims = cls._construct_token_claims(user)
         token_scopes = {
-            cls.SupportedDownstreamBackends.INCIDENT: [CloudAuthApiClient.SCOPES.INCIDENT_WRITE],
+            cls.SupportedDownstreamBackends.INCIDENT: [CloudAuthApiClient.Scopes.INCIDENT_WRITE],
         }[downstream_backend]
 
         org = user.organization
         stack_id = org.stack_id
         token = CloudAuthApiClient().request_signed_token(org.org_id, stack_id, token_scopes, token_claims)
 
-        return f"Bearer {stack_id}:{token}"
+        return f"{stack_id}:{token}"
 
     @classmethod
     def _get_downstream_headers(

@@ -21,15 +21,21 @@ class CloudAuthApiException(Exception):
 
 
 class CloudAuthApiClient:
-    class SCOPES(enum.StrEnum):
+    class Scopes(enum.StrEnum):
         INCIDENT_WRITE = "incident:write"
 
     def __init__(self):
-        self.api_base_url = urljoin(settings.GRAFANA_CLOUD_AUTH_API_URL, "v1")
-        self.api_token = f"glcd_{settings.GRAFANA_CLOUD_AUTH_API_SYSTEM_TOKEN}"
+        if settings.GRAFANA_CLOUD_AUTH_API_URL is None or settings.GRAFANA_CLOUD_AUTH_API_SYSTEM_TOKEN is None:
+            raise RuntimeError(
+                "GRAFANA_CLOUD_AUTH_API_URL and GRAFANA_CLOUD_AUTH_API_SYSTEM_TOKEN must be set"
+                "to use CloudAuthApiClient"
+            )
+
+        self.api_base_url = settings.GRAFANA_CLOUD_AUTH_API_URL
+        self.api_token = settings.GRAFANA_CLOUD_AUTH_API_SYSTEM_TOKEN
 
     def request_signed_token(
-        self, org_id: int, stack_id: int, scopes: typing.List[SCOPES], claims: typing.Dict[str]
+        self, org_id: int, stack_id: int, scopes: typing.List[Scopes], claims: typing.Dict[str, typing.Any]
     ) -> str:
         headers = {
             "Authorization": f"Bearer {self.api_token}",
@@ -42,7 +48,7 @@ class CloudAuthApiClient:
             ],
         }
 
-        url = urljoin(self.api_base_url, "sign")
+        url = urljoin(self.api_base_url, "v1/sign")
         response = requests.post(
             url,
             headers=headers,
