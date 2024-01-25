@@ -330,6 +330,7 @@ class PluginState {
       stackId: null,
       orgId: null,
       onCallApiUrl: null,
+      insightsDatasource: undefined,
       license: null,
     };
     const secureJsonData: Required<OnCallPluginMetaSecureJSONData> = {

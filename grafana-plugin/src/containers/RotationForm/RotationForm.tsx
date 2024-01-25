@@ -47,13 +47,11 @@ import TimeUnitSelector from 'containers/RotationForm/parts/TimeUnitSelector';
 import UserItem from 'containers/RotationForm/parts/UserItem';
 import { getShiftName } from 'models/schedule/schedule.helpers';
 import { Schedule, Shift } from 'models/schedule/schedule.types';
-import { getTzOffsetString } from 'models/timezone/timezone.helpers';
-import { Timezone } from 'models/timezone/timezone.types';
 import { User } from 'models/user/user.types';
 import {
   getDateTime,
   getSelectedDays,
-  getStartOfWeek,
+  getStartOfWeekBasedOnCurrentDate,
   getUTCByDay,
   getUTCString,
   getUTCWeekStart,
@@ -71,8 +69,6 @@ const cx = cn.bind(styles);
 interface RotationFormProps {
   layerPriority: number;
   onHide: () => void;
-  startMoment: dayjs.Dayjs;
-  currentTimezone: Timezone;
   scheduleId: Schedule['id'];
   shiftId: Shift['id'] | 'new';
   shiftStart?: dayjs.Dayjs;
@@ -85,23 +81,21 @@ interface RotationFormProps {
 }
 
 const RotationForm = observer((props: RotationFormProps) => {
+  const store = useStore();
   const {
     onHide,
     onCreate,
-    startMoment,
-    currentTimezone,
     scheduleId,
     onUpdate,
     onDelete,
     layerPriority,
     shiftId,
-    shiftStart: propsShiftStart = getStartOfWeek(currentTimezone),
+    shiftStart: propsShiftStart = getStartOfWeekBasedOnCurrentDate(store.timezoneStore.currentDateInSelectedTimezone),
     shiftEnd: propsShiftEnd,
     shiftColor = '#3D71D9',
     onShowRotationForm,
   } = props;
 
-  const store = useStore();
   const shift = store.scheduleStore.shifts[shiftId];
 
   const [errors, setErrors] = useState<{ [key: string]: string[] }>({});
@@ -192,7 +186,7 @@ const RotationForm = observer((props: RotationFormProps) => {
     setErrors({});
 
     store.scheduleStore
-      .updateRotationPreview(scheduleId, shiftId, startMoment, false, params)
+      .updateRotationPreview(scheduleId, shiftId, store.timezoneStore.calendarStartDate, false, params)
       .catch(onError)
       .finally(() => {
         setIsOpen(true);
@@ -214,14 +208,20 @@ const RotationForm = observer((props: RotationFormProps) => {
       rolling_users: userGroups,
       interval: repeatEveryValue,
       frequency: repeatEveryPeriod,
-      by_day: getUTCByDay(store.scheduleStore.byDayOptions, selectedDays, shiftStart.tz(currentTimezone)),
-      week_start: getUTCWeekStart(store.scheduleStore.byDayOptions, shiftStart.tz(currentTimezone)),
+      by_day: getUTCByDay(
+        store.scheduleStore.byDayOptions,
+        selectedDays,
+        store.timezoneStore.getDateInSelectedTimezone(shiftStart)
+      ),
+      week_start: getUTCWeekStart(
+        store.scheduleStore.byDayOptions,
+        store.timezoneStore.getDateInSelectedTimezone(shiftStart)
+      ),
       priority_level: shiftId === 'new' ? layerPriority : shift?.priority_level,
       name: rotationName,
     }),
     [
       rotationStart,
-      currentTimezone,
       rotationEnd,
       shiftStart,
       shiftEnd,
@@ -237,7 +237,7 @@ const RotationForm = observer((props: RotationFormProps) => {
     ]
   );
 
-  useEffect(handleChange, [params, startMoment]);
+  useEffect(handleChange, [params, store.timezoneStore.calendarStartDate]);
 
   const create = useCallback(() => {
     store.scheduleStore
@@ -383,11 +383,18 @@ const RotationForm = observer((props: RotationFormProps) => {
 
       setRepeatEveryValue(shift.interval);
       setRepeatEveryPeriod(shift.frequency);
-      setSelectedDays(getSelectedDays(store.scheduleStore.byDayOptions, shift.by_day, shiftStart.tz(currentTimezone)));
+      setSelectedDays(
+        getSelectedDays(
+          store.scheduleStore.byDayOptions,
+          shift.by_day,
+          store.timezoneStore.getDateInSelectedTimezone(shiftStart)
+        )
+      );
 
       setShowActiveOnSelectedDays(Boolean(shift.by_day?.length));
 
       const activeOnSelectedPartOfDay =
+        shift.frequency !== RepeatEveryPeriod.MONTHS &&
         repeatEveryInSeconds(shift.frequency, shift.interval) !== shiftEnd.diff(shiftStart, 'seconds');
 
       setShowActiveOnSelectedPartOfDay(activeOnSelectedPartOfDay);
@@ -404,9 +411,15 @@ const RotationForm = observer((props: RotationFormProps) => {
 
   useEffect(() => {
     if (shift) {
-      setSelectedDays(getSelectedDays(store.scheduleStore.byDayOptions, shift.by_day, shiftStart.tz(currentTimezone)));
+      setSelectedDays(
+        getSelectedDays(
+          store.scheduleStore.byDayOptions,
+          shift.by_day,
+          store.timezoneStore.getDateInSelectedTimezone(shiftStart)
+        )
+      );
     }
-  }, [currentTimezone]);
+  }, [store.timezoneStore.selectedTimezoneOffset]);
 
   const isFormValid = useMemo(() => !Object.keys(errors).length, [errors]);
 
@@ -434,7 +447,7 @@ const RotationForm = observer((props: RotationFormProps) => {
           </Draggable>
         )}
       >
-        <div className={cx('root')}>
+        <div className={cx('root')} data-testid="rotation-form">
           <div>
             <HorizontalGroup justify="space-between">
               <HorizontalGroup spacing="sm">
@@ -500,10 +513,8 @@ const RotationForm = observer((props: RotationFormProps) => {
                     }
                   >
                     <DateTimePicker
-                      //minMoment={shiftStart}
                       value={rotationStart}
                       onChange={handleRotationStartChange}
-                      timezone={currentTimezone}
                       error={errors.rotation_start}
                       disabled={disabled}
                     />
@@ -532,7 +543,6 @@ const RotationForm = observer((props: RotationFormProps) => {
                       <DateTimePicker
                         value={rotationEnd}
                         onChange={setRotationEnd}
-                        timezone={currentTimezone}
                         error={errors.until}
                         disabled={disabled}
                       />
@@ -616,7 +626,6 @@ const RotationForm = observer((props: RotationFormProps) => {
                             defaultValue={shiftPeriodDefaultValue}
                             shiftStart={shiftStart}
                             onChange={handleActivePeriodChange}
-                            currentTimezone={currentTimezone}
                             disabled={disabled}
                             errors={errors}
                           />
@@ -659,7 +668,7 @@ const RotationForm = observer((props: RotationFormProps) => {
           </div>
           <div>
             <HorizontalGroup justify="space-between">
-              <Text type="secondary">Current timezone: {getTzOffsetString(dayjs().tz(currentTimezone))}</Text>
+              <Text type="secondary">Current timezone: {store.timezoneStore.selectedTimezoneLabel}</Text>
               <HorizontalGroup>
                 {shiftId !== 'new' && (
                   <Tooltip content="Stop the current rotation and start a new one">
@@ -711,7 +720,6 @@ interface ShiftPeriodProps {
   defaultValue: number;
   shiftStart: dayjs.Dayjs;
   onChange: (value: number) => void;
-  currentTimezone: Timezone;
   disabled: boolean;
   errors: any;
 }

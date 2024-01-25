@@ -566,6 +566,69 @@ def test_get_detail_web_schedule(
 
 
 @pytest.mark.django_db
+def test_get_detail_schedule_oncall_now_multipage_objects(
+    make_organization_and_user_with_plugin_token, make_schedule, make_on_call_shift, make_user_auth_headers
+):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+    # make sure our schedule would be in the second page of the listing page
+    for i in range(16):
+        make_schedule(organization, schedule_class=OnCallScheduleWeb, name=f"schedule {i}")
+
+    schedule = make_schedule(
+        organization,
+        schedule_class=OnCallScheduleWeb,
+        name="test_web_schedule",
+    )
+    now = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    start_date = now - timezone.timedelta(days=7)
+    data = {
+        "start": start_date,
+        "rotation_start": start_date,
+        "duration": timezone.timedelta(seconds=86400),
+        "priority_level": 1,
+        "frequency": CustomOnCallShift.FREQUENCY_DAILY,
+        "schedule": schedule,
+    }
+    on_call_shift = make_on_call_shift(
+        organization=organization, shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT, **data
+    )
+    on_call_shift.add_rolling_users([[user]])
+
+    client = APIClient()
+    url = reverse("api-internal:schedule-detail", kwargs={"pk": schedule.public_primary_key})
+
+    expected_payload = {
+        "id": schedule.public_primary_key,
+        "team": None,
+        "name": "test_web_schedule",
+        "type": 2,
+        "time_zone": "UTC",
+        "slack_channel": None,
+        "user_group": None,
+        "warnings": [],
+        "on_call_now": [
+            {
+                "pk": user.public_primary_key,
+                "username": user.username,
+                "avatar": user.avatar_url,
+                "avatar_full": user.avatar_full_url,
+            }
+        ],
+        "has_gaps": False,
+        "mention_oncall_next": False,
+        "mention_oncall_start": True,
+        "notify_empty_oncall": 0,
+        "notify_oncall_shift_freq": 1,
+        "number_of_escalation_chains": 0,
+        "enable_web_overrides": True,
+    }
+
+    response = client.get(url, format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data == expected_payload
+
+
+@pytest.mark.django_db
 def test_create_calendar_schedule(schedule_internal_api_setup, make_user_auth_headers):
     user, token, _, _, _, _ = schedule_internal_api_setup
     client = APIClient()

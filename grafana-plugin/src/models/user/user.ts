@@ -1,12 +1,11 @@
 import { config } from '@grafana/runtime';
 import dayjs from 'dayjs';
 import { get } from 'lodash-es';
-import { action, computed, observable } from 'mobx';
+import { action, computed, observable, makeObservable, runInAction } from 'mobx';
 
 import BaseStore from 'models/base_store';
-import { NotificationPolicyType } from 'models/notification_policy';
+import { NotificationPolicyType } from 'models/notification_policy/notification_policy';
 import { makeRequest } from 'network';
-import { Mixpanel } from 'services/mixpanel';
 import { RootStore } from 'state';
 import { move } from 'state/helpers';
 import { throttlingError } from 'utils';
@@ -48,6 +47,8 @@ export class UserStore extends BaseStore {
   constructor(rootStore: RootStore) {
     super(rootStore);
 
+    makeObservable(this);
+
     this.path = '/users/';
   }
 
@@ -64,11 +65,13 @@ export class UserStore extends BaseStore {
     const response = await makeRequest('/user/', {});
     const timezone = await this.refreshTimezone(response.pk);
 
-    this.items = {
-      ...this.items,
-      [response.pk]: { ...response, timezone },
-    };
-    this.currentUserPk = response.pk;
+    runInAction(() => {
+      this.items = {
+        ...this.items,
+        [response.pk]: { ...response, timezone },
+      };
+      this.currentUserPk = response.pk;
+    });
   }
 
   @action
@@ -79,7 +82,7 @@ export class UserStore extends BaseStore {
       this.update(id, { timezone });
     }
 
-    this.rootStore.currentTimezone = timezone;
+    this.rootStore.timezoneStore.setSelectedTimezoneOffsetBasedOnTz(timezone);
 
     return timezone;
   }
@@ -88,10 +91,12 @@ export class UserStore extends BaseStore {
   async loadUser(userPk: User['pk'], skipErrorHandling = false): Promise<User> {
     const user = await this.getById(userPk, skipErrorHandling);
 
-    this.items = {
-      ...this.items,
-      [user.pk]: { ...user, timezone: getTimezone(user) },
-    };
+    runInAction(() => {
+      this.items = {
+        ...this.items,
+        [user.pk]: { ...user, timezone: getTimezone(user) },
+      };
+    });
 
     return user;
   }
@@ -106,10 +111,12 @@ export class UserStore extends BaseStore {
 
     const user = await this.getById(userPk);
 
-    this.items = {
-      ...this.items,
-      [user.pk]: { ...user, timezone: getTimezone(user) },
-    };
+    runInAction(() => {
+      this.items = {
+        ...this.items,
+        [user.pk]: { ...user, timezone: getTimezone(user) },
+      };
+    });
 
     delete this.itemsCurrentlyUpdating[userPk];
   }
@@ -135,25 +142,27 @@ export class UserStore extends BaseStore {
 
     const { count, results, page_size } = response;
 
-    this.items = {
-      ...this.items,
-      ...results.reduce(
-        (acc: { [key: number]: User }, item: User) => ({
-          ...acc,
-          [item.pk]: {
-            ...item,
-            timezone: getTimezone(item),
-          },
-        }),
-        {}
-      ),
-    };
+    runInAction(() => {
+      this.items = {
+        ...this.items,
+        ...results.reduce(
+          (acc: { [key: number]: User }, item: User) => ({
+            ...acc,
+            [item.pk]: {
+              ...item,
+              timezone: getTimezone(item),
+            },
+          }),
+          {}
+        ),
+      };
 
-    this.searchResult = {
-      count,
-      page_size,
-      results: results.map((item: User) => item.pk),
-    };
+      this.searchResult = {
+        count,
+        page_size,
+        results: results.map((item: User) => item.pk),
+      };
+    });
 
     return response;
   }
@@ -178,10 +187,12 @@ export class UserStore extends BaseStore {
 
     const user = await this.getById(userPk);
 
-    this.items = {
-      ...this.items,
-      [user.pk]: user,
-    };
+    runInAction(() => {
+      this.items = {
+        ...this.items,
+        [user.pk]: user,
+      };
+    });
   };
 
   @action
@@ -192,10 +203,12 @@ export class UserStore extends BaseStore {
 
     const user = await this.getById(userPk);
 
-    this.items = {
-      ...this.items,
-      [user.pk]: user,
-    };
+    runInAction(() => {
+      this.items = {
+        ...this.items,
+        [user.pk]: user,
+      };
+    });
   };
 
   sendBackendConfirmationCode = (userPk: User['pk'], backend: string) =>
@@ -216,10 +229,12 @@ export class UserStore extends BaseStore {
   async createUser(data: any) {
     const user = await this.create(data);
 
-    this.items = {
-      ...this.items,
-      [user.pk]: user,
-    };
+    runInAction(() => {
+      this.items = {
+        ...this.items,
+        [user.pk]: user,
+      };
+    });
 
     return user;
   }
@@ -238,10 +253,12 @@ export class UserStore extends BaseStore {
       this.rootStore.userStore.loadCurrentUser();
     }
 
-    this.items = {
-      ...this.items,
-      [data.pk as User['pk']]: user,
-    };
+    runInAction(() => {
+      this.items = {
+        ...this.items,
+        [data.pk as User['pk']]: user,
+      };
+    });
   }
 
   @action
@@ -254,10 +271,12 @@ export class UserStore extends BaseStore {
       },
     });
 
-    this.items = {
-      ...this.items,
-      [this.currentUserPk as User['pk']]: user,
-    };
+    runInAction(() => {
+      this.items = {
+        ...this.items,
+        [this.currentUserPk as User['pk']]: user,
+      };
+    });
   }
 
   @action
@@ -300,15 +319,16 @@ export class UserStore extends BaseStore {
       params: { user: id, important: false },
     });
 
-    this.notificationPolicies = {
-      ...this.notificationPolicies,
-      [id]: [...nonImportantEPs, ...importantEPs],
-    };
+    runInAction(() => {
+      this.notificationPolicies = {
+        ...this.notificationPolicies,
+        [id]: [...nonImportantEPs, ...importantEPs],
+      };
+    });
   }
 
   @action
   async moveNotificationPolicyToPosition(userPk: User['pk'], oldIndex: number, newIndex: number, offset: number) {
-    Mixpanel.track('Move NotificationPolicy', null);
     const notificationPolicy = this.notificationPolicies[userPk][oldIndex + offset];
 
     this.notificationPolicies[userPk] = move(this.notificationPolicies[userPk], oldIndex + offset, newIndex + offset);
@@ -348,20 +368,20 @@ export class UserStore extends BaseStore {
       data: value,
     });
 
-    this.notificationPolicies = {
-      ...this.notificationPolicies,
-      [userPk]: this.notificationPolicies[userPk].map((policy: NotificationPolicyType) =>
-        id === policy.id ? { ...policy, ...notificationPolicy } : policy
-      ),
-    };
+    runInAction(() => {
+      this.notificationPolicies = {
+        ...this.notificationPolicies,
+        [userPk]: this.notificationPolicies[userPk].map((policy: NotificationPolicyType) =>
+          id === policy.id ? { ...policy, ...notificationPolicy } : policy
+        ),
+      };
+    });
 
     this.updateItem(userPk); // to update notification_chain_verbal
   }
 
   @action
   async deleteNotificationPolicy(userPk: User['pk'], id: NotificationPolicyType['id']) {
-    Mixpanel.track('Delete NotificationPolicy', null);
-
     await makeRequest(`/notification_policies/${id}`, { method: 'DELETE' }).catch(this.onApiError);
 
     this.updateNotificationPolicies(userPk);
@@ -374,7 +394,10 @@ export class UserStore extends BaseStore {
     const response = await makeRequest('/notification_policies/', {
       method: 'OPTIONS',
     });
-    this.notificationChoices = get(response, 'actions.POST', []);
+
+    runInAction(() => {
+      this.notificationChoices = get(response, 'actions.POST', []);
+    });
   }
 
   @action
@@ -390,9 +413,13 @@ export class UserStore extends BaseStore {
   @action.bound
   async updateNotifyByOptions() {
     const response = await makeRequest('/notification_policies/notify_by_options/', {});
-    this.notifyByOptions = response;
+
+    runInAction(() => {
+      this.notifyByOptions = response;
+    });
   }
 
+  @action
   async makeTestCall(userPk: User['pk']) {
     this.isTestCallInProgress = true;
 
@@ -401,7 +428,9 @@ export class UserStore extends BaseStore {
     })
       .catch(this.onApiError)
       .finally(() => {
-        this.isTestCallInProgress = false;
+        runInAction(() => {
+          this.isTestCallInProgress = false;
+        });
       });
   }
 

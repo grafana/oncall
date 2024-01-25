@@ -92,6 +92,46 @@ def test_notify_user_about_new_alert_group_no_device_connected(
     )
 
 
+@patch("apps.mobile_app.utils.send_message_to_fcm_device", return_value=False)
+@pytest.mark.django_db
+def test_notify_user_about_new_alert_group_error_log_if_not_succeeded(
+    mock_send_message_to_fcm_device,
+    settings,
+    make_organization_and_user,
+    make_user_notification_policy,
+    make_alert_receive_channel,
+    make_channel_filter,
+    make_alert_group,
+    make_alert,
+):
+    # create a user and connect a mobile device
+    organization, user = make_organization_and_user()
+    FCMDevice.objects.create(user=user, registration_id="test_device_id")
+    # set up notification policy and alert group
+    notification_policy = make_user_notification_policy(
+        user,
+        UserNotificationPolicy.Step.NOTIFY,
+        notify_by=MOBILE_APP_BACKEND_ID,
+    )
+    alert_receive_channel = make_alert_receive_channel(organization=organization)
+    channel_filter = make_channel_filter(alert_receive_channel)
+    alert_group = make_alert_group(alert_receive_channel, channel_filter=channel_filter)
+    make_alert(alert_group=alert_group, raw_request_data={})
+    # check FCM is contacted directly when using the cloud license
+    settings.LICENSE = CLOUD_LICENSE_NAME
+    settings.IS_OPEN_SOURCE = False
+
+    notify_user_about_new_alert_group(
+        user_pk=user.pk,
+        alert_group_pk=alert_group.pk,
+        notification_policy_pk=notification_policy.pk,
+        critical=False,
+    )
+    mock_send_message_to_fcm_device.assert_called_once()
+    log_record = alert_group.personal_log_records.last()
+    assert log_record.type == UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED
+
+
 @pytest.mark.django_db
 def test_fcm_message_user_settings(
     make_organization_and_user, make_alert_receive_channel, make_alert_group, make_alert

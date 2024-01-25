@@ -4,6 +4,7 @@ from typing import Tuple
 
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
+from drf_spectacular.extensions import OpenApiAuthenticationExtension
 from rest_framework import exceptions
 from rest_framework.authentication import BaseAuthentication, get_authorization_header
 from rest_framework.request import Request
@@ -103,9 +104,11 @@ class BasePluginAuthentication(BaseAuthentication):
         try:
             context = dict(json.loads(request.headers.get("X-Grafana-Context")))
         except (ValueError, TypeError):
+            logger.info("auth request user not found - missing valid X-Grafana-Context")
             return None
 
         if "UserId" not in context and "UserID" not in context:
+            logger.info("auth request user not found - X-Grafana-Context missing UserID")
             return None
 
         try:
@@ -116,6 +119,7 @@ class BasePluginAuthentication(BaseAuthentication):
         try:
             return organization.users.get(user_id=user_id)
         except User.DoesNotExist:
+            logger.info(f"auth request user not found - user_id={user_id}")
             return None
 
 
@@ -140,6 +144,22 @@ class PluginAuthentication(BasePluginAuthentication):
         except User.DoesNotExist:
             logger.debug(f"Could not get user from grafana request. Context {context}")
             raise exceptions.AuthenticationFailed("Non-existent or anonymous user.")
+
+
+class PluginAuthenticationSchema(OpenApiAuthenticationExtension):
+    target_class = PluginAuthentication
+    name = "PluginAuthentication"
+
+    def get_security_definition(self, auto_schema):
+        return {
+            "type": "apiKey",
+            "in": "header",
+            "name": "Authorization",
+            "description": (
+                "Additional X-Instance-Context and X-Grafana-Context headers must be set. "
+                "THIS WILL NOT WORK IN SWAGGER UI."
+            ),
+        }
 
 
 class GrafanaIncidentUser(AnonymousUser):

@@ -1,7 +1,6 @@
 import { locationService } from '@grafana/runtime';
 import { contextSrv } from 'grafana/app/core/core';
-import { action, observable } from 'mobx';
-import moment from 'moment-timezone';
+import { action, computed, makeObservable, observable, runInAction } from 'mobx';
 import qs from 'query-string';
 import { OnCallAppPluginMeta } from 'types';
 
@@ -20,6 +19,7 @@ import { GrafanaTeamStore } from 'models/grafana_team/grafana_team';
 import { HeartbeatStore } from 'models/heartbeat/heartbeat';
 import { LabelStore } from 'models/label/label';
 import { LoaderStore } from 'models/loader/loader';
+import { MSTeamsChannelStore } from 'models/msteams_channel/msteams_channel';
 import { OrganizationStore } from 'models/organization/organization';
 import { OutgoingWebhookStore } from 'models/outgoing_webhook/outgoing_webhook';
 import { ResolutionNotesStore } from 'models/resolution_note/resolution_note';
@@ -27,7 +27,7 @@ import { ScheduleStore } from 'models/schedule/schedule';
 import { SlackStore } from 'models/slack/slack';
 import { SlackChannelStore } from 'models/slack_channel/slack_channel';
 import { TelegramChannelStore } from 'models/telegram_channel/telegram_channel';
-import { Timezone } from 'models/timezone/timezone.types';
+import { TimezoneStore } from 'models/timezone/timezone';
 import { UserStore } from 'models/user/user';
 import { UserGroupStore } from 'models/user_group/user_group';
 import { makeRequest } from 'network';
@@ -49,9 +49,6 @@ import FaroHelper from 'utils/faro';
 export class RootBaseStore {
   @observable
   isBasicDataLoaded = false;
-
-  @observable
-  currentTimezone: Timezone = moment.tz.guess() as Timezone;
 
   @observable
   backendVersion = '';
@@ -83,10 +80,16 @@ export class RootBaseStore {
   incidentFilters: any;
 
   @observable
+  pageTitle = '';
+
+  @observable
   incidentsPage: any = this.initialQuery.p ? Number(this.initialQuery.p) : 1;
 
   @observable
   onCallApiUrl: string;
+
+  @observable
+  insightsDatasource?: string;
 
   // stores
   userStore = new UserStore(this);
@@ -111,10 +114,15 @@ export class RootBaseStore {
   globalSettingStore = new GlobalSettingStore(this);
   filtersStore = new FiltersStore(this);
   labelsStore = new LabelStore(this);
+  timezoneStore = new TimezoneStore(this);
+  msteamsChannelStore: MSTeamsChannelStore = new MSTeamsChannelStore(this);
   loaderStore = LoaderStore;
 
+  constructor() {
+    makeObservable(this);
+  }
   @action.bound
-  async loadBasicData() {
+  loadBasicData = async () => {
     const updateFeatures = async () => {
       await this.updateFeatures();
 
@@ -131,18 +139,24 @@ export class RootBaseStore {
       () => this.grafanaTeamStore.updateItems(),
       () => updateFeatures(),
     ]);
-    this.isBasicDataLoaded = true;
-  }
+    this.setIsBasicDataLoaded(true);
+  };
 
-  @action.bound
-  async loadMasterData() {
+  @action
+  loadMasterData = async () => {
     Promise.all([
       this.userStore.updateNotificationPolicyOptions(),
       this.userStore.updateNotifyByOptions(),
       this.alertReceiveChannelStore.updateAlertReceiveChannelOptions(),
     ]);
+  };
+
+  @action
+  setIsBasicDataLoaded(value: boolean) {
+    this.isBasicDataLoaded = value;
   }
 
+  @action
   setupPluginError(errorMsg: string) {
     this.initializationError = errorMsg;
   }
@@ -167,8 +181,9 @@ export class RootBaseStore {
    * Finally, try to load the current user from the OnCall backend
    */
   async setupPlugin(meta: OnCallAppPluginMeta) {
-    this.initializationError = null;
+    this.setupPluginError(null);
     this.onCallApiUrl = getOnCallApiUrl(meta);
+    this.insightsDatasource = meta.jsonData?.insightsDatasource || 'grafanacloud-usage';
 
     if (!FaroHelper.faro) {
       FaroHelper.initializeFaro(this.onCallApiUrl);
@@ -179,7 +194,7 @@ export class RootBaseStore {
       return this.setupPluginError('🚫 Plugin has not been initialized');
     }
 
-    if (this.isOpenSource() && !meta.secureJsonFields?.onCallApiToken) {
+    if (this.isOpenSource && !meta.secureJsonFields?.onCallApiToken) {
       // Reinstall plugin if onCallApiToken is missing
       const errorMsg = await PluginState.selfHostedInstallPlugin(this.onCallApiUrl, true);
       if (errorMsg) {
@@ -245,9 +260,11 @@ export class RootBaseStore {
       }
     } else {
       // everything is all synced successfully at this point..
-      this.backendVersion = pluginConnectionStatus.version;
-      this.backendLicense = pluginConnectionStatus.license;
-      this.recaptchaSiteKey = pluginConnectionStatus.recaptcha_site_key;
+      runInAction(() => {
+        this.backendVersion = pluginConnectionStatus.version;
+        this.backendLicense = pluginConnectionStatus.license;
+        this.recaptchaSiteKey = pluginConnectionStatus.recaptcha_site_key;
+      });
     }
 
     if (!this.userStore.currentUser) {
@@ -285,20 +302,29 @@ export class RootBaseStore {
     return GRAFANA_LICENSE_OSS;
   }
 
-  isOpenSource(): boolean {
+  @computed
+  get isOpenSource(): boolean {
     return this.license === GRAFANA_LICENSE_OSS;
   }
 
   @action.bound
   async updateFeatures() {
     const response = await makeRequest('/features/', {});
-    this.features = response.reduce(
-      (acc: any, key: string) => ({
-        ...acc,
-        [key]: true,
-      }),
-      {}
-    );
+
+    runInAction(() => {
+      this.features = response.reduce(
+        (acc: any, key: string) => ({
+          ...acc,
+          [key]: true,
+        }),
+        {}
+      );
+    });
+  }
+
+  @action.bound
+  setPageTitle(title: string) {
+    this.pageTitle = title;
   }
 
   @action

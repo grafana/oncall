@@ -4,8 +4,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Count, Max, Q
 from django.utils import timezone
 from django_filters import rest_framework as filters
-from django_filters.widgets import RangeWidget
-from drf_spectacular.utils import extend_schema, extend_schema_view, inline_serializer
+from drf_spectacular.utils import extend_schema, inline_serializer
 from rest_framework import mixins, serializers, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound
@@ -21,6 +20,7 @@ from apps.api.errors import AlertGroupAPIError
 from apps.api.label_filtering import parse_label_query
 from apps.api.permissions import RBACPermission
 from apps.api.serializers.alert_group import AlertGroupListSerializer, AlertGroupSerializer
+from apps.api.serializers.alert_group_escalation_snapshot import AlertGroupEscalationSnapshotAPISerializer
 from apps.api.serializers.team import TeamSerializer
 from apps.auth_token.auth import PluginAuthentication
 from apps.base.models.user_notification_policy_log_record import UserNotificationPolicyLogRecord
@@ -28,7 +28,12 @@ from apps.labels.utils import is_labels_feature_enabled
 from apps.mobile_app.auth import MobileAppAuthTokenAuthentication
 from apps.user_management.models import Team, User
 from common.api_helpers.exceptions import BadRequest
-from common.api_helpers.filters import NO_TEAM_VALUE, DateRangeFilterMixin, ModelFieldFilterMixin
+from common.api_helpers.filters import (
+    NO_TEAM_VALUE,
+    DateRangeFilterMixin,
+    ModelFieldFilterMixin,
+    MultipleChoiceCharFilter,
+)
 from common.api_helpers.mixins import PreviewTemplateMixin, PublicPrimaryKeyMixin, TeamFilteringMixin
 from common.api_helpers.paginators import AlertGroupCursorPaginator
 
@@ -54,31 +59,6 @@ def get_user_queryset(request):
     return User.objects.filter(organization=request.user.organization).distinct()
 
 
-class AlertGroupFilterBackend(filters.DjangoFilterBackend):
-    """
-    See here for more context on how this works
-
-    https://github.com/carltongibson/django-filter/discussions/1572
-    https://youtu.be/e52S1SjuUeM?t=841
-    """
-
-    def get_filterset(self, request, queryset, view):
-        filterset = super().get_filterset(request, queryset, view)
-
-        filterset.form.fields["integration"].queryset = get_integration_queryset(request)
-        filterset.form.fields["escalation_chain"].queryset = get_escalation_chain_queryset(request)
-
-        user_queryset = get_user_queryset(request)
-
-        filterset.form.fields["silenced_by"].queryset = user_queryset
-        filterset.form.fields["acknowledged_by"].queryset = user_queryset
-        filterset.form.fields["resolved_by"].queryset = user_queryset
-        filterset.form.fields["invitees_are"].queryset = user_queryset
-        filterset.form.fields["involved_users_are"].queryset = user_queryset
-
-        return filterset
-
-
 class AlertGroupFilter(DateRangeFilterMixin, ModelFieldFilterMixin, filters.FilterSet):
     """
     Examples of possible date formats here https://docs.djangoproject.com/en/1.9/ref/settings/#datetime-input-formats
@@ -86,68 +66,54 @@ class AlertGroupFilter(DateRangeFilterMixin, ModelFieldFilterMixin, filters.Filt
 
     FILTER_BY_INVOLVED_USERS_ALERT_GROUPS_CUTOFF = 1000
 
-    started_at_gte = filters.DateTimeFilter(field_name="started_at", lookup_expr="gte")
-    started_at_lte = filters.DateTimeFilter(field_name="started_at", lookup_expr="lte")
-    resolved_at_lte = filters.DateTimeFilter(field_name="resolved_at", lookup_expr="lte")
     is_root = filters.BooleanFilter(field_name="root_alert_group", lookup_expr="isnull")
-    id__in = filters.BaseInFilter(field_name="public_primary_key", lookup_expr="in")
     status = filters.MultipleChoiceFilter(choices=AlertGroup.STATUS_CHOICES, method="filter_status")
-    started_at = filters.CharFilter(field_name="started_at", method=DateRangeFilterMixin.filter_date_range.__name__)
-    resolved_at = filters.CharFilter(field_name="resolved_at", method=DateRangeFilterMixin.filter_date_range.__name__)
-    silenced_at = filters.CharFilter(field_name="silenced_at", method=DateRangeFilterMixin.filter_date_range.__name__)
-    silenced_by = filters.ModelMultipleChoiceFilter(
-        field_name="silenced_by_user",
-        queryset=None,
-        to_field_name="public_primary_key",
-        method=ModelFieldFilterMixin.filter_model_field.__name__,
+    started_at = filters.CharFilter(
+        field_name="started_at",
+        method=DateRangeFilterMixin.filter_date_range.__name__,
     )
-    integration = filters.ModelMultipleChoiceFilter(
+    resolved_at = filters.CharFilter(
+        field_name="resolved_at",
+        method=DateRangeFilterMixin.filter_date_range.__name__,
+    )
+    integration = MultipleChoiceCharFilter(
         field_name="channel",
-        queryset=None,
+        queryset=get_integration_queryset,
         to_field_name="public_primary_key",
         method=ModelFieldFilterMixin.filter_model_field.__name__,
     )
-    escalation_chain = filters.ModelMultipleChoiceFilter(
+    escalation_chain = MultipleChoiceCharFilter(
         field_name="channel_filter__escalation_chain",
-        queryset=None,
+        queryset=get_escalation_chain_queryset,
         to_field_name="public_primary_key",
         method=ModelFieldFilterMixin.filter_model_field.__name__,
     )
-    started_at_range = filters.DateFromToRangeFilter(
-        field_name="started_at", widget=RangeWidget(attrs={"type": "date"})
-    )
-    resolved_by = filters.ModelMultipleChoiceFilter(
+    resolved_by = MultipleChoiceCharFilter(
         field_name="resolved_by_user",
-        queryset=None,
+        queryset=get_user_queryset,
         to_field_name="public_primary_key",
         method=ModelFieldFilterMixin.filter_model_field.__name__,
     )
-    acknowledged_by = filters.ModelMultipleChoiceFilter(
+    acknowledged_by = MultipleChoiceCharFilter(
         field_name="acknowledged_by_user",
-        queryset=None,
+        queryset=get_user_queryset,
         to_field_name="public_primary_key",
         method=ModelFieldFilterMixin.filter_model_field.__name__,
     )
-    invitees_are = filters.ModelMultipleChoiceFilter(
-        queryset=None, to_field_name="public_primary_key", method="filter_invitees_are"
+    silenced_by = MultipleChoiceCharFilter(
+        field_name="silenced_by_user",
+        queryset=get_user_queryset,
+        to_field_name="public_primary_key",
+        method=ModelFieldFilterMixin.filter_model_field.__name__,
     )
-    involved_users_are = filters.ModelMultipleChoiceFilter(
-        queryset=None, to_field_name="public_primary_key", method="filter_by_involved_users"
+    invitees_are = MultipleChoiceCharFilter(
+        queryset=get_user_queryset, to_field_name="public_primary_key", method="filter_invitees_are"
+    )
+    involved_users_are = MultipleChoiceCharFilter(
+        queryset=get_user_queryset, to_field_name="public_primary_key", method="filter_by_involved_users"
     )
     with_resolution_note = filters.BooleanFilter(method="filter_with_resolution_note")
     mine = filters.BooleanFilter(method="filter_mine")
-
-    class Meta:
-        model = AlertGroup
-        fields = [
-            "id__in",
-            "started_at_gte",
-            "started_at_lte",
-            "resolved_at_lte",
-            "is_root",
-            "resolved_by",
-            "acknowledged_by",
-        ]
 
     def filter_status(self, queryset, name, value):
         if not value:
@@ -262,12 +228,6 @@ class AlertGroupTeamFilteringMixin(TeamFilteringMixin):
             return Response(data={"error_code": "wrong_team"}, status=status.HTTP_403_FORBIDDEN)
 
 
-@extend_schema_view(
-    list=extend_schema(description="Fetch a list of alert groups"),
-    retrieve=extend_schema(description="Fetch a single alert group"),
-    destroy=extend_schema(description="Delete an alert group"),
-    preview_template=extend_schema(description="Preview a template for an alert group"),
-)
 class AlertGroupView(
     PreviewTemplateMixin,
     AlertGroupTeamFilteringMixin,
@@ -277,6 +237,10 @@ class AlertGroupView(
     mixins.DestroyModelMixin,
     viewsets.GenericViewSet,
 ):
+    """
+    Internal API endpoints for alert groups.
+    """
+
     authentication_classes = (
         MobileAppAuthTokenAuthentication,
         PluginAuthentication,
@@ -303,17 +267,15 @@ class AlertGroupView(
         "unpage_user": [RBACPermission.Permissions.ALERT_GROUPS_WRITE],
         "bulk_action": [RBACPermission.Permissions.ALERT_GROUPS_WRITE],
         "preview_template": [RBACPermission.Permissions.INTEGRATIONS_TEST],
+        "escalation_snapshot": [RBACPermission.Permissions.ALERT_GROUPS_READ],
     }
 
-    http_method_names = ["get", "post", "delete"]
-
+    queryset = AlertGroup.objects.none()  # needed for drf-spectacular introspection
     serializer_class = AlertGroupSerializer
 
     pagination_class = AlertGroupCursorPaginator
 
-    filter_backends = [SearchFilter, AlertGroupFilterBackend]
-    # search_fields = ["=public_primary_key", "=inside_organization_number", "web_title_cache"]
-
+    filter_backends = [SearchFilter, filters.DjangoFilterBackend]
     filterset_class = AlertGroupFilter
 
     def get_serializer_class(self):
@@ -373,7 +335,7 @@ class AlertGroupView(
         obj = self.enrich([obj])[0]
         return obj
 
-    def retrieve(self, request, pk, *args, **kwargs):
+    def retrieve(self, request, *args, **kwargs):
         """Return alert group details.
 
         It is worth mentioning that `render_after_resolve_report_json` property will return a list
@@ -431,7 +393,7 @@ class AlertGroupView(
         - 1: web
 
         """
-        return super().retrieve(request, pk, *args, **kwargs)
+        return super().retrieve(request, *args, **kwargs)
 
     def enrich(self, alert_groups):
         """
@@ -480,9 +442,12 @@ class AlertGroupView(
         delete_alert_group.apply_async((instance.pk, request.user.pk))
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    @extend_schema(responses=inline_serializer(name="AlertGroupStats", fields={"count": serializers.IntegerField()}))
-    @action(detail=False)
-    def stats(self, *args, **kwargs):
+    @extend_schema(
+        filters=True,  # filter alert groups before counting them
+        responses=inline_serializer(name="AlertGroupStats", fields={"count": serializers.IntegerField()}),
+    )
+    @action(methods=["get"], detail=False)
+    def stats(self, request):
         """
         Return number of alert groups capped at 100001
         """
@@ -490,12 +455,9 @@ class AlertGroupView(
         alert_groups = self.filter_queryset(self.get_queryset())[:MAX_COUNT]
         count = alert_groups.count()
         count = f"{MAX_COUNT-1}+" if count == MAX_COUNT else str(count)
-        return Response(
-            {
-                "count": count,
-            }
-        )
+        return Response({"count": count})
 
+    @extend_schema(responses=AlertGroupSerializer)
     @action(methods=["post"], detail=True)
     def acknowledge(self, request, pk):
         """
@@ -510,6 +472,7 @@ class AlertGroupView(
 
         return Response(AlertGroupSerializer(alert_group, context={"request": self.request}).data)
 
+    @extend_schema(responses=AlertGroupSerializer)
     @action(methods=["post"], detail=True)
     def unacknowledge(self, request, pk):
         """
@@ -532,6 +495,12 @@ class AlertGroupView(
 
         return Response(AlertGroupSerializer(alert_group, context={"request": self.request}).data)
 
+    @extend_schema(
+        request=inline_serializer(
+            name="AlertGroupResolve", fields={"resolution_note": serializers.CharField(required=False, allow_null=True)}
+        ),
+        responses=AlertGroupSerializer,
+    )
     @action(methods=["post"], detail=True)
     def resolve(self, request, pk):
         """
@@ -577,6 +546,7 @@ class AlertGroupView(
             alert_group.resolve_by_user(self.request.user, action_source=ActionSource.WEB)
         return Response(AlertGroupSerializer(alert_group, context={"request": self.request}).data)
 
+    @extend_schema(responses=AlertGroupSerializer)
     @action(methods=["post"], detail=True)
     def unresolve(self, request, pk):
         """
@@ -595,6 +565,10 @@ class AlertGroupView(
         alert_group.un_resolve_by_user(self.request.user, action_source=ActionSource.WEB)
         return Response(AlertGroupSerializer(alert_group, context={"request": self.request}).data)
 
+    @extend_schema(
+        request=inline_serializer(name="AlertGroupAttach", fields={"root_alert_group_pk": serializers.CharField()}),
+        responses=AlertGroupSerializer,
+    )
     @action(methods=["post"], detail=True)
     def attach(self, request, pk=None):
         """
@@ -620,6 +594,7 @@ class AlertGroupView(
         alert_group.attach_by_user(self.request.user, root_alert_group, action_source=ActionSource.WEB)
         return Response(AlertGroupSerializer(alert_group, context={"request": self.request}).data)
 
+    @extend_schema(responses=AlertGroupSerializer)
     @action(methods=["post"], detail=True)
     def unattach(self, request, pk=None):
         """
@@ -634,6 +609,10 @@ class AlertGroupView(
         alert_group.un_attach_by_user(self.request.user, action_source=ActionSource.WEB)
         return Response(AlertGroupSerializer(alert_group, context={"request": self.request}).data)
 
+    @extend_schema(
+        request=inline_serializer(name="AlertGroupSilence", fields={"delay": serializers.IntegerField()}),
+        responses=AlertGroupSerializer,
+    )
     @action(methods=["post"], detail=True)
     def silence(self, request, pk=None):
         """
@@ -653,9 +632,13 @@ class AlertGroupView(
 
     @extend_schema(
         responses=inline_serializer(
-            name="silence_options",
-            fields={"value": serializers.CharField(), "display_name": serializers.CharField()},
-            many=True,
+            name="AlertGroupSilenceOptions",
+            fields={
+                "value": serializers.ChoiceField(choices=[value for value, _ in AlertGroup.SILENCE_DELAY_OPTIONS]),
+                "display_name": serializers.ChoiceField(
+                    choices=[display_name for _, display_name in AlertGroup.SILENCE_DELAY_OPTIONS]
+                ),
+            },
         )
     )
     @action(methods=["get"], detail=False)
@@ -668,6 +651,7 @@ class AlertGroupView(
         ]
         return Response(data)
 
+    @extend_schema(responses=AlertGroupSerializer)
     @action(methods=["post"], detail=True)
     def unsilence(self, request, pk=None):
         """
@@ -691,6 +675,10 @@ class AlertGroupView(
 
         return Response(AlertGroupSerializer(alert_group, context={"request": request}).data)
 
+    @extend_schema(
+        request=inline_serializer(name="AlertGroupUnpageUser", fields={"user_id": serializers.CharField()}),
+        responses=AlertGroupSerializer,
+    )
     @action(methods=["post"], detail=True)
     def unpage_user(self, request, pk=None):
         """
@@ -713,12 +701,32 @@ class AlertGroupView(
         unpage_user(alert_group=alert_group, user=user, from_user=from_user)
         return Response(status=status.HTTP_200_OK)
 
+    @extend_schema(
+        responses=inline_serializer(
+            name="AlertGroupFilters",
+            fields={
+                "name": serializers.CharField(),
+                "type": serializers.CharField(),
+                "href": serializers.CharField(required=False),
+                "global": serializers.BooleanField(required=False),
+                "default": serializers.JSONField(required=False),
+                "description": serializers.CharField(required=False),
+                "options": inline_serializer(
+                    name="AlertGroupFiltersOptions",
+                    fields={
+                        "value": serializers.CharField(),
+                        "display_name": serializers.IntegerField(),
+                    },
+                ),
+            },
+            many=True,
+        )
+    )
     @action(methods=["get"], detail=False)
     def filters(self, request):
         """
         Retrieve a list of valid filter options that can be used to filter alert groups
         """
-        filter_name = request.query_params.get("search", None)
         api_root = "/api/internal/v1/"
 
         now = timezone.now()
@@ -777,7 +785,6 @@ class AlertGroupView(
                     {"display_name": "silenced", "value": AlertGroup.SILENCED},
                 ],
             },
-            # {'name': 'is_root', 'type': 'boolean', 'default': True},
             {
                 "name": "started_at",
                 "type": "daterange",
@@ -810,41 +817,60 @@ class AlertGroupView(
                 }
             )
 
-        if filter_name is not None:
-            filter_options = list(filter(lambda f: filter_name in f["name"], filter_options))
-
         return Response(filter_options)
 
+    @extend_schema(
+        request=inline_serializer(
+            name="AlertGroupBulkActionRequest",
+            fields={
+                "alert_group_pks": serializers.ListField(child=serializers.CharField()),
+                "action": serializers.ChoiceField(choices=AlertGroup.BULK_ACTIONS),
+                "delay": serializers.IntegerField(
+                    required=False, allow_null=True, help_text="only applicable for silence"
+                ),
+            },
+        )
+    )
     @action(methods=["post"], detail=False)
     def bulk_action(self, request):
         """
         Perform a bulk action on a list of alert groups
         """
-        alert_group_public_pks = self.request.data.get("alert_group_pks", [])
-        action_with_incidents = self.request.data.get("action", None)
+        alert_group_pks = self.request.data.get("alert_group_pks", [])
+        action_name = self.request.data.get("action", None)
         delay = self.request.data.get("delay")
         kwargs = {}
 
-        if action_with_incidents not in AlertGroup.BULK_ACTIONS:
+        if action_name not in AlertGroup.BULK_ACTIONS:
             return Response("Unknown action", status=status.HTTP_400_BAD_REQUEST)
 
-        if action_with_incidents == AlertGroup.SILENCE:
+        if action_name == AlertGroup.SILENCE:
             if delay is None:
                 raise BadRequest(detail="Please specify a delay for silence")
             kwargs["silence_delay"] = delay
 
         alert_groups = AlertGroup.objects.filter(
-            channel__organization=self.request.auth.organization, public_primary_key__in=alert_group_public_pks
+            channel__organization=self.request.auth.organization, public_primary_key__in=alert_group_pks
         )
 
         kwargs["user"] = self.request.user
         kwargs["alert_groups"] = alert_groups
 
-        method = getattr(AlertGroup, f"bulk_{action_with_incidents}")
+        method = getattr(AlertGroup, f"bulk_{action_name}")
         method(**kwargs)
 
         return Response(status=status.HTTP_200_OK)
 
+    @extend_schema(
+        responses=inline_serializer(
+            name="AlertGroupBulkActionOptions",
+            fields={
+                "value": serializers.ChoiceField(choices=AlertGroup.BULK_ACTIONS),
+                "display_name": serializers.ChoiceField(choices=AlertGroup.BULK_ACTIONS),
+            },
+            many=True,
+        )
+    )
     @action(methods=["get"], detail=False)
     def bulk_action_options(self, request):
         """
@@ -857,3 +883,10 @@ class AlertGroupView(
     # This method is required for PreviewTemplateMixin
     def get_alert_to_template(self, payload=None):
         return self.get_object().alerts.first()
+
+    @action(methods=["get"], detail=True)
+    def escalation_snapshot(self, request, pk=None):
+        alert_group = self.get_object()
+        escalation_snapshot = alert_group.escalation_snapshot
+        result = AlertGroupEscalationSnapshotAPISerializer(escalation_snapshot).data if escalation_snapshot else {}
+        return Response(result)

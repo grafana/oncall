@@ -16,12 +16,11 @@ test('escalation policy does not go back to "Default" after adding users to noti
   await expect(page.getByText('Important')).toBeVisible();
 });
 
-// TODO: unskip when https://github.com/grafana/oncall/issues/3585 is patched
-test.skip('from_time and to_time for "Continue escalation if current UTC time is in range" escalation step type can be properly updated', async ({
+test('from_time and to_time for "Continue escalation if current UTC time is in range" escalation step type can be properly updated', async ({
   adminRolePage,
 }) => {
-  const FROM_TIME = '10:31';
-  const TO_TIME = '10:32';
+  const FROM_TIME = '10:30';
+  const TO_TIME = '10:35';
 
   const { page } = adminRolePage;
   const escalationChainName = generateRandomValue();
@@ -54,6 +53,6 @@ test.skip('from_time and to_time for "Continue escalation if current UTC time is
   await page.reload();
   await page.waitForLoadState('networkidle');
 
-  expect(await _getFromTimeInput().textContent()).toBe(FROM_TIME);
-  expect(await _getToTimeInput().textContent()).toBe(FROM_TIME);
+  expect(_getFromTimeInput()).toHaveValue(FROM_TIME);
+  expect(_getToTimeInput()).toHaveValue(TO_TIME);
 });

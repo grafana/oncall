@@ -11,6 +11,7 @@ export enum FormItemType {
   'RemoteSelect' = 'remoteselect',
   'Monaco' = 'monaco',
   'Other' = 'other',
+  'PlainLabel' = 'plainlabel',
 }
 
 export interface FormItem {
@@ -21,7 +22,7 @@ export interface FormItem {
   description?: ReactNode;
   placeholder?: string;
   normalize?: (value: any) => any;
-  isVisible?: (data: any) => any;
+  isHidden?: (data: any) => any;
   getDisabled?: (value: any) => any;
   validation?: {
     required?: boolean;

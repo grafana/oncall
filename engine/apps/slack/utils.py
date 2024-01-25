@@ -3,7 +3,12 @@ import typing
 from datetime import datetime
 
 from apps.slack.client import SlackClient
-from apps.slack.errors import SlackAPIChannelNotFoundError
+from apps.slack.errors import (
+    SlackAPIChannelArchivedError,
+    SlackAPIChannelNotFoundError,
+    SlackAPIInvalidAuthError,
+    SlackAPITokenError,
+)
 
 if typing.TYPE_CHECKING:
     from apps.user_management.models import Organization
@@ -68,7 +73,12 @@ def post_message_to_channel(organization: "Organization", channel_id: str, text:
     slack_client = SlackClient(organization.slack_team_identity)
     try:
         slack_client.chat_postMessage(channel=channel_id, text=text)
-    except SlackAPIChannelNotFoundError:
+    except (
+        SlackAPITokenError,
+        SlackAPIInvalidAuthError,
+        SlackAPIChannelNotFoundError,
+        SlackAPIChannelArchivedError,
+    ):
         pass
 
 

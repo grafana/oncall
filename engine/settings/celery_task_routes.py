@@ -33,7 +33,7 @@ CELERY_TASK_ROUTES = {
     "apps.schedules.tasks.notify_about_gaps_in_schedule.check_empty_shifts_in_schedule": {"queue": "default"},
     "apps.schedules.tasks.notify_about_gaps_in_schedule.start_notify_about_gaps_in_schedule": {"queue": "default"},
     "apps.schedules.tasks.notify_about_gaps_in_schedule.check_gaps_in_schedule": {"queue": "default"},
-    "apps.schedules.tasks.notify_about_gaps_in_schedule.notify_about_empty_shifts_in_schedule": {"queue": "default"},
+    "apps.schedules.tasks.notify_about_gaps_in_schedule.notify_about_gaps_in_schedule_task": {"queue": "default"},
     "apps.schedules.tasks.notify_about_gaps_in_schedule.schedule_notify_about_gaps_in_schedule": {"queue": "default"},
     "apps.schedules.tasks.notify_about_gaps_in_schedule.start_check_empty_shifts_in_schedule": {"queue": "default"},
     "apps.schedules.tasks.notify_about_gaps_in_schedule.start_check_gaps_in_schedule": {"queue": "default"},
@@ -41,7 +41,7 @@ CELERY_TASK_ROUTES = {
         "queue": "default"
     },
     "apps.schedules.tasks.notify_about_empty_shifts_in_schedule.check_empty_shifts_in_schedule": {"queue": "default"},
-    "apps.schedules.tasks.notify_about_empty_shifts_in_schedule.notify_about_empty_shifts_in_schedule": {
+    "apps.schedules.tasks.notify_about_empty_shifts_in_schedule.notify_about_empty_shifts_in_schedule_task": {
         "queue": "default"
     },
     "apps.schedules.tasks.notify_about_empty_shifts_in_schedule.start_check_empty_shifts_in_schedule": {
@@ -73,12 +73,15 @@ CELERY_TASK_ROUTES = {
     "apps.migration_tool.tasks.migrate_log": {"queue": "default"},
     "apps.migration_tool.tasks.start_migration_user_data": {"queue": "default"},
     "apps.migration_tool.tasks.migrate_user_data": {"queue": "default"},
-    "apps.schedules.tasks.notify_about_gaps_in_schedule.notify_about_gaps_in_schedule": {"queue": "default"},
     "celery.backend_cleanup": {"queue": "default"},
     "apps.heartbeat.tasks.check_heartbeats": {"queue": "default"},
     "apps.oss_installation.tasks.send_cloud_heartbeat_task": {"queue": "default"},
     "apps.oss_installation.tasks.send_usage_stats_report": {"queue": "default"},
     "apps.oss_installation.tasks.sync_users_with_cloud": {"queue": "default"},
+    "common.oncall_gateway.tasks.link_slack_team_async": {"queue": "default"},
+    "common.oncall_gateway.tasks.unlink_slack_team_async": {"queue": "default"},
+    "common.oncall_gateway.tasks.register_oncall_tenant_async": {"queue": "default"},
+    "common.oncall_gateway.tasks.unregister_oncall_tenant_async": {"queue": "default"},
     # CRITICAL
     "apps.alerts.tasks.acknowledge_reminder.acknowledge_reminder_task": {"queue": "critical"},
     "apps.alerts.tasks.acknowledge_reminder.unacknowledge_timeout_task": {"queue": "critical"},
@@ -122,6 +125,7 @@ CELERY_TASK_ROUTES = {
     "apps.alerts.tasks.alert_group_web_title_cache.update_web_title_cache_for_alert_receive_channel": {"queue": "long"},
     "apps.alerts.tasks.alert_group_web_title_cache.update_web_title_cache": {"queue": "long"},
     "apps.alerts.tasks.check_escalation_finished.check_escalation_finished_task": {"queue": "long"},
+    "apps.alerts.tasks.check_escalation_finished.check_alert_group_personal_notifications_task": {"queue": "long"},
     "apps.alerts.tasks.check_escalation_finished.check_personal_notifications_task": {"queue": "long"},
     "apps.grafana_plugin.tasks.sync.cleanup_organization_async": {"queue": "long"},
     "apps.grafana_plugin.tasks.sync.start_cleanup_deleted_organizations": {"queue": "long"},

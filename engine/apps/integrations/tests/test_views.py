@@ -1,6 +1,7 @@
 from unittest.mock import call, patch
 
 import pytest
+from django.core.cache import cache
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.db import OperationalError
 from django.urls import reverse
@@ -458,4 +459,59 @@ def test_integration_grafana_endpoint_without_cache_has_alerts(
             call((alert_receive_channel.pk, data["alerts"][0]), kwargs={"received_at": now.isoformat()}),
             call((alert_receive_channel.pk, data["alerts"][1]), kwargs={"received_at": now.isoformat()}),
         ]
+    )
+
+
+@patch("apps.integrations.views.create_alert")
+@pytest.mark.parametrize(
+    "integration_type",
+    [
+        arc_type
+        for arc_type in AlertReceiveChannel.INTEGRATION_TYPES
+        if arc_type not in ["amazon_sns", "grafana", "alertmanager", "grafana_alerting", "maintenance"]
+    ],
+)
+@pytest.mark.django_db
+def test_integration_outdated_cached_model(
+    mock_create_alert,
+    make_organization_and_user,
+    make_alert_receive_channel,
+    integration_type,
+):
+    organization, user = make_organization_and_user()
+    alert_receive_channel = make_alert_receive_channel(
+        organization=organization,
+        author=user,
+        integration=integration_type,
+    )
+
+    # set an invalid cache value for the requested integration
+    cache_key = AlertChannelDefiningMixin.CACHE_KEY_SHORT_TERM + "_" + alert_receive_channel.token
+    cache.set(cache_key, '{"some": "invalid json model"}')
+
+    client = APIClient()
+    url = reverse(
+        "integrations:universal",
+        kwargs={"integration_type": integration_type, "alert_channel_key": alert_receive_channel.token},
+    )
+    data = {"foo": "bar"}
+    now = timezone.now()
+    with patch("django.utils.timezone.now") as mock_now:
+        mock_now.return_value = now
+        response = client.post(url, data, format="json")
+
+    assert response.status_code == status.HTTP_200_OK
+
+    mock_create_alert.apply_async.assert_called_once_with(
+        [],
+        {
+            "title": None,
+            "message": None,
+            "image_url": None,
+            "link_to_upstream_details": None,
+            "alert_receive_channel_pk": alert_receive_channel.pk,
+            "integration_unique_data": None,
+            "raw_request_data": data,
+            "received_at": now.isoformat(),
+        },
     )

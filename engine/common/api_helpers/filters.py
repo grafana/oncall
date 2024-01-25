@@ -3,6 +3,8 @@ from datetime import datetime
 from django.db.models import Q
 from django_filters import rest_framework as filters
 from django_filters.utils import handle_timezone
+from drf_spectacular.utils import extend_schema_field
+from rest_framework import serializers
 
 from apps.user_management.models import Team
 from common.api_helpers.exceptions import BadRequest
@@ -48,6 +50,13 @@ class DateRangeFilterMixin:
         return start_date, end_date
 
 
+@extend_schema_field(serializers.CharField)
+class MultipleChoiceCharFilter(filters.ModelMultipleChoiceFilter):
+    """MultipleChoiceCharFilter with an explicit schema. Otherwise, drf-specacular may generate a wrong schema."""
+
+    pass
+
+
 class ModelFieldFilterMixin:
     def filter_model_field(self, queryset, name, value):
         if not value:
@@ -77,16 +86,16 @@ class ByTeamModelFieldFilterMixin:
             return queryset
         filter = self.filters[ByTeamModelFieldFilterMixin.FILTER_FIELD_NAME]
         null_team_lookup = None
-        for value in values:
-            if filter.null_value == value:
-                null_team_lookup = Q(**{f"{name}__isnull": True})
-                values.remove(value)
-        teams_lookup = Q(**{f"{name}__in": values})
+        if filter.null_value in values:
+            null_team_lookup = Q(**{f"{name}__isnull": True})
+            values.remove(filter.null_value)
+        teams_lookup = None
+        if values:
+            teams_lookup = Q(**{f"{name}__in": values})
         if null_team_lookup is not None:
-            teams_lookup = teams_lookup | null_team_lookup
+            teams_lookup = teams_lookup | null_team_lookup if teams_lookup else null_team_lookup
 
-        queryset = queryset.filter(teams_lookup)
-        return queryset
+        return queryset.filter(teams_lookup).distinct()
 
 
 def get_team_queryset(request):
@@ -107,6 +116,7 @@ class ByTeamFilter(ByTeamModelFieldFilterMixin, filters.FilterSet):
     )
 
 
+@extend_schema_field(serializers.CharField)
 class TeamModelMultipleChoiceFilter(filters.ModelMultipleChoiceFilter):
     def __init__(
         self,

@@ -1,4 +1,5 @@
 import logging
+import uuid
 
 from celery.utils.log import get_task_logger
 from django.conf import settings
@@ -7,12 +8,25 @@ from django.utils import timezone
 from apps.grafana_plugin.helpers.client import GcomAPIClient, GrafanaAPIClient
 from apps.user_management.models import Organization, Team, User
 from apps.user_management.signals import org_sync_signal
+from common.utils import task_lock
 
 logger = get_task_logger(__name__)
 logger.setLevel(logging.DEBUG)
 
 
 def sync_organization(organization: Organization) -> None:
+    # ensure one sync task is running at most for a given org at a given time
+    lock_id = "sync-organization-lock-{}".format(organization.id)
+    random_value = str(uuid.uuid4())
+    with task_lock(lock_id, random_value) as acquired:
+        if acquired:
+            _sync_organization(organization)
+        else:
+            # sync already running
+            logger.info(f"Sync for Organization {organization.pk} already in progress.")
+
+
+def _sync_organization(organization: Organization) -> None:
     grafana_api_client = GrafanaAPIClient(api_url=organization.grafana_url, api_token=organization.api_token)
 
     # NOTE: checking whether or not RBAC is enabled depends on whether we are dealing with an open-source or cloud
@@ -28,6 +42,7 @@ def sync_organization(organization: Organization) -> None:
         rbac_is_enabled = grafana_api_client.is_rbac_enabled_for_organization()
 
     organization.is_rbac_permissions_enabled = rbac_is_enabled
+    logger.info(f"RBAC status org={organization.pk} rbac_enabled={organization.is_rbac_permissions_enabled}")
 
     _sync_instance_info(organization)
 
@@ -40,11 +55,12 @@ def sync_organization(organization: Organization) -> None:
         grafana_incident_settings, _ = grafana_api_client.get_grafana_incident_plugin_settings()
         if grafana_incident_settings is not None:
             organization.is_grafana_incident_enabled = grafana_incident_settings["enabled"]
-            organization.grafana_incident_backend_url = grafana_incident_settings["jsonData"].get(
+            organization.grafana_incident_backend_url = grafana_incident_settings.get("jsonData", {}).get(
                 GrafanaAPIClient.GRAFANA_INCIDENT_PLUGIN_BACKEND_URL_KEY
             )
     else:
         organization.api_token_status = Organization.API_TOKEN_STATUS_FAILED
+        logger.warning(f"Sync not successful org={organization.pk} token_status=FAILED")
 
     organization.save(
         update_fields=[

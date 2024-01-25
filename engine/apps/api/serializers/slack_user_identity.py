@@ -14,5 +14,5 @@ class SlackUserIdentitySerializer(serializers.ModelSerializer):
         fields = ["slack_login", "slack_id", "avatar", "name", "display_name"]
         read_only_fields = ["slack_login", "slack_id", "avatar", "name", "display_name"]
 
-    def get_display_name(self, obj):
+    def get_display_name(self, obj) -> str | None:
         return obj.profile_display_name or obj.slack_verbal

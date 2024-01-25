@@ -177,6 +177,14 @@ def test_sync_users_for_team(make_organization, make_user_for_organization, make
 
 
 @pytest.mark.django_db
+@pytest.mark.parametrize(
+    "get_grafana_incident_plugin_settings_return_value",
+    [
+        ({"enabled": True, "jsonData": {"backendUrl": MOCK_GRAFANA_INCIDENT_BACKEND_URL}}, None),
+        # missing jsonData (sometimes this is what we get back from the Grafana API)
+        ({"enabled": True}, None),
+    ],
+)
 @patch.object(GrafanaAPIClient, "is_rbac_enabled_for_organization", return_value=False)
 @patch.object(
     GrafanaAPIClient,
@@ -212,21 +220,20 @@ def test_sync_users_for_team(make_organization, make_user_for_organization, make
     ),
 )
 @patch.object(GrafanaAPIClient, "check_token", return_value=(None, {"connected": True}))
-@patch.object(
-    GrafanaAPIClient,
-    "get_grafana_incident_plugin_settings",
-    return_value=({"enabled": True, "jsonData": {"backendUrl": MOCK_GRAFANA_INCIDENT_BACKEND_URL}}, None),
-)
+@patch.object(GrafanaAPIClient, "get_grafana_incident_plugin_settings")
 @patch("apps.user_management.sync.org_sync_signal")
 def test_sync_organization(
     mocked_org_sync_signal,
-    _mock_get_grafana_incident_plugin_settings,
+    mock_get_grafana_incident_plugin_settings,
     _mock_check_token,
     _mock_get_teams,
     _mock_get_users,
     _mock_is_rbac_enabled_for_organization,
+    get_grafana_incident_plugin_settings_return_value,
     make_organization,
 ):
+    mock_get_grafana_incident_plugin_settings.return_value = get_grafana_incident_plugin_settings_return_value
+
     organization = make_organization()
 
     api_members_response = (
@@ -259,7 +266,10 @@ def test_sync_organization(
 
     # check that is_grafana_incident_enabled flag is set
     assert organization.is_grafana_incident_enabled is True
-    assert organization.grafana_incident_backend_url == MOCK_GRAFANA_INCIDENT_BACKEND_URL
+    if get_grafana_incident_plugin_settings_return_value[0].get("jsonData"):
+        assert organization.grafana_incident_backend_url == MOCK_GRAFANA_INCIDENT_BACKEND_URL
+    else:
+        assert organization.grafana_incident_backend_url is None
 
     mocked_org_sync_signal.send.assert_called_once_with(sender=None, organization=organization)
 
@@ -326,10 +336,13 @@ def test_sync_organization_is_rbac_permissions_enabled_open_source(make_organiza
 
 @pytest.mark.parametrize("gcom_api_response", [False, True])
 @patch("apps.user_management.sync.GcomAPIClient")
+@patch("common.utils.cache")
 @override_settings(LICENSE=settings.CLOUD_LICENSE_NAME)
 @override_settings(GRAFANA_COM_ADMIN_API_TOKEN="mockedToken")
 @pytest.mark.django_db
-def test_sync_organization_is_rbac_permissions_enabled_cloud(mocked_gcom_client, make_organization, gcom_api_response):
+def test_sync_organization_is_rbac_permissions_enabled_cloud(
+    mock_cache, mocked_gcom_client, make_organization, gcom_api_response
+):
     stack_id = 5
     organization = make_organization(stack_id=stack_id)
 
@@ -369,22 +382,27 @@ def test_sync_organization_is_rbac_permissions_enabled_cloud(mocked_gcom_client,
         },
     )
 
-    with patch.object(GrafanaAPIClient, "check_token", return_value=(None, api_check_token_call_status)):
-        with patch.object(GrafanaAPIClient, "get_users", return_value=api_users_response):
-            with patch.object(GrafanaAPIClient, "get_teams", return_value=(api_teams_response, None)):
-                with patch.object(GrafanaAPIClient, "get_team_members", return_value=(api_members_response, None)):
-                    with patch.object(
-                        GrafanaAPIClient,
-                        "get_grafana_incident_plugin_settings",
-                        return_value=(
-                            {"enabled": True, "jsonData": {"backendUrl": MOCK_GRAFANA_INCIDENT_BACKEND_URL}},
-                            None,
-                        ),
-                    ):
-                        sync_organization(organization)
+    random_uuid = "random"
+    with patch("apps.user_management.sync.uuid.uuid4", return_value=random_uuid):
+        with patch.object(GrafanaAPIClient, "check_token", return_value=(None, api_check_token_call_status)):
+            with patch.object(GrafanaAPIClient, "get_users", return_value=api_users_response):
+                with patch.object(GrafanaAPIClient, "get_teams", return_value=(api_teams_response, None)):
+                    with patch.object(GrafanaAPIClient, "get_team_members", return_value=(api_members_response, None)):
+                        with patch.object(
+                            GrafanaAPIClient,
+                            "get_grafana_incident_plugin_settings",
+                            return_value=(
+                                {"enabled": True, "jsonData": {"backendUrl": MOCK_GRAFANA_INCIDENT_BACKEND_URL}},
+                                None,
+                            ),
+                        ):
+                            sync_organization(organization)
 
     organization.refresh_from_db()
 
+    # lock is set and released
+    mock_cache.add.assert_called_once_with(f"sync-organization-lock-{organization.id}", random_uuid, 60 * 10)
+    mock_cache.delete.assert_called_once_with(f"sync-organization-lock-{organization.id}")
     assert mocked_gcom_client.return_value.called_once_with("mockedToken")
     assert mocked_gcom_client.return_value.is_rbac_enabled_for_stack.called_once_with(stack_id)
     assert organization.is_rbac_permissions_enabled == gcom_api_response
@@ -433,3 +451,19 @@ def test_cleanup_organization_deleted(make_organization):
 
     organization.refresh_from_db()
     assert organization.deleted_at is not None
+
+
+@pytest.mark.django_db
+def test_sync_organization_lock(make_organization):
+    organization = make_organization()
+
+    random_uuid = "random"
+    with patch("apps.user_management.sync.GrafanaAPIClient") as mock_client:
+        with patch("apps.user_management.sync.uuid.uuid4", return_value=random_uuid):
+            with patch("apps.user_management.sync.task_lock") as mock_task_lock:
+                # lock couldn't be acquired
+                mock_task_lock.return_value.__enter__.return_value = False
+                sync_organization(organization)
+
+    mock_task_lock.assert_called_once_with(f"sync-organization-lock-{organization.id}", random_uuid)
+    assert not mock_client.called

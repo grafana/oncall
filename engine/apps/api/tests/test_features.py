@@ -4,13 +4,7 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from apps.api.views.features import (
-    FEATURE_GRAFANA_CLOUD_CONNECTION,
-    FEATURE_GRAFANA_CLOUD_NOTIFICATIONS,
-    FEATURE_LIVE_SETTINGS,
-    FEATURE_SLACK,
-    FEATURE_TELEGRAM,
-)
+from apps.api.views.features import Feature
 
 
 @pytest.mark.django_db
@@ -34,9 +28,9 @@ def test_features_view(
 @pytest.mark.parametrize(
     "feature_attr,expected_feature",
     [
-        ("FEATURE_SLACK_INTEGRATION_ENABLED", FEATURE_SLACK),
-        ("FEATURE_TELEGRAM_INTEGRATION_ENABLED", FEATURE_TELEGRAM),
-        ("FEATURE_LIVE_SETTINGS_ENABLED", FEATURE_LIVE_SETTINGS),
+        ("FEATURE_SLACK_INTEGRATION_ENABLED", Feature.SLACK),
+        ("FEATURE_TELEGRAM_INTEGRATION_ENABLED", Feature.TELEGRAM),
+        ("FEATURE_LIVE_SETTINGS_ENABLED", Feature.LIVE_SETTINGS),
     ],
 )
 def test_core_features_switch(
@@ -75,15 +69,31 @@ def test_oss_features_enabled_in_oss_installation_by_default(
     response = client.get(url, format="json", **make_user_auth_headers(user, token))
 
     assert response.status_code == status.HTTP_200_OK
-    assert FEATURE_GRAFANA_CLOUD_CONNECTION in response.json()
-    assert FEATURE_GRAFANA_CLOUD_NOTIFICATIONS in response.json()
+    assert Feature.GRAFANA_CLOUD_CONNECTION in response.json()
+    assert Feature.GRAFANA_CLOUD_NOTIFICATIONS in response.json()
+    assert Feature.MSTEAMS not in response.json()
+
+
+@pytest.mark.django_db
+@override_settings(IS_OPEN_SOURCE=False)
+def test_non_oss_features_enabled(
+    make_organization_and_user_with_plugin_token,
+    make_user_auth_headers,
+):
+    _, user, token = make_organization_and_user_with_plugin_token()
+    client = APIClient()
+    url = reverse("api-internal:features")
+    response = client.get(url, format="json", **make_user_auth_headers(user, token))
+
+    assert response.status_code == status.HTTP_200_OK
+    assert Feature.MSTEAMS in response.json()
 
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
     "feature_attr,expected_feature",
     [
-        ("GRAFANA_CLOUD_NOTIFICATIONS_ENABLED", FEATURE_GRAFANA_CLOUD_NOTIFICATIONS),
+        ("GRAFANA_CLOUD_NOTIFICATIONS_ENABLED", Feature.GRAFANA_CLOUD_NOTIFICATIONS),
     ],
 )
 def test_oss_features_switch(

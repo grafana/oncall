@@ -97,6 +97,7 @@ WEBHOOK_RESPONSE_LIMIT = 50000
 ONCALL_GATEWAY_URL = os.environ.get("ONCALL_GATEWAY_URL", "")
 ONCALL_GATEWAY_API_TOKEN = os.environ.get("ONCALL_GATEWAY_API_TOKEN", "")
 ONCALL_BACKEND_REGION = os.environ.get("ONCALL_BACKEND_REGION")
+CHATOPS_V3 = getenv_boolean("CHATOPS_V3", False)
 
 # Prometheus exporter metrics endpoint auth
 PROMETHEUS_EXPORTER_SECRET = os.environ.get("PROMETHEUS_EXPORTER_SECRET")
@@ -287,11 +288,11 @@ REST_FRAMEWORK = {
         "rest_framework.parsers.MultiPartParser",
     ),
     "DEFAULT_AUTHENTICATION_CLASSES": [],
-    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    "DEFAULT_SCHEMA_CLASS": "engine.schema.CustomAutoSchema",
 }
 
 
-DRF_SPECTACULAR_ENABLED = getenv_boolean("DRF_SPECTACULAR_ENABLED", default=True)
+DRF_SPECTACULAR_ENABLED = getenv_boolean("DRF_SPECTACULAR_ENABLED", default=False)
 
 SPECTACULAR_SETTINGS = {
     "TITLE": "Grafana OnCall Private API",
@@ -315,6 +316,8 @@ if SWAGGER_UI_SETTINGS_URL:
 SPECTACULAR_INCLUDED_PATHS = [
     "/features",
     "/alertgroups",
+    "/alert_receive_channels",
+    "/users",
     "/labels",
 ]
 
@@ -584,6 +587,11 @@ if ESCALATION_AUDITOR_ENABLED:
                 getenv_integer("ALERT_GROUP_ESCALATION_AUDITOR_CELERY_TASK_HEARTBEAT_INTERVAL", default=13)
             )
         ),
+        "args": (),
+    }
+    CELERY_BEAT_SCHEDULE["check_personal_notifications"] = {
+        "task": "apps.alerts.tasks.check_escalation_finished.check_personal_notifications_task",
+        "schedule": crontab(minute="*/15"),  # every 15 minutes
         "args": (),
     }
 

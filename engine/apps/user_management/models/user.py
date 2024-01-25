@@ -257,7 +257,7 @@ class User(models.Model):
         return urljoin(self.organization.grafana_url, self.avatar_url)
 
     @property
-    def verified_phone_number(self):
+    def verified_phone_number(self) -> str | None:
         """
         Use property to highlight that _verified_phone_number should not be modified directly
         """
