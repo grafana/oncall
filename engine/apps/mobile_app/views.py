@@ -5,7 +5,6 @@ import typing
 import requests
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
-from django.utils import timezone
 from fcm_django.api.rest_framework import FCMDeviceAuthorizedViewSet as BaseFCMDeviceAuthorizedViewSet
 from rest_framework import mixins, status, viewsets
 from rest_framework.exceptions import NotFound, ParseError
@@ -148,36 +147,25 @@ class MobileAppGatewayView(APIView):
         super().initial(request, *args, **kwargs)
 
     @classmethod
-    def _construct_token_claims(cls, user: "User") -> typing.Dict[str, typing.Any]:
-        organization = user.organization
-        now = timezone.now()
-
-        return {
-            # TODO: do we need to specify iat and exp?
-            # registered claim names
-            "iat": now,
-            "exp": now + timezone.timedelta(minutes=1),  # jwt is short lived. expires in 1 minute.
-            # custom data
-            "user_id": user.user_id,  # grafana user ID
-            "user_email": user.email,
-            "stack_id": organization.stack_id,
-            "organization_id": organization.org_id,  # grafana org ID
-            "stack_slug": organization.stack_slug,
-            "org_slug": organization.org_slug,
-        }
-
-    @classmethod
     def _get_auth_token(cls, downstream_backend: SupportedDownstreamBackends, user: "User") -> str:
         """
         RS256 = asymmetric = public/private key pair
         HS256 = symmetric = shared secret (don't use this)
         """
-        token_claims = cls._construct_token_claims(user)
+        org = user.organization
+        token_claims = {
+            "user_id": user.user_id,  # grafana user ID
+            "user_email": user.email,
+            "stack_id": org.stack_id,
+            "organization_id": org.org_id,  # grafana org ID
+            "stack_slug": org.stack_slug,
+            "org_slug": org.org_slug,
+        }
+
         token_scopes = {
             cls.SupportedDownstreamBackends.INCIDENT: [CloudAuthApiClient.Scopes.INCIDENT_WRITE],
         }[downstream_backend]
 
-        org = user.organization
         return f"{org.stack_id}:{CloudAuthApiClient().request_signed_token(org, token_scopes, token_claims)}"
 
     @classmethod

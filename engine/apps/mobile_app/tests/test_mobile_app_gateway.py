@@ -4,7 +4,6 @@ from unittest.mock import patch
 import pytest
 import requests
 from django.urls import reverse
-from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APIClient
 from rest_framework.views import APIView
@@ -18,7 +17,6 @@ MOCK_DOWNSTREAM_INCIDENT_API_URL = "https://mockdownstreamincidentapi.com"
 MOCK_DOWNSTREAM_HEADERS = {"Authorization": "Bearer mock_auth_token"}
 MOCK_DOWNSTREAM_RESPONSE_DATA = {"foo": "bar"}
 
-MOCK_TIMEZONE_NOW = timezone.datetime(2021, 1, 1, 3, 4, 5, tzinfo=timezone.utc)
 MOCK_AUTH_TOKEN = "mncn,zxcnv,mznxcv"
 
 
@@ -321,9 +319,7 @@ def test_mobile_app_gateway_proxies_headers(
 
 @pytest.mark.django_db
 @patch("apps.mobile_app.views.CloudAuthApiClient.request_signed_token", return_value=MOCK_AUTH_TOKEN)
-@patch("apps.mobile_app.views.timezone.now", return_value=MOCK_TIMEZONE_NOW)
 def test_mobile_app_gateway_properly_generates_an_auth_token(
-    _mock_timezone_now,
     mock_request_signed_token,
     make_organization,
     make_user_for_organization,
@@ -347,8 +343,6 @@ def test_mobile_app_gateway_properly_generates_an_auth_token(
         organization,
         [CloudAuthApiClient.Scopes.INCIDENT_WRITE],
         {
-            "iat": MOCK_TIMEZONE_NOW,
-            "exp": MOCK_TIMEZONE_NOW + timezone.timedelta(minutes=1),
             "user_id": user.user_id,  # grafana user ID
             "user_email": user.email,
             "stack_id": organization.stack_id,
