@@ -344,8 +344,7 @@ def test_mobile_app_gateway_properly_generates_an_auth_token(
     assert auth_token == f"{stack_id}:{MOCK_AUTH_TOKEN}"
 
     mock_request_signed_token.assert_called_once_with(
-        organization_id,
-        stack_id,
+        organization,
         [CloudAuthApiClient.Scopes.INCIDENT_WRITE],
         {
             "iat": MOCK_TIMEZONE_NOW,
