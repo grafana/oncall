@@ -11,7 +11,7 @@ logger = get_task_logger(__name__)
 @shared_dedicated_queue_retry_task(
     autoretry_for=(Exception,), retry_backoff=True, max_retries=1 if settings.DEBUG else None
 )
-def delete_alert_group(alert_group_pk, user_pk):
+def delete_alert_group(alert_group_pk: int, user_pk: int) -> None:
     from apps.alerts.models import AlertGroup
     from apps.user_management.models import User
 
@@ -32,26 +32,26 @@ def delete_alert_group(alert_group_pk, user_pk):
 @shared_dedicated_queue_retry_task(
     autoretry_for=(Exception,), retry_backoff=True, max_retries=1 if settings.DEBUG else None
 )
-def send_alert_group_signal_for_delete(alert_group_id, log_record_id):
+def send_alert_group_signal_for_delete(alert_group_pk: int, log_record_pk: int) -> None:
     try:
         alert_group_action_triggered_signal.send(
             sender=None,
-            log_record=log_record_id,
+            log_record=log_record_pk,
             action_source=None,
             force_sync=True,
         )
     except SlackAPIRatelimitError as e:
         # Handle Slack API ratelimit raised in apps.slack.scenarios.distribute_alerts.DeleteGroupStep.process_signal
-        send_alert_group_signal_for_delete.apply_async((alert_group_id, log_record_id), countdown=e.retry_after)
+        send_alert_group_signal_for_delete.apply_async((alert_group_pk, log_record_pk), countdown=e.retry_after)
         return
 
-    finish_delete_alert_group.apply_async((alert_group_id,))
+    finish_delete_alert_group.apply_async((alert_group_pk,))
 
 
 @shared_dedicated_queue_retry_task(
     autoretry_for=(Exception,), retry_backoff=True, max_retries=1 if settings.DEBUG else None
 )
-def finish_delete_alert_group(alert_group_pk):
+def finish_delete_alert_group(alert_group_pk: int) -> None:
     from apps.alerts.models import AlertGroup
 
     alert_group = AlertGroup.objects.filter(pk=alert_group_pk).first()
