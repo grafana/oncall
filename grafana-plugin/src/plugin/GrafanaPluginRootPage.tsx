@@ -11,6 +11,7 @@ import { AppRootProps } from 'types';
 import RenderConditionally from 'components/RenderConditionally/RenderConditionally';
 import Unauthorized from 'components/Unauthorized';
 import DefaultPageLayout from 'containers/DefaultPageLayout/DefaultPageLayout';
+import GlobalDrawer from 'containers/GlobalDrawer/GlobalDrawer';
 import { getMatchedPage, getRoutesForPage, pages } from 'pages';
 import NoMatch from 'pages/NoMatch';
 import EscalationChains from 'pages/escalation-chains/EscalationChains';
@@ -105,6 +106,8 @@ export const Root = observer((props: AppRootProps) => {
           <LegacyNavTabsBar currentPage={page} />
         </>
       )}
+
+      <GlobalDrawer />
 
       <div
         className={classnames('u-position-relative', 'u-flex-grow-1', {

@@ -1,19 +1,7 @@
 import React from 'react';
 
-import { css } from '@emotion/css';
-import {
-  Badge,
-  Button,
-  ConfirmModal,
-  ConfirmModalProps,
-  HorizontalGroup,
-  Icon,
-  IconButton,
-  useStyles2,
-  useTheme2,
-} from '@grafana/ui';
+import { Button, ConfirmModal, ConfirmModalProps, HorizontalGroup, Icon, IconButton } from '@grafana/ui';
 import cn from 'classnames/bind';
-import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
 import LegacyNavHeading from 'navbar/LegacyNavHeading';
 import CopyToClipboard from 'react-copy-to-clipboard';
@@ -28,16 +16,16 @@ import {
   initErrorDataState,
 } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper.helpers';
 import PluginLink from 'components/PluginLink/PluginLink';
-import Tag from 'components/Tag/Tag';
 import Text from 'components/Text/Text';
 import TextEllipsisTooltip from 'components/TextEllipsisTooltip/TextEllipsisTooltip';
+import { WebhookLastEvent } from 'components/Webhooks/WebhookLastEvent';
+import { WebhookName } from 'components/Webhooks/WebhookName';
 import OutgoingWebhookForm from 'containers/OutgoingWebhookForm/OutgoingWebhookForm';
 import RemoteFilters from 'containers/RemoteFilters/RemoteFilters';
 import TeamName from 'containers/TeamName/TeamName';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { FiltersValues } from 'models/filters/filters.types';
 import { OutgoingWebhook } from 'models/outgoing_webhook/outgoing_webhook.types';
-import { getTzOffsetString } from 'models/timezone/timezone.helpers';
 import { AppFeature } from 'state/features';
 import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
@@ -131,7 +119,9 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
         width: '25%',
         title: 'Name',
         dataIndex: 'name',
-        render: this.renderName,
+        render: (_name: string, webhook: OutgoingWebhook) => (
+          <WebhookName webhook={webhook} onNameClick={() => this.onEditClick(webhook.id)} />
+        ),
       },
       {
         width: '10%',
@@ -148,7 +138,7 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
         width: '10%',
         title: 'Last event',
         render: (webhook: OutgoingWebhook) => (
-          <LastEvent webhook={webhook} openLastEvent={() => this.onLastRunClick(webhook.id)} />
+          <WebhookLastEvent webhook={webhook} openLastEvent={() => this.onLastRunClick(webhook.id)} />
         ),
       },
       ...(hasFeature(AppFeature.Labels)
@@ -196,6 +186,18 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
                 }
               />
             )}
+            <div className={cx('newWebhookButton')}>
+              <PluginLink
+                query={{ page: 'outgoing_webhooks', id: 'new' }}
+                disabled={!isUserActionAllowed(UserActions.OutgoingWebhooksWrite)}
+              >
+                <WithPermissionControlTooltip userAction={UserActions.OutgoingWebhooksWrite}>
+                  <Button variant="primary" icon="plus">
+                    New Outgoing Webhook
+                  </Button>
+                </WithPermissionControlTooltip>
+              </PluginLink>
+            </div>
 
             <div className={cx('root')} data-testid="outgoing-webhooks-table">
               {this.renderOutgoingWebhooksFilters()}
@@ -207,18 +209,6 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
                       <LegacyNavHeading>
                         <Text.Title level={3}>Outgoing Webhooks</Text.Title>
                       </LegacyNavHeading>
-                    </div>
-                    <div className="u-pull-right">
-                      <PluginLink
-                        query={{ page: 'outgoing_webhooks', id: 'new' }}
-                        disabled={!isUserActionAllowed(UserActions.OutgoingWebhooksWrite)}
-                      >
-                        <WithPermissionControlTooltip userAction={UserActions.OutgoingWebhooksWrite}>
-                          <Button variant="primary" icon="plus">
-                            New Outgoing Webhook
-                          </Button>
-                        </WithPermissionControlTooltip>
-                      </PluginLink>
                     </div>
                   </div>
                 )}
@@ -351,23 +341,10 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
     );
   };
 
-  renderName = (name: string, { id, is_webhook_enabled }: OutgoingWebhook) => (
-    <div className={cx('nameColumn')}>
-      <Button fill="text" className={cx('webhookName')} onClick={() => this.onEditClick(id)}>
-        {name}
-      </Button>
-      {!is_webhook_enabled && <Badge className={cx('disabledBadge')} text="Disabled" color="orange" icon="pause" />}
-    </div>
-  );
-
   renderUrl(url: string) {
     return (
       <TextEllipsisTooltip content={url} placement="top">
-        <CopyToClipboard text={url} onCopy={() => openNotification('URL has been copied')}>
-          <Text type="link" className={cx(TEXT_ELLIPSIS_CLASS, 'line-clamp-3')}>
-            {url}
-          </Text>
-        </CopyToClipboard>
+        <Text className={cx(TEXT_ELLIPSIS_CLASS, 'line-clamp-3')}>{url}</Text>
       </TextEllipsisTooltip>
     );
   }
@@ -447,68 +424,6 @@ function convertWebhookUrlToAction(urlAction: string) {
     return WebhookFormActionType.VIEW_LAST_RUN;
   }
 }
-
-const LastEvent = ({ webhook, openLastEvent }: { webhook: OutgoingWebhook; openLastEvent: () => void }) => {
-  const theme = useTheme2();
-  const styles = useStyles2(getStyles);
-
-  const lastEventMoment = dayjs(webhook.last_response_log?.timestamp);
-
-  const lastEventFormatted = `${lastEventMoment.format('DD MMM YYYY')}, ${lastEventMoment.format(
-    'HH:mm:ss'
-  )} (${getTzOffsetString(lastEventMoment)})`;
-
-  const isLastEventDateValid = lastEventMoment.isValid();
-
-  if (!isLastEventDateValid) {
-    return (
-      <Tag
-        color={theme.colors.background.secondary}
-        border={`1px solid ${theme.colors.border.weak}`}
-        text={theme.colors.text.secondary}
-        size="small"
-      >
-        Never
-      </Tag>
-    );
-  }
-
-  return (
-    <HorizontalGroup>
-      <Tag
-        color={theme.colors.background.secondary}
-        border={`1px solid ${theme.colors.border.weak}`}
-        text={theme.colors.text.primary}
-        size="small"
-      >
-        {lastEventFormatted}
-      </Tag>
-      <Badge
-        color={webhook.last_response_log?.status_code?.startsWith?.('2') ? 'green' : 'orange'}
-        text={webhook.last_response_log?.status_code || 'No status'}
-        className={styles.lastEventBadge}
-      />
-      <Button
-        size="sm"
-        icon="eye"
-        tooltip="Go to event details"
-        variant="secondary"
-        className={styles.eventDetailsIconButton}
-        onClick={openLastEvent}
-      />
-    </HorizontalGroup>
-  );
-};
-
-export const getStyles = () => ({
-  eventDetailsIconButton: css({
-    padding: '6px 10px',
-  }),
-  lastEventBadge: css({
-    wordBreak: 'keep-all',
-    whiteSpace: 'nowrap',
-  }),
-});
 
 export { OutgoingWebhooks };
 

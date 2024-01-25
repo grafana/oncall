@@ -10,25 +10,8 @@
   align-items: baseline;
 }
 
-.webhookName {
-  word-break: break-word;
-  padding: 0;
-  &:hover {
-    background: none;
-  }
-}
-
-.nameColumn {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.lastEventDetailsIcon {
-  background: var(--secondary-background);
-  padding: 2px;
-}
-
-.disabledBadge {
-  word-break: keep-all;
+.newWebhookButton {
+  position: absolute;
+  right: 0;
+  top: -48px;
 }

@@ -67,7 +67,7 @@ export class OutgoingWebhookStore extends BaseStore {
   }
 
   @action
-  async updateItems(query: any = '') {
+  updateItems = async (query: any = '') => {
     const params = typeof query === 'string' ? { search: query } : query;
 
     const results = await makeRequest(`${this.path}`, {
@@ -93,15 +93,15 @@ export class OutgoingWebhookStore extends BaseStore {
         [key]: results.map((item: OutgoingWebhook) => item.id),
       };
     });
-  }
+  };
 
-  getSearchResult(query = '') {
+  getSearchResult = (query = '') => {
     if (!this.searchResult[query]) {
       return undefined;
     }
 
     return this.searchResult[query].map((outgoingWebhookId: OutgoingWebhook['id']) => this.items[outgoingWebhookId]);
-  }
+  };
 
   async getLastResponses(id: OutgoingWebhook['id']) {
     const result = await makeRequest(`${this.path}${id}/responses`, {});
