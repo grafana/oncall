@@ -86,6 +86,8 @@ class BaseChannelFilterSerializer(OrderedModelSerializer):
             slack_channel_id = slack_channel_id.upper()
             organization = self.context["request"].auth.organization
             slack_team_identity = organization.slack_team_identity
+            if not slack_team_identity:
+                raise BadRequest(detail="Slack isn't connected to this workspace")
             try:
                 slack_team_identity.get_cached_channels().get(slack_id=slack_channel_id)
             except SlackChannel.DoesNotExist:
