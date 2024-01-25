@@ -820,6 +820,50 @@ def test_update_integration_default_route(
 
 
 @pytest.mark.django_db
+def test_create_integration_default_route_with_slack_field(
+    make_organization_and_user_with_token,
+    make_escalation_chain,
+):
+    organization, _, token = make_organization_and_user_with_token()
+    escalation_chain = make_escalation_chain(organization)
+
+    client = APIClient()
+    data_for_create = {
+        "type": "grafana",
+        "name": "grafana_created",
+        "team_id": None,
+        "default_route": {
+            "escalation_chain_id": escalation_chain.public_primary_key,
+            "slack": {"channel_id": "TEST_SLACK_ID"},
+        },
+    }
+    url = reverse("api-public:integrations-list")
+    response = client.post(url, data=data_for_create, format="json", HTTP_AUTHORIZATION=f"{token}")
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.data["detail"] == "Slack isn't connected to this workspace"
+
+
+@pytest.mark.django_db
+def test_update_integration_default_route_with_slack_field(
+    make_organization_and_user_with_token, make_alert_receive_channel, make_channel_filter
+):
+    organization, _, token = make_organization_and_user_with_token()
+    integration = make_alert_receive_channel(organization)
+    make_channel_filter(integration, is_default=True)
+
+    client = APIClient()
+    data_for_update = {
+        "default_route": {"slack": {"channel_id": "TEST_SLACK_ID"}},
+    }
+
+    url = reverse("api-public:integrations-detail", args=[integration.public_primary_key])
+    response = client.put(url, data=data_for_update, format="json", HTTP_AUTHORIZATION=f"{token}")
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.data["detail"] == "Slack isn't connected to this workspace"
+
+
+@pytest.mark.django_db
 def test_cant_create_integrations_direct_paging(
     make_organization_and_user_with_token, make_team, make_alert_receive_channel, make_user_auth_headers
 ):
