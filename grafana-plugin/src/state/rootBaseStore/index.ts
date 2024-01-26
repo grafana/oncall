@@ -11,7 +11,6 @@ import { AlertGroupStore } from 'models/alertgroup/alertgroup';
 import { ApiTokenStore } from 'models/api_token/api_token';
 import { CloudStore } from 'models/cloud/cloud';
 import { DirectPagingStore } from 'models/direct_paging/direct_paging';
-import { DrawerStore } from 'models/drawer/drawer';
 import { EscalationChainStore } from 'models/escalation_chain/escalation_chain';
 import { EscalationPolicyStore } from 'models/escalation_policy/escalation_policy';
 import { FiltersStore } from 'models/filters/filters';
@@ -118,7 +117,6 @@ export class RootBaseStore {
   timezoneStore = new TimezoneStore(this);
   msteamsChannelStore: MSTeamsChannelStore = new MSTeamsChannelStore(this);
   loaderStore = LoaderStore;
-  drawerStore = DrawerStore;
 
   constructor() {
     makeObservable(this);

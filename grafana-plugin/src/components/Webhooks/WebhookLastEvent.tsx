@@ -7,13 +7,14 @@ import dayjs from 'dayjs';
 import Tag from 'components/Tag/Tag';
 import { OutgoingWebhook } from 'models/outgoing_webhook/outgoing_webhook.types';
 import { getTzOffsetString } from 'models/timezone/timezone.helpers';
+import { OutgoingTabDrawerKey } from 'pages/integration/OutgoingTab/OutgoingTab.types';
 
 export const WebhookLastEvent = ({
   webhook,
-  openLastEvent,
+  openDrawer,
 }: {
   webhook: OutgoingWebhook;
-  openLastEvent: () => void;
+  openDrawer: (key: OutgoingTabDrawerKey) => void;
 }) => {
   const theme = useTheme2();
   const styles = useStyles2(getStyles);
@@ -60,7 +61,7 @@ export const WebhookLastEvent = ({
         tooltip="Go to event details"
         variant="secondary"
         className={styles.eventDetailsIconButton}
-        onClick={openLastEvent}
+        onClick={() => openDrawer('triggerDetails')}
       />
     </HorizontalGroup>
   );

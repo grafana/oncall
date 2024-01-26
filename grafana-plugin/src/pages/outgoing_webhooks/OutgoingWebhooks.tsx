@@ -138,7 +138,7 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
         width: '10%',
         title: 'Last event',
         render: (webhook: OutgoingWebhook) => (
-          <WebhookLastEvent webhook={webhook} openLastEvent={() => this.onLastRunClick(webhook.id)} />
+          <WebhookLastEvent webhook={webhook} openDrawer={() => this.onLastRunClick(webhook.id)} />
         ),
       },
       ...(hasFeature(AppFeature.Labels)

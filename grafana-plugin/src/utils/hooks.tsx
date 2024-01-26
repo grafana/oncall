@@ -2,6 +2,8 @@ import React, { useEffect, useRef, useState } from 'react';
 
 import { useLocation } from 'react-router-dom';
 
+import LocationHelper from './LocationHelper';
+
 export function useForceUpdate() {
   const [, setValue] = useState(0);
   return () => setValue((value) => value + 1);
@@ -69,3 +71,25 @@ export function useDebouncedCallback<A extends any[]>(callback: (...args: A) => 
     }, wait);
   };
 }
+
+export const useDrawerState = <DrawerKey extends string, DrawerData = unknown>(initialDrawerData?: DrawerData) => {
+  const [openedDrawer, setOpenedDrawer] = useState<DrawerKey>(LocationHelper.getQueryParams('openedDrawerKey'));
+  const [drawerData, setDrawerData] = useState<DrawerData>(initialDrawerData);
+
+  return {
+    openDrawer: (drawerKey: DrawerKey, drawerData?: DrawerData) => {
+      setOpenedDrawer(drawerKey);
+      if (drawerData) {
+        setDrawerData(drawerData);
+      }
+      LocationHelper.update({ openedDrawerKey: drawerKey }, 'partial');
+    },
+    closeDrawer: () => {
+      setOpenedDrawer(undefined);
+      LocationHelper.update({ openedDrawerKey: undefined }, 'partial');
+    },
+    getIsDrawerOpened: (drawerKey: DrawerKey) => openedDrawer === drawerKey,
+    openedDrawer,
+    drawerData,
+  };
+};

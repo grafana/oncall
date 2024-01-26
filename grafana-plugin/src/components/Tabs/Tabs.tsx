@@ -41,7 +41,7 @@ const Tabs: FC<TabsProps> = ({
   useEffect(
     () => () => {
       if (shouldBeSyncedWithQueryString) {
-        LocationHelper.update({ [queryStringKey]: tabs[0].label }, 'partial');
+        LocationHelper.update({ [queryStringKey]: undefined }, 'partial');
       }
     },
     []
