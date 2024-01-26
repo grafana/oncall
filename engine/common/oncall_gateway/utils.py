@@ -175,11 +175,11 @@ def unregister_oncall_tenant_wrapper(service_tenant_id: str, cluster_slug: str):
         delete_oncall_connector(service_tenant_id)
 
 
-def can_link_slack_team_wrapper(service_tenant_id: str, slack_team_id, cluster_slug: str):
+def can_link_slack_team_wrapper(service_tenant_id: str, slack_team_id, cluster_slug: str) -> bool:
     if settings.CHATOPS_V3:
-        can_link_slack_team(service_tenant_id, slack_team_id, cluster_slug)
+        return can_link_slack_team(service_tenant_id, slack_team_id, cluster_slug)
     else:
-        check_slack_installation_possible(service_tenant_id, slack_team_id, cluster_slug)
+        return check_slack_installation_possible(service_tenant_id, slack_team_id, cluster_slug)
 
 
 def link_slack_team_wrapper(service_tenant_id: str, slack_team_id: str):
