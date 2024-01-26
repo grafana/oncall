@@ -54,7 +54,7 @@ def check_slack_installation_possible(oncall_org_id: str, slack_id: str, backend
 
 
 def create_slack_connector(oncall_org_id: str, slack_id: str, backend: str):
-    client = ChatopsProxyAPIClient(settings.ONCALL_GATEWAY_URL, settings.ONCALL_GATEWAY_API_TOKEN)
+    client = OnCallGatewayAPIClient(settings.ONCALL_GATEWAY_URL, settings.ONCALL_GATEWAY_API_TOKEN)
     try:
         client.post_slack_connector(oncall_org_id, slack_id, backend)
     except Exception as e:
