@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 
-import { ConfirmModal, InlineSwitch, Tooltip } from '@grafana/ui';
+import { InlineSwitch, Tooltip } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
@@ -39,7 +39,6 @@ const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = observer
     const { alertReceiveChannelStore, features } = useStore();
     const [isRestoringTemplate, setIsRestoringTemplate] = useState<boolean>(false);
     const [templateRestoreName, setTemplateRestoreName] = useState<string>(undefined);
-    const [showConfirmModal, setShowConfirmModal] = useState(false);
     const [autoresolveValue, setAutoresolveValue] = useState<boolean>(alertReceiveChannelAllowSourceBasedResolving);
 
     const handleSaveClick = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
@@ -57,19 +56,6 @@ const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = observer
 
     return (
       <div className={cx('integration__templates')}>
-        {showConfirmModal && (
-          <ConfirmModal
-            isOpen={true}
-            title={undefined}
-            confirmText={'Reset'}
-            dismissText="Cancel"
-            body={'Are you sure you want to reset Slack Title template to default state?'}
-            description={undefined}
-            confirmationText={undefined}
-            onConfirm={() => onResetTemplate(templateRestoreName)}
-            onDismiss={() => onDismiss()}
-          />
-        )}
         {templatesToRender.map((template, key) => (
           <IntegrationBlockItem key={key}>
             <VerticalBlock>
@@ -78,10 +64,16 @@ const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = observer
                 <IntegrationTemplateBlock
                   key={innerKey}
                   isLoading={isRestoringTemplate && templateRestoreName === contents.name}
-                  onRemove={() => onShowConfirmModal(contents.name)}
+                  onRemove={() => onResetTemplate(contents.name)}
                   label={contents.label}
                   labelTooltip={contents.labelTooltip}
-                  isTemplateEditable={isResolveConditionTemplateEditable(contents.name)}
+                  isTemplateEditable={isTemplateEditable(contents.name)}
+                  warningOnEdit={
+                    alertReceiveChannelIsBasedOnAlertManager &&
+                    (isGroupingIdTemplate(contents.name) || isResolveConditionTemplate(contents.name))
+                      ? 'Are you sure?'
+                      : undefined
+                  }
                   renderInput={() => (
                     <>
                       {isResolveConditionTemplate(contents.name) && (
@@ -90,10 +82,11 @@ const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = observer
                             value={autoresolveValue}
                             onChange={handleSaveClick}
                             className={cx('inline-switch')}
+                            transparent
                           />
                         </Tooltip>
                       )}
-                      {isResolveConditionTemplateEditable(contents.name) && (
+                      {isTemplateEditable(contents.name) && (
                         <div
                           className={cx('input', { 'input-with-toggle': isResolveConditionTemplate(contents.name) })}
                         >
@@ -121,25 +114,16 @@ const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = observer
       </div>
     );
 
-    function isResolveConditionTemplateEditable(templateName: string) {
-      return (
-        !(alertReceiveChannelIsBasedOnAlertManager && isResolveConditionTemplate(templateName)) &&
-        (alertReceiveChannelAllowSourceBasedResolving || !isResolveConditionTemplate(templateName))
-      );
+    function isTemplateEditable(templateName: string) {
+      return alertReceiveChannelAllowSourceBasedResolving || !isResolveConditionTemplate(templateName);
     }
 
     function isResolveConditionTemplate(templateName: string) {
       return templateName === 'resolve_condition_template';
     }
 
-    function onShowConfirmModal(templateName: string) {
-      setTemplateRestoreName(templateName);
-      setShowConfirmModal(true);
-    }
-
-    function onDismiss() {
-      setTemplateRestoreName(undefined);
-      setShowConfirmModal(false);
+    function isGroupingIdTemplate(templateName: string) {
+      return templateName === 'grouping_id_template';
     }
 
     function onResetTemplate(templateName: string) {
@@ -157,10 +141,6 @@ const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = observer
           } else {
             openErrorNotification(err.message);
           }
-        })
-        .finally(() => {
-          setIsRestoringTemplate(false);
-          setShowConfirmModal(false);
         });
     }
   }
