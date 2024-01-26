@@ -206,6 +206,10 @@ class MobileAppGatewayView(APIView):
             raise NotFound(f"Downstream backend {downstream_backend} not supported")
 
         downstream_url = self._get_downstream_url(user.organization, downstream_backend, downstream_path)
+
+        log_msg_common = f"{downstream_backend} request to {method} {downstream_url}"
+        logger.info(f"Proxying {log_msg_common}")
+
         downstream_request_handler = getattr(requests, method.lower())
 
         try:
@@ -216,6 +220,7 @@ class MobileAppGatewayView(APIView):
                 headers=self._get_downstream_headers(request, downstream_backend, user),
             )
 
+            logger.info(f"Successfully proxied {log_msg_common}")
             return Response(status=downstream_response.status_code, data=downstream_response.json())
         except (
             requests.exceptions.RequestException,
