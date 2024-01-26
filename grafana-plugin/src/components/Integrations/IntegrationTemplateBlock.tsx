@@ -51,7 +51,7 @@ const IntegrationTemplateBlock: React.FC<IntegrationTemplateBlockProps> = ({
         {isTemplateEditable && (
           <>
             <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
-              <WithConfirm skip={!warningOnEdit} title={warningOnEdit} confirmText="Edit">
+              <WithConfirm skip={!warningOnEdit} title="" body={warningOnEdit} confirmText="Edit">
                 <Button variant={'secondary'} icon="edit" tooltip="Edit" size="md" onClick={onEdit} />
               </WithConfirm>
             </WithPermissionControlTooltip>
