@@ -45,20 +45,21 @@ class CloudAuthApiClient:
     def request_signed_token(
         self, org: "Organization", scopes: typing.List[Scopes], claims: typing.Dict[str, typing.Any]
     ) -> str:
-        org_id = org.org_id
-        stack_id = org.stack_id
+        # The Cloud Auth API expects the org_id and stack_id to be strings
+        org_id = str(org.org_id)
+        stack_id = str(org.stack_id)
 
         # NOTE: header values must always be strings
         headers = {
             "Authorization": f"Bearer {self.api_token}",
             # need to cast to str otherwise - requests.exceptions.InvalidHeader: Header part ... from ('X-Org-ID', 5000)
             # must be of type str or bytes, not <class 'int'>
-            "X-Org-ID": str(org_id),
+            "X-Org-ID": org_id,
             "X-Realms": json.dumps(
                 [
                     {
                         "type": "stack",
-                        "identifier": str(stack_id),
+                        "identifier": stack_id,
                     },
                 ]
             ),
