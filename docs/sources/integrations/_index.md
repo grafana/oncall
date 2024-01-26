@@ -142,7 +142,7 @@ To edit the name of an integration:
 
 #### Labels
 
-To edit the integration's labels:
+> Labels are currently available only in cloud.
 
 1. Navigate to the **Integrations** tab, select an integration from the list of enabled integrations.
 2. Click the **three dots** next to the integration name and select **Integration settings**.
@@ -154,8 +154,160 @@ new keys and values into the fields and accepting with enter/return key
 To filter integrations by labels:
 
 1. Navigate to the **Integrations** tab
-2. Find the Search or filter results… dropdown and select Label
+2. Find the **Search or filter results…** dropdown and select Label
 3. Start typing to find suggestions and select the key-value pair you’d like to filter by - currently it’s only possible to filter by key-value pairs.
+
+#### Alert group labels
+
+The Alert Group Labeling feature provides users with the capability to assign labels to alert groups, customize the Alert Group table,
+passing labels in webhooks and aids in categorization.
+
+##### Label Assignment Limits
+
+Up to 15 Labels: OnCall allows the assignment of up to 15 labels to an alert group.
+Extraction Limit: If there are more than 15 labels to be assigned, only the first 15 labels (sorted alphabetically)
+from the first alert in the group will be assigned.
+
+##### Label Persistence
+
+Once a label is assigned to an alert group, it remains unchanged, even if the label is edited.
+This approach considers the label as historical data.
+
+##### Configuration
+
+Alert Group Labeling is configured per-integration, and the settings are accessible in the Alert Group Labeling tab.
+
+To find Finding Alert Group Labeling Settings:
+
+1. Navigate to the **Integrations** tab.
+2. Select an integration from the list of enabled integrations.
+3. Click the three dots next to the integration name.
+4. Choose **Alert Group Labeling**
+
+##### Assigning Labels
+
+###### Pass Down Integration Labels
+
+These labels are automatically assigned to each alert group coming to the integration, based on the labels assigned to the integration.
+
+1. Navigate to the Integration Labels section in the Alert Group Labeling tab.
+2. Enable/disable passing down specific labels using the toggler.
+
+###### Dynamic & Static Labels
+
+This feature allows you to assign arbitrary labels to alert groups, either by deriving them from the payload or by specifying static values.
+
+1. In the Alert Group Labeling tab, navigate to Dynamic & Static Labels.
+2. Press the Add Label button and choose between dynamic or static labels.
+
+For Static Labels:
+
+1. Choose or create key and value from the dropdown list.
+2. These labels will be assigned to all alert groups received by this integration.
+
+For Dynamic Labels:
+
+1. Choose or create a key from the dropdown list.
+2. Enter a Jinja template to parse the value for the given key from the alert payload.
+
+To illustrate the Dynamic Labeling feature, let's consider an example where a dynamic label is created with a "severity" key
+and a template to parse values for that key:
+
+```jinja
+{{ payload.get("severity) }}
+```
+
+[SCREENSHOT_DYNAMIC LABEL EXAMPLE]
+
+Two alerts was received and grouped to two different alert groups:
+
+Alert 1:
+
+```json
+{
+  "title": "critical alert",
+  "severity": "critical"
+}
+```
+
+Alert 2:
+
+```json
+{
+  "title": "warning alert",
+  "severity": "warning"
+}
+```
+
+As a result:
+
+- The first alert group will have a label: severity: critical.
+- The second alert group will have a label: severity: warning.
+
+###### Multi-label extraction template
+
+The Multi-label Extraction Template enables users to extract and modify multiple labels from the alert payload using a single template.
+This functionality not only supports dynamic values but also accommodates dynamic keys, with the Jinja template required to result in a valid JSON object.
+
+Consider the following example demonstrating the extraction of labels from a Grafana Alerting payload:
+
+Incoming Payload (Trimmed for Readability):
+
+```json
+{
+  ...
+  "commonLabels": {
+    "job": "node",
+    "severity": "critical",
+    "alertname": "InstanceDown"
+  },
+  ...
+}
+```
+
+```jinja
+{{ payload.commonLabels | tojson }}
+```
+
+As a result "job", "severity" and "alertname" labels will be assigned to the alert group:
+
+[SCREENSHOT_MULTI_LABEL_EXTRACTION_RESULT]
+
+An advanced example showcases the extraction of labels from various fields of the alert payload, utilizing the Grafana Alerting payload:
+
+```jinja2
+{%- set labels = {} -%}
+{# add several labels #}
+{%- set labels = dict(labels, **payload.commonLabels) -%}
+{# add one label #}
+{%- set labels = dict(labels, **{"status": payload.status}) -%}
+{# add label not from payload #}
+{%- set labels = dict(labels, **{"service": "oncall"}) -%}
+{# dump labels dict to json string, so OnCall can parse it #}
+{{ labels | tojson }}
+```
+
+#### Alert Group tabel customization
+
+Grafana OnCall provides users with the flexibility to customize their Alert Group table to suit individual preferences.
+This feature allows users to select and manage the columns displayed in the table, including the option to add custom columns based on labels.
+Customizations made to the Alert Group table are user-specific. Each user can personalize their view according to their preferences.
+To access customization Navigate to the **Alert Groups** tab and Locate the **Columns** dropdown.
+
+##### Managing default columns
+
+By default, the Columns dropdown provides a list of predefined columns that users can enable or disable based on their preferences.
+
+To manage default columns use the toggler next to each column name to enable or disable its visibility in the table.
+
+##### Adding Custom Columns
+
+Users with admin permissions have the ability to add custom columns based on labels. Follow these steps to add a custom column:
+
+1. Press the Add button in the Columns dropdown. A modal will appear.
+2. In the modal, begin typing the name of the labels key you want to create a column for.
+3. Select the desired label from the options presented and press the Add button.
+4. The new custom column, titled with the label's key, will now be available as an option in the Column Settings for all users.
 
 ## List of available integrations
 

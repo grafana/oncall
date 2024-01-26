@@ -177,23 +177,28 @@ Toggle to send the entire webhook payload instead of using the values in the **D
 
 ## Labels
 
+> Labels are currently available only in cloud.
+
 Webhook labels allows to _______ and will be included in the webhook payload, along with alert group and integration labels.
 It could be useful when _____. Check this [template example][labels_webhook_template] to see how you can include labels in the webhook data.
 
-To edit the webhook's labels:
+Editing Webhook Labels:
+To edit the labels associated with a webhook, follow these steps:
 
-1. Navigate to the **Webhooks** tab, select an integration from the list of enabled integrations.
-2. Click the **three dots** next to the webhook name and select **Edit settings**.
-3. Define a key and value of the label, either by selecting existing key and values from the dropdown list or
-by typing new keys and values into the fields and accepting with enter/return key
-4. If you want to add more labels click on Add button. You can also remove the label using X button next to the key-value pair
-5. Click **Save**.
+1. Navigate to the Webhooks tab.
+2. Select an integration from the list of enabled integrations.
+3. Click the three dots next to the webhook name and choose Edit Settings.
+4. Define a key and value for the label:
+   - Select existing keys and values from the dropdown list, or
+   - Type new keys and values into the fields, accepting with the enter/return key.
+5. To add more labels, click the Add button. Labels can also be removed using the X button next to the key-value pair.
+6. Click Save to apply the changes.
 
-To filter webhooks by labels:
+To filter webhooks based on labels, use the following steps:
 
-1. Navigate to the **Webhooks** tab
-2. Find the Search or filter results… dropdown and select Label
-3. Start typing to find suggestions and select the key-value pair you’d like to filter by - currently it’s only possible to filter by key-value pairs.
+1. Navigate to the Webhooks tab.
+2. Locate the Search or Filter Results… dropdown and select Label.
+3. Start typing to find suggestions and select the desired key-value pair for filtering. Currently, it's only possible to filter by key-value pairs.
 
 ## Outgoing webhook templates
 
@@ -309,7 +314,7 @@ Details about the alert group associated with this event.
 - `{{ alert_group.acknowledged_at }}` - Timestamp alert group was acknowledged (None if not acknowledged yet)
 - `{{ alert_group.title }}` - Title of alert group
 - `{{ alert_group.permalinks }}` - Links to alert group in web and chat ops if available
-– `{{ alert_group.labels }}` - Labels parsed by OnCall from the first alert in the alert group
+- `{{ alert_group.labels }}` - Labels parsed by OnCall from the first alert in the alert group
 
 #### `{{ alert_group_id }}`
 
@@ -388,8 +393,6 @@ UIDs are also visible in the browser URL when a specific object is selected for 
 
 ### Template examples
 
-[//]: # (#FIXME) better title
-
 #### Data in a json body
 
 The following is an example of an entry in the Data field that would return an alert name and description.
@@ -401,13 +404,11 @@ The following is an example of an entry in the Data field that would return an a
 }
 ```
 
-[//]: # ( #FIXME): better title
-
 #### Data in a query parameter
 
 Here is an example using the user's email address as part of a URL:
 
-```bash
+```template
 https://someticketsystem.com/new-ticket?assign-user={{ user.email }}
 ```
 
@@ -415,7 +416,7 @@ https://someticketsystem.com/new-ticket?assign-user={{ user.email }}
 
 This example shows how to construct a custom webhook payload from various webhook data fields and output it as a JSON object
 
-```json
+```template
 {%- set payload = {} -%}
 {# add alert group labels #}
 {%- set payload = dict(payload, **{"labels": alert_group.labels}) -%}
@@ -429,7 +430,7 @@ This example shows how to construct a custom webhook payload from various webhoo
 
 Take this template for example:
 
-```json
+```template
 {
   "labels": "{{ alert_payload.labels }}"
 }
@@ -445,9 +446,9 @@ It will result in the following (Invalid JSON due to single quotes):
 
 To fix change the template to:
 
-```json
+```tempate
 {
-  "labels": {{ alert_payload.labels | tojson()}}
+  "labels": {{ alert_payload.labels | tojson }}
 }
 ```
 
