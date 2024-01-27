@@ -1,5 +1,6 @@
 import logging
 from random import randint
+from string import Template
 from typing import Optional
 
 import requests
@@ -111,8 +112,18 @@ class ZvonokPhoneProvider(PhoneProvider):
         body = None
         speaker = live_settings.ZVONOK_SPEAKER_ID
 
+        if live_settings.ZVONOK_VERIFICATION_TEMPLATE:
+            message = Template(live_settings.ZVONOK_VERIFICATION_TEMPLATE).safe_substitute(
+                verification_code=codewspaces
+            )
+        else:
+            message = f"Your verification code is {codewspaces}"
         try:
-            response = self._call_create(number, f"Your verification code is {codewspaces}", speaker)
+            response = self._call_create(
+                number,
+                message,
+                speaker,
+            )
             response.raise_for_status()
             body = response.json()
             if not body:
