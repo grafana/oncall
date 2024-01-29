@@ -15,7 +15,7 @@ from common.public_primary_keys import generate_public_primary_key, increase_pub
 if typing.TYPE_CHECKING:
     from django.db.models.manager import RelatedManager
 
-    from apps.alerts.models import AlertGroup
+    from apps.alerts.models import Alert, AlertGroup, AlertReceiveChannel
 
 logger = logging.getLogger(__name__)
 
@@ -102,7 +102,9 @@ class ChannelFilter(OrderedModel):
         return f"{self.pk}: {self.filtering_term or 'default'}"
 
     @classmethod
-    def select_filter(cls, alert_receive_channel, raw_request_data, force_route_id=None):
+    def select_filter(
+        cls, alert_receive_channel: "AlertReceiveChannel", raw_request_data: "Alert.RawRequestData", force_route_id=None
+    ) -> "ChannelFilter":
         # Try to find force route first if force_route_id is given
         # Force route was used to send demo alerts to specific route.
         # It is deprecated and may be used by older versions of the plugins

@@ -157,7 +157,7 @@ class UserFilter(ByTeamModelFieldFilterMixin, filters.FilterSet):
 
 
 class UserView(
-    PublicPrimaryKeyMixin,
+    PublicPrimaryKeyMixin[User],
     mixins.RetrieveModelMixin,
     mixins.UpdateModelMixin,
     mixins.ListModelMixin,

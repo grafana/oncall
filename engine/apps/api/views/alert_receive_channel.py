@@ -97,7 +97,7 @@ class AlertReceiveChannelFilter(ByTeamModelFieldFilterMixin, filters.FilterSet):
 class AlertReceiveChannelView(
     PreviewTemplateMixin,
     TeamFilteringMixin,
-    PublicPrimaryKeyMixin,
+    PublicPrimaryKeyMixin[AlertReceiveChannel],
     FilterSerializerMixin,
     UpdateSerializerMixin,
     ModelViewSet,

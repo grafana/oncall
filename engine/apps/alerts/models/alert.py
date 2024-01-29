@@ -20,7 +20,7 @@ from common.public_primary_keys import generate_public_primary_key, increase_pub
 if typing.TYPE_CHECKING:
     from django.db.models.manager import RelatedManager
 
-    from apps.alerts.models import AlertGroup
+    from apps.alerts.models import AlertGroup, AlertReceiveChannel, ChannelFilter
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -70,6 +70,8 @@ class Alert(models.Model):
         "alerts.AlertGroup", on_delete=models.CASCADE, null=True, default=None, related_name="alerts"
     )
 
+    RawRequestData: typing.TypeAlias = typing.Union[typing.Dict, typing.List]
+
     def get_integration_optimization_hash(self):
         """
         Should be overloaded in child classes.
@@ -79,19 +81,19 @@ class Alert(models.Model):
     @classmethod
     def create(
         cls,
-        title,
-        message,
-        image_url,
-        link_to_upstream_details,
-        alert_receive_channel,
-        integration_unique_data,
-        raw_request_data,
+        title: typing.Optional[str],
+        message: typing.Optional[str],
+        image_url: typing.Optional[str],
+        link_to_upstream_details: typing.Optional[str],
+        alert_receive_channel: "AlertReceiveChannel",
+        integration_unique_data: typing.Optional[typing.Dict],
+        raw_request_data: RawRequestData,
         enable_autoresolve=True,
-        is_demo=False,
-        channel_filter=None,
-        force_route_id=None,
-        received_at=None,
-    ):
+        is_demo: bool = False,
+        channel_filter: typing.Optional["ChannelFilter"] = None,
+        force_route_id: typing.Optional[int] = None,
+        received_at: typing.Optional[str] = None,
+    ) -> "Alert":
         """
         Creates an alert and a group if needed.
         """
