@@ -56,4 +56,3 @@ babel==2.12.1
 drf-spectacular==0.26.5
 grpcio==1.57.0
 markdown2==2.4.10
-PyJWT==2.8.0

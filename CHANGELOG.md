@@ -11,6 +11,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Improved logging during plugin sync and install with Grafana @mderynck ([#3730](https://github.com/grafana/oncall/pull/3730))
 
+### Fixed
+
+- Fixed too frequent retry of `perform_notification` task on Telegram ratelimit error by @Ferril ([#3744](https://github.com/grafana/oncall/pull/3744))
+- Add check whether organization has Slack connection on update Slack related field using public api endpoints
+  by @Ferril ([#3751](https://github.com/grafana/oncall/pull/3751))
+
 ## v1.3.92 (2024-01-23)
 
 Maintenance release
