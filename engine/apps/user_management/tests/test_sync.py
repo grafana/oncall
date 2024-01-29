@@ -497,6 +497,7 @@ def test_sync_grafana_labels_plugin(
 ):
     mock_get_grafana_labels_plugin_settings.return_value = test_params.get_grafana_labels_plugin_settings_return_value
     organization = make_organization()
+    organization.is_grafana_labels_enabled = False  # by default in tests it's true, so setting to false
 
     grafana_api_client = GrafanaAPIClient(api_url=organization.grafana_url, api_token=organization.api_token)
     _sync_grafana_labels_plugin(organization, grafana_api_client)

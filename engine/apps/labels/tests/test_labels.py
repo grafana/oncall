@@ -28,6 +28,26 @@ def test_labels_feature_flag(mock_is_labels_feature_enabled_for_org, make_organi
     mock_is_labels_feature_enabled_for_org(12345)
     # returns False if feature flag is disabled and organization is not in the feature list
     assert organization.org_id not in settings.FEATURE_LABELS_ENABLED_PER_ORG
+
+    assert not is_labels_feature_enabled(organization)
+
+
+def test_labels_feature_flag_when_plugin_is_disabled(
+    mock_is_labels_feature_enabled_for_org, make_organization, settings
+):
+    organization = make_organization()
+    organization.is_grafana_label_enabled = False
+    # returns False if feature flag is enabled, but plugin is disabled
+    assert settings.FEATURE_LABELS_ENABLED_FOR_ALL
+    assert organization.id not in settings.FEATURE_LABELS_ENABLED_PER_ORG
+    assert is_labels_feature_enabled(organization) is False
+
+    mock_is_labels_feature_enabled_for_org(organization.id)
+    # returns False if feature flag is disabled, organization is in the feature list, , but plugin is disabled
+    assert not settings.FEATURE_LABELS_ENABLED_FOR_ALL
+    assert organization.id in settings.FEATURE_LABELS_ENABLED_PER_ORG
+    assert is_labels_feature_enabled(organization) is False
+
     assert not is_labels_feature_enabled(organization)
 
 

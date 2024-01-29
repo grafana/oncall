@@ -192,11 +192,8 @@ def clear_ical_users_cache():
 
 
 @pytest.fixture(autouse=True)
-def patch_is_labels_feature_enabled(monkeypatch):
-    def mock_is_labels_feature_enabled(organization):
-        return True
-
-    monkeypatch.setattr("apps.labels.utils.is_labels_feature_enabled", mock_is_labels_feature_enabled)
+def mock_is_labels_feature_enabled(settings):
+    settings.FEATURE_LABELS_ENABLED_FOR_ALL = True
 
 
 @pytest.fixture
@@ -211,7 +208,9 @@ def mock_is_labels_feature_enabled_for_org(settings):
 @pytest.fixture
 def make_organization():
     def _make_organization(**kwargs):
-        return OrganizationFactory(**kwargs, is_rbac_permissions_enabled=IS_RBAC_ENABLED)
+        return OrganizationFactory(
+            **kwargs, is_rbac_permissions_enabled=IS_RBAC_ENABLED, is_grafana_labels_enabled=True
+        )
 
     return _make_organization
 
