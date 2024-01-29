@@ -186,14 +186,17 @@ def mock_apply_async(monkeypatch):
 
 
 @pytest.fixture(autouse=True)
-def mock_is_labels_feature_enabled(settings):
-    settings.FEATURE_LABELS_ENABLED_FOR_ALL = True
-
-
-@pytest.fixture(autouse=True)
 def clear_ical_users_cache():
     # clear users pks <-> organization cache (persisting between tests)
     memoized_users_in_ical.cache_clear()
+
+
+@pytest.fixture(autouse=True)
+def patch_is_labels_feature_enabled(monkeypatch):
+    def mock_is_labels_feature_enabled(organization):
+        return True
+
+    monkeypatch.setattr("apps.labels.utils.is_labels_feature_enabled", mock_is_labels_feature_enabled)
 
 
 @pytest.fixture
