@@ -11,6 +11,7 @@ import {
   ConfirmModal,
   LoadingPlaceholder,
   Select,
+  Alert,
 } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
@@ -126,55 +127,69 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
           isExpanded: false,
           isTextIcon: true,
           collapsedView: null,
-          iconText: 1,
-          expandedView: () =>
-            isDefault ? (
-              <div className={cx('adjust-element-padding', 'default-route-view')}>
-                <Text type="primary">
-                  All unmatched alerts are directed to this route, grouped using the Grouping Template, sent to
-                  messengers, and trigger the escalation chain
-                </Text>
-              </div>
-            ) : (
-              <VerticalGroup>
-                <Text type="primary">
-                  If the Routing Template is True, group alerts with the Grouping Template, send them to messengers, and
-                  trigger the escalation chain.
-                </Text>
-                <HorizontalGroup spacing="xs">
-                  <InlineLabel width={20} tooltip="Routing Template should be True for the alert to go to this route.">
-                    Routing Template
-                  </InlineLabel>
-                  <div className={cx('input', 'input--short')}>
-                    <MonacoEditor
-                      value={channelFilterTemplate}
-                      disabled={true}
-                      height={MONACO_INPUT_HEIGHT_SMALL}
-                      data={templates}
-                      showLineNumbers={false}
-                      monacoOptions={MONACO_READONLY_CONFIG}
+          expandedView: () => (
+            <div className={cx('adjust-element-padding')}>
+              {isDefault ? (
+                <div className={cx('default-route-view')}>
+                  <Text customTag="h6" type="primary">
+                    All unmatched alerts are directed to this route, grouped using the Grouping Template, sent to
+                    messengers, and trigger the escalation chain
+                  </Text>
+                </div>
+              ) : (
+                <VerticalGroup spacing="sm">
+                  <Text customTag="h6" type="primary">
+                    Use routing template
+                  </Text>
+
+                  <HorizontalGroup spacing="xs">
+                    <div className={cx('input', 'input--align')}>
+                      <MonacoEditor
+                        value={channelFilterTemplate}
+                        disabled={true}
+                        height={MONACO_INPUT_HEIGHT_SMALL}
+                        data={templates}
+                        showLineNumbers={false}
+                        monacoOptions={MONACO_READONLY_CONFIG}
+                      />
+                    </div>
+                    <Button
+                      variant={'secondary'}
+                      icon="edit"
+                      size={'md'}
+                      onClick={() => handleEditRoutingTemplate(channelFilter, channelFilterId)}
+                    />
+                  </HorizontalGroup>
+
+                  <div className={cx('routing-alert')}>
+                    <Alert
+                      severity="info"
+                      title={
+                        (
+                          <Text type="primary">
+                            If the Routing template evaluates to True, the alert will be grouped with the Grouping
+                            template and proceed to the following steps
+                          </Text>
+                        ) as any
+                      }
                     />
                   </div>
-                  <Button
-                    variant={'secondary'}
-                    icon="edit"
-                    size={'md'}
-                    onClick={() => handleEditRoutingTemplate(channelFilter, channelFilterId)}
-                  />
-                </HorizontalGroup>
-              </VerticalGroup>
-            ),
+                </VerticalGroup>
+              )}
+            </div>
+          ),
         },
         IntegrationHelper.hasChatopsInstalled(store) && {
           isHidden: false,
           isCollapsible: false,
           isTextIcon: true,
           collapsedView: null,
-          iconText: 2,
           expandedView: () => (
             <div className={cx('adjust-element-padding')}>
-              <VerticalGroup spacing="md">
-                <Text type="primary">Publish to ChatOps</Text>
+              <VerticalGroup spacing="sm">
+                <Text customTag="h6" type="primary">
+                  Publish to ChatOps
+                </Text>
                 <ChatOpsConnectors channelFilterId={channelFilterId} showLineNumber={false} />
               </VerticalGroup>
             </div>
@@ -186,11 +201,12 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
           isExpanded: false,
           isTextIcon: true,
           collapsedView: null,
-          iconText: 3,
           expandedView: () => (
             <div className={cx('adjust-element-padding')}>
-              <VerticalGroup>
-                <Text type="primary">Trigger escalation chain</Text>
+              <VerticalGroup spacing="sm">
+                <Text customTag="h6" type="primary">
+                  Trigger escalation chain
+                </Text>
 
                 <div data-testid="escalation-chain-select">
                   <HorizontalGroup spacing={'xs'}>

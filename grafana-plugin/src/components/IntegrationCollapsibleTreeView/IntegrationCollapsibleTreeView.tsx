@@ -5,6 +5,8 @@ import cn from 'classnames/bind';
 import { isArray, isUndefined } from 'lodash-es';
 import { observer } from 'mobx-react';
 
+import Text from 'components/Text/Text';
+
 import styles from './IntegrationCollapsibleTreeView.module.scss';
 
 const cx = cn.bind(styles);
@@ -64,6 +66,7 @@ const IntegrationCollapsibleTreeView: React.FC<IntegrationCollapsibleTreeViewPro
             <IntegrationCollapsibleTreeItem
               item={item}
               key={idx}
+              elementPosition={idx + 1} // start from 1 instead of 0
               onClick={() => expandOrCollapseAtPos(expandedList[idx] as boolean, idx)}
               isExpanded={expandedList[idx] as boolean}
               startingElemPosition={startingElemPosition}
@@ -115,10 +118,11 @@ const IntegrationCollapsibleTreeView: React.FC<IntegrationCollapsibleTreeViewPro
 
 const IntegrationCollapsibleTreeItem: React.FC<{
   item: IntegrationCollapsibleItem;
+  elementPosition?: number;
   isExpanded: boolean;
   onClick: () => void;
   startingElemPosition: string;
-}> = ({ item, isExpanded, onClick, startingElemPosition = '50%' }) => {
+}> = ({ item, elementPosition, isExpanded, onClick, startingElemPosition = '50%' }) => {
   const iconOnClickFn = !item.isCollapsible ? undefined : onClick;
 
   return (
@@ -141,8 +145,12 @@ const IntegrationCollapsibleTreeItem: React.FC<{
   );
 
   function renderIcon() {
-    if (item.isTextIcon) {
-      return <div className={cx('number-icon')}>{item.iconText}</div>;
+    if (item.isTextIcon && elementPosition) {
+      return (
+        <Text type="primary" customTag="h6" className={cx('number-icon')}>
+          {elementPosition}
+        </Text>
+      );
     }
 
     if (item.canHoverIcon) {

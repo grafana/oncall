@@ -1,10 +1,11 @@
 .input {
-  &--short {
-    width: 500px;
+  &--align {
+    width: 728px;
   }
-  &--long {
-    width: 700px;
-  }
+}
+
+.routing-alert {
+  width: 765px;
 }
 
 .integrations-actionsList {
@@ -38,7 +39,7 @@
 }
 
 .adjust-element-padding {
-  padding-top: 4px;
+  padding-top: 6px;
 }
 
 .default-route-view {

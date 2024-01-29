@@ -26,6 +26,7 @@ interface TextProps extends HTMLAttributes<HTMLElement> {
   editModalTitle?: string;
   maxWidth?: string;
   clickable?: boolean;
+  customTag?: string;
 }
 
 interface TextInterface extends React.FC<TextProps> {
@@ -56,6 +57,7 @@ const Text: TextInterface = (props) => {
     style,
     maxWidth,
     clickable,
+    customTag,
     ...rest
   } = props;
 
@@ -81,8 +83,10 @@ const Text: TextInterface = (props) => {
     setValue(e.target.value);
   }, []);
 
+  const CustomTag = customTag || (`span` as any);
+
   return (
-    <span
+    <CustomTag
       onClick={onClick}
       className={cx(
         'root',
@@ -152,7 +156,7 @@ const Text: TextInterface = (props) => {
           </VerticalGroup>
         </Modal>
       )}
-    </span>
+    </CustomTag>
   );
 };
 

@@ -1,25 +1,10 @@
 .integrationTree__container {
   margin-left: 32px;
   position: relative;
-
-  &:before {
-    content: '';
-    position: absolute;
-    height: 100%;
-    border: var(--border-weak);
-    margin-top: 4px;
-    margin-left: -20px;
-  }
-}
-
-.integrationTree__container--timeline-view:before {
-  margin-left: -20px;
-  border-width: 4px;
-  height: calc(100% - 10px);
 }
 
 .integrationTree__element {
-  margin-left: 6px;
+  margin-left: 16px;
   visibility: hidden;
   overflow-y: hidden;
   height: 0;
@@ -32,11 +17,27 @@
 
 .integrationTree__group {
   position: relative;
-  margin-bottom: 12px;
+  padding-bottom: 12px;
+
+  &:not(:last-child)::before {
+    content: '';
+    position: absolute;
+    height: 100%;
+    border: var(--border-weak);
+    margin-top: 4px;
+    margin-left: -19px;
+  }
 
   &--hidden {
     display: none;
   }
+}
+
+.integrationTree__container--timeline-view .integrationTree__group::before {
+  margin-left: -19px;
+  border: 0 !important;
+  width: 4px;
+  background-color: var(--gray-6);
 }
 
 .integrationTree__icon {
@@ -72,6 +73,7 @@
   font-size: 14px;
   font-weight: 400;
   color: var(--primary-text-color);
-  background-color: var(--secondary-background);
+  background-color: var(--gray-6);
   flex-shrink: 0;
+  margin: 0;
 }
