@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Improved logging during plugin sync and install with Grafana @mderynck ([#3730](https://github.com/grafana/oncall/pull/3730))
+- Add a modal for autoresolve and grouping templates for Alertmanager-based integrations ([#3764](https://github.com/grafana/oncall/pull/3764))
 
 ### Fixed
 
