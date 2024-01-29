@@ -18,7 +18,7 @@ import {
 import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
 import TextEllipsisTooltip from 'components/TextEllipsisTooltip/TextEllipsisTooltip';
-import { WebhookLastEvent } from 'components/Webhooks/WebhookLastEventTimestamp';
+import { WebhookLastEventTimestamp } from 'components/Webhooks/WebhookLastEventTimestamp';
 import { WebhookName } from 'components/Webhooks/WebhookName';
 import OutgoingWebhookForm from 'containers/OutgoingWebhookForm/OutgoingWebhookForm';
 import RemoteFilters from 'containers/RemoteFilters/RemoteFilters';
@@ -138,7 +138,7 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
         width: '10%',
         title: 'Last event',
         render: (webhook: OutgoingWebhook) => (
-          <WebhookLastEvent webhook={webhook} openDrawer={() => this.onLastRunClick(webhook.id)} />
+          <WebhookLastEventTimestamp webhook={webhook} openDrawer={() => this.onLastRunClick(webhook.id)} />
         ),
       },
       ...(hasFeature(AppFeature.Labels)

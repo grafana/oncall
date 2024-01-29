@@ -8,6 +8,7 @@ import { css } from '@emotion/css';
 
 import WebhookStatusCodeBadge from './WebhookStatusCodeBadge';
 import Tabs from 'components/Tabs/Tabs';
+import SourceCode from 'components/SourceCode/SourceCode';
 
 interface WebhookLastEventDetailsProps {
   webhook: OutgoingWebhook;
@@ -33,10 +34,19 @@ const WebhookLastEventDetails: FC<WebhookLastEventDetailsProps> = ({ webhook }) 
       <Tabs
         queryStringKey="lastEventDetailsActiveTab"
         tabs={[
-          { label: 'Event content', content: <div>content</div> },
-          { label: 'Request headers', content: <div>content</div> },
-          { label: 'Response headers', content: <div>content</div> },
-          { label: 'Response body', content: <div>content</div> },
+          { label: 'Event content', content: <SourceCode showClipboardIconOnly>{webhook.data}</SourceCode> },
+          {
+            label: 'Request headers',
+            content: <SourceCode showClipboardIconOnly>{webhook.last_response_log.request_headers}</SourceCode>,
+          },
+          {
+            label: 'Response headers',
+            content: <SourceCode showClipboardIconOnly>??? TODO: where to get it from</SourceCode>,
+          },
+          {
+            label: 'Response body',
+            content: <SourceCode showClipboardIconOnly>{webhook.last_response_log.content}</SourceCode>,
+          },
         ]}
       />
     </>
