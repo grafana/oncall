@@ -32,11 +32,12 @@ def test_labels_feature_flag(mock_is_labels_feature_enabled_for_org, make_organi
     assert not is_labels_feature_enabled(organization)
 
 
+@pytest.mark.django_db
 def test_labels_feature_flag_when_plugin_is_disabled(
     mock_is_labels_feature_enabled_for_org, make_organization, settings
 ):
     organization = make_organization()
-    organization.is_grafana_label_enabled = False
+    organization.is_grafana_labels_enabled = False
     # returns False if feature flag is enabled, but plugin is disabled
     assert settings.FEATURE_LABELS_ENABLED_FOR_ALL
     assert organization.id not in settings.FEATURE_LABELS_ENABLED_PER_ORG
