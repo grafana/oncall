@@ -2,7 +2,7 @@ import React, { ReactElement, useCallback, useEffect } from 'react';
 
 import { css } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
-import { LoadingPlaceholder, Select, useStyles2, useTheme2 } from '@grafana/ui';
+import { LoadingPlaceholder, Select, useStyles2 } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { get } from 'lodash-es';
 import { observer } from 'mobx-react';
