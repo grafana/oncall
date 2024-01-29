@@ -32,7 +32,7 @@ interface IntegrationCollapsibleTreeViewProps {
 }
 
 const IntegrationCollapsibleTreeView: React.FC<IntegrationCollapsibleTreeViewProps> = observer((props) => {
-  const { configElements, startingElemPosition, customContainerClassName } = props;
+  const { configElements, customContainerClassName } = props;
 
   const [expandedList, setExpandedList] = useState(getStartingExpandedState());
 
@@ -57,7 +57,6 @@ const IntegrationCollapsibleTreeView: React.FC<IntegrationCollapsibleTreeViewPro
                 key={`${idx}-${innerIdx}`}
                 onClick={() => expandOrCollapseAtPos(!expandedList[idx][innerIdx], idx, innerIdx)}
                 isExpanded={expandedList[idx][innerIdx]}
-                startingElemPosition={startingElemPosition}
               />
             ));
           }
@@ -69,7 +68,6 @@ const IntegrationCollapsibleTreeView: React.FC<IntegrationCollapsibleTreeViewPro
               elementPosition={idx + 1} // start from 1 instead of 0
               onClick={() => expandOrCollapseAtPos(expandedList[idx] as boolean, idx)}
               isExpanded={expandedList[idx] as boolean}
-              startingElemPosition={startingElemPosition}
             />
           );
         })}
@@ -121,8 +119,7 @@ const IntegrationCollapsibleTreeItem: React.FC<{
   elementPosition?: number;
   isExpanded: boolean;
   onClick: () => void;
-  startingElemPosition: string;
-}> = ({ item, elementPosition, isExpanded, onClick, startingElemPosition = '50%' }) => {
+}> = ({ item, elementPosition, isExpanded, onClick }) => {
   const iconOnClickFn = !item.isCollapsible ? undefined : onClick;
 
   return (
@@ -130,7 +127,7 @@ const IntegrationCollapsibleTreeItem: React.FC<{
       <div
         className={cx('integrationTree__icon')}
         style={{
-          transform: `translateY(${startingElemPosition})`,
+          transform: `translateY(${item.startingElemPosition || '50%'})`,
         }}
       >
         {renderIcon()}

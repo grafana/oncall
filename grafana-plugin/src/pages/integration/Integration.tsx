@@ -438,7 +438,7 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
     const isAlerting = IntegrationHelper.isSpecificIntegration(alertReceiveChannel, 'grafana_alerting');
     const isLegacyAlerting = IntegrationHelper.isSpecificIntegration(alertReceiveChannel, 'legacy_grafana_alerting');
 
-    return [
+    const configs: IntegrationCollapsibleItem[] = [
       (isAlerting || isLegacyAlerting) && {
         isHidden: isLegacyAlerting || contactPoints === null || contactPoints === undefined,
         isCollapsible: false,
@@ -529,10 +529,11 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
         collapsedView: undefined,
       },
       {
-        customIcon: 'code-branch',
+        customIcon: 'plus',
         isCollapsible: false,
         collapsedView: null,
         canHoverIcon: false,
+        startingElemPosition: '40px',
         expandedView: () => (
           <div className={cx('routesSection')}>
             <VerticalGroup spacing="md">
@@ -551,8 +552,10 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
           </div>
         ),
       },
-      this.renderRoutesFn(),
-    ].filter((opt) => opt);
+      this.renderRoutesFn() as any,
+    ];
+
+    return configs.filter((opt) => opt);
   }
 
   getRoutingTemplate = (channelFilterId: ChannelFilter['id']) => {

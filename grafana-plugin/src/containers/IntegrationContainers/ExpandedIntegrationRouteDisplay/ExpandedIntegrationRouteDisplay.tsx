@@ -17,7 +17,9 @@ import { observer } from 'mobx-react';
 import CopyToClipboard from 'react-copy-to-clipboard';
 
 import HamburgerMenu from 'components/HamburgerMenu/HamburgerMenu';
-import IntegrationCollapsibleTreeView from 'components/IntegrationCollapsibleTreeView/IntegrationCollapsibleTreeView';
+import IntegrationCollapsibleTreeView, {
+  IntegrationCollapsibleItem,
+} from 'components/IntegrationCollapsibleTreeView/IntegrationCollapsibleTreeView';
 import IntegrationBlock from 'components/Integrations/IntegrationBlock';
 import MonacoEditor from 'components/MonacoEditor/MonacoEditor';
 import { MONACO_READONLY_CONFIG } from 'components/MonacoEditor/MonacoEditor.config';
@@ -119,13 +121,14 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
 
     const escChainDisplayName = escalationChainStore.items[channelFilter.escalation_chain]?.name;
     const getTreeViewElements = () => {
-      return [
+      const configs: IntegrationCollapsibleItem[] = [
         {
           isHidden: false,
           isCollapsible: false,
           isExpanded: false,
           isTextIcon: true,
           collapsedView: null,
+          canHoverIcon: false,
           expandedView: () => (
             <div className={cx('adjust-element-padding')}>
               {isDefault ? (
@@ -183,6 +186,7 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
           isCollapsible: false,
           isTextIcon: true,
           collapsedView: null,
+          canHoverIcon: false,
           expandedView: () => (
             <div className={cx('adjust-element-padding')}>
               <VerticalGroup spacing="sm">
@@ -200,6 +204,7 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
           isExpanded: false,
           isTextIcon: true,
           collapsedView: null,
+          canHoverIcon: false,
           expandedView: () => (
             <div className={cx('adjust-element-padding')}>
               <VerticalGroup spacing="sm">
@@ -275,6 +280,8 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
           ),
         },
       ];
+
+      return configs;
     };
 
     return (

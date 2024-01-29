@@ -26,6 +26,7 @@
     border: var(--border-weak);
     margin-top: 4px;
     margin-left: -19px;
+    top: 20px;
   }
 
   &--hidden {
@@ -37,7 +38,7 @@
   margin-left: -19px;
   border: 0 !important;
   width: 4px;
-  background-color: var(--gray-6);
+  background-color: var(--secondary-background);
 }
 
 .integrationTree__icon {
@@ -73,7 +74,7 @@
   font-size: 14px;
   font-weight: 400;
   color: var(--primary-text-color);
-  background-color: var(--gray-6);
+  background-color: var(--secondary-background);
   flex-shrink: 0;
   margin: 0;
 }
