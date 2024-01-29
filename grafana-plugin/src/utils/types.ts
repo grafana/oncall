@@ -8,3 +8,7 @@ export interface TableColumn {
   className?: string;
   grow?: number;
 }
+
+export type KeysMatching<T extends object, V> = keyof {
+  [K in keyof T as T[K] extends V ? K : never]: any;
+};

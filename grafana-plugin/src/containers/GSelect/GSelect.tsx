@@ -6,8 +6,11 @@ import cn from 'classnames/bind';
 import { get, isNil } from 'lodash-es';
 import { observer } from 'mobx-react';
 
+import BaseStore from 'models/base_store';
+import { RootBaseStore } from 'state/rootBaseStore';
 import { useStore } from 'state/useStore';
 import { useDebouncedCallback } from 'utils/hooks';
+import { KeysMatching } from 'utils/types';
 
 import styles from './GSelect.module.scss';
 
@@ -19,7 +22,7 @@ interface GSelectProps {
   value?: string | string[] | null;
   defaultValue?: string | string[] | null;
   onChange: (value: string, item: any) => void;
-  modelName: string;
+  modelName: KeysMatching<RootBaseStore, BaseStore>;
   autoFocus?: boolean;
   defaultOpen?: boolean;
   disabled?: boolean;
