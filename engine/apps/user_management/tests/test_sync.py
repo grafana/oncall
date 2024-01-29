@@ -184,6 +184,14 @@ def test_sync_users_for_team(make_organization, make_user_for_organization, make
         # missing jsonData (sometimes this is what we get back from the Grafana API)
         ({"enabled": True}, None),
     ],
+    "get_grafana_labels_plugin_settings_return_value",
+    [
+        ({"enabled": True, "jsonData": {}}, None),
+        # missing jsonData (sometimes this is what we get back from the Grafana API)
+        ({"enabled": True}, None),
+        ({"enabled": False}, None),
+        ({}, None),
+    ],
 )
 @patch.object(GrafanaAPIClient, "is_rbac_enabled_for_organization", return_value=False)
 @patch.object(
@@ -221,6 +229,7 @@ def test_sync_users_for_team(make_organization, make_user_for_organization, make
 )
 @patch.object(GrafanaAPIClient, "check_token", return_value=(None, {"connected": True}))
 @patch.object(GrafanaAPIClient, "get_grafana_incident_plugin_settings")
+@patch.object(GrafanaAPIClient, "get_grafana_labels_plugin_settings")
 @patch("apps.user_management.sync.org_sync_signal")
 def test_sync_organization(
     mocked_org_sync_signal,
@@ -230,9 +239,11 @@ def test_sync_organization(
     _mock_get_users,
     _mock_is_rbac_enabled_for_organization,
     get_grafana_incident_plugin_settings_return_value,
+    get_grafana_labels_plugin_settings_return_value,
     make_organization,
 ):
     mock_get_grafana_incident_plugin_settings.return_value = get_grafana_incident_plugin_settings_return_value
+    mock_get_grafana_incident_plugin_settings.return_value = get_grafana_labels_plugin_settings_return_value
 
     organization = make_organization()
 
@@ -270,6 +281,10 @@ def test_sync_organization(
         assert organization.grafana_incident_backend_url == MOCK_GRAFANA_INCIDENT_BACKEND_URL
     else:
         assert organization.grafana_incident_backend_url is None
+
+    # check that is_grafana_incident_enabled flag set of grafana api respond with enabled=True
+    labels_plugin_enabled = get_grafana_incident_plugin_settings_return_value[0].get("enabled", False)
+    assert organization.is_grafana_labels_enabled is labels_plugin_enabled
 
     mocked_org_sync_signal.send.assert_called_once_with(sender=None, organization=organization)
 
