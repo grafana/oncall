@@ -144,28 +144,37 @@ To edit the name of an integration:
 
 > Labels are currently available only in cloud.
 
+TODO: why a user would want to assign labels to integrations?
+
 1. Navigate to the **Integrations** tab, select an integration from the list of enabled integrations.
 2. Click the **three dots** next to the integration name and select **Integration settings**.
-3. Define a Key and Value of the label, either by selecting existing key and values from the dropdown list or by typing
-new keys and values into the fields and accepting with enter/return key
-4. If you want to add more labels click on Add button. You can also remove the label using X button next to the key-value pair
+3. Define a Key and Value of the label, either by:
+   - Selecting existing key and values from the dropdown list
+   - Typing new keys and values into the fields and accepting with enter/return key
+4. If you want to add more labels click on **Add** button. You can also remove the label using X button next to the key-value pair.
 5. Click **Save**.
+
+TODO: why a user would want to filter integrations by labels?
 
 To filter integrations by labels:
 
 1. Navigate to the **Integrations** tab
-2. Find the **Search or filter results…** dropdown and select Label
-3. Start typing to find suggestions and select the key-value pair you’d like to filter by - currently it’s only possible to filter by key-value pairs.
+2. Find the **Search or filter results…** dropdown and select **Label**
+3. Start typing to find suggestions and select the key-value pair you'd like to filter by.
 
-#### Alert group labels
+#### Alert Group Labels
 
-The Alert Group Labeling feature provides users with the capability to assign labels to alert groups, customize the Alert Group table,
-passing labels in webhooks and aids in categorization.
+The Alert Group Labeling feature allows users to:
+
+- Assign labels to alert groups
+- Filter alert groups by labels
+- Customize the Alert Group table
+- Pass labels in webhooks (TODO: add link to webhooks docs)
 
 ##### Label Assignment Limits
 
 Up to 15 Labels: OnCall allows the assignment of up to 15 labels to an alert group.
-Extraction Limit: If there are more than 15 labels to be assigned, only the first 15 labels (sorted alphabetically)
+If there are more than 15 labels to be assigned, only the first 15 labels (sorted alphabetically)
 from the first alert in the group will be assigned.
 
 ##### Label Persistence
@@ -177,7 +186,7 @@ This approach considers the label as historical data.
 
 Alert Group Labeling is configured per-integration, and the settings are accessible in the Alert Group Labeling tab.
 
-To find Finding Alert Group Labeling Settings:
+To find Alert Group Labeling Settings:
 
 1. Navigate to the **Integrations** tab.
 2. Select an integration from the list of enabled integrations.
@@ -186,9 +195,12 @@ To find Finding Alert Group Labeling Settings:
 
 ##### Assigning Labels
 
+TODO: describe 3 ways to assign labels
+
 ###### Pass Down Integration Labels
 
 These labels are automatically assigned to each alert group coming to the integration, based on the labels assigned to the integration.
+(TODO: add link to integration labels docs)
 
 1. Navigate to the Integration Labels section in the Alert Group Labeling tab.
 2. Enable/disable passing down specific labels using the toggler.
@@ -198,7 +210,9 @@ These labels are automatically assigned to each alert group coming to the integr
 This feature allows you to assign arbitrary labels to alert groups, either by deriving them from the payload or by specifying static values.
 
 1. In the Alert Group Labeling tab, navigate to Dynamic & Static Labels.
-2. Press the Add Label button and choose between dynamic or static labels.
+2. Press the **Add Label** button and choose between dynamic or static labels.
+
+TODO: Describe what's Static vs Dynamic labels
 
 For Static Labels:
 
@@ -208,18 +222,18 @@ For Static Labels:
 For Dynamic Labels:
 
 1. Choose or create a key from the dropdown list.
-2. Enter a Jinja template to parse the value for the given key from the alert payload.
+2. Enter a template to parse the value for the given key from the alert payload.
 
-To illustrate the Dynamic Labeling feature, let's consider an example where a dynamic label is created with a "severity" key
+To illustrate the Dynamic Labeling feature, let's consider an example where a dynamic label is created with a `severity` key
 and a template to parse values for that key:
 
-```jinja
+```jinja2
 {{ payload.get("severity) }}
 ```
 
-[SCREENSHOT_DYNAMIC LABEL EXAMPLE]
+TODO: [SCREENSHOT_DYNAMIC LABEL EXAMPLE]
 
-Two alerts was received and grouped to two different alert groups:
+Two alerts were received and grouped to two different alert groups:
 
 Alert 1:
 
@@ -241,8 +255,8 @@ Alert 2:
 
 As a result:
 
-- The first alert group will have a label: severity: critical.
-- The second alert group will have a label: severity: warning.
+- The first alert group will have a label: `severity: critical`.
+- The second alert group will have a label: `severity: warning`.
 
 ###### Multi-label extraction template
 
@@ -251,7 +265,7 @@ This functionality not only supports dynamic values but also accommodates dynami
 
 Consider the following example demonstrating the extraction of labels from a Grafana Alerting payload:
 
-Incoming Payload (Trimmed for Readability):
+Incoming Payload (trimmed for readability):
 
 ```json
 {
@@ -269,9 +283,9 @@ Incoming Payload (Trimmed for Readability):
 {{ payload.commonLabels | tojson }}
 ```
 
-As a result "job", "severity" and "alertname" labels will be assigned to the alert group:
+As a result `job`, `severity` and `alertname` labels will be assigned to the alert group:
 
-[SCREENSHOT_MULTI_LABEL_EXTRACTION_RESULT]
+TODO: [SCREENSHOT_MULTI_LABEL_EXTRACTION_RESULT]
 
 An advanced example showcases the extraction of labels from various fields of the alert payload, utilizing the Grafana Alerting payload:
 
@@ -287,7 +301,7 @@ An advanced example showcases the extraction of labels from various fields of th
 {{ labels | tojson }}
 ```
 
-#### Alert Group tabel customization
+#### Alert Group table customization
 
 Grafana OnCall provides users with the flexibility to customize their Alert Group table to suit individual preferences.
 This feature allows users to select and manage the columns displayed in the table, including the option to add custom columns based on labels.
