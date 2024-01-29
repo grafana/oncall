@@ -4,7 +4,6 @@ import { SelectableValue } from '@grafana/data';
 import {
   Button,
   HorizontalGroup,
-  InlineLabel,
   VerticalGroup,
   Icon,
   Tooltip,
