@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Improved logging during plugin sync and install with Grafana @mderynck ([#3730](https://github.com/grafana/oncall/pull/3730))
+- Improved zvonok verification call @sreway ([#3768](https://github.com/grafana/oncall/pull/3768))
 
 ### Fixed
 
