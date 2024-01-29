@@ -337,7 +337,15 @@ def test_sync_organization_is_rbac_permissions_enabled_open_source(make_organiza
                                 None,
                             ),
                         ):
-                            sync_organization(organization)
+                            with patch.object(
+                                GrafanaAPIClient,
+                                "get_grafana_labels_plugin_settings",
+                                return_value=(
+                                    {"enabled": True, "jsonData": {}},
+                                    None,
+                                ),
+                            ):
+                                sync_organization(organization)
 
     organization.refresh_from_db()
     assert organization.is_rbac_permissions_enabled == grafana_api_response
@@ -405,7 +413,15 @@ def test_sync_organization_is_rbac_permissions_enabled_cloud(
                                 None,
                             ),
                         ):
-                            sync_organization(organization)
+                            with patch.object(
+                                GrafanaAPIClient,
+                                "get_grafana_labels_plugin_settings",
+                                return_value=(
+                                    {"enabled": True, "jsonData": {}},
+                                    None,
+                                ),
+                            ):
+                                sync_organization(organization)
 
     organization.refresh_from_db()
 
@@ -480,7 +496,7 @@ def test_sync_organization_lock(make_organization):
 
 @dataclass
 class TestSyncGrafanaLabelsPluginParams:
-    get_grafana_labels_plugin_settings_return_value: dict
+    response: tuple
     expected_result: bool
 
 
@@ -488,28 +504,29 @@ class TestSyncGrafanaLabelsPluginParams:
 @pytest.mark.parametrize(
     "test_params",
     [
-        TestSyncGrafanaLabelsPluginParams({"enabled": True, "jsonData": {}}, True),
-        TestSyncGrafanaLabelsPluginParams({"enabled": True}, True),
-        TestSyncGrafanaLabelsPluginParams({"enabled": False}, False),
+        TestSyncGrafanaLabelsPluginParams(({"enabled": True, "jsonData": {}}, None), True),
+        TestSyncGrafanaLabelsPluginParams(({"enabled": True}, None), True),
+        TestSyncGrafanaLabelsPluginParams(({"enabled": False}, None), False),
     ],
 )
-@patch.object(GrafanaAPIClient, "get_grafana_labels_plugin_settings")
 @pytest.mark.django_db
-def test_sync_grafana_labels_plugin(
-    make_organization, mock_get_grafana_labels_plugin_settings, test_params: TestSyncGrafanaLabelsPluginParams
-):
-    mock_get_grafana_labels_plugin_settings.return_value = test_params.get_grafana_labels_plugin_settings_return_value
+def test_sync_grafana_labels_plugin(make_organization, test_params: TestSyncGrafanaLabelsPluginParams):
     organization = make_organization()
     organization.is_grafana_labels_enabled = False  # by default in tests it's true, so setting to false
 
-    grafana_api_client = GrafanaAPIClient(api_url=organization.grafana_url, api_token=organization.api_token)
-    _sync_grafana_labels_plugin(organization, grafana_api_client)
+    with patch.object(
+        GrafanaAPIClient,
+        "get_grafana_labels_plugin_settings",
+        return_value=test_params.response,
+    ):
+        grafana_api_client = GrafanaAPIClient(api_url=organization.grafana_url, api_token=organization.api_token)
+        _sync_grafana_labels_plugin(organization, grafana_api_client)
     assert organization.is_grafana_labels_enabled is test_params.expected_result
 
 
 @dataclass
 class TestSyncGrafanaIncidentParams:
-    response: dict
+    response: tuple
     expected_flag: bool
     expected_url: Optional[str]
 
@@ -519,24 +536,24 @@ class TestSyncGrafanaIncidentParams:
     "test_params",
     [
         TestSyncGrafanaIncidentParams(
-            {"enabled": True, "jsonData": {"backendUrl": MOCK_GRAFANA_INCIDENT_BACKEND_URL}},
+            ({"enabled": True, "jsonData": {"backendUrl": MOCK_GRAFANA_INCIDENT_BACKEND_URL}}, None),
             True,
             MOCK_GRAFANA_INCIDENT_BACKEND_URL,
         ),
-        TestSyncGrafanaIncidentParams({"enabled": True}, False, None),
+        TestSyncGrafanaIncidentParams(({"enabled": True}, None), True, None),
         # missing jsonData (sometimes this is what we get back from the Grafana API)
-        TestSyncGrafanaIncidentParams({"enabled": False}, False, None),  # plugin is disabled for some reason
+        TestSyncGrafanaIncidentParams(({"enabled": False}, None), False, None),  # plugin is disabled for some reason
     ],
 )
-@patch.object(GrafanaAPIClient, "get_grafana_incident_plugin_settings")
 @pytest.mark.django_db
-def test_sync_grafana_incident_plugin(
-    make_organization, mock_get_grafana_incident_plugin_settings, test_params: TestSyncGrafanaIncidentParams
-):
-    mock_get_grafana_incident_plugin_settings.return_value = test_params.response
+def test_sync_grafana_incident_plugin(make_organization, test_params: TestSyncGrafanaIncidentParams):
     organization = make_organization()
-
-    grafana_api_client = GrafanaAPIClient(api_url=organization.grafana_url, api_token=organization.api_token)
-    _sync_grafana_incident_plugin(organization, grafana_api_client)
+    with patch.object(
+        GrafanaAPIClient,
+        "get_grafana_incident_plugin_settings",
+        return_value=test_params.response,
+    ):
+        grafana_api_client = GrafanaAPIClient(api_url=organization.grafana_url, api_token=organization.api_token)
+        _sync_grafana_incident_plugin(organization, grafana_api_client)
     assert organization.is_grafana_incident_enabled is test_params.expected_flag
     assert organization.grafana_incident_backend_url is test_params.expected_url
