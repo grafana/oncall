@@ -193,6 +193,8 @@ def test_teams_number_of_users_currently_oncall_attribute_works_properly(
             schedule.refresh_ical_file()
             schedule.refresh_ical_final_schedule()
 
+    # create two schedules for team 1 to make sure that every user is calculated only once per team
+    _make_schedule(team=team1, oncall_users=[user1, user2])
     _make_schedule(team=team1, oncall_users=[user1, user2])
     _make_schedule(team=team2, oncall_users=[user1])
     _make_schedule(team=team3, oncall_users=[])
