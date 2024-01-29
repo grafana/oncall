@@ -593,6 +593,12 @@ class AlertGroupLogRecord(models.Model):
                 step_specific_info = json.loads(self.step_specific_info)
         return step_specific_info
 
+    def delete(self):
+        logger.debug(
+            f"alert_group_log_record for alert_group deleted" f"alert_group={self.alert_group.pk} log_id={self.pk}"
+        )
+        super().delete()
+
 
 @receiver(post_save, sender=AlertGroupLogRecord)
 def listen_for_alertgrouplogrecord(sender, instance, created, *args, **kwargs):
