@@ -20,13 +20,11 @@ LABEL_VALUE_TYPES = (str, int, float, bool)
 MAX_LABELS_PER_ALERT_GROUP = 15
 
 
-def assign_labels(
-    alert_group: "AlertGroup", alert_receive_channel: "AlertReceiveChannel", raw_request_data: "Alert.RawRequestData"
-) -> None:
-    from apps.labels.models import AlertGroupAssociatedLabel
-
+def gather_labels_from_alert_receive_channel_and_raw_request_data(
+    alert_receive_channel: "AlertReceiveChannel", raw_request_data: "Alert.RawRequestData"
+) -> typing.Optional[typing.Dict[str, str]]:
     if not is_labels_feature_enabled(alert_receive_channel.organization):
-        return
+        return None
 
     # inherit labels from the integration
     labels = {
@@ -39,6 +37,17 @@ def assign_labels(
 
     # apply template labels
     labels.update(_template_labels(alert_receive_channel, raw_request_data))
+
+    return labels
+
+
+def assign_labels(
+    alert_group: "AlertGroup", alert_receive_channel: "AlertReceiveChannel", labels: typing.Dict[str, str]
+) -> None:
+    from apps.labels.models import AlertGroupAssociatedLabel
+
+    if not is_labels_feature_enabled(alert_receive_channel.organization):
+        return
 
     # create associated labels
     alert_group_labels = [

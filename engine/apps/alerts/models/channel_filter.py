@@ -103,8 +103,12 @@ class ChannelFilter(OrderedModel):
 
     @classmethod
     def select_filter(
-        cls, alert_receive_channel: "AlertReceiveChannel", raw_request_data: "Alert.RawRequestData", force_route_id=None
-    ) -> "ChannelFilter":
+        cls,
+        alert_receive_channel: "AlertReceiveChannel",
+        raw_request_data: "Alert.RawRequestData",
+        alert_labels: typing.Optional[typing.Dict] = None,
+        force_route_id=None,
+    ) -> typing.Optional["ChannelFilter"]:
         # Try to find force route first if force_route_id is given
         # Force route was used to send demo alerts to specific route.
         # It is deprecated and may be used by older versions of the plugins
@@ -128,29 +132,30 @@ class ChannelFilter(OrderedModel):
                 )
                 pass
 
-        filters = cls.objects.filter(alert_receive_channel=alert_receive_channel)
+        channel_filters = cls.objects.filter(alert_receive_channel=alert_receive_channel)
 
-        satisfied_filter = None
-        for _filter in filters:
-            if satisfied_filter is None and _filter.is_satisfying(raw_request_data):
-                satisfied_filter = _filter
+        for channel_filter in channel_filters:
+            if channel_filter.is_default or channel_filter.check_filter(raw_request_data, alert_labels):
+                return channel_filter
+        return None
 
-        return satisfied_filter
-
-    def is_satisfying(self, raw_request_data):
-        return self.is_default or self.check_filter(raw_request_data)
-
-    def check_filter(self, value):
+    def check_filter(
+        self, raw_request_data: "Alert.RawRequestData", alert_labels: typing.Optional[typing.Dict] = None
+    ) -> bool:
         if self.filtering_term_type == ChannelFilter.FILTERING_TERM_TYPE_JINJA2:
             try:
-                is_matching = apply_jinja_template(self.filtering_term, payload=value)
+                is_matching = apply_jinja_template(
+                    self.filtering_term,
+                    payload=raw_request_data,
+                    labels=alert_labels if alert_labels is not None else {},
+                )
                 return is_matching.strip().lower() in ["1", "true", "ok"]
             except (JinjaTemplateError, JinjaTemplateWarning):
                 logger.error(f"channel_filter={self.id} failed to parse jinja2={self.filtering_term}")
                 return False
         if self.filtering_term is not None and self.filtering_term_type == ChannelFilter.FILTERING_TERM_TYPE_REGEX:
             try:
-                return re.search(self.filtering_term, json.dumps(value))
+                return re.search(self.filtering_term, json.dumps(raw_request_data))
             except re.error:
                 logger.error(f"channel_filter={self.id} failed to parse regex={self.filtering_term}")
                 return False

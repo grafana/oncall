@@ -12,7 +12,7 @@ from django.db.models import JSONField
 from apps.alerts import tasks
 from apps.alerts.constants import TASK_DELAY_SECONDS
 from apps.alerts.incident_appearance.templaters import TemplateLoader
-from apps.labels.alert_group_labels import assign_labels
+from apps.labels.alert_group_labels import assign_labels, gather_labels_from_alert_receive_channel_and_raw_request_data
 from common.jinja_templater import apply_jinja_template
 from common.jinja_templater.apply_jinja_template import JinjaTemplateError, JinjaTemplateWarning
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
@@ -100,9 +100,15 @@ class Alert(models.Model):
         # This import is here to avoid circular imports
         from apps.alerts.models import AlertGroup, AlertGroupLogRecord, AlertReceiveChannel, ChannelFilter
 
+        parsed_labels = gather_labels_from_alert_receive_channel_and_raw_request_data(
+            alert_receive_channel, raw_request_data
+        )
         group_data = Alert.render_group_data(alert_receive_channel, raw_request_data, is_demo)
+
         if channel_filter is None:
-            channel_filter = ChannelFilter.select_filter(alert_receive_channel, raw_request_data, force_route_id)
+            channel_filter = ChannelFilter.select_filter(
+                alert_receive_channel, raw_request_data, parsed_labels, force_route_id
+            )
 
         group, group_created = AlertGroup.objects.get_or_create_grouping(
             channel=alert_receive_channel,
@@ -112,7 +118,7 @@ class Alert(models.Model):
         )
 
         if group_created:
-            assign_labels(group, alert_receive_channel, raw_request_data)
+            assign_labels(group, alert_receive_channel, parsed_labels)
             group.log_records.create(type=AlertGroupLogRecord.TYPE_REGISTERED)
             group.log_records.create(type=AlertGroupLogRecord.TYPE_ROUTE_ASSIGNED)
 

@@ -1,4 +1,5 @@
 import logging
+import typing
 
 from django.conf import settings
 from jinja2 import TemplateAssertionError, TemplateSyntaxError, UndefinedError
@@ -7,6 +8,9 @@ from jinja2.exceptions import SecurityError
 from .jinja_template_env import jinja_template_env
 
 logger = logging.getLogger(__name__)
+
+if typing.TYPE_CHECKING:
+    from apps.alerts.models import Alert
 
 
 class JinjaTemplateError(Exception):
@@ -19,7 +23,12 @@ class JinjaTemplateWarning(Exception):
         self.fallback_message = f"Template Warning: {fallback_message}"
 
 
-def apply_jinja_template(template, payload=None, result_length_limit=settings.JINJA_RESULT_MAX_LENGTH, **kwargs):
+def apply_jinja_template(
+    template,
+    payload: typing.Optional["Alert.RawRequestData"] = None,
+    result_length_limit=settings.JINJA_RESULT_MAX_LENGTH,
+    **kwargs,
+):
     if len(template) > settings.JINJA_TEMPLATE_MAX_LENGTH:
         raise JinjaTemplateError(
             f"Template exceeds length limit ({len(template)} > {settings.JINJA_TEMPLATE_MAX_LENGTH})"
