@@ -263,6 +263,13 @@ class User(models.Model):
         """
         return self._verified_phone_number
 
+    @property
+    def is_telegram_connected(self):
+        """
+        # TODO: move to telegram app
+        """
+        return hasattr(self, "telegram_connection")
+
     def save_verified_phone_number(self, phone_number: str) -> None:
         self._verified_phone_number = phone_number
         self.save(update_fields=["_verified_phone_number"])
@@ -271,10 +278,6 @@ class User(models.Model):
         self.unverified_phone_number = None
         self._verified_phone_number = None
         self.save(update_fields=["unverified_phone_number", "_verified_phone_number"])
-
-    # TODO: move to telegram app
-    def is_telegram_connected(self):
-        return hasattr(self, "telegram_connection")
 
     def self_or_admin(self, user_to_check, organization) -> bool:
         has_admin_permission = user_is_authorized(user_to_check, [RBACPermission.Permissions.USER_SETTINGS_ADMIN])
