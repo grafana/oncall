@@ -28,7 +28,7 @@ const Tabs: FC<TabsProps> = ({
   const styles = useStyles2(getStyles);
 
   const defaultActiveLabel =
-    (shouldBeSyncedWithQueryString && LocationHelper.getQueryParams(queryStringKey)) || tabs[0].label;
+    (shouldBeSyncedWithQueryString && LocationHelper.getQueryParam(queryStringKey)) || tabs[0].label;
   const [activeTabLabel, setActiveTabLabel] = useState(defaultActiveLabel);
 
   const setLabel = (label: string) => {

@@ -57,14 +57,16 @@ export const UrlSettingsDrawerContent: FC<UrlSettingsDrawerContentProps> = ({ cl
             Test
           </Button>
         </div>
-        <HorizontalGroup justify="flex-end">
-          <Button variant="secondary" onClick={closeDrawer}>
-            Close
-          </Button>
-          <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
-            <Button type="submit">Update</Button>
-          </WithPermissionControlTooltip>
-        </HorizontalGroup>
+        <div className={styles.bottomButtons}>
+          <HorizontalGroup justify="flex-end">
+            <Button variant="secondary" onClick={closeDrawer}>
+              Close
+            </Button>
+            <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
+              <Button type="submit">Update</Button>
+            </WithPermissionControlTooltip>
+          </HorizontalGroup>
+        </div>
       </VerticalGroup>
     </form>
   );

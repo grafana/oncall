@@ -272,19 +272,18 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
     return (
       <HamburgerContextMenu
         items={[
-          <div key="view-last-run" onClick={() => this.onLastRunClick(record.id)}>
-            <WithPermissionControlTooltip key={'status_action'} userAction={UserActions.OutgoingWebhooksRead}>
-              <Text type="primary">View Last Run</Text>
-            </WithPermissionControlTooltip>
-          </div>,
-          <div key="settings" onClick={() => this.onEditClick(record.id)}>
-            <WithPermissionControlTooltip key={'edit_action'} userAction={UserActions.OutgoingWebhooksWrite}>
-              <Text type="primary">Edit settings</Text>
-            </WithPermissionControlTooltip>
-          </div>,
-          <div
-            key="enable-disable"
-            onClick={() =>
+          {
+            onClick: () => this.onLastRunClick(record.id),
+            requiredPermission: UserActions.OutgoingWebhooksRead,
+            label: <Text type="primary">View Last Run</Text>,
+          },
+          {
+            onClick: () => this.onEditClick(record.id),
+            requiredPermission: UserActions.OutgoingWebhooksWrite,
+            label: <Text type="primary">Edit settings</Text>,
+          },
+          {
+            onClick: () =>
               this.setState({
                 confirmationModal: {
                   isOpen: true,
@@ -293,30 +292,30 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
                   onConfirm: () => this.onDisableWebhook(record.id, !record.is_webhook_enabled),
                   title: `Are you sure you want to ${record.is_webhook_enabled ? 'disable' : 'enable'} webhook?`,
                 } as ConfirmModalProps,
-              })
-            }
-          >
-            <WithPermissionControlTooltip key={'disable_action'} userAction={UserActions.OutgoingWebhooksWrite}>
-              <Text type="primary">{record.is_webhook_enabled ? 'Disable' : 'Enable'}</Text>
-            </WithPermissionControlTooltip>
-          </div>,
-          <div key="copy" onClick={() => this.onCopyClick(record.id)}>
-            <WithPermissionControlTooltip key={'copy_action'} userAction={UserActions.OutgoingWebhooksWrite}>
-              <Text type="primary">Make a copy</Text>
-            </WithPermissionControlTooltip>
-          </div>,
-          <CopyToClipboard key="uid" text={record.id} onCopy={() => openNotification('Webhook ID has been copied')}>
-            <div>
-              <HorizontalGroup type="primary" spacing="xs">
-                <Icon name="clipboard-alt" />
-                <Text type="primary">UID: {record.id}</Text>
-              </HorizontalGroup>
-            </div>
-          </CopyToClipboard>,
+              }),
+            requiredPermission: UserActions.OutgoingWebhooksWrite,
+            label: <Text type="primary">{record.is_webhook_enabled ? 'Disable' : 'Enable'}</Text>,
+          },
+          {
+            onClick: () => this.onCopyClick(record.id),
+            requiredPermission: UserActions.OutgoingWebhooksWrite,
+            label: <Text type="primary">Make a copy</Text>,
+          },
+          {
+            label: (
+              <CopyToClipboard key="uid" text={record.id} onCopy={() => openNotification('Webhook ID has been copied')}>
+                <div>
+                  <HorizontalGroup type="primary" spacing="xs">
+                    <Icon name="clipboard-alt" />
+                    <Text type="primary">UID: {record.id}</Text>
+                  </HorizontalGroup>
+                </div>
+              </CopyToClipboard>
+            ),
+          },
           'divider',
-          <div
-            key="delete"
-            onClick={() =>
+          {
+            onClick: () =>
               this.setState({
                 confirmationModal: {
                   isOpen: true,
@@ -326,16 +325,15 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
                   body: 'The action cannot be undone.',
                   title: `Are you sure you want to delete webhook?`,
                 } as Partial<ConfirmModalProps> as ConfirmModalProps,
-              })
-            }
-          >
-            <WithPermissionControlTooltip key={'delete_action'} userAction={UserActions.OutgoingWebhooksWrite}>
+              }),
+            requiredPermission: UserActions.OutgoingWebhooksWrite,
+            label: (
               <HorizontalGroup spacing="xs">
                 <IconButton tooltip="Remove" tooltipPlacement="top" variant="destructive" name="trash-alt" />
                 <Text type="danger">Delete Webhook</Text>
               </HorizontalGroup>
-            </WithPermissionControlTooltip>
-          </div>,
+            ),
+          },
         ]}
       />
     );

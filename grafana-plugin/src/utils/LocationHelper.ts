@@ -19,7 +19,7 @@ class LocationHelper {
     }
   }
 
-  getQueryParams(paramKey: string) {
+  getQueryParam(paramKey: string) {
     return getQueryParams()?.[paramKey];
   }
 }

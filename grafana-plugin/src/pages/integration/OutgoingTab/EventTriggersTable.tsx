@@ -8,7 +8,6 @@ import GTable from 'components/GTable/GTable';
 import HamburgerContextMenu from 'components/HamburgerContextMenu/HamburgerContextMenu';
 import Text from 'components/Text/Text';
 import { WebhookLastEvent } from 'components/Webhooks/WebhookLastEvent';
-import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { OutgoingWebhook } from 'models/outgoing_webhook/outgoing_webhook.types';
 import { useStore } from 'state/useStore';
 import { openNotification } from 'utils';
@@ -74,77 +73,67 @@ const EventTriggerContextMenu = ({
   return (
     <HamburgerContextMenu
       items={[
-        <div
-          key="view-last-run"
-          onClick={() => {
+        {
+          onClick: () => {
             onOpenDrawer(TriggerDetailsTab.LastEvent);
-          }}
-        >
-          <WithPermissionControlTooltip key={'status_action'} userAction={UserActions.OutgoingWebhooksRead}>
-            <Text type="primary">View Last Run</Text>
-          </WithPermissionControlTooltip>
-        </div>,
-        <div
-          key="settings"
-          onClick={() => {
+          },
+          requiredPermission: UserActions.OutgoingWebhooksRead,
+          label: <Text type="primary">View Last Run</Text>,
+        },
+        {
+          onClick: () => {
             onOpenDrawer(TriggerDetailsTab.Settings);
-          }}
-        >
-          <WithPermissionControlTooltip key={'edit_action'} userAction={UserActions.OutgoingWebhooksWrite}>
-            <Text type="primary">Edit settings</Text>
-          </WithPermissionControlTooltip>
-        </div>,
-        <div
-          key="enable-disable"
-          onClick={
-            () => {}
-            // this.setState({
-            //   confirmationModal: {
-            //     isOpen: true,
-            //     confirmText: 'Confirm',
-            //     dismissText: 'Cancel',
-            //     onConfirm: () => this.onDisableWebhook(record.id, !record.is_webhook_enabled),
-            //     title: `Are you sure you want to ${record.is_webhook_enabled ? 'disable' : 'enable'} webhook?`,
-            //   } as ConfirmModalProps,
-            // })
-          }
-        >
-          <WithPermissionControlTooltip key={'disable_action'} userAction={UserActions.OutgoingWebhooksWrite}>
-            <Text type="primary">{webhook.is_webhook_enabled ? 'Disable' : 'Enable'}</Text>
-          </WithPermissionControlTooltip>
-        </div>,
-        <CopyToClipboard key="uid" text={webhook.id} onCopy={() => openNotification('Webhook ID has been copied')}>
-          <div>
-            <HorizontalGroup type="primary" spacing="xs">
-              <Icon name="clipboard-alt" />
-              <Text type="primary">UID: {webhook.id}</Text>
-            </HorizontalGroup>
-          </div>
-        </CopyToClipboard>,
+          },
+          requiredPermission: UserActions.OutgoingWebhooksWrite,
+          label: <Text type="primary">Edit settings</Text>,
+        },
+        {
+          onClick: () => {},
+          // this.setState({
+          //   confirmationModal: {
+          //     isOpen: true,
+          //     confirmText: 'Confirm',
+          //     dismissText: 'Cancel',
+          //     onConfirm: () => this.onDisableWebhook(record.id, !record.is_webhook_enabled),
+          //     title: `Are you sure you want to ${record.is_webhook_enabled ? 'disable' : 'enable'} webhook?`,
+          //   } as ConfirmModalProps,
+          // }),
+          requiredPermission: UserActions.OutgoingWebhooksWrite,
+          label: <Text type="primary">{webhook.is_webhook_enabled ? 'Disable' : 'Enable'}</Text>,
+        },
+        {
+          label: (
+            <CopyToClipboard key="uid" text={webhook.id} onCopy={() => openNotification('Webhook ID has been copied')}>
+              <div>
+                <HorizontalGroup type="primary" spacing="xs">
+                  <Icon name="clipboard-alt" />
+                  <Text type="primary">UID: {webhook.id}</Text>
+                </HorizontalGroup>
+              </div>
+            </CopyToClipboard>
+          ),
+        },
         'divider',
-        <div
-          key="delete"
-          onClick={
-            () => {}
-            // this.setState({
-            //   confirmationModal: {
-            //     isOpen: true,
-            //     confirmText: 'Confirm',
-            //     dismissText: 'Cancel',
-            //     onConfirm: () => this.onDeleteClick(record.id),
-            //     body: 'The action cannot be undone.',
-            //     title: `Are you sure you want to delete webhook?`,
-            //   } as Partial<ConfirmModalProps> as ConfirmModalProps,
-            // })
-          }
-        >
-          <WithPermissionControlTooltip key={'delete_action'} userAction={UserActions.OutgoingWebhooksWrite}>
+        {
+          onClick: () => {},
+          // this.setState({
+          //   confirmationModal: {
+          //     isOpen: true,
+          //     confirmText: 'Confirm',
+          //     dismissText: 'Cancel',
+          //     onConfirm: () => this.onDeleteClick(record.id),
+          //     body: 'The action cannot be undone.',
+          //     title: `Are you sure you want to delete webhook?`,
+          //   } as Partial<ConfirmModalProps> as ConfirmModalProps,
+          // }),
+          requiredPermission: UserActions.OutgoingWebhooksWrite,
+          label: (
             <HorizontalGroup spacing="xs">
               <IconButton tooltip="Remove" tooltipPlacement="top" variant="destructive" name="trash-alt" />
               <Text type="danger">Delete Webhook</Text>
             </HorizontalGroup>
-          </WithPermissionControlTooltip>
-        </div>,
+          ),
+        },
       ]}
     />
   );

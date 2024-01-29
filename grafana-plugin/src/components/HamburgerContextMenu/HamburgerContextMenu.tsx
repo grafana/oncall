@@ -1,4 +1,4 @@
-import React, { FC } from 'react';
+import React, { FC, ReactNode } from 'react';
 
 import { css } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
@@ -6,9 +6,11 @@ import { useStyles2 } from '@grafana/ui';
 
 import HamburgerMenu from 'components/HamburgerMenu/HamburgerMenu';
 import { WithContextMenu } from 'components/WithContextMenu/WithContextMenu';
+import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
+import { isUserActionAllowed, UserAction } from 'utils/authorization';
 
 interface HamburgerContextMenuProps {
-  items: Array<React.ReactNode | 'divider'>;
+  items: Array<{ onClick?: () => void; label: ReactNode; requiredPermission?: UserAction } | 'divider'>;
   hamburgerIconClassName?: string;
 }
 
@@ -19,15 +21,27 @@ const HamburgerContextMenu: FC<HamburgerContextMenuProps> = ({ items, hamburgerI
     <WithContextMenu
       renderMenuItems={() => (
         <div className={styles.menuList}>
-          {items.map((item, idx) =>
-            item === 'divider' ? (
-              <div key="line-break" className="thin-line-break" />
+          {items.map((item, idx) => {
+            if (item === 'divider') {
+              return <div key="line-break" className="thin-line-break" />;
+            }
+
+            return item.requiredPermission ? (
+              <WithPermissionControlTooltip key={idx} userAction={item.requiredPermission}>
+                <div
+                  className={styles.menuItem}
+                  key={idx}
+                  onClick={isUserActionAllowed(item.requiredPermission) && item.onClick}
+                >
+                  {item.label}
+                </div>
+              </WithPermissionControlTooltip>
             ) : (
-              <div className={styles.menuItem} key={idx}>
-                {item}
+              <div className={styles.menuItem} key={idx} onClick={item.onClick}>
+                {item.label}
               </div>
-            )
-          )}
+            );
+          })}
         </div>
       )}
     >

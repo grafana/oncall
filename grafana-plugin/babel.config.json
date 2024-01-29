@@ -10,6 +10,13 @@
     "@babel/plugin-transform-runtime",
     ["@babel/plugin-proposal-class-properties", { "loose": false }],
     "@babel/transform-regenerator",
-    "@babel/plugin-transform-template-literals"
+    "@babel/plugin-transform-template-literals",
+    [
+      "@emotion",
+      {
+        "autoLabel": "dev-only",
+        "labelFormat": "[local]"
+      }
+    ]
   ]
 }

@@ -14,12 +14,35 @@ export const getStyles = (theme: GrafanaTheme2) => ({
   }),
   form: css({
     height: '100%',
+    paddingBottom: '64px',
   }),
   formFieldsWrapper: css({
     width: '100%',
   }),
-  select: css({
+  bottomButtons: css({
+    position: 'absolute',
+    bottom: '16px',
+    right: '16px',
+  }),
+  infoIcon: css({
+    marginLeft: '10px',
+  }),
+  monacoEditorWrapper: css({
+    display: 'flex',
+    width: '100%',
+    gap: '6px',
+  }),
+  switcherFieldWrapper: css({
+    display: 'flex',
+    gap: '8px',
+    alignItems: 'center',
+  }),
+  switcherLabel: css({
+    marginBottom: 0,
+  }),
+  selectField: css({
     width: '200px',
+    marginBottom: 0,
   }),
   hamburgerIcon: css({
     background: theme.colors.secondary.shade,

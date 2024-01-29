@@ -73,7 +73,7 @@ export function useDebouncedCallback<A extends any[]>(callback: (...args: A) => 
 }
 
 export const useDrawerState = <DrawerKey extends string, DrawerData = unknown>(initialDrawerData?: DrawerData) => {
-  const [openedDrawer, setOpenedDrawer] = useState<DrawerKey>(LocationHelper.getQueryParams('openedDrawerKey'));
+  const [openedDrawer, setOpenedDrawer] = useState<DrawerKey>(LocationHelper.getQueryParam('openedDrawerKey'));
   const [drawerData, setDrawerData] = useState<DrawerData>(initialDrawerData);
 
   return {

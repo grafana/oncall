@@ -20,8 +20,8 @@ const cx = cn.bind(styles);
 interface Template {
   value: string;
   displayName: string;
-  description: string;
-  name: undefined;
+  description?: string;
+  name: string;
 }
 
 interface WebhooksTemplateEditorProps {
@@ -32,9 +32,9 @@ interface WebhooksTemplateEditorProps {
 }
 
 const WebhooksTemplateEditor: React.FC<WebhooksTemplateEditorProps> = ({ template, id, onHide, handleSubmit }) => {
-  const [isCheatSheetVisible, setIsCheatSheetVisible] = useState<boolean>(false);
-  const [changedTemplateBody, setChangedTemplateBody] = useState<string>(template.value);
-  const [selectedPayload, setSelectedPayload] = useState(undefined);
+  const [isCheatSheetVisible, setIsCheatSheetVisible] = useState(false);
+  const [changedTemplateBody, setChangedTemplateBody] = useState(template.value);
+  const [selectedPayload, setSelectedPayload] = useState();
   const [resultError, setResultError] = useState<string>(undefined);
 
   const getChangeHandler = () => {

@@ -8,6 +8,7 @@ import IntegrationCollapsibleTreeView from 'components/IntegrationCollapsibleTre
 import IntegrationBlock from 'components/Integrations/IntegrationBlock';
 import IntegrationTag from 'components/Integrations/IntegrationTag';
 import Text from 'components/Text/Text';
+import { UserActions } from 'utils/authorization';
 import { useDrawerState } from 'utils/hooks';
 
 import { EventTriggerDetailsDrawerContent } from './EventTriggerDetailsDrawerContent';
@@ -23,17 +24,17 @@ const OutgoingTab = () => {
   return (
     <>
       {getIsDrawerOpened('urlSettings') && (
-        <Drawer title="Outgoing URL Settings" onClose={closeDrawer}>
+        <Drawer title="Outgoing URL Settings" onClose={closeDrawer} width="640px">
           <UrlSettingsDrawerContent closeDrawer={closeDrawer} />
         </Drawer>
       )}
       {getIsDrawerOpened('triggerDetails') && (
-        <Drawer title="Event trigger details" onClose={closeDrawer}>
+        <Drawer title="Event trigger details" onClose={closeDrawer} width="640px">
           <EventTriggerDetailsDrawerContent closeDrawer={closeDrawer} />
         </Drawer>
       )}
       {getIsDrawerOpened('newEventTrigger') && (
-        <Drawer title="New event trigger" onClose={closeDrawer}>
+        <Drawer title="New event trigger" onClose={closeDrawer} width="640px">
           <NewEventTriggerDrawerContent closeDrawer={closeDrawer} />
         </Drawer>
       )}
@@ -82,9 +83,11 @@ const Url = ({ openDrawer }: { openDrawer: (key: OutgoingTabDrawerKey) => void }
             />
             <HamburgerContextMenu
               items={[
-                <div key="url" onClick={() => openDrawer('urlSettings')}>
-                  URL Settings
-                </div>,
+                {
+                  onClick: () => openDrawer('urlSettings'),
+                  label: 'URL Settings',
+                  requiredPermission: UserActions.IntegrationsWrite,
+                },
               ]}
               hamburgerIconClassName={styles.hamburgerIcon}
             />
