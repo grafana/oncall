@@ -177,6 +177,7 @@ const OutgoingWebhookForm = observer((props: OutgoingWebhookFormProps) => {
       preset: selectedPreset?.id,
       trigger_type: null,
       http_method: 'POST',
+      forward_all: true,
     };
   } else if (isNewOrCopy) {
     data = { ...outgoingWebhookStore.items[id], is_legacy: false, name: '' };
