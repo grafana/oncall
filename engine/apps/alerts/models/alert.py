@@ -111,6 +111,7 @@ class Alert(models.Model):
             group_data=group_data,
             received_at=received_at,
         )
+        logger.debug(f"alert group {group.pk} created={group_created}")
 
         # Create alert
         alert = cls(
@@ -125,10 +126,11 @@ class Alert(models.Model):
             is_the_first_alert_in_group=group_created,
         )
         alert.save()
+        logger.debug(f"alert {alert.pk} created")
         send_alert_create_signal.apply_async((alert.pk,))
 
         if group_created:
-            assign_labels(group, alert_receive_channel)
+            assign_labels(group, alert_receive_channel, raw_request_data)
             group.log_records.create(type=AlertGroupLogRecord.TYPE_REGISTERED)
             group.log_records.create(type=AlertGroupLogRecord.TYPE_ROUTE_ASSIGNED)
 
@@ -137,6 +139,7 @@ class Alert(models.Model):
             alert.group.start_escalation_if_needed(countdown=TASK_DELAY_SECONDS)
 
         if group_created:
+            # TODO: consider moving to start_escalation_if_needed
             alert_group_escalation_snapshot_built.send(sender=cls.__class__, alert_group=alert.group)
 
         mark_as_acknowledged = group_data.is_acknowledge_signal
