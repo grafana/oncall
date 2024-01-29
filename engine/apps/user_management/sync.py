@@ -58,6 +58,10 @@ def _sync_organization(organization: Organization) -> None:
             organization.grafana_incident_backend_url = grafana_incident_settings.get("jsonData", {}).get(
                 GrafanaAPIClient.GRAFANA_INCIDENT_PLUGIN_BACKEND_URL_KEY
             )
+
+        grafana_labels_plugin_settings, _ = grafana_api_client.get_grafana_labels_plugin_settings()
+        if grafana_labels_plugin_settings is not None:
+            organization.is_grafana_labels_enabled = grafana_labels_plugin_settings["enabled"]
     else:
         organization.api_token_status = Organization.API_TOKEN_STATUS_FAILED
         logger.warning(f"Sync not successful org={organization.pk} token_status=FAILED")

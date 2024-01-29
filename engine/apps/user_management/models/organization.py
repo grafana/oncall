@@ -252,6 +252,7 @@ class Organization(MaintainableObject):
 
     is_rbac_permissions_enabled = models.BooleanField(default=False)
     is_grafana_incident_enabled = models.BooleanField(default=False)
+    is_grafana_labels_enabled = models.BooleanField(default=False)
 
     alert_group_table_columns: list[AlertGroupTableColumn] | None = JSONField(default=None, null=True)
     grafana_incident_backend_url = models.CharField(max_length=300, null=True, default=None)
