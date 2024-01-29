@@ -127,7 +127,8 @@ class Alert(models.Model):
         )
         alert.save()
         logger.debug(f"alert {alert.pk} created")
-        send_alert_create_signal.apply_async((alert.pk,))
+
+        transaction.on_commit(partial(send_alert_create_signal.apply_async, (alert.pk,)))
 
         if group_created:
             assign_labels(group, alert_receive_channel, raw_request_data)
