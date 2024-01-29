@@ -135,9 +135,14 @@ class ChannelFilter(OrderedModel):
         channel_filters = cls.objects.filter(alert_receive_channel=alert_receive_channel)
 
         for channel_filter in channel_filters:
-            if channel_filter.is_default or channel_filter.check_filter(raw_request_data, alert_labels):
+            if channel_filter.is_satisfying(raw_request_data, alert_labels):
                 return channel_filter
         return None
+
+    def is_satisfying(
+        self, raw_request_data: "Alert.RawRequestData", alert_labels: typing.Optional[typing.Dict] = None
+    ) -> bool:
+        return self.is_default or self.check_filter(raw_request_data, alert_labels)
 
     def check_filter(
         self, raw_request_data: "Alert.RawRequestData", alert_labels: typing.Optional[typing.Dict] = None
