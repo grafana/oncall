@@ -206,9 +206,10 @@ const IntegrationLabelsForm = observer((props: IntegrationLabelsFormProps) => {
           templates={templates}
           templateBody={alertGroupLabels.custom[customLabelIndexToShowTemplateEditor].value.name}
           onHide={() => setCustomLabelIndexToShowTemplateEditor(undefined)}
-          onUpdateTemplates={({ alert_group_labels }) => {
+          onUpdateTemplates={(templates) => {
             const newCustom = [...alertGroupLabels.custom];
-            newCustom[customLabelIndexToShowTemplateEditor].value.name = alert_group_labels;
+            newCustom[customLabelIndexToShowTemplateEditor].value.name =
+              templates[LabelTemplateOptions.AlertGroupDynamicLabel.key];
 
             setAlertGroupLabels({
               ...alertGroupLabels,
@@ -229,10 +230,10 @@ const IntegrationLabelsForm = observer((props: IntegrationLabelsFormProps) => {
           templates={templates}
           templateBody={alertGroupLabels.template}
           onHide={() => setShowTemplateEditor(false)}
-          onUpdateTemplates={({ alert_group_labels }) => {
+          onUpdateTemplates={(templates) => {
             setAlertGroupLabels({
               ...alertGroupLabels,
-              template: alert_group_labels,
+              template: templates[LabelTemplateOptions.AlertGroupMultiLabel.key],
             });
 
             setShowTemplateEditor(undefined);

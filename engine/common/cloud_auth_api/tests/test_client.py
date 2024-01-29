@@ -80,7 +80,7 @@ def test_request_signed_token(mock_requests, make_organization, response_status_
             "claims": claims,
             "extra": {
                 "scopes": scopes,
-                "org_id": org_id,
+                "org_id": str(org_id),
             },
         },
     )
