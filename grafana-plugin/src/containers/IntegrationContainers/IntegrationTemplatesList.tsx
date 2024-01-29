@@ -71,7 +71,9 @@ const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = observer
                   warningOnEdit={
                     alertReceiveChannelIsBasedOnAlertManager &&
                     (isGroupingIdTemplate(contents.name) || isResolveConditionTemplate(contents.name))
-                      ? 'Are you sure?'
+                      ? 'Caution: Changing this template can lead to unexpected alert behavior, ' +
+                        'especially if grouping is enabled in AlertManager/Grafana Alerting. ' +
+                        'Please proceed only if you are completely sure of the modifications you are about to make.'
                       : undefined
                   }
                   renderInput={() => (
