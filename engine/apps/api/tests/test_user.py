@@ -24,7 +24,12 @@ def clear_cache():
 
 
 @pytest.mark.django_db
-def test_current_user(make_organization_and_user_with_plugin_token, make_user_auth_headers):
+def test_current_user(
+    make_organization_and_user_with_plugin_token,
+    make_user_auth_headers,
+    make_schedule,
+    make_on_call_shift,
+):
     organization, user, token = make_organization_and_user_with_plugin_token()
 
     client = APIClient()
@@ -42,6 +47,7 @@ def test_current_user(make_organization_and_user_with_plugin_token, make_user_au
         "rbac_permissions": user.permissions,
         "timezone": None,
         "working_hours": default_working_hours(),
+        "is_currently_oncall": False,
         "unverified_phone_number": None,
         "verified_phone_number": None,
         "telegram_configuration": None,
@@ -59,6 +65,28 @@ def test_current_user(make_organization_and_user_with_plugin_token, make_user_au
 
     response = client.get(url, format="json", **make_user_auth_headers(user, token))
     assert response.status_code == status.HTTP_200_OK
+    assert response.json() == expected_response
+
+    # current user is on-call
+    today = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
+    on_call_shift = make_on_call_shift(
+        organization=organization,
+        shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT,
+        start=today,
+        rotation_start=today,
+        duration=timezone.timedelta(seconds=24 * 60 * 60),
+        priority_level=1,
+        frequency=CustomOnCallShift.FREQUENCY_DAILY,
+        schedule=schedule,
+    )
+    on_call_shift.add_rolling_users([[user]])
+    schedule.refresh_ical_file()
+    schedule.refresh_ical_final_schedule()
+
+    response = client.get(url, format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_200_OK
+    expected_response["is_currently_oncall"] = True
     assert response.json() == expected_response
 
     data_to_update = {"hide_phone_number": True}
@@ -127,6 +155,7 @@ def test_update_user_cant_change_email_and_username(
         "role": admin.role,
         "timezone": None,
         "working_hours": default_working_hours(),
+        "is_currently_oncall": False,
         "unverified_phone_number": phone_number,
         "verified_phone_number": None,
         "telegram_configuration": None,
@@ -2016,6 +2045,12 @@ def test_users_is_currently_oncall_attribute_works_properly(
     for user in response.json():
         assert user["teams"] == []
         assert user["is_currently_oncall"] == oncall_statuses[user["pk"]]
+
+    # getting specific user details include currently on-call info
+    url = reverse("api-internal:user-detail", kwargs={"pk": user1.public_primary_key})
+    response = client.get(url, format="json", **make_user_auth_headers(user1, token))
+
+    assert response.json()["is_currently_oncall"]
 
 
 @pytest.mark.django_db
