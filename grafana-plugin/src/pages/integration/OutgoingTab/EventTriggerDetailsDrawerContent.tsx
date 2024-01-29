@@ -1,4 +1,4 @@
-import React, { FC } from 'react';
+import React, { FC, useMemo } from 'react';
 
 import { Button, HorizontalGroup, useStyles2, VerticalGroup } from '@grafana/ui';
 import { useForm, FormProvider } from 'react-hook-form';
@@ -11,6 +11,10 @@ import { UserActions } from 'utils/authorization';
 import { EventTriggerFormFields } from './EventTriggerFormFields';
 import { getStyles } from './OutgoingTab.styles';
 import { TriggerDetailsQueryStringKey, TriggerDetailsTab, FormValues } from './OutgoingTab.types';
+import { useStore } from 'state/useStore';
+import { getEventDetailsRows } from './EventTriggerDetailsDrawerContent.utils';
+import WebhookLastEventDetails from 'components/Webhooks/WebhookLastEventDetails';
+import { observer } from 'mobx-react-lite';
 
 interface EventTriggerDetailsDrawerContentProps {
   closeDrawer: () => void;
@@ -21,7 +25,7 @@ export const EventTriggerDetailsDrawerContent: FC<EventTriggerDetailsDrawerConte
       queryStringKey={TriggerDetailsQueryStringKey.ActiveTab}
       tabs={[
         { label: TriggerDetailsTab.Settings, content: <Settings closeDrawer={closeDrawer} /> },
-        { label: TriggerDetailsTab.LastEvent, content: <div>Last event</div> },
+        { label: TriggerDetailsTab.LastEvent, content: <LastEventDetails closeDrawer={closeDrawer} /> },
       ]}
     />
   );
@@ -64,3 +68,34 @@ const Settings: FC<SettingsProps> = ({ closeDrawer }) => {
     </FormProvider>
   );
 };
+
+interface LastEventDetailsProps {
+  closeDrawer: () => void;
+}
+const LastEventDetails: FC<LastEventDetailsProps> = observer(({ closeDrawer }) => {
+  const styles = useStyles2(getStyles);
+
+  const {
+    outgoingWebhookStore: { items },
+  } = useStore();
+  const webhook = items[LocationHelper.getQueryParam(TriggerDetailsQueryStringKey.WebhookId)];
+
+  const onSubmit = () => {};
+
+  if (!webhook) {
+    return null;
+  }
+
+  return (
+    <div>
+      <WebhookLastEventDetails webhook={webhook} />
+      <div className={styles.bottomButtons}>
+        <HorizontalGroup justify="flex-end">
+          <Button variant="secondary" onClick={closeDrawer}>
+            Close
+          </Button>
+        </HorizontalGroup>
+      </div>
+    </div>
+  );
+});

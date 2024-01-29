@@ -18,7 +18,7 @@ import {
 import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
 import TextEllipsisTooltip from 'components/TextEllipsisTooltip/TextEllipsisTooltip';
-import { WebhookLastEvent } from 'components/Webhooks/WebhookLastEvent';
+import { WebhookLastEvent } from 'components/Webhooks/WebhookLastEventTimestamp';
 import { WebhookName } from 'components/Webhooks/WebhookName';
 import OutgoingWebhookForm from 'containers/OutgoingWebhookForm/OutgoingWebhookForm';
 import RemoteFilters from 'containers/RemoteFilters/RemoteFilters';

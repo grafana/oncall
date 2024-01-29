@@ -8,8 +8,9 @@ import Tag from 'components/Tag/Tag';
 import { OutgoingWebhook } from 'models/outgoing_webhook/outgoing_webhook.types';
 import { getTzOffsetString } from 'models/timezone/timezone.helpers';
 import { OutgoingTabDrawerKey } from 'pages/integration/OutgoingTab/OutgoingTab.types';
+import WebhookStatusCodeBadge from './WebhookStatusCodeBadge';
 
-export const WebhookLastEvent = ({
+export const WebhookLastEventTimestamp = ({
   webhook,
   openDrawer,
 }: {
@@ -50,11 +51,7 @@ export const WebhookLastEvent = ({
       >
         {lastEventFormatted}
       </Tag>
-      <Badge
-        color={webhook.last_response_log?.status_code?.startsWith?.('2') ? 'green' : 'orange'}
-        text={webhook.last_response_log?.status_code || 'No status'}
-        className={styles.lastEventBadge}
-      />
+      <WebhookStatusCodeBadge webhook={webhook} />
       <Button
         size="sm"
         icon="eye"
@@ -70,9 +67,5 @@ export const WebhookLastEvent = ({
 export const getStyles = () => ({
   eventDetailsIconButton: css({
     padding: '6px 10px',
-  }),
-  lastEventBadge: css({
-    wordBreak: 'keep-all',
-    whiteSpace: 'nowrap',
   }),
 });

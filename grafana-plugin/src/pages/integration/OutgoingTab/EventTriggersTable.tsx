@@ -7,7 +7,7 @@ import CopyToClipboard from 'react-copy-to-clipboard';
 import GTable from 'components/GTable/GTable';
 import HamburgerContextMenu from 'components/HamburgerContextMenu/HamburgerContextMenu';
 import Text from 'components/Text/Text';
-import { WebhookLastEvent } from 'components/Webhooks/WebhookLastEvent';
+import { WebhookLastEvent, WebhookLastEventTimestamp } from 'components/Webhooks/WebhookLastEventTimestamp';
 import { OutgoingWebhook } from 'models/outgoing_webhook/outgoing_webhook.types';
 import { useStore } from 'state/useStore';
 import { openNotification } from 'utils';
@@ -47,7 +47,7 @@ const getColumns = (openDrawer: (key: OutgoingTabDrawerKey) => void) => [
   {
     width: '60%',
     title: 'Last event',
-    render: (webhook: OutgoingWebhook) => <WebhookLastEvent webhook={webhook} openDrawer={openDrawer} />,
+    render: (webhook: OutgoingWebhook) => <WebhookLastEventTimestamp webhook={webhook} openDrawer={openDrawer} />,
   },
   {
     width: '5%',
