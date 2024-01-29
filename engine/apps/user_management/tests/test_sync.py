@@ -234,11 +234,14 @@ def test_sync_organization(
 ):
     # Set optimistic responses from grafana api.
     # All cases are tested properly in test_sync_grafana_incident_plugin/test_sync_grafana_labels_plugin
-    mock_get_grafana_incident_plugin_settings.return_value = {
-        "enabled": True,
-        "jsonData": {"backendUrl": MOCK_GRAFANA_INCIDENT_BACKEND_URL},
-    }
-    mock_get_grafana_labels_plugin_settings.return_value = {"enabled": True, "jsonData": {}}
+    mock_get_grafana_incident_plugin_settings.return_value = (
+        {
+            "enabled": True,
+            "jsonData": {"backendUrl": MOCK_GRAFANA_INCIDENT_BACKEND_URL},
+        },
+        None,
+    )
+    mock_get_grafana_labels_plugin_settings.return_value = ({"enabled": True, "jsonData": {}}, None)
 
     organization = make_organization()
 
