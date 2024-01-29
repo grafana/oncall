@@ -309,7 +309,7 @@ def get_user_permission_role_mapping_from_frontend_plugin_json() -> RoleMapping:
     class PluginJSON(typing.TypedDict):
         roles: typing.List[PluginJSONRole]
 
-    with open("/Users/flamingshalom/code/oncall/grafana-plugin/src/plugin.json") as fp:
+    with open("../grafana-plugin/src/plugin.json") as fp:
         plugin_json: PluginJSON = json.load(fp)
 
     role_mapping: RoleMapping = {
