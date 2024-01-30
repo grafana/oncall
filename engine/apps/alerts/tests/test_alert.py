@@ -5,6 +5,7 @@ from django.utils import timezone
 
 from apps.alerts.models import Alert, ChannelFilter, EscalationPolicy
 from apps.alerts.tasks import distribute_alert, escalate_alert_group
+from common.jinja_templater.apply_jinja_template import JinjaTemplateError, JinjaTemplateWarning
 
 
 @pytest.mark.django_db
@@ -210,9 +211,78 @@ def test_distribute_alert_escalate_alert_group_when_escalation_paused(
     mock_escalate_alert_group_2.assert_called_once()
 
 
-def test_apply_jinja_template_to_alert_payload_and_labels():
-    pass
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "template,check_if_templated_value_is_truthy,expected",
+    [
+        ('{{ "foo" in labels.keys() }}', True, True),
+        (' {{ "foo" in labels.keys() }} ', False, " True "),
+    ],
+)
+def test_apply_jinja_template_to_alert_payload_and_labels(
+    make_organization, make_alert_receive_channel, template, check_if_templated_value_is_truthy, expected
+):
+    template_name = "test_template_name"
+    raw_request_data = {"value": 5}
+    labels = {"foo": "bar"}
+
+    organization = make_organization()
+    alert_receive_channel = make_alert_receive_channel(organization)
+
+    assert (
+        Alert._apply_jinja_template_to_alert_payload_and_labels(
+            template,
+            template_name,
+            alert_receive_channel,
+            raw_request_data,
+            labels,
+            check_if_templated_value_is_truthy=check_if_templated_value_is_truthy,
+        )
+        == expected
+    )
 
 
-def test_render_group_data():
-    pass
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "ExceptionClass,use_error_msg_as_fallback,check_if_templated_value_is_truthy,expected",
+    [
+        (JinjaTemplateError, True, False, "Template Error: asdflkjqwerqwer"),
+        (JinjaTemplateWarning, True, False, "Template Warning: asdflkjqwerqwer"),
+        (JinjaTemplateError, False, True, False),
+        (JinjaTemplateWarning, False, True, False),
+        (JinjaTemplateError, False, False, None),
+        (JinjaTemplateWarning, False, False, None),
+    ],
+)
+@patch("apps.alerts.models.alert.apply_jinja_template_to_alert_payload_and_labels")
+def test_apply_jinja_template_to_alert_payload_and_labels_jinja_exceptions(
+    mock_apply_jinja_template_to_alert_payload_and_labels,
+    make_organization,
+    make_alert_receive_channel,
+    ExceptionClass,
+    use_error_msg_as_fallback,
+    check_if_templated_value_is_truthy,
+    expected,
+):
+    mock_apply_jinja_template_to_alert_payload_and_labels.side_effect = ExceptionClass("asdflkjqwerqwer")
+
+    template = "hi"
+    template_name = "test_template_name"
+    raw_request_data = {"value": 5}
+    labels = {"foo": "bar"}
+
+    organization = make_organization()
+    alert_receive_channel = make_alert_receive_channel(organization)
+
+    result = Alert._apply_jinja_template_to_alert_payload_and_labels(
+        template,
+        template_name,
+        alert_receive_channel,
+        raw_request_data,
+        labels,
+        use_error_msg_as_fallback=use_error_msg_as_fallback,
+        check_if_templated_value_is_truthy=check_if_templated_value_is_truthy,
+    )
+    assert result == expected
+
+    mock_apply_jinja_template_to_alert_payload_and_labels.assert_called_once_with(template, raw_request_data, labels)

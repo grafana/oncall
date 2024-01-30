@@ -219,7 +219,7 @@ class Alert(models.Model):
 
     @classmethod
     def _apply_jinja_template_to_alert_payload_and_labels(
-        self,
+        cls,
         template: str,
         template_name: str,
         alert_receive_channel: "AlertReceiveChannel",
@@ -227,21 +227,22 @@ class Alert(models.Model):
         labels: typing.Optional[Labels],
         use_error_msg_as_fallback=False,
         check_if_templated_value_is_truthy=False,
-    ) -> typing.Optional[str]:
+    ) -> typing.Union[str, None, bool]:
         try:
             templated_value = apply_jinja_template_to_alert_payload_and_labels(template, raw_request_data, labels)
             return templated_value_is_truthy(templated_value) if check_if_templated_value_is_truthy else templated_value
         except (JinjaTemplateError, JinjaTemplateWarning) as e:
             fallback_msg = e.fallback_message
 
-            if use_error_msg_as_fallback:
-                return fallback_msg
-
             logger.warning(
                 f"{template_name} error on channel={alert_receive_channel.public_primary_key}: {fallback_msg}"
             )
 
-        return None
+            if use_error_msg_as_fallback:
+                return fallback_msg
+            elif check_if_templated_value_is_truthy:
+                return False
+            return None
 
     @classmethod
     def render_group_data(
