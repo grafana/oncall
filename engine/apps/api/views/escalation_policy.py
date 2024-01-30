@@ -24,7 +24,7 @@ from common.ordered_model.viewset import OrderedModelViewSet
 
 class EscalationPolicyView(
     TeamFilteringMixin,
-    PublicPrimaryKeyMixin,
+    PublicPrimaryKeyMixin[EscalationPolicy],
     CreateSerializerMixin,
     UpdateSerializerMixin,
     OrderedModelViewSet,

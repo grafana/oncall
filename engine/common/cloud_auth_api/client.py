@@ -1,5 +1,6 @@
 import enum
 import json
+import logging
 import typing
 from urllib.parse import urljoin
 
@@ -9,6 +10,9 @@ from rest_framework import status
 
 if typing.TYPE_CHECKING:
     from apps.user_management.models import Organization
+
+
+logger = logging.getLogger(__name__)
 
 
 class CloudAuthApiException(Exception):
@@ -41,26 +45,30 @@ class CloudAuthApiClient:
     def request_signed_token(
         self, org: "Organization", scopes: typing.List[Scopes], claims: typing.Dict[str, typing.Any]
     ) -> str:
-        org_id = org.org_id
-        stack_id = org.stack_id
+        # The Cloud Auth API expects the org_id and stack_id to be strings
+        org_id = str(org.org_id)
+        stack_id = str(org.stack_id)
 
         # NOTE: header values must always be strings
         headers = {
             "Authorization": f"Bearer {self.api_token}",
             # need to cast to str otherwise - requests.exceptions.InvalidHeader: Header part ... from ('X-Org-ID', 5000)
             # must be of type str or bytes, not <class 'int'>
-            "X-Org-ID": str(org_id),
+            "X-Org-ID": org_id,
             "X-Realms": json.dumps(
                 [
                     {
                         "type": "stack",
-                        "identifier": str(stack_id),
+                        "identifier": stack_id,
                     },
                 ]
             ),
         }
 
         url = urljoin(self.api_base_url, "v1/sign")
+        common_log_msg = f"org_id={org_id} stack_id={stack_id} url={url}"
+        logger.info(f"Requesting signed token from Cloud Auth API {common_log_msg}")
+
         response = requests.post(
             url,
             headers=headers,
@@ -74,5 +82,11 @@ class CloudAuthApiClient:
         )
 
         if response.status_code != status.HTTP_200_OK:
+            logger.warning(
+                f"Got non-HTTP 200 when attempting to request signed token from Cloud Auth API {common_log_msg} "
+                f"status_code={response.status_code} response={response.text}"
+            )
             raise CloudAuthApiException(response.status_code, url, response.text, method="POST")
+
+        logger.info(f"Successfully requested signed token from Cloud Auth API {common_log_msg}")
         return response.json()["data"]["token"]

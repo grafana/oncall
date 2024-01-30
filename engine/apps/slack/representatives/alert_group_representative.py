@@ -54,8 +54,6 @@ def on_create_alert_slack_representative_async(alert_pk):
 def on_alert_group_action_triggered_async(log_record_id):
     from apps.alerts.models import AlertGroupLogRecord
 
-    logger.debug(f"SLACK representative: get log record {log_record_id}")
-
     try:
         log_record = AlertGroupLogRecord.objects.get(pk=log_record_id)
     except AlertGroupLogRecord.DoesNotExist:
@@ -165,8 +163,10 @@ class AlertGroupSlackRepresentative(AlertGroupAbstractRepresentative):
             return
 
         if log_record.action_source == ActionSource.SLACK or force_sync:
+            logger.debug(f"SLACK on_alert_group_action_triggered: sync {log_record_id} {force_sync}")
             on_alert_group_action_triggered_async(log_record_id)
         else:
+            logger.debug(f"SLACK on_alert_group_action_triggered: async {log_record_id} {force_sync}")
             on_alert_group_action_triggered_async.apply_async((log_record_id,))
 
     @classmethod
