@@ -10,5 +10,5 @@ export interface TableColumn {
 }
 
 export type KeysMatching<T extends object, V> = keyof {
-  [K in keyof T as T[K] extends V ? K : never]: any;
+  [K in keyof T as T[K] extends V ? K : never]: unknown;
 };
