@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Changed
+
+- Refactor create_alert task by @iskhakov ([#3604](https://github.com/grafana/oncall/pull/3759))
+
 ## v1.3.82 (2024-01-04)
 
 ### Added
