@@ -1,7 +1,8 @@
 import React, { FC, useMemo } from 'react';
 
 import { css } from '@emotion/css';
-import { VerticalGroup, HorizontalGroup, Badge, useStyles2 } from '@grafana/ui';
+import { GrafanaTheme2 } from '@grafana/data';
+import { VerticalGroup, HorizontalGroup, Badge, useStyles2, Tooltip, Icon, useTheme2 } from '@grafana/ui';
 import dayjs from 'dayjs';
 
 import SourceCode from 'components/SourceCode/SourceCode';
@@ -18,7 +19,8 @@ interface WebhookLastEventDetailsProps {
 
 const WebhookLastEventDetails: FC<WebhookLastEventDetailsProps> = ({ webhook }) => {
   const styles = useStyles2(getStyles);
-  const rows = useMemo(() => getEventDetailsRows(webhook), [webhook]);
+  const theme = useTheme2();
+  const rows = useMemo(() => getEventDetailsRows(theme, webhook), [theme, webhook]);
 
   if (!webhook.last_response_log?.timestamp) {
     return (
@@ -72,7 +74,7 @@ const WebhookLastEventDetails: FC<WebhookLastEventDetailsProps> = ({ webhook }) 
   );
 };
 
-const getEventDetailsRows = (webhook?: OutgoingWebhook) =>
+const getEventDetailsRows = (theme: GrafanaTheme2, webhook?: OutgoingWebhook) =>
   webhook
     ? [
         {
@@ -88,12 +90,14 @@ const getEventDetailsRows = (webhook?: OutgoingWebhook) =>
         {
           title: 'URL',
           value: (
-            <>
-              {webhook.url}{' '}
+            <HorizontalGroup align="center">
+              <span>{webhook.url}</span>
               {webhook.last_response_log?.url && webhook.url !== webhook.last_response_log?.url && (
-                <Badge color="red" text={webhook.last_response_log?.url} />
+                <Tooltip content={webhook.last_response_log?.url}>
+                  <Icon name="exclamation-triangle" color={theme.colors.error.main} />
+                </Tooltip>
               )}
-            </>
+            </HorizontalGroup>
           ),
         },
         {
