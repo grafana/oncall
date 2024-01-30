@@ -20,7 +20,7 @@ class CustomButtonFilter(ByTeamModelFieldFilterMixin, ModelFieldFilterMixin, fil
     team = TeamModelMultipleChoiceFilter()
 
 
-class CustomButtonView(TeamFilteringMixin, PublicPrimaryKeyMixin, ModelViewSet):
+class CustomButtonView(TeamFilteringMixin, PublicPrimaryKeyMixin[CustomButton], ModelViewSet):
     authentication_classes = (PluginAuthentication,)
     permission_classes = (IsAuthenticated, RBACPermission)
 
