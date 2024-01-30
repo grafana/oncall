@@ -843,7 +843,8 @@ const AlertGroupStub = ({ buttons }: { buttons: React.ReactNode }) => {
     <div className={cx('alert-group-stub')}>
       <VerticalGroup align="center" spacing="md">
         <img src={errorSVG} alt="" />
-        <Text>
+        <Text.Title level={3}>An unexpected error happened</Text.Title>
+        <Text type="secondary">
           Hi! It looks like smth doesn't work as expected. OnCall is not able to receive any information about the
           current Alert Group. It's unknown if it's firing, acknowledged, silenced, or resolved. Meanwhile, you could
           try changing the status of this Alert Group:
