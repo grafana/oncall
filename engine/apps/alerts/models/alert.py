@@ -98,7 +98,6 @@ class Alert(models.Model):
         enable_autoresolve=True,
         is_demo: bool = False,
         channel_filter: typing.Optional["ChannelFilter"] = None,
-        force_route_id: typing.Optional[int] = None,
         received_at: typing.Optional[str] = None,
     ) -> "Alert":
         """
@@ -113,9 +112,7 @@ class Alert(models.Model):
         group_data = Alert.render_group_data(alert_receive_channel, raw_request_data, parsed_labels, is_demo)
 
         if channel_filter is None:
-            channel_filter = ChannelFilter.select_filter(
-                alert_receive_channel, raw_request_data, parsed_labels, force_route_id
-            )
+            channel_filter = ChannelFilter.select_filter(alert_receive_channel, raw_request_data, parsed_labels)
 
         # Get or create group
         group, group_created = AlertGroup.objects.get_or_create_grouping(

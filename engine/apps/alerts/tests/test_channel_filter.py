@@ -25,9 +25,7 @@ def test_channel_filter_select_filter(make_organization, make_alert_receive_chan
 
     # demo alert for custom route
     raw_request_data = {"title": "i'm not matching this route"}
-    satisfied_filter = ChannelFilter.select_filter(
-        alert_receive_channel, raw_request_data, force_route_id=channel_filter.pk
-    )
+    satisfied_filter = ChannelFilter.select_filter(alert_receive_channel, raw_request_data)
     assert satisfied_filter == channel_filter
 
 
@@ -56,9 +54,7 @@ def test_channel_filter_select_filter_regex(make_organization, make_alert_receiv
 
     # demo alert for custom route
     raw_request_data = {"title": "i'm not matching this route"}
-    satisfied_filter = ChannelFilter.select_filter(
-        alert_receive_channel, raw_request_data, force_route_id=channel_filter.pk
-    )
+    satisfied_filter = ChannelFilter.select_filter(alert_receive_channel, raw_request_data)
     assert satisfied_filter == channel_filter
 
 
@@ -87,9 +83,7 @@ def test_channel_filter_select_filter_jinja2(make_organization, make_alert_recei
 
     # demo alert for custom route
     raw_request_data = {"title": "i'm not matching this route"}
-    satisfied_filter = ChannelFilter.select_filter(
-        alert_receive_channel, raw_request_data, force_route_id=channel_filter.pk
-    )
+    satisfied_filter = ChannelFilter.select_filter(alert_receive_channel, raw_request_data)
     assert satisfied_filter == channel_filter
 
 

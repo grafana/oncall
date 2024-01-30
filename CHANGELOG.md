@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Allow routing incoming alerts based on labels by @joeyorlando ([#3778](https://github.com/grafana/oncall/pull/3778))
 
+### Changed
+
 ## v1.3.94 (2024-01-30)
 
 ### Added

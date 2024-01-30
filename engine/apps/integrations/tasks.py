@@ -27,7 +27,7 @@ logger.setLevel(logging.DEBUG)
     retry_backoff=True,
     max_retries=1 if settings.DEBUG else None,
 )
-def create_alertmanager_alerts(alert_receive_channel_pk, alert, is_demo=False, force_route_id=None, received_at=None):
+def create_alertmanager_alerts(alert_receive_channel_pk, alert, is_demo=False, received_at=None):
     from apps.alerts.models import Alert, AlertReceiveChannel
 
     alert_receive_channel = AlertReceiveChannel.objects_with_deleted.get(pk=alert_receive_channel_pk)
@@ -49,7 +49,6 @@ def create_alertmanager_alerts(alert_receive_channel_pk, alert, is_demo=False, f
             raw_request_data=alert,
             enable_autoresolve=False,
             is_demo=is_demo,
-            force_route_id=force_route_id,
             received_at=received_at,
         )
     except ConcurrentUpdateError:
@@ -87,7 +86,6 @@ def create_alert(
     integration_unique_data: typing.Optional[typing.Dict],
     raw_request_data: "Alert.RawRequestData",
     is_demo: bool = False,
-    force_route_id: typing.Optional[int] = None,
     received_at: typing.Optional[str] = None,
 ) -> None:
     from apps.alerts.models import Alert, AlertReceiveChannel
@@ -109,7 +107,6 @@ def create_alert(
             alert_receive_channel=alert_receive_channel,
             integration_unique_data=integration_unique_data,
             raw_request_data=raw_request_data,
-            force_route_id=force_route_id,
             is_demo=is_demo,
             received_at=received_at,
         )
