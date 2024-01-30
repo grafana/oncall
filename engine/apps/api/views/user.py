@@ -626,7 +626,8 @@ class UserView(
     def get_telegram_verification_code(self, request, pk) -> Response:
         user = self.get_object()
 
-        if not user.is_telegram_connected:
+        # TODO: remove below type ignore when we fix user.is_telegram_connected
+        if not user.is_telegram_connected:  # type: ignore[truthy-function]
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
         try:
