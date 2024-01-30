@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form';
 
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { UserActions } from 'utils/authorization';
+import { useCommonStyles } from 'utils/hooks';
 
 import { getStyles } from './OutgoingTab.styles';
 
@@ -19,6 +20,7 @@ export const UrlSettingsDrawerContent: FC<UrlSettingsDrawerContentProps> = ({ cl
     formState: { errors },
   } = useForm({ mode: 'all' });
   const styles = useStyles2(getStyles);
+  const commonStyles = useCommonStyles();
 
   const onSubmit = (data) => console.log(data);
 
@@ -57,7 +59,7 @@ export const UrlSettingsDrawerContent: FC<UrlSettingsDrawerContentProps> = ({ cl
             Test
           </Button>
         </div>
-        <div className={styles.bottomButtons}>
+        <div className={commonStyles.bottomDrawerButtons}>
           <HorizontalGroup justify="flex-end">
             <Button variant="secondary" onClick={closeDrawer}>
               Close

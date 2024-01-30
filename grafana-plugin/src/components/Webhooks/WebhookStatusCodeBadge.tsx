@@ -1,7 +1,9 @@
-import { Badge, useStyles2 } from '@grafana/ui';
-import { OutgoingWebhook } from 'models/outgoing_webhook/outgoing_webhook.types';
 import React, { FC } from 'react';
+
 import { css } from '@emotion/css';
+import { Badge, useStyles2 } from '@grafana/ui';
+
+import { OutgoingWebhook } from 'models/outgoing_webhook/outgoing_webhook.types';
 
 interface WebhookStatusCodeBadgeProps {
   webhook: OutgoingWebhook;

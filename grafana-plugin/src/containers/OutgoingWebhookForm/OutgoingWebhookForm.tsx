@@ -451,7 +451,7 @@ const WebhookTabsContent: React.FC<WebhookTabsProps> = ({
           )}
         </>
       )}
-      {activeTab === WebhookTabs.LastRun.key && <OutgoingWebhookStatus id={id} onUpdate={onUpdate} />}
+      {activeTab === WebhookTabs.LastRun.key && <OutgoingWebhookStatus id={id} closeDrawer={onHide} />}
     </div>
   );
 };

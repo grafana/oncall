@@ -19,11 +19,6 @@ export const getStyles = (theme: GrafanaTheme2) => ({
   formFieldsWrapper: css({
     width: '100%',
   }),
-  bottomButtons: css({
-    position: 'absolute',
-    bottom: '16px',
-    right: '16px',
-  }),
   infoIcon: css({
     marginLeft: '10px',
   }),

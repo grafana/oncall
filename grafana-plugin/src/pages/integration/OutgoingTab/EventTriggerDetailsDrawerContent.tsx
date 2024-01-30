@@ -1,20 +1,20 @@
-import React, { FC, useMemo } from 'react';
+import React, { FC } from 'react';
 
 import { Button, HorizontalGroup, useStyles2, VerticalGroup } from '@grafana/ui';
+import { observer } from 'mobx-react-lite';
 import { useForm, FormProvider } from 'react-hook-form';
 
 import Tabs from 'components/Tabs/Tabs';
+import WebhookLastEventDetails from 'components/Webhooks/WebhookLastEventDetails';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
+import { useStore } from 'state/useStore';
 import LocationHelper from 'utils/LocationHelper';
 import { UserActions } from 'utils/authorization';
+import { useCommonStyles } from 'utils/hooks';
 
 import { EventTriggerFormFields } from './EventTriggerFormFields';
 import { getStyles } from './OutgoingTab.styles';
 import { TriggerDetailsQueryStringKey, TriggerDetailsTab, FormValues } from './OutgoingTab.types';
-import { useStore } from 'state/useStore';
-import { getEventDetailsRows } from './EventTriggerDetailsDrawerContent.utils';
-import WebhookLastEventDetails from 'components/Webhooks/WebhookLastEventDetails';
-import { observer } from 'mobx-react-lite';
 
 interface EventTriggerDetailsDrawerContentProps {
   closeDrawer: () => void;
@@ -36,6 +36,7 @@ interface SettingsProps {
 }
 const Settings: FC<SettingsProps> = ({ closeDrawer }) => {
   const styles = useStyles2(getStyles);
+  const commonStyles = useCommonStyles();
   const formMethods = useForm<FormValues>({ mode: 'all' });
   const webhookId = LocationHelper.getQueryParam(TriggerDetailsQueryStringKey.WebhookId);
 
@@ -48,7 +49,7 @@ const Settings: FC<SettingsProps> = ({ closeDrawer }) => {
           <div className={styles.formFieldsWrapper}>
             <EventTriggerFormFields webhookId={webhookId} />
           </div>
-          <div className={styles.bottomButtons}>
+          <div className={commonStyles.bottomDrawerButtons}>
             <HorizontalGroup justify="flex-end">
               <Button variant="secondary" onClick={closeDrawer}>
                 Close
@@ -73,7 +74,7 @@ interface LastEventDetailsProps {
   closeDrawer: () => void;
 }
 const LastEventDetails: FC<LastEventDetailsProps> = observer(({ closeDrawer }) => {
-  const styles = useStyles2(getStyles);
+  const commonStyles = useCommonStyles();
 
   const {
     outgoingWebhookStore: { items },
@@ -89,7 +90,7 @@ const LastEventDetails: FC<LastEventDetailsProps> = observer(({ closeDrawer }) =
   return (
     <div>
       <WebhookLastEventDetails webhook={webhook} />
-      <div className={styles.bottomButtons}>
+      <div className={commonStyles.bottomDrawerButtons}>
         <HorizontalGroup justify="flex-end">
           <Button variant="secondary" onClick={closeDrawer}>
             Close

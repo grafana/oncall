@@ -1,14 +1,17 @@
+import React, { FC, useMemo } from 'react';
+
+import { css } from '@emotion/css';
 import { VerticalGroup, HorizontalGroup, Badge, useStyles2 } from '@grafana/ui';
 import dayjs from 'dayjs';
+
+import SourceCode from 'components/SourceCode/SourceCode';
+import Tabs from 'components/Tabs/Tabs';
+import Text from 'components/Text/Text';
 import { OutgoingWebhook } from 'models/outgoing_webhook/outgoing_webhook.types';
 import { getTzOffsetString } from 'models/timezone/timezone.helpers';
-import { getEventDetailsRows } from 'pages/integration/OutgoingTab/EventTriggerDetailsDrawerContent.utils';
-import React, { FC, useMemo } from 'react';
-import { css } from '@emotion/css';
 
 import WebhookStatusCodeBadge from './WebhookStatusCodeBadge';
-import Tabs from 'components/Tabs/Tabs';
-import SourceCode from 'components/SourceCode/SourceCode';
+
 
 interface WebhookLastEventDetailsProps {
   webhook: OutgoingWebhook;
@@ -18,10 +21,16 @@ const WebhookLastEventDetails: FC<WebhookLastEventDetailsProps> = ({ webhook }) 
   const styles = useStyles2(getStyles);
   const rows = useMemo(() => getEventDetailsRows(webhook), [webhook]);
 
+  if (!webhook.last_response_log?.timestamp) {
+    return (
+      <Text type="primary" size="medium">
+        An event triggering of this webhook has not been sent yet.
+      </Text>
+    );
+  }
   return (
     <>
       <div className={styles.lastEventDetailsRowsWrapper}>
-        {' '}
         <VerticalGroup>
           {rows.map(({ title, value }) => (
             <HorizontalGroup key={title}>
@@ -34,18 +43,29 @@ const WebhookLastEventDetails: FC<WebhookLastEventDetailsProps> = ({ webhook }) 
       <Tabs
         queryStringKey="lastEventDetailsActiveTab"
         tabs={[
-          { label: 'Event content', content: <SourceCode showClipboardIconOnly>{webhook.data}</SourceCode> },
           {
-            label: 'Request headers',
-            content: <SourceCode showClipboardIconOnly>{webhook.last_response_log.request_headers}</SourceCode>,
-          },
-          {
-            label: 'Response headers',
-            content: <SourceCode showClipboardIconOnly>??? TODO: where to get it from</SourceCode>,
+            label: 'Event body',
+            content: (
+              <SourceCode showClipboardIconOnly prettifyJsonString noMaxHeight className={styles.sourceCode}>
+                {webhook.last_response_log.request_data}
+              </SourceCode>
+            ),
           },
           {
             label: 'Response body',
-            content: <SourceCode showClipboardIconOnly>{webhook.last_response_log.content}</SourceCode>,
+            content: (
+              <SourceCode showClipboardIconOnly prettifyJsonString noMaxHeight className={styles.sourceCode}>
+                {webhook.last_response_log.content}
+              </SourceCode>
+            ),
+          },
+          {
+            label: 'Request headers',
+            content: (
+              <SourceCode showClipboardIconOnly prettifyJsonString noMaxHeight className={styles.sourceCode}>
+                {webhook.last_response_log.request_headers}
+              </SourceCode>
+            ),
           },
         ]}
       />
@@ -90,6 +110,9 @@ const getStyles = () => ({
   }),
   lastEventDetailsRowsWrapper: css({
     marginBottom: '26px',
+  }),
+  sourceCode: css({
+    height: 'calc(100vh - 515px)',
   }),
 });
 

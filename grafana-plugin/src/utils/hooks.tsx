@@ -1,8 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react';
 
+import { useStyles2 } from '@grafana/ui';
 import { useLocation } from 'react-router-dom';
 
 import LocationHelper from './LocationHelper';
+import { getCommonStyles } from './styles';
 
 export function useForceUpdate() {
   const [, setValue] = useState(0);
@@ -93,3 +95,5 @@ export const useDrawerState = <DrawerKey extends string, DrawerData = unknown>(i
     drawerData,
   };
 };
+
+export const useCommonStyles = () => useStyles2(getCommonStyles);
