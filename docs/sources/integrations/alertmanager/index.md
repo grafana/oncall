@@ -16,7 +16,7 @@ weight: 300
 # Alertmanager integration for Grafana OnCall
 
 > ⚠️ A note about **(Legacy)** integrations:
-> Integrations that were created before version 1.3.21 were marked as **(Legacy)** and recently migrated.
+> Integrations that were created before version 1.3.21 (1 August 2023) were marked as **(Legacy)** and recently migrated.
 > These integrations are receiving and escalating alerts, but some manual adjustments might be required.
 > [Here][legacy_integration] you can read more about changes.
 
