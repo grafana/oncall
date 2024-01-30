@@ -131,7 +131,7 @@ const OutgoingWebhookForm = observer((props: OutgoingWebhookFormProps) => {
     };
   };
 
-  const enrchField = (
+  const enrichField = (
     formItem: FormItem,
     disabled: boolean,
     renderedControl: React.ReactElement,
@@ -177,6 +177,7 @@ const OutgoingWebhookForm = observer((props: OutgoingWebhookFormProps) => {
       preset: selectedPreset?.id,
       trigger_type: null,
       http_method: 'POST',
+      forward_all: true,
     };
   } else if (isNewOrCopy) {
     data = { ...outgoingWebhookStore.items[id], is_legacy: false, name: '' };
@@ -197,7 +198,7 @@ const OutgoingWebhookForm = observer((props: OutgoingWebhookFormProps) => {
       form={form}
       data={data}
       onSubmit={handleSubmit}
-      onFieldRender={enrchField}
+      onFieldRender={enrichField}
       customFieldSectionRenderer={CustomFieldSectionRenderer}
     />
   );
@@ -334,7 +335,7 @@ const OutgoingWebhookForm = observer((props: OutgoingWebhookFormProps) => {
             form={form}
             data={data}
             onSubmit={handleSubmit}
-            onFieldRender={enrchField}
+            onFieldRender={enrichField}
             customFieldSectionRenderer={CustomFieldSectionRenderer}
           />
           <div className={cx('buttons')}>
