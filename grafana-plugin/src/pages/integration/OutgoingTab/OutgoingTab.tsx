@@ -9,7 +9,7 @@ import IntegrationBlock from 'components/Integrations/IntegrationBlock';
 import IntegrationTag from 'components/Integrations/IntegrationTag';
 import Text from 'components/Text/Text';
 import { UserActions } from 'utils/authorization';
-import { useDrawerState } from 'utils/hooks';
+import { useDrawer } from 'utils/hooks';
 
 import { EventTriggerDetailsDrawerContent } from './EventTriggerDetailsDrawerContent';
 import { EventTriggersTable } from './EventTriggersTable';
@@ -19,7 +19,7 @@ import { OutgoingTabDrawerKey } from './OutgoingTab.types';
 import { UrlSettingsDrawerContent } from './UrlSettingsDrawerContent';
 
 const OutgoingTab = () => {
-  const { openDrawer, closeDrawer, getIsDrawerOpened } = useDrawerState<OutgoingTabDrawerKey>();
+  const { openDrawer, closeDrawer, getIsDrawerOpened } = useDrawer<OutgoingTabDrawerKey>();
 
   return (
     <>

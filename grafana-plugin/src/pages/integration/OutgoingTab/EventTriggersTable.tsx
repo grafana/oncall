@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 
-import { IconButton, HorizontalGroup, Icon } from '@grafana/ui';
+import { IconButton, HorizontalGroup, Icon, ConfirmModal } from '@grafana/ui';
 import { observer } from 'mobx-react-lite';
 import CopyToClipboard from 'react-copy-to-clipboard';
 
@@ -13,6 +13,7 @@ import { useStore } from 'state/useStore';
 import { openNotification } from 'utils';
 import LocationHelper from 'utils/LocationHelper';
 import { UserActions } from 'utils/authorization';
+import { useConfirmModal } from 'utils/hooks';
 
 import { OutgoingTabDrawerKey, TriggerDetailsQueryStringKey, TriggerDetailsTab } from './OutgoingTab.types';
 
@@ -62,6 +63,7 @@ const EventTriggerContextMenu = ({
   webhook: OutgoingWebhook;
   openDrawer: (key: OutgoingTabDrawerKey) => void;
 }) => {
+  const { modalProps, openModal } = useConfirmModal();
   const onOpenDrawer = (tab: TriggerDetailsTab) => {
     LocationHelper.update(
       { [TriggerDetailsQueryStringKey.ActiveTab]: tab, [TriggerDetailsQueryStringKey.WebhookId]: webhook.id },
@@ -69,71 +71,74 @@ const EventTriggerContextMenu = ({
     );
     openDrawer('triggerDetails');
   };
+
   return (
-    <HamburgerContextMenu
-      items={[
-        {
-          onClick: () => {
-            onOpenDrawer(TriggerDetailsTab.LastEvent);
+    <>
+      <ConfirmModal {...modalProps} />
+      <HamburgerContextMenu
+        items={[
+          {
+            onClick: () => {
+              onOpenDrawer(TriggerDetailsTab.LastEvent);
+            },
+            requiredPermission: UserActions.OutgoingWebhooksRead,
+            label: <Text type="primary">View Last Run</Text>,
           },
-          requiredPermission: UserActions.OutgoingWebhooksRead,
-          label: <Text type="primary">View Last Run</Text>,
-        },
-        {
-          onClick: () => {
-            onOpenDrawer(TriggerDetailsTab.Settings);
+          {
+            onClick: () => {
+              onOpenDrawer(TriggerDetailsTab.Settings);
+            },
+            requiredPermission: UserActions.OutgoingWebhooksWrite,
+            label: <Text type="primary">Edit settings</Text>,
           },
-          requiredPermission: UserActions.OutgoingWebhooksWrite,
-          label: <Text type="primary">Edit settings</Text>,
-        },
-        {
-          onClick: () => {},
-          // this.setState({
-          //   confirmationModal: {
-          //     isOpen: true,
-          //     confirmText: 'Confirm',
-          //     dismissText: 'Cancel',
-          //     onConfirm: () => this.onDisableWebhook(record.id, !record.is_webhook_enabled),
-          //     title: `Are you sure you want to ${record.is_webhook_enabled ? 'disable' : 'enable'} webhook?`,
-          //   } as ConfirmModalProps,
-          // }),
-          requiredPermission: UserActions.OutgoingWebhooksWrite,
-          label: <Text type="primary">{webhook.is_webhook_enabled ? 'Disable' : 'Enable'}</Text>,
-        },
-        {
-          label: (
-            <CopyToClipboard key="uid" text={webhook.id} onCopy={() => openNotification('Webhook ID has been copied')}>
-              <div>
-                <HorizontalGroup type="primary" spacing="xs">
-                  <Icon name="clipboard-alt" />
-                  <Text type="primary">UID: {webhook.id}</Text>
-                </HorizontalGroup>
-              </div>
-            </CopyToClipboard>
-          ),
-        },
-        'divider',
-        {
-          onClick: () => {},
-          // this.setState({
-          //   confirmationModal: {
-          //     isOpen: true,
-          //     confirmText: 'Confirm',
-          //     dismissText: 'Cancel',
-          //     onConfirm: () => this.onDeleteClick(record.id),
-          //     body: 'The action cannot be undone.',
-          //     title: `Are you sure you want to delete webhook?`,
-          //   } as Partial<ConfirmModalProps> as ConfirmModalProps,
-          // }),
-          requiredPermission: UserActions.OutgoingWebhooksWrite,
-          label: (
-            <HorizontalGroup spacing="xs">
-              <IconButton tooltip="Remove" tooltipPlacement="top" variant="destructive" name="trash-alt" />
-              <Text type="danger">Delete Webhook</Text>
-            </HorizontalGroup>
-          ),
-        },
-      ]}
-    />
+          {
+            onClick: () => {
+              openModal({
+                onConfirm: () => {
+                  console.log('TODO: disable webhook');
+                },
+                title: `Are you sure you want to ${webhook.is_webhook_enabled ? 'disable' : 'enable'} event trigger?`,
+              });
+            },
+            requiredPermission: UserActions.OutgoingWebhooksWrite,
+            label: <Text type="primary">{webhook.is_webhook_enabled ? 'Disable' : 'Enable'}</Text>,
+          },
+          {
+            label: (
+              <CopyToClipboard
+                key="uid"
+                text={webhook.id}
+                onCopy={() => openNotification('Webhook ID has been copied')}
+              >
+                <div>
+                  <HorizontalGroup type="primary" spacing="xs">
+                    <Icon name="clipboard-alt" />
+                    <Text type="primary">UID: {webhook.id}</Text>
+                  </HorizontalGroup>
+                </div>
+              </CopyToClipboard>
+            ),
+          },
+          'divider',
+          {
+            onClick: () => {
+              openModal({
+                onConfirm: () => {
+                  console.log('TODO: delete webhook');
+                },
+                title: `Are you sure you want to delete event trigger?`,
+              });
+            },
+            requiredPermission: UserActions.OutgoingWebhooksWrite,
+            label: (
+              <HorizontalGroup spacing="xs">
+                <IconButton tooltip="Remove" tooltipPlacement="top" variant="destructive" name="trash-alt" />
+                <Text type="danger">Delete</Text>
+              </HorizontalGroup>
+            ),
+          },
+        ]}
+      />
+    </>
   );
 };

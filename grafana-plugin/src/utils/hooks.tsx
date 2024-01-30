@@ -1,6 +1,6 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { ComponentProps, useEffect, useRef, useState } from 'react';
 
-import { useStyles2 } from '@grafana/ui';
+import { ConfirmModal, useStyles2 } from '@grafana/ui';
 import { useLocation } from 'react-router-dom';
 
 import LocationHelper from './LocationHelper';
@@ -74,7 +74,7 @@ export function useDebouncedCallback<A extends any[]>(callback: (...args: A) => 
   };
 }
 
-export const useDrawerState = <DrawerKey extends string, DrawerData = unknown>(initialDrawerData?: DrawerData) => {
+export const useDrawer = <DrawerKey extends string, DrawerData = unknown>(initialDrawerData?: DrawerData) => {
   const [openedDrawer, setOpenedDrawer] = useState<DrawerKey>(LocationHelper.getQueryParam('openedDrawerKey'));
   const [drawerData, setDrawerData] = useState<DrawerData>(initialDrawerData);
 
@@ -93,6 +93,32 @@ export const useDrawerState = <DrawerKey extends string, DrawerData = unknown>(i
     getIsDrawerOpened: (drawerKey: DrawerKey) => openedDrawer === drawerKey,
     openedDrawer,
     drawerData,
+  };
+};
+
+type ConfirmModalProps = ComponentProps<typeof ConfirmModal>;
+export const useConfirmModal = () => {
+  const [modalProps, setModalProps] = useState<ConfirmModalProps>();
+
+  return {
+    openModal: (modalProps: Pick<ConfirmModalProps, 'title' | 'onConfirm'> & Partial<ConfirmModalProps>) => {
+      setModalProps({
+        isOpen: true,
+        confirmText: 'Confirm',
+        dismissText: 'Cancel',
+        onDismiss: () => setModalProps(undefined),
+        body: null,
+        ...modalProps,
+        onConfirm: () => {
+          modalProps.onConfirm();
+          setModalProps(undefined);
+        },
+      });
+    },
+    closeModal: () => {
+      setModalProps(undefined);
+    },
+    modalProps,
   };
 };
 
