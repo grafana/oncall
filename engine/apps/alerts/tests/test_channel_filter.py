@@ -91,3 +91,34 @@ def test_channel_filter_select_filter_jinja2(make_organization, make_alert_recei
         alert_receive_channel, raw_request_data, force_route_id=channel_filter.pk
     )
     assert satisfied_filter == channel_filter
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "filtering_term,should_match",
+    [
+        ('{{ "foo" in labels.keys() }}', True),
+        ('{{ "bar" in labels.values() }}', True),
+        ('{{ "bar" in labels.values() or payload["value"] == 5 }}', True),
+        ('{{ "baz" in labels.values() }}', False),
+    ],
+)
+def test_channel_filter_select_filter_labels(
+    make_organization, make_alert_receive_channel, make_channel_filter, filtering_term, should_match
+):
+    organization = make_organization()
+    alert_receive_channel = make_alert_receive_channel(organization)
+    default_channel_filter = make_channel_filter(alert_receive_channel, is_default=True)  # default channel filter
+    custom_channel_filter = make_channel_filter(
+        alert_receive_channel,
+        filtering_term=filtering_term,
+        filtering_term_type=ChannelFilter.FILTERING_TERM_TYPE_JINJA2,
+        is_default=False,
+    )
+
+    raw_request_data = {"title": "Test Title", "value": 5}
+    labels = {"foo": "bar"}
+
+    matching_channel_filter = ChannelFilter.select_filter(alert_receive_channel, raw_request_data, labels)
+
+    assert matching_channel_filter == (custom_channel_filter if should_match else default_channel_filter)

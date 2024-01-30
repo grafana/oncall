@@ -3,7 +3,7 @@ from unittest.mock import PropertyMock, patch
 import pytest
 from django.utils import timezone
 
-from apps.alerts.models import Alert, EscalationPolicy
+from apps.alerts.models import Alert, ChannelFilter, EscalationPolicy
 from apps.alerts.tasks import distribute_alert, escalate_alert_group
 
 
@@ -55,6 +55,45 @@ def test_alert_create_custom_channel_filter(make_organization, make_alert_receiv
     )
 
     assert alert.group.channel_filter == other_channel_filter
+
+
+@patch("apps.alerts.models.alert.assign_labels")
+@patch("apps.alerts.models.alert.gather_labels_from_alert_receive_channel_and_raw_request_data")
+@patch("apps.alerts.models.ChannelFilter.select_filter", wraps=ChannelFilter.select_filter)
+@pytest.mark.django_db
+def test_alert_create_labels_are_assigned(
+    spy_channel_filter_select_filter,
+    mock_gather_labels_from_alert_receive_channel_and_raw_request_data,
+    mock_assign_labels,
+    make_organization,
+    make_alert_receive_channel,
+    make_channel_filter,
+):
+    organization = make_organization()
+    alert_receive_channel = make_alert_receive_channel(organization)
+    make_channel_filter(alert_receive_channel, is_default=True)
+
+    raw_request_data = {"foo": "bar"}
+
+    alert = Alert.create(
+        title="the title",
+        message="the message",
+        alert_receive_channel=alert_receive_channel,
+        raw_request_data=raw_request_data,
+        integration_unique_data={},
+        image_url=None,
+        link_to_upstream_details=None,
+    )
+
+    mock_parsed_labels = mock_gather_labels_from_alert_receive_channel_and_raw_request_data.return_value
+
+    mock_gather_labels_from_alert_receive_channel_and_raw_request_data.assert_called_once_with(
+        alert_receive_channel, raw_request_data
+    )
+    spy_channel_filter_select_filter.assert_called_once_with(
+        alert_receive_channel, raw_request_data, mock_parsed_labels, None
+    )
+    mock_assign_labels.assert_called_once_with(alert.group, alert_receive_channel, mock_parsed_labels)
 
 
 @pytest.mark.django_db
