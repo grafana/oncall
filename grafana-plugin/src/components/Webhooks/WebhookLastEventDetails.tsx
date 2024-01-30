@@ -12,7 +12,6 @@ import { getTzOffsetString } from 'models/timezone/timezone.helpers';
 
 import WebhookStatusCodeBadge from './WebhookStatusCodeBadge';
 
-
 interface WebhookLastEventDetailsProps {
   webhook: OutgoingWebhook;
 }
@@ -31,7 +30,7 @@ const WebhookLastEventDetails: FC<WebhookLastEventDetailsProps> = ({ webhook }) 
   return (
     <>
       <div className={styles.lastEventDetailsRowsWrapper}>
-        <VerticalGroup>
+        <VerticalGroup spacing="lg">
           {rows.map(({ title, value }) => (
             <HorizontalGroup key={title}>
               <span className={styles.lastEventDetailsRowTitle}>{title}</span>
@@ -47,7 +46,7 @@ const WebhookLastEventDetails: FC<WebhookLastEventDetailsProps> = ({ webhook }) 
             label: 'Event body',
             content: (
               <SourceCode showClipboardIconOnly prettifyJsonString noMaxHeight className={styles.sourceCode}>
-                {webhook.last_response_log.request_data}
+                {webhook.last_response_log.request_data || 'No data'}
               </SourceCode>
             ),
           },
@@ -55,7 +54,7 @@ const WebhookLastEventDetails: FC<WebhookLastEventDetailsProps> = ({ webhook }) 
             label: 'Response body',
             content: (
               <SourceCode showClipboardIconOnly prettifyJsonString noMaxHeight className={styles.sourceCode}>
-                {webhook.last_response_log.content}
+                {webhook.last_response_log.content || 'No data'}
               </SourceCode>
             ),
           },
@@ -63,7 +62,7 @@ const WebhookLastEventDetails: FC<WebhookLastEventDetailsProps> = ({ webhook }) 
             label: 'Request headers',
             content: (
               <SourceCode showClipboardIconOnly prettifyJsonString noMaxHeight className={styles.sourceCode}>
-                {webhook.last_response_log.request_headers}
+                {webhook.last_response_log.request_headers || 'No data'}
               </SourceCode>
             ),
           },
@@ -88,7 +87,14 @@ const getEventDetailsRows = (webhook?: OutgoingWebhook) =>
         },
         {
           title: 'URL',
-          value: webhook.url,
+          value: (
+            <>
+              {webhook.url}{' '}
+              {webhook.last_response_log?.url && webhook.url !== webhook.last_response_log?.url && (
+                <Badge color="red" text={webhook.last_response_log?.url} />
+              )}
+            </>
+          ),
         },
         {
           title: 'Method',
@@ -112,7 +118,7 @@ const getStyles = () => ({
     marginBottom: '26px',
   }),
   sourceCode: css({
-    height: 'calc(100vh - 515px)',
+    height: 'calc(100vh - 585px)',
   }),
 });
 
