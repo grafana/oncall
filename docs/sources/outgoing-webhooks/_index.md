@@ -179,8 +179,11 @@ Toggle to send the entire webhook payload instead of using the values in the **D
 
 > Labels are currently available only in cloud.
 
-Webhook labels allows to _______ and will be included in the webhook payload, along with alert group and integration labels.
-It could be useful when _____. Check this [template example][labels_webhook_template] to see how you can include labels in the webhook data.
+Webhook labels allow to pass labels data to a 3'rd party.
+Label data will be included in the webhook payload, along with alert group and integration labels.
+It could be useful such use-cases as delivering Alert Groups with severity to the ServiceNow or
+forwarding the cluster name to the GitHub issue.
+Check this [template example][labels_webhook_template] to see how you can include labels in the webhook data.
 
 Editing Webhook Labels:
 To edit the labels associated with a webhook, follow these steps:

@@ -144,7 +144,11 @@ To edit the name of an integration:
 
 > Labels are currently available only in cloud.
 
-TODO: why a user would want to assign labels to integrations?
+Integration labels allows to manage and filter integrations based on specific criteria
+and pass these labels down to Alert Groups.
+It could be useful to organize integrations by service, region or other custom attribute.  
+
+To assign labels to the integration:
 
 1. Navigate to the **Integrations** tab, select an integration from the list of enabled integrations.
 2. Click the **three dots** next to the integration name and select **Integration settings**.
@@ -153,8 +157,6 @@ TODO: why a user would want to assign labels to integrations?
    - Typing new keys and values into the fields and accepting with enter/return key
 4. If you want to add more labels click on **Add** button. You can also remove the label using X button next to the key-value pair.
 5. Click **Save**.
-
-TODO: why a user would want to filter integrations by labels?
 
 To filter integrations by labels:
 
@@ -169,7 +171,7 @@ The Alert Group Labeling feature allows users to:
 - Assign labels to alert groups
 - Filter alert groups by labels
 - Customize the Alert Group table
-- Pass labels in webhooks (TODO: add link to webhooks docs)
+- Pass labels in [webhooks][webhook-labels]
 
 ##### Label Assignment Limits
 
@@ -193,14 +195,12 @@ To find Alert Group Labeling Settings:
 3. Click the three dots next to the integration name.
 4. Choose **Alert Group Labeling**
 
-##### Assigning Labels
-
-TODO: describe 3 ways to assign labels
+##### Assign Labels to Alert Groups
 
 ###### Pass Down Integration Labels
 
-These labels are automatically assigned to each alert group coming to the integration, based on the labels assigned to the integration.
-(TODO: add link to integration labels docs)
+These labels are automatically assigned to each alert group coming to the integration,
+based on the labels assigned to the [integration][integration-labels].
 
 1. Navigate to the Integration Labels section in the Alert Group Labeling tab.
 2. Enable/disable passing down specific labels using the toggler.
@@ -208,11 +208,12 @@ These labels are automatically assigned to each alert group coming to the integr
 ###### Dynamic & Static Labels
 
 This feature allows you to assign arbitrary labels to alert groups, either by deriving them from the payload or by specifying static values.
+Dynamic: label values are extracted from the alert payload using Jinja. Keys remain static.
+Static: these are not derived from the payload; both key and value are static.
+These labels will not be attached to the integration.
 
 1. In the Alert Group Labeling tab, navigate to Dynamic & Static Labels.
 2. Press the **Add Label** button and choose between dynamic or static labels.
-
-TODO: Describe what's Static vs Dynamic labels
 
 For Static Labels:
 
@@ -231,7 +232,8 @@ and a template to parse values for that key:
 {{ payload.get("severity) }}
 ```
 
-TODO: [SCREENSHOT_DYNAMIC LABEL EXAMPLE]
+Created dynamic label:
+<img src="/static/img/oncall/dynamic-label-example.png" width="700px">
 
 Two alerts were received and grouped to two different alert groups:
 
@@ -279,13 +281,15 @@ Incoming Payload (trimmed for readability):
 }
 ```
 
+Template to parse it:
+
 ```jinja
 {{ payload.commonLabels | tojson }}
 ```
 
 As a result `job`, `severity` and `alertname` labels will be assigned to the alert group:
 
-TODO: [SCREENSHOT_MULTI_LABEL_EXTRACTION_RESULT]
+<img src="/static/img/oncall/mutli-label-extraction-result.png" width="700px">
 
 An advanced example showcases the extraction of labels from various fields of the alert payload, utilizing the Grafana Alerting payload:
 
@@ -342,4 +346,10 @@ Users with admin permissions have the ability to add custom columns based on lab
 
 [routing-template]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/jinja2-templating#routing-template"
 [routing-template]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/jinja2-templating#routing-template"
+
+[webhook-labels]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/outgoing-webhooks/#labels"
+[webhook-labels]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/outgoing-webhooks/#labels"
+
+[integration-labels]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/integrations/#labels"
+[integration-labels]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/integrations/#labels"
 {{% /docs/reference %}}
