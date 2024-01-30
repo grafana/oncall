@@ -208,3 +208,11 @@ def test_distribute_alert_escalate_alert_group_when_escalation_paused(
         with patch.object(escalate_alert_group, "apply_async") as mock_escalate_alert_group_2:
             distribute_alert(alert_2.pk)
     mock_escalate_alert_group_2.assert_called_once()
+
+
+def test_apply_jinja_template_to_alert_payload_and_labels():
+    pass
+
+
+def test_render_group_data():
+    pass
