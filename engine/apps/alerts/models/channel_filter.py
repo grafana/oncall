@@ -112,33 +112,8 @@ class ChannelFilter(OrderedModel):
         alert_receive_channel: "AlertReceiveChannel",
         raw_request_data: "Alert.RawRequestData",
         alert_labels: typing.Optional[typing.Dict[str, str]] = None,
-        force_route_id=None,
     ) -> typing.Optional["ChannelFilter"]:
-        # Try to find force route first if force_route_id is given
-        # Force route was used to send demo alerts to specific route.
-        # It is deprecated and may be used by older versions of the plugins
-        if force_route_id is not None:
-            logger.info(
-                f"start select_filter with force_route_id={force_route_id} alert_receive_channel={alert_receive_channel.pk}."
-            )
-            try:
-                satisfied_filter = cls.objects.get(
-                    alert_receive_channel=alert_receive_channel.pk,
-                    pk=force_route_id,
-                )
-                logger.info(
-                    f"success select_filter with force_route_id={force_route_id} alert_receive_channel={alert_receive_channel.pk}."
-                )
-                return satisfied_filter
-            except cls.DoesNotExist:
-                # If force route was not found fallback to default routing.
-                logger.info(
-                    f"select_filter unable to find force_route_id={force_route_id} alert_receive_channel={alert_receive_channel.pk}."
-                )
-                pass
-
         channel_filters = cls.objects.filter(alert_receive_channel=alert_receive_channel)
-
         for channel_filter in channel_filters:
             if channel_filter.is_satisfying(raw_request_data, alert_labels):
                 return channel_filter

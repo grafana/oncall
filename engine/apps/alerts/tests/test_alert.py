@@ -91,7 +91,7 @@ def test_alert_create_labels_are_assigned(
         alert_receive_channel, raw_request_data
     )
     spy_channel_filter_select_filter.assert_called_once_with(
-        alert_receive_channel, raw_request_data, mock_parsed_labels, None
+        alert_receive_channel, raw_request_data, mock_parsed_labels
     )
     mock_assign_labels.assert_called_once_with(alert.group, alert_receive_channel, mock_parsed_labels)
 
