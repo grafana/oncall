@@ -51,7 +51,11 @@ def get_associating_label_model(obj_model_name: str) -> typing.Type["AssociatedL
 
 
 def is_labels_feature_enabled(organization: "Organization") -> bool:
-    return settings.FEATURE_LABELS_ENABLED_FOR_ALL or organization.id in settings.FEATURE_LABELS_ENABLED_PER_ORG
+    """
+    is_labels_feature_enabled checks if env with labels feature is enabled and plugin is provisioned.
+    """
+    env_enabled = settings.FEATURE_LABELS_ENABLED_FOR_ALL or organization.id in settings.FEATURE_LABELS_ENABLED_PER_ORG
+    return organization.is_grafana_labels_enabled and env_enabled
 
 
 def get_labels_dict(labelable) -> dict[str, str]:
