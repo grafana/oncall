@@ -17,43 +17,42 @@ except ModuleNotFoundError:
     pass
 
 
-SLACK_SIGNING_SECRET = os.environ.get("SLACK_SIGNING_SECRET")
-SLACK_SIGNING_SECRET_LIVE = os.environ.get("SLACK_SIGNING_SECRET_LIVE", "")
+# SLACK_SIGNING_SECRET = os.environ.get("SLACK_SIGNING_SECRET")
+# SLACK_SIGNING_SECRET_LIVE = os.environ.get("SLACK_SIGNING_SECRET_LIVE", "")
 
+# STATICFILES_DIRS = [
+#     "/etc/app/static",
+# ]
+# STATIC_ROOT = "./collected_static/"
 
-STATICFILES_DIRS = [
-    "/etc/app/static",
-]
-STATIC_ROOT = "./collected_static/"
+# DEBUG = False
 
-DEBUG = False
+# SECURE_SSL_REDIRECT = True
+# SECURE_REDIRECT_EXEMPT = [
+#     "^health/",
+#     "^health",
+#     "^ready/",
+#     "^ready",
+#     "^startupprobe/",
+#     "^startupprobe",
+#     "^ready_health_check/",
+#     "^ready_health_check",
+#     "^live_health_check/",
+#     "^live_health_check",
+#     "^django-prometheus/metrics",
+#     "^django-prometheus/metrics/",
+# ]
+# SECURE_HSTS_SECONDS = 360000
 
-SECURE_SSL_REDIRECT = True
-SECURE_REDIRECT_EXEMPT = [
-    "^health/",
-    "^health",
-    "^ready/",
-    "^ready",
-    "^startupprobe/",
-    "^startupprobe",
-    "^ready_health_check/",
-    "^ready_health_check",
-    "^live_health_check/",
-    "^live_health_check",
-    "^django-prometheus/metrics",
-    "^django-prometheus/metrics/",
-]
-SECURE_HSTS_SECONDS = 360000
+# CELERY_TASK_ROUTES = celery_task_routes.CELERY_TASK_ROUTES
 
-CELERY_TASK_ROUTES = celery_task_routes.CELERY_TASK_ROUTES
-
-REST_FRAMEWORK = {
-    "DEFAULT_PARSER_CLASSES": (
-        "rest_framework.parsers.JSONParser",
-        "rest_framework.parsers.FormParser",
-        "rest_framework.parsers.MultiPartParser",
-    ),
-    "DEFAULT_AUTHENTICATION_CLASSES": [],
-    "DEFAULT_RENDERER_CLASSES": ("rest_framework.renderers.JSONRenderer",),
-    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
-}
+# REST_FRAMEWORK = {
+#     "DEFAULT_PARSER_CLASSES": (
+#         "rest_framework.parsers.JSONParser",
+#         "rest_framework.parsers.FormParser",
+#         "rest_framework.parsers.MultiPartParser",
+#     ),
+#     "DEFAULT_AUTHENTICATION_CLASSES": [],
+#     "DEFAULT_RENDERER_CLASSES": ("rest_framework.renderers.JSONRenderer",),
+#     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+# }

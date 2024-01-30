@@ -2,7 +2,15 @@ base_url: localhost:8080
 base_url_protocol: http
 env:
   - name: GRAFANA_CLOUD_NOTIFICATIONS_ENABLED
-    value: "False"
+    value: "True"
+  - name: DJANGO_SETTINGS_MODULE
+    value: "settings.tilt-dev"
+  - name: FEATURE_TELEGRAM_INTEGRATION_ENABLED
+    value: "True"
+  - name: FEATURE_SLACK_INTEGRATION_ENABLED
+    value: "True"
+  - name: SLACK_SLASH_COMMAND_NAME
+    value: "/oncall"
 image:
   repository: localhost:63628/oncall/engine
   tag: dev
