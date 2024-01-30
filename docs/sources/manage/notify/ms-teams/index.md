@@ -1,18 +1,20 @@
 ---
-aliases:
-  - ../../chat-options/configure-teams/
-canonical: https://grafana.com/docs/oncall/latest/notify/ms-teams/
-keywords:
-  - Grafana Cloud
-  - Alerts
-  - Notifications
-  - on-call
-  - amixr
-  - oncall
-  - MS Team
-  - Microsoft
-title: Microsoft Teams
+title: MS Teams integration for Grafana OnCall
+menuTitle: Microsoft Teams
+description: Learn more about the Microsoft Teams integration for Grafana OnCall.
 weight: 500
+keywords:
+  - OnCall
+  - Notifications
+  - ChatOps
+  - MS Teams
+  - Microsoft
+  - Channels
+canonical: https://grafana.com/docs/oncall/latest/manage/notify/ms-teams/
+aliases:
+  - /docs/grafana-cloud/alerting-and-irm/oncall/manage/notify/ms-teams/
+  - /docs/grafana-cloud/alerting-and-irm/oncall/notify/ms-teams
+  - ../../chat-options/configure-teams/
 ---
 
 # Microsoft Teams integration for Grafana OnCall

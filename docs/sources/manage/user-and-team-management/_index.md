@@ -1,11 +1,17 @@
 ---
-title: User and team management
+title: Manage user and team management
+menuTitle: Users and teams
+description: Manage users and teams for Grafana OnCall.
+weight: 100
 keywords:
-  - oncall
+  - OnCall
+  - Notifications
   - RBAC
-  - permissions
-  - notification
-weight: 1300
+  - Permissions
+  - Roles
+canonical: https://grafana.com/docs/oncall/latest/manage/user-and-team-management/
+aliases:
+  - /docs/grafana-cloud/alerting-and-irm/oncall/manage/user-and-team-management/
 ---
 
 # Manage users and teams for Grafana OnCall

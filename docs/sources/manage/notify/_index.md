@@ -1,18 +1,20 @@
 ---
-aliases:
-  - ../notify/
-  - /docs/oncall/latest/notify/
-canonical: https://grafana.com/docs/oncall/latest/notify/
+title: Notifications
+menuTitle: Notifications
+description: Configure notifications and ChatOps integrations for Grafana OnCall.
+weight: 200
 keywords:
-  - Grafana Cloud
-  - Alerts
+  - OnCall
   - Notifications
-  - on-call
-  - amixr
-  - oncall
-  - slack
-title: Notify people
-weight: 800
+  - ChatOps
+  - Slack
+  - MS Teams
+  - Telegram
+  - Phone
+canonical: https://grafana.com/docs/oncall/latest/manage/notify/
+aliases:
+  - /docs/grafana-cloud/alerting-and-irm/oncall/manage/notify/
+  - /docs/grafana-cloud/alerting-and-irm/oncall/notify/
 ---
 
 # Notify people

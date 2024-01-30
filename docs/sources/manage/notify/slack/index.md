@@ -1,17 +1,19 @@
 ---
-aliases:
-  - ../../chat-options/configure-slack/
-canonical: https://grafana.com/docs/oncall/latest/notify/slack/
+title: Slack integration for Grafana OnCall
+menuTitle: Slack
+description: Learn more about Slack integration for Grafana OnCall.
+weight: 300
 keywords:
-  - Grafana Cloud
-  - Alerts
+  - OnCall
   - Notifications
-  - on-call
-  - amixr
-  - oncall
-  - slack
-title: Slack
-weight: 100
+  - ChatOps
+  - Slack
+  - Channels
+canonical: https://grafana.com/docs/oncall/latest/manage/notify/slack/
+aliases:
+  - /docs/grafana-cloud/alerting-and-irm/oncall/manage/notify/slack/
+  - /docs/grafana-cloud/alerting-and-irm/oncall/notify/slack/
+  - ../../chat-options/configure-slack/
 ---
 
 # Slack integration for Grafana OnCall

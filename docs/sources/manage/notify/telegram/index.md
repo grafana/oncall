@@ -1,17 +1,19 @@
 ---
-aliases:
-  - ../../chat-options/configure-telegram/
-canonical: https://grafana.com/docs/oncall/latest/notify/telegram/
+title: Telegram integration for Grafana OnCall
+menuTitle: Telegram
+description: Learn more about the Telegram integration for Grafana OnCall.
+weight: 700
 keywords:
-  - Grafana Cloud
-  - Alerts
+  - OnCall
   - Notifications
-  - on-call
-  - amixr
-  - oncall
-  - telegram
-title: Telegram
-weight: 300
+  - ChatOps
+  - Telegram
+  - Channels
+canonical: https://grafana.com/docs/oncall/latest/manage/notify/telegram/
+aliases:
+  - /docs/grafana-cloud/alerting-and-irm/oncall/manage/notify/telegram/
+  - /docs/grafana-cloud/alerting-and-irm/oncall/notify/telegram/
+  - ../../chat-options/configure-telegram/
 ---
 
 # Telegram integration for Grafana OnCall

@@ -1,18 +1,18 @@
 ---
-aliases:
-  - ../../notify/phone-sms
-  - /docs/oncall/latest/notify/phone-sms/
-canonical: https://grafana.com/docs/oncall/latest/notify/phone-sms/
-keywords:
-  - Grafana Cloud
-  - Alerts
-  - Notifications
-  - on-call
-  - amixr
-  - oncall
-  - slack
-title: Phone calls and SMS
+title: Phone calls and SMS notifications
+menuTitle: Phone and SMS
+description: Learn more about Phone calls and SMS notifications for Grafana OnCall.
 weight: 100
+keywords:
+  - OnCall
+  - Notifications
+  - SMS
+  - Phone
+  - Rate Limits
+canonical: https://grafana.com/docs/oncall/latest/manage/notify/phone-calls-sms/
+aliases:
+  - /docs/grafana-cloud/alerting-and-irm/oncall/manage/notify/phone-calls-sms/
+  - /docs/grafana-cloud/alerting-and-irm/oncall/notify/phone-calls-sms
 ---
 
 # Phone Calls and SMS notifications
