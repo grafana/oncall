@@ -16,10 +16,8 @@ except ModuleNotFoundError:
     # Only works under uwsgi web server environment
     pass
 
-
 SLACK_SIGNING_SECRET = os.environ.get("SLACK_SIGNING_SECRET")
 SLACK_SIGNING_SECRET_LIVE = os.environ.get("SLACK_SIGNING_SECRET_LIVE", "")
-
 
 STATICFILES_DIRS = [
     "/etc/app/static",
@@ -44,6 +42,8 @@ SECURE_REDIRECT_EXEMPT = [
     "^django-prometheus/metrics/",
 ]
 SECURE_HSTS_SECONDS = 360000
+
+CELERY_TASK_ROUTES = celery_task_routes.CELERY_TASK_ROUTES
 
 CELERY_TASK_ROUTES = celery_task_routes.CELERY_TASK_ROUTES
 
