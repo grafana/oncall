@@ -8,3 +8,7 @@ export interface TableColumn {
   className?: string;
   grow?: number;
 }
+
+export type PropertiesThatExtendsAnotherClass<OriginalObj, AnotherClass> = keyof {
+  [Prop in keyof OriginalObj as OriginalObj[Prop] extends AnotherClass ? Prop : never]: unknown;
+};
