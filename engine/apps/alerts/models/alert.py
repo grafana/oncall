@@ -12,6 +12,8 @@ from django.db.models import JSONField
 from apps.alerts import tasks
 from apps.alerts.constants import TASK_DELAY_SECONDS
 from apps.alerts.incident_appearance.templaters import TemplateLoader
+from apps.alerts.signals import alert_group_escalation_snapshot_built
+from apps.alerts.tasks.distribute_alert import send_alert_create_signal
 from apps.labels.alert_group_labels import assign_labels, gather_labels_from_alert_receive_channel_and_raw_request_data
 from apps.labels.types import Labels
 from common.jinja_templater import apply_jinja_template_to_alert_payload_and_labels
@@ -115,12 +117,14 @@ class Alert(models.Model):
                 alert_receive_channel, raw_request_data, parsed_labels, force_route_id
             )
 
+        # Get or create group
         group, group_created = AlertGroup.objects.get_or_create_grouping(
             channel=alert_receive_channel,
             channel_filter=channel_filter,
             group_data=group_data,
             received_at=received_at,
         )
+        logger.debug(f"alert group {group.pk} created={group_created}")
 
         if group_created:
             assign_labels(group, alert_receive_channel, parsed_labels)
@@ -137,6 +141,7 @@ class Alert(models.Model):
         if not group.acknowledged and mark_as_acknowledged:
             group.acknowledge_by_source()
 
+        # Create alert
         alert = cls(
             is_resolve_signal=group_data.is_resolve_signal,
             title=title,
@@ -148,20 +153,38 @@ class Alert(models.Model):
             raw_request_data=raw_request_data,
             is_the_first_alert_in_group=group_created,
         )
-
         alert.save()
+        logger.debug(f"alert {alert.pk} created")
+
+        transaction.on_commit(partial(send_alert_create_signal.apply_async, (alert.pk,)))
+
+        if group_created:
+            assign_labels(group, alert_receive_channel, raw_request_data)
+            group.log_records.create(type=AlertGroupLogRecord.TYPE_REGISTERED)
+            group.log_records.create(type=AlertGroupLogRecord.TYPE_ROUTE_ASSIGNED)
+
+        if group_created or alert.group.pause_escalation:
+            # Build escalation snapshot if needed and start escalation
+            alert.group.start_escalation_if_needed(countdown=TASK_DELAY_SECONDS)
+
+        if group_created:
+            # TODO: consider moving to start_escalation_if_needed
+            alert_group_escalation_snapshot_built.send(sender=cls.__class__, alert_group=alert.group)
+
+        mark_as_acknowledged = group_data.is_acknowledge_signal
+        if not group.acknowledged and mark_as_acknowledged:
+            group.acknowledge_by_source()
+
+        mark_as_resolved = (
+            enable_autoresolve and group_data.is_resolve_signal and alert_receive_channel.allow_source_based_resolving
+        )
+        if not group.resolved and mark_as_resolved:
+            group.resolve_by_source()
 
         # Store exact alert which resolved group.
         if group.resolved_by == AlertGroup.SOURCE and group.resolved_by_alert is None:
             group.resolved_by_alert = alert
             group.save(update_fields=["resolved_by_alert"])
-
-        if settings.DEBUG:
-            tasks.distribute_alert(alert.pk)
-        else:
-            transaction.on_commit(
-                partial(tasks.distribute_alert.apply_async, (alert.pk,), countdown=TASK_DELAY_SECONDS)
-            )
 
         if group_created:
             # all code below related to maintenance mode
