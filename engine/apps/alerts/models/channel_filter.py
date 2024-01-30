@@ -7,8 +7,12 @@ from django.conf import settings
 from django.core.validators import MinLengthValidator
 from django.db import models
 
-from common.jinja_templater import apply_jinja_template
-from common.jinja_templater.apply_jinja_template import JinjaTemplateError, JinjaTemplateWarning
+from common.jinja_templater import apply_jinja_template_to_alert_payload_and_labels
+from common.jinja_templater.apply_jinja_template import (
+    JinjaTemplateError,
+    JinjaTemplateWarning,
+    templated_value_is_truthy,
+)
 from common.ordered_model.ordered_model import OrderedModel
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
 
@@ -16,6 +20,7 @@ if typing.TYPE_CHECKING:
     from django.db.models.manager import RelatedManager
 
     from apps.alerts.models import Alert, AlertGroup, AlertReceiveChannel
+    from apps.labels.types import Labels
 
 logger = logging.getLogger(__name__)
 
@@ -106,7 +111,7 @@ class ChannelFilter(OrderedModel):
         cls,
         alert_receive_channel: "AlertReceiveChannel",
         raw_request_data: "Alert.RawRequestData",
-        alert_labels: typing.Optional[typing.Dict] = None,
+        alert_labels: typing.Optional[typing.Dict[str, str]] = None,
         force_route_id=None,
     ) -> typing.Optional["ChannelFilter"]:
         # Try to find force route first if force_route_id is given
@@ -140,21 +145,22 @@ class ChannelFilter(OrderedModel):
         return None
 
     def is_satisfying(
-        self, raw_request_data: "Alert.RawRequestData", alert_labels: typing.Optional[typing.Dict] = None
+        self, raw_request_data: "Alert.RawRequestData", alert_labels: typing.Optional["Labels"] = None
     ) -> bool:
         return self.is_default or self.check_filter(raw_request_data, alert_labels)
 
     def check_filter(
-        self, raw_request_data: "Alert.RawRequestData", alert_labels: typing.Optional[typing.Dict] = None
+        self, raw_request_data: "Alert.RawRequestData", alert_labels: typing.Optional["Labels"] = None
     ) -> bool:
         if self.filtering_term_type == ChannelFilter.FILTERING_TERM_TYPE_JINJA2:
             try:
-                is_matching = apply_jinja_template(
-                    self.filtering_term,
-                    payload=raw_request_data,
-                    labels=alert_labels if alert_labels is not None else {},
+                return templated_value_is_truthy(
+                    apply_jinja_template_to_alert_payload_and_labels(
+                        self.filtering_term,
+                        raw_request_data,
+                        alert_labels,
+                    )
                 )
-                return is_matching.strip().lower() in ["1", "true", "ok"]
             except (JinjaTemplateError, JinjaTemplateWarning):
                 logger.error(f"channel_filter={self.id} failed to parse jinja2={self.filtering_term}")
                 return False

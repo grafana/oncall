@@ -2,6 +2,7 @@ import json
 import logging
 import typing
 
+from apps.labels import types
 from apps.labels.utils import is_labels_feature_enabled
 from common.jinja_templater import apply_jinja_template
 from common.jinja_templater.apply_jinja_template import JinjaTemplateError, JinjaTemplateWarning
@@ -22,7 +23,7 @@ MAX_LABELS_PER_ALERT_GROUP = 15
 
 def gather_labels_from_alert_receive_channel_and_raw_request_data(
     alert_receive_channel: "AlertReceiveChannel", raw_request_data: "Alert.RawRequestData"
-) -> typing.Optional[typing.Dict[str, str]]:
+) -> typing.Optional[types.Labels]:
     if not is_labels_feature_enabled(alert_receive_channel.organization):
         return None
 
@@ -42,11 +43,11 @@ def gather_labels_from_alert_receive_channel_and_raw_request_data(
 
 
 def assign_labels(
-    alert_group: "AlertGroup", alert_receive_channel: "AlertReceiveChannel", labels: typing.Dict[str, str]
+    alert_group: "AlertGroup", alert_receive_channel: "AlertReceiveChannel", labels: typing.Optional[types.Labels]
 ) -> None:
     from apps.labels.models import AlertGroupAssociatedLabel
 
-    if not is_labels_feature_enabled(alert_receive_channel.organization):
+    if not is_labels_feature_enabled(alert_receive_channel.organization) or not labels:
         return
 
     # create associated labels
@@ -77,7 +78,7 @@ def assign_labels(
 
 def _custom_labels(
     alert_receive_channel: "AlertReceiveChannel", raw_request_data: "Alert.RawRequestData"
-) -> dict[str, str]:
+) -> types.Labels:
     from apps.labels.models import MAX_VALUE_NAME_LENGTH, LabelKeyCache, LabelValueCache
 
     if alert_receive_channel.alert_group_labels_custom is None:
@@ -142,7 +143,7 @@ def _custom_labels(
 
 def _template_labels(
     alert_receive_channel: "AlertReceiveChannel", raw_request_data: "Alert.RawRequestData"
-) -> dict[str, str]:
+) -> types.Labels:
     from apps.labels.models import MAX_KEY_NAME_LENGTH, MAX_VALUE_NAME_LENGTH
 
     if not alert_receive_channel.alert_group_labels_template:
