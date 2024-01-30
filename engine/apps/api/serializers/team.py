@@ -50,10 +50,10 @@ class TeamLongSerializer(TeamSerializer):
         ]
 
     def get_number_of_users_currently_oncall(self, obj: Team) -> int:
-        num_of_users_oncall_for_team = 0
+        oncall_users = set()
 
         for schedule, users in self.context["schedules_with_oncall_users"].items():
             if schedule.team == obj:
-                num_of_users_oncall_for_team += len(users)
+                oncall_users |= set(users)
 
-        return num_of_users_oncall_for_team
+        return len(oncall_users)
