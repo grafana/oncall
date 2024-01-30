@@ -126,21 +126,6 @@ class Alert(models.Model):
         )
         logger.debug(f"alert group {group.pk} created={group_created}")
 
-        if group_created:
-            assign_labels(group, alert_receive_channel, parsed_labels)
-            group.log_records.create(type=AlertGroupLogRecord.TYPE_REGISTERED)
-            group.log_records.create(type=AlertGroupLogRecord.TYPE_ROUTE_ASSIGNED)
-
-        mark_as_resolved = (
-            enable_autoresolve and group_data.is_resolve_signal and alert_receive_channel.allow_source_based_resolving
-        )
-        if not group.resolved and mark_as_resolved:
-            group.resolve_by_source()
-
-        mark_as_acknowledged = group_data.is_acknowledge_signal
-        if not group.acknowledged and mark_as_acknowledged:
-            group.acknowledge_by_source()
-
         # Create alert
         alert = cls(
             is_resolve_signal=group_data.is_resolve_signal,
@@ -159,7 +144,7 @@ class Alert(models.Model):
         transaction.on_commit(partial(send_alert_create_signal.apply_async, (alert.pk,)))
 
         if group_created:
-            assign_labels(group, alert_receive_channel, raw_request_data)
+            assign_labels(group, alert_receive_channel, parsed_labels)
             group.log_records.create(type=AlertGroupLogRecord.TYPE_REGISTERED)
             group.log_records.create(type=AlertGroupLogRecord.TYPE_ROUTE_ASSIGNED)
 
