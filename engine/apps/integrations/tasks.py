@@ -63,8 +63,8 @@ def create_alertmanager_alerts(alert_receive_channel_pk, alert, is_demo=False, f
             alert.group.active_resolve_calculation_id = task.id
             alert.group.save(update_fields=["active_resolve_calculation_id"])
 
-    logger.info(
-        f"Created alert alert_id={alert.pk} alert_group_id={alert.group.pk} channel_id={alert_receive_channel.pk}"
+    logger.debug(
+        f"Created alertmanager alert alert_id={alert.pk} alert_group_id={alert.group.pk} channel_id={alert_receive_channel.pk}"
     )
 
 
@@ -109,7 +109,7 @@ def create_alert(
             is_demo=is_demo,
             received_at=received_at,
         )
-        logger.info(
+        logger.debug(
             f"Created alert alert_id={alert.pk} alert_group_id={alert.group.pk} channel_id={alert_receive_channel.pk}"
         )
     except ConcurrentUpdateError:

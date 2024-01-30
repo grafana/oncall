@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add check whether organization has Slack connection on update Slack related field using public api endpoints
   by @Ferril ([#3751](https://github.com/grafana/oncall/pull/3751))
 - Fixed calculating the number of on-call users per team by @Ferril ([#3773](https://github.com/grafana/oncall/pull/3773))
+- Refactor create_alert task by @iskhakov ([#3604](https://github.com/grafana/oncall/pull/3759))
 
 ## v1.3.92 (2024-01-23)
 

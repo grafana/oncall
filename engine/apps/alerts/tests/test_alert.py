@@ -8,9 +8,9 @@ from apps.alerts.tasks import distribute_alert, escalate_alert_group
 
 
 @pytest.mark.django_db
-@patch("apps.alerts.tasks.distribute_alert.distribute_alert.apply_async", return_value=None)
+@patch("apps.alerts.tasks.distribute_alert.send_alert_create_signal.apply_async", return_value=None)
 def test_alert_create_default_channel_filter(
-    mocked_distribute_alert_task,
+    mocked_send_alert_create_signal,
     make_organization,
     make_alert_receive_channel,
     make_channel_filter,
@@ -30,10 +30,9 @@ def test_alert_create_default_channel_filter(
             image_url=None,
             link_to_upstream_details=None,
         )
-
     assert alert.group.channel_filter == channel_filter
     assert len(callbacks) == 1
-    mocked_distribute_alert_task.assert_called_once_with((alert.pk,), countdown=1)
+    mocked_send_alert_create_signal.assert_called_once_with((alert.pk,))
 
 
 @pytest.mark.django_db
