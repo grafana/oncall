@@ -445,6 +445,7 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
         customIcon: 'grafana',
         canHoverIcon: false,
         collapsedView: null,
+        startingElemPosition: '50%',
         expandedView: () => <IntegrationContactPoint id={id} />,
       },
       {
@@ -452,6 +453,7 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
         customIcon: 'plug',
         canHoverIcon: false,
         collapsedView: null,
+        startingElemPosition: '50%',
         expandedView: () => <IntegrationHowToConnect id={id} />,
       },
       {
@@ -459,6 +461,7 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
         isExpanded: false,
         isCollapsible: false,
         canHoverIcon: false,
+        startingElemPosition: '50%',
         expandedView: () => (
           <IntegrationBlock
             noContent
@@ -546,7 +549,9 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
                     Add route
                   </Button>
                 </WithPermissionControlTooltip>
-                {this.state.isAddingRoute && <LoadingPlaceholder text="Loading..." />}
+                {this.state.isAddingRoute && (
+                  <LoadingPlaceholder text="Loading..." className={cx('loadingPlaceholder')} />
+                )}
               </HorizontalGroup>
             </VerticalGroup>
           </div>
@@ -629,6 +634,7 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
         ({
           canHoverIcon: true,
           isCollapsible: true,
+          startingElemPosition: '50%',
           isExpanded: openRoutes.indexOf(channelFilterId) > -1,
           onStateChange: (isChecked: boolean) => {
             const newOpenRoutes = [...openRoutes];

@@ -28,10 +28,10 @@ interface EscalationChainStepsProps {
   offset?: number;
 }
 
-const getStyles = (_theme: GrafanaTheme2) => {
+const getStyles = (theme: GrafanaTheme2) => {
   return {
     background: css`
-      background-color: ${_theme.colors.success.main};
+      background-color: ${theme.colors.success.main};
     `,
   };
 };

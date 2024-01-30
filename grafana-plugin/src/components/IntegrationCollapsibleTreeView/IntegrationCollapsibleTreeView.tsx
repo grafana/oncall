@@ -127,7 +127,7 @@ const IntegrationCollapsibleTreeItem: React.FC<{
       <div
         className={cx('integrationTree__icon')}
         style={{
-          transform: `translateY(${item.startingElemPosition || '50%'})`,
+          transform: `translateY(${item.startingElemPosition || 0})`,
         }}
       >
         {renderIcon()}
