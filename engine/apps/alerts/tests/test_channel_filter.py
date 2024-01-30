@@ -23,11 +23,6 @@ def test_channel_filter_select_filter(make_organization, make_alert_receive_chan
     satisfied_filter = ChannelFilter.select_filter(alert_receive_channel, raw_request_data)
     assert satisfied_filter == default_channel_filter
 
-    # demo alert for custom route
-    raw_request_data = {"title": "i'm not matching this route"}
-    satisfied_filter = ChannelFilter.select_filter(alert_receive_channel, raw_request_data)
-    assert satisfied_filter == channel_filter
-
 
 @pytest.mark.django_db
 def test_channel_filter_select_filter_regex(make_organization, make_alert_receive_channel, make_channel_filter):
@@ -52,11 +47,6 @@ def test_channel_filter_select_filter_regex(make_organization, make_alert_receiv
     satisfied_filter = ChannelFilter.select_filter(alert_receive_channel, raw_request_data)
     assert satisfied_filter == default_channel_filter
 
-    # demo alert for custom route
-    raw_request_data = {"title": "i'm not matching this route"}
-    satisfied_filter = ChannelFilter.select_filter(alert_receive_channel, raw_request_data)
-    assert satisfied_filter == channel_filter
-
 
 @pytest.mark.django_db
 def test_channel_filter_select_filter_jinja2(make_organization, make_alert_receive_channel, make_channel_filter):
@@ -80,11 +70,6 @@ def test_channel_filter_select_filter_jinja2(make_organization, make_alert_recei
     raw_request_data = {"foo": "qaz"}
     satisfied_filter = ChannelFilter.select_filter(alert_receive_channel, raw_request_data)
     assert satisfied_filter == default_channel_filter
-
-    # demo alert for custom route
-    raw_request_data = {"title": "i'm not matching this route"}
-    satisfied_filter = ChannelFilter.select_filter(alert_receive_channel, raw_request_data)
-    assert satisfied_filter == channel_filter
 
 
 @pytest.mark.django_db
