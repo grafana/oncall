@@ -1,5 +1,6 @@
 import logging
 import random
+import typing
 
 from celery import shared_task
 from celery.utils.log import get_task_logger
@@ -12,6 +13,9 @@ from apps.slack.client import SlackClient
 from apps.slack.errors import SlackAPIError
 from common.custom_celery_tasks import shared_dedicated_queue_retry_task
 from common.custom_celery_tasks.create_alert_base_task import CreateAlertBaseTask
+
+if typing.TYPE_CHECKING:
+    from apps.alerts.models import Alert
 
 logger = get_task_logger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -75,17 +79,17 @@ def create_alertmanager_alerts(alert_receive_channel_pk, alert, is_demo=False, f
     max_retries=1 if settings.DEBUG else None,
 )
 def create_alert(
-    title,
-    message,
-    image_url,
-    link_to_upstream_details,
-    alert_receive_channel_pk,
-    integration_unique_data,
-    raw_request_data,
-    is_demo=False,
-    force_route_id=None,
-    received_at=None,
-):
+    title: typing.Optional[str],
+    message: typing.Optional[str],
+    image_url: typing.Optional[str],
+    link_to_upstream_details: typing.Optional[str],
+    alert_receive_channel_pk: int,
+    integration_unique_data: typing.Optional[typing.Dict],
+    raw_request_data: "Alert.RawRequestData",
+    is_demo: bool = False,
+    force_route_id: typing.Optional[int] = None,
+    received_at: typing.Optional[str] = None,
+) -> None:
     from apps.alerts.models import Alert, AlertReceiveChannel
 
     try:

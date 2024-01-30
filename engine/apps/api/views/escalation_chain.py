@@ -39,7 +39,7 @@ class EscalationChainFilter(ByTeamModelFieldFilterMixin, ModelFieldFilterMixin, 
 
 class EscalationChainViewSet(
     TeamFilteringMixin,
-    PublicPrimaryKeyMixin,
+    PublicPrimaryKeyMixin[EscalationChain],
     FilterSerializerMixin,
     ListSerializerMixin,
     viewsets.ModelViewSet,
