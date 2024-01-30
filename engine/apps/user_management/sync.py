@@ -52,12 +52,8 @@ def _sync_organization(organization: Organization) -> None:
         sync_users_and_teams(grafana_api_client, organization)
         organization.last_time_synced = timezone.now()
 
-        grafana_incident_settings, _ = grafana_api_client.get_grafana_incident_plugin_settings()
-        if grafana_incident_settings is not None:
-            organization.is_grafana_incident_enabled = grafana_incident_settings["enabled"]
-            organization.grafana_incident_backend_url = grafana_incident_settings.get("jsonData", {}).get(
-                GrafanaAPIClient.GRAFANA_INCIDENT_PLUGIN_BACKEND_URL_KEY
-            )
+        _sync_grafana_incident_plugin(organization, grafana_api_client)
+        _sync_grafana_labels_plugin(organization, grafana_api_client)
     else:
         organization.api_token_status = Organization.API_TOKEN_STATUS_FAILED
         logger.warning(f"Sync not successful org={organization.pk} token_status=FAILED")
@@ -97,6 +93,29 @@ def _sync_instance_info(organization: Organization) -> None:
         organization.grafana_url = instance_info["url"]
         organization.cluster_slug = instance_info["clusterSlug"]
         organization.gcom_token_org_last_time_synced = timezone.now()
+
+
+def _sync_grafana_labels_plugin(organization: Organization, grafana_api_client) -> None:
+    """
+    _sync_grafana_labels_plugin checks if grafana-labels-app plugin is enabled and sets a flag in the organization.
+    It intended to use only inside _sync_organization. It mutates, but not saves org, it's saved in _sync_organization.
+    """
+    grafana_labels_plugin_settings, _ = grafana_api_client.get_grafana_labels_plugin_settings()
+    if grafana_labels_plugin_settings is not None:
+        organization.is_grafana_labels_enabled = grafana_labels_plugin_settings["enabled"]
+
+
+def _sync_grafana_incident_plugin(organization: Organization, grafana_api_client) -> None:
+    """
+    _sync_grafana_incident_plugin check if incident plugin is enabled and sets a flag and its url in the organization.
+    It intended to use only inside _sync_organization. It mutates, but not saves org, it's saved in _sync_organization.
+    """
+    grafana_incident_settings, _ = grafana_api_client.get_grafana_incident_plugin_settings()
+    if grafana_incident_settings is not None:
+        organization.is_grafana_incident_enabled = grafana_incident_settings["enabled"]
+        organization.grafana_incident_backend_url = grafana_incident_settings.get("jsonData", {}).get(
+            GrafanaAPIClient.GRAFANA_INCIDENT_PLUGIN_BACKEND_URL_KEY
+        )
 
 
 def sync_users_and_teams(client: GrafanaAPIClient, organization: Organization) -> None:
