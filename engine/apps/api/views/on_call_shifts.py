@@ -19,7 +19,9 @@ from common.api_helpers.utils import get_date_range_from_request
 from common.insight_log import EntityEvent, write_resource_insight_log
 
 
-class OnCallShiftView(TeamFilteringMixin, PublicPrimaryKeyMixin, UpdateSerializerMixin, ModelViewSet):
+class OnCallShiftView(
+    TeamFilteringMixin, PublicPrimaryKeyMixin[CustomOnCallShift], UpdateSerializerMixin, ModelViewSet
+):
     authentication_classes = (PluginAuthentication,)
     permission_classes = (IsAuthenticated, RBACPermission)
 
