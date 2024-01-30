@@ -24,6 +24,7 @@ import { RouteComponentProps, withRouter } from 'react-router-dom';
 import reactStringReplace from 'react-string-replace';
 import { OnCallPluginExtensionPoints } from 'types';
 
+import errorSVG from 'assets/img/error.svg';
 import Collapse from 'components/Collapse/Collapse';
 import { ExtensionLinkDropdown } from 'components/ExtensionLinkMenu/ExtensionLinkDropdown';
 import Block from 'components/GBlock/Block';
@@ -134,23 +135,20 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
 
     if (isUnknownError) {
       return (
-        <div className={cx('root')}>
-          <div className={cx('not-found')}>
-            <VerticalGroup>
-              <Text>We are unable to load incident data</Text>
-              <HorizontalGroup>
-                {getActionButtons(incident, {
-                  onResolve: this.getOnActionButtonClick(id, AlertAction.Resolve),
-                  onUnacknowledge: this.getOnActionButtonClick(id, AlertAction.unAcknowledge),
-                  onUnresolve: this.getOnActionButtonClick(id, AlertAction.unResolve),
-                  onAcknowledge: this.getOnActionButtonClick(id, AlertAction.Acknowledge),
-                  onSilence: this.getSilenceClickHandler(id),
-                  onUnsilence: this.getUnsilenceClickHandler(id),
-                })}
-              </HorizontalGroup>
-            </VerticalGroup>
-          </div>
-        </div>
+        <AlertGroupStub
+          buttons={getActionButtons(
+            incident,
+            {
+              onResolve: this.getOnActionButtonClick(id, AlertAction.Resolve),
+              onUnacknowledge: this.getOnActionButtonClick(id, AlertAction.unAcknowledge),
+              onUnresolve: this.getOnActionButtonClick(id, AlertAction.unResolve),
+              onAcknowledge: this.getOnActionButtonClick(id, AlertAction.Acknowledge),
+              onSilence: this.getSilenceClickHandler(id),
+              onUnsilence: this.getUnsilenceClickHandler(id),
+            },
+            true
+          )}
+        />
       );
     }
 
@@ -839,5 +837,21 @@ function AttachedIncidentsList({
     </Collapse>
   );
 }
+
+const AlertGroupStub = ({ buttons }: { buttons: React.ReactNode }) => {
+  return (
+    <div className={cx('alert-group-stub')}>
+      <VerticalGroup align="center" spacing="md">
+        <img src={errorSVG} alt="" />
+        <Text>
+          Hi! It looks like smth doesn't work as expected. OnCall is not able to receive any information about the
+          current Alert Group. It's unknown if it's firing, acknowledged, silenced, or resolved. Meanwhile, you could
+          try changing the status of this Alert Group:
+        </Text>
+        <HorizontalGroup>{buttons}</HorizontalGroup>
+      </VerticalGroup>
+    </div>
+  );
+};
 
 export default withRouter(withMobXProviderContext(IncidentPage));

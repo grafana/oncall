@@ -144,7 +144,7 @@ export function renderRelatedUsers(incident: Alert, isFull = false) {
   );
 }
 
-export function getActionButtons(incident: AlertType, callbacks: { [key: string]: any }) {
+export function getActionButtons(incident: AlertType, callbacks: { [key: string]: any }, allSecondary = false) {
   const { onResolve, onUnresolve, onAcknowledge, onUnacknowledge, onSilence, onUnsilence } = callbacks;
 
   if (incident?.root_alert_group) {
@@ -153,7 +153,7 @@ export function getActionButtons(incident: AlertType, callbacks: { [key: string]
 
   const resolveButton = (
     <WithPermissionControlTooltip key="resolve" userAction={UserActions.AlertGroupsWrite}>
-      <Button disabled={incident?.loading} onClick={onResolve} variant="primary">
+      <Button disabled={incident?.loading} onClick={onResolve} variant={allSecondary ? 'secondary' : 'primary'}>
         Resolve
       </Button>
     </WithPermissionControlTooltip>
@@ -169,7 +169,7 @@ export function getActionButtons(incident: AlertType, callbacks: { [key: string]
 
   const unresolveButton = (
     <WithPermissionControlTooltip key="unacknowledge" userAction={UserActions.AlertGroupsWrite}>
-      <Button disabled={incident?.loading} onClick={onUnresolve} variant="primary">
+      <Button disabled={incident?.loading} onClick={onUnresolve} variant={allSecondary ? 'secondary' : 'primary'}>
         Unresolve
       </Button>
     </WithPermissionControlTooltip>
@@ -185,7 +185,7 @@ export function getActionButtons(incident: AlertType, callbacks: { [key: string]
 
   const silenceButton = (
     <WithPermissionControlTooltip key="silence" userAction={UserActions.AlertGroupsWrite}>
-      <SilenceButtonCascader key="silence" disabled={incident?.loading} onSelect={onSilence} />
+      <SilenceButtonCascader disabled={incident?.loading} onSelect={onSilence} />
     </WithPermissionControlTooltip>
   );
 
