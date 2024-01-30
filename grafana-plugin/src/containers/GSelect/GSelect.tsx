@@ -10,7 +10,7 @@ import BaseStore from 'models/base_store';
 import { RootBaseStore } from 'state/rootBaseStore';
 import { useStore } from 'state/useStore';
 import { useDebouncedCallback } from 'utils/hooks';
-import { KeysMatching } from 'utils/types';
+import { PropertiesThatExtendsAnotherClass } from 'utils/types';
 
 import styles from './GSelect.module.scss';
 
@@ -22,7 +22,7 @@ interface GSelectProps {
   value?: string | string[] | null;
   defaultValue?: string | string[] | null;
   onChange: (value: string, item: any) => void;
-  modelName: KeysMatching<RootBaseStore, BaseStore>;
+  modelName: PropertiesThatExtendsAnotherClass<RootBaseStore, BaseStore>;
   autoFocus?: boolean;
   defaultOpen?: boolean;
   disabled?: boolean;

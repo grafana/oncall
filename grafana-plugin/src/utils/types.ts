@@ -9,6 +9,6 @@ export interface TableColumn {
   grow?: number;
 }
 
-export type KeysMatching<T extends object, V> = keyof {
+export type PropertiesThatExtendsAnotherClass<T extends object, V> = keyof {
   [K in keyof T as T[K] extends V ? K : never]: unknown;
 };
