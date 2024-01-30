@@ -1,8 +1,20 @@
 ---
-canonical: https://grafana.com/docs/oncall/latest/jinja2-templating/
 title: Jinja2 templating
-weight: 1000
+menuTitle: Jinja2 templating
+description: Understand how to configure and customize alert templates for OnCall.
+weight: 700
+keywords:
+  - OnCall
+  - Configuration
+  - Webhooks
+  - JSON
+  - Alert payload
+  - Conditions
+canonical: https://grafana.com/docs/oncall/latest/configure/jinja2-templating/
+aliases:
+  - /docs/grafana-cloud/alerting-and-irm/oncall/configure/jinja2-templating/
 ---
+
 
 ## Jinja2 templating
 

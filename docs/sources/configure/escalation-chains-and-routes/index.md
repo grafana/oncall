@@ -1,7 +1,19 @@
 ---
-canonical: https://grafana.com/docs/oncall/latest/escalation-chains-and-routes/
-title: Escalation Chains and Routes
-weight: 600
+title: Escalation chains and routes
+menuTitle: Escalation chains and routes
+description: Understand how to configure escalation chains and routes for OnCall.
+weight: 300
+keywords:
+  - OnCall
+  - Configuration
+  - Routes
+  - Escalation
+  - Alert templates
+  - Routing template
+  - Notify
+canonical: https://grafana.com/docs/oncall/latest/configure/escalation-chains-and-routes/
+aliases:
+  - /docs/grafana-cloud/alerting-and-irm/oncall/configure/escalation-chains-and-routes/
 ---
 
 # Escalation Chains and Routes

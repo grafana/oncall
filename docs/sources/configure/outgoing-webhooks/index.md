@@ -1,15 +1,19 @@
 ---
-canonical: https://grafana.com/docs/oncall/latest/outgoing-webhooks/
-keywords:
-  - Grafana Cloud
-  - Alerts
-  - Notifications
-  - on-call
-  - amixr
-  - webhooks
 title: Outgoing Webhooks
+menuTitle: Outgoing Webhooks
+description: Understand how to configure and customize alert templates for OnCall.
 weight: 500
+keywords:
+  - OnCall
+  - Configuration
+  - Webhooks
+  - POST
+  - Event types
+canonical: https://grafana.com/docs/oncall/latest/configure/outgoing-webhooks/
+aliases:
+  - /docs/grafana-cloud/alerting-and-irm/oncall/configure/outgoing-webhooks/
 ---
+
 
 # Outgoing Webhooks
 
