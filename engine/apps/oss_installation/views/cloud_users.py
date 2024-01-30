@@ -20,12 +20,9 @@ class CloudUsersPagination(HundredPageSizePaginator):
     # the override ignore here is expected. The parent classes' get_paginated_response method does not
     # take a matched_users_count argument. This is fine in this case
     def get_paginated_response(self, data: PaginatedData, matched_users_count: int) -> Response:  # type: ignore[override]
-        return Response(
-            {
-                **self._get_paginated_response_data(data),
-                "matched_users_count": matched_users_count,
-            }
-        )
+        response = super().get_paginated_response(data)
+        response.data["matched_users_count"] = matched_users_count
+        return response
 
 
 class CloudUsersView(CloudUsersPagination, APIView):

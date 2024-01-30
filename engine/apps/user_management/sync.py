@@ -42,6 +42,7 @@ def _sync_organization(organization: Organization) -> None:
         rbac_is_enabled = grafana_api_client.is_rbac_enabled_for_organization()
 
     organization.is_rbac_permissions_enabled = rbac_is_enabled
+    logger.info(f"RBAC status org={organization.pk} rbac_enabled={organization.is_rbac_permissions_enabled}")
 
     _sync_instance_info(organization)
 
@@ -54,11 +55,12 @@ def _sync_organization(organization: Organization) -> None:
         grafana_incident_settings, _ = grafana_api_client.get_grafana_incident_plugin_settings()
         if grafana_incident_settings is not None:
             organization.is_grafana_incident_enabled = grafana_incident_settings["enabled"]
-            organization.grafana_incident_backend_url = grafana_incident_settings["jsonData"].get(
+            organization.grafana_incident_backend_url = grafana_incident_settings.get("jsonData", {}).get(
                 GrafanaAPIClient.GRAFANA_INCIDENT_PLUGIN_BACKEND_URL_KEY
             )
     else:
         organization.api_token_status = Organization.API_TOKEN_STATUS_FAILED
+        logger.warning(f"Sync not successful org={organization.pk} token_status=FAILED")
 
     organization.save(
         update_fields=[

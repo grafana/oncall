@@ -24,7 +24,12 @@ def clear_cache():
 
 
 @pytest.mark.django_db
-def test_current_user(make_organization_and_user_with_plugin_token, make_user_auth_headers):
+def test_current_user(
+    make_organization_and_user_with_plugin_token,
+    make_user_auth_headers,
+    make_schedule,
+    make_on_call_shift,
+):
     organization, user, token = make_organization_and_user_with_plugin_token()
 
     client = APIClient()
@@ -42,6 +47,7 @@ def test_current_user(make_organization_and_user_with_plugin_token, make_user_au
         "rbac_permissions": user.permissions,
         "timezone": None,
         "working_hours": default_working_hours(),
+        "is_currently_oncall": False,
         "unverified_phone_number": None,
         "verified_phone_number": None,
         "telegram_configuration": None,
@@ -59,6 +65,28 @@ def test_current_user(make_organization_and_user_with_plugin_token, make_user_au
 
     response = client.get(url, format="json", **make_user_auth_headers(user, token))
     assert response.status_code == status.HTTP_200_OK
+    assert response.json() == expected_response
+
+    # current user is on-call
+    today = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
+    on_call_shift = make_on_call_shift(
+        organization=organization,
+        shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT,
+        start=today,
+        rotation_start=today,
+        duration=timezone.timedelta(seconds=24 * 60 * 60),
+        priority_level=1,
+        frequency=CustomOnCallShift.FREQUENCY_DAILY,
+        schedule=schedule,
+    )
+    on_call_shift.add_rolling_users([[user]])
+    schedule.refresh_ical_file()
+    schedule.refresh_ical_final_schedule()
+
+    response = client.get(url, format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_200_OK
+    expected_response["is_currently_oncall"] = True
     assert response.json() == expected_response
 
     data_to_update = {"hide_phone_number": True}
@@ -127,6 +155,7 @@ def test_update_user_cant_change_email_and_username(
         "role": admin.role,
         "timezone": None,
         "working_hours": default_working_hours(),
+        "is_currently_oncall": False,
         "unverified_phone_number": phone_number,
         "verified_phone_number": None,
         "telegram_configuration": None,
@@ -285,6 +314,51 @@ def test_list_users_filtered_by_public_primary_key(
     assert response.status_code == status.HTTP_200_OK
     returned_user_pks = [u["pk"] for u in response.json()["results"]]
     assert returned_user_pks == [user1.public_primary_key]
+
+
+@pytest.mark.django_db
+def test_list_users_filtered_by_team(
+    make_organization,
+    make_team,
+    make_user_for_organization,
+    make_token_for_organization,
+    make_user_auth_headers,
+):
+    organization = make_organization()
+    user1 = make_user_for_organization(organization)
+    user2 = make_user_for_organization(organization)
+    user3 = make_user_for_organization(organization)
+
+    team1 = make_team(organization)
+    team2 = make_team(organization)
+    team3 = make_team(organization)
+
+    user1.teams.add(team1)
+    user1.teams.add(team2)
+    user2.teams.add(team2)
+
+    _, token = make_token_for_organization(organization)
+    client = APIClient()
+    url = reverse("api-internal:user-list")
+
+    def _get_user_pks(teams):
+        response = client.get(
+            url,
+            data={"team": [team.public_primary_key if team else "null" for team in teams]},  # these are query params
+            **make_user_auth_headers(user1, token),
+        )
+        assert response.status_code == status.HTTP_200_OK
+        return [u["pk"] for u in response.json()["results"]]
+
+    assert _get_user_pks([team1]) == [user1.public_primary_key]
+    assert _get_user_pks([team1, team2]) == [user1.public_primary_key, user2.public_primary_key]
+    assert _get_user_pks([team3]) == []
+    assert _get_user_pks([team1, None]) == [user1.public_primary_key, user3.public_primary_key]
+    assert _get_user_pks([None]) == [user3.public_primary_key]
+
+    # check non-existent team returns bad request
+    response = client.get(f"{url}?team=non-existing", **make_user_auth_headers(user1, token))
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
 
 
 @pytest.mark.django_db
@@ -1971,6 +2045,12 @@ def test_users_is_currently_oncall_attribute_works_properly(
     for user in response.json():
         assert user["teams"] == []
         assert user["is_currently_oncall"] == oncall_statuses[user["pk"]]
+
+    # getting specific user details include currently on-call info
+    url = reverse("api-internal:user-detail", kwargs={"pk": user1.public_primary_key})
+    response = client.get(url, format="json", **make_user_auth_headers(user1, token))
+
+    assert response.json()["is_currently_oncall"]
 
 
 @pytest.mark.django_db

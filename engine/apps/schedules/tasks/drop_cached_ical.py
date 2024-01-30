@@ -2,14 +2,13 @@ from celery.utils.log import get_task_logger
 
 from common.custom_celery_tasks import shared_dedicated_queue_retry_task
 
-from .refresh_ical_files import refresh_ical_final_schedule
-
 task_logger = get_task_logger(__name__)
 
 
 @shared_dedicated_queue_retry_task(autoretry_for=(Exception,), retry_backoff=True, max_retries=1)
 def drop_cached_ical_task(schedule_pk):
     from apps.schedules.models import OnCallSchedule
+    from apps.schedules.tasks import refresh_ical_final_schedule
 
     task_logger.info(f"Start drop_cached_ical_task for schedule {schedule_pk}")
     try:

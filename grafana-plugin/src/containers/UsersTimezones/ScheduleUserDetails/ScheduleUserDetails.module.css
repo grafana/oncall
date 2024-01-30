@@ -1,0 +1,76 @@
+.root {
+  width: 260px;
+  padding: 8px 4px;
+}
+
+.oncall-badge {
+  line-height: 16px;
+  color: var(--primary-background);
+  padding: 2px 7px;
+  border-radius: 4px;
+  margin-bottom: 10px;
+}
+
+.oncall-badge__type_now {
+  background: #6ccf8e;
+}
+
+.oncall-badge__type_inside {
+  background: #ccccdc;
+}
+
+.oncall-badge__type_outside {
+  background: rgba(204, 204, 220, 0.4);
+}
+
+.line-break {
+  width: 100vw;
+  margin: 8px -14px 8px -14px;
+}
+
+.times {
+  display: flex;
+  flex-direction: column;
+}
+
+.icon {
+  color: #ccccdc;
+}
+
+.username {
+  word-break: break-all;
+}
+
+.timezone-wrapper {
+  display: flex;
+  flex-grow: 1;
+}
+
+.timezone-icon {
+  margin-right: 8px;
+}
+
+.contact-icon {
+  margin-right: 8px;
+}
+
+.timezone-info {
+  width: 50%;
+  overflow-wrap: anywhere;
+  margin-right: 8px;
+}
+
+.contact-details {
+  display: flex;
+}
+
+.contact-details a {
+  text-decoration-line: none;
+  word-break: break-all;
+}
+
+.user-timezones {
+  margin-top: 4px;
+  display: flex;
+  width: 100%;
+}

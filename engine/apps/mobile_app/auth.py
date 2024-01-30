@@ -1,5 +1,6 @@
 from typing import Optional, Tuple
 
+from drf_spectacular.extensions import OpenApiAuthenticationExtension
 from rest_framework import exceptions
 from rest_framework.authentication import BaseAuthentication, get_authorization_header
 
@@ -43,3 +44,15 @@ class MobileAppAuthTokenAuthentication(BaseAuthentication):
             return None, None
 
         return auth_token.user, auth_token
+
+
+class MobileAppAuthTokenAuthenticationSchema(OpenApiAuthenticationExtension):
+    target_class = MobileAppAuthTokenAuthentication
+    name = "MobileAppAuthTokenAuthentication"
+
+    def get_security_definition(self, auto_schema):
+        return {
+            "type": "apiKey",
+            "in": "header",
+            "name": "Authorization",
+        }

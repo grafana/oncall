@@ -1,8 +1,8 @@
 from celery.utils.log import get_task_logger
 
-from apps.alerts.tasks import notify_ical_schedule_shift
-from apps.schedules.ical_utils import is_icals_equal
-from apps.schedules.tasks import notify_about_empty_shifts_in_schedule, notify_about_gaps_in_schedule
+from apps.alerts.tasks import notify_ical_schedule_shift  # type: ignore[no-redef]
+from apps.schedules.ical_utils import is_icals_equal, update_cached_oncall_users_for_schedule
+from apps.schedules.tasks import notify_about_empty_shifts_in_schedule_task, notify_about_gaps_in_schedule_task
 from apps.slack.tasks import start_update_slack_user_group_for_schedules
 from common.custom_celery_tasks import shared_dedicated_queue_retry_task
 
@@ -81,9 +81,12 @@ def refresh_ical_file(schedule_pk):
             task_logger.info(f"run_task_overrides {schedule_pk} {run_task_primary} icals not equal")
     run_task = run_task_primary or run_task_overrides
 
+    # update cached schedule on-call users
+    update_cached_oncall_users_for_schedule(schedule)
+
     if run_task:
-        notify_about_empty_shifts_in_schedule.apply_async((schedule_pk,))
-        notify_about_gaps_in_schedule.apply_async((schedule_pk,))
+        notify_about_empty_shifts_in_schedule_task.apply_async((schedule_pk,))
+        notify_about_gaps_in_schedule_task.apply_async((schedule_pk,))
 
 
 @shared_dedicated_queue_retry_task()

@@ -49,11 +49,18 @@ const UserSettings = observer(({ id, onHide, tab = UserSettingsTab.UserInfo }: U
     setActiveTab(tab);
   }, []);
 
-  const [showNotificationSettingsTab, showSlackConnectionTab, showTelegramConnectionTab, showMobileAppConnectionTab] = [
+  const [
+    showNotificationSettingsTab,
+    showSlackConnectionTab,
+    showTelegramConnectionTab,
+    showMobileAppConnectionTab,
+    showMsTeamsConnectionTab,
+  ] = [
     !isDesktopOrLaptop,
     isCurrent && organizationStore.currentOrganization?.slack_team_identity && !storeUser.slack_user_identity,
     isCurrent && store.hasFeature(AppFeature.Telegram) && !storeUser.telegram_configuration,
     isCurrent,
+    store.hasFeature(AppFeature.MsTeams) && !storeUser.messaging_backends.MSTEAMS,
   ];
 
   const title = (
@@ -73,6 +80,7 @@ const UserSettings = observer(({ id, onHide, tab = UserSettingsTab.UserInfo }: U
             showSlackConnectionTab={showSlackConnectionTab}
             showTelegramConnectionTab={showTelegramConnectionTab}
             showMobileAppConnectionTab={showMobileAppConnectionTab}
+            showMsTeamsConnectionTab={showMsTeamsConnectionTab}
           />
           <TabsContent id={id} activeTab={activeTab} onTabChange={onTabChange} isDesktopOrLaptop={isDesktopOrLaptop} />
         </div>

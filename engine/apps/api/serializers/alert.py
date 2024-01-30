@@ -1,3 +1,5 @@
+import typing
+
 from django.core.cache import cache
 from django.utils import timezone
 from rest_framework import serializers
@@ -6,6 +8,13 @@ from apps.alerts.incident_appearance.renderers.web_renderer import AlertWebRende
 from apps.alerts.models import Alert
 
 from .alerts_field_cache_buster_mixin import AlertsFieldCacheBusterMixin
+
+
+class RenderForWeb(typing.TypedDict):
+    title: str
+    message: str
+    image_url: str | None
+    source_link: str | None
 
 
 class AlertFieldsCacheSerializerMixin(AlertsFieldCacheBusterMixin):
@@ -51,7 +60,7 @@ class AlertSerializer(AlertFieldsCacheSerializerMixin, serializers.ModelSerializ
             "created_at",
         ]
 
-    def get_render_for_web(self, obj):
+    def get_render_for_web(self, obj) -> RenderForWeb:
         return AlertFieldsCacheSerializerMixin.get_or_set_web_template_field(
             obj,
             AlertFieldsCacheSerializerMixin.RENDER_FOR_WEB_FIELD_NAME,

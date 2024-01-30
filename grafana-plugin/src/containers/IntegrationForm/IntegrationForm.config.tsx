@@ -41,6 +41,25 @@ export const form: { name: string; fields: FormItem[] } = {
       },
     },
     {
+      name: '', // this will skip field it in the submitted form
+      label: 'Bi-directional Integration',
+      type: FormItemType.PlainLabel,
+      isHidden: (data) => data.integration !== 'servicenow',
+    },
+    {
+      name: 'servicenow_url',
+      label: 'Service Now URL',
+      type: FormItemType.Input,
+      isHidden: (data) => data.integration !== 'servicenow',
+    },
+    {
+      name: 'authorization_header',
+      label: 'Authorization Header',
+      type: FormItemType.Input,
+      isHidden: (data) => data.integration !== 'servicenow',
+    },
+
+    {
       name: 'alert_manager',
       type: FormItemType.Other,
     },

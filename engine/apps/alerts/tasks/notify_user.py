@@ -1,10 +1,12 @@
 import time
 from functools import partial
 
+from celery.exceptions import Retry
 from django.conf import settings
 from django.db import transaction
 from django.utils import timezone
 from kombu.utils.uuid import uuid as celery_uuid
+from telegram.error import RetryAfter
 
 from apps.alerts.constants import NEXT_ESCALATION_DELAY
 from apps.alerts.signals import user_notification_action_triggered_signal
@@ -196,7 +198,15 @@ def notify_user_task(
 
         if not stop_escalation:
             if notification_policy.step != UserNotificationPolicy.Step.WAIT:
-                transaction.on_commit(partial(perform_notification.apply_async, (log_record.pk,)))
+
+                def _create_perform_notification_task(log_record_pk, alert_group_pk):
+                    task = perform_notification.apply_async((log_record_pk,))
+                    task_logger.info(
+                        f"Created perform_notification task {task} log_record={log_record_pk} "
+                        f"alert_group={alert_group_pk}"
+                    )
+
+                transaction.on_commit(partial(_create_perform_notification_task, log_record.pk, alert_group_pk))
 
             delay = NEXT_ESCALATION_DELAY
             if countdown is not None:
@@ -226,23 +236,27 @@ def notify_user_task(
 
 
 @shared_dedicated_queue_retry_task(
-    autoretry_for=(Exception,), retry_backoff=True, max_retries=1 if settings.DEBUG else None
+    autoretry_for=(Exception,),
+    retry_backoff=True,
+    dont_autoretry_for=(Retry,),
+    max_retries=1 if settings.DEBUG else None,
 )
 def perform_notification(log_record_pk):
     from apps.base.models import UserNotificationPolicy, UserNotificationPolicyLogRecord
     from apps.telegram.models import TelegramToUserConnector
 
-    # TODO: remove this log line once done investigation
     task_logger.info(f"perform_notification: log_record {log_record_pk}")
 
-    log_record = UserNotificationPolicyLogRecord.objects.get(pk=log_record_pk)
+    try:
+        log_record = UserNotificationPolicyLogRecord.objects.get(pk=log_record_pk)
+    except UserNotificationPolicyLogRecord.DoesNotExist:
+        task_logger.warning(
+            f"perform_notification: log_record {log_record_pk} doesn't exist. Skipping remainder of task. "
+            "The alert group associated with this log record may have been deleted."
+        )
+        return
 
-    # TODO: uncomment this out once done investigation
-    # try:
-    #     log_record = UserNotificationPolicyLogRecord.objects.get(pk=log_record_pk)
-    # except UserNotificationPolicyLogRecord.DoesNotExist:
-    #     task_logger.info(f"perform_notification: log_record {log_record_pk} doesn't exist. Skipping remainder of task")
-    #     return
+    task_logger.info(f"perform_notification: found record for {log_record_pk}")
 
     user = log_record.author
     alert_group = log_record.alert_group
@@ -280,7 +294,11 @@ def perform_notification(log_record_pk):
         phone_backend.notify_by_call(user, alert_group, notification_policy)
 
     elif notification_channel == UserNotificationPolicy.NotificationChannel.TELEGRAM:
-        TelegramToUserConnector.notify_user(user, alert_group, notification_policy)
+        try:
+            TelegramToUserConnector.notify_user(user, alert_group, notification_policy)
+        except RetryAfter as e:
+            countdown = getattr(e, "retry_after", 3)
+            raise perform_notification.retry((log_record_pk,), countdown=countdown, exc=e)
 
     elif notification_channel == UserNotificationPolicy.NotificationChannel.SLACK:
         # TODO: refactor checking the possibility of sending a notification in slack

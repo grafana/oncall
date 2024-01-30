@@ -9,10 +9,10 @@ from apps.api.serializers.telegram import TelegramToUserConnectorSerializer
 from apps.base.messaging import get_messaging_backends
 from apps.base.models import UserNotificationPolicy
 from apps.base.utils import live_settings
+from apps.oss_installation.constants import CloudSyncStatus
 from apps.oss_installation.utils import cloud_user_identity_status
 from apps.schedules.ical_utils import SchedulesOnCallUsers
 from apps.user_management.models import User
-from apps.user_management.models.user import default_working_hours
 from common.api_helpers.custom_fields import TeamPrimaryKeyRelatedField, TimeZoneField
 from common.api_helpers.mixins import EagerLoadingMixin
 from common.api_helpers.utils import check_phone_number_is_valid
@@ -31,7 +31,27 @@ class UserPermissionSerializer(serializers.Serializer):
     action = serializers.CharField(read_only=True)
 
 
-class UserSerializer(DynamicFieldsModelSerializer, EagerLoadingMixin):
+class NotificationChainVerbal(typing.TypedDict):
+    default: str
+    important: str
+
+
+class WorkingHoursPeriodSerializer(serializers.Serializer):
+    start = serializers.CharField()
+    end = serializers.CharField()
+
+
+class WorkingHoursSerializer(serializers.Serializer):
+    monday = serializers.ListField(child=WorkingHoursPeriodSerializer())
+    tuesday = serializers.ListField(child=WorkingHoursPeriodSerializer())
+    wednesday = serializers.ListField(child=WorkingHoursPeriodSerializer())
+    thursday = serializers.ListField(child=WorkingHoursPeriodSerializer())
+    friday = serializers.ListField(child=WorkingHoursPeriodSerializer())
+    saturday = serializers.ListField(child=WorkingHoursPeriodSerializer())
+    sunday = serializers.ListField(child=WorkingHoursPeriodSerializer())
+
+
+class ListUserSerializer(DynamicFieldsModelSerializer, EagerLoadingMixin):
     pk = serializers.CharField(read_only=True, source="public_primary_key")
     slack_user_identity = SlackUserIdentitySerializer(read_only=True)
 
@@ -47,6 +67,7 @@ class UserSerializer(DynamicFieldsModelSerializer, EagerLoadingMixin):
     avatar_full = serializers.URLField(source="avatar_full_url", read_only=True)
     notification_chain_verbal = serializers.SerializerMethodField()
     cloud_connection_status = serializers.SerializerMethodField()
+    working_hours = WorkingHoursSerializer(required=False)
 
     SELECT_RELATED = ["telegram_verification_code", "telegram_connection", "organization", "slack_user_identity"]
 
@@ -82,29 +103,8 @@ class UserSerializer(DynamicFieldsModelSerializer, EagerLoadingMixin):
         ]
 
     def validate_working_hours(self, working_hours):
-        if not isinstance(working_hours, dict):
-            raise serializers.ValidationError("must be dict")
-
-        # check that all days are present
-        if sorted(working_hours.keys()) != sorted(default_working_hours().keys()):
-            raise serializers.ValidationError("missing some days")
-
         for day in working_hours:
-            periods = working_hours[day]
-
-            if not isinstance(periods, list):
-                raise serializers.ValidationError("periods must be list")
-
-            for period in periods:
-                if not isinstance(period, dict):
-                    raise serializers.ValidationError("period must be dict")
-
-                if sorted(period.keys()) != sorted(["start", "end"]):
-                    raise serializers.ValidationError("'start' and 'end' fields must be present")
-
-                if not isinstance(period["start"], str) or not isinstance(period["end"], str):
-                    raise serializers.ValidationError("'start' and 'end' fields must be str")
-
+            for period in working_hours[day]:
                 try:
                     start = time.strptime(period["start"], "%H:%M:%S")
                     end = time.strptime(period["end"], "%H:%M:%S")
@@ -113,7 +113,6 @@ class UserSerializer(DynamicFieldsModelSerializer, EagerLoadingMixin):
 
                 if start >= end:
                     raise serializers.ValidationError("'start' must be less than 'end'")
-
         return working_hours
 
     def validate_unverified_phone_number(self, value):
@@ -127,18 +126,18 @@ class UserSerializer(DynamicFieldsModelSerializer, EagerLoadingMixin):
         else:
             return None
 
-    def get_messaging_backends(self, obj: User):
+    def get_messaging_backends(self, obj: User) -> dict[str, dict]:
         serialized_data = {}
         supported_backends = get_messaging_backends()
         for backend_id, backend in supported_backends:
             serialized_data[backend_id] = backend.serialize_user(obj)
         return serialized_data
 
-    def get_notification_chain_verbal(self, obj: User):
+    def get_notification_chain_verbal(self, obj: User) -> NotificationChainVerbal:
         default, important = UserNotificationPolicy.get_short_verbals_for_user(user=obj)
         return {"default": " - ".join(default), "important": " - ".join(important)}
 
-    def get_cloud_connection_status(self, obj: User):
+    def get_cloud_connection_status(self, obj: User) -> CloudSyncStatus | None:
         if settings.IS_OPEN_SOURCE and live_settings.GRAFANA_CLOUD_NOTIFICATIONS_ENABLED:
             connector = self.context.get("connector", None)
             identities = self.context.get("cloud_identities", {})
@@ -166,6 +165,24 @@ class UserSerializer(DynamicFieldsModelSerializer, EagerLoadingMixin):
         return f"{HIDE_SYMBOL * (len(number) - SHOW_LAST_SYMBOLS)}{number[-SHOW_LAST_SYMBOLS:]}"
 
 
+class UserSerializer(ListUserSerializer):
+    context: UserSerializerContext
+
+    is_currently_oncall = serializers.SerializerMethodField()
+
+    class Meta(ListUserSerializer.Meta):
+        fields = ListUserSerializer.Meta.fields + [
+            "is_currently_oncall",
+        ]
+        read_only_fields = ListUserSerializer.Meta.read_only_fields + [
+            "is_currently_oncall",
+        ]
+
+    def get_is_currently_oncall(self, obj: User) -> bool:
+        # Serializer context is set here: apps.api.views.user.UserView.get_serializer_context.
+        return any(obj in users for users in self.context.get("schedules_with_oncall_users", {}).values())
+
+
 class CurrentUserSerializer(UserSerializer):
     rbac_permissions = UserPermissionSerializer(read_only=True, many=True, source="permissions")
 
@@ -177,7 +194,7 @@ class CurrentUserSerializer(UserSerializer):
         read_only_fields = UserSerializer.Meta.read_only_fields
 
 
-class UserHiddenFieldsSerializer(UserSerializer):
+class UserHiddenFieldsSerializer(ListUserSerializer):
     fields_available_for_all_users = [
         "pk",
         "organization",
@@ -199,7 +216,7 @@ class UserHiddenFieldsSerializer(UserSerializer):
         return ret
 
 
-class ScheduleUserSerializer(UserSerializer):
+class ScheduleUserSerializer(ListUserSerializer):
     fields_to_keep = [
         "pk",
         "organization",
@@ -215,7 +232,7 @@ class ScheduleUserSerializer(UserSerializer):
     ]
 
     def to_representation(self, instance):
-        serialized = super(UserSerializer, self).to_representation(instance)
+        serialized = super(ListUserSerializer, self).to_representation(instance)
         ret = {field: value for field, value in serialized.items() if field in self.fields_to_keep}
         return ret
 
@@ -289,10 +306,7 @@ class UserIsCurrentlyOnCallSerializer(UserShortSerializer, EagerLoadingMixin):
 
     def get_is_currently_oncall(self, obj: User) -> bool:
         # Serializer context is set here: apps.api.views.user.UserView.get_serializer_context.
-        for users in self.context.get("schedules_with_oncall_users", {}).values():
-            if obj in users:
-                return True
-        return False
+        return any(obj in users for users in self.context.get("schedules_with_oncall_users", {}).values())
 
 
 class PagedUserSerializer(serializers.Serializer):

@@ -34,6 +34,23 @@ type GlobalNotificationConfig = {
   failureType?: 'error' | 'warning';
 };
 
+export function WrapWithGlobalNotification(
+  callback: Function,
+  { success, failure, composeFailureMessageFn, failureType = 'error' }: GlobalNotificationConfig
+) {
+  return async (...params) => {
+    try {
+      await callback(...params);
+      success && openNotification(success);
+    } catch (err) {
+      const open = failureType === 'error' ? openErrorNotification : openWarningNotification;
+      const message = composeFailureMessageFn ? composeFailureMessageFn(err) : failure;
+      open(message);
+      throw err;
+    }
+  };
+}
+
 export function WithGlobalNotification({
   success,
   failure,
@@ -46,7 +63,7 @@ export function WithGlobalNotification({
     descriptor.value = async function (...args: any) {
       try {
         const response = await childFunction.apply(this, args);
-        openNotification(success);
+        success && openNotification(success);
         return response;
       } catch (err) {
         const open = failureType === 'error' ? openErrorNotification : openWarningNotification;

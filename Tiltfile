@@ -11,7 +11,7 @@ if not running_under_parent_tiltfile:
     # Load the custom Grafana extensions
     v1alpha1.extension_repo(
         name="grafana-tilt-extensions",
-        ref="main",
+        ref="v1.2.0",
         url="https://github.com/grafana/tilt-extensions",
     )
 v1alpha1.extension(

@@ -2,8 +2,10 @@ import datetime
 from unittest.mock import patch
 
 import pytest
+from django.core.cache import cache
+from django.utils import timezone
 
-from apps.schedules.models import OnCallScheduleICal, OnCallScheduleWeb
+from apps.schedules.models import CustomOnCallShift, OnCallScheduleICal, OnCallScheduleWeb
 from apps.schedules.tasks.refresh_ical_files import refresh_ical_file, start_refresh_ical_files
 
 
@@ -48,10 +50,10 @@ def test_refresh_ical_file_trigger_run(
             # do not trigger tasks for real
             with patch("apps.schedules.tasks.refresh_ical_files.notify_ical_schedule_shift"):
                 with patch(
-                    "apps.schedules.tasks.refresh_ical_files.notify_about_empty_shifts_in_schedule"
+                    "apps.schedules.tasks.refresh_ical_files.notify_about_empty_shifts_in_schedule_task"
                 ) as mock_notify_empty:
                     with patch(
-                        "apps.schedules.tasks.refresh_ical_files.notify_about_gaps_in_schedule"
+                        "apps.schedules.tasks.refresh_ical_files.notify_about_gaps_in_schedule_task"
                     ) as mock_notify_gaps:
                         refresh_ical_file(schedule.pk)
 
@@ -79,3 +81,48 @@ def test_refresh_ical_files_filter_orgs(
         assert len(called_args) == 1
         assert schedule.id in called_args[0].args[0]
         assert schedule_from_deleted_org.id not in called_args[0].args[0]
+
+
+@pytest.mark.django_db
+def test_refresh_ical_updates_oncall_cache(
+    make_organization,
+    make_user_for_organization,
+    make_schedule,
+    make_on_call_shift,
+):
+    organization = make_organization()
+    users = [make_user_for_organization(organization) for _ in range(2)]
+
+    today = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
+    shift_start_time = today - timezone.timedelta(hours=1)
+    on_call_shift = make_on_call_shift(
+        organization=organization,
+        shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT,
+        start=shift_start_time,
+        rotation_start=shift_start_time,
+        duration=timezone.timedelta(seconds=(24 * 60 * 60)),
+        priority_level=1,
+        frequency=CustomOnCallShift.FREQUENCY_DAILY,
+        schedule=schedule,
+    )
+    on_call_shift.add_rolling_users([users])
+
+    def _generate_cache_key(schedule):
+        return f"schedule_oncall_users_{schedule.public_primary_key}"
+
+    # start with empty cache
+    cache.clear()
+
+    # patch ical comparison to string compare
+    with patch("apps.schedules.tasks.refresh_ical_files.is_icals_equal", side_effect=lambda a, b: a == b):
+        # patch schedule refresh to avoid changing schedule status (keep as defined above)
+        with patch("apps.schedules.models.OnCallSchedule.refresh_ical_file", return_value=None):
+            # do not trigger tasks for real
+            with patch("apps.schedules.tasks.refresh_ical_files.notify_ical_schedule_shift"):
+                with patch("apps.schedules.tasks.refresh_ical_files.notify_about_empty_shifts_in_schedule_task"):
+                    with patch("apps.schedules.tasks.refresh_ical_files.notify_about_gaps_in_schedule_task"):
+                        refresh_ical_file(schedule.pk)
+
+    cached_data = cache.get(_generate_cache_key(schedule))
+    assert cached_data == [u.public_primary_key for u in users]

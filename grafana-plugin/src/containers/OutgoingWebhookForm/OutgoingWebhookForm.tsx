@@ -12,6 +12,7 @@ import {
   TabsBar,
   VerticalGroup,
 } from '@grafana/ui';
+import { capitalCase } from 'change-case';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 import { useHistory } from 'react-router-dom';
@@ -24,7 +25,7 @@ import { logoCoors } from 'components/IntegrationLogo/IntegrationLogo.config';
 import RenderConditionally from 'components/RenderConditionally/RenderConditionally';
 import Text from 'components/Text/Text';
 import Labels, { LabelsProps } from 'containers/Labels/Labels';
-import { webhookPresetIcons } from 'containers/OutgoingWebhookForm/WebhookPresetIcons.config';
+import { getWebhookPresetIcons } from 'containers/OutgoingWebhookForm/WebhookPresetIcons.config';
 import OutgoingWebhookStatus from 'containers/OutgoingWebhookStatus/OutgoingWebhookStatus';
 import WebhooksTemplateEditor from 'containers/WebhooksTemplateEditor/WebhooksTemplateEditor';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
@@ -120,12 +121,17 @@ const OutgoingWebhookForm = observer((props: OutgoingWebhookFormProps) => {
   const getTemplateEditClickHandler = (formItem: FormItem, values, setFormFieldValue) => {
     return () => {
       const formValue = values[formItem.name];
-      setTemplateToEdit({ value: formValue, displayName: undefined, description: undefined, name: formItem.name });
+      setTemplateToEdit({
+        value: formValue,
+        displayName: `Webhook ${capitalCase(formItem.name)}`,
+        description: undefined,
+        name: formItem.name,
+      });
       setOnFormChangeFn({ fn: (value) => setFormFieldValue(value) });
     };
   };
 
-  const enrchField = (
+  const enrichField = (
     formItem: FormItem,
     disabled: boolean,
     renderedControl: React.ReactElement,
@@ -171,6 +177,7 @@ const OutgoingWebhookForm = observer((props: OutgoingWebhookFormProps) => {
       preset: selectedPreset?.id,
       trigger_type: null,
       http_method: 'POST',
+      forward_all: true,
     };
   } else if (isNewOrCopy) {
     data = { ...outgoingWebhookStore.items[id], is_legacy: false, name: '' };
@@ -191,7 +198,7 @@ const OutgoingWebhookForm = observer((props: OutgoingWebhookFormProps) => {
       form={form}
       data={data}
       onSubmit={handleSubmit}
-      onFieldRender={enrchField}
+      onFieldRender={enrichField}
       customFieldSectionRenderer={CustomFieldSectionRenderer}
     />
   );
@@ -328,7 +335,7 @@ const OutgoingWebhookForm = observer((props: OutgoingWebhookFormProps) => {
             form={form}
             data={data}
             onSubmit={handleSubmit}
-            onFieldRender={enrchField}
+            onFieldRender={enrichField}
             customFieldSectionRenderer={CustomFieldSectionRenderer}
           />
           <div className={cx('buttons')}>
@@ -452,7 +459,11 @@ const WebhookTabsContent: React.FC<WebhookTabsProps> = ({
 const WebhookPresetBlocks: React.FC<{
   presets: OutgoingWebhookPreset[];
   onBlockClick: (preset: OutgoingWebhookPreset) => void;
-}> = ({ presets, onBlockClick }) => {
+}> = observer(({ presets, onBlockClick }) => {
+  const store = useStore();
+
+  const webhookPresetIcons = getWebhookPresetIcons(store.features);
+
   return (
     <div className={cx('cards')} data-testid="create-outgoing-webhook-modal">
       {presets.length ? (
@@ -486,6 +497,6 @@ const WebhookPresetBlocks: React.FC<{
       )}
     </div>
   );
-};
+});
 
 export default OutgoingWebhookForm;

@@ -97,6 +97,7 @@ WEBHOOK_RESPONSE_LIMIT = 50000
 ONCALL_GATEWAY_URL = os.environ.get("ONCALL_GATEWAY_URL", "")
 ONCALL_GATEWAY_API_TOKEN = os.environ.get("ONCALL_GATEWAY_API_TOKEN", "")
 ONCALL_BACKEND_REGION = os.environ.get("ONCALL_BACKEND_REGION")
+CHATOPS_V3 = getenv_boolean("CHATOPS_V3", False)
 
 # Prometheus exporter metrics endpoint auth
 PROMETHEUS_EXPORTER_SECRET = os.environ.get("PROMETHEUS_EXPORTER_SECRET")
@@ -287,11 +288,11 @@ REST_FRAMEWORK = {
         "rest_framework.parsers.MultiPartParser",
     ),
     "DEFAULT_AUTHENTICATION_CLASSES": [],
-    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    "DEFAULT_SCHEMA_CLASS": "engine.schema.CustomAutoSchema",
 }
 
 
-DRF_SPECTACULAR_ENABLED = getenv_boolean("DRF_SPECTACULAR_ENABLED", default=True)
+DRF_SPECTACULAR_ENABLED = getenv_boolean("DRF_SPECTACULAR_ENABLED", default=False)
 
 SPECTACULAR_SETTINGS = {
     "TITLE": "Grafana OnCall Private API",
@@ -315,6 +316,8 @@ if SWAGGER_UI_SETTINGS_URL:
 SPECTACULAR_INCLUDED_PATHS = [
     "/features",
     "/alertgroups",
+    "/alert_receive_channels",
+    "/users",
     "/labels",
 ]
 
@@ -586,6 +589,11 @@ if ESCALATION_AUDITOR_ENABLED:
         ),
         "args": (),
     }
+    CELERY_BEAT_SCHEDULE["check_personal_notifications"] = {
+        "task": "apps.alerts.tasks.check_escalation_finished.check_personal_notifications_task",
+        "schedule": crontab(minute="*/15"),  # every 15 minutes
+        "args": (),
+    }
 
 INTERNAL_IPS = ["127.0.0.1"]
 
@@ -718,9 +726,8 @@ FCM_DJANGO_SETTINGS = {
 }
 
 MOBILE_APP_GATEWAY_ENABLED = getenv_boolean("MOBILE_APP_GATEWAY_ENABLED", default=False)
-MOBILE_APP_GATEWAY_RSA_PRIVATE_KEY = os.environ.get("MOBILE_APP_GATEWAY_RSA_PRIVATE_KEY", None)
-if MOBILE_APP_GATEWAY_ENABLED and not MOBILE_APP_GATEWAY_RSA_PRIVATE_KEY:
-    raise RuntimeError("MOBILE_APP_GATEWAY_RSA_PRIVATE_KEY is required when MOBILE_APP_GATEWAY_ENABLED is True")
+GRAFANA_CLOUD_AUTH_API_URL = os.environ.get("GRAFANA_CLOUD_AUTH_API_URL", None)
+GRAFANA_CLOUD_AUTH_API_SYSTEM_TOKEN = os.environ.get("GRAFANA_CLOUD_AUTH_API_SYSTEM_TOKEN", None)
 
 SELF_HOSTED_SETTINGS = {
     "STACK_ID": 5,
