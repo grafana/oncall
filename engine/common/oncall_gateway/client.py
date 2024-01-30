@@ -44,7 +44,7 @@ class ChatopsProxyAPIException(Exception):
         self.msg = msg
 
     def __str__(self):
-        return f"LabelsRepoAPIException: status={self.status} url={self.url} method={self.method} error={self.msg}"
+        return f"ChatopsProxyAPIException: status={self.status} url={self.url} method={self.method} error={self.msg}"
 
 
 class ChatopsProxyAPIClient:
