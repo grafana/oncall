@@ -26,19 +26,27 @@ export const EventTriggersTable = observer(({ openDrawer }: { openDrawer: (key: 
     updateItems();
   }, []);
 
+  const openTriggerDetailsDrawer = (tab: TriggerDetailsTab, webhookId: string) => {
+    LocationHelper.update(
+      { [TriggerDetailsQueryStringKey.ActiveTab]: tab, [TriggerDetailsQueryStringKey.WebhookId]: webhookId },
+      'partial'
+    );
+    openDrawer('triggerDetails');
+  };
+
   const webhooks = getSearchResult();
 
   return (
     <GTable
       emptyText={webhooks ? 'No outgoing webhooks found' : 'Loading...'}
       rowKey="id"
-      columns={getColumns(openDrawer)}
+      columns={getColumns(openTriggerDetailsDrawer)}
       data={webhooks}
     />
   );
 });
 
-const getColumns = (openDrawer: (key: OutgoingTabDrawerKey) => void) => [
+const getColumns = (openTriggerDetailsDrawer: (tab: TriggerDetailsTab, webhookId: string) => void) => [
   {
     width: '35%',
     title: 'Event Trigger',
@@ -48,11 +56,18 @@ const getColumns = (openDrawer: (key: OutgoingTabDrawerKey) => void) => [
   {
     width: '65%',
     title: 'Last event',
-    render: (webhook: OutgoingWebhook) => <WebhookLastEventTimestamp webhook={webhook} openDrawer={openDrawer} />,
+    render: (webhook: OutgoingWebhook) => (
+      <WebhookLastEventTimestamp
+        webhook={webhook}
+        openDrawer={() => openTriggerDetailsDrawer(TriggerDetailsTab.LastEvent, webhook.id)}
+      />
+    ),
   },
   {
     key: 'action',
-    render: (webhook: OutgoingWebhook) => <EventTriggerContextMenu webhook={webhook} openDrawer={openDrawer} />,
+    render: (webhook: OutgoingWebhook) => (
+      <EventTriggerContextMenu webhook={webhook} openDrawer={openTriggerDetailsDrawer} />
+    ),
   },
 ];
 
@@ -61,16 +76,9 @@ const EventTriggerContextMenu = ({
   openDrawer,
 }: {
   webhook: OutgoingWebhook;
-  openDrawer: (key: OutgoingTabDrawerKey) => void;
+  openDrawer: (tab: TriggerDetailsTab, webhookId: string) => void;
 }) => {
   const { modalProps, openModal } = useConfirmModal();
-  const onOpenDrawer = (tab: TriggerDetailsTab) => {
-    LocationHelper.update(
-      { [TriggerDetailsQueryStringKey.ActiveTab]: tab, [TriggerDetailsQueryStringKey.WebhookId]: webhook.id },
-      'partial'
-    );
-    openDrawer('triggerDetails');
-  };
 
   return (
     <>
@@ -79,14 +87,14 @@ const EventTriggerContextMenu = ({
         items={[
           {
             onClick: () => {
-              onOpenDrawer(TriggerDetailsTab.LastEvent);
+              openDrawer(TriggerDetailsTab.LastEvent, webhook.id);
             },
             requiredPermission: UserActions.OutgoingWebhooksRead,
             label: <Text type="primary">View Last Run</Text>,
           },
           {
             onClick: () => {
-              onOpenDrawer(TriggerDetailsTab.Settings);
+              openDrawer(TriggerDetailsTab.Settings, webhook.id);
             },
             requiredPermission: UserActions.OutgoingWebhooksWrite,
             label: <Text type="primary">Edit settings</Text>,
