@@ -4,6 +4,7 @@ from typing import List
 from urllib.parse import urljoin
 
 import requests
+from django.conf import settings
 
 SERVICE_TYPE_ONCALL = "oncall"
 
@@ -44,7 +45,7 @@ class ChatopsProxyAPIException(Exception):
         self.msg = msg
 
     def __str__(self):
-        return f"LabelsRepoAPIException: status={self.status} url={self.url} method={self.method} error={self.msg}"
+        return f"ChatopsProxyAPIException: status={self.status} url={self.url} method={self.method} error={self.msg}"
 
 
 class ChatopsProxyAPIClient:
@@ -64,7 +65,7 @@ class ChatopsProxyAPIClient:
                 "service_type": service_type,
             }
         }
-        response = requests.post(url=url, json=d)
+        response = requests.post(url=url, json=d, headers=self._headers)
         self._check_response(response)
 
         return Tenant(**response.json()["tenant"]), response
@@ -81,7 +82,7 @@ class ChatopsProxyAPIClient:
             }
         }
 
-        response = requests.post(url=url, json=d)
+        response = requests.post(url=url, json=d, headers=self._headers)
         self._check_response(response)
 
         return response.json()["removed"], response
@@ -96,7 +97,7 @@ class ChatopsProxyAPIClient:
             "cluster_slug": cluster_slug,
             "slack_team_id": slack_team_id,
         }
-        response = requests.post(url=url, json=d)
+        response = requests.post(url=url, json=d, headers=self._headers)
         self._check_response(response)
         return response
 
@@ -111,7 +112,7 @@ class ChatopsProxyAPIClient:
                 "slack_team_id": slack_team_id,
             }
         }
-        response = requests.post(url=url, json=d)
+        response = requests.post(url=url, json=d, headers=self._headers)
         self._check_response(response)
         return SlackLink(**response.json()["slack_link"]), response
 
@@ -126,7 +127,7 @@ class ChatopsProxyAPIClient:
                 "slack_team_id": slack_team_id,
             }
         }
-        response = requests.post(url=url, json=d)
+        response = requests.post(url=url, json=d, headers=self._headers)
         self._check_response(response)
         return response.json()["removed"], response
 
@@ -152,3 +153,11 @@ class ChatopsProxyAPIClient:
                 msg=message,
                 method=response.request.method,
             )
+
+    @property
+    def _headers(self) -> dict:
+        return {
+            "User-Agent": settings.GRAFANA_COM_USER_AGENT,
+            "Authorization": f"Bearer {self.api_token}",
+            "Content-Type": "application/json",
+        }

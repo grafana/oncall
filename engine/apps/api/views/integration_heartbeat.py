@@ -13,7 +13,7 @@ from common.insight_log import EntityEvent, write_resource_insight_log
 
 class IntegrationHeartBeatView(
     TeamFilteringMixin,
-    PublicPrimaryKeyMixin,
+    PublicPrimaryKeyMixin[IntegrationHeartBeat],
     mixins.RetrieveModelMixin,
     mixins.ListModelMixin,
     mixins.CreateModelMixin,

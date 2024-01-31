@@ -11,6 +11,7 @@ from rest_framework.response import Response
 from rest_framework.test import APIClient
 
 from apps.api.permissions import GrafanaAPIPermission, LegacyAccessControlRole, RBACPermission
+from apps.api.serializers.user import UserHiddenFieldsSerializer
 from apps.base.models import UserNotificationPolicy
 from apps.phone_notifications.exceptions import FailedToFinishVerification
 from apps.schedules.models import CustomOnCallShift, OnCallScheduleWeb
@@ -24,7 +25,12 @@ def clear_cache():
 
 
 @pytest.mark.django_db
-def test_current_user(make_organization_and_user_with_plugin_token, make_user_auth_headers):
+def test_current_user(
+    make_organization_and_user_with_plugin_token,
+    make_user_auth_headers,
+    make_schedule,
+    make_on_call_shift,
+):
     organization, user, token = make_organization_and_user_with_plugin_token()
 
     client = APIClient()
@@ -42,6 +48,7 @@ def test_current_user(make_organization_and_user_with_plugin_token, make_user_au
         "rbac_permissions": user.permissions,
         "timezone": None,
         "working_hours": default_working_hours(),
+        "is_currently_oncall": False,
         "unverified_phone_number": None,
         "verified_phone_number": None,
         "telegram_configuration": None,
@@ -59,6 +66,28 @@ def test_current_user(make_organization_and_user_with_plugin_token, make_user_au
 
     response = client.get(url, format="json", **make_user_auth_headers(user, token))
     assert response.status_code == status.HTTP_200_OK
+    assert response.json() == expected_response
+
+    # current user is on-call
+    today = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
+    on_call_shift = make_on_call_shift(
+        organization=organization,
+        shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT,
+        start=today,
+        rotation_start=today,
+        duration=timezone.timedelta(seconds=24 * 60 * 60),
+        priority_level=1,
+        frequency=CustomOnCallShift.FREQUENCY_DAILY,
+        schedule=schedule,
+    )
+    on_call_shift.add_rolling_users([[user]])
+    schedule.refresh_ical_file()
+    schedule.refresh_ical_final_schedule()
+
+    response = client.get(url, format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_200_OK
+    expected_response["is_currently_oncall"] = True
     assert response.json() == expected_response
 
     data_to_update = {"hide_phone_number": True}
@@ -127,6 +156,7 @@ def test_update_user_cant_change_email_and_username(
         "role": admin.role,
         "timezone": None,
         "working_hours": default_working_hours(),
+        "is_currently_oncall": False,
         "unverified_phone_number": phone_number,
         "verified_phone_number": None,
         "telegram_configuration": None,
@@ -155,7 +185,7 @@ def test_list_users(
     make_user_auth_headers,
 ):
     organization = make_organization()
-    admin = make_user_for_organization(organization)
+    admin = make_user_for_organization(organization, _verified_phone_number="1234567890")
     editor = make_user_for_organization(organization, role=LegacyAccessControlRole.EDITOR)
     _, token = make_token_for_organization(organization)
 
@@ -179,7 +209,7 @@ def test_list_users(
                 "timezone": None,
                 "working_hours": default_working_hours(),
                 "unverified_phone_number": None,
-                "verified_phone_number": None,
+                "verified_phone_number": admin.verified_phone_number,
                 "telegram_configuration": None,
                 "messaging_backends": {
                     "TESTONLY": {
@@ -223,9 +253,19 @@ def test_list_users(
         "total_pages": 1,
     }
 
+    # as admin
     response = client.get(url, format="json", **make_user_auth_headers(admin, token))
-
     assert response.status_code == status.HTTP_200_OK
+    assert response.json() == expected_payload
+
+    # as editor
+    response = client.get(url, format="json", **make_user_auth_headers(editor, token))
+    assert response.status_code == status.HTTP_200_OK
+    admin_user_data = expected_payload["results"][0]
+    for f_name in admin_user_data:
+        if f_name not in UserHiddenFieldsSerializer.fields_available_for_all_users:
+            admin_user_data[f_name] = "******"
+    admin_user_data["hidden_fields"] = True
     assert response.json() == expected_payload
 
 
@@ -2016,6 +2056,12 @@ def test_users_is_currently_oncall_attribute_works_properly(
     for user in response.json():
         assert user["teams"] == []
         assert user["is_currently_oncall"] == oncall_statuses[user["pk"]]
+
+    # getting specific user details include currently on-call info
+    url = reverse("api-internal:user-detail", kwargs={"pk": user1.public_primary_key})
+    response = client.get(url, format="json", **make_user_auth_headers(user1, token))
+
+    assert response.json()["is_currently_oncall"]
 
 
 @pytest.mark.django_db

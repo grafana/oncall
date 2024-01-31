@@ -67,7 +67,7 @@ class ScheduleFilter(ByTeamModelFieldFilterMixin, ModelFieldFilterMixin, filters
 
 class ScheduleView(
     TeamFilteringMixin,
-    PublicPrimaryKeyMixin,
+    PublicPrimaryKeyMixin[OnCallSchedule],
     ShortSerializerMixin,
     CreateSerializerMixin,
     UpdateSerializerMixin,
