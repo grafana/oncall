@@ -207,7 +207,7 @@ class UserHiddenFieldsSerializer(ListUserSerializer):
     ]
 
     def to_representation(self, instance):
-        ret = super(UserSerializer, self).to_representation(instance)
+        ret = super(ListUserSerializer, self).to_representation(instance)
         if instance.id != self.context["request"].user.id:
             for field in ret:
                 if field not in self.fields_available_for_all_users:
