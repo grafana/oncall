@@ -52,7 +52,7 @@ def test_no_gaps_no_triggering_notification(
 
     schedule.refresh_from_db()
     assert gaps_report_sent_at != schedule.gaps_report_sent_at
-    assert schedule.check_gaps_for_next_week() is False
+    assert schedule.has_gaps is False
 
 
 @pytest.mark.django_db
@@ -115,7 +115,7 @@ def test_gaps_in_the_past_no_triggering_notification(
 
     schedule.refresh_from_db()
     assert gaps_report_sent_at != schedule.gaps_report_sent_at
-    assert schedule.check_gaps_for_next_week() is False
+    assert schedule.has_gaps is False
 
 
 @pytest.mark.django_db
@@ -166,7 +166,6 @@ def test_gaps_now_trigger_notification(
     schedule.refresh_from_db()
     assert gaps_report_sent_at != schedule.gaps_report_sent_at
     assert schedule.has_gaps is True
-    assert schedule.check_gaps_for_next_week() is True
 
 
 @pytest.mark.django_db
@@ -218,7 +217,6 @@ def test_gaps_near_future_trigger_notification(
     schedule.refresh_from_db()
     assert gaps_report_sent_at != schedule.gaps_report_sent_at
     assert schedule.has_gaps is True
-    assert schedule.check_gaps_for_next_week() is True
 
 
 @pytest.mark.django_db
@@ -267,4 +265,4 @@ def test_gaps_later_than_7_days_no_triggering_notification(
 
     schedule.refresh_from_db()
     assert gaps_report_sent_at != schedule.gaps_report_sent_at
-    assert schedule.check_gaps_for_next_week() is False
+    assert schedule.has_gaps is False

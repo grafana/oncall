@@ -65,6 +65,7 @@ class AlertGroupLogRecord(models.Model):
         TYPE_DELETED,
         TYPE_REGISTERED,  # set on creation before having an alert assigned, skip to avoid retries
         TYPE_ROUTE_ASSIGNED,  # set on creation before having an alert assigned, skip to avoid retries
+        TYPE_ACK_REMINDER_TRIGGERED,  # set on acknowledged reminder, no updates to the alert group log
     )
 
     TYPES_FOR_LICENCE_CALCULATION = (
