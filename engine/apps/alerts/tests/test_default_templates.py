@@ -87,7 +87,7 @@ def test_render_group_data_templates(
     organization, _, _, _ = make_organization_and_user_with_slack_identities()
     alert_receive_channel = make_alert_receive_channel(organization, integration=integration)
 
-    group_data = Alert.render_group_data(alert_receive_channel, template_module.tests.get("payload"))
+    group_data = Alert.render_group_data(alert_receive_channel, template_module.tests.get("payload"), {})
 
     assert group_data.group_distinction == template_module.tests.get("group_distinction")
     assert group_data.is_resolve_signal == template_module.tests.get("is_resolve_signal")

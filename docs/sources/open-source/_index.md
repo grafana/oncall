@@ -90,10 +90,6 @@ features:
       callback_id: add_resolution_note
       description: Add this message to resolution note
   slash_commands:
-    - command: /oncall
-      url: <ONCALL_ENGINE_PUBLIC_URL>/slack/interactive_api_endpoint/
-      description: Create a manual alert group
-      should_escape: false
     - command: /escalate
       url: <ONCALL_ENGINE_PUBLIC_URL>/slack/interactive_api_endpoint/
       description: Direct page a team or user(s)
