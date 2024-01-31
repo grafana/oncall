@@ -11,6 +11,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Allow routing incoming alerts based on labels by @joeyorlando ([#3778](https://github.com/grafana/oncall/pull/3778))
 
+### Changed
+
+- Remove `/oncall` Slack slash command (ie. manual alert group creation command) by @joeyorlando ([#3790](https://github.com/grafana/oncall/pull/3790))
+
+### Fixed
+
+- Fix interval validation when creating shift via public API ([#3775](https://github.com/grafana/oncall/pull/3775))
+- Fix list user serializer logic refactoring ([3793](https://github.com/grafana/oncall/pull/3793))
+
 ## v1.3.94 (2024-01-30)
 
 ### Added
