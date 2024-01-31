@@ -1,14 +1,19 @@
 ---
 title: Shift swaps
-canonical: https://grafana.com/docs/oncall/latest/on-call-schedules/shift-swaps/
-description: "Learn more about Grafana OnCall shift swaps"
+menuTitle: Shift swaps
+description: Learn more about Grafana OnCall shift swaps.
+weight: 700
 keywords:
-  - Grafana
-  - oncall
-  - schedule
-  - swap
-title: Shift swaps
-weight: 400
+  - On-call
+  - Schedules
+  - Rotation
+  - Calendar
+  - Shift
+  - Swap
+canonical: https://grafana.com/docs/oncall/latest/manage/on-call-schedules/shift-swaps/
+aliases:
+  - /docs/grafana-cloud/alerting-and-irm/oncall/manage/on-call-schedules/shift-swaps/
+  - /docs/grafana-cloud/alerting-and-irm/oncall/on-call-schedules/shift-swaps/
 ---
 
 # Shift swaps

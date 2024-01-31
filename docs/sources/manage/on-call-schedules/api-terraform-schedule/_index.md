@@ -1,14 +1,19 @@
 ---
 title: API & Terraform schedules
-aliases:
-  - /docs/oncall/latest/on-call-schedules/api-terraform-schedules/
-canonical: https://grafana.com/docs/oncall/latest/on-call-schedules/api-terraform-schedules/
-keywords:
-  - Grafana
-  - oncall
-  - schedule
-  - calendar
+menuTitle: API & Terraform schedules
+description: Learn how to use API and Terraform to manage on-call schedules.
 weight: 100
+keywords:
+  - On-call
+  - Schedules
+  - Rotation
+  - Calendar
+  - Terraform
+  - as-code
+canonical: https://grafana.com/docs/oncall/latest/manage/on-call-schedules/api-terraform-schedules/
+aliases:
+  - /docs/grafana-cloud/alerting-and-irm/oncall/manage/on-call-schedules/api-terraform-schedules/
+  - /docs/grafana-cloud/alerting-and-irm/oncall/on-call-schedules/api-terraform-schedules/
 ---
 
 # API & Terraform schedules

@@ -1,14 +1,19 @@
 ---
-title: iCal on-call schedules
-canonical: https://grafana.com/docs/oncall/latest/on-call-schedules/ical-schedules/
-description: "Learn how to manage on-call schedules with iCal import"
-keywords:
-  - Grafana
-  - oncall
-  - on-call
-  - calendar
 title: Import on-call schedules
-weight: 300
+menuTitle: Import on-call schedules
+description: Learn how to import on-call schedules with iCal import.
+weight: 500
+keywords:
+  - On-call
+  - Schedules
+  - Rotation
+  - Calendar
+  - iCal
+  - Import
+canonical: https://grafana.com/docs/oncall/latest/manage/on-call-schedules/ical-schedules/
+aliases:
+  - /docs/grafana-cloud/alerting-and-irm/oncall/manage/on-call-schedules/ical-schedules/
+  - /docs/grafana-cloud/alerting-and-irm/oncall/on-call-schedules/ical-schedules/
 ---
 
 # Import on-call schedules

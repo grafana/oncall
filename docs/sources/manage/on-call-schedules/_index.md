@@ -1,16 +1,19 @@
 ---
 title: On-call schedules
-aliases:
-  - /docs/oncall/latest/on-call-schedules/
-canonical: https://grafana.com/docs/oncall/latest/on-call-schedules/
-description: "Learn more about on-call schedules"
+menuTitle: On-call schedules
+description: Learn more about on-call schedules.
+weight: 300
 keywords:
-  - Grafana
-  - oncall
-  - on-call
-  - schedule
-  - calendar
-weight: 700
+  - On-call
+  - Schedules
+  - Rotation
+  - Calendar
+  - Shift
+  - Scheduler
+canonical: https://grafana.com/docs/oncall/latest/manage/on-call-schedules/
+aliases:
+  - /docs/grafana-cloud/alerting-and-irm/oncall/manage/on-call-schedules/
+  - /docs/grafana-cloud/alerting-and-irm/oncall/on-call-schedules/
 ---
 
 ## Before you begin

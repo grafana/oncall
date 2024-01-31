@@ -1,14 +1,17 @@
 ---
-title: Web-based on-call schedules
-canonical: https://grafana.com/docs/oncall/latest/on-call-schedules/web-schedule/
-description: "Learn more about Grafana OnCalls built in schedule tool"
-keywords:
-  - Grafana
-  - oncall
-  - schedule
-  - calendar
 title: Web-based schedules
-weight: 100
+menuTitle: Web-based schedules
+description: Learn more about Grafana OnCalls built-in schedule management.
+weight: 300
+keywords:
+  - On-call
+  - Schedules
+  - Rotation
+  - Calendar
+canonical: https://grafana.com/docs/oncall/latest/manage/on-call-schedules/web-schedule/
+aliases:
+  - /docs/grafana-cloud/alerting-and-irm/oncall/manage/on-call-schedules/web-schedule/
+  - /docs/grafana-cloud/alerting-and-irm/oncall/on-call-schedules/web-schedule/
 ---
 
 # Web-based on-call schedules
