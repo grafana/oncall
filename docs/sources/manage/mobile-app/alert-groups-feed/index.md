@@ -1,13 +1,19 @@
 ---
-canonical: https://grafana.com/docs/oncall/latest/mobile-app/alert-groups-feed/
+title: Alert groups feed
+menuTitle: Alert feed
+description: Understand how to view and respond to alert groups in the Grafana OnCall mobile app.
+weight: 300
 keywords:
-  - Mobile App
-  - oncall
-  - notification
-  - push notification
-  - alert groups
-title: Alert Groups feed
-weight: 200
+  - OnCall
+  - Mobile app
+  - iOS
+  - Android
+  - Alert group
+  - Feed
+canonical: https://grafana.com/docs/oncall/latest/manage/mobile-app/alert-groups-feed/
+aliases:
+  - /docs/grafana-cloud/alerting-and-irm/oncall/manage/mobile-app/alert-groups-feed/
+  - /docs/grafana-cloud/alerting-and-irm/oncall/mobile-app/alert-groups-feed/
 ---
 
 # Alert Groups feed

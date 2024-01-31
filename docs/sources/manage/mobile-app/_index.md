@@ -1,12 +1,21 @@
 ---
-title: Mobile App
-canonical: https://grafana.com/docs/oncall/latest/mobile-app/
+title: Grafana OnCall Mobile app
+menuTitle: Mobile app
+description: Learn more about the Grafana OnCall mobile app.
+weight: 400
 keywords:
-  - Mobile App
-  - oncall
-  - notification
-  - push notification
-weight: 1100
+  - OnCall
+  - Mobile app
+  - Schedules
+  - Notification
+  - Calendar
+  - Shift
+  - Push notification
+  - Alert group
+canonical: https://grafana.com/docs/oncall/latest/manage/mobile-app/
+aliases:
+  - /docs/grafana-cloud/alerting-and-irm/oncall/manage/mobile-app/
+  - /docs/grafana-cloud/alerting-and-irm/oncall/mobile-app/
 ---
 
 # Grafana OnCall Mobile App

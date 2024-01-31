@@ -1,12 +1,18 @@
 ---
-canonical: https://grafana.com/docs/oncall/latest/mobile-app/installation-and-setup/
-keywords:
-  - Mobile App
-  - oncall
-  - notification
-  - push notification
 title: Installation and setup
+menuTitle: Installation
+description: Learn how to install and set up the Grafana OnCall mobile app.
 weight: 100
+keywords:
+  - OnCall
+  - Mobile app
+  - iOS
+  - Android
+  - Push notification
+canonical: https://grafana.com/docs/oncall/latest/manage/mobile-app/installation-and-setup/
+aliases:
+  - /docs/grafana-cloud/alerting-and-irm/oncall/manage/mobile-app/installation-and-setup/
+  - /docs/grafana-cloud/alerting-and-irm/oncall/mobile-app/installation-and-setup/
 ---
 
 # Installation and setup

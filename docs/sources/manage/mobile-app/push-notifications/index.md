@@ -1,12 +1,19 @@
 ---
-canonical: https://grafana.com/docs/oncall/latest/mobile-app/push-notifications/
-keywords:
-  - Mobile App
-  - oncall
-  - notification
-  - push notification
 title: Push notifications
+menuTitle: Push notifications
+description: Learn how to receive push notifications from the Grafana OnCall mobile app.
 weight: 200
+keywords:
+  - OnCall
+  - Mobile app
+  - iOS
+  - Android
+  - Push notification
+  - Override
+canonical: https://grafana.com/docs/oncall/latest/manage/mobile-app/push-notifications/
+aliases:
+  - /docs/grafana-cloud/alerting-and-irm/oncall/manage/mobile-app/push-notifications/
+  - /docs/grafana-cloud/alerting-and-irm/oncall/mobile-app/push-notifications/
 ---
 
 # Push notifications

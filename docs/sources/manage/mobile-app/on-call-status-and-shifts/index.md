@@ -1,13 +1,19 @@
 ---
-canonical: https://grafana.com/docs/oncall/latest/mobile-app/on-call-status-and-shifts/
-keywords:
-  - Mobile App
-  - oncall
-  - notification
-  - on-call status
-  - on-call shift
 title: On-call status and shifts
-weight: 500
+menuTitle: On-call status
+description: Understand your on-call status and shifts in the Grafana OnCall mobile app.
+weight:400
+keywords:
+  - OnCall
+  - Mobile app
+  - Shift
+  - Calendar
+  - Schedules
+  - Status
+canonical: https://grafana.com/docs/oncall/latest/manage/mobile-app/on-call-status-and-shifts/
+aliases:
+  - /docs/grafana-cloud/alerting-and-irm/oncall/manage/mobile-app/on-call-status-and-shifts/
+  - /docs/grafana-cloud/alerting-and-irm/oncall/mobile-app/on-call-status-and-shifts/
 ---
 
 # On-call status and shifts
