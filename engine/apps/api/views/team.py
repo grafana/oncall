@@ -15,7 +15,7 @@ from common.api_helpers.mixins import PublicPrimaryKeyMixin
 
 
 class TeamViewSet(
-    PublicPrimaryKeyMixin,
+    PublicPrimaryKeyMixin[Team],
     mixins.ListModelMixin,
     mixins.RetrieveModelMixin,
     mixins.UpdateModelMixin,
