@@ -45,23 +45,6 @@ class AlertSlackTemplater(AlertTemplater):
                     payload["oncall"]["author_username"] = metadata.get("author_username", "Unknown")
                     payload["oncall"]["title"] = "Message from @" + payload["oncall"]["author_username"]
                     payload["oncall"]["message"] = message_text
-                else:
-                    # If alert was made via slash command
-                    message_text = (
-                        payload.get("view", {})
-                        .get("state", {})
-                        .get("values", {})
-                        .get("MESSAGE_INPUT", {})
-                        .get("FinishCreateIncidentViewStep", {})
-                        .get("value", "unknown")
-                    )
-                    payload["oncall"]["permalink"] = None
-                    payload["oncall"]["title"] = self.alert.title
-                    payload["oncall"]["message"] = message_text
-                    created_by = self.alert.integration_unique_data.get("created_by", None)
-                    username = payload.get("user", {}).get("name", None)
-                    author_username = created_by or username or "unknown"
-                    payload["oncall"]["author_username"] = author_username
 
                 self.alert.raw_request_data = payload
                 self.alert.save(update_fields=["raw_request_data"])

@@ -3,8 +3,9 @@ from unittest.mock import PropertyMock, patch
 import pytest
 from django.utils import timezone
 
-from apps.alerts.models import Alert, EscalationPolicy
+from apps.alerts.models import Alert, ChannelFilter, EscalationPolicy
 from apps.alerts.tasks import distribute_alert, escalate_alert_group
+from common.jinja_templater.apply_jinja_template import JinjaTemplateError, JinjaTemplateWarning
 
 
 @pytest.mark.django_db
@@ -54,6 +55,45 @@ def test_alert_create_custom_channel_filter(make_organization, make_alert_receiv
     )
 
     assert alert.group.channel_filter == other_channel_filter
+
+
+@patch("apps.alerts.models.alert.assign_labels")
+@patch("apps.alerts.models.alert.gather_labels_from_alert_receive_channel_and_raw_request_data")
+@patch("apps.alerts.models.ChannelFilter.select_filter", wraps=ChannelFilter.select_filter)
+@pytest.mark.django_db
+def test_alert_create_labels_are_assigned(
+    spy_channel_filter_select_filter,
+    mock_gather_labels_from_alert_receive_channel_and_raw_request_data,
+    mock_assign_labels,
+    make_organization,
+    make_alert_receive_channel,
+    make_channel_filter,
+):
+    organization = make_organization()
+    alert_receive_channel = make_alert_receive_channel(organization)
+    make_channel_filter(alert_receive_channel, is_default=True)
+
+    raw_request_data = {"foo": "bar"}
+
+    alert = Alert.create(
+        title="the title",
+        message="the message",
+        alert_receive_channel=alert_receive_channel,
+        raw_request_data=raw_request_data,
+        integration_unique_data={},
+        image_url=None,
+        link_to_upstream_details=None,
+    )
+
+    mock_parsed_labels = mock_gather_labels_from_alert_receive_channel_and_raw_request_data.return_value
+
+    mock_gather_labels_from_alert_receive_channel_and_raw_request_data.assert_called_once_with(
+        alert_receive_channel, raw_request_data
+    )
+    spy_channel_filter_select_filter.assert_called_once_with(
+        alert_receive_channel, raw_request_data, mock_parsed_labels
+    )
+    mock_assign_labels.assert_called_once_with(alert.group, alert_receive_channel, mock_parsed_labels)
 
 
 @pytest.mark.django_db
@@ -169,3 +209,80 @@ def test_distribute_alert_escalate_alert_group_when_escalation_paused(
         with patch.object(escalate_alert_group, "apply_async") as mock_escalate_alert_group_2:
             distribute_alert(alert_2.pk)
     mock_escalate_alert_group_2.assert_called_once()
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "template,check_if_templated_value_is_truthy,expected",
+    [
+        ('{{ "foo" in labels.keys() }}', True, True),
+        (' {{ "foo" in labels.keys() }} ', False, " True "),
+    ],
+)
+def test_apply_jinja_template_to_alert_payload_and_labels(
+    make_organization, make_alert_receive_channel, template, check_if_templated_value_is_truthy, expected
+):
+    template_name = "test_template_name"
+    raw_request_data = {"value": 5}
+    labels = {"foo": "bar"}
+
+    organization = make_organization()
+    alert_receive_channel = make_alert_receive_channel(organization)
+
+    assert (
+        Alert._apply_jinja_template_to_alert_payload_and_labels(
+            template,
+            template_name,
+            alert_receive_channel,
+            raw_request_data,
+            labels,
+            check_if_templated_value_is_truthy=check_if_templated_value_is_truthy,
+        )
+        == expected
+    )
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "ExceptionClass,use_error_msg_as_fallback,check_if_templated_value_is_truthy,expected",
+    [
+        (JinjaTemplateError, True, False, "Template Error: asdflkjqwerqwer"),
+        (JinjaTemplateWarning, True, False, "Template Warning: asdflkjqwerqwer"),
+        (JinjaTemplateError, False, True, False),
+        (JinjaTemplateWarning, False, True, False),
+        (JinjaTemplateError, False, False, None),
+        (JinjaTemplateWarning, False, False, None),
+    ],
+)
+@patch("apps.alerts.models.alert.apply_jinja_template_to_alert_payload_and_labels")
+def test_apply_jinja_template_to_alert_payload_and_labels_jinja_exceptions(
+    mock_apply_jinja_template_to_alert_payload_and_labels,
+    make_organization,
+    make_alert_receive_channel,
+    ExceptionClass,
+    use_error_msg_as_fallback,
+    check_if_templated_value_is_truthy,
+    expected,
+):
+    mock_apply_jinja_template_to_alert_payload_and_labels.side_effect = ExceptionClass("asdflkjqwerqwer")
+
+    template = "hi"
+    template_name = "test_template_name"
+    raw_request_data = {"value": 5}
+    labels = {"foo": "bar"}
+
+    organization = make_organization()
+    alert_receive_channel = make_alert_receive_channel(organization)
+
+    result = Alert._apply_jinja_template_to_alert_payload_and_labels(
+        template,
+        template_name,
+        alert_receive_channel,
+        raw_request_data,
+        labels,
+        use_error_msg_as_fallback=use_error_msg_as_fallback,
+        check_if_templated_value_is_truthy=check_if_templated_value_is_truthy,
+    )
+    assert result == expected
+
+    mock_apply_jinja_template_to_alert_payload_and_labels.assert_called_once_with(template, raw_request_data, labels)

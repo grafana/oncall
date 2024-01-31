@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+## v1.3.95 (2024-01-31)
+
+### Added
+
+- Allow routing incoming alerts based on labels by @joeyorlando ([#3778](https://github.com/grafana/oncall/pull/3778))
+
+### Changed
+
+- Remove `/oncall` Slack slash command (ie. manual alert group creation command) by @joeyorlando ([#3790](https://github.com/grafana/oncall/pull/3790))
+- Increase frequency of checking for gaps and empty shifts in schedules by @Ferril ([#3785](https://github.com/grafana/oncall/pull/3785))
+
+### Fixed
+
+- Fixed checking whether user has telegram connection for `get_telegram_verification_code` endpoint by @Ferril ([#3794](https://github.com/grafana/oncall/pull/3794))
+- Fix interval validation when creating shift via public API ([#3775](https://github.com/grafana/oncall/pull/3775))
+- Fix list user serializer logic refactoring ([3793](https://github.com/grafana/oncall/pull/3793))
+
 ## v1.3.94 (2024-01-30)
 
 ### Added

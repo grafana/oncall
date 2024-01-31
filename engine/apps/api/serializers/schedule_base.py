@@ -88,9 +88,8 @@ class ScheduleBaseSerializer(EagerLoadingMixin, serializers.ModelSerializer):
 
     def create(self, validated_data):
         created_schedule = super().create(validated_data)
-        created_schedule.check_empty_shifts_for_next_week()
+        created_schedule.check_gaps_and_empty_shifts_for_next_week()
         schedule_notify_about_empty_shifts_in_schedule.apply_async((created_schedule.pk,))
-        created_schedule.check_gaps_for_next_week()
         schedule_notify_about_gaps_in_schedule.apply_async((created_schedule.pk,))
         return created_schedule
 

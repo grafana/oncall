@@ -53,6 +53,7 @@ def test_no_empty_shifts_no_triggering_notification(
 
     schedule.refresh_from_db()
     assert empty_shifts_report_sent_at != schedule.empty_shifts_report_sent_at
+    assert schedule.has_empty_shifts is False
 
 
 @pytest.mark.django_db
