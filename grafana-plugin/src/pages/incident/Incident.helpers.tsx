@@ -199,7 +199,7 @@ export function getActionButtons(incident: AlertType, callbacks: { [key: string]
 
   if (!incident?.status) {
     // to render all buttons if status unknown
-    return [unsilenceButton, silenceButton, acknowledgeButton, unacknowledgeButton, resolveButton, unresolveButton];
+    return [acknowledgeButton, unacknowledgeButton, resolveButton, unresolveButton, silenceButton, unsilenceButton];
   }
 
   const buttons = [];

@@ -14,6 +14,7 @@ import {
   Field,
   Modal,
   Tooltip,
+  Divider,
 } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
@@ -845,11 +846,16 @@ const AlertGroupStub = ({ buttons }: { buttons: React.ReactNode }) => {
         <img src={errorSVG} alt="" />
         <Text.Title level={3}>An unexpected error happened</Text.Title>
         <Text type="secondary">
-          Hi! It looks like smth doesn't work as expected. OnCall is not able to receive any information about the
-          current Alert Group. It's unknown if it's firing, acknowledged, silenced, or resolved. Meanwhile, you could
-          try changing the status of this Alert Group:
+          OnCall is not able to receive any information about the current Alert Group. It's unknown if it's firing,
+          acknowledged, silenced, or resolved.
         </Text>
-        <HorizontalGroup>{buttons}</HorizontalGroup>
+        <div className={cx('alert-group-stub-divider')}>
+          <Divider />
+        </div>
+        <Text type="secondary">Meanwhile, you could try changing the status of this Alert Group:</Text>
+        <HorizontalGroup wrap justify="center">
+          {buttons}
+        </HorizontalGroup>
       </VerticalGroup>
     </div>
   );
