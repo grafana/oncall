@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Address `SlackAPIRatelimitError` exceptions in `apps.slack.tasks.send_message_to_thread_if_bot_not_in_channel` task
+  by @joeyorlando ([#3803](https://github.com/grafana/oncall/pull/3803))
 - Fix exception when parsing incident plugin config @mderynck ([#3802](https://github.com/grafana/oncall/pull/3802))
 
 ## v1.3.96 (2024-01-31)

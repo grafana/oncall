@@ -3,6 +3,7 @@ import random
 from typing import Optional
 
 from celery import uuid as celery_uuid
+from celery.exceptions import Retry
 from celery.utils.log import get_task_logger
 from django.conf import settings
 from django.core.cache import cache
@@ -142,14 +143,26 @@ def check_slack_message_exists_before_post_message_to_thread(
             ).save()
 
 
-@shared_dedicated_queue_retry_task(autoretry_for=(Exception,), retry_backoff=True, max_retries=1)
-def send_message_to_thread_if_bot_not_in_channel(alert_group_pk, slack_team_identity_pk, channel_id):
+@shared_dedicated_queue_retry_task(
+    autoretry_for=(Exception,),
+    dont_autoretry_for=(Retry,),
+    retry_backoff=True,
+    max_retries=1,
+)
+def send_message_to_thread_if_bot_not_in_channel(
+    alert_group_pk: int, slack_team_identity_pk: int, channel_id: int
+) -> None:
     """
     Send message to alert group's thread if bot is not in current channel
     """
 
     from apps.alerts.models import AlertGroup
     from apps.slack.models import SlackTeamIdentity
+
+    logger.info(
+        f"Starting send_message_to_thread_if_bot_not_in_channel alert_group={alert_group_pk} "
+        f"slack_team_identity={slack_team_identity_pk} channel_id={channel_id}"
+    )
 
     slack_team_identity = SlackTeamIdentity.objects.get(pk=slack_team_identity_pk)
     alert_group = AlertGroup.objects.get(pk=alert_group_pk)
@@ -159,8 +172,20 @@ def send_message_to_thread_if_bot_not_in_channel(alert_group_pk, slack_team_iden
     bot_user_id = slack_team_identity.bot_user_id
     members = slack_team_identity.get_conversation_members(sc, channel_id)
     if bot_user_id not in members:
-        text = f"Please invite <@{bot_user_id}> to this channel to make all features " f"available :wink:"
-        AlertGroupSlackService(slack_team_identity, sc).publish_message_to_alert_group_thread(alert_group, text=text)
+        text = f"Please invite <@{bot_user_id}> to this channel to make all features available :wink:"
+
+        try:
+            logger.info("Attempting to send message to thread in Slack")
+
+            AlertGroupSlackService(slack_team_identity, sc).publish_message_to_alert_group_thread(
+                alert_group, text=text
+            )
+        except SlackAPIRatelimitError as e:
+            logger.warning(f"Slack API rate limit error: {e}, retrying task")
+
+            raise send_message_to_thread_if_bot_not_in_channel.retry(
+                (alert_group_pk, slack_team_identity_pk, channel_id), countdown=e.retry_after, exc=e
+            )
 
 
 @shared_dedicated_queue_retry_task(autoretry_for=(Exception,), retry_backoff=True, max_retries=0)
