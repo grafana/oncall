@@ -438,7 +438,7 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
     const isAlerting = IntegrationHelper.isSpecificIntegration(alertReceiveChannel, 'grafana_alerting');
     const isLegacyAlerting = IntegrationHelper.isSpecificIntegration(alertReceiveChannel, 'legacy_grafana_alerting');
 
-    const configs: IntegrationCollapsibleItem[] = [
+    const configs: Array<IntegrationCollapsibleItem | IntegrationCollapsibleItem[]> = [
       (isAlerting || isLegacyAlerting) && {
         isHidden: isLegacyAlerting || contactPoints === null || contactPoints === undefined,
         isCollapsible: false,
@@ -557,10 +557,10 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
           </div>
         ),
       },
-      this.renderRoutesFn() as any,
+      this.renderRoutesFn() as IntegrationCollapsibleItem[],
     ];
 
-    return configs.filter((opt) => opt);
+    return configs.filter(Boolean);
   }
 
   getRoutingTemplate = (channelFilterId: ChannelFilter['id']) => {
@@ -669,7 +669,7 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
             />
           ),
         } as IntegrationCollapsibleItem)
-    );
+    ) as IntegrationCollapsibleItem[];
   };
 
   handleEditRegexpRouteTemplate = (channelFilterId) => {

@@ -83,7 +83,7 @@ const Text: TextInterface = (props) => {
     setValue(e.target.value);
   }, []);
 
-  const CustomTag = customTag || (`span` as any);
+  const CustomTag = (customTag || `span`) as unknown as React.ComponentType<any>;
 
   return (
     <CustomTag

@@ -27,12 +27,12 @@ export interface IntegrationCollapsibleItem {
 
 interface IntegrationCollapsibleTreeViewProps {
   startingElemPosition?: string;
-  customContainerClassName?: string;
+  isRouteView?: boolean;
   configElements: Array<IntegrationCollapsibleItem | IntegrationCollapsibleItem[]>;
 }
 
 const IntegrationCollapsibleTreeView: React.FC<IntegrationCollapsibleTreeViewProps> = observer((props) => {
-  const { configElements, customContainerClassName } = props;
+  const { configElements, isRouteView } = props;
 
   const [expandedList, setExpandedList] = useState(getStartingExpandedState());
 
@@ -41,12 +41,7 @@ const IntegrationCollapsibleTreeView: React.FC<IntegrationCollapsibleTreeViewPro
   }, [configElements]);
 
   return (
-    <div
-      className={cx(
-        'integrationTree__container',
-        customContainerClassName ? `integrationTree__container--${customContainerClassName}` : ''
-      )}
-    >
+    <div className={cx('integrationTree__container', isRouteView ? 'integrationTree__container--timeline-view' : '')}>
       {configElements
         .filter((config) => config) // filter out falsy values
         .map((item: IntegrationCollapsibleItem | IntegrationCollapsibleItem[], idx) => {
@@ -120,7 +115,7 @@ const IntegrationCollapsibleTreeItem: React.FC<{
   isExpanded: boolean;
   onClick: () => void;
 }> = ({ item, elementPosition, isExpanded, onClick }) => {
-  const iconOnClickFn = !item.isCollapsible ? undefined : onClick;
+  const handleIconClick = !item.isCollapsible ? undefined : onClick;
 
   return (
     <div className={cx('integrationTree__group', { 'integrationTree__group--hidden': item.isHidden })}>
@@ -151,10 +146,10 @@ const IntegrationCollapsibleTreeItem: React.FC<{
     }
 
     if (item.canHoverIcon) {
-      return <IconButton aria-label="" name={getIconName()} onClick={iconOnClickFn} size="lg" />;
+      return <IconButton aria-label="" name={getIconName()} onClick={handleIconClick} size="lg" />;
     }
 
-    return <Icon name={getIconName()} onClick={iconOnClickFn} size="lg" />;
+    return <Icon name={getIconName()} onClick={handleIconClick} size="lg" />;
   }
 
   function getIconName(): IconName {

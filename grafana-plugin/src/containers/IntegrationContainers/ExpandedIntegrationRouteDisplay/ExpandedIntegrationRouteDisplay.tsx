@@ -315,7 +315,7 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
           content={
             <IntegrationCollapsibleTreeView
               configElements={getTreeViewElements() as any}
-              customContainerClassName="timeline-view"
+              isRouteView
               startingElemPosition="0%"
             />
           }
