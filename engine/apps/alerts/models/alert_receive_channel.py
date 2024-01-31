@@ -664,7 +664,7 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
         return getattr(heartbeat, self.integration, None)
 
     # Demo alerts
-    def send_demo_alert(self, payload=None):
+    def send_demo_alert(self, payload: typing.Optional[typing.Dict] = None) -> None:
         logger.info(f"send_demo_alert integration={self.pk}")
 
         if not self.is_demo_alert_enabled:
