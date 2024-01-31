@@ -177,7 +177,7 @@ Toggle to send the entire webhook payload instead of using the values in the **D
 
 ## Labels
 
-> Labels are currently available only in cloud.
+> **Note:** Labels are currently available only in cloud.
 
 Webhook labels allow to pass labels data to a 3'rd party.
 Label data will be included in the webhook payload, along with alert group and integration labels.

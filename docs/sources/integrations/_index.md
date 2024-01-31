@@ -142,7 +142,7 @@ To edit the name of an integration:
 
 #### Labels
 
-> Labels are currently available only in cloud.
+> **Note:** Labels are currently available only in cloud.
 
 Integration labels allows to manage and filter integrations based on specific criteria
 and pass these labels down to Alert Groups.
