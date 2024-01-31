@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Allow routing incoming alerts based on labels by @joeyorlando ([#3778](https://github.com/grafana/oncall/pull/3778))
+- Improved zvonok verification call @sreway ([#3768](https://github.com/grafana/oncall/pull/3768))
 
 ### Changed
 
@@ -26,7 +27,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Improved logging during plugin sync and install with Grafana @mderynck ([#3730](https://github.com/grafana/oncall/pull/3730))
 - Added `is_currently_oncall` information to internal user details API ([#3765](https://github.com/grafana/oncall/pull/3765))
 - Add a modal for autoresolve and grouping templates for Alertmanager-based integrations ([#3764](https://github.com/grafana/oncall/pull/3764))
-- Improved zvonok verification call @sreway ([#3768](https://github.com/grafana/oncall/pull/3768))
 
 ### Fixed
 
