@@ -197,7 +197,7 @@ export function getActionButtons(incident: AlertType, callbacks: { [key: string]
     </WithPermissionControlTooltip>
   );
 
-  if (!incident?.status) {
+  if (incident?.status === undefined) {
     // to render all buttons if status unknown
     return [acknowledgeButton, unacknowledgeButton, resolveButton, unresolveButton, silenceButton, unsilenceButton];
   }
