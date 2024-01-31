@@ -15,6 +15,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Remove `/oncall` Slack slash command (ie. manual alert group creation command) by @joeyorlando ([#3790](https://github.com/grafana/oncall/pull/3790))
 
+### Fixed
+
+- Fixed checking whether user has telegram connection for `get_telegram_verification_code` endpoint by @Ferril ([#3794](https://github.com/grafana/oncall/pull/3794))
+
 ## v1.3.94 (2024-01-30)
 
 ### Added
