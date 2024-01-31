@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Fixed
+
+- Fix exception when parsing incident plugin config @mderynck ([#3802](https://github.com/grafana/oncall/pull/3802))
+
 ## v1.3.96 (2024-01-31)
 
 ### Added
