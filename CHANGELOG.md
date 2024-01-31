@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Fixed checking whether user has telegram connection for `get_telegram_verification_code` endpoint by @Ferril ([#3794](https://github.com/grafana/oncall/pull/3794))
 - Fix interval validation when creating shift via public API ([#3775](https://github.com/grafana/oncall/pull/3775))
 - Fix list user serializer logic refactoring ([3793](https://github.com/grafana/oncall/pull/3793))
 
