@@ -2,7 +2,7 @@
 title: On-call status and shifts
 menuTitle: On-call status
 description: Understand your on-call status and shifts in the Grafana OnCall mobile app.
-weight:400
+weight: 400
 keywords:
   - OnCall
   - Mobile app

@@ -10,9 +10,9 @@ keywords:
   - Loki
   - Prometheus
   - Alerts
-canonical: https://grafana.com/docs/oncall/latest/insights-and-metrics/
+canonical: https://grafana.com/docs/oncall/latest/manage/insights-and-metrics/
 aliases:
-  - /docs/grafana-cloud/alerting-and-irm/oncall/insights-and-metrics/
+  - /docs/grafana-cloud/alerting-and-irm/oncall/manage/insights-and-metrics/
   - /docs/grafana-cloud/alerting-and-irm/oncall/insights-and-metrics/
 ---
 
