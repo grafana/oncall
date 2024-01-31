@@ -1,3 +1,4 @@
+import typing
 from datetime import timedelta
 
 from django.core.exceptions import ObjectDoesNotExist
@@ -231,7 +232,7 @@ class AlertGroupTeamFilteringMixin(TeamFilteringMixin):
 class AlertGroupView(
     PreviewTemplateMixin,
     AlertGroupTeamFilteringMixin,
-    PublicPrimaryKeyMixin,
+    PublicPrimaryKeyMixin[AlertGroup],
     mixins.RetrieveModelMixin,
     mixins.ListModelMixin,
     mixins.DestroyModelMixin,
@@ -395,7 +396,7 @@ class AlertGroupView(
         """
         return super().retrieve(request, *args, **kwargs)
 
-    def enrich(self, alert_groups):
+    def enrich(self, alert_groups: typing.List[AlertGroup]) -> typing.List[AlertGroup]:
         """
         This method performs select_related and prefetch_related (using setup_eager_loading) as well as in-memory joins
         to add additional info like alert_count and last_alert for every alert group efficiently.
