@@ -159,12 +159,19 @@ def test_acknowledge_reminder_task_skip(
 @patch.object(acknowledge_reminder_task, "apply_async")
 @pytest.mark.django_db
 def test_acknowledge_reminder_task_reschedules_itself(
-    mock_acknowledge_reminder_task, mock_unacknowledge_timeout_task, ack_reminder_test_setup
+    mock_acknowledge_reminder_task,
+    mock_unacknowledge_timeout_task,
+    ack_reminder_test_setup,
+    django_capture_on_commit_callbacks,
 ):
     organization, alert_group, user = ack_reminder_test_setup(
         unacknowledge_timeout=Organization.UNACKNOWLEDGE_TIMEOUT_NEVER
     )
-    acknowledge_reminder_task(alert_group.pk, TASK_ID)
+    with django_capture_on_commit_callbacks(execute=True) as callbacks:
+        acknowledge_reminder_task(alert_group.pk, TASK_ID)
+
+    # send_alert_group_signal task is queued after commit
+    assert len(callbacks) == 1
 
     mock_unacknowledge_timeout_task.assert_not_called()
     mock_acknowledge_reminder_task.assert_called_once_with(
