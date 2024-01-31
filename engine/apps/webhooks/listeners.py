@@ -17,7 +17,7 @@ def on_action_triggered(**kwargs):
     if not isinstance(log_record, AlertGroupLogRecord):
         try:
             log_record = AlertGroupLogRecord.objects.get(pk=log_record)
-        except AlertGroupLogRecord.DoesNotExist:
+        except AlertGroupLogRecord.DoesNotExist as e:
             logger.warning(f"Webhook action triggered: log record {log_record} never created or has been deleted")
-            return
+            raise e
     alert_group_status_change.apply_async((log_record.type, log_record.alert_group_id, log_record.author_id))
