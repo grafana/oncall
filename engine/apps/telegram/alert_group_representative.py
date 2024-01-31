@@ -68,9 +68,9 @@ class AlertGroupTelegramRepresentative(AlertGroupAbstractRepresentative):
         if not isinstance(alert_group, AlertGroup):
             try:
                 alert_group = AlertGroup.objects.get(pk=alert_group)
-            except AlertGroup.DoesNotExist:
+            except AlertGroup.DoesNotExist as e:
                 logger.warning(f"Telegram update log report: alert group {alert_group} has been deleted")
-                return
+                raise e
 
         messages_to_edit = alert_group.telegram_messages.filter(
             message_type__in=(

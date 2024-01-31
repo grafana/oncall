@@ -2,6 +2,7 @@ import logging
 
 from celery.utils.log import get_task_logger
 from django.conf import settings
+from django.core.exceptions import ObjectDoesNotExist
 
 from apps.alerts.constants import ActionSource
 from apps.alerts.representative import AlertGroupAbstractRepresentative
@@ -49,16 +50,19 @@ def on_create_alert_slack_representative_async(alert_pk):
 
 
 @shared_dedicated_queue_retry_task(
-    autoretry_for=(Exception,), retry_backoff=True, max_retries=1 if settings.DEBUG else None
+    autoretry_for=(Exception,),
+    retry_backoff=True,
+    dont_autoretry_for=(ObjectDoesNotExist,),
+    max_retries=1 if settings.DEBUG else None,
 )
 def on_alert_group_action_triggered_async(log_record_id):
     from apps.alerts.models import AlertGroupLogRecord
 
     try:
         log_record = AlertGroupLogRecord.objects.get(pk=log_record_id)
-    except AlertGroupLogRecord.DoesNotExist:
+    except AlertGroupLogRecord.DoesNotExist as e:
         logger.warning(f"SLACK representative: log record {log_record_id} never created or has been deleted")
-        return
+        raise e
 
     alert_group_id = log_record.alert_group_id
     logger.debug(f"Start on_alert_group_action_triggered for alert_group {alert_group_id}, log record {log_record_id}")
