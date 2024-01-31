@@ -1,13 +1,19 @@
 ---
-canonical: https://grafana.com/docs/oncall/latest/insights-and-metrics/
+title: Insight logs and metrics
+menuTitle: Oncall insights
+description: Explore Grafana OnCall insights and metrics.
+weight: 700
 keywords:
-  - Audit Logs
-  - Insight Logs
-  - Metrics
+  - OnCall
+  - Audit logs
+  - Insight logs
   - Loki
   - Prometheus
-title: Insight Logs and Metrics
-weight: 1400
+  - Alerts
+canonical: https://grafana.com/docs/oncall/latest/insights-and-metrics/
+aliases:
+  - /docs/grafana-cloud/alerting-and-irm/oncall/insights-and-metrics/
+  - /docs/grafana-cloud/alerting-and-irm/oncall/insights-and-metrics/
 ---
 
 # Insight Logs and Metrics
