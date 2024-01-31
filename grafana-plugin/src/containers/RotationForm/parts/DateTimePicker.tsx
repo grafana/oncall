@@ -60,9 +60,12 @@ const DateTimePicker = observer(
 
     const getDateForDatePicker = () => {
       const date = new Date();
+      // Day of the month needs to be set at first to prevent incorrect month increment
+      // when current day of month doesn't exist in the next month
+      // E.g. today is 30th Jan and there is no 30th Feb, so in this case date.setMonth(1) results in March
+      date.setDate(valueInSelectedTimezone.date());
       date.setFullYear(valueInSelectedTimezone.year());
       date.setMonth(valueInSelectedTimezone.month());
-      date.setDate(valueInSelectedTimezone.date());
       date.setHours(valueInSelectedTimezone.hour());
       date.setMinutes(valueInSelectedTimezone.minute());
       date.setSeconds(valueInSelectedTimezone.second());
