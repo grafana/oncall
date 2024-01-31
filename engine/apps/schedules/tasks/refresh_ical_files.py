@@ -89,7 +89,8 @@ def refresh_ical_file(schedule_pk):
     update_cached_oncall_users_for_schedule(schedule)
 
     check_gaps_and_empty_shifts_in_schedule.apply_async((schedule_pk,))
-
+    # todo: refactor tasks below to unify checking and notifying about gaps and empty shifts to avoid doing the same
+    # todo: work twice.
     if run_task:
         notify_about_empty_shifts_in_schedule_task.apply_async((schedule_pk,))
         notify_about_gaps_in_schedule_task.apply_async((schedule_pk,))

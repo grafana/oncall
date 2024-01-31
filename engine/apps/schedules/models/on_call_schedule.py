@@ -282,6 +282,8 @@ class OnCallSchedule(PolymorphicModel):
     def check_gaps_and_empty_shifts_for_next_week(self) -> None:
         datetime_start = timezone.now()
         datetime_end = datetime_start + datetime.timedelta(days=7)
+
+        # get empty shifts from all events and gaps from final events
         events = self.filter_events(
             datetime_start,
             datetime_end,
@@ -289,9 +291,8 @@ class OnCallSchedule(PolymorphicModel):
             with_gap=True,
             all_day_datetime=True,
         )
-        final_events = self._resolve_schedule(events, datetime_start, datetime_end)
-        # get empty shifts from all events and gaps from final events
         has_empty_shifts = len([event for event in events if event["is_empty"]]) != 0
+        final_events = self._resolve_schedule(events, datetime_start, datetime_end)
         has_gaps = len([final_event for final_event in final_events if final_event["is_gap"]]) != 0
         if has_gaps != self.has_gaps or has_empty_shifts != self.has_empty_shifts:
             self.has_gaps = has_gaps
