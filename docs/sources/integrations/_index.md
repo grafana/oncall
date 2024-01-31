@@ -23,7 +23,7 @@ Read more about Jinja2 templating used in OnCall [here][jinja2-templating].
 ## Learn Alert Flow Within Integration
 
 1. An Alert is received on an integration's **Unique URL** as an HTTP POST request with a JSON payload (or via
-[e-mail]({{< relref "inbound-email" >}}), for inbound e-mail integrations)
+[e-mail](inbound-email), for inbound e-mail integrations)
 1. Routing is determined for the incoming alert, by applying the [Routing Template][routing-template]
 1. Alert Grouping is determined based on [Grouping Id Template][behavioral-template]
 1. An Alert Group may be acknowledged or resolved with status `_ by source` based on

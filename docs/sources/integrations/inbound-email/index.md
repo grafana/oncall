@@ -18,7 +18,7 @@ Inbound Email integration will consume emails from dedicated email address and m
 
 ## Configure required environment variables
 
-See [Inbound Email Setup]({{< relref "../../open-source/_index.md#inbound-email-setup" >}}) for details.
+See [Inbound Email Setup](../../open-source/_index.md#inbound-email-setup) for details.
 
 ## Configure Inbound Email integration for Grafana OnCall
 
