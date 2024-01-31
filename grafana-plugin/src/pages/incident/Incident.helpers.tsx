@@ -168,7 +168,7 @@ export function getActionButtons(incident: AlertType, callbacks: { [key: string]
   );
 
   const unresolveButton = (
-    <WithPermissionControlTooltip key="unacknowledge" userAction={UserActions.AlertGroupsWrite}>
+    <WithPermissionControlTooltip key="unresolve" userAction={UserActions.AlertGroupsWrite}>
       <Button disabled={incident?.loading} onClick={onUnresolve} variant={allSecondary ? 'secondary' : 'primary'}>
         Unresolve
       </Button>
@@ -190,7 +190,7 @@ export function getActionButtons(incident: AlertType, callbacks: { [key: string]
   );
 
   const unsilenceButton = (
-    <WithPermissionControlTooltip key="silence" userAction={UserActions.AlertGroupsWrite}>
+    <WithPermissionControlTooltip key="unsilence" userAction={UserActions.AlertGroupsWrite}>
       <Button disabled={incident?.loading} variant="secondary" onClick={onUnsilence}>
         Unsilence
       </Button>
