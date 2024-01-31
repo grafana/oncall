@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Remove `/oncall` Slack slash command (ie. manual alert group creation command) by @joeyorlando ([#3790](https://github.com/grafana/oncall/pull/3790))
+- Increase frequency of checking for gaps and empty shifts in schedules by @Ferril ([#3785](https://github.com/grafana/oncall/pull/3785))
 
 ### Fixed
 

@@ -1,3 +1,4 @@
+from .check_gaps_and_empty_shifts import check_gaps_and_empty_shifts_in_schedule  # noqa: F401
 from .drop_cached_ical import drop_cached_ical_for_custom_events_for_organization, drop_cached_ical_task  # noqa: F401
 from .notify_about_empty_shifts_in_schedule import (  # noqa: F401
     check_empty_shifts_in_schedule,
