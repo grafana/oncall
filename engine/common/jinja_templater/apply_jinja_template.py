@@ -1,4 +1,5 @@
 import logging
+import typing
 
 from django.conf import settings
 from jinja2 import TemplateAssertionError, TemplateSyntaxError, UndefinedError
@@ -7,6 +8,10 @@ from jinja2.exceptions import SecurityError
 from .jinja_template_env import jinja_template_env
 
 logger = logging.getLogger(__name__)
+
+if typing.TYPE_CHECKING:
+    from apps.alerts.models import Alert
+    from apps.labels.types import Labels
 
 
 class JinjaTemplateError(Exception):
@@ -19,7 +24,12 @@ class JinjaTemplateWarning(Exception):
         self.fallback_message = f"Template Warning: {fallback_message}"
 
 
-def apply_jinja_template(template, payload=None, result_length_limit=settings.JINJA_RESULT_MAX_LENGTH, **kwargs):
+def apply_jinja_template(
+    template: str,
+    payload: typing.Optional["Alert.RawRequestData"] = None,
+    result_length_limit=settings.JINJA_RESULT_MAX_LENGTH,
+    **kwargs,
+) -> str:
     if len(template) > settings.JINJA_TEMPLATE_MAX_LENGTH:
         raise JinjaTemplateError(
             f"Template exceeds length limit ({len(template)} > {settings.JINJA_TEMPLATE_MAX_LENGTH})"
@@ -40,3 +50,15 @@ def apply_jinja_template(template, payload=None, result_length_limit=settings.JI
         raise JinjaTemplateError(str(e))
 
     return (result[:result_length_limit] + "..") if len(result) > result_length_limit else result
+
+
+def apply_jinja_template_to_alert_payload_and_labels(
+    template: str, payload: typing.Optional["Alert.RawRequestData"], labels: typing.Optional["Labels"]
+) -> str:
+    return apply_jinja_template(template, payload=payload, labels=labels)
+
+
+def templated_value_is_truthy(value: typing.Optional[str]) -> bool:
+    if not isinstance(value, str):
+        return False
+    return value.strip().lower() in ["1", "true", "ok"]

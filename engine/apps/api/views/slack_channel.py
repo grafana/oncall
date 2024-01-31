@@ -11,7 +11,9 @@ from common.api_helpers.mixins import PublicPrimaryKeyMixin
 from common.api_helpers.paginators import HundredPageSizePaginator
 
 
-class SlackChannelView(PublicPrimaryKeyMixin, mixins.ListModelMixin, mixins.RetrieveModelMixin, GenericViewSet):
+class SlackChannelView(
+    PublicPrimaryKeyMixin[SlackChannel], mixins.ListModelMixin, mixins.RetrieveModelMixin, GenericViewSet
+):
     authentication_classes = (PluginAuthentication,)
     permission_classes = (IsAuthenticated, RBACPermission)
 
