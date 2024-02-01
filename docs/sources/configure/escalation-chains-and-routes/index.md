@@ -14,6 +14,8 @@ keywords:
 canonical: https://grafana.com/docs/oncall/latest/configure/escalation-chains-and-routes/
 aliases:
   - /docs/grafana-cloud/alerting-and-irm/oncall/configure/escalation-chains-and-routes/
+  - /docs/grafana-cloud/alerting-and-irm/oncall/escalation-chains-and-routes/
+  - ../escalation-chains-and-routes/ # /docs/oncall/<ONCALL_VERSION>/escalation-chains-and-routes/
 ---
 
 # Escalation Chains and Routes
