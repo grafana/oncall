@@ -2,10 +2,9 @@ from unittest.mock import call, patch
 
 import pytest
 from requests.auth import HTTPBasicAuth
-
+from apps.base.utils import live_settings
 from apps.webhooks.models import Webhook
 from apps.webhooks.utils import (
-    OUTGOING_WEBHOOK_TIMEOUT,
     InvalidWebhookData,
     InvalidWebhookHeaders,
     InvalidWebhookTrigger,
@@ -236,7 +235,7 @@ def test_make_request(make_organization, make_custom_webhook):
             webhook.make_request("url", {"foo": "bar"})
             expected_call = getattr(mock_requests, method.lower())
             assert expected_call.called
-            assert expected_call.call_args == call("url", timeout=OUTGOING_WEBHOOK_TIMEOUT, foo="bar")
+            assert expected_call.call_args == call("url", timeout=live_settings.OUTGOING_WEBHOOK_TIMEOUT, foo="bar")
 
     # invalid
     webhook = make_custom_webhook(organization=organization, http_method="NOT")
