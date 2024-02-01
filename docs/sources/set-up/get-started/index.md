@@ -13,8 +13,9 @@ keywords:
 canonical: https://grafana.com/docs/oncall/latest/set-up/get-started/
 aliases:
   - /docs/grafana-cloud/alerting-and-irm/oncall/set-up/get-started/
-  - /docs/oncall/latest/get-started/
-  - ../getting-started/
+  - /docs/grafana-cloud/alerting-and-irm/oncall//get-started/
+  - ../getting-started/ # /docs/oncall/<ONCALL_VERSION>/getting-started/
+  - ../get-started/ # /docs/oncall/<ONCALL_VERSION>/get-started/
 ---
 
 # Get started with Grafana OnCall
