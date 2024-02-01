@@ -261,8 +261,7 @@ After enabling the email integration, it will be possible to use the `Notify by 
 
 ## Inbound Email Setup
 
-Grafana OnCall is capable of creating alert groups from
-[Inbound Email integration](../integrations/inbound-email).
+Grafana OnCall is capable of creating alert groups from the [Inbound email integration][].
 
 To configure Inbound Email integration for Grafana OnCall OSS populate env variables with your Email Service Provider data:
 
@@ -290,12 +289,12 @@ Grafana OnCall OSS users can use the mobile app to receive push notifications fr
 Grafana OnCall OSS relies on Grafana Cloud as on relay for push notifications.
 You must first connect your Grafana OnCall OSS to Grafana Cloud for the mobile app to work.
 
-Refer to [Grafana OSS-Cloud Setup](_index.md#grafana-oss-cloud-setup) in this document before continuing with the mobile app.
+Refer to [Install Grafana OnCall OSS](#install-grafana-oncall-oss) before continuing with the mobile app.
 
 For Grafana OnCall OSS, the mobile app QR code includes an authentication token along with a backend URL.
 Your Grafana OnCall OSS instance should be reachable from the same network as your mobile device, preferably from the internet.
 
-For more information, see [Grafana OnCall mobile app](../mobile-app)
+For more information, refer to [Grafana OnCall mobile app][].
 
 ## Alert Group Escalation Auditor
 
@@ -325,3 +324,11 @@ To configure this feature as such:
 
 Additionally, if you prefer to disable this feature, you can set the `ESCALATION_AUDITOR_ENABLED` environment variable
 to `False`.
+
+{{% docs/reference %}}
+[Inbound email integration]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/integrations/inbound-email"
+[Inbound email integration]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/integrations/inbound-email"
+
+[Grafana OnCall mobile app]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/manage/mobile-app"
+[Grafana OnCall mobile app]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/manage/mobile-app"
+{{% /docs/reference %}}
