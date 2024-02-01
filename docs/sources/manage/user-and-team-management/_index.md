@@ -53,7 +53,7 @@ For example, a user with the basic `Viewer` role at the organization level needs
 
 To learn more about RBAC for Grafana OnCall, refer to the following documentation:
 
-- [Manage RBAC roles](https://grafana.com/docs/grafana/latest/administration/roles-and-permissions/access-control/manage-rbac-roles/#update-basic-role-permissions)
+- [Manage RBAC roles](https://grafana.com/docs/grafana//administration/roles-and-permissions/access-control/manage-rbac-roles/#update-basic-role-permissions)
 - [RBAC permissions, actions, and scopes](https://grafana.com/docs/grafana/latest/administration/roles-and-permissions/access-control/custom-role-actions-scopes/)
 - [RBAC role definitions](https://grafana.com/docs/grafana/latest/administration/roles-and-permissions/access-control/rbac-fixed-basic-role-definitions/#grafana-oncall-roles-beta)
 
@@ -61,8 +61,8 @@ To learn more about RBAC for Grafana OnCall, refer to the following documentatio
 
 **Note**: granting any of the following roles will also grant the user the `plugins.app:access` action with a scope of
 `plugins:id:grafana-oncall-app` (ie. granting the user the ability to access the plugin). Additionally, all of the
-following RBAC roles do not currently support scopes. Consider using Grafana teams to further control which Grafana OnCall
-objects specific groups of users can see (see ["Manage Teams in Grafana OnCall"](#manage-teams-in-grafana-oncall)).
+following RBAC roles do not currently support scopes.
+To further control which Grafana OnCall objects specific groups of users can view, refer to [Manage Teams in Grafana OnCall](#manage-teams-in-grafana-oncall).
 
 <!-- markdownlint-disable MD033 -->
 
