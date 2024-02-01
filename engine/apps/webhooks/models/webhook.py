@@ -255,7 +255,7 @@ class Webhook(models.Model):
         elif self.http_method == "OPTIONS":
             r = requests.options(url, timeout=live_settings.OUTGOING_WEBHOOK_TIMEOUT, **request_kwargs)
         elif self.http_method == "PATCH":
-            r = requests.patch(url, timeout=live_settings.OUTGOING_WEBHOOK_TIMEOUT, **request_kwargs)
+            r = requests.patch(url, timeout=settings.OUTGOING_WEBHOOK_TIMEOUT, **request_kwargs)
         else:
             raise ValueError(f"Unsupported http method: {self.http_method}")
         return r
