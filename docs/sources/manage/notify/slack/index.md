@@ -13,7 +13,8 @@ canonical: https://grafana.com/docs/oncall/latest/manage/notify/slack/
 aliases:
   - /docs/grafana-cloud/alerting-and-irm/oncall/manage/notify/slack/
   - /docs/grafana-cloud/alerting-and-irm/oncall/notify/slack/
-  - ../../chat-options/configure-slack/
+  - ../../chat-options/configure-slack/ # /docs/oncall/<ONCALL_VERSION>/chat-options/configure-slack/
+  - ../../notify/slack/ # /docs/oncall/<ONCALL_VERSION>/notify/slack/
 ---
 
 # Slack integration for Grafana OnCall
