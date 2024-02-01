@@ -4,7 +4,6 @@ import pytest
 from django.core.cache import cache
 from django.test import override_settings
 
-from apps.alerts.signals import alert_group_created_signal
 from apps.alerts.tasks import notify_user_task
 from apps.base.models import UserNotificationPolicy, UserNotificationPolicyLogRecord
 from apps.metrics_exporter.helpers import (
@@ -115,8 +114,6 @@ def test_update_metric_alert_groups_total_cache_on_action(
         arg_idx = 0
         alert_group = make_alert_group(alert_receive_channel)
         make_alert(alert_group=alert_group, raw_request_data={})
-        # this signal is normally called in get_or_create_grouping on create alert
-        alert_group_created_signal.send(sender=alert_group.__class__, alert_group=alert_group)
 
         # check alert_groups_total metric cache, get called args
         mock_cache_set_called_args = mock_cache_set.call_args_list

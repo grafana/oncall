@@ -11,6 +11,8 @@ from django.conf import settings
 from django.core.validators import MinLengthValidator
 from django.db import IntegrityError, models, transaction
 from django.db.models import JSONField, Q, QuerySet
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 from django.utils import timezone
 from django.utils.functional import cached_property
 
@@ -20,7 +22,6 @@ from apps.alerts.escalation_snapshot.escalation_snapshot_mixin import START_ESCA
 from apps.alerts.incident_appearance.renderers.constants import DEFAULT_BACKUP_TITLE
 from apps.alerts.incident_appearance.renderers.slack_renderer import AlertGroupSlackRenderer
 from apps.alerts.incident_log_builder import IncidentLogBuilder
-from apps.alerts.signals import alert_group_created_signal
 from apps.alerts.tasks import (
     acknowledge_reminder_task,
     send_alert_group_signal,
@@ -141,7 +142,7 @@ class AlertGroupQuerySet(models.QuerySet):
                 web_title_cache=group_data.web_title_cache,
                 received_at=received_at,
             )
-            alert_group_created_signal.send(sender=self.__class__, alert_group=alert_group)
+
             return (alert_group, True)
         except IntegrityError:
             try:
@@ -1881,3 +1882,12 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
         """
         count = self.alerts.all()[: max_alerts + 1].count()
         return count > max_alerts
+
+
+@receiver(post_save, sender=AlertGroup)
+def listen_for_alertgroup_model_save(sender, instance, created, *args, **kwargs):
+    if created and not instance.is_maintenance_incident:
+        # Update alert group state and response time metrics cache
+        instance._update_metrics(
+            organization_id=instance.channel.organization_id, previous_state=None, state=AlertGroupState.FIRING
+        )

@@ -10,8 +10,6 @@ AlertGroup, AlertGroup's logs and AlertGroup's resolution notes.
 # Signal to create alert group message in all connected integrations (Slack, Telegram)
 alert_create_signal = django.dispatch.Signal()
 
-alert_group_created_signal = django.dispatch.Signal()
-
 alert_group_escalation_snapshot_built = django.dispatch.Signal()
 
 # Signal to rerender alert group in all connected integrations (Slack, Telegram) when its state is changed

@@ -25,6 +25,3 @@ def listen_for_webhook_save(sender: Webhook, instance: Webhook, raw: bool, *args
             WebhookPresetOptions.WEBHOOK_PRESETS[instance.preset].override_parameters_before_save(instance)
         else:
             raise NotImplementedError(f"Webhook references unknown preset implementation {instance.preset}")
-
-
-pre_save.connect(listen_for_webhook_save, Webhook)
