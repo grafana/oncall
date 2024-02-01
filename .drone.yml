@@ -233,6 +233,48 @@ trigger:
 ---
 kind: pipeline
 type: docker
+name: Image release
+
+steps:
+  - name: build and push docker image
+    image: thegeeklab/drone-docker-buildx:24.1.0
+    # From the docs (https://drone-plugin-index.geekdocs.de/plugins/drone-docker-buildx/) regarding privileged=true:
+    #
+    # Be aware that the this plugin requires privileged capabilities, otherwise the integrated
+    # Docker daemon is not able to start.
+    privileged: true
+    environment:
+      # force docker to use buildkit feature, this will skip build stages that aren't required in
+      # the final image (ie. dev & dev-enterprise)
+      # https://github.com/docker/cli/issues/1134#issuecomment-406449342
+      DOCKER_BUILDKIT: 1
+    settings:
+      repo: grafana/oncall
+      tags: devtest
+      platforms: linux/arm64/v8,linux/amd64
+      dockerfile: engine/Dockerfile
+      target: prod
+      context: engine/
+      password:
+        from_secret: docker_password
+      username:
+        from_secret: docker_username
+      build_args:
+        - BUILDKIT_INLINE_CACHE=1
+      cache_from:
+        - grafana/oncall:latest
+    depends_on:
+      - set engine version
+trigger:
+  event:
+    include:
+      - pull_request
+  ref:
+    include:
+      - refs/heads/dev
+---
+kind: pipeline
+type: docker
 name: OSS engine release
 
 steps:

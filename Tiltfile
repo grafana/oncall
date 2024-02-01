@@ -36,7 +36,10 @@ allow_k8s_contexts(["kind-kind"])
 docker_build_sub(
     "localhost:63628/oncall/engine:dev",
     context="./engine",
-    cache_from=["grafana/oncall:latest", "grafana/oncall:dev"],
+    cache_from=["grafana/oncall:latest",
+                "grafana/oncall:dev", 
+                # "localhost:64286/localhost_63628_oncall_engine:tilt-618326bc1798b0f0",
+                ],
     ignore=["./test-results/", "./grafana-plugin/dist/", "./grafana-plugin/e2e-tests/"],
     child_context=".",
     target="dev",
