@@ -23,7 +23,7 @@ Often alerts from monitoring systems need to be sent to different escalation cha
 ## Routes
 
 Routes are used to determine which escalation chain should be used for a specific alert
-group. A route's ["Routing Templates"][routing-template]
+group. A route's _[Routing Templates]_
 are evaluated for each alert and **the first matching route** is used to determine the
 escalation chain and chatops channels.
 
@@ -36,15 +36,16 @@ escalation chain and chatops channels.
 ### Manage routes
 
 1. Open Integration page
-2. Click **Add route** button to create a new route
-3. Click **Edit** button to edit `Routing Template`. The routing template must evaluate to `True` for it to apply
-4. Select channels in **Publish to Chatops** section
-   > **Note:** If **Publish to Chatops** section does not exist, connect Chatops integrations first, see more in [docs][notify]
-5. Select **Escalation Chain** from the list
-6. If **Escalation Chain** does not exist, click **Add new escalation chain** button to create a new one, it will open in a new tab.
-7. Once created, **Reload list**, and select the new escalation chain
-8. Click **Arrow Up** and **Arrow Down** on the right to change the order of routes
-9. Click **Three dots** and **Delete Route** to delete the route
+1. Click **Add route** button to create a new route
+1. Click **Edit** button to edit `Routing Template`. The routing template must evaluate to `True` for it to apply
+1. Select channels in **Publish to Chatops** section
+   > **Note:** If the **Publish to Chatops** section doesn't exist, connect Chatops integrations first.
+   > For more information, refer to [Notify people].
+1. Select **Escalation Chain** from the list
+1. If **Escalation Chain** does not exist, click **Add new escalation chain** button to create a new one, it will open in a new tab.
+1. Once created, **Reload list**, and select the new escalation chain
+1. Click **Arrow Up** and **Arrow Down** on the right to change the order of routes
+1. Click **Three dots** and **Delete Route** to delete the route
 
 ## Escalation Chains
 
@@ -57,7 +58,7 @@ Users can create escalation chains to configure different type of escalation wor
 For example, you can create a chain that will notify on-call users with high priority, and
 another chain that will only send a message into a Slack channel.
 
-Escalation chains determine Who and When to notify. [How to notify][notify] is set by the user, based on their own preferences.
+Escalation chains determine Who and When to notify. How to notify is set by the user, based on their own preferences.
 
 ### Types of escalation steps
 
@@ -70,7 +71,7 @@ from an on-call schedule.
 `Resolved automatically`.
 * `Notify whole slack channel` - send a notification to the users in the slack channel.
 * `Notify Slack User Group` - send a notification to each member of a slack user group.
-* `Trigger outgoing webhook` - trigger an [outgoing webhook][outgoing-webhooks].
+* `Trigger outgoing webhook` - trigger an [outgoing webhook].
 * `Notify users one by one (round robin)` - each notification will be sent to a group of
 users one by one, in sequential order in [round robin fashion](https://en.wikipedia.org/wiki/Round-robin_item_allocation).
 * `Continue escalation if current time is in range` - continue escalation only if current
@@ -86,7 +87,7 @@ should have linked their Slack and OnCall users). In both cases, the filtered us
 notified following their respective notification policies. However, to avoid **spamming** the Slack channel/thread,
 users **won't be notified** in the alert group Slack **thread** (this is how the feature is currently implemented)
 but instead notify them using their **other defined** options in
-their [respective policies](https://grafana.com/docs/oncall/latest/notify/#configure-user-notification-policies).
+their respective policies.
 
 ### Notification types
 
@@ -100,8 +101,7 @@ User can configure two types of personal notification chains:
 * **Important Notifications**
 
 In the escalation step, user can select which type of notification to use.
-
-Check more information on [Personal Notification Preferences][notify] page.
+For more information, refer to [Notify people].
 
 ### Manage Escalation Chains
 
@@ -118,11 +118,11 @@ Check more information on [Personal Notification Preferences][notify] page.
 affect all linked Integrations and Routes.
 
 {{% docs/reference %}}
-[notify]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/notify"
-[notify]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/notify"
+[Notify people]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/manage/notify"
+[Notify people]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/manage/notify"
 
-[outgoing-webhooks]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/outgoing-webhooks"
-[outgoing-webhooks]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/outgoing-webhooks"
+[outgoing webhook]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/configure/outgoing-webhooks"
+[outgoing webhook]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/configure/outgoing-webhooks"
 
 [Routing Templates]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/configure/jinja2-templating#routing-template"
 [Routing Templates]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/configure/jinja2-templating#routing-template"
