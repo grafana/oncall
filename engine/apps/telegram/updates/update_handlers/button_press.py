@@ -13,6 +13,7 @@ from apps.user_management.models import User
 
 logger = logging.getLogger(__name__)
 
+NOT_FOUND_ERROR = "Alert group not found"
 PERMISSION_DENIED = """You don't have a permission to perform this action!
 Consider connecting your Telegram account on user settings page ⚙"""
 
@@ -32,6 +33,9 @@ class ButtonPressHandler(UpdateHandler):
     def process_update(self) -> None:
         data = self.update.callback_query.data
         action_context = self._get_action_context(data)
+        if action_context is None:
+            self.update.callback_query.answer(NOT_FOUND_ERROR, show_alert=True)
+            return
 
         fn, fn_kwargs = self._map_action_context_to_fn(action_context)
         user = self._get_user(action_context)
@@ -77,7 +81,11 @@ class ButtonPressHandler(UpdateHandler):
 
         if alert_group is None:
             alert_group_pk = args[0]
-            alert_group = AlertGroup.objects.get(pk=alert_group_pk)
+            try:
+                alert_group = AlertGroup.objects.get(pk=alert_group_pk)
+            except AlertGroup.DoesNotExist:
+                logger.info(f"Alert group {alert_group_pk} does not exist")
+                return
 
         action_value = args[1]
         try:

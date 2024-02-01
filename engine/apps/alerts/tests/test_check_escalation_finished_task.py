@@ -463,7 +463,7 @@ def test_check_escalation_finished_task_calls_audit_alert_group_personal_notific
     # records created > 5 mins ago
     alert_group1.personal_log_records.update(created_at=now - timezone.timedelta(minutes=7))
 
-    # alert_group2: notify user, notification failed; triggered sms, sent status
+    # alert_group2: notify user, notification failed; triggered 2 sms, sent and accepted statuses
     make_user_notification_policy_log_record(
         author=user,
         alert_group=alert_group2,
@@ -485,6 +485,13 @@ def test_check_escalation_finished_task_calls_audit_alert_group_personal_notific
         notification_step=UserNotificationPolicy.Step.NOTIFY,
         type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_TRIGGERED,
     )
+    make_user_notification_policy_log_record(
+        author=user,
+        alert_group=alert_group2,
+        notification_policy=user_notification_policy,
+        notification_step=UserNotificationPolicy.Step.NOTIFY,
+        type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_TRIGGERED,
+    )
     # no failed or succeed record, but SMS was sent (without Twilio delivered confirmation yet)
     sms_record = make_sms_record(
         receiver=user,
@@ -492,10 +499,19 @@ def test_check_escalation_finished_task_calls_audit_alert_group_personal_notific
         notification_policy=user_notification_policy,
     )
     sent_sms = TwilioSMS.objects.create(sid="someid", sms_record=sms_record, status=TwilioSMSstatuses.SENT)
+    # no failed or succeed record, but SMS has status ACCEPTED from Twilio (without Twilio delivered confirmation yet)
+    sms_record2 = make_sms_record(
+        receiver=user,
+        represents_alert_group=alert_group2,
+        notification_policy=user_notification_policy,
+    )
+    accepted_sms = TwilioSMS.objects.create(sid="someid2", sms_record=sms_record2, status=TwilioSMSstatuses.ACCEPTED)
     # records created > 5 mins ago
     alert_group2.personal_log_records.update(created_at=now - timezone.timedelta(minutes=7))
     sent_sms.created_at = now - timezone.timedelta(minutes=6)
     sent_sms.save()
+    accepted_sms.created_at = now - timezone.timedelta(minutes=6)
+    accepted_sms.save()
 
     # alert_group3: notify user, missing completion
     make_user_notification_policy_log_record(
@@ -539,4 +555,4 @@ def test_check_escalation_finished_task_calls_audit_alert_group_personal_notific
     # also trigger the general personal notification checker
     check_personal_notifications_task()
 
-    assert "personal_notifications_triggered=5 personal_notifications_completed=2" in caplog.text
+    assert "personal_notifications_triggered=6 personal_notifications_completed=2" in caplog.text

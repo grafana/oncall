@@ -32,15 +32,19 @@ TEMPLATE_FIELDS = [
 class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument("--backward", action="store_true", help="Run the migration backward.")
+        parser.add_argument(
+            "--org_id", type=int, help="Org id to perform the migration. " "If not present will migrate all."
+        )
 
     def handle(self, *args, **options):
+        org_id = options.get("org_id", None)
         if options["backward"]:
-            self.migrate_backward()
+            self.migrate_backward(org_id)
         else:
-            self.migrate_forward()
+            self.migrate_forward(org_id)
 
     @transaction.atomic
-    def migrate_forward(self):
+    def migrate_forward(self, org_id=None):
         now = timezone.now()
         self.stdout.write(f"Forward migration started at {now}.")
 
@@ -48,18 +52,21 @@ class Command(BaseCommand):
             "Migrating legacy Alertmanager integrations "
             "(updating fields 'integration' and 'alertmanager_v2_migrated_at')."
         )
-        num_updated = AlertReceiveChannel.objects.filter(integration=LEGACY_ALERTMANAGER).update(
-            integration=ALERTMANAGER, alertmanager_v2_migrated_at=now
-        )
+        alertmanager_to_update = AlertReceiveChannel.objects.filter(integration=LEGACY_ALERTMANAGER)
+        if org_id:
+            alertmanager_to_update = alertmanager_to_update.filter(organization_id=org_id)
+        num_updated = alertmanager_to_update.update(integration=ALERTMANAGER, alertmanager_v2_migrated_at=now)
         self.stdout.write(f"Migrated {num_updated} legacy Alertmanager integrations.")
 
         self.stdout.write(
             "Migrating legacy Grafana Alerting integrations "
             "(updating fields 'integration' and 'alertmanager_v2_migrated_at')."
         )
-        num_updated = AlertReceiveChannel.objects.filter(integration=LEGACY_GRAFANA_ALERTING).update(
-            integration=GRAFANA_ALERTING, alertmanager_v2_migrated_at=now
-        )
+        alerting_to_update = AlertReceiveChannel.objects.filter(integration=LEGACY_GRAFANA_ALERTING)
+        if org_id:
+            alerting_to_update = alerting_to_update.filter(organization_id=org_id)
+        num_updated = alerting_to_update.update(integration=GRAFANA_ALERTING, alertmanager_v2_migrated_at=now)
+
         self.stdout.write(f"Migrated {num_updated} legacy Grafana Alerting integrations.")
 
         self.stdout.write("Fetching integrations to back up & reset templates.")
@@ -71,6 +78,9 @@ class Command(BaseCommand):
             integration__in=[ALERTMANAGER, GRAFANA_ALERTING],
             alertmanager_v2_migrated_at__isnull=False,
         )
+        if org_id:
+            alert_receive_channels = alert_receive_channels.filter(organization_id=org_id)
+
         self.stdout.write(f"Backing up & resetting templates for {len(alert_receive_channels)} integrations.")
 
         for alert_receive_channel in alert_receive_channels:
@@ -97,7 +107,7 @@ class Command(BaseCommand):
         self.stdout.write("Forward migration finished.")
 
     @transaction.atomic
-    def migrate_backward(self):
+    def migrate_backward(self, org_id=None):
         now = timezone.now()
         self.stdout.write(f"Backward migration started at {now}.")
 
@@ -105,18 +115,26 @@ class Command(BaseCommand):
             "Backward migrating Alertmanager integrations "
             "(updating fields 'integration' and 'alertmanager_v2_migrated_at')."
         )
-        num_updated = AlertReceiveChannel.objects.filter(
+
+        alertmanagers_to_restore = AlertReceiveChannel.objects.filter(
             integration=ALERTMANAGER, alertmanager_v2_migrated_at__isnull=False
-        ).update(integration=LEGACY_ALERTMANAGER, alertmanager_v2_migrated_at=None)
+        )
+        if org_id:
+            alertmanagers_to_restore = alertmanagers_to_restore.filter(organization_id=org_id)
+        num_updated = alertmanagers_to_restore.update(integration=LEGACY_ALERTMANAGER, alertmanager_v2_migrated_at=None)
         self.stdout.write(f"Backward migrated {num_updated} Alertmanager integrations.")
 
         self.stdout.write(
             "Backward migrating Grafana Alerting integrations "
             "(updating fields 'integration' and 'alertmanager_v2_migrated_at')."
         )
-        num_updated = AlertReceiveChannel.objects.filter(
+
+        alerting_to_restore = AlertReceiveChannel.objects.filter(
             integration=GRAFANA_ALERTING, alertmanager_v2_migrated_at__isnull=False
-        ).update(integration=LEGACY_GRAFANA_ALERTING, alertmanager_v2_migrated_at=None)
+        )
+        if org_id:
+            alerting_to_restore = alerting_to_restore.filter(organization_id=org_id)
+        num_updated = alerting_to_restore.update(integration=LEGACY_GRAFANA_ALERTING, alertmanager_v2_migrated_at=None)
         self.stdout.write(f"Backward migrated {num_updated} Grafana Alerting integrations.")
 
         self.stdout.write("Fetching integrations to restore templates from backup.")
@@ -124,6 +142,8 @@ class Command(BaseCommand):
             integration__in=[LEGACY_ALERTMANAGER, LEGACY_GRAFANA_ALERTING],
             alertmanager_v2_backup_templates__isnull=False,
         )
+        if org_id:
+            alert_receive_channels = alert_receive_channels.filter(organization_id=org_id)
         self.stdout.write(f"Restoring templates for {len(alert_receive_channels)} integrations.")
 
         for alert_receive_channel in alert_receive_channels:
