@@ -11,7 +11,8 @@ keywords:
 canonical: https://grafana.com/docs/oncall/latest/set-up/open-source/
 aliases:
   - /docs/grafana-cloud/alerting-and-irm/oncall/set-up/open-source/
-  - /docs/oncall/latest/open-source/
+  - /docs/grafana-cloud/alerting-and-irm/oncall/open-source/
+  - ../open-source/ # /docs/oncall/<ONCALL_VERSION>/open-source/
 ---
 
 # Grafana OnCall open source guide
