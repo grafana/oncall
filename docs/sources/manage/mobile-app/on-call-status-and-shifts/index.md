@@ -14,6 +14,7 @@ canonical: https://grafana.com/docs/oncall/latest/manage/mobile-app/on-call-stat
 aliases:
   - /docs/grafana-cloud/alerting-and-irm/oncall/manage/mobile-app/on-call-status-and-shifts/
   - /docs/grafana-cloud/alerting-and-irm/oncall/mobile-app/on-call-status-and-shifts/
+  - ../../mobile-app/on-call-status-and-shifts/ # /docs/oncall/<ONCALL_VERSION>/mobile-app/on-call-status-and-shifts/
 ---
 
 # On-call status and shifts
