@@ -12,6 +12,7 @@ canonical: https://grafana.com/docs/oncall/latest/manage/on-call-schedules/web-s
 aliases:
   - /docs/grafana-cloud/alerting-and-irm/oncall/manage/on-call-schedules/web-schedule/
   - /docs/grafana-cloud/alerting-and-irm/oncall/on-call-schedules/web-schedule/
+  - ../../on-call-schedules/web-schedule/ # /docs/oncall/<ONCALL_VERSION>/on-call-schedules/web-schedule/
 ---
 
 # Web-based on-call schedules
