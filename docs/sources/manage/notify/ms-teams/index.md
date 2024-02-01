@@ -14,7 +14,8 @@ canonical: https://grafana.com/docs/oncall/latest/manage/notify/ms-teams/
 aliases:
   - /docs/grafana-cloud/alerting-and-irm/oncall/manage/notify/ms-teams/
   - /docs/grafana-cloud/alerting-and-irm/oncall/notify/ms-teams
-  - ../../chat-options/configure-teams/
+  - ../../chat-options/configure-teams/ # /docs/oncall/<ONCALL_VERSION>/chat-options/configure-teams/
+  - ../../notify/ms-teams/ # /docs/oncall/<ONCALL_VERSION>/notify/ms-teams/
 ---
 
 # Microsoft Teams integration for Grafana OnCall
