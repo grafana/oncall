@@ -16,6 +16,7 @@ canonical: https://grafana.com/docs/oncall/latest/manage/mobile-app/
 aliases:
   - /docs/grafana-cloud/alerting-and-irm/oncall/manage/mobile-app/
   - /docs/grafana-cloud/alerting-and-irm/oncall/mobile-app/
+  - ../mobile-app/ # /docs/oncall/<ONCALL_VERSION>/mobile-app/
 ---
 
 # Grafana OnCall Mobile App
