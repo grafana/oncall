@@ -541,6 +541,7 @@ class TestSyncGrafanaIncidentParams:
             MOCK_GRAFANA_INCIDENT_BACKEND_URL,
         ),
         TestSyncGrafanaIncidentParams(({"enabled": True}, None), True, None),
+        TestSyncGrafanaIncidentParams(({"enabled": True, "jsonData": None}, None), True, None),
         # missing jsonData (sometimes this is what we get back from the Grafana API)
         TestSyncGrafanaIncidentParams(({"enabled": False}, None), False, None),  # plugin is disabled for some reason
     ],

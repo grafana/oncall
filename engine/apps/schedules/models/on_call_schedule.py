@@ -34,6 +34,7 @@ from apps.schedules.constants import (
     ICAL_UID,
 )
 from apps.schedules.ical_utils import (
+    EmptyShifts,
     create_base_icalendar,
     fetch_ical_file_or_get_error,
     get_oncall_users_for_multiple_schedules,
@@ -278,22 +279,34 @@ class OnCallSchedule(PolymorphicModel):
             (self.prev_ical_file_overrides, self.cached_ical_file_overrides),
         ]
 
-    def check_gaps_for_next_week(self) -> bool:
+    def check_gaps_and_empty_shifts_for_next_week(self) -> None:
+        datetime_start = timezone.now()
+        datetime_end = datetime_start + datetime.timedelta(days=7)
+
+        # get empty shifts from all events and gaps from final events
+        events = self.filter_events(
+            datetime_start,
+            datetime_end,
+            with_empty=True,
+            with_gap=True,
+            all_day_datetime=True,
+        )
+        has_empty_shifts = len([event for event in events if event["is_empty"]]) != 0
+        final_events = self._resolve_schedule(events, datetime_start, datetime_end)
+        has_gaps = len([final_event for final_event in final_events if final_event["is_gap"]]) != 0
+        if has_gaps != self.has_gaps or has_empty_shifts != self.has_empty_shifts:
+            self.has_gaps = has_gaps
+            self.has_empty_shifts = has_empty_shifts
+            self.save(update_fields=["has_gaps", "has_empty_shifts"])
+
+    def get_gaps_for_next_week(self) -> ScheduleEvents:
         today = timezone.now()
         events = self.final_events(today, today + datetime.timedelta(days=7))
-        gaps = [event for event in events if event["is_gap"] and not event["is_empty"]]
-        has_gaps = len(gaps) != 0
-        self.has_gaps = has_gaps
-        self.save(update_fields=["has_gaps"])
-        return has_gaps
+        return [event for event in events if event["is_gap"]]
 
-    def check_empty_shifts_for_next_week(self):
+    def get_empty_shifts_for_next_week(self) -> EmptyShifts:
         today = timezone.now().date()
-        empty_shifts = list_of_empty_shifts_in_schedule(self, today, today + datetime.timedelta(days=7))
-        has_empty_shifts = len(empty_shifts) != 0
-        self.has_empty_shifts = has_empty_shifts
-        self.save(update_fields=["has_empty_shifts"])
-        return has_empty_shifts
+        return list_of_empty_shifts_in_schedule(self, today, today + datetime.timedelta(days=7))
 
     def drop_cached_ical(self):
         self._drop_primary_ical_file()
