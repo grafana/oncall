@@ -224,5 +224,3 @@ Built-in functions:
   - Usage example: `{{ payload.ruleName | regex_match(".*") }}`
 - `b64decode` - performs a base64 string decode
   - Usage example: `{{ payload.data | b64decode }}`
-
-{{< section >}}
