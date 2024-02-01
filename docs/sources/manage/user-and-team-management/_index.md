@@ -12,6 +12,8 @@ keywords:
 canonical: https://grafana.com/docs/oncall/latest/manage/user-and-team-management/
 aliases:
   - /docs/grafana-cloud/alerting-and-irm/oncall/manage/user-and-team-management/
+  - /docs/grafana-cloud/alerting-and-irm/oncall/user-and-team-management/
+  - ../user-and-team-management/ # /docs/oncall/<ONCALL_VERSION>/user-and-team-management/
 ---
 
 # Manage users and teams for Grafana OnCall
