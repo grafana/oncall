@@ -41,6 +41,11 @@ alert details. Additionally, enhance flexibility by incorporating regular expres
 
 ## Next steps
 
-To get started with Grafana OnCall, check out the [Get started guide](https://grafana.com/docs/oncall/latest/setup/getting-started/).
+To get started with Grafana OnCall, refer to [Get started][]
 
 To learn more about what you can do with Grafana OnCall, visit the [Grafana Cloud IRM product page](https://grafana.com/products/cloud/irm/).
+
+{{% docs/reference %}}
+[Get started]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/set-up/get-started"
+[Get started]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/set-up/get-started"
+{{% /docs/reference %}}
