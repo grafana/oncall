@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## v1.3.97 (2024-01-31)
+
 ### Changed
 
 - Ensure alert group log records are committed to DB before signalling about them @mderynck([#3731](https://github.com/grafana/oncall/pull/3731))
