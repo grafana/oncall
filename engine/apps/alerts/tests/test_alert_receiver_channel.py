@@ -597,7 +597,7 @@ def test_alertmanager_v2_migrate_backward_one(make_organization, make_alert_rece
         slack_title_template="slack_title_template",
     )
 
-    alertmanager_v2_migrate.Command().handle(backward=True, org_id=organization.org_id)
+    alertmanager_v2_migrate.Command().handle(backward=True, org_id=organization.id)
 
     migrated_alertmanager.refresh_from_db()
     alertmanager.refresh_from_db()
