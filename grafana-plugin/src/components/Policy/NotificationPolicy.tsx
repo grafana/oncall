@@ -52,7 +52,7 @@ export class NotificationPolicy extends React.Component<NotificationPolicyProps,
     const { id, step } = data;
 
     return (
-      <Timeline.Item className={cx('root')} number={number} backgroundColor={color}>
+      <Timeline.Item className={cx('root')} number={number} backgroundHexNumber={color}>
         <div className={cx('step')}>
           {!isDisabled && (
             <WithPermissionControlTooltip disableByPaywall userAction={userAction}>

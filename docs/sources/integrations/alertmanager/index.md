@@ -16,12 +16,9 @@ weight: 300
 # Alertmanager integration for Grafana OnCall
 
 > ⚠️ A note about **(Legacy)** integrations:
-> We are changing internal behaviour of AlertManager integration.
-> Integrations that were created before version 1.3.21 are marked as **(Legacy)**.
-> These integrations are still receiving and escalating alerts but will be automatically migrated on 1st February 2024.
-> <br/><br/>
-> To ensure a smooth transition you can migrate legacy integrations by yourself now.
-> [Here][migration] you can read more about changes and migration process.
+> Integrations that were created before version 1.3.21 (1 August 2023) were marked as **(Legacy)** and recently migrated.
+> These integrations are receiving and escalating alerts, but some manual adjustments might be required.
+> [Here][legacy_integration] you can read more about changes.
 
 The Alertmanager integration handles alerts from [Prometheus Alertmanager](https://prometheus.io/docs/alerting/latest/alertmanager/).
 This integration is the recommended way to send alerts from Prometheus deployed in your infrastructure, to Grafana OnCall.
@@ -65,6 +62,15 @@ receivers:
 
 Complete configuration by setting routes, templates, maintenances, etc. Read more in
 [this section][complete-the-integration-configuration]
+
+## Note about grouping and autoresolution
+
+Grafana OnCall relies on the Alertmanager grouping and autoresolution mechanism to
+ensure consistency between alert state in OnCall and AlertManager.
+It's recommended to configure [grouping](https://prometheus.io/docs/alerting/latest/alertmanager/#grouping) on the Alertmanager side and use default grouping
+and autoresolution templates on the OnCall side. Changing this templates might lead to incorrect
+grouping and autoresolution behavior. This is unlikely to be what you want, unless you have disabled
+grouping on the AlertManager side.
 
 ## Configuring OnCall Heartbeats (optional)
 
@@ -117,9 +123,9 @@ Add receiver configuration to `prometheus.yaml` with the **OnCall Heartbeat URL*
     send_resolved: false
 ```
 
-## Migrating from Legacy Integration
+## Note about legacy integration
 
-Before we were using each alert from AlertManager group as a separate payload:
+Legacy integration was using each alert from AlertManager group as a separate payload:
 
 ```json
 {
@@ -160,16 +166,16 @@ We decided to change this behaviour to respect AlertManager grouping by using Al
 
 You can read more about AlertManager Data model [here](https://prometheus.io/docs/alerting/latest/notifications/#data).
 
-### How to migrate
+### After-migration checklist
 
 > Integration URL will stay the same, so no need to change AlertManager or Grafana Alerting configuration.
 > Integration templates will be reset to suit new payload.
-> It is needed to adjust routes manually to new payload.
+> It is needed to adjust routes and outgoing webhooks manually to new payload.
 
-1. Go to **Integration Page**, click on three dots on top right, click **Migrate**
-2. Confirmation Modal will be shown, read it carefully and proceed with migration.
-3. Send demo alert to make sure everything went well.
-4. Adjust routes to the new shape of payload. You can use payload of the demo alert from previous step as an example.
+1. Send a new demo alert to the migrated integration.
+2. Adjust routes to the new shape of payload. You can use payload of the demo alert from previous step as an example.
+3. If outgoing webhooks utilized the alerts payload from the migrated integration in the [trigger][trigger_webhook_template]
+or [data][data_webhook_template] template it's needed to adjust them as well.
 
 <img width="1646" alt="Screenshot 2023-12-14 at 1 14 21 PM" src="https://github.com/grafana/oncall/assets/85312870/7e281416-edbc-4384-8d15-7efaec2de311">
 
@@ -182,6 +188,12 @@ You can read more about AlertManager Data model [here](https://prometheus.io/doc
 [complete-the-integration-configuration]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/integrations#complete-the-integration-configuration"
 [complete-the-integration-configuration]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/integrations#complete-the-integration-configuration"
 
-[migration]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/integrations/alertmanager#migrating-from-legacy-integration"
-[migration]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/integrations/alertmanager#migrating-from-legacy-integration"
+[legacy_integration]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/integrations/alertmanager#note-about-legacy-integration"
+[legacy_integration]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/integrations/alertmanager#note-about-legacy-integration"
+
+[data_webhook_template]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/outgoing-webhooks/#outgoing-webhook-templates"
+[data_webhook_template]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/outgoing-webhooks/#outgoing-webhook-templates"
+
+[trigger_webhook_template]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/outgoing-webhooks/#using-trigger-template-field"
+[data_webhook_template]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/outgoing-webhooks/#using-trigger-template-field"
 {{% /docs/reference %}}
