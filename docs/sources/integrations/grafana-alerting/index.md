@@ -15,12 +15,9 @@ weight: 100
 # Grafana Alerting integration for Grafana OnCall
 
 > ⚠️ A note about **(Legacy)** integrations:
-> We are changing internal behaviour of Grafana Alerting integration.
-> Integrations that were created before version 1.3.21 are marked as **(Legacy)**.
-> These integrations are still receiving and escalating alerts but will be automatically migrated on 1st February 2024.
-> <br/><br/>
-> To ensure a smooth transition you can migrate them by yourself now.
-> [Here][migration] you can read more about changes and migration process.
+> Integrations that were created before version 1.3.21 were marked as **(Legacy)** and recently migrated.
+> These integrations are receiving and escalating alerts, but some manual adjustments might be required.
+> [Here][legacy_integration] you can read more about changes.
 
 Grafana Alerting for Grafana OnCall can be set up using two methods:
 
@@ -73,7 +70,14 @@ OnCall is being managed:
 
 8. Click the **Edit** (pencil) icon, then click **Test**. This will send a test alert to Grafana OnCall.
 
-## Migrating from Legacy Integration
+## Note about grouping and autoresolution
+
+Grafana OnCall relies on the Grafana Alerting grouping and autoresolution mechanism to ensure consistency between alert state in OnCall and AlertManager.
+It's recommended to configure [grouping](https://grafana.com/docs/grafana/latest/alerting/fundamentals/notification-policies/notifications/#grouping) on
+the Grafana Alerting side and use default grouping and autoresolution templates on the OnCall side.
+Changing this templates might lead to incorrect grouping and autoresolution behavior.
+
+## Note about legacy integration
 
 Before we were using each alert from Grafana Alerting group as a separate payload:
 
@@ -116,17 +120,24 @@ We decided to change this behaviour to respect Grafana Alerting grouping by usin
 
 You can read more about AlertManager Data model [here](https://prometheus.io/docs/alerting/latest/notifications/#data).
 
-### How to migrate
+### After-migration checklist
 
-> Integration URL will stay the same, so no need to make changes on Grafana Alerting side.
+> Integration URL will stay the same, so no need to change AlertManager or Grafana Alerting configuration.
 > Integration templates will be reset to suit new payload.
-> It is needed to adjust routes manually to new payload.
+> It is needed to adjust routes and outgoing webhooks manually to new payload.
 
-1. Go to **Integration Page**, click on three dots on top right, click **Migrate**
-2. Confirmation Modal will be shown, read it carefully and proceed with migration.
-3. Adjust routes to the new shape of payload.
+1. Send a new demo alert to the migrated integration.
+2. Adjust routes to the new shape of payload. You can use payload of the demo alert from previous step as an example.
+3. If outgoing webhooks utilized the alerts payload from the migrated integration in the [trigger][trigger_webhook_template]
+or [data][data_webhook_template] template it's needed to adjust them as well.
 
 {{% docs/reference %}}
-[migration]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/integrations/grafana-alerting#migrating-from-legacy-integration"
-[migration]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/integrations/grafana-alerting#migrating-from-legacy-integration"
+[legacy_integration]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/integrations/grafana-alerting#note-about-legacy-integration"
+[legacy_integration]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/integrations/grafana-alerting#note-about-legacy-integration"
+
+[data_webhook_template]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/outgoing-webhooks/#outgoing-webhook-templates
+[data_webhook_template]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/outgoing-webhooks/#outgoing-webhook-templates
+
+[trigger_webhook_template]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/outgoing-webhooks/#using-trigger-template-field
+[trigger_webhook_template]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/outgoing-webhooks/#using-trigger-template-field
 {{% /docs/reference %}}
