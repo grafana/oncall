@@ -15,6 +15,7 @@ canonical: https://grafana.com/docs/oncall/latest/manage/notify/
 aliases:
   - /docs/grafana-cloud/alerting-and-irm/oncall/manage/notify/
   - /docs/grafana-cloud/alerting-and-irm/oncall/notify/
+  - ../notify/ # /docs/oncall/<ONCALL_VERSION>/notify/
 ---
 
 # Notify people
