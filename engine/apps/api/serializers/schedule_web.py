@@ -40,8 +40,7 @@ class ScheduleWebCreateSerializer(ScheduleWebSerializer):
         updated_time_zone = updated_schedule.time_zone
         if old_time_zone != updated_time_zone:
             updated_schedule.drop_cached_ical()
-            updated_schedule.check_empty_shifts_for_next_week()
-            updated_schedule.check_gaps_for_next_week()
+            updated_schedule.check_gaps_and_empty_shifts_for_next_week()
             schedule_notify_about_empty_shifts_in_schedule.apply_async((instance.pk,))
             schedule_notify_about_gaps_in_schedule.apply_async((instance.pk,))
         return updated_schedule

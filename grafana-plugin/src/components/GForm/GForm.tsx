@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Field, Form, FormFieldErrors, Input, InputControl, Select, Switch, TextArea } from '@grafana/ui';
+import { Field, Form, FormFieldErrors, Input, InputControl, Label, Select, Switch, TextArea } from '@grafana/ui';
 import { capitalCase } from 'change-case';
 import cn from 'classnames/bind';
 import { isEmpty } from 'lodash-es';
@@ -9,6 +9,7 @@ import Collapse from 'components/Collapse/Collapse';
 import { FormItem, FormItemType } from 'components/GForm/GForm.types';
 import MonacoEditor from 'components/MonacoEditor/MonacoEditor';
 import { MONACO_READONLY_CONFIG } from 'components/MonacoEditor/MonacoEditor.config';
+import Text from 'components/Text/Text';
 import GSelect from 'containers/GSelect/GSelect';
 import RemoteSelect from 'containers/RemoteSelect/RemoteSelect';
 
@@ -189,8 +190,16 @@ class GForm extends React.Component<GFormProps, {}> {
       <Form maxWidth="none" id={form.name} defaultValues={data} onSubmit={this.handleSubmit}>
         {({ register, errors, control, getValues, setValue }) => {
           const renderField = (formItem: FormItem, formIndex: number) => {
-            if (formItem.isVisible && !formItem.isVisible(getValues())) {
-              return null;
+            if (this.isFormItemHidden(formItem, getValues())) {
+              return null; // don't render the field
+            }
+
+            if (formItem.type === FormItemType.PlainLabel) {
+              return (
+                <Label className={cx('label')}>
+                  <Text type="primary">{formItem.label}</Text>
+                </Label>
+              );
             }
 
             const disabled = formItem.disabled
@@ -270,13 +279,21 @@ class GForm extends React.Component<GFormProps, {}> {
     this.forceUpdate();
   };
 
+  isFormItemHidden(formItem: FormItem, data) {
+    return formItem?.isHidden?.(data);
+  }
+
   handleSubmit = (data) => {
     const { form, onSubmit } = this.props;
 
     const normalizedData = Object.keys(data).reduce((acc, key) => {
       const formItem = form.fields.find((formItem) => formItem.name === key);
 
-      const value = formItem?.normalize ? formItem.normalize(data[key]) : nullNormalizer(data[key]);
+      let value = formItem?.normalize ? formItem.normalize(data[key]) : nullNormalizer(data[key]);
+
+      if (this.isFormItemHidden(formItem, data)) {
+        value = undefined;
+      }
 
       return {
         ...acc,

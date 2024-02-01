@@ -31,6 +31,7 @@ from apps.api.serializers.team import TeamSerializer
 from apps.api.serializers.user import (
     CurrentUserSerializer,
     FilterUserSerializer,
+    ListUserSerializer,
     UserHiddenFieldsSerializer,
     UserIsCurrentlyOnCallSerializer,
     UserSerializer,
@@ -101,12 +102,40 @@ class UpcomingShift(typing.TypedDict):
 UpcomingShifts = list[UpcomingShift]
 
 
-class CurrentUserView(APIView):
+class CachedSchedulesContextMixin:
+    @cached_property
+    def schedules_with_oncall_users(self):
+        """
+        The result of this method is cached and is reused for the whole lifetime of a request,
+        since self.get_serializer_context() is called multiple times for every instance in the queryset.
+        """
+        return get_cached_oncall_users_for_multiple_schedules(self.request.user.organization.oncall_schedules.all())
+
+    def _populate_schedules_oncall_cache(self):
+        return False
+
+    def get_serializer_context(self):
+        context = getattr(super(), "get_serializer_context", lambda: {})()
+        context.update(
+            {
+                "schedules_with_oncall_users": self.schedules_with_oncall_users
+                if self._populate_schedules_oncall_cache()
+                else {}
+            }
+        )
+        return context
+
+
+class CurrentUserView(APIView, CachedSchedulesContextMixin):
     authentication_classes = (MobileAppAuthTokenAuthentication, PluginAuthentication)
     permission_classes = (IsAuthenticated,)
 
+    def _populate_schedules_oncall_cache(self):
+        return True
+
     def get(self, request):
-        context = {"request": self.request, "format": self.format_kwarg, "view": self}
+        context = self.get_serializer_context()
+        context.update({"request": self.request, "format": self.format_kwarg, "view": self})
 
         if settings.IS_OPEN_SOURCE and live_settings.GRAFANA_CLOUD_NOTIFICATIONS_ENABLED:
             from apps.oss_installation.models import CloudConnector, CloudUserIdentity
@@ -122,8 +151,10 @@ class CurrentUserView(APIView):
         return Response(serializer.data)
 
     def put(self, request):
+        context = self.get_serializer_context()
+        context.update({"request": self.request})
         data = self.request.data
-        serializer = CurrentUserSerializer(request.user, data=data, context={"request": self.request})
+        serializer = CurrentUserSerializer(request.user, data=data, context=context)
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data)
@@ -138,7 +169,7 @@ class UserFilter(ByTeamModelFieldFilterMixin, filters.FilterSet):
     # TODO: remove "roles" in next version
     roles = filters.MultipleChoiceFilter(field_name="role", choices=LegacyAccessControlRole.choices())
     permission = filters.ChoiceFilter(method="filter_by_permission", choices=ALL_PERMISSION_CHOICES)
-    team = TeamModelMultipleChoiceFilter(field_name="teams", null_label=None, null_value=None)
+    team = TeamModelMultipleChoiceFilter(field_name="teams")
 
     class Meta:
         model = User
@@ -157,7 +188,8 @@ class UserFilter(ByTeamModelFieldFilterMixin, filters.FilterSet):
 
 
 class UserView(
-    PublicPrimaryKeyMixin,
+    PublicPrimaryKeyMixin[User],
+    CachedSchedulesContextMixin,
     mixins.RetrieveModelMixin,
     mixins.UpdateModelMixin,
     mixins.ListModelMixin,
@@ -247,51 +279,54 @@ class UserView(
 
     filterset_class = UserFilter
 
-    @cached_property
-    def schedules_with_oncall_users(self):
-        """
-        The result of this method is cached and is reused for the whole lifetime of a request,
-        since self.get_serializer_context() is called multiple times for every instance in the queryset.
-        """
-        return get_cached_oncall_users_for_multiple_schedules(self.request.user.organization.oncall_schedules.all())
-
     def _get_is_currently_oncall_query_param(self) -> str:
         return self.request.query_params.get("is_currently_oncall", "").lower()
 
-    def _is_currently_oncall_request(self) -> bool:
-        return self._get_is_currently_oncall_query_param() in ["true", "false", "all"]
-
-    def get_serializer_context(self):
-        context = super().get_serializer_context()
-        context.update(
-            {
-                "schedules_with_oncall_users": self.schedules_with_oncall_users
-                if self._is_currently_oncall_request()
-                else {}
-            }
+    def _populate_schedules_oncall_cache(self):
+        return (
+            # admin or owner can see on-call schedule information for a user
+            (self.is_owner_or_admin() and self.action != "list")
+            or
+            # list requests need to explicitly request on-call information
+            self._get_is_currently_oncall_query_param() in ["true", "false", "all"]
         )
-        return context
 
-    def get_serializer_class(self):
+    def is_owner_or_admin(self):
         request = self.request
         user = request.user
         kwargs = self.kwargs
-        query_params = request.query_params
-
-        is_list_request = self.action in ["list"]
-        is_filters_request = query_params.get("filters", "false") == "true"
-
-        if is_list_request and is_filters_request:
-            return FilterUserSerializer
-        elif is_list_request and self._is_currently_oncall_request():
-            return UserIsCurrentlyOnCallSerializer
 
         is_users_own_data = kwargs.get("pk") is not None and kwargs.get("pk") == user.public_primary_key
         has_admin_permission = user_is_authorized(user, [RBACPermission.Permissions.USER_SETTINGS_ADMIN])
 
-        if is_users_own_data or has_admin_permission:
-            return UserSerializer
-        return UserHiddenFieldsSerializer
+        return is_users_own_data or has_admin_permission
+
+    def get_serializer_class(self):
+        request = self.request
+        query_params = request.query_params
+
+        is_list_request = self.action == "list"
+        is_filters_request = query_params.get("filters", "false") == "true"
+        is_owner_or_admin = self.is_owner_or_admin()
+
+        # default serializer
+        serializer = UserHiddenFieldsSerializer
+
+        # list requests
+        if is_list_request:
+            if is_owner_or_admin:
+                serializer = ListUserSerializer
+            if is_filters_request:
+                serializer = FilterUserSerializer
+            elif self._populate_schedules_oncall_cache():
+                serializer = UserIsCurrentlyOnCallSerializer
+            return serializer
+
+        # non-list requests
+        if is_owner_or_admin:
+            serializer = UserSerializer
+
+        return serializer
 
     def get_queryset(self):
         slack_identity = self.request.query_params.get("slack_identity", None) == "true"
@@ -308,7 +343,7 @@ class UserView(
     @extend_schema(
         responses=PolymorphicProxySerializer(
             component_name="UserPolymorphic",
-            serializers=[FilterUserSerializer, UserIsCurrentlyOnCallSerializer, UserSerializer],
+            serializers=[FilterUserSerializer, UserIsCurrentlyOnCallSerializer, ListUserSerializer],
             resource_type_field_name=None,
         )
     )
@@ -400,10 +435,6 @@ class UserView(
             data={"error_code": "wrong_team", "owner_team": TeamSerializer(general_team).data},
             status=status.HTTP_403_FORBIDDEN,
         )
-
-    def current(self, request) -> Response:
-        serializer = UserSerializer(self.get_queryset().get(pk=self.request.user.pk))
-        return Response(serializer.data)
 
     @extend_schema(responses={status.HTTP_200_OK: resolve_type_hint(typing.List[str])})
     @action(detail=False, methods=["get"])
@@ -600,8 +631,8 @@ class UserView(
     def get_telegram_verification_code(self, request, pk) -> Response:
         user = self.get_object()
 
-        if not user.is_telegram_connected:
-            return Response(status=status.HTTP_400_BAD_REQUEST)
+        if user.is_telegram_connected:
+            return Response("This user is already connected to a Telegram account", status=status.HTTP_400_BAD_REQUEST)
 
         try:
             existing_verification_code = user.telegram_verification_code

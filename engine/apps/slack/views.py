@@ -24,7 +24,6 @@ from apps.slack.scenarios.declare_incident import STEPS_ROUTING as DECLARE_INCID
 from apps.slack.scenarios.distribute_alerts import STEPS_ROUTING as DISTRIBUTION_STEPS_ROUTING
 from apps.slack.scenarios.invited_to_channel import STEPS_ROUTING as INVITED_TO_CHANNEL_ROUTING
 from apps.slack.scenarios.manage_responders import STEPS_ROUTING as MANAGE_RESPONDERS_ROUTING
-from apps.slack.scenarios.manual_incident import STEPS_ROUTING as MANUAL_INCIDENT_ROUTING
 from apps.slack.scenarios.notified_user_not_in_channel import STEPS_ROUTING as NOTIFIED_USER_NOT_IN_CHANNEL_ROUTING
 from apps.slack.scenarios.onboarding import STEPS_ROUTING as ONBOARDING_STEPS_ROUTING
 from apps.slack.scenarios.paging import STEPS_ROUTING as DIRECT_PAGE_ROUTING
@@ -40,7 +39,7 @@ from apps.slack.tasks import clean_slack_integration_leftovers, unpopulate_slack
 from apps.slack.types import EventPayload, EventType, MessageEventSubtype, PayloadType, ScenarioRoute
 from apps.user_management.models import Organization
 from common.insight_log import ChatOpsEvent, ChatOpsTypePlug, write_chatops_insight_log
-from common.oncall_gateway import delete_slack_connector
+from common.oncall_gateway import unlink_slack_team_wrapper
 
 from .errors import SlackAPITokenError
 from .models import SlackMessage, SlackTeamIdentity, SlackUserIdentity
@@ -57,7 +56,6 @@ SCENARIOS_ROUTES.extend(RESOLUTION_NOTE_ROUTING)
 SCENARIOS_ROUTES.extend(SLACK_USERGROUP_UPDATE_ROUTING)
 SCENARIOS_ROUTES.extend(CHANNEL_ROUTING)
 SCENARIOS_ROUTES.extend(PROFILE_UPDATE_ROUTING)
-SCENARIOS_ROUTES.extend(MANUAL_INCIDENT_ROUTING)
 SCENARIOS_ROUTES.extend(DIRECT_PAGE_ROUTING)
 SCENARIOS_ROUTES.extend(MANAGE_RESPONDERS_ROUTING)
 SCENARIOS_ROUTES.extend(DECLARE_INCIDENT_ROUTING)
@@ -578,7 +576,7 @@ class ResetSlackView(APIView):
             if slack_team_identity is not None:
                 clean_slack_integration_leftovers.apply_async((organization.pk,))
                 if settings.FEATURE_MULTIREGION_ENABLED:
-                    delete_slack_connector(str(organization.uuid))
+                    unlink_slack_team_wrapper(str(organization.uuid), slack_team_identity.slack_id)
                 write_chatops_insight_log(
                     author=request.user,
                     event_name=ChatOpsEvent.WORKSPACE_DISCONNECTED,

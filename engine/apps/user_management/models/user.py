@@ -273,6 +273,7 @@ class User(models.Model):
         self.save(update_fields=["unverified_phone_number", "_verified_phone_number"])
 
     # TODO: move to telegram app
+    @property
     def is_telegram_connected(self):
         return hasattr(self, "telegram_connection")
 

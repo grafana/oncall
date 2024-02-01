@@ -24,6 +24,7 @@ import IntegrationTemplate from 'containers/IntegrationTemplate/IntegrationTempl
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { LabelsErrors } from 'models/label/label.types';
 import { ApiSchemas } from 'network/oncall-api/api.types';
+import { LabelTemplateOptions } from 'pages/integration/IntegrationCommon.config';
 import { useStore } from 'state/useStore';
 import { openErrorNotification } from 'utils';
 import { DOCS_ROOT } from 'utils/consts';
@@ -199,15 +200,16 @@ const IntegrationLabelsForm = observer((props: IntegrationLabelsFormProps) => {
         <IntegrationTemplate
           id={id}
           template={{
-            name: 'alert_group_labels',
-            displayName: ``,
+            name: LabelTemplateOptions.AlertGroupDynamicLabel.key,
+            displayName: LabelTemplateOptions.AlertGroupDynamicLabel.value,
           }}
           templates={templates}
           templateBody={alertGroupLabels.custom[customLabelIndexToShowTemplateEditor].value.name}
           onHide={() => setCustomLabelIndexToShowTemplateEditor(undefined)}
-          onUpdateTemplates={({ alert_group_labels }) => {
+          onUpdateTemplates={(templates) => {
             const newCustom = [...alertGroupLabels.custom];
-            newCustom[customLabelIndexToShowTemplateEditor].value.name = alert_group_labels;
+            newCustom[customLabelIndexToShowTemplateEditor].value.name =
+              templates[LabelTemplateOptions.AlertGroupDynamicLabel.key];
 
             setAlertGroupLabels({
               ...alertGroupLabels,
@@ -222,16 +224,16 @@ const IntegrationLabelsForm = observer((props: IntegrationLabelsFormProps) => {
         <IntegrationTemplate
           id={id}
           template={{
-            name: 'alert_group_labels',
-            displayName: ``,
+            name: LabelTemplateOptions.AlertGroupMultiLabel.key,
+            displayName: LabelTemplateOptions.AlertGroupMultiLabel.value,
           }}
           templates={templates}
           templateBody={alertGroupLabels.template}
           onHide={() => setShowTemplateEditor(false)}
-          onUpdateTemplates={({ alert_group_labels }) => {
+          onUpdateTemplates={(templates) => {
             setAlertGroupLabels({
               ...alertGroupLabels,
-              template: alert_group_labels,
+              template: templates[LabelTemplateOptions.AlertGroupMultiLabel.key],
             });
 
             setShowTemplateEditor(undefined);

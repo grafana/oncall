@@ -1,4 +1,5 @@
 import typing
+from functools import partial
 from uuid import uuid4
 
 from django.db import transaction
@@ -148,22 +149,27 @@ def direct_paging(
         title = _construct_title(from_user, team, users)
 
     # create alert group if needed
-    if alert_group is None:
-        alert_group = _trigger_alert(organization, team, message, title, source_url, grafana_incident_id, from_user)
+    with transaction.atomic():
+        if alert_group is None:
+            alert_group = _trigger_alert(organization, team, message, title, source_url, grafana_incident_id, from_user)
 
-    for u, important in users:
-        alert_group.log_records.create(
-            type=AlertGroupLogRecord.TYPE_DIRECT_PAGING,
-            author=from_user,
-            reason=f"{from_user.username} paged user {u.username}",
-            step_specific_info={
-                "user": u.public_primary_key,
-                "important": important,
-            },
-        )
-        notify_user_task.apply_async(
-            (u.pk, alert_group.pk), {"important": important, "notify_even_acknowledged": True, "notify_anyway": True}
-        )
+        for u, important in users:
+            alert_group.log_records.create(
+                type=AlertGroupLogRecord.TYPE_DIRECT_PAGING,
+                author=from_user,
+                reason=f"{from_user.username} paged user {u.username}",
+                step_specific_info={
+                    "user": u.public_primary_key,
+                    "important": important,
+                },
+            )
+            transaction.on_commit(
+                partial(
+                    notify_user_task.apply_async,
+                    (u.pk, alert_group.pk),
+                    {"important": important, "notify_even_acknowledged": True, "notify_anyway": True},
+                )
+            )
 
     return alert_group
 

@@ -191,7 +191,7 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
               />
             )}
 
-            <div className={cx('root')}>
+            <div className={cx('root')} data-testid="outgoing-webhooks-table">
               {this.renderOutgoingWebhooksFilters()}
               <GTable
                 emptyText={webhooks ? 'No outgoing webhooks found' : 'Loading...'}
@@ -269,11 +269,7 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
   };
 
   renderTeam(record: OutgoingWebhook, teams: any) {
-    return (
-      <TextEllipsisTooltip placement="top" content={teams[record.team]?.name}>
-        <TeamName className={TEXT_ELLIPSIS_CLASS} team={teams[record.team]} />
-      </TextEllipsisTooltip>
-    );
+    return <TeamName className={TEXT_ELLIPSIS_CLASS} team={teams[record.team]} />;
   }
 
   renderActionButtons = (record: OutgoingWebhook) => {
@@ -434,6 +430,9 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
       ...{ ...outgoingWebhookStore.items[id], is_webhook_enabled: isEnabled },
       is_legacy: false,
     };
+
+    // don't pass trigger_type to backend as it's not editable
+    delete data.trigger_type;
 
     outgoingWebhookStore
       .update(id, data)

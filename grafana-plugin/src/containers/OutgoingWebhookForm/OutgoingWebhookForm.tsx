@@ -12,6 +12,7 @@ import {
   TabsBar,
   VerticalGroup,
 } from '@grafana/ui';
+import { capitalCase } from 'change-case';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 import { useHistory } from 'react-router-dom';
@@ -120,12 +121,17 @@ const OutgoingWebhookForm = observer((props: OutgoingWebhookFormProps) => {
   const getTemplateEditClickHandler = (formItem: FormItem, values, setFormFieldValue) => {
     return () => {
       const formValue = values[formItem.name];
-      setTemplateToEdit({ value: formValue, displayName: undefined, description: undefined, name: formItem.name });
+      setTemplateToEdit({
+        value: formValue,
+        displayName: `Webhook ${capitalCase(formItem.name)}`,
+        description: undefined,
+        name: formItem.name,
+      });
       setOnFormChangeFn({ fn: (value) => setFormFieldValue(value) });
     };
   };
 
-  const enrchField = (
+  const enrichField = (
     formItem: FormItem,
     disabled: boolean,
     renderedControl: React.ReactElement,
@@ -171,6 +177,7 @@ const OutgoingWebhookForm = observer((props: OutgoingWebhookFormProps) => {
       preset: selectedPreset?.id,
       trigger_type: null,
       http_method: 'POST',
+      forward_all: true,
     };
   } else if (isNewOrCopy) {
     data = { ...outgoingWebhookStore.items[id], is_legacy: false, name: '' };
@@ -191,7 +198,7 @@ const OutgoingWebhookForm = observer((props: OutgoingWebhookFormProps) => {
       form={form}
       data={data}
       onSubmit={handleSubmit}
-      onFieldRender={enrchField}
+      onFieldRender={enrichField}
       customFieldSectionRenderer={CustomFieldSectionRenderer}
     />
   );
@@ -328,7 +335,7 @@ const OutgoingWebhookForm = observer((props: OutgoingWebhookFormProps) => {
             form={form}
             data={data}
             onSubmit={handleSubmit}
-            onFieldRender={enrchField}
+            onFieldRender={enrichField}
             customFieldSectionRenderer={CustomFieldSectionRenderer}
           />
           <div className={cx('buttons')}>

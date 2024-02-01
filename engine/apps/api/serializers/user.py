@@ -51,7 +51,7 @@ class WorkingHoursSerializer(serializers.Serializer):
     sunday = serializers.ListField(child=WorkingHoursPeriodSerializer())
 
 
-class UserSerializer(DynamicFieldsModelSerializer, EagerLoadingMixin):
+class ListUserSerializer(DynamicFieldsModelSerializer, EagerLoadingMixin):
     pk = serializers.CharField(read_only=True, source="public_primary_key")
     slack_user_identity = SlackUserIdentitySerializer(read_only=True)
 
@@ -165,6 +165,24 @@ class UserSerializer(DynamicFieldsModelSerializer, EagerLoadingMixin):
         return f"{HIDE_SYMBOL * (len(number) - SHOW_LAST_SYMBOLS)}{number[-SHOW_LAST_SYMBOLS:]}"
 
 
+class UserSerializer(ListUserSerializer):
+    context: UserSerializerContext
+
+    is_currently_oncall = serializers.SerializerMethodField()
+
+    class Meta(ListUserSerializer.Meta):
+        fields = ListUserSerializer.Meta.fields + [
+            "is_currently_oncall",
+        ]
+        read_only_fields = ListUserSerializer.Meta.read_only_fields + [
+            "is_currently_oncall",
+        ]
+
+    def get_is_currently_oncall(self, obj: User) -> bool:
+        # Serializer context is set here: apps.api.views.user.UserView.get_serializer_context.
+        return any(obj in users for users in self.context.get("schedules_with_oncall_users", {}).values())
+
+
 class CurrentUserSerializer(UserSerializer):
     rbac_permissions = UserPermissionSerializer(read_only=True, many=True, source="permissions")
 
@@ -176,7 +194,7 @@ class CurrentUserSerializer(UserSerializer):
         read_only_fields = UserSerializer.Meta.read_only_fields
 
 
-class UserHiddenFieldsSerializer(UserSerializer):
+class UserHiddenFieldsSerializer(ListUserSerializer):
     fields_available_for_all_users = [
         "pk",
         "organization",
@@ -189,7 +207,7 @@ class UserHiddenFieldsSerializer(UserSerializer):
     ]
 
     def to_representation(self, instance):
-        ret = super(UserSerializer, self).to_representation(instance)
+        ret = super(ListUserSerializer, self).to_representation(instance)
         if instance.id != self.context["request"].user.id:
             for field in ret:
                 if field not in self.fields_available_for_all_users:
@@ -198,7 +216,7 @@ class UserHiddenFieldsSerializer(UserSerializer):
         return ret
 
 
-class ScheduleUserSerializer(UserSerializer):
+class ScheduleUserSerializer(ListUserSerializer):
     fields_to_keep = [
         "pk",
         "organization",
@@ -214,7 +232,7 @@ class ScheduleUserSerializer(UserSerializer):
     ]
 
     def to_representation(self, instance):
-        serialized = super(UserSerializer, self).to_representation(instance)
+        serialized = super(ListUserSerializer, self).to_representation(instance)
         ret = {field: value for field, value in serialized.items() if field in self.fields_to_keep}
         return ret
 
@@ -288,10 +306,7 @@ class UserIsCurrentlyOnCallSerializer(UserShortSerializer, EagerLoadingMixin):
 
     def get_is_currently_oncall(self, obj: User) -> bool:
         # Serializer context is set here: apps.api.views.user.UserView.get_serializer_context.
-        for users in self.context.get("schedules_with_oncall_users", {}).values():
-            if obj in users:
-                return True
-        return False
+        return any(obj in users for users in self.context.get("schedules_with_oncall_users", {}).values())
 
 
 class PagedUserSerializer(serializers.Serializer):

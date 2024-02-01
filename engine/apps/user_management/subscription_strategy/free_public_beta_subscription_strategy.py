@@ -25,7 +25,6 @@ class FreePublicBetaSubscriptionStrategy(BaseSubscriptionStrategy):
         day_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
         emails_today = EmailMessage.objects.filter(
             created_at__gte=day_start,
-            represents_alert_group__channel__organization=self.organization,
             receiver=user,
         ).count()
         return self._emails_limit - emails_today

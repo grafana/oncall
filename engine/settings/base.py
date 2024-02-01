@@ -64,7 +64,7 @@ FEATURE_SLACK_INTEGRATION_ENABLED = getenv_boolean("FEATURE_SLACK_INTEGRATION_EN
 FEATURE_MULTIREGION_ENABLED = getenv_boolean("FEATURE_MULTIREGION_ENABLED", default=False)
 FEATURE_INBOUND_EMAIL_ENABLED = getenv_boolean("FEATURE_INBOUND_EMAIL_ENABLED", default=True)
 FEATURE_PROMETHEUS_EXPORTER_ENABLED = getenv_boolean("FEATURE_PROMETHEUS_EXPORTER_ENABLED", default=False)
-FEATURE_GRAFANA_ALERTING_V2_ENABLED = getenv_boolean("FEATURE_GRAFANA_ALERTING_V2_ENABLED", default=False)
+FEATURE_GRAFANA_ALERTING_V2_ENABLED = getenv_boolean("FEATURE_GRAFANA_ALERTING_V2_ENABLED", default=True)
 GRAFANA_CLOUD_ONCALL_HEARTBEAT_ENABLED = getenv_boolean("GRAFANA_CLOUD_ONCALL_HEARTBEAT_ENABLED", default=True)
 GRAFANA_CLOUD_NOTIFICATIONS_ENABLED = getenv_boolean("GRAFANA_CLOUD_NOTIFICATIONS_ENABLED", default=True)
 # Enable labels feature fo all organizations. This flag overrides FEATURE_LABELS_ENABLED_FOR_GRAFANA_ORGS
@@ -97,6 +97,7 @@ WEBHOOK_RESPONSE_LIMIT = 50000
 ONCALL_GATEWAY_URL = os.environ.get("ONCALL_GATEWAY_URL", "")
 ONCALL_GATEWAY_API_TOKEN = os.environ.get("ONCALL_GATEWAY_API_TOKEN", "")
 ONCALL_BACKEND_REGION = os.environ.get("ONCALL_BACKEND_REGION")
+CHATOPS_V3 = getenv_boolean("CHATOPS_V3", False)
 
 # Prometheus exporter metrics endpoint auth
 PROMETHEUS_EXPORTER_SECRET = os.environ.get("PROMETHEUS_EXPORTER_SECRET")
@@ -291,7 +292,7 @@ REST_FRAMEWORK = {
 }
 
 
-DRF_SPECTACULAR_ENABLED = getenv_boolean("DRF_SPECTACULAR_ENABLED", default=True)
+DRF_SPECTACULAR_ENABLED = getenv_boolean("DRF_SPECTACULAR_ENABLED", default=False)
 
 SPECTACULAR_SETTINGS = {
     "TITLE": "Grafana OnCall Private API",
@@ -505,19 +506,9 @@ CELERY_BEAT_SCHEDULE = {
         "schedule": crontab(minute=1, hour=12, day_of_week="monday"),
         "args": (),
     },
-    "start_check_gaps_in_schedule": {
-        "task": "apps.schedules.tasks.notify_about_gaps_in_schedule.start_check_gaps_in_schedule",
-        "schedule": crontab(minute=0, hour=0),
-        "args": (),
-    },
     "start_notify_about_empty_shifts_in_schedule": {
         "task": "apps.schedules.tasks.notify_about_empty_shifts_in_schedule.start_notify_about_empty_shifts_in_schedule",
         "schedule": crontab(minute=0, hour=12, day_of_week="monday"),
-        "args": (),
-    },
-    "start_check_empty_shifts_in_schedule": {
-        "task": "apps.schedules.tasks.notify_about_empty_shifts_in_schedule.start_check_empty_shifts_in_schedule",
-        "schedule": crontab(minute=0, hour=0),
         "args": (),
     },
     "populate_slack_usergroups": {
@@ -641,8 +632,6 @@ SLACK_SIGNING_SECRET_LIVE = os.environ.get("SLACK_SIGNING_SECRET_LIVE", "")
 
 SLACK_CLIENT_OAUTH_ID = os.environ.get("SLACK_CLIENT_OAUTH_ID")
 SLACK_CLIENT_OAUTH_SECRET = os.environ.get("SLACK_CLIENT_OAUTH_SECRET")
-
-SLACK_SLASH_COMMAND_NAME = os.environ.get("SLACK_SLASH_COMMAND_NAME", "/oncall")
 SLACK_DIRECT_PAGING_SLASH_COMMAND = os.environ.get("SLACK_DIRECT_PAGING_SLASH_COMMAND", "/escalate")
 
 # Controls if slack integration can be installed/uninstalled.
@@ -725,9 +714,8 @@ FCM_DJANGO_SETTINGS = {
 }
 
 MOBILE_APP_GATEWAY_ENABLED = getenv_boolean("MOBILE_APP_GATEWAY_ENABLED", default=False)
-MOBILE_APP_GATEWAY_RSA_PRIVATE_KEY = os.environ.get("MOBILE_APP_GATEWAY_RSA_PRIVATE_KEY", None)
-if MOBILE_APP_GATEWAY_ENABLED and not MOBILE_APP_GATEWAY_RSA_PRIVATE_KEY:
-    raise RuntimeError("MOBILE_APP_GATEWAY_RSA_PRIVATE_KEY is required when MOBILE_APP_GATEWAY_ENABLED is True")
+GRAFANA_CLOUD_AUTH_API_URL = os.environ.get("GRAFANA_CLOUD_AUTH_API_URL", None)
+GRAFANA_CLOUD_AUTH_API_SYSTEM_TOKEN = os.environ.get("GRAFANA_CLOUD_AUTH_API_SYSTEM_TOKEN", None)
 
 SELF_HOSTED_SETTINGS = {
     "STACK_ID": 5,

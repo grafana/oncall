@@ -3,7 +3,6 @@ from celery.utils.log import get_task_logger
 from django.core.cache import cache
 from django.utils import timezone
 
-from apps.schedules.ical_utils import list_of_empty_shifts_in_schedule
 from apps.slack.utils import format_datetime_to_slack_with_time, post_message_to_channel
 from common.custom_celery_tasks import shared_dedicated_queue_retry_task
 from common.utils import trim_if_needed
@@ -11,36 +10,16 @@ from common.utils import trim_if_needed
 task_logger = get_task_logger(__name__)
 
 
+# deprecated # todo: delete this task from here and from task routes after the next release
 @shared_dedicated_queue_retry_task()
 def start_check_empty_shifts_in_schedule():
-    from apps.schedules.models import OnCallSchedule
-
-    task_logger.info("Start start_notify_about_empty_shifts_in_schedule")
-
-    schedules = OnCallSchedule.objects.all()
-
-    for schedule in schedules:
-        check_empty_shifts_in_schedule.apply_async((schedule.pk,))
-
-    task_logger.info("Finish start_notify_about_empty_shifts_in_schedule")
+    return
 
 
+# deprecated # todo: delete this task from here and from task routes after the next release
 @shared_dedicated_queue_retry_task()
 def check_empty_shifts_in_schedule(schedule_pk):
-    from apps.schedules.models import OnCallSchedule
-
-    task_logger.info(f"Start check_empty_shifts_in_schedule {schedule_pk}")
-
-    try:
-        schedule = OnCallSchedule.objects.get(
-            pk=schedule_pk,
-        )
-    except OnCallSchedule.DoesNotExist:
-        task_logger.info(f"Tried to check_empty_shifts_in_schedule for non-existing schedule {schedule_pk}")
-        return
-
-    schedule.check_empty_shifts_for_next_week()
-    task_logger.info(f"Finish check_empty_shifts_in_schedule {schedule_pk}")
+    return
 
 
 @shared_dedicated_queue_retry_task()
@@ -54,6 +33,7 @@ def start_notify_about_empty_shifts_in_schedule():
     schedules = OnCallScheduleICal.objects.filter(
         empty_shifts_report_sent_at__lte=week_ago,
         channel__isnull=False,
+        organization__deleted_at__isnull=True,
     )
 
     for schedule in schedules:
@@ -79,9 +59,8 @@ def notify_about_empty_shifts_in_schedule_task(schedule_pk):
         task_logger.info(f"Tried to notify_about_empty_shifts_in_schedule_task for non-existing schedule {schedule_pk}")
         return
 
-    today = timezone.now().date()
-    empty_shifts = list_of_empty_shifts_in_schedule(schedule, today, today + timezone.timedelta(days=7))
-    schedule.empty_shifts_report_sent_at = today
+    empty_shifts = schedule.get_empty_shifts_for_next_week()
+    schedule.empty_shifts_report_sent_at = timezone.now().date()
 
     if len(empty_shifts) != 0:
         schedule.has_empty_shifts = True
