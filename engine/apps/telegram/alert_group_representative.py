@@ -64,8 +64,13 @@ class AlertGroupTelegramRepresentative(AlertGroupAbstractRepresentative):
     def on_alert_group_update_log_report(cls, **kwargs):
         logger.info("AlertGroupTelegramRepresentative UPDATE LOG REPORT SIGNAL")
         alert_group = kwargs["alert_group"]
+
         if not isinstance(alert_group, AlertGroup):
-            alert_group = AlertGroup.objects.get(pk=alert_group)
+            try:
+                alert_group = AlertGroup.objects.get(pk=alert_group)
+            except AlertGroup.DoesNotExist as e:
+                logger.warning(f"Telegram update log report: alert group {alert_group} has been deleted")
+                raise e
 
         messages_to_edit = alert_group.telegram_messages.filter(
             message_type__in=(
