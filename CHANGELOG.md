@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Enable Grafana Alerting V2 feature flag by default
 - Allow configuration of outgoing webhook timeout via `OUTGOING_WEBHOOK_TIMEOUT` environment variable @kevindw-fluxys ([#3801](https://github.com/grafana/oncall/pull/3801))
+- Include teams info in users API ([#3817](https://github.com/grafana/oncall/pull/3817))
 
 ### Fixed
 
