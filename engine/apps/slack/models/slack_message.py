@@ -131,7 +131,7 @@ class SlackMessage(models.Model):
                 },
             }
         ]
-        sc = SlackClient(self.slack_team_identity)
+        sc = SlackClient(self.slack_team_identity, enable_ratelimit_retry=True)
         channel_id = slack_message.channel_id
 
         try:
