@@ -54,7 +54,7 @@ class Command(BaseCommand):
         )
         alertmanager_to_update = AlertReceiveChannel.objects.filter(integration=LEGACY_ALERTMANAGER)
         if org_id:
-            alertmanager_to_update = alertmanager_to_update.filter(org_id=org_id)
+            alertmanager_to_update = alertmanager_to_update.filter(organization_id=org_id)
         num_updated = alertmanager_to_update.update(integration=ALERTMANAGER, alertmanager_v2_migrated_at=now)
         self.stdout.write(f"Migrated {num_updated} legacy Alertmanager integrations.")
 
@@ -64,7 +64,7 @@ class Command(BaseCommand):
         )
         alerting_to_update = AlertReceiveChannel.objects.filter(integration=LEGACY_GRAFANA_ALERTING)
         if org_id:
-            alerting_to_update = alerting_to_update.filter(org_id=org_id)
+            alerting_to_update = alerting_to_update.filter(organization_id=org_id)
         num_updated = alerting_to_update.update(integration=GRAFANA_ALERTING, alertmanager_v2_migrated_at=now)
 
         self.stdout.write(f"Migrated {num_updated} legacy Grafana Alerting integrations.")
@@ -79,7 +79,7 @@ class Command(BaseCommand):
             alertmanager_v2_migrated_at__isnull=False,
         )
         if org_id:
-            alert_receive_channels = num_updated.filter(org_id=org_id)
+            alert_receive_channels = alert_receive_channels.filter(organization_id=org_id)
 
         self.stdout.write(f"Backing up & resetting templates for {len(alert_receive_channels)} integrations.")
 
@@ -120,7 +120,7 @@ class Command(BaseCommand):
             integration=ALERTMANAGER, alertmanager_v2_migrated_at__isnull=False
         )
         if org_id:
-            alertmanagers_to_restore = alertmanagers_to_restore.filter(org_id=org_id)
+            alertmanagers_to_restore = alertmanagers_to_restore.filter(organization_id=org_id)
         num_updated = alertmanagers_to_restore.update(integration=LEGACY_ALERTMANAGER, alertmanager_v2_migrated_at=None)
         self.stdout.write(f"Backward migrated {num_updated} Alertmanager integrations.")
 
@@ -133,7 +133,7 @@ class Command(BaseCommand):
             integration=GRAFANA_ALERTING, alertmanager_v2_migrated_at__isnull=False
         )
         if org_id:
-            alerting_to_restore = alerting_to_restore.filter(org_id=org_id)
+            alerting_to_restore = alerting_to_restore.filter(organization_id=org_id)
         num_updated = alerting_to_restore.update(integration=LEGACY_GRAFANA_ALERTING, alertmanager_v2_migrated_at=None)
         self.stdout.write(f"Backward migrated {num_updated} Grafana Alerting integrations.")
 
