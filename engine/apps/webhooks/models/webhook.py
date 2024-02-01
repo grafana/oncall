@@ -14,7 +14,6 @@ from mirage import fields as mirage_fields
 from requests.auth import HTTPBasicAuth
 
 from apps.webhooks.utils import (
-    OUTGOING_WEBHOOK_TIMEOUT,
     InvalidWebhookData,
     InvalidWebhookHeaders,
     InvalidWebhookTrigger,
@@ -246,17 +245,17 @@ class Webhook(models.Model):
 
     def make_request(self, url, request_kwargs):
         if self.http_method == "GET":
-            r = requests.get(url, timeout=OUTGOING_WEBHOOK_TIMEOUT, **request_kwargs)
+            r = requests.get(url, timeout=settings.OUTGOING_WEBHOOK_TIMEOUT, **request_kwargs)
         elif self.http_method == "POST":
-            r = requests.post(url, timeout=OUTGOING_WEBHOOK_TIMEOUT, **request_kwargs)
+            r = requests.post(url, timeout=settings.OUTGOING_WEBHOOK_TIMEOUT, **request_kwargs)
         elif self.http_method == "PUT":
-            r = requests.put(url, timeout=OUTGOING_WEBHOOK_TIMEOUT, **request_kwargs)
+            r = requests.put(url, timeout=settings.OUTGOING_WEBHOOK_TIMEOUT, **request_kwargs)
         elif self.http_method == "DELETE":
-            r = requests.delete(url, timeout=OUTGOING_WEBHOOK_TIMEOUT, **request_kwargs)
+            r = requests.delete(url, timeout=settings.OUTGOING_WEBHOOK_TIMEOUT, **request_kwargs)
         elif self.http_method == "OPTIONS":
-            r = requests.options(url, timeout=OUTGOING_WEBHOOK_TIMEOUT, **request_kwargs)
+            r = requests.options(url, timeout=settings.OUTGOING_WEBHOOK_TIMEOUT, **request_kwargs)
         elif self.http_method == "PATCH":
-            r = requests.patch(url, timeout=OUTGOING_WEBHOOK_TIMEOUT, **request_kwargs)
+            r = requests.patch(url, timeout=settings.OUTGOING_WEBHOOK_TIMEOUT, **request_kwargs)
         else:
             raise ValueError(f"Unsupported http method: {self.http_method}")
         return r
