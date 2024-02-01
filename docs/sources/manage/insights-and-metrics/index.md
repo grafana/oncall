@@ -251,7 +251,8 @@ chatops action names: `workspace_connected`, `workspace_disconnected`, `channel_
 ### Examples
 
 Here is some examples of practical queries to Grafana OnCall insight logs.
-LogQL is used to retrieve them. If you are not familiar with LogQL check this [documentation](https://grafana.com/docs/loki/latest/logql/).
+LogQL is used to retrieve them.
+If you aren't familiar with LogQL, refer to [LogQL: Log query language](https://grafana.com/docs/loki/latest/query/).
 
 Resource IDs are used a lot in insight logs. You can find them in web ui (example for integration):
 
@@ -260,7 +261,7 @@ Resource IDs are used a lot in insight logs. You can find them in web ui (exampl
 3. The URL looks like `https://<YOUR_STACK_SLUG>/a/grafana-oncall-app/integrations/C5VXMIFKKP67K`.
 4. Integration ID is `C5VXMIFKKP67K`.
 
-Alternatively you can find resource ID using public [API][oncall-api-reference] or browser dev tools.
+Alternatively you can find the resource ID using the [Grafana OnCall API] or browser dev tools.
 
 Actions performed by user:
 
@@ -293,6 +294,6 @@ Actions performed with slack chatops integration:
 ```
 
 {{% docs/reference %}}
-[oncall-api-reference]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/oncall-api-reference"
-[oncall-api-reference]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/oncall-api-reference"
+[Grafana OnCall API]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/oncall-api-reference"
+[Grafana OnCall API]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/oncall-api-reference"
 {{% /docs/reference %}}
