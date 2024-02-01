@@ -12,7 +12,6 @@ from django.db.models import F
 from django.utils import timezone
 from mirage import fields as mirage_fields
 from requests.auth import HTTPBasicAuth
-from django.conf import settings
 from apps.webhooks.utils import (
     InvalidWebhookData,
     InvalidWebhookHeaders,

@@ -1,15 +1,10 @@
 from unittest.mock import call, patch
 
 import pytest
-from requests.auth import HTTPBasicAuth
 from django.conf import settings
+from requests.auth import HTTPBasicAuth
 from apps.webhooks.models import Webhook
-from apps.webhooks.utils import (
-    InvalidWebhookData,
-    InvalidWebhookHeaders,
-    InvalidWebhookTrigger,
-    InvalidWebhookUrl,
-)
+from apps.webhooks.utils import InvalidWebhookData, InvalidWebhookHeaders, InvalidWebhookTrigger, InvalidWebhookUrl
 
 
 @pytest.mark.django_db
