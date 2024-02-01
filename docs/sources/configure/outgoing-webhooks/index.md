@@ -12,6 +12,8 @@ keywords:
 canonical: https://grafana.com/docs/oncall/latest/configure/outgoing-webhooks/
 aliases:
   - /docs/grafana-cloud/alerting-and-irm/oncall/configure/outgoing-webhooks/
+  - /docs/grafana-cloud/alerting-and-irm/oncall/outgoing-webhooks/
+  - ../outgoing-webhooks/  # /docs/oncall/<ONCALL_VERSION>/outgoing-webhooks/
 ---
 
 
