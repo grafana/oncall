@@ -44,9 +44,9 @@ is able to notify you. Also we suggest to back up Phone Calls and SMS with other
 [Mobile App][mobile-app].
 
 {{% docs/reference %}}
-[mobile-app]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/mobile-app"
+[mobile-app]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/mobile-app"
 [mobile-app]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/mobile-app"
 
-[open-source]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/open-source"
+[open-source]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/open-source"
 [open-source]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/open-source/"
 {{% /docs/reference %}}

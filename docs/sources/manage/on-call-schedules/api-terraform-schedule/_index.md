@@ -26,6 +26,6 @@ teams in the org, we suggest considering storing schedules as code.
 - [OnCall API][oncall-api-reference]
 
 {{% docs/reference %}}
-[oncall-api-reference]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/oncall-api-reference"
+[oncall-api-reference]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/oncall-api-reference"
 [oncall-api-reference]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/oncall-api-reference"
 {{% /docs/reference %}}

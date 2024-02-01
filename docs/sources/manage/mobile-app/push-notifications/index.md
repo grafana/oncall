@@ -101,6 +101,6 @@ To enable or disable shift swap notifications and their follow-ups, use the **in
 in the **Push notifications** settings.
 
 {{% docs/reference %}}
-[shift-swaps]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/on-call-schedules/shift-swaps"
+[shift-swaps]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/on-call-schedules/shift-swaps"
 [shift-swaps]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/on-call-schedules/shift-swaps"
 {{% /docs/reference %}}

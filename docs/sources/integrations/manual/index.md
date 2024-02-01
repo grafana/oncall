@@ -72,18 +72,18 @@ ChatOps channels. To confirm that the integration is functioning as intended, [c
 and select the same team for a test run.
 
 {{% docs/reference %}}
-[integrations]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/integrations"
+[integrations]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/integrations"
 [integrations]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/integrations"
 
-[escalation-chains-and-routes]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/escalation-chains-and-routes"
+[escalation-chains-and-routes]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/escalation-chains-and-routes"
 [escalation-chains-and-routes]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/escalation-chains-and-routes"
 
-[notify]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/notify#configure-user-notification-policies"
+[notify]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/notify#configure-user-notification-policies"
 [notify]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/notify#configure-user-notification-policies"
 
-[slack-escalate]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/notify/slack#slack-escalate-command"
+[slack-escalate]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/notify/slack#slack-escalate-command"
 [slack-escalate]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/notify/slack#slack-escalate-command"
 
-[manage-teams]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/user-and-team-management#manage-teams-in-grafana-oncall"
+[manage-teams]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/user-and-team-management#manage-teams-in-grafana-oncall"
 [manage-teams]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/user-and-team-management#manage-teams-in-grafana-oncall"
 {{% /docs/reference %}}

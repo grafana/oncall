@@ -118,12 +118,12 @@ Check more information on [Personal Notification Preferences][notify] page.
 affect all linked Integrations and Routes.
 
 {{% docs/reference %}}
-[notify]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/notify"
+[notify]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/notify"
 [notify]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/notify"
 
-[outgoing-webhooks]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/outgoing-webhooks"
+[outgoing-webhooks]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/outgoing-webhooks"
 [outgoing-webhooks]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/outgoing-webhooks"
 
-[routing-template]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/jinja2-templating#routing-template"
-[routing-template]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/jinja2-templating#routing-template"
+[Routing Templates]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/configure/jinja2-templating#routing-template"
+[Routing Templates]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/configure/jinja2-templating#routing-template"
 {{% /docs/reference %}}

@@ -127,6 +127,6 @@ You can read more about AlertManager Data model [here](https://prometheus.io/doc
 3. Adjust routes to the new shape of payload.
 
 {{% docs/reference %}}
-[migration]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/integrations/grafana-alerting#migrating-from-legacy-integration"
+[migration]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/integrations/grafana-alerting#migrating-from-legacy-integration"
 [migration]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/integrations/grafana-alerting#migrating-from-legacy-integration"
 {{% /docs/reference %}}

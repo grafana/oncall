@@ -106,6 +106,6 @@ contact. The calendar events titles would be `[L1] BobGrafana` and `[L0] AliceGr
 maintains the default [L0] status, and would not receive notifications during the overlapping time with BobGrafana.
 
 {{% docs/reference %}}
-[web-schedule]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/on-call-schedules/web-schedule"
+[web-schedule]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/on-call-schedules/web-schedule"
 [web-schedule]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/on-call-schedules/web-schedule"
 {{% /docs/reference %}}

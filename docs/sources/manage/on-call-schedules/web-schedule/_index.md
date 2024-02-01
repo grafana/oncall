@@ -90,6 +90,6 @@ Export on-call schedules from Grafana OnCall to your preferred calendar app with
 schedule export allows you to view on-call shifts alongside the rest of your schedule.
 
 {{% docs/reference %}}
-[shift-swaps]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/on-call-schedules/shift-swaps"
+[shift-swaps]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/on-call-schedules/shift-swaps"
 [shift-swaps]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/on-call-schedules/shift-swaps"
 {{% /docs/reference %}}

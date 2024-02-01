@@ -53,6 +53,6 @@ To configure a users notification policy:
 are listed.
 
 {{% docs/reference %}}
-[outgoing-webhooks]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/outgoing-webhooks"
+[outgoing-webhooks]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/outgoing-webhooks"
 [outgoing-webhooks]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/outgoing-webhooks"
 {{% /docs/reference %}}

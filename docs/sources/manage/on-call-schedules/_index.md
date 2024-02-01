@@ -68,15 +68,15 @@ know about this as well as allowing them to volunteer and take your affected shi
 Learn more about [Shift swap requests][shift-swaps]
 
 {{% docs/reference %}}
-[ical-schedules]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/on-call-schedules/ical-schedules"
+[ical-schedules]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/on-call-schedules/ical-schedules"
 [ical-schedules]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/on-call-schedules/ical-schedules"
 
-[user-and-team-management]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/user-and-team-management"
+[user-and-team-management]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/user-and-team-management"
 [user-and-team-management]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/user-and-team-management"
 
-[web-schedule]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/on-call-schedules/web-schedule"
+[web-schedule]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/on-call-schedules/web-schedule"
 [web-schedule]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/on-call-schedules/web-schedule"
 
-[shift-swaps]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/on-call-schedules/shift-swaps"
+[shift-swaps]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/on-call-schedules/shift-swaps"
 [shift-swaps]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/on-call-schedules/shift-swaps"
 {{% /docs/reference %}}

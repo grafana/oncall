@@ -192,9 +192,9 @@ Use message shortcuts to add resolution notes directly from Slack. Message short
 1. The Grafana OnCall app will react to the message in Slack with the memo emoji and add the message to the alert group timeline.
 
 {{% docs/reference %}}
-[open-source]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/open-source"
+[open-source]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/open-source"
 [open-source]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/open-source"
 
-[integrations-manual]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/integrations/manual"
+[integrations-manual]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/integrations/manual"
 [integrations-manual]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/integrations/manual"
 {{% /docs/reference %}}
