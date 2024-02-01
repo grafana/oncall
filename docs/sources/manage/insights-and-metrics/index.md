@@ -14,6 +14,7 @@ canonical: https://grafana.com/docs/oncall/latest/manage/insights-and-metrics/
 aliases:
   - /docs/grafana-cloud/alerting-and-irm/oncall/manage/insights-and-metrics/
   - /docs/grafana-cloud/alerting-and-irm/oncall/insights-and-metrics/
+  - ../insights-and-metrics/ # /docs/oncall/<ONCALL_VERSION>/insights-and-metrics/
 ---
 
 # Insight Logs and Metrics
