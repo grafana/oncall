@@ -45,6 +45,7 @@ def render_curl_command(webhook_url, http_request_type, post_kwargs):
 
 # TODO: remove this function when we remove CustomButton model
 def request_outgoing_webhook(webhook_url, http_request_type, post_kwargs=None) -> Tuple[bool, str]:
+    OUTGOING_WEBHOOK_TIMEOUT = 10
     if http_request_type not in ["POST", "GET"]:
         raise Exception(f"Wrong http_method parameter: {http_request_type}")
 
@@ -69,9 +70,9 @@ def request_outgoing_webhook(webhook_url, http_request_type, post_kwargs=None) -
 
     try:
         if http_request_type == "POST":
-            r = requests.post(webhook_url, timeout=live_settings.OUTGOING_WEBHOOK_TIMEOUT, **post_kwargs)
+            r = requests.post(webhook_url, timeout=OUTGOING_WEBHOOK_TIMEOUT, **post_kwargs)
         elif http_request_type == "GET":
-            r = requests.get(webhook_url, timeout=live_settings.OUTGOING_WEBHOOK_TIMEOUT)
+            r = requests.get(webhook_url, timeout=OUTGOING_WEBHOOK_TIMEOUT)
         else:
             raise Exception()
         r.raise_for_status()
@@ -91,7 +92,7 @@ def request_outgoing_webhook(webhook_url, http_request_type, post_kwargs=None) -
     except requests.exceptions.TooManyRedirects:
         return False, "Multiple redirects happened. That's suspicious!"
     except requests.exceptions.Timeout:
-        return False, f"Request timeout {live_settings.OUTGOING_WEBHOOK_TIMEOUT} secs exceeded."
+        return False, f"Request timeout {OUTGOING_WEBHOOK_TIMEOUT} secs exceeded."
     except requests.exceptions.RequestException:  # This is the correct syntax
         return False, "Failed to call outgoing webhook"
     except Exception:
