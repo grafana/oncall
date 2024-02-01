@@ -48,7 +48,8 @@ export interface EscalationPolicyProps extends ElementSortableProps {
   onDelete: (data: EscalationPolicyType) => void;
   escalationChoices: any[];
   number: number;
-  backgroundColor: { color: string; isClassName: boolean };
+  backgroundClassName?: string;
+  backgroundHexNumber?: string;
   isSlackInstalled: boolean;
   teamStore: GrafanaTeamStore;
   outgoingWebhookStore: OutgoingWebhookStore;
@@ -57,7 +58,7 @@ export interface EscalationPolicyProps extends ElementSortableProps {
 
 export class EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
   render() {
-    const { data, escalationChoices, number, isDisabled, backgroundColor } = this.props;
+    const { data, escalationChoices, number, isDisabled, backgroundClassName, backgroundHexNumber } = this.props;
     const { id, step, is_final } = data;
 
     const escalationOption = escalationChoices.find(
@@ -67,10 +68,11 @@ export class EscalationPolicy extends React.Component<EscalationPolicyProps, any
     return (
       <Timeline.Item
         key={id}
-        contentClassName={cx('root', backgroundColor.isClassName ? backgroundColor.color : '')}
+        contentClassName={cx('root')}
         number={number}
         textColor={isDisabled ? getVar('--tag-text-success') : undefined}
-        backgroundColor={backgroundColor}
+        backgroundClassName={backgroundClassName}
+        backgroundHexNumber={backgroundHexNumber}
       >
         {!isDisabled && (
           <WithPermissionControlTooltip disableByPaywall userAction={UserActions.EscalationChainsWrite}>

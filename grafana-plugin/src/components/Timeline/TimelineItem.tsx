@@ -10,7 +10,8 @@ export interface TimelineItemProps {
   className?: string;
   contentClassName?: string;
   isDisabled?: boolean;
-  backgroundColor?: { color: string; isClassName: boolean };
+  backgroundClassName?: string;
+  backgroundHexNumber?: string;
   textColor?: string;
   number?: number;
   badge?: number;
@@ -22,7 +23,8 @@ const TimelineItem: React.FC<TimelineItemProps> = ({
   contentClassName,
   children,
   isDisabled,
-  backgroundColor = { color: '#3274D9', isClassName: false },
+  backgroundClassName,
+  backgroundHexNumber,
   textColor = '#ffffff',
   number,
 }) => {
@@ -30,8 +32,8 @@ const TimelineItem: React.FC<TimelineItemProps> = ({
     <li className={cx('item', className)}>
       {!isDisabled && (
         <div
-          className={cx('dot', backgroundColor.isClassName ? backgroundColor.color : '')}
-          style={{ backgroundColor: backgroundColor.isClassName ? '' : backgroundColor.color, color: textColor }}
+          className={cx('dot', backgroundClassName || '')}
+          style={{ backgroundColor: backgroundHexNumber || '', color: textColor }}
         >
           {number}
         </div>

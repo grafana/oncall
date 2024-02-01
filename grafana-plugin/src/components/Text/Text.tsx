@@ -26,7 +26,7 @@ interface TextProps extends HTMLAttributes<HTMLElement> {
   editModalTitle?: string;
   maxWidth?: string;
   clickable?: boolean;
-  customTag?: string;
+  customTag?: 'h6' | 'span';
 }
 
 interface TextInterface extends React.FC<TextProps> {

@@ -7,7 +7,7 @@ import cn from 'classnames/bind';
 import { get } from 'lodash-es';
 import { observer } from 'mobx-react';
 
-import EscalationPolicy from 'components/Policy/EscalationPolicy';
+import EscalationPolicy, { EscalationPolicyProps } from 'components/Policy/EscalationPolicy';
 import SortableList from 'components/SortableList/SortableList';
 import Timeline from 'components/Timeline/Timeline';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
@@ -91,16 +91,19 @@ const EscalationChainSteps = observer((props: EscalationChainStepsProps) => {
             return null;
           }
 
+          const extraProps: Partial<EscalationPolicyProps> = {};
+          if (isDisabled) {
+            extraProps.backgroundClassName = styles.background;
+          } else {
+            extraProps.backgroundHexNumber = STEP_COLORS[index] || COLOR_RED;
+          }
+
           return (
             <EscalationPolicy
               index={index} // This in here is a MUST for the SortableElement
               key={`item-${escalationPolicy.id}`}
               data={escalationPolicy}
               number={index + offset + 1}
-              backgroundColor={{
-                color: isDisabled ? styles.background : STEP_COLORS[index] || COLOR_RED,
-                isClassName: isDisabled,
-              }}
               escalationChoices={escalationPolicyStore.webEscalationChoices}
               waitDelays={get(escalationPolicyStore.escalationChoices, 'wait_delay.choices', [])}
               numMinutesInWindowOptions={escalationPolicyStore.numMinutesInWindowOptions}
@@ -111,6 +114,7 @@ const EscalationChainSteps = observer((props: EscalationChainStepsProps) => {
               scheduleStore={store.scheduleStore}
               outgoingWebhookStore={store.outgoingWebhookStore}
               isDisabled={isDisabled}
+              {...extraProps}
             />
           );
         })
@@ -120,10 +124,7 @@ const EscalationChainSteps = observer((props: EscalationChainStepsProps) => {
       {!isDisabled && (
         <Timeline.Item
           number={(escalationPolicyIds?.length || 0) + offset + 1}
-          backgroundColor={{
-            color: isDisabled ? getVar('--tag-background-success') : getVar('--tag-secondary'),
-            isClassName: isDisabled,
-          }}
+          backgroundHexNumber={isDisabled ? getVar('--tag-background-success') : getVar('--tag-secondary')}
           textColor={isDisabled ? getVar('--tag-text-success') : undefined}
         >
           <WithPermissionControlTooltip userAction={UserActions.EscalationChainsWrite}>

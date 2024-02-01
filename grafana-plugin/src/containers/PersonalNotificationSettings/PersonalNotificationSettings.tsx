@@ -152,7 +152,7 @@ const PersonalNotificationSettings = observer((props: PersonalNotificationSettin
         ))}
         <Timeline.Item
           number={notificationPolicies.length + 1}
-          backgroundColor={{ color: getColor(notificationPolicies.length), isClassName: false }}
+          backgroundHexNumber={getColor(notificationPolicies.length)}
         >
           <div className={cx('step')}>
             <WithPermissionControlTooltip userAction={userAction}>

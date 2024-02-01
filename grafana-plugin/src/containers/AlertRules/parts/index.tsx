@@ -37,11 +37,7 @@ export const ChatOpsConnectors = (props: ChatOpsConnectorsProps) => {
   }
 
   return (
-    <Timeline.Item
-      number={0}
-      backgroundColor={{ color: getVar('--tag-secondary'), isClassName: false }}
-      isDisabled={!showLineNumber}
-    >
+    <Timeline.Item number={0} backgroundHexNumber={getVar('--tag-secondary')} isDisabled={!showLineNumber}>
       <VerticalGroup>
         {isSlackInstalled && <SlackConnector channelFilterId={channelFilterId} />}
         {isTelegramInstalled && <TelegramConnector channelFilterId={channelFilterId} />}
