@@ -31,7 +31,7 @@ def mock_apply_async(monkeypatch):
 
 
 @patch("apps.alerts.models.alert_group_log_record.tasks.send_update_log_report_signal.apply_async")
-@patch("apps.alerts.models.alert_group.alert_group_action_triggered_signal.send")
+@patch("apps.alerts.tasks.send_alert_group_signal.alert_group_action_triggered_signal.send")
 @pytest.mark.django_db
 @override_settings(CELERY_TASK_ALWAYS_EAGER=True)
 def test_update_metric_alert_groups_total_cache_on_action(
@@ -142,7 +142,7 @@ def test_update_metric_alert_groups_total_cache_on_action(
 
 
 @patch("apps.alerts.models.alert_group_log_record.tasks.send_update_log_report_signal.apply_async")
-@patch("apps.alerts.models.alert_group.alert_group_action_triggered_signal.send")
+@patch("apps.alerts.tasks.send_alert_group_signal.alert_group_action_triggered_signal.send")
 @pytest.mark.django_db
 @override_settings(CELERY_TASK_ALWAYS_EAGER=True)
 def test_update_metric_alert_groups_response_time_cache_on_action(
