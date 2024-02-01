@@ -2,7 +2,7 @@ from unittest.mock import call, patch
 
 import pytest
 from requests.auth import HTTPBasicAuth
-from apps.base.utils import live_settings
+from django.conf import settings
 from apps.webhooks.models import Webhook
 from apps.webhooks.utils import (
     InvalidWebhookData,
