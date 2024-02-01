@@ -12,6 +12,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Enable Grafana Alerting V2 feature flag by default
 - Allow configuration of outgoing webhook timeout via `OUTGOING_WEBHOOK_TIMEOUT` environment variable @kevindw-fluxys ([#3801](https://github.com/grafana/oncall/pull/3801))
 
+### Fixed
+
+- Handle alert group does not exist on telegram button press ([#3814](https://github.com/grafana/oncall/pull/3814))
+
 ## v1.3.98 (2024-02-01)
 
 ### Fixed
