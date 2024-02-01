@@ -58,7 +58,7 @@ test('dates in schedule are correct according to selected current timezone', asy
 
   const firstDayOfTheWeek = dayjs().utc().startOf('isoWeek');
 
-  // Rotation form has correct start date and current timezone informations
+  // Rotation form has correct start date and current timezone information
   await clickButton({ page, buttonText: 'Add rotation' });
   await page.getByText('Layer 1 rotation').click();
   await expect(page.getByTestId('rotation-form').getByText('Current timezone: GMT')).toBeVisible();
