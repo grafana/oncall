@@ -411,7 +411,7 @@ The following is an example of an entry in the Data field that would return an a
 
 Here is an example using the user's email address as part of a URL:
 
-```template
+```jinja2
 https://someticketsystem.com/new-ticket?assign-user={{ user.email }}
 ```
 
@@ -419,7 +419,7 @@ https://someticketsystem.com/new-ticket?assign-user={{ user.email }}
 
 This example shows how to construct a custom webhook payload from various webhook data fields and output it as a JSON object
 
-```template
+```jinja2
 {%- set payload = {} -%}
 {# add alert group labels #}
 {%- set payload = dict(payload, **{"labels": alert_group.labels}) -%}
@@ -433,7 +433,7 @@ This example shows how to construct a custom webhook payload from various webhoo
 
 Take this template for example:
 
-```template
+```jinja2
 {
   "labels": "{{ alert_payload.labels }}"
 }

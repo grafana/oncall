@@ -283,7 +283,7 @@ Incoming Payload (trimmed for readability):
 
 Template to parse it:
 
-```jinja
+```jinja2
 {{ payload.commonLabels | tojson }}
 ```
 
