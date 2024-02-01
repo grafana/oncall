@@ -17,8 +17,7 @@ aliases:
 
 # Phone Calls and SMS notifications
 
-Grafana OnCall Cloud includes SMS and Phone notifications, OSS users [could leverage][open-source] Grafana Cloud as a relay or
-configure other providers like Twilio.
+Grafana OnCall Cloud includes SMS and Phone notifications, OSS users can use the [Grafana OSS-Cloud Setup][] as a relay or configure other providers like Twilio.
 
 ## Are there additional costs for outgoing calls/sms?
 
@@ -41,12 +40,12 @@ In order to learn the phone number used by OnCall, make a test call at the "Phon
 There are cases when OnCall is not able to make phone calls or send SMS to certain regions or specific phone numbers.
 We're working hard to fix such cases, but kindly asking to test your personal notification chain to make sure OnCall
 is able to notify you. Also we suggest to back up Phone Calls and SMS with other notification methods such as
-[Mobile App][mobile-app].
+[Mobile app][].
 
 {{% docs/reference %}}
-[mobile-app]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/mobile-app"
-[mobile-app]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/mobile-app"
+[Mobile app]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/manage/mobile-app"
+[Mobile app]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/manage/mobile-app"
 
-[open-source]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/open-source"
-[open-source]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/open-source/"
+[Grafana OSS-Cloud Setup]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/set-up/open-source#grafana-oss-cloud-setup"
+[Grafana OSS-Cloud Setup]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/set-up/open-source#grafana-oss-cloud-setup"
 {{% /docs/reference %}}
