@@ -46,14 +46,17 @@ class UserSerializer(serializers.ModelSerializer, EagerLoadingMixin):
     role = serializers.SerializerMethodField()  # LEGACY, should be removed eventually
     is_phone_number_verified = serializers.SerializerMethodField()
 
+    teams = serializers.SlugRelatedField(read_only=True, many=True, slug_field="public_primary_key")
+
     SELECT_RELATED = [
         "slack_user_identity",
         "slack_user_identity__slack_team_identity",
     ]
+    PREFETCH_RELATED = ["teams"]
 
     class Meta:
         model = User
-        fields = ["id", "email", "slack", "username", "role", "is_phone_number_verified", "timezone"]
+        fields = ["id", "email", "slack", "username", "role", "is_phone_number_verified", "timezone", "teams"]
         read_only_fields = ["timezone"]
 
     @staticmethod
