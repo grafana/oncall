@@ -37,7 +37,7 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
-        org_id = options["org_id"]
+        org_id = options.get("org_id", None)
         if options["backward"]:
             self.migrate_backward(org_id)
         else:
