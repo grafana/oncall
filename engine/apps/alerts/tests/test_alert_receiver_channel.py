@@ -476,7 +476,7 @@ def test_alertmanager_v2_migrate_forward_one(make_organization, make_alert_recei
     legacy_alertmanager_2.refresh_from_db()
     alertmanager_2.refresh_from_db()
     legacy_grafana_alerting_2.refresh_from_db()
-    grafana_alerting.refresh_2_from_db()
+    grafana_alerting_2.refresh_from_db()
 
     assert legacy_alertmanager.integration == AlertReceiveChannel.INTEGRATION_ALERTMANAGER
     assert legacy_alertmanager.alertmanager_v2_migrated_at is not None
@@ -592,7 +592,7 @@ def test_alertmanager_v2_migrate_backward_one(make_organization, make_alert_rece
         alertmanager_v2_migrated_at=timezone.now(),
     )
     grafana_alerting_2 = make_alert_receive_channel(
-        organization,
+        organization_2,
         integration=AlertReceiveChannel.INTEGRATION_GRAFANA_ALERTING,
         slack_title_template="slack_title_template",
     )
