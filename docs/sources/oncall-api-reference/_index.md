@@ -11,7 +11,6 @@ keywords:
 canonical: https://grafana.com/docs/oncall/latest/oncall-api-reference/
 aliases:
   - /docs/grafana-cloud/alerting-and-irm/oncall/oncall-api-reference/
-  - /docs/grafana-cloud/alerting-and-irm/oncall/
 ---
 
 # HTTP API Reference
