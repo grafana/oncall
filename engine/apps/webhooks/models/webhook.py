@@ -245,7 +245,7 @@ class Webhook(models.Model):
 
     def make_request(self, url, request_kwargs):
         if self.http_method == "GET":
-            r = requests.get(url, timeout=live_settings.OUTGOING_WEBHOOK_TIMEOUT, **request_kwargs)
+            r = requests.get(url, timeout=settings.OUTGOING_WEBHOOK_TIMEOUT, **request_kwargs)
         elif self.http_method == "POST":
             r = requests.post(url, timeout=settings.OUTGOING_WEBHOOK_TIMEOUT, **request_kwargs)
         elif self.http_method == "PUT":
