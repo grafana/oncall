@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+
+- Enable Grafana Alerting V2 feature flag by default
+
+## v1.3.98 (2024-02-01)
+
+### Fixed
+
+Maintenance release
+
+## v1.3.97 (2024-01-31)
+
+### Changed
+
+- Ensure alert group log records are committed to DB before signalling about them @mderynck([#3731](https://github.com/grafana/oncall/pull/3731))
+
+### Fixed
+
+- Address `SlackAPIRatelimitError` exceptions in `apps.slack.tasks.send_message_to_thread_if_bot_not_in_channel` task
+  by @joeyorlando ([#3803](https://github.com/grafana/oncall/pull/3803))
+- Fix exception when parsing incident plugin config @mderynck ([#3802](https://github.com/grafana/oncall/pull/3802))
+
 ## v1.3.96 (2024-01-31)
 
 ### Added
