@@ -67,7 +67,7 @@ class ScheduleFilter(ByTeamModelFieldFilterMixin, ModelFieldFilterMixin, filters
 
 class ScheduleView(
     TeamFilteringMixin,
-    PublicPrimaryKeyMixin,
+    PublicPrimaryKeyMixin[OnCallSchedule],
     ShortSerializerMixin,
     CreateSerializerMixin,
     UpdateSerializerMixin,
@@ -455,8 +455,7 @@ class ScheduleView(
     def reload_ical(self, request, pk):
         schedule = self.get_object(annotate=False)
         schedule.drop_cached_ical()
-        schedule.check_empty_shifts_for_next_week()
-        schedule.check_gaps_for_next_week()
+        schedule.check_gaps_and_empty_shifts_for_next_week()
 
         if schedule.user_group is not None:
             update_slack_user_group_for_schedules.apply_async((schedule.user_group.pk,))

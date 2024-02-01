@@ -100,3 +100,11 @@ def test_is_in_working_hours_weekend(make_organization, make_user_for_organizati
 
     on_saturday = timezone.datetime(2023, 8, 5, 12, 0, 0, tzinfo=datetime.timezone.utc)
     assert user.is_in_working_hours(on_saturday, "UTC") is False
+
+
+@pytest.mark.django_db
+def test_is_telegram_connected(make_organization_and_user, make_telegram_user_connector):
+    _, user = make_organization_and_user()
+    assert user.is_telegram_connected is False
+    make_telegram_user_connector(user)
+    assert user.is_telegram_connected is True

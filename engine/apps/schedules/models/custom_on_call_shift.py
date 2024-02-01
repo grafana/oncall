@@ -19,6 +19,7 @@ from django.utils.functional import cached_property
 from icalendar.cal import Event
 
 from apps.schedules.tasks import (
+    check_gaps_and_empty_shifts_in_schedule,
     drop_cached_ical_task,
     refresh_ical_final_schedule,
     schedule_notify_about_empty_shifts_in_schedule,
@@ -692,6 +693,7 @@ class CustomOnCallShift(models.Model):
         schedule = self.schedule.get_real_instance()
         schedule.refresh_ical_file()
         refresh_ical_final_schedule.apply_async((schedule.pk,))
+        check_gaps_and_empty_shifts_in_schedule.apply_async((schedule.pk,))
 
     def start_drop_ical_and_check_schedule_tasks(self, schedule):
         drop_cached_ical_task.apply_async((schedule.pk,))
