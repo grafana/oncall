@@ -13,6 +13,8 @@ keywords:
 canonical: https://grafana.com/docs/oncall/latest/configure/jinja2-templating/
 aliases:
   - /docs/grafana-cloud/alerting-and-irm/oncall/configure/jinja2-templating/
+  - /docs/grafana-cloud/alerting-and-irm/oncall/jinja2-templating/
+  - ../jinja2-templating/ # /docs/oncall/<ONCALL_VERSION>/jinja2-templating/
 ---
 
 
