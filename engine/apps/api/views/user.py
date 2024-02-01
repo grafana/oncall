@@ -188,7 +188,7 @@ class UserFilter(ByTeamModelFieldFilterMixin, filters.FilterSet):
 
 
 class UserView(
-    PublicPrimaryKeyMixin,
+    PublicPrimaryKeyMixin[User],
     CachedSchedulesContextMixin,
     mixins.RetrieveModelMixin,
     mixins.UpdateModelMixin,
@@ -307,9 +307,15 @@ class UserView(
 
         is_list_request = self.action == "list"
         is_filters_request = query_params.get("filters", "false") == "true"
+        is_owner_or_admin = self.is_owner_or_admin()
 
+        # default serializer
+        serializer = UserHiddenFieldsSerializer
+
+        # list requests
         if is_list_request:
-            serializer = ListUserSerializer
+            if is_owner_or_admin:
+                serializer = ListUserSerializer
             if is_filters_request:
                 serializer = FilterUserSerializer
             elif self._populate_schedules_oncall_cache():
@@ -317,8 +323,7 @@ class UserView(
             return serializer
 
         # non-list requests
-        serializer = UserHiddenFieldsSerializer
-        if self.is_owner_or_admin():
+        if is_owner_or_admin:
             serializer = UserSerializer
 
         return serializer
@@ -626,8 +631,8 @@ class UserView(
     def get_telegram_verification_code(self, request, pk) -> Response:
         user = self.get_object()
 
-        if not user.is_telegram_connected:
-            return Response(status=status.HTTP_400_BAD_REQUEST)
+        if user.is_telegram_connected:
+            return Response("This user is already connected to a Telegram account", status=status.HTTP_400_BAD_REQUEST)
 
         try:
             existing_verification_code = user.telegram_verification_code

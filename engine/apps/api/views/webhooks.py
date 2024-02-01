@@ -42,7 +42,7 @@ class WebhooksFilter(ByTeamModelFieldFilterMixin, ModelFieldFilterMixin, filters
     team = TeamModelMultipleChoiceFilter()
 
 
-class WebhooksView(TeamFilteringMixin, PublicPrimaryKeyMixin, ModelViewSet):
+class WebhooksView(TeamFilteringMixin, PublicPrimaryKeyMixin[Webhook], ModelViewSet):
     authentication_classes = (PluginAuthentication,)
     permission_classes = (IsAuthenticated, RBACPermission)
 

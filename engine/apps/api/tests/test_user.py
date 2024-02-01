@@ -11,6 +11,7 @@ from rest_framework.response import Response
 from rest_framework.test import APIClient
 
 from apps.api.permissions import GrafanaAPIPermission, LegacyAccessControlRole, RBACPermission
+from apps.api.serializers.user import UserHiddenFieldsSerializer
 from apps.base.models import UserNotificationPolicy
 from apps.phone_notifications.exceptions import FailedToFinishVerification
 from apps.schedules.models import CustomOnCallShift, OnCallScheduleWeb
@@ -184,7 +185,7 @@ def test_list_users(
     make_user_auth_headers,
 ):
     organization = make_organization()
-    admin = make_user_for_organization(organization)
+    admin = make_user_for_organization(organization, _verified_phone_number="1234567890")
     editor = make_user_for_organization(organization, role=LegacyAccessControlRole.EDITOR)
     _, token = make_token_for_organization(organization)
 
@@ -208,7 +209,7 @@ def test_list_users(
                 "timezone": None,
                 "working_hours": default_working_hours(),
                 "unverified_phone_number": None,
-                "verified_phone_number": None,
+                "verified_phone_number": admin.verified_phone_number,
                 "telegram_configuration": None,
                 "messaging_backends": {
                     "TESTONLY": {
@@ -252,9 +253,19 @@ def test_list_users(
         "total_pages": 1,
     }
 
+    # as admin
     response = client.get(url, format="json", **make_user_auth_headers(admin, token))
-
     assert response.status_code == status.HTTP_200_OK
+    assert response.json() == expected_payload
+
+    # as editor
+    response = client.get(url, format="json", **make_user_auth_headers(editor, token))
+    assert response.status_code == status.HTTP_200_OK
+    admin_user_data = expected_payload["results"][0]
+    for f_name in admin_user_data:
+        if f_name not in UserHiddenFieldsSerializer.fields_available_for_all_users:
+            admin_user_data[f_name] = "******"
+    admin_user_data["hidden_fields"] = True
     assert response.json() == expected_payload
 
 
@@ -699,6 +710,32 @@ def test_user_verify_own_phone(
     ):
         response = client.put(url, format="json", **make_user_auth_headers(tester, token))
 
+    assert response.status_code == expected_status
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "role,expected_status",
+    [
+        (LegacyAccessControlRole.ADMIN, status.HTTP_400_BAD_REQUEST),
+        (LegacyAccessControlRole.EDITOR, status.HTTP_400_BAD_REQUEST),
+        (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
+    ],
+)
+def test_user_get_own_telegram_verification_code_with_telegram_connected(
+    make_organization_and_user_with_plugin_token,
+    make_telegram_user_connector,
+    make_user_auth_headers,
+    role,
+    expected_status,
+):
+    _, tester, token = make_organization_and_user_with_plugin_token(role)
+
+    client = APIClient()
+    make_telegram_user_connector(tester)
+    url = reverse("api-internal:user-get-telegram-verification-code", kwargs={"pk": tester.public_primary_key})
+    response = client.get(url, format="json", **make_user_auth_headers(tester, token))
     assert response.status_code == expected_status
 
 

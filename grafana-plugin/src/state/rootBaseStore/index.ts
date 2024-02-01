@@ -60,7 +60,7 @@ export class RootBaseStore {
   recaptchaSiteKey = '';
 
   @observable
-  initializationError = null;
+  initializationError = '';
 
   @observable
   currentlyUndergoingMaintenance = false;
@@ -77,13 +77,7 @@ export class RootBaseStore {
   features?: { [key: string]: boolean };
 
   @observable
-  incidentFilters: any;
-
-  @observable
   pageTitle = '';
-
-  @observable
-  incidentsPage: any = this.initialQuery.p ? Number(this.initialQuery.p) : 1;
 
   @observable
   onCallApiUrl: string;
