@@ -11,7 +11,8 @@ keywords:
 canonical: https://grafana.com/docs/oncall/latest/set-up/migration-from-other-tools/
 aliases:
   - /docs/grafana-cloud/alerting-and-irm/oncall/set-up/migration-from-other-tools
-  - /docs/oncall/latest/migration-from-other-tools/
+  - /docs/grafana-cloud/alerting-and-irm/oncall/migration-from-other-tools
+  - ../migration-from-other-tools/ # /docs/oncall/<ONCALL_VERSION>/migration-from-other-tools/
 ---
 
 # Migration from other tools
