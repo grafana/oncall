@@ -13,7 +13,8 @@ canonical: https://grafana.com/docs/oncall/latest/manage/notify/telegram/
 aliases:
   - /docs/grafana-cloud/alerting-and-irm/oncall/manage/notify/telegram/
   - /docs/grafana-cloud/alerting-and-irm/oncall/notify/telegram/
-  - ../../chat-options/configure-telegram/
+  - ../../chat-options/configure-telegram/ # /docs/oncall/<ONCALL_VERSION>/chat-options/configure-telegram/
+  - ../../notify/telegram/ # /docs/oncall/<ONCALL_VERSION>/notify/telegram/
 ---
 
 # Telegram integration for Grafana OnCall
