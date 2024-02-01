@@ -36,7 +36,6 @@ Maintenance release
 
 - Allow routing incoming alerts based on labels by @joeyorlando ([#3778](https://github.com/grafana/oncall/pull/3778))
 
-
 ### Changed
 
 - Remove `/oncall` Slack slash command (ie. manual alert group creation command) by @joeyorlando ([#3790](https://github.com/grafana/oncall/pull/3790))
