@@ -54,15 +54,16 @@ def test_user_is_oncall(make_organization, make_user_for_organization, make_sche
 
 
 @pytest.mark.django_db
-def test_direct_paging_user(make_organization, make_user_for_organization):
+def test_direct_paging_user(make_organization, make_user_for_organization, django_capture_on_commit_callbacks):
     organization = make_organization()
     user = make_user_for_organization(organization)
     other_user = make_user_for_organization(organization)
     from_user = make_user_for_organization(organization)
     msg = "Fire"
 
-    with patch("apps.alerts.paging.notify_user_task") as notify_task:
-        direct_paging(organization, from_user, msg, users=[(user, False), (other_user, True)])
+    with django_capture_on_commit_callbacks(execute=True) as callbacks:
+        with patch("apps.alerts.paging.notify_user_task") as notify_task:
+            direct_paging(organization, from_user, msg, users=[(user, False), (other_user, True)])
 
     # alert group created
     alert_groups = AlertGroup.objects.all()
@@ -73,6 +74,8 @@ def test_direct_paging_user(make_organization, make_user_for_organization):
     assert alert.title == f"{from_user.username} is paging {user.username} and {other_user.username} to join escalation"
     assert alert.message == msg
 
+    # callbacks: distribute_alert + 2 notify_user tasks
+    assert len(callbacks) == 3
     # notifications sent
     for u, important in ((user, False), (other_user, True)):
         assert notify_task.apply_async.called_with(
