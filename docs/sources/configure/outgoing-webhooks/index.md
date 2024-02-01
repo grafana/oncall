@@ -500,11 +500,11 @@ Integrate with third-party services:
 
 {{% docs/reference %}}
 [JIRA]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/integrations/jira"
-[JIRA]: "/docs/grafana-cloud/alerting-and-irm/oncall/ -> /docs/grafana-cloud/alerting-and-irm/oncall/integrations/jira"
+[JIRA]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/integrations/jira"
 
 [ServiceNow]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/integrations/servicenow"
-[ServiceNow]: "/docs/grafana-cloud/alerting-and-irm/oncall/ -> /docs/grafana-cloud/alerting-and-irm/oncall/integrations/servicenow"
+[ServiceNow]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/integrations/servicenow"
 
 [Zendesk]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/integrations/zendesk"
-[Zendesk]: "/docs/grafana-cloud/alerting-and-irm/oncall/ -> /docs/grafana-cloud/alerting-and-irm/oncall/integrations/zendesk"
+[Zendesk]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/integrations/zendesk"
 {{% /docs/reference %}}
