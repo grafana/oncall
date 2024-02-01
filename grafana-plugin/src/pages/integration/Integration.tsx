@@ -438,13 +438,14 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
     const isAlerting = IntegrationHelper.isSpecificIntegration(alertReceiveChannel, 'grafana_alerting');
     const isLegacyAlerting = IntegrationHelper.isSpecificIntegration(alertReceiveChannel, 'legacy_grafana_alerting');
 
-    return [
+    const configs: Array<IntegrationCollapsibleItem | IntegrationCollapsibleItem[]> = [
       (isAlerting || isLegacyAlerting) && {
         isHidden: isLegacyAlerting || contactPoints === null || contactPoints === undefined,
         isCollapsible: false,
         customIcon: 'grafana',
         canHoverIcon: false,
         collapsedView: null,
+        startingElemPosition: '50%',
         expandedView: () => <IntegrationContactPoint id={id} />,
       },
       {
@@ -452,6 +453,7 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
         customIcon: 'plug',
         canHoverIcon: false,
         collapsedView: null,
+        startingElemPosition: '50%',
         expandedView: () => <IntegrationHowToConnect id={id} />,
       },
       {
@@ -459,6 +461,7 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
         isExpanded: false,
         isCollapsible: false,
         canHoverIcon: false,
+        startingElemPosition: '50%',
         expandedView: () => (
           <IntegrationBlock
             noContent
@@ -529,10 +532,11 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
         collapsedView: undefined,
       },
       {
-        customIcon: 'code-branch',
+        customIcon: 'plus',
         isCollapsible: false,
         collapsedView: null,
         canHoverIcon: false,
+        startingElemPosition: '40px',
         expandedView: () => (
           <div className={cx('routesSection')}>
             <VerticalGroup spacing="md">
@@ -545,14 +549,18 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
                     Add route
                   </Button>
                 </WithPermissionControlTooltip>
-                {this.state.isAddingRoute && <LoadingPlaceholder text="Loading..." />}
+                {this.state.isAddingRoute && (
+                  <LoadingPlaceholder text="Loading..." className={cx('loadingPlaceholder')} />
+                )}
               </HorizontalGroup>
             </VerticalGroup>
           </div>
         ),
       },
-      this.renderRoutesFn(),
-    ].filter((opt) => opt);
+      this.renderRoutesFn() as IntegrationCollapsibleItem[],
+    ];
+
+    return configs.filter(Boolean);
   }
 
   getRoutingTemplate = (channelFilterId: ChannelFilter['id']) => {
@@ -626,6 +634,7 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
         ({
           canHoverIcon: true,
           isCollapsible: true,
+          startingElemPosition: '50%',
           isExpanded: openRoutes.indexOf(channelFilterId) > -1,
           onStateChange: (isChecked: boolean) => {
             const newOpenRoutes = [...openRoutes];
@@ -660,7 +669,7 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
             />
           ),
         } as IntegrationCollapsibleItem)
-    );
+    ) as IntegrationCollapsibleItem[];
   };
 
   handleEditRegexpRouteTemplate = (channelFilterId) => {
