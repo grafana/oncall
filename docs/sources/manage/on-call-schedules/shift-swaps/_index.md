@@ -14,6 +14,7 @@ canonical: https://grafana.com/docs/oncall/latest/manage/on-call-schedules/shift
 aliases:
   - /docs/grafana-cloud/alerting-and-irm/oncall/manage/on-call-schedules/shift-swaps/
   - /docs/grafana-cloud/alerting-and-irm/oncall/on-call-schedules/shift-swaps/
+  - ../../on-call-schedules/shift-swaps/ # /docs/oncall/<ONCALL_VERSION>/on-call-schedules/shift-swaps/
 ---
 
 # Shift swaps
