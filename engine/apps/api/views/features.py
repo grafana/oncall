@@ -19,6 +19,9 @@ class Feature(enum.StrEnum):
     LIVE_SETTINGS = "live_settings"
     GRAFANA_CLOUD_NOTIFICATIONS = "grafana_cloud_notifications"
     GRAFANA_CLOUD_CONNECTION = "grafana_cloud_connection"
+    # GRAFANA_ALERTING_V2 enables advanced OnCall <-> Alerting integration.
+    # On Alerting side it enables integration dropdown in Oncall contact point.
+    # On OnCall side it do nothing, just indicating if OnCall API is ready to that integration.
     GRAFANA_ALERTING_V2 = "grafana_alerting_v2"
     LABELS = "labels"
 
