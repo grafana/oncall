@@ -13,6 +13,7 @@ canonical: https://grafana.com/docs/oncall/latest/manage/mobile-app/installation
 aliases:
   - /docs/grafana-cloud/alerting-and-irm/oncall/manage/mobile-app/installation-and-setup/
   - /docs/grafana-cloud/alerting-and-irm/oncall/mobile-app/installation-and-setup/
+  - ../../mobile-app/installation-and-setup/ # /docs/oncall/<ONCALL_VERSION>/mobile-app/installation-and-setup/
 ---
 
 # Installation and setup
