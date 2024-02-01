@@ -112,7 +112,7 @@ If no integrations are selected the outgoing webhook will trigger for any integr
 The destination URL the outgoing webhook will make a request to. This must be a FQDN.
 
 > ⚠️ **Note** the destination server must respond back within 4 seconds (by default) or it will result in a timeout
-> This timeout is configurable via the environment variable OUTGOING_WEBHOOK_TIMEOUT
+> For open source deployments, this timeout is configurable by setting the environment variable OUTGOING_WEBHOOK_TIMEOUT
 > (this can be seen in the "Response Body" under the "Last Run" section)
 
 | Required | [Template Accepted](#outgoing-webhook-templates) | Default Value |
