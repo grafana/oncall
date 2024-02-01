@@ -46,7 +46,7 @@ of a schedule, or clicking the button shown when hovering on a particular shift 
 > consider creating a higher level layer rotation with the desired updates.
 
 Upon submitting the request, a Slack notification will be sent to the channel associated to the correspondent
-schedule, if there is one. A [mobile push notification][shift-swap-notifications] will be sent to team members who
+schedule, if there is one. A [mobile push notification][] will be sent to team members who
 participate in the schedule and have the notifications enabled.
 
 <img src="/static/img/oncall/swap-slack-notification-3.png">
@@ -70,7 +70,7 @@ The follow-up notifications will be sent at the following intervals before the s
 
 You can delete the swap request at any time. If the swap has been taken, it will automatically be undone upon removal.
 
-> **Note**: if [RBAC][rbac] is enabled, a user is required to have the `SCHEDULES_WRITE` permission to create,
+> **Note**: if [RBAC][] is enabled, a user is required to have the `SCHEDULES_WRITE` permission to create,
 > update, take or delete a swap request. `SCHEDULES_READ` will be enough to get details about existing requests.
 
 ## Check existing swap requests
@@ -99,6 +99,9 @@ You can also check (and take) a swap request details in the web UI.
 Once a swap is taken, the affected rotations and the final schedule will reflect the changes.
 
 {{% docs/reference %}}
-[shift-swap-notifications]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/mobile-app/push-notifications#shift-swap-notifications"
-[rbac]: "/docs/oncall/ -> /docs/oncall/latest/user-and-team-management/#role-based-access-control-rbac"
+[mobile push notification]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/manage/mobile-app/push-notifications#shift-swap-notifications"
+[mobile push notification]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/manage/mobile-app/push-notifications#shift-swap-notifications"
+
+[RBAC]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/manage/user-and-team-management/#role-based-access-control-rbac"
+[RBAC]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/manage/user-and-team-management/#role-based-access-control-rbac"
 {{% /docs/reference %}}

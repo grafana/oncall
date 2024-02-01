@@ -18,20 +18,19 @@ An "Integration" is a main entry point for alerts being consumed by Grafana OnCa
 Integrations receive alerts on a unique API URL, interprets them using a set of templates tailored for the monitoring system, and starts
 escalations.
 
-Read more about Jinja2 templating used in OnCall [here][jinja2-templating].
+For more information about the templating used in OnCall, refer to [Jinja2 templating][].
 
 ## Learn Alert Flow Within Integration
 
 1. An Alert is received on an integration's **Unique URL** as an HTTP POST request with a JSON payload (or via
-[e-mail]({{< relref "inbound-email" >}}), for inbound e-mail integrations)
-1. Routing is determined for the incoming alert, by applying the [Routing Template][routing-template]
-1. Alert Grouping is determined based on [Grouping Id Template][behavioral-template]
-1. An Alert Group may be acknowledged or resolved with status `_ by source` based on
-[Behaviour Templates][behavioral-template]
+[Inbound email][], for inbound email integrations)
+1. Routing is determined for the incoming alert, by applying the [Routing Template][]
+1. Alert Grouping is determined based on [Grouping Id Template][]
+1. An Alert Group may be acknowledged or resolved with status `_ by source` based on its [Behavioral templates][]
 1. The Alert Group is available in Web, and can be published to messengers, based on the Route's **Publish to Chatops** configuration.
-It is rendered using [Appearance Templates][appearance-template]
+It is rendered using [Appearance templates][]
 1. The Alert Group is escalated to users based on the Escalation Chains selected for the Route
-1. Users can perform actions listed in [Learn Alert Workflow][learn-alert-workflow] section
+1. Users can perform actions listed in [Learn about the Alert Workflow][] section
 
 ## Configure and manage integrations
 
@@ -54,9 +53,9 @@ Click the **How to connect** link for more information.
 
 ### Complete the integration configuration
 
-- Review and customise grouping, autoresolution, autoacknowledge, etc [templates][jinja2-templating]
+- Review and customise grouping, autoresolution, autoacknowledge templates
 if you want to customise alert behaviour for your team
-- Review and customise [other templates][jinja2-templating] to change how alert groups are displayed
+- Review and customise other templates to change how alert groups are displayed
 in different parts of Grafana OnCall: UI, messengers, emails, notifications, etc.
 - Add routes to your integration to route alerts to different users and teams based on labels or other data
 - Connect your escalation chains to routes to notify the right people, at the right time
@@ -101,9 +100,8 @@ More specific instructions can be found in a specific integration's documentatio
 
 #### Behaviour and rendering templates example
 
-"Integration templates" are Jinja2 templates which are applied to each alert to define it's rendering and behaviour.
-
-Read more in [Templates guide][jinja2-templating]
+_Integration templates_ are Jinja2 templates which are applied to each alert to define it's rendering and behaviour.
+For more information refer to [Jinja2 templating][].
 
 For templates editor:
 
@@ -145,18 +143,21 @@ To edit the name of an integration:
 {{< section >}}
 
 {{% docs/reference %}}
-[appearance-template]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/jinja2-templating#appearance-template"
-[appearance-template]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/jinja2-templating#appearance-template"
+[Appearance templates]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/configure/jinja2-templating#appearance-templates"
+[Appearance templates]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/configure/jinja2-templating#appearance-templates"
 
-[behavioral-template]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/jinja2-templating#behavioral-template"
-[behavioral-template]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/jinja2-templating#behavioral-template"
+[Behavioral templates]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/configure/jinja2-templating#behavioral-templates"
+[Behavioral templates]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/configure/jinja2-templating#behavioral-templates"
 
-[jinja2-templating]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/jinja2-templating"
-[jinja2-templating]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/jinja2-templating"
+[Inbound email]: "/docs/oncall -> /docs/oncall/<ONCALL_VERSION>/integrations/inbound-email"
+[Inbound email]: "/docs/grafana-cloud -> /docs/oncall/<ONCALL_VERSION>/integrations/inbound-email"
 
-[learn-alert-workflow]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/get-started#learn-alert-workflow"
-[learn-alert-workflow]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/get-started#learn-alert-workflow"
+[Jinja2 templating]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/configure/jinja2-templating"
+[Jinja2 templating]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/configure/jinja2-templating"
 
-[routing-template]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/jinja2-templating#routing-template"
-[routing-template]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/jinja2-templating#routing-template"
+[Learn about the Alert Workflow]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/set-up/get-started#learn-about-the-alert-workflow"
+[Learn about the Alert Workflow]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/set-up/get-started#learn-about-the-alert-workflow"
+
+[Routing template]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/configure/jinja2-templating#routing-template"
+[Routing template]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/configure/jinja2-templating#routing-template"
 {{% /docs/reference %}}

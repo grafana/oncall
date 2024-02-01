@@ -496,8 +496,17 @@ the `id` of that ticket to keep its status synchronized with the state changes b
 
 Integrate with third-party services:
 
-- [JIRA]({{< relref "../integrations/jira" >}})
-- [ServiceNow]({{< relref "../integrations/servicenow" >}})
-- [Zendesk]({{< relref "../integrations/zendesk" >}})
+- [JIRA][]
+- [ServiceNow][]
+- [Zendesk][]
 
-{{< section >}}
+{{% docs/reference %}}
+[JIRA]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/integrations/jira"
+[JIRA]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/integrations/jira"
+
+[ServiceNow]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/integrations/servicenow"
+[ServiceNow]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/integrations/servicenow"
+
+[Zendesk]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/integrations/zendesk"
+[Zendesk]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/integrations/zendesk"
+{{% /docs/reference %}}

@@ -71,6 +71,6 @@ Explore how Grafana OnCall addresses common on-call challenges:
 
 ## Get started
 
-To learn more about what Grafana OnCall can do for you, explore the following topics in the [Grafana OnCall documentation](https://grafana.com/docs/oncall/latest/):
+To learn more about what Grafana OnCall can do for you, explore the following topics:
 
 {{< section >}}

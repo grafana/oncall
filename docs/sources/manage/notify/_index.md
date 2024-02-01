@@ -21,10 +21,10 @@ aliases:
 # Notify people
 
 Grafana OnCall directly supports the export of alert notifications to some popular messaging applications like Slack and
-Telegram. You can use [outgoing webhooks][outgoing-webhooks] for applications that aren't directly
-supported.
+Telegram.
+You can use [Outgoing webhooks][] for applications that aren't directly supported.
 
-To configure supported messaging apps, see the following topics:
+To configure supported messaging apps, refer to the following topics:
 
 {{< section >}}
 
@@ -54,6 +54,6 @@ To configure a users notification policy:
 are listed.
 
 {{% docs/reference %}}
-[outgoing-webhooks]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/outgoing-webhooks"
-[outgoing-webhooks]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/outgoing-webhooks"
+[Outgoing webhooks]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/configure/outgoing-webhooks"
+[Outgoing webhooks]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/configure/outgoing-webhooks"
 {{% /docs/reference %}}

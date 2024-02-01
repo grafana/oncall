@@ -24,7 +24,7 @@ There are four types of push notifications for the mobile app:
 - **Mobile push** - Sends a typical push notification to your mobile device.  Intended for all types of alerts.
 - **Mobile push important** - Sends a push notification for important alerts.  We recommend (and default) to louder notifications.
 - **On-call shift notifications** - Sends announcements for upcoming shifts (optional).
-- **Shift swap notifications** - Sends announcements for [shift swap requests][shift-swaps] (optional).
+- **Shift swap notifications** - Sends announcements for [Shift swap requests][] (optional).
 
 ## Add mobile app to notification policies
 
@@ -95,13 +95,13 @@ To enable or disable on-call shift notifications, use the **info notifications**
 
 ### Shift swap notifications
 
-Shift swap notifications are generated when a [shift swap ][shift-swaps] is requested,
+Shift swap notifications are generated when a shift swap is requested,
 informing all users in the on-call schedule (except the initiator) about it.
 
 To enable or disable shift swap notifications and their follow-ups, use the **info notifications** section
 in the **Push notifications** settings.
 
 {{% docs/reference %}}
-[shift-swaps]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/on-call-schedules/shift-swaps"
-[shift-swaps]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/on-call-schedules/shift-swaps"
+[Shift swap requests]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/manage/on-call-schedules#shift-swap-requests"
+[Shift swap requests]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/manage/on-call-schedules#shift-swap-requests"
 {{% /docs/reference %}}

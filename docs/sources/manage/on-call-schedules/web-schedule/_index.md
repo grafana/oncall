@@ -55,7 +55,7 @@ on this calendar will take precedence over the rotations calendar.
 
 ## Schedule quality report
 
-The schedule view features a quality report that provides a score for your schedule based on rotations, overrides and [shift swaps][shift-swaps].
+The schedule view features a quality report that provides a score for your schedule based on rotations, overrides and [shift swaps][].
 It's calculated based on these key factors:
 
 - Gaps (amount of time when no one is on-call)
@@ -91,6 +91,6 @@ Export on-call schedules from Grafana OnCall to your preferred calendar app with
 schedule export allows you to view on-call shifts alongside the rest of your schedule.
 
 {{% docs/reference %}}
-[shift-swaps]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/on-call-schedules/shift-swaps"
-[shift-swaps]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/on-call-schedules/shift-swaps"
+[shift swaps]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/manage/on-call-schedules/shift-swaps"
+[shift swaps]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/manage/on-call-schedules/shift-swaps"
 {{% /docs/reference %}}

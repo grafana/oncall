@@ -26,7 +26,7 @@ OnCall as read-only schedules but can be leveraged similarly to a web-based sche
 > Unfortunately there is a known limitation with Google Calendar import and export.
 > Google may take up to 24h to import OnCall's calendar (OnCall -> Google) and sometimes our customers report delay in
 > exporting (Google Calendar -> OnCall). If actual calendar is critical for you, we suggest checking
-> [web-based scheduling]
+> [Web-based on-call schedules][]
 
 ## Before you begin
 
@@ -107,6 +107,6 @@ contact. The calendar events titles would be `[L1] BobGrafana` and `[L0] AliceGr
 maintains the default [L0] status, and would not receive notifications during the overlapping time with BobGrafana.
 
 {{% docs/reference %}}
-[web-schedule]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/on-call-schedules/web-schedule"
-[web-schedule]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/on-call-schedules/web-schedule"
+[Web-based on-call schedules]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/manage/on-call-schedules/web-schedule"
+[Web-based on-call schedules]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/manage/on-call-schedules/web-schedule"
 {{% /docs/reference %}}

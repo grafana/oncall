@@ -18,7 +18,7 @@ Inbound Email integration will consume emails from dedicated email address and m
 
 ## Configure required environment variables
 
-See [Inbound Email Setup]({{< relref "../../open-source/_index.md#inbound-email-setup" >}}) for details.
+See [Inbound Email Setup](../../open-source/_index.md#inbound-email-setup) for details.
 
 ## Configure Inbound Email integration for Grafana OnCall
 
@@ -44,6 +44,6 @@ Alerts from Inbound Email integration have the following payload:
 ```
 
 {{% docs/reference %}}
-[jinja2-templating]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/jinja2-templating"
+[jinja2-templating]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/jinja2-templating"
 [jinja2-templating]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/jinja2-templating"
 {{% /docs/reference %}}

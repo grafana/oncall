@@ -31,8 +31,7 @@ can take directly from Slack, including acknowledge, resolve, add resolution not
 To install the Slack integration, you must have Admin permissions in your Grafana instance as well as the Slack workspace
 that you’d like to integrate with.
 
-For Open Source Grafana OnCall Slack installation guidance, refer to
-[Open Source Grafana OnCall][open-source].
+For Open Source Grafana OnCall Slack installation guidance, refer to [Slack setup][].
 
 ## Install Slack integration for Grafana OnCall
 
@@ -169,7 +168,8 @@ Use `/escalate` to page a team (and additional responders) directly from Slack.
 1. Once the Grafana OnCall app sends a Slack message with the newly created alert, the alert group is open and firing.
 
 It's also possible to page additional responders for an existing alert group. To do so, use the "Responders" button
-in the alert group message. [Learn more about paging people manually.][integrations-manual]
+in the alert group message.
+To manually page people, refer to [Page people manually][].
 
 ### Slack `/oncall` command
 
@@ -193,9 +193,9 @@ Use message shortcuts to add resolution notes directly from Slack. Message short
 1. The Grafana OnCall app will react to the message in Slack with the memo emoji and add the message to the alert group timeline.
 
 {{% docs/reference %}}
-[open-source]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/open-source"
-[open-source]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/open-source"
+[Slack setup]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/set-up/open-source#slack-setup"
+[Slack setup]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/set-up/open-source#slack-setup"
 
-[integrations-manual]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/integrations/manual"
-[integrations-manual]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/integrations/manual"
+[Page people manually]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/integrations/manual"
+[Page people manually]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/integrations/manual"
 {{% /docs/reference %}}
