@@ -14,6 +14,7 @@ canonical: https://grafana.com/docs/oncall/latest/manage/on-call-schedules/ical-
 aliases:
   - /docs/grafana-cloud/alerting-and-irm/oncall/manage/on-call-schedules/ical-schedules/
   - /docs/grafana-cloud/alerting-and-irm/oncall/on-call-schedules/ical-schedules/
+  - ../../on-call-schedules/ical-schedules/ # /docs/oncall/<ONCALL_VERSION>/on-call-schedules/ical-schedules/
 ---
 
 # Import on-call schedules
