@@ -7,6 +7,7 @@ import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
 
 import Text from 'components/Text/Text';
+import { getDateForDatePicker } from 'containers/RotationForm/RotationForm.helpers';
 import { useStore } from 'state/useStore';
 
 import styles from 'containers/RotationForm/RotationForm.module.css';
@@ -58,20 +59,6 @@ const DateTimePicker = observer(
       return time;
     };
 
-    const getDateForDatePicker = () => {
-      const date = new Date();
-      // Day of the month needs to be set at first to prevent incorrect month increment
-      // when current day of month doesn't exist in the next month
-      // E.g. today is 30th Jan and there is no 30th Feb, so in this case date.setMonth(1) results in March
-      date.setDate(valueInSelectedTimezone.date());
-      date.setFullYear(valueInSelectedTimezone.year());
-      date.setMonth(valueInSelectedTimezone.month());
-      date.setHours(valueInSelectedTimezone.hour());
-      date.setMinutes(valueInSelectedTimezone.minute());
-      date.setSeconds(valueInSelectedTimezone.second());
-      return date;
-    };
-
     return (
       <VerticalGroup>
         <div style={{ display: 'flex', flexWrap: 'nowrap', gap: '8px' }}>
@@ -81,7 +68,12 @@ const DateTimePicker = observer(
             style={{ width: '58%' }}
             className={cx({ 'control--error': Boolean(error) })}
           >
-            <DatePickerWithInput open disabled={disabled} value={getDateForDatePicker()} onChange={handleDateChange} />
+            <DatePickerWithInput
+              open
+              disabled={disabled}
+              value={getDateForDatePicker(valueInSelectedTimezone)}
+              onChange={handleDateChange}
+            />
           </div>
           <div
             onFocus={onFocus}
