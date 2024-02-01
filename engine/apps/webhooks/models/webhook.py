@@ -249,7 +249,7 @@ class Webhook(models.Model):
         elif self.http_method == "POST":
             r = requests.post(url, timeout=live_settings.OUTGOING_WEBHOOK_TIMEOUT, **request_kwargs)
         elif self.http_method == "PUT":
-            r = requests.put(url, timeout=live_settings.OUTGOING_WEBHOOK_TIMEOUT, **request_kwargs)
+            r = requests.put(url, timeout=settings.OUTGOING_WEBHOOK_TIMEOUT, **request_kwargs)
         elif self.http_method == "DELETE":
             r = requests.delete(url, timeout=settings.OUTGOING_WEBHOOK_TIMEOUT, **request_kwargs)
         elif self.http_method == "OPTIONS":
