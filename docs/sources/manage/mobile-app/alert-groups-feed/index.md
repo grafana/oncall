@@ -14,6 +14,7 @@ canonical: https://grafana.com/docs/oncall/latest/manage/mobile-app/alert-groups
 aliases:
   - /docs/grafana-cloud/alerting-and-irm/oncall/manage/mobile-app/alert-groups-feed/
   - /docs/grafana-cloud/alerting-and-irm/oncall/mobile-app/alert-groups-feed/
+  - ../../mobile-app/alert-groups-feed/ # /docs/oncall/<ONCALL_VERSION>/mobile-app/alert-groups-feed/
 ---
 
 # Alert Groups feed
