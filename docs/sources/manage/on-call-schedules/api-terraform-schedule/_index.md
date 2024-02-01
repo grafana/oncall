@@ -14,6 +14,7 @@ canonical: https://grafana.com/docs/oncall/latest/manage/on-call-schedules/api-t
 aliases:
   - /docs/grafana-cloud/alerting-and-irm/oncall/manage/on-call-schedules/api-terraform-schedules/
   - /docs/grafana-cloud/alerting-and-irm/oncall/on-call-schedules/api-terraform-schedules/
+  - ../../on-call-schedules/api-terraform-schedule/ # /docs/oncall/<ONCALL_VERSION>/on-call-schedules/api-terraform-schedule/
 ---
 
 # API & Terraform schedules
