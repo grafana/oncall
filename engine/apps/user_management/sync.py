@@ -71,6 +71,7 @@ def _sync_organization(organization: Organization) -> None:
             "gcom_token_org_last_time_synced",
             "is_rbac_permissions_enabled",
             "is_grafana_incident_enabled",
+            "is_grafana_labels_enabled",
             "grafana_incident_backend_url",
         ]
     )
