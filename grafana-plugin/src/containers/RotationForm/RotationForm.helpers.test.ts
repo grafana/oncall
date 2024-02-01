@@ -12,7 +12,7 @@ describe('RotationForm helpers', () => {
       const inputDate = dayjs()
         .utcOffset(360)
         .set('year', 2024)
-        .set('month', 3)
+        .set('month', 3) // 0-indexed so April
         .set('date', 30)
         .set('hour', 12)
         .set('minute', 20);
