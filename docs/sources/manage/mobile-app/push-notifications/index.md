@@ -14,6 +14,7 @@ canonical: https://grafana.com/docs/oncall/latest/manage/mobile-app/push-notific
 aliases:
   - /docs/grafana-cloud/alerting-and-irm/oncall/manage/mobile-app/push-notifications/
   - /docs/grafana-cloud/alerting-and-irm/oncall/mobile-app/push-notifications/
+  - ../../mobile-app/push-notifications/ # /docs/oncall/<ONCALL_VERSION>/mobile-app/push-notifications/
 ---
 
 # Push notifications
