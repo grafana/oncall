@@ -13,8 +13,8 @@ canonical: https://grafana.com/docs/oncall/latest/manage/notify/phone-calls-sms/
 aliases:
   - /docs/grafana-cloud/alerting-and-irm/oncall/manage/notify/phone-calls-sms/
   - /docs/grafana-cloud/alerting-and-irm/oncall/notify/phone-calls-sms/
-   - ../../notify/phone-sms/ # /docs/oncall/<ONCALL_VERSION>/notify/phone-sms/
-   - ../../notify/phone-calls-sms/ # /docs/oncall/<ONCALL_VERSION>/notify/phone-calls-sms/
+  - ../../notify/phone-sms/ # /docs/oncall/<ONCALL_VERSION>/notify/phone-sms/
+  - ../../notify/phone-calls-sms/ # /docs/oncall/<ONCALL_VERSION>/notify/phone-calls-sms/
 ---
 
 # Phone Calls and SMS notifications
