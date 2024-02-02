@@ -1,6 +1,8 @@
+import { ActionKey } from 'models/loader/action-keys';
 import React, { useEffect, useRef, useState } from 'react';
 
 import { useLocation } from 'react-router-dom';
+import { useStore } from 'state/useStore';
 
 export function useForceUpdate() {
   const [, setValue] = useState(0);
@@ -69,3 +71,10 @@ export function useDebouncedCallback<A extends any[]>(callback: (...args: A) => 
     }, wait);
   };
 }
+
+export const useIsLoading = (actionKey: ActionKey) => {
+  const {
+    loaderStore: { isLoading },
+  } = useStore();
+  return isLoading(actionKey);
+};

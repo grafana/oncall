@@ -14,12 +14,12 @@ import {
   SceneAppPage,
   useSceneApp,
 } from '@grafana/scenes';
-import { Alert } from '@grafana/ui';
+import { Alert, LinkButton, LoadingPlaceholder, VerticalGroup } from '@grafana/ui';
 import { observer } from 'mobx-react';
 
 import Text from 'components/Text/Text';
 import { useStore } from 'state/useStore';
-import { DOCS_ROOT } from 'utils/consts';
+import { DOCS_ROOT, PLUGIN_ROOT } from 'utils/consts';
 
 import styles from './Insights.module.scss';
 import { InsightsConfig } from './Insights.types';
@@ -38,6 +38,9 @@ import getNewAlertGroupsNotificationsInTotalScene from './scenes/NewAlertGroupsN
 import getTotalAlertGroupsScene from './scenes/TotalAlertGroups';
 import getTotalAlertGroupsByStateScene from './scenes/TotalAlertGroupsByState';
 import getVariables from './variables';
+import { useAlertGroupsCounterChecker } from './Insights.hooks';
+import { TutorialStep } from 'components/Tutorial/Tutorial.types';
+import Tutorial from 'components/Tutorial/Tutorial';
 
 const Insights = observer(() => {
   const {
@@ -47,6 +50,7 @@ const Insights = observer(() => {
   } = useStore();
   const [showAllStackInfo, setShowAllStackInfo] = useState(false);
   const [datasource, setDatasource] = useState<string>();
+  const { isAlertCreated, isFirstAlertCountCheckDone } = useAlertGroupsCounterChecker();
 
   const config = useMemo(
     () => ({
@@ -54,7 +58,7 @@ const Insights = observer(() => {
       datasource: { uid: isOpenSource ? '$datasource' : insightsDatasource },
       stack: currentOrganization?.stack_slug,
     }),
-    []
+    [isOpenSource, currentOrganization?.stack_slug]
   );
 
   const variables = useMemo(() => getVariables(config), [config]);
@@ -64,26 +68,37 @@ const Insights = observer(() => {
   const appScene = useSceneApp(getAppScene);
 
   useEffect(() => {
-    const stackListener = variables.stack.subscribeToState(({ text }) => {
-      setShowAllStackInfo((text as string[]).includes('All'));
-    });
-    const dataSourceListener =
-      isOpenSource &&
-      variables.datasource.subscribeToState(({ text }) => {
-        setDatasource(`${text}`);
+    if (isAlertCreated) {
+      const stackListener = variables.stack.subscribeToState(({ text }) => {
+        setShowAllStackInfo((text as string[]).includes('All'));
       });
-    return () => {
-      stackListener?.unsubscribe?.();
-      dataSourceListener?.unsubscribe?.();
-    };
-  }, []);
+      const dataSourceListener =
+        isOpenSource &&
+        variables.datasource.subscribeToState(({ text }) => {
+          setDatasource(`${text}`);
+        });
+      return () => {
+        stackListener?.unsubscribe?.();
+        dataSourceListener?.unsubscribe?.();
+      };
+    }
+  }, [isAlertCreated]);
 
+  if (!isFirstAlertCountCheckDone) {
+    return <LoadingPlaceholder text="Loading..." />;
+  }
   return (
     <div className={styles.insights}>
       <InsightsGeneralInfo />
-      {showAllStackInfo && <AllStacksSelectedWarning />}
-      {isOpenSource && !datasource && <NoDatasourceWarning />}
-      <appScene.Component model={appScene} />
+      {isAlertCreated ? (
+        <>
+          {showAllStackInfo && <AllStacksSelectedWarning />}
+          {isOpenSource && !datasource && <NoDatasourceWarning />}
+          <appScene.Component model={appScene} />
+        </>
+      ) : (
+        <NoAlertCreatedTutorial />
+      )}
     </div>
   );
 });
@@ -101,11 +116,31 @@ const AllStacksSelectedWarning = () => {
   const [alertVisible, setAlertVisible] = useState(true);
 
   return alertVisible ? (
-    <Alert onRemove={() => setAlertVisible(false)} severity="warning" title="" className={styles.alertBox}>
+    <Alert onRemove={() => setAlertVisible(false)} severity="warning" title="" className={styles.spaceTop}>
       Retrieving insights from multiple stacks has performance impact and loading data might take significantly more
       time. We recommend to select only specific stacks.
     </Alert>
   ) : null;
+};
+
+const NoAlertCreatedTutorial = () => {
+  return (
+    <div className={styles.spaceTop}>
+      <Tutorial
+        step={TutorialStep.Integrations}
+        title={
+          <VerticalGroup align="center" spacing="lg">
+            <Text type="secondary">
+              No data found. Make sure you have at least one working integration and alerts created.
+            </Text>
+            <LinkButton icon="plus" variant="primary" size="lg" href={`${PLUGIN_ROOT}/integrations`}>
+              Go to Integrations
+            </LinkButton>
+          </VerticalGroup>
+        }
+      />
+    </div>
+  );
 };
 
 const NoDatasourceWarning = () => {
@@ -128,7 +163,7 @@ const getRootScene = (config: InsightsConfig, variables: ReturnType<typeof getVa
     pages: [
       new SceneAppPage({
         title: 'OnCall Insights',
-        url: '/a/grafana-oncall-app/insights',
+        url: `${PLUGIN_ROOT}/insights`,
         getScene: () =>
           new EmbeddedScene({
             $timeRange: new SceneTimeRange({ from: 'now-7d', to: 'now' }),
