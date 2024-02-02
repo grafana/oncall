@@ -29,7 +29,6 @@ const IntegrationBlock: React.FC<IntegrationBlockProps> = ({
       {heading && (
         <Block
           bordered
-          shadowed
           className={cx('integrationBlock__heading', {
             'integrationBlock__heading--noBorderBottom': !noContent,
           })}

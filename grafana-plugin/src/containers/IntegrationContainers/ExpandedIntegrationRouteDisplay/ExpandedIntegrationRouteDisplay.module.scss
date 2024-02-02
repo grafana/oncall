@@ -47,3 +47,19 @@
 .default-route-view {
   min-height: 40px;
 }
+
+.block {
+  width: 100%;
+  background-color: var(--background-secondary);
+  border: var(--border-medium) !important;
+}
+
+.labels-panel {
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+}
+
+.label-add {
+  margin-left: 8px;
+}
