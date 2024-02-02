@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Address outgoing webhook encoding error when passing non-latin characters in the webhook request body by @joeyorlando
-  ([#TBD](https://github.com/grafana/oncall/pull/TBD))
+  ([#3832](https://github.com/grafana/oncall/pull/3832))
 
 ## v1.3.100 (2024-02-01)
 
