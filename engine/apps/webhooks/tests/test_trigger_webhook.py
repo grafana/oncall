@@ -1,6 +1,7 @@
 import json
 from unittest.mock import call, patch
 
+import httpretty
 import pytest
 import requests
 from django.utils import timezone
@@ -130,51 +131,88 @@ def test_execute_webhook_integration_filter_matching(
     )
 
 
+ALERT_GROUP_PUBLIC_PRIMARY_KEY = "IXJ47FKMYYJ5U"
+
+
+@httpretty.activate(verbose=True, allow_net_connect=False)
+@pytest.mark.parametrize(
+    "data,expected_request_data,request_post_kwargs",
+    [
+        (
+            '{"value": "{{ alert_group_id }}"}',
+            json.dumps({"value": ALERT_GROUP_PUBLIC_PRIMARY_KEY}),
+            {"json": {"value": ALERT_GROUP_PUBLIC_PRIMARY_KEY}},
+        ),
+        # test that non-latin characters are properly encoded
+        (
+            "😊",
+            "b'\\xf0\\x9f\\x98\\x8a'",
+            {"data": "😊".encode("utf-8")},
+        ),
+    ],
+)
 @pytest.mark.django_db
 def test_execute_webhook_ok(
-    make_organization, make_user_for_organization, make_alert_receive_channel, make_alert_group, make_custom_webhook
+    make_organization,
+    make_user_for_organization,
+    make_alert_receive_channel,
+    make_alert_group,
+    make_custom_webhook,
+    data,
+    expected_request_data,
+    request_post_kwargs,
 ):
     organization = make_organization()
     user = make_user_for_organization(organization)
     alert_receive_channel = make_alert_receive_channel(organization)
     alert_group = make_alert_group(
-        alert_receive_channel, acknowledged_at=timezone.now(), acknowledged=True, acknowledged_by=user.pk
+        alert_receive_channel,
+        acknowledged_at=timezone.now(),
+        acknowledged=True,
+        acknowledged_by=user.pk,
+        public_primary_key=ALERT_GROUP_PUBLIC_PRIMARY_KEY,
     )
     webhook = make_custom_webhook(
         organization=organization,
-        url="https://something/{{ alert_group_id }}/",
+        url="https://example.com/{{ alert_group_id }}/",
         http_method="POST",
         trigger_type=Webhook.TRIGGER_ACKNOWLEDGE,
         trigger_template="{{{{ alert_group.integration_id == '{}' }}}}".format(
             alert_receive_channel.public_primary_key
         ),
         headers='{"some-header": "{{ alert_group_id }}"}',
-        data='{"value": "{{ alert_group_id }}"}',
+        data=data,
         forward_all=False,
     )
 
-    mock_response = MockResponse()
-    with patch("apps.webhooks.utils.socket.gethostbyname") as mock_gethostbyname:
-        mock_gethostbyname.return_value = "8.8.8.8"
-        with patch("apps.webhooks.models.webhook.requests") as mock_requests:
-            mock_requests.post.return_value = mock_response
+    templated_url = f"https://example.com/{alert_group.public_primary_key}/"
+    mock_response = httpretty.Response(json.dumps({"response": 200}))
+    httpretty.register_uri(httpretty.POST, templated_url, responses=[mock_response])
+
+    with patch("apps.webhooks.utils.socket.gethostbyname", return_value="8.8.8.8"):
+        with patch("apps.webhooks.models.webhook.requests", wraps=requests) as mock_requests:
             execute_webhook(webhook.pk, alert_group.pk, user.pk, None)
 
-    assert mock_requests.post.called
-    expected_call = call(
-        "https://something/{}/".format(alert_group.public_primary_key),
+    mock_requests.post.assert_called_once_with(
+        templated_url,
         timeout=TIMEOUT,
         headers={"some-header": alert_group.public_primary_key},
-        json={"value": alert_group.public_primary_key},
+        **request_post_kwargs,
     )
-    assert mock_requests.post.call_args == expected_call
+
+    # assert the request was made to the webhook as we expected
+    last_request = httpretty.last_request()
+    assert last_request.method == "POST"
+    assert last_request.url == templated_url
+    assert last_request.headers["some-header"] == alert_group.public_primary_key
+
     # check logs
     log = webhook.responses.all()[0]
     assert log.status_code == 200
-    assert log.content == json.dumps(mock_response.json())
-    assert log.request_data == json.dumps({"value": alert_group.public_primary_key})
+    assert log.content == json.dumps({"response": 200})
+    assert log.request_data == expected_request_data
     assert log.request_headers == json.dumps({"some-header": alert_group.public_primary_key})
-    assert log.url == "https://something/{}/".format(alert_group.public_primary_key)
+    assert log.url == templated_url
     # check log record
     log_record = alert_group.log_records.last()
     assert log_record.type == AlertGroupLogRecord.TYPE_CUSTOM_BUTTON_TRIGGERED
