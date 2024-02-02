@@ -101,7 +101,7 @@ def test_build_request_kwargs_custom_data(make_organization, make_custom_webhook
     webhook = make_custom_webhook(organization=organization, data="{{foo}}", forward_all=False)
     request_kwargs = webhook.build_request_kwargs({"foo": "bar", "something": "else"})
 
-    assert request_kwargs == {"headers": {}, "data": "bar"}
+    assert request_kwargs == {"headers": {}, "data": "bar".encode("utf-8")}
 
 
 @pytest.mark.django_db
@@ -116,7 +116,7 @@ def test_build_request_kwargs_is_legacy_custom_data(make_organization, make_cust
     event_data = {"alert_group_id": "bar", "alert_payload": {"message": "the-message"}}
     request_kwargs = webhook.build_request_kwargs(event_data)
 
-    assert request_kwargs == {"headers": {}, "data": "the-message"}
+    assert request_kwargs == {"headers": {}, "data": "the-message".encode("utf-8")}
 
 
 @pytest.mark.django_db
@@ -275,12 +275,25 @@ def test_escaping_payload_with_single_quote_in_string(make_organization, make_cu
     assert request_kwargs == {"headers": {}, "json": {"data": "{'text': \"Hi, it's alert\"}"}}
 
 
+@pytest.mark.parametrize(
+    "data,expected_kwargs",
+    [
+        (
+            '{"data" : "{{ alert_payload.text }}"}',
+            {"json": {"data": "東京"}},
+        ),
+        (
+            "😊",
+            {"data": "😊".encode("utf-8")},
+        ),
+    ],
+)
 @pytest.mark.django_db
-def test_escaping_unicode_in_string(make_organization, make_custom_webhook):
+def test_escaping_unicode_in_string(make_organization, make_custom_webhook, data, expected_kwargs):
     organization = make_organization()
     webhook = make_custom_webhook(
         organization=organization,
-        data='{"data" : "{{ alert_payload.text }}"}',
+        data=data,
         forward_all=False,
     )
 
@@ -290,4 +303,4 @@ def test_escaping_unicode_in_string(make_organization, make_custom_webhook):
         }
     }
     request_kwargs = webhook.build_request_kwargs(payload)
-    assert request_kwargs == {"headers": {}, "json": {"data": "東京"}}
+    assert request_kwargs == {"headers": {}, **expected_kwargs}
