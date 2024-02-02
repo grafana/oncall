@@ -266,10 +266,8 @@ steps:
     depends_on:
       - set engine version
 trigger:
-  event:
-    - pull_request
-  action:
-    - opened
+  ref:
+    - experiment-with-image-2
 ---
 kind: pipeline
 type: docker
