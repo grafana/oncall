@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Render alert group action buttons even if getting AG data fails ([#2383](https://github.com/grafana/oncall-private/issues/2383))
 - Enable Grafana Alerting V2 feature flag by default
 
 ## v1.3.98 (2024-02-01)
