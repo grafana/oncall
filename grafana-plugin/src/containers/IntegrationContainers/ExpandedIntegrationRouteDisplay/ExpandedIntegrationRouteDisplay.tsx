@@ -16,9 +16,11 @@ import {
   AsyncSelect,
 } from '@grafana/ui';
 import cn from 'classnames/bind';
+import { noop } from 'lodash-es';
 import { observer } from 'mobx-react';
 import CopyToClipboard from 'react-copy-to-clipboard';
 
+import Block from 'components/GBlock/Block';
 import HamburgerMenu from 'components/HamburgerMenu/HamburgerMenu';
 import IntegrationCollapsibleTreeView, {
   IntegrationCollapsibleItem,
@@ -42,13 +44,10 @@ import { EscalationChain } from 'models/escalation_chain/escalation_chain.types'
 import CommonIntegrationHelper from 'pages/integration/CommonIntegration.helper';
 import IntegrationHelper from 'pages/integration/Integration.helper';
 import { MONACO_INPUT_HEIGHT_SMALL } from 'pages/integration/IntegrationCommon.config';
+import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
 import { openNotification } from 'utils';
 import { UserActions } from 'utils/authorization';
-import { AppFeature } from 'state/features';
-import { noop } from 'lodash-es';
-import Block from 'components/GBlock/Block';
-import { toJS } from 'mobx';
 
 const cx = cn.bind(styles);
 
