@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Enable Grafana Alerting V2 feature flag by default
 
+### Fixed
+
+- Incorrect end date on creating weekly on-call shift ([#3755](https://github.com/grafana/oncall/issues/3755))
+
 ## v1.3.98 (2024-02-01)
 
 ### Fixed
