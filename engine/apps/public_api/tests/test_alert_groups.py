@@ -29,6 +29,11 @@ def construct_expected_response_from_alert_groups(alert_groups):
             acknowledged_at = alert_group.acknowledged_at.isoformat()
             acknowledged_at = acknowledged_at[:-6] + "Z"
 
+        def user_pk_or_none(alert_group, user_field):
+            u = getattr(alert_group, user_field)
+            if u is not None:
+                return u.public_primary_key
+
         results.append(
             {
                 "id": alert_group.public_primary_key,
@@ -39,6 +44,8 @@ def construct_expected_response_from_alert_groups(alert_groups):
                 "created_at": created_at,
                 "resolved_at": resolved_at,
                 "acknowledged_at": acknowledged_at,
+                "acknowledged_by": user_pk_or_none(alert_group, "acknowledged_by_user"),
+                "resolved_by": user_pk_or_none(alert_group, "resolved_by_user"),
                 "title": None,
                 "permalinks": {
                     "slack": None,
