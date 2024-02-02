@@ -409,13 +409,13 @@ const ScheduleSlotDetails = observer((props: ScheduleSlotDetailsProps) => {
           <div className={cx('details-icon')}>
             <Icon className={cx('icon')} name="clock-nine" />
           </div>
-          <Text type="primary" className={cx('second-column')}>
+          <Text type="primary" className={cx('second-column')} data-testid="schedule-slot-user-local-time">
             User's local time
             <br />
             {currentMoment.tz(user?.timezone).format('DD MMM, HH:mm')}
             <br />({getTzOffsetString(currentMoment.tz(user?.timezone))})
           </Text>
-          <Text type="secondary">
+          <Text type="secondary" data-testid="schedule-slot-current-timezone">
             Current timezone
             <br />
             {currentDateInSelectedTimezone.format('DD MMM, HH:mm')}
