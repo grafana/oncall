@@ -284,7 +284,7 @@ const RotationForm = observer((props: RotationFormProps) => {
         }
       }
     },
-    [showActiveOnSelectedPartOfDay, showActiveOnSelectedDays, repeatEveryValue]
+    [showActiveOnSelectedPartOfDay, showActiveOnSelectedDays, repeatEveryValue, shiftStart]
   );
 
   const handleRepeatEveryValueChange = (option) => {
