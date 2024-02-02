@@ -269,9 +269,6 @@ trigger:
   event:
     include:
       - pull_request
-  ref:
-    include:
-      - refs/heads/dev
 ---
 kind: pipeline
 type: docker
