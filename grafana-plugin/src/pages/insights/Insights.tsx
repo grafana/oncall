@@ -18,29 +18,25 @@ import { Alert, LinkButton, LoadingPlaceholder, VerticalGroup } from '@grafana/u
 import { observer } from 'mobx-react';
 
 import Text from 'components/Text/Text';
+import Tutorial from 'components/Tutorial/Tutorial';
+import { TutorialStep } from 'components/Tutorial/Tutorial.types';
 import { useStore } from 'state/useStore';
 import { DOCS_ROOT, PLUGIN_ROOT } from 'utils/consts';
 
+import { useAlertGroupsCounterChecker } from './Insights.hooks';
 import styles from './Insights.module.scss';
 import { InsightsConfig } from './Insights.types';
-import getAlertGroupsByIntegrationScene from './scenes/AlertGroupsByIntegration';
-import getAlertGroupsByTeamScene from './scenes/AlertGroupsByTeam';
-import getMTTRScene from './scenes/MTTR';
-import getMTTRByIntegrationScene from './scenes/MTTRByIntegration';
-import getMTTRByTeamScene from './scenes/MTTRByTeam';
-import getMTTRChangedForPeriodStatScene from './scenes/MTTRChangedForPeriodStat';
-import getMTTRChangedForPeriodTimeseriesScene from './scenes/MTTRChangedForPeriodTimeseries';
-import getNewAlertGroupsDuringTimePeriodScene from './scenes/NewAlertGroupsDuringTimePeriod';
-import getNewAlertGroupsForSelectedPeriodScene from './scenes/NewAlertGroupsForSelectedPeriod';
-import getNewAlertGroupsNotificationsDuringTimePeriodScene from './scenes/NewAlertGroupsNotificationsDuringTimePeriod';
-import getNewAlertGroupsNotificationsForPeriodTableScene from './scenes/NewAlertGroupsNotificationsForPeriodTable';
-import getNewAlertGroupsNotificationsInTotalScene from './scenes/NewAlertGroupsNotificationsInTotal';
-import getTotalAlertGroupsScene from './scenes/TotalAlertGroups';
-import getTotalAlertGroupsByStateScene from './scenes/TotalAlertGroupsByState';
+import { getAlertGroupsByIntegrationScene } from './scenes/AlertGroupsByIntegration';
+import { getAlertGroupsByTeamScene } from './scenes/AlertGroupsByTeam';
+import { getMTTRByIntegrationScene } from './scenes/MTTRByIntegration';
+import { getMTTRByTeamScene } from './scenes/MTTRByTeam';
+import { getMTTRChanged } from './scenes/MTTRChangedStat';
+import { getMTTRChangedTimeseriesScene } from './scenes/MTTRChangedTimeseries';
+import { getNewAlertGroupsScene } from './scenes/NewAlertGroups';
+import { getNewAlertGroupsNotificationsTableScene } from './scenes/NewAlertGroupsNotificationsTable';
+import { getNewAlertGroupsNotificationsTimeseriesScene } from './scenes/NewAlertGroupsNotificationsTimeseries';
+import { getNewAlertGroupsTimeseriesScene } from './scenes/NewAlertGroupsTimeseries';
 import getVariables from './variables';
-import { useAlertGroupsCounterChecker } from './Insights.hooks';
-import { TutorialStep } from 'components/Tutorial/Tutorial.types';
-import Tutorial from 'components/Tutorial/Tutorial';
 
 const Insights = observer(() => {
   const {
@@ -48,7 +44,6 @@ const Insights = observer(() => {
     insightsDatasource,
     organizationStore: { currentOrganization },
   } = useStore();
-  const [showAllStackInfo, setShowAllStackInfo] = useState(false);
   const [datasource, setDatasource] = useState<string>();
   const { isAlertCreated, isFirstAlertCountCheckDone } = useAlertGroupsCounterChecker();
 
@@ -69,16 +64,12 @@ const Insights = observer(() => {
 
   useEffect(() => {
     if (isAlertCreated) {
-      const stackListener = variables.stack.subscribeToState(({ text }) => {
-        setShowAllStackInfo((text as string[]).includes('All'));
-      });
       const dataSourceListener =
         isOpenSource &&
         variables.datasource.subscribeToState(({ text }) => {
           setDatasource(`${text}`);
         });
       return () => {
-        stackListener?.unsubscribe?.();
         dataSourceListener?.unsubscribe?.();
       };
     }
@@ -92,7 +83,6 @@ const Insights = observer(() => {
       <InsightsGeneralInfo />
       {isAlertCreated ? (
         <>
-          {showAllStackInfo && <AllStacksSelectedWarning />}
           {isOpenSource && !datasource && <NoDatasourceWarning />}
           <appScene.Component model={appScene} />
         </>
@@ -110,17 +100,6 @@ const InsightsGeneralInfo = () => {
     </a>
   );
   return <Text type="secondary">Find out more about OnCall Insights and Metrics in our {docsLink}.</Text>;
-};
-
-const AllStacksSelectedWarning = () => {
-  const [alertVisible, setAlertVisible] = useState(true);
-
-  return alertVisible ? (
-    <Alert onRemove={() => setAlertVisible(false)} severity="warning" title="" className={styles.spaceTop}>
-      Retrieving insights from multiple stacks has performance impact and loading data might take significantly more
-      time. We recommend to select only specific stacks.
-    </Alert>
-  ) : null;
 };
 
 const NoAlertCreatedTutorial = () => {
@@ -187,22 +166,12 @@ const getRootScene = (config: InsightsConfig, variables: ReturnType<typeof getVa
                     direction: 'column',
                     children: [
                       new SceneFlexLayout({
-                        height: 200,
-                        children: [
-                          getTotalAlertGroupsScene(config),
-                          getTotalAlertGroupsByStateScene(config),
-                          getNewAlertGroupsForSelectedPeriodScene(config),
-                          getMTTRScene(config),
-                          getMTTRChangedForPeriodStatScene(config),
-                        ],
+                        height: 300,
+                        children: [getNewAlertGroupsScene(config), getMTTRChanged(config)],
                       }),
                       new SceneFlexLayout({
-                        height: 400,
-                        children: [getNewAlertGroupsDuringTimePeriodScene(config)],
-                      }),
-                      new SceneFlexLayout({
-                        height: 400,
-                        children: [getMTTRChangedForPeriodTimeseriesScene(config)],
+                        height: 300,
+                        children: [getNewAlertGroupsTimeseriesScene(config), getMTTRChangedTimeseriesScene(config)],
                       }),
                     ],
                   }),
@@ -212,29 +181,8 @@ const getRootScene = (config: InsightsConfig, variables: ReturnType<typeof getVa
                   canCollapse: true,
                   isCollapsed: false,
                   body: new SceneFlexLayout({
-                    height: 400,
+                    height: 300,
                     children: [getAlertGroupsByIntegrationScene(config), getMTTRByIntegrationScene(config)],
-                  }),
-                }),
-                new NestedScene({
-                  title: 'Notified alert groups by Users (based on all Integrations)',
-                  canCollapse: true,
-                  isCollapsed: false,
-                  body: new SceneFlexLayout({
-                    direction: 'column',
-                    children: [
-                      new SceneFlexLayout({
-                        height: 400,
-                        children: [getNewAlertGroupsNotificationsDuringTimePeriodScene(config)],
-                      }),
-                      new SceneFlexLayout({
-                        height: 400,
-                        children: [
-                          getNewAlertGroupsNotificationsInTotalScene(config),
-                          getNewAlertGroupsNotificationsForPeriodTableScene(config),
-                        ],
-                      }),
-                    ],
                   }),
                 }),
                 new NestedScene({
@@ -245,8 +193,25 @@ const getRootScene = (config: InsightsConfig, variables: ReturnType<typeof getVa
                     direction: 'column',
                     children: [
                       new SceneFlexLayout({
-                        height: 400,
+                        height: 300,
                         children: [getAlertGroupsByTeamScene(config), getMTTRByTeamScene(config)],
+                      }),
+                    ],
+                  }),
+                }),
+                new NestedScene({
+                  title: 'Notified alert groups by Users (based on all Integrations)',
+                  canCollapse: true,
+                  isCollapsed: false,
+                  body: new SceneFlexLayout({
+                    direction: 'column',
+                    children: [
+                      new SceneFlexLayout({
+                        height: 300,
+                        children: [
+                          getNewAlertGroupsNotificationsTimeseriesScene(config),
+                          getNewAlertGroupsNotificationsTableScene(config),
+                        ],
                       }),
                     ],
                   }),

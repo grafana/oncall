@@ -3,7 +3,7 @@ import { SceneFlexItem, SceneQueryRunner, VizPanel } from '@grafana/scenes';
 
 import { InsightsConfig } from 'pages/insights/Insights.types';
 
-export default function getNewAlertGroupsNotificationsDuringTimePeriodScene({ datasource }: InsightsConfig) {
+export function getNewAlertGroupsTimeseriesScene({ datasource, stack }: InsightsConfig) {
   const query = new SceneQueryRunner({
     datasource,
     queries: [
@@ -12,7 +12,7 @@ export default function getNewAlertGroupsNotificationsDuringTimePeriodScene({ da
         editorMode: 'code',
         excludeNullMetadata: false,
         exemplar: false,
-        expr: 'increase(max_over_time(sum by (username) (avg without(pod, instance) ($user_was_notified_of_alert_groups_total{slug=~"$stack"}))[30m:])[1h:])',
+        expr: `increase(max_over_time(sum by (integration) (avg without(pod, instance) ($alert_groups_total{slug=~"${stack}", team=~"$team", integration=~"$integration"}))[30m:])[1h:])`,
         fullMetaSearch: false,
         instant: false,
         legendFormat: '__auto',
@@ -26,7 +26,7 @@ export default function getNewAlertGroupsNotificationsDuringTimePeriodScene({ da
   return new SceneFlexItem({
     $data: query,
     body: new VizPanel({
-      title: 'New alert groups notifications during time period',
+      title: 'New alert groups',
       pluginId: 'timeseries',
       fieldConfig: {
         defaults: {
@@ -47,7 +47,6 @@ export default function getNewAlertGroupsNotificationsDuringTimePeriodScene({ da
               tooltip: false,
               viz: false,
             },
-            insertNulls: false,
             lineInterpolation: 'linear',
             lineStyle: {
               fill: 'solid',
@@ -68,6 +67,7 @@ export default function getNewAlertGroupsNotificationsDuringTimePeriodScene({ da
             },
           },
           decimals: 0,
+          displayName: '${__field.labels.integration}',
           mappings: [],
           thresholds: {
             mode: ThresholdsMode.Absolute,

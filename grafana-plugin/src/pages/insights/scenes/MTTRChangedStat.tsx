@@ -3,23 +3,18 @@ import { SceneFlexItem, SceneQueryRunner, VizPanel } from '@grafana/scenes';
 
 import { InsightsConfig } from 'pages/insights/Insights.types';
 
-export default function getTotalAlertGroupsScene({ datasource }: InsightsConfig) {
+export function getMTTRChanged({ datasource, stack }: InsightsConfig) {
   const query = new SceneQueryRunner({
     datasource,
     queries: [
       {
-        disableTextWrap: false,
         editorMode: 'code',
-        excludeNullMetadata: false,
         exemplar: false,
-        expr: 'max_over_time(sum(avg without(pod, instance) ($alert_groups_total{slug=~"$stack", team=~"$team", integration=~"$integration"}))[1d:])',
-        format: 'time_series',
-        fullMetaSearch: false,
+        expr: `avg(sum($alert_groups_response_time_seconds_sum{slug=~"${stack}", team=~"$team", integration=~"$integration"}) / sum($alert_groups_response_time_seconds_count{slug=~"${stack}", team=~"$team", integration=~"$integration"}))`,
         instant: false,
         legendFormat: '__auto',
         range: true,
         refId: 'A',
-        useBackend: false,
       },
     ],
   });
@@ -27,6 +22,7 @@ export default function getTotalAlertGroupsScene({ datasource }: InsightsConfig)
   return new SceneFlexItem({
     $data: query,
     body: new VizPanel({
+      title: 'MTTR changed',
       pluginId: 'stat',
       fieldConfig: {
         defaults: {
@@ -38,27 +34,22 @@ export default function getTotalAlertGroupsScene({ datasource }: InsightsConfig)
             mode: ThresholdsMode.Absolute,
             steps: [
               {
-                color: 'text',
+                color: 'blue',
                 value: null,
               },
-            ],
-          },
-          unit: 'none',
-        },
-        overrides: [
-          {
-            matcher: {
-              id: 'byName',
-              options: 'Value',
-            },
-            properties: [
               {
-                id: 'displayName',
-                value: 'Total alert groups',
+                color: 'green',
+                value: -10000000,
+              },
+              {
+                color: 'super-light-yellow',
+                value: 0,
               },
             ],
           },
-        ],
+          unit: 's',
+        },
+        overrides: [],
       },
       options: {
         colorMode: 'value',
@@ -66,14 +57,12 @@ export default function getTotalAlertGroupsScene({ datasource }: InsightsConfig)
         justifyMode: 'center',
         orientation: 'auto',
         reduceOptions: {
-          calcs: ['lastNotNull'],
+          calcs: ['diff'],
           fields: '',
           values: false,
         },
         textMode: 'auto',
       },
-      pluginVersion: '9.5.2',
-      title: 'Total alert groups',
     }),
   });
 }

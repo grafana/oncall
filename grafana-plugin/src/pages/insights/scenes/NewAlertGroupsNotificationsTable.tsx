@@ -3,14 +3,14 @@ import { SceneDataTransformer, SceneFlexItem, SceneQueryRunner, VizPanel } from 
 
 import { InsightsConfig } from 'pages/insights/Insights.types';
 
-export default function getNewAlertGroupsNotificationsForPeriodTableScene({ datasource }: InsightsConfig) {
+export function getNewAlertGroupsNotificationsTableScene({ datasource, stack }: InsightsConfig) {
   const query = new SceneQueryRunner({
     datasource,
     queries: [
       {
         editorMode: 'code',
         exemplar: false,
-        expr: 'sort_desc(increase(max_over_time(sum by (username) (avg without(pod, instance) ($user_was_notified_of_alert_groups_total{slug=~"$stack"}))[1h:])[$__range:]))',
+        expr: `sort_desc(increase(max_over_time(sum by (username) (avg without(pod, instance) ($user_was_notified_of_alert_groups_total{slug=~"${stack}"}))[1h:])[$__range:]))`,
         format: 'table',
         instant: true,
         legendFormat: '__auto',
@@ -49,7 +49,7 @@ export default function getNewAlertGroupsNotificationsForPeriodTableScene({ data
   return new SceneFlexItem({
     $data: transformedData,
     body: new VizPanel({
-      title: 'New alert groups notifications for period',
+      title: 'New alert groups notifications',
       pluginId: 'table',
       fieldConfig: {
         defaults: {

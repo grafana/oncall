@@ -3,18 +3,24 @@ import { SceneFlexItem, SceneQueryRunner, VizPanel } from '@grafana/scenes';
 
 import { InsightsConfig } from 'pages/insights/Insights.types';
 
-export default function getMTTRScene({ datasource }: InsightsConfig) {
+export function getNewAlertGroupsScene({ datasource, stack }: InsightsConfig) {
   const query = new SceneQueryRunner({
     datasource,
     queries: [
       {
+        disableTextWrap: false,
         editorMode: 'code',
+        excludeNullMetadata: false,
         exemplar: false,
-        expr: 'avg_over_time((sum($alert_groups_response_time_seconds_sum{slug=~"$stack", team=~"$team", integration=~"$integration"}) / sum($alert_groups_response_time_seconds_count{slug=~"$stack", team=~"$team", integration=~"$integration"}))[$__range:])',
+        expr: `increase(max_over_time(sum(avg without(pod, instance) ($alert_groups_total{slug=~"${stack}", team=~"$team", integration=~"$integration"}))[1d:])[$__range:])`,
+        format: 'time_series',
+        fullMetaSearch: false,
+        includeNullMetadata: true,
         instant: true,
         legendFormat: '__auto',
         range: false,
         refId: 'A',
+        useBackend: false,
       },
     ],
   });
@@ -22,14 +28,14 @@ export default function getMTTRScene({ datasource }: InsightsConfig) {
   return new SceneFlexItem({
     $data: query,
     body: new VizPanel({
-      title: 'Mean time to respond (MTTR)',
-      description: 'Mean time between the start and first action of all alert groups for the last 7 days',
+      title: 'New alert groups',
       pluginId: 'stat',
       fieldConfig: {
         defaults: {
           color: {
             mode: 'thresholds',
           },
+          decimals: 0,
           mappings: [],
           thresholds: {
             mode: ThresholdsMode.Absolute,
@@ -40,7 +46,7 @@ export default function getMTTRScene({ datasource }: InsightsConfig) {
               },
             ],
           },
-          unit: 's',
+          unit: 'none',
         },
         overrides: [
           {
@@ -51,7 +57,7 @@ export default function getMTTRScene({ datasource }: InsightsConfig) {
             properties: [
               {
                 id: 'displayName',
-                value: 'MTTR',
+                value: 'New alert groups',
               },
             ],
           },

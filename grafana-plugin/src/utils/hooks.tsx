@@ -1,7 +1,8 @@
-import { ActionKey } from 'models/loader/action-keys';
 import React, { useEffect, useRef, useState } from 'react';
 
 import { useLocation } from 'react-router-dom';
+
+import { ActionKey } from 'models/loader/action-keys';
 import { useStore } from 'state/useStore';
 
 export function useForceUpdate() {
