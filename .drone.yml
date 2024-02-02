@@ -267,7 +267,7 @@ steps:
       - set engine version
 trigger:
   ref:
-    - experiment-with-image-2
+    - refs/heads/experiment-with-image-2
 ---
 kind: pipeline
 type: docker
