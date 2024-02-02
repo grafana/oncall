@@ -24,7 +24,7 @@ aliases:
 # Grafana OnCall documentation
 
 Grafana OnCall is an incident response and on-call management system that helps teams reduce the stress and maintenance of being on-call. Based on the Grafana
-OnCall OSS project, Grafana OnCall is available on Grafana Cloud as part of Grafana Incident Response & Management (IRM) solution.
+OnCall OSS project, Grafana OnCall is available on Grafana Cloud as part of the Grafana Incident Response & Management (IRM) solution.
 
 ## What is Grafana OnCall?
 
@@ -37,7 +37,7 @@ channels based on your predefined escalation policies and on-call schedules.
 
 ### Diverse monitoring system support
 
-Grafana OnCall integrates with a diverse set of monitoring systems, including Grafana, Prometheus, Alertmanager, Zabbix, and more. This flexibility ensures that, regardless of your existing monitoring infrastructure, your team benefit from Grafana OnCall.
+Grafana OnCall integrates with a diverse set of monitoring systems, including Grafana, Prometheus, Alertmanager, Zabbix, and more. This flexibility ensures that, regardless of your existing monitoring infrastructure, your team benefits from Grafana OnCall.
 
 ### Automatic escalation to on-call rotations
 
@@ -45,7 +45,7 @@ Efficiently manage on-call rotations using Grafana OnCall's flexible calendar op
 
 ### ChatOps focused
 
-Grafana OnCall integrates closely with your slack workspace to deliver alert notifications to individuals and groups, making daily alerts more visible and easier to manage.
+Grafana OnCall integrates closely with your Slack workspace to deliver alert notifications to individuals and groups, making daily alerts more visible and easier to manage.
 
 ### Mobile app
 
@@ -65,7 +65,7 @@ Explore how Grafana OnCall addresses common on-call challenges:
 
 - **Alert Noise and Fatigue:** Automatic grouping and configurable auto-resolve settings control alert noise and reduce fatigue during incidents.
 - **Balancing On-Call Load:** Schedule balance feature identifies potential workload imbalances, ensuring fair distribution.
-- **Tool Sprawl:** Grafana OnCall, part of Grafana Cloud suite, centralizes alert responses and investigations.
+- **Tool Sprawl:** Grafana OnCall, part of the Grafana Cloud suite, centralizes alert responses and investigations.
 - **Calendar Maintenance:** Manage on-call rotations efficiently with flexible calendar integration for easy scheduling and alert escalation.
 - **Custom Workflows:** Tailor incident response workflows with highly customizable alert grouping and routing for targeted notifications.
 
