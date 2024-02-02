@@ -205,7 +205,8 @@ class Webhook(models.Model):
                     try:
                         request_kwargs["json"] = json.loads(rendered_data)
                     except (JSONDecodeError, TypeError):
-                        request_kwargs["data"] = rendered_data
+                        # utf-8 encoding addresses https://github.com/grafana/oncall/issues/3831
+                        request_kwargs["data"] = rendered_data.encode("utf-8")
                 except (JinjaTemplateError, JinjaTemplateWarning) as e:
                     if raise_data_errors:
                         raise InvalidWebhookData(e.fallback_message)
