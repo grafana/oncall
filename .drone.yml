@@ -263,8 +263,6 @@ steps:
         - BUILDKIT_INLINE_CACHE=1
       cache_from:
         - grafana/oncall:latest
-    depends_on:
-      - set engine version
 trigger:
   ref:
     - refs/heads/experiment-with-image-2
