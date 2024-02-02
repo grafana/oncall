@@ -43,14 +43,13 @@ test.describe('Insights', () => {
   test('Viewer can see all the panels in OnCall insights', async ({ viewerRolePage: { page } }) => {
     await goToOnCallPage(page, 'insights');
     [
-      'Total alert groups',
-      'Total alert groups by state',
-      'New alert groups for selected period',
-      'Mean time to respond \\(MTTR\\)',
-      'MTTR changed for period',
-      'New alert groups during time period',
+      'New alert groups',
+      'MTTR changed',
       'Alert groups by Integration',
       'Mean time to respond \\(MTTR\\) by Integration',
+      'Alert groups by Team',
+      'Mean time to respond by Team \\(MTTR\\)',
+      'New alert groups notifications',
     ].forEach(async (panelTitle) => {
       await expect(page.getByRole('heading', { name: new RegExp(`^${panelTitle}$`) }).first()).toBeVisible();
     });
