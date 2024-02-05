@@ -556,7 +556,7 @@ const LabelsQueryBuilder: React.FC<LabelsQueryBuilderProps> = ({ values, setValu
                 return setValues(INITIAL_LABELS_OPTIONS);
               }
 
-              setValues(values.slice(0, -1));
+              setValues(values.slice(labelOptionIndex, 1));
             }}
           />
 
