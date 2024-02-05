@@ -7,9 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Fixed
+
+- Address outgoing webhook encoding error when passing non-latin characters in the webhook request body by @joeyorlando
+  ([#3832](https://github.com/grafana/oncall/pull/3832))
+
+## v1.3.100 (2024-02-01)
+
 ### Added
 
+- Allow configuration of outgoing webhook timeout via `OUTGOING_WEBHOOK_TIMEOUT` environment variable @kevindw-fluxys ([#3801](https://github.com/grafana/oncall/pull/3801))
+- Include teams info in users API ([#3817](https://github.com/grafana/oncall/pull/3817))
+
+### Fixed
+
+- Handle alert group does not exist on telegram button press ([#3814](https://github.com/grafana/oncall/pull/3814))
+
+## v1.3.99 (2024-02-01)
+
+### Added
+
+- Render alert group action buttons even if getting AG data fails ([#2383](https://github.com/grafana/oncall-private/issues/2383))
 - Enable Grafana Alerting V2 feature flag by default
+
+### Fixed
+
+- Incorrect end date on creating weekly on-call shift ([#3755](https://github.com/grafana/oncall/issues/3755))
 
 ## v1.3.98 (2024-02-01)
 

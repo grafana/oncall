@@ -7,7 +7,7 @@ from telegram import CallbackQuery, Chat, Message, Update, User
 from apps.telegram.client import TelegramClient
 from apps.telegram.renderers.keyboard import Action
 from apps.telegram.updates.update_handlers import ChannelVerificationCodeHandler, StartMessageHandler
-from apps.telegram.updates.update_handlers.button_press import ButtonPressHandler
+from apps.telegram.updates.update_handlers.button_press import NOT_FOUND_ERROR, ButtonPressHandler
 from apps.telegram.updates.update_handlers.start_message import START_TEXT
 from apps.telegram.updates.update_handlers.verification.channel import (
     VERIFICATION_FAILED_DISCUSSION_GROUP_ALREADY_REGISTERED,
@@ -40,13 +40,13 @@ def generate_channel_verification_code_message(verification_code: str, discussio
     return update
 
 
-def generate_button_press_ack_message(chat_id, alert_group) -> Update:
+def generate_button_press_ack_message(chat_id, alert_group_pk) -> Update:
     user = User(id=chat_id, first_name="Test", is_bot=False)
     callback_query = CallbackQuery(
         id=0,
         from_user=user,
         chat_instance=Chat(id=chat_id, type=Chat.PRIVATE),
-        data=CallbackQueryFactory.encode_data(alert_group.pk, Action.ACKNOWLEDGE.value),
+        data=CallbackQueryFactory.encode_data(alert_group_pk, Action.ACKNOWLEDGE.value),
     )
     update = Update(update_id=0, callback_query=callback_query)
     return update
@@ -114,10 +114,31 @@ def test_button_press_handler_gets_user(
     alert_group = make_alert_group(alert_receive_channel=alert_receive_channel)
     make_alert(alert_group, "")
 
-    update = generate_button_press_ack_message(chat_id, alert_group)
+    update = generate_button_press_ack_message(chat_id, alert_group.pk)
     handler = ButtonPressHandler(update=update)
     handler.process_update()
 
     alert_group.refresh_from_db()
     assert alert_group.acknowledged
     assert alert_group.acknowledged_by_user == user_2
+
+
+@pytest.mark.django_db
+def test_button_press_handler_non_existing_alert_group(
+    make_organization,
+    make_user_for_organization,
+    make_telegram_user_connector,
+):
+    organization = make_organization()
+
+    chat_id = 123
+    user_1 = make_user_for_organization(organization)
+    make_telegram_user_connector(user_1, telegram_chat_id=chat_id)
+
+    update = generate_button_press_ack_message(chat_id, 1234)
+    handler = ButtonPressHandler(update=update)
+
+    with patch.object(update.callback_query, "answer") as mock_answer:
+        handler.process_update()
+
+    mock_answer.assert_called_once_with(NOT_FOUND_ERROR, show_alert=True)

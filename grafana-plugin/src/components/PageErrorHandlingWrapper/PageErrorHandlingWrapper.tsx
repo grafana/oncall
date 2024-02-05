@@ -18,6 +18,7 @@ export interface PageBaseState {
 export interface PageErrorData {
   isNotFoundError?: boolean;
   isWrongTeamError?: boolean;
+  isUnknownError?: boolean;
   wrongTeamNoPermissions?: boolean;
   switchToTeam?: { name: string; id: string };
 }
