@@ -120,7 +120,7 @@ configmap_create(
 k8s_resource(
     objects=["grafana-oncall-app-provisioning:configmap"],
     new_name="grafana-oncall-app-provisioning-configmap",
-    resource_deps=["engine"],
+    resource_deps=["build-ui", "engine"],
     labels=["Grafana"],
 )
 
