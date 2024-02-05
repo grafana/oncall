@@ -111,11 +111,10 @@ const NoAlertCreatedTutorial = () => {
         title={
           <VerticalGroup align="center" spacing="lg">
             <Text type="secondary">
-              No data found. Make sure you have at least one working integration and alerts created.
+              Your OnCall stack doesn’t have any alerts to visualise insights.
+              <br />
+              Make sure that you setup OnCall configuration to start monitoring.
             </Text>
-            <LinkButton icon="plus" variant="primary" size="lg" href={`${PLUGIN_ROOT}/integrations`}>
-              Go to Integrations
-            </LinkButton>
           </VerticalGroup>
         }
       />
