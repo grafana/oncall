@@ -176,6 +176,34 @@ Toggle to send the entire webhook payload instead of using the values in the **D
 | :------: | :----------------------------------------------: | :-----------: |
 |    ❌    |                        ❌                        |    _False_    |
 
+## Labels
+
+> **Note:** Labels are currently available only in cloud.
+
+Webhook labels allow to pass labels data to a 3'rd party.
+Label data will be included in the webhook payload, along with alert group and integration labels.
+It could be useful such use-cases as delivering Alert Groups with severity to the ServiceNow or
+forwarding the cluster name to the GitHub issue.
+Check this [template example][labels_webhook_template] to see how you can include labels in the webhook data.
+
+Editing Webhook Labels:
+To edit the labels associated with a webhook, follow these steps:
+
+1. Navigate to the Webhooks tab.
+2. Select an integration from the list of enabled integrations.
+3. Click the three dots next to the webhook name and choose Edit Settings.
+4. Define a key and value for the label:
+   - Select existing keys and values from the dropdown list, or
+   - Type new keys and values into the fields, accepting with the enter/return key.
+5. To add more labels, click the Add button. Labels can also be removed using the X button next to the key-value pair.
+6. Click Save to apply the changes.
+
+To filter webhooks based on labels, use the following steps:
+
+1. Navigate to the Webhooks tab.
+2. Locate the Search or Filter Results… dropdown and select Label.
+3. Start typing to find suggestions and select the desired key-value pair for filtering. Currently, it's only possible to filter by key-value pairs.
+
 ## Outgoing webhook templates
 
 The fields that accept a Jinja2 template in outgoing webhooks are able to process data to customize the output.
@@ -209,6 +237,9 @@ must match the structure of how the fields are nested in the data.
       "slack": null,
       "telegram": null,
       "web": "https://**********.grafana.net/a/grafana-oncall-app/alert-groups/I6HNZGUFG4K11"
+    },
+    "labels": {
+      "region": "eu-1"
     }
   },
   "alert_group_id": "I6HNZGUFG4K11",
@@ -229,7 +260,10 @@ must match the structure of how the fields are nested in the data.
     "id": "CZ7URAT4V3QF2",
     "type": "webhook",
     "name": "Main Integration - Webhook",
-    "team": "Webhooks Demo"
+    "team": "Webhooks Demo",
+    "labels": {
+      "component": "demo"
+    }
   },
   "notified_users": [],
   "users_to_be_notified": [],
@@ -243,6 +277,10 @@ must match the structure of how the fields are nested in the data.
         "region": "eu"
       }
     }
+  },
+  "webhook": {
+    "name": "demo_hook",
+    "labels": {}
   }
 }
 ```
@@ -280,6 +318,7 @@ Details about the alert group associated with this event.
 - `{{ alert_group.acknowledged_at }}` - Timestamp alert group was acknowledged (None if not acknowledged yet)
 - `{{ alert_group.title }}` - Title of alert group
 - `{{ alert_group.permalinks }}` - Links to alert group in web and chat ops if available
+- `{{ alert_group.labels }}` - Labels parsed by OnCall from the first alert in the alert group
 
 #### `{{ alert_group_id }}`
 
@@ -301,6 +340,7 @@ Details about the integration that received this alert
 - `{{ integration.type }}` - Type of integration (grafana, alertmanager, webhook, etc.)
 - `{{ integration.name }}` - Name of integration
 - `{{ integration.team }}` - Team integration belongs to if integration is assigned to a team
+- `{{ integration.labels }}` - Labels assigned to integration
 
 #### `notified_users`
 
@@ -324,6 +364,14 @@ response of the referenced webhook when it was executed on behalf of the current
 See [Advanced Usage - Using response data](#using-response-data) for more details. Access as
 `{{ responses["WHP936BM1GPVHQ"].content.message }}` for example
 
+#### `webhook`
+
+Details about the triggered webhook
+
+- `{{ webhook.id }}` - [UID](#uid) of webhook
+- `{{ webhook.name }}` - Name of webhook
+- `{{ webhook.labels }}` - Labels assigned to webhook
+
 ### UID
 
 Templates often use UIDs to make decisions about what actions to take if you need to find the UID of an object
@@ -338,7 +386,18 @@ in the user interface to reference they can be found in the following places:
 
 UIDs are also visible in the browser URL when a specific object is selected for view or edit.
 
+- Outgoing Webhook - In the table there is an info icon, UID displayed on hover, click to copy to clipboard
+- Integration - In integrations beside the name is an info icon, UID displayed on hover, click to copy to clipboard
+- Routes - With an integration selected beside Send Demo Alert is an infor icon, UID displayed on hover,
+  click to copy to clipboard
+- Alert group - When viewing an alert group UID is visible in the browser URL
+- User - When viewing a user's profile UID is visible in the browser URL
+
+UIDs are also visible in the browser URL when a specific object is selected for view or edit.
+
 ### Template examples
+
+#### Data in a json body
 
 The following is an example of an entry in the Data field that would return an alert name and description.
 
@@ -349,17 +408,33 @@ The following is an example of an entry in the Data field that would return an a
 }
 ```
 
+#### Data in a query parameter
+
 Here is an example using the user's email address as part of a URL:
 
-```bash
+```jinja2
 https://someticketsystem.com/new-ticket?assign-user={{ user.email }}
+```
+
+#### JSON webhook payload with the alert-group labels
+
+This example shows how to construct a custom webhook payload from various webhook data fields and output it as a JSON object
+
+```jinja2
+{%- set payload = {} -%}
+{# add alert group labels #}
+{%- set payload = dict(payload, **{"labels": alert_group.labels}) -%}
+{# add some other fields from webhook data just for example #}
+{%- set payload = dict(payload, **{"event": event.type, "integration": integration.name}) -%}
+{# encode payload dict to json #}
+{{ payload | tojson }}
 ```
 
 #### Note about JSON
 
 Take this template for example:
 
-```json
+```jinja2
 {
   "labels": "{{ alert_payload.labels }}"
 }
@@ -375,9 +450,9 @@ It will result in the following (Invalid JSON due to single quotes):
 
 To fix change the template to:
 
-```json
+```tempate
 {
-  "labels": {{ alert_payload.labels | tojson()}}
+  "labels": {{ alert_payload.labels | tojson }}
 }
 ```
 
@@ -496,3 +571,8 @@ Integrate with third-party services:
 - [Zendesk]({{< relref "../integrations/zendesk" >}})
 
 {{< section >}}
+
+{{% docs/reference %}}
+[labels_webhook_template]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/outgoing-webhooks/#json-webhook-payload-with-the-alert-group-labels
+[labels_webhook_template]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/outgoing-webhooks/#json-webhook-payload-with-the-alert-group-labels
+{{% /docs/reference %}}
