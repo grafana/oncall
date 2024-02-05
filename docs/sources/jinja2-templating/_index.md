@@ -75,6 +75,17 @@ not in the Grafana OnCall integrations list, you can create a generic `webhook`
 integration, send an alert, and configure
 your templates.
 
+### Labels
+
+> **Note:** Labels are currently available only in cloud.
+
+In addition, there is a `labels` variable available to your templates, which contains all of the labels assigned
+to the Alert Group, as a `dict`. This allows you to template based on labels (or a mix of labels and/or payload based data):
+
+> **Example:**
+>
+> - `{{ labels.foo or payload.bar }}`
+
 ## Types of templates
 
 Alert templates allow you to format any alert fields recognized by Grafana OnCall. You can
@@ -87,6 +98,8 @@ customization, use Jinja templates.
 - `Routing Template` - used to route alerts to different Escalation Chains based on alert content (conditional template, output should be `True`)
 
    > **Note:** For conditional templates, the output should be `True` to be applied, for example `{{ True if payload.state == 'OK' else False }}`
+
+See more details in the [Routes][routes] section.
 
 #### Appearance templates
 
@@ -214,3 +227,8 @@ Built-in functions:
   - Usage example: `{{ payload.data | b64decode }}`
 
 {{< section >}}
+
+{{% docs/reference %}}
+[routes]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/escalation-chains-and-routes#routes"
+[routes]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/escalation-chains-and-routes#routes"
+{{% /docs/reference %}}

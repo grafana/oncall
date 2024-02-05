@@ -93,7 +93,7 @@ const IntegrationLabelsForm = observer((props: IntegrationLabelsFormProps) => {
         subtitle={
           <Text size="small" className="u-margin-top-xs">
             Combination of settings that manage the labeling of alert groups. More information in{' '}
-            <a href={DOCS_ROOT} target="_blank" rel="noreferrer">
+            <a href={`${DOCS_ROOT}/integrations/#alert-group-labels`} target="_blank" rel="noreferrer">
               <Text type="link">documentation</Text>
             </a>
             .
