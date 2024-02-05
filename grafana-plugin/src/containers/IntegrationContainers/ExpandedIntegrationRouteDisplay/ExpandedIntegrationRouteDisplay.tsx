@@ -451,6 +451,8 @@ interface LabelsQueryBuilderProps {
 
 const LabelsQueryBuilder: React.FC<LabelsQueryBuilderProps> = ({ values, setValues }) => {
   const { labelsStore } = useStore();
+  const [, updateState] = React.useState(undefined);
+  const forceUpdate = React.useCallback(() => updateState({}), []);
 
   useEffect(() => {
     (async function () {
@@ -466,6 +468,21 @@ const LabelsQueryBuilder: React.FC<LabelsQueryBuilderProps> = ({ values, setValu
       } as SelectableValue)
   );
 
+  // TODO:
+  // This can be refactored to reuse same updater but with different parameters
+
+  const onComparisonChange = (option: SelectableValue, labelOptionIndex: number) => {
+    const newValues: LabelValue[] = values.map((label, labelIdx) => {
+      return labelIdx === labelOptionIndex ? { ...label, comparison: option.value } : label;
+    });
+
+    if (!hasDuplicateLabelEntries(newValues, labelOptionIndex)) {
+      setValues(newValues);
+    }
+
+    forceUpdate();
+  };
+
   const onKeyChange = (option: SelectableValue, labelOptionIndex: number) => {
     const newValues: LabelValue[] = values.map((label, labelIdx) => {
       return labelIdx === labelOptionIndex
@@ -476,6 +493,8 @@ const LabelsQueryBuilder: React.FC<LabelsQueryBuilderProps> = ({ values, setValu
     if (!hasDuplicateLabelEntries(newValues, labelOptionIndex)) {
       setValues(newValues);
     }
+
+    forceUpdate();
   };
 
   const onValueChange = (option: SelectableValue, labelOptionIndex: number) => {
@@ -494,6 +513,8 @@ const LabelsQueryBuilder: React.FC<LabelsQueryBuilderProps> = ({ values, setValu
     if (!hasDuplicateLabelEntries(newValues, labelOptionIndex)) {
       setValues(newValues);
     }
+
+    forceUpdate();
   };
 
   return (
@@ -517,7 +538,7 @@ const LabelsQueryBuilder: React.FC<LabelsQueryBuilderProps> = ({ values, setValu
               value: COMPARISON_TYPE[k],
             }))}
             value={option.comparison}
-            onChange={noop}
+            onChange={(option: SelectableValue) => onComparisonChange(option, labelOptionIndex)}
           />
 
           <AsyncSelect
