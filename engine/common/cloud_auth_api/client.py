@@ -77,9 +77,6 @@ class CloudAuthApiClient:
                 "accessPolicy": {
                     "scopes": scopes,
                 },
-                "extra": {
-                    "org_id": org_id,
-                },
             },
         )
 
