@@ -14,7 +14,7 @@ import {
   SceneAppPage,
   useSceneApp,
 } from '@grafana/scenes';
-import { Alert, LinkButton, LoadingPlaceholder, VerticalGroup } from '@grafana/ui';
+import { Alert, LoadingPlaceholder, VerticalGroup } from '@grafana/ui';
 import { observer } from 'mobx-react';
 
 import Text from 'components/Text/Text';
