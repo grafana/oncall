@@ -13,6 +13,9 @@ from rest_framework.test import APIClient
 from apps.alerts.models import AlertReceiveChannel
 from apps.integrations.mixins import AlertChannelDefiningMixin
 
+# https://github.com/pytest-dev/pytest-xdist/issues/432#issuecomment-528510433
+INTEGRATION_TYPES = sorted(AlertReceiveChannel.INTEGRATION_TYPES)
+
 
 class DatabaseBlocker(_DatabaseBlocker):
     """Customize pytest_django db blocker to raise OperationalError exception."""
@@ -78,7 +81,7 @@ def test_integration_form_data_too_big(settings, make_organization_and_user, mak
     "integration_type",
     [
         arc_type
-        for arc_type in AlertReceiveChannel.INTEGRATION_TYPES
+        for arc_type in INTEGRATION_TYPES
         if arc_type not in ["amazon_sns", "grafana", "alertmanager", "grafana_alerting", "maintenance"]
     ],
 )
@@ -230,7 +233,7 @@ def test_integration_old_grafana_endpoint(
     "integration_type",
     [
         arc_type
-        for arc_type in AlertReceiveChannel.INTEGRATION_TYPES
+        for arc_type in INTEGRATION_TYPES
         if arc_type not in ["amazon_sns", "grafana", "alertmanager", "grafana_alerting", "maintenance"]
     ],
 )
@@ -264,7 +267,7 @@ def test_integration_universal_endpoint_not_allow_files(
     "integration_type",
     [
         arc_type
-        for arc_type in AlertReceiveChannel.INTEGRATION_TYPES
+        for arc_type in INTEGRATION_TYPES
         if arc_type not in ["amazon_sns", "grafana", "alertmanager", "grafana_alerting", "maintenance"]
     ],
 )
@@ -367,7 +370,7 @@ def test_integration_grafana_endpoint_without_db_has_alerts(
     "integration_type",
     [
         arc_type
-        for arc_type in AlertReceiveChannel.INTEGRATION_TYPES
+        for arc_type in INTEGRATION_TYPES
         if arc_type not in ["amazon_sns", "grafana", "alertmanager", "grafana_alerting", "maintenance"]
     ],
 )
@@ -467,7 +470,7 @@ def test_integration_grafana_endpoint_without_cache_has_alerts(
     "integration_type",
     [
         arc_type
-        for arc_type in AlertReceiveChannel.INTEGRATION_TYPES
+        for arc_type in INTEGRATION_TYPES
         if arc_type not in ["amazon_sns", "grafana", "alertmanager", "grafana_alerting", "maintenance"]
     ],
 )
