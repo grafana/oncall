@@ -126,7 +126,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
   }
 
   private rootElRef: React.RefObject<HTMLDivElement>;
-  private pollingIntervalId: NodeJS.Timer = undefined;
+  private pollingIntervalId: ReturnType<typeof setInterval> = undefined;
 
   componentDidMount() {
     const { store } = this.props;

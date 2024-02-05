@@ -36,7 +36,7 @@ class ChatOpsPage extends React.Component<ChatOpsProps, ChatOpsState> {
   };
 
   componentDidMount() {
-    const { query } = this.props;
+    const { query } = this.props; // eslint-disable-line
 
     this.handleChatopsTabChange(query?.tab || ChatOpsTab.Slack);
   }

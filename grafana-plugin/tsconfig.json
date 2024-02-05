@@ -1,5 +1,5 @@
 {
-  "extends": "@grafana/toolkit/src/config/tsconfig.plugin.json",
+  "extends": "./.config/tsconfig.json",
   "include": ["src", "e2e-tests", "playwright.config.ts"],
   "types": ["node", "@emotion/core"],
   "compilerOptions": {

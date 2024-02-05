@@ -254,20 +254,23 @@ describe('PluginState.installPlugin', () => {
       onCallAPIResponse: mockedResponse,
     });
 
-    expect(PluginState.createGrafanaToken).toBeCalledTimes(1);
-    expect(PluginState.createGrafanaToken).toBeCalledWith();
+    expect(PluginState.createGrafanaToken).toHaveBeenCalledTimes(1);
+    expect(PluginState.createGrafanaToken).toHaveBeenCalledWith();
 
-    expect(PluginState.updateGrafanaPluginSettings).toBeCalledTimes(1);
-    expect(PluginState.updateGrafanaPluginSettings).toBeCalledWith({
+    expect(PluginState.updateGrafanaPluginSettings).toHaveBeenCalledTimes(1);
+    expect(PluginState.updateGrafanaPluginSettings).toHaveBeenCalledWith({
       secureJsonData: {
         grafanaToken,
       },
     });
 
-    expect(makeRequest).toBeCalledTimes(1);
-    expect(makeRequest).toBeCalledWith(`${PluginState.ONCALL_BASE_URL}/${selfHosted ? 'self-hosted/' : ''}install`, {
-      method: 'POST',
-    });
+    expect(makeRequest).toHaveBeenCalledTimes(1);
+    expect(makeRequest).toHaveBeenCalledWith(
+      `${PluginState.ONCALL_BASE_URL}/${selfHosted ? 'self-hosted/' : ''}install`,
+      {
+        method: 'POST',
+      }
+    );
   });
 });
 

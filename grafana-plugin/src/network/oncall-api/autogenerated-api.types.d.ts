@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import type { CustomApiSchemas } from './types-generator/custom-schemas';
 
 export interface paths {
