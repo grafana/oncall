@@ -16,7 +16,6 @@ from apps.telegram.decorators import (
     ignore_message_unchanged,
     ignore_reply_to_message_deleted,
 )
-from apps.telegram.exceptions import AlertGroupTelegramMessageDoesNotExist
 from apps.telegram.models import TelegramMessage, TelegramToOrganizationConnector
 from common.custom_celery_tasks import shared_dedicated_queue_retry_task
 from common.utils import OkToRetry
@@ -85,7 +84,7 @@ def edit_message(self, message_pk):
 
 @shared_dedicated_queue_retry_task(bind=True, autoretry_for=(Exception,), retry_backoff=True, max_retries=None)
 def send_link_to_channel_message_or_fallback_to_full_alert_group(
-    self, alert_group_pk, notification_policy_pk, user_connector_pk, is_first_message_check=True
+    self, alert_group_pk, notification_policy_pk, user_connector_pk
 ):
     from apps.telegram.models import TelegramToUserConnector
 
@@ -102,16 +101,6 @@ def send_link_to_channel_message_or_fallback_to_full_alert_group(
         else:
             # seems like the message won't appear in Telegram channel, so send the full alert group to user
             user_connector.send_full_alert_group(alert_group=alert_group, notification_policy=notification_policy)
-    except AlertGroupTelegramMessageDoesNotExist as e:
-        # On the first run, if alert group message doesn't exist in db, restart the task without retry.
-        # The message is expected to appear by the next call, otherwise Exception will be raised.
-        if is_first_message_check:
-            logger.warning(f"{e}. Restarting task")
-            send_link_to_channel_message_or_fallback_to_full_alert_group.apply_async(
-                (alert_group_pk, notification_policy_pk, user_connector_pk, False), countdown=3
-            )
-        else:
-            raise e
     except TelegramToUserConnector.DoesNotExist:
         # Handle cases when user deleted the bot while escalation is active
         logger.warning(
