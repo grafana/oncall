@@ -59,9 +59,6 @@ def test_request_signed_token(make_organization, response_status_code):
         "accessPolicy": {
             "scopes": scopes,
         },
-        "extra": {
-            "org_id": str(org_id),
-        },
     }
 
     # assert we're sending the right headers
