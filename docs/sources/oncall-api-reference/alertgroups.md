@@ -56,6 +56,18 @@ These available filter parameters should be provided as `GET` arguments:
 
 `GET {{API_URL}}/api/v1/alert_groups/`
 
+# Alert group details
+
+```shell
+curl "{{API_URL}}/api/v1/alert_groups/I68T24C13IFW1" \
+  --request GET \
+  --header "Authorization: meowmeowmeow"
+```
+
+**HTTP request**
+
+`GET {{API_URL}}/api/v1/alert_groups/<ALERT_GROUP_ID>`
+
 # Acknowledge an alert group
 
 ```shell

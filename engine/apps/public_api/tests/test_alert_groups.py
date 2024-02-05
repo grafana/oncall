@@ -103,6 +103,21 @@ def alert_group_public_api_setup(
 
 
 @pytest.mark.django_db
+def test_get_alert_group(alert_group_public_api_setup):
+    token, _, _, _ = alert_group_public_api_setup
+    alert_groups = AlertGroup.objects.all().order_by("-started_at")
+    client = APIClient()
+    list_response = construct_expected_response_from_alert_groups(alert_groups)
+    expected_response = list_response["results"][0]
+
+    url = reverse("api-public:alert_groups-detail", kwargs={"pk": expected_response["id"]})
+    response = client.get(url, format="json", HTTP_AUTHORIZATION=token)
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == expected_response
+
+
+@pytest.mark.django_db
 def test_get_alert_groups(alert_group_public_api_setup):
     token, _, _, _ = alert_group_public_api_setup
     alert_groups = AlertGroup.objects.all().order_by("-started_at")
