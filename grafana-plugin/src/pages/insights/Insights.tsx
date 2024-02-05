@@ -63,16 +63,17 @@ const Insights = observer(() => {
   const appScene = useSceneApp(getAppScene);
 
   useEffect(() => {
-    if (isAlertCreated) {
-      const dataSourceListener =
-        isOpenSource &&
-        variables.datasource.subscribeToState(({ text }) => {
-          setDatasource(`${text}`);
-        });
-      return () => {
-        dataSourceListener?.unsubscribe?.();
-      };
+    if (!isAlertCreated) {
+      return undefined;
     }
+    const dataSourceListener =
+      isOpenSource &&
+      variables.datasource.subscribeToState(({ text }) => {
+        setDatasource(`${text}`);
+      });
+    return () => {
+      dataSourceListener?.unsubscribe?.();
+    };
   }, [isAlertCreated]);
 
   if (!isFirstAlertCountCheckDone) {
