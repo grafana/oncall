@@ -55,61 +55,66 @@ jobs:
           cache: "yarn"
           cache-dependency-path: grafana-plugin/yarn.lock
 
-      - name: Use cached frontend dependencies
-        id: cache-frontend-dependencies
-        uses: actions/cache@v3
-        with:
-          path: grafana-plugin/node_modules
-          key: ${{ runner.os }}-frontend-node-modules-${{ hashFiles('grafana-plugin/yarn.lock') }}
-
-      - name: Install frontend dependencies
-        if: steps.cache-frontend-dependencies.outputs.cache-hit != 'true'
-        working-directory: grafana-plugin
-        run: yarn install --frozen-lockfile --prefer-offline --network-timeout 500000
-
-      - name: Use cached plugin frontend build
-        id: cache-plugin-frontend
-        uses: actions/cache@v3
-        with:
-          path: grafana-plugin/dist
-          key: ${{ runner.os }}-plugin-frontend-${{ hashFiles('grafana-plugin/src/**/*', 'grafana-plugin/yarn.lock') }}
-
-      - name: Build plugin frontend
-        if: steps.cache-plugin-frontend.outputs.cache-hit != 'true'
-        working-directory: grafana-plugin
-        run: yarn build:dev
-
-      - name: Set up Docker Buildx # We need this step for docker caching
-        uses: docker/setup-buildx-action@v2
-
-      - name: Build engine Docker image locally # using github actions docker cache
-        uses: docker/build-push-action@v4
-        with:
-          context: ./engine
-          file: ./engine/Dockerfile
-          push: false
-          load: true
-          tags: oncall/engine:latest
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          outputs: type=docker,dest=/tmp/oncall-engine.tar
-
-      - name: Load engine Docker image on the nodes of the cluster
-        run: kind load image-archive --name=chart-testing /tmp/oncall-engine.tar
-
-      - name: Install helm chart
+      - name: Install Tilt
         run: |
-          helm install oncall-ci \
-            --values ./.github/helm-values.yml \
-            --set oncall.twilio.accountSid="${{ secrets.TWILIO_ACCOUNT_SID }}" \
-            --set oncall.twilio.authToken="${{ secrets.TWILIO_AUTH_TOKEN }}" \
-            --set oncall.twilio.phoneNumber="\"${{ secrets.TWILIO_PHONE_NUMBER }}"\" \
-            --set oncall.twilio.verifySid="${{ secrets.TWILIO_VERIFY_SID }}" \
-            --set grafana.image.tag=${{ inputs.grafana-image-tag }} \
-            ./helm/oncall
+          curl -fsSL https://raw.githubusercontent.com/tilt-dev/tilt/master/scripts/install.sh | bash
+
+      # - name: Use cached frontend dependencies
+      #   id: cache-frontend-dependencies
+      #   uses: actions/cache@v3
+      #   with:
+      #     path: grafana-plugin/node_modules
+      #     key: ${{ runner.os }}-frontend-node-modules-${{ hashFiles('grafana-plugin/yarn.lock') }}
+
+      # - name: Install frontend dependencies
+      #   if: steps.cache-frontend-dependencies.outputs.cache-hit != 'true'
+      #   working-directory: grafana-plugin
+      #   run: yarn install --frozen-lockfile --prefer-offline --network-timeout 500000
+
+      # - name: Use cached plugin frontend build
+      #   id: cache-plugin-frontend
+      #   uses: actions/cache@v3
+      #   with:
+      #     path: grafana-plugin/dist
+      #     key: ${{ runner.os }}-plugin-frontend-${{ hashFiles('grafana-plugin/src/**/*', 'grafana-plugin/yarn.lock') }}
+
+      # - name: Build plugin frontend
+      #   if: steps.cache-plugin-frontend.outputs.cache-hit != 'true'
+      #   working-directory: grafana-plugin
+      #   run: yarn build:dev
+
+      # - name: Set up Docker Buildx # We need this step for docker caching
+      #   uses: docker/setup-buildx-action@v2
+
+      # - name: Build engine Docker image locally # using github actions docker cache
+      #   uses: docker/build-push-action@v4
+      #   with:
+      #     context: ./engine
+      #     file: ./engine/Dockerfile
+      #     push: false
+      #     load: true
+      #     tags: oncall/engine:latest
+      #     cache-from: type=gha
+      #     cache-to: type=gha,mode=max
+      #     outputs: type=docker,dest=/tmp/oncall-engine.tar
+
+      # - name: Load engine Docker image on the nodes of the cluster
+      #   run: kind load image-archive --name=chart-testing /tmp/oncall-engine.tar
+
+      # - name: Install helm chart
+      #   run: |
+      #     helm install oncall-ci \
+      #       --values ./.github/helm-values.yml \
+      #       --set oncall.twilio.accountSid="${{ secrets.TWILIO_ACCOUNT_SID }}" \
+      #       --set oncall.twilio.authToken="${{ secrets.TWILIO_AUTH_TOKEN }}" \
+      #       --set oncall.twilio.phoneNumber="\"${{ secrets.TWILIO_PHONE_NUMBER }}"\" \
+      #       --set oncall.twilio.verifySid="${{ secrets.TWILIO_VERIFY_SID }}" \
+      #       --set grafana.image.tag=${{ inputs.grafana-image-tag }} \
+      #       ./helm/oncall
 
       # helpful reference for properly caching the playwright binaries/dependencies
       # https://playwrightsolutions.com/playwright-github-action-to-cache-the-browser-binaries/
+
       - name: Get installed Playwright version
         id: playwright-version
         working-directory: grafana-plugin
@@ -142,69 +147,72 @@ jobs:
       # but there's no reason to block on that step
       # instead we can let the k8s resources start up behind the scenes and do other
       # setup tasks (ex. install playwright + its dependencies)
-      - name: Wait until k8s resources are ready
-        run: |
-          kubectl rollout status deployment/oncall-ci-grafana --timeout=300s
-          kubectl rollout status deployment/oncall-ci-engine --timeout=300s
-          kubectl rollout status deployment/oncall-ci-celery --timeout=300s
+      # - name: Wait until k8s resources are ready
+      #   run: |
+      #     kubectl rollout status deployment/oncall-ci-grafana --timeout=300s
+      #     kubectl rollout status deployment/oncall-ci-engine --timeout=300s
+      #     kubectl rollout status deployment/oncall-ci-celery --timeout=300s
 
-      - name: Run e2e Tests
-        env:
-          # BASE_URL represents what is accessed via a browser
-          BASE_URL: http://localhost:30002/grafana
-          # ONCALL_API_URL is what is configured in the plugin configuration form
-          # it is what the grafana container uses to communicate with the OnCall backend
-          #
-          # 172.17.0.1 is the docker bridge network default gateway. Requests originate in the grafana container
-          # hit 172.17.0.1 which proxies the request onto the host where port 30001 is the node port that is mapped
-          # to the OnCall API
-          ONCALL_API_URL: http://172.17.0.1:30001
-          GRAFANA_ADMIN_USERNAME: oncall
-          GRAFANA_ADMIN_PASSWORD: oncall
-          GRAFANA_EDITOR_USERNAME: editor
-          GRAFANA_EDITOR_PASSWORD: editor
-          GRAFANA_VIEWER_USERNAME: viewer
-          GRAFANA_VIEWER_PASSWORD: viewer
-          MAILSLURP_API_KEY: ${{ secrets.MAILSLURP_API_KEY }}
-          BROWSERS: ${{ inputs.browsers }}
-        working-directory: ./grafana-plugin
-        run: yarn test:e2e
+      # - name: Run e2e Tests
+      #   env:
+      #     # BASE_URL represents what is accessed via a browser
+      #     BASE_URL: http://localhost:30002/grafana
+      #     # ONCALL_API_URL is what is configured in the plugin configuration form
+      #     # it is what the grafana container uses to communicate with the OnCall backend
+      #     #
+      #     # 172.17.0.1 is the docker bridge network default gateway. Requests originate in the grafana container
+      #     # hit 172.17.0.1 which proxies the request onto the host where port 30001 is the node port that is mapped
+      #     # to the OnCall API
+      #     ONCALL_API_URL: http://172.17.0.1:30001
+      #     GRAFANA_ADMIN_USERNAME: oncall
+      #     GRAFANA_ADMIN_PASSWORD: oncall
+      #     GRAFANA_EDITOR_USERNAME: editor
+      #     GRAFANA_EDITOR_PASSWORD: editor
+      #     GRAFANA_VIEWER_USERNAME: viewer
+      #     GRAFANA_VIEWER_PASSWORD: viewer
+      #     MAILSLURP_API_KEY: ${{ secrets.MAILSLURP_API_KEY }}
+      #     BROWSERS: ${{ inputs.browsers }}
+      #   working-directory: ./grafana-plugin
+      #   run: yarn test:e2e
 
-      - name: Run expensive e2e Tests
-        if: inputs.run-expensive-tests
-        env:
-          BASE_URL: http://localhost:30002/grafana
-          ONCALL_API_URL: http://172.17.0.1:30001
-          GRAFANA_ADMIN_USERNAME: oncall
-          GRAFANA_ADMIN_PASSWORD: oncall
-          GRAFANA_EDITOR_USERNAME: editor
-          GRAFANA_EDITOR_PASSWORD: editor
-          GRAFANA_VIEWER_USERNAME: viewer
-          GRAFANA_VIEWER_PASSWORD: viewer
-          MAILSLURP_API_KEY: ${{ secrets.MAILSLURP_API_KEY }}
-        working-directory: ./grafana-plugin
-        run: yarn test:e2e-expensive
+      # - name: Run expensive e2e Tests
+      #   if: inputs.run-expensive-tests
+      #   env:
+      #     BASE_URL: http://localhost:30002/grafana
+      #     ONCALL_API_URL: http://172.17.0.1:30001
+      #     GRAFANA_ADMIN_USERNAME: oncall
+      #     GRAFANA_ADMIN_PASSWORD: oncall
+      #     GRAFANA_EDITOR_USERNAME: editor
+      #     GRAFANA_EDITOR_PASSWORD: editor
+      #     GRAFANA_VIEWER_USERNAME: viewer
+      #     GRAFANA_VIEWER_PASSWORD: viewer
+      #     MAILSLURP_API_KEY: ${{ secrets.MAILSLURP_API_KEY }}
+      #   working-directory: ./grafana-plugin
+      #   run: yarn test:e2e-expensive
 
-      # spit out the engine, celery, and grafana logs, if the the e2e tests have failed (or were flaky)
-      # can be helpful for debugging these tests
-      # GitHub Action reference: https://github.com/jupyterhub/action-k8s-namespace-report
-      - name: oncall-engine logs
-        if: always()
-        uses: jupyterhub/action-k8s-namespace-report@v1
-        with:
-          important-workloads: deploy/oncall-ci-engine
+      # # spit out the engine, celery, and grafana logs, if the the e2e tests have failed (or were flaky)
+      # # can be helpful for debugging these tests
+      # # GitHub Action reference: https://github.com/jupyterhub/action-k8s-namespace-report
+      # - name: oncall-engine logs
+      #   if: always()
+      #   uses: jupyterhub/action-k8s-namespace-report@v1
+      #   with:
+      #     important-workloads: deploy/oncall-ci-engine
 
-      - name: oncall-celery logs
-        if: always()
-        uses: jupyterhub/action-k8s-namespace-report@v1
-        with:
-          important-workloads: deploy/oncall-ci-celery
+      # - name: oncall-celery logs
+      #   if: always()
+      #   uses: jupyterhub/action-k8s-namespace-report@v1
+      #   with:
+      #     important-workloads: deploy/oncall-ci-celery
 
-      - name: grafana logs
-        if: always()
-        uses: jupyterhub/action-k8s-namespace-report@v1
-        with:
-          important-workloads: deploy/oncall-ci-grafana
+      # - name: grafana logs
+      #   if: always()
+      #   uses: jupyterhub/action-k8s-namespace-report@v1
+      #   with:
+      #     important-workloads: deploy/oncall-ci-grafana
+      - name: Tilt CI
+        shell: bash
+        run: tilt ci
 
       - uses: actions/upload-artifact@v3
         if: failure()

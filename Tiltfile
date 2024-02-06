@@ -64,7 +64,7 @@ local_resource(
     labels=["E2eTests"],
     cmd="cd grafana-plugin && yarn test:e2e",
     trigger_mode=TRIGGER_MODE_MANUAL,
-    auto_init=False,
+    auto_init=config.tilt_subcommand == "ci",
     resource_deps=["build-ui", "grafana", "grafana-oncall-app-provisioning-configmap", "engine"]
 )
 
