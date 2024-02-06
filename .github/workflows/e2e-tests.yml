@@ -44,10 +44,11 @@ jobs:
           proc_trace_chart_show: false
           proc_trace_table_show: false
 
-      - name: Create k8s Kind Cluster
+      - name: Install Kind
         uses: helm/kind-action@v1.3.0
         with:
           config: ./.github/kind.yml
+          install_only: true
 
       - uses: actions/setup-node@v3
         with:
@@ -59,17 +60,27 @@ jobs:
         run: |
           curl -fsSL https://raw.githubusercontent.com/tilt-dev/tilt/master/scripts/install.sh | bash
 
-      - name: Use cached frontend dependencies
-        id: cache-frontend-dependencies
-        uses: actions/cache@v3
-        with:
-          path: grafana-plugin/node_modules
-          key: ${{ runner.os }}-frontend-node-modules-${{ hashFiles('grafana-plugin/yarn.lock') }}
+      - name: Install ctlptl
+        run: |
+          CTLPTL_VERSION="0.8.20"
+          curl -fsSL https://github.com/tilt-dev/ctlptl/releases/download/v$CTLPTL_VERSION/ctlptl.$CTLPTL_VERSION.linux.x86_64.tar.gz | \
+            tar -xzv -C /usr/local/bin ctlptl
 
-      - name: Install frontend dependencies
-        if: steps.cache-frontend-dependencies.outputs.cache-hit != 'true'
-        working-directory: grafana-plugin
-        run: yarn install --frozen-lockfile --prefer-offline --network-timeout 500000
+      - name: Create cluster
+        run: |
+          make cluster/up
+
+      # - name: Use cached frontend dependencies
+      #   id: cache-frontend-dependencies
+      #   uses: actions/cache@v3
+      #   with:
+      #     path: grafana-plugin/node_modules
+      #     key: ${{ runner.os }}-frontend-node-modules-${{ hashFiles('grafana-plugin/yarn.lock') }}
+
+      # - name: Install frontend dependencies
+      #   if: steps.cache-frontend-dependencies.outputs.cache-hit != 'true'
+      #   working-directory: grafana-plugin
+      #   run: yarn install --frozen-lockfile --prefer-offline --network-timeout 500000
 
       # - name: Use cached plugin frontend build
       #   id: cache-plugin-frontend
