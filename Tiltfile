@@ -107,7 +107,7 @@ cmd_button(
     icon_name="dangerous",
 )
 
-yaml = helm("helm/oncall", name=HELM_PREFIX, values=["./dev/helm-local.yml"] + ["./dev/helm-local.dev.yml"] if is_ci else [])
+yaml = helm("helm/oncall", name=HELM_PREFIX, values=["./dev/helm-local.yml"] + [] if is_ci else ["./dev/helm-local.dev.yml"])
 
 k8s_yaml(yaml)
 
