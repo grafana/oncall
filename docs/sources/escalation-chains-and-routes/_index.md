@@ -34,6 +34,17 @@ escalation chain and chatops channels.
 8. Click **Arrow Up** and **Arrow Down** on the right to change the order of routes
 9. Click **Three dots** and **Delete Route** to delete the route
 
+### Routing based on labels
+
+> **Note:** Labels are currently available only in cloud.
+
+In addition, there is a `labels` variable available to your routing templates, which contains all of the labels assigned
+to the Alert Group, as a `dict`. This allows you to route based on labels (or a mix of labels and/or payload based data):
+
+> **Example:**
+>
+> * `{{ labels.foo == "bar" or "hello" in labels.keys() or payload.severity == "critical" }}`
+
 ## Escalation Chains
 
 Once an alert group is created and assigned to the route with escalation chain, the

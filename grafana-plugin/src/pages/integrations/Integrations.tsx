@@ -347,7 +347,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
       >
         <TextEllipsisTooltip placement="top" content={item.verbal_name}>
           <Text type="link" size="medium">
-            <Emoji className={cx('title', TEXT_ELLIPSIS_CLASS)} text={item.verbal_name} />
+            <Emoji className={cx(TEXT_ELLIPSIS_CLASS)} text={item.verbal_name} />
           </Text>
         </TextEllipsisTooltip>
       </PluginLink>

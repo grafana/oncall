@@ -713,6 +713,32 @@ def test_user_verify_own_phone(
     assert response.status_code == expected_status
 
 
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "role,expected_status",
+    [
+        (LegacyAccessControlRole.ADMIN, status.HTTP_400_BAD_REQUEST),
+        (LegacyAccessControlRole.EDITOR, status.HTTP_400_BAD_REQUEST),
+        (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
+    ],
+)
+def test_user_get_own_telegram_verification_code_with_telegram_connected(
+    make_organization_and_user_with_plugin_token,
+    make_telegram_user_connector,
+    make_user_auth_headers,
+    role,
+    expected_status,
+):
+    _, tester, token = make_organization_and_user_with_plugin_token(role)
+
+    client = APIClient()
+    make_telegram_user_connector(tester)
+    url = reverse("api-internal:user-get-telegram-verification-code", kwargs={"pk": tester.public_primary_key})
+    response = client.get(url, format="json", **make_user_auth_headers(tester, token))
+    assert response.status_code == expected_status
+
+
 """
 Tests below are outdated
 """
