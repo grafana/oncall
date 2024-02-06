@@ -28,4 +28,20 @@ module.exports = {
 
   testTimeout: 10000,
   testPathIgnorePatterns: ['/node_modules/', '/e2e-tests/'],
+  transform: {
+    '^.+\\.(t|j)sx?$': [
+      '@swc/jest',
+      {
+        sourceMaps: 'inline',
+        jsc: {
+          parser: {
+            syntax: 'typescript',
+            tsx: true,
+            decorators: true,
+            dynamicImport: true,
+          },
+        },
+      },
+    ],
+  },
 };
