@@ -8,9 +8,11 @@ from importlib import import_module, reload
 
 import pytest
 from celery import Task
+from django.core.cache import cache
 from django.db.models.signals import post_save
 from django.urls import clear_url_caches
 from django.utils import timezone
+from pytest_django.lazy_django import skip_if_no_django
 from pytest_factoryboy import register
 from telegram import Bot
 
@@ -140,6 +142,28 @@ register(LabelValueFactory)
 register(AlertReceiveChannelAssociatedLabelFactory)
 
 IS_RBAC_ENABLED = os.getenv("ONCALL_TESTING_RBAC_ENABLED", "True") == "True"
+
+
+@pytest.fixture(autouse=True)
+def isolated_cache(worker_id, request):
+    """
+    This autofixture makes sure that every test has isolated cache access.
+    Even when using pytest-xdist for parallel calls, this will make sure
+    that they use different cache prefixes and are isolated and cleaned-up.
+
+    https://github.com/pytest-dev/pytest-django/issues/527#issuecomment-1115887487
+    """
+    skip_if_no_django()
+
+    cache.key_prefix = worker_id
+
+    def remove_cache(worker_id):
+        cache.delete_pattern("*", prefix=worker_id)
+
+    remove_cache(worker_id)
+
+    # Called after a test has finished.
+    request.addfinalizer(lambda: remove_cache(worker_id))
 
 
 @pytest.fixture(autouse=True)
