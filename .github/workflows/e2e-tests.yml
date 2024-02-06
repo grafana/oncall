@@ -59,17 +59,17 @@ jobs:
         run: |
           curl -fsSL https://raw.githubusercontent.com/tilt-dev/tilt/master/scripts/install.sh | bash
 
-      # - name: Use cached frontend dependencies
-      #   id: cache-frontend-dependencies
-      #   uses: actions/cache@v3
-      #   with:
-      #     path: grafana-plugin/node_modules
-      #     key: ${{ runner.os }}-frontend-node-modules-${{ hashFiles('grafana-plugin/yarn.lock') }}
+      - name: Use cached frontend dependencies
+        id: cache-frontend-dependencies
+        uses: actions/cache@v3
+        with:
+          path: grafana-plugin/node_modules
+          key: ${{ runner.os }}-frontend-node-modules-${{ hashFiles('grafana-plugin/yarn.lock') }}
 
-      # - name: Install frontend dependencies
-      #   if: steps.cache-frontend-dependencies.outputs.cache-hit != 'true'
-      #   working-directory: grafana-plugin
-      #   run: yarn install --frozen-lockfile --prefer-offline --network-timeout 500000
+      - name: Install frontend dependencies
+        if: steps.cache-frontend-dependencies.outputs.cache-hit != 'true'
+        working-directory: grafana-plugin
+        run: yarn install --frozen-lockfile --prefer-offline --network-timeout 500000
 
       # - name: Use cached plugin frontend build
       #   id: cache-plugin-frontend
