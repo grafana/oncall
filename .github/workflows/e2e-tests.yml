@@ -79,7 +79,7 @@ jobs:
         run: yarn install --frozen-lockfile --prefer-offline --network-timeout 500000
 
       - name: Install Playwright
-        run: npx playwright install --with-deps
+        run: yarn install playwright
 
       - name: Create cluster
         run: |
