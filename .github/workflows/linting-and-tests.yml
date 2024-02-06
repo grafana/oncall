@@ -146,7 +146,7 @@ jobs:
 
   unit-test-backend-mysql-rabbitmq:
     name: "Backend Tests: MySQL + RabbitMQ (RBAC enabled: ${{ matrix.rbac_enabled }})"
-    runs-on: ubuntu-latest-8-cores
+    runs-on: ubuntu-latest
     strategy:
       matrix:
         rbac_enabled: ["True", "False"]
@@ -189,7 +189,7 @@ jobs:
 
   unit-test-backend-postgresql-rabbitmq:
     name: "Backend Tests: PostgreSQL + RabbitMQ (RBAC enabled: ${{ matrix.rbac_enabled }})"
-    runs-on: ubuntu-latest-8-cores
+    runs-on: ubuntu-latest
     strategy:
       matrix:
         rbac_enabled: ["True", "False"]
@@ -238,7 +238,7 @@ jobs:
 
   unit-test-backend-sqlite-redis:
     name: "Backend Tests: SQLite + Redis (RBAC enabled: ${{ matrix.rbac_enabled }})"
-    runs-on: ubuntu-latest-8-cores
+    runs-on: ubuntu-latest
     strategy:
       matrix:
         rbac_enabled: ["True", "False"]
