@@ -55,7 +55,7 @@ docker_build_sub(
 local_resource(
     "build-ui",
     labels=["OnCallUI"],
-    cmd="cd grafana-plugin && yarn install && yarn build:dev",
+    cmd="cd grafana-plugin && yarn build:dev",
     serve_cmd="cd grafana-plugin && yarn watch",
     allow_parallel=True,
 )
