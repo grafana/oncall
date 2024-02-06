@@ -305,6 +305,10 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
     alert_group_labels_template: str | None = models.TextField(null=True, default=None)
     """Stores a Jinja2 template for "advanced label templating" for alert group labels."""
 
+    mobile_app_title_template = models.TextField(null=True, default=None)
+    # TODO: should this be named "message" template or "subtitle" template
+    mobile_app_message_template = models.TextField(null=True, default=None)
+
     class Meta:
         constraints = [
             # This constraint ensures that there's at most one active direct paging integration per team

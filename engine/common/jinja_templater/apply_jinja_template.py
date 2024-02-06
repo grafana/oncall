@@ -53,9 +53,12 @@ def apply_jinja_template(
 
 
 def apply_jinja_template_to_alert_payload_and_labels(
-    template: str, payload: typing.Optional["Alert.RawRequestData"], labels: typing.Optional["Labels"]
+    template: str,
+    payload: typing.Optional["Alert.RawRequestData"],
+    labels: typing.Optional["Labels"],
+    result_length_limit=settings.JINJA_RESULT_MAX_LENGTH,
 ) -> str:
-    return apply_jinja_template(template, payload=payload, labels=labels)
+    return apply_jinja_template(template, payload=payload, labels=labels, result_length_limit=result_length_limit)
 
 
 def templated_value_is_truthy(value: typing.Optional[str]) -> bool:

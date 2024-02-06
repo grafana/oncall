@@ -169,7 +169,9 @@ def test_apply_jinja_template_to_alert_payload_and_labels(mock_apply_jinja_templ
     result = apply_jinja_template_to_alert_payload_and_labels(template, payload, labels)
 
     assert result == mock_apply_jinja_template.return_value
-    mock_apply_jinja_template.assert_called_once_with(template, payload=payload, labels=labels)
+    mock_apply_jinja_template.assert_called_once_with(
+        template, payload=payload, labels=labels, result_length_limit=settings.JINJA_RESULT_MAX_LENGTH
+    )
 
 
 @pytest.mark.parametrize(

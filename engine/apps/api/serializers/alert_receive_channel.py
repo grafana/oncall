@@ -598,6 +598,8 @@ class AlertReceiveChannelTemplatesSerializer(EagerLoadingMixin, serializers.Mode
             "grouping_id_template",
             "resolve_condition_template",
             "acknowledge_condition_template",
+            "mobile_app_title_template",
+            "mobile_app_message_template",
         ]
 
         if settings.FEATURE_SLACK_INTEGRATION_ENABLED:
