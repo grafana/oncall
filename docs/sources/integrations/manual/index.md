@@ -84,6 +84,6 @@ and select the same team for a test run.
 [slack-escalate]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/notify/slack#slack-escalate-command"
 [slack-escalate]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/notify/slack#slack-escalate-command"
 
-[manage-teams]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/user-and-team-management#manage-teams-in-grafana-oncall"
-[manage-teams]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/user-and-team-management#manage-teams-in-grafana-oncall"
+[manage-teams]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/manage/user-and-team-management#manage-teams-in-grafana-oncall"
+[manage-teams]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/manage/user-and-team-management#manage-teams-in-grafana-oncall"
 {{% /docs/reference %}}
