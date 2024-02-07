@@ -53,7 +53,7 @@ route:
 receivers:
   - name: "oncall"
     webhook_configs:
-      - url: <integation-url>
+      - url: <integration-url>
         send_resolved: true
         max_alerts: 100
 ```
