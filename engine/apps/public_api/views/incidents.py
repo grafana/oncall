@@ -34,7 +34,9 @@ class IncidentByTeamFilter(ByTeamModelFieldFilterMixin, filters.FilterSet):
     id = filters.CharFilter(field_name="public_primary_key")
 
 
-class IncidentView(RateLimitHeadersMixin, mixins.ListModelMixin, mixins.DestroyModelMixin, GenericViewSet):
+class IncidentView(
+    RateLimitHeadersMixin, mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.DestroyModelMixin, GenericViewSet
+):
     authentication_classes = (ApiTokenAuthentication,)
     permission_classes = (IsAuthenticated,)
 
