@@ -149,12 +149,10 @@ setup('Configure Grafana OnCall plugin', async ({ request }, { config }) => {
     true
   );
 
-  console.log('HEEERE', IS_OPEN_SOURCE);
-
-  // if (IS_OPEN_SOURCE) {
-  //   // plugin configuration can safely be skipped for cloud environments
-  await configureOnCallPlugin(adminPage);
-  // }
+  if (IS_OPEN_SOURCE) {
+    // plugin configuration can safely be skipped for cloud environments
+    await configureOnCallPlugin(adminPage);
+  }
 
   await adminBrowserContext.close();
 });
