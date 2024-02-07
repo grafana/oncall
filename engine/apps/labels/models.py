@@ -3,8 +3,8 @@ import typing
 from django.db import models
 from django.utils import timezone
 
-from apps.labels.tasks import update_labels_cache
-from apps.labels.utils import LABEL_OUTDATED_TIMEOUT_MINUTES, LabelsData
+from apps.labels.tasks import update_label_pairs_cache
+from apps.labels.utils import LABEL_OUTDATED_TIMEOUT_MINUTES, LabelPair
 
 if typing.TYPE_CHECKING:
     from apps.user_management.models import Organization
@@ -19,6 +19,7 @@ class LabelKeyCache(models.Model):
     name = models.CharField(max_length=MAX_KEY_NAME_LENGTH)
     organization = models.ForeignKey("user_management.Organization", on_delete=models.CASCADE)
     last_synced = models.DateTimeField(auto_now=True)
+    prescribed = models.BooleanField(default=False, null=True)
 
     @property
     def is_outdated(self) -> bool:
@@ -30,6 +31,7 @@ class LabelValueCache(models.Model):
     name = models.CharField(max_length=MAX_VALUE_NAME_LENGTH)
     key = models.ForeignKey("labels.LabelKeyCache", on_delete=models.CASCADE, related_name="values")
     last_synced = models.DateTimeField(auto_now=True)
+    prescribed = models.BooleanField(default=False, null=True)
 
     @property
     def is_outdated(self) -> bool:
@@ -53,7 +55,9 @@ class AssociatedLabel(models.Model):
         abstract = True
 
     @staticmethod
-    def update_association(labels_data: "LabelsData", instance: models.Model, organization: "Organization") -> None:
+    def update_association(
+        label_pairs: typing.List[LabelPair], instance: models.Model, organization: "Organization"
+    ) -> None:
         """
         Update label associations for selected instance: delete associations with labels that are not in `labels_data`,
         create new associations and labels, if needed.
@@ -61,8 +65,8 @@ class AssociatedLabel(models.Model):
 
         instance: the model instance that the labels are associated with (e.g. AlertReceiveChannel instance)
         """
-        labels_data_keys = {label["key"]["id"]: label["key"]["name"] for label in labels_data}
-        labels_data_values = {label["value"]["id"]: label["value"]["name"] for label in labels_data}
+        labels_data_keys = {label["key"]["id"]: label["key"]["name"] for label in label_pairs}
+        labels_data_values = {label["value"]["id"]: label["value"]["name"] for label in label_pairs}
 
         # delete associations with labels that are not presented in labels_data
         instance.labels.exclude(key_id__in=labels_data_keys.keys(), value_id__in=labels_data_values.keys()).delete()
@@ -71,11 +75,11 @@ class AssociatedLabel(models.Model):
         labels_values = []
         labels_associations = []
 
-        for label_data in labels_data:
-            key_id = label_data["key"]["id"]
-            key_name = label_data["key"]["name"]
-            value_id = label_data["value"]["id"]
-            value_name = label_data["value"]["name"]
+        for label_pair in label_pairs:
+            key_id = label_pair["key"]["id"]
+            key_name = label_pair["key"]["name"]
+            value_id = label_pair["value"]["id"]
+            value_name = label_pair["value"]["name"]
 
             label_key = LabelKeyCache(id=key_id, name=key_name, organization=organization)
             labels_keys.append(label_key)
@@ -94,7 +98,9 @@ class AssociatedLabel(models.Model):
         LabelValueCache.objects.bulk_create(labels_values, ignore_conflicts=True, batch_size=5000)
         instance.labels.model.objects.bulk_create(labels_associations, ignore_conflicts=True, batch_size=5000)
 
-        update_labels_cache.apply_async((labels_data,))
+        # Many labels
+        update_label_pairs_cache.apply_async((label_pairs,))
+        # update_labels_cache.apply_async((label_pairs,))
 
     @staticmethod
     def get_associating_label_field_name() -> str:

@@ -26,12 +26,12 @@ class LabelValueSerializer(serializers.ModelSerializer):
         )
 
 
-class LabelSerializer(serializers.Serializer):
+class LabelPairSerializer(serializers.Serializer):
     key = LabelKeySerializer()
     value = LabelValueSerializer()
 
 
-class LabelKeyValuesSerializer(serializers.Serializer):
+class LabelOptionSerializer(serializers.Serializer):
     key = LabelKeySerializer()
     values = LabelValueSerializer(many=True)
 
@@ -41,7 +41,7 @@ class LabelReprSerializer(serializers.Serializer):
 
 
 class LabelsSerializerMixin(serializers.Serializer):
-    labels = LabelSerializer(many=True, required=False)
+    labels = LabelPairSerializer(many=True, required=False)
 
     def validate_labels(self, labels):
         if labels:

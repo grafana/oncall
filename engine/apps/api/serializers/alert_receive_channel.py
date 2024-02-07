@@ -50,7 +50,7 @@ class IntegrationAlertGroupLabels(typing.TypedDict):
 
 
 class CustomLabelSerializer(serializers.Serializer):
-    """This serializer is consistent with apps.api.serializers.labels.LabelSerializer, but allows null for value ID."""
+    """This serializer is consistent with apps.api.serializers.labels.LabelPairSerializer, but allows null for value ID."""
 
     class CustomLabelKeySerializer(serializers.Serializer):
         id = serializers.CharField()
