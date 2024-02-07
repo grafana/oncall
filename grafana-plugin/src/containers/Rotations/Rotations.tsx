@@ -8,7 +8,7 @@ import { observer } from 'mobx-react';
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
 
 import { ScheduleFiltersType } from 'components/ScheduleFilters/ScheduleFilters.types';
-import Text from 'components/Text/Text';
+import { Text } from 'components/Text/Text';
 import Rotation from 'containers/Rotation/Rotation';
 import RotationForm from 'containers/RotationForm/RotationForm';
 import TimelineMarks from 'containers/TimelineMarks/TimelineMarks';

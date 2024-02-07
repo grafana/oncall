@@ -1,6 +1,6 @@
 import React, { FC } from 'react';
 
-import Text from 'components/Text/Text';
+import { Text } from 'components/Text/Text';
 
 type Props = {
   text: string;

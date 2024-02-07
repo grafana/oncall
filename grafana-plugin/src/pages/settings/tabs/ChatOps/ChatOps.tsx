@@ -5,7 +5,7 @@ import { Alert, HorizontalGroup, Icon } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
-import VerticalTabsBar, { VerticalTab } from 'components/VerticalTabsBar/VerticalTabsBar';
+import { VerticalTabsBar, VerticalTab } from 'components/VerticalTabsBar/VerticalTabsBar';
 import MSTeamsSettings from 'pages/settings/tabs/ChatOps/tabs/MSTeamsSettings/MSTeamsSettings';
 import SlackSettings from 'pages/settings/tabs/ChatOps/tabs/SlackSettings/SlackSettings';
 import TelegramSettings from 'pages/settings/tabs/ChatOps/tabs/TelegramSettings/TelegramSettings';
@@ -13,7 +13,7 @@ import { AppFeature } from 'state/features';
 import { WithStoreProps } from 'state/types';
 import { useStore } from 'state/useStore';
 import { withMobXProviderContext } from 'state/withStore';
-import LocationHelper from 'utils/LocationHelper';
+import { LocationHelper } from 'utils/LocationHelper';
 
 import styles from './ChatOps.module.css';
 

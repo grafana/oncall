@@ -42,7 +42,7 @@ import {
   GRAFANA_LICENSE_OSS,
   PLUGIN_ROOT,
 } from 'utils/consts';
-import FaroHelper from 'utils/faro';
+import { FaroHelper } from 'utils/faro';
 
 // ------ Dashboard ------ //
 

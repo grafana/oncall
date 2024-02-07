@@ -11,7 +11,7 @@ import { getIfChatOpsConnected } from 'containers/DefaultPageLayout/helper';
 import { isTopNavbar } from 'plugin/GrafanaPluginRootPage.helpers';
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
-import LocationHelper from 'utils/LocationHelper';
+import { LocationHelper } from 'utils/LocationHelper';
 import { isUserActionAllowed, UserActions } from 'utils/authorization';
 import { useForceUpdate, useQueryParams } from 'utils/hooks';
 import { getItem, setItem } from 'utils/localStorage';

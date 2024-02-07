@@ -8,7 +8,7 @@ import { SortableElement } from 'react-sortable-hoc';
 import reactStringReplace from 'react-string-replace';
 
 import PluginLink from 'components/PluginLink/PluginLink';
-import Text from 'components/Text/Text';
+import { Text } from 'components/Text/Text';
 import TimeRange from 'components/TimeRange/TimeRange';
 import Timeline from 'components/Timeline/Timeline';
 import GSelect from 'containers/GSelect/GSelect';

@@ -3,7 +3,7 @@ import React, { FC } from 'react';
 import { LabelTag } from '@grafana/labels';
 import { VerticalGroup, HorizontalGroup, Button } from '@grafana/ui';
 
-import TooltipBadge from 'components/TooltipBadge/TooltipBadge';
+import { TooltipBadge } from 'components/TooltipBadge/TooltipBadge';
 import { LabelKeyValue } from 'models/label/label.types';
 
 interface LabelsTooltipBadgeProps {

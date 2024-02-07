@@ -14,10 +14,10 @@ import {
   initErrorDataState,
 } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper.helpers';
 import PluginLink from 'components/PluginLink/PluginLink';
-import Text from 'components/Text/Text';
+import { Text } from 'components/Text/Text';
 import Tutorial from 'components/Tutorial/Tutorial';
 import { TutorialStep } from 'components/Tutorial/Tutorial.types';
-import WithConfirm from 'components/WithConfirm/WithConfirm';
+import { WithConfirm } from 'components/WithConfirm/WithConfirm';
 import EscalationChainCard from 'containers/EscalationChainCard/EscalationChainCard';
 import EscalationChainForm, { EscalationChainFormMode } from 'containers/EscalationChainForm/EscalationChainForm';
 import EscalationChainSteps from 'containers/EscalationChainSteps/EscalationChainSteps';

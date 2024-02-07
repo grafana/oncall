@@ -7,7 +7,7 @@ import { debounce } from 'lodash-es';
 import CheatSheet from 'components/CheatSheet/CheatSheet';
 import { genericTemplateCheatSheet, webhookPayloadCheatSheet } from 'components/CheatSheet/CheatSheet.config';
 import MonacoEditor from 'components/MonacoEditor/MonacoEditor';
-import Text from 'components/Text/Text';
+import { Text } from 'components/Text/Text';
 import styles from 'containers/IntegrationTemplate/IntegrationTemplate.module.scss';
 import TemplateResult from 'containers/TemplateResult/TemplateResult';
 import TemplatesAlertGroupsList, { TEMPLATE_PAGE } from 'containers/TemplatesAlertGroupsList/TemplatesAlertGroupsList';

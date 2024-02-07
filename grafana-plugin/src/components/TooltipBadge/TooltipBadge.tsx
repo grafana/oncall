@@ -25,7 +25,7 @@ interface TooltipBadgeProps {
 
 const cx = cn.bind(styles);
 
-const TooltipBadge: FC<TooltipBadgeProps> = (props) => {
+export const TooltipBadge: FC<TooltipBadgeProps> = (props) => {
   const {
     borderType,
     text,
@@ -91,4 +91,3 @@ const TooltipBadge: FC<TooltipBadgeProps> = (props) => {
   }
 };
 
-export default TooltipBadge;

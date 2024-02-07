@@ -8,7 +8,7 @@ import IntegrationBlockItem from 'components/Integrations/IntegrationBlockItem';
 import IntegrationTemplateBlock from 'components/Integrations/IntegrationTemplateBlock';
 import MonacoEditor from 'components/MonacoEditor/MonacoEditor';
 import { MONACO_READONLY_CONFIG } from 'components/MonacoEditor/MonacoEditor.config';
-import Text from 'components/Text/Text';
+import { Text } from 'components/Text/Text';
 import { getTemplatesToRender } from 'containers/IntegrationContainers/IntegrationTemplatesList.config';
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { AlertTemplatesDTO } from 'models/alert_templates/alert_templates';

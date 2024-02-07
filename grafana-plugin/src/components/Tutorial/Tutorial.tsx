@@ -4,7 +4,7 @@ import cn from 'classnames/bind';
 
 import Block from 'components/GBlock/Block';
 import PluginLink from 'components/PluginLink/PluginLink';
-import Text from 'components/Text/Text';
+import { Text } from 'components/Text/Text';
 
 import { TutorialStep } from './Tutorial.types';
 import bellIcon from './icons/bell-icon.svg';
@@ -22,7 +22,7 @@ interface TutorialProps {
 
 const cx = cn.bind(styles);
 
-const Tutorial: FC<TutorialProps> = (props) => {
+export const Tutorial: FC<TutorialProps> = (props) => {
   const { title, step } = props;
 
   return (
@@ -85,5 +85,3 @@ const Arrow = () => (
     </svg>
   </div>
 );
-
-export default Tutorial;

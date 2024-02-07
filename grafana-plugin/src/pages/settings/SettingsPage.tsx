@@ -5,7 +5,7 @@ import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
 import ChatOpsPage from 'pages/settings/tabs/ChatOps/ChatOps';
-import MainSettings from 'pages/settings/tabs/MainSettings/MainSettings';
+import { MainSettings } from 'pages/settings/tabs/MainSettings/MainSettings';
 import { isTopNavbar } from 'plugin/GrafanaPluginRootPage.helpers';
 import { AppFeature } from 'state/features';
 import { RootBaseStore } from 'state/rootBaseStore';
@@ -15,7 +15,7 @@ import { isUserActionAllowed, UserActions } from 'utils/authorization';
 import { SettingsPageTab } from './SettingsPage.types';
 import CloudPage from './tabs/Cloud/CloudPage';
 import LiveSettingsPage from './tabs/LiveSettings/LiveSettingsPage';
-import TeamsSettings from './tabs/TeamsSettings/TeamsSettings';
+import { TeamsSettings } from './tabs/TeamsSettings/TeamsSettings';
 
 import styles from './SettingsPage.module.css';
 
@@ -29,7 +29,7 @@ interface SettingsPageState {
 }
 
 @observer
-class SettingsPage extends React.Component<SettingsPageProps, SettingsPageState> {
+class Settings extends React.Component<SettingsPageProps, SettingsPageState> {
   state: SettingsPageState = {
     activeTab: SettingsPageTab.MainSettings.key, // should read from route instead
   };
@@ -159,4 +159,4 @@ const TabsContent = (props: TabsContentProps) => {
   );
 };
 
-export default withMobXProviderContext(SettingsPage);
+export const SettingsPage = withMobXProviderContext(Settings);

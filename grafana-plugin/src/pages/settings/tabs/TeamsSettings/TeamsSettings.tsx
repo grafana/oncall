@@ -13,7 +13,7 @@ interface TeamsSettingsPageState extends PageBaseState {
 }
 
 @observer
-class TeamsSettings extends React.Component<AppRootProps, TeamsSettingsPageState> {
+class TeamsSettingsPage extends React.Component<AppRootProps, TeamsSettingsPageState> {
   state: TeamsSettingsPageState = {
     showEditTeamsModal: false,
     errorData: initErrorDataState(),
@@ -24,4 +24,4 @@ class TeamsSettings extends React.Component<AppRootProps, TeamsSettingsPageState
   }
 }
 
-export default withMobXProviderContext(TeamsSettings);
+export const TeamsSettings = withMobXProviderContext(TeamsSettingsPage);

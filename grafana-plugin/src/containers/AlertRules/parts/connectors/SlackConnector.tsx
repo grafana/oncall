@@ -4,7 +4,7 @@ import { Button, HorizontalGroup, InlineSwitch } from '@grafana/ui';
 import cn from 'classnames/bind';
 
 import PluginLink from 'components/PluginLink/PluginLink';
-import Text from 'components/Text/Text';
+import { Text } from 'components/Text/Text';
 import GSelect from 'containers/GSelect/GSelect';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
@@ -22,7 +22,7 @@ interface SlackConnectorProps {
   channelFilterId: ChannelFilter['id'];
 }
 
-const SlackConnector = (props: SlackConnectorProps) => {
+export const SlackConnector = (props: SlackConnectorProps) => {
   const { channelFilterId } = props;
 
   const store = useStore();
@@ -110,5 +110,3 @@ const SlackConnector = (props: SlackConnectorProps) => {
     </div>
   );
 };
-
-export default SlackConnector;

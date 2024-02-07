@@ -20,7 +20,7 @@ import Draggable, { DraggableData, DraggableEvent } from 'react-draggable';
 import Block from 'components/GBlock/Block';
 import Modal from 'components/Modal/Modal';
 import Tag from 'components/Tag/Tag';
-import Text from 'components/Text/Text';
+import { Text } from 'components/Text/Text';
 import UserGroups from 'components/UserGroups/UserGroups';
 import RemoteSelect from 'containers/RemoteSelect/RemoteSelect';
 import {

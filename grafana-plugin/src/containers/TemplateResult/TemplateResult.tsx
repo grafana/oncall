@@ -5,7 +5,7 @@ import cn from 'classnames/bind';
 
 import { TemplateForEdit } from 'components/AlertTemplates/CommonAlertTemplatesForm.config';
 import Block from 'components/GBlock/Block';
-import Text from 'components/Text/Text';
+import { Text } from 'components/Text/Text';
 import styles from 'containers/IntegrationTemplate/IntegrationTemplate.module.scss';
 import TemplatePreview, { TEMPLATE_PAGE } from 'containers/TemplatePreview/TemplatePreview';
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';

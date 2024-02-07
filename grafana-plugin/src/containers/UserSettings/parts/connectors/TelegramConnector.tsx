@@ -2,7 +2,7 @@ import React, { useCallback } from 'react';
 
 import { Button, HorizontalGroup, InlineField, Input } from '@grafana/ui';
 
-import WithConfirm from 'components/WithConfirm/WithConfirm';
+import { WithConfirm } from 'components/WithConfirm/WithConfirm';
 import { UserSettingsTab } from 'containers/UserSettings/UserSettings.types';
 import { User } from 'models/user/user.types';
 import { useStore } from 'state/useStore';

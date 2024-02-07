@@ -5,7 +5,7 @@ import cn from 'classnames/bind';
 import { isArray, isUndefined } from 'lodash-es';
 import { observer } from 'mobx-react';
 
-import Text from 'components/Text/Text';
+import { Text } from 'components/Text/Text';
 
 import styles from './IntegrationCollapsibleTreeView.module.scss';
 

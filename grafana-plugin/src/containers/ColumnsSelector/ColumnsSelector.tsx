@@ -23,7 +23,7 @@ import { observer } from 'mobx-react';
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
 
 import RenderConditionally from 'components/RenderConditionally/RenderConditionally';
-import Text from 'components/Text/Text';
+import { Text } from 'components/Text/Text';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { AlertGroupColumn, AlertGroupColumnType } from 'models/alertgroup/alertgroup.types';
 import { ActionKey } from 'models/loader/action-keys';

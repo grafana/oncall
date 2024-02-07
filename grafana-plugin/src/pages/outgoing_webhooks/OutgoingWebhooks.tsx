@@ -26,7 +26,7 @@ import {
   initErrorDataState,
 } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper.helpers';
 import PluginLink from 'components/PluginLink/PluginLink';
-import Text from 'components/Text/Text';
+import { Text } from 'components/Text/Text';
 import TextEllipsisTooltip from 'components/TextEllipsisTooltip/TextEllipsisTooltip';
 import OutgoingWebhookForm from 'containers/OutgoingWebhookForm/OutgoingWebhookForm';
 import RemoteFilters from 'containers/RemoteFilters/RemoteFilters';

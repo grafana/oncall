@@ -6,8 +6,8 @@ import { Lambda, observe } from 'mobx';
 import { observer } from 'mobx-react';
 
 import GTable from 'components/GTable/GTable';
-import Text from 'components/Text/Text';
-import WithConfirm from 'components/WithConfirm/WithConfirm';
+import { Text } from 'components/Text/Text';
+import { WithConfirm } from 'components/WithConfirm/WithConfirm';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { GlobalSetting } from 'models/global_setting/global_setting.types';
 import { WithStoreProps } from 'state/types';

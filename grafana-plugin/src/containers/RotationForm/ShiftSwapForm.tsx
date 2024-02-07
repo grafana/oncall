@@ -7,8 +7,8 @@ import Draggable from 'react-draggable';
 
 import Modal from 'components/Modal/Modal';
 import Tag from 'components/Tag/Tag';
-import Text from 'components/Text/Text';
-import WithConfirm from 'components/WithConfirm/WithConfirm';
+import { Text } from 'components/Text/Text';
+import { WithConfirm } from 'components/WithConfirm/WithConfirm';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { SHIFT_SWAP_COLOR } from 'models/schedule/schedule.helpers';
 import { Schedule, ShiftSwap } from 'models/schedule/schedule.types';

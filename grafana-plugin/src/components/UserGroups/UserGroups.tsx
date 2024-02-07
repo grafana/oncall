@@ -5,7 +5,7 @@ import { arrayMoveImmutable } from 'array-move';
 import cn from 'classnames/bind';
 import { SortableContainer, SortableElement, SortableHandle } from 'react-sortable-hoc';
 
-import Text from 'components/Text/Text';
+import { Text } from 'components/Text/Text';
 import RemoteSelect from 'containers/RemoteSelect/RemoteSelect';
 import { User } from 'models/user/user.types';
 import { UserActions } from 'utils/authorization';
@@ -163,7 +163,7 @@ interface SortableListProps {
   allowCreate?: boolean;
 }
 
-const SortableList = SortableContainer<SortableListProps>(
+export const SortableList = SortableContainer<SortableListProps>(
   ({ items, handleAddGroup, isMultipleGroups, renderItem, allowCreate }) => {
     const listRef = useRef<HTMLUListElement>();
 
@@ -203,5 +203,3 @@ const SortableList = SortableContainer<SortableListProps>(
     );
   }
 );
-
-export default UserGroups;

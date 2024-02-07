@@ -5,7 +5,7 @@ import { Select, TimeOfDayPicker, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
 
-import Text from 'components/Text/Text';
+import { Text } from 'components/Text/Text';
 import { toDate } from 'containers/RotationForm/RotationForm.helpers';
 import { Timezone } from 'models/timezone/timezone.types';
 import { useStore } from 'state/useStore';

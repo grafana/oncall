@@ -6,7 +6,7 @@ import { observer } from 'mobx-react';
 import CopyToClipboard from 'react-copy-to-clipboard';
 
 import Block from 'components/GBlock/Block';
-import Text from 'components/Text/Text';
+import { Text } from 'components/Text/Text';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { useStore } from 'state/useStore';
 import { openNotification } from 'utils';

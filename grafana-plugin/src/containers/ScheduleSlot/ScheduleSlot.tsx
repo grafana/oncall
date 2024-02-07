@@ -7,7 +7,7 @@ import { observer } from 'mobx-react';
 
 import Avatar from 'components/Avatar/Avatar';
 import { ScheduleFiltersType } from 'components/ScheduleFilters/ScheduleFilters.types';
-import Text from 'components/Text/Text';
+import { Text } from 'components/Text/Text';
 import WorkingHours from 'components/WorkingHours/WorkingHours';
 import { getShiftName, SHIFT_SWAP_COLOR } from 'models/schedule/schedule.helpers';
 import { Event, ShiftSwap } from 'models/schedule/schedule.types';

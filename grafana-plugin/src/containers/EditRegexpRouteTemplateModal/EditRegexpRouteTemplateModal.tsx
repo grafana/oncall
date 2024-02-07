@@ -8,7 +8,7 @@ import { observer } from 'mobx-react';
 import { TemplateForEdit } from 'components/AlertTemplates/CommonAlertTemplatesForm.config';
 import Block from 'components/GBlock/Block';
 import MonacoEditor from 'components/MonacoEditor/MonacoEditor';
-import Text from 'components/Text/Text';
+import { Text } from 'components/Text/Text';
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
 import { useStore } from 'state/useStore';

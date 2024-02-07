@@ -17,7 +17,7 @@ import {
 import { Alert } from '@grafana/ui';
 import { observer } from 'mobx-react';
 
-import Text from 'components/Text/Text';
+import { Text } from 'components/Text/Text';
 import { useStore } from 'state/useStore';
 import { DOCS_ROOT } from 'utils/consts';
 

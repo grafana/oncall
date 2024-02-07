@@ -5,11 +5,11 @@ import Insights from 'pages/insights/Insights';
 import OutgoingWebhooks from 'pages/outgoing_webhooks/OutgoingWebhooks';
 import SchedulePage from 'pages/schedule/Schedule';
 import SchedulesPage from 'pages/schedules/Schedules';
-import SettingsPage from 'pages/settings/SettingsPage';
+import { SettingsPage } from 'pages/settings/SettingsPage';
 import ChatOpsPage from 'pages/settings/tabs/ChatOps/ChatOps';
 import CloudPage from 'pages/settings/tabs/Cloud/CloudPage';
 import LiveSettingsPage from 'pages/settings/tabs/LiveSettings/LiveSettingsPage';
-import UsersPage from 'pages/users/Users';
+import { UsersPage } from 'pages/users/Users';
 
 import IntegrationsPage2 from './integrations/Integrations';
 

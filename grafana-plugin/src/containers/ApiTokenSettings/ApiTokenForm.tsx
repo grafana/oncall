@@ -21,7 +21,7 @@ interface TokenCreationModalProps extends HTMLAttributes<HTMLElement> {
   onUpdate: () => void;
 }
 
-const ApiTokenForm = observer((props: TokenCreationModalProps) => {
+export const ApiTokenForm = observer((props: TokenCreationModalProps) => {
   const { onHide = () => {}, onUpdate = () => {} } = props;
   const [name, setName] = useState('');
   const [token, setToken] = useState('');
@@ -109,4 +109,3 @@ function getCurlExample(token, onCallApiUrl) {
   return `curl -H "Authorization: ${token}" ${onCallApiUrl}/api/v1/integrations`;
 }
 
-export default ApiTokenForm;

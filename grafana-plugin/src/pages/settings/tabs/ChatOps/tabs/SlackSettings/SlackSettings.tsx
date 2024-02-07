@@ -16,8 +16,8 @@ import { observer } from 'mobx-react';
 
 import Block from 'components/GBlock/Block';
 import PluginLink from 'components/PluginLink/PluginLink';
-import Text from 'components/Text/Text';
-import WithConfirm from 'components/WithConfirm/WithConfirm';
+import {Text} from 'components/Text/Text';
+import {WithConfirm} from 'components/WithConfirm/WithConfirm';
 import GSelect from 'containers/GSelect/GSelect';
 import RemoteSelect from 'containers/RemoteSelect/RemoteSelect';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';

@@ -4,7 +4,7 @@ import { VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 
 import Block from 'components/GBlock/Block';
-import Text from 'components/Text/Text';
+import { Text } from 'components/Text/Text';
 
 import styles from './CardButton.module.css';
 

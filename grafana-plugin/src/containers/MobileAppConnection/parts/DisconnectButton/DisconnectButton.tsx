@@ -3,7 +3,7 @@ import React, { FC } from 'react';
 import { Button } from '@grafana/ui';
 import cn from 'classnames/bind';
 
-import WithConfirm from 'components/WithConfirm/WithConfirm';
+import { WithConfirm } from 'components/WithConfirm/WithConfirm';
 
 import styles from './DisconnectButton.module.scss';
 

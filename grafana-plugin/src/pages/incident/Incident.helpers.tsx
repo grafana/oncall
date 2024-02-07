@@ -6,7 +6,7 @@ import cn from 'classnames/bind';
 import Avatar from 'components/Avatar/Avatar';
 import PluginLink from 'components/PluginLink/PluginLink';
 import Tag from 'components/Tag/Tag';
-import Text from 'components/Text/Text';
+import { Text } from 'components/Text/Text';
 import TextEllipsisTooltip from 'components/TextEllipsisTooltip/TextEllipsisTooltip';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { Alert as AlertType, Alert, IncidentStatus } from 'models/alertgroup/alertgroup.types';

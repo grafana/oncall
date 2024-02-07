@@ -6,7 +6,7 @@ import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 import Emoji from 'react-emoji-render';
 
-import Text from 'components/Text/Text';
+import { Text } from 'components/Text/Text';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { HeartGreenIcon, HeartRedIcon } from 'icons';
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';

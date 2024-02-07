@@ -23,7 +23,7 @@ import Block from 'components/GBlock/Block';
 import GForm, { CustomFieldSectionRendererProps } from 'components/GForm/GForm';
 import IntegrationLogo from 'components/IntegrationLogo/IntegrationLogo';
 import PluginLink from 'components/PluginLink/PluginLink';
-import Text from 'components/Text/Text';
+import { Text } from 'components/Text/Text';
 import Labels from 'containers/Labels/Labels';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import {

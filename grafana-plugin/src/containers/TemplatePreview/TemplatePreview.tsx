@@ -4,7 +4,7 @@ import { Badge, HorizontalGroup, Icon, LoadingPlaceholder, VerticalGroup } from 
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
-import Text from 'components/Text/Text';
+import { Text } from 'components/Text/Text';
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { Alert } from 'models/alertgroup/alertgroup.types';
 import { OutgoingWebhook } from 'models/outgoing_webhook/outgoing_webhook.types';

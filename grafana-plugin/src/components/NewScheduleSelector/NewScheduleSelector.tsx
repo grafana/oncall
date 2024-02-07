@@ -4,7 +4,7 @@ import { Button, Drawer, HorizontalGroup, Icon, VerticalGroup } from '@grafana/u
 import cn from 'classnames/bind';
 
 import Block from 'components/GBlock/Block';
-import Text from 'components/Text/Text';
+import { Text } from 'components/Text/Text';
 import ScheduleForm from 'containers/ScheduleForm/ScheduleForm';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { Schedule, ScheduleType } from 'models/schedule/schedule.types';

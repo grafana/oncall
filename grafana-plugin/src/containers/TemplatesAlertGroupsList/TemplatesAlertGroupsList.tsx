@@ -6,8 +6,8 @@ import { debounce } from 'lodash-es';
 
 import MonacoEditor, { MONACO_LANGUAGE } from 'components/MonacoEditor/MonacoEditor';
 import { MONACO_EDITABLE_CONFIG } from 'components/MonacoEditor/MonacoEditor.config';
-import Text from 'components/Text/Text';
-import TooltipBadge from 'components/TooltipBadge/TooltipBadge';
+import { Text } from 'components/Text/Text';
+import { TooltipBadge } from 'components/TooltipBadge/TooltipBadge';
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { AlertTemplatesDTO } from 'models/alert_templates/alert_templates';
 import { Alert } from 'models/alertgroup/alertgroup.types';

@@ -7,7 +7,7 @@ import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
 
 import Block from 'components/GBlock/Block';
-import Text from 'components/Text/Text';
+import { Text } from 'components/Text/Text';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { Alert as AlertType } from 'models/alertgroup/alertgroup.types';
 import { getTimezone } from 'models/user/user.helpers';
@@ -48,7 +48,7 @@ const LearnMoreAboutNotificationPoliciesLink: React.FC = () => (
   </a>
 );
 
-const AddResponders = observer(
+export const AddResponders = observer(
   ({
     mode,
     hideAddResponderButton,
@@ -225,5 +225,3 @@ const AddResponders = observer(
     );
   }
 );
-
-export default AddResponders;

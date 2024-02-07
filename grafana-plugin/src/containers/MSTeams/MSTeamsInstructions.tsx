@@ -7,7 +7,7 @@ import CopyToClipboard from 'react-copy-to-clipboard';
 
 import Block from 'components/GBlock/Block';
 import PluginLink from 'components/PluginLink/PluginLink';
-import Text from 'components/Text/Text';
+import { Text } from 'components/Text/Text';
 import MSTeamsLogo from 'icons/MSTeamsLogo';
 import { useStore } from 'state/useStore';
 import { openNotification, openWarningNotification } from 'utils';

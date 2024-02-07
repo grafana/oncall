@@ -3,7 +3,7 @@ import React, { FC, useCallback, useEffect, useState } from 'react';
 import { SelectableValue } from '@grafana/data';
 import { Button, HorizontalGroup, Icon, Select } from '@grafana/ui';
 
-import Text from 'components/Text/Text';
+import { Text } from 'components/Text/Text';
 
 interface CursorPaginationProps {
   current: string;

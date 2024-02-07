@@ -16,7 +16,7 @@ import {
   alertGroupMultiLabelExtractionCheatSheet,
 } from 'components/CheatSheet/CheatSheet.config';
 import MonacoEditor from 'components/MonacoEditor/MonacoEditor';
-import Text from 'components/Text/Text';
+import { Text } from 'components/Text/Text';
 import TemplateResult from 'containers/TemplateResult/TemplateResult';
 import TemplatesAlertGroupsList, { TEMPLATE_PAGE } from 'containers/TemplatesAlertGroupsList/TemplatesAlertGroupsList';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
@@ -26,7 +26,7 @@ import { Alert } from 'models/alertgroup/alertgroup.types';
 import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
 import { IntegrationTemplateOptions, LabelTemplateOptions } from 'pages/integration/IntegrationCommon.config';
 import { useStore } from 'state/useStore';
-import LocationHelper from 'utils/LocationHelper';
+import { LocationHelper } from 'utils/LocationHelper';
 import { UserActions } from 'utils/authorization';
 
 import styles from './IntegrationTemplate.module.scss';

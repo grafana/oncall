@@ -18,7 +18,7 @@ interface TelegramConnectorProps {
   channelFilterId: ChannelFilter['id'];
 }
 
-const TelegramConnector = ({ channelFilterId }: TelegramConnectorProps) => {
+export const TelegramConnector = ({ channelFilterId }: TelegramConnectorProps) => {
   const store = useStore();
   const { alertReceiveChannelStore } = store;
 
@@ -62,5 +62,3 @@ const TelegramConnector = ({ channelFilterId }: TelegramConnectorProps) => {
     </div>
   );
 };
-
-export default TelegramConnector;

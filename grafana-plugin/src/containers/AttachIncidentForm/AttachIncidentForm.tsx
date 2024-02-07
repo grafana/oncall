@@ -6,7 +6,7 @@ import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 import moment from 'moment-timezone';
 
-import Text from 'components/Text/Text';
+import { Text } from 'components/Text/Text';
 import GSelect from 'containers/GSelect/GSelect';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { Alert } from 'models/alertgroup/alertgroup.types';

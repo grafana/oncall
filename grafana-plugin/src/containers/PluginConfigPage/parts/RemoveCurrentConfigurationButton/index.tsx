@@ -2,7 +2,7 @@ import React, { FC } from 'react';
 
 import { Button } from '@grafana/ui';
 
-import WithConfirm from 'components/WithConfirm/WithConfirm';
+import { WithConfirm } from 'components/WithConfirm/WithConfirm';
 
 type Props = {
   disabled: boolean;

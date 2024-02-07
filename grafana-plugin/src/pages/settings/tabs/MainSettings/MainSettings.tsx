@@ -5,10 +5,10 @@ import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 import LegacyNavHeading from 'navbar/LegacyNavHeading';
 
-import Text from 'components/Text/Text';
+import {Text} from 'components/Text/Text';
 import ApiTokenSettings from 'containers/ApiTokenSettings/ApiTokenSettings';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
-import TeamsSettings from 'pages/settings/tabs/TeamsSettings/TeamsSettings';
+import { TeamsSettings } from 'pages/settings/tabs/TeamsSettings/TeamsSettings';
 import { isTopNavbar } from 'plugin/GrafanaPluginRootPage.helpers';
 import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
@@ -25,7 +25,7 @@ interface SettingsPageState {
 }
 
 @observer
-class SettingsPage extends React.Component<SettingsPageProps, SettingsPageState> {
+class Settings extends React.Component<SettingsPageProps, SettingsPageState> {
   state: SettingsPageState = {
     apiUrl: '',
   };
@@ -92,4 +92,4 @@ class SettingsPage extends React.Component<SettingsPageProps, SettingsPageState>
   }
 }
 
-export default withMobXProviderContext(SettingsPage);
+export const MainSettings = withMobXProviderContext(Settings);

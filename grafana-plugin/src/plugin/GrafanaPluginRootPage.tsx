@@ -22,11 +22,10 @@ import Integrations from 'pages/integrations/Integrations';
 import OutgoingWebhooks from 'pages/outgoing_webhooks/OutgoingWebhooks';
 import Schedule from 'pages/schedule/Schedule';
 import Schedules from 'pages/schedules/Schedules';
-import SettingsPage from 'pages/settings/SettingsPage';
+import { SettingsPage } from 'pages/settings/SettingsPage';
 import ChatOps from 'pages/settings/tabs/ChatOps/ChatOps';
 import CloudPage from 'pages/settings/tabs/Cloud/CloudPage';
 import LiveSettings from 'pages/settings/tabs/LiveSettings/LiveSettingsPage';
-import Users from 'pages/users/Users';
 import { rootStore } from 'state';
 import { useStore } from 'state/useStore';
 import { isUserActionAllowed } from 'utils/authorization';
@@ -40,6 +39,7 @@ import { getQueryParams, isTopNavbar } from './GrafanaPluginRootPage.helpers';
 import PluginSetup from './PluginSetup';
 
 import grafanaGlobalStyle from '!raw-loader!assets/style/grafanaGlobalStyles.css';
+import { UsersPage } from 'pages/users/Users';
 
 export const GrafanaPluginRootPage = (props: AppRootProps) => {
   return (
@@ -128,7 +128,7 @@ export const Root = observer((props: AppRootProps) => {
                 <Incident query={query} />
               </Route>
               <Route path={getRoutesForPage('users')} exact>
-                <Users query={query} />
+                <UsersPage query={query} />
               </Route>
               <Route path={getRoutesForPage('integrations')} exact>
                 <Integrations query={query} />

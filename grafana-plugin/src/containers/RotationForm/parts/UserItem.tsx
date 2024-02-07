@@ -3,7 +3,7 @@ import React, { useEffect } from 'react';
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
 
-import Text from 'components/Text/Text';
+import { Text } from 'components/Text/Text';
 import WorkingHours from 'components/WorkingHours/WorkingHours';
 import { User } from 'models/user/user.types';
 import { useStore } from 'state/useStore';

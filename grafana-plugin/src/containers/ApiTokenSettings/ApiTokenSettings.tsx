@@ -6,8 +6,8 @@ import { observer } from 'mobx-react';
 import moment from 'moment-timezone';
 
 import GTable from 'components/GTable/GTable';
-import Text from 'components/Text/Text';
-import WithConfirm from 'components/WithConfirm/WithConfirm';
+import { Text } from 'components/Text/Text';
+import { WithConfirm } from 'components/WithConfirm/WithConfirm';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { ApiToken } from 'models/api_token/api_token.types';
 import { WithStoreProps } from 'state/types';

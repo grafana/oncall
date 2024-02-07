@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
-import Text from 'components/Text/Text';
+import { Text } from 'components/Text/Text';
 import MSTeamsInstructions from 'containers/MSTeams/MSTeamsInstructions';
 import { useStore } from 'state/useStore';
 

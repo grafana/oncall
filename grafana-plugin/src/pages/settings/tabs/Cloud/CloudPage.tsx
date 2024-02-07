@@ -7,8 +7,8 @@ import { RouteComponentProps, withRouter } from 'react-router-dom';
 
 import Block from 'components/GBlock/Block';
 import GTable from 'components/GTable/GTable';
-import Text from 'components/Text/Text';
-import WithConfirm from 'components/WithConfirm/WithConfirm';
+import { Text } from 'components/Text/Text';
+import { WithConfirm } from 'components/WithConfirm/WithConfirm';
 import { CrossCircleIcon, HeartIcon } from 'icons';
 import { Cloud } from 'models/cloud/cloud.types';
 import { WithStoreProps } from 'state/types';

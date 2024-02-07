@@ -6,8 +6,8 @@ import { observer } from 'mobx-react';
 
 import IntegrationBlock from 'components/Integrations/IntegrationBlock';
 import PluginLink from 'components/PluginLink/PluginLink';
-import Text from 'components/Text/Text';
-import TooltipBadge from 'components/TooltipBadge/TooltipBadge';
+import { Text } from 'components/Text/Text';
+import { TooltipBadge } from 'components/TooltipBadge/TooltipBadge';
 import styles from 'containers/IntegrationContainers/CollapsedIntegrationRouteDisplay/CollapsedIntegrationRouteDisplay.module.scss';
 import { RouteButtonsDisplay } from 'containers/IntegrationContainers/ExpandedIntegrationRouteDisplay/ExpandedIntegrationRouteDisplay';
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';

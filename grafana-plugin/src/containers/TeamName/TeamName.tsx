@@ -5,7 +5,7 @@ import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
 import Avatar from 'components/Avatar/Avatar';
-import Text from 'components/Text/Text';
+import { Text } from 'components/Text/Text';
 import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
 
 import styles from './TeamName.module.css';

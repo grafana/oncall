@@ -37,7 +37,7 @@ const PLACEHOLDER = '**********';
 
 const cx = cn.bind(styles);
 
-const Text: TextInterface = (props) => {
+export const Text: TextInterface = (props) => {
   const {
     type,
     size = 'medium',
@@ -177,5 +177,3 @@ const Title: FC<TitleProps> = (props) => {
 };
 
 Text.Title = Title;
-
-export default Text;

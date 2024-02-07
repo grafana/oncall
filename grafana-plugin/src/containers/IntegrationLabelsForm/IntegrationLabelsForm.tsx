@@ -19,7 +19,7 @@ import Collapse from 'components/Collapse/Collapse';
 import MonacoEditor, { MONACO_LANGUAGE } from 'components/MonacoEditor/MonacoEditor';
 import PluginLink from 'components/PluginLink/PluginLink';
 import RenderConditionally from 'components/RenderConditionally/RenderConditionally';
-import Text from 'components/Text/Text';
+import { Text } from 'components/Text/Text';
 import IntegrationTemplate from 'containers/IntegrationTemplate/IntegrationTemplate';
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { LabelsErrors } from 'models/label/label.types';

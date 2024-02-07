@@ -7,9 +7,9 @@ import Draggable from 'react-draggable';
 
 import Modal from 'components/Modal/Modal';
 import Tag from 'components/Tag/Tag';
-import Text from 'components/Text/Text';
+import { Text } from 'components/Text/Text';
 import UserGroups from 'components/UserGroups/UserGroups';
-import WithConfirm from 'components/WithConfirm/WithConfirm';
+import { WithConfirm } from 'components/WithConfirm/WithConfirm';
 import { getShiftName } from 'models/schedule/schedule.helpers';
 import { Schedule, Shift } from 'models/schedule/schedule.types';
 import { User } from 'models/user/user.types';

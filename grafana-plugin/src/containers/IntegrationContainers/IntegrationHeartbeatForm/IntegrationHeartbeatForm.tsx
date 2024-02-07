@@ -6,7 +6,7 @@ import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
 import IntegrationInputField from 'components/IntegrationInputField/IntegrationInputField';
-import Text from 'components/Text/Text';
+import { Text } from 'components/Text/Text';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { SelectOption } from 'state/types';

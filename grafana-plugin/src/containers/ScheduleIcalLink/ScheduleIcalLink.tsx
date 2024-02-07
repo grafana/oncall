@@ -5,7 +5,7 @@ import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 import CopyToClipboard from 'react-copy-to-clipboard';
 
-import Text from 'components/Text/Text';
+import { Text } from 'components/Text/Text';
 import { CreateScheduleExportTokenResponse, Schedule } from 'models/schedule/schedule.types';
 import { useStore } from 'state/useStore';
 import { openNotification } from 'utils';

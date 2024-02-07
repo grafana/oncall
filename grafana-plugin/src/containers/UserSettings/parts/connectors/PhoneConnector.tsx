@@ -4,8 +4,8 @@ import { Alert, Button, HorizontalGroup, InlineField, Input, VerticalGroup } fro
 import cn from 'classnames/bind';
 
 import Tag from 'components/Tag/Tag';
-import Text from 'components/Text/Text';
-import WithConfirm from 'components/WithConfirm/WithConfirm';
+import { Text } from 'components/Text/Text';
+import { WithConfirm } from 'components/WithConfirm/WithConfirm';
 import { UserSettingsTab } from 'containers/UserSettings/UserSettings.types';
 import { User } from 'models/user/user.types';
 import { AppFeature } from 'state/features';

@@ -8,7 +8,7 @@ import { observer } from 'mobx-react';
 
 import Avatar from 'components/Avatar/Avatar';
 import ScheduleBorderedAvatar from 'components/ScheduleBorderedAvatar/ScheduleBorderedAvatar';
-import Text from 'components/Text/Text';
+import { Text } from 'components/Text/Text';
 import WorkingHours from 'components/WorkingHours/WorkingHours';
 import { IsOncallIcon } from 'icons';
 import { Schedule } from 'models/schedule/schedule.types';

@@ -18,7 +18,7 @@ interface MSTeamsConnectorProps {
   channelFilterId: ChannelFilter['id'];
 }
 
-const MSTeamsConnector = (props: MSTeamsConnectorProps) => {
+export const MSTeamsConnector = (props: MSTeamsConnectorProps) => {
   const { channelFilterId } = props;
 
   const store = useStore();
@@ -70,5 +70,3 @@ const MSTeamsConnector = (props: MSTeamsConnectorProps) => {
     </div>
   );
 };
-
-export default MSTeamsConnector;

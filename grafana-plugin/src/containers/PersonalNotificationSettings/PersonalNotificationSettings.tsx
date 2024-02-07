@@ -7,7 +7,7 @@ import { observer } from 'mobx-react';
 
 import NotificationPolicy from 'components/Policy/NotificationPolicy';
 import SortableList from 'components/SortableList/SortableList';
-import Text from 'components/Text/Text';
+import { Text } from 'components/Text/Text';
 import Timeline from 'components/Timeline/Timeline';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { NotificationPolicyType } from 'models/notification_policy/notification_policy';

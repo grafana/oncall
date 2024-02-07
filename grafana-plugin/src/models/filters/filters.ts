@@ -4,7 +4,7 @@ import BaseStore from 'models/base_store';
 import { LabelKeyValue } from 'models/label/label.types';
 import { makeRequest } from 'network';
 import { RootStore } from 'state';
-import LocationHelper from 'utils/LocationHelper';
+import { LocationHelper } from 'utils/LocationHelper';
 import { PAGE } from 'utils/consts';
 import { getItem, setItem } from 'utils/localStorage';
 

@@ -4,7 +4,7 @@ import { HorizontalGroup, VerticalGroup, Badge } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
-import Text from 'components/Text/Text';
+import { Text } from 'components/Text/Text';
 import TeamName from 'containers/TeamName/TeamName';
 import { EscalationChain } from 'models/escalation_chain/escalation_chain.types';
 import { useStore } from 'state/useStore';

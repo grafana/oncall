@@ -9,7 +9,7 @@ import Collapse from 'components/Collapse/Collapse';
 import { FormItem, FormItemType } from 'components/GForm/GForm.types';
 import MonacoEditor from 'components/MonacoEditor/MonacoEditor';
 import { MONACO_READONLY_CONFIG } from 'components/MonacoEditor/MonacoEditor.config';
-import Text from 'components/Text/Text';
+import { Text } from 'components/Text/Text';
 import GSelect from 'containers/GSelect/GSelect';
 import RemoteSelect from 'containers/RemoteSelect/RemoteSelect';
 

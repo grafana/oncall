@@ -38,8 +38,8 @@ import {
 import { PluginBridge, SupportedPlugin } from 'components/PluginBridge/PluginBridge';
 import PluginLink from 'components/PluginLink/PluginLink';
 import SourceCode from 'components/SourceCode/SourceCode';
-import Text from 'components/Text/Text';
-import TooltipBadge from 'components/TooltipBadge/TooltipBadge';
+import { Text } from 'components/Text/Text';
+import { TooltipBadge } from 'components/TooltipBadge/TooltipBadge';
 import AddResponders from 'containers/AddResponders/AddResponders';
 import { prepareForUpdate } from 'containers/AddResponders/AddResponders.helpers';
 import { UserResponder } from 'containers/AddResponders/AddResponders.types';

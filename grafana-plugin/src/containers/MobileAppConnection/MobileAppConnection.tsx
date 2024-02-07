@@ -7,7 +7,7 @@ import { observer } from 'mobx-react';
 import qrCodeImage from 'assets/img/qr-code.png';
 import Block from 'components/GBlock/Block';
 import PluginLink from 'components/PluginLink/PluginLink';
-import Text from 'components/Text/Text';
+import { Text } from 'components/Text/Text';
 import { WithPermissionControlDisplay } from 'containers/WithPermissionControl/WithPermissionControlDisplay';
 import { User } from 'models/user/user.types';
 import { RootStore, rootStore as store } from 'state';

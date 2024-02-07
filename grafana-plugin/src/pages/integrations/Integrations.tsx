@@ -30,9 +30,9 @@ import {
 } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper.helpers';
 import PluginLink from 'components/PluginLink/PluginLink';
 import RenderConditionally from 'components/RenderConditionally/RenderConditionally';
-import Text from 'components/Text/Text';
+import { Text } from 'components/Text/Text';
 import TextEllipsisTooltip from 'components/TextEllipsisTooltip/TextEllipsisTooltip';
-import TooltipBadge from 'components/TooltipBadge/TooltipBadge';
+import { TooltipBadge } from 'components/TooltipBadge/TooltipBadge';
 import { WithContextMenu } from 'components/WithContextMenu/WithContextMenu';
 import IntegrationForm from 'containers/IntegrationForm/IntegrationForm';
 import IntegrationLabelsForm from 'containers/IntegrationLabelsForm/IntegrationLabelsForm';
@@ -51,7 +51,7 @@ import { AppFeature } from 'state/features';
 import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import { openNotification } from 'utils';
-import LocationHelper from 'utils/LocationHelper';
+import { LocationHelper } from 'utils/LocationHelper';
 import { UserActions } from 'utils/authorization';
 import { PAGE, TEXT_ELLIPSIS_CLASS } from 'utils/consts';
 

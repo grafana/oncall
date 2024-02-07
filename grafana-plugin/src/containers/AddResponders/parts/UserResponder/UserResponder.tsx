@@ -5,7 +5,7 @@ import { ActionMeta, HorizontalGroup, IconButton } from '@grafana/ui';
 import cn from 'classnames/bind';
 
 import Avatar from 'components/Avatar/Avatar';
-import Text from 'components/Text/Text';
+import { Text } from 'components/Text/Text';
 import styles from 'containers/AddResponders/AddResponders.module.scss';
 import { UserResponder as UserResponderType } from 'containers/AddResponders/AddResponders.types';
 import NotificationPoliciesSelect from 'containers/AddResponders/parts/NotificationPoliciesSelect/NotificationPoliciesSelect';
@@ -18,7 +18,7 @@ type Props = UserResponderType & {
   disableNotificationPolicySelect?: boolean;
 };
 
-const UserResponder: FC<Props> = ({
+export const UserResponder: FC<Props> = ({
   important,
   data: { avatar, username },
   onImportantChange,
@@ -49,5 +49,3 @@ const UserResponder: FC<Props> = ({
     </HorizontalGroup>
   </li>
 );
-
-export default UserResponder;

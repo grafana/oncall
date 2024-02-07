@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { Alert, Button, HorizontalGroup, InlineField, Input, LoadingPlaceholder, Tooltip } from '@grafana/ui';
 import CopyToClipboard from 'react-copy-to-clipboard';
 
-import WithConfirm from 'components/WithConfirm/WithConfirm';
+import { WithConfirm } from 'components/WithConfirm/WithConfirm';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { User } from 'models/user/user.types';
 import { useStore } from 'state/useStore';

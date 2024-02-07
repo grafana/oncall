@@ -8,7 +8,7 @@ import Emoji from 'react-emoji-render';
 
 import IntegrationLogo from 'components/IntegrationLogo/IntegrationLogo';
 import PluginLink from 'components/PluginLink/PluginLink';
-import Text from 'components/Text/Text';
+import { Text } from 'components/Text/Text';
 import TeamName from 'containers/TeamName/TeamName';
 import { HeartGreenIcon, HeartRedIcon } from 'icons';
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
@@ -23,7 +23,7 @@ interface AlertReceiveChannelCardProps {
   onShowHeartbeatModal: () => void;
 }
 
-const AlertReceiveChannelCard = observer((props: AlertReceiveChannelCardProps) => {
+export const AlertReceiveChannelCard = observer((props: AlertReceiveChannelCardProps) => {
   const { id, onShowHeartbeatModal } = props;
 
   const store = useStore();
@@ -111,5 +111,3 @@ const AlertReceiveChannelCard = observer((props: AlertReceiveChannelCardProps) =
     </div>
   );
 });
-
-export default AlertReceiveChannelCard;

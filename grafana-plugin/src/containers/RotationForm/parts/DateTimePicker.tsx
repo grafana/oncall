@@ -6,7 +6,7 @@ import cn from 'classnames/bind';
 import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
 
-import Text from 'components/Text/Text';
+import { Text } from 'components/Text/Text';
 import { getDateForDatePicker } from 'containers/RotationForm/RotationForm.helpers';
 import { useStore } from 'state/useStore';
 

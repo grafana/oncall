@@ -18,7 +18,7 @@ interface UsersFiltersProps {
 
 const DEBOUNCE_MS = 500;
 
-const UsersFilters = (props: UsersFiltersProps) => {
+export const UsersFilters = (props: UsersFiltersProps) => {
   const { value = { searchTerm: '' }, onChange: onChangeProp, className, isLoading } = props;
 
   // useRef instead of useState so that we don't get into closure when checking for last id
@@ -76,5 +76,3 @@ const UsersFilters = (props: UsersFiltersProps) => {
     return Math.random().toString(36).slice(-6);
   }
 };
-
-export default UsersFilters;

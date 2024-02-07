@@ -4,7 +4,7 @@ import { VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 
 import PluginLink from 'components/PluginLink/PluginLink';
-import Text from 'components/Text/Text';
+import { Text } from 'components/Text/Text';
 import { openWarningNotification } from 'utils';
 
 import styles from './PageErrorHandlingWrapper.module.css';

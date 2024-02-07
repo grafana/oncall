@@ -19,7 +19,7 @@ import { observer } from 'mobx-react';
 import moment from 'moment-timezone';
 import Emoji from 'react-emoji-render';
 
-import Text from 'components/Text/Text';
+import { Text } from 'components/Text/Text';
 import LabelsFilter from 'containers/Labels/LabelsFilter';
 import RemoteSelect from 'containers/RemoteSelect/RemoteSelect';
 import TeamName from 'containers/TeamName/TeamName';
@@ -27,7 +27,7 @@ import { FiltersValues } from 'models/filters/filters.types';
 import { GrafanaTeamStore } from 'models/grafana_team/grafana_team';
 import { SelectOption, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
-import LocationHelper from 'utils/LocationHelper';
+import { LocationHelper } from 'utils/LocationHelper';
 import { PAGE } from 'utils/consts';
 
 import { parseFilters } from './RemoteFilters.helpers';
