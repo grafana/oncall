@@ -56,6 +56,7 @@ local_resource(
     "build-ui",
     labels=["OnCallUI"],
     cmd="cd grafana-plugin && yarn build:dev",
+    env={ 'ONCALL_API_URL': 'http://oncall-dev-engine:8080' }
     serve_cmd="cd grafana-plugin && yarn watch",
     allow_parallel=True,
 )
@@ -64,6 +65,7 @@ local_resource(
     "e2e-tests",
     labels=["E2eTests"],
     cmd="cd grafana-plugin && yarn test:e2e",
+    env={ 'ONCALL_API_URL': 'http://oncall-dev-engine:8080' }
     trigger_mode=TRIGGER_MODE_MANUAL,
     auto_init=is_ci,
     resource_deps=["build-ui", "grafana", "grafana-oncall-app-provisioning-configmap", "engine", "celery"]
