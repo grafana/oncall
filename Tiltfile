@@ -66,7 +66,7 @@ local_resource(
     cmd="cd grafana-plugin && yarn test:e2e",
     trigger_mode=TRIGGER_MODE_MANUAL,
     auto_init=is_ci,
-    resource_deps=["build-ui", "grafana", "grafana-oncall-app-provisioning-configmap", "engine"]
+    resource_deps=["build-ui", "grafana", "grafana-oncall-app-provisioning-configmap", "engine", "celery"]
 )
 
 cmd_button(

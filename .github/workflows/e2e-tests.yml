@@ -223,6 +223,8 @@ jobs:
       #     important-workloads: deploy/oncall-ci-grafana
       - name: Tilt CI
         shell: bash
+        env:
+          IS_OPEN_SOURCE: true
         run: tilt ci
 
       - uses: actions/upload-artifact@v3
