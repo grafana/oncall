@@ -7,6 +7,67 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Changed
+
+- Allow mobile app to access escalation options endpoints @imtoori ([#3847](https://github.com/grafana/oncall/pull/3847))
+
+## v1.3.102 (2024-02-06)
+
+### Fixed
+
+Maintenance release
+
+## v1.3.101 (2024-02-05)
+
+### Added
+
+– Enable labels feature (Currently cloud-only)
+
+### Fixed
+
+- Address outgoing webhook encoding error when passing non-latin characters in the webhook request body by @joeyorlando
+  ([#3832](https://github.com/grafana/oncall/pull/3832))
+
+## v1.3.100 (2024-02-01)
+
+### Added
+
+- Allow configuration of outgoing webhook timeout via `OUTGOING_WEBHOOK_TIMEOUT` environment variable @kevindw-fluxys ([#3801](https://github.com/grafana/oncall/pull/3801))
+- Include teams info in users API ([#3817](https://github.com/grafana/oncall/pull/3817))
+
+### Fixed
+
+- Handle alert group does not exist on telegram button press ([#3814](https://github.com/grafana/oncall/pull/3814))
+
+## v1.3.99 (2024-02-01)
+
+### Added
+
+- Render alert group action buttons even if getting AG data fails ([#2383](https://github.com/grafana/oncall-private/issues/2383))
+- Enable Grafana Alerting V2 feature flag by default
+
+### Fixed
+
+- Incorrect end date on creating weekly on-call shift ([#3755](https://github.com/grafana/oncall/issues/3755))
+
+## v1.3.98 (2024-02-01)
+
+### Fixed
+
+Maintenance release
+
+## v1.3.97 (2024-01-31)
+
+### Changed
+
+- Ensure alert group log records are committed to DB before signalling about them @mderynck([#3731](https://github.com/grafana/oncall/pull/3731))
+
+### Fixed
+
+- Address `SlackAPIRatelimitError` exceptions in `apps.slack.tasks.send_message_to_thread_if_bot_not_in_channel` task
+  by @joeyorlando ([#3803](https://github.com/grafana/oncall/pull/3803))
+- Fix exception when parsing incident plugin config @mderynck ([#3802](https://github.com/grafana/oncall/pull/3802))
+
 ## v1.3.96 (2024-01-31)
 
 ### Added

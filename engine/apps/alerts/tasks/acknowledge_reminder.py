@@ -76,6 +76,7 @@ def acknowledge_reminder_task(alert_group_pk: int, unacknowledge_process_id: str
         log_record = alert_group.log_records.create(
             type=AlertGroupLogRecord.TYPE_ACK_REMINDER_TRIGGERED, author=alert_group.acknowledged_by_user
         )
+        task_logger.info(f"created log record {log_record.pk}, sending signal...")
         transaction.on_commit(partial(send_alert_group_signal.delay, log_record.pk))
 
 

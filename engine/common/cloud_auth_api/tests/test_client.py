@@ -1,6 +1,6 @@
 import json
-from unittest.mock import patch
 
+import httpretty
 import pytest
 from rest_framework import status
 
@@ -16,10 +16,10 @@ def configure_cloud_auth_api_client(settings):
     settings.GRAFANA_CLOUD_AUTH_API_SYSTEM_TOKEN = GRAFANA_CLOUD_AUTH_API_SYSTEM_TOKEN
 
 
-@patch("common.cloud_auth_api.client.requests")
 @pytest.mark.django_db
 @pytest.mark.parametrize("response_status_code", [status.HTTP_200_OK, status.HTTP_401_UNAUTHORIZED])
-def test_request_signed_token(mock_requests, make_organization, response_status_code):
+@httpretty.activate(verbose=True, allow_net_connect=False)
+def test_request_signed_token(make_organization, response_status_code):
     mock_auth_token = ",mnasdlkjlakjoqwejroiqwejr"
     mock_response_text = "error message"
 
@@ -31,25 +31,12 @@ def test_request_signed_token(mock_requests, make_organization, response_status_
     scopes = ["incident:write", "foo:bar"]
     claims = {"vegetable": "carrot", "fruit": "apple"}
 
-    class MockResponse:
-        text = mock_response_text
-
-        def __init__(self, status_code):
-            self.status_code = status_code
-
-        def json(self):
-            return {
-                "data": {
-                    "token": mock_auth_token,
-                },
-            }
-
-    mock_requests.post.return_value = MockResponse(response_status_code)
-
     def _make_request():
         return CloudAuthApiClient().request_signed_token(organization, scopes, claims)
 
     url = f"{GRAFANA_CLOUD_AUTH_API_URL}/v1/sign"
+    mock_response = httpretty.Response(json.dumps({"data": {"token": mock_auth_token}}), status=response_status_code)
+    httpretty.register_uri(httpretty.POST, url, responses=[mock_response])
 
     if response_status_code != status.HTTP_200_OK:
         with pytest.raises(CloudAuthApiException) as excinfo:
@@ -62,25 +49,26 @@ def test_request_signed_token(mock_requests, make_organization, response_status_
     else:
         assert _make_request() == mock_auth_token
 
-    mock_requests.post.assert_called_once_with(
-        url,
-        headers={
-            "Authorization": f"Bearer {GRAFANA_CLOUD_AUTH_API_SYSTEM_TOKEN}",
-            "X-Org-ID": str(org_id),
-            "X-Realms": json.dumps(
-                [
-                    {
-                        "type": "stack",
-                        "identifier": str(stack_id),
-                    },
-                ]
-            ),
+    last_request = httpretty.last_request()
+    assert last_request.method == "POST"
+    assert last_request.url == url
+
+    # assert we're sending the right body
+    assert json.loads(last_request.body) == {
+        "claims": claims,
+        "accessPolicy": {
+            "scopes": scopes,
         },
-        json={
-            "claims": claims,
-            "extra": {
-                "scopes": scopes,
-                "org_id": str(org_id),
+    }
+
+    # assert we're sending the right headers
+    assert last_request.headers["Authorization"] == f"Bearer {GRAFANA_CLOUD_AUTH_API_SYSTEM_TOKEN}"
+    assert last_request.headers["X-Org-ID"] == str(org_id)
+    assert last_request.headers["X-Realms"] == json.dumps(
+        [
+            {
+                "type": "stack",
+                "identifier": str(stack_id),
             },
-        },
+        ]
     )

@@ -135,8 +135,195 @@ available in other templates as a variable `{{ source_link }}`.
 To edit the name of an integration:
 
 1. Navigate to the **Integrations** tab, select an integration from the list of enabled integrations.
-1. Click the **three dots** next to the integration name and select **Integration settings**.
-1. Provide a new name, description, and team, and click **Save**.
+2. Click the **three dots** next to the integration name and select **Integration settings**.
+3. Provide a new name, description, and team, and click **Save**.
+
+#### Labels
+
+> **Note:** Labels are currently available only in cloud.
+
+Integration labels allows to manage and filter integrations based on specific criteria
+and pass these labels down to Alert Groups.
+It could be useful to organize integrations by service, region or other custom attribute.  
+
+To assign labels to the integration:
+
+1. Navigate to the **Integrations** tab, select an integration from the list of enabled integrations.
+2. Click the **three dots** next to the integration name and select **Integration settings**.
+3. Define a Key and Value of the label, either by:
+   - Selecting existing key and values from the dropdown list
+   - Typing new keys and values into the fields and accepting with enter/return key
+4. If you want to add more labels click on **Add** button. You can also remove the label using X button next to the key-value pair.
+5. Click **Save**.
+
+To filter integrations by labels:
+
+1. Navigate to the **Integrations** tab
+2. Find the **Search or filter results…** dropdown and select **Label**
+3. Start typing to find suggestions and select the key-value pair you'd like to filter by.
+
+#### Alert Group Labels
+
+The Alert Group Labeling feature allows users to:
+
+- Assign labels to alert groups
+- Filter alert groups by labels
+- Customize the Alert Group table
+- Pass labels in [webhooks][webhook-labels]
+
+##### Label Assignment Limits
+
+Up to 15 Labels: OnCall allows the assignment of up to 15 labels to an alert group.
+If there are more than 15 labels to be assigned, only the first 15 labels (sorted alphabetically)
+from the first alert in the group will be assigned.
+
+##### Label Persistence
+
+Once a label is assigned to an alert group, it remains unchanged, even if the label is edited.
+This approach considers the label as historical data.
+
+##### Configuration
+
+Alert Group Labeling is configured per-integration, and the settings are accessible in the Alert Group Labeling tab.
+
+To find Alert Group Labeling Settings:
+
+1. Navigate to the **Integrations** tab.
+2. Select an integration from the list of enabled integrations.
+3. Click the three dots next to the integration name.
+4. Choose **Alert Group Labeling**
+
+##### Assign Labels to Alert Groups
+
+###### Pass Down Integration Labels
+
+These labels are automatically assigned to each alert group coming to the integration,
+based on the labels assigned to the [integration][integration-labels].
+
+1. Navigate to the Integration Labels section in the Alert Group Labeling tab.
+2. Enable/disable passing down specific labels using the toggler.
+
+###### Dynamic & Static Labels
+
+This feature allows you to assign arbitrary labels to alert groups, either by deriving them from the payload or by specifying static values.
+Dynamic: label values are extracted from the alert payload using Jinja. Keys remain static.
+Static: these are not derived from the payload; both key and value are static.
+These labels will not be attached to the integration.
+
+1. In the Alert Group Labeling tab, navigate to Dynamic & Static Labels.
+2. Press the **Add Label** button and choose between dynamic or static labels.
+
+For Static Labels:
+
+1. Choose or create key and value from the dropdown list.
+2. These labels will be assigned to all alert groups received by this integration.
+
+For Dynamic Labels:
+
+1. Choose or create a key from the dropdown list.
+2. Enter a template to parse the value for the given key from the alert payload.
+
+To illustrate the Dynamic Labeling feature, let's consider an example where a dynamic label is created with a `severity` key
+and a template to parse values for that key:
+
+```jinja2
+{{ payload.get("severity) }}
+```
+
+Created dynamic label:
+<img src="/static/img/oncall/dynamic-label-example.png" width="700px">
+
+Two alerts were received and grouped to two different alert groups:
+
+Alert 1:
+
+```json
+{
+  "title": "critical alert",
+  "severity": "critical"
+}
+```
+
+Alert 2:
+
+```json
+{
+  "title": "warning alert",
+  "severity": "warning"
+}
+```
+
+As a result:
+
+- The first alert group will have a label: `severity: critical`.
+- The second alert group will have a label: `severity: warning`.
+
+###### Multi-label extraction template
+
+The Multi-label Extraction Template enables users to extract and modify multiple labels from the alert payload using a single template.
+This functionality not only supports dynamic values but also accommodates dynamic keys, with the Jinja template required to result in a valid JSON object.
+
+Consider the following example demonstrating the extraction of labels from a Grafana Alerting payload:
+
+Incoming Payload (trimmed for readability):
+
+```json
+{
+  ...
+  "commonLabels": {
+    "job": "node",
+    "severity": "critical",
+    "alertname": "InstanceDown"
+  },
+  ...
+}
+```
+
+Template to parse it:
+
+```jinja2
+{{ payload.commonLabels | tojson }}
+```
+
+As a result `job`, `severity` and `alertname` labels will be assigned to the alert group:
+
+<img src="/static/img/oncall/mutli-label-extraction-result.png" width="700px">
+
+An advanced example showcases the extraction of labels from various fields of the alert payload, utilizing the Grafana Alerting payload:
+
+```jinja2
+{%- set labels = {} -%}
+{# add several labels #}
+{%- set labels = dict(labels, **payload.commonLabels) -%}
+{# add one label #}
+{%- set labels = dict(labels, **{"status": payload.status}) -%}
+{# add label not from payload #}
+{%- set labels = dict(labels, **{"service": "oncall"}) -%}
+{# dump labels dict to json string, so OnCall can parse it #}
+{{ labels | tojson }}
+```
+
+#### Alert Group table customization
+
+Grafana OnCall provides users with the flexibility to customize their Alert Group table to suit individual preferences.
+This feature allows users to select and manage the columns displayed in the table, including the option to add custom columns based on labels.
+Customizations made to the Alert Group table are user-specific. Each user can personalize their view according to their preferences.
+To access customization Navigate to the **Alert Groups** tab and Locate the **Columns** dropdown.
+
+##### Managing default columns
+
+By default, the Columns dropdown provides a list of predefined columns that users can enable or disable based on their preferences.
+
+To manage default columns use the toggler next to each column name to enable or disable its visibility in the table.
+
+##### Adding Custom Columns
+
+Users with admin permissions have the ability to add custom columns based on labels. Follow these steps to add a custom column:
+
+1. Press the Add button in the Columns dropdown. A modal will appear.
+2. In the modal, begin typing the name of the labels key you want to create a column for.
+3. Select the desired label from the options presented and press the Add button.
+4. The new custom column, titled with the label's key, will now be available as an option in the Column Settings for all users.
 
 ## List of available integrations
 
@@ -160,4 +347,10 @@ To edit the name of an integration:
 
 [Routing template]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/configure/jinja2-templating#routing-template"
 [Routing template]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/configure/jinja2-templating#routing-template"
+
+[webhook-labels]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/outgoing-webhooks/#labels"
+[webhook-labels]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/outgoing-webhooks/#labels"
+
+[integration-labels]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/integrations/#labels"
+[integration-labels]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/integrations/#labels"
 {{% /docs/reference %}}
