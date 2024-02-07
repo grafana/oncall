@@ -600,6 +600,13 @@ class AlertGroupLogRecord(models.Model):
         )
         super().delete()
 
+    def save(self, *args, **kwargs):
+        from apps.auth_token.auth import GRAFANA_SA_USERNAME
+
+        if self.author and self.author.username == GRAFANA_SA_USERNAME:
+            self.author = None
+        super().save(*args, **kwargs)
+
 
 @receiver(post_save, sender=AlertGroupLogRecord)
 def listen_for_alertgrouplogrecord(sender, instance, created, *args, **kwargs):

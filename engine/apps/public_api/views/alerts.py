@@ -6,7 +6,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import GenericViewSet
 
 from apps.alerts.models import Alert
-from apps.auth_token.auth import ApiTokenAuthentication
+from apps.api.permissions import RBACPermission
+from apps.auth_token.auth import ApiTokenAuthentication, GrafanaServiceAccountAuthentication
 from apps.public_api.serializers.alerts import AlertSerializer
 from apps.public_api.throttlers.user_throttle import UserThrottle
 from common.api_helpers.mixins import RateLimitHeadersMixin
@@ -18,8 +19,18 @@ class AlertFilter(filters.FilterSet):
 
 
 class AlertView(RateLimitHeadersMixin, mixins.ListModelMixin, GenericViewSet):
-    authentication_classes = (ApiTokenAuthentication,)
-    permission_classes = (IsAuthenticated,)
+    authentication_classes = (
+        GrafanaServiceAccountAuthentication,
+        ApiTokenAuthentication,
+    )
+    permission_classes = (IsAuthenticated, RBACPermission)
+
+    rbac_permissions = {
+        "metadata": [RBACPermission.Permissions.ALERT_GROUPS_READ],
+        "list": [RBACPermission.Permissions.ALERT_GROUPS_READ],
+        "retrieve": [RBACPermission.Permissions.ALERT_GROUPS_READ],
+        "filters": [RBACPermission.Permissions.ALERT_GROUPS_READ],
+    }
 
     throttle_classes = [UserThrottle]
 

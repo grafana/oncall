@@ -1881,3 +1881,14 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
         """
         count = self.alerts.all()[: max_alerts + 1].count()
         return count > max_alerts
+
+    def save(self, *args, **kwargs):
+        from apps.auth_token.auth import GRAFANA_SA_USERNAME
+
+        if self.acknowledged_by_user and self.acknowledged_by_user.username == GRAFANA_SA_USERNAME:
+            self.acknowledged_by_user = None
+        if self.resolved_by_user and self.resolved_by_user.username == GRAFANA_SA_USERNAME:
+            self.resolved_by_user = None
+        if self.silenced_by_user and self.silenced_by_user.username == GRAFANA_SA_USERNAME:
+            self.silenced_by_user = None
+        super().save(*args, **kwargs)

@@ -288,6 +288,8 @@ class UserScheduleExportAuthentication(BaseAuthentication):
 
 X_GRAFANA_INSTANCE_ID = "X-Grafana-Instance-ID"
 GRAFANA_SA_PREFIX = "glsa_"
+GRAFANA_SA_USERNAME = "grafana_service_account"
+GRAFANA_SA_NAME = "Grafana Service Account"
 
 
 class GrafanaServiceAccountAuthentication(BaseAuthentication):
@@ -330,8 +332,8 @@ class GrafanaServiceAccountAuthentication(BaseAuthentication):
 
         user = User(
             organization_id=organization.pk,
-            name="Grafana Service Account",
-            username="grafana_service_account",
+            name=GRAFANA_SA_NAME,
+            username=GRAFANA_SA_USERNAME,
             role=role,
             permissions=[GrafanaAPIPermission(action=key) for key, _ in permissions.items()],
         )
