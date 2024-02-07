@@ -468,12 +468,9 @@ const LabelsQueryBuilder: React.FC<LabelsQueryBuilderProps> = ({ values, setValu
       } as SelectableValue)
   );
 
-  // TODO:
-  // This can be refactored to reuse same updater but with different parameters
-
-  const onComparisonChange = (option: SelectableValue, labelOptionIndex: number) => {
+  const onCommonChange = (labelOptionIndex: number, data: Partial<LabelValue>) => {
     const newValues: LabelValue[] = values.map((label, labelIdx) => {
-      return labelIdx === labelOptionIndex ? { ...label, comparison: option.value } : label;
+      return labelIdx === labelOptionIndex ? { ...label, ...data } : label;
     });
 
     if (!hasDuplicateLabelEntries(newValues, labelOptionIndex)) {
@@ -483,39 +480,19 @@ const LabelsQueryBuilder: React.FC<LabelsQueryBuilderProps> = ({ values, setValu
     forceUpdate();
   };
 
-  const onKeyChange = (option: SelectableValue, labelOptionIndex: number) => {
-    const newValues: LabelValue[] = values.map((label, labelIdx) => {
-      return labelIdx === labelOptionIndex
-        ? { ...label, key: { [FieldId]: option.value, [FieldName]: option.label } }
-        : label;
+  const onComparisonChange = (option: SelectableValue, labelOptionIndex: number) =>
+    onCommonChange(labelOptionIndex, { comparison: option.value });
+
+  const onKeyChange = (option: SelectableValue, labelOptionIndex: number) =>
+    onCommonChange(labelOptionIndex, { key: { [FieldId]: option.value, [FieldName]: option.label } });
+
+  const onValueChange = (option: SelectableValue, labelOptionIndex: number) =>
+    onCommonChange(labelOptionIndex, {
+      value: {
+        [FieldId]: option.value,
+        [FieldName]: option.label,
+      },
     });
-
-    if (!hasDuplicateLabelEntries(newValues, labelOptionIndex)) {
-      setValues(newValues);
-    }
-
-    forceUpdate();
-  };
-
-  const onValueChange = (option: SelectableValue, labelOptionIndex: number) => {
-    const newValues: LabelValue[] = values.map((label, labelIdx) => {
-      return labelOptionIndex === labelIdx
-        ? {
-            ...label,
-            value: {
-              [FieldId]: option.value,
-              [FieldName]: option.label,
-            },
-          }
-        : label;
-    });
-
-    if (!hasDuplicateLabelEntries(newValues, labelOptionIndex)) {
-      setValues(newValues);
-    }
-
-    forceUpdate();
-  };
 
   return (
     <VerticalGroup>
