@@ -12,6 +12,7 @@ from apps.api.serializers.escalation_policy import (
     EscalationPolicyUpdateSerializer,
 )
 from apps.auth_token.auth import PluginAuthentication
+from apps.mobile_app.auth import MobileAppAuthTokenAuthentication
 from common.api_helpers.mixins import (
     CreateSerializerMixin,
     PublicPrimaryKeyMixin,
@@ -29,7 +30,10 @@ class EscalationPolicyView(
     UpdateSerializerMixin,
     OrderedModelViewSet,
 ):
-    authentication_classes = (PluginAuthentication,)
+    authentication_classes = (
+        MobileAppAuthTokenAuthentication,
+        PluginAuthentication,
+    )
     permission_classes = (IsAuthenticated, RBACPermission)
     rbac_permissions = {
         "metadata": [RBACPermission.Permissions.ESCALATION_CHAINS_READ],

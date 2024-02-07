@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Changed
+
+- Allow mobile app to access escalation options endpoints @imtoori ([#3847](https://github.com/grafana/oncall/pull/3847))
+
+## v1.3.102 (2024-02-06)
+
+### Fixed
+
+Maintenance release
+
+## v1.3.101 (2024-02-05)
+
+### Added
+
+– Enable labels feature (Currently cloud-only)
+
+### Fixed
+
+- Address outgoing webhook encoding error when passing non-latin characters in the webhook request body by @joeyorlando
+  ([#3832](https://github.com/grafana/oncall/pull/3832))
+
 ## v1.3.100 (2024-02-01)
 
 ### Added
