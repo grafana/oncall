@@ -1,8 +1,8 @@
 import { action, observable, makeObservable, runInAction } from 'mobx';
 
-import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import BaseStore from 'models/base_store';
 import { makeRequest } from 'network';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 import { RootStore } from 'state';
 
 import { Heartbeat } from './heartbeat.types';
@@ -48,7 +48,7 @@ export class HeartbeatStore extends BaseStore {
   }
 
   @action
-  async createHeartbeat(alertReceiveChannelId: AlertReceiveChannel['id'], data: Partial<Heartbeat>) {
+  async createHeartbeat(alertReceiveChannelId: ApiSchemas['AlertReceiveChannel']['id'], data: Partial<Heartbeat>) {
     const response = await super.create<Heartbeat>({
       alert_receive_channel: alertReceiveChannelId,
       ...data,

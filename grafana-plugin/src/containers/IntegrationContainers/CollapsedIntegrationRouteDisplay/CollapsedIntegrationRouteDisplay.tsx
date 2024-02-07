@@ -10,8 +10,8 @@ import Text from 'components/Text/Text';
 import TooltipBadge from 'components/TooltipBadge/TooltipBadge';
 import styles from 'containers/IntegrationContainers/CollapsedIntegrationRouteDisplay/CollapsedIntegrationRouteDisplay.module.scss';
 import { RouteButtonsDisplay } from 'containers/IntegrationContainers/ExpandedIntegrationRouteDisplay/ExpandedIntegrationRouteDisplay';
-import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 import CommonIntegrationHelper from 'pages/integration/CommonIntegration.helper';
 import IntegrationHelper from 'pages/integration/Integration.helper';
 import { useStore } from 'state/useStore';
@@ -19,7 +19,7 @@ import { useStore } from 'state/useStore';
 const cx = cn.bind(styles);
 
 interface CollapsedIntegrationRouteDisplayProps {
-  alertReceiveChannelId: AlertReceiveChannel['id'];
+  alertReceiveChannelId: ApiSchemas['AlertReceiveChannel']['id'];
   channelFilterId: ChannelFilter['id'];
   routeIndex: number;
   toggle: () => void;

@@ -10,8 +10,8 @@ import MonacoEditor from 'components/MonacoEditor/MonacoEditor';
 import { MONACO_READONLY_CONFIG } from 'components/MonacoEditor/MonacoEditor.config';
 import Text from 'components/Text/Text';
 import { getTemplatesToRender } from 'containers/IntegrationContainers/IntegrationTemplatesList.config';
-import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { AlertTemplatesDTO } from 'models/alert_templates/alert_templates';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 import IntegrationHelper from 'pages/integration/Integration.helper';
 import styles from 'pages/integration/Integration.module.scss';
 import { MONACO_INPUT_HEIGHT_TALL } from 'pages/integration/IntegrationCommon.config';
@@ -22,7 +22,7 @@ const cx = cn.bind(styles);
 
 interface IntegrationTemplateListProps {
   templates: AlertTemplatesDTO[];
-  alertReceiveChannelId: AlertReceiveChannel['id'];
+  alertReceiveChannelId: ApiSchemas['AlertReceiveChannel']['id'];
   openEditTemplateModal: (templateName: string | string[]) => void;
   alertReceiveChannelIsBasedOnAlertManager: boolean;
   alertReceiveChannelAllowSourceBasedResolving: boolean;

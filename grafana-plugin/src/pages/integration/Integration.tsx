@@ -53,12 +53,10 @@ import TeamName from 'containers/TeamName/TeamName';
 import UserDisplayWithAvatar from 'containers/UserDisplay/UserDisplayWithAvatar';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { HeartIcon, HeartRedIcon } from 'icons';
-import {
-  AlertReceiveChannel,
-  AlertReceiveChannelCounters,
-} from 'models/alert_receive_channel/alert_receive_channel.types';
+import { AlertReceiveChannelCounters } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { AlertTemplatesDTO } from 'models/alert_templates/alert_templates';
 import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 import IntegrationHelper, { getIsBidirectionalIntegration } from 'pages/integration/Integration.helper';
 import styles from 'pages/integration/Integration.module.scss';
 import { AppFeature } from 'state/features';
@@ -330,7 +328,7 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
     }
   }
 
-  renderAlertmanagerV2MigrationHeaderMaybe(alertReceiveChannel: AlertReceiveChannel) {
+  renderAlertmanagerV2MigrationHeaderMaybe(alertReceiveChannel: ApiSchemas['AlertReceiveChannel']) {
     if (!alertReceiveChannel.alertmanager_v2_migrated_at) {
       return null;
     }
@@ -389,7 +387,7 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
     );
   }
 
-  renderDescriptionMaybe(alertReceiveChannel: AlertReceiveChannel) {
+  renderDescriptionMaybe(alertReceiveChannel: ApiSchemas['AlertReceiveChannel']) {
     if (!alertReceiveChannel.description_short) {
       return null;
     }
@@ -401,7 +399,7 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
     );
   }
 
-  renderContactPointsWarningMaybe(alertReceiveChannel: AlertReceiveChannel) {
+  renderContactPointsWarningMaybe(alertReceiveChannel: ApiSchemas['AlertReceiveChannel']) {
     if (IntegrationHelper.isSpecificIntegration(alertReceiveChannel, 'grafana_alerting')) {
       return (
         <div className={cx('u-padding-top-md')}>
@@ -752,7 +750,7 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
     }
   };
 
-  onRemovalFn = (id: AlertReceiveChannel['id']) => {
+  onRemovalFn = (id: ApiSchemas['AlertReceiveChannel']['id']) => {
     const {
       store: { alertReceiveChannelStore },
       history,
@@ -774,7 +772,7 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
     const promises = [];
 
     if (!alertReceiveChannelStore.items[id]) {
-      promises.push(alertReceiveChannelStore.loadItem(id).then(() => this.loadExtraData(id)));
+      promises.push(alertReceiveChannelStore.getById(id).then(() => this.loadExtraData(id)));
     } else {
       promises.push(this.loadExtraData(id));
     }
@@ -797,7 +795,7 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
       .finally(() => this.setState({ isLoading: false }));
   }
 
-  async loadExtraData(id: AlertReceiveChannel['id']) {
+  async loadExtraData(id: ApiSchemas['AlertReceiveChannel']['id']) {
     const { alertReceiveChannelStore } = this.props.store;
 
     if (IntegrationHelper.isSpecificIntegration(alertReceiveChannelStore.items[id], 'grafana_alerting')) {
@@ -811,7 +809,7 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
 
 interface IntegrationActionsProps {
   isLegacyIntegration: boolean;
-  alertReceiveChannel: AlertReceiveChannel;
+  alertReceiveChannel: ApiSchemas['AlertReceiveChannel'];
   changeIsTemplateSettingsOpen: () => void;
 }
 
@@ -842,7 +840,7 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
   const [isDemoModalOpen, setIsDemoModalOpen] = useState(false);
   const [maintenanceData, setMaintenanceData] = useState<{
     disabled: boolean;
-    alert_receive_channel_id: AlertReceiveChannel['id'];
+    alert_receive_channel_id: ApiSchemas['AlertReceiveChannel']['id'];
   }>(undefined);
 
   const { id } = alertReceiveChannel;
@@ -875,9 +873,9 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
         <IntegrationForm
           isTableView={false}
           onHide={() => setIsIntegrationSettingsOpen(false)}
-          onSubmit={() => alertReceiveChannelStore.updateItem(alertReceiveChannel['id'])}
+          onSubmit={() => alertReceiveChannelStore.refetchItemById(alertReceiveChannel.id)}
           id={alertReceiveChannel['id']}
-          navigateToAlertGroupLabels={(_id: AlertReceiveChannel['id']) => {
+          navigateToAlertGroupLabels={(_id: ApiSchemas['AlertReceiveChannel']['id']) => {
             setIsIntegrationSettingsOpen(false);
             setLabelsFormOpen(true);
           }}
@@ -889,7 +887,8 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
           onHide={() => {
             setLabelsFormOpen(false);
           }}
-          onSubmit={() => alertReceiveChannelStore.updateItem(alertReceiveChannel['id'])}
+          // TODO: confirm change with Maxim/Rares
+          onSubmit={() => alertReceiveChannelStore.refetchItemById(alertReceiveChannel.id)}
           id={alertReceiveChannel['id']}
           onOpenIntegrationSettings={() => {
             setIsIntegrationSettingsOpen(true);
@@ -907,7 +906,7 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
       {maintenanceData && (
         <MaintenanceForm
           initialData={maintenanceData}
-          onUpdate={() => alertReceiveChannelStore.updateItem(alertReceiveChannel.id)}
+          onUpdate={() => alertReceiveChannelStore.refetchItemById(alertReceiveChannel.id)}
           onHide={() => setMaintenanceData(undefined)}
         />
       )}
@@ -1111,7 +1110,7 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
       })
       .then(() =>
         Promise.all([
-          alertReceiveChannelStore.updateItem(alertReceiveChannel.id),
+          alertReceiveChannelStore.refetchItemById(alertReceiveChannel.id),
           alertReceiveChannelStore.updateTemplates(alertReceiveChannel.id),
         ])
       )
@@ -1123,8 +1122,7 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
   }
 
   function deleteIntegration() {
-    alertReceiveChannelStore
-      .deleteAlertReceiveChannel(alertReceiveChannel.id)
+    alertReceiveChannelStore.deleteAlertReceiveChannel['AlertReceiveChannel'](alertReceiveChannel.id)
       .then(() => history.push(`${PLUGIN_ROOT}/integrations`))
       .then(() => openNotification('Integration has been succesfully deleted.'))
       .catch(() => openErrorNotification('An error has occurred. Please try again.'));
@@ -1148,13 +1146,13 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
     await alertReceiveChannelStore.stopMaintenanceMode(id);
 
     openNotification('Maintenance has been stopped');
-    await alertReceiveChannelStore.updateItem(id);
+    await alertReceiveChannelStore.refetchItemById(id);
   }
 };
 
 interface IntegrationHeaderProps {
   alertReceiveChannelCounter: AlertReceiveChannelCounters;
-  alertReceiveChannel: AlertReceiveChannel;
+  alertReceiveChannel: ApiSchemas['AlertReceiveChannel'];
   integration: SelectOption;
   renderLabels: boolean;
 }
@@ -1177,7 +1175,7 @@ const IntegrationHeader: React.FC<IntegrationHeaderProps> = ({
         >
           <TooltipBadge
             borderType="primary"
-            tooltipTitle={getAlertReceiveChannelCounterTooltip()}
+            tooltipTitle={alertReceiveChannelCounterTooltip()}
             tooltipContent={undefined}
             text={alertReceiveChannelCounter?.alerts_count + '/' + alertReceiveChannelCounter?.alert_groups_count}
           />
@@ -1254,7 +1252,7 @@ const IntegrationHeader: React.FC<IntegrationHeaderProps> = ({
     </div>
   );
 
-  function getAlertReceiveChannelCounterTooltip() {
+  function alertReceiveChannelCounterTooltip() {
     const alertReceiveChannelCounter = alertReceiveChannelStore.counters[alertReceiveChannel.id];
 
     return (
@@ -1268,7 +1266,7 @@ const IntegrationHeader: React.FC<IntegrationHeaderProps> = ({
     );
   }
 
-  function renderHeartbeat(alertReceiveChannel: AlertReceiveChannel) {
+  function renderHeartbeat(alertReceiveChannel: ApiSchemas['AlertReceiveChannel']) {
     const heartbeatId = alertReceiveChannelStore.alertReceiveChannelToHeartbeat[alertReceiveChannel.id];
     const heartbeat = heartbeatStore.items[heartbeatId];
 

@@ -1,15 +1,16 @@
 import { IconName } from '@grafana/ui';
 import dayjs from 'dayjs';
 
-import { AlertReceiveChannel, MaintenanceMode } from 'models/alert_receive_channel/alert_receive_channel.types';
+import { MaintenanceMode } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 import { RootStore } from 'state';
 import { AppFeature } from 'state/features';
 
 import { MAX_CHARACTERS_COUNT, TEXTAREA_ROWS_COUNT } from './IntegrationCommon.config';
 
 const IntegrationHelper = {
-  isSpecificIntegration: (alertReceiveChannel: AlertReceiveChannel | string, name: string) => {
+  isSpecificIntegration: (alertReceiveChannel: ApiSchemas['AlertReceiveChannel'] | string, name: string) => {
     if (!alertReceiveChannel) {
       return false;
     }
@@ -46,7 +47,7 @@ const IntegrationHelper = {
     return slice.length === line.length ? slice : `${slice} ...`;
   },
 
-  getMaintenanceText(maintenanceUntill: number, mode: number = undefined) {
+  getMaintenanceText(maintenanceUntill: number, mode?: MaintenanceMode) {
     const date = dayjs(new Date(maintenanceUntill * 1000));
     const now = dayjs();
     const hourDiff = date.diff(now, 'hours');
@@ -126,4 +127,5 @@ const IntegrationHelper = {
 
 export default IntegrationHelper;
 
-export const getIsBidirectionalIntegration = ({ integration }: AlertReceiveChannel) => integration === 'servicenow';
+export const getIsBidirectionalIntegration = ({ integration }: ApiSchemas['AlertReceiveChannel']) =>
+  integration === ('servicenow' as ApiSchemas['AlertReceiveChannel']['integration']); // TODO: add service now in backend schema as valid value

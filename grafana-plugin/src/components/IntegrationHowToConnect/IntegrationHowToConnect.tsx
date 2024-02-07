@@ -8,14 +8,14 @@ import IntegrationInputField from 'components/IntegrationInputField/IntegrationI
 import IntegrationBlock from 'components/Integrations/IntegrationBlock';
 import Tag from 'components/Tag/Tag';
 import Text from 'components/Text/Text';
-import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 import styles from 'pages/integration/Integration.module.scss';
 import { useStore } from 'state/useStore';
 import { getVar } from 'utils/DOM';
 
 const cx = cn.bind(styles);
 
-const IntegrationHowToConnect: React.FC<{ id: AlertReceiveChannel['id'] }> = ({ id }) => {
+const IntegrationHowToConnect: React.FC<{ id: ApiSchemas['AlertReceiveChannel']['id'] }> = ({ id }) => {
   const { alertReceiveChannelStore } = useStore();
   const alertReceiveChannelCounter = alertReceiveChannelStore.counters[id];
   const hasAlerts = !!alertReceiveChannelCounter?.alerts_count;

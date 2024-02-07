@@ -5,9 +5,9 @@ import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
 import Text from 'components/Text/Text';
-import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { Alert } from 'models/alertgroup/alertgroup.types';
 import { OutgoingWebhook } from 'models/outgoing_webhook/outgoing_webhook.types';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 import { LabelTemplateOptions } from 'pages/integration/IntegrationCommon.config';
 import { useStore } from 'state/useStore';
 import { openErrorNotification } from 'utils';
@@ -24,7 +24,7 @@ interface TemplatePreviewProps {
   templateType?: 'plain' | 'html' | 'image' | 'boolean';
   templateIsRoute?: boolean;
   payload?: JSON;
-  alertReceiveChannelId: AlertReceiveChannel['id'];
+  alertReceiveChannelId: ApiSchemas['AlertReceiveChannel']['id'];
   alertGroupId?: Alert['pk'];
   outgoingWebhookId?: OutgoingWebhook['id'];
   templatePage: TEMPLATE_PAGE;

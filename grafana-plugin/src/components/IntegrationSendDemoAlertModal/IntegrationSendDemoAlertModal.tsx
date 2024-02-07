@@ -10,7 +10,7 @@ import MonacoEditor, { MONACO_LANGUAGE } from 'components/MonacoEditor/MonacoEdi
 import { MONACO_EDITABLE_CONFIG } from 'components/MonacoEditor/MonacoEditor.config';
 import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
-import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 import styles from 'pages/integration/Integration.module.scss';
 import { useStore } from 'state/useStore';
 import { openNotification } from 'utils';
@@ -19,7 +19,7 @@ const cx = cn.bind(styles);
 
 interface IntegrationSendDemoPayloadModalProps {
   isOpen: boolean;
-  alertReceiveChannel: AlertReceiveChannel;
+  alertReceiveChannel: ApiSchemas['AlertReceiveChannel'];
   onHideOrCancel: () => void;
 }
 

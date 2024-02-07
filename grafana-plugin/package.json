@@ -27,7 +27,8 @@
     "ci-report": "grafana-toolkit plugin:ci-report",
     "start": "yarn watch",
     "plop": "plop",
-    "setversion": "setversion"
+    "setversion": "setversion",
+    "tsc": "tsc --noEmit"
   },
   "repository": {
     "type": "git",

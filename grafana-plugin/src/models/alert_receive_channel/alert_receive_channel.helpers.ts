@@ -1,6 +1,9 @@
-import { AlertReceiveChannel } from './alert_receive_channel.types';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 
-export function getAlertReceiveChannelDisplayName(alertReceiveChannel?: AlertReceiveChannel, withDescription = true) {
+export function getAlertReceiveChannelDisplayName(
+  alertReceiveChannel?: ApiSchemas['AlertReceiveChannel'],
+  withDescription = true
+) {
   if (!alertReceiveChannel) {
     return '';
   }

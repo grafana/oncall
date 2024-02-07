@@ -1,7 +1,6 @@
 import { action, observable, makeObservable, runInAction } from 'mobx';
 import qs from 'query-string';
 
-import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import BaseStore from 'models/base_store';
 import { ActionKey } from 'models/loader/action-keys';
 import { User } from 'models/user/user.types';
@@ -117,7 +116,7 @@ export class AlertGroupStore extends BaseStore {
     return this.searchResult[query].map((id: Alert['pk']) => this.items[id]);
   }
 
-  async getAlertGroupsForIntegration(integrationId: AlertReceiveChannel['id']) {
+  async getAlertGroupsForIntegration(integrationId: ApiSchemas['AlertReceiveChannel']['id']) {
     const { results } = await makeRequest(`${this.path}`, {
       params: { integration: integrationId },
     });

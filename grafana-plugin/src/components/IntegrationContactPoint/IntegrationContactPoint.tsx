@@ -21,7 +21,8 @@ import IntegrationBlock from 'components/Integrations/IntegrationBlock';
 import Tag from 'components/Tag/Tag';
 import Text from 'components/Text/Text';
 import WithConfirm from 'components/WithConfirm/WithConfirm';
-import { AlertReceiveChannel, ContactPoint } from 'models/alert_receive_channel/alert_receive_channel.types';
+import { ContactPoint } from 'models/alert_receive_channel/alert_receive_channel.types';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 import styles from 'pages/integration/Integration.module.scss';
 import { useStore } from 'state/useStore';
 import { openErrorNotification, openNotification } from 'utils';
@@ -46,7 +47,7 @@ interface IntegrationContactPointState {
 }
 
 const IntegrationContactPoint: React.FC<{
-  id: AlertReceiveChannel['id'];
+  id: ApiSchemas['AlertReceiveChannel']['id'];
 }> = observer(({ id }) => {
   const { alertReceiveChannelStore } = useStore();
   const contactPoints = alertReceiveChannelStore.connectedContactPoints[id];

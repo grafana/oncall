@@ -370,11 +370,12 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
               {integration && (
                 <HorizontalGroup>
                   <PluginLink
-                    disabled={incident.alert_receive_channel.deleted}
+                    // TODO: check with backend if this is a valid field and remove as any
+                    disabled={(incident.alert_receive_channel as any).deleted}
                     query={{ page: 'integrations', id: incident.alert_receive_channel.id }}
                   >
                     <Button
-                      disabled={incident.alert_receive_channel.deleted}
+                      disabled={(incident.alert_receive_channel as any).deleted}
                       variant="secondary"
                       fill="outline"
                       size="sm"
@@ -453,7 +454,8 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
             </HorizontalGroup>
 
             <Button
-              disabled={incident.alert_receive_channel.deleted}
+              // TODO: check with backend if this is a valid field and remove as any
+              disabled={(incident.alert_receive_channel as any).deleted}
               variant="secondary"
               icon="edit"
               onClick={this.showIntegrationSettings}

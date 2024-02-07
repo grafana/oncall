@@ -21,7 +21,6 @@ import PluginLink from 'components/PluginLink/PluginLink';
 import RenderConditionally from 'components/RenderConditionally/RenderConditionally';
 import Text from 'components/Text/Text';
 import IntegrationTemplate from 'containers/IntegrationTemplate/IntegrationTemplate';
-import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { LabelsErrors } from 'models/label/label.types';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { LabelTemplateOptions } from 'pages/integration/IntegrationCommon.config';
@@ -38,10 +37,10 @@ const cx = cn.bind(styles);
 const INPUT_WIDTH = 280;
 
 interface IntegrationLabelsFormProps {
-  id: AlertReceiveChannel['id'];
+  id: ApiSchemas['AlertReceiveChannel']['id'];
   onSubmit: () => void;
   onHide: () => void;
-  onOpenIntegrationSettings: (id: AlertReceiveChannel['id']) => void;
+  onOpenIntegrationSettings: (id: ApiSchemas['AlertReceiveChannel']['id']) => void;
 }
 
 const IntegrationLabelsForm = observer((props: IntegrationLabelsFormProps) => {
@@ -62,7 +61,10 @@ const IntegrationLabelsForm = observer((props: IntegrationLabelsFormProps) => {
 
   const handleSave = async () => {
     try {
-      await alertReceiveChannelStore.saveAlertReceiveChannel(id, { alert_group_labels: alertGroupLabels });
+      await alertReceiveChannelStore.saveAlertReceiveChannel(id, {
+        ...alertReceiveChannel,
+        alert_group_labels: alertGroupLabels,
+      });
       onSubmit();
       onHide();
     } catch (err) {
@@ -245,9 +247,9 @@ const IntegrationLabelsForm = observer((props: IntegrationLabelsFormProps) => {
 });
 
 interface CustomLabelsProps {
-  alertGroupLabels: AlertReceiveChannel['alert_group_labels'];
+  alertGroupLabels: ApiSchemas['AlertReceiveChannel']['alert_group_labels'];
   customLabelsErrors: LabelsErrors;
-  onChange: (value: AlertReceiveChannel['alert_group_labels']) => void;
+  onChange: (value: ApiSchemas['AlertReceiveChannel']['alert_group_labels']) => void;
   onShowTemplateEditor: (index: number) => void;
 }
 

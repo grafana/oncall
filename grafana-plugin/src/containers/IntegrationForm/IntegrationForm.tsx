@@ -26,10 +26,7 @@ import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
 import Labels from 'containers/Labels/Labels';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
-import {
-  AlertReceiveChannel,
-  AlertReceiveChannelOption,
-} from 'models/alert_receive_channel/alert_receive_channel.types';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 import IntegrationHelper from 'pages/integration/Integration.helper';
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
@@ -44,11 +41,11 @@ import styles from './IntegrationForm.module.scss';
 const cx = cn.bind(styles);
 
 interface IntegrationFormProps {
-  id: AlertReceiveChannel['id'] | 'new';
+  id: ApiSchemas['AlertReceiveChannel']['id'] | 'new';
   isTableView?: boolean;
   onHide: () => void;
   onSubmit: () => Promise<void>;
-  navigateToAlertGroupLabels: (id: AlertReceiveChannel['id']) => void;
+  navigateToAlertGroupLabels: (id: ApiSchemas['AlertReceiveChannel']['id']) => void;
 }
 
 const IntegrationForm = observer((props: IntegrationFormProps) => {
@@ -65,7 +62,7 @@ const IntegrationForm = observer((props: IntegrationFormProps) => {
 
   const [filterValue, setFilterValue] = useState('');
   const [showNewIntegrationForm, setShowNewIntegrationForm] = useState(false);
-  const [selectedOption, setSelectedOption] = useState<AlertReceiveChannelOption>(undefined);
+  const [selectedOption, setSelectedOption] = useState<ApiSchemas['AlertReceiveChannelIntegrationOptions']>(undefined);
   const [showIntegrarionsListDrawer, setShowIntegrarionsListDrawer] = useState(id === 'new');
   const [allContactPoints, setAllContactPoints] = useState([]);
   const [errors, setErrors] = useState<Record<string, any>>();
@@ -84,7 +81,7 @@ const IntegrationForm = observer((props: IntegrationFormProps) => {
   const { alertReceiveChannelOptions } = alertReceiveChannelStore;
 
   const options = alertReceiveChannelOptions
-    ? alertReceiveChannelOptions.filter((option: AlertReceiveChannelOption) => {
+    ? alertReceiveChannelOptions.filter((option: ApiSchemas['AlertReceiveChannelIntegrationOptions']) => {
         if (option.value === 'grafana_alerting' && !window.grafanaBootData.settings.unifiedAlertingEnabled) {
           return false;
         }
@@ -219,7 +216,7 @@ const IntegrationForm = observer((props: IntegrationFormProps) => {
       if (isCreate) {
         await createNewIntegration();
       } else {
-        await alertReceiveChannelStore.update(id, data, undefined, true);
+        await alertReceiveChannelStore.update({ id, data, skipErrorHandling: true });
       }
     } catch (error) {
       setErrors(error.response.data);
@@ -233,8 +230,8 @@ const IntegrationForm = observer((props: IntegrationFormProps) => {
     await onSubmit();
     onHide();
 
-    function createNewIntegration(): Promise<void | AlertReceiveChannel> {
-      let promise = alertReceiveChannelStore.create<AlertReceiveChannel>(data, true);
+    function createNewIntegration(): Promise<void | ApiSchemas['AlertReceiveChannel']> {
+      let promise = alertReceiveChannelStore.create({ data, skipErrorHandling: true });
 
       const pushHistory = (id) => history.push(`${PLUGIN_ROOT}/integrations/${id}`);
 
@@ -270,7 +267,7 @@ const IntegrationForm = observer((props: IntegrationFormProps) => {
     }
   }
 
-  function onBlockClick(option: AlertReceiveChannelOption) {
+  function onBlockClick(option: ApiSchemas['AlertReceiveChannelIntegrationOptions']) {
     setSelectedOption(option);
     setShowNewIntegrationForm(true);
     setShowIntegrarionsListDrawer(false);
@@ -445,7 +442,9 @@ const CustomFieldSectionRenderer: React.FC<CustomFieldSectionRendererProps> = ({
   }
 };
 
-const HowTheIntegrationWorks: React.FC<{ selectedOption: AlertReceiveChannelOption }> = ({ selectedOption }) => {
+const HowTheIntegrationWorks: React.FC<{ selectedOption: ApiSchemas['AlertReceiveChannelIntegrationOptions'] }> = ({
+  selectedOption,
+}) => {
   if (!selectedOption) {
     return null;
   }
@@ -487,8 +486,8 @@ const HowTheIntegrationWorks: React.FC<{ selectedOption: AlertReceiveChannelOpti
 };
 
 const IntegrationBlocks: React.FC<{
-  options: AlertReceiveChannelOption[];
-  onBlockClick: (option: AlertReceiveChannelOption) => void;
+  options: Array<ApiSchemas['AlertReceiveChannelIntegrationOptions']>;
+  onBlockClick: (option: ApiSchemas['AlertReceiveChannelIntegrationOptions']) => void;
 }> = ({ options, onBlockClick }) => {
   return (
     <div className={cx('cards')} data-testid="create-integration-modal">

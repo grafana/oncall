@@ -7,7 +7,7 @@ import { observer } from 'mobx-react';
 
 import GForm from 'components/GForm/GForm';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
-import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
 import { openNotification, showApiError } from 'utils';
 import { UserActions } from 'utils/authorization';
@@ -20,7 +20,7 @@ const cx = cn.bind(styles);
 
 interface MaintenanceFormProps {
   initialData: {
-    alert_receive_channel_id?: AlertReceiveChannel['id'];
+    alert_receive_channel_id?: ApiSchemas['AlertReceiveChannel']['id'];
     disabled?: boolean;
   };
   onHide: () => void;
