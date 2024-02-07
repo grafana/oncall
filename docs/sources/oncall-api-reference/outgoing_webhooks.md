@@ -105,7 +105,7 @@ curl "{{API_URL}}/api/v1/webhooks/" \
 
 ### Trigger Types
 
-For more detail, refer to [Event types](../../outgoing-webhooks#event-types).
+For more detail, refer to [Event types][].
 
 - `escalation`
 - `alert group created`
@@ -236,5 +236,7 @@ The above command returns JSON structured in the following way:
 {{% docs/reference %}}
 [Outgoing webhooks]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/configure/outgoing-webhooks"
 [Outgoing webhooks]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/configure/outgoing-webhooks"
-{{% /docs/reference %}}
 
+[Event types]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/configure/outgoing-webhooks#event-types"
+[Event types]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/configure/outgoing-webhooks#event-types"
+{{% /docs/reference %}}

@@ -191,9 +191,9 @@ or [data][data_webhook_template] template it's needed to adjust them as well.
 [legacy_integration]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/integrations/alertmanager#note-about-legacy-integration"
 [legacy_integration]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/integrations/alertmanager#note-about-legacy-integration"
 
-[data_webhook_template]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/outgoing-webhooks/#outgoing-webhook-templates"
-[data_webhook_template]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/outgoing-webhooks/#outgoing-webhook-templates"
+[data_webhook_template]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/configure/outgoing-webhooks#outgoing-webhook-templates"
+[data_webhook_template]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/configure/outgoing-webhooks#outgoing-webhook-templates"
 
-[trigger_webhook_template]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/outgoing-webhooks/#using-trigger-template-field"
-[data_webhook_template]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/outgoing-webhooks/#using-trigger-template-field"
+[trigger_webhook_template]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/configure/outgoing-webhooks#using-trigger-template-field"
+[trigger_webhook_template]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/configure/outgoing-webhooks#using-trigger-template-field"
 {{% /docs/reference %}}

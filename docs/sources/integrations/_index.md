@@ -348,8 +348,8 @@ Users with admin permissions have the ability to add custom columns based on lab
 [Routing template]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/configure/jinja2-templating#routing-template"
 [Routing template]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/configure/jinja2-templating#routing-template"
 
-[webhook-labels]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/outgoing-webhooks/#labels"
-[webhook-labels]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/outgoing-webhooks/#labels"
+[webhook-labels]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/configure/outgoing-webhooks#labels"
+[webhook-labels]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/configure/outgoing-webhooks#labels"
 
 [integration-labels]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/integrations/#labels"
 [integration-labels]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/integrations/#labels"
