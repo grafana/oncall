@@ -56,7 +56,7 @@ local_resource(
     "build-ui",
     labels=["OnCallUI"],
     cmd="cd grafana-plugin && yarn build:dev",
-    env={ 'ONCALL_API_URL': 'http://oncall-dev-engine:8080' },
+    env={ 'ONCALL_API_URL': 'http://oncall-dev-engine:8080', 'IS_OPEN_SOURCE': 'true' },
     serve_cmd="cd grafana-plugin && yarn watch",
     allow_parallel=True,
 )
@@ -64,8 +64,8 @@ local_resource(
 local_resource(
     "e2e-tests",
     labels=["E2eTests"],
+    env={ 'ONCALL_API_URL': 'http://oncall-dev-engine:8080', 'IS_OPEN_SOURCE': 'true' },
     cmd="cd grafana-plugin && yarn test:e2e",
-    env={ 'ONCALL_API_URL': 'http://oncall-dev-engine:8080' },
     trigger_mode=TRIGGER_MODE_MANUAL,
     auto_init=is_ci,
     resource_deps=["build-ui", "grafana", "grafana-oncall-app-provisioning-configmap", "engine", "celery"]
@@ -109,7 +109,7 @@ cmd_button(
     icon_name="dangerous",
 )
 
-yaml = helm("helm/oncall", name=HELM_PREFIX, values=["./dev/helm-local.yml"] if is_ci else ["./dev/helm-local.yml", "./dev/helm-local.dev.yml"])
+yaml = helm("helm/oncall", name=HELM_PREFIX, values=["./dev/helm-local.yml", "./dev/helm-local.dev.yml"])
 
 k8s_yaml(yaml)
 
