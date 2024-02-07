@@ -79,11 +79,8 @@ def update_label_option_cache(label_option: LabelOption):
     """
     update_label_cache updates cache for label's key, and it's every value
     """
-    values_data = {
-        value["id"]: {"value_name": value["name"], "key_name": label_option["key"]["name"]}
-        for value in label_option["values"]
-    }
-    _update_labels_cache(values_data)
+    values_id_to_pair = {value["id"]: {"value": value, "key": label_option["key"]} for value in label_option["values"]}
+    _update_labels_cache(values_id_to_pair)
 
 
 @shared_dedicated_queue_retry_task(
@@ -93,21 +90,18 @@ def update_label_pairs_cache(label_pairs: typing.List[LabelPair]):
     """
     update_label_pair updates cache for list of LabelPairs.
     """
-    values_data = {
-        label["value"]["id"]: {"value_name": label["value"]["name"], "key_name": label["key"]["name"]}
-        for label in label_pairs
-    }
-    _update_labels_cache(values_data)
+    value_id_to_pair = {label["value"]["id"]: {"value": label["value"], "key": label["key"]} for label in label_pairs}
+    _update_labels_cache(value_id_to_pair)
 
 
-def _update_labels_cache(values_data: typing.Dict[str, KVPair]):
+def _update_labels_cache(values_id_to_pair: typing.Dict[str, LabelPair]):
     """
     _update_labels_cache updates LabelKeyCache and LabelValueCache.
     It expects dict { value_id: [value_name, key_name] } and will fetch and update LabelKeyCache and LabelValueCache.
     """
     from apps.labels.models import LabelKeyCache, LabelValueCache
 
-    values = LabelValueCache.objects.filter(id__in=values_data).select_related("key")
+    values = LabelValueCache.objects.filter(id__in=values_id_to_pair).select_related("key")
     now = timezone.now()
 
     if not values:
@@ -116,12 +110,16 @@ def _update_labels_cache(values_data: typing.Dict[str, KVPair]):
     keys_to_update = set()
 
     for value in values:
-        if value.name != values_data[value.id]["value_name"]:
-            value.name = values_data[value.id]["value_name"]
+        if value.name != values_id_to_pair[value.id]["value"]["name"]:
+            value.name = values_id_to_pair[value.id]["value"]["name"]
+        if value.prescribed != values_id_to_pair[value.id]["value"]["prescribed"]:
+            value.prescribed = values_id_to_pair[value.id]["value"]["prescribed"]
         value.last_synced = now
 
-        if value.key.name != values_data[value.id]["key_name"]:
-            value.key.name = values_data[value.id]["key_name"]
+        if value.key.name != values_id_to_pair[value.id]["key"]["name"]:
+            value.key.name = values_id_to_pair[value.id]["key"]["name"]
+        if value.key.prescribed != values_id_to_pair[value.id]["key"]["prescribed"]:
+            value.key.prescribed = values_id_to_pair[value.id]["key"]["prescribed"]
         value.key.last_synced = now
         keys_to_update.add(value.key)
 
