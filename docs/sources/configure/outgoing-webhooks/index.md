@@ -1,7 +1,7 @@
 ---
 title: Outgoing Webhooks
 menuTitle: Outgoing Webhooks
-description: Understand how to configure and customize alert templates for OnCall.
+description: Understand how to send data from OnCall using an outgoing webhook
 weight: 500
 keywords:
   - OnCall
