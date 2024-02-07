@@ -121,18 +121,18 @@ def test_update_instances_labels_cache_outdated(
     assert label_association.key.is_outdated
     assert label_association.value.is_outdated
 
-    label_data = {
+    label_option = {
         "key": {"id": label_association.key.id, "name": label_association.key.name},
         "values": [{"id": label_association.value.id, "name": label_association.value.name}],
     }
 
     with patch(
-        "apps.labels.client.LabelsAPIClient.get_label_by_key_id", return_value=(label_data, None)
+        "apps.labels.client.LabelsAPIClient.get_label_by_key_id", return_value=(label_option, None)
     ) as mock_get_label_by_key_id:
-        with patch("apps.labels.tasks.update_labels_cache.apply_async") as mock_update_cache:
+        with patch("apps.labels.tasks.update_label_option_cache.apply_async") as mock_update_cache:
             update_instances_labels_cache(
                 organization.id, [alert_receive_channel.id], alert_receive_channel._meta.model.__name__
             )
     assert mock_get_label_by_key_id.called
     assert mock_update_cache.called
-    assert mock_update_cache.call_args == call((label_data,))
+    assert mock_update_cache.call_args == call((label_option,))

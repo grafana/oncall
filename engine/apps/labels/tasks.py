@@ -68,8 +68,8 @@ def update_labels_cache(labels_data: typing.List[LabelOption] | LabelOption):
         value.key.last_synced = now
         keys_to_update.add(value.key)
 
-    LabelKeyCache.objects.bulk_update(keys_to_update, fields=["name", "last_synced", "prescribed"])
-    LabelValueCache.objects.bulk_update(values, fields=["name", "last_synced", "prescribed"])
+    LabelKeyCache.objects.bulk_update(keys_to_update, fields=["name", "last_synced"])
+    LabelValueCache.objects.bulk_update(values, fields=["name", "last_synced"])
 
 
 @shared_dedicated_queue_retry_task(
