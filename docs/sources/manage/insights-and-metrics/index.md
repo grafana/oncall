@@ -1,6 +1,6 @@
 ---
 title: Insight logs and metrics
-menuTitle: Oncall insights
+menuTitle: Insight logs and metrics
 description: Explore Grafana OnCall insights and metrics.
 weight: 700
 keywords:

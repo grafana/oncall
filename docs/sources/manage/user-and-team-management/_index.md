@@ -1,5 +1,5 @@
 ---
-title: Manage user and team management
+title: Manage users and teams for Grafana OnCall
 menuTitle: Users and teams
 description: Manage users and teams for Grafana OnCall.
 weight: 100

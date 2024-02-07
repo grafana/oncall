@@ -17,7 +17,7 @@ aliases:
   - ../../notify/phone-calls-sms/ # /docs/oncall/<ONCALL_VERSION>/notify/phone-calls-sms/
 ---
 
-# Phone Calls and SMS notifications
+# Phone calls and SMS notifications
 
 Grafana OnCall Cloud includes SMS and Phone notifications, OSS users can use the [Grafana OSS-Cloud Setup][] as a relay or configure other providers like Twilio.
 

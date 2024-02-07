@@ -10,7 +10,7 @@ keywords:
   - Calendar
   - Terraform
   - as-code
-canonical: https://grafana.com/docs/oncall/latest/manage/on-call-schedules/api-terraform-schedules/
+canonical: https://grafana.com/docs/oncall/latest/manage/on-call-schedules/api-terraform-schedule/
 aliases:
   - /docs/grafana-cloud/alerting-and-irm/oncall/manage/on-call-schedules/api-terraform-schedules/
   - /docs/grafana-cloud/alerting-and-irm/oncall/on-call-schedules/api-terraform-schedules/

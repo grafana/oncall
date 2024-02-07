@@ -1,5 +1,5 @@
 ---
-title: Web-based schedules
+title: Web-based on-call schedules
 menuTitle: Web-based schedules
 description: Learn more about Grafana OnCalls built-in schedule management.
 weight: 300

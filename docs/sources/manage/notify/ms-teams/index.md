@@ -18,7 +18,7 @@ aliases:
   - ../../notify/ms-teams/ # /docs/oncall/<ONCALL_VERSION>/notify/ms-teams/
 ---
 
-# Microsoft Teams integration for Grafana OnCall
+# MS Teams integration for Grafana OnCall
 
 The Microsoft Teams integration for Grafana OnCall embeds your MS Teams channels directly into your incident response
 workflow to help your team focus on alert resolution.

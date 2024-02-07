@@ -18,7 +18,7 @@ aliases:
   - ../notify/ # /docs/oncall/<ONCALL_VERSION>/notify/
 ---
 
-# Notify people
+# Notifications
 
 Grafana OnCall directly supports the export of alert notifications to some popular messaging applications like Slack and
 Telegram.

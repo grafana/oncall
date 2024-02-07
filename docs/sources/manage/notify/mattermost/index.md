@@ -1,5 +1,5 @@
 ---
-title: Mattermost integration
+title: Mattermost
 menuTitle: Mattermost
 description: Explains that a Mattermost integration is not implemented yet.
 weight: 900
