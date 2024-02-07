@@ -154,6 +154,4 @@ def update_instances_labels_cache(organization_id: int, instance_ids: typing.Lis
     for key_id in keys_ids:
         label_option, _ = client.get_label_by_key_id(key_id)
         if label_option:
-            update_label_option_cache.apply_async(
-                (label_option),
-            )
+            update_label_option_cache.apply_async((label_option,))
