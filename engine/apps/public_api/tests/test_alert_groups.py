@@ -29,6 +29,11 @@ def construct_expected_response_from_alert_groups(alert_groups):
             acknowledged_at = alert_group.acknowledged_at.isoformat()
             acknowledged_at = acknowledged_at[:-6] + "Z"
 
+        def user_pk_or_none(alert_group, user_field):
+            u = getattr(alert_group, user_field)
+            if u is not None:
+                return u.public_primary_key
+
         results.append(
             {
                 "id": alert_group.public_primary_key,
@@ -39,6 +44,8 @@ def construct_expected_response_from_alert_groups(alert_groups):
                 "created_at": created_at,
                 "resolved_at": resolved_at,
                 "acknowledged_at": acknowledged_at,
+                "acknowledged_by": user_pk_or_none(alert_group, "acknowledged_by_user"),
+                "resolved_by": user_pk_or_none(alert_group, "resolved_by_user"),
                 "title": None,
                 "permalinks": {
                     "slack": None,
@@ -93,6 +100,21 @@ def alert_group_public_api_setup(
     routes = grafana_default_route, grafana_non_default_route, formatted_webhook_default_route
 
     return token, alert_groups, integrations, routes
+
+
+@pytest.mark.django_db
+def test_get_alert_group(alert_group_public_api_setup):
+    token, _, _, _ = alert_group_public_api_setup
+    alert_groups = AlertGroup.objects.all().order_by("-started_at")
+    client = APIClient()
+    list_response = construct_expected_response_from_alert_groups(alert_groups)
+    expected_response = list_response["results"][0]
+
+    url = reverse("api-public:alert_groups-detail", kwargs={"pk": expected_response["id"]})
+    response = client.get(url, format="json", HTTP_AUTHORIZATION=token)
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == expected_response
 
 
 @pytest.mark.django_db
