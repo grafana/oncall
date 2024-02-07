@@ -37,15 +37,19 @@ channels based on your predefined escalation policies and on-call schedules.
 
 ### Diverse monitoring system support
 
-Grafana OnCall integrates with a diverse set of monitoring systems, including Grafana, Prometheus, Alertmanager, Zabbix, and more. This flexibility ensures that, regardless of your existing monitoring infrastructure, your team benefits from Grafana OnCall.
+Grafana OnCall integrates with a diverse set of monitoring systems, including Grafana, Prometheus, Alertmanager, Zabbix, and more. This flexibility ensures
+that, regardless of your existing monitoring infrastructure, your team benefits from Grafana OnCall.
 
 ### Automatic escalation to on-call rotations
 
-Efficiently manage on-call rotations using Grafana OnCall's flexible calendar options. Define on-call schedules directly in the OnCall app, in your preferred calendar application with iCal format, or leverage Terraform within your "as-code" workflow. Configurable alert escalation routes notifications to on-call team members, Slack channels, and other designated points, ensuring timely responses.
+Efficiently manage on-call rotations using Grafana OnCall's flexible calendar options. Define on-call schedules directly in the OnCall app, in your preferred
+calendar application with iCal format, or leverage Terraform within your "as-code" workflow. Configurable alert escalation routes notifications to on-call team
+members, Slack channels, and other designated points, ensuring timely responses.
 
 ### ChatOps focused
 
-Grafana OnCall integrates closely with your Slack workspace to deliver alert notifications to individuals and groups, making daily alerts more visible and easier to manage.
+Grafana OnCall integrates closely with your Slack workspace to deliver alert notifications to individuals and groups, making daily alerts more visible and
+easier to manage.
 
 ### Mobile app
 
@@ -57,7 +61,8 @@ Equipped with a full API and Terraform capabilities, Grafana OnCall is ready for
 
 ### Fully customizable
 
-With customizable alert grouping and routing, you can decide which alerts you want to be notified of and how, ensuring the right people are notified for the right issues.
+With customizable alert grouping and routing, you can decide which alerts you want to be notified of and how, ensuring the right people are notified for the
+right issues.
 
 ## Common on-call challenges
 
