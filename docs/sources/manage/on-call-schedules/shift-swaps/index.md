@@ -102,6 +102,6 @@ Once a swap is taken, the affected rotations and the final schedule will reflect
 [mobile push notification]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/manage/mobile-app/push-notifications#shift-swap-notifications"
 [mobile push notification]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/manage/mobile-app/push-notifications#shift-swap-notifications"
 
-[RBAC]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/manage/user-and-team-management/#role-based-access-control-rbac"
-[RBAC]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/manage/user-and-team-management/#role-based-access-control-rbac"
+[RBAC]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/manage/user-and-team-management#role-based-access-control-rbac"
+[RBAC]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/manage/user-and-team-management#role-based-access-control-rbac"
 {{% /docs/reference %}}
