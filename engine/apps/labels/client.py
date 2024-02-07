@@ -5,7 +5,11 @@ import requests
 from django.conf import settings
 
 if typing.TYPE_CHECKING:
-    from apps.labels.utils import Key, LabelOption, LabelUpdateParam, Value
+    from apps.labels.utils import Key, LabelOption, Value
+
+
+class LabelUpdateParam(typing.TypedDict):
+    name: str
 
 
 class LabelsRepoAPIException(Exception):
