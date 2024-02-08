@@ -105,6 +105,47 @@ def test_create_integration(
 
 
 @pytest.mark.django_db
+def test_integration_name_uniqueness(
+    make_organization_and_user_with_token,
+    make_team,
+):
+    organization, _, token = make_organization_and_user_with_token()
+
+    client = APIClient()
+    data = {
+        "type": "grafana",
+        "name": "grafana_created",
+        "team_id": None,
+    }
+    url = reverse("api-public:integrations-list")
+    response = client.post(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
+    assert response.status_code == status.HTTP_201_CREATED
+    integration_pk = response.data["id"]
+
+    # cannot create another one with the same name
+    response = client.post(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    # but name can be reused in a different team
+    another_team = make_team(organization)
+    data["team_id"] = another_team.public_primary_key
+    response = client.post(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
+    assert response.status_code == status.HTTP_201_CREATED
+
+    # update works
+    url = reverse("api-public:integrations-detail", args=[integration_pk])
+    data["team_id"] = None
+    data["description"] = "some description"
+    response = client.put(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
+    assert response.status_code == status.HTTP_200_OK
+
+    # but updating team will fail if name exists
+    data["team_id"] = another_team.public_primary_key
+    response = client.put(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+@pytest.mark.django_db
 def test_create_integrations_with_none_templates(
     make_organization_and_user_with_token,
     make_escalation_chain,
