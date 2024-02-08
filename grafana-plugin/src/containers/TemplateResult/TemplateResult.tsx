@@ -20,7 +20,7 @@ interface ResultProps {
   template: TemplateForEdit;
   isAlertGroupExisting?: boolean;
   chatOpsPermalink?: string;
-  payload?: JSON;
+  payload?: { [key: string]: unknown };
   error?: string;
   onSaveAndFollowLink?: (link: string) => void;
   templateIsRoute?: boolean;

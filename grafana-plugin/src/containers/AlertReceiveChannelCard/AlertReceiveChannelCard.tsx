@@ -15,6 +15,7 @@ import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
 
 import styles from './AlertReceiveChannelCard.module.scss';
+import { getIntegration } from 'models/alert_receive_channel/alert_receive_channel.helpers';
 
 const cx = cn.bind(styles);
 
@@ -38,7 +39,7 @@ const AlertReceiveChannelCard = observer((props: AlertReceiveChannelCardProps) =
 
   const heartbeatStatus = Boolean(heartbeat?.status);
 
-  const integration = alertReceiveChannelStore.getIntegration(alertReceiveChannel);
+  const integration = getIntegration(alertReceiveChannelStore, alertReceiveChannel);
 
   return (
     <div className={cx('root')}>

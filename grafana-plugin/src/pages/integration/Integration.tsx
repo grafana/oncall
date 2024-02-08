@@ -70,6 +70,7 @@ import { UserActions } from 'utils/authorization';
 import { PLUGIN_ROOT } from 'utils/consts';
 import { getItem, setItem } from 'utils/localStorage';
 import sanitize from 'utils/sanitize';
+import { deleteAlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.helpers';
 
 const cx = cn.bind(styles);
 
@@ -751,12 +752,7 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
   };
 
   onRemovalFn = (id: ApiSchemas['AlertReceiveChannel']['id']) => {
-    const {
-      store: { alertReceiveChannelStore },
-      history,
-    } = this.props;
-
-    alertReceiveChannelStore.deleteAlertReceiveChannel(id).then(() => history.push(`${PLUGIN_ROOT}/integrations/`));
+    deleteAlertReceiveChannel(id).then(() => this.props.history.push(`${PLUGIN_ROOT}/integrations/`));
   };
 
   async loadData() {

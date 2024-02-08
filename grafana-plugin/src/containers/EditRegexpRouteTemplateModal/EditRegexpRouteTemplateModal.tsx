@@ -15,6 +15,7 @@ import { useStore } from 'state/useStore';
 import { openErrorNotification } from 'utils';
 
 import styles from './EditRegexpRouteTemplateModal.module.css';
+import { convertRegexpTemplateToJinja2Template } from 'models/alert_receive_channel/alert_receive_channel.helpers';
 
 const cx = cn.bind(styles);
 
@@ -59,7 +60,7 @@ const EditRegexpRouteTemplateModal = observer((props: EditRegexpRouteTemplateMod
   }, [regexpTemplateBody]);
 
   const handleConvertToJinja2 = useCallback(() => {
-    alertReceiveChannelStore.convertRegexpTemplateToJinja2Template(channelFilterId).then((response) => {
+    convertRegexpTemplateToJinja2Template(channelFilterId).then((response) => {
       alertReceiveChannelStore
         .saveChannelFilter(channelFilterId, {
           filtering_term: response?.filtering_term_as_jinja2,

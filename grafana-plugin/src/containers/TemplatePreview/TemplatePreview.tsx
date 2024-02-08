@@ -15,6 +15,7 @@ import { useDebouncedCallback } from 'utils/hooks';
 import sanitize from 'utils/sanitize';
 
 import styles from './TemplatePreview.module.css';
+import { renderPreview } from 'models/alert_receive_channel/alert_receive_channel.helpers';
 
 const cx = cn.bind(styles);
 
@@ -23,7 +24,7 @@ interface TemplatePreviewProps {
   templateBody: string | null;
   templateType?: 'plain' | 'html' | 'image' | 'boolean';
   templateIsRoute?: boolean;
-  payload?: JSON;
+  payload?: { [key: string]: unknown };
   alertReceiveChannelId: ApiSchemas['AlertReceiveChannel']['id'];
   alertGroupId?: Alert['pk'];
   outgoingWebhookId?: OutgoingWebhook['id'];
@@ -58,14 +59,14 @@ const TemplatePreview = observer((props: TemplatePreviewProps) => {
   const [conditionalResult, setConditionalResult] = useState<ConditionalResult>({});
 
   const store = useStore();
-  const { alertReceiveChannelStore, alertGroupStore, outgoingWebhookStore } = store;
+  const { alertGroupStore, outgoingWebhookStore } = store;
 
   const handleTemplateBodyChange = useDebouncedCallback(() => {
     (templatePage === TEMPLATE_PAGE.Webhooks
       ? outgoingWebhookStore.renderPreview(outgoingWebhookId, templateName, templateBody, payload)
       : alertGroupId
       ? alertGroupStore.renderPreview(alertGroupId, templateName, templateBody)
-      : alertReceiveChannelStore.renderPreview(alertReceiveChannelId, templateName, templateBody, payload)
+      : renderPreview(alertReceiveChannelId, templateName, templateBody, payload)
     )
       .then((data) => {
         setResult(data);

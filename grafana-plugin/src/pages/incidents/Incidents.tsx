@@ -49,6 +49,7 @@ import { TableColumn } from 'utils/types';
 import styles from './Incidents.module.scss';
 import { IncidentDropdown } from './parts/IncidentDropdown';
 import { SilenceButtonCascader } from './parts/SilenceButtonCascader';
+import { getIntegration } from 'models/alert_receive_channel/alert_receive_channel.helpers';
 
 const cx = cn.bind(styles);
 
@@ -613,7 +614,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
     const {
       store: { alertReceiveChannelStore },
     } = this.props;
-    const integration = alertReceiveChannelStore.getIntegration(record.alert_receive_channel);
+    const integration = getIntegration(alertReceiveChannelStore, record.alert_receive_channel);
 
     return (
       <TextEllipsisTooltip

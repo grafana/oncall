@@ -15,6 +15,7 @@ import { UserActions } from 'utils/authorization';
 import { form } from './MaintenanceForm.config';
 
 import styles from './MaintenanceForm.module.css';
+import { startMaintenanceMode } from 'models/alert_receive_channel/alert_receive_channel.helpers';
 
 const cx = cn.bind(styles);
 
@@ -31,18 +32,9 @@ const MaintenanceForm = observer((props: MaintenanceFormProps) => {
   const { onUpdate, onHide, initialData = {} } = props;
   const maintenanceForm = useMemo(() => (initialData.disabled ? cloneDeep(form) : form), [initialData]);
 
-  const store = useStore();
-
-  const { alertReceiveChannelStore } = store;
-
   const handleSubmit = useCallback(async (data) => {
     try {
-      await alertReceiveChannelStore.startMaintenanceMode(
-        initialData.alert_receive_channel_id,
-        data.mode,
-        data.duration
-      );
-
+      await startMaintenanceMode(initialData.alert_receive_channel_id, data.mode, data.duration);
       onHide();
       onUpdate();
       openNotification('Maintenance has been started');

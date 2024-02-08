@@ -27,6 +27,12 @@ import styles from 'pages/integration/Integration.module.scss';
 import { useStore } from 'state/useStore';
 import { openErrorNotification, openNotification } from 'utils';
 import { getVar } from 'utils/DOM';
+import {
+  connectContactPoint,
+  createContactPoint,
+  disconnectContactPoint,
+  getGrafanaAlertingContactPoints,
+} from 'models/alert_receive_channel/alert_receive_channel.helpers';
 
 const cx = cn.bind(styles);
 
@@ -85,7 +91,7 @@ const IntegrationContactPoint: React.FC<{
 
   useEffect(() => {
     (async function () {
-      const response = await alertReceiveChannelStore.getGrafanaAlertingContactPoints();
+      const response = await getGrafanaAlertingContactPoints();
       setState({
         allContactPoints: response,
         dataSourceOptions: response.map((res) => ({ label: res.name, value: res.uid })),
@@ -282,8 +288,7 @@ const IntegrationContactPoint: React.FC<{
             aria-label="Disconnect Contact Point"
             name="trash-alt"
             onClick={() => {
-              alertReceiveChannelStore
-                .disconnectContactPoint(id, item.dataSourceId, item.contactPoint)
+              disconnectContactPoint(id, item.dataSourceId, item.contactPoint)
                 .then(() => {
                   closeDrawer();
                   openNotification('Contact point has been removed');
@@ -339,8 +344,8 @@ const IntegrationContactPoint: React.FC<{
     setState({ isLoading: true });
 
     (isExistingContactPoint
-      ? alertReceiveChannelStore.connectContactPoint(id, selectedAlertManager, selectedContactPoint)
-      : alertReceiveChannelStore.createContactPoint(id, selectedAlertManager, selectedContactPoint)
+      ? connectContactPoint(id, selectedAlertManager, selectedContactPoint)
+      : createContactPoint(id, selectedAlertManager, selectedContactPoint)
     )
       .then(() => {
         closeDrawer();

@@ -37,6 +37,11 @@ import { PLUGIN_ROOT } from 'utils/consts';
 import { form } from './IntegrationForm.config';
 import { prepareForEdit } from './IntegrationForm.helpers';
 import styles from './IntegrationForm.module.scss';
+import {
+  connectContactPoint,
+  createContactPoint,
+  getGrafanaAlertingContactPoints,
+} from 'models/alert_receive_channel/alert_receive_channel.helpers';
 
 const cx = cn.bind(styles);
 
@@ -69,7 +74,7 @@ const IntegrationForm = observer((props: IntegrationFormProps) => {
 
   useEffect(() => {
     (async function () {
-      setAllContactPoints(await alertReceiveChannelStore.getGrafanaAlertingContactPoints());
+      setAllContactPoints(await getGrafanaAlertingContactPoints());
     })();
   }, []);
 
@@ -247,8 +252,8 @@ const IntegrationForm = observer((props: IntegrationFormProps) => {
 
           return (
             data.is_existing
-              ? alertReceiveChannelStore.connectContactPoint(response.id, data.alert_manager, data.contact_point)
-              : alertReceiveChannelStore.createContactPoint(response.id, data.alert_manager, data.contact_point)
+              ? connectContactPoint(response.id, data.alert_manager, data.contact_point)
+              : createContactPoint(response.id, data.alert_manager, data.contact_point)
           )
             .catch(onCatch)
             .finally(() => pushHistory(response.id));
@@ -339,7 +344,7 @@ const CustomFieldSectionRenderer: React.FC<CustomFieldSectionRendererProps> = ({
 
   useEffect(() => {
     (async function () {
-      const response = await alertReceiveChannelStore.getGrafanaAlertingContactPoints();
+      const response = await getGrafanaAlertingContactPoints();
       setState({
         allContactPoints: response,
         dataSources: response.map((res) => ({ label: res.name, value: res.uid })),

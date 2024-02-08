@@ -61,6 +61,7 @@ import { parseURL } from 'utils/url';
 
 import { getActionButtons } from './Incident.helpers';
 import styles from './Incident.module.scss';
+import { getIntegration } from 'models/alert_receive_channel/alert_receive_channel.helpers';
 
 const cx = cn.bind(styles);
 const INTEGRATION_NAME_LENGTH_LIMIT = 30;
@@ -271,17 +272,11 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
         params: { id },
       },
     } = this.props;
-
     const { alerts } = store.alertGroupStore;
-
     const incident = alerts.get(id);
-
-    const integration = store.alertReceiveChannelStore.getIntegration(incident.alert_receive_channel);
-
+    const integration = getIntegration(store.alertReceiveChannelStore, incident.alert_receive_channel);
     const showLinkTo = !incident.dependent_alert_groups.length && !incident.root_alert_group && !incident.resolved;
-
     const integrationNameWithEmojies = <Emoji text={incident.alert_receive_channel.verbal_name} />;
-
     const sourceLink = incident?.render_for_web?.source_link;
 
     return (

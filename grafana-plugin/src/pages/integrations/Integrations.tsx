@@ -54,6 +54,7 @@ import { UserActions } from 'utils/authorization';
 import { PAGE, TEXT_ELLIPSIS_CLASS } from 'utils/consts';
 
 import styles from './Integrations.module.scss';
+import { getIntegration, getPaginatedSearchResult } from 'models/alert_receive_channel/alert_receive_channel.helpers';
 
 enum TabType {
   MonitoringSystems = 'monitoring-systems',
@@ -200,8 +201,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
       integrationsFilters,
     } = this.state;
     const { alertReceiveChannelStore } = store;
-
-    const { count, results, page_size } = alertReceiveChannelStore.getPaginatedSearchResult();
+    const { count, results, page_size } = getPaginatedSearchResult(alertReceiveChannelStore);
     const isDirectPagingSelectedOnMonitoringSystemsTab =
       activeTab === TabType.MonitoringSystems && integrationsFilters.integration?.includes('direct_paging');
 
@@ -354,7 +354,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
 
   renderDatasource(item: ApiSchemas['AlertReceiveChannel'], alertReceiveChannelStore: AlertReceiveChannelStore) {
     const alertReceiveChannel = alertReceiveChannelStore.items[item.id];
-    const integration = alertReceiveChannelStore.getIntegration(alertReceiveChannel);
+    const integration = getIntegration(alertReceiveChannelStore, alertReceiveChannel);
     const isLegacyIntegration = (integration?.value as string)?.toLowerCase().startsWith('legacy_');
 
     if (isLegacyIntegration) {

@@ -14,6 +14,7 @@ import { ApiSchemas } from 'network/oncall-api/api.types';
 import styles from 'pages/integration/Integration.module.scss';
 import { useStore } from 'state/useStore';
 import { openNotification } from 'utils';
+import { sendDemoAlert } from 'models/alert_receive_channel/alert_receive_channel.helpers';
 
 const cx = cn.bind(styles);
 
@@ -88,7 +89,7 @@ const IntegrationSendDemoAlertModal: React.FC<IntegrationSendDemoPayloadModalPro
           <CopyToClipboard text={getCurlText()} onCopy={() => openNotification('CURL has been copied')}>
             <Button variant={'secondary'}>Copy as CURL</Button>
           </CopyToClipboard>
-          <Button variant={'primary'} onClick={sendDemoAlert} data-testid="submit-send-alert">
+          <Button variant={'primary'} onClick={onSendAlert} data-testid="submit-send-alert">
             Send Alert
           </Button>
         </HorizontalGroup>
@@ -100,13 +101,13 @@ const IntegrationSendDemoAlertModal: React.FC<IntegrationSendDemoPayloadModalPro
     setDemoPayload(value);
   }
 
-  function sendDemoAlert() {
+  function onSendAlert() {
     let parsedPayload = undefined;
     try {
       parsedPayload = JSON.parse(demoPayload);
     } catch (ex) {}
 
-    alertReceiveChannelStore.sendDemoAlert(alertReceiveChannel.id, parsedPayload).then(() => {
+    sendDemoAlert(alertReceiveChannel.id, parsedPayload).then(() => {
       alertReceiveChannelStore.updateCounters();
       openNotification(<DemoNotification />);
       onHideOrCancel();

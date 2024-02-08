@@ -15,6 +15,7 @@ import { useStore } from 'state/useStore';
 import { openErrorNotification } from 'utils';
 
 import styles from './ChannelFilterForm.module.css';
+import { createChannelFilter } from 'models/alert_receive_channel/alert_receive_channel.helpers';
 
 const cx = cn.bind(styles);
 
@@ -63,7 +64,7 @@ const ChannelFilterForm = observer((props: ChannelFilterFormProps) => {
 
   const onUpdateClickCallback = useCallback(() => {
     (id === 'new'
-      ? alertReceiveChannelStore.createChannelFilter({
+      ? createChannelFilter({
           alert_receive_channel: alertReceiveChannelId,
           filtering_term: filteringTerm,
           filtering_term_type: filteringTermType,
