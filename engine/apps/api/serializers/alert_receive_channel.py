@@ -563,7 +563,7 @@ class AlertReceiveChannelTemplatesSerializer(EagerLoadingMixin, serializers.Mode
                 is_default = False
                 if obj.messaging_backends_templates:
                     value = obj.messaging_backends_templates.get(backend_id, {}).get(field)
-                if not value:
+                if not value and not backend.skip_default_template_fields:
                     value = obj.get_default_template_attribute(backend_id, field)
                     is_default = True
                 field_name = f"{backend.slug}_{field}_template"
@@ -598,8 +598,6 @@ class AlertReceiveChannelTemplatesSerializer(EagerLoadingMixin, serializers.Mode
             "grouping_id_template",
             "resolve_condition_template",
             "acknowledge_condition_template",
-            "mobile_app_title_template",
-            "mobile_app_message_template",
         ]
 
         if settings.FEATURE_SLACK_INTEGRATION_ENABLED:
