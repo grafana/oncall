@@ -10,7 +10,7 @@ import reactStringReplace from 'react-string-replace';
 import PluginLink from 'components/PluginLink/PluginLink';
 import { Text } from 'components/Text/Text';
 import TimeRange from 'components/TimeRange/TimeRange';
-import Timeline from 'components/Timeline/Timeline';
+import { Timeline } from 'components/Timeline/Timeline';
 import GSelect from 'containers/GSelect/GSelect';
 import TeamName from 'containers/TeamName/TeamName';
 import UserTooltip from 'containers/UserTooltip/UserTooltip';

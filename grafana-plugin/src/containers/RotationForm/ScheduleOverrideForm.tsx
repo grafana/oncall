@@ -8,7 +8,7 @@ import Draggable from 'react-draggable';
 import Modal from 'components/Modal/Modal';
 import Tag from 'components/Tag/Tag';
 import { Text } from 'components/Text/Text';
-import UserGroups from 'components/UserGroups/UserGroups';
+import { UserGroups } from 'components/UserGroups/UserGroups';
 import { WithConfirm } from 'components/WithConfirm/WithConfirm';
 import { getShiftName } from 'models/schedule/schedule.helpers';
 import { Schedule, Shift } from 'models/schedule/schedule.types';
@@ -38,7 +38,7 @@ interface RotationFormProps {
 
 const cx = cn.bind(styles);
 
-const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
+export const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
   const {
     onHide,
     onCreate,
@@ -274,5 +274,3 @@ const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
     </Modal>
   );
 };
-
-export default ScheduleOverrideForm;

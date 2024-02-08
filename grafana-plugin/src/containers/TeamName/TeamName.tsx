@@ -4,7 +4,7 @@ import { Badge, Tooltip } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
-import Avatar from 'components/Avatar/Avatar';
+import { Avatar } from 'components/Avatar/Avatar';
 import { Text } from 'components/Text/Text';
 import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
 
@@ -18,7 +18,7 @@ interface TeamNameProps {
   size?: 'small' | 'medium' | 'large';
 }
 
-const TeamName = observer((props: TeamNameProps) => {
+export const TeamName = observer((props: TeamNameProps) => {
   const { team, size = 'medium', className } = props;
   if (!team) {
     return null;
@@ -35,5 +35,3 @@ const TeamName = observer((props: TeamNameProps) => {
     </Text>
   );
 });
-
-export default TeamName;

@@ -12,7 +12,7 @@ interface TelegramConnectorProps {
   onTabChange: (tab: UserSettingsTab) => void;
 }
 
-const TelegramConnector = (props: TelegramConnectorProps) => {
+export const TelegramConnector = (props: TelegramConnectorProps) => {
   const { id, onTabChange } = props;
 
   const store = useStore();
@@ -59,5 +59,3 @@ const TelegramConnector = (props: TelegramConnectorProps) => {
     </div>
   );
 };
-
-export default TelegramConnector;

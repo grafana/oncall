@@ -18,7 +18,7 @@ interface ScheduleICalSettingsProps {
   id: Schedule['id'];
 }
 
-const ScheduleICalSettings: FC<ScheduleICalSettingsProps> = observer((props) => {
+export const ScheduleICalSettings: FC<ScheduleICalSettingsProps> = observer((props) => {
   const { id } = props;
   const store = useStore();
 
@@ -107,5 +107,3 @@ const ScheduleICalSettings: FC<ScheduleICalSettingsProps> = observer((props) => 
     </VerticalGroup>
   );
 });
-
-export default ScheduleICalSettings;

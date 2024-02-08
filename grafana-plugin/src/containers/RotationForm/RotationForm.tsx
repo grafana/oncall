@@ -21,7 +21,7 @@ import Block from 'components/GBlock/Block';
 import Modal from 'components/Modal/Modal';
 import Tag from 'components/Tag/Tag';
 import { Text } from 'components/Text/Text';
-import UserGroups from 'components/UserGroups/UserGroups';
+import { UserGroups } from 'components/UserGroups/UserGroups';
 import RemoteSelect from 'containers/RemoteSelect/RemoteSelect';
 import {
   getRepeatShiftsEveryOptions,
@@ -41,9 +41,9 @@ import {
 } from 'containers/RotationForm/RotationForm.helpers';
 import { RepeatEveryPeriod } from 'containers/RotationForm/RotationForm.types';
 import DateTimePicker from 'containers/RotationForm/parts/DateTimePicker';
-import DaysSelector from 'containers/RotationForm/parts/DaysSelector';
-import DeletionModal from 'containers/RotationForm/parts/DeletionModal';
-import TimeUnitSelector from 'containers/RotationForm/parts/TimeUnitSelector';
+import {DaysSelector} from 'containers/RotationForm/parts/DaysSelector';
+import {DeletionModal} from 'containers/RotationForm/parts/DeletionModal';
+import {TimeUnitSelector} from 'containers/RotationForm/parts/TimeUnitSelector';
 import UserItem from 'containers/RotationForm/parts/UserItem';
 import { getShiftName } from 'models/schedule/schedule.helpers';
 import { Schedule, Shift } from 'models/schedule/schedule.types';
@@ -80,7 +80,7 @@ interface RotationFormProps {
   onShowRotationForm: (shiftId: Shift['id']) => void;
 }
 
-const RotationForm = observer((props: RotationFormProps) => {
+export const RotationForm = observer((props: RotationFormProps) => {
   const store = useStore();
   const {
     onHide,
@@ -861,5 +861,3 @@ const ShiftPeriod = ({
     </VerticalGroup>
   );
 };
-
-export default RotationForm;

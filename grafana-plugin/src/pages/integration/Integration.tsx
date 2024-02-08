@@ -35,7 +35,7 @@ import PageErrorHandlingWrapper, { PageBaseState } from 'components/PageErrorHan
 import { initErrorDataState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper.helpers';
 import PluginLink from 'components/PluginLink/PluginLink';
 import RenderConditionally from 'components/RenderConditionally/RenderConditionally';
-import Tabs from 'components/Tabs/Tabs';
+import { Tabs } from 'components/Tabs/Tabs';
 import Tag from 'components/Tag/Tag';
 import { Text } from 'components/Text/Text';
 import { TooltipBadge } from 'components/TooltipBadge/TooltipBadge';

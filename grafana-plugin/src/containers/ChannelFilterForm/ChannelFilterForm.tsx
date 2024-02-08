@@ -27,7 +27,7 @@ interface ChannelFilterFormProps {
   className?: string;
 }
 
-const ChannelFilterForm = observer((props: ChannelFilterFormProps) => {
+export const ChannelFilterForm = observer((props: ChannelFilterFormProps) => {
   const { id, alertReceiveChannelId, onHide, onUpdate, data, className } = props;
 
   // TODO: use FilteringTermType.jinja2 instead of 1
@@ -183,5 +183,3 @@ const ChannelFilterForm = observer((props: ChannelFilterFormProps) => {
     </Block>
   );
 });
-
-export default ChannelFilterForm;

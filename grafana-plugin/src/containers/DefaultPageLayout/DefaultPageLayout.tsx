@@ -19,7 +19,7 @@ interface DefaultPageLayoutProps extends AppRootProps {
   pageNav: NavModelItem;
 }
 
-const DefaultPageLayout: FC<DefaultPageLayoutProps> = observer((props) => {
+export const DefaultPageLayout: FC<DefaultPageLayoutProps> = observer((props) => {
   const { children, page, pageNav } = props;
 
   if (isTopNavbar()) {
@@ -49,5 +49,3 @@ const DefaultPageLayout: FC<DefaultPageLayoutProps> = observer((props) => {
     );
   }
 });
-
-export default DefaultPageLayout;

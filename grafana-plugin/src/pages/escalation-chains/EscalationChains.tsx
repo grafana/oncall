@@ -5,7 +5,7 @@ import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 
-import Collapse from 'components/Collapse/Collapse';
+import { Collapse } from 'components/Collapse/Collapse';
 import Block from 'components/GBlock/Block';
 import GList from 'components/GList/GList';
 import PageErrorHandlingWrapper, { PageBaseState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
@@ -15,7 +15,7 @@ import {
 } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper.helpers';
 import PluginLink from 'components/PluginLink/PluginLink';
 import { Text } from 'components/Text/Text';
-import Tutorial from 'components/Tutorial/Tutorial';
+import { Tutorial } from 'components/Tutorial/Tutorial';
 import { TutorialStep } from 'components/Tutorial/Tutorial.types';
 import { WithConfirm } from 'components/WithConfirm/WithConfirm';
 import EscalationChainCard from 'containers/EscalationChainCard/EscalationChainCard';

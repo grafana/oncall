@@ -3,7 +3,7 @@ import React, { FC } from 'react';
 import { Icon, Tooltip, IconName, VerticalGroup, HorizontalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 
-import Text, { TextType } from 'components/Text/Text';
+import { Text, TextType } from 'components/Text/Text';
 
 import styles from './TooltipBadge.module.scss';
 

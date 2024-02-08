@@ -24,7 +24,7 @@ function getIcon(type: PolicyNoteProps['type']) {
   }
 }
 
-const PolicyNote: FC<PolicyNoteProps> = (props) => {
+export const PolicyNote: FC<PolicyNoteProps> = (props) => {
   const { children, type = 'info' } = props;
 
   const icon = getIcon(type);
@@ -49,5 +49,3 @@ const PolicyNote: FC<PolicyNoteProps> = (props) => {
     </MediaQuery>
   );
 };
-
-export default PolicyNote;

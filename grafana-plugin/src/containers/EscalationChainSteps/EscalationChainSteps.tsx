@@ -9,7 +9,7 @@ import { observer } from 'mobx-react';
 
 import EscalationPolicy, { EscalationPolicyProps } from 'components/Policy/EscalationPolicy';
 import SortableList from 'components/SortableList/SortableList';
-import Timeline from 'components/Timeline/Timeline';
+import { Timeline } from 'components/Timeline/Timeline';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { EscalationChain } from 'models/escalation_chain/escalation_chain.types';
 import { EscalationPolicyOption } from 'models/escalation_policy/escalation_policy.types';
@@ -36,7 +36,7 @@ const getStyles = (theme: GrafanaTheme2) => {
   };
 };
 
-const EscalationChainSteps = observer((props: EscalationChainStepsProps) => {
+export const EscalationChainSteps = observer((props: EscalationChainStepsProps) => {
   const { id, offset = 0, isDisabled = false, addonBefore } = props;
 
   const store = useStore();
@@ -145,5 +145,3 @@ const EscalationChainSteps = observer((props: EscalationChainStepsProps) => {
     </SortableList>
   );
 });
-
-export default EscalationChainSteps;

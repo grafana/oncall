@@ -26,7 +26,7 @@ interface EscalationChainFormProps {
 
 const cx = cn.bind(styles);
 
-const EscalationChainForm: FC<EscalationChainFormProps> = (props) => {
+export const EscalationChainForm: FC<EscalationChainFormProps> = (props) => {
   const { escalationChainId, onHide, onSubmit: onSubmitProp, mode } = props;
 
   const store = useStore();
@@ -124,5 +124,3 @@ const EscalationChainForm: FC<EscalationChainFormProps> = (props) => {
     </Modal>
   );
 };
-
-export default EscalationChainForm;

@@ -15,7 +15,7 @@ interface TimelineMarksProps {
 
 const cx = cn.bind(styles);
 
-const TimelineMarks: FC<TimelineMarksProps> = observer((props) => {
+export const TimelineMarks: FC<TimelineMarksProps> = observer((props) => {
   const {
     timezoneStore: { currentDateInSelectedTimezone, calendarStartDate },
   } = useStore();
@@ -96,5 +96,3 @@ const TimelineMarks: FC<TimelineMarksProps> = observer((props) => {
     </div>
   );
 });
-
-export default TimelineMarks;

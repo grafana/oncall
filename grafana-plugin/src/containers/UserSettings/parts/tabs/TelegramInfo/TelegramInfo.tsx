@@ -22,7 +22,7 @@ const cx = cn.bind(styles);
 
 interface TelegramInfoProps extends HTMLAttributes<HTMLElement> {}
 
-const TelegramInfo = observer((_props: TelegramInfoProps) => {
+export const TelegramInfo = observer((_props: TelegramInfoProps) => {
   const store = useStore();
   const { userStore, organizationStore } = store;
 
@@ -101,5 +101,3 @@ const TelegramInfo = observer((_props: TelegramInfoProps) => {
     </WithPermissionControlDisplay>
   );
 });
-
-export default TelegramInfo;

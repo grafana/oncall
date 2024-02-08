@@ -18,7 +18,7 @@ import { ColumnsModal } from './ColumnsModal';
 
 interface ColumnsSelectorWrapperProps {}
 
-const ColumnsSelectorWrapper: React.FC<ColumnsSelectorWrapperProps> = observer(() => {
+export const ColumnsSelectorWrapper: React.FC<ColumnsSelectorWrapperProps> = observer(() => {
   const [isConfirmRemovalModalOpen, setIsConfirmRemovalModalOpen] = useState(false);
   const [columnToBeRemoved, setColumnToBeRemoved] = useState<AlertGroupColumn>(undefined);
   const [isColumnAddModalOpen, setIsColumnAddModalOpen] = useState(false);
@@ -158,5 +158,3 @@ const ColumnsSelectorWrapper: React.FC<ColumnsSelectorWrapperProps> = observer((
 function forceOpenToggletip() {
   document.getElementById('toggletip-button')?.click();
 }
-
-export default ColumnsSelectorWrapper;

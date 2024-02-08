@@ -15,7 +15,7 @@ interface CursorPaginationProps {
   next: string;
 }
 
-const CursorPagination: FC<CursorPaginationProps> = (props) => {
+export const CursorPagination: FC<CursorPaginationProps> = (props) => {
   const { current, onChange, prev, next, itemsPerPage, itemsPerPageOptions, onChangeItemsPerPage } = props;
 
   const [disabled, setDisabled] = useState<boolean>(false);
@@ -70,5 +70,3 @@ const CursorPagination: FC<CursorPaginationProps> = (props) => {
     </HorizontalGroup>
   );
 };
-
-export default CursorPagination;

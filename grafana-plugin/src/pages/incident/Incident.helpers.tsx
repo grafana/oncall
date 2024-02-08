@@ -3,7 +3,7 @@ import React from 'react';
 import { Button, HorizontalGroup, IconButton, Tooltip, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 
-import Avatar from 'components/Avatar/Avatar';
+import { Avatar } from 'components/Avatar/Avatar';
 import PluginLink from 'components/PluginLink/PluginLink';
 import Tag from 'components/Tag/Tag';
 import { Text } from 'components/Text/Text';

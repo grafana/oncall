@@ -30,7 +30,7 @@ interface RemoteSelectProps {
   predefinedOptions?: any[];
 }
 
-const RemoteSelect = inject('store')(
+export const RemoteSelect = inject('store')(
   observer((props: RemoteSelectProps) => {
     const {
       autoFocus,
@@ -135,5 +135,3 @@ const RemoteSelect = inject('store')(
     );
   })
 );
-
-export default RemoteSelect;

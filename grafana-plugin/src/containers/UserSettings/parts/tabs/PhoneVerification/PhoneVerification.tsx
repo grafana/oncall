@@ -34,7 +34,7 @@ interface PhoneVerificationState {
 
 const PHONE_REGEX = /^\+\d{8,15}$/;
 
-const PhoneVerification = observer((props: PhoneVerificationProps) => {
+export const PhoneVerification = observer((props: PhoneVerificationProps) => {
   const { userPk: propsUserPk } = props;
   const store = useStore();
   const { userStore, organizationStore } = store;
@@ -429,5 +429,3 @@ function PhoneVerificationButtonsGroup({
     </HorizontalGroup>
   );
 }
-
-export default PhoneVerification;

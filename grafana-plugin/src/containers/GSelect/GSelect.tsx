@@ -44,7 +44,7 @@ interface GSelectProps {
   icon?: string;
 }
 
-const GSelect = observer((props: GSelectProps) => {
+export const GSelect = observer((props: GSelectProps) => {
   const {
     autoFocus,
     showSearch = false,
@@ -167,5 +167,3 @@ const GSelect = observer((props: GSelectProps) => {
     </div>
   );
 });
-
-export default GSelect;

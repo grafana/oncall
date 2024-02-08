@@ -18,7 +18,7 @@ interface CardButtonProps {
 
 const cx = cn.bind(styles);
 
-const CardButton: FC<CardButtonProps> = (props) => {
+export const CardButton: FC<CardButtonProps> = (props) => {
   const { icon, description, title, selected, onClick } = props;
 
   return (
@@ -42,5 +42,3 @@ const CardButton: FC<CardButtonProps> = (props) => {
     </Block>
   );
 };
-
-export default CardButton;

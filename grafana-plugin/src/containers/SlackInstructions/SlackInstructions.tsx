@@ -15,7 +15,7 @@ const cx = cn.bind(styles);
 
 interface SlackInstructionsProps {}
 /* This component will be used when we will work on moving ENV variables to chat-ops, but we need to do work on backend side first */
-const SlackInstructions: FC<SlackInstructionsProps> = observer(() => {
+export const SlackInstructions: FC<SlackInstructionsProps> = observer(() => {
   return (
     <div>
       <VerticalGroup spacing="lg">
@@ -68,5 +68,3 @@ const SlackInstructions: FC<SlackInstructionsProps> = observer(() => {
     </div>
   );
 });
-
-export default SlackInstructions;

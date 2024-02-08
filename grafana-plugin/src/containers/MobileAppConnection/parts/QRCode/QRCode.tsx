@@ -9,7 +9,7 @@ type Props = {
   className?: string;
 };
 
-const QRCode: FC<Props> = (props: Props) => {
+export const QRCode: FC<Props> = (props: Props) => {
   const { value, className = '' } = props;
 
   return (
@@ -18,5 +18,3 @@ const QRCode: FC<Props> = (props: Props) => {
     </Block>
   );
 };
-
-export default QRCode;

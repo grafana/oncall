@@ -24,7 +24,7 @@ interface MSTeamsInstructionsProps {
 
 const cx = cn.bind(styles);
 
-const MSTeamsInstructions: FC<MSTeamsInstructionsProps> = observer((props) => {
+export const MSTeamsInstructions: FC<MSTeamsInstructionsProps> = observer((props) => {
   const { onCallisAdded, showInfoBox, personalSettings, onHide = () => {}, verificationCode } = props;
   const { msteamsChannelStore } = useStore();
 
@@ -129,5 +129,3 @@ const MSTeamsInstructions: FC<MSTeamsInstructionsProps> = observer((props) => {
     </VerticalGroup>
   );
 });
-
-export default MSTeamsInstructions;

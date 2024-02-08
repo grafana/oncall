@@ -10,8 +10,8 @@ import moment from 'moment-timezone';
 import Emoji from 'react-emoji-render';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 
-import CardButton from 'components/CardButton/CardButton';
-import CursorPagination from 'components/CursorPagination/CursorPagination';
+import { CardButton } from 'components/CardButton/CardButton';
+import { CursorPagination } from 'components/CursorPagination/CursorPagination';
 import GTable from 'components/GTable/GTable';
 import IntegrationLogo from 'components/IntegrationLogo/IntegrationLogo';
 import ManualAlertGroup from 'components/ManualAlertGroup/ManualAlertGroup';
@@ -20,7 +20,7 @@ import RenderConditionally from 'components/RenderConditionally/RenderConditiona
 import { Text } from 'components/Text/Text';
 import TextEllipsisTooltip from 'components/TextEllipsisTooltip/TextEllipsisTooltip';
 import { TooltipBadge } from 'components/TooltipBadge/TooltipBadge';
-import Tutorial from 'components/Tutorial/Tutorial';
+import { Tutorial } from 'components/Tutorial/Tutorial';
 import { TutorialStep } from 'components/Tutorial/Tutorial.types';
 import ColumnsSelectorWrapper from 'containers/ColumnsSelectorWrapper/ColumnsSelectorWrapper';
 import { IncidentsFiltersType } from 'containers/IncidentsFilters/IncidentFilters.types';

@@ -15,7 +15,7 @@ interface SchedulesFiltersProps {
   onChange: (filters: SchedulesFiltersType) => void;
 }
 
-const SchedulesFilters = (props: SchedulesFiltersProps) => {
+export const SchedulesFilters = (props: SchedulesFiltersProps) => {
   const { value, onChange } = props;
 
   const onSearchTermChangeCallback = useCallback(
@@ -117,5 +117,3 @@ const SchedulesFilters = (props: SchedulesFiltersProps) => {
     </>
   );
 };
-
-export default SchedulesFilters;

@@ -3,7 +3,7 @@ import React from 'react';
 import { render } from '@testing-library/react';
 import { Provider } from 'mobx-react';
 
-import AddResponders from './AddResponders';
+import { AddResponders } from './AddResponders';
 
 jest.mock('./parts/AddRespondersPopup/AddRespondersPopup', () => ({
   __esModule: true,

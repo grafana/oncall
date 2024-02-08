@@ -39,7 +39,7 @@ export enum TEMPLATE_PAGE {
   Webhooks,
 }
 
-const TemplatePreview = observer((props: TemplatePreviewProps) => {
+export const TemplatePreview = observer((props: TemplatePreviewProps) => {
   const {
     templateName,
     templateBody,
@@ -217,5 +217,3 @@ const TemplatePreview = observer((props: TemplatePreviewProps) => {
     <LoadingPlaceholder text="Loading..." />
   );
 });
-
-export default TemplatePreview;

@@ -39,7 +39,7 @@ interface RotationProps {
   showScheduleNameAsSlotTitle?: boolean;
 }
 
-const Rotation: FC<RotationProps> = observer((props) => {
+export const Rotation: FC<RotationProps> = observer((props) => {
   const {
     timezoneStore: { calendarStartDate },
   } = useStore();
@@ -186,5 +186,3 @@ const Empty = ({ text }: { text: string }) => {
     </div>
   );
 };
-
-export default Rotation;

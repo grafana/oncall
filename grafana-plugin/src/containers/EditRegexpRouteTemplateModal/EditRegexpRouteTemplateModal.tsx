@@ -27,7 +27,7 @@ interface EditRegexpRouteTemplateModalProps {
   onOpenEditIntegrationTemplate?: (templateName: string, channelFilterId: ChannelFilter['id']) => void;
 }
 
-const EditRegexpRouteTemplateModal = observer((props: EditRegexpRouteTemplateModalProps) => {
+export const EditRegexpRouteTemplateModal = observer((props: EditRegexpRouteTemplateModalProps) => {
   const { onHide, onUpdateRoute, channelFilterId, onOpenEditIntegrationTemplate, alertReceiveChannelId } = props;
   const store = useStore();
 
@@ -128,5 +128,3 @@ const EditRegexpRouteTemplateModal = observer((props: EditRegexpRouteTemplateMod
     </Modal>
   );
 });
-
-export default EditRegexpRouteTemplateModal;

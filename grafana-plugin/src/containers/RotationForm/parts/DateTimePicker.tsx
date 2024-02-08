@@ -23,7 +23,7 @@ interface DateTimePickerProps {
   error?: string[];
 }
 
-const DateTimePicker = observer(
+export const DateTimePicker = observer(
   ({ value: propValue, onChange, disabled, onFocus, onBlur, error }: DateTimePickerProps) => {
     const {
       timezoneStore: { getDateInSelectedTimezone },
@@ -90,5 +90,3 @@ const DateTimePicker = observer(
     );
   }
 );
-
-export default DateTimePicker;

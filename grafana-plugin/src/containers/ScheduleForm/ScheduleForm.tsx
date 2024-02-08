@@ -31,7 +31,7 @@ const scheduleTypeToForm = {
   [ScheduleType.API]: apiForm,
 };
 
-const ScheduleForm = observer((props: ScheduleFormProps) => {
+export const ScheduleForm = observer((props: ScheduleFormProps) => {
   const { id, type, onSubmit, onHide } = props;
   const isNew = id === 'new';
 
@@ -94,5 +94,3 @@ const ScheduleForm = observer((props: ScheduleFormProps) => {
     </Drawer>
   );
 });
-
-export default ScheduleForm;

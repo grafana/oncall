@@ -11,7 +11,7 @@ interface LabelsTooltipBadgeProps {
   onClick: (label: LabelKeyValue) => void;
 }
 
-const LabelsTooltipBadge: FC<LabelsTooltipBadgeProps> = ({ labels, onClick }) =>
+export const LabelsTooltipBadge: FC<LabelsTooltipBadgeProps> = ({ labels, onClick }) =>
   labels.length ? (
     <TooltipBadge
       borderType="secondary"
@@ -36,5 +36,3 @@ const LabelsTooltipBadge: FC<LabelsTooltipBadgeProps> = ({ labels, onClick }) =>
       }
     />
   ) : null;
-
-export default LabelsTooltipBadge;

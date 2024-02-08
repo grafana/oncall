@@ -36,7 +36,7 @@ interface TemplatesAlertGroupsListProps {
   onLoadAlertGroupsList?: (isRecentAlertExising: boolean) => void;
 }
 
-const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) => {
+export const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) => {
   const {
     templatePage,
     heading = 'Recent Alert groups',
@@ -311,5 +311,3 @@ const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) => {
     );
   }
 };
-
-export default TemplatesAlertGroupsList;

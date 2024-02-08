@@ -15,7 +15,7 @@ interface ICalConnectorProps {
   id: User['pk'];
 }
 
-const ICalConnector = (props: ICalConnectorProps) => {
+export const ICalConnector = (props: ICalConnectorProps) => {
   const { id } = props;
 
   const store = useStore();
@@ -129,5 +129,3 @@ const ICalConnector = (props: ICalConnectorProps) => {
     </>
   );
 };
-
-export default ICalConnector;

@@ -6,10 +6,10 @@ import dayjs from 'dayjs';
 import { sortBy } from 'lodash-es';
 import { observer } from 'mobx-react';
 
-import Avatar from 'components/Avatar/Avatar';
+import { Avatar } from 'components/Avatar/Avatar';
 import ScheduleBorderedAvatar from 'components/ScheduleBorderedAvatar/ScheduleBorderedAvatar';
 import { Text } from 'components/Text/Text';
-import WorkingHours from 'components/WorkingHours/WorkingHours';
+import { WorkingHours } from 'components/WorkingHours/WorkingHours';
 import { IsOncallIcon } from 'icons';
 import { Schedule } from 'models/schedule/schedule.types';
 import { getCurrentDateInTimezone } from 'models/timezone/timezone.helpers';
@@ -34,7 +34,7 @@ const hoursToSplit = 3;
 
 const jLimit = 24 / hoursToSplit;
 
-const UsersTimezones: FC<UsersTimezonesProps> = observer((props) => {
+export const UsersTimezones: FC<UsersTimezonesProps> = observer((props) => {
   const store = useStore();
   const {
     userStore,
@@ -319,5 +319,3 @@ const AvatarGroup = observer((props: AvatarGroupProps) => {
     </div>
   );
 });
-
-export default UsersTimezones;

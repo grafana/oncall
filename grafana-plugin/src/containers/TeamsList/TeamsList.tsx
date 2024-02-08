@@ -3,7 +3,7 @@ import React, { useCallback, useState } from 'react';
 import { Badge, Button, Field, HorizontalGroup, Modal, RadioButtonList, Tooltip, VerticalGroup } from '@grafana/ui';
 import { observer } from 'mobx-react';
 
-import Avatar from 'components/Avatar/Avatar';
+import { Avatar } from 'components/Avatar/Avatar';
 import GTable from 'components/GTable/GTable';
 import { Text } from 'components/Text/Text';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
@@ -134,7 +134,7 @@ interface TeamModalProps {
   onHide: () => void;
 }
 
-const TeamModal = ({ teamId, onHide }: TeamModalProps) => {
+export const TeamModal = ({ teamId, onHide }: TeamModalProps) => {
   const store = useStore();
   const { grafanaTeamStore } = store;
   const team = grafanaTeamStore.items[teamId];
@@ -188,5 +188,3 @@ const TeamModal = ({ teamId, onHide }: TeamModalProps) => {
     </Modal>
   );
 };
-
-export default TeamsList;

@@ -31,7 +31,7 @@ interface ShiftSwapFormProps {
   onHide: () => void;
 }
 
-const ShiftSwapForm = (props: ShiftSwapFormProps) => {
+export const ShiftSwapForm = (props: ShiftSwapFormProps) => {
   const { onUpdate, onHide, id, scheduleId, params: defaultParams } = props;
 
   const [shiftSwap, setShiftSwap] = useState({ ...defaultParams });
@@ -229,5 +229,3 @@ const ShiftSwapForm = (props: ShiftSwapFormProps) => {
     </Modal>
   );
 };
-
-export default ShiftSwapForm;

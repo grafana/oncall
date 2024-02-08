@@ -21,7 +21,7 @@ interface PhoneConnectorProps {
   onTabChange: (tab: UserSettingsTab) => void;
 }
 
-const PhoneConnector = (props: PhoneConnectorProps) => {
+export const PhoneConnector = (props: PhoneConnectorProps) => {
   const { id, onTabChange } = props;
 
   const store = useStore();
@@ -175,5 +175,3 @@ const PhoneConnector = (props: PhoneConnectorProps) => {
     </div>
   );
 };
-
-export default PhoneConnector;

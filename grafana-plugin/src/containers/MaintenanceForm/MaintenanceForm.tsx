@@ -27,7 +27,7 @@ interface MaintenanceFormProps {
   onUpdate: () => void;
 }
 
-const MaintenanceForm = observer((props: MaintenanceFormProps) => {
+export const MaintenanceForm = observer((props: MaintenanceFormProps) => {
   const { onUpdate, onHide, initialData = {} } = props;
   const maintenanceForm = useMemo(() => (initialData.disabled ? cloneDeep(form) : form), [initialData]);
 
@@ -82,5 +82,3 @@ const MaintenanceForm = observer((props: MaintenanceFormProps) => {
     </Drawer>
   );
 });
-
-export default MaintenanceForm;

@@ -20,7 +20,7 @@ interface WithId {
   id: string;
 }
 
-const GList = <T extends WithId>(props: GListProps<T>) => {
+export const GList = <T extends WithId>(props: GListProps<T>) => {
   const { selectedId, items, onSelect, children, autoScroll } = props;
 
   const getitemClickHandler = useCallback((id: string) => {
@@ -90,5 +90,3 @@ const GList = <T extends WithId>(props: GListProps<T>) => {
     </div>
   );
 };
-
-export default GList;

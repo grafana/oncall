@@ -8,7 +8,7 @@ import { observer } from 'mobx-react';
 import NotificationPolicy from 'components/Policy/NotificationPolicy';
 import SortableList from 'components/SortableList/SortableList';
 import { Text } from 'components/Text/Text';
-import Timeline from 'components/Timeline/Timeline';
+import { Timeline } from 'components/Timeline/Timeline';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { NotificationPolicyType } from 'models/notification_policy/notification_policy';
 import { User as UserType } from 'models/user/user.types';
@@ -28,7 +28,7 @@ interface PersonalNotificationSettingsProps {
   isImportant: boolean;
 }
 
-const PersonalNotificationSettings = observer((props: PersonalNotificationSettingsProps) => {
+export const PersonalNotificationSettings = observer((props: PersonalNotificationSettingsProps) => {
   const { userPk, isImportant } = props;
   const store = useStore();
   const { userStore } = store;
@@ -166,5 +166,3 @@ const PersonalNotificationSettings = observer((props: PersonalNotificationSettin
     </div>
   );
 });
-
-export default PersonalNotificationSettings;

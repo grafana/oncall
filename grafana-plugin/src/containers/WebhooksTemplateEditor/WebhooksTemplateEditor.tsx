@@ -4,7 +4,7 @@ import { Button, Drawer, HorizontalGroup, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { debounce } from 'lodash-es';
 
-import CheatSheet from 'components/CheatSheet/CheatSheet';
+import { CheatSheet } from 'components/CheatSheet/CheatSheet';
 import { genericTemplateCheatSheet, webhookPayloadCheatSheet } from 'components/CheatSheet/CheatSheet.config';
 import MonacoEditor from 'components/MonacoEditor/MonacoEditor';
 import { Text } from 'components/Text/Text';
@@ -31,7 +31,7 @@ interface WebhooksTemplateEditorProps {
   handleSubmit: (template: string) => void;
 }
 
-const WebhooksTemplateEditor: React.FC<WebhooksTemplateEditorProps> = ({ template, id, onHide, handleSubmit }) => {
+export const WebhooksTemplateEditor: React.FC<WebhooksTemplateEditorProps> = ({ template, id, onHide, handleSubmit }) => {
   const [isCheatSheetVisible, setIsCheatSheetVisible] = useState<boolean>(false);
   const [changedTemplateBody, setChangedTemplateBody] = useState<string>(template.value);
   const [selectedPayload, setSelectedPayload] = useState(undefined);
@@ -171,5 +171,3 @@ const WebhooksTemplateEditor: React.FC<WebhooksTemplateEditorProps> = ({ templat
     </Drawer>
   );
 };
-
-export default WebhooksTemplateEditor;

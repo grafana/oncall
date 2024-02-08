@@ -15,7 +15,7 @@ import {
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
-import Collapse from 'components/Collapse/Collapse';
+import { Collapse } from 'components/Collapse/Collapse';
 import MonacoEditor, { MONACO_LANGUAGE } from 'components/MonacoEditor/MonacoEditor';
 import PluginLink from 'components/PluginLink/PluginLink';
 import RenderConditionally from 'components/RenderConditionally/RenderConditionally';
@@ -44,7 +44,7 @@ interface IntegrationLabelsFormProps {
   onOpenIntegrationSettings: (id: AlertReceiveChannel['id']) => void;
 }
 
-const IntegrationLabelsForm = observer((props: IntegrationLabelsFormProps) => {
+export const IntegrationLabelsForm = observer((props: IntegrationLabelsFormProps) => {
   const { id, onHide, onSubmit, onOpenIntegrationSettings } = props;
 
   const store = useStore();
@@ -393,5 +393,3 @@ const CustomLabels = (props: CustomLabelsProps) => {
     </VerticalGroup>
   );
 };
-
-export default IntegrationLabelsForm;

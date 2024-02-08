@@ -20,7 +20,7 @@ interface ScheduleQualityProps {
   schedule: Schedule;
 }
 
-const ScheduleQuality: FC<ScheduleQualityProps> = observer(({ schedule }) => {
+export const ScheduleQuality: FC<ScheduleQualityProps> = observer(({ schedule }) => {
   const {
     scheduleStore: { getScoreQuality, relatedEscalationChains, quality },
   } = useStore();
@@ -121,5 +121,3 @@ const ScheduleQuality: FC<ScheduleQualityProps> = observer(({ schedule }) => {
     return 'tag--primary';
   }
 });
-
-export default ScheduleQuality;

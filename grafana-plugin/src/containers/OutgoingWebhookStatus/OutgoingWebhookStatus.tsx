@@ -47,7 +47,7 @@ function format_response_field(str) {
   }
 }
 
-const OutgoingWebhookStatus = observer((props: OutgoingWebhookStatusProps) => {
+export const OutgoingWebhookStatus = observer((props: OutgoingWebhookStatusProps) => {
   const { id } = props;
 
   const store = useStore();
@@ -118,5 +118,3 @@ const OutgoingWebhookStatus = observer((props: OutgoingWebhookStatusProps) => {
     </div>
   );
 });
-
-export default OutgoingWebhookStatus;

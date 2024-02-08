@@ -25,7 +25,7 @@ interface IntegrationTemplateBlockProps {
   onHelp?: () => void;
 }
 
-const IntegrationTemplateBlock: React.FC<IntegrationTemplateBlockProps> = ({
+export const IntegrationTemplateBlock: React.FC<IntegrationTemplateBlockProps> = ({
   label,
   labelTooltip,
   isTemplateEditable,
@@ -78,5 +78,3 @@ const IntegrationTemplateBlock: React.FC<IntegrationTemplateBlockProps> = ({
     </div>
   );
 };
-
-export default IntegrationTemplateBlock;

@@ -14,7 +14,7 @@ import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import { generateMissingPermissionMessage, isUserActionAllowed, UserActions } from 'utils/authorization';
 
-import ApiTokenForm from './ApiTokenForm';
+import {ApiTokenForm} from './ApiTokenForm';
 
 import styles from './ApiTokenSettings.module.css';
 

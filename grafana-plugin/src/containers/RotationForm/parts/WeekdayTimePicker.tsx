@@ -27,7 +27,7 @@ interface WeekdayTimePickerProps {
 
 const weekdays = ['SU', 'MO', 'TU', 'WE', 'TH', 'FR', 'SA'];
 
-const WeekdayTimePicker = (props: WeekdayTimePickerProps) => {
+export const WeekdayTimePicker = (props: WeekdayTimePickerProps) => {
   const { value: propValue, timezone, hideWeekday, disabled, weekStart, onWeekDayChange, onTimeChange, error } = props;
 
   const { scheduleStore } = useStore();
@@ -80,5 +80,3 @@ const WeekdayTimePicker = (props: WeekdayTimePickerProps) => {
     </VerticalGroup>
   );
 };
-
-export default WeekdayTimePicker;

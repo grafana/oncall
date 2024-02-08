@@ -23,7 +23,7 @@ interface IntegrationSendDemoPayloadModalProps {
   onHideOrCancel: () => void;
 }
 
-const IntegrationSendDemoAlertModal: React.FC<IntegrationSendDemoPayloadModalProps> = ({
+export const IntegrationSendDemoAlertModal: React.FC<IntegrationSendDemoPayloadModalProps> = ({
   alertReceiveChannel,
   isOpen,
   onHideOrCancel,
@@ -130,5 +130,3 @@ const DemoNotification: React.FC = () => {
     </div>
   );
 };
-
-export default IntegrationSendDemoAlertModal;

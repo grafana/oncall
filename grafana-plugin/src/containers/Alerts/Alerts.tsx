@@ -26,7 +26,7 @@ enum AlertID {
   CONNECTIVITY_WARNING = 'Connectivity Warning',
 }
 
-export default function Alerts() {
+export const Alerts = function () {
   const queryParams = useQueryParams();
   const [showSlackInstallAlert, setShowSlackInstallAlert] = useState<SlackError | undefined>();
 
@@ -164,4 +164,4 @@ export default function Alerts() {
         !getItem(AlertID.CONNECTIVITY_WARNING)
     );
   }
-}
+};

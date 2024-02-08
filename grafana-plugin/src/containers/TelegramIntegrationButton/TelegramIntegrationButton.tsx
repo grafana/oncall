@@ -22,7 +22,7 @@ interface TelegramIntegrationProps {
   onUpdate: () => void;
 }
 
-const TelegramIntegrationButton = observer((props: TelegramIntegrationProps) => {
+export const TelegramIntegrationButton = observer((props: TelegramIntegrationProps) => {
   const { disabled, size = 'md', onUpdate } = props;
 
   const [showModal, setShowModal] = useState<boolean>(false);
@@ -151,5 +151,3 @@ const TelegramModal = (props: TelegramModalProps) => {
     </Modal>
   );
 };
-
-export default TelegramIntegrationButton;

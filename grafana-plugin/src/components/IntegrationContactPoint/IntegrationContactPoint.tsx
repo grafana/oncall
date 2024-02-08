@@ -45,7 +45,7 @@ interface IntegrationContactPointState {
   contactPointOptions: Array<{ label: string; value: string }>;
 }
 
-const IntegrationContactPoint: React.FC<{
+export const IntegrationContactPoint: React.FC<{
   id: AlertReceiveChannel['id'];
 }> = observer(({ id }) => {
   const { alertReceiveChannelStore } = useStore();
@@ -390,5 +390,3 @@ const IntegrationContactPoint: React.FC<{
     ];
   }
 });
-
-export default IntegrationContactPoint;

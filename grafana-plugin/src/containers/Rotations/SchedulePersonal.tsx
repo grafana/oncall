@@ -6,7 +6,7 @@ import { observer } from 'mobx-react';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
 
-import Avatar from 'components/Avatar/Avatar';
+import { Avatar } from 'components/Avatar/Avatar';
 import { Text } from 'components/Text/Text';
 import Rotation from 'containers/Rotation/Rotation';
 import TimelineMarks from 'containers/TimelineMarks/TimelineMarks';

@@ -4,7 +4,7 @@ import cn from 'classnames/bind';
 import dayjs from 'dayjs';
 
 import { Text } from 'components/Text/Text';
-import WorkingHours from 'components/WorkingHours/WorkingHours';
+import { WorkingHours } from 'components/WorkingHours/WorkingHours';
 import { User } from 'models/user/user.types';
 import { useStore } from 'state/useStore';
 
@@ -21,7 +21,7 @@ interface UserItemProps {
 
 const WEEK_IN_SECONDS = 60 * 60 * 24 * 7;
 
-const UserItem = ({ pk, shiftColor, shiftStart, shiftEnd }: UserItemProps) => {
+export const UserItem = ({ pk, shiftColor, shiftStart, shiftEnd }: UserItemProps) => {
   const { userStore } = useStore();
 
   useEffect(() => {
@@ -53,5 +53,3 @@ const UserItem = ({ pk, shiftColor, shiftStart, shiftEnd }: UserItemProps) => {
     </div>
   );
 };
-
-export default UserItem;

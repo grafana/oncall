@@ -15,7 +15,7 @@ import { getVar } from 'utils/DOM';
 
 const cx = cn.bind(styles);
 
-const IntegrationHowToConnect: React.FC<{ id: AlertReceiveChannel['id'] }> = ({ id }) => {
+export const IntegrationHowToConnect: React.FC<{ id: AlertReceiveChannel['id'] }> = ({ id }) => {
   const { alertReceiveChannelStore } = useStore();
   const alertReceiveChannelCounter = alertReceiveChannelStore.counters[id];
   const hasAlerts = !!alertReceiveChannelCounter?.alerts_count;
@@ -113,5 +113,3 @@ const IntegrationHowToConnect: React.FC<{ id: AlertReceiveChannel['id'] }> = ({ 
     );
   }
 };
-
-export default IntegrationHowToConnect;

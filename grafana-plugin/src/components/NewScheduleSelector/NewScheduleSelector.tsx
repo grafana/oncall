@@ -19,7 +19,7 @@ interface NewScheduleSelectorProps {
 
 const cx = cn.bind(styles);
 
-const NewScheduleSelector: FC<NewScheduleSelectorProps> = ({ onHide, onCreate }) => {
+export const NewScheduleSelector: FC<NewScheduleSelectorProps> = ({ onHide, onCreate }) => {
   const [showScheduleForm, setShowScheduleForm] = useState<boolean>(false);
   const [type, setType] = useState<ScheduleType | undefined>();
 
@@ -97,5 +97,3 @@ const NewScheduleSelector: FC<NewScheduleSelectorProps> = ({ onHide, onCreate })
     </Drawer>
   );
 };
-
-export default NewScheduleSelector;

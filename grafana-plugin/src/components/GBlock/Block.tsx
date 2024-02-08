@@ -14,7 +14,7 @@ interface BlockProps extends HTMLAttributes<HTMLElement> {
 
 const cx = cn.bind(styles);
 
-const Block: FC<BlockProps> = (props) => {
+export const Block: FC<BlockProps> = (props) => {
   const {
     children,
     style,
@@ -47,5 +47,3 @@ const Block: FC<BlockProps> = (props) => {
     </div>
   );
 };
-
-export default Block;

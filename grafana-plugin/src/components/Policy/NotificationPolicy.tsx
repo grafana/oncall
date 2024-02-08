@@ -6,7 +6,7 @@ import cn from 'classnames/bind';
 import { SortableElement } from 'react-sortable-hoc';
 
 import PluginLink from 'components/PluginLink/PluginLink';
-import Timeline from 'components/Timeline/Timeline';
+import { Timeline } from 'components/Timeline/Timeline';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { Channel } from 'models/channel/channel';
 import { NotificationPolicyType, prepareNotificationPolicy } from 'models/notification_policy/notification_policy';

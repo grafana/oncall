@@ -60,7 +60,7 @@ const FormErrorMessage: FC<{ errorMsg: string }> = ({ errorMsg }) => (
   </>
 );
 
-const ConfigurationForm: FC<Props> = ({ onSuccessfulSetup, defaultOnCallApiUrl }) => {
+export const ConfigurationForm: FC<Props> = ({ onSuccessfulSetup, defaultOnCallApiUrl }) => {
   const [setupErrorMsg, setSetupErrorMsg] = useState<string>(null);
   const [formLoading, setFormLoading] = useState<boolean>(false);
 
@@ -126,5 +126,3 @@ const ConfigurationForm: FC<Props> = ({ onSuccessfulSetup, defaultOnCallApiUrl }
     </Form>
   );
 };
-
-export default ConfigurationForm;

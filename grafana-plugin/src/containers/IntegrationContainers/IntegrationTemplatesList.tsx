@@ -28,7 +28,7 @@ interface IntegrationTemplateListProps {
   alertReceiveChannelAllowSourceBasedResolving: boolean;
 }
 
-const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = observer(
+export const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = observer(
   ({
     templates,
     openEditTemplateModal,
@@ -151,5 +151,3 @@ const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = observer
 const VerticalBlock: React.FC<{ children: any[] }> = ({ children }) => {
   return <div className={cx('vertical-block')}>{children}</div>;
 };
-
-export default IntegrationTemplateList;

@@ -17,7 +17,7 @@ interface IntegrationBlockProps {
   toggle?: () => void;
 }
 
-const IntegrationBlock: React.FC<IntegrationBlockProps> = ({
+export const IntegrationBlock: React.FC<IntegrationBlockProps> = ({
   heading,
   content,
   noContent,
@@ -46,5 +46,3 @@ const IntegrationBlock: React.FC<IntegrationBlockProps> = ({
     </div>
   );
 };
-
-export default IntegrationBlock;

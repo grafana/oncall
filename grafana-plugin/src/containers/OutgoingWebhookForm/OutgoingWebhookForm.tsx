@@ -80,7 +80,7 @@ const CustomFieldSectionRenderer: React.FC<CustomFieldSectionRendererProps> = ob
   );
 });
 
-const OutgoingWebhookForm = observer((props: OutgoingWebhookFormProps) => {
+export const OutgoingWebhookForm = observer((props: OutgoingWebhookFormProps) => {
   const history = useHistory();
   const { id, action, onUpdate, onHide, onDelete } = props;
   const [onFormChangeFn, setOnFormChangeFn] = useState<{ fn: (value: string) => void }>(undefined);
@@ -498,5 +498,3 @@ const WebhookPresetBlocks: React.FC<{
     </div>
   );
 });
-
-export default OutgoingWebhookForm;

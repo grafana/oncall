@@ -15,7 +15,7 @@ import styles from './Header.module.scss';
 
 const cx = cn.bind(styles);
 
-const Header = observer(() => {
+export const Header = observer(() => {
   const store = useStore();
 
   return (
@@ -75,5 +75,3 @@ const Banners: React.FC = () => {
     </div>
   );
 };
-
-export default Header;

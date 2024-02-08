@@ -13,7 +13,7 @@ interface SlackConnectorProps {
   onTabChange: (tab: UserSettingsTab) => void;
 }
 
-const SlackConnector = (props: SlackConnectorProps) => {
+export const SlackConnector = (props: SlackConnectorProps) => {
   const { id, onTabChange } = props;
 
   const store = useStore();
@@ -94,5 +94,3 @@ const SlackConnector = (props: SlackConnectorProps) => {
     </>
   );
 };
-
-export default SlackConnector;

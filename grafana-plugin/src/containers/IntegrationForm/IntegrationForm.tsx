@@ -18,7 +18,7 @@ import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 import { useHistory } from 'react-router-dom';
 
-import Collapse from 'components/Collapse/Collapse';
+import { Collapse } from 'components/Collapse/Collapse';
 import Block from 'components/GBlock/Block';
 import GForm, { CustomFieldSectionRendererProps } from 'components/GForm/GForm';
 import IntegrationLogo from 'components/IntegrationLogo/IntegrationLogo';
@@ -51,7 +51,7 @@ interface IntegrationFormProps {
   navigateToAlertGroupLabels: (id: AlertReceiveChannel['id']) => void;
 }
 
-const IntegrationForm = observer((props: IntegrationFormProps) => {
+export const IntegrationForm = observer((props: IntegrationFormProps) => {
   const store = useStore();
   const history = useHistory();
 
@@ -530,5 +530,3 @@ const IntegrationBlocks: React.FC<{
     </div>
   );
 };
-
-export default IntegrationForm;

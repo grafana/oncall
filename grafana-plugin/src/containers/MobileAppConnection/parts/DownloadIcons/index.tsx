@@ -12,7 +12,7 @@ import styles from './DownloadIcons.module.scss';
 
 const cx = cn.bind(styles);
 
-const DownloadIcons: FC = () => (
+export const DownloadIcons: FC = () => (
   <VerticalGroup spacing="lg">
     <Text type="primary" strong>
       Download
@@ -48,5 +48,3 @@ const DownloadIcons: FC = () => (
     </VerticalGroup>
   </VerticalGroup>
 );
-
-export default DownloadIcons;

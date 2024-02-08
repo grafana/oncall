@@ -11,7 +11,7 @@ import styles from 'containers/UserSettings/parts/tabs/MSTeamsInfo/MSTeamsInfo.m
 
 const cx = cn.bind(styles);
 
-const MSTeamsInfo = observer(() => {
+export const MSTeamsInfo = observer(() => {
   const { userStore, msteamsChannelStore } = useStore();
 
   const [verificationCode, setVerificationCode] = useState<string>();
@@ -47,5 +47,3 @@ const MSTeamsInfo = observer(() => {
     </>
   );
 });
-
-export default MSTeamsInfo;

@@ -27,7 +27,7 @@ interface ResultProps {
   templatePage?: TEMPLATE_PAGE;
 }
 
-const TemplateResult = (props: ResultProps) => {
+export const TemplateResult = (props: ResultProps) => {
   const {
     alertReceiveChannelId,
     outgoingWebhookId,
@@ -101,5 +101,3 @@ const TemplateResult = (props: ResultProps) => {
     </div>
   );
 };
-
-export default TemplateResult;

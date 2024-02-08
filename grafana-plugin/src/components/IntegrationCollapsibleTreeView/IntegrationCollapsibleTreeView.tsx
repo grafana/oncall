@@ -31,7 +31,7 @@ interface IntegrationCollapsibleTreeViewProps {
   configElements: Array<IntegrationCollapsibleItem | IntegrationCollapsibleItem[]>;
 }
 
-const IntegrationCollapsibleTreeView: React.FC<IntegrationCollapsibleTreeViewProps> = observer((props) => {
+export const IntegrationCollapsibleTreeView: React.FC<IntegrationCollapsibleTreeViewProps> = observer((props) => {
   const { configElements, isRouteView } = props;
 
   const [expandedList, setExpandedList] = useState(getStartingExpandedState());
@@ -159,5 +159,3 @@ const IntegrationCollapsibleTreeItem: React.FC<{
     return isExpanded ? 'angle-down' : 'angle-right';
   }
 };
-
-export default IntegrationCollapsibleTreeView;

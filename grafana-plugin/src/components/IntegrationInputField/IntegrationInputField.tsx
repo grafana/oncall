@@ -19,7 +19,7 @@ interface IntegrationInputFieldProps {
 
 const cx = cn.bind(styles);
 
-const IntegrationInputField: React.FC<IntegrationInputFieldProps> = ({
+export const IntegrationInputField: React.FC<IntegrationInputFieldProps> = ({
   isMasked = false,
   value,
   showEye = true,
@@ -63,5 +63,3 @@ const IntegrationInputField: React.FC<IntegrationInputFieldProps> = ({
     window.open(value, '_blank');
   }
 };
-
-export default IntegrationInputField;

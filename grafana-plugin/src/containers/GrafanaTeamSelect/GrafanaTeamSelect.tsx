@@ -21,7 +21,7 @@ interface GrafanaTeamSelectProps {
   defaultValue?: GrafanaTeam['id'];
 }
 
-const GrafanaTeamSelect = observer(({ onSelect, onHide, withoutModal, defaultValue }: GrafanaTeamSelectProps) => {
+export const GrafanaTeamSelect = observer(({ onSelect, onHide, withoutModal, defaultValue }: GrafanaTeamSelectProps) => {
   const store = useStore();
 
   const { userStore, grafanaTeamStore } = store;
@@ -93,5 +93,3 @@ const GrafanaTeamSelect = observer(({ onSelect, onHide, withoutModal, defaultVal
     </Modal>
   );
 });
-
-export default GrafanaTeamSelect;

@@ -7,7 +7,7 @@ import { observer } from 'mobx-react';
 
 import { getTemplatesForEdit } from 'components/AlertTemplates/AlertTemplatesForm.config';
 import { TemplateForEdit } from 'components/AlertTemplates/CommonAlertTemplatesForm.config';
-import CheatSheet from 'components/CheatSheet/CheatSheet';
+import { CheatSheet } from 'components/CheatSheet/CheatSheet';
 import {
   groupingTemplateCheatSheet,
   slackMessageTemplateCheatSheet,
@@ -44,7 +44,7 @@ interface IntegrationTemplateProps {
   onUpdateRoute?: (values: any, channelFilterId?: ChannelFilter['id']) => void;
 }
 
-const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
+export const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
   const { id, onHide, template, onUpdateTemplates, onUpdateRoute, templateBody, channelFilterId, templates } = props;
 
   const [isCheatSheetVisible, setIsCheatSheetVisible] = useState<boolean>(false);
@@ -251,5 +251,3 @@ const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
     );
   }
 });
-
-export default IntegrationTemplate;

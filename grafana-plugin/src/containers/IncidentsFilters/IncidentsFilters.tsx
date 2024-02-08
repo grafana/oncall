@@ -18,7 +18,7 @@ import { observer } from 'mobx-react';
 import moment from 'moment-timezone';
 import Emoji from 'react-emoji-render';
 
-import CardButton from 'components/CardButton/CardButton';
+import { CardButton } from 'components/CardButton/CardButton';
 import { Text } from 'components/Text/Text';
 import RemoteSelect from 'containers/RemoteSelect/RemoteSelect';
 import { IncidentStatus } from 'models/alertgroup/alertgroup.types';

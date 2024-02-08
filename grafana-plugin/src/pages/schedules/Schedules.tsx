@@ -6,7 +6,7 @@ import { observer } from 'mobx-react';
 import qs from 'query-string';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 
-import Avatar from 'components/Avatar/Avatar';
+import { Avatar } from 'components/Avatar/Avatar';
 import NewScheduleSelector from 'components/NewScheduleSelector/NewScheduleSelector';
 import PluginLink from 'components/PluginLink/PluginLink';
 import { GTable } from 'components/Table/Table';

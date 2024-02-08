@@ -30,7 +30,7 @@ const DragHandle = () => <IconButton aria-label="Drag" className={cx('icon')} na
 
 const SortableHandleHoc = SortableHandle(DragHandle);
 
-const UserGroups = (props: UserGroupsProps) => {
+export const UserGroups = (props: UserGroupsProps) => {
   const { value, onChange, isMultipleGroups, renderUser, showError, disabled } = props;
 
   const handleAddUserGroup = useCallback(() => {

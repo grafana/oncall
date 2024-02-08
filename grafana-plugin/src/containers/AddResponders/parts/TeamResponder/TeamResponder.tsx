@@ -3,7 +3,7 @@ import React, { FC } from 'react';
 import { HorizontalGroup, IconButton } from '@grafana/ui';
 import cn from 'classnames/bind';
 
-import Avatar from 'components/Avatar/Avatar';
+import { Avatar } from 'components/Avatar/Avatar';
 import { Text } from 'components/Text/Text';
 import styles from 'containers/AddResponders/AddResponders.module.scss';
 import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';

@@ -19,7 +19,7 @@ interface MSTeamsIntegrationProps {
   onUpdate: () => void;
 }
 
-const MSTeamsIntegrationButton = observer((props: MSTeamsIntegrationProps) => {
+export const MSTeamsIntegrationButton = observer((props: MSTeamsIntegrationProps) => {
   const { disabled, size = 'md', onUpdate } = props;
 
   const [showModal, setShowModal] = useState(false);
@@ -71,5 +71,3 @@ const MSTeamsModal = (props: MSTeamsModalProps) => {
     </Modal>
   );
 };
-
-export default MSTeamsIntegrationButton;

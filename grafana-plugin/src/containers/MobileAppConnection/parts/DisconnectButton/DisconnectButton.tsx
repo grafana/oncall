@@ -13,7 +13,7 @@ type Props = {
   onClick: () => void;
 };
 
-const DisconnectButton: FC<Props> = ({ onClick }) => (
+export const DisconnectButton: FC<Props> = ({ onClick }) => (
   <WithConfirm title="Are you sure to disconnect your mobile application?" confirmText="Remove">
     <Button
       variant="destructive"
@@ -26,5 +26,3 @@ const DisconnectButton: FC<Props> = ({ onClick }) => (
     </Button>
   </WithConfirm>
 );
-
-export default DisconnectButton;

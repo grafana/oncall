@@ -23,7 +23,7 @@ export interface PageErrorData {
   switchToTeam?: { name: string; id: string };
 }
 
-export default function PageErrorHandlingWrapper({
+export const PageErrorHandlingWrapper = function ({
   errorData,
   objectName,
   pageName,
@@ -70,4 +70,4 @@ export default function PageErrorHandlingWrapper({
       </VerticalGroup>
     </div>
   );
-}
+};

@@ -27,7 +27,7 @@ interface GroupedAlertNumberProps {
   value: Alert['pk'];
 }
 
-const AttachIncidentForm = observer(({ id, onUpdate, onHide }: AttachIncidentFormProps) => {
+export const AttachIncidentForm = observer(({ id, onUpdate, onHide }: AttachIncidentFormProps) => {
   const store = useStore();
 
   const { alertGroupStore } = store;
@@ -100,5 +100,3 @@ const AttachIncidentForm = observer(({ id, onUpdate, onHide }: AttachIncidentFor
     </Modal>
   );
 });
-
-export default AttachIncidentForm;

@@ -26,7 +26,7 @@ import reactStringReplace from 'react-string-replace';
 import { OnCallPluginExtensionPoints } from 'types';
 
 import errorSVG from 'assets/img/error.svg';
-import Collapse from 'components/Collapse/Collapse';
+import { Collapse } from 'components/Collapse/Collapse';
 import { ExtensionLinkDropdown } from 'components/ExtensionLinkMenu/ExtensionLinkDropdown';
 import Block from 'components/GBlock/Block';
 import IntegrationLogo from 'components/IntegrationLogo/IntegrationLogo';
@@ -40,7 +40,7 @@ import PluginLink from 'components/PluginLink/PluginLink';
 import SourceCode from 'components/SourceCode/SourceCode';
 import { Text } from 'components/Text/Text';
 import { TooltipBadge } from 'components/TooltipBadge/TooltipBadge';
-import AddResponders from 'containers/AddResponders/AddResponders';
+import { AddResponders } from 'containers/AddResponders/AddResponders';
 import { prepareForUpdate } from 'containers/AddResponders/AddResponders.helpers';
 import { UserResponder } from 'containers/AddResponders/AddResponders.types';
 import AttachIncidentForm from 'containers/AttachIncidentForm/AttachIncidentForm';

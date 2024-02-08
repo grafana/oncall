@@ -5,7 +5,7 @@ import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 import { useMediaQuery } from 'react-responsive';
 
-import Avatar from 'components/Avatar/Avatar';
+import { Avatar } from 'components/Avatar/Avatar';
 import { Tabs, TabsContent } from 'containers/UserSettings/parts';
 import { User as UserType } from 'models/user/user.types';
 import { AppFeature } from 'state/features';
@@ -26,7 +26,7 @@ interface UserFormProps {
   tab?: UserSettingsTab;
 }
 
-const UserSettings = observer(({ id, onHide, tab = UserSettingsTab.UserInfo }: UserFormProps) => {
+export const UserSettings = observer(({ id, onHide, tab = UserSettingsTab.UserInfo }: UserFormProps) => {
   const store = useStore();
   const { userStore, organizationStore } = store;
 
@@ -88,5 +88,3 @@ const UserSettings = observer(({ id, onHide, tab = UserSettingsTab.UserInfo }: U
     </>
   );
 });
-
-export default UserSettings;

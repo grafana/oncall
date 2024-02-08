@@ -17,7 +17,7 @@ interface AlertReceiveChannelCardProps {
   id: EscalationChain['id'];
 }
 
-const EscalationChainCard = observer((props: AlertReceiveChannelCardProps) => {
+export const EscalationChainCard = observer((props: AlertReceiveChannelCardProps) => {
   const { id } = props;
 
   const store = useStore();
@@ -51,5 +51,3 @@ const EscalationChainCard = observer((props: AlertReceiveChannelCardProps) => {
     </div>
   );
 });
-
-export default EscalationChainCard;

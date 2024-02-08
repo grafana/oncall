@@ -18,7 +18,7 @@ interface SourceCodeProps {
   className?: string;
 }
 
-const SourceCode: FC<SourceCodeProps> = (props) => {
+export const SourceCode: FC<SourceCodeProps> = (props) => {
   const { children, noMaxHeight = false, showClipboardIconOnly = false, showCopyToClipboard = true, className } = props;
   const showClipboardCopy = showClipboardIconOnly || showCopyToClipboard;
 
@@ -68,5 +68,3 @@ const SourceCode: FC<SourceCodeProps> = (props) => {
     </div>
   );
 };
-
-export default SourceCode;

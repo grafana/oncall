@@ -2,7 +2,7 @@ import React from 'react';
 
 import cn from 'classnames/bind';
 
-import TimelineItem, { TimelineItemProps } from './TimelineItem';
+import { TimelineItem, TimelineItemProps } from './TimelineItem';
 
 import styles from 'components/Timeline/Timeline.module.css';
 

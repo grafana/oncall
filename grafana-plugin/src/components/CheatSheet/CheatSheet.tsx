@@ -19,7 +19,7 @@ interface CheatSheetProps {
 
 const cx = cn.bind(styles);
 
-const CheatSheet = (props: CheatSheetProps) => {
+export const CheatSheet = (props: CheatSheetProps) => {
   const { cheatSheetName, cheatSheetData, onClose } = props;
   return (
     <div className={cx('cheatsheet-container')}>
@@ -83,5 +83,3 @@ const CheatSheetListItem = (props: CheatSheetListItemProps) => {
     </>
   );
 };
-
-export default CheatSheet;

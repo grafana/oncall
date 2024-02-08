@@ -29,7 +29,7 @@ interface AlertItem {
   inside_organization_number: number;
 }
 
-const IncidentMatcher = observer((props: IncidentMatcherProps) => {
+export const IncidentMatcher = observer((props: IncidentMatcherProps) => {
   const { regexp, className, onError } = props;
 
   const store = useStore();
@@ -108,5 +108,3 @@ const IncidentMatcher = observer((props: IncidentMatcherProps) => {
     </Block>
   );
 });
-
-export default IncidentMatcher;

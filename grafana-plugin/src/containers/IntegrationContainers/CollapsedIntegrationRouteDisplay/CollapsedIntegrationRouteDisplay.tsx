@@ -29,7 +29,7 @@ interface CollapsedIntegrationRouteDisplayProps {
   onItemMove: () => void;
 }
 
-const CollapsedIntegrationRouteDisplay: React.FC<CollapsedIntegrationRouteDisplayProps> = observer(
+export const CollapsedIntegrationRouteDisplay: React.FC<CollapsedIntegrationRouteDisplayProps> = observer(
   ({
     channelFilterId,
     alertReceiveChannelId,
@@ -195,5 +195,3 @@ const CollapsedIntegrationRouteDisplay: React.FC<CollapsedIntegrationRouteDispla
     }
   }
 );
-
-export default CollapsedIntegrationRouteDisplay;

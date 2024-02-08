@@ -4,7 +4,7 @@ import { SelectableValue } from '@grafana/data';
 import { ActionMeta, HorizontalGroup, IconButton } from '@grafana/ui';
 import cn from 'classnames/bind';
 
-import Avatar from 'components/Avatar/Avatar';
+import { Avatar } from 'components/Avatar/Avatar';
 import { Text } from 'components/Text/Text';
 import styles from 'containers/AddResponders/AddResponders.module.scss';
 import { UserResponder as UserResponderType } from 'containers/AddResponders/AddResponders.types';

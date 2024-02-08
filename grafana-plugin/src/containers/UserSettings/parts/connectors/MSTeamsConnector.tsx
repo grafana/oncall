@@ -18,7 +18,7 @@ interface MSTeamsConnectorProps {
   onTabChange: (tab: UserSettingsTab) => void;
 }
 
-const MSTeamsConnector = observer((props: MSTeamsConnectorProps) => {
+export const MSTeamsConnector = observer((props: MSTeamsConnectorProps) => {
   const { id, onTabChange } = props;
 
   const store = useStore();
@@ -63,5 +63,3 @@ const MSTeamsConnector = observer((props: MSTeamsConnectorProps) => {
     </div>
   );
 });
-
-export default MSTeamsConnector;

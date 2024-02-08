@@ -37,7 +37,7 @@ const PREDEFINED_TERMS = [
   'tojson',
 ];
 
-const MonacoEditor: FC<MonacoEditorProps> = (props) => {
+export const MonacoEditor: FC<MonacoEditorProps> = (props) => {
   const {
     value,
     onChange,
@@ -104,5 +104,3 @@ const MonacoEditor: FC<MonacoEditorProps> = (props) => {
     />
   );
 };
-
-export default MonacoEditor;

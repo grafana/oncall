@@ -62,7 +62,7 @@ interface ExpandedIntegrationRouteDisplayState {
   routeIdForDeletion: string;
 }
 
-const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayProps> = observer(
+export const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayProps> = observer(
   ({
     alertReceiveChannelId,
     channelFilterId,
@@ -472,5 +472,3 @@ export const RouteButtonsDisplay: React.FC<RouteButtonsDisplayProps> = ({
     onItemMove();
   }
 };
-
-export default ExpandedIntegrationRouteDisplay;
