@@ -45,7 +45,12 @@ export class AlertReceiveChannelStore {
   }
 
   // TODO: handle skipErrorHandling
-  async create({ data, skipErrorHandling }: { data: ApiSchemas['AlertReceiveChannel']; skipErrorHandling?: boolean }) {
+  async create({
+    data /* skipErrorHandling */,
+  }: {
+    data: ApiSchemas['AlertReceiveChannel'];
+    skipErrorHandling?: boolean;
+  }) {
     const result = await onCallApi.POST('/alert_receive_channels/', { params: {}, body: data });
     await this.rootStore.organizationStore.loadCurrentOrganization();
     return result.data;
@@ -55,8 +60,8 @@ export class AlertReceiveChannelStore {
   async update({
     id,
     data,
-    skipErrorHandling,
-  }: {
+  }: // skipErrorHandling,
+  {
     id: ApiSchemas['AlertReceiveChannelUpdate']['id'];
     data: ApiSchemas['AlertReceiveChannelUpdate'];
     skipErrorHandling?: boolean;
@@ -68,7 +73,7 @@ export class AlertReceiveChannelStore {
 
   async getById(
     id: ApiSchemas['AlertReceiveChannel']['id'],
-    skipErrorHandling = false // TODO: check it
+    _skipErrorHandling = false // TODO: check it
   ): Promise<ApiSchemas['AlertReceiveChannel']> {
     const alertReceiveChannel = await onCallApi.GET('/alert_receive_channels/{id}/', { params: { path: { id } } });
 

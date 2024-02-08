@@ -49,7 +49,7 @@ const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
 
   const [isCheatSheetVisible, setIsCheatSheetVisible] = useState<boolean>(false);
   const [chatOpsPermalink, setChatOpsPermalink] = useState(undefined);
-  const [alertGroupPayload, setAlertGroupPayload] = useState<JSON>(undefined);
+  const [alertGroupPayload, setAlertGroupPayload] = useState<{ [key: string]: unknown }>(undefined);
   const [changedTemplateBody, setChangedTemplateBody] = useState<string>(templateBody);
   const [resultError, setResultError] = useState<string>(undefined);
   const [isRecentAlertGroupExisting, setIsRecentAlertGroupExisting] = useState<boolean>(false);

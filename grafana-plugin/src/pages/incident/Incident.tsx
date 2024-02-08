@@ -45,6 +45,7 @@ import { prepareForUpdate } from 'containers/AddResponders/AddResponders.helpers
 import { UserResponder } from 'containers/AddResponders/AddResponders.types';
 import AttachIncidentForm from 'containers/AttachIncidentForm/AttachIncidentForm';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
+import { getIntegration } from 'models/alert_receive_channel/alert_receive_channel.helpers';
 import { Alert, AlertAction, TimeLineItem, TimeLineRealm, GroupedAlert } from 'models/alertgroup/alertgroup.types';
 import { ResolutionNoteSourceTypesToDisplayName } from 'models/resolution_note/resolution_note.types';
 import { User } from 'models/user/user.types';
@@ -61,7 +62,6 @@ import { parseURL } from 'utils/url';
 
 import { getActionButtons } from './Incident.helpers';
 import styles from './Incident.module.scss';
-import { getIntegration } from 'models/alert_receive_channel/alert_receive_channel.helpers';
 
 const cx = cn.bind(styles);
 const INTEGRATION_NAME_LENGTH_LIMIT = 30;

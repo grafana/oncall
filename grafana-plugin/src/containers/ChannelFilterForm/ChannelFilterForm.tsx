@@ -9,13 +9,13 @@ import Block from 'components/GBlock/Block';
 import MonacoEditor from 'components/MonacoEditor/MonacoEditor';
 import Text from 'components/Text/Text';
 import IncidentMatcher from 'containers/IncidentMatcher/IncidentMatcher';
+import { createChannelFilter } from 'models/alert_receive_channel/alert_receive_channel.helpers';
 import { ChannelFilter, FilteringTermType } from 'models/channel_filter/channel_filter.types';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
 import { openErrorNotification } from 'utils';
 
 import styles from './ChannelFilterForm.module.css';
-import { createChannelFilter } from 'models/alert_receive_channel/alert_receive_channel.helpers';
 
 const cx = cn.bind(styles);
 

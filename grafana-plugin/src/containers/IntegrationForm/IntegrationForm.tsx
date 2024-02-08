@@ -26,6 +26,11 @@ import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
 import Labels from 'containers/Labels/Labels';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
+import {
+  connectContactPoint,
+  createContactPoint,
+  getGrafanaAlertingContactPoints,
+} from 'models/alert_receive_channel/alert_receive_channel.helpers';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import IntegrationHelper from 'pages/integration/Integration.helper';
 import { AppFeature } from 'state/features';
@@ -37,11 +42,6 @@ import { PLUGIN_ROOT } from 'utils/consts';
 import { form } from './IntegrationForm.config';
 import { prepareForEdit } from './IntegrationForm.helpers';
 import styles from './IntegrationForm.module.scss';
-import {
-  connectContactPoint,
-  createContactPoint,
-  getGrafanaAlertingContactPoints,
-} from 'models/alert_receive_channel/alert_receive_channel.helpers';
 
 const cx = cn.bind(styles);
 
@@ -339,8 +339,6 @@ const CustomFieldSectionRenderer: React.FC<CustomFieldSectionRendererProps> = ({
       allContactPoints: [],
     }
   );
-
-  const { alertReceiveChannelStore } = useStore();
 
   useEffect(() => {
     (async function () {

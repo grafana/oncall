@@ -5,6 +5,7 @@ import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
 import Text from 'components/Text/Text';
+import { renderPreview } from 'models/alert_receive_channel/alert_receive_channel.helpers';
 import { Alert } from 'models/alertgroup/alertgroup.types';
 import { OutgoingWebhook } from 'models/outgoing_webhook/outgoing_webhook.types';
 import { ApiSchemas } from 'network/oncall-api/api.types';
@@ -15,7 +16,6 @@ import { useDebouncedCallback } from 'utils/hooks';
 import sanitize from 'utils/sanitize';
 
 import styles from './TemplatePreview.module.css';
-import { renderPreview } from 'models/alert_receive_channel/alert_receive_channel.helpers';
 
 const cx = cn.bind(styles);
 

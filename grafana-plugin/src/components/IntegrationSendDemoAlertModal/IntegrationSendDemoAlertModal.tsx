@@ -10,11 +10,11 @@ import MonacoEditor, { MONACO_LANGUAGE } from 'components/MonacoEditor/MonacoEdi
 import { MONACO_EDITABLE_CONFIG } from 'components/MonacoEditor/MonacoEditor.config';
 import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
+import { sendDemoAlert } from 'models/alert_receive_channel/alert_receive_channel.helpers';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import styles from 'pages/integration/Integration.module.scss';
 import { useStore } from 'state/useStore';
 import { openNotification } from 'utils';
-import { sendDemoAlert } from 'models/alert_receive_channel/alert_receive_channel.helpers';
 
 const cx = cn.bind(styles);
 

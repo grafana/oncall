@@ -21,18 +21,18 @@ import IntegrationBlock from 'components/Integrations/IntegrationBlock';
 import Tag from 'components/Tag/Tag';
 import Text from 'components/Text/Text';
 import WithConfirm from 'components/WithConfirm/WithConfirm';
-import { ContactPoint } from 'models/alert_receive_channel/alert_receive_channel.types';
-import { ApiSchemas } from 'network/oncall-api/api.types';
-import styles from 'pages/integration/Integration.module.scss';
-import { useStore } from 'state/useStore';
-import { openErrorNotification, openNotification } from 'utils';
-import { getVar } from 'utils/DOM';
 import {
   connectContactPoint,
   createContactPoint,
   disconnectContactPoint,
   getGrafanaAlertingContactPoints,
 } from 'models/alert_receive_channel/alert_receive_channel.helpers';
+import { ContactPoint } from 'models/alert_receive_channel/alert_receive_channel.types';
+import { ApiSchemas } from 'network/oncall-api/api.types';
+import styles from 'pages/integration/Integration.module.scss';
+import { useStore } from 'state/useStore';
+import { openErrorNotification, openNotification } from 'utils';
+import { getVar } from 'utils/DOM';
 
 const cx = cn.bind(styles);
 

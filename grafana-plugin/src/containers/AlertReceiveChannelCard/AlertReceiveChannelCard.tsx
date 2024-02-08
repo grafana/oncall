@@ -11,11 +11,11 @@ import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
 import TeamName from 'containers/TeamName/TeamName';
 import { HeartGreenIcon, HeartRedIcon } from 'icons';
+import { getIntegration } from 'models/alert_receive_channel/alert_receive_channel.helpers';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
 
 import styles from './AlertReceiveChannelCard.module.scss';
-import { getIntegration } from 'models/alert_receive_channel/alert_receive_channel.helpers';
 
 const cx = cn.bind(styles);
 

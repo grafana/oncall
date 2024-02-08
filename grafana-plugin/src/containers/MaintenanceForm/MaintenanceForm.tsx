@@ -7,15 +7,14 @@ import { observer } from 'mobx-react';
 
 import GForm from 'components/GForm/GForm';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
+import { startMaintenanceMode } from 'models/alert_receive_channel/alert_receive_channel.helpers';
 import { ApiSchemas } from 'network/oncall-api/api.types';
-import { useStore } from 'state/useStore';
 import { openNotification, showApiError } from 'utils';
 import { UserActions } from 'utils/authorization';
 
 import { form } from './MaintenanceForm.config';
 
 import styles from './MaintenanceForm.module.css';
-import { startMaintenanceMode } from 'models/alert_receive_channel/alert_receive_channel.helpers';
 
 const cx = cn.bind(styles);
 
