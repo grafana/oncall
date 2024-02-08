@@ -23,7 +23,7 @@ There are four types of push notifications for the mobile app:
 To receive push notifications from the Grafana OnCall mobile app, you must add them to your notification policy steps.
 **Important notifications** should include **Mobile push important** and **Default notifications** should include **Mobile push**.
 
-In the **Settings** tab of the mobile app, tap on **Notification policies** to review, reorder, remove, add or change steps.  
+In the **Settings** tab of the mobile app, tap on **Notification policies** to review, reorder, remove, add or change steps.
 Alternatively, you can do the same on desktop. From Grafana OnCall, navigate to the **Users** page, click **View my profile** and navigate to the **User Info** tab.
 
 <img src="/static/img/oncall/mobile-app-v1-android-notification-policies.png" width="300px">
@@ -87,13 +87,23 @@ To enable or disable on-call shift notifications, use the **info notifications**
 
 ### Shift swap notifications
 
-Shift swap notifications are generated when a [shift swap ][shift-swaps] is requested,
+Shift swap notifications are generated when a [shift swap][shift-swaps] is requested,
 informing all users in the on-call schedule (except the initiator) about it.
 
 To enable or disable shift swap notifications and their follow-ups, use the **info notifications** section
 in the **Push notifications** settings.
 
+## Templating of alert notifications
+
+It is possible to modify the title and body (or subtitle), for push notifications related to alert escalations. For
+more information on how to do this see the [docs on Appearance templates][templating].
+
+<img src="/static/img/oncall/mobile-app-alert-notification-custom-template.png" width="400px">
+
 {{% docs/reference %}}
 [shift-swaps]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/on-call-schedules/shift-swaps"
 [shift-swaps]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/on-call-schedules/shift-swaps"
+
+[templating]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/jinja2-templating#appearance-templates"
+[templating]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/jinja2-templating#appearance-templates"
 {{% /docs/reference %}}
