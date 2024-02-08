@@ -10,7 +10,7 @@ weight: 700
 > endpoint remains available and is compatible with previous callers but under the hood it will interact with the
 > new webhooks objects.  It is recommended to use the /webhooks endpoint going forward which has more features.
 
-For more details about specific fields of a webhook see [outgoing webhooks](../../outgoing-webhooks) documentation.
+For more details about specific fields of a webhook, refer to [Outgoing webhooks][].
 
 ## List webhooks
 
@@ -105,7 +105,7 @@ curl "{{API_URL}}/api/v1/webhooks/" \
 
 ### Trigger Types
 
-For more detail, refer to [Event types](../../outgoing-webhooks#event-types).
+For more detail, refer to [Event types][].
 
 - `escalation`
 - `alert group created`
@@ -232,3 +232,11 @@ The above command returns JSON structured in the following way:
   "total_pages": 1
 }
 ```
+
+{{% docs/reference %}}
+[Outgoing webhooks]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/configure/outgoing-webhooks"
+[Outgoing webhooks]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/configure/outgoing-webhooks"
+
+[Event types]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/configure/outgoing-webhooks#event-types"
+[Event types]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/configure/outgoing-webhooks#event-types"
+{{% /docs/reference %}}

@@ -689,6 +689,13 @@ POSIX_HERESTRING
 
 case "${image}" in
   'grafana/doc-validator')
+    if ! command -v jq >/dev/null 2>&1; then
+      errr '`jq` must be installed for the `doc-validator` target to work.'
+      note 'To install `jq`, refer to https://jqlang.github.io/jq/download/,'
+
+      exit 1
+    fi
+
     proj="$(new_proj "$1")"
     echo
     "${PODMAN}" run \
@@ -701,8 +708,10 @@ case "${image}" in
                 "${DOCS_IMAGE}" \
                 "--include=${DOC_VALIDATOR_INCLUDE}" \
                 "--skip-checks=${DOC_VALIDATOR_SKIP_CHECKS}" \
-                /hugo/content/docs \
-                "$(proj_canonical "${proj}")" | sed "s#$(proj_dst "${proj}")#sources#"
+                "/hugo/content$(proj_canonical "${proj}")" \
+                "$(proj_canonical "${proj}")" \
+                | sed "s#$(proj_dst "${proj}")#sources#" \
+                | jq -r '"ERROR: \(.location.path):\(.location.range.start.line // 1):\(.location.range.start.column // 1): \(.message)" + if .suggestions[0].text then "\nSuggestion: \(.suggestions[0].text)" else "" end'
     ;;
   'grafana/vale')
     proj="$(new_proj "$1")"
