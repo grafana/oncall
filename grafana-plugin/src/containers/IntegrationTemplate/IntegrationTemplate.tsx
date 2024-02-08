@@ -150,6 +150,8 @@ const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
       case IntegrationTemplateOptions.TelegramImage.key:
       case IntegrationTemplateOptions.EmailTitle.key:
       case IntegrationTemplateOptions.EmailMessage.key:
+      case IntegrationTemplateOptions.MobileAppTitle.key:
+      case IntegrationTemplateOptions.MobileAppMessage.key:
         return slackMessageTemplateCheatSheet;
       case LabelTemplateOptions.AlertGroupDynamicLabel.key:
         return alertGroupDynamicLabelCheatSheet;

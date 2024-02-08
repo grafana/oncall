@@ -113,6 +113,7 @@ How alerts are displayed in the UI, messengers, and notifications
 - `Title` for SMS
 - `Title` for Phone Call
 - `Title`, `Message` for Email
+- `Title`, `Message` for Mobile app push notifications
 
 #### Behavioral templates
 
