@@ -78,13 +78,16 @@ class AssociatedLabel(models.Model):
         for label_pair in label_pairs:
             key_id = label_pair["key"]["id"]
             key_name = label_pair["key"]["name"]
+            key_prescribed = label_pair["key"]["prescribed"]
+
             value_id = label_pair["value"]["id"]
             value_name = label_pair["value"]["name"]
+            value_prescribed = label_pair["key"]["prescribed"]
 
-            label_key = LabelKeyCache(id=key_id, name=key_name, organization=organization)
+            label_key = LabelKeyCache(id=key_id, name=key_name, organization=organization, prescribed=key_prescribed)
             labels_keys.append(label_key)
 
-            label_value = LabelValueCache(id=value_id, name=value_name, key_id=key_id)
+            label_value = LabelValueCache(id=value_id, name=value_name, key_id=key_id, prescribed=value_prescribed)
             labels_values.append(label_value)
             associated_instance = {instance.labels.field.name: instance}
             labels_associations.append(
@@ -93,7 +96,8 @@ class AssociatedLabel(models.Model):
                 )
             )
 
-        # create labels cache and associations that don't exist
+        # create labels cache and associations that don't exist.
+        # Ignoring conflicts because some labels might laready exist. They will be updates in task.
         LabelKeyCache.objects.bulk_create(labels_keys, ignore_conflicts=True, batch_size=5000)
         LabelValueCache.objects.bulk_create(labels_values, ignore_conflicts=True, batch_size=5000)
         instance.labels.model.objects.bulk_create(labels_associations, ignore_conflicts=True, batch_size=5000)
