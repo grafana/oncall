@@ -6,7 +6,7 @@ import { get } from 'lodash-es';
 import { observer } from 'mobx-react';
 import CopyToClipboard from 'react-copy-to-clipboard';
 
-import SourceCode from 'components/SourceCode/SourceCode';
+import { SourceCode } from 'components/SourceCode/SourceCode';
 import { ApiToken } from 'models/api_token/api_token.types';
 import { useStore } from 'state/useStore';
 import { openErrorNotification, openNotification } from 'utils';
@@ -108,4 +108,3 @@ export const ApiTokenForm = observer((props: TokenCreationModalProps) => {
 function getCurlExample(token, onCallApiUrl) {
   return `curl -H "Authorization: ${token}" ${onCallApiUrl}/api/v1/integrations`;
 }
-

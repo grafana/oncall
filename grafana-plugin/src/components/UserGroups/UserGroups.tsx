@@ -6,7 +6,7 @@ import cn from 'classnames/bind';
 import { SortableContainer, SortableElement, SortableHandle } from 'react-sortable-hoc';
 
 import { Text } from 'components/Text/Text';
-import RemoteSelect from 'containers/RemoteSelect/RemoteSelect';
+import { RemoteSelect } from 'containers/RemoteSelect/RemoteSelect';
 import { User } from 'models/user/user.types';
 import { UserActions } from 'utils/authorization';
 

@@ -3,7 +3,7 @@ import React from 'react';
 
 import { render, screen } from '@testing-library/react';
 
-import SourceCode from './SourceCode';
+import {SourceCode} from './SourceCode';
 
 describe('SourceCode', () => {
   test("SourceCode doesn't render clipboard for [showCopyToClipboard=false]", () => {

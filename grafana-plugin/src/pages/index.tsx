@@ -3,7 +3,7 @@ import { matchPath } from 'react-router-dom';
 
 import { isTopNavbar } from 'plugin/GrafanaPluginRootPage.helpers';
 import { AppFeature } from 'state/features';
-import { RootBaseStore } from 'state/rootBaseStore';
+import { RootBaseStore } from 'state/rootBaseStore/RootBaseStore';
 import { UserActions, UserAction, isUserActionAllowed } from 'utils/authorization';
 import { PLUGIN_ROOT } from 'utils/consts';
 

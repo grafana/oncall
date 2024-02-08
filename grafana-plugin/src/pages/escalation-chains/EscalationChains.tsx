@@ -6,22 +6,22 @@ import { observer } from 'mobx-react';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 
 import { Collapse } from 'components/Collapse/Collapse';
-import Block from 'components/GBlock/Block';
-import GList from 'components/GList/GList';
-import PageErrorHandlingWrapper, { PageBaseState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
+import { Block } from 'components/GBlock/Block';
+import { GList } from 'components/GList/GList';
+import { PageErrorHandlingWrapper, PageBaseState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
 import {
   getWrongTeamResponseInfo,
   initErrorDataState,
 } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper.helpers';
-import PluginLink from 'components/PluginLink/PluginLink';
+import { PluginLink } from 'components/PluginLink/PluginLink';
 import { Text } from 'components/Text/Text';
 import { Tutorial } from 'components/Tutorial/Tutorial';
 import { TutorialStep } from 'components/Tutorial/Tutorial.types';
 import { WithConfirm } from 'components/WithConfirm/WithConfirm';
-import EscalationChainCard from 'containers/EscalationChainCard/EscalationChainCard';
-import EscalationChainForm, { EscalationChainFormMode } from 'containers/EscalationChainForm/EscalationChainForm';
-import EscalationChainSteps from 'containers/EscalationChainSteps/EscalationChainSteps';
-import RemoteFilters from 'containers/RemoteFilters/RemoteFilters';
+import { EscalationChainCard } from 'containers/EscalationChainCard/EscalationChainCard';
+import { EscalationChainForm, EscalationChainFormMode } from 'containers/EscalationChainForm/EscalationChainForm';
+import { EscalationChainSteps } from 'containers/EscalationChainSteps/EscalationChainSteps';
+import { RemoteFilters } from 'containers/RemoteFilters/RemoteFilters';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { EscalationChain } from 'models/escalation_chain/escalation_chain.types';
 import { FiltersValues } from 'models/filters/filters.types';

@@ -6,7 +6,7 @@ import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
 
 import { Avatar } from 'components/Avatar/Avatar';
-import ScheduleBorderedAvatar from 'components/ScheduleBorderedAvatar/ScheduleBorderedAvatar';
+import { ScheduleBorderedAvatar } from 'components/ScheduleBorderedAvatar/ScheduleBorderedAvatar';
 import { Text } from 'components/Text/Text';
 import { isInWorkingHours } from 'components/WorkingHours/WorkingHours.helpers';
 import {

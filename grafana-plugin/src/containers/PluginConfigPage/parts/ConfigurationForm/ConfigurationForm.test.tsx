@@ -5,7 +5,7 @@ import userEvent from '@testing-library/user-event';
 
 import PluginState from 'state/plugin';
 
-import ConfigurationForm from '.';
+import {ConfigurationForm} from './ConfigurationForm';
 
 jest.mock('state/plugin');
 

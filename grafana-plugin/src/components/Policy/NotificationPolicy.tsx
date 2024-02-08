@@ -5,7 +5,7 @@ import { Button, IconButton, Select } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { SortableElement } from 'react-sortable-hoc';
 
-import PluginLink from 'components/PluginLink/PluginLink';
+import { PluginLink } from 'components/PluginLink/PluginLink';
 import { Timeline } from 'components/Timeline/Timeline';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { Channel } from 'models/channel/channel';
@@ -16,8 +16,8 @@ import { AppFeature } from 'state/features';
 import { SelectOption } from 'state/types';
 import { UserAction } from 'utils/authorization';
 
-import DragHandle from './DragHandle';
-import PolicyNote from './PolicyNote';
+import {DragHandle} from './DragHandle';
+import {PolicyNote} from './PolicyNote';
 
 import styles from './NotificationPolicy.module.css';
 

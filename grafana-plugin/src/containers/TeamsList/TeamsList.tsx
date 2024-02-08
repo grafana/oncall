@@ -4,14 +4,14 @@ import { Badge, Button, Field, HorizontalGroup, Modal, RadioButtonList, Tooltip,
 import { observer } from 'mobx-react';
 
 import { Avatar } from 'components/Avatar/Avatar';
-import GTable from 'components/GTable/GTable';
+import { GTable } from 'components/GTable/GTable';
 import { Text } from 'components/Text/Text';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
 import { useStore } from 'state/useStore';
 import { UserActions } from 'utils/authorization';
 
-const TeamsList = observer(() => {
+export const TeamsList = observer(() => {
   const store = useStore();
   const [teamIdToShowModal, setTeamIdToShowModal] = useState<GrafanaTeam['id']>();
 

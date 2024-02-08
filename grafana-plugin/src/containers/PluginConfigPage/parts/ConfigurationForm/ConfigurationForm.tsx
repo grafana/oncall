@@ -5,7 +5,7 @@ import cn from 'classnames/bind';
 import { isEmpty } from 'lodash-es';
 import { SubmitHandler } from 'react-hook-form';
 
-import Block from 'components/GBlock/Block';
+import { Block } from 'components/GBlock/Block';
 import { Text } from 'components/Text/Text';
 import PluginState from 'state/plugin';
 

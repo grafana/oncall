@@ -5,8 +5,8 @@ import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
 import qrCodeImage from 'assets/img/qr-code.png';
-import Block from 'components/GBlock/Block';
-import PluginLink from 'components/PluginLink/PluginLink';
+import { Block } from 'components/GBlock/Block';
+import { PluginLink } from 'components/PluginLink/PluginLink';
 import { Text } from 'components/Text/Text';
 import { WithPermissionControlDisplay } from 'containers/WithPermissionControl/WithPermissionControlDisplay';
 import { User } from 'models/user/user.types';
@@ -16,9 +16,9 @@ import { openErrorNotification, openNotification, openWarningNotification } from
 import { UserActions } from 'utils/authorization';
 
 import styles from './MobileAppConnection.module.scss';
-import DisconnectButton from './parts/DisconnectButton/DisconnectButton';
-import DownloadIcons from './parts/DownloadIcons';
-import QRCode from './parts/QRCode/QRCode';
+import {DisconnectButton} from './parts/DisconnectButton/DisconnectButton';
+import {DownloadIcons} from './parts/DownloadIcons/DownloadIcons';
+import {QRCode} from './parts/QRCode/QRCode';
 
 const cx = cn.bind(styles);
 

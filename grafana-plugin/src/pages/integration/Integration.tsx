@@ -22,35 +22,36 @@ import { RouteComponentProps, useHistory, withRouter } from 'react-router-dom';
 
 import { getTemplatesForEdit } from 'components/AlertTemplates/AlertTemplatesForm.config';
 import { TemplateForEdit } from 'components/AlertTemplates/CommonAlertTemplatesForm.config';
-import HamburgerMenu from 'components/HamburgerMenu/HamburgerMenu';
-import IntegrationCollapsibleTreeView, {
+import { HamburgerMenu } from 'components/HamburgerMenu/HamburgerMenu';
+import {
+  IntegrationCollapsibleTreeView,
   IntegrationCollapsibleItem,
 } from 'components/IntegrationCollapsibleTreeView/IntegrationCollapsibleTreeView';
-import IntegrationContactPoint from 'components/IntegrationContactPoint/IntegrationContactPoint';
-import IntegrationHowToConnect from 'components/IntegrationHowToConnect/IntegrationHowToConnect';
-import IntegrationLogo from 'components/IntegrationLogo/IntegrationLogo';
-import IntegrationSendDemoAlertModal from 'components/IntegrationSendDemoAlertModal/IntegrationSendDemoAlertModal';
-import IntegrationBlock from 'components/Integrations/IntegrationBlock';
-import PageErrorHandlingWrapper, { PageBaseState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
+import { IntegrationContactPoint } from 'components/IntegrationContactPoint/IntegrationContactPoint';
+import { IntegrationHowToConnect } from 'components/IntegrationHowToConnect/IntegrationHowToConnect';
+import { IntegrationLogo } from 'components/IntegrationLogo/IntegrationLogo';
+import { IntegrationSendDemoAlertModal } from 'components/IntegrationSendDemoAlertModal/IntegrationSendDemoAlertModal';
+import { IntegrationBlock } from 'components/Integrations/IntegrationBlock';
+import { PageErrorHandlingWrapper, PageBaseState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
 import { initErrorDataState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper.helpers';
-import PluginLink from 'components/PluginLink/PluginLink';
-import RenderConditionally from 'components/RenderConditionally/RenderConditionally';
+import { PluginLink } from 'components/PluginLink/PluginLink';
+import { RenderConditionally } from 'components/RenderConditionally/RenderConditionally';
 import { Tabs } from 'components/Tabs/Tabs';
-import Tag from 'components/Tag/Tag';
+import { Tag } from 'components/Tag/Tag';
 import { Text } from 'components/Text/Text';
 import { TooltipBadge } from 'components/TooltipBadge/TooltipBadge';
 import { WithContextMenu } from 'components/WithContextMenu/WithContextMenu';
-import EditRegexpRouteTemplateModal from 'containers/EditRegexpRouteTemplateModal/EditRegexpRouteTemplateModal';
-import CollapsedIntegrationRouteDisplay from 'containers/IntegrationContainers/CollapsedIntegrationRouteDisplay/CollapsedIntegrationRouteDisplay';
-import ExpandedIntegrationRouteDisplay from 'containers/IntegrationContainers/ExpandedIntegrationRouteDisplay/ExpandedIntegrationRouteDisplay';
+import { EditRegexpRouteTemplateModal } from 'containers/EditRegexpRouteTemplateModal/EditRegexpRouteTemplateModal';
+import { CollapsedIntegrationRouteDisplay } from 'containers/IntegrationContainers/CollapsedIntegrationRouteDisplay/CollapsedIntegrationRouteDisplay';
+import { ExpandedIntegrationRouteDisplay } from 'containers/IntegrationContainers/ExpandedIntegrationRouteDisplay/ExpandedIntegrationRouteDisplay';
 import IntegrationHeartbeatForm from 'containers/IntegrationContainers/IntegrationHeartbeatForm/IntegrationHeartbeatForm';
-import IntegrationTemplateList from 'containers/IntegrationContainers/IntegrationTemplatesList';
-import IntegrationForm from 'containers/IntegrationForm/IntegrationForm';
-import IntegrationLabelsForm from 'containers/IntegrationLabelsForm/IntegrationLabelsForm';
-import IntegrationTemplate from 'containers/IntegrationTemplate/IntegrationTemplate';
-import MaintenanceForm from 'containers/MaintenanceForm/MaintenanceForm';
-import TeamName from 'containers/TeamName/TeamName';
-import UserDisplayWithAvatar from 'containers/UserDisplay/UserDisplayWithAvatar';
+import { IntegrationTemplateList } from 'containers/IntegrationContainers/IntegrationTemplatesList';
+import { IntegrationForm } from 'containers/IntegrationForm/IntegrationForm';
+import { IntegrationLabelsForm } from 'containers/IntegrationLabelsForm/IntegrationLabelsForm';
+import { IntegrationTemplate } from 'containers/IntegrationTemplate/IntegrationTemplate';
+import { MaintenanceForm } from 'containers/MaintenanceForm/MaintenanceForm';
+import { TeamName } from 'containers/TeamName/TeamName';
+import { UserDisplayWithAvatar } from 'containers/UserDisplay/UserDisplayWithAvatar';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { HeartIcon, HeartRedIcon } from 'icons';
 import {
@@ -59,7 +60,7 @@ import {
 } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { AlertTemplatesDTO } from 'models/alert_templates/alert_templates';
 import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
-import IntegrationHelper, { getIsBidirectionalIntegration } from 'pages/integration/Integration.helper';
+import { IntegrationHelper, getIsBidirectionalIntegration } from 'pages/integration/Integration.helper';
 import styles from 'pages/integration/Integration.module.scss';
 import { AppFeature } from 'state/features';
 import { PageProps, SelectOption, WithStoreProps } from 'state/types';

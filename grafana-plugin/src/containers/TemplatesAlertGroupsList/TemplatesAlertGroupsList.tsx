@@ -4,7 +4,7 @@ import { Button, HorizontalGroup, Icon, IconButton, Badge, LoadingPlaceholder } 
 import cn from 'classnames/bind';
 import { debounce } from 'lodash-es';
 
-import MonacoEditor, { MONACO_LANGUAGE } from 'components/MonacoEditor/MonacoEditor';
+import {MonacoEditor, MONACO_LANGUAGE } from 'components/MonacoEditor/MonacoEditor';
 import { MONACO_EDITABLE_CONFIG } from 'components/MonacoEditor/MonacoEditor.config';
 import { Text } from 'components/Text/Text';
 import { TooltipBadge } from 'components/TooltipBadge/TooltipBadge';

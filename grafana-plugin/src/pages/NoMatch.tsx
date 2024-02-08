@@ -6,7 +6,7 @@ import { useHistory } from 'react-router-dom';
 import { DEFAULT_PAGE, PLUGIN_ROOT } from 'utils/consts';
 import { getPathFromQueryParams } from 'utils/url';
 
-const NoMatch = () => {
+export const NoMatch = () => {
   const history = useHistory();
 
   const query = useMemo(() => qs.parse(window.location.search), [window.location.search]);
@@ -22,5 +22,3 @@ const NoMatch = () => {
 
   return <div>Not Found</div>;
 };
-
-export default NoMatch;

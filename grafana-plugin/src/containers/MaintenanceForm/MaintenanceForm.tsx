@@ -5,7 +5,7 @@ import cn from 'classnames/bind';
 import { cloneDeep } from 'lodash-es';
 import { observer } from 'mobx-react';
 
-import GForm from 'components/GForm/GForm';
+import {GForm} from 'components/GForm/GForm';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { useStore } from 'state/useStore';

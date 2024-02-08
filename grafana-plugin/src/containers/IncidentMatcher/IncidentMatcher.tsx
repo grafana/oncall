@@ -4,8 +4,8 @@ import { EmptySearchResult, LoadingPlaceholder } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
-import Block from 'components/GBlock/Block';
-import SourceCode from 'components/SourceCode/SourceCode';
+import { Block } from 'components/GBlock/Block';
+import { SourceCode } from 'components/SourceCode/SourceCode';
 import { Text } from 'components/Text/Text';
 import { Alert } from 'models/alertgroup/alertgroup.types';
 import { makeRequest } from 'network';

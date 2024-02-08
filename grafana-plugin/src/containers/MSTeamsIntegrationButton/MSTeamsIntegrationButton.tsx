@@ -4,7 +4,7 @@ import { Button, Modal } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
-import MSTeamsInstructions from 'containers/MSTeams/MSTeamsInstructions';
+import {MSTeamsInstructions} from 'containers/MSTeams/MSTeamsInstructions';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { useStore } from 'state/useStore';
 import { UserActions } from 'utils/authorization';

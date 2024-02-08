@@ -3,7 +3,7 @@ import React, { FC, useCallback, useState } from 'react';
 import { Button, Drawer, HorizontalGroup, VerticalGroup } from '@grafana/ui';
 import { observer } from 'mobx-react';
 
-import GForm from 'components/GForm/GForm';
+import { GForm } from 'components/GForm/GForm';
 import { AddResponders } from 'containers/AddResponders/AddResponders';
 import { prepareForUpdate } from 'containers/AddResponders/AddResponders.helpers';
 import { AlertReceiveChannelStore } from 'models/alert_receive_channel/alert_receive_channel';
@@ -23,7 +23,7 @@ const data: ManualAlertGroupFormData = {
   message: '',
 };
 
-const ManualAlertGroup: FC<ManualAlertGroupProps> = observer(({ onCreate, onHide }) => {
+export const ManualAlertGroup: FC<ManualAlertGroupProps> = observer(({ onCreate, onHide }) => {
   const { directPagingStore } = useStore();
   const { selectedTeamResponder, selectedUserResponders } = directPagingStore;
 
@@ -80,5 +80,3 @@ const ManualAlertGroup: FC<ManualAlertGroupProps> = observer(({ onCreate, onHide
     </Drawer>
   );
 });
-
-export default ManualAlertGroup;

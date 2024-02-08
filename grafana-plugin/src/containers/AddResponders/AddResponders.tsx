@@ -6,7 +6,7 @@ import cn from 'classnames/bind';
 import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
 
-import Block from 'components/GBlock/Block';
+import { Block } from 'components/GBlock/Block';
 import { Text } from 'components/Text/Text';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { Alert as AlertType } from 'models/alertgroup/alertgroup.types';
@@ -18,7 +18,7 @@ import { UserActions } from 'utils/authorization';
 import styles from './AddResponders.module.scss';
 import { NotificationPolicyValue, UserResponder as UserResponderType } from './AddResponders.types';
 import { AddRespondersPopup } from './parts/AddRespondersPopup/AddRespondersPopup';
-import NotificationPoliciesSelect from './parts/NotificationPoliciesSelect/NotificationPoliciesSelect';
+import {NotificationPoliciesSelect} from './parts/NotificationPoliciesSelect/NotificationPoliciesSelect';
 import { TeamResponder } from './parts/TeamResponder/TeamResponder';
 import { UserResponder } from './parts/UserResponder/UserResponder';
 

@@ -4,7 +4,7 @@ import { Button, VerticalGroup, Icon, Field, Input } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
-import Block from 'components/GBlock/Block';
+import { Block } from 'components/GBlock/Block';
 import { Text } from 'components/Text/Text';
 import { SlackNewIcon } from 'icons';
 import { DOCS_SLACK_SETUP } from 'utils/consts';

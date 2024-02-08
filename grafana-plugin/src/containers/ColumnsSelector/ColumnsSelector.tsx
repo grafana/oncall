@@ -22,7 +22,7 @@ import { Button, Checkbox, Icon, IconButton, LoadingPlaceholder, Tooltip, useSty
 import { observer } from 'mobx-react';
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
 
-import RenderConditionally from 'components/RenderConditionally/RenderConditionally';
+import { RenderConditionally } from 'components/RenderConditionally/RenderConditionally';
 import { Text } from 'components/Text/Text';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { AlertGroupColumn, AlertGroupColumnType } from 'models/alertgroup/alertgroup.types';

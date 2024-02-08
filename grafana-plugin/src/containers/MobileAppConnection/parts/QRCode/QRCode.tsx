@@ -2,7 +2,7 @@ import React, { FC } from 'react';
 
 import { QRCodeSVG } from 'qrcode.react';
 
-import Block from 'components/GBlock/Block';
+import { Block } from 'components/GBlock/Block';
 
 type Props = {
   value: string;

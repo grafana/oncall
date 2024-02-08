@@ -5,8 +5,8 @@ import cn from 'classnames/bind';
 import dayjs from 'dayjs';
 import Draggable from 'react-draggable';
 
-import Modal from 'components/Modal/Modal';
-import Tag from 'components/Tag/Tag';
+import { Modal } from 'components/Modal/Modal';
+import { Tag } from 'components/Tag/Tag';
 import { Text } from 'components/Text/Text';
 import { UserGroups } from 'components/UserGroups/UserGroups';
 import { WithConfirm } from 'components/WithConfirm/WithConfirm';
@@ -19,8 +19,8 @@ import { getCoords, getVar, waitForElement } from 'utils/DOM';
 import { GRAFANA_HEADER_HEIGHT } from 'utils/consts';
 import { useDebouncedCallback } from 'utils/hooks';
 
-import DateTimePicker from './parts/DateTimePicker';
-import UserItem from './parts/UserItem';
+import {DateTimePicker} from './parts/DateTimePicker';
+import {UserItem} from './parts/UserItem';
 
 import styles from './RotationForm.module.css';
 

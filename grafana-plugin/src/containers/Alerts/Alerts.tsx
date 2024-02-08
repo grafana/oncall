@@ -4,7 +4,7 @@ import { Alert } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { sanitize } from 'dompurify';
 
-import PluginLink from 'components/PluginLink/PluginLink';
+import { PluginLink } from 'components/PluginLink/PluginLink';
 import { getSlackMessage } from 'containers/DefaultPageLayout/DefaultPageLayout.helpers';
 import { SlackError } from 'containers/DefaultPageLayout/DefaultPageLayout.types';
 import { getIfChatOpsConnected } from 'containers/DefaultPageLayout/helper';

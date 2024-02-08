@@ -20,9 +20,9 @@ import moment from 'moment-timezone';
 import Emoji from 'react-emoji-render';
 
 import { Text } from 'components/Text/Text';
-import LabelsFilter from 'containers/Labels/LabelsFilter';
-import RemoteSelect from 'containers/RemoteSelect/RemoteSelect';
-import TeamName from 'containers/TeamName/TeamName';
+import { LabelsFilter } from 'containers/Labels/LabelsFilter';
+import { RemoteSelect } from 'containers/RemoteSelect/RemoteSelect';
+import { TeamName } from 'containers/TeamName/TeamName';
 import { FiltersValues } from 'models/filters/filters.types';
 import { GrafanaTeamStore } from 'models/grafana_team/grafana_team';
 import { SelectOption, WithStoreProps } from 'state/types';
@@ -55,7 +55,7 @@ interface RemoteFiltersState {
 }
 
 @observer
-class RemoteFilters extends Component<RemoteFiltersProps, RemoteFiltersState> {
+class _RemoteFilters extends Component<RemoteFiltersProps, RemoteFiltersState> {
   state: RemoteFiltersState = {
     filterOptions: undefined,
     filters: undefined,
@@ -455,6 +455,6 @@ class RemoteFilters extends Component<RemoteFiltersProps, RemoteFiltersState> {
   debouncedOnChange = debounce(this.onChange, 500);
 }
 
-export default withMobXProviderContext(RemoteFilters) as unknown as React.ComponentClass<
+export const RemoteFilters = withMobXProviderContext(_RemoteFilters) as unknown as React.ComponentClass<
   Omit<RemoteFiltersProps, 'store'>
 >;

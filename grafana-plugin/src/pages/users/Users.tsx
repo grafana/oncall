@@ -7,17 +7,17 @@ import LegacyNavHeading from 'navbar/LegacyNavHeading';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 
 import { Avatar } from 'components/Avatar/Avatar';
-import GTable from 'components/GTable/GTable';
-import PageErrorHandlingWrapper, { PageBaseState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
+import { GTable } from 'components/GTable/GTable';
+import { PageErrorHandlingWrapper, PageBaseState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
 import {
   getWrongTeamResponseInfo,
   initErrorDataState,
 } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper.helpers';
-import PluginLink from 'components/PluginLink/PluginLink';
+import { PluginLink } from 'components/PluginLink/PluginLink';
 import {Text} from 'components/Text/Text';
 import {TooltipBadge} from 'components/TooltipBadge/TooltipBadge';
 import {UsersFilters} from 'components/UsersFilters/UsersFilters';
-import UserSettings from 'containers/UserSettings/UserSettings';
+import { UserSettings } from 'containers/UserSettings/UserSettings';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { User as UserType } from 'models/user/user.types';
 import { AppFeature } from 'state/features';

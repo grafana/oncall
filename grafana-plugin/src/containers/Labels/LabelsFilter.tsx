@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { SelectableValue } from '@grafana/data';
 import { observer } from 'mobx-react';
 
-import LabelsFilterComponent from 'components/LabelsFilter/LabelsFilter';
+import { LabelsFilterComponent } from 'components/LabelsFilter/LabelsFilter';
 import { useStore } from 'state/useStore';
 
 interface LabelsFilterProps {

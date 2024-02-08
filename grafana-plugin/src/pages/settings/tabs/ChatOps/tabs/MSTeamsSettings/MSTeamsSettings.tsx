@@ -4,11 +4,11 @@ import { Button, HorizontalGroup, LoadingPlaceholder, Badge } from '@grafana/ui'
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
-import GTable from 'components/GTable/GTable';
+import { GTable } from 'components/GTable/GTable';
 import { Text } from 'components/Text/Text';
 import { WithConfirm } from 'components/WithConfirm/WithConfirm';
-import MSTeamsInstructions from 'containers/MSTeams/MSTeamsInstructions';
-import MSTeamsIntegrationButton from 'containers/MSTeamsIntegrationButton/MSTeamsIntegrationButton';
+import { MSTeamsInstructions } from 'containers/MSTeams/MSTeamsInstructions';
+import { MSTeamsIntegrationButton } from 'containers/MSTeamsIntegrationButton/MSTeamsIntegrationButton';
 import { MSTeamsChannel } from 'models/msteams_channel/msteams_channel.types';
 import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';

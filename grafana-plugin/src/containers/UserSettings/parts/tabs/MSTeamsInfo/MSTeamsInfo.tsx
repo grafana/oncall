@@ -4,7 +4,7 @@ import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
 import { Text } from 'components/Text/Text';
-import MSTeamsInstructions from 'containers/MSTeams/MSTeamsInstructions';
+import { MSTeamsInstructions } from 'containers/MSTeams/MSTeamsInstructions';
 import { useStore } from 'state/useStore';
 
 import styles from 'containers/UserSettings/parts/tabs/MSTeamsInfo/MSTeamsInfo.module.css';

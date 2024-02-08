@@ -4,7 +4,7 @@ import { Button, HorizontalGroup, Icon, Label, Modal, Tooltip, VerticalGroup } f
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
-import GSelect from 'containers/GSelect/GSelect';
+import { GSelect } from 'containers/GSelect/GSelect';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
 import { useStore } from 'state/useStore';

@@ -8,8 +8,8 @@ import { CSSTransition, TransitionGroup } from 'react-transition-group';
 
 import { Avatar } from 'components/Avatar/Avatar';
 import { Text } from 'components/Text/Text';
-import Rotation from 'containers/Rotation/Rotation';
-import TimelineMarks from 'containers/TimelineMarks/TimelineMarks';
+import {Rotation} from 'containers/Rotation/Rotation';
+import { TimelineMarks } from 'containers/TimelineMarks/TimelineMarks';
 import { ActionKey } from 'models/loader/action-keys';
 import { getColorForSchedule, getPersonalShiftsFromStore } from 'models/schedule/schedule.helpers';
 import { Event } from 'models/schedule/schedule.types';

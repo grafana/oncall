@@ -5,8 +5,8 @@ import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 
-import Block from 'components/GBlock/Block';
-import GTable from 'components/GTable/GTable';
+import { Block } from 'components/GBlock/Block';
+import { GTable } from 'components/GTable/GTable';
 import { Text } from 'components/Text/Text';
 import { WithConfirm } from 'components/WithConfirm/WithConfirm';
 import { CrossCircleIcon, HeartIcon } from 'icons';

@@ -6,7 +6,7 @@ import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 import { AppRootProps } from 'types';
 
-import Alerts from 'containers/Alerts/Alerts';
+import { Alerts } from 'containers/Alerts/Alerts';
 import { isTopNavbar } from 'plugin/GrafanaPluginRootPage.helpers';
 
 import styles from './DefaultPageLayout.module.scss';

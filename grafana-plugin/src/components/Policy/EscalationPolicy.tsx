@@ -7,13 +7,13 @@ import moment from 'moment-timezone';
 import { SortableElement } from 'react-sortable-hoc';
 import reactStringReplace from 'react-string-replace';
 
-import PluginLink from 'components/PluginLink/PluginLink';
+import { PluginLink } from 'components/PluginLink/PluginLink';
 import { Text } from 'components/Text/Text';
-import TimeRange from 'components/TimeRange/TimeRange';
+import { TimeRange } from 'components/TimeRange/TimeRange';
 import { Timeline } from 'components/Timeline/Timeline';
-import GSelect from 'containers/GSelect/GSelect';
-import TeamName from 'containers/TeamName/TeamName';
-import UserTooltip from 'containers/UserTooltip/UserTooltip';
+import { GSelect } from 'containers/GSelect/GSelect';
+import { TeamName } from 'containers/TeamName/TeamName';
+import { UserTooltip } from 'containers/UserTooltip/UserTooltip';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { prepareEscalationPolicy } from 'models/escalation_policy/escalation_policy.helpers';
 import {
@@ -27,8 +27,8 @@ import { SelectOption } from 'state/types';
 import { getVar } from 'utils/DOM';
 import { UserActions } from 'utils/authorization';
 
-import DragHandle from './DragHandle';
-import PolicyNote from './PolicyNote';
+import { DragHandle } from './DragHandle';
+import { PolicyNote } from './PolicyNote';
 
 import styles from './EscalationPolicy.module.css';
 

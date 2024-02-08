@@ -16,7 +16,7 @@ import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
 import styles from 'assets/style/utils.css';
-import Block from 'components/GBlock/Block';
+import { Block } from 'components/GBlock/Block';
 import { Text } from 'components/Text/Text';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { AlertGroupColumn, AlertGroupColumnType } from 'models/alertgroup/alertgroup.types';

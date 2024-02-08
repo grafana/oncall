@@ -7,7 +7,7 @@ import { sortBy } from 'lodash-es';
 import { observer } from 'mobx-react';
 
 import { Avatar } from 'components/Avatar/Avatar';
-import ScheduleBorderedAvatar from 'components/ScheduleBorderedAvatar/ScheduleBorderedAvatar';
+import {ScheduleBorderedAvatar} from 'components/ScheduleBorderedAvatar/ScheduleBorderedAvatar';
 import { Text } from 'components/Text/Text';
 import { WorkingHours } from 'components/WorkingHours/WorkingHours';
 import { IsOncallIcon } from 'icons';
@@ -17,7 +17,7 @@ import { User } from 'models/user/user.types';
 import { getColorSchemeMappingForUsers } from 'pages/schedule/Schedule.helpers';
 import { useStore } from 'state/useStore';
 
-import ScheduleUserDetails from './ScheduleUserDetails/ScheduleUserDetails';
+import {ScheduleUserDetails} from './ScheduleUserDetails/ScheduleUserDetails';
 import { calculateTimePassedInDayPercentage } from './UsersTimezones.helpers';
 
 import styles from './UsersTimezones.module.css';

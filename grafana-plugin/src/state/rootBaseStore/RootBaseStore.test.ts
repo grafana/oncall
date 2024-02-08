@@ -5,7 +5,7 @@ import { OnCallAppPluginMeta } from 'types';
 import PluginState from 'state/plugin';
 import { isUserActionAllowed as isUserActionAllowedOriginal } from 'utils/authorization';
 
-import { RootBaseStore } from './';
+import { RootBaseStore } from './RootBaseStore';
 
 jest.mock('state/plugin');
 jest.mock('utils/authorization');

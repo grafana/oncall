@@ -5,7 +5,7 @@ import { observer } from 'mobx-react';
 
 import { PageBaseState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
 import { initErrorDataState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper.helpers';
-import TeamsList from 'containers/TeamsList/TeamsList';
+import { TeamsList } from 'containers/TeamsList/TeamsList';
 import { withMobXProviderContext } from 'state/withStore';
 
 interface TeamsSettingsPageState extends PageBaseState {

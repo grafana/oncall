@@ -1,9 +1,9 @@
 import React from 'react';
 
 import { PluginPageProps, PluginPage as RealPluginPage } from '@grafana/runtime';
-import Header from 'navbar/Header/Header';
+import { Header } from 'navbar/Header/Header';
 
-import RenderConditionally from 'components/RenderConditionally/RenderConditionally';
+import { RenderConditionally } from 'components/RenderConditionally/RenderConditionally';
 import { pages } from 'pages';
 import { isTopNavbar } from 'plugin/GrafanaPluginRootPage.helpers';
 import { DEFAULT_PAGE } from 'utils/consts';

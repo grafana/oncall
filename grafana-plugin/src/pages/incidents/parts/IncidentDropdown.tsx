@@ -3,7 +3,7 @@ import React, { FC, SyntheticEvent, useRef, useState } from 'react';
 import { Icon, LoadingPlaceholder } from '@grafana/ui';
 import cn from 'classnames/bind';
 
-import Tag from 'components/Tag/Tag';
+import { Tag } from 'components/Tag/Tag';
 import { Text } from 'components/Text/Text';
 import { WithContextMenu } from 'components/WithContextMenu/WithContextMenu';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';

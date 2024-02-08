@@ -15,7 +15,7 @@ interface LabelsFilterProps {
   onChange: (value: Value[]) => void;
 }
 
-export const LabelsFilter: FC<LabelsFilterProps> = (props) => {
+export const LabelsFilterComponent: FC<LabelsFilterProps> = (props) => {
   const { autoFocus, value: propsValue, labelField: FieldName = 'name', onLoadOptions, onChange } = props;
 
   const [search, setSearch] = useState('');

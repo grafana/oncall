@@ -5,7 +5,7 @@ import cn from 'classnames/bind';
 import { Lambda, observe } from 'mobx';
 import { observer } from 'mobx-react';
 
-import GTable from 'components/GTable/GTable';
+import { GTable } from 'components/GTable/GTable';
 import { Text } from 'components/Text/Text';
 import { WithConfirm } from 'components/WithConfirm/WithConfirm';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';

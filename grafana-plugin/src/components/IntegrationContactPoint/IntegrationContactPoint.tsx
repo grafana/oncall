@@ -16,9 +16,9 @@ import {
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
-import GTable from 'components/GTable/GTable';
-import IntegrationBlock from 'components/Integrations/IntegrationBlock';
-import Tag from 'components/Tag/Tag';
+import { GTable } from 'components/GTable/GTable';
+import { IntegrationBlock } from 'components/Integrations/IntegrationBlock';
+import { Tag } from 'components/Tag/Tag';
 import { Text } from 'components/Text/Text';
 import { WithConfirm } from 'components/WithConfirm/WithConfirm';
 import { AlertReceiveChannel, ContactPoint } from 'models/alert_receive_channel/alert_receive_channel.types';

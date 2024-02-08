@@ -8,7 +8,7 @@ import { AppFeature } from 'state/features';
 
 import { MAX_CHARACTERS_COUNT, TEXTAREA_ROWS_COUNT } from './IntegrationCommon.config';
 
-const IntegrationHelper = {
+export const IntegrationHelper = {
   isSpecificIntegration: (alertReceiveChannel: AlertReceiveChannel | string, name: string) => {
     if (!alertReceiveChannel) {
       return false;
@@ -123,7 +123,5 @@ const IntegrationHelper = {
     return channels;
   },
 };
-
-export default IntegrationHelper;
 
 export const getIsBidirectionalIntegration = ({ integration }: AlertReceiveChannel) => integration === 'servicenow';

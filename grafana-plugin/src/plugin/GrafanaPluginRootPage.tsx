@@ -3,16 +3,16 @@ import React, { useEffect } from 'react';
 import { LoadingPlaceholder } from '@grafana/ui';
 import classnames from 'classnames';
 import { observer, Provider } from 'mobx-react';
-import Header from 'navbar/Header/Header';
-import LegacyNavTabsBar from 'navbar/LegacyNavTabsBar';
+import { Header } from 'navbar/Header/Header';
+import { LegacyNavTabsBar } from 'navbar/LegacyNavTabsBar';
 import { Redirect, Route, Switch, useLocation } from 'react-router-dom';
 import { AppRootProps } from 'types';
 
-import RenderConditionally from 'components/RenderConditionally/RenderConditionally';
-import Unauthorized from 'components/Unauthorized';
-import DefaultPageLayout from 'containers/DefaultPageLayout/DefaultPageLayout';
+import { RenderConditionally } from 'components/RenderConditionally/RenderConditionally';
+import { Unauthorized } from 'components/Unauthorized/Unauthorized';
+import { DefaultPageLayout } from 'containers/DefaultPageLayout/DefaultPageLayout';
 import { getMatchedPage, getRoutesForPage, pages } from 'pages';
-import NoMatch from 'pages/NoMatch';
+import { NoMatch } from 'pages/NoMatch';
 import EscalationChains from 'pages/escalation-chains/EscalationChains';
 import Incident from 'pages/incident/Incident';
 import Incidents from 'pages/incidents/Incidents';
@@ -39,6 +39,7 @@ import { getQueryParams, isTopNavbar } from './GrafanaPluginRootPage.helpers';
 import PluginSetup from './PluginSetup';
 
 import grafanaGlobalStyle from '!raw-loader!assets/style/grafanaGlobalStyles.css';
+
 import { UsersPage } from 'pages/users/Users';
 
 export const GrafanaPluginRootPage = (props: AppRootProps) => {

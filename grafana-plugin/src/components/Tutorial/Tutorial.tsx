@@ -2,8 +2,8 @@ import React, { FC } from 'react';
 
 import cn from 'classnames/bind';
 
-import Block from 'components/GBlock/Block';
-import PluginLink from 'components/PluginLink/PluginLink';
+import { Block } from 'components/GBlock/Block';
+import { PluginLink } from 'components/PluginLink/PluginLink';
 import { Text } from 'components/Text/Text';
 
 import { TutorialStep } from './Tutorial.types';

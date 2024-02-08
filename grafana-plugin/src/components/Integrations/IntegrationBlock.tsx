@@ -3,7 +3,7 @@ import React from 'react';
 import cn from 'classnames/bind';
 import { noop } from 'lodash-es';
 
-import Block from 'components/GBlock/Block';
+import { Block } from 'components/GBlock/Block';
 
 import styles from './IntegrationBlock.module.scss';
 
