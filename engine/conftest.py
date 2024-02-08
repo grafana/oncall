@@ -143,6 +143,21 @@ IS_RBAC_ENABLED = os.getenv("ONCALL_TESTING_RBAC_ENABLED", "True") == "True"
 
 
 @pytest.fixture(autouse=True)
+def isolated_cache(settings):
+    """
+    https://github.com/pytest-dev/pytest-django/issues/527#issuecomment-1115887487
+    """
+    cache_version = uuid.uuid4().hex
+
+    for name in settings.CACHES.keys():
+        settings.CACHES[name]["VERSION"] = cache_version
+
+    from django.test.signals import clear_cache_handlers
+
+    clear_cache_handlers(setting="CACHES")
+
+
+@pytest.fixture(autouse=True)
 def mock_slack_api_call(monkeypatch):
     def mock_api_call(*args, **kwargs):
         return {
