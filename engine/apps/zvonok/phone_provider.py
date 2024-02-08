@@ -105,7 +105,7 @@ class ZvonokPhoneProvider(PhoneProvider):
         return f"Failed make call to {number}"
 
     def make_verification_call(self, number: str):
-        code = str(randint(100000, 999999))
+        code = self._generate_verification_code()
         cache.set(self._cache_key(number), code, timeout=10 * 60)
         codewspaces = "   ".join(code)
 
@@ -149,6 +149,9 @@ class ZvonokPhoneProvider(PhoneProvider):
 
     def _cache_key(self, number):
         return f"zvonok_provider_{number}"
+
+    def _generate_verification_code(self):
+        return str(randint(100000, 999999))
 
     @property
     def flags(self) -> ProviderFlags:
