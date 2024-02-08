@@ -1,6 +1,8 @@
-import pytest
 from unittest.mock import MagicMock, patch
+
+import pytest
 from django.test import override_settings
+
 from apps.zvonok.phone_provider import ZvonokPhoneProvider
 
 
