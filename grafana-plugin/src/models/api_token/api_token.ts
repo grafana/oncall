@@ -21,7 +21,7 @@ export class ApiTokenStore extends BaseStore {
     this.path = '/tokens/';
   }
 
-  @action
+  @action.bound
   async updateItems(query = '') {
     const results = await makeRequest(`${this.path}`, {
       params: { search: query },
@@ -46,13 +46,13 @@ export class ApiTokenStore extends BaseStore {
     });
   }
 
-  getSearchResult(query = '') {
+  getSearchResult = (query = '') => {
     if (!this.searchResult[query]) {
       return undefined;
     }
 
     return this.searchResult[query].map((apiTokenId: ApiToken['id']) => this.items[apiTokenId]);
-  }
+  };
 
   async revokeApiToken(id: ApiToken['id']) {
     return await makeRequest(`${this.path}${id}/`, {

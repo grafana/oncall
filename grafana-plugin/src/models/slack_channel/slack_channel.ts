@@ -21,7 +21,7 @@ export class SlackChannelStore extends BaseStore {
     this.path = '/slack_channels/';
   }
 
-  @action // deprecated, use updateItem instead
+  @action.bound // deprecated, use updateItem instead
   async updateById(id: SlackChannel['id']) {
     const response = await this.getById(id);
 
@@ -33,7 +33,7 @@ export class SlackChannelStore extends BaseStore {
     });
   }
 
-  @action
+  @action.bound
   async updateItem(id: SlackChannel['id']) {
     const response = await this.getById(id);
 
@@ -45,7 +45,7 @@ export class SlackChannelStore extends BaseStore {
     });
   }
 
-  @action
+  @action.bound
   async updateItems(query = '') {
     const { results } = await makeRequest(`${this.path}`, {
       params: { search: query },
@@ -70,11 +70,11 @@ export class SlackChannelStore extends BaseStore {
     });
   }
 
-  getSearchResult(query = '') {
+  getSearchResult = (query = '') => {
     if (!this.searchResult[query]) {
       return undefined;
     }
 
     return this.searchResult[query].map((slackChannelId: SlackChannel['id']) => this.items[slackChannelId]);
-  }
+  };
 }

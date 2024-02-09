@@ -1,7 +1,9 @@
 import dayjs from 'dayjs';
 
 import { User } from 'models/user/user.types';
+
 import { RootStore } from 'state';
+import { ScheduleStore } from './schedule';
 
 import { Event, Layer, Schedule, ScheduleType, Shift, ShiftEvents, ShiftSwap } from './schedule.types';
 
@@ -453,3 +455,9 @@ export const getShiftName = (shift: Partial<Shift>) => {
 
   return 'Rotation';
 };
+
+export const getSearchResult = (scheduleStore: ScheduleStore) => ({
+  page_size: scheduleStore.searchResult.page_size,
+  count: scheduleStore.searchResult.count,
+  results: scheduleStore.searchResult.results?.map((scheduleId: Schedule['id']) => scheduleStore.items[scheduleId]),
+});
