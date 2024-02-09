@@ -9,6 +9,7 @@ from rest_framework.response import Response
 
 from apps.alerts.models import AlertReceiveChannel
 from apps.alerts.paging import DirectPagingUserTeamValidationError, UserNotifications, direct_paging, user_is_oncall
+from apps.api.permissions import RBACPermission
 from apps.schedules.ical_utils import get_cached_oncall_users_for_multiple_schedules
 from apps.slack.constants import DIVIDER, PRIVATE_METADATA_MAX_LENGTH
 from apps.slack.errors import SlackAPIChannelNotFoundError
@@ -113,6 +114,7 @@ def get_current_items(
 class StartDirectPaging(scenario_step.ScenarioStep):
     """Handle slash command invocation and show initial dialog."""
 
+    REQUIRED_PERMISSIONS = [RBACPermission.Permissions.ALERT_GROUPS_DIRECT_PAGING]
     command_name = [settings.SLACK_DIRECT_PAGING_SLASH_COMMAND]
 
     def process_scenario(
@@ -121,6 +123,10 @@ class StartDirectPaging(scenario_step.ScenarioStep):
         slack_team_identity: "SlackTeamIdentity",
         payload: EventPayload,
     ) -> None:
+        if not self.is_authorized():
+            self.open_unauthorized_warning(payload)
+            return
+
         input_id_prefix = _generate_input_id_prefix()
 
         try:
@@ -145,12 +151,18 @@ class StartDirectPaging(scenario_step.ScenarioStep):
 class FinishDirectPaging(scenario_step.ScenarioStep):
     """Handle page command dialog submit."""
 
+    REQUIRED_PERMISSIONS = [RBACPermission.Permissions.ALERT_GROUPS_DIRECT_PAGING]
+
     def process_scenario(
         self,
         slack_user_identity: "SlackUserIdentity",
         slack_team_identity: "SlackTeamIdentity",
         payload: EventPayload,
     ) -> None:
+        if not self.is_authorized():
+            self.open_unauthorized_warning(payload)
+            return
+
         message = _get_message_from_payload(payload)
         private_metadata = json.loads(payload["view"]["private_metadata"])
         channel_id = private_metadata["channel_id"]
