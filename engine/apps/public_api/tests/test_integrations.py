@@ -146,6 +146,32 @@ def test_integration_name_uniqueness(
 
 
 @pytest.mark.django_db
+def test_integration_name_duplicated(
+    make_organization_and_user_with_token,
+    make_alert_receive_channel,
+    make_user_auth_headers,
+):
+    # this could happen in case a team is removed and integrations are set to have "no team"
+    organization, _, token = make_organization_and_user_with_token()
+    integration = make_alert_receive_channel(organization)
+    # duplicated name integration
+    make_alert_receive_channel(organization, verbal_name=integration.verbal_name)
+
+    client = APIClient()
+
+    # updating team will require changing the name or the team
+    data = {"name": integration.verbal_name}
+    url = reverse("api-public:integrations-detail", args=[integration.public_primary_key])
+    response = client.put(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    # but updating team will fail if name exists
+    data["name"] = "a new name"
+    response = client.put(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
+    assert response.status_code == status.HTTP_200_OK
+
+
+@pytest.mark.django_db
 def test_create_integrations_with_none_templates(
     make_organization_and_user_with_token,
     make_escalation_chain,

@@ -296,6 +296,10 @@ class AlertReceiveChannelSerializer(
             obj = AlertReceiveChannel.objects.get(organization=organization, team=team, verbal_name=verbal_name)
         except AlertReceiveChannel.DoesNotExist:
             pass
+        except AlertReceiveChannel.MultipleObjectsReturned:
+            raise serializers.ValidationError(
+                {"verbal_name": "An integration with this name already exists for this team"}
+            )
         else:
             if self.instance is None or obj.id != self.instance.id:
                 raise serializers.ValidationError(

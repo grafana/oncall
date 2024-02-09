@@ -160,6 +160,9 @@ class IntegrationSerializer(EagerLoadingMixin, serializers.ModelSerializer, Main
             )
         except AlertReceiveChannel.DoesNotExist:
             return attrs
+        except AlertReceiveChannel.MultipleObjectsReturned:
+            raise BadRequest(detail="An integration with this name already exists for this team")
+
         if self.instance and obj.id == self.instance.id:
             return attrs
         else:
