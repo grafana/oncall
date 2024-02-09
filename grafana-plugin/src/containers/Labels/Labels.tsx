@@ -5,6 +5,7 @@ import { Field, Label } from '@grafana/ui';
 import { isEmpty } from 'lodash-es';
 import { observer } from 'mobx-react';
 
+import { splitToGroups } from 'models/label/label.helpers';
 import { LabelKeyValue } from 'models/label/label.types';
 import { useStore } from 'state/useStore';
 import { openErrorNotification } from 'utils';
@@ -57,7 +58,11 @@ const Labels = observer(
           }
         }
 
-        return result.filter((k) => k.name.toLowerCase().includes(search.toLowerCase()));
+        const filtered = result.filter((k) => k.name.toLowerCase().includes(search.toLowerCase()));
+
+        const groups = splitToGroups(filtered);
+
+        return groups;
       };
     }, []);
 
