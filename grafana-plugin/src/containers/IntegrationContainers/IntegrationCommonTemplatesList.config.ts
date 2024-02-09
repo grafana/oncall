@@ -132,4 +132,15 @@ export const commonTemplatesToRender: TemplateBlock[] = [
       { name: 'email_message_template', label: 'Message', height: MONACO_INPUT_HEIGHT_TALL },
     ],
   },
+  {
+    name: 'Mobile push notifications',
+    contents: [
+      {
+        name: 'mobile_app_title_template',
+        label: 'Title',
+        height: MONACO_INPUT_HEIGHT_SMALL,
+      },
+      { name: 'mobile_app_message_template', label: 'Message', height: MONACO_INPUT_HEIGHT_TALL },
+    ],
+  },
 ];
