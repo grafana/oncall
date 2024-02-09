@@ -19,7 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Fix rounding issue with displayed time when sending "You're going oncall" push notification by @joeyorlando ([#TBD](https://github.com/grafana/oncall/pull/TBD))
+- Fix rounding issue with displayed time when sending "You're going oncall" push notification by @joeyorlando ([#3872](https://github.com/grafana/oncall/pull/3872))
 
 ## v1.3.102 (2024-02-06)
 
