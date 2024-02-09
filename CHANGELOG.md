@@ -18,6 +18,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Enable templating for alert escalation mobile app push notifications by @joeyorlando ([#3845](https://github.com/grafana/oncall/pull/3845))
 - Change email notification template to not wrap user template @mderynck ([#3862](https://github.com/grafana/oncall/pull/3862))
 
+### Fixed
+
+- Fix rounding issue with displayed time when sending "You're going oncall" push notification by @joeyorlando ([#3872](https://github.com/grafana/oncall/pull/3872))
+
 ## v1.3.102 (2024-02-06)
 
 ### Fixed
