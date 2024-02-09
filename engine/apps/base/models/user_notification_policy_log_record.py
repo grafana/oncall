@@ -203,7 +203,7 @@ class UserNotificationPolicyLogRecord(models.Model):
                 self.notification_error_code
                 == UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_POSTING_TO_SLACK_IS_DISABLED
             ):
-                result += f"failed to notify {user_verbal} in Slack, because the incident is not posted to Slack (reason: Slack is disabled for the route)"
+                result += f"failed to notify {user_verbal} in Slack (reason: {self.reason})"
             elif (
                 self.notification_error_code
                 == UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_POSTING_TO_TELEGRAM_IS_DISABLED

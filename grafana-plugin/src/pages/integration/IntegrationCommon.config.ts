@@ -26,6 +26,8 @@ export const IntegrationTemplateOptions = {
   TelegramTitle: new KeyValuePair('telegram_title_template', 'Title'),
   TelegramMessage: new KeyValuePair('telegram_message_template', 'Message'),
   TelegramImage: new KeyValuePair('telegram_image_url_template', 'Image'),
+  MobileAppTitle: new KeyValuePair('mobile_app_title_template', 'Title'),
+  MobileAppMessage: new KeyValuePair('mobile_app_message_template', 'Message'),
 
   Email: new KeyValuePair('Email', 'Email'),
   Slack: new KeyValuePair('Slack', 'Slack'),
