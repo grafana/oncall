@@ -3,10 +3,12 @@ import React from 'react';
 import { SelectableValue } from '@grafana/data';
 import Emoji from 'react-emoji-render';
 
-import { FormItem, FormItemType } from 'components/GForm/GForm.types';
+import { FormItemType } from 'components/GForm/GForm.types';
+import { AlertReceiveChannelStore } from 'models/alert_receive_channel/alert_receive_channel';
+import { getSearchResult } from 'models/alert_receive_channel/alert_receive_channel.helpers';
 import { MaintenanceMode } from 'models/alert_receive_channel/alert_receive_channel.types';
 
-export const form: { name: string; fields: FormItem[] } = {
+export const getForm = (alertReceiveChannelStore: AlertReceiveChannelStore) => ({
   name: 'Maintenance',
   fields: [
     {
@@ -15,11 +17,15 @@ export const form: { name: string; fields: FormItem[] } = {
       type: FormItemType.GSelect,
       validation: { required: true },
       extra: {
-        modelName: 'alertReceiveChannelStore',
+        items: alertReceiveChannelStore.items,
+        fetchItemsFn: alertReceiveChannelStore.fetchItems,
+        fetchItemFn: alertReceiveChannelStore.fetchItemById,
+        getSearchResult,
         displayField: 'verbal_name',
         valueField: 'id',
         showSearch: true,
         getOptionLabel: (item: SelectableValue) => <Emoji text={item?.label || ''} />,
+        disabled: undefined,
       },
     },
     {
@@ -77,4 +83,4 @@ export const form: { name: string; fields: FormItem[] } = {
       },
     },
   ],
-};
+});

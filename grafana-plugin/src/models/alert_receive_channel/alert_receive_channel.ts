@@ -71,7 +71,7 @@ export class AlertReceiveChannelStore {
     return result.data;
   }
 
-  async getById(
+  async fetchItemById(
     id: ApiSchemas['AlertReceiveChannel']['id'],
     _skipErrorHandling = false // TODO: check it
   ): Promise<ApiSchemas['AlertReceiveChannel']> {
@@ -89,7 +89,7 @@ export class AlertReceiveChannelStore {
     return alertReceiveChannel.data;
   }
 
-  async updateItems(query: any = '') {
+  async fetchItems(query: any = '') {
     const params = typeof query === 'string' ? { search: query } : query;
 
     const { results } = await makeRequest(this.path, { params });
@@ -336,17 +336,6 @@ export class AlertReceiveChannelStore {
       this.templates = {
         ...this.templates,
         [alertReceiveChannelId]: response,
-      };
-    });
-  }
-
-  async refetchItemById(id: ApiSchemas['AlertReceiveChannel']['id']) {
-    const item = await this.getById(id);
-
-    runInAction(() => {
-      this.items = {
-        ...this.items,
-        [id]: item,
       };
     });
   }

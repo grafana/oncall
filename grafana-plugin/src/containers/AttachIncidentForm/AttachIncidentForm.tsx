@@ -74,12 +74,15 @@ const AttachIncidentForm = observer(({ id, onUpdate, onHide }: AttachIncidentFor
         description="Linking alert groups together can help the team investigate the underlying issue."
       >
         <WithPermissionControlTooltip userAction={UserActions.AlertGroupsWrite}>
-          <GSelect
+          <GSelect<Alert>
             showSearch
-            modelName="alertGroupStore"
+            items={alertGroupStore.items}
+            fetchItemsFn={alertGroupStore.updateAlertGroups}
+            fetchItemFn={alertGroupStore.updateItem}
+            getSearchResult={alertGroupStore.getSearchResult}
             valueField="pk"
             displayField="render_for_web.title"
-            placeholder="Select Incident"
+            placeholder="Select Alert Group"
             className={cx('select', 'control')}
             filterOptions={(optionId) => optionId !== id}
             value={selected}

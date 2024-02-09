@@ -773,7 +773,7 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
     const promises = [];
 
     if (!alertReceiveChannelStore.items[id]) {
-      promises.push(alertReceiveChannelStore.getById(id).then(() => this.loadExtraData(id)));
+      promises.push(alertReceiveChannelStore.fetchItemById(id).then(() => this.loadExtraData(id)));
     } else {
       promises.push(this.loadExtraData(id));
     }
@@ -874,7 +874,9 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
         <IntegrationForm
           isTableView={false}
           onHide={() => setIsIntegrationSettingsOpen(false)}
-          onSubmit={() => alertReceiveChannelStore.refetchItemById(alertReceiveChannel.id)}
+          onSubmit={async () => {
+            await alertReceiveChannelStore.fetchItemById(alertReceiveChannel.id);
+          }}
           id={alertReceiveChannel['id']}
           navigateToAlertGroupLabels={(_id: ApiSchemas['AlertReceiveChannel']['id']) => {
             setIsIntegrationSettingsOpen(false);
@@ -889,7 +891,7 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
             setLabelsFormOpen(false);
           }}
           // TODO: confirm change with Maxim/Rares
-          onSubmit={() => alertReceiveChannelStore.refetchItemById(alertReceiveChannel.id)}
+          onSubmit={() => alertReceiveChannelStore.fetchItemById(alertReceiveChannel.id)}
           id={alertReceiveChannel['id']}
           onOpenIntegrationSettings={() => {
             setIsIntegrationSettingsOpen(true);
@@ -907,7 +909,7 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
       {maintenanceData && (
         <MaintenanceForm
           initialData={maintenanceData}
-          onUpdate={() => alertReceiveChannelStore.refetchItemById(alertReceiveChannel.id)}
+          onUpdate={() => alertReceiveChannelStore.fetchItemById(alertReceiveChannel.id)}
           onHide={() => setMaintenanceData(undefined)}
         />
       )}
@@ -1110,7 +1112,7 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
       })
       .then(() =>
         Promise.all([
-          alertReceiveChannelStore.refetchItemById(alertReceiveChannel.id),
+          alertReceiveChannelStore.fetchItemById(alertReceiveChannel.id),
           alertReceiveChannelStore.updateTemplates(alertReceiveChannel.id),
         ])
       )
@@ -1146,7 +1148,7 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
     await stopMaintenanceMode(id);
 
     openNotification('Maintenance has been stopped');
-    await alertReceiveChannelStore.refetchItemById(id);
+    await alertReceiveChannelStore.fetchItemById(id);
   }
 };
 

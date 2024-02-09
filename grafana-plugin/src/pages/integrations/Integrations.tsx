@@ -148,7 +148,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
 
     if (!isNewAlertReceiveChannel) {
       alertReceiveChannel = await store.alertReceiveChannelStore
-        .getById(id, true)
+        .fetchItemById(id, true)
         .catch((error) => this.setState({ errorData: { ...getWrongTeamResponseInfo(error) } }));
     }
 

@@ -9,10 +9,11 @@ import GForm from 'components/GForm/GForm';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { startMaintenanceMode } from 'models/alert_receive_channel/alert_receive_channel.helpers';
 import { ApiSchemas } from 'network/oncall-api/api.types';
+import { useStore } from 'state/useStore';
 import { openNotification, showApiError } from 'utils';
 import { UserActions } from 'utils/authorization';
 
-import { form } from './MaintenanceForm.config';
+import { getForm } from './MaintenanceForm.config';
 
 import styles from './MaintenanceForm.module.css';
 
@@ -29,6 +30,8 @@ interface MaintenanceFormProps {
 
 const MaintenanceForm = observer((props: MaintenanceFormProps) => {
   const { onUpdate, onHide, initialData = {} } = props;
+  const { alertReceiveChannelStore } = useStore();
+  const form = useMemo(() => getForm(alertReceiveChannelStore), [alertReceiveChannelStore]);
   const maintenanceForm = useMemo(() => (initialData.disabled ? cloneDeep(form) : form), [initialData]);
 
   const handleSubmit = useCallback(async (data) => {

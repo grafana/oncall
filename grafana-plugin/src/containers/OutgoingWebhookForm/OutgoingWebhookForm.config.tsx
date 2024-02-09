@@ -4,6 +4,7 @@ import { SelectableValue } from '@grafana/data';
 import Emoji from 'react-emoji-render';
 
 import { FormItem, FormItemType } from 'components/GForm/GForm.types';
+import { GrafanaTeamStore } from 'models/grafana_team/grafana_team';
 import { OutgoingWebhookPreset } from 'models/outgoing_webhook/outgoing_webhook.types';
 import { KeyValuePair } from 'utils';
 import { generateAssignToTeamInputDescription } from 'utils/consts';
@@ -23,6 +24,7 @@ export const WebhookTriggerType = {
 
 export function createForm(
   presets: OutgoingWebhookPreset[] = [],
+  grafanaTeamStore: GrafanaTeamStore,
   hasLabelsFeature?: boolean
 ): {
   name: string;
@@ -50,7 +52,9 @@ export function createForm(
         )} This setting does not effect execution of the webhook.`,
         type: FormItemType.GSelect,
         extra: {
-          modelName: 'grafanaTeamStore',
+          items: grafanaTeamStore.items,
+          fetchItemsFn: grafanaTeamStore.updateItems,
+          getSearchResult: grafanaTeamStore.getSearchResult,
           displayField: 'name',
           valueField: 'id',
           showSearch: true,

@@ -20,7 +20,7 @@ interface TelegramConnectorProps {
 
 const TelegramConnector = ({ channelFilterId }: TelegramConnectorProps) => {
   const store = useStore();
-  const { alertReceiveChannelStore } = store;
+  const { alertReceiveChannelStore, telegramChannelStore } = store;
 
   const channelFilter = store.alertReceiveChannelStore.channelFilters[channelFilterId];
 
@@ -46,11 +46,13 @@ const TelegramConnector = ({ channelFilterId }: TelegramConnectorProps) => {
         </div>
         Post to telegram channel
         <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
-          <GSelect
+          <GSelect<TelegramChannel>
             showSearch
             allowClear
             className={cx('select', 'control')}
-            modelName="telegramChannelStore"
+            items={telegramChannelStore.items}
+            fetchItemsFn={telegramChannelStore.updateItems}
+            getSearchResult={telegramChannelStore.getSearchResult}
             displayField="channel_name"
             valueField="id"
             placeholder="Select Telegram Channel"

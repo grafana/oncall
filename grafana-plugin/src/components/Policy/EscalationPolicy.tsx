@@ -20,10 +20,12 @@ import {
   EscalationPolicy as EscalationPolicyType,
   EscalationPolicyOption,
 } from 'models/escalation_policy/escalation_policy.types';
-import { GrafanaTeamStore } from 'models/grafana_team/grafana_team';
-import { OutgoingWebhookStore } from 'models/outgoing_webhook/outgoing_webhook';
-import { ScheduleStore } from 'models/schedule/schedule';
-import { SelectOption } from 'state/types';
+import { OutgoingWebhook } from 'models/outgoing_webhook/outgoing_webhook.types';
+import { Schedule } from 'models/schedule/schedule.types';
+import { User } from 'models/user/user.types';
+import { UserGroup } from 'models/user_group/user_group.types';
+import { SelectOption, WithStoreProps } from 'state/types';
+import { withMobXProviderContext } from 'state/withStore';
 import { getVar } from 'utils/DOM';
 import { UserActions } from 'utils/authorization';
 
@@ -34,7 +36,7 @@ import styles from './EscalationPolicy.module.css';
 
 const cx = cn.bind(styles);
 
-interface ElementSortableProps {
+interface ElementSortableProps extends WithStoreProps {
   index: number;
 }
 
@@ -51,9 +53,6 @@ export interface EscalationPolicyProps extends ElementSortableProps {
   backgroundClassName?: string;
   backgroundHexNumber?: string;
   isSlackInstalled: boolean;
-  teamStore: GrafanaTeamStore;
-  outgoingWebhookStore: OutgoingWebhookStore;
-  scheduleStore: ScheduleStore;
 }
 
 export class EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
@@ -153,7 +152,11 @@ export class EscalationPolicy extends React.Component<EscalationPolicyProps, any
   }
 
   private _renderNotifyToUsersQueue() {
-    const { data, isDisabled } = this.props;
+    const {
+      data,
+      isDisabled,
+      store: { userStore },
+    } = this.props;
     const { notify_to_users_queue } = data;
 
     return (
@@ -162,12 +165,11 @@ export class EscalationPolicy extends React.Component<EscalationPolicyProps, any
         disableByPaywall
         userAction={UserActions.EscalationChainsWrite}
       >
-        <GSelect
+        <GSelect<User>
           isMulti
           showSearch
           allowClear
           disabled={isDisabled}
-          modelName="userStore"
           displayField="username"
           valueField="pk"
           placeholder="Select Users"
@@ -176,6 +178,10 @@ export class EscalationPolicy extends React.Component<EscalationPolicyProps, any
           onChange={this._getOnChangeHandler('notify_to_users_queue')}
           getOptionLabel={({ value }: SelectableValue) => <UserTooltip id={value} />}
           width={'auto'}
+          items={userStore.items}
+          fetchItemsFn={userStore.updateItems}
+          fetchItemFn={userStore.updateItem}
+          getSearchResult={userStore.getSearchResult}
         />
       </WithPermissionControlTooltip>
     );
@@ -321,7 +327,11 @@ export class EscalationPolicy extends React.Component<EscalationPolicyProps, any
   }
 
   private _renderNotifySchedule() {
-    const { data, isDisabled, teamStore, scheduleStore } = this.props;
+    const {
+      data,
+      isDisabled,
+      store: { grafanaTeamStore, scheduleStore },
+    } = this.props;
     const { notify_schedule } = data;
 
     return (
@@ -330,11 +340,13 @@ export class EscalationPolicy extends React.Component<EscalationPolicyProps, any
         disableByPaywall
         userAction={UserActions.EscalationChainsWrite}
       >
-        <GSelect
+        <GSelect<Schedule>
           showSearch
           allowClear
           disabled={isDisabled}
-          modelName="scheduleStore"
+          items={scheduleStore.items}
+          fetchItemsFn={scheduleStore.updateItems}
+          getSearchResult={scheduleStore.getSearchResult}
           displayField="name"
           valueField="id"
           placeholder="Select Schedule"
@@ -342,7 +354,7 @@ export class EscalationPolicy extends React.Component<EscalationPolicyProps, any
           value={notify_schedule}
           onChange={this._getOnChangeHandler('notify_schedule')}
           getOptionLabel={(item: SelectableValue) => {
-            const team = teamStore.items[scheduleStore.items[item.value].team];
+            const team = grafanaTeamStore.items[scheduleStore.items[item.value].team];
             return (
               <>
                 <Text>{item.label} </Text>
@@ -356,7 +368,11 @@ export class EscalationPolicy extends React.Component<EscalationPolicyProps, any
   }
 
   private _renderNotifyUserGroup() {
-    const { data, isDisabled } = this.props;
+    const {
+      data,
+      isDisabled,
+      store: { userGroupStore },
+    } = this.props;
     const { notify_to_group } = data;
 
     return (
@@ -365,9 +381,11 @@ export class EscalationPolicy extends React.Component<EscalationPolicyProps, any
         disableByPaywall
         userAction={UserActions.EscalationChainsWrite}
       >
-        <GSelect
+        <GSelect<UserGroup[]>
           disabled={isDisabled}
-          modelName="userGroupStore"
+          items={userGroupStore.items}
+          fetchItemsFn={userGroupStore.updateItems}
+          getSearchResult={userGroupStore.getSearchResult}
           displayField="name"
           valueField="id"
           placeholder="Select User Group"
@@ -381,7 +399,11 @@ export class EscalationPolicy extends React.Component<EscalationPolicyProps, any
   }
 
   private _renderTriggerCustomWebhook() {
-    const { data, isDisabled, teamStore, outgoingWebhookStore } = this.props;
+    const {
+      data,
+      isDisabled,
+      store: { grafanaTeamStore, outgoingWebhookStore },
+    } = this.props;
     const { custom_webhook } = data;
 
     return (
@@ -390,10 +412,13 @@ export class EscalationPolicy extends React.Component<EscalationPolicyProps, any
         disableByPaywall
         userAction={UserActions.EscalationChainsWrite}
       >
-        <GSelect
+        <GSelect<OutgoingWebhook>
           showSearch
           disabled={isDisabled}
-          modelName="outgoingWebhookStore"
+          items={outgoingWebhookStore.items}
+          fetchItemsFn={outgoingWebhookStore.updateItems}
+          fetchItemFn={outgoingWebhookStore.updateItem}
+          getSearchResult={outgoingWebhookStore.getSearchResult}
           displayField="name"
           valueField="id"
           placeholder="Select Webhook"
@@ -401,7 +426,7 @@ export class EscalationPolicy extends React.Component<EscalationPolicyProps, any
           value={custom_webhook}
           onChange={this._getOnChangeHandler('custom_webhook')}
           getOptionLabel={(item: SelectableValue) => {
-            const team = teamStore.items[outgoingWebhookStore.items[item.value].team];
+            const team = grafanaTeamStore.items[outgoingWebhookStore.items[item.value].team];
             return (
               <>
                 <Text>{item.label} </Text>
@@ -483,4 +508,6 @@ export class EscalationPolicy extends React.Component<EscalationPolicyProps, any
   };
 }
 
-export default SortableElement(EscalationPolicy) as React.ComponentClass<EscalationPolicyProps>;
+export default withMobXProviderContext(
+  SortableElement(EscalationPolicy) as React.ComponentClass<EscalationPolicyProps>
+);

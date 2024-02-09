@@ -1,4 +1,4 @@
-import React, { useState, ChangeEvent, useEffect, useReducer, useRef } from 'react';
+import React, { useState, ChangeEvent, useEffect, useReducer, useRef, useMemo } from 'react';
 
 import { SelectableValue } from '@grafana/data';
 import {
@@ -39,7 +39,7 @@ import { openErrorNotification } from 'utils';
 import { UserActions } from 'utils/authorization';
 import { PLUGIN_ROOT } from 'utils/consts';
 
-import { form } from './IntegrationForm.config';
+import { getForm } from './IntegrationForm.config';
 import { prepareForEdit } from './IntegrationForm.helpers';
 import styles from './IntegrationForm.module.scss';
 
@@ -63,6 +63,7 @@ const IntegrationForm = observer((props: IntegrationFormProps) => {
   const {
     alertReceiveChannelStore,
     userStore: { currentUser: user },
+    grafanaTeamStore,
   } = store;
 
   const [filterValue, setFilterValue] = useState('');
@@ -71,6 +72,8 @@ const IntegrationForm = observer((props: IntegrationFormProps) => {
   const [showIntegrarionsListDrawer, setShowIntegrarionsListDrawer] = useState(id === 'new');
   const [allContactPoints, setAllContactPoints] = useState([]);
   const [errors, setErrors] = useState<Record<string, any>>();
+
+  const form = useMemo(() => getForm(grafanaTeamStore), [grafanaTeamStore]);
 
   useEffect(() => {
     (async function () {

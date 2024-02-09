@@ -93,10 +93,10 @@ const OutgoingWebhookForm = observer((props: OutgoingWebhookFormProps) => {
   const [selectedPreset, setSelectedPreset] = useState<OutgoingWebhookPreset>(undefined);
   const [filterValue, setFilterValue] = useState('');
 
-  const { outgoingWebhookStore, hasFeature } = useStore();
+  const { outgoingWebhookStore, hasFeature, grafanaTeamStore } = useStore();
   const isNew = action === WebhookFormActionType.NEW;
   const isNewOrCopy = isNew || action === WebhookFormActionType.COPY;
-  const form = createForm(outgoingWebhookStore.outgoingWebhookPresets, hasFeature(AppFeature.Labels));
+  const form = createForm(outgoingWebhookStore.outgoingWebhookPresets, grafanaTeamStore, hasFeature(AppFeature.Labels));
 
   const handleSubmit = useCallback(
     async (data: Partial<OutgoingWebhook>) => {
@@ -397,8 +397,8 @@ const WebhookTabsContent: React.FC<WebhookTabsProps> = ({
   formElement,
 }) => {
   const [confirmationModal, setConfirmationModal] = useState<ConfirmModalProps>(undefined);
-  const { outgoingWebhookStore, hasFeature } = useStore();
-  const form = createForm(outgoingWebhookStore.outgoingWebhookPresets, hasFeature(AppFeature.Labels));
+  const { outgoingWebhookStore, hasFeature, grafanaTeamStore } = useStore();
+  const form = createForm(outgoingWebhookStore.outgoingWebhookPresets, grafanaTeamStore, hasFeature(AppFeature.Labels));
   return (
     <div className={cx('tabs__content')}>
       {confirmationModal && (

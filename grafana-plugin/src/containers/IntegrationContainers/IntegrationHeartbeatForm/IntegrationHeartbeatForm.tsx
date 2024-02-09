@@ -117,7 +117,7 @@ const IntegrationHeartbeatForm = observer(({ alertReceveChannelId, onClose }: In
 
     openNotification('Heartbeat settings have been updated');
 
-    await alertReceiveChannelStore.getById(alertReceveChannelId);
+    await alertReceiveChannelStore.fetchItemById(alertReceveChannelId);
   }
 });
 

@@ -51,9 +51,11 @@ const GrafanaTeamSelect = observer(({ onSelect, onHide, withoutModal, defaultVal
   }
 
   const select = (
-    <GSelect
+    <GSelect<GrafanaTeam>
       showSearch
-      modelName="grafanaTeamStore"
+      items={grafanaTeamStore.items}
+      fetchItemsFn={grafanaTeamStore.updateItems}
+      getSearchResult={grafanaTeamStore.getSearchResult}
       displayField="name"
       valueField="id"
       placeholder="Select team"
