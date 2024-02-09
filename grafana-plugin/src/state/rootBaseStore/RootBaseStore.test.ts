@@ -7,8 +7,8 @@ import { isUserActionAllowed as isUserActionAllowedOriginal } from 'utils/author
 
 import { RootBaseStore } from './RootBaseStore';
 
-jest.mock('state/plugin');
-jest.mock('utils/authorization');
+jest.mock('state/plugin/plugin');
+jest.mock('utils/authorization/authorization');
 jest.mock('grafana/app/core/core', () => ({
   contextSrv: {
     user: {

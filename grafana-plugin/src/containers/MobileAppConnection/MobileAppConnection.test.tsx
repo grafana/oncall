@@ -30,14 +30,14 @@ jest.mock('@grafana/runtime', () => ({
   getLocationSrv: jest.fn(),
 }));
 
-jest.mock('utils/authorization', () => ({
-  ...jest.requireActual('utils/authorization'),
+jest.mock('utils/authorization/authorization', () => ({
+  ...jest.requireActual('utils/authorization/authorization'),
   isUserActionAllowed: jest.fn().mockReturnValue(true),
 }));
 
 const loadUserMock = jest.fn().mockReturnValue(undefined);
 
-jest.mock('state', () => ({
+jest.mock('state/rootStore', () => ({
   rootStore: jest.fn(),
 }));
 

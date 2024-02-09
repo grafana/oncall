@@ -7,7 +7,7 @@ import { AddResponders } from './AddResponders';
 
 jest.mock('./parts/AddRespondersPopup/AddRespondersPopup', () => ({
   __esModule: true,
-  default: () => <div>AddRespondersPopup</div>,
+  AddRespondersPopup: () => <div>AddRespondersPopup</div>,
 }));
 
 jest.mock('containers/WithPermissionControl/WithPermissionControlTooltip', () => ({

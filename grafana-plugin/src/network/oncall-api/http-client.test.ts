@@ -6,7 +6,7 @@ import { customFetch } from './http-client';
 
 jest.mock('utils/faro', () => ({
   __esModule: true,
-  default: {
+  FaroHelper: {
     faro: {
       api: {
         getOTEL: jest.fn(() => undefined),
