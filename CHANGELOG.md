@@ -17,6 +17,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Allow mobile app to access escalation options endpoints @imtoori ([#3847](https://github.com/grafana/oncall/pull/3847))
 - Enable templating for alert escalation mobile app push notifications by @joeyorlando ([#3845](https://github.com/grafana/oncall/pull/3845))
 
+### Fixed
+
+- Fix rounding issue with displayed time when sending "You're going oncall" push notification by @joeyorlando ([#TBD](https://github.com/grafana/oncall/pull/TBD))
+
 ## v1.3.102 (2024-02-06)
 
 ### Fixed
