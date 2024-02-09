@@ -1,7 +1,7 @@
 import { getBackendSrv } from '@grafana/runtime';
 import { OnCallAppPluginMeta, OnCallPluginMetaJSONData, OnCallPluginMetaSecureJSONData } from 'types';
 
-import { makeRequest, isNetworkError } from 'network/network';;
+import { makeRequest, isNetworkError } from 'network/network';
 
 export type UpdateGrafanaPluginSettingsProps = {
   jsonData?: Partial<OnCallPluginMetaJSONData>;
