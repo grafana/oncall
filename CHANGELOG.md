@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Improved zvonok verification call @sreway ([#3768](https://github.com/grafana/oncall/pull/3768))
+- Add permission checks for Slack paging and shift swaps actions ([#3861](https://github.com/grafana/oncall/pull/3861))
 
 ### Changed
 
