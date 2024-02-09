@@ -16,8 +16,8 @@ import { TooltipBadge } from 'components/TooltipBadge/TooltipBadge';
 import { WithConfirm } from 'components/WithConfirm/WithConfirm';
 import { RemoteFilters } from 'containers/RemoteFilters/RemoteFilters';
 import { RemoteFiltersType } from 'containers/RemoteFilters/RemoteFilters.types';
-import ScheduleFinal from 'containers/Rotations/ScheduleFinal';
-import SchedulePersonal from 'containers/Rotations/SchedulePersonal';
+import { ScheduleFinal } from 'containers/Rotations/ScheduleFinal';
+import { SchedulePersonal } from 'containers/Rotations/SchedulePersonal';
 import { ScheduleForm } from 'containers/ScheduleForm/ScheduleForm';
 import { TeamName } from 'containers/TeamName/TeamName';
 import { TimelineMarks } from 'containers/TimelineMarks/TimelineMarks';
@@ -45,7 +45,7 @@ interface SchedulesPageState {
 }
 
 @observer
-class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageState> {
+class _SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageState> {
   constructor(props: SchedulesPageProps) {
     super(props);
 
@@ -440,4 +440,4 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
   };
 }
 
-export default withRouter(withMobXProviderContext(SchedulesPage));
+export const SchedulesPage = withRouter(withMobXProviderContext(_SchedulesPage));

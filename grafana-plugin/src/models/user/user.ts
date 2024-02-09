@@ -3,7 +3,7 @@ import dayjs from 'dayjs';
 import { get } from 'lodash-es';
 import { action, computed, observable, makeObservable, runInAction } from 'mobx';
 
-import BaseStore from 'models/base_store';
+import { BaseStore } from 'models/base_store';
 import { NotificationPolicyType } from 'models/notification_policy/notification_policy';
 import { makeRequest } from 'network/network';
 import { move } from 'state/helpers';

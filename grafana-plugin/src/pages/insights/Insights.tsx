@@ -39,7 +39,7 @@ import getTotalAlertGroupsScene from './scenes/TotalAlertGroups';
 import getTotalAlertGroupsByStateScene from './scenes/TotalAlertGroupsByState';
 import getVariables from './variables';
 
-const Insights = observer(() => {
+export const Insights = observer(() => {
   const {
     isOpenSource,
     insightsDatasource,
@@ -222,5 +222,3 @@ const getRootScene = (config: InsightsConfig, variables: ReturnType<typeof getVa
       }),
     ],
   });
-
-export default Insights;

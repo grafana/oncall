@@ -1,7 +1,7 @@
 import { action, observable, makeObservable, runInAction } from 'mobx';
 
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
-import BaseStore from 'models/base_store';
+import { BaseStore } from 'models/base_store';
 import { makeRequest } from 'network/network';
 import { RootStore } from 'state/rootStore';
 

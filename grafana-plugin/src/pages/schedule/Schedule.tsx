@@ -14,9 +14,9 @@ import { ScheduleQuality } from 'components/ScheduleQuality/ScheduleQuality';
 import { Text } from 'components/Text/Text';
 import { WithConfirm } from 'components/WithConfirm/WithConfirm';
 import { ShiftSwapForm } from 'containers/RotationForm/ShiftSwapForm';
-import Rotations from 'containers/Rotations/Rotations';
-import ScheduleFinal from 'containers/Rotations/ScheduleFinal';
-import ScheduleOverrides from 'containers/Rotations/ScheduleOverrides';
+import { Rotations } from 'containers/Rotations/Rotations';
+import { ScheduleFinal } from 'containers/Rotations/ScheduleFinal';
+import { ScheduleOverrides } from 'containers/Rotations/ScheduleOverrides';
 import { ScheduleForm } from 'containers/ScheduleForm/ScheduleForm';
 import { ScheduleICalSettings } from 'containers/ScheduleIcalLink/ScheduleIcalLink';
 import { UserTimezoneSelect } from 'containers/UserTimezoneSelect/UserTimezoneSelect';
@@ -53,7 +53,7 @@ interface SchedulePageState {
 }
 
 @observer
-class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState> {
+class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState> {
   highlightMyShiftsWasToggled = false;
   scheduleId = this.props.match.params.id;
 
@@ -552,4 +552,4 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
   };
 }
 
-export default withRouter(withMobXProviderContext(SchedulePage));
+export const SchedulePage = withRouter(withMobXProviderContext(_SchedulePage));

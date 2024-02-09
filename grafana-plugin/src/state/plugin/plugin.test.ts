@@ -5,7 +5,7 @@ import { PluginState, InstallationVerb, UpdateGrafanaPluginSettingsProps } from 
 const makeRequest = makeRequestOriginal as jest.Mock<ReturnType<typeof makeRequestOriginal>>;
 const isNetworkError = isNetworkErrorOriginal as unknown as jest.Mock<ReturnType<typeof isNetworkErrorOriginal>>;
 
-jest.mock('network');
+jest.mock('network/network');
 
 afterEach(() => {
   jest.resetAllMocks();

@@ -50,7 +50,7 @@ interface RotationsState {
 }
 
 @observer
-class Rotations extends Component<RotationsProps, RotationsState> {
+class _Rotations extends Component<RotationsProps, RotationsState> {
   state: RotationsState = {
     layerPriority: undefined,
     shiftStartToShowRotationForm: undefined,
@@ -338,4 +338,4 @@ class Rotations extends Component<RotationsProps, RotationsState> {
   };
 }
 
-export default withMobXProviderContext(Rotations);
+export const Rotations = withMobXProviderContext(_Rotations);

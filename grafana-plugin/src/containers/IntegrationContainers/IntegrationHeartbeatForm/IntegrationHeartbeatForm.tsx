@@ -24,7 +24,7 @@ interface IntegrationHeartbeatFormProps {
   onClose?: () => void;
 }
 
-const IntegrationHeartbeatForm = observer(({ alertReceveChannelId, onClose }: IntegrationHeartbeatFormProps) => {
+const _IntegrationHeartbeatForm = observer(({ alertReceveChannelId, onClose }: IntegrationHeartbeatFormProps) => {
   const [interval, setInterval] = useState<number>(undefined);
 
   const { heartbeatStore, alertReceiveChannelStore } = useStore();
@@ -121,6 +121,6 @@ const IntegrationHeartbeatForm = observer(({ alertReceveChannelId, onClose }: In
   }
 });
 
-export default withMobXProviderContext(IntegrationHeartbeatForm) as ({
+export const IntegrationHeartbeatForm = withMobXProviderContext(_IntegrationHeartbeatForm) as ({
   alertReceveChannelId,
 }: IntegrationHeartbeatFormProps) => JSX.Element;

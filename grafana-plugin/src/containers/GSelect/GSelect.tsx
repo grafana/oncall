@@ -6,7 +6,7 @@ import cn from 'classnames/bind';
 import { get, isNil } from 'lodash-es';
 import { observer } from 'mobx-react';
 
-import BaseStore from 'models/base_store';
+import { BaseStore } from 'models/base_store';
 import { RootBaseStore } from 'state/rootBaseStore/RootBaseStore';
 import { useStore } from 'state/useStore';
 import { useDebouncedCallback } from 'utils/hooks';

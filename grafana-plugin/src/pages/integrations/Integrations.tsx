@@ -98,7 +98,7 @@ interface IntegrationsState extends PageBaseState {
 interface IntegrationsProps extends WithStoreProps, PageProps, RouteComponentProps<{ id: string }> {}
 
 @observer
-class Integrations extends React.Component<IntegrationsProps, IntegrationsState> {
+class _IntegrationsPage extends React.Component<IntegrationsProps, IntegrationsState> {
   constructor(props: IntegrationsProps) {
     super(props);
 
@@ -682,4 +682,4 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
   debouncedUpdateIntegrations = debounce(this.applyFilters, FILTERS_DEBOUNCE_MS);
 }
 
-export default withRouter(withMobXProviderContext(Integrations));
+export const IntegrationsPage = withRouter(withMobXProviderContext(_IntegrationsPage));

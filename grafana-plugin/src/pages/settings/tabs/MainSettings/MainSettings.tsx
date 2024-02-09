@@ -3,10 +3,10 @@ import React from 'react';
 import { Field, Input, Switch } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
-import LegacyNavHeading from 'navbar/LegacyNavHeading';
+import { LegacyNavHeading } from 'navbar/LegacyNavHeading';
 
 import { Text } from 'components/Text/Text';
-import ApiTokenSettings from 'containers/ApiTokenSettings/ApiTokenSettings';
+import { ApiTokenSettings } from 'containers/ApiTokenSettings/ApiTokenSettings';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { TeamsSettings } from 'pages/settings/tabs/TeamsSettings/TeamsSettings';
 import { isTopNavbar } from 'plugin/GrafanaPluginRootPage.helpers';

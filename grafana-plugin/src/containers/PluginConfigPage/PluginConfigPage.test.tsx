@@ -7,7 +7,8 @@ import { OnCallPluginConfigPageProps } from 'types';
 
 import { PluginState } from 'state/plugin/plugin';
 
-import PluginConfigPage, {
+import {
+  PluginConfigPage,
   reloadPageWithPluginConfiguredQueryParams,
   removePluginConfiguredQueryParams,
 } from './PluginConfigPage';

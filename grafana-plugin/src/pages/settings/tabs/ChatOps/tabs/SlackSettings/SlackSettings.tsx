@@ -42,7 +42,7 @@ interface SlackState {
 }
 
 @observer
-class SlackSettings extends Component<SlackProps, SlackState> {
+class _SlackSettings extends Component<SlackProps, SlackState> {
   state: SlackState = {
     showENVVariablesButton: false,
   };
@@ -305,4 +305,4 @@ class SlackSettings extends Component<SlackProps, SlackState> {
   };
 }
 
-export default withMobXProviderContext(SlackSettings);
+export const SlackSettings = withMobXProviderContext(_SlackSettings);

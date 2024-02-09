@@ -7,7 +7,7 @@ import cn from 'classnames/bind';
 import { get } from 'lodash-es';
 import { observer } from 'mobx-react';
 
-import EscalationPolicy, { EscalationPolicyProps } from 'components/Policy/EscalationPolicy';
+import { EscalationPolicy, EscalationPolicyProps } from 'components/Policy/EscalationPolicy';
 import { SortableList } from 'components/SortableList/SortableList';
 import { Timeline } from 'components/Timeline/Timeline';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';

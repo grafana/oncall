@@ -48,7 +48,7 @@ export interface Filters {
 }
 
 @observer
-class EscalationChainsPage extends React.Component<EscalationChainsPageProps, EscalationChainsPageState> {
+class _EscalationChainsPage extends React.Component<EscalationChainsPageProps, EscalationChainsPageState> {
   state: EscalationChainsPageState = {
     selectedEscalationChain: undefined,
     errorData: initErrorDataState(),
@@ -465,4 +465,4 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
   };
 }
 
-export default withRouter(withMobXProviderContext(EscalationChainsPage));
+export const EscalationChainsPage = withRouter(withMobXProviderContext(_EscalationChainsPage));

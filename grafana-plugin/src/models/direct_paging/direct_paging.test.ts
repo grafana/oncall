@@ -5,7 +5,7 @@ import { DirectPagingStore } from './direct_paging';
 
 const makeRequest = makeRequestOriginal as jest.Mock<ReturnType<typeof makeRequestOriginal>>;
 
-jest.mock('network');
+jest.mock('network/network');
 
 afterEach(() => {
   jest.resetAllMocks();

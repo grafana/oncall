@@ -7,7 +7,7 @@ import { observer } from 'mobx-react';
 
 import { VerticalTabsBar, VerticalTab } from 'components/VerticalTabsBar/VerticalTabsBar';
 import MSTeamsSettings from 'pages/settings/tabs/ChatOps/tabs/MSTeamsSettings/MSTeamsSettings';
-import SlackSettings from 'pages/settings/tabs/ChatOps/tabs/SlackSettings/SlackSettings';
+import { SlackSettings } from 'pages/settings/tabs/ChatOps/tabs/SlackSettings/SlackSettings';
 import TelegramSettings from 'pages/settings/tabs/ChatOps/tabs/TelegramSettings/TelegramSettings';
 import { AppFeature } from 'state/features';
 import { WithStoreProps } from 'state/types';
@@ -30,7 +30,7 @@ interface ChatOpsState {
 }
 
 @observer
-class ChatOpsPage extends React.Component<ChatOpsProps, ChatOpsState> {
+export class _ChatOpsPage extends React.Component<ChatOpsProps, ChatOpsState> {
   state: ChatOpsState = {
     activeTab: ChatOpsTab.Slack,
   };
@@ -98,7 +98,7 @@ class ChatOpsPage extends React.Component<ChatOpsProps, ChatOpsState> {
   }
 }
 
-export default withMobXProviderContext(ChatOpsPage);
+export const ChatOpsPage = withMobXProviderContext(_ChatOpsPage);
 
 interface TabsProps {
   activeTab: string;

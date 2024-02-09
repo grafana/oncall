@@ -13,7 +13,7 @@ import {
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 import moment from 'moment-timezone';
-import LegacyNavHeading from 'navbar/LegacyNavHeading';
+import { LegacyNavHeading } from 'navbar/LegacyNavHeading';
 import CopyToClipboard from 'react-copy-to-clipboard';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 
@@ -473,4 +473,4 @@ function convertWebhookUrlToAction(urlAction: string) {
 
 export { OutgoingWebhooks };
 
-export default withRouter(withMobXProviderContext(OutgoingWebhooks));
+export const OutgoingWebhooksPage = withRouter(withMobXProviderContext(OutgoingWebhooks));

@@ -29,7 +29,7 @@ interface SchedulePersonalProps extends RouteComponentProps {
   onSlotClick?: (event: Event) => void;
 }
 
-const SchedulePersonal: FC<SchedulePersonalProps> = observer(({ userPk, onSlotClick, history }) => {
+const _SchedulePersonal: FC<SchedulePersonalProps> = observer(({ userPk, onSlotClick, history }) => {
   const store = useStore();
   const { timezoneStore, scheduleStore, userStore, loaderStore } = store;
 
@@ -147,4 +147,4 @@ const SchedulePersonal: FC<SchedulePersonalProps> = observer(({ userPk, onSlotCl
   );
 });
 
-export default withRouter(SchedulePersonal);
+export const SchedulePersonal = withRouter(_SchedulePersonal);

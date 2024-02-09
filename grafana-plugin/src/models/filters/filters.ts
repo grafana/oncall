@@ -1,6 +1,6 @@
 import { action, observable, makeObservable, runInAction } from 'mobx';
 
-import BaseStore from 'models/base_store';
+import { BaseStore } from 'models/base_store';
 import { LabelKeyValue } from 'models/label/label.types';
 import { makeRequest } from 'network/network';
 import { RootStore } from 'state/rootStore';

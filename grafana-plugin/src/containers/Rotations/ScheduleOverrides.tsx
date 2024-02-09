@@ -53,7 +53,7 @@ interface ScheduleOverridesState {
 }
 
 @observer
-class ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverridesState> {
+class _ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverridesState> {
   state: ScheduleOverridesState = {
     shiftStartToShowOverrideForm: undefined,
     shiftEndToShowOverrideForm: undefined,
@@ -273,4 +273,4 @@ class ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverri
   };
 }
 
-export default withMobXProviderContext(ScheduleOverrides);
+export const ScheduleOverrides = withMobXProviderContext(_ScheduleOverrides);

@@ -44,7 +44,7 @@ import { WithContextMenu } from 'components/WithContextMenu/WithContextMenu';
 import { EditRegexpRouteTemplateModal } from 'containers/EditRegexpRouteTemplateModal/EditRegexpRouteTemplateModal';
 import { CollapsedIntegrationRouteDisplay } from 'containers/IntegrationContainers/CollapsedIntegrationRouteDisplay/CollapsedIntegrationRouteDisplay';
 import { ExpandedIntegrationRouteDisplay } from 'containers/IntegrationContainers/ExpandedIntegrationRouteDisplay/ExpandedIntegrationRouteDisplay';
-import IntegrationHeartbeatForm from 'containers/IntegrationContainers/IntegrationHeartbeatForm/IntegrationHeartbeatForm';
+import { IntegrationHeartbeatForm } from 'containers/IntegrationContainers/IntegrationHeartbeatForm/IntegrationHeartbeatForm';
 import { IntegrationTemplateList } from 'containers/IntegrationContainers/IntegrationTemplatesList';
 import { IntegrationForm } from 'containers/IntegrationForm/IntegrationForm';
 import { IntegrationLabelsForm } from 'containers/IntegrationLabelsForm/IntegrationLabelsForm';
@@ -71,7 +71,7 @@ import { LocationHelper } from 'utils/LocationHelper';
 import { UserActions } from 'utils/authorization/authorization';
 import { PLUGIN_ROOT } from 'utils/consts';
 import { getItem, setItem } from 'utils/localStorage';
-import sanitize from 'utils/sanitize';
+import { sanitize } from 'utils/sanitize';
 import { openNotification, openErrorNotification } from 'utils/utils';
 
 const cx = cn.bind(styles);
@@ -93,7 +93,7 @@ interface IntegrationState extends PageBaseState {
 const NEW_ROUTE_DEFAULT = '';
 
 @observer
-class Integration extends React.Component<IntegrationProps, IntegrationState> {
+class _IntegrationPage extends React.Component<IntegrationProps, IntegrationState> {
   constructor(props: IntegrationProps) {
     super(props);
 
@@ -1292,4 +1292,4 @@ const IntegrationHeader: React.FC<IntegrationHeaderProps> = ({
   }
 };
 
-export default withRouter(withMobXProviderContext(Integration));
+export const IntegrationPage = withRouter(withMobXProviderContext(_IntegrationPage));

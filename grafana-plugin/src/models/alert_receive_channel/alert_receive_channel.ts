@@ -3,7 +3,7 @@ import { action, observable, makeObservable, runInAction } from 'mobx';
 
 import { AlertTemplatesDTO } from 'models/alert_templates/alert_templates';
 import { Alert } from 'models/alertgroup/alertgroup.types';
-import BaseStore from 'models/base_store';
+import { BaseStore } from 'models/base_store';
 import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
 import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
 import { Heartbeat } from 'models/heartbeat/heartbeat.types';

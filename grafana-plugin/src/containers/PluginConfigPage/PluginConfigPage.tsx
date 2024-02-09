@@ -44,7 +44,7 @@ export const removePluginConfiguredQueryParams = (pluginIsEnabled: boolean): voi
   }
 };
 
-const PluginConfigPage: FC<OnCallPluginConfigPageProps> = ({
+export const PluginConfigPage: FC<OnCallPluginConfigPageProps> = ({
   plugin: {
     meta,
     meta: { enabled: pluginIsEnabled },
@@ -246,5 +246,3 @@ const PluginConfigPage: FC<OnCallPluginConfigPageProps> = ({
     </>
   );
 };
-
-export default PluginConfigPage;

@@ -56,7 +56,7 @@ export interface EscalationPolicyProps extends ElementSortableProps {
   scheduleStore: ScheduleStore;
 }
 
-export class EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
+class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
   render() {
     const { data, escalationChoices, number, isDisabled, backgroundClassName, backgroundHexNumber } = this.props;
     const { id, step, is_final } = data;
@@ -483,4 +483,4 @@ export class EscalationPolicy extends React.Component<EscalationPolicyProps, any
   };
 }
 
-export default SortableElement(EscalationPolicy) as React.ComponentClass<EscalationPolicyProps>;
+export const EscalationPolicy = SortableElement(_EscalationPolicy) as React.ComponentClass<EscalationPolicyProps>;

@@ -16,7 +16,7 @@ export interface LabelsProps {
   description?: React.ComponentProps<typeof Label>['description'];
 }
 
-const Labels = observer(
+const _Labels = observer(
   forwardRef(function Labels2(props: LabelsProps, ref) {
     const { value: defaultValue, errors: propsErrors, onDataUpdate, description } = props;
 
@@ -133,4 +133,4 @@ function onUpdateError(res) {
   }
 }
 
-export default React.memo(Labels);
+export const Labels = React.memo(_Labels);

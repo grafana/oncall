@@ -55,7 +55,7 @@ import { useStore } from 'state/useStore';
 import { withMobXProviderContext } from 'state/withStore';
 import { UserActions } from 'utils/authorization/authorization';
 import { PLUGIN_ROOT } from 'utils/consts';
-import sanitize from 'utils/sanitize';
+import { sanitize } from 'utils/sanitize';
 import { parseURL } from 'utils/url';
 import { openNotification } from 'utils/utils';
 
@@ -75,7 +75,7 @@ interface IncidentPageState extends PageBaseState {
 }
 
 @observer
-class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState> {
+class _IncidentPage extends React.Component<IncidentPageProps, IncidentPageState> {
   state: IncidentPageState = {
     timelineFilter: 'all',
     resolutionNoteText: '',
@@ -861,4 +861,4 @@ const AlertGroupStub = ({ buttons }: { buttons: React.ReactNode }) => {
   );
 };
 
-export default withRouter(withMobXProviderContext(IncidentPage));
+export const IncidentPage = withRouter(withMobXProviderContext(_IncidentPage));

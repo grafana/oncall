@@ -26,7 +26,7 @@ const REQUIRED_PERMISSION_TO_VIEW = UserActions.APIKeysWrite;
 interface ApiTokensProps extends WithStoreProps {}
 
 @observer
-class ApiTokens extends React.Component<ApiTokensProps, any> {
+class _ApiTokenSettings extends React.Component<ApiTokensProps, any> {
   constructor(props: any) {
     super(props);
 
@@ -158,4 +158,4 @@ class ApiTokens extends React.Component<ApiTokensProps, any> {
   };
 }
 
-export default withMobXProviderContext(ApiTokens);
+export const ApiTokenSettings = withMobXProviderContext(_ApiTokenSettings);

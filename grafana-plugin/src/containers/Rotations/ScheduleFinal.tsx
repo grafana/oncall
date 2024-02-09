@@ -37,7 +37,7 @@ interface ScheduleFinalProps extends WithStoreProps {
   onSlotClick?: (event: Event) => void;
 }
 
-const ScheduleFinal: FC<ScheduleFinalProps> = observer(
+const _ScheduleFinal: FC<ScheduleFinalProps> = observer(
   ({ store, simplified, scheduleId, filters, onShowShiftSwapForm, onShowOverrideForm, onSlotClick }) => {
     const {
       timezoneStore: { currentDateInSelectedTimezone, calendarStartDate, selectedTimezoneOffset },
@@ -113,4 +113,4 @@ const ScheduleFinal: FC<ScheduleFinalProps> = observer(
   }
 );
 
-export default withMobXProviderContext(ScheduleFinal);
+export const ScheduleFinal = withMobXProviderContext(_ScheduleFinal);

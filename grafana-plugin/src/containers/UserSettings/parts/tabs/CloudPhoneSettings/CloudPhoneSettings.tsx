@@ -16,7 +16,7 @@ interface CloudPhoneSettingsProps extends WithStoreProps {
   userPk?: User['pk'];
 }
 
-const CloudPhoneSettings = observer((props: CloudPhoneSettingsProps) => {
+const _CloudPhoneSettings = observer((props: CloudPhoneSettingsProps) => {
   const { userPk } = props;
   const store = useStore();
   const [syncing, setSyncing] = useState<boolean>(false);
@@ -132,4 +132,4 @@ const CloudPhoneSettings = observer((props: CloudPhoneSettingsProps) => {
   );
 });
 
-export default withMobXProviderContext(CloudPhoneSettings);
+export const CloudPhoneSettings = withMobXProviderContext(_CloudPhoneSettings);

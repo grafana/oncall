@@ -4,7 +4,7 @@ import { Tab, TabsBar } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
-import ChatOpsPage from 'pages/settings/tabs/ChatOps/ChatOps';
+import { ChatOpsPage } from 'pages/settings/tabs/ChatOps/ChatOps';
 import { MainSettings } from 'pages/settings/tabs/MainSettings/MainSettings';
 import { isTopNavbar } from 'plugin/GrafanaPluginRootPage.helpers';
 import { AppFeature } from 'state/features';
@@ -13,7 +13,7 @@ import { withMobXProviderContext } from 'state/withStore';
 import { isUserActionAllowed, UserActions } from 'utils/authorization/authorization';
 
 import { SettingsPageTab } from './SettingsPage.types';
-import CloudPage from './tabs/Cloud/CloudPage';
+import { CloudPage } from './tabs/Cloud/CloudPage';
 import LiveSettingsPage from './tabs/LiveSettings/LiveSettingsPage';
 import { TeamsSettings } from './tabs/TeamsSettings/TeamsSettings';
 

@@ -4,7 +4,7 @@ import { action, makeObservable, observable, runInAction } from 'mobx';
 import { PageErrorData } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
 import { getWrongTeamResponseInfo } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper.helpers';
 import { RemoteFiltersType } from 'containers/RemoteFilters/RemoteFilters.types';
-import BaseStore from 'models/base_store';
+import { BaseStore } from 'models/base_store';
 import { EscalationChain } from 'models/escalation_chain/escalation_chain.types';
 import { ActionKey } from 'models/loader/action-keys';
 import { User } from 'models/user/user.types';

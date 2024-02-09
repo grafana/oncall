@@ -25,7 +25,7 @@ const cx = cn.bind(styles);
 interface CloudPageProps extends WithStoreProps, RouteComponentProps {}
 const ITEMS_PER_PAGE = 50;
 
-const CloudPage = observer((props: CloudPageProps) => {
+const _CloudPage = observer((props: CloudPageProps) => {
   const store = useStore();
   const [page, setPage] = useState<number>(1);
   const [cloudApiKey, setCloudApiKey] = useState<string>('');
@@ -401,4 +401,4 @@ const CloudPage = observer((props: CloudPageProps) => {
   );
 });
 
-export default withRouter(withMobXProviderContext(CloudPage));
+export const CloudPage = withRouter(withMobXProviderContext(_CloudPage));
