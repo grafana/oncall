@@ -17,7 +17,7 @@ import {
 import { User } from 'models/user/user.types';
 import { getColorSchemeMappingForUsers } from 'pages/schedule/Schedule.helpers';
 import { useStore } from 'state/useStore';
-import { isUserActionAllowed, UserActions } from 'utils/authorization';
+import { isUserActionAllowed, UserActions } from 'utils/authorization/authorization';
 
 import styles from './ScheduleUserDetails.module.css';
 

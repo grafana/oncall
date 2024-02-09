@@ -8,8 +8,8 @@ import BaseStore from 'models/base_store';
 import { EscalationChain } from 'models/escalation_chain/escalation_chain.types';
 import { ActionKey } from 'models/loader/action-keys';
 import { User } from 'models/user/user.types';
-import { makeRequest } from 'network';
-import { RootStore } from 'state';
+import { makeRequest } from 'network/network';
+import { RootStore } from 'state/rootStore';
 import { SelectOption } from 'state/types';
 import { AutoLoadingState } from 'utils/decorators';
 

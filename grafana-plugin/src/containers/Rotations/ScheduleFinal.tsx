@@ -8,7 +8,7 @@ import { CSSTransition, TransitionGroup } from 'react-transition-group';
 
 import { ScheduleFiltersType } from 'components/ScheduleFilters/ScheduleFilters.types';
 import { Text } from 'components/Text/Text';
-import {Rotation} from 'containers/Rotation/Rotation';
+import { Rotation } from 'containers/Rotation/Rotation';
 import { TimelineMarks } from 'containers/TimelineMarks/TimelineMarks';
 import {
   flattenShiftEvents,

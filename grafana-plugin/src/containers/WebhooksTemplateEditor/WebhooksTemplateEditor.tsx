@@ -13,7 +13,7 @@ import { TemplateResult } from 'containers/TemplateResult/TemplateResult';
 import { TemplatesAlertGroupsList, TEMPLATE_PAGE } from 'containers/TemplatesAlertGroupsList/TemplatesAlertGroupsList';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { OutgoingWebhook } from 'models/outgoing_webhook/outgoing_webhook.types';
-import { UserActions } from 'utils/authorization';
+import { UserActions } from 'utils/authorization/authorization';
 
 const cx = cn.bind(styles);
 

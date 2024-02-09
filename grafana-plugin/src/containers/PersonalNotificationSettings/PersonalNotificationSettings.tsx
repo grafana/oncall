@@ -14,7 +14,7 @@ import { NotificationPolicyType } from 'models/notification_policy/notification_
 import { User as UserType } from 'models/user/user.types';
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
-import { UserActions } from 'utils/authorization';
+import { UserActions } from 'utils/authorization/authorization';
 
 import { getColor } from './PersonalNotificationSettings.helpers';
 import img from './img/default-step.png';

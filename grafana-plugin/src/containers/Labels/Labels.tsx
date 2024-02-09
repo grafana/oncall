@@ -7,7 +7,7 @@ import { observer } from 'mobx-react';
 
 import { LabelKeyValue } from 'models/label/label.types';
 import { useStore } from 'state/useStore';
-import { openErrorNotification } from 'utils';
+import { openErrorNotification } from 'utils/utils';
 
 export interface LabelsProps {
   value: LabelKeyValue[];

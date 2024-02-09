@@ -5,7 +5,7 @@ import cn from 'classnames/bind';
 
 import { WithConfirm } from 'components/WithConfirm/WithConfirm';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
-import { UserActions } from 'utils/authorization';
+import { UserActions } from 'utils/authorization/authorization';
 
 import styles from './IntegrationTemplateBlock.module.scss';
 

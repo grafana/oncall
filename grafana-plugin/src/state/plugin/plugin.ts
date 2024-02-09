@@ -1,7 +1,7 @@
 import { getBackendSrv } from '@grafana/runtime';
 import { OnCallAppPluginMeta, OnCallPluginMetaJSONData, OnCallPluginMetaSecureJSONData } from 'types';
 
-import { makeRequest, isNetworkError } from 'network';
+import { makeRequest, isNetworkError } from 'network/network';;
 
 export type UpdateGrafanaPluginSettingsProps = {
   jsonData?: Partial<OnCallPluginMetaJSONData>;
@@ -38,7 +38,7 @@ type InstallPluginResponse<OnCallAPIResponse = any> = Pick<OnCallPluginMetaSecur
 
 export type InstallationVerb = 'install' | 'sync';
 
-class PluginState {
+export class PluginState {
   static ONCALL_BASE_URL = '/plugin';
   static GRAFANA_PLUGIN_SETTINGS_URL = '/api/plugins/grafana-oncall-app/settings';
   static grafanaBackend = getBackendSrv();
@@ -341,5 +341,3 @@ class PluginState {
     return this.updateGrafanaPluginSettings({ jsonData, secureJsonData }, false);
   };
 }
-
-export default PluginState;

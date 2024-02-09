@@ -28,8 +28,8 @@ import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/W
 import { AlertGroupColumn, AlertGroupColumnType } from 'models/alertgroup/alertgroup.types';
 import { ActionKey } from 'models/loader/action-keys';
 import { useStore } from 'state/useStore';
-import { openErrorNotification } from 'utils';
-import { UserActions } from 'utils/authorization';
+import { UserActions } from 'utils/authorization/authorization';
+import { openErrorNotification } from 'utils/utils';
 
 import { getColumnsSelectorStyles } from './ColumnsSelector.styles';
 

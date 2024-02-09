@@ -3,8 +3,8 @@ import dayjs from 'dayjs';
 
 import { AlertReceiveChannel, MaintenanceMode } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
-import { RootStore } from 'state';
 import { AppFeature } from 'state/features';
+import { RootStore } from 'state/rootStore';
 
 import { MAX_CHARACTERS_COUNT, TEXTAREA_ROWS_COUNT } from './IntegrationCommon.config';
 

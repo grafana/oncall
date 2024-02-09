@@ -12,7 +12,7 @@ import { Text } from 'components/Text/Text';
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
 import { useStore } from 'state/useStore';
-import { openErrorNotification } from 'utils';
+import { openErrorNotification } from 'utils/utils';
 
 import styles from './EditRegexpRouteTemplateModal.module.css';
 

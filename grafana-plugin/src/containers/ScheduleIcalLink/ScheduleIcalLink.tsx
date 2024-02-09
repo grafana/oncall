@@ -8,7 +8,7 @@ import CopyToClipboard from 'react-copy-to-clipboard';
 import { Text } from 'components/Text/Text';
 import { CreateScheduleExportTokenResponse, Schedule } from 'models/schedule/schedule.types';
 import { useStore } from 'state/useStore';
-import { openNotification } from 'utils';
+import { openNotification } from 'utils/utils';
 
 import styles from './ScheduleIcalLink.module.css';
 

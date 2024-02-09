@@ -25,7 +25,7 @@ import { OutgoingWebhookStore } from 'models/outgoing_webhook/outgoing_webhook';
 import { ScheduleStore } from 'models/schedule/schedule';
 import { SelectOption } from 'state/types';
 import { getVar } from 'utils/DOM';
-import { UserActions } from 'utils/authorization';
+import { UserActions } from 'utils/authorization/authorization';
 
 import { DragHandle } from './DragHandle';
 import { PolicyNote } from './PolicyNote';

@@ -14,10 +14,10 @@ import { SHIFT_SWAP_COLOR } from 'models/schedule/schedule.helpers';
 import { Schedule, ShiftSwap } from 'models/schedule/schedule.types';
 import { getUTCString } from 'pages/schedule/Schedule.helpers';
 import { useStore } from 'state/useStore';
-import { UserActions } from 'utils/authorization';
+import { UserActions } from 'utils/authorization/authorization';
 
-import {DateTimePicker} from './parts/DateTimePicker';
-import {UserItem} from './parts/UserItem';
+import { DateTimePicker } from './parts/DateTimePicker';
+import { UserItem } from './parts/UserItem';
 
 import styles from './RotationForm.module.css';
 

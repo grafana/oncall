@@ -8,11 +8,11 @@ import hash from 'object-hash';
 
 import { ScheduleFiltersType } from 'components/ScheduleFilters/ScheduleFilters.types';
 import { Text } from 'components/Text/Text';
-import {ScheduleSlot} from 'containers/ScheduleSlot/ScheduleSlot';
+import { ScheduleSlot } from 'containers/ScheduleSlot/ScheduleSlot';
 import { Event, RotationFormLiveParams, ShiftSwap } from 'models/schedule/schedule.types';
 import { useStore } from 'state/useStore';
 
-import {RotationTutorial} from './RotationTutorial';
+import { RotationTutorial } from './RotationTutorial';
 
 import styles from './Rotation.module.css';
 

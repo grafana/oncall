@@ -16,7 +16,7 @@ import { IntegrationHelper } from 'pages/integration/Integration.helper';
 import styles from 'pages/integration/Integration.module.scss';
 import { MONACO_INPUT_HEIGHT_TALL } from 'pages/integration/IntegrationCommon.config';
 import { useStore } from 'state/useStore';
-import { openErrorNotification, openNotification } from 'utils';
+import { openErrorNotification, openNotification } from 'utils/utils';
 
 const cx = cn.bind(styles);
 

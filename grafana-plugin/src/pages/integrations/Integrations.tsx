@@ -39,7 +39,7 @@ import { IntegrationLabelsForm } from 'containers/IntegrationLabelsForm/Integrat
 import { RemoteFilters } from 'containers/RemoteFilters/RemoteFilters';
 import { TeamName } from 'containers/TeamName/TeamName';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
-import { HeartIcon, HeartRedIcon } from 'icons';
+import { HeartIcon, HeartRedIcon } from 'icons/Icons';
 import { AlertReceiveChannelStore } from 'models/alert_receive_channel/alert_receive_channel';
 import {
   AlertReceiveChannel,
@@ -50,10 +50,10 @@ import { IntegrationHelper } from 'pages/integration/Integration.helper';
 import { AppFeature } from 'state/features';
 import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
-import { openNotification } from 'utils';
 import { LocationHelper } from 'utils/LocationHelper';
-import { UserActions } from 'utils/authorization';
+import { UserActions } from 'utils/authorization/authorization';
 import { PAGE, TEXT_ELLIPSIS_CLASS } from 'utils/consts';
+import { openNotification } from 'utils/utils';
 
 import styles from './Integrations.module.scss';
 

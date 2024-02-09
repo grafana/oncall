@@ -7,7 +7,7 @@ import { SubmitHandler } from 'react-hook-form';
 
 import { Block } from 'components/GBlock/Block';
 import { Text } from 'components/Text/Text';
-import PluginState from 'state/plugin';
+import { PluginState } from 'state/plugin/plugin';
 
 import styles from './ConfigurationForm.module.css';
 

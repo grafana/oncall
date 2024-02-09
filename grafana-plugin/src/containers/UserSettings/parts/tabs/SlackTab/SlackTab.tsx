@@ -6,9 +6,9 @@ import cn from 'classnames/bind';
 import { Block } from 'components/GBlock/Block';
 import { Text } from 'components/Text/Text';
 import { WithPermissionControlDisplay } from 'containers/WithPermissionControl/WithPermissionControlDisplay';
-import { SlackNewIcon } from 'icons';
+import { SlackNewIcon } from 'icons/Icons';
 import { useStore } from 'state/useStore';
-import { UserActions } from 'utils/authorization';
+import { UserActions } from 'utils/authorization/authorization';
 import { DOCS_SLACK_SETUP } from 'utils/consts';
 
 import styles from './SlackTab.module.css';

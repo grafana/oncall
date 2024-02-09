@@ -24,8 +24,8 @@ import { WithConfirm } from 'components/WithConfirm/WithConfirm';
 import { AlertReceiveChannel, ContactPoint } from 'models/alert_receive_channel/alert_receive_channel.types';
 import styles from 'pages/integration/Integration.module.scss';
 import { useStore } from 'state/useStore';
-import { openErrorNotification, openNotification } from 'utils';
 import { getVar } from 'utils/DOM';
+import { openErrorNotification, openNotification } from 'utils/utils';
 
 const cx = cn.bind(styles);
 

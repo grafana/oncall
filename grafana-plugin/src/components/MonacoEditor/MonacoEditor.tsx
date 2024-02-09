@@ -2,7 +2,7 @@ import React, { FC, useCallback } from 'react';
 
 import { CodeEditor, CodeEditorSuggestionItemKind, LoadingPlaceholder } from '@grafana/ui';
 
-import { getPaths } from 'utils';
+import { getPaths } from 'utils/utils';
 
 import { conf, language as jinja2Language } from './jinja2';
 

@@ -27,7 +27,7 @@ import { EscalationChain } from 'models/escalation_chain/escalation_chain.types'
 import { FiltersValues } from 'models/filters/filters.types';
 import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
-import { UserActions } from 'utils/authorization';
+import { UserActions } from 'utils/authorization/authorization';
 import { PAGE, PLUGIN_ROOT } from 'utils/consts';
 
 import styles from './EscalationChains.module.css';

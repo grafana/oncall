@@ -9,10 +9,10 @@ import { Text } from 'components/Text/Text';
 import { WithPermissionControlDisplay } from 'containers/WithPermissionControl/WithPermissionControlDisplay';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { User } from 'models/user/user.types';
-import { rootStore } from 'state';
 import { AppFeature } from 'state/features';
+import { rootStore } from 'state/rootStore';
 import { useStore } from 'state/useStore';
-import { isUserActionAllowed, UserAction, UserActions } from 'utils/authorization';
+import { isUserActionAllowed, UserAction, UserActions } from 'utils/authorization/authorization';
 
 import styles from './PhoneVerification.module.css';
 

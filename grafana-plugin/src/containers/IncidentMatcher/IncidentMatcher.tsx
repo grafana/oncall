@@ -8,7 +8,7 @@ import { Block } from 'components/GBlock/Block';
 import { SourceCode } from 'components/SourceCode/SourceCode';
 import { Text } from 'components/Text/Text';
 import { Alert } from 'models/alertgroup/alertgroup.types';
-import { makeRequest } from 'network';
+import { makeRequest } from 'network/network';
 import { useStore } from 'state/useStore';
 import { useDebouncedCallback } from 'utils/hooks';
 

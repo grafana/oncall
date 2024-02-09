@@ -12,7 +12,7 @@ import { IncidentMatcher } from 'containers/IncidentMatcher/IncidentMatcher';
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { ChannelFilter, FilteringTermType } from 'models/channel_filter/channel_filter.types';
 import { useStore } from 'state/useStore';
-import { openErrorNotification } from 'utils';
+import { openErrorNotification } from 'utils/utils';
 
 import styles from './ChannelFilterForm.module.css';
 

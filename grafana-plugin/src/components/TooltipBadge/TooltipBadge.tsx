@@ -90,4 +90,3 @@ export const TooltipBadge: FC<TooltipBadgeProps> = (props) => {
     return <Icon className={cx('element__icon', { [`element__icon--${borderType}`]: true })} name={icon as IconName} />;
   }
 };
-

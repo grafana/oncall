@@ -9,14 +9,14 @@ import { Block } from 'components/GBlock/Block';
 import { GTable } from 'components/GTable/GTable';
 import { Text } from 'components/Text/Text';
 import { WithConfirm } from 'components/WithConfirm/WithConfirm';
-import { CrossCircleIcon, HeartIcon } from 'icons';
+import { CrossCircleIcon, HeartIcon } from 'icons/Icons';
 import { Cloud } from 'models/cloud/cloud.types';
 import { WithStoreProps } from 'state/types';
 import { useStore } from 'state/useStore';
 import { withMobXProviderContext } from 'state/withStore';
-import { openErrorNotification } from 'utils';
-import { UserActions, determineRequiredAuthString } from 'utils/authorization';
+import { UserActions, determineRequiredAuthString } from 'utils/authorization/authorization';
 import { PLUGIN_ROOT } from 'utils/consts';
+import { openErrorNotification } from 'utils/utils';
 
 import styles from './CloudPage.module.css';
 

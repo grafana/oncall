@@ -33,9 +33,9 @@ import {
 import { IntegrationHelper } from 'pages/integration/Integration.helper';
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
-import { openErrorNotification } from 'utils';
-import { UserActions } from 'utils/authorization';
+import { UserActions } from 'utils/authorization/authorization';
 import { PLUGIN_ROOT } from 'utils/consts';
+import { openErrorNotification } from 'utils/utils';
 
 import { form } from './IntegrationForm.config';
 import { prepareForEdit } from './IntegrationForm.helpers';

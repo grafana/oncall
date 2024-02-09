@@ -16,20 +16,20 @@ import { observer } from 'mobx-react';
 
 import { Block } from 'components/GBlock/Block';
 import { PluginLink } from 'components/PluginLink/PluginLink';
-import {Text} from 'components/Text/Text';
-import {WithConfirm} from 'components/WithConfirm/WithConfirm';
+import { Text } from 'components/Text/Text';
+import { WithConfirm } from 'components/WithConfirm/WithConfirm';
 import { GSelect } from 'containers/GSelect/GSelect';
 import { RemoteSelect } from 'containers/RemoteSelect/RemoteSelect';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
-import { SlackNewIcon } from 'icons';
+import { SlackNewIcon } from 'icons/Icons';
 import { PRIVATE_CHANNEL_NAME } from 'models/slack_channel/slack_channel.config';
 import { SlackChannel } from 'models/slack_channel/slack_channel.types';
 import { AppFeature } from 'state/features';
 import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
-import { showApiError } from 'utils';
-import { UserActions } from 'utils/authorization';
+import { UserActions } from 'utils/authorization/authorization';
 import { DOCS_SLACK_SETUP } from 'utils/consts';
+import { showApiError } from 'utils/utils';
 
 import styles from './SlackSettings.module.css';
 

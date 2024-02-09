@@ -7,7 +7,7 @@ import { GSelect } from 'containers/GSelect/GSelect';
 import { EscalationChain } from 'models/escalation_chain/escalation_chain.types';
 import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
 import { useStore } from 'state/useStore';
-import { openWarningNotification } from 'utils';
+import { openWarningNotification } from 'utils/utils';
 
 import styles from 'containers/EscalationChainForm/EscalationChainForm.module.css';
 

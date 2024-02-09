@@ -8,7 +8,7 @@ import { Text } from 'components/Text/Text';
 import { ScheduleForm } from 'containers/ScheduleForm/ScheduleForm';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { Schedule, ScheduleType } from 'models/schedule/schedule.types';
-import { UserActions } from 'utils/authorization';
+import { UserActions } from 'utils/authorization/authorization';
 
 import styles from './NewScheduleSelector.module.css';
 

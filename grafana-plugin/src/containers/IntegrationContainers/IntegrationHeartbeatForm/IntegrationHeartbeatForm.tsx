@@ -12,8 +12,8 @@ import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_
 import { SelectOption } from 'state/types';
 import { useStore } from 'state/useStore';
 import { withMobXProviderContext } from 'state/withStore';
-import { openNotification } from 'utils';
-import { UserActions } from 'utils/authorization';
+import { UserActions } from 'utils/authorization/authorization';
+import { openNotification } from 'utils/utils';
 
 import styles from './IntegrationHeartbeatForm.module.scss';
 

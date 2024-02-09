@@ -7,8 +7,8 @@ import { WithConfirm } from 'components/WithConfirm/WithConfirm';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { User } from 'models/user/user.types';
 import { useStore } from 'state/useStore';
-import { openNotification } from 'utils';
-import { UserActions } from 'utils/authorization';
+import { UserActions } from 'utils/authorization/authorization';
+import { openNotification } from 'utils/utils';
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
 interface ICalConnectorProps {

@@ -10,9 +10,9 @@ import { Alert } from 'models/alertgroup/alertgroup.types';
 import { OutgoingWebhook } from 'models/outgoing_webhook/outgoing_webhook.types';
 import { LabelTemplateOptions } from 'pages/integration/IntegrationCommon.config';
 import { useStore } from 'state/useStore';
-import { openErrorNotification } from 'utils';
 import { useDebouncedCallback } from 'utils/hooks';
 import sanitize from 'utils/sanitize';
+import { openErrorNotification } from 'utils/utils';
 
 import styles from './TemplatePreview.module.css';
 

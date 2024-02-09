@@ -11,7 +11,6 @@ import { AppRootProps } from 'types';
 import { RenderConditionally } from 'components/RenderConditionally/RenderConditionally';
 import { Unauthorized } from 'components/Unauthorized/Unauthorized';
 import { DefaultPageLayout } from 'containers/DefaultPageLayout/DefaultPageLayout';
-import { getMatchedPage, getRoutesForPage, pages } from 'pages';
 import { NoMatch } from 'pages/NoMatch';
 import EscalationChains from 'pages/escalation-chains/EscalationChains';
 import Incident from 'pages/incident/Incident';
@@ -20,27 +19,26 @@ import Insights from 'pages/insights/Insights';
 import Integration from 'pages/integration/Integration';
 import Integrations from 'pages/integrations/Integrations';
 import OutgoingWebhooks from 'pages/outgoing_webhooks/OutgoingWebhooks';
+import { getMatchedPage, getRoutesForPage, pages } from 'pages/pages';
 import Schedule from 'pages/schedule/Schedule';
 import Schedules from 'pages/schedules/Schedules';
 import { SettingsPage } from 'pages/settings/SettingsPage';
 import ChatOps from 'pages/settings/tabs/ChatOps/ChatOps';
 import CloudPage from 'pages/settings/tabs/Cloud/CloudPage';
 import LiveSettings from 'pages/settings/tabs/LiveSettings/LiveSettingsPage';
-import { rootStore } from 'state';
+import { UsersPage } from 'pages/users/Users';
+import { PluginSetup } from 'plugin/PluginSetup/PluginSetup';
+import { rootStore } from 'state/rootStore';
 import { useStore } from 'state/useStore';
-import { isUserActionAllowed } from 'utils/authorization';
+import { isUserActionAllowed } from 'utils/authorization/authorization';
 import { DEFAULT_PAGE } from 'utils/consts';
-
 import 'assets/style/vars.css';
 import 'assets/style/global.css';
 import 'assets/style/utils.css';
 
 import { getQueryParams, isTopNavbar } from './GrafanaPluginRootPage.helpers';
-import PluginSetup from './PluginSetup';
 
 import grafanaGlobalStyle from '!raw-loader!assets/style/grafanaGlobalStyles.css';
-
-import { UsersPage } from 'pages/users/Users';
 
 export const GrafanaPluginRootPage = (props: AppRootProps) => {
   return (

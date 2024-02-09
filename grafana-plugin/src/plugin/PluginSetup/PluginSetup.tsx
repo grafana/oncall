@@ -9,7 +9,7 @@ import { AppRootProps } from 'types';
 import logo from 'assets/img/logo.svg';
 import { isTopNavbar } from 'plugin/GrafanaPluginRootPage.helpers';
 import { useStore } from 'state/useStore';
-import loadJs from 'utils/loadJs';
+import { loadJs } from 'utils/loadJs';
 
 export type PluginSetupProps = AppRootProps & {
   InitializedComponent: (props: AppRootProps) => JSX.Element;
@@ -33,7 +33,7 @@ const PluginSetupWrapper: FC<PluginSetupWrapperProps> = ({ text, children }) => 
   );
 };
 
-const PluginSetup: FC<PluginSetupProps> = observer(({ InitializedComponent, ...props }) => {
+export const PluginSetup: FC<PluginSetupProps> = observer(({ InitializedComponent, ...props }) => {
   const store = useStore();
   const setupPlugin = useCallback(() => store.setupPlugin(props.meta), [props.meta]);
 
@@ -65,5 +65,3 @@ const PluginSetup: FC<PluginSetupProps> = observer(({ InitializedComponent, ...p
   }
   return <InitializedComponent {...props} />;
 });
-
-export default PluginSetup;

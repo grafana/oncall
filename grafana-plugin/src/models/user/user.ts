@@ -5,11 +5,11 @@ import { action, computed, observable, makeObservable, runInAction } from 'mobx'
 
 import BaseStore from 'models/base_store';
 import { NotificationPolicyType } from 'models/notification_policy/notification_policy';
-import { makeRequest } from 'network';
-import { RootStore } from 'state';
+import { makeRequest } from 'network/network';
 import { move } from 'state/helpers';
-import { throttlingError } from 'utils';
-import { isUserActionAllowed, UserActions } from 'utils/authorization';
+import { RootStore } from 'state/rootStore';
+import { isUserActionAllowed, UserActions } from 'utils/authorization/authorization';
+import { throttlingError } from 'utils/utils';
 
 import { getTimezone, prepareForUpdate } from './user.helpers';
 import { User } from './user.types';

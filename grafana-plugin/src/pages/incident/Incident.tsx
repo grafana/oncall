@@ -53,11 +53,11 @@ import { AppFeature } from 'state/features';
 import { PageProps, WithStoreProps } from 'state/types';
 import { useStore } from 'state/useStore';
 import { withMobXProviderContext } from 'state/withStore';
-import { openNotification } from 'utils';
-import { UserActions } from 'utils/authorization';
+import { UserActions } from 'utils/authorization/authorization';
 import { PLUGIN_ROOT } from 'utils/consts';
 import sanitize from 'utils/sanitize';
 import { parseURL } from 'utils/url';
+import { openNotification } from 'utils/utils';
 
 import { getActionButtons } from './Incident.helpers';
 import styles from './Incident.module.scss';

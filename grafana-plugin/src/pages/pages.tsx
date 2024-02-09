@@ -4,7 +4,7 @@ import { matchPath } from 'react-router-dom';
 import { isTopNavbar } from 'plugin/GrafanaPluginRootPage.helpers';
 import { AppFeature } from 'state/features';
 import { RootBaseStore } from 'state/rootBaseStore/RootBaseStore';
-import { UserActions, UserAction, isUserActionAllowed } from 'utils/authorization';
+import { UserActions, UserAction, isUserActionAllowed } from 'utils/authorization/authorization';
 import { PLUGIN_ROOT } from 'utils/consts';
 
 export type PageDefinition = {

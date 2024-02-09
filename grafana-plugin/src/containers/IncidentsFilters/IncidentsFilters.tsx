@@ -22,7 +22,7 @@ import { CardButton } from 'components/CardButton/CardButton';
 import { Text } from 'components/Text/Text';
 import { RemoteSelect } from 'containers/RemoteSelect/RemoteSelect';
 import { IncidentStatus } from 'models/alertgroup/alertgroup.types';
-import { makeRequest } from 'network';
+import { makeRequest } from 'network/network';
 import { SelectOption, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 

@@ -7,7 +7,7 @@ import qs from 'query-string';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 
 import { Avatar } from 'components/Avatar/Avatar';
-import {NewScheduleSelector} from 'components/NewScheduleSelector/NewScheduleSelector';
+import { NewScheduleSelector } from 'components/NewScheduleSelector/NewScheduleSelector';
 import { PluginLink } from 'components/PluginLink/PluginLink';
 import { GTable } from 'components/Table/Table';
 import { Text } from 'components/Text/Text';
@@ -28,7 +28,7 @@ import { getSlackChannelName } from 'models/slack_channel/slack_channel.helpers'
 import { WithStoreProps, PageProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import { LocationHelper } from 'utils/LocationHelper';
-import { UserActions } from 'utils/authorization';
+import { UserActions } from 'utils/authorization/authorization';
 import { PAGE, PLUGIN_ROOT, TEXT_ELLIPSIS_CLASS } from 'utils/consts';
 
 import styles from './Schedules.module.css';

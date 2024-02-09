@@ -41,8 +41,8 @@ import CommonIntegrationHelper from 'pages/integration/CommonIntegration.helper'
 import { IntegrationHelper } from 'pages/integration/Integration.helper';
 import { MONACO_INPUT_HEIGHT_SMALL } from 'pages/integration/IntegrationCommon.config';
 import { useStore } from 'state/useStore';
-import { openNotification } from 'utils';
-import { UserActions } from 'utils/authorization';
+import { UserActions } from 'utils/authorization/authorization';
+import { openNotification } from 'utils/utils';
 
 const cx = cn.bind(styles);
 

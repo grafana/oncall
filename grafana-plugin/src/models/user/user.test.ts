@@ -1,5 +1,5 @@
-import { makeRequest as makeRequestOriginal } from 'network';
-import { RootStore } from 'state';
+import { makeRequest as makeRequestOriginal } from 'network/network';
+import { RootStore } from 'state/rootStore';
 
 import { UserStore } from './user';
 

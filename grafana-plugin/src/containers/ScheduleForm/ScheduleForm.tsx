@@ -8,8 +8,8 @@ import { GForm } from 'components/GForm/GForm';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { Schedule, ScheduleType } from 'models/schedule/schedule.types';
 import { useStore } from 'state/useStore';
-import { openWarningNotification } from 'utils';
-import { UserActions } from 'utils/authorization';
+import { UserActions } from 'utils/authorization/authorization';
+import { openWarningNotification } from 'utils/utils';
 
 import { apiForm, calendarForm, iCalForm } from './ScheduleForm.config';
 import { prepareForEdit } from './ScheduleForm.helpers';

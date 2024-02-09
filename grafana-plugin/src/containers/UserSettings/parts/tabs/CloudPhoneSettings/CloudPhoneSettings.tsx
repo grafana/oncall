@@ -10,7 +10,7 @@ import { User } from 'models/user/user.types';
 import { WithStoreProps } from 'state/types';
 import { useStore } from 'state/useStore';
 import { withMobXProviderContext } from 'state/withStore';
-import { UserActions } from 'utils/authorization';
+import { UserActions } from 'utils/authorization/authorization';
 
 interface CloudPhoneSettingsProps extends WithStoreProps {
   userPk?: User['pk'];

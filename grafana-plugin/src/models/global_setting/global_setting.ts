@@ -1,7 +1,7 @@
 import { action, observable, makeObservable, runInAction } from 'mobx';
 
 import BaseStore from 'models/base_store';
-import { RootStore } from 'state';
+import { RootStore } from 'state/rootStore';
 
 import { GlobalSetting } from './global_setting.types';
 

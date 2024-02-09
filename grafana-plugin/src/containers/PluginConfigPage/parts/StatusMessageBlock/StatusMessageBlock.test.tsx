@@ -2,7 +2,7 @@ import React from 'react';
 
 import { render } from '@testing-library/react';
 
-import {StatusMessageBlock} from './StatusMessageBlock';
+import { StatusMessageBlock } from './StatusMessageBlock';
 
 describe('StatusMessageBlock', () => {
   test('It renders properly', async () => {

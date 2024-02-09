@@ -5,13 +5,13 @@ import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_
 import BaseStore from 'models/base_store';
 import { ActionKey } from 'models/loader/action-keys';
 import { User } from 'models/user/user.types';
-import { makeRequest } from 'network';
+import { makeRequest } from 'network/network';
 import { ApiSchemas } from 'network/oncall-api/api.types';
-import { RootStore } from 'state';
+import { RootStore } from 'state/rootStore';
 import { SelectOption } from 'state/types';
-import { openErrorNotification, refreshPageError, showApiError } from 'utils';
 import { LocationHelper } from 'utils/LocationHelper';
 import { AutoLoadingState, WithGlobalNotification } from 'utils/decorators';
+import { openErrorNotification, refreshPageError, showApiError } from 'utils/utils';
 
 import { AlertGroupColumn, Alert, AlertAction, IncidentStatus } from './alertgroup.types';
 

@@ -9,8 +9,8 @@ import { CSSTransition, TransitionGroup } from 'react-transition-group';
 
 import { ScheduleFiltersType } from 'components/ScheduleFilters/ScheduleFilters.types';
 import { Text } from 'components/Text/Text';
-import {Rotation} from 'containers/Rotation/Rotation';
-import {RotationForm} from 'containers/RotationForm/RotationForm';
+import { Rotation } from 'containers/Rotation/Rotation';
+import { RotationForm } from 'containers/RotationForm/RotationForm';
 import { TimelineMarks } from 'containers/TimelineMarks/TimelineMarks';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { getColor, getLayersFromStore } from 'models/schedule/schedule.helpers';
@@ -18,7 +18,7 @@ import { Layer, Schedule, ScheduleType, Shift, ShiftSwap, Event } from 'models/s
 import { User } from 'models/user/user.types';
 import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
-import { UserActions } from 'utils/authorization';
+import { UserActions } from 'utils/authorization/authorization';
 
 import { DEFAULT_TRANSITION_TIMEOUT } from './Rotations.config';
 import { findColor } from './Rotations.helpers';

@@ -2,8 +2,8 @@ import { action, observable, makeObservable, runInAction } from 'mobx';
 
 import BaseStore from 'models/base_store';
 import { LabelKeyValue } from 'models/label/label.types';
-import { makeRequest } from 'network';
-import { RootStore } from 'state';
+import { makeRequest } from 'network/network';
+import { RootStore } from 'state/rootStore';
 import { LocationHelper } from 'utils/LocationHelper';
 import { PAGE } from 'utils/consts';
 import { getItem, setItem } from 'utils/localStorage';

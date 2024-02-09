@@ -3,11 +3,11 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-import PluginState from 'state/plugin';
+import { PluginState } from 'state/plugin/plugin';
 
-import {ConfigurationForm} from './ConfigurationForm';
+import { ConfigurationForm } from './ConfigurationForm';
 
-jest.mock('state/plugin');
+jest.mock('state/plugin/plugin');
 
 const VALID_ONCALL_API_URL = 'http://host.docker.internal:8080';
 const SELF_HOSTED_PLUGIN_API_ERROR_MSG = 'ohhh nooo there was an error from the OnCall API';

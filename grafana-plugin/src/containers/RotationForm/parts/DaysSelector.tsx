@@ -49,4 +49,3 @@ export const DaysSelector = ({ value, onChange, options: optionsProp, weekStart,
     </div>
   );
 };
-

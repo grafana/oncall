@@ -10,7 +10,7 @@ import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/W
 import { Alert, AlertAction, IncidentStatus } from 'models/alertgroup/alertgroup.types';
 import styles from 'pages/incidents/parts/IncidentDropdown.module.scss';
 import { getVar } from 'utils/DOM';
-import { UserActions } from 'utils/authorization';
+import { UserActions } from 'utils/authorization/authorization';
 
 import { SilenceSelect } from './SilenceSelect';
 

@@ -10,7 +10,7 @@ import { PluginLink } from 'components/PluginLink/PluginLink';
 import { Text } from 'components/Text/Text';
 import MSTeamsLogo from 'icons/MSTeamsLogo';
 import { useStore } from 'state/useStore';
-import { openNotification, openWarningNotification } from 'utils';
+import { openNotification, openWarningNotification } from 'utils/utils';
 
 import styles from './MSTeamsInstructions.module.css';
 

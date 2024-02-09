@@ -53,7 +53,7 @@ import { MaintenanceForm } from 'containers/MaintenanceForm/MaintenanceForm';
 import { TeamName } from 'containers/TeamName/TeamName';
 import { UserDisplayWithAvatar } from 'containers/UserDisplay/UserDisplayWithAvatar';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
-import { HeartIcon, HeartRedIcon } from 'icons';
+import { HeartIcon, HeartRedIcon } from 'icons/Icons';
 import {
   AlertReceiveChannel,
   AlertReceiveChannelCounters,
@@ -66,13 +66,13 @@ import { AppFeature } from 'state/features';
 import { PageProps, SelectOption, WithStoreProps } from 'state/types';
 import { useStore } from 'state/useStore';
 import { withMobXProviderContext } from 'state/withStore';
-import { openNotification, openErrorNotification } from 'utils';
 import { getVar } from 'utils/DOM';
 import { LocationHelper } from 'utils/LocationHelper';
-import { UserActions } from 'utils/authorization';
+import { UserActions } from 'utils/authorization/authorization';
 import { PLUGIN_ROOT } from 'utils/consts';
 import { getItem, setItem } from 'utils/localStorage';
 import sanitize from 'utils/sanitize';
+import { openNotification, openErrorNotification } from 'utils/utils';
 
 const cx = cn.bind(styles);
 

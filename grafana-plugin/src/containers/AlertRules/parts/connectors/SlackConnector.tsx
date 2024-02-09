@@ -12,7 +12,7 @@ import { PRIVATE_CHANNEL_NAME } from 'models/slack_channel/slack_channel.config'
 import { getSlackChannelName } from 'models/slack_channel/slack_channel.helpers';
 import { SlackChannel } from 'models/slack_channel/slack_channel.types';
 import { useStore } from 'state/useStore';
-import { isUserActionAllowed, UserActions } from 'utils/authorization';
+import { isUserActionAllowed, UserActions } from 'utils/authorization/authorization';
 
 import styles from './Connectors.module.css';
 

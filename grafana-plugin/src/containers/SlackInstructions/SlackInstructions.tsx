@@ -6,7 +6,7 @@ import { observer } from 'mobx-react';
 
 import { Block } from 'components/GBlock/Block';
 import { Text } from 'components/Text/Text';
-import { SlackNewIcon } from 'icons';
+import { SlackNewIcon } from 'icons/Icons';
 import { DOCS_SLACK_SETUP } from 'utils/consts';
 
 import styles from './SlackInstructions.module.css';

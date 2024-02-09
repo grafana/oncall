@@ -5,7 +5,7 @@ import cn from 'classnames/bind';
 import Table from 'rc-table';
 import { TableProps } from 'rc-table/lib/Table';
 
-import { ExpandIcon } from 'icons';
+import { ExpandIcon } from 'icons/Icons';
 
 import styles from './Table.module.css';
 

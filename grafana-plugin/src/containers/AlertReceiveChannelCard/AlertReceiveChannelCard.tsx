@@ -10,7 +10,7 @@ import { IntegrationLogo } from 'components/IntegrationLogo/IntegrationLogo';
 import { PluginLink } from 'components/PluginLink/PluginLink';
 import { Text } from 'components/Text/Text';
 import { TeamName } from 'containers/TeamName/TeamName';
-import { HeartGreenIcon, HeartRedIcon } from 'icons';
+import { HeartGreenIcon, HeartRedIcon } from 'icons/Icons';
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { useStore } from 'state/useStore';
 

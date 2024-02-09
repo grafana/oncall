@@ -3,7 +3,7 @@ import React from 'react';
 import { IconName, Tab, TabsBar } from '@grafana/ui';
 import cn from 'classnames/bind';
 
-import { pages } from 'pages';
+import { pages } from 'pages/pages';
 import { useStore } from 'state/useStore';
 
 import styles from './LegacyNavTabsBar.module.scss';

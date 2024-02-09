@@ -37,9 +37,9 @@ import { OutgoingWebhook } from 'models/outgoing_webhook/outgoing_webhook.types'
 import { AppFeature } from 'state/features';
 import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
-import { openErrorNotification, openNotification } from 'utils';
-import { isUserActionAllowed, UserActions } from 'utils/authorization';
+import { isUserActionAllowed, UserActions } from 'utils/authorization/authorization';
 import { PAGE, PLUGIN_ROOT, TEXT_ELLIPSIS_CLASS } from 'utils/consts';
+import { openErrorNotification, openNotification } from 'utils/utils';
 
 import styles from './OutgoingWebhooks.module.scss';
 import { WebhookFormActionType } from './OutgoingWebhooks.types';

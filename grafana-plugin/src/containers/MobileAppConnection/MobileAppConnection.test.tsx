@@ -5,7 +5,7 @@ import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 
 import { User } from 'models/user/user.types';
-import { rootStore } from 'state';
+import { rootStore } from 'state/rootStore';
 
 import { MobileAppConnection } from './MobileAppConnection';
 

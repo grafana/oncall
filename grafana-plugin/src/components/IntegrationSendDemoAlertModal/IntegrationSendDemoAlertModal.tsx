@@ -13,7 +13,7 @@ import { Text } from 'components/Text/Text';
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import styles from 'pages/integration/Integration.module.scss';
 import { useStore } from 'state/useStore';
-import { openNotification } from 'utils';
+import { openNotification } from 'utils/utils';
 
 const cx = cn.bind(styles);
 

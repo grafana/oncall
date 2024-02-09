@@ -4,7 +4,7 @@ import { Button, IconButton, Tooltip } from '@grafana/ui';
 import cn from 'classnames/bind';
 import CopyToClipboard from 'react-copy-to-clipboard';
 
-import { openNotification } from 'utils';
+import { openNotification } from 'utils/utils';
 
 import styles from './SourceCode.module.scss';
 

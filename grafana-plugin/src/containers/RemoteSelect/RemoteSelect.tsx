@@ -4,8 +4,8 @@ import { SelectableValue } from '@grafana/data';
 import { AsyncMultiSelect, AsyncSelect } from '@grafana/ui';
 import { inject, observer } from 'mobx-react';
 
-import { makeRequest, isNetworkError } from 'network';
-import { UserAction, generateMissingPermissionMessage } from 'utils/authorization';
+import { makeRequest, isNetworkError } from 'network/network';
+import { UserAction, generateMissingPermissionMessage } from 'utils/authorization/authorization';
 import { useDebouncedCallback } from 'utils/hooks';
 
 interface RemoteSelectProps {

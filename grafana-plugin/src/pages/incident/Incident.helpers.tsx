@@ -14,7 +14,7 @@ import { User } from 'models/user/user.types';
 import { SilenceButtonCascader } from 'pages/incidents/parts/SilenceButtonCascader';
 import { move } from 'state/helpers';
 import { getVar } from 'utils/DOM';
-import { UserActions } from 'utils/authorization';
+import { UserActions } from 'utils/authorization/authorization';
 import { TEXT_ELLIPSIS_CLASS } from 'utils/consts';
 
 import styles from './Incident.module.scss';

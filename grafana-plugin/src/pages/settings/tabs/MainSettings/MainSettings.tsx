@@ -5,14 +5,14 @@ import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 import LegacyNavHeading from 'navbar/LegacyNavHeading';
 
-import {Text} from 'components/Text/Text';
+import { Text } from 'components/Text/Text';
 import ApiTokenSettings from 'containers/ApiTokenSettings/ApiTokenSettings';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { TeamsSettings } from 'pages/settings/tabs/TeamsSettings/TeamsSettings';
 import { isTopNavbar } from 'plugin/GrafanaPluginRootPage.helpers';
 import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
-import { UserActions } from 'utils/authorization';
+import { UserActions } from 'utils/authorization/authorization';
 
 import styles from './MainSettings.module.css';
 

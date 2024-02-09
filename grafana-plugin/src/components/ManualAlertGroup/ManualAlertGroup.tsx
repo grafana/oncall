@@ -9,7 +9,7 @@ import { prepareForUpdate } from 'containers/AddResponders/AddResponders.helpers
 import { AlertReceiveChannelStore } from 'models/alert_receive_channel/alert_receive_channel';
 import { Alert as AlertType } from 'models/alertgroup/alertgroup.types';
 import { useStore } from 'state/useStore';
-import { openWarningNotification } from 'utils';
+import { openWarningNotification } from 'utils/utils';
 
 import { manualAlertFormConfig, ManualAlertGroupFormData } from './ManualAlertGroup.config';
 

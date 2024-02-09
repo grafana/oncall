@@ -4,9 +4,9 @@ import { action, observable, makeObservable, runInAction } from 'mobx';
 import BaseStore from 'models/base_store';
 import { EscalationChain } from 'models/escalation_chain/escalation_chain.types';
 import { EscalationPolicy } from 'models/escalation_policy/escalation_policy.types';
-import { makeRequest } from 'network';
-import { RootStore } from 'state';
+import { makeRequest } from 'network/network';
 import { move } from 'state/helpers';
+import { RootStore } from 'state/rootStore';
 import { SelectOption } from 'state/types';
 
 export class EscalationPolicyStore extends BaseStore {

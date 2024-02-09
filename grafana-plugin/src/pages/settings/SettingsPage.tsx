@@ -10,7 +10,7 @@ import { isTopNavbar } from 'plugin/GrafanaPluginRootPage.helpers';
 import { AppFeature } from 'state/features';
 import { RootBaseStore } from 'state/rootBaseStore/RootBaseStore';
 import { withMobXProviderContext } from 'state/withStore';
-import { isUserActionAllowed, UserActions } from 'utils/authorization';
+import { isUserActionAllowed, UserActions } from 'utils/authorization/authorization';
 
 import { SettingsPageTab } from './SettingsPage.types';
 import CloudPage from './tabs/Cloud/CloudPage';

@@ -6,7 +6,7 @@ import cn from 'classnames/bind';
 import { contextSrv } from 'grafana/app/core/core';
 
 import { Text } from 'components/Text/Text';
-import { UserAction } from 'utils/authorization';
+import { UserAction } from 'utils/authorization/authorization';
 
 import styles from './Unauthorized.module.css';
 

@@ -2,8 +2,8 @@ import { OrgRole } from '@grafana/data';
 import { contextSrv } from 'grafana/app/core/core';
 import { OnCallAppPluginMeta } from 'types';
 
-import PluginState from 'state/plugin';
-import { isUserActionAllowed as isUserActionAllowedOriginal } from 'utils/authorization';
+import { PluginState } from 'state/plugin/plugin';
+import { isUserActionAllowed as isUserActionAllowedOriginal } from 'utils/authorization/authorization';
 
 import { RootBaseStore } from './RootBaseStore';
 

@@ -3,7 +3,7 @@ import React, { ReactElement } from 'react';
 import { VerticalGroup } from '@grafana/ui';
 
 import { Text } from 'components/Text/Text';
-import { isUserActionAllowed, UserAction } from 'utils/authorization';
+import { isUserActionAllowed, UserAction } from 'utils/authorization/authorization';
 
 interface WithPermissionControlDisplayProps {
   userAction: UserAction;

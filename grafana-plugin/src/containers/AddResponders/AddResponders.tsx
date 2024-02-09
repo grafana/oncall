@@ -13,12 +13,12 @@ import { Alert as AlertType } from 'models/alertgroup/alertgroup.types';
 import { getTimezone } from 'models/user/user.helpers';
 import { UserCurrentlyOnCall } from 'models/user/user.types';
 import { useStore } from 'state/useStore';
-import { UserActions } from 'utils/authorization';
+import { UserActions } from 'utils/authorization/authorization';
 
 import styles from './AddResponders.module.scss';
 import { NotificationPolicyValue, UserResponder as UserResponderType } from './AddResponders.types';
 import { AddRespondersPopup } from './parts/AddRespondersPopup/AddRespondersPopup';
-import {NotificationPoliciesSelect} from './parts/NotificationPoliciesSelect/NotificationPoliciesSelect';
+import { NotificationPoliciesSelect } from './parts/NotificationPoliciesSelect/NotificationPoliciesSelect';
 import { TeamResponder } from './parts/TeamResponder/TeamResponder';
 import { UserResponder } from './parts/UserResponder/UserResponder';
 

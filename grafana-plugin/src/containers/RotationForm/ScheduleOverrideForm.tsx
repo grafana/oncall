@@ -19,8 +19,8 @@ import { getCoords, getVar, waitForElement } from 'utils/DOM';
 import { GRAFANA_HEADER_HEIGHT } from 'utils/consts';
 import { useDebouncedCallback } from 'utils/hooks';
 
-import {DateTimePicker} from './parts/DateTimePicker';
-import {UserItem} from './parts/UserItem';
+import { DateTimePicker } from './parts/DateTimePicker';
+import { UserItem } from './parts/UserItem';
 
 import styles from './RotationForm.module.css';
 

@@ -11,13 +11,13 @@ import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/W
 import { Channel } from 'models/channel/channel';
 import { NotificationPolicyType, prepareNotificationPolicy } from 'models/notification_policy/notification_policy';
 import { User } from 'models/user/user.types';
-import { RootStore } from 'state';
 import { AppFeature } from 'state/features';
+import { RootStore } from 'state/rootStore';
 import { SelectOption } from 'state/types';
-import { UserAction } from 'utils/authorization';
+import { UserAction } from 'utils/authorization/authorization';
 
-import {DragHandle} from './DragHandle';
-import {PolicyNote} from './PolicyNote';
+import { DragHandle } from './DragHandle';
+import { PolicyNote } from './PolicyNote';
 
 import styles from './NotificationPolicy.module.css';
 

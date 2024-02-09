@@ -11,7 +11,7 @@ import { AlertGroupColumn } from 'models/alertgroup/alertgroup.types';
 import { ActionKey } from 'models/loader/action-keys';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
-import { UserActions } from 'utils/authorization';
+import { UserActions } from 'utils/authorization/authorization';
 import { WrapAutoLoadingState, WrapWithGlobalNotification } from 'utils/decorators';
 
 import { ColumnsModal } from './ColumnsModal';

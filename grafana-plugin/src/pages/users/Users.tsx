@@ -14,9 +14,9 @@ import {
   initErrorDataState,
 } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper.helpers';
 import { PluginLink } from 'components/PluginLink/PluginLink';
-import {Text} from 'components/Text/Text';
-import {TooltipBadge} from 'components/TooltipBadge/TooltipBadge';
-import {UsersFilters} from 'components/UsersFilters/UsersFilters';
+import { Text } from 'components/Text/Text';
+import { TooltipBadge } from 'components/TooltipBadge/TooltipBadge';
+import { UsersFilters } from 'components/UsersFilters/UsersFilters';
 import { UserSettings } from 'containers/UserSettings/UserSettings';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { User as UserType } from 'models/user/user.types';
@@ -24,7 +24,7 @@ import { AppFeature } from 'state/features';
 import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import { LocationHelper } from 'utils/LocationHelper';
-import { UserActions, generateMissingPermissionMessage, isUserActionAllowed } from 'utils/authorization';
+import { UserActions, generateMissingPermissionMessage, isUserActionAllowed } from 'utils/authorization/authorization';
 import { PAGE, PLUGIN_ROOT } from 'utils/consts';
 
 import { getUserRowClassNameFn } from './Users.helpers';

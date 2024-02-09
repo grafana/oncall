@@ -23,7 +23,7 @@ import { Schedule, Shift, ShiftEvents, ShiftSwap } from 'models/schedule/schedul
 import { getUTCString } from 'pages/schedule/Schedule.helpers';
 import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
-import { UserActions } from 'utils/authorization';
+import { UserActions } from 'utils/authorization/authorization';
 
 import { DEFAULT_TRANSITION_TIMEOUT } from './Rotations.config';
 import { findClosestUserEvent, findColor } from './Rotations.helpers';

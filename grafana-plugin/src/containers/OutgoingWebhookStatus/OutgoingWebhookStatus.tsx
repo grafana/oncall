@@ -5,7 +5,7 @@ import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
 import { Block } from 'components/GBlock/Block';
-import {SourceCode} from 'components/SourceCode/SourceCode';
+import { SourceCode } from 'components/SourceCode/SourceCode';
 import { Text } from 'components/Text/Text';
 import { OutgoingWebhook } from 'models/outgoing_webhook/outgoing_webhook.types';
 import { useStore } from 'state/useStore';

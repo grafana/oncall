@@ -18,7 +18,7 @@ import { UserInfoTab } from 'containers/UserSettings/parts/tabs/UserInfoTab/User
 import { User } from 'models/user/user.types';
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
-import { isUseProfileExtensionPointEnabled } from 'utils';
+import { isUseProfileExtensionPointEnabled } from 'utils/utils';
 
 import styles from 'containers/UserSettings/parts/UserSettingsParts.module.css';
 

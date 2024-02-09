@@ -10,7 +10,7 @@ import { PluginLink } from 'components/PluginLink/PluginLink';
 import { Text } from 'components/Text/Text';
 import { WithConfirm } from 'components/WithConfirm/WithConfirm';
 import { TelegramIntegrationButton } from 'containers/TelegramIntegrationButton/TelegramIntegrationButton';
-import { TelegramColorIcon } from 'icons';
+import { TelegramColorIcon } from 'icons/Icons';
 import { TelegramChannel } from 'models/telegram_channel/telegram_channel.types';
 import { AppFeature } from 'state/features';
 import { WithStoreProps } from 'state/types';
