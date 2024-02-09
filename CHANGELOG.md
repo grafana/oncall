@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Allow mobile app to access escalation options endpoints @imtoori ([#3847](https://github.com/grafana/oncall/pull/3847))
 - Enable templating for alert escalation mobile app push notifications by @joeyorlando ([#3845](https://github.com/grafana/oncall/pull/3845))
+- Change Django request size limit from 1MB to 2.5MB by @vadimkerr ([#3869](https://github.com/grafana/oncall/pull/3869))
 
 ## v1.3.102 (2024-02-06)
 
