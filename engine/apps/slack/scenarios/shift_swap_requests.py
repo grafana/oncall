@@ -5,6 +5,7 @@ import typing
 import humanize
 from django.utils import timezone
 
+from apps.api.permissions import RBACPermission
 from apps.slack.models import SlackMessage
 from apps.slack.scenarios import scenario_step
 from apps.slack.types import Block, BlockActionType, EventPayload, PayloadType, ScenarioRoute
@@ -21,6 +22,8 @@ SHIFT_SWAP_PK_ACTION_KEY = "shift_swap_request_pk"
 
 
 class BaseShiftSwapRequestStep(scenario_step.ScenarioStep):
+    REQUIRED_PERMISSIONS = [RBACPermission.Permissions.SCHEDULES_WRITE]
+
     def _generate_blocks(self, shift_swap_request: "ShiftSwapRequest") -> Block.AnyBlocks:
         pk = shift_swap_request.pk
 
@@ -197,6 +200,10 @@ class AcceptShiftSwapRequestStep(BaseShiftSwapRequestStep):
     ) -> None:
         from apps.schedules import exceptions
         from apps.schedules.models import ShiftSwapRequest
+
+        if not self.is_authorized():
+            self.open_unauthorized_warning(payload)
+            return
 
         shift_swap_request_pk = json.loads(payload["actions"][0]["value"])[SHIFT_SWAP_PK_ACTION_KEY]
 

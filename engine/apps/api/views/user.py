@@ -746,6 +746,7 @@ class UserView(
                         "is_oncall": len(current_shifts) > 0,
                         "current_shift": current_shifts[0] if current_shifts else None,
                         "next_shift": upcoming_shifts[0] if upcoming_shifts else None,
+                        "upcoming_shifts": upcoming_shifts or None,
                     }
                 )
 

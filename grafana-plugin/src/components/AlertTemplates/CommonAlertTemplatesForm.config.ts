@@ -72,6 +72,12 @@ export const commonTemplateForEdit: { [id: string]: TemplateForEdit } = {
     },
     type: 'plain',
   },
+  mobile_app_title_template: {
+    name: IntegrationTemplateOptions.MobileAppTitle.key,
+    displayName: 'Mobile app title',
+    description: '',
+    type: 'plain',
+  },
   slack_message_template: {
     name: IntegrationTemplateOptions.SlackMessage.key,
     displayName: 'Slack message',
@@ -97,6 +103,12 @@ export const commonTemplateForEdit: { [id: string]: TemplateForEdit } = {
       chatOpsName: 'telegram',
       chatOpsDisplayName: 'Telegram',
     },
+    type: 'plain',
+  },
+  mobile_app_message_template: {
+    name: IntegrationTemplateOptions.MobileAppMessage.key,
+    displayName: 'Mobile app message',
+    description: '',
     type: 'plain',
   },
   slack_image_url_template: {
