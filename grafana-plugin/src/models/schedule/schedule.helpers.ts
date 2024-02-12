@@ -1,10 +1,9 @@
 import dayjs from 'dayjs';
 
 import { User } from 'models/user/user.types';
-
 import { RootStore } from 'state';
-import { ScheduleStore } from './schedule';
 
+import { ScheduleStore } from './schedule';
 import { Event, Layer, Schedule, ScheduleType, Shift, ShiftEvents, ShiftSwap } from './schedule.types';
 
 export const getFromString = (moment: dayjs.Dayjs) => {

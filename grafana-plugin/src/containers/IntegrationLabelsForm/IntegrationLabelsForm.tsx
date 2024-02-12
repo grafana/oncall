@@ -62,7 +62,6 @@ const IntegrationLabelsForm = observer((props: IntegrationLabelsFormProps) => {
   const handleSave = async () => {
     try {
       await alertReceiveChannelStore.saveAlertReceiveChannel(id, {
-        ...alertReceiveChannel,
         alert_group_labels: alertGroupLabels,
       });
       onSubmit();

@@ -4,14 +4,14 @@ import { SelectableValue } from '@grafana/data';
 import Emoji from 'react-emoji-render';
 
 import { FormItem, FormItemType } from 'components/GForm/GForm.types';
+import { AlertReceiveChannelStore } from 'models/alert_receive_channel/alert_receive_channel';
+import { getSearchResult } from 'models/alert_receive_channel/alert_receive_channel.helpers';
 import { GrafanaTeamStore } from 'models/grafana_team/grafana_team';
 import { OutgoingWebhookPreset } from 'models/outgoing_webhook/outgoing_webhook.types';
 import { KeyValuePair } from 'utils';
 import { generateAssignToTeamInputDescription } from 'utils/consts';
 
 import { WebhookFormFieldName } from './OutgoingWebhookForm.types';
-import { AlertReceiveChannelStore } from 'models/alert_receive_channel/alert_receive_channel';
-import { getSearchResult } from 'models/alert_receive_channel/alert_receive_channel.helpers';
 
 export const WebhookTriggerType = {
   EscalationStep: new KeyValuePair('0', 'Escalation Step'),
@@ -24,12 +24,17 @@ export const WebhookTriggerType = {
   Unacknowledged: new KeyValuePair('7', 'Unacknowledged'),
 };
 
-export function createForm(
-  presets: OutgoingWebhookPreset[] = [],
-  grafanaTeamStore: GrafanaTeamStore,
-  alertReceiveChannelStore: AlertReceiveChannelStore,
-  hasLabelsFeature?: boolean
-): {
+export function createForm({
+  presets = [],
+  grafanaTeamStore,
+  alertReceiveChannelStore,
+  hasLabelsFeature,
+}: {
+  presets: OutgoingWebhookPreset[];
+  grafanaTeamStore: GrafanaTeamStore;
+  alertReceiveChannelStore: AlertReceiveChannelStore;
+  hasLabelsFeature?: boolean;
+}): {
   name: string;
   fields: FormItem[];
 } {

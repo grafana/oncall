@@ -1,5 +1,5 @@
 import { omit } from 'lodash-es';
-import { runInAction, makeAutoObservable } from 'mobx';
+import { runInAction, makeAutoObservable, action } from 'mobx';
 
 import { AlertTemplatesDTO } from 'models/alert_templates/alert_templates';
 import { Alert } from 'models/alertgroup/alertgroup.types';
@@ -309,6 +309,7 @@ export class AlertReceiveChannelStore {
   }
 
   @WithGlobalNotification({ success: 'Integration has been saved', failure: 'Failed to save integration' })
+  @action.bound
   async saveAlertReceiveChannel(
     id: ApiSchemas['AlertReceiveChannel']['id'],
     payload: Partial<ApiSchemas['AlertReceiveChannelUpdate']>
