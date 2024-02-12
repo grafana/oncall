@@ -10,6 +10,8 @@ import { KeyValuePair } from 'utils';
 import { generateAssignToTeamInputDescription } from 'utils/consts';
 
 import { WebhookFormFieldName } from './OutgoingWebhookForm.types';
+import { AlertReceiveChannelStore } from 'models/alert_receive_channel/alert_receive_channel';
+import { getSearchResult } from 'models/alert_receive_channel/alert_receive_channel.helpers';
 
 export const WebhookTriggerType = {
   EscalationStep: new KeyValuePair('0', 'Escalation Step'),
@@ -25,11 +27,13 @@ export const WebhookTriggerType = {
 export function createForm(
   presets: OutgoingWebhookPreset[] = [],
   grafanaTeamStore: GrafanaTeamStore,
+  alertReceiveChannelStore: AlertReceiveChannelStore,
   hasLabelsFeature?: boolean
 ): {
   name: string;
   fields: FormItem[];
 } {
+  console.log({ alertReceiveChannelStore });
   return {
     name: 'OutgoingWebhook',
     fields: [
@@ -152,7 +156,10 @@ export function createForm(
           data.trigger_type === WebhookTriggerType.EscalationStep.key,
         extra: {
           placeholder: 'Choose (Optional)',
-          modelName: 'alertReceiveChannelStore',
+          items: alertReceiveChannelStore.items,
+          fetchItemsFn: alertReceiveChannelStore.fetchItems,
+          fetchItemFn: alertReceiveChannelStore.fetchItemById,
+          getSearchResult: () => getSearchResult(alertReceiveChannelStore),
           displayField: 'verbal_name',
           valueField: 'id',
           showSearch: true,

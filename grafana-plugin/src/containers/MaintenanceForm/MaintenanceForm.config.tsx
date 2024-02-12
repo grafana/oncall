@@ -20,7 +20,7 @@ export const getForm = (alertReceiveChannelStore: AlertReceiveChannelStore) => (
         items: alertReceiveChannelStore.items,
         fetchItemsFn: alertReceiveChannelStore.fetchItems,
         fetchItemFn: alertReceiveChannelStore.fetchItemById,
-        getSearchResult,
+        getSearchResult: () => getSearchResult(alertReceiveChannelStore),
         displayField: 'verbal_name',
         valueField: 'id',
         showSearch: true,
