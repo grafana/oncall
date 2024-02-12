@@ -2,7 +2,7 @@ import { SpanStatusCode } from '@opentelemetry/api';
 
 import FaroHelper from 'utils/faro';
 
-import { customFetch } from './http-client';
+import { getCustomFetchFn } from './http-client';
 
 jest.mock('utils/faro', () => ({
   __esModule: true,
@@ -31,6 +31,7 @@ const REQUEST_CONFIG = {
 const URL = 'https://someurl.com';
 const SUCCESSFUL_RESPONSE_MOCK = { ok: true };
 const ERROR_MOCK = 'error';
+const customFetch = getCustomFetchFn({ withGlobalErrorHandler: true });
 
 describe('customFetch', () => {
   beforeAll(() => {

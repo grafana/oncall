@@ -18,18 +18,18 @@ export class KeyValuePair<T = string | number> {
   }
 }
 
+export const formatBackendError = (payload: string | Record<string, unknown>) =>
+  typeof payload === 'string'
+    ? payload
+    : Object.keys(payload)
+        .map((key) => `${sentenceCase(key)}: ${payload[key]}`)
+        .join('\n');
+
 export function showApiError(error: any) {
   if (isNetworkError(error) && error.response && error.response.status >= 400 && error.response.status < 500) {
-    const payload = error.response.data;
-    const text =
-      typeof payload === 'string'
-        ? payload
-        : Object.keys(payload)
-            .map((key) => `${sentenceCase(key)}: ${payload[key]}`)
-            .join('\n');
+    const text = formatBackendError(error.response.data);
     openErrorNotification(text);
   }
-
   throw error;
 }
 

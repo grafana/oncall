@@ -72,6 +72,7 @@ const IntegrationForm = observer((props: IntegrationFormProps) => {
   const [showIntegrarionsListDrawer, setShowIntegrarionsListDrawer] = useState(id === 'new');
   const [allContactPoints, setAllContactPoints] = useState([]);
   const [errors, setErrors] = useState<Record<string, any>>();
+  console.log({ errors });
 
   const form = useMemo(() => getForm(grafanaTeamStore), [grafanaTeamStore]);
 
@@ -227,6 +228,7 @@ const IntegrationForm = observer((props: IntegrationFormProps) => {
         await alertReceiveChannelStore.update({ id, data, skipErrorHandling: true });
       }
     } catch (error) {
+      console.log({ error });
       setErrors(error.response.data);
 
       openErrorNotification(
@@ -238,40 +240,24 @@ const IntegrationForm = observer((props: IntegrationFormProps) => {
     await onSubmit();
     onHide();
 
-    function createNewIntegration(): Promise<void | ApiSchemas['AlertReceiveChannel']> {
-      let promise = alertReceiveChannelStore.create({ data, skipErrorHandling: true });
-
+    async function createNewIntegration(): Promise<void | ApiSchemas['AlertReceiveChannel']> {
+      const response = await alertReceiveChannelStore.create({ data, skipErrorHandling: true });
       const pushHistory = (id) => history.push(`${PLUGIN_ROOT}/integrations/${id}`);
-
-      promise
-        .then((response) => {
-          if (!response) {
-            return;
-          }
-
-          if (!IntegrationHelper.isSpecificIntegration(selectedOption.value, 'grafana_alerting')) {
-            return pushHistory(response.id);
-          }
-
-          return (
-            data.is_existing
-              ? connectContactPoint(response.id, data.alert_manager, data.contact_point)
-              : createContactPoint(response.id, data.alert_manager, data.contact_point)
-          )
-            .catch(onCatch)
-            .finally(() => pushHistory(response.id));
-        })
-        .catch(onCatch);
-
-      return promise;
-    }
-
-    function onCatch(err: any) {
-      if (err.response?.data?.length > 0) {
-        openErrorNotification(err.response.data);
-      } else {
-        openErrorNotification('Something went wrong, please try again later.');
+      if (!response) {
+        return;
       }
+
+      if (!IntegrationHelper.isSpecificIntegration(selectedOption.value, 'grafana_alerting')) {
+        pushHistory(response.id);
+      }
+
+      await (data.is_existing ? connectContactPoint : createContactPoint)(
+        response.id,
+        data.alert_manager,
+        data.contact_point
+      );
+
+      pushHistory(response.id);
     }
   }
 
