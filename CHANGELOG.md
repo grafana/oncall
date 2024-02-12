@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Enable templating for alert escalation mobile app push notifications by @joeyorlando ([#3845](https://github.com/grafana/oncall/pull/3845))
 - Change email notification template to not wrap user template @mderynck ([#3862](https://github.com/grafana/oncall/pull/3862))
 - Update integration name uniqueness check to be per team ([#3863](https://github.com/grafana/oncall/pull/3863))
+- Remove explicit uWSGI and Django request size limits by @vadimkerr ([#3878](https://github.com/grafana/oncall/pull/3878))
 
 ### Fixed
 
