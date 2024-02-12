@@ -33,7 +33,12 @@ logger.setLevel(logging.DEBUG)
 
 
 def _get_notification_title(seconds_until_going_oncall: int) -> str:
-    return f"Your on-call shift starts in {humanize.naturaldelta(seconds_until_going_oncall)}"
+    from apps.mobile_app.models import MobileAppUserSettings
+
+    rounded_seconds = min(
+        MobileAppUserSettings.ALL_NOTIFICATION_TIMING_CHOICES_SECONDS, key=lambda x: abs(x - seconds_until_going_oncall)
+    )
+    return f"Your on-call shift starts in {humanize.naturaldelta(rounded_seconds)}"
 
 
 def _get_notification_subtitle(
