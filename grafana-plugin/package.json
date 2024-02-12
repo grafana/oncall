@@ -15,8 +15,6 @@
     "test:silent": "jest --silent",
     "test:e2e": "yarn playwright test --grep-invert @expensive",
     "test:e2e-expensive": "yarn playwright test --grep @expensive",
-    "e2e": "yarn exec cypress install && yarn exec grafana-e2e run",
-    "e2e:update": "yarn exec cypress install && yarn exec grafana-e2e run --update-screenshots",
     "test:e2e:watch": "yarn test:e2e --ui",
     "test:e2e:gen": "yarn playwright codegen http://localhost:3000",
     "e2e-show-report": "yarn playwright show-report",
@@ -26,7 +24,6 @@
     "sign": "npx --yes @grafana/sign-plugin@latest",
     "start": "yarn watch",
     "plop": "plop",
-    "test:ci": "jest --passWithNoTests --maxWorkers 4",
     "typecheck": "tsc --noEmit",
     "setversion": "setversion"
   },
@@ -65,8 +62,6 @@
     "@babel/preset-env": "^7.18.10",
     "@babel/preset-react": "^7.18.6",
     "@babel/preset-typescript": "^7.18.6",
-    "@grafana/e2e": "10.0.3",
-    "@grafana/e2e-selectors": "10.0.3",
     "@grafana/eslint-config": "^6.0.0",
     "@grafana/tsconfig": "^1.2.0-rc1",
     "@jest/globals": "^27.5.1",
@@ -137,7 +132,7 @@
     "webpack-livereload-plugin": "^3.0.2"
   },
   "engines": {
-    "node": ">=14"
+    "node": "~18.16.0"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.0.8",
