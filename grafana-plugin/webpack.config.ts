@@ -21,6 +21,9 @@ const config = async (env): Promise<Configuration> => {
         },
       ],
     },
+    watchOptions: {
+      ignored: ['**/node_modules/', '**/dist'],
+    },
   };
 
   return mergeWithRules({
@@ -29,6 +32,9 @@ const config = async (env): Promise<Configuration> => {
         test: CustomizeRule.Match,
         use: CustomizeRule.Merge,
       },
+    },
+    watchOptions: {
+      use: CustomizeRule.Merge,
     },
   })(baseConfig, customConfig);
 };
