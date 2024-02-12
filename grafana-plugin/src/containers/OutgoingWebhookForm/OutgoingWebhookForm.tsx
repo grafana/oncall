@@ -395,7 +395,6 @@ const WebhookTabsContent: React.FC<WebhookTabsProps> = observer(
   ({ id, action, activeTab, data, onHide, onUpdate, onDelete, formElement }) => {
     const [confirmationModal, setConfirmationModal] = useState<ConfirmModalProps>(undefined);
     const { outgoingWebhookStore, hasFeature, grafanaTeamStore, alertReceiveChannelStore } = useStore();
-    console.log('HH', alertReceiveChannelStore);
     const form = createForm(
       outgoingWebhookStore.outgoingWebhookPresets,
       grafanaTeamStore,

@@ -33,7 +33,6 @@ export function createForm(
   name: string;
   fields: FormItem[];
 } {
-  console.log({ alertReceiveChannelStore });
   return {
     name: 'OutgoingWebhook',
     fields: [
