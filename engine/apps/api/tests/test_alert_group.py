@@ -1919,7 +1919,7 @@ def test_alert_group_preview_body_non_existent_template_var(
 
     # Return errors as preview body instead of None
     assert response.status_code == status.HTTP_200_OK
-    assert response.json()["preview"] == "Template Warning: &#x27;foobar&#x27; is undefined"
+    assert response.json()["preview"] == "Template Warning: 'foobar' is undefined"
 
 
 @pytest.mark.django_db
@@ -1942,7 +1942,7 @@ def test_alert_group_preview_body_invalid_template_syntax(
 
     # Errors now returned preview content
     assert response.status_code == status.HTTP_200_OK
-    assert response.data["preview"] == "Template Error: No test named &#x27;None&#x27; found."
+    assert response.data["preview"] == "Template Error: No test named 'None' found."
 
 
 @pytest.mark.django_db
