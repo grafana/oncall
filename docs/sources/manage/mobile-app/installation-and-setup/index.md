@@ -62,3 +62,19 @@ To connect to Grafana Cloud OnCall, refer to the Cloud page in your OSS Grafana 
 
 For Grafana OnCall OSS, the QR code includes an authentication token along with a backend URL.
 Your Grafana OnCall OSS instance should be reachable from the same network as your mobile device, preferably from the internet.
+
+### Connect to multiple OnCall stacks
+
+The OnCall mobile app provides a seamless experience for managing multiple OnCall stacks/accounts. 
+
+With just a few taps, you can add and switch between different stacks, ensuring you have access to all your alerts and schedules without the need to log in and out repeatedly. 
+This feature is designed to support professionals managing multiple projects or working across different teams, enhancing efficiency and response times. 
+
+Simply navigate to the settings menu, select the account tile, tap on the + icon and scan the QR code of the stack you wish to connect.
+
+To switch stack, just select the one you wish to visualize from the accounts page.
+
+Stay organized and responsive by managing all your OnCall needs in one place.
+
+<img src="/static/img/oncall/mobile-app-settings-account.png" width="300px">
+<img src="/static/img/oncall/mobile-app-accounts-page.png" width="300px">
