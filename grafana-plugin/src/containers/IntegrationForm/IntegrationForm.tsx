@@ -72,7 +72,6 @@ const IntegrationForm = observer((props: IntegrationFormProps) => {
   const [showIntegrarionsListDrawer, setShowIntegrarionsListDrawer] = useState(id === 'new');
   const [allContactPoints, setAllContactPoints] = useState([]);
   const [errors, setErrors] = useState<Record<string, any>>();
-  console.log({ errors });
 
   const form = useMemo(() => getForm(grafanaTeamStore), [grafanaTeamStore]);
 
@@ -228,12 +227,7 @@ const IntegrationForm = observer((props: IntegrationFormProps) => {
         await alertReceiveChannelStore.update({ id, data, skipErrorHandling: true });
       }
     } catch (error) {
-      console.log({ error });
-      setErrors(error.response.data);
-
-      openErrorNotification(
-        `There was an issue ${isCreate ? 'creating' : 'updating'} the integration. Please try again.`
-      );
+      setErrors(error);
       return;
     }
 

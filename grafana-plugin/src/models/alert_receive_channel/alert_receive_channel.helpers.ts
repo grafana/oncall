@@ -56,15 +56,8 @@ export const getIntegration = (
 export const deleteAlertReceiveChannel = async (id: ApiSchemas['AlertReceiveChannel']['id']) =>
   (await onCallApi().DELETE('/alert_receive_channels/{id}/', { params: { path: { id } } })).data;
 
-export const getGrafanaAlertingContactPoints = async () => {
-  try {
-    return (await onCallApi().GET('/alert_receive_channels/contact_points/', undefined)).data;
-  } catch (err) {
-    // TODO: Move error handling to network layer
-    showApiError(err);
-    return err;
-  }
-};
+export const getGrafanaAlertingContactPoints = async () =>
+  (await onCallApi().GET('/alert_receive_channels/contact_points/', undefined)).data;
 
 export const connectContactPoint = async (
   alertReceiveChannelId: ApiSchemas['AlertReceiveChannel']['id'],
@@ -115,15 +108,10 @@ export const sendDemoAlert = async (
   id: ApiSchemas['AlertReceiveChannel']['id'],
   payload?: { [key: string]: unknown }
 ) => {
-  try {
-    await onCallApi().POST('/alert_receive_channels/{id}/send_demo_alert/', {
-      params: { path: { id } },
-      body: { demo_alert_payload: payload },
-    });
-  } catch (err) {
-    // TODO: move error handling to network layer
-    showApiError(err);
-  }
+  await onCallApi().POST('/alert_receive_channels/{id}/send_demo_alert/', {
+    params: { path: { id } },
+    body: { demo_alert_payload: payload },
+  });
 };
 
 export const renderPreview = async (
