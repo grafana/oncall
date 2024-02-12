@@ -111,11 +111,6 @@ export const createContactPoint = async (
     })
   ).data;
 
-export const getAccessLogs = async (alertReceiveChannelId: ApiSchemas['AlertReceiveChannel']['id']) => {
-  const { integration_log } = await makeRequest(`/alert_receive_channel_access_log/${alertReceiveChannelId}/`, {});
-  return integration_log;
-};
-
 export const sendDemoAlert = async (
   id: ApiSchemas['AlertReceiveChannel']['id'],
   payload?: { [key: string]: unknown }
