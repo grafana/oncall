@@ -61,14 +61,15 @@ export const getCustomFetchFn =
             span.end();
             resolve(res);
           } else {
+            const errorData = await res.json();
             faro.api.pushEvent('Request failed', { url });
-            faro.api.pushError(new Error(res.statusText));
+            faro.api.pushError(errorData);
             span.setStatus({ code: SpanStatusCode.ERROR });
             span.end();
             if (withGlobalErrorHandler) {
               showApiError(res);
             }
-            reject(await res.json());
+            reject(errorData);
           }
         });
       });
@@ -78,12 +79,12 @@ export const getCustomFetchFn =
         faro?.api.pushEvent('Request completed', { url });
         return res;
       } else {
+        const errorData = await res.json();
         faro?.api.pushEvent('Request failed', { url });
-        faro?.api.pushError(new Error(res.statusText));
+        faro?.api.pushError(errorData);
         if (withGlobalErrorHandler) {
           showApiError(res);
         }
-        const errorData = await res.json();
         throw errorData;
       }
     }
