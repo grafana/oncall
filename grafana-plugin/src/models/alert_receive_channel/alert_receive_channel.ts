@@ -1,5 +1,5 @@
 import { omit } from 'lodash-es';
-import { runInAction, makeAutoObservable, action } from 'mobx';
+import { runInAction, makeAutoObservable } from 'mobx';
 
 import { AlertTemplatesDTO } from 'models/alert_templates/alert_templates';
 import { Alert } from 'models/alertgroup/alertgroup.types';
@@ -92,7 +92,9 @@ export class AlertReceiveChannelStore {
   async fetchItems(query: any = '') {
     const params = typeof query === 'string' ? { search: query } : query;
 
-    const { results } = await makeRequest(this.path, { params });
+    const {
+      data: { results },
+    } = await onCallApi.GET('/alert_receive_channels/', { params });
 
     runInAction(() => {
       this.items = {
@@ -113,23 +115,25 @@ export class AlertReceiveChannelStore {
       this.searchResult = results.map((item: ApiSchemas['AlertReceiveChannel']) => item.id);
     });
 
-    this.updateCounters();
+    this.fetchCounters();
 
     return results;
   }
 
-  async updatePaginatedItems({
+  async fetchPaginatedItems({
     filters,
     page = 1,
-    updateCounters = false,
+    shouldFetchCounters = false,
     invalidateFn = undefined,
   }: {
     filters: operations['alert_receive_channels_list']['parameters']['query'];
     page: number;
-    updateCounters: boolean;
+    shouldFetchCounters: boolean;
     invalidateFn: () => boolean;
   }) {
-    const { count, results, page_size } = await makeRequest(this.path, { params: { ...filters, page } });
+    const {
+      data: { count, results, page_size },
+    } = await onCallApi.GET('/alert_receive_channels/', { params: { query: { ...filters, page } } });
 
     if (invalidateFn?.()) {
       return undefined;
@@ -158,14 +162,14 @@ export class AlertReceiveChannelStore {
       };
     });
 
-    if (updateCounters) {
-      this.updateCounters();
+    if (shouldFetchCounters) {
+      this.fetchCounters();
     }
 
     return results;
   }
 
-  populateHearbeats(alertReceiveChannels: Array<ApiSchemas['AlertReceiveChannel']>) {
+  populateHearbeats(alertReceiveChannels: Array<ApiSchemas['AlertReceiveChannelPolymorphic']>) {
     const heartbeats = alertReceiveChannels.reduce(
       (acc: any, alertReceiveChannel: ApiSchemas['AlertReceiveChannel']) => {
         if (alertReceiveChannel.heartbeat) {
@@ -203,7 +207,7 @@ export class AlertReceiveChannelStore {
     });
   }
 
-  async updateChannelFilters(alertReceiveChannelId: ApiSchemas['AlertReceiveChannel']['id'], isOverwrite = false) {
+  async fetchChannelFilters(alertReceiveChannelId: ApiSchemas['AlertReceiveChannel']['id'], isOverwrite = false) {
     const response = await makeRequest(`/channel_filters/`, {
       params: { alert_receive_channel: alertReceiveChannelId },
     });
@@ -240,17 +244,6 @@ export class AlertReceiveChannelStore {
     });
   }
 
-  async updateChannelFilter(channelFilterId: ChannelFilter['id']) {
-    const response = await makeRequest(`/channel_filters/${channelFilterId}/`, {});
-
-    runInAction(() => {
-      this.channelFilters = {
-        ...this.channelFilters,
-        [channelFilterId]: response,
-      };
-    });
-  }
-
   async saveChannelFilter(channelFilterId: ChannelFilter['id'], data: Partial<ChannelFilter>) {
     const response = await makeRequest(`/channel_filters/${channelFilterId}/`, {
       method: 'PUT',
@@ -282,7 +275,7 @@ export class AlertReceiveChannelStore {
 
     await makeRequest(`/channel_filters/${channelFilterId}/move_to_position/?position=${newIndex}`, { method: 'PUT' });
 
-    this.updateChannelFilters(alertReceiveChannelId, true);
+    this.fetchChannelFilters(alertReceiveChannelId, true);
   }
 
   async deleteChannelFilter(channelFilterId: ChannelFilter['id']) {
@@ -297,19 +290,18 @@ export class AlertReceiveChannelStore {
       method: 'DELETE',
     });
 
-    return this.updateChannelFilters(channelFilter.alert_receive_channel, true);
+    return this.fetchChannelFilters(channelFilter.alert_receive_channel, true);
   }
 
-  async updateAlertReceiveChannelOptions() {
-    const response = await makeRequest(`/alert_receive_channels/integration_options/`, {});
+  async fetchAlertReceiveChannelOptions() {
+    const { data } = await onCallApi.GET(`/alert_receive_channels/integration_options/`, undefined);
 
     runInAction(() => {
-      this.alertReceiveChannelOptions = response;
+      this.alertReceiveChannelOptions = data;
     });
   }
 
   @WithGlobalNotification({ success: 'Integration has been saved', failure: 'Failed to save integration' })
-  @action.bound
   async saveAlertReceiveChannel(
     id: ApiSchemas['AlertReceiveChannel']['id'],
     payload: Partial<ApiSchemas['AlertReceiveChannelUpdate']>
@@ -327,7 +319,8 @@ export class AlertReceiveChannelStore {
     });
   }
 
-  async updateTemplates(alertReceiveChannelId: ApiSchemas['AlertReceiveChannel']['id'], alertGroupId?: Alert['pk']) {
+  async fetchTemplates(alertReceiveChannelId: ApiSchemas['AlertReceiveChannel']['id'], alertGroupId?: Alert['pk']) {
+    // TODO: check with backend we don't have this endpoint in openapi schemma
     const response = await makeRequest(`/alert_receive_channel_templates/${alertReceiveChannelId}/`, {
       params: { alert_group_id: alertGroupId },
       withCredentials: true,
@@ -359,15 +352,18 @@ export class AlertReceiveChannelStore {
     });
   }
 
-  async updateConnectedContactPoints(alertReceiveChannelId: ApiSchemas['AlertReceiveChannel']['id']) {
-    const response = await makeRequest(`${this.path}${alertReceiveChannelId}/connected_contact_points `, {});
+  async fetchConnectedContactPoints(alertReceiveChannelId: ApiSchemas['AlertReceiveChannel']['id']) {
+    const { data } = await onCallApi.GET('/alert_receive_channels/{id}/connected_contact_points/', {
+      params: { path: { id: alertReceiveChannelId } },
+    });
 
     runInAction(() => {
       this.connectedContactPoints = {
         ...this.connectedContactPoints,
 
-        [alertReceiveChannelId]: response.reduce((list: ContactPoint[], payload) => {
-          payload.contact_points.forEach((contactPoint: { name: string; notification_connected: boolean }) => {
+        [alertReceiveChannelId]: data.reduce((list: ContactPoint[], payload) => {
+          // TODO: seems that backend sends contactPoint as string and on frontend we use it as { name: string, notification_connected: boolean }
+          payload.contact_points.forEach((contactPoint: any) => {
             list.push({
               dataSourceName: payload.name,
               dataSourceId: payload.uid,
@@ -382,30 +378,25 @@ export class AlertReceiveChannelStore {
     });
   }
 
-  async updateCounters() {
-    const counters = await makeRequest(`${this.path}counters`, {
-      method: 'GET',
-    });
-
+  async fetchCounters() {
+    const { data } = await onCallApi.GET('/alert_receive_channels/counters/', undefined);
     runInAction(() => {
-      this.counters = counters;
+      this.counters = data;
     });
   }
 
-  async updateCountersForIntegration(id: ApiSchemas['AlertReceiveChannel']['id']): Promise<any> {
-    const counters = await makeRequest(`${this.path}${id}/counters`, {
-      method: 'GET',
-    });
+  async fetchCountersForIntegration(id: ApiSchemas['AlertReceiveChannel']['id']) {
+    const { data } = await onCallApi.GET('/alert_receive_channels/{id}/counters/', { params: { path: { id } } });
 
     runInAction(() => {
       this.counters = {
         ...this.counters,
         [id]: {
-          ...counters[id],
+          ...data[id],
         },
       };
     });
 
-    return counters;
+    return data;
   }
 }

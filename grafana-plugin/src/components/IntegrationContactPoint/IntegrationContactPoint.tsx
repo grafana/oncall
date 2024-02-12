@@ -292,7 +292,7 @@ const IntegrationContactPoint: React.FC<{
                 .then(() => {
                   closeDrawer();
                   openNotification('Contact point has been removed');
-                  alertReceiveChannelStore.updateConnectedContactPoints(id);
+                  alertReceiveChannelStore.fetchConnectedContactPoints(id);
                 })
                 .catch(() => openErrorNotification('An error has occurred. Please try again.'));
             }}
@@ -350,7 +350,7 @@ const IntegrationContactPoint: React.FC<{
       .then(() => {
         closeDrawer();
         openNotification('A new contact point has been connected to your integration');
-        alertReceiveChannelStore.updateConnectedContactPoints(id);
+        alertReceiveChannelStore.fetchConnectedContactPoints(id);
       })
       .catch((ex) => {
         const error = ex.response?.data?.detail ?? 'An error has occurred. Please try again.';

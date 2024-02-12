@@ -67,7 +67,7 @@ const EditRegexpRouteTemplateModal = observer((props: EditRegexpRouteTemplateMod
           filtering_term_type: 1,
         })
         .then(() => {
-          alertReceiveChannelStore.updateChannelFilters(alertReceiveChannelId, true).then(() => {
+          alertReceiveChannelStore.fetchChannelFilters(alertReceiveChannelId, true).then(() => {
             onOpenEditIntegrationTemplate('route_template', channelFilterId);
           });
         });

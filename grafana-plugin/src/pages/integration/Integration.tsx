@@ -593,7 +593,7 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
           filtering_term_type: 1, // non-regex
         })
           .then(async (channelFilter: ChannelFilter) => {
-            await alertReceiveChannelStore.updateChannelFilters(id);
+            await alertReceiveChannelStore.fetchChannelFilters(id);
 
             this.setState(
               (prevState) => ({
@@ -696,7 +696,7 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
         filtering_term_type: filteringTermType,
       })
       .then((channelFilter: ChannelFilter) => {
-        alertReceiveChannelStore.updateChannelFilters(id, true).then(() => {
+        alertReceiveChannelStore.fetchChannelFilters(id, true).then(() => {
           escalationPolicyStore.updateEscalationPolicies(channelFilter.escalation_chain);
         });
         this.setState({
@@ -779,12 +779,12 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
     }
 
     if (!alertReceiveChannelStore.channelFilterIds[id]) {
-      promises.push(alertReceiveChannelStore.updateChannelFilters(id));
+      promises.push(alertReceiveChannelStore.fetchChannelFilters(id));
     }
 
-    promises.push(alertReceiveChannelStore.updateTemplates(id));
+    promises.push(alertReceiveChannelStore.fetchTemplates(id));
     promises.push(IntegrationHelper.fetchChatOps(store));
-    promises.push(alertReceiveChannelStore.updateCountersForIntegration(id));
+    promises.push(alertReceiveChannelStore.fetchCountersForIntegration(id));
 
     await Promise.all(promises)
       .catch(() => {
@@ -801,7 +801,7 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
 
     if (IntegrationHelper.isSpecificIntegration(alertReceiveChannelStore.items[id], 'grafana_alerting')) {
       // this will be delayed and not awaitable so that we don't delay the whole page load
-      return await alertReceiveChannelStore.updateConnectedContactPoints(id);
+      return await alertReceiveChannelStore.fetchConnectedContactPoints(id);
     }
 
     return Promise.resolve();
@@ -1113,7 +1113,7 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
       .then(() =>
         Promise.all([
           alertReceiveChannelStore.fetchItemById(alertReceiveChannel.id),
-          alertReceiveChannelStore.updateTemplates(alertReceiveChannel.id),
+          alertReceiveChannelStore.fetchTemplates(alertReceiveChannel.id),
         ])
       )
       .catch(() => openErrorNotification('An error has occurred. Please try again.'));

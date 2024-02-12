@@ -141,7 +141,7 @@ export class RootBaseStore {
     Promise.all([
       this.userStore.updateNotificationPolicyOptions(),
       this.userStore.updateNotifyByOptions(),
-      this.alertReceiveChannelStore.updateAlertReceiveChannelOptions(),
+      this.alertReceiveChannelStore.fetchAlertReceiveChannelOptions(),
     ]);
   };
 

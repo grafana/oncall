@@ -108,7 +108,7 @@ const IntegrationSendDemoAlertModal: React.FC<IntegrationSendDemoPayloadModalPro
     } catch (ex) {}
 
     sendDemoAlert(alertReceiveChannel.id, parsedPayload).then(() => {
-      alertReceiveChannelStore.updateCounters();
+      alertReceiveChannelStore.fetchCounters();
       openNotification(<DemoNotification />);
       onHideOrCancel();
     });

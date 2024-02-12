@@ -169,16 +169,16 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
         }),
   });
 
-  update = () => {
+  update = async () => {
     const { store } = this.props;
     const page = store.filtersStore.currentTablePageNum[PAGE.Integrations];
 
     LocationHelper.update({ p: page }, 'partial');
 
-    return store.alertReceiveChannelStore.updatePaginatedItems({
+    await store.alertReceiveChannelStore.fetchPaginatedItems({
       filters: this.getFiltersBasedOnCurrentTab(),
       page,
-      updateCounters: false,
+      shouldFetchCounters: false,
       invalidateFn: () => this.invalidateRequestFn(page),
     });
   };
@@ -666,10 +666,10 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
     const newPage = isOnMount ? store.filtersStore.currentTablePageNum[PAGE.Integrations] : 1;
 
     return alertReceiveChannelStore
-      .updatePaginatedItems({
+      .fetchPaginatedItems({
         filters: this.getFiltersBasedOnCurrentTab(),
         page: newPage,
-        updateCounters: false,
+        shouldFetchCounters: false,
         invalidateFn: () => this.invalidateRequestFn(newPage),
       })
       .then(() => {
