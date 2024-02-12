@@ -8,7 +8,7 @@
     "stylelint": "stylelint ./src/**/*.{css,scss,module.css,module.scss}",
     "stylelint:fix": "stylelint --fix ./src/**/*.{css,scss,module.css,module.scss}",
     "build": "webpack -c ./webpack.config.ts --env production",
-    "build:dev": "webpack -w -c ./webpack.config.ts --env development",
+    "build:dev": "webpack -c ./webpack.config.ts --env development",
     "labels:link": "yarn --cwd ../../gops-labels/frontend link && yarn link \"@grafana/labels\" && yarn --cwd ../../gops-labels/frontend watch",
     "labels:unlink": "yarn --cwd ../../gops-labels/frontend unlink",
     "test": "jest --verbose",
