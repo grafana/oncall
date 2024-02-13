@@ -28,6 +28,9 @@ DEV_HELM_FILE = $(DEV_ENV_DIR)/helm-local.yml
 DEV_HELM_USER_SPECIFIC_FILE = $(DEV_ENV_DIR)/helm-local.dev.yml
 
 ENGINE_DIR = ./engine
+REQUIREMENTS_DEV_IN = $(ENGINE_DIR)/requirements-dev.in
+REQUIREMENTS_DEV_TXT = $(ENGINE_DIR)/requirements-dev.txt
+REQUIREMENTS_IN = $(ENGINE_DIR)/requirements.in
 REQUIREMENTS_TXT = $(ENGINE_DIR)/requirements.txt
 REQUIREMENTS_ENTERPRISE_TXT = $(ENGINE_DIR)/requirements-enterprise.txt
 SQLITE_DB_FILE = $(ENGINE_DIR)/oncall.db
@@ -242,14 +245,21 @@ define backend_command
 endef
 
 backend-bootstrap:
-	pip install -U pip wheel
-	pip install -r $(REQUIREMENTS_TXT)
+	pip install -U pip wheel pip-tools
+	pip-sync $(REQUIREMENTS_TXT) $(REQUIREMENTS_DEV_TXT)
 	@if [ -f $(REQUIREMENTS_ENTERPRISE_TXT) ]; then \
-		pip install -r $(REQUIREMENTS_ENTERPRISE_TXT); \
+		pip-sync $(REQUIREMENTS_ENTERPRISE_TXT); \
 	fi
 
 backend-migrate:
 	$(call backend_command,python manage.py migrate)
+
+backend-compile-deps:
+	pip-compile --resolver=backtracking --pre --strip-extras $(REQUIREMENTS_IN)
+	pip-compile --resolver=backtracking --pre --strip-extras $(REQUIREMENTS_DEV_IN)
+
+backend-upgrade-deps:
+	pip-compile --resolver=backtracking --pre --strip-extras --upgrade $(REQUIREMENTS_IN)
 
 run-backend-server:
 	$(call backend_command,python manage.py runserver 0.0.0.0:8080)
