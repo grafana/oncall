@@ -5,7 +5,7 @@ import requests
 from django.conf import settings
 
 if typing.TYPE_CHECKING:
-    from apps.labels.utils import Key, LabelOption, Value
+    from apps.labels.utils import LabelKey, LabelOption, LabelValue
 
 
 class LabelUpdateParam(typing.TypedDict):
@@ -46,7 +46,7 @@ class LabelsAPIClient:
         self._check_response(response)
         return response.json(), response
 
-    def get_keys(self) -> typing.Tuple[typing.Optional[typing.List["Key"]], requests.models.Response]:
+    def get_keys(self) -> typing.Tuple[typing.Optional[typing.List["LabelKey"]], requests.models.Response]:
         url = urljoin(self.api_url, "keys")
 
         response = requests.get(url, timeout=TIMEOUT, headers=self._request_headers)
@@ -62,7 +62,9 @@ class LabelsAPIClient:
         self._check_response(response)
         return response.json(), response
 
-    def get_value(self, key_id: str, value_id: str) -> typing.Tuple[typing.Optional["Value"], requests.models.Response]:
+    def get_value(
+        self, key_id: str, value_id: str
+    ) -> typing.Tuple[typing.Optional["LabelValue"], requests.models.Response]:
         url = urljoin(self.api_url, f"id/{key_id}/values/{value_id}")
 
         response = requests.get(url, timeout=TIMEOUT, headers=self._request_headers)
