@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+
+– Support prescribed labels ([#3848](https://github.com/grafana/oncall/pull/3848))
+
 ### Fixed
 
 - Quotes in templates not rendering results correctly ([#3884](https://github.com/grafana/oncall/pull/3884))
