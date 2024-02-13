@@ -26,6 +26,8 @@ export class LabelStore extends BaseStore {
   public async loadKeys() {
     const { data } = await onCallApi.GET('/labels/keys/', undefined);
 
+    data.find((label) => label.name === 'color').prescribed = true;
+
     runInAction(() => {
       this.keys = data;
     });

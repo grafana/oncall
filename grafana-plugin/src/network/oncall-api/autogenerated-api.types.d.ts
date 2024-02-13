@@ -571,6 +571,7 @@ export interface components {
     LabelKey: {
       id: string;
       name: string;
+      prescribed?: boolean;
     };
     LabelKeyValues: {
       key: components['schemas']['LabelKey'];

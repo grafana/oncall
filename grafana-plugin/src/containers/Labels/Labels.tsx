@@ -1,10 +1,11 @@
 import React, { forwardRef, useCallback, useImperativeHandle, useState } from 'react';
 
-import { ServiceLabels, ServiceLabelsProps } from '@grafana/labels';
 import { Field, Label } from '@grafana/ui';
 import { isEmpty } from 'lodash-es';
 import { observer } from 'mobx-react';
 
+import { ServiceLabelsProps, ServiceLabels } from 'components/ServiceLabels/ServiceLabels';
+import { splitToGroups } from 'models/label/label.helpers';
 import { LabelKeyValue } from 'models/label/label.types';
 import { useStore } from 'state/useStore';
 import { openErrorNotification } from 'utils/utils';
@@ -57,7 +58,11 @@ const _Labels = observer(
           }
         }
 
-        return result.filter((k) => k.name.toLowerCase().includes(search.toLowerCase()));
+        const filtered = result.filter((k) => k.name.toLowerCase().includes(search.toLowerCase()));
+
+        const groups = splitToGroups(filtered);
+
+        return groups;
       };
     }, []);
 
