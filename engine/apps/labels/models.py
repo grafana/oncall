@@ -82,7 +82,7 @@ class AssociatedLabel(models.Model):
 
             value_id = label_pair["value"]["id"]
             value_name = label_pair["value"]["name"]
-            value_prescribed = label_pair["key"]["prescribed"]
+            value_prescribed = label_pair["value"]["prescribed"]
 
             label_key = LabelKeyCache(id=key_id, name=key_name, organization=organization, prescribed=key_prescribed)
             labels_keys.append(label_key)
