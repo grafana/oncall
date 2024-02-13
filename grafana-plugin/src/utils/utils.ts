@@ -5,7 +5,7 @@ import { sentenceCase } from 'change-case';
 import appEvents from 'grafana/app/core/app_events';
 import { isArray, concat, isPlainObject, flatMap, map, keys } from 'lodash-es';
 
-import { isNetworkError } from 'network';
+import { isNetworkError } from 'network/network';
 import { getGrafanaVersion } from 'plugin/GrafanaPluginRootPage.helpers';
 
 export class KeyValuePair<T = string | number> {

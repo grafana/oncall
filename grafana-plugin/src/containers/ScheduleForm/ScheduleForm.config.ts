@@ -1,6 +1,6 @@
 import { FormItem, FormItemType } from 'components/GForm/GForm.types';
 import { PRIVATE_CHANNEL_NAME } from 'models/slack_channel/slack_channel.config';
-import { RootStore } from 'state';
+import { RootStore } from 'state/rootStore';
 import { generateAssignToTeamInputDescription } from 'utils/consts';
 
 const assignToTeamDescription = generateAssignToTeamInputDescription('Schedules');

@@ -1,9 +1,9 @@
 import { action, observable, makeObservable, runInAction } from 'mobx';
 
-import BaseStore from 'models/base_store';
-import { makeRequest } from 'network';
+import { BaseStore } from 'models/base_store';
+import { makeRequest } from 'network/network';
 import { ApiSchemas } from 'network/oncall-api/api.types';
-import { RootStore } from 'state';
+import { RootStore } from 'state/rootStore';
 
 import { Heartbeat } from './heartbeat.types';
 

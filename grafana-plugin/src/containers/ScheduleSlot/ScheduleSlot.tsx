@@ -5,10 +5,10 @@ import cn from 'classnames/bind';
 import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
 
-import Avatar from 'components/Avatar/Avatar';
+import { Avatar } from 'components/Avatar/Avatar';
 import { ScheduleFiltersType } from 'components/ScheduleFilters/ScheduleFilters.types';
-import Text from 'components/Text/Text';
-import WorkingHours from 'components/WorkingHours/WorkingHours';
+import { Text } from 'components/Text/Text';
+import { WorkingHours } from 'components/WorkingHours/WorkingHours';
 import { getShiftName, SHIFT_SWAP_COLOR } from 'models/schedule/schedule.helpers';
 import { Event, ShiftSwap } from 'models/schedule/schedule.types';
 import { getOffsetOfCurrentUser, getTzOffsetString } from 'models/timezone/timezone.helpers';
@@ -33,7 +33,7 @@ interface ScheduleSlotProps {
 
 const cx = cn.bind(styles);
 
-const ScheduleSlot: FC<ScheduleSlotProps> = observer((props) => {
+export const ScheduleSlot: FC<ScheduleSlotProps> = observer((props) => {
   const {
     event,
     color,
@@ -104,8 +104,6 @@ const ScheduleSlot: FC<ScheduleSlotProps> = observer((props) => {
     </div>
   );
 });
-
-export default ScheduleSlot;
 
 interface ShiftSwapEventProps {
   event: Event;

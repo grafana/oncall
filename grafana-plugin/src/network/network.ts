@@ -3,7 +3,7 @@ import { SemanticAttributes } from '@opentelemetry/semantic-conventions';
 import axios from 'axios';
 import qs from 'query-string';
 
-import FaroHelper from 'utils/faro';
+import { FaroHelper } from 'utils/faro';
 
 export const API_PROXY_PREFIX = 'api/plugin-proxy/grafana-oncall-app';
 export const API_PATH_PREFIX = '/api/internal/v1';

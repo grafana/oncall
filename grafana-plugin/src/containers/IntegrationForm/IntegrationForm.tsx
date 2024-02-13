@@ -18,13 +18,13 @@ import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 import { useHistory } from 'react-router-dom';
 
-import Collapse from 'components/Collapse/Collapse';
-import Block from 'components/GBlock/Block';
-import GForm, { CustomFieldSectionRendererProps } from 'components/GForm/GForm';
-import IntegrationLogo from 'components/IntegrationLogo/IntegrationLogo';
-import PluginLink from 'components/PluginLink/PluginLink';
-import Text from 'components/Text/Text';
-import Labels from 'containers/Labels/Labels';
+import { Collapse } from 'components/Collapse/Collapse';
+import { Block } from 'components/GBlock/Block';
+import { GForm, CustomFieldSectionRendererProps } from 'components/GForm/GForm';
+import { IntegrationLogo } from 'components/IntegrationLogo/IntegrationLogo';
+import { PluginLink } from 'components/PluginLink/PluginLink';
+import { Text } from 'components/Text/Text';
+import { Labels } from 'containers/Labels/Labels';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import {
   connectContactPoint,
@@ -32,12 +32,12 @@ import {
   getGrafanaAlertingContactPoints,
 } from 'models/alert_receive_channel/alert_receive_channel.helpers';
 import { ApiSchemas } from 'network/oncall-api/api.types';
-import IntegrationHelper from 'pages/integration/Integration.helper';
+import { IntegrationHelper } from 'pages/integration/Integration.helper';
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
-import { openErrorNotification } from 'utils';
-import { UserActions } from 'utils/authorization';
+import { UserActions } from 'utils/authorization/authorization';
 import { PLUGIN_ROOT } from 'utils/consts';
+import { openErrorNotification } from 'utils/utils';
 
 import { getForm } from './IntegrationForm.config';
 import { prepareForEdit } from './IntegrationForm.helpers';
@@ -53,7 +53,7 @@ interface IntegrationFormProps {
   navigateToAlertGroupLabels: (id: ApiSchemas['AlertReceiveChannel']['id']) => void;
 }
 
-const IntegrationForm = observer((props: IntegrationFormProps) => {
+export const IntegrationForm = observer((props: IntegrationFormProps) => {
   const store = useStore();
   const history = useHistory();
 
@@ -515,5 +515,3 @@ const IntegrationBlocks: React.FC<{
     </div>
   );
 };
-
-export default IntegrationForm;

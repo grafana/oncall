@@ -5,13 +5,13 @@ import cn from 'classnames/bind';
 import { cloneDeep } from 'lodash-es';
 import { observer } from 'mobx-react';
 
-import GForm from 'components/GForm/GForm';
+import { GForm } from 'components/GForm/GForm';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { startMaintenanceMode } from 'models/alert_receive_channel/alert_receive_channel.helpers';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
-import { openNotification, showApiError } from 'utils';
-import { UserActions } from 'utils/authorization';
+import { UserActions } from 'utils/authorization/authorization';
+import { openNotification, showApiError } from 'utils/utils';
 
 import { getForm } from './MaintenanceForm.config';
 
@@ -28,7 +28,7 @@ interface MaintenanceFormProps {
   onUpdate: () => void;
 }
 
-const MaintenanceForm = observer((props: MaintenanceFormProps) => {
+export const MaintenanceForm = observer((props: MaintenanceFormProps) => {
   const { onUpdate, onHide, initialData = {} } = props;
   const { alertReceiveChannelStore } = useStore();
   const form = useMemo(() => getForm(alertReceiveChannelStore), [alertReceiveChannelStore]);
@@ -76,5 +76,3 @@ const MaintenanceForm = observer((props: MaintenanceFormProps) => {
     </Drawer>
   );
 });
-
-export default MaintenanceForm;

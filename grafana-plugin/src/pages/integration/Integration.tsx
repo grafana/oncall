@@ -22,37 +22,38 @@ import { RouteComponentProps, useHistory, withRouter } from 'react-router-dom';
 
 import { getTemplatesForEdit } from 'components/AlertTemplates/AlertTemplatesForm.config';
 import { TemplateForEdit } from 'components/AlertTemplates/CommonAlertTemplatesForm.config';
-import HamburgerMenu from 'components/HamburgerMenu/HamburgerMenu';
-import IntegrationCollapsibleTreeView, {
+import { HamburgerMenu } from 'components/HamburgerMenu/HamburgerMenu';
+import {
+  IntegrationCollapsibleTreeView,
   IntegrationCollapsibleItem,
 } from 'components/IntegrationCollapsibleTreeView/IntegrationCollapsibleTreeView';
-import IntegrationContactPoint from 'components/IntegrationContactPoint/IntegrationContactPoint';
-import IntegrationHowToConnect from 'components/IntegrationHowToConnect/IntegrationHowToConnect';
-import IntegrationLogo from 'components/IntegrationLogo/IntegrationLogo';
-import IntegrationSendDemoAlertModal from 'components/IntegrationSendDemoAlertModal/IntegrationSendDemoAlertModal';
-import IntegrationBlock from 'components/Integrations/IntegrationBlock';
-import PageErrorHandlingWrapper, { PageBaseState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
+import { IntegrationContactPoint } from 'components/IntegrationContactPoint/IntegrationContactPoint';
+import { IntegrationHowToConnect } from 'components/IntegrationHowToConnect/IntegrationHowToConnect';
+import { IntegrationLogo } from 'components/IntegrationLogo/IntegrationLogo';
+import { IntegrationSendDemoAlertModal } from 'components/IntegrationSendDemoAlertModal/IntegrationSendDemoAlertModal';
+import { IntegrationBlock } from 'components/Integrations/IntegrationBlock';
+import { PageErrorHandlingWrapper, PageBaseState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
 import { initErrorDataState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper.helpers';
-import PluginLink from 'components/PluginLink/PluginLink';
-import RenderConditionally from 'components/RenderConditionally/RenderConditionally';
-import Tabs from 'components/Tabs/Tabs';
-import Tag from 'components/Tag/Tag';
-import Text from 'components/Text/Text';
-import TooltipBadge from 'components/TooltipBadge/TooltipBadge';
+import { PluginLink } from 'components/PluginLink/PluginLink';
+import { RenderConditionally } from 'components/RenderConditionally/RenderConditionally';
+import { Tabs } from 'components/Tabs/Tabs';
+import { Tag } from 'components/Tag/Tag';
+import { Text } from 'components/Text/Text';
+import { TooltipBadge } from 'components/TooltipBadge/TooltipBadge';
 import { WithContextMenu } from 'components/WithContextMenu/WithContextMenu';
-import EditRegexpRouteTemplateModal from 'containers/EditRegexpRouteTemplateModal/EditRegexpRouteTemplateModal';
-import CollapsedIntegrationRouteDisplay from 'containers/IntegrationContainers/CollapsedIntegrationRouteDisplay/CollapsedIntegrationRouteDisplay';
-import ExpandedIntegrationRouteDisplay from 'containers/IntegrationContainers/ExpandedIntegrationRouteDisplay/ExpandedIntegrationRouteDisplay';
-import IntegrationHeartbeatForm from 'containers/IntegrationContainers/IntegrationHeartbeatForm/IntegrationHeartbeatForm';
-import IntegrationTemplateList from 'containers/IntegrationContainers/IntegrationTemplatesList';
-import IntegrationForm from 'containers/IntegrationForm/IntegrationForm';
-import IntegrationLabelsForm from 'containers/IntegrationLabelsForm/IntegrationLabelsForm';
-import IntegrationTemplate from 'containers/IntegrationTemplate/IntegrationTemplate';
-import MaintenanceForm from 'containers/MaintenanceForm/MaintenanceForm';
-import TeamName from 'containers/TeamName/TeamName';
-import UserDisplayWithAvatar from 'containers/UserDisplay/UserDisplayWithAvatar';
+import { EditRegexpRouteTemplateModal } from 'containers/EditRegexpRouteTemplateModal/EditRegexpRouteTemplateModal';
+import { CollapsedIntegrationRouteDisplay } from 'containers/IntegrationContainers/CollapsedIntegrationRouteDisplay/CollapsedIntegrationRouteDisplay';
+import { ExpandedIntegrationRouteDisplay } from 'containers/IntegrationContainers/ExpandedIntegrationRouteDisplay/ExpandedIntegrationRouteDisplay';
+import { IntegrationHeartbeatForm } from 'containers/IntegrationContainers/IntegrationHeartbeatForm/IntegrationHeartbeatForm';
+import { IntegrationTemplateList } from 'containers/IntegrationContainers/IntegrationTemplatesList';
+import { IntegrationForm } from 'containers/IntegrationForm/IntegrationForm';
+import { IntegrationLabelsForm } from 'containers/IntegrationLabelsForm/IntegrationLabelsForm';
+import { IntegrationTemplate } from 'containers/IntegrationTemplate/IntegrationTemplate';
+import { MaintenanceForm } from 'containers/MaintenanceForm/MaintenanceForm';
+import { TeamName } from 'containers/TeamName/TeamName';
+import { UserDisplayWithAvatar } from 'containers/UserDisplay/UserDisplayWithAvatar';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
-import { HeartIcon, HeartRedIcon } from 'icons';
+import { HeartIcon, HeartRedIcon } from 'icons/Icons';
 import {
   createChannelFilter,
   deleteAlertReceiveChannel,
@@ -64,19 +65,19 @@ import { AlertReceiveChannelCounters } from 'models/alert_receive_channel/alert_
 import { AlertTemplatesDTO } from 'models/alert_templates/alert_templates';
 import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
 import { ApiSchemas } from 'network/oncall-api/api.types';
-import IntegrationHelper, { getIsBidirectionalIntegration } from 'pages/integration/Integration.helper';
+import { IntegrationHelper, getIsBidirectionalIntegration } from 'pages/integration/Integration.helper';
 import styles from 'pages/integration/Integration.module.scss';
 import { AppFeature } from 'state/features';
 import { PageProps, SelectOption, WithStoreProps } from 'state/types';
 import { useStore } from 'state/useStore';
 import { withMobXProviderContext } from 'state/withStore';
-import { openNotification, openErrorNotification } from 'utils';
 import { getVar } from 'utils/DOM';
-import LocationHelper from 'utils/LocationHelper';
-import { UserActions } from 'utils/authorization';
+import { LocationHelper } from 'utils/LocationHelper';
+import { UserActions } from 'utils/authorization/authorization';
 import { PLUGIN_ROOT } from 'utils/consts';
 import { getItem, setItem } from 'utils/localStorage';
-import sanitize from 'utils/sanitize';
+import { sanitize } from 'utils/sanitize';
+import { openNotification, openErrorNotification } from 'utils/utils';
 
 const cx = cn.bind(styles);
 
@@ -97,7 +98,7 @@ interface IntegrationState extends PageBaseState {
 const NEW_ROUTE_DEFAULT = '';
 
 @observer
-class Integration extends React.Component<IntegrationProps, IntegrationState> {
+class _IntegrationPage extends React.Component<IntegrationProps, IntegrationState> {
   constructor(props: IntegrationProps) {
     super(props);
 
@@ -1290,4 +1291,4 @@ const IntegrationHeader: React.FC<IntegrationHeaderProps> = ({
   }
 };
 
-export default withRouter(withMobXProviderContext(Integration));
+export const IntegrationPage = withRouter(withMobXProviderContext(_IntegrationPage));

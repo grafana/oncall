@@ -4,11 +4,11 @@ import { Tooltip, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
-import PluginLink from 'components/PluginLink/PluginLink';
+import { PluginLink } from 'components/PluginLink/PluginLink';
 import { ScheduleQualityDetails } from 'components/ScheduleQualityDetails/ScheduleQualityDetails';
-import Tag from 'components/Tag/Tag';
-import Text from 'components/Text/Text';
-import TooltipBadge from 'components/TooltipBadge/TooltipBadge';
+import { Tag } from 'components/Tag/Tag';
+import { Text } from 'components/Text/Text';
+import { TooltipBadge } from 'components/TooltipBadge/TooltipBadge';
 import { Schedule, ScheduleScoreQualityResult } from 'models/schedule/schedule.types';
 import { useStore } from 'state/useStore';
 
@@ -20,7 +20,7 @@ interface ScheduleQualityProps {
   schedule: Schedule;
 }
 
-const ScheduleQuality: FC<ScheduleQualityProps> = observer(({ schedule }) => {
+export const ScheduleQuality: FC<ScheduleQualityProps> = observer(({ schedule }) => {
   const {
     scheduleStore: { getScoreQuality, relatedEscalationChains, quality },
   } = useStore();
@@ -121,5 +121,3 @@ const ScheduleQuality: FC<ScheduleQualityProps> = observer(({ schedule }) => {
     return 'tag--primary';
   }
 });
-
-export default ScheduleQuality;

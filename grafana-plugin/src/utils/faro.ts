@@ -32,7 +32,7 @@ export function getAppNameUrlPair(onCallApiUrl: string): { appName: string; url:
   }
 }
 
-class FaroHelper {
+class BaseFaroHelper {
   faro: Faro;
 
   initializeFaro(onCallApiUrl: string) {
@@ -75,4 +75,4 @@ class FaroHelper {
   }
 }
 
-export default new FaroHelper();
+export const FaroHelper = new BaseFaroHelper();

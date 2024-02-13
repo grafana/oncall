@@ -15,18 +15,18 @@ import {
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
-import Collapse from 'components/Collapse/Collapse';
-import MonacoEditor, { MONACO_LANGUAGE } from 'components/MonacoEditor/MonacoEditor';
-import PluginLink from 'components/PluginLink/PluginLink';
-import RenderConditionally from 'components/RenderConditionally/RenderConditionally';
-import Text from 'components/Text/Text';
-import IntegrationTemplate from 'containers/IntegrationTemplate/IntegrationTemplate';
+import { Collapse } from 'components/Collapse/Collapse';
+import { MonacoEditor, MONACO_LANGUAGE } from 'components/MonacoEditor/MonacoEditor';
+import { PluginLink } from 'components/PluginLink/PluginLink';
+import { RenderConditionally } from 'components/RenderConditionally/RenderConditionally';
+import { Text } from 'components/Text/Text';
+import { IntegrationTemplate } from 'containers/IntegrationTemplate/IntegrationTemplate';
 import { LabelsErrors } from 'models/label/label.types';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { LabelTemplateOptions } from 'pages/integration/IntegrationCommon.config';
 import { useStore } from 'state/useStore';
-import { openErrorNotification } from 'utils';
 import { DOCS_ROOT } from 'utils/consts';
+import { openErrorNotification } from 'utils/utils';
 
 import { getIsAddBtnDisabled, getIsTooManyLabelsWarningVisible } from './IntegrationLabelsForm.helpers';
 
@@ -43,7 +43,7 @@ interface IntegrationLabelsFormProps {
   onOpenIntegrationSettings: (id: ApiSchemas['AlertReceiveChannel']['id']) => void;
 }
 
-const IntegrationLabelsForm = observer((props: IntegrationLabelsFormProps) => {
+export const IntegrationLabelsForm = observer((props: IntegrationLabelsFormProps) => {
   const { id, onHide, onSubmit, onOpenIntegrationSettings } = props;
 
   const store = useStore();
@@ -394,5 +394,3 @@ const CustomLabels = (props: CustomLabelsProps) => {
     </VerticalGroup>
   );
 };
-
-export default IntegrationLabelsForm;

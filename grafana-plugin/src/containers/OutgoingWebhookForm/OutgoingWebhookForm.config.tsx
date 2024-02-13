@@ -8,8 +8,8 @@ import { AlertReceiveChannelStore } from 'models/alert_receive_channel/alert_rec
 import { getSearchResult } from 'models/alert_receive_channel/alert_receive_channel.helpers';
 import { GrafanaTeamStore } from 'models/grafana_team/grafana_team';
 import { OutgoingWebhookPreset } from 'models/outgoing_webhook/outgoing_webhook.types';
-import { KeyValuePair } from 'utils';
 import { generateAssignToTeamInputDescription } from 'utils/consts';
+import { KeyValuePair } from 'utils/utils';
 
 import { WebhookFormFieldName } from './OutgoingWebhookForm.types';
 

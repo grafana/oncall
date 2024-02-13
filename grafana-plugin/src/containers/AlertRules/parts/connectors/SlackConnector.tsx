@@ -3,18 +3,18 @@ import React, { useCallback } from 'react';
 import { Button, HorizontalGroup, InlineSwitch } from '@grafana/ui';
 import cn from 'classnames/bind';
 
-import PluginLink from 'components/PluginLink/PluginLink';
-import Text from 'components/Text/Text';
-import GSelect from 'containers/GSelect/GSelect';
+import { PluginLink } from 'components/PluginLink/PluginLink';
+import { Text } from 'components/Text/Text';
+import { GSelect } from 'containers/GSelect/GSelect';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
 import { PRIVATE_CHANNEL_NAME } from 'models/slack_channel/slack_channel.config';
 import { getSlackChannelName } from 'models/slack_channel/slack_channel.helpers';
 import { SlackChannel } from 'models/slack_channel/slack_channel.types';
 import { useStore } from 'state/useStore';
-import { isUserActionAllowed, UserActions } from 'utils/authorization';
+import { isUserActionAllowed, UserActions } from 'utils/authorization/authorization';
 
-import styles from './index.module.css';
+import styles from './Connectors.module.css';
 
 const cx = cn.bind(styles);
 
@@ -22,7 +22,7 @@ interface SlackConnectorProps {
   channelFilterId: ChannelFilter['id'];
 }
 
-const SlackConnector = (props: SlackConnectorProps) => {
+export const SlackConnector = (props: SlackConnectorProps) => {
   const { channelFilterId } = props;
 
   const store = useStore();
@@ -114,5 +114,3 @@ const SlackConnector = (props: SlackConnectorProps) => {
     </div>
   );
 };
-
-export default SlackConnector;

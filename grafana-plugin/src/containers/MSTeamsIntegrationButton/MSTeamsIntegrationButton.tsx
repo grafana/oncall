@@ -4,10 +4,10 @@ import { Button, Modal } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
-import MSTeamsInstructions from 'containers/MSTeams/MSTeamsInstructions';
+import { MSTeamsInstructions } from 'containers/MSTeams/MSTeamsInstructions';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { useStore } from 'state/useStore';
-import { UserActions } from 'utils/authorization';
+import { UserActions } from 'utils/authorization/authorization';
 
 import styles from './MSTeamsIntegrationButton.module.css';
 
@@ -19,7 +19,7 @@ interface MSTeamsIntegrationProps {
   onUpdate: () => void;
 }
 
-const MSTeamsIntegrationButton = observer((props: MSTeamsIntegrationProps) => {
+export const MSTeamsIntegrationButton = observer((props: MSTeamsIntegrationProps) => {
   const { disabled, size = 'md', onUpdate } = props;
 
   const [showModal, setShowModal] = useState(false);
@@ -71,5 +71,3 @@ const MSTeamsModal = (props: MSTeamsModalProps) => {
     </Modal>
   );
 };
-
-export default MSTeamsIntegrationButton;

@@ -5,9 +5,9 @@ import cn from 'classnames/bind';
 import { isEmpty } from 'lodash-es';
 import { SubmitHandler } from 'react-hook-form';
 
-import Block from 'components/GBlock/Block';
-import Text from 'components/Text/Text';
-import PluginState from 'state/plugin';
+import { Block } from 'components/GBlock/Block';
+import { Text } from 'components/Text/Text';
+import { PluginState } from 'state/plugin/plugin';
 
 import styles from './ConfigurationForm.module.css';
 
@@ -60,7 +60,7 @@ const FormErrorMessage: FC<{ errorMsg: string }> = ({ errorMsg }) => (
   </>
 );
 
-const ConfigurationForm: FC<Props> = ({ onSuccessfulSetup, defaultOnCallApiUrl }) => {
+export const ConfigurationForm: FC<Props> = ({ onSuccessfulSetup, defaultOnCallApiUrl }) => {
   const [setupErrorMsg, setSetupErrorMsg] = useState<string>(null);
   const [formLoading, setFormLoading] = useState<boolean>(false);
 
@@ -126,5 +126,3 @@ const ConfigurationForm: FC<Props> = ({ onSuccessfulSetup, defaultOnCallApiUrl }
     </Form>
   );
 };
-
-export default ConfigurationForm;

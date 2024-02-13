@@ -1,12 +1,12 @@
 import { SpanStatusCode } from '@opentelemetry/api';
 
-import FaroHelper from 'utils/faro';
+import { FaroHelper } from 'utils/faro';
 
 import { getCustomFetchFn } from './http-client';
 
 jest.mock('utils/faro', () => ({
   __esModule: true,
-  default: {
+  FaroHelper: {
     faro: {
       api: {
         getOTEL: jest.fn(() => undefined),

@@ -1,9 +1,9 @@
 import { action, observable, makeObservable, runInAction } from 'mobx';
 
-import BaseStore from 'models/base_store';
+import { BaseStore } from 'models/base_store';
 import { LabelsErrors } from 'models/label/label.types';
-import { makeRequest } from 'network';
-import { RootStore } from 'state';
+import { makeRequest } from 'network/network';
+import { RootStore } from 'state/rootStore';
 
 import { OutgoingWebhook, OutgoingWebhookPreset } from './outgoing_webhook.types';
 

@@ -26,24 +26,24 @@ import reactStringReplace from 'react-string-replace';
 import { OnCallPluginExtensionPoints } from 'types';
 
 import errorSVG from 'assets/img/error.svg';
-import Collapse from 'components/Collapse/Collapse';
+import { Collapse } from 'components/Collapse/Collapse';
 import { ExtensionLinkDropdown } from 'components/ExtensionLinkMenu/ExtensionLinkDropdown';
-import Block from 'components/GBlock/Block';
-import IntegrationLogo from 'components/IntegrationLogo/IntegrationLogo';
-import PageErrorHandlingWrapper, { PageBaseState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
+import { Block } from 'components/GBlock/Block';
+import { IntegrationLogo } from 'components/IntegrationLogo/IntegrationLogo';
+import { PageErrorHandlingWrapper, PageBaseState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
 import {
   getWrongTeamResponseInfo,
   initErrorDataState,
 } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper.helpers';
 import { PluginBridge, SupportedPlugin } from 'components/PluginBridge/PluginBridge';
-import PluginLink from 'components/PluginLink/PluginLink';
-import SourceCode from 'components/SourceCode/SourceCode';
-import Text from 'components/Text/Text';
-import TooltipBadge from 'components/TooltipBadge/TooltipBadge';
-import AddResponders from 'containers/AddResponders/AddResponders';
+import { PluginLink } from 'components/PluginLink/PluginLink';
+import { SourceCode } from 'components/SourceCode/SourceCode';
+import { Text } from 'components/Text/Text';
+import { TooltipBadge } from 'components/TooltipBadge/TooltipBadge';
+import { AddResponders } from 'containers/AddResponders/AddResponders';
 import { prepareForUpdate } from 'containers/AddResponders/AddResponders.helpers';
 import { UserResponder } from 'containers/AddResponders/AddResponders.types';
-import AttachIncidentForm from 'containers/AttachIncidentForm/AttachIncidentForm';
+import { AttachIncidentForm } from 'containers/AttachIncidentForm/AttachIncidentForm';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { getIntegration } from 'models/alert_receive_channel/alert_receive_channel.helpers';
 import { Alert, AlertAction, TimeLineItem, TimeLineRealm, GroupedAlert } from 'models/alertgroup/alertgroup.types';
@@ -54,11 +54,11 @@ import { AppFeature } from 'state/features';
 import { PageProps, WithStoreProps } from 'state/types';
 import { useStore } from 'state/useStore';
 import { withMobXProviderContext } from 'state/withStore';
-import { openNotification } from 'utils';
-import { UserActions } from 'utils/authorization';
+import { UserActions } from 'utils/authorization/authorization';
 import { PLUGIN_ROOT } from 'utils/consts';
-import sanitize from 'utils/sanitize';
+import { sanitize } from 'utils/sanitize';
 import { parseURL } from 'utils/url';
+import { openNotification } from 'utils/utils';
 
 import { getActionButtons } from './Incident.helpers';
 import styles from './Incident.module.scss';
@@ -76,7 +76,7 @@ interface IncidentPageState extends PageBaseState {
 }
 
 @observer
-class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState> {
+class _IncidentPage extends React.Component<IncidentPageProps, IncidentPageState> {
   state: IncidentPageState = {
     timelineFilter: 'all',
     resolutionNoteText: '',
@@ -856,4 +856,4 @@ const AlertGroupStub = ({ buttons }: { buttons: React.ReactNode }) => {
   );
 };
 
-export default withRouter(withMobXProviderContext(IncidentPage));
+export const IncidentPage = withRouter(withMobXProviderContext(_IncidentPage));

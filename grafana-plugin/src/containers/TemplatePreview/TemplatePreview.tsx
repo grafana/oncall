@@ -4,16 +4,16 @@ import { Badge, HorizontalGroup, Icon, LoadingPlaceholder, VerticalGroup } from 
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
-import Text from 'components/Text/Text';
+import { Text } from 'components/Text/Text';
 import { renderPreview } from 'models/alert_receive_channel/alert_receive_channel.helpers';
 import { Alert } from 'models/alertgroup/alertgroup.types';
 import { OutgoingWebhook } from 'models/outgoing_webhook/outgoing_webhook.types';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { LabelTemplateOptions } from 'pages/integration/IntegrationCommon.config';
 import { useStore } from 'state/useStore';
-import { openErrorNotification } from 'utils';
 import { useDebouncedCallback } from 'utils/hooks';
-import sanitize from 'utils/sanitize';
+import { sanitize } from 'utils/sanitize';
+import { openErrorNotification } from 'utils/utils';
 
 import styles from './TemplatePreview.module.css';
 
@@ -40,7 +40,7 @@ export enum TEMPLATE_PAGE {
   Webhooks,
 }
 
-const TemplatePreview = observer((props: TemplatePreviewProps) => {
+export const TemplatePreview = observer((props: TemplatePreviewProps) => {
   const {
     templateName,
     templateBody,
@@ -218,5 +218,3 @@ const TemplatePreview = observer((props: TemplatePreviewProps) => {
     <LoadingPlaceholder text="Loading..." />
   );
 });
-
-export default TemplatePreview;

@@ -24,7 +24,7 @@ interface UserTimezoneSelectProps {
   scheduleId?: string;
 }
 
-const UserTimezoneSelect: FC<UserTimezoneSelectProps> = observer(({ scheduleId }) => {
+export const UserTimezoneSelect: FC<UserTimezoneSelectProps> = observer(({ scheduleId }) => {
   const store = useStore();
   const users = store.userStore.getSearchResult().results || [];
 
@@ -129,5 +129,3 @@ const UserTimezoneSelect: FC<UserTimezoneSelectProps> = observer(({ scheduleId }
     </div>
   );
 });
-
-export default UserTimezoneSelect;

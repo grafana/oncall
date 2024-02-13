@@ -4,10 +4,10 @@ import * as runtime from '@grafana/runtime';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-import { RootBaseStore } from 'state/rootBaseStore';
+import { RootBaseStore } from 'state/rootBaseStore/RootBaseStore';
 import { useStore as useStoreOriginal } from 'state/useStore';
 
-import PluginSetup, { PluginSetupProps } from '.';
+import { PluginSetup, PluginSetupProps } from './PluginSetup';
 
 jest.mock('state/useStore');
 

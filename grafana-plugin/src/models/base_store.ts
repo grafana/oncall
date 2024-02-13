@@ -1,11 +1,11 @@
 import { sentenceCase } from 'change-case';
 import { action } from 'mobx';
 
-import { makeRequest } from 'network';
-import { RootStore } from 'state';
-import { openWarningNotification } from 'utils';
+import { makeRequest } from 'network/network';
+import { RootStore } from 'state/rootStore';
+import { openWarningNotification } from 'utils/utils';
 
-export default class BaseStore {
+export class BaseStore {
   protected rootStore: RootStore;
   protected path = '';
 

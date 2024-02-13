@@ -4,12 +4,12 @@ import dayjs from 'dayjs';
 import { MaintenanceMode } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
 import { ApiSchemas } from 'network/oncall-api/api.types';
-import { RootStore } from 'state';
 import { AppFeature } from 'state/features';
+import { RootStore } from 'state/rootStore';
 
 import { MAX_CHARACTERS_COUNT, TEXTAREA_ROWS_COUNT } from './IntegrationCommon.config';
 
-const IntegrationHelper = {
+export const IntegrationHelper = {
   isSpecificIntegration: (alertReceiveChannel: ApiSchemas['AlertReceiveChannel'] | string, name: string) => {
     if (!alertReceiveChannel) {
       return false;
@@ -124,8 +124,6 @@ const IntegrationHelper = {
     return channels;
   },
 };
-
-export default IntegrationHelper;
 
 export const getIsBidirectionalIntegration = ({ integration }: ApiSchemas['AlertReceiveChannel']) =>
   integration === ('servicenow' as ApiSchemas['AlertReceiveChannel']['integration']); // TODO: add service now in backend schema as valid value and remove casting

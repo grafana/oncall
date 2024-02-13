@@ -7,13 +7,13 @@ import moment from 'moment-timezone';
 import { SortableElement } from 'react-sortable-hoc';
 import reactStringReplace from 'react-string-replace';
 
-import PluginLink from 'components/PluginLink/PluginLink';
-import Text from 'components/Text/Text';
-import TimeRange from 'components/TimeRange/TimeRange';
-import Timeline from 'components/Timeline/Timeline';
-import GSelect from 'containers/GSelect/GSelect';
-import TeamName from 'containers/TeamName/TeamName';
-import UserTooltip from 'containers/UserTooltip/UserTooltip';
+import { PluginLink } from 'components/PluginLink/PluginLink';
+import { Text } from 'components/Text/Text';
+import { TimeRange } from 'components/TimeRange/TimeRange';
+import { Timeline } from 'components/Timeline/Timeline';
+import { GSelect } from 'containers/GSelect/GSelect';
+import { TeamName } from 'containers/TeamName/TeamName';
+import { UserTooltip } from 'containers/UserTooltip/UserTooltip';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { prepareEscalationPolicy } from 'models/escalation_policy/escalation_policy.helpers';
 import {
@@ -27,10 +27,10 @@ import { UserGroup } from 'models/user_group/user_group.types';
 import { SelectOption, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import { getVar } from 'utils/DOM';
-import { UserActions } from 'utils/authorization';
+import { UserActions } from 'utils/authorization/authorization';
 
-import DragHandle from './DragHandle';
-import PolicyNote from './PolicyNote';
+import { DragHandle } from './DragHandle';
+import { PolicyNote } from './PolicyNote';
 
 import styles from './EscalationPolicy.module.css';
 
@@ -55,7 +55,7 @@ export interface EscalationPolicyProps extends ElementSortableProps {
   isSlackInstalled: boolean;
 }
 
-export class EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
+class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
   render() {
     const { data, escalationChoices, number, isDisabled, backgroundClassName, backgroundHexNumber } = this.props;
     const { id, step, is_final } = data;
@@ -508,6 +508,6 @@ export class EscalationPolicy extends React.Component<EscalationPolicyProps, any
   };
 }
 
-export default withMobXProviderContext(
-  SortableElement(EscalationPolicy) as React.ComponentClass<EscalationPolicyProps>
+export const EscalationPolicy = withMobXProviderContext(
+  SortableElement(_EscalationPolicy) as React.ComponentClass<EscalationPolicyProps>
 );

@@ -1,10 +1,10 @@
 import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
 import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
-import { makeRequest } from 'network';
+import { makeRequest } from 'network/network';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { onCallApi } from 'network/oncall-api/http-client';
 import { SelectOption } from 'state/types';
-import { showApiError } from 'utils';
+import { showApiError } from 'utils/utils';
 
 import { AlertReceiveChannelStore } from './alert_receive_channel';
 import { MaintenanceMode } from './alert_receive_channel.types';
