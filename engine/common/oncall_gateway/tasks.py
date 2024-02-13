@@ -121,7 +121,7 @@ def register_oncall_tenant_async(**kwargs):
         )
         if api_exc.status == 409:
             # 409 Indicates that it's impossible to register tenant, because tenant already registered.
-            # Not retrying in this case, becase manual conflict-resolution needed.
+            # Not retrying in this case, because manual conflict-resolution needed.
             return
         else:
             # Otherwise keep retrying task
@@ -147,8 +147,15 @@ def unregister_oncall_tenant_async(**kwargs):
     client = ChatopsProxyAPIClient(settings.ONCALL_GATEWAY_URL, settings.ONCALL_GATEWAY_API_TOKEN)
     try:
         client.unregister_tenant(service_tenant_id, cluster_slug, service_type)
+    except ChatopsProxyAPIException as api_exc:
+        if api_exc.status == 400:
+            # 400 Indicates that tenant is already deleted
+            return
+        else:
+            # Otherwise keep retrying task
+            raise api_exc
     except Exception as e:
-        task_logger.error(f"Failed to delete OnCallConnector: {e} service_tenant_id={service_tenant_id}")
+        task_logger.error(f"Failed to delete OnCallTenant: {e} service_tenant_id={service_tenant_id}")
         raise e
 
 
@@ -194,6 +201,13 @@ def unlink_slack_team_async(**kwargs):
     client = ChatopsProxyAPIClient(settings.ONCALL_GATEWAY_URL, settings.ONCALL_GATEWAY_API_TOKEN)
     try:
         client.unlink_slack_team(service_tenant_id, slack_team_id, service_type)
+    except ChatopsProxyAPIException as api_exc:
+        if api_exc.status == 400:
+            # 409 Indicates that tenant is already deleted
+            return
+        else:
+            # Otherwise keep retrying task
+            raise api_exc
     except Exception as e:
         task_logger.error(
             f'msg="Failed to unlink slack_team: {e}" service_tenant_id={service_tenant_id} slack_team_id={slack_team_id}'
