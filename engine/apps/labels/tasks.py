@@ -124,7 +124,7 @@ def _update_labels_cache(values_id_to_pair: typing.Dict[str, LabelPair]):
         keys_to_update.add(value.key)
 
     LabelKeyCache.objects.bulk_update(keys_to_update, fields=["name", "last_synced", "prescribed"])
-    LabelKeyCache.objects.bulk_update(values, fields=["name", "last_synced", "prescribed"])
+    LabelValueCache.objects.bulk_update(values, fields=["name", "last_synced", "prescribed"])
 
 
 @shared_dedicated_queue_retry_task(
