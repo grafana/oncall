@@ -165,12 +165,12 @@ class FinishDirectPaging(scenario_step.ScenarioStep):
         # get user in the context of the selected_organization
         user = slack_user_identity.get_user(selected_organization)
         if not user_is_authorized(user, self.REQUIRED_PERMISSIONS):
-            validation_errors = _get_unauthorized_warning(error=True)
+            unauthorized_error = _get_unauthorized_warning(error=True)
             return Response(
                 {
                     "response_action": "update",
                     "view": render_dialog(
-                        slack_user_identity, slack_team_identity, payload, validation_errors=validation_errors
+                        slack_user_identity, slack_team_identity, payload, validation_errors=unauthorized_error
                     ),
                 },
                 status=200,
