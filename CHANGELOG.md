@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Quotes in templates not rendering results correctly ([#3884](https://github.com/grafana/oncall/pull/3884))
+- Unblock slack install by skipping check chatops gateway link in OSS deployment @mderynck ([#3893](https://github.com/grafana/oncall/pull/3893))
 
 ## v1.3.104 (2024-02-12)
 
