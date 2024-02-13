@@ -28,7 +28,7 @@ export class LabelStore extends BaseStore {
   public async loadKeys(search?: string) {
     const { data } = await onCallApi.GET('/labels/keys/', undefined);
 
-    data.find((label) => label.name === 'color').prescribed = true;
+    data.find((label) => label.name === 'color').prescribed = true; // TODO remove!!!
 
     const filtered = data.filter((k) => k.name.toLowerCase().includes(search.toLowerCase()));
 
@@ -51,7 +51,9 @@ export class LabelStore extends BaseStore {
       params: { search },
     });
 
-    const filteredValues = result.values.filter((v) => v.name.toLowerCase().includes(search.toLowerCase())); // TODO remove after backend search implementation
+    const filteredValues = result.values
+      .filter((v) => v.name.toLowerCase().includes(search.toLowerCase()))
+      .map((value) => ({ ...value, data: { isNonEditable: result.key.name === 'color' } })); //TODO fix result.key.prescribed === 'color'
 
     runInAction(() => {
       this.values = {
