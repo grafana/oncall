@@ -12,6 +12,7 @@ class LabelKeySerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "name",
+            "prescribed",
         )
 
 
@@ -23,6 +24,7 @@ class LabelValueSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "name",
+            "prescribed",
         )
 
 
