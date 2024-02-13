@@ -117,7 +117,7 @@ class EscalationPolicy(OrderedModel):
             "Start {{importance}} notification for schedule {{schedule}}",
             "Notify users from on-call schedule",
         ),
-        STEP_FINAL_RESOLVE: ("Resolve incident automatically", "Resolve incident automatically"),
+        STEP_FINAL_RESOLVE: ("Resolve alert group automatically", "Resolve alert group automatically"),
         # Slack
         STEP_FINAL_NOTIFYALL: ("Notify whole Slack channel", "Notify whole Slack channel"),
         STEP_NOTIFY_GROUP: (

@@ -7,9 +7,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Fixed
+
+- Quotes in templates not rendering results correctly ([#3884](https://github.com/grafana/oncall/pull/3884))
+
+## v1.3.104 (2024-02-12)
+
+### Changed
+
+- Revert requiring permission on Slack direct paging ([#3881](https://github.com/grafana/oncall/pull/3881))
+
+## v1.3.103 (2024-02-12)
+
+### Added
+
+- Improved zvonok verification call @sreway ([#3768](https://github.com/grafana/oncall/pull/3768))
+- Add permission checks for Slack paging and shift swaps actions ([#3861](https://github.com/grafana/oncall/pull/3861))
+- Include all upcoming shifts in upcoming shifts internal endpoint ([#3871](https://github.com/grafana/oncall/pull/3871))
+
 ### Changed
 
 - Allow mobile app to access escalation options endpoints @imtoori ([#3847](https://github.com/grafana/oncall/pull/3847))
+- Enable templating for alert escalation mobile app push notifications by @joeyorlando ([#3845](https://github.com/grafana/oncall/pull/3845))
+- Change email notification template to not wrap user template @mderynck ([#3862](https://github.com/grafana/oncall/pull/3862))
+- Update integration name uniqueness check to be per team ([#3863](https://github.com/grafana/oncall/pull/3863))
+
+### Fixed
+
+- Fix rounding issue with displayed time when sending "You're going oncall" push notification by @joeyorlando ([#3872](https://github.com/grafana/oncall/pull/3872))
 
 ## v1.3.102 (2024-02-06)
 

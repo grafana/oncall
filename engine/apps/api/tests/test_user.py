@@ -12,6 +12,7 @@ from rest_framework.test import APIClient
 
 from apps.api.permissions import GrafanaAPIPermission, LegacyAccessControlRole, RBACPermission
 from apps.api.serializers.user import UserHiddenFieldsSerializer
+from apps.api.views.user import UPCOMING_SHIFTS_DEFAULT_DAYS
 from apps.base.models import UserNotificationPolicy
 from apps.phone_notifications.exceptions import FailedToFinishVerification
 from apps.schedules.models import CustomOnCallShift, OnCallScheduleWeb
@@ -1918,6 +1919,9 @@ def test_upcoming_shifts_oncall(
     assert returned_data["current_shift"]["start"] == on_call_shift.start
     next_shift_start = on_call_shift.start + timezone.timedelta(days=1)
     assert returned_data["next_shift"]["start"] == next_shift_start
+    assert len(returned_data["upcoming_shifts"]) == UPCOMING_SHIFTS_DEFAULT_DAYS
+    for i, shift in enumerate(returned_data["upcoming_shifts"], start=1):
+        assert shift["start"] == on_call_shift.start + timezone.timedelta(days=i)
 
     # empty response for other user
     url = reverse("api-internal:user-upcoming-shifts", kwargs={"pk": other_user.public_primary_key})
@@ -1971,6 +1975,7 @@ def test_upcoming_shifts_override(
     assert returned_data["is_oncall"] is False
     assert returned_data["current_shift"] is None
     assert returned_data["next_shift"]["start"] == override.start
+    assert returned_data["upcoming_shifts"] == [returned_data["next_shift"]]
 
 
 @pytest.mark.django_db
@@ -2018,7 +2023,8 @@ def test_upcoming_shifts_multiple_schedules(
     client = APIClient()
     url = reverse("api-internal:user-upcoming-shifts", kwargs={"pk": admin.public_primary_key})
 
-    response = client.get(url, format="json", **make_user_auth_headers(admin, token))
+    num_days = 2
+    response = client.get(url + f"?days={num_days}", format="json", **make_user_auth_headers(admin, token))
 
     assert response.status_code == status.HTTP_200_OK
     returned_data = response.data
@@ -2029,10 +2035,16 @@ def test_upcoming_shifts_multiple_schedules(
             assert returned_data[i]["is_oncall"]
             assert returned_data[i]["current_shift"]["start"] == expected_start
             assert returned_data[i]["next_shift"]["start"] == expected_start + timezone.timedelta(days=1)
+            assert len(returned_data[i]["upcoming_shifts"]) == 2
+            for delta, shift in enumerate(returned_data[i]["upcoming_shifts"], start=1):
+                assert shift["start"] == expected_start + timezone.timedelta(days=delta)
         else:
             assert returned_data[i]["is_oncall"] is False
             assert returned_data[i]["current_shift"] is None
             assert returned_data[i]["next_shift"]["start"] == expected_start
+            assert len(returned_data[i]["upcoming_shifts"]) == num_days - i + 1
+            for delta, shift in enumerate(returned_data[i]["upcoming_shifts"], start=0):
+                assert shift["start"] == expected_start + timezone.timedelta(days=delta)
 
 
 @pytest.mark.django_db

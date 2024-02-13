@@ -287,6 +287,27 @@ class AlertReceiveChannelSerializer(
         ]
         extra_kwargs = {"integration": {"required": True}}
 
+    def validate(self, data):
+        validated_data = super().validate(data)
+        organization = self.context["request"].auth.organization
+        verbal_name = validated_data.get("verbal_name")
+        team = validated_data.get("team")
+        try:
+            obj = AlertReceiveChannel.objects.get(organization=organization, team=team, verbal_name=verbal_name)
+        except AlertReceiveChannel.DoesNotExist:
+            pass
+        except AlertReceiveChannel.MultipleObjectsReturned:
+            raise serializers.ValidationError(
+                {"verbal_name": "An integration with this name already exists for this team"}
+            )
+        else:
+            if self.instance is None or obj.id != self.instance.id:
+                raise serializers.ValidationError(
+                    {"verbal_name": "An integration with this name already exists for this team"}
+                )
+
+        return validated_data
+
     def create(self, validated_data):
         organization = self.context["request"].auth.organization
         integration = validated_data.get("integration")
@@ -355,19 +376,6 @@ class AlertReceiveChannelSerializer(
             raise BadRequest(detail="Direct paging integrations can't be created")
 
         return integration
-
-    def validate_verbal_name(self, verbal_name):
-        organization = self.context["request"].auth.organization
-        if verbal_name is None or (self.instance and verbal_name == self.instance.verbal_name):
-            return verbal_name
-        try:
-            obj = AlertReceiveChannel.objects.get(organization=organization, verbal_name=verbal_name)
-        except AlertReceiveChannel.DoesNotExist:
-            return verbal_name
-        if self.instance and obj.id == self.instance.id:
-            return verbal_name
-        else:
-            raise serializers.ValidationError(detail="Integration with this name already exists")
 
     def get_allow_delete(self, obj: "AlertReceiveChannel") -> bool:
         # don't allow deleting direct paging integrations
@@ -563,7 +571,7 @@ class AlertReceiveChannelTemplatesSerializer(EagerLoadingMixin, serializers.Mode
                 is_default = False
                 if obj.messaging_backends_templates:
                     value = obj.messaging_backends_templates.get(backend_id, {}).get(field)
-                if not value:
+                if not value and not backend.skip_default_template_fields:
                     value = obj.get_default_template_attribute(backend_id, field)
                     is_default = True
                 field_name = f"{backend.slug}_{field}_template"
