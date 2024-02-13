@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## v1.3.105 (2024-02-13)
+
 ### Fixed
 
 - Quotes in templates not rendering results correctly ([#3884](https://github.com/grafana/oncall/pull/3884))
