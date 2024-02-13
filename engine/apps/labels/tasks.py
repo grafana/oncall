@@ -110,16 +110,12 @@ def _update_labels_cache(values_id_to_pair: typing.Dict[str, LabelPair]):
     keys_to_update = set()
 
     for value in values:
-        if value.name != values_id_to_pair[value.id]["value"]["name"]:
-            value.name = values_id_to_pair[value.id]["value"]["name"]
-        if value.prescribed != values_id_to_pair[value.id]["value"]["prescribed"]:
-            value.prescribed = values_id_to_pair[value.id]["value"]["prescribed"]
+        value.name = values_id_to_pair[value.id]["value"]["name"]
+        value.prescribed = values_id_to_pair[value.id]["value"]["prescribed"]
         value.last_synced = now
 
-        if value.key.name != values_id_to_pair[value.id]["key"]["name"]:
-            value.key.name = values_id_to_pair[value.id]["key"]["name"]
-        if value.key.prescribed != values_id_to_pair[value.id]["key"]["prescribed"]:
-            value.key.prescribed = values_id_to_pair[value.id]["key"]["prescribed"]
+        value.key.name = values_id_to_pair[value.id]["key"]["name"]
+        value.key.prescribed = values_id_to_pair[value.id]["key"]["prescribed"]
         value.key.last_synced = now
         keys_to_update.add(value.key)
 
