@@ -5,7 +5,7 @@ import cn from 'classnames/bind';
 import { isArray, isUndefined } from 'lodash-es';
 import { observer } from 'mobx-react';
 
-import Text from 'components/Text/Text';
+import { Text } from 'components/Text/Text';
 
 import styles from './IntegrationCollapsibleTreeView.module.scss';
 
@@ -31,7 +31,7 @@ interface IntegrationCollapsibleTreeViewProps {
   configElements: Array<IntegrationCollapsibleItem | IntegrationCollapsibleItem[]>;
 }
 
-const IntegrationCollapsibleTreeView: React.FC<IntegrationCollapsibleTreeViewProps> = observer((props) => {
+export const IntegrationCollapsibleTreeView: React.FC<IntegrationCollapsibleTreeViewProps> = observer((props) => {
   const { configElements, isRouteView } = props;
 
   const [expandedList, setExpandedList] = useState(getStartingExpandedState());
@@ -159,5 +159,3 @@ const IntegrationCollapsibleTreeItem: React.FC<{
     return isExpanded ? 'angle-down' : 'angle-right';
   }
 };
-
-export default IntegrationCollapsibleTreeView;

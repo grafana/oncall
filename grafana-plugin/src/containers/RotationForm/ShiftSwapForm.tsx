@@ -5,19 +5,19 @@ import cn from 'classnames/bind';
 import dayjs from 'dayjs';
 import Draggable from 'react-draggable';
 
-import Modal from 'components/Modal/Modal';
-import Tag from 'components/Tag/Tag';
-import Text from 'components/Text/Text';
-import WithConfirm from 'components/WithConfirm/WithConfirm';
+import { Modal } from 'components/Modal/Modal';
+import { Tag } from 'components/Tag/Tag';
+import { Text } from 'components/Text/Text';
+import { WithConfirm } from 'components/WithConfirm/WithConfirm';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { SHIFT_SWAP_COLOR } from 'models/schedule/schedule.helpers';
 import { Schedule, ShiftSwap } from 'models/schedule/schedule.types';
 import { getUTCString } from 'pages/schedule/Schedule.helpers';
 import { useStore } from 'state/useStore';
-import { UserActions } from 'utils/authorization';
+import { UserActions } from 'utils/authorization/authorization';
 
-import DateTimePicker from './parts/DateTimePicker';
-import UserItem from './parts/UserItem';
+import { DateTimePicker } from './parts/DateTimePicker';
+import { UserItem } from './parts/UserItem';
 
 import styles from './RotationForm.module.css';
 
@@ -31,7 +31,7 @@ interface ShiftSwapFormProps {
   onHide: () => void;
 }
 
-const ShiftSwapForm = (props: ShiftSwapFormProps) => {
+export const ShiftSwapForm = (props: ShiftSwapFormProps) => {
   const { onUpdate, onHide, id, scheduleId, params: defaultParams } = props;
 
   const [shiftSwap, setShiftSwap] = useState({ ...defaultParams });
@@ -229,5 +229,3 @@ const ShiftSwapForm = (props: ShiftSwapFormProps) => {
     </Modal>
   );
 };
-
-export default ShiftSwapForm;

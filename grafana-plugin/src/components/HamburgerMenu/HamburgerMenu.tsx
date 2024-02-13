@@ -16,7 +16,7 @@ interface HamburgerMenuProps {
 
 const cx = cn.bind(styles);
 
-const HamburgerMenu: React.FC<HamburgerMenuProps> = (props) => {
+export const HamburgerMenu: React.FC<HamburgerMenuProps> = (props) => {
   const ref = useRef<HTMLDivElement>();
   const { openMenu, listBorder, listWidth, withBackground, className, stopPropagation = false } = props;
   return (
@@ -40,5 +40,3 @@ const HamburgerMenu: React.FC<HamburgerMenuProps> = (props) => {
     </div>
   );
 };
-
-export default HamburgerMenu;

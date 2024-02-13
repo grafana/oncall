@@ -3,9 +3,9 @@ import React from 'react';
 import { Button, InlineLabel, LoadingPlaceholder } from '@grafana/ui';
 import cn from 'classnames/bind';
 
-import WithConfirm from 'components/WithConfirm/WithConfirm';
+import { WithConfirm } from 'components/WithConfirm/WithConfirm';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
-import { UserActions } from 'utils/authorization';
+import { UserActions } from 'utils/authorization/authorization';
 
 import styles from './IntegrationTemplateBlock.module.scss';
 
@@ -25,7 +25,7 @@ interface IntegrationTemplateBlockProps {
   onHelp?: () => void;
 }
 
-const IntegrationTemplateBlock: React.FC<IntegrationTemplateBlockProps> = ({
+export const IntegrationTemplateBlock: React.FC<IntegrationTemplateBlockProps> = ({
   label,
   labelTooltip,
   isTemplateEditable,
@@ -78,5 +78,3 @@ const IntegrationTemplateBlock: React.FC<IntegrationTemplateBlockProps> = ({
     </div>
   );
 };
-
-export default IntegrationTemplateBlock;

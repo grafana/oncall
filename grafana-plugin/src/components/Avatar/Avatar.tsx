@@ -12,7 +12,7 @@ interface AvatarProps {
 
 const cx = cn.bind(styles);
 
-const Avatar: FC<AvatarProps> = (props) => {
+export const Avatar: FC<AvatarProps> = (props) => {
   const { src, size, className, ...rest } = props;
 
   if (!src) {
@@ -21,5 +21,3 @@ const Avatar: FC<AvatarProps> = (props) => {
 
   return <img src={src} className={cx('root', `avatarSize-${size}`, className)} data-testid="test__avatar" {...rest} />;
 };
-
-export default Avatar;

@@ -5,12 +5,12 @@ import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 import CopyToClipboard from 'react-copy-to-clipboard';
 
-import Block from 'components/GBlock/Block';
-import PluginLink from 'components/PluginLink/PluginLink';
-import Text from 'components/Text/Text';
+import { Block } from 'components/GBlock/Block';
+import { PluginLink } from 'components/PluginLink/PluginLink';
+import { Text } from 'components/Text/Text';
 import MSTeamsLogo from 'icons/MSTeamsLogo';
 import { useStore } from 'state/useStore';
-import { openNotification, openWarningNotification } from 'utils';
+import { openNotification, openWarningNotification } from 'utils/utils';
 
 import styles from './MSTeamsInstructions.module.css';
 
@@ -24,7 +24,7 @@ interface MSTeamsInstructionsProps {
 
 const cx = cn.bind(styles);
 
-const MSTeamsInstructions: FC<MSTeamsInstructionsProps> = observer((props) => {
+export const MSTeamsInstructions: FC<MSTeamsInstructionsProps> = observer((props) => {
   const { onCallisAdded, showInfoBox, personalSettings, onHide = () => {}, verificationCode } = props;
   const { msteamsChannelStore } = useStore();
 
@@ -129,5 +129,3 @@ const MSTeamsInstructions: FC<MSTeamsInstructionsProps> = observer((props) => {
     </VerticalGroup>
   );
 });
-
-export default MSTeamsInstructions;

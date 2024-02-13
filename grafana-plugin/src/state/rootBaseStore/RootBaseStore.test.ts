@@ -2,13 +2,13 @@ import { OrgRole } from '@grafana/data';
 import { contextSrv } from 'grafana/app/core/core';
 import { OnCallAppPluginMeta } from 'types';
 
-import PluginState from 'state/plugin';
-import { isUserActionAllowed as isUserActionAllowedOriginal } from 'utils/authorization';
+import { PluginState } from 'state/plugin/plugin';
+import { isUserActionAllowed as isUserActionAllowedOriginal } from 'utils/authorization/authorization';
 
-import { RootBaseStore } from './';
+import { RootBaseStore } from './RootBaseStore';
 
-jest.mock('state/plugin');
-jest.mock('utils/authorization');
+jest.mock('state/plugin/plugin');
+jest.mock('utils/authorization/authorization');
 jest.mock('grafana/app/core/core', () => ({
   contextSrv: {
     user: {
