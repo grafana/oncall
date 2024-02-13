@@ -54,13 +54,7 @@ import { TeamName } from 'containers/TeamName/TeamName';
 import { UserDisplayWithAvatar } from 'containers/UserDisplay/UserDisplayWithAvatar';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { HeartIcon, HeartRedIcon } from 'icons/Icons';
-import {
-  createChannelFilter,
-  deleteAlertReceiveChannel,
-  getIntegration,
-  migrateChannel,
-  stopMaintenanceMode,
-} from 'models/alert_receive_channel/alert_receive_channel.helpers';
+import { AlertReceiveChannelHelper } from 'models/alert_receive_channel/alert_receive_channel.helpers';
 import { AlertReceiveChannelCounters } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { AlertTemplatesDTO } from 'models/alert_templates/alert_templates';
 import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
@@ -159,7 +153,7 @@ class _IntegrationPage extends React.Component<IntegrationProps, IntegrationStat
       );
     }
 
-    const integration = getIntegration(alertReceiveChannelStore, alertReceiveChannel);
+    const integration = AlertReceiveChannelHelper.getIntegration(alertReceiveChannelStore, alertReceiveChannel);
     const alertReceiveChannelCounter = alertReceiveChannelStore.counters[id];
     const isLegacyIntegration = integration && (integration?.value as string).toLowerCase().startsWith('legacy_');
     const contactPoints = alertReceiveChannelStore.connectedContactPoints?.[alertReceiveChannel.id];
@@ -588,7 +582,7 @@ class _IntegrationPage extends React.Component<IntegrationProps, IntegrationStat
         isAddingRoute: true,
       },
       () => {
-        createChannelFilter({
+        AlertReceiveChannelHelper.createChannelFilter({
           alert_receive_channel: id,
           filtering_term: NEW_ROUTE_DEFAULT,
           filtering_term_type: 1, // non-regex
@@ -758,7 +752,9 @@ class _IntegrationPage extends React.Component<IntegrationProps, IntegrationStat
   };
 
   onRemovalFn = (id: ApiSchemas['AlertReceiveChannel']['id']) => {
-    deleteAlertReceiveChannel(id).then(() => this.props.history.push(`${PLUGIN_ROOT}/integrations/`));
+    AlertReceiveChannelHelper.deleteAlertReceiveChannel(id).then(() =>
+      this.props.history.push(`${PLUGIN_ROOT}/integrations/`)
+    );
   };
 
   async loadData() {
@@ -1105,7 +1101,7 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
   }
 
   function onIntegrationMigrate() {
-    migrateChannel(alertReceiveChannel.id)
+    AlertReceiveChannelHelper.migrateChannel(alertReceiveChannel.id)
       .then(() => {
         setConfirmModal(undefined);
         openNotification('Integration has been successfully migrated.');
@@ -1124,7 +1120,7 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
   }
 
   function deleteIntegration() {
-    deleteAlertReceiveChannel['AlertReceiveChannel'](alertReceiveChannel.id)
+    AlertReceiveChannelHelper.deleteAlertReceiveChannel['AlertReceiveChannel'](alertReceiveChannel.id)
       .then(() => history.push(`${PLUGIN_ROOT}/integrations`))
       .then(() => openNotification('Integration has been succesfully deleted.'))
       .catch(() => openErrorNotification('An error has occurred. Please try again.'));
@@ -1145,7 +1141,7 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
   async function onStopMaintenance() {
     setConfirmModal(undefined);
 
-    await stopMaintenanceMode(id);
+    await AlertReceiveChannelHelper.stopMaintenanceMode(id);
 
     openNotification('Maintenance has been stopped');
     await alertReceiveChannelStore.fetchItemById(id);

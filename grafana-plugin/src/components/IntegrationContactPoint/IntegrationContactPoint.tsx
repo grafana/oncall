@@ -16,18 +16,12 @@ import {
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
-
 import { GTable } from 'components/GTable/GTable';
 import { IntegrationBlock } from 'components/Integrations/IntegrationBlock';
 import { Tag } from 'components/Tag/Tag';
 import { Text } from 'components/Text/Text';
 import { WithConfirm } from 'components/WithConfirm/WithConfirm';
-import {
-  connectContactPoint,
-  createContactPoint,
-  disconnectContactPoint,
-  getGrafanaAlertingContactPoints,
-} from 'models/alert_receive_channel/alert_receive_channel.helpers';
+import { AlertReceiveChannelHelper } from 'models/alert_receive_channel/alert_receive_channel.helpers';
 import { ContactPoint } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import styles from 'pages/integration/Integration.module.scss';
@@ -92,7 +86,7 @@ export const IntegrationContactPoint: React.FC<{
 
   useEffect(() => {
     (async function () {
-      const response = await getGrafanaAlertingContactPoints();
+      const response = await AlertReceiveChannelHelper.getGrafanaAlertingContactPoints();
       setState({
         allContactPoints: response,
         dataSourceOptions: response.map((res) => ({ label: res.name, value: res.uid })),
@@ -289,7 +283,7 @@ export const IntegrationContactPoint: React.FC<{
             aria-label="Disconnect Contact Point"
             name="trash-alt"
             onClick={() => {
-              disconnectContactPoint(id, item.dataSourceId, item.contactPoint)
+              AlertReceiveChannelHelper.disconnectContactPoint(id, item.dataSourceId, item.contactPoint)
                 .then(() => {
                   closeDrawer();
                   openNotification('Contact point has been removed');
@@ -345,8 +339,8 @@ export const IntegrationContactPoint: React.FC<{
     setState({ isLoading: true });
 
     (isExistingContactPoint
-      ? connectContactPoint(id, selectedAlertManager, selectedContactPoint)
-      : createContactPoint(id, selectedAlertManager, selectedContactPoint)
+      ? AlertReceiveChannelHelper.connectContactPoint(id, selectedAlertManager, selectedContactPoint)
+      : AlertReceiveChannelHelper.createContactPoint(id, selectedAlertManager, selectedContactPoint)
     )
       .then(() => {
         closeDrawer();

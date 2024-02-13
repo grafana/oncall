@@ -5,7 +5,7 @@ import Emoji from 'react-emoji-render';
 
 import { FormItem, FormItemType } from 'components/GForm/GForm.types';
 import { AlertReceiveChannelStore } from 'models/alert_receive_channel/alert_receive_channel';
-import { getSearchResult } from 'models/alert_receive_channel/alert_receive_channel.helpers';
+import { AlertReceiveChannelHelper } from 'models/alert_receive_channel/alert_receive_channel.helpers';
 import { GrafanaTeamStore } from 'models/grafana_team/grafana_team';
 import { OutgoingWebhookPreset } from 'models/outgoing_webhook/outgoing_webhook.types';
 import { generateAssignToTeamInputDescription } from 'utils/consts';
@@ -163,7 +163,7 @@ export function createForm({
           items: alertReceiveChannelStore.items,
           fetchItemsFn: alertReceiveChannelStore.fetchItems,
           fetchItemFn: alertReceiveChannelStore.fetchItemById,
-          getSearchResult: () => getSearchResult(alertReceiveChannelStore),
+          getSearchResult: () => AlertReceiveChannelHelper.getSearchResult(alertReceiveChannelStore),
           displayField: 'verbal_name',
           valueField: 'id',
           showSearch: true,

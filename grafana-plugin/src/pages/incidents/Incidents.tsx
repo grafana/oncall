@@ -27,7 +27,7 @@ import { IncidentsFiltersType } from 'containers/IncidentsFilters/IncidentFilter
 import { RemoteFilters } from 'containers/RemoteFilters/RemoteFilters';
 import { TeamName } from 'containers/TeamName/TeamName';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
-import { getIntegration } from 'models/alert_receive_channel/alert_receive_channel.helpers';
+import { AlertReceiveChannelHelper } from 'models/alert_receive_channel/alert_receive_channel.helpers';
 import {
   Alert,
   Alert as AlertType,
@@ -614,7 +614,10 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
     const {
       store: { alertReceiveChannelStore },
     } = this.props;
-    const integration = getIntegration(alertReceiveChannelStore, record.alert_receive_channel);
+    const integration = AlertReceiveChannelHelper.getIntegration(
+      alertReceiveChannelStore,
+      record.alert_receive_channel
+    );
 
     return (
       <TextEllipsisTooltip

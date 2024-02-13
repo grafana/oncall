@@ -7,7 +7,7 @@ import { observer } from 'mobx-react';
 
 import { GForm } from 'components/GForm/GForm';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
-import { startMaintenanceMode } from 'models/alert_receive_channel/alert_receive_channel.helpers';
+import { AlertReceiveChannelHelper } from 'models/alert_receive_channel/alert_receive_channel.helpers';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
 import { UserActions } from 'utils/authorization/authorization';
@@ -36,7 +36,11 @@ export const MaintenanceForm = observer((props: MaintenanceFormProps) => {
 
   const handleSubmit = useCallback(async (data) => {
     try {
-      await startMaintenanceMode(initialData.alert_receive_channel_id, data.mode, data.duration);
+      await AlertReceiveChannelHelper.startMaintenanceMode(
+        initialData.alert_receive_channel_id,
+        data.mode,
+        data.duration
+      );
       onHide();
       onUpdate();
       openNotification('Maintenance has been started');

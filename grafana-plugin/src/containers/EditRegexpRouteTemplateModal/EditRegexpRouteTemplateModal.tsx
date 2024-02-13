@@ -9,7 +9,7 @@ import { TemplateForEdit } from 'components/AlertTemplates/CommonAlertTemplatesF
 import { Block } from 'components/GBlock/Block';
 import { MonacoEditor } from 'components/MonacoEditor/MonacoEditor';
 import { Text } from 'components/Text/Text';
-import { convertRegexpTemplateToJinja2Template } from 'models/alert_receive_channel/alert_receive_channel.helpers';
+import { AlertReceiveChannelHelper } from 'models/alert_receive_channel/alert_receive_channel.helpers';
 import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
@@ -60,7 +60,7 @@ export const EditRegexpRouteTemplateModal = observer((props: EditRegexpRouteTemp
   }, [regexpTemplateBody]);
 
   const handleConvertToJinja2 = useCallback(() => {
-    convertRegexpTemplateToJinja2Template(channelFilterId).then((response) => {
+    AlertReceiveChannelHelper.convertRegexpTemplateToJinja2Template(channelFilterId).then((response) => {
       alertReceiveChannelStore
         .saveChannelFilter(channelFilterId, {
           filtering_term: response?.filtering_term_as_jinja2,

@@ -26,11 +26,7 @@ import { PluginLink } from 'components/PluginLink/PluginLink';
 import { Text } from 'components/Text/Text';
 import { Labels } from 'containers/Labels/Labels';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
-import {
-  connectContactPoint,
-  createContactPoint,
-  getGrafanaAlertingContactPoints,
-} from 'models/alert_receive_channel/alert_receive_channel.helpers';
+import { AlertReceiveChannelHelper } from 'models/alert_receive_channel/alert_receive_channel.helpers';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { IntegrationHelper } from 'pages/integration/Integration.helper';
 import { AppFeature } from 'state/features';
@@ -77,7 +73,7 @@ export const IntegrationForm = observer((props: IntegrationFormProps) => {
 
   useEffect(() => {
     (async function () {
-      setAllContactPoints(await getGrafanaAlertingContactPoints());
+      setAllContactPoints(await AlertReceiveChannelHelper.getGrafanaAlertingContactPoints());
     })();
   }, []);
 
@@ -245,11 +241,9 @@ export const IntegrationForm = observer((props: IntegrationFormProps) => {
         pushHistory(response.id);
       }
 
-      await (data.is_existing ? connectContactPoint : createContactPoint)(
-        response.id,
-        data.alert_manager,
-        data.contact_point
-      );
+      await (data.is_existing
+        ? AlertReceiveChannelHelper.connectContactPoint
+        : AlertReceiveChannelHelper.createContactPoint)(response.id, data.alert_manager, data.contact_point);
 
       pushHistory(response.id);
     }
@@ -325,7 +319,7 @@ const CustomFieldSectionRenderer: React.FC<CustomFieldSectionRendererProps> = ({
 
   useEffect(() => {
     (async function () {
-      const response = await getGrafanaAlertingContactPoints();
+      const response = await AlertReceiveChannelHelper.getGrafanaAlertingContactPoints();
       setState({
         allContactPoints: response,
         dataSources: response.map((res) => ({ label: res.name, value: res.uid })),

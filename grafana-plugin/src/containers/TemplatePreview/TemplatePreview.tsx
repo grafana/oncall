@@ -5,7 +5,7 @@ import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
 import { Text } from 'components/Text/Text';
-import { renderPreview } from 'models/alert_receive_channel/alert_receive_channel.helpers';
+import { AlertReceiveChannelHelper } from 'models/alert_receive_channel/alert_receive_channel.helpers';
 import { Alert } from 'models/alertgroup/alertgroup.types';
 import { OutgoingWebhook } from 'models/outgoing_webhook/outgoing_webhook.types';
 import { ApiSchemas } from 'network/oncall-api/api.types';
@@ -66,7 +66,7 @@ export const TemplatePreview = observer((props: TemplatePreviewProps) => {
       ? outgoingWebhookStore.renderPreview(outgoingWebhookId, templateName, templateBody, payload)
       : alertGroupId
       ? alertGroupStore.renderPreview(alertGroupId, templateName, templateBody)
-      : renderPreview(alertReceiveChannelId, templateName, templateBody, payload)
+      : AlertReceiveChannelHelper.renderPreview(alertReceiveChannelId, templateName, templateBody, payload)
     )
       .then((data) => {
         setResult(data);
