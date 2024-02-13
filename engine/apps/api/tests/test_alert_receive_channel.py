@@ -1445,7 +1445,7 @@ def test_update_alert_receive_channel_presribed_labels(
 
     # Check if cached labels are prescribed
     assert label.key.prescribed is True
-    assert label.value.prescrbied is True
+    assert label.value.prescribed is True
 
     response = client.patch(
         url,
