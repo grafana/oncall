@@ -12,6 +12,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix edit default team by admin @mderynck ([#3885](https://github.com/grafana/oncall/pull/3885))
 - Unblock slack install by skipping check chatops gateway link in OSS deployment @mderynck ([#3893](https://github.com/grafana/oncall/pull/3893))
 
+### Changed
+
+- Check for permissions on Slack escalate command ([#3891](https://github.com/grafana/oncall/pull/3891))
+
 ## v1.3.105 (2024-02-13)
 
 ### Fixed
