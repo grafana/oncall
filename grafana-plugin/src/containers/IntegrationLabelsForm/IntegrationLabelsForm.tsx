@@ -1,6 +1,5 @@
-import React, { ChangeEvent, useCallback, useState } from 'react';
+import React, { ChangeEvent, useState } from 'react';
 
-import { ServiceLabels } from '@grafana/labels';
 import {
   Alert,
   Button,
@@ -19,6 +18,7 @@ import Collapse from 'components/Collapse/Collapse';
 import MonacoEditor, { MONACO_LANGUAGE } from 'components/MonacoEditor/MonacoEditor';
 import PluginLink from 'components/PluginLink/PluginLink';
 import RenderConditionally from 'components/RenderConditionally/RenderConditionally';
+import { ServiceLabels } from 'components/ServiceLabels/ServiceLabels';
 import Text from 'components/Text/Text';
 import IntegrationTemplate from 'containers/IntegrationTemplate/IntegrationTemplate';
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
@@ -281,36 +281,30 @@ const CustomLabels = (props: CustomLabelsProps) => {
     });
   };
 
-  const cachedOnLoadKeys = useCallback(() => {
+  const onLoadKeys = async (search?: string) => {
     let result = undefined;
-    return async (search?: string) => {
-      if (!result) {
-        try {
-          result = await labelsStore.loadKeys();
-        } catch (error) {
-          openErrorNotification('There was an error processing your request. Please try again');
-        }
-      }
 
-      return result.filter((k) => k.name.toLowerCase().includes(search.toLowerCase()));
-    };
-  }, []);
+    try {
+      result = await labelsStore.loadKeys(search);
+    } catch (error) {
+      openErrorNotification('There was an error processing your request. Please try again');
+    }
 
-  const cachedOnLoadValuesForKey = useCallback(() => {
+    return result;
+  };
+
+  const onLoadValuesForKey = async (key: string, search?: string) => {
     let result = undefined;
-    return async (key: string, search?: string) => {
-      if (!result) {
-        try {
-          const { values } = await labelsStore.loadValuesForKey(key, search);
-          result = values;
-        } catch (error) {
-          openErrorNotification('There was an error processing your request. Please try again');
-        }
-      }
 
-      return result.filter((k) => k.name.toLowerCase().includes(search.toLowerCase()));
-    };
-  }, []);
+    try {
+      const { values } = await labelsStore.loadValuesForKey(key, search);
+      result = values;
+    } catch (error) {
+      openErrorNotification('There was an error processing your request. Please try again');
+    }
+
+    return result.filter((k) => k.name.toLowerCase().includes(search.toLowerCase()));
+  };
 
   return (
     <VerticalGroup>
@@ -328,8 +322,8 @@ const CustomLabels = (props: CustomLabelsProps) => {
         inputWidth={INPUT_WIDTH}
         errors={customLabelsErrors}
         value={alertGroupLabels.custom}
-        onLoadKeys={cachedOnLoadKeys()}
-        onLoadValuesForKey={cachedOnLoadValuesForKey()}
+        onLoadKeys={onLoadKeys}
+        onLoadValuesForKey={onLoadValuesForKey}
         onCreateKey={labelsStore.createKey}
         onUpdateKey={labelsStore.updateKey}
         onCreateValue={labelsStore.createValue}
