@@ -16,32 +16,6 @@ LABEL_OUTDATED_TIMEOUT_MINUTES = 30
 ASSOCIATED_MODEL_NAME = "AssociatedLabel"
 
 
-# LabelKey represents label key from label repo
-class LabelKey(typing.TypedDict):
-    id: str
-    name: str
-    prescribed: bool
-
-
-# LabelValue represents one of the values associated with the LabelKey from label repo
-class LabelValue(typing.TypedDict):
-    id: str
-    name: str
-    prescribed: bool
-
-
-# Label Pair is a KV pair identifying one label.
-class LabelPair(typing.TypedDict):
-    key: LabelKey
-    value: LabelValue
-
-
-# LabelOption represents key and array of available values
-class LabelOption(typing.TypedDict):
-    key: LabelKey
-    values: typing.List[LabelValue]
-
-
 def get_associating_label_model(obj_model_name: str) -> typing.Type["AssociatedLabel"]:
     associating_label_model_name = obj_model_name + ASSOCIATED_MODEL_NAME
     label_model = apps.get_model("labels", associating_label_model_name)

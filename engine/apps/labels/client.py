@@ -5,7 +5,7 @@ import requests
 from django.conf import settings
 
 if typing.TYPE_CHECKING:
-    from apps.labels.utils import LabelKey, LabelOption, LabelValue
+    from apps.labels.types import LabelKey, LabelOption, LabelValue
 
 
 class LabelUpdateParam(typing.TypedDict):

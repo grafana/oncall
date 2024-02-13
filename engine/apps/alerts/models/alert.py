@@ -15,7 +15,7 @@ from apps.alerts.incident_appearance.templaters import TemplateLoader
 from apps.alerts.signals import alert_group_escalation_snapshot_built
 from apps.alerts.tasks.distribute_alert import send_alert_create_signal
 from apps.labels.alert_group_labels import assign_labels, gather_labels_from_alert_receive_channel_and_raw_request_data
-from apps.labels.types import Labels
+from apps.labels.types import AlertLabels
 from common.jinja_templater import apply_jinja_template_to_alert_payload_and_labels
 from common.jinja_templater.apply_jinja_template import (
     JinjaTemplateError,
@@ -221,7 +221,7 @@ class Alert(models.Model):
         template_name: str,
         alert_receive_channel: "AlertReceiveChannel",
         raw_request_data: RawRequestData,
-        labels: typing.Optional[Labels],
+        labels: typing.Optional[AlertLabels],
         use_error_msg_as_fallback=False,
         check_if_templated_value_is_truthy=False,
     ) -> typing.Union[str, None, bool]:
@@ -246,7 +246,7 @@ class Alert(models.Model):
         cls,
         alert_receive_channel: "AlertReceiveChannel",
         raw_request_data: RawRequestData,
-        labels: typing.Optional[Labels],
+        labels: typing.Optional[AlertLabels],
         is_demo=False,
     ) -> "AlertGroup.GroupData":
         from apps.alerts.models import AlertGroup
