@@ -239,7 +239,7 @@ def clean_markup(text):
 
 
 def escape_html(text):
-    return html.escape(text)
+    return html.escape(text, quote=False)
 
 
 def urlize_with_respect_to_a(html):
