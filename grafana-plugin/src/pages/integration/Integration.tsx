@@ -1120,7 +1120,7 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
   }
 
   function deleteIntegration() {
-    AlertReceiveChannelHelper.deleteAlertReceiveChannel['AlertReceiveChannel'](alertReceiveChannel.id)
+    AlertReceiveChannelHelper.deleteAlertReceiveChannel(alertReceiveChannel.id)
       .then(() => history.push(`${PLUGIN_ROOT}/integrations`))
       .then(() => openNotification('Integration has been succesfully deleted.'))
       .catch(() => openErrorNotification('An error has occurred. Please try again.'));
