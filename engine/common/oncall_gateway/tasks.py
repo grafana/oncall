@@ -203,7 +203,7 @@ def unlink_slack_team_async(**kwargs):
         client.unlink_slack_team(service_tenant_id, slack_team_id, service_type)
     except ChatopsProxyAPIException as api_exc:
         if api_exc.status == 400:
-            # 409 Indicates that tenant is already deleted
+            # 400 Indicates that tenant is already deleted
             return
         else:
             # Otherwise keep retrying task
