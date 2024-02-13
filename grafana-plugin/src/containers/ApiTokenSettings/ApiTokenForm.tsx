@@ -6,10 +6,10 @@ import { get } from 'lodash-es';
 import { observer } from 'mobx-react';
 import CopyToClipboard from 'react-copy-to-clipboard';
 
-import SourceCode from 'components/SourceCode/SourceCode';
+import { SourceCode } from 'components/SourceCode/SourceCode';
 import { ApiToken } from 'models/api_token/api_token.types';
 import { useStore } from 'state/useStore';
-import { openErrorNotification, openNotification } from 'utils';
+import { openErrorNotification, openNotification } from 'utils/utils';
 
 import styles from './ApiTokenForm.module.css';
 
@@ -21,7 +21,7 @@ interface TokenCreationModalProps extends HTMLAttributes<HTMLElement> {
   onUpdate: () => void;
 }
 
-const ApiTokenForm = observer((props: TokenCreationModalProps) => {
+export const ApiTokenForm = observer((props: TokenCreationModalProps) => {
   const { onHide = () => {}, onUpdate = () => {} } = props;
   const [name, setName] = useState('');
   const [token, setToken] = useState('');
@@ -108,5 +108,3 @@ const ApiTokenForm = observer((props: TokenCreationModalProps) => {
 function getCurlExample(token, onCallApiUrl) {
   return `curl -H "Authorization: ${token}" ${onCallApiUrl}/api/v1/integrations`;
 }
-
-export default ApiTokenForm;

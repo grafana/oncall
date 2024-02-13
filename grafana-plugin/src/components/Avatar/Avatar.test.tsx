@@ -2,7 +2,7 @@ import React from 'react';
 
 import { render, screen } from '@testing-library/react';
 
-import Avatar from 'components/Avatar/Avatar';
+import { Avatar } from 'components/Avatar/Avatar';
 
 describe('Avatar', () => {
   const avatarSrc = 'http://avatar.com/';

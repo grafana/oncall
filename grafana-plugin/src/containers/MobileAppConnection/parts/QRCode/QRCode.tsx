@@ -2,14 +2,14 @@ import React, { FC } from 'react';
 
 import { QRCodeSVG } from 'qrcode.react';
 
-import Block from 'components/GBlock/Block';
+import { Block } from 'components/GBlock/Block';
 
 type Props = {
   value: string;
   className?: string;
 };
 
-const QRCode: FC<Props> = (props: Props) => {
+export const QRCode: FC<Props> = (props: Props) => {
   const { value, className = '' } = props;
 
   return (
@@ -18,5 +18,3 @@ const QRCode: FC<Props> = (props: Props) => {
     </Block>
   );
 };
-
-export default QRCode;

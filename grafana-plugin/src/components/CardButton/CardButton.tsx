@@ -3,8 +3,8 @@ import React, { FC } from 'react';
 import { VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 
-import Block from 'components/GBlock/Block';
-import Text from 'components/Text/Text';
+import { Block } from 'components/GBlock/Block';
+import { Text } from 'components/Text/Text';
 
 import styles from './CardButton.module.css';
 
@@ -18,7 +18,7 @@ interface CardButtonProps {
 
 const cx = cn.bind(styles);
 
-const CardButton: FC<CardButtonProps> = (props) => {
+export const CardButton: FC<CardButtonProps> = (props) => {
   const { icon, description, title, selected, onClick } = props;
 
   return (
@@ -42,5 +42,3 @@ const CardButton: FC<CardButtonProps> = (props) => {
     </Block>
   );
 };
-
-export default CardButton;

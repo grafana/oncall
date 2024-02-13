@@ -32,7 +32,7 @@ export interface Props<RecordType = unknown> extends TableProps<RecordType> {
   showHeader?: boolean;
 }
 
-const GTable = <RT extends DefaultRecordType = DefaultRecordType>(props: Props<RT>): ReactElement => {
+export const GTable = <RT extends DefaultRecordType = DefaultRecordType>(props: Props<RT>): ReactElement => {
   const {
     columns: columnsProp,
     data,
@@ -157,5 +157,3 @@ const GTable = <RT extends DefaultRecordType = DefaultRecordType>(props: Props<R
     </div>
   );
 };
-
-export default GTable;

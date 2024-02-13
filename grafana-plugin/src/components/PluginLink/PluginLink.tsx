@@ -19,7 +19,7 @@ interface PluginLinkProps {
 
 const cx = cn.bind(styles);
 
-const PluginLink: FC<PluginLinkProps> = (props) => {
+export const PluginLink: FC<PluginLinkProps> = (props) => {
   const { children, query, disabled, className, wrap = true, target, onClick } = props;
 
   const newPath = useMemo(() => getPathFromQueryParams(query), [query]);
@@ -50,5 +50,3 @@ const PluginLink: FC<PluginLinkProps> = (props) => {
     </Link>
   );
 };
-
-export default PluginLink;

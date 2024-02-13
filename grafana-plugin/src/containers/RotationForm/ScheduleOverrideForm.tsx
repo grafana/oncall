@@ -5,11 +5,11 @@ import cn from 'classnames/bind';
 import dayjs from 'dayjs';
 import Draggable from 'react-draggable';
 
-import Modal from 'components/Modal/Modal';
-import Tag from 'components/Tag/Tag';
-import Text from 'components/Text/Text';
-import UserGroups from 'components/UserGroups/UserGroups';
-import WithConfirm from 'components/WithConfirm/WithConfirm';
+import { Modal } from 'components/Modal/Modal';
+import { Tag } from 'components/Tag/Tag';
+import { Text } from 'components/Text/Text';
+import { UserGroups } from 'components/UserGroups/UserGroups';
+import { WithConfirm } from 'components/WithConfirm/WithConfirm';
 import { getShiftName } from 'models/schedule/schedule.helpers';
 import { Schedule, Shift } from 'models/schedule/schedule.types';
 import { User } from 'models/user/user.types';
@@ -19,8 +19,8 @@ import { getCoords, getVar, waitForElement } from 'utils/DOM';
 import { GRAFANA_HEADER_HEIGHT } from 'utils/consts';
 import { useDebouncedCallback } from 'utils/hooks';
 
-import DateTimePicker from './parts/DateTimePicker';
-import UserItem from './parts/UserItem';
+import { DateTimePicker } from './parts/DateTimePicker';
+import { UserItem } from './parts/UserItem';
 
 import styles from './RotationForm.module.css';
 
@@ -38,7 +38,7 @@ interface RotationFormProps {
 
 const cx = cn.bind(styles);
 
-const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
+export const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
   const {
     onHide,
     onCreate,
@@ -274,5 +274,3 @@ const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
     </Modal>
   );
 };
-
-export default ScheduleOverrideForm;
