@@ -68,7 +68,7 @@ export const GSelect = observer(<Item,>(props: GSelectProps<Item>) => {
     filterOptions,
     width = null,
     icon = null,
-    items,
+    items: propItems,
     fetchItemsFn,
     fetchItemFn,
     getSearchResult,
@@ -78,20 +78,20 @@ export const GSelect = observer(<Item,>(props: GSelectProps<Item>) => {
     (option) => {
       if (isMulti) {
         const values = option.map((option: SelectableValue) => option.value);
-        const items = option.map((option: SelectableValue) => items[option.value]);
+        const items = option.map((option: SelectableValue) => propItems[option.value]);
 
         onChange(values, items);
       } else {
         if (option) {
           const id = option.value;
-          const item = items[id];
+          const item = propItems[id];
           onChange(id, item);
         } else {
           onChange(null, null);
         }
       }
     },
-    [items, onChange]
+    [propItems, onChange]
   );
 
   const loadOptions = useDebouncedCallback((query: string, cb) => {
@@ -115,17 +115,17 @@ export const GSelect = observer(<Item,>(props: GSelectProps<Item>) => {
 
   const values = isMulti
     ? (value ? (value as string[]) : [])
-        .filter((id) => id in items)
+        .filter((id) => id in propItems)
         .map((id: string) => ({
           value: id,
-          label: get(items[id], displayField),
-          description: getDescription && getDescription(items[id]),
+          label: get(propItems[id], displayField),
+          description: getDescription && getDescription(propItems[id]),
         }))
-    : items[value as string]
+    : propItems[value as string]
     ? {
         value,
-        label: get(items[value as string], displayField) ? get(items[value as string], displayField) : 'hidden',
-        description: getDescription && getDescription(items[value as string]),
+        label: get(propItems[value as string], displayField) ? get(propItems[value as string], displayField) : 'hidden',
+        description: getDescription && getDescription(propItems[value as string]),
       }
     : value;
 
@@ -133,7 +133,7 @@ export const GSelect = observer(<Item,>(props: GSelectProps<Item>) => {
     const values = isMulti ? value : [value];
 
     (values ? (values as string[]) : []).forEach((value: string) => {
-      if (!isNil(value) && !items[value] && fetchItemFn) {
+      if (!isNil(value) && !propItems[value] && fetchItemFn) {
         fetchItemFn(value);
       }
     });
