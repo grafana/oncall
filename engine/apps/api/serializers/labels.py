@@ -6,6 +6,7 @@ from apps.labels.utils import is_labels_feature_enabled
 
 class LabelKeySerializer(serializers.ModelSerializer):
     id = serializers.CharField()
+    prescribed = serializers.BooleanField(default=False, required=False)
 
     class Meta:
         model = LabelKeyCache
@@ -18,6 +19,7 @@ class LabelKeySerializer(serializers.ModelSerializer):
 
 class LabelValueSerializer(serializers.ModelSerializer):
     id = serializers.CharField()
+    prescribed = serializers.BooleanField(default=False, required=False)
 
     class Meta:
         model = LabelValueCache
