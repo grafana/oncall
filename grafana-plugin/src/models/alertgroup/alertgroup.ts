@@ -103,8 +103,40 @@ export class AlertGroupStore extends BaseStore {
     runInAction(() => {
       this.items = {
         ...this.items,
-        [item.id]: item,
+        [item.pk]: item,
       };
+    });
+  }
+
+  @action.bound
+  async fetchItems(query = '', params = {}) {
+    const { results } = await makeRequest(`${this.path}`, {
+      params: { search: query, ...params },
+    });
+
+    runInAction(() => {
+      this.items = {
+        ...this.items,
+        ...results.reduce(
+          (acc: { [key: number]: Alert }, item: Alert) => ({
+            ...acc,
+            [item.pk]: item,
+          }),
+          {}
+        ),
+      };
+
+      this.searchResult = {
+        ...this.searchResult,
+        [query]: results.map((item: Alert) => item.pk),
+      };
+    });
+  }
+
+  @action.bound
+  async fetchItemsAvailableForAttachment(query: string) {
+    await this.fetchItems(query, {
+      status: [IncidentStatus.Acknowledged, IncidentStatus.Firing, IncidentStatus.Silenced],
     });
   }
 
@@ -112,7 +144,6 @@ export class AlertGroupStore extends BaseStore {
     if (!this.searchResult[query]) {
       return undefined;
     }
-
     return this.searchResult[query].map((id: Alert['pk']) => this.items[id]);
   };
 

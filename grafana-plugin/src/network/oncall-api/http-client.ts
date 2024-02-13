@@ -14,7 +14,9 @@ export const API_PATH_PREFIX = '/api/internal/v1';
 const showApiError = (errorResponse: Response) => {
   if (errorResponse.status >= 400 && errorResponse.status < 500) {
     const text = formatBackendError(errorResponse.statusText);
-    openErrorNotification(text);
+    if (text) {
+      openErrorNotification(text);
+    }
   }
 };
 

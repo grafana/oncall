@@ -27,6 +27,17 @@ interface GroupedAlertNumberProps {
   value: Alert['pk'];
 }
 
+const GroupedAlertNumber = observer(({ value }: GroupedAlertNumberProps) => {
+  const { alertGroupStore } = useStore();
+  const alert = alertGroupStore.items[value];
+
+  return (
+    <div>
+      #{alert?.inside_organization_number} {alert?.render_for_web?.title}
+    </div>
+  );
+});
+
 export const AttachIncidentForm = observer(({ id, onUpdate, onHide }: AttachIncidentFormProps) => {
   const store = useStore();
 
@@ -44,17 +55,6 @@ export const AttachIncidentForm = observer(({ id, onUpdate, onHide }: AttachInci
       onUpdate();
     });
   }, [selected, alertGroupStore, id, onHide, onUpdate]);
-
-  const GroupedAlertNumber = observer(({ value }: GroupedAlertNumberProps) => {
-    const { alertGroupStore } = useStore();
-    const alert = alertGroupStore.items[value];
-
-    return (
-      <div>
-        #{alert?.inside_organization_number} {alert?.render_for_web?.title}
-      </div>
-    );
-  });
 
   return (
     <Modal
@@ -77,7 +77,7 @@ export const AttachIncidentForm = observer(({ id, onUpdate, onHide }: AttachInci
           <GSelect<Alert>
             showSearch
             items={alertGroupStore.items}
-            fetchItemsFn={alertGroupStore.updateAlertGroups}
+            fetchItemsFn={alertGroupStore.fetchItemsAvailableForAttachment}
             fetchItemFn={alertGroupStore.updateItem}
             getSearchResult={alertGroupStore.getSearchResult}
             valueField="pk"
