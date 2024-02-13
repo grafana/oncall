@@ -311,7 +311,8 @@ export class AlertReceiveChannelStore {
   ) {
     const { data } = await onCallApi().PUT('/alert_receive_channels/{id}/', {
       params: { path: { id } },
-      body: { ...this.items[id], heartbeat: payload.heartbeat || null, ...payload },
+      // TODO: fix 400 when inbound_email is missing and get rid of casting
+      body: { heartbeat: payload.heartbeat || null, ...payload } as ApiSchemas['AlertReceiveChannelUpdate'],
     });
 
     runInAction(() => {
