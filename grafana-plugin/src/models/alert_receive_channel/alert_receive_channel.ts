@@ -323,7 +323,6 @@ export class AlertReceiveChannelStore {
   }
 
   async fetchTemplates(alertReceiveChannelId: ApiSchemas['AlertReceiveChannel']['id'], alertGroupId?: Alert['pk']) {
-    // TODO: check with backend we don't have this endpoint in openapi schemma
     const response = await makeRequest(`/alert_receive_channel_templates/${alertReceiveChannelId}/`, {
       params: { alert_group_id: alertGroupId },
       withCredentials: true,

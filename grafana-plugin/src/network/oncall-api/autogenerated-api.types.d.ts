@@ -1334,7 +1334,7 @@ export interface components {
     AlertGroupUnpageUser: {
       user_id: string;
     };
-    AlertReceiveChannel: {
+    AlertReceiveChannel: CustomApiSchemas['AlertReceiveChannel'] & {
       readonly id: string;
       readonly description: string | null;
       description_short?: string | null;

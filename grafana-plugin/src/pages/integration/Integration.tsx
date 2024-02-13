@@ -890,7 +890,6 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
           onHide={() => {
             setLabelsFormOpen(false);
           }}
-          // TODO: confirm change with Maxim/Rares
           onSubmit={() => alertReceiveChannelStore.fetchItemById(alertReceiveChannel.id)}
           id={alertReceiveChannel['id']}
           onOpenIntegrationSettings={() => {
