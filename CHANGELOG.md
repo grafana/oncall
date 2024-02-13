@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## v1.3.105 (2024-02-13)
+
+### Fixed
+
+- Quotes in templates not rendering results correctly ([#3884](https://github.com/grafana/oncall/pull/3884))
+
+## v1.3.104 (2024-02-12)
+
+### Changed
+
+- Revert requiring permission on Slack direct paging ([#3881](https://github.com/grafana/oncall/pull/3881))
+
+## v1.3.103 (2024-02-12)
+
 ### Added
 
 - Improved zvonok verification call @sreway ([#3768](https://github.com/grafana/oncall/pull/3768))
