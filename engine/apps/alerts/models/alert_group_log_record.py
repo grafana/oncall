@@ -521,7 +521,7 @@ class AlertGroupLogRecord(models.Model):
             elif self.escalation_error_code == AlertGroupLogRecord.ERROR_ESCALATION_NOTIFY_GROUP_STEP_IS_NOT_CONFIGURED:
                 result += 'skipped escalation step "Notify Group" because it is not configured'
             elif self.escalation_error_code == AlertGroupLogRecord.ERROR_ESCALATION_NOTIFY_TEAM_MEMBERS_STEP_IS_NOT_CONFIGURED:
-                result += 'skipped escalation step "Notify Team" because it is not configured'
+                result += 'skipped escalation step "Notify Team Members" because it is not configured'
             elif (
                 self.escalation_error_code
                 == AlertGroupLogRecord.ERROR_ESCALATION_TRIGGER_CUSTOM_BUTTON_STEP_IS_NOT_CONFIGURED

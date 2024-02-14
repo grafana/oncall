@@ -456,3 +456,30 @@ def test_update_escalation_policy_from_and_to_time(
             assert response.data == serializer.data
         else:
             assert response.json()[field][0] == "Time has wrong format. Use one of these formats instead: hh:mm:ssZ."
+
+@pytest.mark.django_db
+def test_create_escalation_policy_using_notify_team_members(
+    make_organization_and_user_with_token,
+    make_team,
+    escalation_policies_setup,
+):
+    organization, user, token = make_organization_and_user_with_token()
+    escalation_chain, _, _ = escalation_policies_setup(organization, user)
+    team = make_team(organization)
+
+    data_for_create = {
+        "escalation_chain_id": escalation_chain.public_primary_key,
+        "type": "notify_team_members",
+        "position": 0,
+        "notify_to_team_members": team.team_id
+    }
+
+    client = APIClient()
+    url = reverse("api-public:escalation_policies-list")
+    response = client.post(url, data=data_for_create, format="json", HTTP_AUTHORIZATION=token)
+
+    assert response.status_code == status.HTTP_201_CREATED
+
+    escalation_policy = EscalationPolicy.objects.get(public_primary_key=response.data["id"])
+    serializer = EscalationPolicySerializer(escalation_policy)
+    assert response.data == serializer.data

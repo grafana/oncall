@@ -120,7 +120,7 @@ class EscalationPolicy(OrderedModel):
         # Common steps
         STEP_WAIT: ("Wait {{wait_delay}} minute(s)", "Wait"),
         STEP_NOTIFY_MULTIPLE_USERS: ("Start {{importance}} notification for {{users}}", "Notify users"),
-        STEP_NOTIFY_TEAM_MEMBERS: ("Start {{importance}} notification for team members {{team}}", "Notify all team members"),
+        STEP_NOTIFY_TEAM_MEMBERS: ("Start {{importance}} notification for {{team}} team members", "Notify all team members"),
         STEP_NOTIFY_SCHEDULE: (
             "Start {{importance}} notification for schedule {{schedule}}",
             "Notify users from on-call schedule",

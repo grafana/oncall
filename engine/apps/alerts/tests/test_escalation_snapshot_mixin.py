@@ -500,6 +500,66 @@ def test_deserialize_escalation_snapshot(
 
 
 @pytest.mark.django_db
+def test_deserialize_escalation_snapshot_missing_notify_to_team_members(
+    make_organization_and_user,
+    make_alert_receive_channel,
+    make_channel_filter,
+    make_escalation_chain,
+    make_escalation_policy,
+    make_alert_group,
+):
+
+    organization, _ = make_organization_and_user()
+    alert_receive_channel = make_alert_receive_channel(organization)
+    escalation_chain = make_escalation_chain(organization=organization)
+    channel_filter = make_channel_filter(alert_receive_channel, escalation_chain=escalation_chain)
+    escalation_policy = make_escalation_policy(
+        escalation_chain=channel_filter.escalation_chain,
+        escalation_policy_step=EscalationPolicy.STEP_WAIT,
+        wait_delay=EscalationPolicy.FIFTEEN_MINUTES,
+    )
+
+    alert_group = make_alert_group(alert_receive_channel, channel_filter=channel_filter)
+    alert_group.raw_escalation_snapshot = alert_group.build_raw_escalation_snapshot()
+    del alert_group.raw_escalation_snapshot['escalation_policies_snapshots'][0]['notify_to_team_members']
+    
+    deserialized_escalation_snapshot = alert_group._deserialize_escalation_snapshot(alert_group.raw_escalation_snapshot)
+    assert deserialized_escalation_snapshot.escalation_policies_snapshots[0].notify_to_team_members == None
+
+@patch("apps.alerts.models.alert_group.AlertGroup.slack_channel_id", new_callable=PropertyMock)
+@pytest.mark.django_db
+def test_deserialize_escalation_snapshot_notify_to_team_members(
+    mock_alert_group_slack_channel_id,
+    make_organization_and_user,
+    make_alert_receive_channel,
+    make_channel_filter,
+    make_escalation_chain,
+    make_escalation_policy,
+    make_alert_group,
+    make_team
+):
+    mock_alert_group_slack_channel_id.return_value = MOCK_SLACK_CHANNEL_ID
+
+    organization, _ = make_organization_and_user()
+    alert_receive_channel = make_alert_receive_channel(organization)
+    escalation_chain = make_escalation_chain(organization=organization)
+    channel_filter = make_channel_filter(alert_receive_channel, escalation_chain=escalation_chain)
+    team = make_team(organization)
+    escalation_policy = make_escalation_policy(
+        escalation_chain=channel_filter.escalation_chain,
+        escalation_policy_step=EscalationPolicy.STEP_NOTIFY_TEAM_MEMBERS,
+        notify_to_team_members = team
+    )
+
+    alert_group = make_alert_group(alert_receive_channel, channel_filter=channel_filter)
+    alert_group.raw_escalation_snapshot = alert_group.build_raw_escalation_snapshot()
+    alert_group.raw_escalation_snapshot['escalation_policies_snapshots'][0]['notify_to_team_members']
+    
+    deserialized_escalation_snapshot = alert_group._deserialize_escalation_snapshot(alert_group.raw_escalation_snapshot)
+    assert deserialized_escalation_snapshot.escalation_policies_snapshots[0].notify_to_team_members.id == team.id
+
+
+@pytest.mark.django_db
 def test_escalation_chain_exists(
     make_organization_and_user,
     make_alert_receive_channel,

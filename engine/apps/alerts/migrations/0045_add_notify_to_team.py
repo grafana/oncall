@@ -7,7 +7,7 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('alerts', '0041_alertreceivechannel_unique_direct_paging_integration_per_team'),
+        ('alerts', '0044_alertreceivechannel_alertmanager_v2_backup_templates_and_more'),
     ]
 
     operations = [

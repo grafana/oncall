@@ -13,26 +13,27 @@ from .notify_user import notify_user_task
 def notify_team_members_task(
     team_pk,
     alert_group_pk,
-    previous_notification_policy_pk=None,
-    reason=None,
-    prevent_posting_to_thread=False,
-    notify_even_acknowledged=False,
-    important=False,
-    notify_anyway=False,
+    **kwargs # kwargs to pass through to notify_user_task.apply_async
 ):
     from apps.user_management.models import Team
 
 
-    with transaction.atomic():
+    try:
+        team = Team.objects.filter(pk=team_pk).first()
+    except Team.DoesNotExist:
+        return f"notify_team_members_task: team {team_pk} doesn't exist"
+
+
+    for user in team.users.all():
         try:
-            team = Team.objects.filter(pk=team_pk).first()
-        except Team.DoesNotExist:
-            return f"notify_team_members_task: team {team_pk} doesn't exist"
-
-
-        for user in team.users.all():
-            try:
+            if user.is_notification_allowed:
                 task_logger.debug(f"notify_team_members_task: notifying {user.pk}")
-                notify_user_task(user.pk, alert_group_pk, previous_notification_policy_pk, reason, prevent_posting_to_thread, notify_even_acknowledged, important, notify_anyway)
-            except:
-                  task_logger.info(f"notify_team_members_task: user {user.pk} failed")
+                notify_user_task.apply_async(
+                    args=(
+                        user.pk,
+                        alert_group_pk,
+                    ),
+                    kwargs=kwargs
+                )
+        except:
+                task_logger.info(f"notify_team_members_task: user {user.pk} failed")

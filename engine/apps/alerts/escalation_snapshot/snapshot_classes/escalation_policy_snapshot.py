@@ -71,10 +71,10 @@ class EscalationPolicySnapshot:
         custom_webhook,
         notify_schedule,
         notify_to_group,
-        notify_to_team_members,
         escalation_counter,
         passed_last_time,
         pause_escalation,
+        notify_to_team_members=None,
     ):
         self.id = id
         self.order = order
@@ -385,6 +385,7 @@ class EscalationPolicySnapshot:
                 ),
                 kwargs={
                     "reason": reason,
+                    "important": self.step == EscalationPolicy.STEP_NOTIFY_TEAM_MEMBERS_IMPORTANT,
                 },
                 immutable=True,
             )
