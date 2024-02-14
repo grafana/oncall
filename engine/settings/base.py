@@ -825,7 +825,9 @@ PYROSCOPE_AUTH_TOKEN = os.getenv("PYROSCOPE_AUTH_TOKEN", "")
 DEFAULT_PHONE_PROVIDER = "twilio"
 PHONE_PROVIDERS = {
     "twilio": "apps.twilioapp.phone_provider.TwilioPhoneProvider",
+    "kavenegar": "apps.kavenegarphonecall.phone_provider.KaveNegarPhoneProvider",
     # "simple": "apps.phone_notifications.simple_phone_provider.SimplePhoneProvider",
+    
 }
 
 if IS_OPEN_SOURCE:
@@ -847,3 +849,8 @@ ZVONOK_VERIFICATION_TEMPLATE = os.getenv("ZVONOK_VERIFICATION_TEMPLATE", None)
 DETACHED_INTEGRATIONS_SERVER = getenv_boolean("DETACHED_INTEGRATIONS_SERVER", default=False)
 
 ACKNOWLEDGE_REMINDER_TASK_EXPIRY_DAYS = os.environ.get("ACKNOWLEDGE_REMINDER_TASK_EXPIRY_DAYS", default=14)
+
+KAVENEGAR_SETTING={
+    'api-key':os.environ.get("KAVENEGAR_API_KEY", None),
+    'verification_sms_template':os.environ.get("KAVENEGAR_API_KEY", None),
+}
