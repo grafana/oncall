@@ -50,7 +50,7 @@ export const UserInfoTab = (props: UserInfoTabProps) => {
           withoutModal
           defaultValue={storeUser.current_team}
           onSelect={async (value) => {
-            await userStore.updateCurrentUser({ current_team: value });
+            await userStore.updateUser({ pk: storeUser.pk, current_team: value });
             store.grafanaTeamStore.updateItems();
           }}
         />
