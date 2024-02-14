@@ -5,9 +5,9 @@ import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 import { ColumnsType } from 'rc-table/lib/interface';
 
-import Avatar from 'components/Avatar/Avatar';
-import GTable from 'components/GTable/GTable';
-import Text from 'components/Text/Text';
+import { Avatar } from 'components/Avatar/Avatar';
+import { GTable } from 'components/GTable/GTable';
+import { Text } from 'components/Text/Text';
 import { Alert as AlertType } from 'models/alertgroup/alertgroup.types';
 import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
 import { PaginatedUsersResponse } from 'models/user/user';
@@ -35,7 +35,7 @@ enum TabOptions {
   Users = 'users',
 }
 
-const AddRespondersPopup = observer(
+export const AddRespondersPopup = observer(
   ({
     mode,
     visible,
@@ -363,5 +363,3 @@ const AddRespondersPopup = observer(
     );
   }
 );
-
-export default AddRespondersPopup;

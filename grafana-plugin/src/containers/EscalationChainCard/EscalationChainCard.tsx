@@ -4,8 +4,8 @@ import { HorizontalGroup, VerticalGroup, Badge } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
-import Text from 'components/Text/Text';
-import TeamName from 'containers/TeamName/TeamName';
+import { Text } from 'components/Text/Text';
+import { TeamName } from 'containers/TeamName/TeamName';
 import { EscalationChain } from 'models/escalation_chain/escalation_chain.types';
 import { useStore } from 'state/useStore';
 
@@ -17,7 +17,7 @@ interface AlertReceiveChannelCardProps {
   id: EscalationChain['id'];
 }
 
-const EscalationChainCard = observer((props: AlertReceiveChannelCardProps) => {
+export const EscalationChainCard = observer((props: AlertReceiveChannelCardProps) => {
   const { id } = props;
 
   const store = useStore();
@@ -51,5 +51,3 @@ const EscalationChainCard = observer((props: AlertReceiveChannelCardProps) => {
     </div>
   );
 });
-
-export default EscalationChainCard;

@@ -4,7 +4,7 @@ import cn from 'classnames/bind';
 import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
 
-import Text from 'components/Text/Text';
+import { Text } from 'components/Text/Text';
 import { useStore } from 'state/useStore';
 
 import styles from './TimelineMarks.module.scss';
@@ -15,7 +15,7 @@ interface TimelineMarksProps {
 
 const cx = cn.bind(styles);
 
-const TimelineMarks: FC<TimelineMarksProps> = observer((props) => {
+export const TimelineMarks: FC<TimelineMarksProps> = observer((props) => {
   const {
     timezoneStore: { currentDateInSelectedTimezone, calendarStartDate },
   } = useStore();
@@ -96,5 +96,3 @@ const TimelineMarks: FC<TimelineMarksProps> = observer((props) => {
     </div>
   );
 });
-
-export default TimelineMarks;

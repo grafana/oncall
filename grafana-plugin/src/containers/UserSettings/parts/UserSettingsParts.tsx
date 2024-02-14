@@ -4,23 +4,23 @@ import { Tab, TabContent, TabsBar } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
-import Block from 'components/GBlock/Block';
+import { Block } from 'components/GBlock/Block';
 import { MobileAppConnection } from 'containers/MobileAppConnection/MobileAppConnection';
 import { MobileAppConnectionTab } from 'containers/MobileAppConnection/MobileAppConnectionTab';
 import { UserSettingsTab } from 'containers/UserSettings/UserSettings.types';
 import { SlackTab } from 'containers/UserSettings/parts/tabs//SlackTab/SlackTab';
-import CloudPhoneSettings from 'containers/UserSettings/parts/tabs/CloudPhoneSettings/CloudPhoneSettings';
-import MSTeamsInfo from 'containers/UserSettings/parts/tabs/MSTeamsInfo/MSTeamsInfo';
+import { CloudPhoneSettings } from 'containers/UserSettings/parts/tabs/CloudPhoneSettings/CloudPhoneSettings';
+import { MSTeamsInfo } from 'containers/UserSettings/parts/tabs/MSTeamsInfo/MSTeamsInfo';
 import { NotificationSettingsTab } from 'containers/UserSettings/parts/tabs/NotificationSettingsTab';
-import PhoneVerification from 'containers/UserSettings/parts/tabs/PhoneVerification/PhoneVerification';
-import TelegramInfo from 'containers/UserSettings/parts/tabs/TelegramInfo/TelegramInfo';
+import { PhoneVerification } from 'containers/UserSettings/parts/tabs/PhoneVerification/PhoneVerification';
+import { TelegramInfo } from 'containers/UserSettings/parts/tabs/TelegramInfo/TelegramInfo';
 import { UserInfoTab } from 'containers/UserSettings/parts/tabs/UserInfoTab/UserInfoTab';
 import { User } from 'models/user/user.types';
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
-import { isUseProfileExtensionPointEnabled } from 'utils';
+import { isUseProfileExtensionPointEnabled } from 'utils/utils';
 
-import styles from 'containers/UserSettings/parts/index.module.css';
+import styles from 'containers/UserSettings/parts/UserSettingsParts.module.css';
 
 const cx = cn.bind(styles);
 

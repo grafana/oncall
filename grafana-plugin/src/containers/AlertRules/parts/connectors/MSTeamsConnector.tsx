@@ -3,14 +3,14 @@ import React, { useCallback } from 'react';
 import { HorizontalGroup, InlineSwitch } from '@grafana/ui';
 import cn from 'classnames/bind';
 
-import GSelect from 'containers/GSelect/GSelect';
+import { GSelect } from 'containers/GSelect/GSelect';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
 import { MSTeamsChannel } from 'models/msteams_channel/msteams_channel.types';
 import { useStore } from 'state/useStore';
-import { UserActions } from 'utils/authorization';
+import { UserActions } from 'utils/authorization/authorization';
 
-import styles from 'containers/AlertRules/parts/connectors/index.module.css';
+import styles from 'containers/AlertRules/parts/connectors/Connectors.module.css';
 
 const cx = cn.bind(styles);
 
@@ -18,7 +18,7 @@ interface MSTeamsConnectorProps {
   channelFilterId: ChannelFilter['id'];
 }
 
-const MSTeamsConnector = (props: MSTeamsConnectorProps) => {
+export const MSTeamsConnector = (props: MSTeamsConnectorProps) => {
   const { channelFilterId } = props;
 
   const store = useStore();
@@ -70,5 +70,3 @@ const MSTeamsConnector = (props: MSTeamsConnectorProps) => {
     </div>
   );
 };
-
-export default MSTeamsConnector;

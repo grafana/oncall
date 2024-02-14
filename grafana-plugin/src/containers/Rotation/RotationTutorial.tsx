@@ -15,7 +15,7 @@ interface RotationProps extends RotationFormLiveParams {
   days?: number;
 }
 
-const RotationTutorial: FC<RotationProps> = observer((props) => {
+export const RotationTutorial: FC<RotationProps> = observer((props) => {
   const {
     timezoneStore: { calendarStartDate },
   } = useStore();
@@ -115,5 +115,3 @@ const Pointer = (props: { className: string; style: React.CSSProperties }) => {
     </svg>
   );
 };
-
-export default RotationTutorial;

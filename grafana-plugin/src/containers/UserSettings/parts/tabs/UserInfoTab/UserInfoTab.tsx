@@ -2,7 +2,7 @@ import React from 'react';
 
 import { InlineField, Input, Legend } from '@grafana/ui';
 
-import GrafanaTeamSelect from 'containers/GrafanaTeamSelect/GrafanaTeamSelect';
+import { GrafanaTeamSelect } from 'containers/GrafanaTeamSelect/GrafanaTeamSelect';
 import { UserSettingsTab } from 'containers/UserSettings/UserSettings.types';
 import { Connectors } from 'containers/UserSettings/parts/connectors/Connectors';
 import { User } from 'models/user/user.types';

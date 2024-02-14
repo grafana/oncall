@@ -6,10 +6,10 @@ import { observer } from 'mobx-react';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
 
-import Avatar from 'components/Avatar/Avatar';
-import Text from 'components/Text/Text';
-import Rotation from 'containers/Rotation/Rotation';
-import TimelineMarks from 'containers/TimelineMarks/TimelineMarks';
+import { Avatar } from 'components/Avatar/Avatar';
+import { Text } from 'components/Text/Text';
+import { Rotation } from 'containers/Rotation/Rotation';
+import { TimelineMarks } from 'containers/TimelineMarks/TimelineMarks';
 import { ActionKey } from 'models/loader/action-keys';
 import { getColorForSchedule, getPersonalShiftsFromStore } from 'models/schedule/schedule.helpers';
 import { Event } from 'models/schedule/schedule.types';
@@ -29,7 +29,7 @@ interface SchedulePersonalProps extends RouteComponentProps {
   onSlotClick?: (event: Event) => void;
 }
 
-const SchedulePersonal: FC<SchedulePersonalProps> = observer(({ userPk, onSlotClick, history }) => {
+const _SchedulePersonal: FC<SchedulePersonalProps> = observer(({ userPk, onSlotClick, history }) => {
   const store = useStore();
   const { timezoneStore, scheduleStore, userStore, loaderStore } = store;
 
@@ -147,4 +147,4 @@ const SchedulePersonal: FC<SchedulePersonalProps> = observer(({ userPk, onSlotCl
   );
 });
 
-export default withRouter(SchedulePersonal);
+export const SchedulePersonal = withRouter(_SchedulePersonal);

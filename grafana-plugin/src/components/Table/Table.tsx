@@ -5,7 +5,7 @@ import cn from 'classnames/bind';
 import Table from 'rc-table';
 import { TableProps } from 'rc-table/lib/Table';
 
-import { ExpandIcon } from 'icons';
+import { ExpandIcon } from 'icons/Icons';
 
 import styles from './Table.module.css';
 
@@ -32,7 +32,7 @@ export interface Props<RecordType = unknown> extends TableProps<RecordType> {
   };
 }
 
-const GTable: FC<Props> = (props) => {
+export const GTable: FC<Props> = (props) => {
   const { columns, data, className, pagination, loading, rowKey, expandable, ...restProps } = props;
   const { page, total: numberOfPages, onChange: onNavigate } = pagination || {};
 
@@ -71,5 +71,3 @@ const GTable: FC<Props> = (props) => {
     </VerticalGroup>
   );
 };
-
-export default GTable;

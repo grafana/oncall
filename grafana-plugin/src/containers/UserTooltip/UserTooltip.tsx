@@ -11,7 +11,7 @@ interface UserTooltipProps {
   id: User['pk'];
 }
 
-const UserTooltip = observer((props: UserTooltipProps) => {
+export const UserTooltip = observer((props: UserTooltipProps) => {
   const { id } = props;
 
   const store = useStore();
@@ -26,5 +26,3 @@ const UserTooltip = observer((props: UserTooltipProps) => {
     </Tooltip>
   );
 });
-
-export default UserTooltip;

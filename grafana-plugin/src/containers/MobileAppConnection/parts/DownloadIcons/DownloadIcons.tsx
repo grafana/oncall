@@ -5,14 +5,14 @@ import cn from 'classnames/bind';
 
 import AppleLogoSVG from 'assets/img/apple-logo.svg';
 import PlayStoreLogoSVG from 'assets/img/play-store-logo.svg';
-import Block from 'components/GBlock/Block';
-import Text from 'components/Text/Text';
+import { Block } from 'components/GBlock/Block';
+import { Text } from 'components/Text/Text';
 
 import styles from './DownloadIcons.module.scss';
 
 const cx = cn.bind(styles);
 
-const DownloadIcons: FC = () => (
+export const DownloadIcons: FC = () => (
   <VerticalGroup spacing="lg">
     <Text type="primary" strong>
       Download
@@ -48,5 +48,3 @@ const DownloadIcons: FC = () => (
     </VerticalGroup>
   </VerticalGroup>
 );
-
-export default DownloadIcons;

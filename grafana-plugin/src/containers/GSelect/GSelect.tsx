@@ -6,8 +6,8 @@ import cn from 'classnames/bind';
 import { get, isNil } from 'lodash-es';
 import { observer } from 'mobx-react';
 
-import BaseStore from 'models/base_store';
-import { RootBaseStore } from 'state/rootBaseStore';
+import { BaseStore } from 'models/base_store';
+import { RootBaseStore } from 'state/rootBaseStore/RootBaseStore';
 import { useStore } from 'state/useStore';
 import { useDebouncedCallback } from 'utils/hooks';
 import { PropertiesThatExtendsAnotherClass } from 'utils/types';
@@ -44,7 +44,7 @@ interface GSelectProps {
   icon?: string;
 }
 
-const GSelect = observer((props: GSelectProps) => {
+export const GSelect = observer((props: GSelectProps) => {
   const {
     autoFocus,
     showSearch = false,
@@ -167,5 +167,3 @@ const GSelect = observer((props: GSelectProps) => {
     </div>
   );
 });
-
-export default GSelect;

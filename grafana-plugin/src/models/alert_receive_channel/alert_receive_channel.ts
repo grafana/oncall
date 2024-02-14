@@ -3,17 +3,17 @@ import { action, observable, makeObservable, runInAction } from 'mobx';
 
 import { AlertTemplatesDTO } from 'models/alert_templates/alert_templates';
 import { Alert } from 'models/alertgroup/alertgroup.types';
-import BaseStore from 'models/base_store';
+import { BaseStore } from 'models/base_store';
 import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
 import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
 import { Heartbeat } from 'models/heartbeat/heartbeat.types';
 import { OutgoingWebhook } from 'models/outgoing_webhook/outgoing_webhook.types';
-import { makeRequest } from 'network';
-import { RootStore } from 'state';
+import { makeRequest } from 'network/network';
 import { move } from 'state/helpers';
+import { RootStore } from 'state/rootStore';
 import { SelectOption } from 'state/types';
-import { showApiError } from 'utils';
 import { WithGlobalNotification } from 'utils/decorators';
+import { showApiError } from 'utils/utils';
 
 import {
   AlertReceiveChannel,

@@ -3,14 +3,14 @@ import React, { useCallback } from 'react';
 import { HorizontalGroup, InlineSwitch } from '@grafana/ui';
 import cn from 'classnames/bind';
 
-import GSelect from 'containers/GSelect/GSelect';
+import { GSelect } from 'containers/GSelect/GSelect';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
 import { TelegramChannel } from 'models/telegram_channel/telegram_channel.types';
 import { useStore } from 'state/useStore';
-import { UserActions } from 'utils/authorization';
+import { UserActions } from 'utils/authorization/authorization';
 
-import styles from './index.module.css';
+import styles from './Connectors.module.css';
 
 const cx = cn.bind(styles);
 
@@ -18,7 +18,7 @@ interface TelegramConnectorProps {
   channelFilterId: ChannelFilter['id'];
 }
 
-const TelegramConnector = ({ channelFilterId }: TelegramConnectorProps) => {
+export const TelegramConnector = ({ channelFilterId }: TelegramConnectorProps) => {
   const store = useStore();
   const { alertReceiveChannelStore } = store;
 
@@ -62,5 +62,3 @@ const TelegramConnector = ({ channelFilterId }: TelegramConnectorProps) => {
     </div>
   );
 };
-
-export default TelegramConnector;
