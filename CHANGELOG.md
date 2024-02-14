@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Check for permissions on Slack escalate command ([#3891](https://github.com/grafana/oncall/pull/3891))
 - Do not delete webhook if its team is deleted @mderynck ([#3873](https://github.com/grafana/oncall/pull/3873))
+- Update user details internal API perms ([#3900](https://github.com/grafana/oncall/pull/3900))
 
 ## v1.3.105 (2024-02-13)
 
