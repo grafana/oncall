@@ -100,7 +100,7 @@ class LabelsAPIClient:
 
         if 400 <= response.status_code < 500:
             error_data = response.json()
-            message = error_data.get("message", None)
+            message = error_data.get("error", None)
         elif 500 <= response.status_code < 600:
             message = response.reason
 

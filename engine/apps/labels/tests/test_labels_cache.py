@@ -3,6 +3,7 @@ from unittest.mock import call, patch
 import pytest
 from django.utils import timezone
 
+from apps.labels.client import LabelsRepoAPIException
 from apps.labels.models import LabelKeyCache, LabelValueCache
 from apps.labels.tasks import update_instances_labels_cache, update_labels_cache
 from apps.labels.utils import LABEL_OUTDATED_TIMEOUT_MINUTES
@@ -156,9 +157,9 @@ def test_update_instances_labels_cache_error(
     LabelKeyCache.objects.filter(id=label_association.key_id).update(last_synced=outdated_last_synced)
     LabelValueCache.objects.filter(id=label_association.value_id).update(last_synced=outdated_last_synced)
 
-    label_data = {"code": 404, "error": "label not found"}
-
-    with patch("apps.labels.client.LabelsAPIClient.get_values", return_value=(label_data, None)) as mock_get_values:
+    with patch(
+        "apps.labels.client.LabelsAPIClient.get_values", side_effect=LabelsRepoAPIException("test", "test")
+    ) as mock_get_values:
         with patch("apps.labels.tasks.update_labels_cache.apply_async") as mock_update_cache:
             update_instances_labels_cache(
                 organization.id, [alert_receive_channel.id], alert_receive_channel._meta.model.__name__
