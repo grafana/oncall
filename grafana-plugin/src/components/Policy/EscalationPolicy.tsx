@@ -80,13 +80,13 @@ class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
         )}
         {escalationOption &&
           reactStringReplace(escalationOption.display_name, /\{\{([^}]+)\}\}/g, this.replacePlaceholder)}
-        {this._renderNote()}
+        {this.renderNote()}
         {is_final || isDisabled ? null : (
           <WithPermissionControlTooltip className={cx('delete')} userAction={UserActions.EscalationChainsWrite}>
             <IconButton
               name="trash-alt"
               className={cx('delete', 'control')}
-              onClick={this._handleDelete}
+              onClick={this.handleDelete}
               size="sm"
               tooltip="Delete"
               tooltipPlacement="top"
@@ -104,15 +104,15 @@ class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
       case 'timerange':
         return this.renderTimeRange();
       case 'users':
-        return this._renderNotifyToUsersQueue();
+        return this.renderNotifyToUsersQueue();
       case 'wait_delay':
-        return this._renderWaitDelays();
+        return this.renderWaitDelays();
       case 'slack_user_group':
-        return this._renderNotifyUserGroup();
+        return this.renderNotifyUserGroup();
       case 'schedule':
-        return this._renderNotifySchedule();
+        return this.renderNotifySchedule();
       case 'custom_webhook':
-        return this._renderTriggerCustomWebhook();
+        return this.renderTriggerCustomWebhook();
       case 'num_alerts_in_window':
         return this.renderNumAlertsInWindow();
       case 'num_minutes_in_window':
@@ -123,7 +123,7 @@ class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
     }
   };
 
-  _renderNote() {
+  renderNote() {
     const { data, isSlackInstalled, escalationChoices } = this.props;
     const { step } = data;
 
@@ -151,7 +151,7 @@ class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
     }
   }
 
-  private _renderNotifyToUsersQueue() {
+  renderNotifyToUsersQueue() {
     const {
       data,
       isDisabled,
@@ -175,7 +175,7 @@ class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
           placeholder="Select Users"
           className={cx('select', 'control', 'multiSelect')}
           value={notify_to_users_queue}
-          onChange={this._getOnChangeHandler('notify_to_users_queue')}
+          onChange={this.getOnChangeHandler('notify_to_users_queue')}
           getOptionLabel={({ value }: SelectableValue) => <UserTooltip id={value} />}
           width={'auto'}
           items={userStore.items}
@@ -187,7 +187,7 @@ class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
     );
   }
 
-  private renderImportance() {
+  renderImportance() {
     const { data, isDisabled } = this.props;
     const { important } = data;
 
@@ -199,7 +199,7 @@ class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
           disabled={isDisabled}
           value={Number(important)}
           // @ts-ignore
-          onChange={this._getOnSelectChangeHandler('important')}
+          onChange={this.getOnSelectChangeHandler('important')}
           options={[
             {
               value: 0,
@@ -232,7 +232,7 @@ class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
     );
   }
 
-  private renderTimeRange() {
+  renderTimeRange() {
     const { data, isDisabled } = this.props;
 
     return (
@@ -241,14 +241,14 @@ class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
           from={data.from_time}
           to={data.to_time}
           disabled={isDisabled}
-          onChange={this._getOnTimeRangeChangeHandler()}
+          onChange={this.getOnTimeRangeChangeHandler()}
           className={cx('select', 'control')}
         />
       </WithPermissionControlTooltip>
     );
   }
 
-  private _renderWaitDelays() {
+  renderWaitDelays() {
     const { data, isDisabled, waitDelays = [] } = this.props;
     const { wait_delay } = data;
 
@@ -261,7 +261,7 @@ class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
           className={cx('select', 'control')}
           // @ts-ignore
           value={wait_delay}
-          onChange={this._getOnSelectChangeHandler('wait_delay')}
+          onChange={this.getOnSelectChangeHandler('wait_delay')}
           options={waitDelays.map((waitDelay: SelectOption) => ({
             value: waitDelay.value,
             label: waitDelay.display_name,
@@ -272,7 +272,7 @@ class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
     );
   }
 
-  private renderNumAlertsInWindow() {
+  renderNumAlertsInWindow() {
     const { data, isDisabled } = this.props;
     const { num_alerts_in_window } = data;
 
@@ -287,7 +287,7 @@ class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
           disabled={isDisabled}
           className={cx('control')}
           value={num_alerts_in_window}
-          onChange={this._getOnInputChangeHandler('num_alerts_in_window')}
+          onChange={this.getOnInputChangeHandler('num_alerts_in_window')}
           ref={(node) => {
             if (node) {
               node.setAttribute('type', 'number');
@@ -299,7 +299,7 @@ class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
     );
   }
 
-  private renderNumMinutesInWindowOptions() {
+  renderNumMinutesInWindowOptions() {
     const { data, isDisabled, numMinutesInWindowOptions = [] } = this.props;
     const { num_minutes_in_window } = data;
 
@@ -316,7 +316,7 @@ class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
           className={cx('select', 'control')}
           // @ts-ignore
           value={num_minutes_in_window}
-          onChange={this._getOnSelectChangeHandler('num_minutes_in_window')}
+          onChange={this.getOnSelectChangeHandler('num_minutes_in_window')}
           options={numMinutesInWindowOptions.map((waitDelay: SelectOption) => ({
             value: waitDelay.value,
             label: waitDelay.display_name,
@@ -326,7 +326,7 @@ class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
     );
   }
 
-  private _renderNotifySchedule() {
+  renderNotifySchedule() {
     const {
       data,
       isDisabled,
@@ -352,7 +352,7 @@ class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
           placeholder="Select Schedule"
           className={cx('select', 'control')}
           value={notify_schedule}
-          onChange={this._getOnChangeHandler('notify_schedule')}
+          onChange={this.getOnChangeHandler('notify_schedule')}
           getOptionLabel={(item: SelectableValue) => {
             const team = grafanaTeamStore.items[scheduleStore.items[item.value].team];
             return (
@@ -367,7 +367,7 @@ class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
     );
   }
 
-  private _renderNotifyUserGroup() {
+  renderNotifyUserGroup() {
     const {
       data,
       isDisabled,
@@ -391,14 +391,14 @@ class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
           placeholder="Select User Group"
           className={cx('select', 'control')}
           value={notify_to_group}
-          onChange={this._getOnChangeHandler('notify_to_group')}
+          onChange={this.getOnChangeHandler('notify_to_group')}
           width={'auto'}
         />
       </WithPermissionControlTooltip>
     );
   }
 
-  private _renderTriggerCustomWebhook() {
+  renderTriggerCustomWebhook() {
     const {
       data,
       isDisabled,
@@ -424,7 +424,7 @@ class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
           placeholder="Select Webhook"
           className={cx('select', 'control')}
           value={custom_webhook}
-          onChange={this._getOnChangeHandler('custom_webhook')}
+          onChange={this.getOnChangeHandler('custom_webhook')}
           getOptionLabel={(item: SelectableValue) => {
             const team = grafanaTeamStore.items[outgoingWebhookStore.items[item.value].team];
             return (
@@ -444,7 +444,7 @@ class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
     );
   }
 
-  _getOnSelectChangeHandler = (field: string) => {
+  getOnSelectChangeHandler = (field: string) => {
     return (option: SelectableValue) => {
       const { data, onChange = () => {} } = this.props;
       const { id } = data;
@@ -458,7 +458,7 @@ class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
     };
   };
 
-  _getOnInputChangeHandler = (field: string) => {
+  getOnInputChangeHandler = (field: string) => {
     const { data, onChange = () => {} } = this.props;
     const { id } = data;
 
@@ -472,7 +472,7 @@ class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
     };
   };
 
-  _getOnChangeHandler = (field: string) => {
+  getOnChangeHandler = (field: string) => {
     return (value: any) => {
       const { data, onChange = () => {} } = this.props;
       const { id } = data;
@@ -486,7 +486,7 @@ class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
     };
   };
 
-  _getOnTimeRangeChangeHandler() {
+  getOnTimeRangeChangeHandler() {
     return (value: string[]) => {
       const { data, onChange = () => {} } = this.props;
       const { id } = data;
@@ -501,7 +501,7 @@ class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
     };
   }
 
-  _handleDelete = () => {
+  handleDelete = () => {
     const { onDelete, data } = this.props;
 
     onDelete(data);
