@@ -6,7 +6,8 @@ from django.conf import settings
 from django.utils import timezone
 
 from apps.labels.client import LabelsAPIClient
-from apps.labels.utils import LABEL_OUTDATED_TIMEOUT_MINUTES, LabelOption, LabelPair, get_associating_label_model
+from apps.labels.types import LabelOption, LabelPair
+from apps.labels.utils import LABEL_OUTDATED_TIMEOUT_MINUTES, get_associating_label_model
 from apps.user_management.models import Organization
 from common.custom_celery_tasks import shared_dedicated_queue_retry_task
 

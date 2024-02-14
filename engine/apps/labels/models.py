@@ -4,7 +4,8 @@ from django.db import models
 from django.utils import timezone
 
 from apps.labels.tasks import update_label_pairs_cache
-from apps.labels.utils import LABEL_OUTDATED_TIMEOUT_MINUTES, LabelPair
+from apps.labels.types import LabelPair
+from apps.labels.utils import LABEL_OUTDATED_TIMEOUT_MINUTES
 
 if typing.TYPE_CHECKING:
     from apps.user_management.models import Organization
