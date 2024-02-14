@@ -28,7 +28,7 @@
     "start": "yarn watch",
     "plop": "plop",
     "setversion": "setversion",
-    "tsc": "tsc --noEmit"
+    "typecheck": "tsc --noEmit"
   },
   "repository": {
     "type": "git",
