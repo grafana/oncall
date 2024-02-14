@@ -7,12 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Fixed
+
+- Fix edit default team by admin @mderynck ([#3885](https://github.com/grafana/oncall/pull/3885))
+- Unblock slack install by skipping check chatops gateway link in OSS deployment @mderynck ([#3893](https://github.com/grafana/oncall/pull/3893))
+
 ## v1.3.105 (2024-02-13)
 
 ### Fixed
 
-- Quotes in templates not rendering results correctly ([#3884](https://github.com/grafana/oncall/pull/3884))
-- Unblock slack install by skipping check chatops gateway link in OSS deployment @mderynck ([#3893](https://github.com/grafana/oncall/pull/3893))
+- Quotes in templates not rendering results correctly @mderynck ([#3884](https://github.com/grafana/oncall/pull/3884))
 
 ## v1.3.104 (2024-02-12)
 
