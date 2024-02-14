@@ -41,6 +41,8 @@ def unify_labels_data(labels_data: LabelsData | LabelKeyData) -> typing.Dict[str
 def update_labels_cache(labels_data: LabelsData | LabelKeyData):
     from apps.labels.models import LabelKeyCache, LabelValueCache
 
+    if isinstance(labels_data, dict) and labels_data.get("error"):
+        return
     values_data: typing.Dict[str, ValueData] = unify_labels_data(labels_data)
     values = LabelValueCache.objects.filter(id__in=values_data).select_related("key")
     now = timezone.now()
@@ -88,5 +90,9 @@ def update_instances_labels_cache(organization_id: int, instance_ids: typing.Lis
     client = LabelsAPIClient(organization.grafana_url, organization.api_token)
     for key_id in keys_ids:
         label_data, _ = client.get_values(key_id)
-        if label_data:
+        if label_data.get("error"):
+            logger.warning(
+                f"Error on get label data: organization: {organization_id}, key_id {key_id}, data: {label_data}"
+            )
+        elif label_data:
             update_labels_cache.apply_async((label_data,))
