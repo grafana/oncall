@@ -1,9 +1,9 @@
 import { action, observable, makeObservable, runInAction } from 'mobx';
 
-import BaseStore from 'models/base_store';
+import { BaseStore } from 'models/base_store';
 import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
-import { makeRequest } from 'network';
-import { RootStore } from 'state';
+import { makeRequest } from 'network/network';
+import { RootStore } from 'state/rootStore';
 
 type TeamItems = { [id: string]: GrafanaTeam };
 
@@ -22,7 +22,7 @@ export class GrafanaTeamStore extends BaseStore {
     this.path = '/teams/';
   }
 
-  @action.bound
+  @action
   async updateTeam(id: GrafanaTeam['id'], data: Partial<GrafanaTeam>) {
     const result = await this.update(id, data);
 
@@ -61,7 +61,6 @@ export class GrafanaTeamStore extends BaseStore {
     });
   }
 
-  @action.bound
   getSearchResult() {
     return this.searchResult.map((teamId: GrafanaTeam['id']) => this.items[teamId]);
   }

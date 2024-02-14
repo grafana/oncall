@@ -1,7 +1,7 @@
 import { PageErrorData } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
 
 export function initErrorDataState(): Partial<PageErrorData> {
-  return { isWrongTeamError: false, wrongTeamNoPermissions: false };
+  return { isUnknownError: false, isWrongTeamError: false, wrongTeamNoPermissions: false };
 }
 
 export function getWrongTeamResponseInfo({ response }): Partial<PageErrorData> {
@@ -18,5 +18,5 @@ export function getWrongTeamResponseInfo({ response }): Partial<PageErrorData> {
     }
   }
 
-  return { isNotFoundError: true };
+  return { isUnknownError: true };
 }

@@ -3,7 +3,7 @@ import React, { FC } from 'react';
 import { LabelTag } from '@grafana/labels';
 import { VerticalGroup, HorizontalGroup, Button } from '@grafana/ui';
 
-import TooltipBadge from 'components/TooltipBadge/TooltipBadge';
+import { TooltipBadge } from 'components/TooltipBadge/TooltipBadge';
 import { LabelKeyValue } from 'models/label/label.types';
 
 interface LabelsTooltipBadgeProps {
@@ -11,7 +11,7 @@ interface LabelsTooltipBadgeProps {
   onClick: (label: LabelKeyValue) => void;
 }
 
-const LabelsTooltipBadge: FC<LabelsTooltipBadgeProps> = ({ labels, onClick }) =>
+export const LabelsTooltipBadge: FC<LabelsTooltipBadgeProps> = ({ labels, onClick }) =>
   labels.length ? (
     <TooltipBadge
       borderType="secondary"
@@ -36,5 +36,3 @@ const LabelsTooltipBadge: FC<LabelsTooltipBadgeProps> = ({ labels, onClick }) =>
       }
     />
   ) : null;
-
-export default LabelsTooltipBadge;

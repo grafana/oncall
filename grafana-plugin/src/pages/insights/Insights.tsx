@@ -17,7 +17,7 @@ import {
 import { Alert } from '@grafana/ui';
 import { observer } from 'mobx-react';
 
-import Text from 'components/Text/Text';
+import { Text } from 'components/Text/Text';
 import { useStore } from 'state/useStore';
 import { DOCS_ROOT } from 'utils/consts';
 
@@ -39,11 +39,12 @@ import getTotalAlertGroupsScene from './scenes/TotalAlertGroups';
 import getTotalAlertGroupsByStateScene from './scenes/TotalAlertGroupsByState';
 import getVariables from './variables';
 
-const getDefaultStackValue = (isOpenSource: boolean) =>
-  isOpenSource ? 'self_hosted_stack' : location.host.split('.')[0];
-
-const Insights = observer(() => {
-  const { isOpenSource, insightsDatasource } = useStore();
+export const Insights = observer(() => {
+  const {
+    isOpenSource,
+    insightsDatasource,
+    organizationStore: { currentOrganization },
+  } = useStore();
   const [showAllStackInfo, setShowAllStackInfo] = useState(false);
   const [datasource, setDatasource] = useState<string>();
 
@@ -51,7 +52,7 @@ const Insights = observer(() => {
     () => ({
       isOpenSource,
       datasource: { uid: isOpenSource ? '$datasource' : insightsDatasource },
-      stack: getDefaultStackValue(isOpenSource),
+      stack: currentOrganization?.stack_slug,
     }),
     []
   );
@@ -221,5 +222,3 @@ const getRootScene = (config: InsightsConfig, variables: ReturnType<typeof getVa
       }),
     ],
   });
-
-export default Insights;

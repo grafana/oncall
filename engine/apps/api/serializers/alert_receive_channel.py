@@ -2,7 +2,6 @@ import typing
 from collections import OrderedDict
 
 from django.conf import settings
-from django.core.exceptions import ObjectDoesNotExist
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db.models import Q
 from jinja2 import TemplateSyntaxError
@@ -53,17 +52,17 @@ class IntegrationAlertGroupLabels(typing.TypedDict):
 class CustomLabelSerializer(serializers.Serializer):
     """This serializer is consistent with apps.api.serializers.labels.LabelSerializer, but allows null for value ID."""
 
-    class KeySerializer(serializers.Serializer):
+    class CustomLabelKeySerializer(serializers.Serializer):
         id = serializers.CharField()
         name = serializers.CharField()
 
-    class ValueSerializer(serializers.Serializer):
+    class CustomLabelValueSerializer(serializers.Serializer):
         # ID is null for templated labels. For such labels, the "name" value is a Jinja2 template.
         id = serializers.CharField(allow_null=True)
         name = serializers.CharField()
 
-    key = KeySerializer()
-    value = ValueSerializer()
+    key = CustomLabelKeySerializer()
+    value = CustomLabelValueSerializer()
 
 
 class IntegrationAlertGroupLabelsSerializer(serializers.Serializer):
@@ -215,9 +214,9 @@ class AlertReceiveChannelSerializer(
     default_channel_filter = serializers.SerializerMethodField()
     instructions = serializers.SerializerMethodField()
     demo_alert_enabled = serializers.BooleanField(source="is_demo_alert_enabled", read_only=True)
-    is_based_on_alertmanager = serializers.BooleanField(source="has_alertmanager_payload_structure", read_only=True)
+    is_based_on_alertmanager = serializers.BooleanField(source="based_on_alertmanager", read_only=True)
     maintenance_till = serializers.ReadOnlyField(source="till_maintenance_timestamp")
-    heartbeat = serializers.SerializerMethodField()
+    heartbeat = IntegrationHeartBeatSerializer(read_only=True, allow_null=True, source="integration_heartbeat")
     allow_delete = serializers.SerializerMethodField()
     description_short = serializers.CharField(max_length=250, required=False, allow_null=True)
     demo_alert_payload = serializers.JSONField(source="config.example_payload", read_only=True)
@@ -267,6 +266,7 @@ class AlertReceiveChannelSerializer(
             "is_legacy",
             "labels",
             "alert_group_labels",
+            "alertmanager_v2_migrated_at",
         ]
         read_only_fields = [
             "created_at",
@@ -283,8 +283,30 @@ class AlertReceiveChannelSerializer(
             "is_based_on_alertmanager",
             "inbound_email",
             "is_legacy",
+            "alertmanager_v2_migrated_at",
         ]
         extra_kwargs = {"integration": {"required": True}}
+
+    def validate(self, data):
+        validated_data = super().validate(data)
+        organization = self.context["request"].auth.organization
+        verbal_name = validated_data.get("verbal_name")
+        team = validated_data.get("team")
+        try:
+            obj = AlertReceiveChannel.objects.get(organization=organization, team=team, verbal_name=verbal_name)
+        except AlertReceiveChannel.DoesNotExist:
+            pass
+        except AlertReceiveChannel.MultipleObjectsReturned:
+            raise serializers.ValidationError(
+                {"verbal_name": "An integration with this name already exists for this team"}
+            )
+        else:
+            if self.instance is None or obj.id != self.instance.id:
+                raise serializers.ValidationError(
+                    {"verbal_name": "An integration with this name already exists for this team"}
+                )
+
+        return validated_data
 
     def create(self, validated_data):
         organization = self.context["request"].auth.organization
@@ -334,15 +356,16 @@ class AlertReceiveChannelSerializer(
         except AlertReceiveChannel.DuplicateDirectPagingError:
             raise BadRequest(detail=AlertReceiveChannel.DuplicateDirectPagingError.DETAIL)
 
-    def get_instructions(self, obj: "AlertReceiveChannel"):
+    def get_instructions(self, obj: "AlertReceiveChannel") -> str:
         # Deprecated, kept for api-backward compatibility
         return ""
 
     # MethodFields are used instead of relevant properties because of properties hit db on each instance in queryset
-    def get_default_channel_filter(self, obj: "AlertReceiveChannel"):
+    def get_default_channel_filter(self, obj: "AlertReceiveChannel") -> str | None:
         for filter in obj.channel_filters.all():
             if filter.is_default:
                 return filter.public_primary_key
+        return None
 
     @staticmethod
     def validate_integration(integration):
@@ -354,34 +377,14 @@ class AlertReceiveChannelSerializer(
 
         return integration
 
-    def validate_verbal_name(self, verbal_name):
-        organization = self.context["request"].auth.organization
-        if verbal_name is None or (self.instance and verbal_name == self.instance.verbal_name):
-            return verbal_name
-        try:
-            obj = AlertReceiveChannel.objects.get(organization=organization, verbal_name=verbal_name)
-        except AlertReceiveChannel.DoesNotExist:
-            return verbal_name
-        if self.instance and obj.id == self.instance.id:
-            return verbal_name
-        else:
-            raise serializers.ValidationError(detail="Integration with this name already exists")
-
-    def get_heartbeat(self, obj: "AlertReceiveChannel"):
-        try:
-            heartbeat = obj.integration_heartbeat
-        except ObjectDoesNotExist:
-            return None
-        return IntegrationHeartBeatSerializer(heartbeat).data
-
-    def get_allow_delete(self, obj: "AlertReceiveChannel"):
+    def get_allow_delete(self, obj: "AlertReceiveChannel") -> bool:
         # don't allow deleting direct paging integrations
         return obj.integration != AlertReceiveChannel.INTEGRATION_DIRECT_PAGING
 
-    def get_alert_count(self, obj: "AlertReceiveChannel"):
+    def get_alert_count(self, obj: "AlertReceiveChannel") -> int:
         return 0
 
-    def get_alert_groups_count(self, obj: "AlertReceiveChannel"):
+    def get_alert_groups_count(self, obj: "AlertReceiveChannel") -> int:
         return 0
 
     def get_routes_count(self, obj: "AlertReceiveChannel") -> int:
@@ -428,10 +431,10 @@ class FilterAlertReceiveChannelSerializer(serializers.ModelSerializer[AlertRecei
         model = AlertReceiveChannel
         fields = ["value", "display_name", "integration_url"]
 
-    def _get_value(self, obj: "AlertReceiveChannel"):
+    def _get_value(self, obj: "AlertReceiveChannel") -> str:
         return obj.public_primary_key
 
-    def get_display_name(self, obj: "AlertReceiveChannel"):
+    def get_display_name(self, obj: "AlertReceiveChannel") -> str:
         display_name = obj.verbal_name or AlertReceiveChannel.INTEGRATION_CHOICES[obj.integration][1]
         return display_name
 
@@ -568,7 +571,7 @@ class AlertReceiveChannelTemplatesSerializer(EagerLoadingMixin, serializers.Mode
                 is_default = False
                 if obj.messaging_backends_templates:
                     value = obj.messaging_backends_templates.get(backend_id, {}).get(field)
-                if not value:
+                if not value and not backend.skip_default_template_fields:
                     value = obj.get_default_template_attribute(backend_id, field)
                     is_default = True
                 field_name = f"{backend.slug}_{field}_template"

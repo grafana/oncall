@@ -1,19 +1,10 @@
 .integrationTree__container {
   margin-left: 32px;
   position: relative;
-
-  &:before {
-    content: '';
-    position: absolute;
-    height: calc(100% - 20px);
-    border: var(--border-weak);
-    margin-top: 20px;
-    margin-left: -20px;
-  }
 }
 
 .integrationTree__element {
-  margin-left: 6px;
+  margin-left: 16px;
   visibility: hidden;
   overflow-y: hidden;
   height: 0;
@@ -21,26 +12,43 @@
   &--visible {
     visibility: visible;
     height: auto;
+    overflow: unset;
   }
 }
 
 .integrationTree__group {
   position: relative;
-  margin-bottom: 12px;
+  padding-bottom: 12px;
+
+  &:not(:last-child)::before {
+    content: '';
+    position: absolute;
+    height: 100%;
+    border: var(--border-weak);
+    margin-top: 4px;
+    margin-left: -19px;
+    top: 20px;
+  }
 
   &--hidden {
     display: none;
   }
 }
 
+.integrationTree__container--timeline-view .integrationTree__group::before {
+  margin-left: -18px;
+  border: 0 !important;
+  width: 4px;
+  background-color: var(--border-medium-color);
+}
+
 .integrationTree__icon {
   position: absolute;
   top: 0px;
-  transform: translateY(50%);
   left: -30px;
   color: var(--always-gray);
-  width: 25px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   text-align: center;
   background-color: var(--primary-background) !important;
   border: 1px solid var(--primary-background);
@@ -50,9 +58,24 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  margin-top: 4px;
 
   path {
     // this will overwrite all icons below to be gray
     fill: var(--always-gray);
   }
+}
+
+.number-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  text-align: center;
+  line-height: 28px;
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--primary-text-color);
+  background-color: var(--border-medium-color);
+  flex-shrink: 0;
+  margin: 0;
 }

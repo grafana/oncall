@@ -1,21 +1,22 @@
+import enum
 import logging
 import typing
 
-import jwt
 import requests
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
-from django.utils import timezone
 from fcm_django.api.rest_framework import FCMDeviceAuthorizedViewSet as BaseFCMDeviceAuthorizedViewSet
 from rest_framework import mixins, status, viewsets
 from rest_framework.exceptions import NotFound, ParseError
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.mobile_app.auth import MobileAppAuthTokenAuthentication, MobileAppVerificationTokenAuthentication
 from apps.mobile_app.models import FCMDevice, MobileAppAuthToken, MobileAppUserSettings
 from apps.mobile_app.serializers import FCMDeviceSerializer, MobileAppUserSettingsSerializer
+from common.cloud_auth_api.client import CloudAuthApiClient, CloudAuthApiException
 
 if typing.TYPE_CHECKING:
     from apps.user_management.models import Organization, User
@@ -134,54 +135,56 @@ class MobileAppGatewayView(APIView):
     authentication_classes = (MobileAppAuthTokenAuthentication,)
     permission_classes = (IsAuthenticated,)
 
-    class SupportedDownstreamBackends:
+    class SupportedDownstreamBackends(enum.StrEnum):
         INCIDENT = "incident"
 
-    ALL_SUPPORTED_DOWNSTREAM_BACKENDS = [
-        SupportedDownstreamBackends.INCIDENT,
-    ]
+    ALL_SUPPORTED_DOWNSTREAM_BACKENDS = list(SupportedDownstreamBackends)
 
-    def initial(self, request, *args, **kwargs):
+    def initial(self, request: Request, *args, **kwargs):
         # If the mobile app gateway is not enabled, return a 404
         if not settings.MOBILE_APP_GATEWAY_ENABLED:
             raise NotFound
         super().initial(request, *args, **kwargs)
 
     @classmethod
-    def _construct_jwt_payload(cls, user: "User") -> typing.Dict[str, typing.Any]:
-        organization = user.organization
-        now = timezone.now()
-
-        return {
-            # registered claim names
-            "iat": now,
-            "exp": now + timezone.timedelta(minutes=1),  # jwt is short lived. expires in 1 minute.
-            # custom data
-            "user_id": user.user_id,  # grafana user ID
-            "stack_id": organization.stack_id,
-            "organization_id": organization.org_id,  # grafana org ID
-            "stack_slug": organization.stack_slug,
-            "org_slug": organization.org_slug,
-        }
-
-    @classmethod
-    def _construct_jwt(cls, user: "User") -> str:
+    def _get_auth_token(cls, downstream_backend: SupportedDownstreamBackends, user: "User") -> str:
         """
         RS256 = asymmetric = public/private key pair
         HS256 = symmetric = shared secret (don't use this)
         """
-        return jwt.encode(
-            cls._construct_jwt_payload(user), settings.MOBILE_APP_GATEWAY_RSA_PRIVATE_KEY, algorithm="RS256"
-        )
-
-    @classmethod
-    def _get_downstream_headers(cls, user: "User") -> typing.Dict[str, str]:
-        return {
-            "Authorization": f"Bearer {cls._construct_jwt(user)}",
+        org = user.organization
+        token_claims = {
+            "user_id": user.user_id,  # grafana user ID
+            "user_email": user.email,
+            "stack_id": org.stack_id,
+            "organization_id": org.org_id,  # grafana org ID
+            "stack_slug": org.stack_slug,
+            "org_slug": org.org_slug,
         }
 
+        token_scopes = {
+            cls.SupportedDownstreamBackends.INCIDENT: [CloudAuthApiClient.Scopes.INCIDENT_WRITE],
+        }[downstream_backend]
+
+        return f"{org.stack_id}:{CloudAuthApiClient().request_signed_token(org, token_scopes, token_claims)}"
+
     @classmethod
-    def _get_downstream_url(cls, organization: "Organization", downstream_backend: str, downstream_path: str) -> str:
+    def _get_downstream_headers(
+        cls, request: Request, downstream_backend: SupportedDownstreamBackends, user: "User"
+    ) -> typing.Dict[str, str]:
+        headers = {
+            "Authorization": f"Bearer {cls._get_auth_token(downstream_backend, user)}",
+        }
+
+        if (v := request.META.get("CONTENT_TYPE", None)) is not None:
+            headers["Content-Type"] = v
+
+        return headers
+
+    @classmethod
+    def _get_downstream_url(
+        cls, organization: "Organization", downstream_backend: SupportedDownstreamBackends, downstream_path: str
+    ) -> str:
         downstream_url = {
             cls.SupportedDownstreamBackends.INCIDENT: organization.grafana_incident_backend_url,
         }[downstream_backend]
@@ -193,7 +196,7 @@ class MobileAppGatewayView(APIView):
 
         return f"{downstream_url}/{downstream_path}"
 
-    def _proxy_request(self, request, *args, **kwargs):
+    def _proxy_request(self, request: Request, *args, **kwargs) -> Response:
         downstream_backend = kwargs["downstream_backend"]
         downstream_path = kwargs["downstream_path"]
         method = request.method
@@ -203,20 +206,26 @@ class MobileAppGatewayView(APIView):
             raise NotFound(f"Downstream backend {downstream_backend} not supported")
 
         downstream_url = self._get_downstream_url(user.organization, downstream_backend, downstream_path)
+
+        log_msg_common = f"{downstream_backend} request to {method} {downstream_url}"
+        logger.info(f"Proxying {log_msg_common}")
+
         downstream_request_handler = getattr(requests, method.lower())
 
         try:
             downstream_response = downstream_request_handler(
                 downstream_url,
-                data=request.data,
+                data=request.body,
                 params=request.query_params.dict(),
-                headers=self._get_downstream_headers(user),
+                headers=self._get_downstream_headers(request, downstream_backend, user),
             )
 
+            logger.info(f"Successfully proxied {log_msg_common}")
             return Response(status=downstream_response.status_code, data=downstream_response.json())
         except (
             requests.exceptions.RequestException,
             requests.exceptions.JSONDecodeError,
+            CloudAuthApiException,
         ) as e:
             if isinstance(e, requests.exceptions.JSONDecodeError):
                 final_status = status.HTTP_400_BAD_REQUEST

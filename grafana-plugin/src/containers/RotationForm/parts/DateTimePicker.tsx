@@ -6,7 +6,8 @@ import cn from 'classnames/bind';
 import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
 
-import Text from 'components/Text/Text';
+import { Text } from 'components/Text/Text';
+import { getDateForDatePicker } from 'containers/RotationForm/RotationForm.helpers';
 import { useStore } from 'state/useStore';
 
 import styles from 'containers/RotationForm/RotationForm.module.css';
@@ -22,7 +23,7 @@ interface DateTimePickerProps {
   error?: string[];
 }
 
-const DateTimePicker = observer(
+export const DateTimePicker = observer(
   ({ value: propValue, onChange, disabled, onFocus, onBlur, error }: DateTimePickerProps) => {
     const {
       timezoneStore: { getDateInSelectedTimezone },
@@ -58,17 +59,6 @@ const DateTimePicker = observer(
       return time;
     };
 
-    const getDateForDatePicker = () => {
-      const date = new Date();
-      date.setFullYear(valueInSelectedTimezone.year());
-      date.setMonth(valueInSelectedTimezone.month());
-      date.setDate(valueInSelectedTimezone.date());
-      date.setHours(valueInSelectedTimezone.hour());
-      date.setMinutes(valueInSelectedTimezone.minute());
-      date.setSeconds(valueInSelectedTimezone.second());
-      return date;
-    };
-
     return (
       <VerticalGroup>
         <div style={{ display: 'flex', flexWrap: 'nowrap', gap: '8px' }}>
@@ -78,7 +68,12 @@ const DateTimePicker = observer(
             style={{ width: '58%' }}
             className={cx({ 'control--error': Boolean(error) })}
           >
-            <DatePickerWithInput open disabled={disabled} value={getDateForDatePicker()} onChange={handleDateChange} />
+            <DatePickerWithInput
+              open
+              disabled={disabled}
+              value={getDateForDatePicker(valueInSelectedTimezone)}
+              onChange={handleDateChange}
+            />
           </div>
           <div
             onFocus={onFocus}
@@ -95,5 +90,3 @@ const DateTimePicker = observer(
     );
   }
 );
-
-export default DateTimePicker;

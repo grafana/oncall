@@ -4,6 +4,8 @@ CELERY_TASK_ROUTES = {
         "queue": "default"
     },
     "apps.alerts.tasks.delete_alert_group.delete_alert_group": {"queue": "default"},
+    "apps.alerts.tasks.delete_alert_group.send_alert_group_signal_for_delete": {"queue": "default"},
+    "apps.alerts.tasks.delete_alert_group.finish_delete_alert_group": {"queue": "default"},
     "apps.alerts.tasks.invalidate_web_cache_for_alert_group.invalidate_web_cache_for_alert_group": {"queue": "default"},
     "apps.alerts.tasks.send_alert_group_signal.send_alert_group_signal": {"queue": "default"},
     "apps.alerts.tasks.wipe.wipe": {"queue": "default"},
@@ -30,6 +32,7 @@ CELERY_TASK_ROUTES = {
     "apps.schedules.tasks.refresh_ical_files.start_refresh_ical_files": {"queue": "default"},
     "apps.schedules.tasks.refresh_ical_files.refresh_ical_final_schedule": {"queue": "default"},
     "apps.schedules.tasks.refresh_ical_files.start_refresh_ical_final_schedules": {"queue": "default"},
+    "apps.schedules.tasks.check_gaps_and_empty_shifts.check_gaps_and_empty_shifts_in_schedule": {"queue": "default"},
     "apps.schedules.tasks.notify_about_gaps_in_schedule.check_empty_shifts_in_schedule": {"queue": "default"},
     "apps.schedules.tasks.notify_about_gaps_in_schedule.start_notify_about_gaps_in_schedule": {"queue": "default"},
     "apps.schedules.tasks.notify_about_gaps_in_schedule.check_gaps_in_schedule": {"queue": "default"},
@@ -78,6 +81,10 @@ CELERY_TASK_ROUTES = {
     "apps.oss_installation.tasks.send_cloud_heartbeat_task": {"queue": "default"},
     "apps.oss_installation.tasks.send_usage_stats_report": {"queue": "default"},
     "apps.oss_installation.tasks.sync_users_with_cloud": {"queue": "default"},
+    "common.oncall_gateway.tasks.link_slack_team_async": {"queue": "default"},
+    "common.oncall_gateway.tasks.unlink_slack_team_async": {"queue": "default"},
+    "common.oncall_gateway.tasks.register_oncall_tenant_async": {"queue": "default"},
+    "common.oncall_gateway.tasks.unregister_oncall_tenant_async": {"queue": "default"},
     # CRITICAL
     "apps.alerts.tasks.acknowledge_reminder.acknowledge_reminder_task": {"queue": "critical"},
     "apps.alerts.tasks.acknowledge_reminder.unacknowledge_timeout_task": {"queue": "critical"},

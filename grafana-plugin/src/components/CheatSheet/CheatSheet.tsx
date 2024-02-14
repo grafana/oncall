@@ -4,9 +4,9 @@ import { HorizontalGroup, IconButton, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import CopyToClipboard from 'react-copy-to-clipboard';
 
-import Block from 'components/GBlock/Block';
-import Text from 'components/Text/Text';
-import { openNotification } from 'utils';
+import { Block } from 'components/GBlock/Block';
+import { Text } from 'components/Text/Text';
+import { openNotification } from 'utils/utils';
 
 import { CheatSheetInterface, CheatSheetItem } from './CheatSheet.config';
 import styles from './CheatSheet.module.scss';
@@ -19,7 +19,7 @@ interface CheatSheetProps {
 
 const cx = cn.bind(styles);
 
-const CheatSheet = (props: CheatSheetProps) => {
+export const CheatSheet = (props: CheatSheetProps) => {
   const { cheatSheetName, cheatSheetData, onClose } = props;
   return (
     <div className={cx('cheatsheet-container')}>
@@ -83,5 +83,3 @@ const CheatSheetListItem = (props: CheatSheetListItemProps) => {
     </>
   );
 };
-
-export default CheatSheet;

@@ -11,7 +11,7 @@ if not running_under_parent_tiltfile:
     # Load the custom Grafana extensions
     v1alpha1.extension_repo(
         name="grafana-tilt-extensions",
-        ref="main",
+        ref="v1.2.0",
         url="https://github.com/grafana/tilt-extensions",
     )
 v1alpha1.extension(
@@ -70,12 +70,13 @@ local_resource(
 
 cmd_button(
     name="E2E Tests - headless run",
-    argv=["sh", "-c", "yarn --cwd ./grafana-plugin test:e2e $STOP_ON_FIRST_FAILURE"],
+    argv=["sh", "-c", "yarn --cwd ./grafana-plugin test:e2e $STOP_ON_FIRST_FAILURE $TESTS_FILTER"],
     text="Restart headless run",
     resource="e2e-tests",
     icon_name="replay",
     inputs=[
-        text_input("BROWSERS", "Browsers (e.g. \"chromium,firefox,webkit\")", "chromium", "chromium,firefox,webkit"), 
+        text_input("BROWSERS", "Browsers (e.g. \"chromium,firefox,webkit\")", "chromium", "chromium,firefox,webkit"),
+        text_input("TESTS_FILTER", "Test filter (e.g. \"timezones.test quality.test\")", "", "Test file names to run"), 
         bool_input("REPORTER", "Use HTML reporter", True, 'html', 'line'),
         bool_input("STOP_ON_FIRST_FAILURE", "Stop on first failure", True, "-x", ""),
     ]

@@ -105,6 +105,73 @@ def test_create_integration(
 
 
 @pytest.mark.django_db
+def test_integration_name_uniqueness(
+    make_organization_and_user_with_token,
+    make_team,
+):
+    organization, _, token = make_organization_and_user_with_token()
+
+    client = APIClient()
+    data = {
+        "type": "grafana",
+        "name": "grafana_created",
+        "team_id": None,
+    }
+    url = reverse("api-public:integrations-list")
+    response = client.post(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
+    assert response.status_code == status.HTTP_201_CREATED
+    integration_pk = response.data["id"]
+
+    # cannot create another one with the same name
+    response = client.post(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    # but name can be reused in a different team
+    another_team = make_team(organization)
+    data["team_id"] = another_team.public_primary_key
+    response = client.post(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
+    assert response.status_code == status.HTTP_201_CREATED
+
+    # update works
+    url = reverse("api-public:integrations-detail", args=[integration_pk])
+    data["team_id"] = None
+    data["description"] = "some description"
+    response = client.put(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
+    assert response.status_code == status.HTTP_200_OK
+
+    # but updating team will fail if name exists
+    data["team_id"] = another_team.public_primary_key
+    response = client.put(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+@pytest.mark.django_db
+def test_integration_name_duplicated(
+    make_organization_and_user_with_token,
+    make_alert_receive_channel,
+    make_user_auth_headers,
+):
+    # this could happen in case a team is removed and integrations are set to have "no team"
+    organization, _, token = make_organization_and_user_with_token()
+    integration = make_alert_receive_channel(organization)
+    # duplicated name integration
+    make_alert_receive_channel(organization, verbal_name=integration.verbal_name)
+
+    client = APIClient()
+
+    # updating team will require changing the name or the team
+    data = {"name": integration.verbal_name}
+    url = reverse("api-public:integrations-detail", args=[integration.public_primary_key])
+    response = client.put(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    # but updating team will fail if name exists
+    data["name"] = "a new name"
+    response = client.put(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
+    assert response.status_code == status.HTTP_200_OK
+
+
+@pytest.mark.django_db
 def test_create_integrations_with_none_templates(
     make_organization_and_user_with_token,
     make_escalation_chain,
@@ -817,6 +884,50 @@ def test_update_integration_default_route(
 
     assert response.status_code == status.HTTP_200_OK
     assert response.data["default_route"]["escalation_chain_id"] == escalation_chain.public_primary_key
+
+
+@pytest.mark.django_db
+def test_create_integration_default_route_with_slack_field(
+    make_organization_and_user_with_token,
+    make_escalation_chain,
+):
+    organization, _, token = make_organization_and_user_with_token()
+    escalation_chain = make_escalation_chain(organization)
+
+    client = APIClient()
+    data_for_create = {
+        "type": "grafana",
+        "name": "grafana_created",
+        "team_id": None,
+        "default_route": {
+            "escalation_chain_id": escalation_chain.public_primary_key,
+            "slack": {"channel_id": "TEST_SLACK_ID"},
+        },
+    }
+    url = reverse("api-public:integrations-list")
+    response = client.post(url, data=data_for_create, format="json", HTTP_AUTHORIZATION=f"{token}")
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.data["detail"] == "Slack isn't connected to this workspace"
+
+
+@pytest.mark.django_db
+def test_update_integration_default_route_with_slack_field(
+    make_organization_and_user_with_token, make_alert_receive_channel, make_channel_filter
+):
+    organization, _, token = make_organization_and_user_with_token()
+    integration = make_alert_receive_channel(organization)
+    make_channel_filter(integration, is_default=True)
+
+    client = APIClient()
+    data_for_update = {
+        "default_route": {"slack": {"channel_id": "TEST_SLACK_ID"}},
+    }
+
+    url = reverse("api-public:integrations-detail", args=[integration.public_primary_key])
+    response = client.put(url, data=data_for_update, format="json", HTTP_AUTHORIZATION=f"{token}")
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.data["detail"] == "Slack isn't connected to this workspace"
 
 
 @pytest.mark.django_db

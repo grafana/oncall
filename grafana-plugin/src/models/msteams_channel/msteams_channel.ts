@@ -1,8 +1,8 @@
 import { action, computed, observable, makeObservable, runInAction } from 'mobx';
 
-import BaseStore from 'models/base_store';
-import { makeRequest } from 'network';
-import { RootStore } from 'state';
+import { BaseStore } from 'models/base_store';
+import { makeRequest } from 'network/network';
+import { RootStore } from 'state/rootStore';
 
 import { MSTeamsChannel } from './msteams_channel.types';
 
@@ -26,7 +26,7 @@ export class MSTeamsChannelStore extends BaseStore {
     this.path = '/msteams/channels/';
   }
 
-  @action.bound
+  @action
   async updateMSTeamsChannels() {
     const response = await makeRequest(this.path, {});
 
@@ -48,7 +48,7 @@ export class MSTeamsChannelStore extends BaseStore {
     });
   }
 
-  @action.bound
+  @action
   async updateById(id: MSTeamsChannel['id']) {
     const response = await this.getById(id);
 
@@ -60,7 +60,7 @@ export class MSTeamsChannelStore extends BaseStore {
     });
   }
 
-  @action.bound
+  @action
   async updateItems(query = '') {
     const result = await this.getAll();
 
@@ -83,7 +83,6 @@ export class MSTeamsChannelStore extends BaseStore {
     });
   }
 
-  @action.bound
   getSearchResult(query = '') {
     if (!this.searchResult[query]) {
       return undefined;
@@ -96,38 +95,31 @@ export class MSTeamsChannelStore extends BaseStore {
     return Boolean(this.getSearchResult('')?.length);
   }
 
-  @action.bound
   async startAutoUpdate() {
     this.autoUpdateTimer = setInterval(this.updateMSTeamsChannels.bind(this), 3000);
   }
 
-  @action.bound
   async stopAutoUpdate() {
     if (this.autoUpdateTimer) {
       clearInterval(this.autoUpdateTimer);
     }
   }
 
-  @action.bound
   async getMSTeamsChannelVerificationCode() {
     return await makeRequest(`/current_team/get_channel_verification_code/?backend=MSTEAMS`, {
       withCredentials: true,
     });
   }
 
-  @action.bound
   async makeMSTeamsChannelDefault(id: MSTeamsChannel['id']) {
     return makeRequest(`/msteams/channels/${id}/set_default/`, {
       method: 'POST',
     });
   }
-
-  @action.bound
   async deleteMSTeamsChannel(id: MSTeamsChannel['id']) {
     return super.delete(id);
   }
 
-  @action.bound
   async getMSTeamsChannels() {
     return super.getAll();
   }

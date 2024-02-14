@@ -43,10 +43,15 @@ class TelegramToUserConnector(models.Model):
         telegram_channel = TelegramToOrganizationConnector.get_channel_for_alert_group(alert_group)
 
         if telegram_channel is not None:
-            send_link_to_channel_message_or_fallback_to_full_alert_group.delay(
-                alert_group_pk=alert_group.pk,
-                notification_policy_pk=notification_policy.pk,
-                user_connector_pk=self.pk,
+            # Call this task with a countdown to avoid unnecessary retry when alert group telegram message hasn't been
+            # created yet
+            send_link_to_channel_message_or_fallback_to_full_alert_group.apply_async(
+                kwargs={
+                    "alert_group_pk": alert_group.pk,
+                    "notification_policy_pk": notification_policy.pk,
+                    "user_connector_pk": self.pk,
+                },
+                countdown=3,
             )
         else:
             self.send_full_alert_group(alert_group=alert_group, notification_policy=notification_policy)
@@ -158,6 +163,7 @@ class TelegramToUserConnector(models.Model):
                 )
         else:
             self._nudge_about_alert_group_message(telegram_client, old_alert_group_message)
+            TelegramToUserConnector.create_telegram_notification_success(alert_group, self.user, notification_policy)
 
     # send DM message with the link to the alert group post in channel
     def send_link_to_channel_message(self, alert_group: AlertGroup, notification_policy: UserNotificationPolicy):

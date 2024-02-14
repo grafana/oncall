@@ -1,8 +1,8 @@
 import { action, computed, observable, makeObservable, runInAction } from 'mobx';
 
-import BaseStore from 'models/base_store';
-import { makeRequest } from 'network';
-import { RootStore } from 'state';
+import { BaseStore } from 'models/base_store';
+import { makeRequest } from 'network/network';
+import { RootStore } from 'state/rootStore';
 
 import { TelegramChannel } from './telegram_channel.types';
 
@@ -26,7 +26,7 @@ export class TelegramChannelStore extends BaseStore {
     this.path = '/telegram_channels/';
   }
 
-  @action.bound
+  @action
   async updateTelegramChannels() {
     const response = await makeRequest(this.path, {});
 
@@ -48,7 +48,7 @@ export class TelegramChannelStore extends BaseStore {
     });
   }
 
-  @action.bound
+  @action
   async updateById(id: TelegramChannel['id']) {
     const response = await this.getById(id);
 
@@ -60,7 +60,7 @@ export class TelegramChannelStore extends BaseStore {
     });
   }
 
-  @action.bound
+  @action
   async updateItems(query = '') {
     const result = await this.getAll();
 
@@ -83,7 +83,6 @@ export class TelegramChannelStore extends BaseStore {
     });
   }
 
-  @action.bound
   getSearchResult(query = '') {
     if (!this.searchResult[query]) {
       return undefined;
@@ -96,38 +95,34 @@ export class TelegramChannelStore extends BaseStore {
     return Boolean(this.getSearchResult('')?.length);
   }
 
-  @action.bound
   async startAutoUpdate() {
     this.autoUpdateTimer = setInterval(this.updateTelegramChannels.bind(this), 3000);
   }
 
-  @action.bound
   async stopAutoUpdate() {
     if (this.autoUpdateTimer) {
       clearInterval(this.autoUpdateTimer);
     }
   }
 
-  @action.bound
   async getTelegramVerificationCode() {
     return await makeRequest(`/current_team/get_telegram_verification_code/`, {
       withCredentials: true,
     });
   }
 
-  @action.bound
+  @action
   async makeTelegramChannelDefault(id: TelegramChannel['id']) {
     return makeRequest(`/telegram_channels/${id}/set_default/`, {
       method: 'POST',
     });
   }
 
-  @action.bound
+  @action
   async deleteTelegramChannel(id: TelegramChannel['id']) {
     return super.delete(id);
   }
 
-  @action.bound
   async getTelegramChannels() {
     return super.getAll();
   }

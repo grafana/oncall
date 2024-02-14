@@ -1,8 +1,8 @@
 import { action, observable, makeObservable, runInAction } from 'mobx';
 
-import BaseStore from 'models/base_store';
-import { makeRequest } from 'network';
-import { RootStore } from 'state';
+import { BaseStore } from 'models/base_store';
+import { makeRequest } from 'network/network';
+import { RootStore } from 'state/rootStore';
 
 import { Cloud } from './cloud.types';
 
@@ -24,7 +24,7 @@ export class CloudStore extends BaseStore {
     this.path = '/cloud_users/';
   }
 
-  @action.bound
+  @action
   async updateItems(page = 1) {
     const { matched_users_count, results } = await makeRequest(this.path, {
       params: { page },
@@ -49,7 +49,6 @@ export class CloudStore extends BaseStore {
     });
   }
 
-  @action.bound
   getSearchResult() {
     return {
       matched_users_count: this.searchResult.matched_users_count,
@@ -57,22 +56,18 @@ export class CloudStore extends BaseStore {
     };
   }
 
-  @action.bound
   async syncCloudUsers() {
     return await makeRequest(`${this.path}`, { method: 'POST' });
   }
 
-  @action.bound
   async syncCloudUser(id: string) {
     return await makeRequest(`${this.path}${id}/sync/`, { method: 'POST' });
   }
 
-  @action.bound
   async getCloudHeartbeat() {
     return await makeRequest(`/cloud_heartbeat/`, { method: 'POST' });
   }
 
-  @action.bound
   async getCloudUser(id: string) {
     return await makeRequest(`${this.path}${id}`, { method: 'GET' });
   }
@@ -86,12 +81,10 @@ export class CloudStore extends BaseStore {
     });
   }
 
-  @action.bound
   async getCloudConnectionStatus() {
     return await makeRequest(`/cloud_connection/`, { method: 'GET' });
   }
 
-  @action.bound
   async disconnectToCloud() {
     return await makeRequest(`/cloud_connection/`, { method: 'DELETE' });
   }

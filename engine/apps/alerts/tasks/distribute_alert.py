@@ -13,6 +13,8 @@ from .task_logger import task_logger
 def distribute_alert(alert_id):
     """
     We need this task to make task processing async and to make sure the task is delivered.
+    This task is not used anymore, but we keep it for the tasks in the queue to be processed.
+    TODO: remove this task after all the tasks in the queue are processed.
     """
     from apps.alerts.models import Alert
 

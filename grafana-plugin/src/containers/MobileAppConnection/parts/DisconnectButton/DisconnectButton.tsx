@@ -3,7 +3,7 @@ import React, { FC } from 'react';
 import { Button } from '@grafana/ui';
 import cn from 'classnames/bind';
 
-import WithConfirm from 'components/WithConfirm/WithConfirm';
+import { WithConfirm } from 'components/WithConfirm/WithConfirm';
 
 import styles from './DisconnectButton.module.scss';
 
@@ -13,7 +13,7 @@ type Props = {
   onClick: () => void;
 };
 
-const DisconnectButton: FC<Props> = ({ onClick }) => (
+export const DisconnectButton: FC<Props> = ({ onClick }) => (
   <WithConfirm title="Are you sure to disconnect your mobile application?" confirmText="Remove">
     <Button
       variant="destructive"
@@ -26,5 +26,3 @@ const DisconnectButton: FC<Props> = ({ onClick }) => (
     </Button>
   </WithConfirm>
 );
-
-export default DisconnectButton;

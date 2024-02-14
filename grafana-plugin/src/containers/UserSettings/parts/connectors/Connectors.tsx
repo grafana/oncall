@@ -7,12 +7,13 @@ import { User } from 'models/user/user.types';
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
 
-import ICalConnector from './ICalConnector';
+import { ICalConnector } from './ICalConnector';
 // import MobileAppConnector from './MobileAppConnector';
-import MobileAppConnector from './MobileAppConnector';
-import PhoneConnector from './PhoneConnector';
-import SlackConnector from './SlackConnector';
-import TelegramConnector from './TelegramConnector';
+import { MSTeamsConnector } from './MSTeamsConnector';
+import { MobileAppConnector } from './MobileAppConnector';
+import { PhoneConnector } from './PhoneConnector';
+import { SlackConnector } from './SlackConnector';
+import { TelegramConnector } from './TelegramConnector';
 
 interface ConnectorsProps {
   id: User['pk'];
@@ -27,6 +28,7 @@ export const Connectors: FC<ConnectorsProps> = (props) => {
       <MobileAppConnector {...props} />
       <SlackConnector {...props} />
       {store.hasFeature(AppFeature.Telegram) && <TelegramConnector {...props} />}
+      {store.hasFeature(AppFeature.MsTeams) && <MSTeamsConnector {...props} />}
       <Legend>Calendar export</Legend>
       <ICalConnector {...props} />
     </>

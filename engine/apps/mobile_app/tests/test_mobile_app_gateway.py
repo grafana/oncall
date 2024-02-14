@@ -4,28 +4,27 @@ from unittest.mock import patch
 import pytest
 import requests
 from django.urls import reverse
-from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APIClient
 from rest_framework.views import APIView
 
 from apps.mobile_app.views import MobileAppGatewayView
+from common.cloud_auth_api.client import CloudAuthApiClient, CloudAuthApiException
 
 DOWNSTREAM_BACKEND = "incident"
 MOCK_DOWNSTREAM_URL = "https://mockdownstream.com"
 MOCK_DOWNSTREAM_INCIDENT_API_URL = "https://mockdownstreamincidentapi.com"
-MOCK_DOWNSTREAM_HEADERS = {"Authorization": "Bearer mock_jwt"}
+MOCK_DOWNSTREAM_HEADERS = {"Authorization": "Bearer mock_auth_token"}
 MOCK_DOWNSTREAM_RESPONSE_DATA = {"foo": "bar"}
 
-MOCK_TIMEZONE_NOW = timezone.datetime(2021, 1, 1, 3, 4, 5, tzinfo=timezone.utc)
-MOCK_JWT = "mncn,zxcnv,mznxcv"
-MOCK_JWT_PRIVATE_KEY = "asd,mzcxn,vmnzxcv,mnzx,cvmnzaslkdjflaksjdf"
+MOCK_AUTH_TOKEN = "mncn,zxcnv,mznxcv"
 
 
 @pytest.fixture(autouse=True)
 def enable_mobile_app_gateway(settings):
     settings.MOBILE_APP_GATEWAY_ENABLED = True
-    settings.MOBILE_APP_GATEWAY_RSA_PRIVATE_KEY = MOCK_JWT_PRIVATE_KEY
+    settings.GRAFANA_CLOUD_AUTH_API_URL = "asdfasdf"
+    settings.GRAFANA_CLOUD_AUTH_API_SYSTEM_TOKEN = "zxcvzx"
 
 
 class MockResponse:
@@ -62,7 +61,7 @@ def test_mobile_app_gateway_properly_proxies_paths(
 
     mock_requests.post.assert_called_once_with(
         f"{MOCK_DOWNSTREAM_INCIDENT_API_URL}/{path}",
-        data={},
+        data=b"",
         params={},
         headers=MOCK_DOWNSTREAM_HEADERS,
     )
@@ -116,7 +115,7 @@ def test_mobile_app_gateway_proxies_query_params(
 
     mock_requests.post.assert_called_once_with(
         MOCK_DOWNSTREAM_URL,
-        data={},
+        data=b"",
         params={"foo": "bar", "baz": "hello"},
         headers=MOCK_DOWNSTREAM_HEADERS,
     )
@@ -147,10 +146,11 @@ def test_mobile_app_gateway_properly_proxies_request_body(
 
     client = APIClient()
     url = reverse("mobile_app:gateway", kwargs={"downstream_backend": DOWNSTREAM_BACKEND, "downstream_path": "test"})
+    data = json.dumps(upstream_request_body)
 
     response = client.post(
         url,
-        data=json.dumps(upstream_request_body),
+        data=data,
         content_type="application/json",
         HTTP_AUTHORIZATION=auth_token,
     )
@@ -158,7 +158,7 @@ def test_mobile_app_gateway_properly_proxies_request_body(
 
     mock_requests.post.assert_called_once_with(
         MOCK_DOWNSTREAM_URL,
-        data=upstream_request_body,
+        data=data.encode("utf-8"),
         params={},
         headers=MOCK_DOWNSTREAM_HEADERS,
     )
@@ -208,6 +208,7 @@ def test_mobile_app_gateway_supported_downstream_backends(
         (requests.exceptions.TooManyRedirects, (), status.HTTP_502_BAD_GATEWAY),
         (requests.exceptions.Timeout, (), status.HTTP_502_BAD_GATEWAY),
         (requests.exceptions.JSONDecodeError, ("", "", 5), status.HTTP_400_BAD_REQUEST),
+        (CloudAuthApiException, (403, "http://example.com"), status.HTTP_502_BAD_GATEWAY),
     ],
 )
 def test_mobile_app_gateway_catches_errors_from_downstream_server(
@@ -289,11 +290,11 @@ def test_mobile_app_gateway_incident_api_url(
 
 @pytest.mark.django_db
 @patch("apps.mobile_app.views.requests")
-@patch("apps.mobile_app.views.MobileAppGatewayView._construct_jwt", return_value=MOCK_JWT)
+@patch("apps.mobile_app.views.MobileAppGatewayView._get_auth_token", return_value=MOCK_AUTH_TOKEN)
 @patch("apps.mobile_app.views.MobileAppGatewayView._get_downstream_url", return_value=MOCK_DOWNSTREAM_URL)
-def test_mobile_app_gateway_jwt_header(
+def test_mobile_app_gateway_proxies_headers(
     _mock_get_downstream_url,
-    _mock_construct_jwt,
+    _mock_get_auth_token,
     mock_requests,
     make_organization_and_user_with_mobile_app_auth_token,
 ):
@@ -304,23 +305,22 @@ def test_mobile_app_gateway_jwt_header(
     client = APIClient()
     url = reverse("mobile_app:gateway", kwargs={"downstream_backend": DOWNSTREAM_BACKEND, "downstream_path": "test"})
 
-    response = client.post(url, HTTP_AUTHORIZATION=auth_token)
+    content_type_header = "foo/bar"
+    response = client.post(url, HTTP_AUTHORIZATION=auth_token, headers={"Content-Type": content_type_header})
     assert response.status_code == status.HTTP_200_OK
 
     mock_requests.post.assert_called_once_with(
         MOCK_DOWNSTREAM_URL,
-        data={},
+        data=b"",
         params={},
-        headers={"Authorization": f"Bearer {MOCK_JWT}"},
+        headers={"Authorization": f"Bearer {MOCK_AUTH_TOKEN}", "Content-Type": content_type_header},
     )
 
 
 @pytest.mark.django_db
-@patch("apps.mobile_app.views.jwt.encode", return_value=MOCK_JWT)
-@patch("apps.mobile_app.views.timezone.now", return_value=MOCK_TIMEZONE_NOW)
-def test_mobile_app_gateway_properly_generates_a_jwt(
-    _mock_timezone_now,
-    mock_jwt_encode,
+@patch("apps.mobile_app.views.CloudAuthApiClient.request_signed_token", return_value=MOCK_AUTH_TOKEN)
+def test_mobile_app_gateway_properly_generates_an_auth_token(
+    mock_request_signed_token,
     make_organization,
     make_user_for_organization,
 ):
@@ -335,19 +335,19 @@ def test_mobile_app_gateway_properly_generates_a_jwt(
     )
     user = make_user_for_organization(organization, user_id=user_id)
 
-    encoded_jwt = MobileAppGatewayView._construct_jwt(user)
+    auth_token = MobileAppGatewayView._get_auth_token(DOWNSTREAM_BACKEND, user)
 
-    assert encoded_jwt == MOCK_JWT
-    mock_jwt_encode.assert_called_once_with(
+    assert auth_token == f"{stack_id}:{MOCK_AUTH_TOKEN}"
+
+    mock_request_signed_token.assert_called_once_with(
+        organization,
+        [CloudAuthApiClient.Scopes.INCIDENT_WRITE],
         {
-            "iat": MOCK_TIMEZONE_NOW,
-            "exp": MOCK_TIMEZONE_NOW + timezone.timedelta(minutes=1),
             "user_id": user.user_id,  # grafana user ID
+            "user_email": user.email,
             "stack_id": organization.stack_id,
             "organization_id": organization.org_id,  # grafana org ID
             "stack_slug": organization.stack_slug,
             "org_slug": organization.org_slug,
         },
-        MOCK_JWT_PRIVATE_KEY,
-        algorithm="RS256",
     )

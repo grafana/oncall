@@ -11,8 +11,6 @@ from apps.labels.utils import get_alert_group_labels_dict, get_labels_dict, is_l
 from apps.schedules.ical_utils import list_users_to_notify_from_ical
 from common.jinja_templater import apply_jinja_template
 
-OUTGOING_WEBHOOK_TIMEOUT = 4
-
 
 class InvalidWebhookUrl(Exception):
     def __init__(self, message):
@@ -82,7 +80,7 @@ def escape_string(string: str):
     json.dumps is the simples way to escape all special characters in string.
     First and last chars are quotes from json.dumps(), we don't need them, only escaping.
     """
-    return json.dumps(string)[1:-1]
+    return json.dumps(string, ensure_ascii=False)[1:-1]
 
 
 class EscapeDoubleQuotesDict(dict):

@@ -1,8 +1,8 @@
 import { action, observable, makeObservable, runInAction } from 'mobx';
 
-import BaseStore from 'models/base_store';
-import { makeRequest } from 'network';
-import { RootStore } from 'state';
+import { BaseStore } from 'models/base_store';
+import { makeRequest } from 'network/network';
+import { RootStore } from 'state/rootStore';
 
 import { SlackChannel } from './slack_channel.types';
 
@@ -21,7 +21,7 @@ export class SlackChannelStore extends BaseStore {
     this.path = '/slack_channels/';
   }
 
-  @action.bound // deprecated, use updateItem instead
+  @action // deprecated, use updateItem instead
   async updateById(id: SlackChannel['id']) {
     const response = await this.getById(id);
 
@@ -33,7 +33,7 @@ export class SlackChannelStore extends BaseStore {
     });
   }
 
-  @action.bound
+  @action
   async updateItem(id: SlackChannel['id']) {
     const response = await this.getById(id);
 
@@ -45,7 +45,7 @@ export class SlackChannelStore extends BaseStore {
     });
   }
 
-  @action.bound
+  @action
   async updateItems(query = '') {
     const { results } = await makeRequest(`${this.path}`, {
       params: { search: query },

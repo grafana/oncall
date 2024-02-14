@@ -3,7 +3,7 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-import DisconnectButton from './DisconnectButton';
+import { DisconnectButton } from './DisconnectButton';
 
 describe('DisconnectButton', () => {
   test('it renders properly', () => {

@@ -257,7 +257,7 @@ class User(models.Model):
         return urljoin(self.organization.grafana_url, self.avatar_url)
 
     @property
-    def verified_phone_number(self):
+    def verified_phone_number(self) -> str | None:
         """
         Use property to highlight that _verified_phone_number should not be modified directly
         """
@@ -273,6 +273,7 @@ class User(models.Model):
         self.save(update_fields=["unverified_phone_number", "_verified_phone_number"])
 
     # TODO: move to telegram app
+    @property
     def is_telegram_connected(self):
         return hasattr(self, "telegram_connection")
 

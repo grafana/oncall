@@ -13,7 +13,7 @@ from common.jinja_templater.apply_jinja_template import JinjaTemplateError
 
 class AlertReceiveChannelTemplateView(
     TeamFilteringMixin,
-    PublicPrimaryKeyMixin,
+    PublicPrimaryKeyMixin[AlertReceiveChannel],
     mixins.RetrieveModelMixin,
     mixins.UpdateModelMixin,
     viewsets.GenericViewSet,

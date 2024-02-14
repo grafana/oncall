@@ -3,7 +3,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useStyles2, Button, HorizontalGroup, Icon, LoadingPlaceholder, Modal, VerticalGroup } from '@grafana/ui';
 import { observer } from 'mobx-react';
 
-import Text from 'components/Text/Text';
+import { Text } from 'components/Text/Text';
 import { ColumnsSelector, convertColumnsToTableSettings } from 'containers/ColumnsSelector/ColumnsSelector';
 import { getColumnsSelectorWrapperStyles } from 'containers/ColumnsSelectorWrapper/ColumnsSelectorWrapper.styles';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
@@ -11,14 +11,14 @@ import { AlertGroupColumn } from 'models/alertgroup/alertgroup.types';
 import { ActionKey } from 'models/loader/action-keys';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
-import { UserActions } from 'utils/authorization';
-import { WrapAutoLoadingState } from 'utils/decorators';
+import { UserActions } from 'utils/authorization/authorization';
+import { WrapAutoLoadingState, WrapWithGlobalNotification } from 'utils/decorators';
 
 import { ColumnsModal } from './ColumnsModal';
 
 interface ColumnsSelectorWrapperProps {}
 
-const ColumnsSelectorWrapper: React.FC<ColumnsSelectorWrapperProps> = observer(() => {
+export const ColumnsSelectorWrapper: React.FC<ColumnsSelectorWrapperProps> = observer(() => {
   const [isConfirmRemovalModalOpen, setIsConfirmRemovalModalOpen] = useState(false);
   const [columnToBeRemoved, setColumnToBeRemoved] = useState<AlertGroupColumn>(undefined);
   const [isColumnAddModalOpen, setIsColumnAddModalOpen] = useState(false);
@@ -78,7 +78,13 @@ const ColumnsSelectorWrapper: React.FC<ColumnsSelectorWrapperProps> = observer((
               <Button
                 disabled={isRemoveLoading}
                 variant={'destructive'}
-                onClick={WrapAutoLoadingState(onColumnRemovalClick, ActionKey.REMOVE_COLUMN_FROM_ALERT_GROUP)}
+                onClick={WrapAutoLoadingState(
+                  WrapWithGlobalNotification(onColumnRemovalClick, {
+                    success: 'Column has been removed from the list.',
+                    failure: 'There was an error processing your request. Please try again',
+                  }),
+                  ActionKey.REMOVE_COLUMN_FROM_ALERT_GROUP
+                )}
               >
                 {isRemoveLoading ? <LoadingPlaceholder text="Loading..." className="loadingPlaceholder" /> : 'Remove'}
               </Button>
@@ -125,10 +131,7 @@ const ColumnsSelectorWrapper: React.FC<ColumnsSelectorWrapperProps> = observer((
   }
 
   async function onColumnRemovalClick(): Promise<void> {
-    const columns = store.alertGroupStore.columns.filter((col) => col.id !== columnToBeRemoved.id);
-
-    await store.alertGroupStore.updateTableSettings(convertColumnsToTableSettings(columns), false);
-    await store.alertGroupStore.fetchTableSettings();
+    await store.alertGroupStore.removeTableColumn(columnToBeRemoved, convertColumnsToTableSettings);
 
     setIsConfirmRemovalModalOpen(false);
     forceOpenToggletip();
@@ -155,5 +158,3 @@ const ColumnsSelectorWrapper: React.FC<ColumnsSelectorWrapperProps> = observer((
 function forceOpenToggletip() {
   document.getElementById('toggletip-button')?.click();
 }
-
-export default ColumnsSelectorWrapper;

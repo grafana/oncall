@@ -10,7 +10,9 @@ from apps.mobile_app.auth import MobileAppAuthTokenAuthentication
 from common.api_helpers.mixins import PublicPrimaryKeyMixin, TeamFilteringMixin, UpdateSerializerMixin
 
 
-class ResolutionNoteView(TeamFilteringMixin, PublicPrimaryKeyMixin, UpdateSerializerMixin, ModelViewSet):
+class ResolutionNoteView(
+    TeamFilteringMixin, PublicPrimaryKeyMixin[ResolutionNote], UpdateSerializerMixin, ModelViewSet
+):
     authentication_classes = (
         MobileAppAuthTokenAuthentication,
         PluginAuthentication,

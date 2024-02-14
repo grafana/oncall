@@ -1,11 +1,11 @@
 import { sentenceCase } from 'change-case';
 import { action } from 'mobx';
 
-import { makeRequest } from 'network';
-import { RootStore } from 'state';
-import { openWarningNotification } from 'utils';
+import { makeRequest } from 'network/network';
+import { RootStore } from 'state/rootStore';
+import { openWarningNotification } from 'utils/utils';
 
-export default class BaseStore {
+export class BaseStore {
   protected rootStore: RootStore;
   protected path = '';
 
@@ -42,7 +42,7 @@ export default class BaseStore {
     throw error;
   }
 
-  @action.bound
+  @action
   async getAll(query = '') {
     return await makeRequest(`${this.path}`, {
       params: { search: query },
@@ -50,7 +50,7 @@ export default class BaseStore {
     }).catch(this.onApiError);
   }
 
-  @action.bound
+  @action
   async getById(id: string, skipErrorHandling = false, fromOrganization = false) {
     return await makeRequest(`${this.path}${id}`, {
       method: 'GET',
@@ -58,7 +58,7 @@ export default class BaseStore {
     }).catch((error) => this.onApiError(error, skipErrorHandling));
   }
 
-  @action.bound
+  @action
   async create<RT = any>(data: any, skipErrorHandling = false): Promise<RT | void> {
     return await makeRequest<RT>(this.path, {
       method: 'POST',
@@ -68,7 +68,7 @@ export default class BaseStore {
     });
   }
 
-  @action.bound
+  @action
   async update<RT = any>(id: any, data: any, params: any = null, skipErrorHandling = false): Promise<RT | void> {
     const result = await makeRequest<RT>(`${this.path}${id}/`, {
       method: 'PUT',
@@ -83,7 +83,7 @@ export default class BaseStore {
     return result;
   }
 
-  @action.bound
+  @action
   async delete(id: any) {
     const result = await makeRequest(`${this.path}${id}/`, {
       method: 'DELETE',

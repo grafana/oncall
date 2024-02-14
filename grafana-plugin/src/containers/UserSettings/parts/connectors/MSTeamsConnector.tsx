@@ -4,12 +4,12 @@ import { Button, HorizontalGroup, InlineField, Input } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
-import WithConfirm from 'components/WithConfirm/WithConfirm';
+import { WithConfirm } from 'components/WithConfirm/WithConfirm';
 import { UserSettingsTab } from 'containers/UserSettings/UserSettings.types';
 import { User } from 'models/user/user.types';
 import { useStore } from 'state/useStore';
 
-import styles from 'containers/UserSettings/parts/connectors/index.module.css';
+import styles from 'containers/UserSettings/parts/connectors/Connectors.module.css';
 
 const cx = cn.bind(styles);
 
@@ -18,7 +18,7 @@ interface MSTeamsConnectorProps {
   onTabChange: (tab: UserSettingsTab) => void;
 }
 
-const MSTeamsConnector = observer((props: MSTeamsConnectorProps) => {
+export const MSTeamsConnector = observer((props: MSTeamsConnectorProps) => {
   const { id, onTabChange } = props;
 
   const store = useStore();
@@ -63,5 +63,3 @@ const MSTeamsConnector = observer((props: MSTeamsConnectorProps) => {
     </div>
   );
 });
-
-export default MSTeamsConnector;

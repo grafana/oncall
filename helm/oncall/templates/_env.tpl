@@ -65,8 +65,6 @@
 - name: FEATURE_SLACK_INTEGRATION_ENABLED
   value: {{ .Values.oncall.slack.enabled | toString | title | quote }}
 {{- if .Values.oncall.slack.enabled }}
-- name: SLACK_SLASH_COMMAND_NAME
-  value: "/{{ .Values.oncall.slack.commandName | default "oncall" }}"
 {{- if .Values.oncall.slack.existingSecret }}
 - name: SLACK_CLIENT_OAUTH_ID
   valueFrom:

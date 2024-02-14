@@ -162,6 +162,7 @@ class APIClient:
 class GrafanaAPIClient(APIClient):
     GRAFANA_INCIDENT_PLUGIN = "grafana-incident-app"
     GRAFANA_INCIDENT_PLUGIN_BACKEND_URL_KEY = "backendUrl"
+    GRAFANA_LABELS_PLUGIN = "grafana-labels-app"
 
     USER_PERMISSION_ENDPOINT = f"api/access-control/users/permissions/search?actionPrefix={ACTION_PREFIX}"
 
@@ -196,7 +197,7 @@ class GrafanaAPIClient(APIClient):
 
         class PluginSettings(typing.TypedDict):
             enabled: bool
-            jsonData: typing.Dict[str, str]
+            jsonData: typing.NotRequired[typing.Dict[str, str]]
 
         class TeamsResponse(_BaseGrafanaAPIResponse):
             teams: typing.List["GrafanaAPIClient.Types.GrafanaTeam"]
@@ -301,6 +302,9 @@ class GrafanaAPIClient(APIClient):
 
     def get_grafana_incident_plugin_settings(self) -> APIClientResponse["GrafanaAPIClient.Types.PluginSettings"]:
         return self.get_grafana_plugin_settings(self.GRAFANA_INCIDENT_PLUGIN)
+
+    def get_grafana_labels_plugin_settings(self) -> APIClientResponse["GrafanaAPIClient.Types.PluginSettings"]:
+        return self.get_grafana_plugin_settings(self.GRAFANA_LABELS_PLUGIN)
 
     def get_service_account(self, login: str) -> APIClientResponse["GrafanaAPIClient.Types.ServiceAccountResponse"]:
         return self.api_get(f"api/serviceaccounts/search?query={login}")

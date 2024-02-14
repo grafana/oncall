@@ -10,6 +10,7 @@ class BaseMessagingBackend:
 
     templater = None
     template_fields = ("title", "message", "image_url")
+    skip_default_template_fields = False
 
     def __init__(self, *args, **kwargs):
         self.notification_channel_id = kwargs.get("notification_channel_id")

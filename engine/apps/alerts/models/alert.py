@@ -12,15 +12,22 @@ from django.db.models import JSONField
 from apps.alerts import tasks
 from apps.alerts.constants import TASK_DELAY_SECONDS
 from apps.alerts.incident_appearance.templaters import TemplateLoader
-from apps.labels.alert_group_labels import assign_labels
-from common.jinja_templater import apply_jinja_template
-from common.jinja_templater.apply_jinja_template import JinjaTemplateError, JinjaTemplateWarning
+from apps.alerts.signals import alert_group_escalation_snapshot_built
+from apps.alerts.tasks.distribute_alert import send_alert_create_signal
+from apps.labels.alert_group_labels import assign_labels, gather_labels_from_alert_receive_channel_and_raw_request_data
+from apps.labels.types import Labels
+from common.jinja_templater import apply_jinja_template_to_alert_payload_and_labels
+from common.jinja_templater.apply_jinja_template import (
+    JinjaTemplateError,
+    JinjaTemplateWarning,
+    templated_value_is_truthy,
+)
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
 
 if typing.TYPE_CHECKING:
     from django.db.models.manager import RelatedManager
 
-    from apps.alerts.models import AlertGroup
+    from apps.alerts.models import AlertGroup, AlertReceiveChannel, ChannelFilter
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -70,6 +77,8 @@ class Alert(models.Model):
         "alerts.AlertGroup", on_delete=models.CASCADE, null=True, default=None, related_name="alerts"
     )
 
+    RawRequestData: typing.TypeAlias = typing.Union[typing.Dict, typing.List]
+
     def get_integration_optimization_hash(self):
         """
         Should be overloaded in child classes.
@@ -79,51 +88,42 @@ class Alert(models.Model):
     @classmethod
     def create(
         cls,
-        title,
-        message,
-        image_url,
-        link_to_upstream_details,
-        alert_receive_channel,
-        integration_unique_data,
-        raw_request_data,
+        title: typing.Optional[str],
+        message: typing.Optional[str],
+        image_url: typing.Optional[str],
+        link_to_upstream_details: typing.Optional[str],
+        alert_receive_channel: "AlertReceiveChannel",
+        integration_unique_data: typing.Optional[typing.Dict],
+        raw_request_data: RawRequestData,
         enable_autoresolve=True,
-        is_demo=False,
-        channel_filter=None,
-        force_route_id=None,
-        received_at=None,
-    ):
+        is_demo: bool = False,
+        channel_filter: typing.Optional["ChannelFilter"] = None,
+        received_at: typing.Optional[str] = None,
+    ) -> "Alert":
         """
         Creates an alert and a group if needed.
         """
         # This import is here to avoid circular imports
         from apps.alerts.models import AlertGroup, AlertGroupLogRecord, AlertReceiveChannel, ChannelFilter
 
-        group_data = Alert.render_group_data(alert_receive_channel, raw_request_data, is_demo)
-        if channel_filter is None:
-            channel_filter = ChannelFilter.select_filter(alert_receive_channel, raw_request_data, force_route_id)
+        parsed_labels = gather_labels_from_alert_receive_channel_and_raw_request_data(
+            alert_receive_channel, raw_request_data
+        )
+        group_data = Alert.render_group_data(alert_receive_channel, raw_request_data, parsed_labels, is_demo)
 
+        if channel_filter is None:
+            channel_filter = ChannelFilter.select_filter(alert_receive_channel, raw_request_data, parsed_labels)
+
+        # Get or create group
         group, group_created = AlertGroup.objects.get_or_create_grouping(
             channel=alert_receive_channel,
             channel_filter=channel_filter,
             group_data=group_data,
             received_at=received_at,
         )
+        logger.debug(f"alert group {group.pk} created={group_created}")
 
-        if group_created:
-            assign_labels(group, alert_receive_channel, raw_request_data)
-            group.log_records.create(type=AlertGroupLogRecord.TYPE_REGISTERED)
-            group.log_records.create(type=AlertGroupLogRecord.TYPE_ROUTE_ASSIGNED)
-
-        mark_as_resolved = (
-            enable_autoresolve and group_data.is_resolve_signal and alert_receive_channel.allow_source_based_resolving
-        )
-        if not group.resolved and mark_as_resolved:
-            group.resolve_by_source()
-
-        mark_as_acknowledged = group_data.is_acknowledge_signal
-        if not group.acknowledged and mark_as_acknowledged:
-            group.acknowledge_by_source()
-
+        # Create alert
         alert = cls(
             is_resolve_signal=group_data.is_resolve_signal,
             title=title,
@@ -135,20 +135,38 @@ class Alert(models.Model):
             raw_request_data=raw_request_data,
             is_the_first_alert_in_group=group_created,
         )
-
         alert.save()
+        logger.debug(f"alert {alert.pk} created")
+
+        transaction.on_commit(partial(send_alert_create_signal.apply_async, (alert.pk,)))
+
+        if group_created:
+            assign_labels(group, alert_receive_channel, parsed_labels)
+            group.log_records.create(type=AlertGroupLogRecord.TYPE_REGISTERED)
+            group.log_records.create(type=AlertGroupLogRecord.TYPE_ROUTE_ASSIGNED)
+
+        if group_created or alert.group.pause_escalation:
+            # Build escalation snapshot if needed and start escalation
+            alert.group.start_escalation_if_needed(countdown=TASK_DELAY_SECONDS)
+
+        if group_created:
+            # TODO: consider moving to start_escalation_if_needed
+            alert_group_escalation_snapshot_built.send(sender=cls.__class__, alert_group=alert.group)
+
+        mark_as_acknowledged = group_data.is_acknowledge_signal
+        if not group.acknowledged and mark_as_acknowledged:
+            group.acknowledge_by_source()
+
+        mark_as_resolved = (
+            enable_autoresolve and group_data.is_resolve_signal and alert_receive_channel.allow_source_based_resolving
+        )
+        if not group.resolved and mark_as_resolved:
+            group.resolve_by_source()
 
         # Store exact alert which resolved group.
         if group.resolved_by == AlertGroup.SOURCE and group.resolved_by_alert is None:
             group.resolved_by_alert = alert
             group.save(update_fields=["resolved_by_alert"])
-
-        if settings.DEBUG:
-            tasks.distribute_alert(alert.pk)
-        else:
-            transaction.on_commit(
-                partial(tasks.distribute_alert.apply_async, (alert.pk,), countdown=TASK_DELAY_SECONDS)
-            )
 
         if group_created:
             # all code below related to maintenance mode
@@ -197,41 +215,68 @@ class Alert(models.Model):
         )
 
     @classmethod
-    def render_group_data(cls, alert_receive_channel, raw_request_data, is_demo=False):
+    def _apply_jinja_template_to_alert_payload_and_labels(
+        cls,
+        template: str,
+        template_name: str,
+        alert_receive_channel: "AlertReceiveChannel",
+        raw_request_data: RawRequestData,
+        labels: typing.Optional[Labels],
+        use_error_msg_as_fallback=False,
+        check_if_templated_value_is_truthy=False,
+    ) -> typing.Union[str, None, bool]:
+        try:
+            templated_value = apply_jinja_template_to_alert_payload_and_labels(template, raw_request_data, labels)
+            return templated_value_is_truthy(templated_value) if check_if_templated_value_is_truthy else templated_value
+        except (JinjaTemplateError, JinjaTemplateWarning) as e:
+            fallback_msg = e.fallback_message
+
+            logger.warning(
+                f"{template_name} error on channel={alert_receive_channel.public_primary_key}: {fallback_msg}"
+            )
+
+            if use_error_msg_as_fallback:
+                return fallback_msg
+            elif check_if_templated_value_is_truthy:
+                return False
+            return None
+
+    @classmethod
+    def render_group_data(
+        cls,
+        alert_receive_channel: "AlertReceiveChannel",
+        raw_request_data: RawRequestData,
+        labels: typing.Optional[Labels],
+        is_demo=False,
+    ) -> "AlertGroup.GroupData":
         from apps.alerts.models import AlertGroup
 
         template_manager = TemplateLoader()
 
         is_resolve_signal = False
         is_acknowledge_signal = False
-        group_distinction = None
-
-        acknowledge_condition_template = template_manager.get_attr_template(
-            "acknowledge_condition", alert_receive_channel
-        )
-        resolve_condition_template = template_manager.get_attr_template("resolve_condition", alert_receive_channel)
-        grouping_id_template = template_manager.get_attr_template("grouping_id", alert_receive_channel)
+        group_distinction: typing.Optional[str] = None
+        web_title_cache: typing.Optional[str] = None
 
         # set web_title_cache to web title to allow alert group searching based on web_title_cache
-        web_title_template = template_manager.get_attr_template("title", alert_receive_channel, render_for="web")
-        if web_title_template:
-            try:
-                web_title_cache = apply_jinja_template(web_title_template, raw_request_data)
-            except (JinjaTemplateError, JinjaTemplateWarning) as e:
-                web_title_cache = e.fallback_message
-                logger.warning(
-                    f"web_title_cache error on channel={alert_receive_channel.public_primary_key}: {e.fallback_message}"
-                )
-        else:
-            web_title_cache = None
+        if (
+            web_title_template := template_manager.get_attr_template("title", alert_receive_channel, render_for="web")
+        ) is not None:
+            web_title_cache = cls._apply_jinja_template_to_alert_payload_and_labels(
+                web_title_template,
+                "web_title_cache",
+                alert_receive_channel,
+                raw_request_data,
+                labels,
+                use_error_msg_as_fallback=True,
+            )
 
-        if grouping_id_template is not None:
-            try:
-                group_distinction = apply_jinja_template(grouping_id_template, raw_request_data)
-            except (JinjaTemplateError, JinjaTemplateWarning) as e:
-                logger.warning(
-                    f"grouping_id_template error on channel={alert_receive_channel.public_primary_key}: {e.fallback_message}"
-                )
+        if (
+            grouping_id_template := template_manager.get_attr_template("grouping_id", alert_receive_channel)
+        ) is not None:
+            group_distinction = cls._apply_jinja_template_to_alert_payload_and_labels(
+                grouping_id_template, "grouping_id_template", alert_receive_channel, raw_request_data, labels
+            )
 
         # Insert random uuid to prevent grouping of demo alerts or alerts with group_distinction=None
         if is_demo or not group_distinction:
@@ -240,30 +285,31 @@ class Alert(models.Model):
         if group_distinction is not None:
             group_distinction = hashlib.md5(str(group_distinction).encode()).hexdigest()
 
-        if resolve_condition_template is not None:
-            try:
-                is_resolve_signal = apply_jinja_template(resolve_condition_template, payload=raw_request_data)
-            except (JinjaTemplateError, JinjaTemplateWarning) as e:
-                logger.warning(
-                    f"resolve_condition_template error on channel={alert_receive_channel.public_primary_key}: {e.fallback_message}"
-                )
+        if (
+            resolve_condition_template := template_manager.get_attr_template("resolve_condition", alert_receive_channel)
+        ) is not None:
+            is_resolve_signal = cls._apply_jinja_template_to_alert_payload_and_labels(
+                resolve_condition_template,
+                "resolve_condition_template",
+                alert_receive_channel,
+                raw_request_data,
+                labels,
+                check_if_templated_value_is_truthy=True,
+            )
 
-            if isinstance(is_resolve_signal, str):
-                is_resolve_signal = is_resolve_signal.strip().lower() in ["1", "true", "ok"]
-            else:
-                is_resolve_signal = False
-        if acknowledge_condition_template is not None:
-            try:
-                is_acknowledge_signal = apply_jinja_template(acknowledge_condition_template, payload=raw_request_data)
-            except (JinjaTemplateError, JinjaTemplateWarning) as e:
-                logger.warning(
-                    f"acknowledge_condition_template error on channel={alert_receive_channel.public_primary_key}: {e.fallback_message}"
-                )
-
-            if isinstance(is_acknowledge_signal, str):
-                is_acknowledge_signal = is_acknowledge_signal.strip().lower() in ["1", "true", "ok"]
-            else:
-                is_acknowledge_signal = False
+        if (
+            acknowledge_condition_template := template_manager.get_attr_template(
+                "acknowledge_condition", alert_receive_channel
+            )
+        ) is not None:
+            is_acknowledge_signal = cls._apply_jinja_template_to_alert_payload_and_labels(
+                acknowledge_condition_template,
+                "acknowledge_condition_template",
+                alert_receive_channel,
+                raw_request_data,
+                labels,
+                check_if_templated_value_is_truthy=True,
+            )
 
         return AlertGroup.GroupData(
             is_resolve_signal=is_resolve_signal,
@@ -273,7 +319,7 @@ class Alert(models.Model):
         )
 
     @staticmethod
-    def insert_random_uuid(distinction):
+    def insert_random_uuid(distinction: typing.Optional[str]) -> str:
         if distinction is not None:
             distinction += str(uuid4())
         else:

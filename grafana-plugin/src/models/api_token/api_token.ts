@@ -1,8 +1,8 @@
 import { action, observable, makeObservable, runInAction } from 'mobx';
 
-import BaseStore from 'models/base_store';
-import { makeRequest } from 'network';
-import { RootStore } from 'state';
+import { BaseStore } from 'models/base_store';
+import { makeRequest } from 'network/network';
+import { RootStore } from 'state/rootStore';
 
 import { ApiToken } from './api_token.types';
 
@@ -21,7 +21,7 @@ export class ApiTokenStore extends BaseStore {
     this.path = '/tokens/';
   }
 
-  @action.bound
+  @action
   async updateItems(query = '') {
     const results = await makeRequest(`${this.path}`, {
       params: { search: query },
@@ -46,7 +46,6 @@ export class ApiTokenStore extends BaseStore {
     });
   }
 
-  @action.bound
   getSearchResult(query = '') {
     if (!this.searchResult[query]) {
       return undefined;
@@ -55,7 +54,6 @@ export class ApiTokenStore extends BaseStore {
     return this.searchResult[query].map((apiTokenId: ApiToken['id']) => this.items[apiTokenId]);
   }
 
-  @action.bound
   async revokeApiToken(id: ApiToken['id']) {
     return await makeRequest(`${this.path}${id}/`, {
       method: 'DELETE',

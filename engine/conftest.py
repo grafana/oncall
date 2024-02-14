@@ -143,6 +143,21 @@ IS_RBAC_ENABLED = os.getenv("ONCALL_TESTING_RBAC_ENABLED", "True") == "True"
 
 
 @pytest.fixture(autouse=True)
+def isolated_cache(settings):
+    """
+    https://github.com/pytest-dev/pytest-django/issues/527#issuecomment-1115887487
+    """
+    cache_version = uuid.uuid4().hex
+
+    for name in settings.CACHES.keys():
+        settings.CACHES[name]["VERSION"] = cache_version
+
+    from django.test.signals import clear_cache_handlers
+
+    clear_cache_handlers(setting="CACHES")
+
+
+@pytest.fixture(autouse=True)
 def mock_slack_api_call(monkeypatch):
     def mock_api_call(*args, **kwargs):
         return {
@@ -186,14 +201,14 @@ def mock_apply_async(monkeypatch):
 
 
 @pytest.fixture(autouse=True)
-def mock_is_labels_feature_enabled(settings):
-    settings.FEATURE_LABELS_ENABLED_FOR_ALL = True
-
-
-@pytest.fixture(autouse=True)
 def clear_ical_users_cache():
     # clear users pks <-> organization cache (persisting between tests)
     memoized_users_in_ical.cache_clear()
+
+
+@pytest.fixture(autouse=True)
+def mock_is_labels_feature_enabled(settings):
+    settings.FEATURE_LABELS_ENABLED_FOR_ALL = True
 
 
 @pytest.fixture
@@ -208,7 +223,9 @@ def mock_is_labels_feature_enabled_for_org(settings):
 @pytest.fixture
 def make_organization():
     def _make_organization(**kwargs):
-        return OrganizationFactory(**kwargs, is_rbac_permissions_enabled=IS_RBAC_ENABLED)
+        return OrganizationFactory(
+            **kwargs, is_rbac_permissions_enabled=IS_RBAC_ENABLED, is_grafana_labels_enabled=True
+        )
 
     return _make_organization
 

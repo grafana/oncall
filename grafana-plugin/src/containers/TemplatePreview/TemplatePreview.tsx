@@ -1,17 +1,18 @@
 import React, { useEffect, useState } from 'react';
 
-import { HorizontalGroup, Icon, LoadingPlaceholder, VerticalGroup } from '@grafana/ui';
+import { Badge, HorizontalGroup, Icon, LoadingPlaceholder, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
-import Text from 'components/Text/Text';
+import { Text } from 'components/Text/Text';
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { Alert } from 'models/alertgroup/alertgroup.types';
 import { OutgoingWebhook } from 'models/outgoing_webhook/outgoing_webhook.types';
+import { LabelTemplateOptions } from 'pages/integration/IntegrationCommon.config';
 import { useStore } from 'state/useStore';
-import { openErrorNotification } from 'utils';
 import { useDebouncedCallback } from 'utils/hooks';
-import sanitize from 'utils/sanitize';
+import { sanitize } from 'utils/sanitize';
+import { openErrorNotification } from 'utils/utils';
 
 import styles from './TemplatePreview.module.css';
 
@@ -38,7 +39,7 @@ export enum TEMPLATE_PAGE {
   Webhooks,
 }
 
-const TemplatePreview = observer((props: TemplatePreviewProps) => {
+export const TemplatePreview = observer((props: TemplatePreviewProps) => {
   const {
     templateName,
     templateBody,
@@ -51,7 +52,9 @@ const TemplatePreview = observer((props: TemplatePreviewProps) => {
     templatePage,
   } = props;
 
-  const [result, setResult] = useState<{ preview: string | null } | undefined>(undefined);
+  const [result, setResult] = useState<{ preview: string | null; is_valid_json_object?: boolean } | undefined>(
+    undefined
+  );
   const [conditionalResult, setConditionalResult] = useState<ConditionalResult>({});
 
   const store = useStore();
@@ -101,6 +104,29 @@ const TemplatePreview = observer((props: TemplatePreviewProps) => {
       );
     }
   };
+
+  function renderExtraChecks() {
+    function getExtraCheckResult() {
+      switch (templateName) {
+        case LabelTemplateOptions.AlertGroupMultiLabel.key:
+          return result.is_valid_json_object ? (
+            <Badge color="green" icon="check" text="Output is a valid labels dictionary" />
+          ) : (
+            <Badge
+              color="red"
+              icon="times"
+              text="Output is not a labels dictionary. Template should produce valid JSON object. Consider using tojson filter."
+            />
+          );
+        default:
+          return null;
+      }
+    }
+
+    const checkResult = getExtraCheckResult();
+
+    return checkResult ? <div className={cx('extra-check')}>{checkResult}</div> : null;
+  }
 
   function renderResult() {
     switch (templateType) {
@@ -182,7 +208,12 @@ const TemplatePreview = observer((props: TemplatePreviewProps) => {
     );
   }
 
-  return result ? <>{renderResult()}</> : <LoadingPlaceholder text="Loading..." />;
+  return result ? (
+    <>
+      {renderExtraChecks()}
+      {renderResult()}
+    </>
+  ) : (
+    <LoadingPlaceholder text="Loading..." />
+  );
 });
-
-export default TemplatePreview;

@@ -1,4 +1,5 @@
 import logging
+import typing
 
 import pytz
 from django.conf import settings
@@ -8,7 +9,9 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.functional import cached_property
 from django_filters import rest_framework as filters
-from rest_framework import mixins, status, viewsets
+from drf_spectacular.plumbing import resolve_type_hint
+from drf_spectacular.utils import PolymorphicProxySerializer, extend_schema, inline_serializer
+from rest_framework import mixins, serializers, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound
 from rest_framework.filters import SearchFilter
@@ -28,6 +31,7 @@ from apps.api.serializers.team import TeamSerializer
 from apps.api.serializers.user import (
     CurrentUserSerializer,
     FilterUserSerializer,
+    ListUserSerializer,
     UserHiddenFieldsSerializer,
     UserIsCurrentlyOnCallSerializer,
     UserSerializer,
@@ -60,11 +64,13 @@ from apps.phone_notifications.exceptions import (
 from apps.phone_notifications.phone_backend import PhoneBackend
 from apps.schedules.ical_utils import get_cached_oncall_users_for_multiple_schedules
 from apps.schedules.models import OnCallSchedule
+from apps.schedules.models.on_call_schedule import ScheduleEvent
 from apps.telegram.client import TelegramClient
 from apps.telegram.models import TelegramVerificationCode
 from apps.user_management.models import Team, User
 from common.api_helpers.exceptions import Conflict
-from common.api_helpers.mixins import FilterSerializerMixin, PublicPrimaryKeyMixin
+from common.api_helpers.filters import ByTeamModelFieldFilterMixin, TeamModelMultipleChoiceFilter
+from common.api_helpers.mixins import PublicPrimaryKeyMixin
 from common.api_helpers.paginators import HundredPageSizePaginator
 from common.api_helpers.utils import create_engine_url
 from common.insight_log import (
@@ -85,12 +91,51 @@ UPCOMING_SHIFTS_DEFAULT_DAYS = 7
 UPCOMING_SHIFTS_MAX_DAYS = 65
 
 
-class CurrentUserView(APIView):
+class UpcomingShift(typing.TypedDict):
+    schedule_id: str
+    schedule_name: str
+    is_oncall: bool
+    current_shift: ScheduleEvent | None
+    next_shift: ScheduleEvent | None
+
+
+UpcomingShifts = list[UpcomingShift]
+
+
+class CachedSchedulesContextMixin:
+    @cached_property
+    def schedules_with_oncall_users(self):
+        """
+        The result of this method is cached and is reused for the whole lifetime of a request,
+        since self.get_serializer_context() is called multiple times for every instance in the queryset.
+        """
+        return get_cached_oncall_users_for_multiple_schedules(self.request.user.organization.oncall_schedules.all())
+
+    def _populate_schedules_oncall_cache(self):
+        return False
+
+    def get_serializer_context(self):
+        context = getattr(super(), "get_serializer_context", lambda: {})()
+        context.update(
+            {
+                "schedules_with_oncall_users": self.schedules_with_oncall_users
+                if self._populate_schedules_oncall_cache()
+                else {}
+            }
+        )
+        return context
+
+
+class CurrentUserView(APIView, CachedSchedulesContextMixin):
     authentication_classes = (MobileAppAuthTokenAuthentication, PluginAuthentication)
     permission_classes = (IsAuthenticated,)
 
+    def _populate_schedules_oncall_cache(self):
+        return True
+
     def get(self, request):
-        context = {"request": self.request, "format": self.format_kwarg, "view": self}
+        context = self.get_serializer_context()
+        context.update({"request": self.request, "format": self.format_kwarg, "view": self})
 
         if settings.IS_OPEN_SOURCE and live_settings.GRAFANA_CLOUD_NOTIFICATIONS_ENABLED:
             from apps.oss_installation.models import CloudConnector, CloudUserIdentity
@@ -106,14 +151,16 @@ class CurrentUserView(APIView):
         return Response(serializer.data)
 
     def put(self, request):
+        context = self.get_serializer_context()
+        context.update({"request": self.request})
         data = self.request.data
-        serializer = CurrentUserSerializer(request.user, data=data, context={"request": self.request})
+        serializer = CurrentUserSerializer(request.user, data=data, context=context)
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data)
 
 
-class UserFilter(filters.FilterSet):
+class UserFilter(ByTeamModelFieldFilterMixin, filters.FilterSet):
     """
     https://django-filter.readthedocs.io/en/master/guide/rest_framework.html
     """
@@ -122,6 +169,7 @@ class UserFilter(filters.FilterSet):
     # TODO: remove "roles" in next version
     roles = filters.MultipleChoiceFilter(field_name="role", choices=LegacyAccessControlRole.choices())
     permission = filters.ChoiceFilter(method="filter_by_permission", choices=ALL_PERMISSION_CHOICES)
+    team = TeamModelMultipleChoiceFilter(field_name="teams")
 
     class Meta:
         model = User
@@ -140,13 +188,17 @@ class UserFilter(filters.FilterSet):
 
 
 class UserView(
-    PublicPrimaryKeyMixin,
-    FilterSerializerMixin,
+    PublicPrimaryKeyMixin[User],
+    CachedSchedulesContextMixin,
     mixins.RetrieveModelMixin,
     mixins.UpdateModelMixin,
     mixins.ListModelMixin,
     viewsets.GenericViewSet,
 ):
+    """
+    Internal API endpoints for users.
+    """
+
     authentication_classes = (
         MobileAppAuthTokenAuthentication,
         PluginAuthentication,
@@ -206,7 +258,7 @@ class UserView(
         ],
     }
 
-    filter_serializer_class = FilterUserSerializer
+    queryset = User.objects.none()  # needed for drf-spectacular introspection
 
     pagination_class = HundredPageSizePaginator
 
@@ -227,51 +279,54 @@ class UserView(
 
     filterset_class = UserFilter
 
-    @cached_property
-    def schedules_with_oncall_users(self):
-        """
-        The result of this method is cached and is reused for the whole lifetime of a request,
-        since self.get_serializer_context() is called multiple times for every instance in the queryset.
-        """
-        return get_cached_oncall_users_for_multiple_schedules(self.request.user.organization.oncall_schedules.all())
-
     def _get_is_currently_oncall_query_param(self) -> str:
         return self.request.query_params.get("is_currently_oncall", "").lower()
 
-    def _is_currently_oncall_request(self) -> bool:
-        return self._get_is_currently_oncall_query_param() in ["true", "false", "all"]
-
-    def get_serializer_context(self):
-        context = super().get_serializer_context()
-        context.update(
-            {
-                "schedules_with_oncall_users": self.schedules_with_oncall_users
-                if self._is_currently_oncall_request()
-                else {}
-            }
+    def _populate_schedules_oncall_cache(self):
+        return (
+            # admin or owner can see on-call schedule information for a user
+            (self.is_owner_or_admin() and self.action != "list")
+            or
+            # list requests need to explicitly request on-call information
+            self._get_is_currently_oncall_query_param() in ["true", "false", "all"]
         )
-        return context
 
-    def get_serializer_class(self):
+    def is_owner_or_admin(self):
         request = self.request
         user = request.user
         kwargs = self.kwargs
-        query_params = request.query_params
-
-        is_list_request = self.action in ["list"]
-        is_filters_request = query_params.get("filters", "false") == "true"
-
-        if is_list_request and is_filters_request:
-            return self.get_filter_serializer_class()
-        elif is_list_request and self._is_currently_oncall_request():
-            return UserIsCurrentlyOnCallSerializer
 
         is_users_own_data = kwargs.get("pk") is not None and kwargs.get("pk") == user.public_primary_key
         has_admin_permission = user_is_authorized(user, [RBACPermission.Permissions.USER_SETTINGS_ADMIN])
 
-        if is_users_own_data or has_admin_permission:
-            return UserSerializer
-        return UserHiddenFieldsSerializer
+        return is_users_own_data or has_admin_permission
+
+    def get_serializer_class(self):
+        request = self.request
+        query_params = request.query_params
+
+        is_list_request = self.action == "list"
+        is_filters_request = query_params.get("filters", "false") == "true"
+        is_owner_or_admin = self.is_owner_or_admin()
+
+        # default serializer
+        serializer = UserHiddenFieldsSerializer
+
+        # list requests
+        if is_list_request:
+            if is_owner_or_admin:
+                serializer = ListUserSerializer
+            if is_filters_request:
+                serializer = FilterUserSerializer
+            elif self._populate_schedules_oncall_cache():
+                serializer = UserIsCurrentlyOnCallSerializer
+            return serializer
+
+        # non-list requests
+        if is_owner_or_admin:
+            serializer = UserSerializer
+
+        return serializer
 
     def get_queryset(self):
         slack_identity = self.request.query_params.get("slack_identity", None) == "true"
@@ -285,6 +340,13 @@ class UserView(
 
         return queryset.order_by("id")
 
+    @extend_schema(
+        responses=PolymorphicProxySerializer(
+            component_name="UserPolymorphic",
+            serializers=[FilterUserSerializer, UserIsCurrentlyOnCallSerializer, ListUserSerializer],
+            resource_type_field_name=None,
+        )
+    )
     def list(self, request, *args, **kwargs) -> Response:
         queryset = self.filter_queryset(self.get_queryset())
 
@@ -322,6 +384,7 @@ class UserView(
         serializer = self.get_serializer(queryset, many=True, context=context)
         return Response(serializer.data)
 
+    @extend_schema(responses=UserSerializer)
     def retrieve(self, request, *args, **kwargs) -> Response:
         context = self.get_serializer_context()
 
@@ -342,6 +405,14 @@ class UserView(
 
         serializer = self.get_serializer(instance, context=context)
         return Response(serializer.data)
+
+    @extend_schema(request=UserSerializer, responses=UserSerializer)
+    def update(self, request, *args, **kwargs):
+        return super().update(request, *args, **kwargs)
+
+    @extend_schema(request=UserSerializer, responses=UserSerializer)
+    def partial_update(self, request, *args, **kwargs):
+        return super().partial_update(request, *args, **kwargs)
 
     def wrong_team_response(self) -> Response:
         """
@@ -365,10 +436,7 @@ class UserView(
             status=status.HTTP_403_FORBIDDEN,
         )
 
-    def current(self, request) -> Response:
-        serializer = UserSerializer(self.get_queryset().get(pk=self.request.user.pk))
-        return Response(serializer.data)
-
+    @extend_schema(responses={status.HTTP_200_OK: resolve_type_hint(typing.List[str])})
     @action(detail=False, methods=["get"])
     def timezone_options(self, request) -> Response:
         return Response(pytz.common_timezones)
@@ -427,6 +495,7 @@ class UserView(
             )
         return Response(status=status.HTTP_200_OK)
 
+    @extend_schema(parameters=[inline_serializer(name="UserVerifyNumber", fields={"token": serializers.CharField()})])
     @action(
         detail=True,
         methods=["put"],
@@ -506,6 +575,13 @@ class UserView(
 
         return Response(status=status.HTTP_200_OK)
 
+    @extend_schema(
+        parameters=[
+            inline_serializer(
+                name="UserSendTestPush", fields={"critical": serializers.BooleanField(required=False, default=False)}
+            )
+        ]
+    )
     @action(detail=True, methods=["post"], throttle_classes=[TestPushThrottler])
     def send_test_push(self, request, pk) -> Response:
         user = self.get_object()
@@ -525,6 +601,11 @@ class UserView(
             )
         return Response(status=status.HTTP_200_OK)
 
+    @extend_schema(
+        parameters=[
+            inline_serializer(name="UserGetBackendVerificationCode", fields={"backend": serializers.CharField()})
+        ]
+    )
     @action(detail=True, methods=["get"])
     def get_backend_verification_code(self, request, pk) -> Response:
         user = self.get_object()
@@ -537,12 +618,21 @@ class UserView(
         code = backend.generate_user_verification_code(user)
         return Response(code)
 
+    @extend_schema(
+        responses=inline_serializer(
+            name="UserGetTelegramVerificationCode",
+            fields={
+                "telegram_code": serializers.CharField(),
+                "bot_link": serializers.CharField(),
+            },
+        )
+    )
     @action(detail=True, methods=["get"])
     def get_telegram_verification_code(self, request, pk) -> Response:
         user = self.get_object()
 
-        if not user.is_telegram_connected:
-            return Response(status=status.HTTP_400_BAD_REQUEST)
+        if user.is_telegram_connected:
+            return Response("This user is already connected to a Telegram account", status=status.HTTP_400_BAD_REQUEST)
 
         try:
             existing_verification_code = user.telegram_verification_code
@@ -594,6 +684,9 @@ class UserView(
             return Response(status=status.HTTP_400_BAD_REQUEST)
         return Response(status=status.HTTP_200_OK)
 
+    @extend_schema(
+        parameters=[inline_serializer(name="UserUnlinkBackend", fields={"backend": serializers.CharField()})]
+    )
     @action(detail=True, methods=["post"])
     def unlink_backend(self, request, pk) -> Response:
         # TODO: insight logs support
@@ -617,6 +710,15 @@ class UserView(
             return Response(status=status.HTTP_400_BAD_REQUEST)
         return Response(status=status.HTTP_200_OK)
 
+    @extend_schema(
+        parameters=[
+            inline_serializer(
+                name="UserUpcomingShiftsParams",
+                fields={"days": serializers.IntegerField(required=False, default=UPCOMING_SHIFTS_DEFAULT_DAYS)},
+            )
+        ],
+        responses={status.HTTP_200_OK: resolve_type_hint(UpcomingShifts)},
+    )
     @action(detail=True, methods=["get"])
     def upcoming_shifts(self, request, pk) -> Response:
         user = self.get_object()
@@ -644,6 +746,7 @@ class UserView(
                         "is_oncall": len(current_shifts) > 0,
                         "current_shift": current_shifts[0] if current_shifts else None,
                         "next_shift": upcoming_shifts[0] if upcoming_shifts else None,
+                        "upcoming_shifts": upcoming_shifts or None,
                     }
                 )
 
@@ -656,6 +759,28 @@ class UserView(
 
         return Response(upcoming, status=status.HTTP_200_OK)
 
+    @extend_schema(
+        methods=["get"],
+        responses=inline_serializer(
+            name="UserExportTokenGetResponse",
+            fields={
+                "created_at": serializers.DateTimeField(),
+                "revoked_at": serializers.DateTimeField(allow_null=True),
+                "active": serializers.BooleanField(),
+            },
+        ),
+    )
+    @extend_schema(
+        methods=["post"],
+        responses=inline_serializer(
+            name="UserExportTokenPostResponse",
+            fields={
+                "token": serializers.CharField(),
+                "created_at": serializers.DateTimeField(),
+                "export_url": serializers.CharField(),
+            },
+        ),
+    )
     @action(detail=True, methods=["get", "post", "delete"])
     def export_token(self, request, pk) -> Response:
         user = self.get_object()

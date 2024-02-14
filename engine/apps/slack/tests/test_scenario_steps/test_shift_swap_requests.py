@@ -5,6 +5,7 @@ from unittest.mock import patch
 import pytest
 import pytz
 
+from apps.api.permissions import LegacyAccessControlRole
 from apps.schedules import exceptions
 from apps.slack.scenarios import shift_swap_requests as scenarios
 
@@ -183,6 +184,19 @@ class TestBaseShiftSwapRequestStep:
                 channel=ssr.slack_channel_id, ts=ts, blocks=mock_generate_blocks.return_value
             )
 
+    @patch("apps.slack.scenarios.shift_swap_requests.BaseShiftSwapRequestStep._generate_blocks")
+    @pytest.mark.django_db
+    def test_update_message_no_slack_message(self, mock_generate_blocks, setup, make_slack_message) -> None:
+        ssr, _, _, _ = setup()  # SSR without a Slack message
+        organization = ssr.organization
+        slack_team_identity = organization.slack_team_identity
+
+        step = scenarios.BaseShiftSwapRequestStep(slack_team_identity, organization)
+
+        with patch.object(step, "_slack_client") as mock_slack_client:
+            step.update_message(ssr)
+            mock_slack_client.chat_update.assert_not_called()
+
     @pytest.mark.django_db
     def test_post_message_to_thread(self, setup, make_slack_message) -> None:
         ts = "12345.67"
@@ -238,6 +252,22 @@ class TestAcceptShiftSwapRequestStep:
             assert ssr.is_taken is True
 
             mock_update_message.assert_called_once_with(ssr)
+
+    @pytest.mark.parametrize("role", (LegacyAccessControlRole.VIEWER, LegacyAccessControlRole.NONE))
+    @pytest.mark.django_db
+    def test_process_scenario_unauthorized(self, setup, payload, make_user_for_organization, role) -> None:
+        ssr, _, benefactor, slack_user_identity = setup()
+        event_payload = payload(ssr.pk)
+
+        organization = ssr.organization
+        slack_team_identity = organization.slack_team_identity
+        benefactor = make_user_for_organization(organization, role=role)
+
+        step = scenarios.AcceptShiftSwapRequestStep(slack_team_identity, organization, benefactor)
+        with patch.object(step, "open_unauthorized_warning") as mock_open_unauthorized_warning:
+            step.process_scenario(slack_user_identity, slack_team_identity, event_payload)
+
+        mock_open_unauthorized_warning.assert_called_once()
 
     @patch("apps.schedules.models.shift_swap_request.ShiftSwapRequest.take")
     @pytest.mark.django_db

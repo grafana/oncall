@@ -9,6 +9,9 @@ x-oncall-build: &oncall-build-args
   context: ./engine
   target: ${ONCALL_IMAGE_TARGET:-dev}
   labels: *oncall-labels
+  cache_from:
+    - grafana/oncall:latest
+    - grafana/oncall:dev
 
 x-oncall-volumes: &oncall-volumes
   - ./engine:/etc/app

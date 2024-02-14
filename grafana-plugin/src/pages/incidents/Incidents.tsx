@@ -10,22 +10,22 @@ import moment from 'moment-timezone';
 import Emoji from 'react-emoji-render';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 
-import CardButton from 'components/CardButton/CardButton';
-import CursorPagination from 'components/CursorPagination/CursorPagination';
-import GTable from 'components/GTable/GTable';
-import IntegrationLogo from 'components/IntegrationLogo/IntegrationLogo';
-import ManualAlertGroup from 'components/ManualAlertGroup/ManualAlertGroup';
-import PluginLink from 'components/PluginLink/PluginLink';
-import RenderConditionally from 'components/RenderConditionally/RenderConditionally';
-import Text from 'components/Text/Text';
-import TextEllipsisTooltip from 'components/TextEllipsisTooltip/TextEllipsisTooltip';
-import TooltipBadge from 'components/TooltipBadge/TooltipBadge';
-import Tutorial from 'components/Tutorial/Tutorial';
+import { CardButton } from 'components/CardButton/CardButton';
+import { CursorPagination } from 'components/CursorPagination/CursorPagination';
+import { GTable } from 'components/GTable/GTable';
+import { IntegrationLogo } from 'components/IntegrationLogo/IntegrationLogo';
+import { ManualAlertGroup } from 'components/ManualAlertGroup/ManualAlertGroup';
+import { PluginLink } from 'components/PluginLink/PluginLink';
+import { RenderConditionally } from 'components/RenderConditionally/RenderConditionally';
+import { Text } from 'components/Text/Text';
+import { TextEllipsisTooltip } from 'components/TextEllipsisTooltip/TextEllipsisTooltip';
+import { TooltipBadge } from 'components/TooltipBadge/TooltipBadge';
+import { Tutorial } from 'components/Tutorial/Tutorial';
 import { TutorialStep } from 'components/Tutorial/Tutorial.types';
-import ColumnsSelectorWrapper from 'containers/ColumnsSelectorWrapper/ColumnsSelectorWrapper';
+import { ColumnsSelectorWrapper } from 'containers/ColumnsSelectorWrapper/ColumnsSelectorWrapper';
 import { IncidentsFiltersType } from 'containers/IncidentsFilters/IncidentFilters.types';
-import RemoteFilters from 'containers/RemoteFilters/RemoteFilters';
-import TeamName from 'containers/TeamName/TeamName';
+import { RemoteFilters } from 'containers/RemoteFilters/RemoteFilters';
+import { TeamName } from 'containers/TeamName/TeamName';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import {
   Alert,
@@ -40,8 +40,8 @@ import { renderRelatedUsers } from 'pages/incident/Incident.helpers';
 import { AppFeature } from 'state/features';
 import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
-import LocationHelper from 'utils/LocationHelper';
-import { UserActions } from 'utils/authorization';
+import { LocationHelper } from 'utils/LocationHelper';
+import { UserActions } from 'utils/authorization/authorization';
 import { INCIDENT_HORIZONTAL_SCROLLING_STORAGE, PAGE, PLUGIN_ROOT, TEXT_ELLIPSIS_CLASS } from 'utils/consts';
 import { getItem, setItem } from 'utils/localStorage';
 import { TableColumn } from 'utils/types';
@@ -96,7 +96,7 @@ const TABLE_SCROLL_OPTIONS: SelectableValue[] = [
 ];
 
 @observer
-class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> {
+class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageState> {
   constructor(props: IncidentsPageProps) {
     super(props);
 
@@ -109,6 +109,8 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
     const pageSize = !isNaN(perpageQuery) ? Number(perpageQuery) : undefined;
 
     store.alertGroupStore.incidentsCursor = cursorQuery || undefined;
+
+    this.rootElRef = React.createRef<HTMLDivElement>();
 
     this.state = {
       selectedIncidentIds: [],
@@ -123,6 +125,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
     };
   }
 
+  private rootElRef: React.RefObject<HTMLDivElement>;
   private pollingIntervalId: NodeJS.Timer = undefined;
 
   componentDidMount() {
@@ -531,7 +534,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
     const tableColumns = this.getTableColumns();
 
     return (
-      <div className={cx('root')}>
+      <div className={cx('root')} ref={this.rootElRef}>
         {this.renderBulkActions()}
         <GTable
           emptyText={isLoading ? 'Loading...' : 'No alert groups found'}
@@ -765,50 +768,50 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
         title: 'ID',
         key: 'id',
         render: this.renderId,
-        width: isHorizontalScrolling ? '100px' : '10%',
+        width: 150,
       },
       Status: {
         title: 'Status',
         key: 'time',
         render: this.renderStatus,
-        width: '140px',
+        width: 140,
       },
       Alerts: {
         title: 'Alerts',
         key: 'alerts',
         render: this.renderAlertsCounter,
-        width: '100px',
+        width: 100,
       },
       Integration: {
         title: 'Integration',
         key: 'integration',
         render: this.renderSource,
-        width: isHorizontalScrolling ? undefined : '15%',
+        grow: 1.7,
       },
       Title: {
         title: 'Title',
         key: 'title',
         render: this.renderTitle,
-        width: isHorizontalScrolling ? undefined : '35%',
         className: 'u-max-width-1000',
+        grow: 3.5,
       },
       Created: {
         title: 'Created',
         key: 'created',
         render: this.renderStartedAt,
-        width: isHorizontalScrolling ? undefined : '10%',
+        grow: 1,
       },
       Team: {
         title: 'Team',
         key: 'team',
         render: (item: AlertType) => this.renderTeam(item, store.grafanaTeamStore.items),
-        width: isHorizontalScrolling ? undefined : '10%',
+        grow: 1,
       },
       Users: {
         title: 'Users',
         key: 'users',
         render: renderRelatedUsers,
-        width: isHorizontalScrolling ? undefined : '15%',
+        grow: 1.5,
       },
     };
 
@@ -825,15 +828,45 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
       return Object.keys(columnMapping).map((col) => columnMapping[col]);
     }
 
+    const visibleColumns = store.alertGroupStore.columns.filter((col) => col.isVisible);
+    const visibleColumnsWidth = visibleColumns
+      .filter((col) => col.type === AlertGroupColumnType.DEFAULT)
+      .reduce((total, current) => {
+        const column = columnMapping[current.name];
+        return typeof column.width === 'number' ? total + column.width : total;
+      }, 0);
+
+    const columnsGrowSum = visibleColumns.reduce((total, current) => {
+      const column = columnMapping[current.name];
+      return total + (column?.grow || 1);
+    }, 0);
+
+    // we set the total width based on the number of columns in the table (200xColCount)
+    const totalContainerWidth = isHorizontalScrolling
+      ? 200 * visibleColumns.length
+      : this.rootElRef?.current?.offsetWidth;
+    const remainingContainerWidth = totalContainerWidth - visibleColumnsWidth;
+
     const mappedColumns: TableColumn[] = store.alertGroupStore.columns
       .filter((col) => col.isVisible)
       .map((column: AlertGroupColumn): TableColumn => {
+        // each column has a grow property, simillar to flex-grow
+        // and that dictates how much space it should take relative to the other columns
+        // we also keep in mind the remaining fixed width columns
+        // (such as Status/Alerts which always take up the same amount of space)
+        const grow = columnMapping[column.name]?.grow || 1;
+        const growWidth = (grow / columnsGrowSum) * remainingContainerWidth;
+        const columnWidth = columnMapping[column.name]?.width || growWidth;
+
         if (column.type === AlertGroupColumnType.DEFAULT && columnMapping[column.name]) {
-          return columnMapping[column.name];
+          return {
+            ...columnMapping[column.name],
+            width: columnWidth,
+          };
         }
 
         return {
-          width: isHorizontalScrolling ? '200px' : '10%',
+          width: columnWidth,
           title: capitalize(column.name),
           key: column.id,
           render: (item: AlertType) => this.renderCustomColumn(column, item),
@@ -938,4 +971,4 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
   }
 }
 
-export default withRouter(withMobXProviderContext(Incidents));
+export const IncidentsPage = withRouter(withMobXProviderContext(_IncidentsPage));

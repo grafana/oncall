@@ -26,7 +26,7 @@ from common.ordered_model.viewset import OrderedModelViewSet
 
 class ChannelFilterView(
     TeamFilteringMixin,
-    PublicPrimaryKeyMixin,
+    PublicPrimaryKeyMixin[ChannelFilter],
     CreateSerializerMixin,
     UpdateSerializerMixin,
     OrderedModelViewSet,

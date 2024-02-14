@@ -1,4 +1,4 @@
-django==4.2.7
+django==4.2.10
 djangorestframework==3.14.0
 slack_sdk==3.21.3
 whitenoise==5.3.0
@@ -56,4 +56,3 @@ babel==2.12.1
 drf-spectacular==0.26.5
 grpcio==1.57.0
 markdown2==2.4.10
-PyJWT==2.8.0

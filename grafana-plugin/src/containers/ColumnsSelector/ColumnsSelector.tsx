@@ -9,6 +9,7 @@ import {
   useSensors,
   DragEndEvent,
 } from '@dnd-kit/core';
+import { restrictToVerticalAxis, restrictToFirstScrollableAncestor } from '@dnd-kit/modifiers';
 import {
   arrayMove,
   SortableContext,
@@ -21,28 +22,37 @@ import { Button, Checkbox, Icon, IconButton, LoadingPlaceholder, Tooltip, useSty
 import { observer } from 'mobx-react';
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
 
-import RenderConditionally from 'components/RenderConditionally/RenderConditionally';
-import Text from 'components/Text/Text';
+import { RenderConditionally } from 'components/RenderConditionally/RenderConditionally';
+import { Text } from 'components/Text/Text';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { AlertGroupColumn, AlertGroupColumnType } from 'models/alertgroup/alertgroup.types';
 import { ActionKey } from 'models/loader/action-keys';
 import { useStore } from 'state/useStore';
-import { openErrorNotification } from 'utils';
-import { UserActions } from 'utils/authorization';
-import { WrapAutoLoadingState } from 'utils/decorators';
+import { UserActions } from 'utils/authorization/authorization';
+import { openErrorNotification } from 'utils/utils';
 
 import { getColumnsSelectorStyles } from './ColumnsSelector.styles';
 
 const TRANSITION_MS = 500;
+const KEY_DELIMITATOR = '/-/';
 
 interface ColumnRowProps {
   column: AlertGroupColumn;
-  onItemChange: (id: number | string) => void;
+  onItemChange: (column: AlertGroupColumn) => void;
   onColumnRemoval: (column: AlertGroupColumn) => void;
 }
 
+function getColumnCombinedID(column: AlertGroupColumn) {
+  return `${column.id}${KEY_DELIMITATOR}${column.type}`;
+}
+
 const ColumnRow: React.FC<ColumnRowProps> = ({ column, onItemChange, onColumnRemoval }) => {
-  const dnd = useSortable({ id: column.id });
+  const dnd = useSortable({
+    id: getColumnCombinedID(column),
+    data: {
+      id: column.id,
+    },
+  });
 
   const styles = useStyles2(getColumnsSelectorStyles);
 
@@ -92,7 +102,7 @@ const ColumnRow: React.FC<ColumnRowProps> = ({ column, onItemChange, onColumnRem
         className={styles.columnsCheckbox}
         type="checkbox"
         value={column.isVisible}
-        onChange={() => onItemChange(column.id)}
+        onChange={() => onItemChange(column)}
       />
     </div>
   );
@@ -141,13 +151,19 @@ export const ColumnsSelector: React.FC<ColumnsSelectorProps> = observer(
             sensors={sensors}
             collisionDetection={closestCenter}
             onDragEnd={(ev) => handleDragEnd(ev, true)}
+            modifiers={[restrictToVerticalAxis, restrictToFirstScrollableAncestor]}
           >
-            <SortableContext items={columns} strategy={verticalListSortingStrategy}>
+            <SortableContext items={mapColumnsToDndItems(visibleColumns)} strategy={verticalListSortingStrategy}>
               <TransitionGroup>
                 {visibleColumns.map((column) => (
-                  <CSSTransition key={column.id} timeout={TRANSITION_MS} unmountOnExit classNames="fade">
+                  <CSSTransition
+                    key={getColumnCombinedID(column)}
+                    timeout={TRANSITION_MS}
+                    unmountOnExit
+                    classNames="fade"
+                  >
                     <ColumnRow
-                      key={column.id}
+                      key={getColumnCombinedID(column)}
                       column={column}
                       onItemChange={onItemChange}
                       onColumnRemoval={onConfirmRemovalModalOpen}
@@ -170,12 +186,12 @@ export const ColumnsSelector: React.FC<ColumnsSelectorProps> = observer(
             collisionDetection={closestCenter}
             onDragEnd={(ev) => handleDragEnd(ev, false)}
           >
-            <SortableContext items={columns} strategy={verticalListSortingStrategy}>
+            <SortableContext items={mapColumnsToDndItems(hiddenColumns)} strategy={verticalListSortingStrategy}>
               <TransitionGroup>
                 {hiddenColumns.map((column) => (
-                  <CSSTransition key={column.id} timeout={TRANSITION_MS} classNames="fade">
+                  <CSSTransition key={getColumnCombinedID(column)} timeout={TRANSITION_MS} classNames="fade">
                     <ColumnRow
-                      key={column.id}
+                      key={getColumnCombinedID(column)}
                       column={column}
                       onItemChange={onItemChange}
                       onColumnRemoval={onConfirmRemovalModalOpen}
@@ -193,7 +209,7 @@ export const ColumnsSelector: React.FC<ColumnsSelectorProps> = observer(
             tooltipPlacement="top"
             tooltip={'Reset table to default columns'}
             disabled={isResetLoading || isDefaultColumnOrder}
-            onClick={WrapAutoLoadingState(onReset, ActionKey.RESET_COLUMNS_FROM_ALERT_GROUP)}
+            onClick={() => alertGroupStore.resetColumns()}
           >
             {isResetLoading ? <LoadingPlaceholder text="Loading..." className="loadingPlaceholder" /> : 'Reset'}
           </Button>
@@ -206,12 +222,14 @@ export const ColumnsSelector: React.FC<ColumnsSelectorProps> = observer(
       </div>
     );
 
-    async function onReset() {
-      await alertGroupStore.resetTableSettings();
-      await alertGroupStore.fetchTableSettings();
+    function mapColumnsToDndItems(columns: AlertGroupColumn[]) {
+      return columns.map((col) => ({
+        ...col,
+        id: getColumnCombinedID(col),
+      }));
     }
 
-    async function onItemChange(id: string | number) {
+    async function onItemChange({ id, type }: AlertGroupColumn) {
       const checkedItems = alertGroupStore.columns.filter((col) => col.isVisible);
       if (checkedItems.length === 1 && checkedItems[0].id === id) {
         openErrorNotification('At least one column should be selected');
@@ -220,7 +238,7 @@ export const ColumnsSelector: React.FC<ColumnsSelectorProps> = observer(
 
       alertGroupStore.columns = alertGroupStore.columns.map((item): AlertGroupColumn => {
         let newItem: AlertGroupColumn = { ...item, isVisible: !item.isVisible };
-        return item.id === id ? newItem : item;
+        return item.id === id && item.type === type ? newItem : item;
       });
 
       await alertGroupStore.updateTableSettings(convertColumnsToTableSettings(alertGroupStore.columns), true);
@@ -232,12 +250,13 @@ export const ColumnsSelector: React.FC<ColumnsSelectorProps> = observer(
       let searchableList: AlertGroupColumn[] = isVisible ? visibleColumns : hiddenColumns;
 
       if (active.id !== over.id) {
-        const oldIndex = searchableList.findIndex((item) => item.id === active.id);
-        const newIndex = searchableList.findIndex((item) => item.id === over.id);
+        const oldIndex = searchableList.findIndex((item) => getColumnCombinedID(item) === active.id);
+        const newIndex = searchableList.findIndex((item) => getColumnCombinedID(item) === over.id);
 
         searchableList = arrayMove(searchableList, oldIndex, newIndex);
 
         const updatedList = isVisible ? [...searchableList, ...hiddenColumns] : [...visibleColumns, ...searchableList];
+
         alertGroupStore.columns = updatedList;
       }
     }

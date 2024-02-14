@@ -4,16 +4,16 @@ import { Button, Drawer, HorizontalGroup, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { debounce } from 'lodash-es';
 
-import CheatSheet from 'components/CheatSheet/CheatSheet';
-import { genericTemplateCheatSheet } from 'components/CheatSheet/CheatSheet.config';
-import MonacoEditor from 'components/MonacoEditor/MonacoEditor';
-import Text from 'components/Text/Text';
+import { CheatSheet } from 'components/CheatSheet/CheatSheet';
+import { genericTemplateCheatSheet, webhookPayloadCheatSheet } from 'components/CheatSheet/CheatSheet.config';
+import { MonacoEditor } from 'components/MonacoEditor/MonacoEditor';
+import { Text } from 'components/Text/Text';
 import styles from 'containers/IntegrationTemplate/IntegrationTemplate.module.scss';
-import TemplateResult from 'containers/TemplateResult/TemplateResult';
-import TemplatesAlertGroupsList, { TEMPLATE_PAGE } from 'containers/TemplatesAlertGroupsList/TemplatesAlertGroupsList';
+import { TemplateResult } from 'containers/TemplateResult/TemplateResult';
+import { TemplatesAlertGroupsList, TEMPLATE_PAGE } from 'containers/TemplatesAlertGroupsList/TemplatesAlertGroupsList';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { OutgoingWebhook } from 'models/outgoing_webhook/outgoing_webhook.types';
-import { UserActions } from 'utils/authorization';
+import { UserActions } from 'utils/authorization/authorization';
 
 const cx = cn.bind(styles);
 
@@ -31,7 +31,12 @@ interface WebhooksTemplateEditorProps {
   handleSubmit: (template: string) => void;
 }
 
-const WebhooksTemplateEditor: React.FC<WebhooksTemplateEditorProps> = ({ template, id, onHide, handleSubmit }) => {
+export const WebhooksTemplateEditor: React.FC<WebhooksTemplateEditorProps> = ({
+  template,
+  id,
+  onHide,
+  handleSubmit,
+}) => {
   const [isCheatSheetVisible, setIsCheatSheetVisible] = useState<boolean>(false);
   const [changedTemplateBody, setChangedTemplateBody] = useState<string>(template.value);
   const [selectedPayload, setSelectedPayload] = useState(undefined);
@@ -69,6 +74,15 @@ const WebhooksTemplateEditor: React.FC<WebhooksTemplateEditorProps> = ({ templat
   const onCloseCheatSheet = useCallback(() => {
     setIsCheatSheetVisible(false);
   }, []);
+
+  const getCheatSheet = (templateKey: string) => {
+    switch (templateKey) {
+      case 'data':
+        return webhookPayloadCheatSheet;
+      default:
+        return genericTemplateCheatSheet;
+    }
+  };
 
   return (
     <Drawer
@@ -118,8 +132,8 @@ const WebhooksTemplateEditor: React.FC<WebhooksTemplateEditorProps> = ({ templat
 
           {isCheatSheetVisible ? (
             <CheatSheet
-              cheatSheetName="Generic"
-              cheatSheetData={genericTemplateCheatSheet}
+              cheatSheetName={template.displayName}
+              cheatSheetData={getCheatSheet(template.name)}
               onClose={onCloseCheatSheet}
             />
           ) : (
@@ -162,5 +176,3 @@ const WebhooksTemplateEditor: React.FC<WebhooksTemplateEditorProps> = ({ templat
     </Drawer>
   );
 };
-
-export default WebhooksTemplateEditor;

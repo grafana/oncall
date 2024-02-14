@@ -13,33 +13,33 @@ import {
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 import moment from 'moment-timezone';
-import LegacyNavHeading from 'navbar/LegacyNavHeading';
+import { LegacyNavHeading } from 'navbar/LegacyNavHeading';
 import CopyToClipboard from 'react-copy-to-clipboard';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 
-import GTable from 'components/GTable/GTable';
-import HamburgerMenu from 'components/HamburgerMenu/HamburgerMenu';
-import LabelsTooltipBadge from 'components/LabelsTooltipBadge/LabelsTooltipBadge';
-import PageErrorHandlingWrapper, { PageBaseState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
+import { GTable } from 'components/GTable/GTable';
+import { HamburgerMenu } from 'components/HamburgerMenu/HamburgerMenu';
+import { LabelsTooltipBadge } from 'components/LabelsTooltipBadge/LabelsTooltipBadge';
+import { PageErrorHandlingWrapper, PageBaseState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
 import {
   getWrongTeamResponseInfo,
   initErrorDataState,
 } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper.helpers';
-import PluginLink from 'components/PluginLink/PluginLink';
-import Text from 'components/Text/Text';
-import TextEllipsisTooltip from 'components/TextEllipsisTooltip/TextEllipsisTooltip';
-import OutgoingWebhookForm from 'containers/OutgoingWebhookForm/OutgoingWebhookForm';
-import RemoteFilters from 'containers/RemoteFilters/RemoteFilters';
-import TeamName from 'containers/TeamName/TeamName';
+import { PluginLink } from 'components/PluginLink/PluginLink';
+import { Text } from 'components/Text/Text';
+import { TextEllipsisTooltip } from 'components/TextEllipsisTooltip/TextEllipsisTooltip';
+import { OutgoingWebhookForm } from 'containers/OutgoingWebhookForm/OutgoingWebhookForm';
+import { RemoteFilters } from 'containers/RemoteFilters/RemoteFilters';
+import { TeamName } from 'containers/TeamName/TeamName';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { FiltersValues } from 'models/filters/filters.types';
 import { OutgoingWebhook } from 'models/outgoing_webhook/outgoing_webhook.types';
 import { AppFeature } from 'state/features';
 import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
-import { openErrorNotification, openNotification } from 'utils';
-import { isUserActionAllowed, UserActions } from 'utils/authorization';
+import { isUserActionAllowed, UserActions } from 'utils/authorization/authorization';
 import { PAGE, PLUGIN_ROOT, TEXT_ELLIPSIS_CLASS } from 'utils/consts';
+import { openErrorNotification, openNotification } from 'utils/utils';
 
 import styles from './OutgoingWebhooks.module.scss';
 import { WebhookFormActionType } from './OutgoingWebhooks.types';
@@ -191,7 +191,7 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
               />
             )}
 
-            <div className={cx('root')}>
+            <div className={cx('root')} data-testid="outgoing-webhooks-table">
               {this.renderOutgoingWebhooksFilters()}
               <GTable
                 emptyText={webhooks ? 'No outgoing webhooks found' : 'Loading...'}
@@ -269,11 +269,7 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
   };
 
   renderTeam(record: OutgoingWebhook, teams: any) {
-    return (
-      <TextEllipsisTooltip placement="top" content={teams[record.team]?.name}>
-        <TeamName className={TEXT_ELLIPSIS_CLASS} team={teams[record.team]} />
-      </TextEllipsisTooltip>
-    );
+    return <TeamName className={TEXT_ELLIPSIS_CLASS} team={teams[record.team]} />;
   }
 
   renderActionButtons = (record: OutgoingWebhook) => {
@@ -435,6 +431,9 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
       is_legacy: false,
     };
 
+    // don't pass trigger_type to backend as it's not editable
+    delete data.trigger_type;
+
     outgoingWebhookStore
       .update(id, data)
       .then(() => this.update())
@@ -474,4 +473,4 @@ function convertWebhookUrlToAction(urlAction: string) {
 
 export { OutgoingWebhooks };
 
-export default withRouter(withMobXProviderContext(OutgoingWebhooks));
+export const OutgoingWebhooksPage = withRouter(withMobXProviderContext(OutgoingWebhooks));

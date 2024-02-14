@@ -4,7 +4,7 @@ import { HorizontalGroup, IconButton, Input } from '@grafana/ui';
 import cn from 'classnames/bind';
 import CopyToClipboard from 'react-copy-to-clipboard';
 
-import { openNotification } from 'utils';
+import { openNotification } from 'utils/utils';
 
 import styles from './IntegrationInputField.module.scss';
 
@@ -19,8 +19,8 @@ interface IntegrationInputFieldProps {
 
 const cx = cn.bind(styles);
 
-const IntegrationInputField: React.FC<IntegrationInputFieldProps> = ({
-  isMasked = true,
+export const IntegrationInputField: React.FC<IntegrationInputFieldProps> = ({
+  isMasked = false,
   value,
   showEye = true,
   showCopy = true,
@@ -63,5 +63,3 @@ const IntegrationInputField: React.FC<IntegrationInputFieldProps> = ({
     window.open(value, '_blank');
   }
 };
-
-export default IntegrationInputField;

@@ -56,86 +56,59 @@ def test_shift_starts_within_range(timing_window_lower, timing_window_upper, sec
     assert _shift_starts_within_range(timing_window_lower, timing_window_upper, seconds_until_shift_starts) == expected
 
 
+@pytest.mark.parametrize(
+    "seconds_until_going_oncall,humanized_time_until_going_oncall",
+    [
+        (8 * 60, "15 minutes"),  # 8 minutes
+        (600, "15 minutes"),
+        ((60 * 60 * 11) + (53 * 60), "12 hours"),  # 11 hours and 53 minutes
+        ((60 * 60 * 12) + (10 * 60), "12 hours"),  # 12 hours and 10 minutes
+        (60 * 60 * 26, "a day"),  # 1 day and 2 hours
+    ],
+)
 @pytest.mark.django_db
-def test_get_notification_title(make_organization_and_user, make_user, make_schedule):
-    schedule_name = "asdfasdfasdfasdf"
-
-    organization, user = make_organization_and_user()
-    user2 = make_user(organization=organization)
-    schedule = make_schedule(organization, name=schedule_name, schedule_class=OnCallScheduleWeb)
-    shift_pk = "mncvmnvc"
-    user_pk = user.public_primary_key
-    user_locale = "fr_CA"
-    seconds_until_going_oncall = 600
-    humanized_time_until_going_oncall = "10 minutes"
-
-    same_day_shift_start = timezone.datetime(2023, 7, 8, 9, 0, 0)
-    same_day_shift_end = timezone.datetime(2023, 7, 8, 17, 0, 0)
-
-    multiple_day_shift_start = timezone.datetime(2023, 7, 8, 9, 0, 0)
-    multiple_day_shift_end = timezone.datetime(2023, 7, 12, 17, 0, 0)
-
-    same_day_shift = _create_schedule_event(
-        same_day_shift_start,
-        same_day_shift_end,
-        shift_pk,
-        [
-            {
-                "pk": user_pk,
-            },
-        ],
-    )
-
-    multiple_day_shift = _create_schedule_event(
-        multiple_day_shift_start,
-        multiple_day_shift_end,
-        shift_pk,
-        [
-            {
-                "pk": user_pk,
-            },
-        ],
-    )
-
-    maus = MobileAppUserSettings.objects.create(user=user, locale=user_locale)
-    maus_no_locale = MobileAppUserSettings.objects.create(user=user2)
-
-    ##################
-    # same day shift
-    ##################
-    same_day_shift_title = _get_notification_title(seconds_until_going_oncall)
-    same_day_shift_subtitle = _get_notification_subtitle(schedule, same_day_shift, maus)
-    same_day_shift_no_locale_subtitle = _get_notification_subtitle(schedule, same_day_shift, maus_no_locale)
-
-    assert same_day_shift_title == f"Your on-call shift starts in {humanized_time_until_going_oncall}"
-    assert same_day_shift_subtitle == f"09 h 00 - 17 h 00\nSchedule {schedule_name}"
-    assert same_day_shift_no_locale_subtitle == f"9:00\u202fAM - 5:00\u202fPM\nSchedule {schedule_name}"
-
-    ##################
-    # multiple day shift
-    ##################
-    multiple_day_shift_title = _get_notification_title(seconds_until_going_oncall)
-    multiple_day_shift_subtitle = _get_notification_subtitle(schedule, multiple_day_shift, maus)
-    multiple_day_shift_no_locale_subtitle = _get_notification_subtitle(schedule, multiple_day_shift, maus_no_locale)
-
-    assert multiple_day_shift_title == f"Your on-call shift starts in {humanized_time_until_going_oncall}"
-    assert multiple_day_shift_subtitle == f"2023-07-08 09 h 00 - 2023-07-12 17 h 00\nSchedule {schedule_name}"
+def test_get_notification_title(seconds_until_going_oncall, humanized_time_until_going_oncall):
     assert (
-        multiple_day_shift_no_locale_subtitle
-        == f"7/8/23, 9:00\u202fAM - 7/12/23, 5:00\u202fPM\nSchedule {schedule_name}"
+        _get_notification_title(seconds_until_going_oncall)
+        == f"Your on-call shift starts in {humanized_time_until_going_oncall}"
     )
 
 
 @pytest.mark.parametrize(
-    "user_timezone,expected_shift_times",
+    "user_timezone,shift_start_time,shift_end_time,expected",
     [
-        ("UTC", "9:00 AM - 5:00 PM"),
-        ("Europe/Amsterdam", "11:00 AM - 7:00 PM"),
+        # same day shift
+        ("UTC", timezone.datetime(2023, 7, 8, 9, 0, 0), timezone.datetime(2023, 7, 8, 17, 0, 0), "9:00 AM - 5:00 PM"),
+        (
+            "Europe/Amsterdam",
+            timezone.datetime(2023, 7, 8, 9, 0, 0),
+            timezone.datetime(2023, 7, 8, 17, 0, 0),
+            "11:00 AM - 7:00 PM",
+        ),
+        # multi-day shift
+        (
+            "UTC",
+            timezone.datetime(2023, 7, 8, 9, 0, 0),
+            timezone.datetime(2023, 7, 12, 17, 0, 0),
+            "7/8/23, 9:00 AM - 7/12/23, 5:00 PM",
+        ),
+        (
+            "Europe/Amsterdam",
+            timezone.datetime(2023, 7, 8, 9, 0, 0),
+            timezone.datetime(2023, 7, 12, 17, 0, 0),
+            "7/8/23, 11:00 AM - 7/12/23, 7:00 PM",
+        ),
     ],
 )
 @pytest.mark.django_db
 def test_get_notification_subtitle(
-    make_organization, make_user_for_organization, make_schedule, user_timezone, expected_shift_times
+    make_organization,
+    make_user_for_organization,
+    make_schedule,
+    user_timezone,
+    shift_start_time,
+    shift_end_time,
+    expected,
 ):
     schedule_name = "asdfasdfasdfasdf"
 
@@ -143,15 +116,11 @@ def test_get_notification_subtitle(
     user = make_user_for_organization(organization)
     user_pk = user.public_primary_key
     maus = MobileAppUserSettings.objects.create(user=user, time_zone=user_timezone)
-
     schedule = make_schedule(organization, name=schedule_name, schedule_class=OnCallScheduleWeb)
 
-    shift_start = timezone.datetime(2023, 7, 8, 9, 0, 0)
-    shift_end = timezone.datetime(2023, 7, 8, 17, 0, 0)
-
     shift = _create_schedule_event(
-        shift_start,
-        shift_end,
+        shift_start_time,
+        shift_end_time,
         "asdfasdfasdf",
         [
             {
@@ -160,7 +129,51 @@ def test_get_notification_subtitle(
         ],
     )
 
-    assert _get_notification_subtitle(schedule, shift, maus) == f"{expected_shift_times}\nSchedule {schedule_name}"
+    assert _get_notification_subtitle(schedule, shift, maus) == f"{expected}\nSchedule {schedule_name}"
+
+
+@pytest.mark.parametrize(
+    "shift_start_time,shift_end_time,expected",
+    [
+        # same day shift
+        (timezone.datetime(2023, 7, 8, 9, 0, 0), timezone.datetime(2023, 7, 8, 17, 0, 0), "9:00 AM - 5:00 PM"),
+        # multi-day shift
+        (
+            timezone.datetime(2023, 7, 8, 9, 0, 0),
+            timezone.datetime(2023, 7, 12, 17, 0, 0),
+            "7/8/23, 9:00 AM - 7/12/23, 5:00 PM",
+        ),
+    ],
+)
+@pytest.mark.django_db
+def test_get_notification_subtitle_no_locale(
+    make_organization,
+    make_user_for_organization,
+    make_schedule,
+    shift_start_time,
+    shift_end_time,
+    expected,
+):
+    schedule_name = "asdfasdfasdfasdf"
+
+    organization = make_organization()
+    user = make_user_for_organization(organization)
+    user_pk = user.public_primary_key
+    maus = MobileAppUserSettings.objects.create(user=user)
+    schedule = make_schedule(organization, name=schedule_name, schedule_class=OnCallScheduleWeb)
+
+    shift = _create_schedule_event(
+        shift_start_time,
+        shift_end_time,
+        "asdfasdfasdf",
+        [
+            {
+                "pk": user_pk,
+            },
+        ],
+    )
+
+    assert _get_notification_subtitle(schedule, shift, maus) == f"{expected}\nSchedule {schedule_name}"
 
 
 @mock.patch("apps.mobile_app.tasks.going_oncall_notification._get_notification_subtitle")
