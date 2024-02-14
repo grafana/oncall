@@ -40,6 +40,14 @@ def test_update_labels_cache_for_key(make_organization, make_label_key_and_value
 
 
 @pytest.mark.django_db
+def test_update_labels_cache_error(make_organization, make_label_key_and_value, make_label_value):
+    label_data = {"code": 404, "error": "label not found"}
+    with patch("apps.labels.tasks.unify_labels_data") as mocked_unify_labels_data:
+        update_labels_cache(label_data)
+    mocked_unify_labels_data.assert_not_called()
+
+
+@pytest.mark.django_db
 def test_update_labels_cache(make_organization, make_label_key_and_value, make_label_value):
     organization = make_organization()
 
@@ -134,3 +142,26 @@ def test_update_instances_labels_cache_outdated(
     assert mock_get_values.called
     assert mock_update_cache.called
     assert mock_update_cache.call_args == call((label_data,))
+
+
+@pytest.mark.django_db
+def test_update_instances_labels_cache_error(
+    make_organization, make_alert_receive_channel, make_integration_label_association
+):
+    organization = make_organization()
+    alert_receive_channel = make_alert_receive_channel(organization)
+    label_association = make_integration_label_association(organization, alert_receive_channel)
+    outdated_last_synced = timezone.now() - timezone.timedelta(minutes=LABEL_OUTDATED_TIMEOUT_MINUTES + 1)
+
+    LabelKeyCache.objects.filter(id=label_association.key_id).update(last_synced=outdated_last_synced)
+    LabelValueCache.objects.filter(id=label_association.value_id).update(last_synced=outdated_last_synced)
+
+    label_data = {"code": 404, "error": "label not found"}
+
+    with patch("apps.labels.client.LabelsAPIClient.get_values", return_value=(label_data, None)) as mock_get_values:
+        with patch("apps.labels.tasks.update_labels_cache.apply_async") as mock_update_cache:
+            update_instances_labels_cache(
+                organization.id, [alert_receive_channel.id], alert_receive_channel._meta.model.__name__
+            )
+    mock_get_values.assert_called_once_with(label_association.key_id)
+    mock_update_cache.assert_not_called()
