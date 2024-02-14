@@ -200,7 +200,7 @@ const getRootScene = (config: InsightsConfig, variables: ReturnType<typeof getVa
                   }),
                 }),
                 new NestedScene({
-                  title: 'Notified alert groups by Users (based on all Integrations)',
+                  title: 'Notified alert groups by Users (for all Teams and Integrations)',
                   canCollapse: true,
                   isCollapsed: false,
                   body: new SceneFlexLayout({

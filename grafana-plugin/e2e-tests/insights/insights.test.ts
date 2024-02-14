@@ -44,11 +44,11 @@ test.describe('Insights', () => {
     await goToOnCallPage(page, 'insights');
     [
       'New alert groups',
-      'MTTR changed',
+      'Mean time to respond \\(MTTR\\) changed',
       'Alert groups by Integration',
       'Mean time to respond \\(MTTR\\) by Integration',
       'Alert groups by Team',
-      'Mean time to respond by Team \\(MTTR\\)',
+      'Mean time to respond \\(MTTR\\) by Team',
       'New alert groups notifications',
     ].forEach(async (panelTitle) => {
       await expect(page.getByRole('heading', { name: new RegExp(`^${panelTitle}$`) }).first()).toBeVisible();

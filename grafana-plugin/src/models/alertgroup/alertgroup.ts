@@ -65,9 +65,6 @@ export class AlertGroupStore extends BaseStore {
   silencedIncidents: any = {};
 
   @observable
-  allIncidentsCount = 0;
-
-  @observable
   liveUpdatesEnabled = false;
 
   @observable
@@ -355,14 +352,6 @@ export class AlertGroupStore extends BaseStore {
 
   async getPayloadForIncident(pk: Alert['pk']) {
     return await makeRequest(`/alerts/${pk}`, {});
-  }
-
-  @action.bound
-  async getAllIncidentsCount() {
-    const { count } = await makeRequest<{ count: number }>(`${this.path}stats/`, {});
-    runInAction(() => {
-      this.allIncidentsCount = count;
-    });
   }
 
   @action
