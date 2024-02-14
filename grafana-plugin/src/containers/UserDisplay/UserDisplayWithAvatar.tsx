@@ -3,8 +3,8 @@ import React, { useEffect } from 'react';
 import { HorizontalGroup } from '@grafana/ui';
 import { observer } from 'mobx-react';
 
-import Avatar from 'components/Avatar/Avatar';
-import Text from 'components/Text/Text';
+import { Avatar } from 'components/Avatar/Avatar';
+import { Text } from 'components/Text/Text';
 import { User } from 'models/user/user.types';
 import { useStore } from 'state/useStore';
 
@@ -12,7 +12,7 @@ interface UserDisplayProps {
   id: User['pk'];
 }
 
-const UserDisplayWithAvatar = observer(({ id }: UserDisplayProps) => {
+export const UserDisplayWithAvatar = observer(({ id }: UserDisplayProps) => {
   const { userStore } = useStore();
 
   useEffect(() => {
@@ -33,5 +33,3 @@ const UserDisplayWithAvatar = observer(({ id }: UserDisplayProps) => {
     </HorizontalGroup>
   );
 });
-
-export default UserDisplayWithAvatar;

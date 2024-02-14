@@ -16,7 +16,7 @@ interface SchedulesFiltersProps {
   onChange: (filters: ScheduleFiltersType) => void;
 }
 
-const SchedulesFilters = (props: SchedulesFiltersProps) => {
+export const ScheduleFilters = (props: SchedulesFiltersProps) => {
   const { value, currentUserPk, onChange } = props;
 
   const handleShowMyShiftsOnlyClick = useCallback(
@@ -46,5 +46,3 @@ const SchedulesFilters = (props: SchedulesFiltersProps) => {
     </div>
   );
 };
-
-export default SchedulesFilters;

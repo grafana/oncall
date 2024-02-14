@@ -123,10 +123,6 @@ class StartDirectPaging(scenario_step.ScenarioStep):
         slack_team_identity: "SlackTeamIdentity",
         payload: EventPayload,
     ) -> None:
-        if not self.is_authorized():
-            self.open_unauthorized_warning(payload)
-            return
-
         input_id_prefix = _generate_input_id_prefix()
 
         try:
@@ -151,18 +147,12 @@ class StartDirectPaging(scenario_step.ScenarioStep):
 class FinishDirectPaging(scenario_step.ScenarioStep):
     """Handle page command dialog submit."""
 
-    REQUIRED_PERMISSIONS = [RBACPermission.Permissions.ALERT_GROUPS_DIRECT_PAGING]
-
     def process_scenario(
         self,
         slack_user_identity: "SlackUserIdentity",
         slack_team_identity: "SlackTeamIdentity",
         payload: EventPayload,
     ) -> None:
-        if not self.is_authorized():
-            self.open_unauthorized_warning(payload)
-            return
-
         message = _get_message_from_payload(payload)
         private_metadata = json.loads(payload["view"]["private_metadata"])
         channel_id = private_metadata["channel_id"]

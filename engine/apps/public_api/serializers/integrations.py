@@ -149,16 +149,24 @@ class IntegrationSerializer(EagerLoadingMixin, serializers.ModelSerializer, Main
     def validate(self, attrs):
         organization = self.context["request"].auth.organization
         verbal_name = attrs.get("verbal_name", None)
+        team = attrs.get("team", None)
         if verbal_name is None:
             return attrs
         try:
-            obj = AlertReceiveChannel.objects.get(organization=organization, verbal_name=verbal_name)
+            obj = AlertReceiveChannel.objects.get(
+                organization=organization,
+                team=team,
+                verbal_name=verbal_name,
+            )
         except AlertReceiveChannel.DoesNotExist:
             return attrs
+        except AlertReceiveChannel.MultipleObjectsReturned:
+            raise BadRequest(detail="An integration with this name already exists for this team")
+
         if self.instance and obj.id == self.instance.id:
             return attrs
         else:
-            raise BadRequest(detail="Integration with this name already exists")
+            raise BadRequest(detail="An integration with this name already exists for this team")
 
     def validate_templates(self, templates):
         if not isinstance(templates, dict):

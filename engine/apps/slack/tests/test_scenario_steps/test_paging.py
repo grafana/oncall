@@ -5,7 +5,6 @@ import pytest
 from django.utils import timezone
 
 from apps.alerts.models import AlertReceiveChannel
-from apps.api.permissions import LegacyAccessControlRole
 from apps.schedules.models import CustomOnCallShift, OnCallScheduleWeb
 from apps.slack.scenarios.paging import (
     DIRECT_PAGING_MESSAGE_INPUT_ID,
@@ -74,19 +73,6 @@ def test_initial_state(
 
     metadata = json.loads(mock_slack_api_call.call_args.kwargs["view"]["private_metadata"])
     assert metadata[DataKey.USERS] == {}
-
-
-@pytest.mark.parametrize("role", (LegacyAccessControlRole.VIEWER, LegacyAccessControlRole.NONE))
-@pytest.mark.django_db
-def test_initial_unauthorized(make_organization_and_user_with_slack_identities, role):
-    _, user, slack_team_identity, slack_user_identity = make_organization_and_user_with_slack_identities(role=role)
-    payload = {"channel_id": "123", "trigger_id": "111"}
-
-    step = StartDirectPaging(slack_team_identity, user=user)
-    with patch.object(step, "open_unauthorized_warning") as mock_open_unauthorized_warning:
-        step.process_scenario(slack_user_identity, slack_team_identity, payload)
-
-    mock_open_unauthorized_warning.assert_called_once()
 
 
 @pytest.mark.django_db
@@ -243,21 +229,6 @@ def test_trigger_paging_no_team_or_user_selected(make_organization_and_user_with
         response["view"]["blocks"][0]["text"]["text"]
         == ":warning: At least one team or one user must be selected to directly page"
     )
-
-
-@pytest.mark.parametrize("role", (LegacyAccessControlRole.VIEWER, LegacyAccessControlRole.NONE))
-@pytest.mark.django_db
-def test_trigger_paging_unauthorized(make_organization_and_user_with_slack_identities, role):
-    organization, user, slack_team_identity, slack_user_identity = make_organization_and_user_with_slack_identities(
-        role=role
-    )
-    payload = make_slack_payload(organization=organization)
-
-    step = FinishDirectPaging(slack_team_identity, user=user)
-    with patch.object(step, "open_unauthorized_warning") as mock_open_unauthorized_warning:
-        step.process_scenario(slack_user_identity, slack_team_identity, payload)
-
-    mock_open_unauthorized_warning.assert_called_once()
 
 
 @pytest.mark.django_db
