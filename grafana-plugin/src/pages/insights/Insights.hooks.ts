@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 
 import { useStore } from 'state/useStore';
 
-export const useAlertGroupsCounterChecker = () => {
+export const useAlertCreationChecker = () => {
   const {
     alertGroupStore: { updateAlertGroups, alerts },
   } = useStore();

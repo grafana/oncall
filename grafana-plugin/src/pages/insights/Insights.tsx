@@ -23,7 +23,7 @@ import { TutorialStep } from 'components/Tutorial/Tutorial.types';
 import { useStore } from 'state/useStore';
 import { DOCS_ROOT, PLUGIN_ROOT } from 'utils/consts';
 
-import { useAlertGroupsCounterChecker } from './Insights.hooks';
+import { useAlertCreationChecker } from './Insights.hooks';
 import styles from './Insights.module.scss';
 import { InsightsConfig } from './Insights.types';
 import { getAlertGroupsByIntegrationScene } from './scenes/AlertGroupsByIntegration';
@@ -45,7 +45,7 @@ export const Insights = observer(() => {
     organizationStore: { currentOrganization },
   } = useStore();
   const [datasource, setDatasource] = useState<string>();
-  const { isAnyAlertCreatedMoreThan20SecsAgo, isFirstAlertCountCheckDone } = useAlertGroupsCounterChecker();
+  const { isAnyAlertCreatedMoreThan20SecsAgo, isFirstAlertCountCheckDone } = useAlertCreationChecker();
 
   const config = useMemo(
     () => ({
