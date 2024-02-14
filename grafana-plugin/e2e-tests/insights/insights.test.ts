@@ -57,7 +57,7 @@ test.describe('Insights', () => {
 
   test('There is no panel that misses data', async ({ adminRolePage: { page } }) => {
     await goToOnCallPage(page, 'insights');
-    await page.getByText('Last 7 days').click();
+    await page.getByText('Last 24 hours').click();
     await page.getByText('Last 1 hour').click();
     await page.waitForTimeout(2000);
     await expect(page.getByText('No data')).toBeHidden();
