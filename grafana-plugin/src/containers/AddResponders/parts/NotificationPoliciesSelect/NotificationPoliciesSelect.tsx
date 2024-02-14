@@ -16,7 +16,7 @@ type Props = {
   onChange: (value: SelectableValue<number>, actionMeta: ActionMeta) => void;
 };
 
-const NotificationPoliciesSelect: FC<Props> = ({ disabled = false, important, onChange }) => (
+export const NotificationPoliciesSelect: FC<Props> = ({ disabled = false, important, onChange }) => (
   <Select
     className={cx('select')}
     width="auto"
@@ -38,5 +38,3 @@ const NotificationPoliciesSelect: FC<Props> = ({ disabled = false, important, on
     disabled={disabled}
   />
 );
-
-export default NotificationPoliciesSelect;

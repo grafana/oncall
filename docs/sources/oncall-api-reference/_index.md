@@ -1,7 +1,16 @@
 ---
-canonical: https://grafana.com/docs/oncall/latest/oncall-api-reference/
 title: Grafana OnCall HTTP API reference
-weight: 1500
+menuTitle: API reference
+description: Reference material for Grafana OnCall API.
+weight: 900
+keywords:
+  - OnCall
+  - API
+  - HTTP
+  - API key
+canonical: https://grafana.com/docs/oncall/latest/oncall-api-reference/
+aliases:
+  - /docs/grafana-cloud/alerting-and-irm/oncall/oncall-api-reference/
 ---
 
 # HTTP API Reference

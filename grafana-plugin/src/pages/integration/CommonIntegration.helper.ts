@@ -1,6 +1,6 @@
 import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
 
-const CommonIntegrationHelper = {
+export const CommonIntegrationHelper = {
   getRouteConditionWording(channelFilters: Array<ChannelFilter['id']>, routeIndex: number): 'Default' | 'Else' | 'If' {
     const totalCount = Object.keys(channelFilters).length;
 
@@ -19,5 +19,3 @@ const CommonIntegrationHelper = {
     return 'If Routing Template is True for incoming alert payload, it will be go only to this route. Alert will be grouped based on Grouping Template and escalated';
   },
 };
-
-export default CommonIntegrationHelper;

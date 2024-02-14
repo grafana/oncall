@@ -17,8 +17,8 @@ import {
 import { Alert, LoadingPlaceholder, VerticalGroup } from '@grafana/ui';
 import { observer } from 'mobx-react';
 
-import Text from 'components/Text/Text';
-import Tutorial from 'components/Tutorial/Tutorial';
+import { Text } from 'components/Text/Text';
+import { Tutorial } from 'components/Tutorial/Tutorial';
 import { TutorialStep } from 'components/Tutorial/Tutorial.types';
 import { useStore } from 'state/useStore';
 import { DOCS_ROOT, PLUGIN_ROOT } from 'utils/consts';
@@ -38,7 +38,7 @@ import { getNewAlertGroupsNotificationsTimeseriesScene } from './scenes/NewAlert
 import { getNewAlertGroupsTimeseriesScene } from './scenes/NewAlertGroupsTimeseries';
 import getVariables from './variables';
 
-const Insights = observer(() => {
+export const Insights = observer(() => {
   const {
     isOpenSource,
     insightsDatasource,
@@ -222,5 +222,3 @@ const getRootScene = (config: InsightsConfig, variables: ReturnType<typeof getVa
       }),
     ],
   });
-
-export default Insights;

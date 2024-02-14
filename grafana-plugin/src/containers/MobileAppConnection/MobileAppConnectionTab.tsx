@@ -2,7 +2,7 @@ import React from 'react';
 
 import { observer } from 'mobx-react';
 
-import Text from 'components/Text/Text';
+import { Text } from 'components/Text/Text';
 
 const MobileAppConnectionTab: React.FC<{ userPk?: string }> = observer(() => {
   return (

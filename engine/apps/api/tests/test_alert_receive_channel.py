@@ -151,6 +151,100 @@ def test_create_alert_receive_channel(alert_receive_channel_internal_api_setup, 
 
 
 @pytest.mark.django_db
+def test_alert_receive_channel_name_uniqueness(
+    alert_receive_channel_internal_api_setup,
+    make_team,
+    make_user_auth_headers,
+):
+    user, token, alert_receive_channel = alert_receive_channel_internal_api_setup
+    client = APIClient()
+
+    url = reverse("api-internal:alert_receive_channel-list")
+    data = {
+        "integration": AlertReceiveChannel.INTEGRATION_GRAFANA,
+        "team": alert_receive_channel.team.public_primary_key if alert_receive_channel.team else None,
+        "verbal_name": alert_receive_channel.verbal_name,
+    }
+    response = client.post(url, data, format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    # name can be reused in a different team
+    another_team = make_team(alert_receive_channel.organization)
+    data = {
+        "integration": AlertReceiveChannel.INTEGRATION_GRAFANA,
+        "team": another_team.public_primary_key,
+        "verbal_name": alert_receive_channel.verbal_name,
+    }
+    response = client.post(url, data, format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_201_CREATED
+
+    # update works
+    url = reverse("api-internal:alert_receive_channel-detail", kwargs={"pk": alert_receive_channel.public_primary_key})
+    response = client.put(
+        url,
+        data=json.dumps(
+            {
+                "team": alert_receive_channel.team,
+                "verbal_name": alert_receive_channel.verbal_name,
+                "description": "update description",
+            }
+        ),
+        content_type="application/json",
+        **make_user_auth_headers(user, token),
+    )
+    assert response.status_code == status.HTTP_200_OK
+
+    # but updating team will fail if name exists
+    response = client.put(
+        url,
+        data=json.dumps(
+            {
+                "team": another_team.public_primary_key,
+                "verbal_name": alert_receive_channel.verbal_name,
+            }
+        ),
+        content_type="application/json",
+        **make_user_auth_headers(user, token),
+    )
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+@pytest.mark.django_db
+def test_alert_receive_channel_name_duplicated(
+    alert_receive_channel_internal_api_setup,
+    make_alert_receive_channel,
+    make_user_auth_headers,
+):
+    # this could happen in case a team is removed and integrations are set to have "no team"
+    user, token, alert_receive_channel = alert_receive_channel_internal_api_setup
+    # another integration with the same verbal name
+    make_alert_receive_channel(
+        alert_receive_channel.organization,
+        verbal_name=alert_receive_channel.verbal_name,
+    )
+
+    client = APIClient()
+
+    # updating team will require changing the name or the team
+    url = reverse("api-internal:alert_receive_channel-detail", kwargs={"pk": alert_receive_channel.public_primary_key})
+    response = client.put(
+        url,
+        data=json.dumps({"verbal_name": alert_receive_channel.verbal_name}),
+        content_type="application/json",
+        **make_user_auth_headers(user, token),
+    )
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    response = client.put(
+        url,
+        data=json.dumps({"verbal_name": "a new name"}),
+        content_type="application/json",
+        **make_user_auth_headers(user, token),
+    )
+    assert response.status_code == status.HTTP_200_OK
+
+
+@pytest.mark.django_db
 def test_create_invalid_alert_receive_channel(alert_receive_channel_internal_api_setup, make_user_auth_headers):
     user, token, _ = alert_receive_channel_internal_api_setup
     client = APIClient()

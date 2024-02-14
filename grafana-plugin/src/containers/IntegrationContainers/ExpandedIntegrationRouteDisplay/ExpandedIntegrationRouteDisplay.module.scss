@@ -1,10 +1,13 @@
 .input {
-  &--short {
-    width: 500px;
+  border: var(--border-weak);
+
+  &--align {
+    width: 728px;
   }
-  &--long {
-    width: 700px;
-  }
+}
+
+.routing-alert {
+  width: 765px;
 }
 
 .integrations-actionsList {
@@ -31,4 +34,16 @@
   &:hover {
     background: var(--cards-background);
   }
+}
+
+.routing-template-container {
+  margin-bottom: 8px;
+}
+
+.adjust-element-padding {
+  padding-top: 6px;
+}
+
+.default-route-view {
+  min-height: 40px;
 }

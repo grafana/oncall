@@ -3,15 +3,15 @@ import React, { useEffect, useState } from 'react';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
-import Text from 'components/Text/Text';
-import MSTeamsInstructions from 'containers/MSTeams/MSTeamsInstructions';
+import { Text } from 'components/Text/Text';
+import { MSTeamsInstructions } from 'containers/MSTeams/MSTeamsInstructions';
 import { useStore } from 'state/useStore';
 
 import styles from 'containers/UserSettings/parts/tabs/MSTeamsInfo/MSTeamsInfo.module.css';
 
 const cx = cn.bind(styles);
 
-const MSTeamsInfo = observer(() => {
+export const MSTeamsInfo = observer(() => {
   const { userStore, msteamsChannelStore } = useStore();
 
   const [verificationCode, setVerificationCode] = useState<string>();
@@ -47,5 +47,3 @@ const MSTeamsInfo = observer(() => {
     </>
   );
 });
-
-export default MSTeamsInfo;

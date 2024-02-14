@@ -1,7 +1,7 @@
 import dayjs from 'dayjs';
 
 import { User } from 'models/user/user.types';
-import { RootStore } from 'state';
+import { RootStore } from 'state/rootStore';
 
 import { Event, Layer, Schedule, ScheduleType, Shift, ShiftEvents, ShiftSwap } from './schedule.types';
 

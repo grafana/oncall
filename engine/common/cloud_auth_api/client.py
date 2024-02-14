@@ -74,9 +74,8 @@ class CloudAuthApiClient:
             headers=headers,
             json={
                 "claims": claims,
-                "extra": {
+                "accessPolicy": {
                     "scopes": scopes,
-                    "org_id": org_id,
                 },
             },
         )
