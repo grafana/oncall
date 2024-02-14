@@ -1629,7 +1629,12 @@ def test_alert_group_labels_post(alert_receive_channel_internal_api_setup, make_
     labels = [{"key": {"id": "test", "name": "test"}, "value": {"id": "123", "name": "123"}}]
     alert_group_labels = {
         "inheritable": {"test": False},
-        "custom": [{"key": {"id": "test", "name": "test"}, "value": {"id": "123", "name": "123"}}],
+        "custom": [
+            {
+                "key": {"id": "test", "name": "test", "prescribed": False},
+                "value": {"id": "123", "name": "123", "prescribed": False},
+            }
+        ],
         "template": "{{ payload.labels | tojson }}",
     }
     data = {
