@@ -41,9 +41,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Allow mobile app to access escalation options endpoints @imtoori ([#3847](https://github.com/grafana/oncall/pull/3847))
 - Enable templating for alert escalation mobile app push notifications by @joeyorlando ([#3845](https://github.com/grafana/oncall/pull/3845))
 - Change email notification template to not wrap user template @mderynck ([#3862](https://github.com/grafana/oncall/pull/3862))
-- Update integration name uniqueness check to be per team ([#3863](https://github.com/grafana/oncall/pull/3863))
-
->>>>>>> dev
+- Update integration name uniqueness check to be per team ([#3863](https://github.com/grafana/oncall/pull/3863)
 
 ### Fixed
 
