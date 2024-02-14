@@ -90,9 +90,10 @@ def update_instances_labels_cache(organization_id: int, instance_ids: typing.Lis
     client = LabelsAPIClient(organization.grafana_url, organization.api_token)
     for key_id in keys_ids:
         label_data, _ = client.get_values(key_id)
-        if label_data.get("error"):
-            logger.warning(
-                f"Error on get label data: organization: {organization_id}, key_id {key_id}, data: {label_data}"
-            )
-        elif label_data:
-            update_labels_cache.apply_async((label_data,))
+        if label_data:
+            if label_data.get("error"):
+                logger.warning(
+                    f"Error on get label data: organization: {organization_id}, key_id {key_id}, data: {label_data}"
+                )
+            else:
+                update_labels_cache.apply_async((label_data,))
