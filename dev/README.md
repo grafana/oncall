@@ -189,13 +189,11 @@ See the `django-silk` documentation [here](https://github.com/jazzband/django-si
 By default everything runs inside Docker. If you would like to run the backend services outside of Docker
 (for integrating w/ PyCharm for example), follow these instructions:
 
-1. Create a Python 3.11 virtual environment using a method of your choosing (ex.
-   [venv](https://docs.python.org/3.11/library/venv.html) or [pyenv-virtualenv](https://github.com/pyenv/pyenv-virtualenv)).
-   Make sure the virtualenv is "activated".
+1. Make sure you have Python 3.11 installed.
 2. `postgres` is a dependency on some of our Python dependencies (notably `psycopg2`
    ([docs](https://www.psycopg.org/docs/install.html#prerequisites))). Please visit
    [here](https://www.postgresql.org/download/) for installation instructions.
-3. `make backend-bootstrap` - installs all backend dependencies
+3. `make backend-bootstrap` - will create the virtual env and install all backend dependencies
 4. Modify your `.env.dev` by copying the contents of one of `.env.mysql.dev`, `.env.postgres.dev`,
    or `.env.sqlite.dev` into `.env.dev` (you should exclude the `GF_` prefixed environment variables).
 
