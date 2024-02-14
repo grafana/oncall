@@ -7,6 +7,8 @@ import onCallApi from 'network/oncall-api/http-client';
 import { RootStore } from 'state';
 import { WithGlobalNotification } from 'utils/decorators';
 
+import { splitToGroups } from './label.helpers';
+
 export class LabelStore extends BaseStore {
   @observable.shallow
   public keys: Array<ApiSchemas['LabelKey']> = [];
@@ -23,14 +25,20 @@ export class LabelStore extends BaseStore {
   }
 
   @action.bound
-  public async loadKeys() {
+  public async loadKeys(search?: string) {
     const { data } = await onCallApi.GET('/labels/keys/', undefined);
+
+    data.find((label) => label.name === 'color').prescribed = true; // TODO remove!!!
+
+    const filtered = data.filter((k) => k.name.toLowerCase().includes(search.toLowerCase()));
+
+    const groups = splitToGroups(filtered);
 
     runInAction(() => {
       this.keys = data;
     });
 
-    return data;
+    return groups;
   }
 
   @action.bound
@@ -43,7 +51,9 @@ export class LabelStore extends BaseStore {
       params: { search },
     });
 
-    const filteredValues = result.values.filter((v) => v.name.toLowerCase().includes(search.toLowerCase())); // TODO remove after backend search implementation
+    const filteredValues = result.values
+      .filter((v) => v.name.toLowerCase().includes(search.toLowerCase()))
+      .map((value) => ({ ...value, data: { isNonEditable: result.key.name === 'color' } })); //TODO fix result.key.prescribed === 'color'
 
     runInAction(() => {
       this.values = {
