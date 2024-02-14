@@ -285,7 +285,7 @@ export class AlertGroupStore extends BaseStore {
     this.updateAlertGroups();
   }
 
-  @action
+  @action.bound
   async updateAlertGroups() {
     this.alertGroupsLoading = true;
 

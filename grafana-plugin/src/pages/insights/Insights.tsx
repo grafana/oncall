@@ -45,7 +45,7 @@ export const Insights = observer(() => {
     organizationStore: { currentOrganization },
   } = useStore();
   const [datasource, setDatasource] = useState<string>();
-  const { isAlertCreated, isFirstAlertCountCheckDone } = useAlertGroupsCounterChecker();
+  const { isAnyAlertCreatedMoreThan20SecsAgo, isFirstAlertCountCheckDone } = useAlertGroupsCounterChecker();
 
   const config = useMemo(
     () => ({
@@ -63,7 +63,7 @@ export const Insights = observer(() => {
   const appScene = useSceneApp(getAppScene);
 
   useEffect(() => {
-    if (!isAlertCreated) {
+    if (!isAnyAlertCreatedMoreThan20SecsAgo) {
       return undefined;
     }
     const dataSourceListener =
@@ -74,7 +74,7 @@ export const Insights = observer(() => {
     return () => {
       dataSourceListener?.unsubscribe?.();
     };
-  }, [isAlertCreated]);
+  }, [isAnyAlertCreatedMoreThan20SecsAgo]);
 
   if (!isFirstAlertCountCheckDone) {
     return <LoadingPlaceholder text="Loading..." />;
@@ -82,7 +82,7 @@ export const Insights = observer(() => {
   return (
     <div className={styles.insights}>
       <InsightsGeneralInfo />
-      {isAlertCreated ? (
+      {isAnyAlertCreatedMoreThan20SecsAgo ? (
         <>
           {isOpenSource && !datasource && <NoDatasourceWarning />}
           <appScene.Component model={appScene} />
@@ -145,7 +145,7 @@ const getRootScene = (config: InsightsConfig, variables: ReturnType<typeof getVa
         url: `${PLUGIN_ROOT}/insights`,
         getScene: () =>
           new EmbeddedScene({
-            $timeRange: new SceneTimeRange({ from: 'now-7d', to: 'now' }),
+            $timeRange: new SceneTimeRange({ from: 'now-24h', to: 'now' }),
             $variables: new SceneVariableSet({
               variables: Object.values(variables),
             }),

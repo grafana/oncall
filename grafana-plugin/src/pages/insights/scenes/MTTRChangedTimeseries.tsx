@@ -22,7 +22,7 @@ export function getMTTRChangedTimeseriesScene({ datasource, stack }: InsightsCon
   return new SceneFlexItem({
     $data: query,
     body: new VizPanel({
-      title: 'MTTR changed',
+      title: 'Mean time to respond (MTTR) changed',
       pluginId: 'timeseries',
       fieldConfig: {
         defaults: {

@@ -105,14 +105,14 @@ export function getMTTRByIntegrationScene({ datasource, stack }: InsightsConfig)
               },
               {
                 id: 'custom.width',
-                value: 300,
+                value: 200,
               },
             ],
           },
         ],
       },
       options: {
-        cellHeight: 'sm',
+        cellHeight: 'md',
         footer: {
           countRows: false,
           fields: '',

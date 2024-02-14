@@ -47,7 +47,7 @@ export function getMTTRByTeamScene({ datasource, stack }: InsightsConfig) {
   return new SceneFlexItem({
     $data: transformedData,
     body: new VizPanel({
-      title: 'Mean time to respond by Team (MTTR)',
+      title: 'Mean time to respond (MTTR) by Team',
       pluginId: 'table',
       fieldConfig: {
         defaults: {
@@ -102,7 +102,7 @@ export function getMTTRByTeamScene({ datasource, stack }: InsightsConfig) {
         ],
       },
       options: {
-        cellHeight: 'sm',
+        cellHeight: 'md',
         footer: {
           countRows: false,
           fields: '',

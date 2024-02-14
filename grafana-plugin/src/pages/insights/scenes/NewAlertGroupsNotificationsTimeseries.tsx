@@ -12,7 +12,7 @@ export function getNewAlertGroupsNotificationsTimeseriesScene({ datasource, stac
         editorMode: 'code',
         excludeNullMetadata: false,
         exemplar: false,
-        expr: `increase(max_over_time(sum by (username) (avg without(pod, instance) ($user_was_notified_of_alert_groups_total{slug=~"${stack}"}))[30m:])[1h:])`,
+        expr: `delta(max_over_time(sum by (username) (avg without(pod, instance) ($user_was_notified_of_alert_groups_total{slug=~"${stack}"}))[30m:])[1h:]) >= 0`,
         fullMetaSearch: false,
         instant: false,
         legendFormat: '__auto',

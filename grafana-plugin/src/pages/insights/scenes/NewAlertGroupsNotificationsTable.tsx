@@ -10,7 +10,7 @@ export function getNewAlertGroupsNotificationsTableScene({ datasource, stack }: 
       {
         editorMode: 'code',
         exemplar: false,
-        expr: `sort_desc(increase(max_over_time(sum by (username) (avg without(pod, instance) ($user_was_notified_of_alert_groups_total{slug=~"${stack}"}))[1h:])[$__range:]))`,
+        expr: `sort_desc(delta(max_over_time(sum by (username) (avg without(pod, instance) ($user_was_notified_of_alert_groups_total{slug=~"${stack}"}))[1h:])[$__range:])>=0)`,
         format: 'table',
         instant: true,
         legendFormat: '__auto',
@@ -99,7 +99,7 @@ export function getNewAlertGroupsNotificationsTableScene({ datasource, stack }: 
         ],
       },
       options: {
-        cellHeight: 'sm',
+        cellHeight: 'md',
         footer: {
           countRows: false,
           fields: '',

@@ -4,16 +4,20 @@ import { useStore } from 'state/useStore';
 
 export const useAlertGroupsCounterChecker = () => {
   const {
-    alertGroupStore: { getAllIncidentsCount, allIncidentsCount },
+    alertGroupStore: { updateAlertGroups, alerts },
   } = useStore();
   const [isFirstAlertCountCheckDone, setIsFirstAlertCountCheckDone] = useState(false);
 
-  const isAlertCreated = allIncidentsCount >= 1;
+  const isAnyAlertCreatedMoreThan20SecsAgo = Array.from(alerts).some(([_key, alert]) => {
+    const alertTime = new Date(alert.started_at).getTime();
+    const nowTime = new Date().getTime();
+    return nowTime - alertTime > 20_000;
+  });
 
   useEffect(() => {
     const fetch = async () => {
-      if (!isAlertCreated) {
-        await getAllIncidentsCount();
+      if (!isAnyAlertCreatedMoreThan20SecsAgo) {
+        await updateAlertGroups();
       }
       setIsFirstAlertCountCheckDone(true);
     };
@@ -22,7 +26,7 @@ export const useAlertGroupsCounterChecker = () => {
       fetch();
     }, 5_000);
     return () => clearInterval(interval);
-  }, [isAlertCreated]);
+  }, [isAnyAlertCreatedMoreThan20SecsAgo]);
 
-  return { isAlertCreated, isFirstAlertCountCheckDone };
+  return { isAnyAlertCreatedMoreThan20SecsAgo, isFirstAlertCountCheckDone };
 };
