@@ -28,8 +28,6 @@ export class LabelStore extends BaseStore {
   public async loadKeys(search?: string) {
     const { data } = await onCallApi.GET('/labels/keys/', undefined);
 
-    data.find((label) => label.name === 'color').prescribed = true; // TODO remove!!!
-
     const filtered = data.filter((k) => k.name.toLowerCase().includes(search.toLowerCase()));
 
     const groups = splitToGroups(filtered);
