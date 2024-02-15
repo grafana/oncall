@@ -707,23 +707,23 @@ export const RotationForm = observer((props: RotationFormProps) => {
 
     let baseReferenceEl: HTMLElement;
     if (isTopNavbar()) {
+      // top navbar display has 2 scrollbar-view elements (navbar & content)
       baseReferenceEl = document.querySelectorAll<HTMLElement>('.scrollbar-view')[1];
     } else {
+      // on legacy navbar we have unique class
       baseReferenceEl = document.querySelector<HTMLElement>('.scrollbar-view');
     }
 
     const baseReferenceElRect = baseReferenceEl.getBoundingClientRect();
 
     const { right, top, bottom } = baseReferenceElRect;
-    const HEADER_HEIGHT = 170;
-    const TOP_PADDING = 20;
-    const LATERAL_MARGIN = 20;
 
     setDraggableBounds({
-      left: -data.node.offsetLeft + LATERAL_MARGIN,
-      right: right - (data.node.offsetLeft + data.node.offsetWidth) - LATERAL_MARGIN,
-      top: data.node.offsetTop - top + TOP_PADDING,
-      bottom: bottom - data.node.offsetTop - data.node.offsetHeight - HEADER_HEIGHT,
+      // values are adjusted by any padding/margin differences
+      left: -data.node.offsetLeft + 4,
+      right: right - (data.node.offsetLeft + data.node.offsetWidth) - 10,
+      top: -top + 12,
+      bottom: bottom - data.node.offsetHeight - offsetTop - 12,
     });
   }
 });
