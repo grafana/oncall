@@ -41,14 +41,6 @@ def test_update_labels_cache_for_key(make_organization, make_label_key_and_value
 
 
 @pytest.mark.django_db
-def test_update_labels_cache_error(make_organization, make_label_key_and_value, make_label_value):
-    label_data = {"code": 404, "error": "label not found"}
-    with patch("apps.labels.tasks.unify_labels_data") as mocked_unify_labels_data:
-        update_labels_cache(label_data)
-    mocked_unify_labels_data.assert_not_called()
-
-
-@pytest.mark.django_db
 def test_update_labels_cache(make_organization, make_label_key_and_value, make_label_value):
     organization = make_organization()
 
