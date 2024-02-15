@@ -5,16 +5,16 @@ import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 import CopyToClipboard from 'react-copy-to-clipboard';
 
-import Block from 'components/GBlock/Block';
-import PluginLink from 'components/PluginLink/PluginLink';
-import Text from 'components/Text/Text';
+import { Block } from 'components/GBlock/Block';
+import { PluginLink } from 'components/PluginLink/PluginLink';
+import { Text } from 'components/Text/Text';
 import { WithPermissionControlDisplay } from 'containers/WithPermissionControl/WithPermissionControlDisplay';
-import { TelegramColorIcon } from 'icons';
+import { TelegramColorIcon } from 'icons/Icons';
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
-import { openNotification } from 'utils';
-import { UserActions } from 'utils/authorization';
+import { UserActions } from 'utils/authorization/authorization';
 import { DOCS_TELEGRAM_SETUP } from 'utils/consts';
+import { openNotification } from 'utils/utils';
 
 import styles from './TelegramInfo.module.css';
 
@@ -22,7 +22,7 @@ const cx = cn.bind(styles);
 
 interface TelegramInfoProps extends HTMLAttributes<HTMLElement> {}
 
-const TelegramInfo = observer((_props: TelegramInfoProps) => {
+export const TelegramInfo = observer((_props: TelegramInfoProps) => {
   const store = useStore();
   const { userStore, organizationStore } = store;
 
@@ -101,5 +101,3 @@ const TelegramInfo = observer((_props: TelegramInfoProps) => {
     </WithPermissionControlDisplay>
   );
 });
-
-export default TelegramInfo;

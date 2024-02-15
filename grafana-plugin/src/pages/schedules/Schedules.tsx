@@ -6,29 +6,29 @@ import { observer } from 'mobx-react';
 import qs from 'query-string';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 
-import Avatar from 'components/Avatar/Avatar';
-import NewScheduleSelector from 'components/NewScheduleSelector/NewScheduleSelector';
-import PluginLink from 'components/PluginLink/PluginLink';
-import Table from 'components/Table/Table';
-import Text from 'components/Text/Text';
-import TextEllipsisTooltip from 'components/TextEllipsisTooltip/TextEllipsisTooltip';
-import TooltipBadge from 'components/TooltipBadge/TooltipBadge';
-import WithConfirm from 'components/WithConfirm/WithConfirm';
-import RemoteFilters from 'containers/RemoteFilters/RemoteFilters';
+import { Avatar } from 'components/Avatar/Avatar';
+import { NewScheduleSelector } from 'components/NewScheduleSelector/NewScheduleSelector';
+import { PluginLink } from 'components/PluginLink/PluginLink';
+import { GTable } from 'components/Table/Table';
+import { Text } from 'components/Text/Text';
+import { TextEllipsisTooltip } from 'components/TextEllipsisTooltip/TextEllipsisTooltip';
+import { TooltipBadge } from 'components/TooltipBadge/TooltipBadge';
+import { WithConfirm } from 'components/WithConfirm/WithConfirm';
+import { RemoteFilters } from 'containers/RemoteFilters/RemoteFilters';
 import { RemoteFiltersType } from 'containers/RemoteFilters/RemoteFilters.types';
-import ScheduleFinal from 'containers/Rotations/ScheduleFinal';
-import SchedulePersonal from 'containers/Rotations/SchedulePersonal';
-import ScheduleForm from 'containers/ScheduleForm/ScheduleForm';
-import TeamName from 'containers/TeamName/TeamName';
-import TimelineMarks from 'containers/TimelineMarks/TimelineMarks';
-import UserTimezoneSelect from 'containers/UserTimezoneSelect/UserTimezoneSelect';
+import { ScheduleFinal } from 'containers/Rotations/ScheduleFinal';
+import { SchedulePersonal } from 'containers/Rotations/SchedulePersonal';
+import { ScheduleForm } from 'containers/ScheduleForm/ScheduleForm';
+import { TeamName } from 'containers/TeamName/TeamName';
+import { TimelineMarks } from 'containers/TimelineMarks/TimelineMarks';
+import { UserTimezoneSelect } from 'containers/UserTimezoneSelect/UserTimezoneSelect';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { Schedule } from 'models/schedule/schedule.types';
 import { getSlackChannelName } from 'models/slack_channel/slack_channel.helpers';
 import { WithStoreProps, PageProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
-import LocationHelper from 'utils/LocationHelper';
-import { UserActions } from 'utils/authorization';
+import { LocationHelper } from 'utils/LocationHelper';
+import { UserActions } from 'utils/authorization/authorization';
 import { PAGE, PLUGIN_ROOT, TEXT_ELLIPSIS_CLASS } from 'utils/consts';
 
 import styles from './Schedules.module.css';
@@ -45,7 +45,7 @@ interface SchedulesPageState {
 }
 
 @observer
-class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageState> {
+class _SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageState> {
   constructor(props: SchedulesPageProps) {
     super(props);
 
@@ -101,7 +101,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
             />
           </div>
           <div data-testid="schedules-table">
-            <Table
+            <GTable
               columns={this.getTableColumns()}
               data={results}
               loading={!results}
@@ -440,4 +440,4 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
   };
 }
 
-export default withRouter(withMobXProviderContext(SchedulesPage));
+export const SchedulesPage = withRouter(withMobXProviderContext(_SchedulesPage));

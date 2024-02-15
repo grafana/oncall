@@ -3,11 +3,11 @@ import React, { ChangeEvent, FC, useCallback, useState } from 'react';
 import { Button, Field, HorizontalGroup, Input, Modal } from '@grafana/ui';
 import cn from 'classnames/bind';
 
-import GSelect from 'containers/GSelect/GSelect';
+import { GSelect } from 'containers/GSelect/GSelect';
 import { EscalationChain } from 'models/escalation_chain/escalation_chain.types';
 import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
 import { useStore } from 'state/useStore';
-import { openWarningNotification } from 'utils';
+import { openWarningNotification } from 'utils/utils';
 
 import styles from 'containers/EscalationChainForm/EscalationChainForm.module.css';
 
@@ -26,7 +26,7 @@ interface EscalationChainFormProps {
 
 const cx = cn.bind(styles);
 
-const EscalationChainForm: FC<EscalationChainFormProps> = (props) => {
+export const EscalationChainForm: FC<EscalationChainFormProps> = (props) => {
   const { escalationChainId, onHide, onSubmit: onSubmitProp, mode } = props;
 
   const store = useStore();
@@ -124,5 +124,3 @@ const EscalationChainForm: FC<EscalationChainFormProps> = (props) => {
     </Modal>
   );
 };
-
-export default EscalationChainForm;

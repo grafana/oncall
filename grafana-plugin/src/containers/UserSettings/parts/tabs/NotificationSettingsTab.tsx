@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 
-import PersonalNotificationSettings from 'containers/PersonalNotificationSettings/PersonalNotificationSettings';
+import { PersonalNotificationSettings } from 'containers/PersonalNotificationSettings/PersonalNotificationSettings';
 import { User } from 'models/user/user.types';
 import { useStore } from 'state/useStore';
 

@@ -3,20 +3,20 @@ import React, { useEffect, useState } from 'react';
 import { Button, LoadingPlaceholder, VerticalGroup } from '@grafana/ui';
 import { observer } from 'mobx-react';
 
-import PluginLink from 'components/PluginLink/PluginLink';
-import Text from 'components/Text/Text';
+import { PluginLink } from 'components/PluginLink/PluginLink';
+import { Text } from 'components/Text/Text';
 import { WithPermissionControlDisplay } from 'containers/WithPermissionControl/WithPermissionControlDisplay';
 import { User } from 'models/user/user.types';
 import { WithStoreProps } from 'state/types';
 import { useStore } from 'state/useStore';
 import { withMobXProviderContext } from 'state/withStore';
-import { UserActions } from 'utils/authorization';
+import { UserActions } from 'utils/authorization/authorization';
 
 interface CloudPhoneSettingsProps extends WithStoreProps {
   userPk?: User['pk'];
 }
 
-const CloudPhoneSettings = observer((props: CloudPhoneSettingsProps) => {
+const _CloudPhoneSettings = observer((props: CloudPhoneSettingsProps) => {
   const { userPk } = props;
   const store = useStore();
   const [syncing, setSyncing] = useState<boolean>(false);
@@ -132,4 +132,4 @@ const CloudPhoneSettings = observer((props: CloudPhoneSettingsProps) => {
   );
 });
 
-export default withMobXProviderContext(CloudPhoneSettings);
+export const CloudPhoneSettings = withMobXProviderContext(_CloudPhoneSettings);
