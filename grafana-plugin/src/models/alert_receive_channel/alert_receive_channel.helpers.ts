@@ -23,15 +23,16 @@ export class AlertReceiveChannelHelper {
       : alertReceiveChannel.verbal_name;
   }
 
-  static getSearchResult = (store: AlertReceiveChannelStore) =>
-    store.searchResult
+  static getSearchResult(store: AlertReceiveChannelStore) {
+    return store.searchResult
       ? store.searchResult.map(
           (alertReceiveChannelId: ApiSchemas['AlertReceiveChannel']['id']) => store.items?.[alertReceiveChannelId]
         )
       : undefined;
+  }
 
-  static getPaginatedSearchResult = (store: AlertReceiveChannelStore) =>
-    store.paginatedSearchResult
+  static getPaginatedSearchResult(store: AlertReceiveChannelStore) {
+    return store.paginatedSearchResult
       ? {
           page_size: store.paginatedSearchResult.page_size,
           count: store.paginatedSearchResult.count,
@@ -40,11 +41,12 @@ export class AlertReceiveChannelHelper {
           ),
         }
       : undefined;
+  }
 
-  static getIntegration = (
+  static getIntegration(
     store: AlertReceiveChannelStore,
     alertReceiveChannel: Partial<ApiSchemas['AlertReceiveChannel']>
-  ): SelectOption => {
+  ): SelectOption {
     return (
       store.alertReceiveChannelOptions &&
       alertReceiveChannel &&
@@ -52,20 +54,22 @@ export class AlertReceiveChannelHelper {
         (alertReceiveChannelOption: SelectOption) => alertReceiveChannelOption.value === alertReceiveChannel.integration
       )
     );
-  };
+  }
 
-  static deleteAlertReceiveChannel = async (id: ApiSchemas['AlertReceiveChannel']['id']) =>
-    (await onCallApi().DELETE('/alert_receive_channels/{id}/', { params: { path: { id } } })).data;
+  static async deleteAlertReceiveChannel(id: ApiSchemas['AlertReceiveChannel']['id']) {
+    return (await onCallApi().DELETE('/alert_receive_channels/{id}/', { params: { path: { id } } })).data;
+  }
 
-  static getGrafanaAlertingContactPoints = async () =>
-    (await onCallApi().GET('/alert_receive_channels/contact_points/', undefined)).data;
+  static async getGrafanaAlertingContactPoints() {
+    return (await onCallApi().GET('/alert_receive_channels/contact_points/', undefined)).data;
+  }
 
-  static connectContactPoint = async (
+  static async connectContactPoint(
     alertReceiveChannelId: ApiSchemas['AlertReceiveChannel']['id'],
     datasource_uid: string,
     contact_point_name: string
-  ) =>
-    (
+  ) {
+    return (
       await onCallApi().POST('/alert_receive_channels/{id}/connect_contact_point/', {
         params: { path: { id: alertReceiveChannelId } },
         body: {
@@ -74,13 +78,14 @@ export class AlertReceiveChannelHelper {
         },
       })
     ).data;
+  }
 
-  static disconnectContactPoint = async (
+  static async disconnectContactPoint(
     alertReceiveChannelId: ApiSchemas['AlertReceiveChannel']['id'],
     datasource_uid: string,
     contact_point_name: string
-  ) =>
-    (
+  ) {
+    return (
       await onCallApi().POST('/alert_receive_channels/{id}/disconnect_contact_point/', {
         params: { path: { id: alertReceiveChannelId } },
         body: {
@@ -89,13 +94,14 @@ export class AlertReceiveChannelHelper {
         },
       })
     ).data;
+  }
 
-  static createContactPoint = async (
+  static async createContactPoint(
     alertReceiveChannelId: ApiSchemas['AlertReceiveChannel']['id'],
     datasource_uid: string,
     contact_point_name: string
-  ) =>
-    (
+  ) {
+    return (
       await onCallApi().POST('/alert_receive_channels/{id}/create_contact_point/', {
         params: { path: { id: alertReceiveChannelId } },
         body: {
@@ -104,43 +110,47 @@ export class AlertReceiveChannelHelper {
         },
       })
     ).data;
+  }
 
-  static sendDemoAlert = async (id: ApiSchemas['AlertReceiveChannel']['id'], payload?: { [key: string]: unknown }) => {
+  static async sendDemoAlert(id: ApiSchemas['AlertReceiveChannel']['id'], payload?: { [key: string]: unknown }) {
     await onCallApi().POST('/alert_receive_channels/{id}/send_demo_alert/', {
       params: { path: { id } },
       body: { demo_alert_payload: payload },
     });
-  };
+  }
 
-  static renderPreview = async (
+  static async renderPreview(
     id: ApiSchemas['AlertReceiveChannel']['id'],
     template_name: string,
     template_body: string,
     payload: { [key: string]: unknown }
-  ) =>
-    (
+  ) {
+    return (
       await onCallApi().POST('/alertgroups/{id}/preview_template/', {
         params: { path: { id } },
         body: { template_name, template_body, payload },
       })
     ).data;
+  }
 
-  static changeTeam = async (id: ApiSchemas['AlertReceiveChannel']['id'], teamId: GrafanaTeam['id']) =>
-    (
+  static async changeTeam(id: ApiSchemas['AlertReceiveChannel']['id'], teamId: GrafanaTeam['id']) {
+    return (
       await onCallApi().PUT('/alert_receive_channels/{id}/change_team/', {
         params: { path: { id }, query: { team_id: String(teamId) } },
       })
     ).data;
+  }
 
-  static migrateChannel = async (id: ApiSchemas['AlertReceiveChannel']['id']) =>
-    (await onCallApi().POST('/alert_receive_channels/{id}/migrate/', { params: { path: { id } } })).data;
+  static async migrateChannel(id: ApiSchemas['AlertReceiveChannel']['id']) {
+    return (await onCallApi().POST('/alert_receive_channels/{id}/migrate/', { params: { path: { id } } })).data;
+  }
 
-  static startMaintenanceMode = async (
+  static async startMaintenanceMode(
     id: ApiSchemas['AlertReceiveChannel']['id'],
     mode: MaintenanceMode,
     duration: ApiSchemas['DurationEnum']
-  ) =>
-    (
+  ) {
+    return (
       await onCallApi().POST('/alert_receive_channels/{id}/start_maintenance/', {
         params: { path: { id } },
         body: {
@@ -149,24 +159,28 @@ export class AlertReceiveChannelHelper {
         },
       })
     ).data;
+  }
 
-  static stopMaintenanceMode = async (id: ApiSchemas['AlertReceiveChannel']['id']) =>
-    (await onCallApi().POST('/alert_receive_channels/{id}/stop_maintenance/', { params: { path: { id } } })).data;
+  static async stopMaintenanceMode(id: ApiSchemas['AlertReceiveChannel']['id']) {
+    return (await onCallApi().POST('/alert_receive_channels/{id}/stop_maintenance/', { params: { path: { id } } }))
+      .data;
+  }
 
-  static sendDemoAlertToParticularRoute = async (id: ChannelFilter['id']) => {
+  static async sendDemoAlertToParticularRoute(id: ChannelFilter['id']) {
     await makeRequest(`/channel_filters/${id}/send_demo_alert/`, { method: 'POST' }).catch(showApiError);
-  };
+  }
 
-  static convertRegexpTemplateToJinja2Template = async (id: ChannelFilter['id']) => {
+  static async convertRegexpTemplateToJinja2Template(id: ChannelFilter['id']) {
     const result = await makeRequest(`/channel_filters/${id}/convert_from_regex_to_jinja2/`, { method: 'POST' }).catch(
       showApiError
     );
     return result;
-  };
+  }
 
-  static createChannelFilter = async (data: Partial<ChannelFilter>) =>
-    await makeRequest('/channel_filters/', {
+  static async createChannelFilter(data: Partial<ChannelFilter>) {
+    return await makeRequest('/channel_filters/', {
       method: 'POST',
       data,
     });
+  }
 }
