@@ -1,4 +1,5 @@
 import typing
+from json import JSONDecodeError
 from urllib.parse import urljoin
 
 import requests
@@ -99,8 +100,11 @@ class LabelsAPIClient:
         message = None
 
         if 400 <= response.status_code < 500:
-            error_data = response.json()
-            message = error_data.get("message", None)
+            try:
+                error_data = response.json()
+                message = error_data.get("error", response.reason)
+            except JSONDecodeError:
+                message = response.reason
         elif 500 <= response.status_code < 600:
             message = response.reason
 
