@@ -3,17 +3,17 @@ import { SceneFlexItem, SceneQueryRunner, VizPanel } from '@grafana/scenes';
 
 import { InsightsConfig } from 'pages/insights/Insights.types';
 
-export function getMTTRChanged({ datasource, stack }: InsightsConfig) {
+export function getMTTRAverage({ datasource, stack }: InsightsConfig) {
   const query = new SceneQueryRunner({
     datasource,
     queries: [
       {
         editorMode: 'code',
         exemplar: false,
-        expr: `avg(sum($alert_groups_response_time_seconds_sum{slug=~"${stack}", team=~"$team", integration=~"$integration"}) / sum($alert_groups_response_time_seconds_count{slug=~"${stack}", team=~"$team", integration=~"$integration"}))`,
-        instant: false,
+        expr: `avg_over_time((sum($alert_groups_response_time_seconds_sum{slug=~"${stack}", team=~"$team", integration=~"$integration"}) / sum($alert_groups_response_time_seconds_count{slug=~"${stack}", team=~"$team", integration=~"$integration"}))[$__range:])`,
+        instant: true,
         legendFormat: '__auto',
-        range: true,
+        range: false,
         refId: 'A',
       },
     ],
@@ -22,7 +22,7 @@ export function getMTTRChanged({ datasource, stack }: InsightsConfig) {
   return new SceneFlexItem({
     $data: query,
     body: new VizPanel({
-      title: 'Mean time to respond (MTTR) changed',
+      title: 'Mean time to respond (MTTR) average',
       pluginId: 'stat',
       fieldConfig: {
         defaults: {
@@ -57,7 +57,7 @@ export function getMTTRChanged({ datasource, stack }: InsightsConfig) {
         justifyMode: 'center',
         orientation: 'auto',
         reduceOptions: {
-          calcs: ['diff'],
+          calcs: ['lastNotNull'],
           fields: '',
           values: false,
         },

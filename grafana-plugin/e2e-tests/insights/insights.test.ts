@@ -44,7 +44,7 @@ test.describe('Insights', () => {
     await goToOnCallPage(page, 'insights');
     [
       'New alert groups',
-      'Mean time to respond \\(MTTR\\) changed',
+      'Mean time to respond \\(MTTR\\) average',
       'Alert groups by Integration',
       'Mean time to respond \\(MTTR\\) by Integration',
       'Alert groups by Team',

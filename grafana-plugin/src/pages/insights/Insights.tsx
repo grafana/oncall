@@ -28,9 +28,9 @@ import styles from './Insights.module.scss';
 import { InsightsConfig } from './Insights.types';
 import { getAlertGroupsByIntegrationScene } from './scenes/AlertGroupsByIntegration';
 import { getAlertGroupsByTeamScene } from './scenes/AlertGroupsByTeam';
+import { getMTTRAverage } from './scenes/MTTRAverageStat';
 import { getMTTRByIntegrationScene } from './scenes/MTTRByIntegration';
 import { getMTTRByTeamScene } from './scenes/MTTRByTeam';
-import { getMTTRChanged } from './scenes/MTTRChangedStat';
 import { getMTTRChangedTimeseriesScene } from './scenes/MTTRChangedTimeseries';
 import { getNewAlertGroupsScene } from './scenes/NewAlertGroups';
 import { getNewAlertGroupsNotificationsTableScene } from './scenes/NewAlertGroupsNotificationsTable';
@@ -167,7 +167,7 @@ const getRootScene = (config: InsightsConfig, variables: ReturnType<typeof getVa
                     children: [
                       new SceneFlexLayout({
                         height: 300,
-                        children: [getNewAlertGroupsScene(config), getMTTRChanged(config)],
+                        children: [getNewAlertGroupsScene(config), getMTTRAverage(config)],
                       }),
                       new SceneFlexLayout({
                         height: 300,
