@@ -65,10 +65,10 @@ Your Grafana OnCall OSS instance should be reachable from the same network as yo
 
 ### Connect to multiple OnCall stacks
 
-The OnCall mobile app provides a seamless experience for managing multiple OnCall stacks/accounts. 
+The OnCall mobile app provides a seamless experience for managing multiple OnCall stacks/accounts.
 
-With just a few taps, you can add and switch between different stacks, ensuring you have access to all your alerts and schedules without the need to log in and out repeatedly. 
-This feature is designed to support professionals managing multiple projects or working across different teams, enhancing efficiency and response times. 
+With just a few taps, you can add and switch between different stacks, ensuring you have access to all your alerts and schedules without the need to log in and out repeatedly.
+This feature is designed to support professionals managing multiple projects or working across different teams, enhancing efficiency and response times.
 
 Simply navigate to the settings menu, select the account tile, tap on the + icon and scan the QR code of the stack you wish to connect.
 

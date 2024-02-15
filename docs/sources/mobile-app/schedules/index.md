@@ -18,7 +18,7 @@ On the **Schedules** page, you can view schedules, under two tabs:
 - **Mine** shows schedules that involve you.
 - **All** shows all schedules, including ones that may not be relevant to you.
 
-You can apply filters via the **filter** button on the top right. 
+You can apply filters via the **filter** button on the top right.
 
 Tap on any schedule to go to the detailed view.
 
