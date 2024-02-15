@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Check for permissions on Slack escalate command ([#3891](https://github.com/grafana/oncall/pull/3891))
+- Update OnCall Insights dashboard @Ferril ([#3875](https://github.com/grafana/oncall/pull/3875))
 
 ## v1.3.105 (2024-02-13)
 
