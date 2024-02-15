@@ -2,6 +2,9 @@ import { useEffect, useState } from 'react';
 
 import { useStore } from 'state/useStore';
 
+const TWENTY_SECS = 20_000;
+const FIVE_SECS = 5_000;
+
 export const useAlertCreationChecker = () => {
   const {
     alertGroupStore: { updateAlertGroups, alerts },
@@ -11,7 +14,7 @@ export const useAlertCreationChecker = () => {
   const isAnyAlertCreatedMoreThan20SecsAgo = Array.from(alerts).some(([_key, alert]) => {
     const alertTime = new Date(alert.started_at).getTime();
     const nowTime = new Date().getTime();
-    return nowTime - alertTime > 20_000;
+    return nowTime - alertTime > TWENTY_SECS;
   });
 
   useEffect(() => {
@@ -24,7 +27,7 @@ export const useAlertCreationChecker = () => {
     fetch();
     const interval = setInterval(() => {
       fetch();
-    }, 5_000);
+    }, FIVE_SECS);
     return () => clearInterval(interval);
   }, [isAnyAlertCreatedMoreThan20SecsAgo]);
 
