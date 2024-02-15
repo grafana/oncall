@@ -26,18 +26,6 @@ const getVariables = ({ isOpenSource, datasource, stack }: InsightsConfig) => ({
         }),
       }
     : {}),
-  stack: new QueryVariable({
-    ...DEFAULT_VARIABLE_CONFIG,
-    name: 'stack',
-    label: 'Stack',
-    value: stack,
-    datasource,
-    definition: 'label_values(${alert_groups_total},slug)',
-    query: {
-      query: 'label_values(${alert_groups_total},slug)',
-      refId: 'PrometheusVariableQueryEditor-VariableQuery',
-    },
-  }),
   team: new QueryVariable({
     ...DEFAULT_VARIABLE_CONFIG,
     name: 'team',
@@ -45,9 +33,9 @@ const getVariables = ({ isOpenSource, datasource, stack }: InsightsConfig) => ({
     text: ['All'],
     value: ['$__all'],
     datasource,
-    definition: 'label_values(${alert_groups_total}{slug=~"$stack"},team)',
+    definition: `label_values(\${alert_groups_total}{slug=~"${stack}"},team)`,
     query: {
-      query: 'label_values(${alert_groups_total}{slug=~"$stack"},team)',
+      query: `label_values(\${alert_groups_total}{slug=~"${stack}"},team)`,
       refId: 'PrometheusVariableQueryEditor-VariableQuery',
     },
     refresh: 2,
@@ -59,9 +47,9 @@ const getVariables = ({ isOpenSource, datasource, stack }: InsightsConfig) => ({
     text: ['All'],
     value: ['$__all'],
     datasource,
-    definition: 'label_values(${alert_groups_total}{team=~"$team",slug=~"$stack"},integration)',
+    definition: `label_values(\${alert_groups_total}{team=~"$team",slug=~"${stack}"},integration)`,
     query: {
-      query: 'label_values(${alert_groups_total}{team=~"$team",slug=~"$stack"},integration)',
+      query: `label_values(\${alert_groups_total}{team=~"$team",slug=~"${stack}"},integration)`,
       refId: 'PrometheusVariableQueryEditor-VariableQuery',
     },
     refresh: 2,
@@ -77,8 +65,8 @@ const getVariables = ({ isOpenSource, datasource, stack }: InsightsConfig) => ({
       query: 'metrics(alert_groups_total)',
       refId: 'PrometheusVariableQueryEditor-VariableQuery',
     },
-    text: ['oncall_alert_groups_total', 'grafanacloud_oncall_stack_alert_groups_total'],
-    value: ['oncall_alert_groups_total', 'grafanacloud_oncall_stack_alert_groups_total'],
+    text: ['oncall_alert_groups_total', 'grafanacloud_oncall_instance_alert_groups_total'],
+    value: ['oncall_alert_groups_total', 'grafanacloud_oncall_instance_alert_groups_total'],
     definition: 'metrics(alert_groups_total)',
     hide: 2,
     includeAll: false,

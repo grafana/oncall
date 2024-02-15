@@ -3,14 +3,14 @@ import { SceneDataTransformer, SceneFlexItem, SceneQueryRunner, VizPanel } from 
 
 import { InsightsConfig } from 'pages/insights/Insights.types';
 
-export default function getMTTRByTeamScene({ datasource }: InsightsConfig) {
+export function getMTTRByTeamScene({ datasource, stack }: InsightsConfig) {
   const query = new SceneQueryRunner({
     datasource,
     queries: [
       {
         editorMode: 'code',
         exemplar: false,
-        expr: 'sort_desc(avg_over_time((sum by(team) ($alert_groups_response_time_seconds_sum{slug=~"$stack", team=~"$team", integration=~"$integration"}) / sum by(team)($alert_groups_response_time_seconds_count{slug=~"$stack", team=~"$team", integration=~"$integration"}))[$__range:]))',
+        expr: `sort_desc(avg_over_time((sum by(team) ($alert_groups_response_time_seconds_sum{slug=~"${stack}", team=~"$team", integration=~"$integration"}) / sum by(team)($alert_groups_response_time_seconds_count{slug=~"${stack}", team=~"$team", integration=~"$integration"}))[$__range:]))`,
         format: 'table',
         instant: true,
         legendFormat: '__auto',
@@ -47,7 +47,7 @@ export default function getMTTRByTeamScene({ datasource }: InsightsConfig) {
   return new SceneFlexItem({
     $data: transformedData,
     body: new VizPanel({
-      title: 'Mean time to respond by Team (MTTR)',
+      title: 'Mean time to respond (MTTR) by Team',
       pluginId: 'table',
       fieldConfig: {
         defaults: {
@@ -102,7 +102,7 @@ export default function getMTTRByTeamScene({ datasource }: InsightsConfig) {
         ],
       },
       options: {
-        cellHeight: 'sm',
+        cellHeight: 'md',
         footer: {
           countRows: false,
           fields: '',

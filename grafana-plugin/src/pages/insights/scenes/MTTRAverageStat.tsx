@@ -3,14 +3,14 @@ import { SceneFlexItem, SceneQueryRunner, VizPanel } from '@grafana/scenes';
 
 import { InsightsConfig } from 'pages/insights/Insights.types';
 
-export default function getMTTRScene({ datasource }: InsightsConfig) {
+export function getMTTRAverage({ datasource, stack }: InsightsConfig) {
   const query = new SceneQueryRunner({
     datasource,
     queries: [
       {
         editorMode: 'code',
         exemplar: false,
-        expr: 'avg_over_time((sum($alert_groups_response_time_seconds_sum{slug=~"$stack", team=~"$team", integration=~"$integration"}) / sum($alert_groups_response_time_seconds_count{slug=~"$stack", team=~"$team", integration=~"$integration"}))[$__range:])',
+        expr: `avg_over_time((sum($alert_groups_response_time_seconds_sum{slug=~"${stack}", team=~"$team", integration=~"$integration"}) / sum($alert_groups_response_time_seconds_count{slug=~"${stack}", team=~"$team", integration=~"$integration"}))[$__range:])`,
         instant: true,
         legendFormat: '__auto',
         range: false,
@@ -22,8 +22,7 @@ export default function getMTTRScene({ datasource }: InsightsConfig) {
   return new SceneFlexItem({
     $data: query,
     body: new VizPanel({
-      title: 'Mean time to respond (MTTR)',
-      description: 'Mean time between the start and first action of all alert groups for the last 7 days',
+      title: 'Mean time to respond (MTTR) average',
       pluginId: 'stat',
       fieldConfig: {
         defaults: {
@@ -35,27 +34,22 @@ export default function getMTTRScene({ datasource }: InsightsConfig) {
             mode: ThresholdsMode.Absolute,
             steps: [
               {
-                color: 'text',
+                color: 'blue',
                 value: null,
+              },
+              {
+                color: 'green',
+                value: -10000000,
+              },
+              {
+                color: 'super-light-yellow',
+                value: 0,
               },
             ],
           },
           unit: 's',
         },
-        overrides: [
-          {
-            matcher: {
-              id: 'byName',
-              options: 'Value',
-            },
-            properties: [
-              {
-                id: 'displayName',
-                value: 'MTTR',
-              },
-            ],
-          },
-        ],
+        overrides: [],
       },
       options: {
         colorMode: 'value',

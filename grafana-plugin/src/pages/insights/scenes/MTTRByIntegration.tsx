@@ -3,14 +3,14 @@ import { SceneDataTransformer, SceneFlexItem, SceneQueryRunner, VizPanel } from 
 
 import { InsightsConfig } from 'pages/insights/Insights.types';
 
-export default function getMTTRByIntegrationScene({ datasource }: InsightsConfig) {
+export function getMTTRByIntegrationScene({ datasource, stack }: InsightsConfig) {
   const query = new SceneQueryRunner({
     datasource,
     queries: [
       {
         editorMode: 'code',
         exemplar: false,
-        expr: 'sort_desc(avg_over_time((sum by (integration)($alert_groups_response_time_seconds_sum{slug=~"$stack", team=~"$team", integration=~"$integration"}) / sum by (integration)($alert_groups_response_time_seconds_count{slug=~"$stack", team=~"$team", integration=~"$integration"}))[$__range:]))',
+        expr: `sort_desc(avg_over_time((sum by (integration)($alert_groups_response_time_seconds_sum{slug=~"${stack}", team=~"$team", integration=~"$integration"}) / sum by (integration)($alert_groups_response_time_seconds_count{slug=~"${stack}", team=~"$team", integration=~"$integration"}))[$__range:]))`,
         format: 'table',
         instant: true,
         legendFormat: '__auto',
@@ -105,14 +105,14 @@ export default function getMTTRByIntegrationScene({ datasource }: InsightsConfig
               },
               {
                 id: 'custom.width',
-                value: 300,
+                value: 200,
               },
             ],
           },
         ],
       },
       options: {
-        cellHeight: 'sm',
+        cellHeight: 'md',
         footer: {
           countRows: false,
           fields: '',
