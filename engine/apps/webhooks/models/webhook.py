@@ -120,7 +120,7 @@ class Webhook(models.Model):
     )
 
     team = models.ForeignKey(
-        "user_management.Team", null=True, on_delete=models.CASCADE, related_name="webhooks", default=None
+        "user_management.Team", null=True, on_delete=models.SET_NULL, related_name="webhooks", default=None
     )
 
     user = models.ForeignKey(
