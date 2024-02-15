@@ -1173,7 +1173,7 @@ const IntegrationHeader: React.FC<IntegrationHeaderProps> = ({
         >
           <TooltipBadge
             borderType="primary"
-            tooltipTitle={alertReceiveChannelCounterTooltip()}
+            tooltipTitle={getAlertReceiveChannelCounterTooltip()}
             tooltipContent={undefined}
             text={alertReceiveChannelCounter?.alerts_count + '/' + alertReceiveChannelCounter?.alert_groups_count}
           />
@@ -1250,7 +1250,7 @@ const IntegrationHeader: React.FC<IntegrationHeaderProps> = ({
     </div>
   );
 
-  function alertReceiveChannelCounterTooltip() {
+  function getAlertReceiveChannelCounterTooltip() {
     const alertReceiveChannelCounter = alertReceiveChannelStore.counters[alertReceiveChannel.id];
 
     return (
