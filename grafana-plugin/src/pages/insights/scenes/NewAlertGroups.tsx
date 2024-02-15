@@ -3,7 +3,7 @@ import { SceneFlexItem, SceneQueryRunner, VizPanel } from '@grafana/scenes';
 
 import { InsightsConfig } from 'pages/insights/Insights.types';
 
-export default function getTotalAlertGroupsScene({ datasource }: InsightsConfig) {
+export function getNewAlertGroupsScene({ datasource, stack }: InsightsConfig) {
   const query = new SceneQueryRunner({
     datasource,
     queries: [
@@ -12,12 +12,13 @@ export default function getTotalAlertGroupsScene({ datasource }: InsightsConfig)
         editorMode: 'code',
         excludeNullMetadata: false,
         exemplar: false,
-        expr: 'max_over_time(sum(avg without(pod, instance) ($alert_groups_total{slug=~"$stack", team=~"$team", integration=~"$integration"}))[1d:])',
+        expr: `delta(max_over_time(sum(avg without(pod, instance) ($alert_groups_total{slug=~"${stack}", team=~"$team", integration=~"$integration"}))[30m:])[$__range:]) >= 0`,
         format: 'time_series',
         fullMetaSearch: false,
-        instant: false,
+        includeNullMetadata: true,
+        instant: true,
         legendFormat: '__auto',
-        range: true,
+        range: false,
         refId: 'A',
         useBackend: false,
       },
@@ -27,12 +28,14 @@ export default function getTotalAlertGroupsScene({ datasource }: InsightsConfig)
   return new SceneFlexItem({
     $data: query,
     body: new VizPanel({
+      title: 'New alert groups',
       pluginId: 'stat',
       fieldConfig: {
         defaults: {
           color: {
             mode: 'thresholds',
           },
+          decimals: 0,
           mappings: [],
           thresholds: {
             mode: ThresholdsMode.Absolute,
@@ -54,7 +57,7 @@ export default function getTotalAlertGroupsScene({ datasource }: InsightsConfig)
             properties: [
               {
                 id: 'displayName',
-                value: 'Total alert groups',
+                value: 'New alert groups',
               },
             ],
           },
@@ -72,8 +75,6 @@ export default function getTotalAlertGroupsScene({ datasource }: InsightsConfig)
         },
         textMode: 'auto',
       },
-      pluginVersion: '9.5.2',
-      title: 'Total alert groups',
     }),
   });
 }
