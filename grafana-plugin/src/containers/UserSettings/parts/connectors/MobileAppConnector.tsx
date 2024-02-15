@@ -11,7 +11,7 @@ interface MobileAppConnectorProps {
   onTabChange: (tab: UserSettingsTab) => void;
 }
 
-const MobileAppConnector = (props: MobileAppConnectorProps) => {
+export const MobileAppConnector = (props: MobileAppConnectorProps) => {
   const { onTabChange, id } = props;
   const store = useStore();
   const { userStore } = store;
@@ -36,5 +36,3 @@ const MobileAppConnector = (props: MobileAppConnectorProps) => {
     </InlineField>
   );
 };
-
-export default MobileAppConnector;

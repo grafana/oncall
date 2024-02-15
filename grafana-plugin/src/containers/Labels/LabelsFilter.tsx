@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { SelectableValue } from '@grafana/data';
 import { observer } from 'mobx-react';
 
-import LabelsFilterComponent from 'components/LabelsFilter/LabelsFilter';
+import { LabelsFilterComponent } from 'components/LabelsFilter/LabelsFilter';
 import { useStore } from 'state/useStore';
 
 interface LabelsFilterProps {
@@ -14,7 +14,7 @@ interface LabelsFilterProps {
   onChange: (value: Array<{ key: SelectableValue<string>; value: SelectableValue<string> }>) => void;
 }
 
-const LabelsFilter = observer((props: LabelsFilterProps) => {
+export const LabelsFilter = observer((props: LabelsFilterProps) => {
   const { filterType, className, autoFocus, value: propsValue, onChange } = props;
   const [value, setValue] = useState([]);
   const [keys, setKeys] = useState([]);
@@ -78,5 +78,3 @@ const LabelsFilter = observer((props: LabelsFilterProps) => {
     </div>
   );
 });
-
-export default LabelsFilter;

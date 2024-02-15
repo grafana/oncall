@@ -21,7 +21,7 @@ interface WorkingHoursProps {
 
 const cx = cn.bind(styles);
 
-const WorkingHours: FC<WorkingHoursProps> = (props) => {
+export const WorkingHours: FC<WorkingHoursProps> = (props) => {
   const { timezone, workingHours = default_working_hours, startMoment, duration, className, light } = props;
 
   const endMoment = startMoment.add(duration, 'seconds');
@@ -63,5 +63,3 @@ const WorkingHours: FC<WorkingHoursProps> = (props) => {
     </svg>
   );
 };
-
-export default WorkingHours;

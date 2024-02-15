@@ -4,19 +4,19 @@ import { InlineSwitch, Tooltip } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
-import IntegrationBlockItem from 'components/Integrations/IntegrationBlockItem';
-import IntegrationTemplateBlock from 'components/Integrations/IntegrationTemplateBlock';
-import MonacoEditor from 'components/MonacoEditor/MonacoEditor';
+import { IntegrationBlockItem } from 'components/Integrations/IntegrationBlockItem';
+import { IntegrationTemplateBlock } from 'components/Integrations/IntegrationTemplateBlock';
+import { MonacoEditor } from 'components/MonacoEditor/MonacoEditor';
 import { MONACO_READONLY_CONFIG } from 'components/MonacoEditor/MonacoEditor.config';
-import Text from 'components/Text/Text';
+import { Text } from 'components/Text/Text';
 import { getTemplatesToRender } from 'containers/IntegrationContainers/IntegrationTemplatesList.config';
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { AlertTemplatesDTO } from 'models/alert_templates/alert_templates';
-import IntegrationHelper from 'pages/integration/Integration.helper';
+import { IntegrationHelper } from 'pages/integration/Integration.helper';
 import styles from 'pages/integration/Integration.module.scss';
 import { MONACO_INPUT_HEIGHT_TALL } from 'pages/integration/IntegrationCommon.config';
 import { useStore } from 'state/useStore';
-import { openErrorNotification, openNotification } from 'utils';
+import { openErrorNotification, openNotification } from 'utils/utils';
 
 const cx = cn.bind(styles);
 
@@ -28,7 +28,7 @@ interface IntegrationTemplateListProps {
   alertReceiveChannelAllowSourceBasedResolving: boolean;
 }
 
-const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = observer(
+export const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = observer(
   ({
     templates,
     openEditTemplateModal,
@@ -151,5 +151,3 @@ const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = observer
 const VerticalBlock: React.FC<{ children: any[] }> = ({ children }) => {
   return <div className={cx('vertical-block')}>{children}</div>;
 };
-
-export default IntegrationTemplateList;

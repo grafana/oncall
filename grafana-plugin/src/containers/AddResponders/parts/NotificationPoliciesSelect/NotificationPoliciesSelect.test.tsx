@@ -2,7 +2,7 @@ import React from 'react';
 
 import { render } from '@testing-library/react';
 
-import NotificationPoliciesSelect from './NotificationPoliciesSelect';
+import { NotificationPoliciesSelect } from './NotificationPoliciesSelect';
 
 describe('NotificationPoliciesSelect', () => {
   test('it renders properly', () => {

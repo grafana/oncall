@@ -3,7 +3,7 @@ import React from 'react';
 import { render } from '@testing-library/react';
 import { Provider } from 'mobx-react';
 
-import AddRespondersPopup from './AddRespondersPopup';
+import { AddRespondersPopup } from './AddRespondersPopup';
 
 describe('AddRespondersPopup', () => {
   const teams = [

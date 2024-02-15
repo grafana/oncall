@@ -4,11 +4,11 @@ import { EmptySearchResult, LoadingPlaceholder } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
-import Block from 'components/GBlock/Block';
-import SourceCode from 'components/SourceCode/SourceCode';
-import Text from 'components/Text/Text';
+import { Block } from 'components/GBlock/Block';
+import { SourceCode } from 'components/SourceCode/SourceCode';
+import { Text } from 'components/Text/Text';
 import { Alert } from 'models/alertgroup/alertgroup.types';
-import { makeRequest } from 'network';
+import { makeRequest } from 'network/network';
 import { useStore } from 'state/useStore';
 import { useDebouncedCallback } from 'utils/hooks';
 
@@ -29,7 +29,7 @@ interface AlertItem {
   inside_organization_number: number;
 }
 
-const IncidentMatcher = observer((props: IncidentMatcherProps) => {
+export const IncidentMatcher = observer((props: IncidentMatcherProps) => {
   const { regexp, className, onError } = props;
 
   const store = useStore();
@@ -108,5 +108,3 @@ const IncidentMatcher = observer((props: IncidentMatcherProps) => {
     </Block>
   );
 });
-
-export default IncidentMatcher;

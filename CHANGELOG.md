@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Fixed
+
+- Fix edit default team by admin @mderynck ([#3885](https://github.com/grafana/oncall/pull/3885))
+- Unblock slack install by skipping check chatops gateway link in OSS deployment @mderynck ([#3893](https://github.com/grafana/oncall/pull/3893))
+
+### Changed
+
+- Check for permissions on Slack escalate command ([#3891](https://github.com/grafana/oncall/pull/3891))
+
+## v1.3.105 (2024-02-13)
+
+### Fixed
+
+- Quotes in templates not rendering results correctly @mderynck ([#3884](https://github.com/grafana/oncall/pull/3884))
+
+## v1.3.104 (2024-02-12)
+
+### Changed
+
+- Revert requiring permission on Slack direct paging ([#3881](https://github.com/grafana/oncall/pull/3881))
+
+## v1.3.103 (2024-02-12)
+
 ### Added
 
 - Improved zvonok verification call @sreway ([#3768](https://github.com/grafana/oncall/pull/3768))
@@ -18,6 +41,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Allow mobile app to access escalation options endpoints @imtoori ([#3847](https://github.com/grafana/oncall/pull/3847))
 - Enable templating for alert escalation mobile app push notifications by @joeyorlando ([#3845](https://github.com/grafana/oncall/pull/3845))
 - Change email notification template to not wrap user template @mderynck ([#3862](https://github.com/grafana/oncall/pull/3862))
+- Update integration name uniqueness check to be per team ([#3863](https://github.com/grafana/oncall/pull/3863))
 
 ### Fixed
 

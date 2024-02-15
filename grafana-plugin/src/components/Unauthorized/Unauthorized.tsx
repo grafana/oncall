@@ -5,8 +5,8 @@ import { VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { contextSrv } from 'grafana/app/core/core';
 
-import Text from 'components/Text/Text';
-import { UserAction } from 'utils/authorization';
+import { Text } from 'components/Text/Text';
+import { UserAction } from 'utils/authorization/authorization';
 
 import styles from './Unauthorized.module.css';
 
@@ -16,7 +16,7 @@ type Props = {
   requiredUserAction: UserAction;
 };
 
-const Unauthorized: FC<Props> = ({ requiredUserAction: { permission, fallbackMinimumRoleRequired } }) => (
+export const Unauthorized: FC<Props> = ({ requiredUserAction: { permission, fallbackMinimumRoleRequired } }) => (
   <div className={cx('not-found')}>
     <VerticalGroup spacing="lg" align="center">
       <Text.Title level={1} className={cx('error-code')}>
@@ -36,5 +36,3 @@ const Unauthorized: FC<Props> = ({ requiredUserAction: { permission, fallbackMin
     </VerticalGroup>
   </div>
 );
-
-export default Unauthorized;

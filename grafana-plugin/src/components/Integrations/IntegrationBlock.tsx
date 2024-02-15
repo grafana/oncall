@@ -3,7 +3,7 @@ import React from 'react';
 import cn from 'classnames/bind';
 import { noop } from 'lodash-es';
 
-import Block from 'components/GBlock/Block';
+import { Block } from 'components/GBlock/Block';
 
 import styles from './IntegrationBlock.module.scss';
 
@@ -17,7 +17,7 @@ interface IntegrationBlockProps {
   toggle?: () => void;
 }
 
-const IntegrationBlock: React.FC<IntegrationBlockProps> = ({
+export const IntegrationBlock: React.FC<IntegrationBlockProps> = ({
   heading,
   content,
   noContent,
@@ -46,5 +46,3 @@ const IntegrationBlock: React.FC<IntegrationBlockProps> = ({
     </div>
   );
 };
-
-export default IntegrationBlock;

@@ -17,7 +17,7 @@ import {
 import { Alert } from '@grafana/ui';
 import { observer } from 'mobx-react';
 
-import Text from 'components/Text/Text';
+import { Text } from 'components/Text/Text';
 import { useStore } from 'state/useStore';
 import { DOCS_ROOT } from 'utils/consts';
 
@@ -39,7 +39,7 @@ import getTotalAlertGroupsScene from './scenes/TotalAlertGroups';
 import getTotalAlertGroupsByStateScene from './scenes/TotalAlertGroupsByState';
 import getVariables from './variables';
 
-const Insights = observer(() => {
+export const Insights = observer(() => {
   const {
     isOpenSource,
     insightsDatasource,
@@ -222,5 +222,3 @@ const getRootScene = (config: InsightsConfig, variables: ReturnType<typeof getVa
       }),
     ],
   });
-
-export default Insights;

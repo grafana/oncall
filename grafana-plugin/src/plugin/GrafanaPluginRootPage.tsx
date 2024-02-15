@@ -3,41 +3,40 @@ import React, { useEffect } from 'react';
 import { LoadingPlaceholder } from '@grafana/ui';
 import classnames from 'classnames';
 import { observer, Provider } from 'mobx-react';
-import Header from 'navbar/Header/Header';
-import LegacyNavTabsBar from 'navbar/LegacyNavTabsBar';
+import { Header } from 'navbar/Header/Header';
+import { LegacyNavTabsBar } from 'navbar/LegacyNavTabsBar';
 import { Redirect, Route, Switch, useLocation } from 'react-router-dom';
 import { AppRootProps } from 'types';
 
-import RenderConditionally from 'components/RenderConditionally/RenderConditionally';
-import Unauthorized from 'components/Unauthorized';
-import DefaultPageLayout from 'containers/DefaultPageLayout/DefaultPageLayout';
-import { getMatchedPage, getRoutesForPage, pages } from 'pages';
-import NoMatch from 'pages/NoMatch';
-import EscalationChains from 'pages/escalation-chains/EscalationChains';
-import Incident from 'pages/incident/Incident';
-import Incidents from 'pages/incidents/Incidents';
-import Insights from 'pages/insights/Insights';
-import Integration from 'pages/integration/Integration';
-import Integrations from 'pages/integrations/Integrations';
-import OutgoingWebhooks from 'pages/outgoing_webhooks/OutgoingWebhooks';
-import Schedule from 'pages/schedule/Schedule';
-import Schedules from 'pages/schedules/Schedules';
-import SettingsPage from 'pages/settings/SettingsPage';
-import ChatOps from 'pages/settings/tabs/ChatOps/ChatOps';
-import CloudPage from 'pages/settings/tabs/Cloud/CloudPage';
+import { RenderConditionally } from 'components/RenderConditionally/RenderConditionally';
+import { Unauthorized } from 'components/Unauthorized/Unauthorized';
+import { DefaultPageLayout } from 'containers/DefaultPageLayout/DefaultPageLayout';
+import { NoMatch } from 'pages/NoMatch';
+import { EscalationChainsPage } from 'pages/escalation-chains/EscalationChains';
+import { IncidentPage } from 'pages/incident/Incident';
+import { IncidentsPage } from 'pages/incidents/Incidents';
+import { Insights } from 'pages/insights/Insights';
+import { IntegrationPage } from 'pages/integration/Integration';
+import { IntegrationsPage } from 'pages/integrations/Integrations';
+import { OutgoingWebhooksPage } from 'pages/outgoing_webhooks/OutgoingWebhooks';
+import { getMatchedPage, getRoutesForPage, pages } from 'pages/pages';
+import { SchedulePage } from 'pages/schedule/Schedule';
+import { SchedulesPage } from 'pages/schedules/Schedules';
+import { SettingsPage } from 'pages/settings/SettingsPage';
+import { ChatOpsPage } from 'pages/settings/tabs/ChatOps/ChatOps';
+import { CloudPage } from 'pages/settings/tabs/Cloud/CloudPage';
 import LiveSettings from 'pages/settings/tabs/LiveSettings/LiveSettingsPage';
-import Users from 'pages/users/Users';
-import { rootStore } from 'state';
+import { UsersPage } from 'pages/users/Users';
+import { PluginSetup } from 'plugin/PluginSetup/PluginSetup';
+import { rootStore } from 'state/rootStore';
 import { useStore } from 'state/useStore';
-import { isUserActionAllowed } from 'utils/authorization';
+import { isUserActionAllowed } from 'utils/authorization/authorization';
 import { DEFAULT_PAGE } from 'utils/consts';
-
 import 'assets/style/vars.css';
 import 'assets/style/global.css';
 import 'assets/style/utils.css';
 
 import { getQueryParams, isTopNavbar } from './GrafanaPluginRootPage.helpers';
-import PluginSetup from './PluginSetup';
 
 import grafanaGlobalStyle from '!raw-loader!assets/style/grafanaGlobalStyles.css';
 
@@ -122,37 +121,37 @@ export const Root = observer((props: AppRootProps) => {
           >
             <Switch>
               <Route path={getRoutesForPage('alert-groups')} exact>
-                <Incidents query={query} />
+                <IncidentsPage query={query} />
               </Route>
               <Route path={getRoutesForPage('alert-group')} exact>
-                <Incident query={query} />
+                <IncidentPage query={query} />
               </Route>
               <Route path={getRoutesForPage('users')} exact>
-                <Users query={query} />
+                <UsersPage query={query} />
               </Route>
               <Route path={getRoutesForPage('integrations')} exact>
-                <Integrations query={query} />
+                <IntegrationsPage query={query} />
               </Route>
               <Route path={getRoutesForPage('integration')} exact>
-                <Integration query={query} />
+                <IntegrationPage query={query} />
               </Route>
               <Route path={getRoutesForPage('escalations')} exact>
-                <EscalationChains query={query} />
+                <EscalationChainsPage query={query} />
               </Route>
               <Route path={getRoutesForPage('schedules')} exact>
-                <Schedules query={query} />
+                <SchedulesPage query={query} />
               </Route>
               <Route path={getRoutesForPage('schedule')} exact>
-                <Schedule query={query} />
+                <SchedulePage query={query} />
               </Route>
               <Route path={getRoutesForPage('outgoing_webhooks')} exact>
-                <OutgoingWebhooks query={query} />
+                <OutgoingWebhooksPage query={query} />
               </Route>
               <Route path={getRoutesForPage('settings')} exact>
                 <SettingsPage />
               </Route>
               <Route path={getRoutesForPage('chat-ops')} exact>
-                <ChatOps query={query} />
+                <ChatOpsPage query={query} />
               </Route>
               <Route path={getRoutesForPage('live-settings')} exact>
                 <LiveSettings />
