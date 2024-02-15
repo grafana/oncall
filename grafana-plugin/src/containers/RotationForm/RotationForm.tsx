@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import {
   Button,
@@ -63,6 +63,7 @@ import { GRAFANA_HEADER_HEIGHT } from 'utils/consts';
 import { useDebouncedCallback } from 'utils/hooks';
 
 import styles from './RotationForm.module.css';
+import { isTopNavbar } from 'plugin/GrafanaPluginRootPage.helpers';
 
 const cx = cn.bind(styles);
 
@@ -440,7 +441,7 @@ export const RotationForm = observer((props: RotationFormProps) => {
             handle=".drag-handler"
             defaultClassName={cx('draggable')}
             positionOffset={{ x: 0, y: offsetTop }}
-            bounds={bounds || 'body'}
+            bounds={{ ...bounds } || 'body'}
             onStart={onDraggableInit}
           >
             <div {...props}>{children}</div>
@@ -704,13 +705,26 @@ export const RotationForm = observer((props: RotationFormProps) => {
       return;
     }
 
-    const scrollbarView = document.querySelector('.scrollbar-view')?.getBoundingClientRect();
+    let baseReferenceEl: HTMLElement;
+    if (isTopNavbar()) {
+      baseReferenceEl = document.querySelectorAll<HTMLElement>('.scrollbar-view')[1];
+    } else {
+      baseReferenceEl = document.querySelector<HTMLElement>('.scrollbar-view');
+    }
 
-    const x = data.node.offsetLeft;
-    const top = -data.node.offsetTop + (scrollbarView?.top || 100);
-    const bottom = window.innerHeight - (data.node.offsetTop + data.node.offsetHeight);
+    const baseReferenceElRect = baseReferenceEl.getBoundingClientRect();
 
-    setDraggableBounds({ left: -x, right: x, top: top - offsetTop, bottom: bottom - offsetTop });
+    const { right, top, bottom } = baseReferenceElRect;
+    const HEADER_HEIGHT = 170;
+    const TOP_PADDING = 20;
+    const LATERAL_MARGIN = 20;
+
+    setDraggableBounds({
+      left: -data.node.offsetLeft + LATERAL_MARGIN,
+      right: right - (data.node.offsetLeft + data.node.offsetWidth) - LATERAL_MARGIN,
+      top: data.node.offsetTop - top + TOP_PADDING,
+      bottom: bottom - data.node.offsetTop - data.node.offsetHeight - HEADER_HEIGHT,
+    });
   }
 });
 

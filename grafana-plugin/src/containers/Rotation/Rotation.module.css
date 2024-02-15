@@ -4,6 +4,11 @@
   overflow-x: hidden;
 }
 
+.X {
+  max-height: 75vh;
+  overflow-y: auto;
+}
+
 .loader {
   height: 28px;
   display: flex;

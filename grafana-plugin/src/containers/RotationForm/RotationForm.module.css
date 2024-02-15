@@ -1,12 +1,14 @@
+.root {
+  max-height: 75vh;
+  overflow-y: auto;
+}
+
 .container {
-  margin: 15px -15px;
+  margin: 15px 0;
   padding: 15px 0;
   border-top: var(--border-medium);
   border-bottom: var(--border-medium);
-}
-
-.content {
-  padding: 0 15px;
+  width: 100%;
 }
 
 .override-form-content {
