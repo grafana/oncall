@@ -6,7 +6,7 @@ export const useAlertCreationChecker = () => {
   const {
     alertGroupStore: { updateAlertGroups, alerts },
   } = useStore();
-  const [isFirstAlertCountCheckDone, setIsFirstAlertCountCheckDone] = useState(false);
+  const [isFirstAlertCheckDone, setIsFirstAlertCheckDone] = useState(false);
 
   const isAnyAlertCreatedMoreThan20SecsAgo = Array.from(alerts).some(([_key, alert]) => {
     const alertTime = new Date(alert.started_at).getTime();
@@ -19,7 +19,7 @@ export const useAlertCreationChecker = () => {
       if (!isAnyAlertCreatedMoreThan20SecsAgo) {
         await updateAlertGroups();
       }
-      setIsFirstAlertCountCheckDone(true);
+      setIsFirstAlertCheckDone(true);
     };
     fetch();
     const interval = setInterval(() => {
@@ -28,5 +28,5 @@ export const useAlertCreationChecker = () => {
     return () => clearInterval(interval);
   }, [isAnyAlertCreatedMoreThan20SecsAgo]);
 
-  return { isAnyAlertCreatedMoreThan20SecsAgo, isFirstAlertCountCheckDone };
+  return { isAnyAlertCreatedMoreThan20SecsAgo, isFirstAlertCheckDone };
 };

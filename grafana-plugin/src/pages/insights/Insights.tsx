@@ -45,7 +45,7 @@ export const Insights = observer(() => {
     organizationStore: { currentOrganization },
   } = useStore();
   const [datasource, setDatasource] = useState<string>();
-  const { isAnyAlertCreatedMoreThan20SecsAgo, isFirstAlertCountCheckDone } = useAlertCreationChecker();
+  const { isAnyAlertCreatedMoreThan20SecsAgo, isFirstAlertCheckDone } = useAlertCreationChecker();
 
   const config = useMemo(
     () => ({
@@ -76,7 +76,7 @@ export const Insights = observer(() => {
     };
   }, [isAnyAlertCreatedMoreThan20SecsAgo]);
 
-  if (!isFirstAlertCountCheckDone) {
+  if (!isFirstAlertCheckDone) {
     return <LoadingPlaceholder text="Loading..." />;
   }
   return (
