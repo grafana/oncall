@@ -212,21 +212,12 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "blue",
+                "color": "text",
                 "value": null
-              },
-              {
-                "color": "green",
-                "value": -10000000
-              },
-              {
-                "color": "super-light-yellow",
-                "value": 0
               }
             ]
           },
-          "unit": "s",
-          "unitScale": true
+          "unit": "s"
         },
         "overrides": [
           {
@@ -256,7 +247,7 @@
         "justifyMode": "center",
         "orientation": "auto",
         "reduceOptions": {
-          "calcs": ["diff"],
+          "calcs": ["lastNotNull"],
           "fields": "",
           "values": false
         },
@@ -273,14 +264,14 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "avg(sum($alert_groups_response_time_seconds_sum{slug=~\"$instance\", team=~\"$team\", integration=~\"$integration\"}) / sum($alert_groups_response_time_seconds_count{slug=~\"$instance\", team=~\"$team\", integration=~\"$integration\"}))",
-          "instant": false,
+          "expr": "avg_over_time((sum($alert_groups_response_time_seconds_sum{slug=~\"$instance\", team=~\"$team\", integration=~\"$integration\"}) / sum($alert_groups_response_time_seconds_count{slug=~\"$instance\", team=~\"$team\", integration=~\"$integration\"}))[$__range:])",
+          "instant": true,
           "legendFormat": "__auto",
-          "range": true,
+          "range": false,
           "refId": "A"
         }
       ],
-      "title": "Mean time to respond (MTTR) changed",
+      "title": "Average Mean time to respond (MTTR)",
       "type": "stat"
     },
     {
@@ -517,7 +508,7 @@
           "refId": "A"
         }
       ],
-      "title": "MTTR changed",
+      "title": "Mean time to respond (MTTR)",
       "type": "timeseries"
     },
     {
@@ -596,7 +587,7 @@
       },
       "id": 20,
       "options": {
-        "cellHeight": "sm",
+        "cellHeight": "md",
         "footer": {
           "countRows": false,
           "fields": "",
@@ -713,7 +704,7 @@
       },
       "id": 21,
       "options": {
-        "cellHeight": "sm",
+        "cellHeight": "md",
         "footer": {
           "countRows": false,
           "fields": "",
@@ -849,7 +840,7 @@
       },
       "id": 22,
       "options": {
-        "cellHeight": "sm",
+        "cellHeight": "md",
         "footer": {
           "countRows": false,
           "fields": "",
@@ -966,7 +957,7 @@
       },
       "id": 23,
       "options": {
-        "cellHeight": "sm",
+        "cellHeight": "md",
         "footer": {
           "countRows": false,
           "fields": "",
@@ -993,7 +984,7 @@
           "refId": "A"
         }
       ],
-      "title": "Mean time to respond by Team (MTTR)",
+      "title": "Mean time to respond (MTTR) by Team",
       "transformations": [
         {
           "id": "seriesToRows",
@@ -1026,7 +1017,7 @@
       },
       "id": 38,
       "panels": [],
-      "title": "Notified alert groups by Users (based on all Integrations)",
+      "title": "Notified alert groups by Users (based on all Teams and Integrations)",
       "type": "row"
     },
     {
@@ -1213,7 +1204,7 @@
       },
       "id": 37,
       "options": {
-        "cellHeight": "sm",
+        "cellHeight": "md",
         "footer": {
           "countRows": false,
           "fields": "",
@@ -1267,7 +1258,7 @@
     }
   ],
   "refresh": false,
-  "schemaVersion": 38,
+  "schemaVersion": 39,
   "style": "dark",
   "tags": ["oncall"],
   "templating": {
