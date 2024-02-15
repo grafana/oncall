@@ -30,7 +30,8 @@ Tap on any Alert Group to go to the detailed view.
 From this page, you have various options available to you.
 
 You can browse the grouped alerts as well as the escalation chain used for the alert group and the timeline.
-You can invite other participants, open the alert group in Slack for further discussion and collaboration, as well as share the link to this specific alert group with others.
+You can invite other participants, open the alert group in Slack for further discussion and collaboration,
+as well as share the link to this specific alert group with others.
 Additionally, you can take action on the alert group directly from this page. You have the ability to acknowledge, resolve, and silence the alert group.
 
 > **Note:** You need to have sufficient permission to take action on the alert group.
