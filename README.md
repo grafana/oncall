@@ -55,6 +55,12 @@ We prepared multiple environments:
    # FEATURE_PROMETHEUS_EXPORTER_ENABLED=True
    SECRET_KEY=my_random_secret_must_be_more_than_32_characters_long" > .env
    ```
+  
+    NOTE: If you are using a separate Grafana instance with HTTPS that employs a custom-created root CA certificate to sign its certificate (rather than one from a public signer like Let's Encrypt), you'll need to mount your CA certificate. Ensure to adjust the `docker-compose.yml` file for the `engine` service accordingly:
+    ```yaml
+    volumes:
+      - /path/to/ca.pem:/usr/local/lib/python3.11/site-packages/certifi/cacert.pem:ro
+    ```
 
 3. (Optional) If you want to enable/setup the prometheus metrics exporter
 (besides the changes above), create a `prometheus.yml` file (replacing
