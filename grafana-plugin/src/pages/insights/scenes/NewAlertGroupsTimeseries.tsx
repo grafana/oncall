@@ -3,18 +3,22 @@ import { SceneFlexItem, SceneQueryRunner, VizPanel } from '@grafana/scenes';
 
 import { InsightsConfig } from 'pages/insights/Insights.types';
 
-export default function getMTTRChangedForPeriodTimeseriesScene({ datasource }: InsightsConfig) {
+export function getNewAlertGroupsTimeseriesScene({ datasource, stack }: InsightsConfig) {
   const query = new SceneQueryRunner({
     datasource,
     queries: [
       {
+        disableTextWrap: false,
         editorMode: 'code',
+        excludeNullMetadata: false,
         exemplar: false,
-        expr: 'avg(sum($alert_groups_response_time_seconds_sum{slug=~"$stack", team=~"$team", integration=~"$integration"}) / sum($alert_groups_response_time_seconds_count{slug=~"$stack", team=~"$team", integration=~"$integration"}))',
+        expr: `delta(max_over_time(sum by (integration) (avg without(pod, instance) ($alert_groups_total{slug=~"${stack}", team=~"$team", integration=~"$integration"}))[30m:])[1h:]) >= 0`,
+        fullMetaSearch: false,
         instant: false,
         legendFormat: '__auto',
         range: true,
         refId: 'A',
+        useBackend: false,
       },
     ],
   });
@@ -22,14 +26,12 @@ export default function getMTTRChangedForPeriodTimeseriesScene({ datasource }: I
   return new SceneFlexItem({
     $data: query,
     body: new VizPanel({
-      title: 'MTTR changed for period',
+      title: 'New alert groups',
       pluginId: 'timeseries',
       fieldConfig: {
         defaults: {
           color: {
-            fixedColor: 'green',
-            mode: 'fixed',
-            seriesBy: 'min',
+            mode: 'palette-classic',
           },
           custom: {
             axisCenteredZero: false,
@@ -38,7 +40,7 @@ export default function getMTTRChangedForPeriodTimeseriesScene({ datasource }: I
             axisPlacement: 'auto',
             barAlignment: 0,
             drawStyle: 'line',
-            fillOpacity: 54,
+            fillOpacity: 80,
             gradientMode: 'opacity',
             hideFrom: {
               legend: false,
@@ -55,37 +57,46 @@ export default function getMTTRChangedForPeriodTimeseriesScene({ datasource }: I
               type: 'linear',
             },
             showPoints: 'auto',
-            spanNulls: true,
+            spanNulls: false,
             stacking: {
               group: 'A',
-              mode: 'none',
+              mode: 'normal',
             },
             thresholdsStyle: {
               mode: 'off',
             },
           },
+          decimals: 0,
+          displayName: '${__field.labels.integration}',
           mappings: [],
           thresholds: {
             mode: ThresholdsMode.Absolute,
             steps: [
               {
-                color: 'text',
-                value: 0,
+                color: 'green',
+                value: null,
               },
             ],
           },
-          unit: 's',
         },
         overrides: [
           {
             matcher: {
-              id: 'byName',
-              options: 'Value',
+              id: 'byValue',
+              options: {
+                op: 'gte',
+                reducer: 'allIsZero',
+                value: 0,
+              },
             },
             properties: [
               {
-                id: 'displayName',
-                value: 'MTTR',
+                id: 'custom.hideFrom',
+                value: {
+                  legend: true,
+                  tooltip: true,
+                  viz: true,
+                },
               },
             ],
           },
@@ -95,11 +106,11 @@ export default function getMTTRChangedForPeriodTimeseriesScene({ datasource }: I
         legend: {
           displayMode: 'list',
           placement: 'bottom',
-          showLegend: false,
+          showLegend: true,
         },
         tooltip: {
-          mode: 'single',
-          sort: 'none',
+          mode: 'multi',
+          sort: 'desc',
         },
       },
     }),
