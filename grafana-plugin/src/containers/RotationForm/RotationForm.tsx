@@ -60,7 +60,7 @@ import {
 import { isTopNavbar } from 'plugin/GrafanaPluginRootPage.helpers';
 import { useStore } from 'state/useStore';
 import { getCoords, waitForElement } from 'utils/DOM';
-import { GRAFANA_HEADER_HEIGHT } from 'utils/consts';
+import { GRAFANA_HEADER_HEIGHT, GRAFANA_LEGACY_SIDEBAR_WIDTH } from 'utils/consts';
 import { useDebouncedCallback } from 'utils/hooks';
 
 import styles from './RotationForm.module.css';
@@ -716,26 +716,29 @@ export const RotationForm = observer((props: RotationFormProps) => {
       return;
     }
 
-    let baseReferenceEl: HTMLElement;
-    if (isTopNavbar()) {
-      // top navbar display has 2 scrollbar-view elements (navbar & content)
-      baseReferenceEl = document.querySelectorAll<HTMLElement>('.scrollbar-view')[1];
-    } else {
-      // on legacy navbar we have unique class
-      baseReferenceEl = document.querySelector<HTMLElement>('.scrollbar-view');
-    }
+    // top navbar display has 2 scrollbar-view elements (navbar & content)
+    const baseReferenceEl = document.querySelectorAll<HTMLElement>('.scrollbar-view')[1];
 
     const baseReferenceElRect = baseReferenceEl.getBoundingClientRect();
 
     const { right, bottom } = baseReferenceElRect;
 
-    setDraggableBounds({
-      // values are adjusted by any padding/margin differences
-      left: -data.node.offsetLeft + 4,
-      right: right - (data.node.offsetLeft + data.node.offsetWidth) - 12,
-      top: -offsetTop + GRAFANA_HEADER_HEIGHT + 4,
-      bottom: bottom - data.node.offsetHeight - offsetTop - 12,
-    });
+    setDraggableBounds(
+      isTopNavbar()
+        ? {
+            // values are adjusted by any padding/margin differences
+            left: -data.node.offsetLeft + 4,
+            right: right - (data.node.offsetLeft + data.node.offsetWidth) - 12,
+            top: -offsetTop + GRAFANA_HEADER_HEIGHT + 4,
+            bottom: bottom - data.node.offsetHeight - offsetTop - 12,
+          }
+        : {
+            left: -data.node.offsetLeft + 4 + GRAFANA_LEGACY_SIDEBAR_WIDTH,
+            right: right - (data.node.offsetLeft + data.node.offsetWidth) - 12,
+            top: -offsetTop + 4,
+            bottom: bottom - data.node.offsetHeight - offsetTop - 12,
+          }
+    );
   }
 });
 
