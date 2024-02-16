@@ -17,7 +17,7 @@ export class LabelStore extends BaseStore {
   }
 
   @action.bound
-  public async loadKeys(search?: string) {
+  public async loadKeys(search = '') {
     const { data } = await onCallApi.GET('/labels/keys/', undefined);
 
     const filtered = data.filter((k) => k.name.toLowerCase().includes(search.toLowerCase()));
