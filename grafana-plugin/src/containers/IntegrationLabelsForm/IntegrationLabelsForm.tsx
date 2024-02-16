@@ -1,4 +1,4 @@
-import React, { ChangeEvent, useMemo, useState } from 'react';
+import React, { ChangeEvent, useState } from 'react';
 
 import {
   Alert,
@@ -22,7 +22,7 @@ import { ServiceLabels } from 'components/ServiceLabels/ServiceLabels';
 import Text from 'components/Text/Text';
 import IntegrationTemplate from 'containers/IntegrationTemplate/IntegrationTemplate';
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
-import { makeListOfPrescribedNonEditable, makePrescribedNonEditable, splitToGroups } from 'models/label/label.helpers';
+import { splitToGroups } from 'models/label/label.helpers';
 import { LabelsErrors } from 'models/label/label.types';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { LabelTemplateOptions } from 'pages/integration/IntegrationCommon.config';
@@ -291,7 +291,7 @@ const CustomLabels = (props: CustomLabelsProps) => {
       openErrorNotification('There was an error processing your request. Please try again');
     }
 
-    const groups = splitToGroups(makeListOfPrescribedNonEditable(result));
+    const groups = splitToGroups(result);
 
     return groups;
   };
@@ -306,21 +306,10 @@ const CustomLabels = (props: CustomLabelsProps) => {
       openErrorNotification('There was an error processing your request. Please try again');
     }
 
-    const groups = splitToGroups(makeListOfPrescribedNonEditable(result));
+    const groups = splitToGroups(result);
 
     return groups;
   };
-
-  const valueWithNonEditableStated = useMemo(
-    () =>
-      alertGroupLabels.custom.map(({ key, value }) => ({
-        // @ts-ignore
-        key: key.data ? key : makePrescribedNonEditable(key),
-        // @ts-ignore
-        value: value.data ? value : makePrescribedNonEditable(value),
-      })),
-    [alertGroupLabels.custom]
-  );
 
   return (
     <VerticalGroup>
@@ -337,7 +326,7 @@ const CustomLabels = (props: CustomLabelsProps) => {
         loadById
         inputWidth={INPUT_WIDTH}
         errors={customLabelsErrors}
-        value={valueWithNonEditableStated}
+        value={alertGroupLabels.custom}
         onLoadKeys={onLoadKeys}
         onLoadValuesForKey={onLoadValuesForKey}
         onCreateKey={labelsStore.createKey}
@@ -387,6 +376,8 @@ const CustomLabels = (props: CustomLabelsProps) => {
             custom: value,
           });
         }}
+        getIsKeyEditable={(option) => !option.prescribed}
+        getIsValueEditable={(option) => !option.prescribed}
       />
       <Dropdown
         overlay={

@@ -6,6 +6,7 @@ import { css } from '@emotion/css';
 import { AsyncSelect, Button, Field, HorizontalGroup, IconButton, VerticalGroup, useStyles2 } from '@grafana/ui';
 import { KEY_ERROR_MESSAGE, VALUE_ERROR_MESSAGE } from 'core/consts';
 import { ItemSelected, LabelInputType, ServiceLabelValidator } from 'core/types';
+import { omit } from 'lodash-es';
 
 import { EditModal, BaseEditModal } from 'components/EditModal/EditModal';
 
@@ -28,6 +29,9 @@ export interface ServiceLabelsProps {
   onUpdateValue: (keyId: string, valueId: string, value: string) => Promise<any>;
   onDataUpdate: (result: ItemSelected[]) => any;
   onUpdateError: (result: any) => void;
+
+  getIsKeyEditable?: (key: ItemSelected['key']) => boolean;
+  getIsValueEditable?: (value: ItemSelected['value']) => boolean;
 
   openErrorNotification?(message: string): any;
   onRowItemRemoval?: (pair: ItemSelected, index: number) => any;
@@ -73,6 +77,9 @@ export const ServiceLabels: FC<ServiceLabelsProps> = ({
   renderValue,
   keyValidator,
   valueValidator,
+
+  getIsKeyEditable = () => true,
+  getIsValueEditable = () => true,
 }) => {
   const styles = useStyles2(() => getStyles());
 
@@ -120,7 +127,7 @@ export const ServiceLabels: FC<ServiceLabelsProps> = ({
           menuShouldPortal
         />
 
-        {option.value?.[FieldName] && !option.value.data?.isNonEditable && isEditable && (
+        {option.value?.[FieldName] && isEditable && getIsValueEditable(option.value) && (
           <IconButton
             className={styles.edit}
             name="pen"
@@ -192,7 +199,7 @@ export const ServiceLabels: FC<ServiceLabelsProps> = ({
                     noOptionsMessage="No labels found"
                     menuShouldPortal
                   />
-                  {option.key[FieldName] && !option.key.data?.isNonEditable && isEditable && (
+                  {option.key[FieldName] && isEditable && getIsKeyEditable(option.key) && (
                     <IconButton
                       className={styles.edit}
                       size="xs"
@@ -371,8 +378,7 @@ export const ServiceLabels: FC<ServiceLabelsProps> = ({
       const newItem = {
         label: item[FieldName],
         value: item[FieldId],
-        expanded: item.expanded,
-        data: item.data,
+        ...omit(item, [FieldName, FieldId]),
       };
 
       if (item.options) {
@@ -389,9 +395,9 @@ export const ServiceLabels: FC<ServiceLabelsProps> = ({
   }
 
   async function loadOptionsValues(option: ItemSelected, search = '') {
-    return onLoadValuesForKey(option.key[getLookoutMethod()], search).then((values) =>
-      remapToFieldNameAndFieldId(values)
-    );
+    return onLoadValuesForKey(option.key[getLookoutMethod()], search).then((values) => {
+      return remapToFieldNameAndFieldId(values);
+    });
   }
 
   function getLookoutMethod() {
@@ -483,13 +489,14 @@ export const ServiceLabels: FC<ServiceLabelsProps> = ({
     const newSelectedOptions = selectedOptions.map((opt, index) =>
       index === rowIndex
         ? {
-            key: { [FieldId]: option.value, [FieldName]: option.label, data: option.data },
+            key: { [FieldId]: option.value, [FieldName]: option.label, ...omit(option, ['label', 'value']) },
             value:
               opt.value[FieldId] === null
                 ? // if it's null we preserve the value
                   {
                     [FieldId]: opt.value[FieldId],
                     [FieldName]: opt.value[FieldName],
+                    ...omit(opt, ['label', 'value']),
                   }
                 : // otherwise we reset it because it should be empty afterwards you change the key
                   { [FieldId]: undefined, [FieldName]: undefined },
@@ -544,7 +551,7 @@ export const ServiceLabels: FC<ServiceLabelsProps> = ({
       index === rowIndex
         ? {
             key: opt.key,
-            value: { [FieldId]: option.value, [FieldName]: option.label, data: option.data },
+            value: { [FieldId]: option.value, [FieldName]: option.label, ...omit(option, 'label', 'value') },
           }
         : opt
     );

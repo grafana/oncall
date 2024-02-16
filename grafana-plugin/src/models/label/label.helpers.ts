@@ -1,15 +1,5 @@
 import { ApiSchemas } from 'network/oncall-api/api.types';
 
-export const makePrescribedNonEditable = (item: ApiSchemas['LabelKey'] | ApiSchemas['LabelValue']) => {
-  return { ...item, data: { isNonEditable: item.prescribed } };
-};
-
-export const makeListOfPrescribedNonEditable = (
-  list: Array<ApiSchemas['LabelKey']> | Array<ApiSchemas['LabelValue']>
-) => {
-  return list.map(makePrescribedNonEditable);
-};
-
 export const splitToGroups = (labels: Array<ApiSchemas['LabelKey']> | Array<ApiSchemas['LabelValue']>) => {
   return labels.reduce(
     (memo, option) => {

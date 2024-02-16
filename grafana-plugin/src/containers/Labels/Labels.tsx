@@ -1,11 +1,11 @@
-import React, { forwardRef, useImperativeHandle, useMemo, useState } from 'react';
+import React, { forwardRef, useImperativeHandle, useState } from 'react';
 
 import { Field, Label } from '@grafana/ui';
 import { isEmpty } from 'lodash-es';
 import { observer } from 'mobx-react';
 
 import { ServiceLabelsProps, ServiceLabels } from 'components/ServiceLabels/ServiceLabels';
-import { makeListOfPrescribedNonEditable, makePrescribedNonEditable, splitToGroups } from 'models/label/label.helpers';
+import { splitToGroups } from 'models/label/label.helpers';
 import { LabelKeyValue } from 'models/label/label.types';
 import { useStore } from 'state/useStore';
 import { openErrorNotification } from 'utils';
@@ -55,7 +55,7 @@ const Labels = observer(
         openErrorNotification('There was an error processing your request. Please try again');
       }
 
-      const groups = splitToGroups(makeListOfPrescribedNonEditable(result));
+      const groups = splitToGroups(result);
 
       return groups;
     };
@@ -69,7 +69,7 @@ const Labels = observer(
         openErrorNotification('There was an error processing your request. Please try again');
       }
 
-      const groups = splitToGroups(makeListOfPrescribedNonEditable(result));
+      const groups = splitToGroups(result);
 
       return groups;
     };
@@ -99,23 +99,12 @@ const Labels = observer(
       );
     };
 
-    const valueWithNonEditableStated = useMemo(
-      () =>
-        value.map(({ key, value }) => ({
-          // @ts-ignore
-          key: key.data ? key : makePrescribedNonEditable(key),
-          // @ts-ignore
-          value: value.data ? value : makePrescribedNonEditable(value),
-        })),
-      [value]
-    );
-
     return (
       <div>
         <Field label={<Label description={<div className="u-padding-vertical-xs">{description}</div>}>Labels</Label>}>
           <ServiceLabels
             loadById
-            value={valueWithNonEditableStated}
+            value={value}
             onLoadKeys={onLoadKeys}
             onLoadValuesForKey={onLoadValuesForKey}
             onCreateKey={labelsStore.createKey}
@@ -126,6 +115,8 @@ const Labels = observer(
             onUpdateError={onUpdateError}
             errors={isValid() ? {} : { ...propsErrors }}
             onDataUpdate={onChange}
+            getIsKeyEditable={(option) => !option.prescribed}
+            getIsValueEditable={(option) => !option.prescribed}
           />
         </Field>
       </div>
