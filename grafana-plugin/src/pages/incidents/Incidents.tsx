@@ -36,6 +36,8 @@ import {
   AlertGroupColumnType,
 } from 'models/alertgroup/alertgroup.types';
 import { LabelKeyValue } from 'models/label/label.types';
+import { ActionKey } from 'models/loader/action-keys';
+import { LoaderHelper } from 'models/loader/loader.helpers';
 import { renderRelatedUsers } from 'pages/incident/Incident.helpers';
 import { AppFeature } from 'state/features';
 import { PageProps, WithStoreProps } from 'state/types';
@@ -66,9 +68,10 @@ interface IncidentsPageState {
   showAddAlertGroupForm: boolean;
   isSelectorColumnMenuOpen: boolean;
   isHorizontalScrolling: boolean;
+  isFirstIncidentsFetchDone: boolean;
 }
 
-const POLLING_NUM_SECONDS = 15;
+const POLLING_NUM_SECONDS = 5;
 
 const PAGINATION_OPTIONS = [
   { label: '25', value: 25 },
@@ -122,6 +125,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
       },
       isSelectorColumnMenuOpen: true,
       isHorizontalScrolling: getItem(INCIDENT_HORIZONTAL_SCROLLING_STORAGE) || false,
+      isFirstIncidentsFetchDone: false,
     };
   }
 
@@ -138,6 +142,8 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
     if (store.hasFeature(AppFeature.Labels)) {
       alertGroupStore.fetchTableSettings();
     }
+
+    this.setPollingInterval();
   }
 
   componentWillUnmount(): void {
@@ -336,10 +342,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
       this.setPagination(1, alertGroupStore.alertsSearchResult['default'].page_size);
     }
 
-    this.clearPollingInterval();
-    this.setPollingInterval(filters, isOnMount);
-
-    await this.fetchIncidentData(filters, isOnMount);
+    await this.fetchIncidentData(filters);
 
     if (isOnMount) {
       this.setPagination(start, start + alertGroupStore.alertsSearchResult['default'].page_size - 1);
@@ -355,10 +358,14 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
     });
   };
 
-  fetchIncidentData = async (filters: IncidentsFiltersType, isOnMount: boolean) => {
+  fetchIncidentData = async (filters: IncidentsFiltersType) => {
     const { store } = this.props;
-    await store.alertGroupStore.updateIncidentFilters(filters, isOnMount); // this line fetches the incidents
+    await store.alertGroupStore.updateIncidentFiltersAndRefetchIncidentsAndStats(
+      filters,
+      !this.state.isFirstIncidentsFetchDone
+    );
     LocationHelper.update({ ...store.alertGroupStore.incidentFilters }, 'partial');
+    this.setState({ isFirstIncidentsFetchDone: true });
   };
 
   onChangeCursor = (cursor: string, direction: 'prev' | 'next') => {
@@ -478,12 +485,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
             <RenderConditionally shouldRender={hasInvalidatedAlert}>
               <HorizontalGroup spacing="xs">
                 <Text type="secondary">Results out of date</Text>
-                <Button
-                  className={cx('btn-results')}
-                  disabled={store.alertGroupStore.alertGroupsLoading}
-                  variant="primary"
-                  onClick={this.onIncidentsUpdateClick}
-                >
+                <Button className={cx('btn-results')} variant="primary" onClick={this.onIncidentsUpdateClick}>
                   Refresh
                 </Button>
               </HorizontalGroup>
@@ -505,10 +507,11 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
 
   renderTable() {
     const { selectedIncidentIds, pagination, isHorizontalScrolling } = this.state;
-    const { alertGroupStore, filtersStore } = this.props.store;
+    const { alertGroupStore, filtersStore, loaderStore } = this.props.store;
 
     const { results, prev, next } = alertGroupStore.getAlertSearchResult('default');
-    const isLoading = alertGroupStore.alertGroupsLoading || filtersStore.options['incidents'] === undefined;
+    const isLoading =
+      LoaderHelper.isLoading(loaderStore, ActionKey.FETCH_INCIDENTS) || filtersStore.options['incidents'] === undefined;
 
     if (results && !results.length) {
       return (
@@ -912,7 +915,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
 
     this.setPollingInterval();
 
-    store.alertGroupStore.liveUpdatesPaused = true;
+    store.alertGroupStore.setLiveUpdatesPaused(true);
     const delay = typeof event === 'number' ? event : 0;
 
     this.setState(
@@ -940,7 +943,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
     const { store } = this.props;
 
     this.setState({ affectedRows: {} }, () => {
-      store.alertGroupStore.updateIncidents();
+      store.alertGroupStore.fetchIncidentsAndStats();
     });
   };
 
@@ -949,13 +952,20 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
     this.pollingIntervalId = null;
   }
 
-  setPollingInterval(filters: IncidentsFiltersType = this.state.filters, isOnMount = false) {
+  setPollingInterval() {
     const startPolling = (delayed = false) => {
       this.pollingIntervalId = setTimeout(
         async () => {
           const isBrowserWindowInactive = document.hidden;
-          if (!isBrowserWindowInactive) {
-            await this.fetchIncidentData(filters, isOnMount);
+          if (
+            !isBrowserWindowInactive &&
+            !LoaderHelper.isLoading(this.props.store.loaderStore, [
+              ActionKey.FETCH_INCIDENTS,
+              ActionKey.FETCH_INCIDENTS_POLLING,
+            ]) &&
+            !this.props.store.alertGroupStore.liveUpdatesPaused
+          ) {
+            await this.props.store.alertGroupStore.fetchIncidentsAndStats(true);
           }
 
           if (this.pollingIntervalId === null) {

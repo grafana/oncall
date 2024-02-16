@@ -13,13 +13,15 @@ class LoaderStoreClass {
   }
 
   @action.bound
-  setLoadingAction(actionKey: string, isLoading: boolean) {
-    this.items[actionKey] = isLoading;
+  setLoadingAction(actionKey: string | string[], isLoading: boolean) {
+    if (typeof actionKey === 'string') {
+      this.items[actionKey] = isLoading;
+    } else {
+      actionKey.forEach((key) => {
+        this.items[key] = isLoading;
+      });
+    }
   }
-
-  isLoading = (actionKey: string): boolean => {
-    return !!this.items[actionKey];
-  };
 }
 
 export const LoaderStore = new LoaderStoreClass();

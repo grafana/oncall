@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo, ChangeEvent, ReactElement } from 'react';
 
-import { Pagination, Checkbox, Icon } from '@grafana/ui';
+import { Pagination, Checkbox, Icon, LoadingPlaceholder } from '@grafana/ui';
 import cn from 'classnames/bind';
 import Table from 'rc-table';
 import { TableProps } from 'rc-table/lib/Table';
@@ -140,19 +140,25 @@ export const GTable = <RT extends DefaultRecordType = DefaultRecordType>(props: 
 
   return (
     <div className={cx('root')} data-testid="test__gTable">
-      <Table<RT>
-        expandable={expandable}
-        rowKey={rowKey}
-        className={cx('filter-table', className)}
-        columns={columns}
-        data={data}
-        showHeader={showHeader}
-        {...restProps}
-      />
-      {pagination && (
-        <div className={cx('pagination')}>
-          <Pagination hideWhenSinglePage currentPage={page} numberOfPages={numberOfPages} onNavigate={onNavigate} />
-        </div>
+      {loading ? (
+        <LoadingPlaceholder text="Loading..." />
+      ) : (
+        <>
+          <Table<RT>
+            expandable={expandable}
+            rowKey={rowKey}
+            className={cx('filter-table', className)}
+            columns={columns}
+            data={data}
+            showHeader={showHeader}
+            {...restProps}
+          />
+          {pagination && (
+            <div className={cx('pagination')}>
+              <Pagination hideWhenSinglePage currentPage={page} numberOfPages={numberOfPages} onNavigate={onNavigate} />
+            </div>
+          )}
+        </>
       )}
     </div>
   );
