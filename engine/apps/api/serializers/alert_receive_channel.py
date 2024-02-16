@@ -211,7 +211,7 @@ class IntegrationAlertGroupLabelsSerializer(serializers.Serializer):
                 "value": {
                     "id": value_id if value_id else None,
                     "name": label_value_index[value_id]["name"] if value_id else typing.cast(str, template),
-                    "prescribed": label_value_index[key_id]["prescribed"],
+                    "prescribed": label_value_index[value_id]["prescribed"] if value_id else False,
                 },
             }
             for key_id, value_id, template in custom_labels
