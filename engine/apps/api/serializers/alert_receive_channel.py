@@ -215,7 +215,7 @@ class IntegrationAlertGroupLabelsSerializer(serializers.Serializer):
                 },
             }
             for key_id, value_id, template in custom_labels
-            if key_id in label_value_index and (value_id in label_value_index or not value_id)
+            if key_id in label_key_index and (value_id in label_value_index or not value_id)
         ]
 
 
