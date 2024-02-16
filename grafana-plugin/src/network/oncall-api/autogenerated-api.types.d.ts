@@ -583,6 +583,7 @@ export interface components {
     LabelValue: {
       id: string;
       name: string;
+      prescribed?: boolean;
     };
     PaginatedAlertGroupListList: {
       next?: string | null;
