@@ -7,11 +7,11 @@ from rest_framework import fields, serializers
 from apps.alerts.models import EscalationChain, EscalationPolicy
 from apps.schedules.models import OnCallSchedule
 from apps.slack.models import SlackUserGroup
-from apps.user_management.models import User, Team
+from apps.user_management.models import Team, User
 from apps.webhooks.models import Webhook
 from common.api_helpers.custom_fields import (
     OrganizationFilteredPrimaryKeyRelatedField,
-    UsersFilteredByOrganizationField
+    UsersFilteredByOrganizationField,
 )
 from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.mixins import EagerLoadingMixin
@@ -297,7 +297,7 @@ class EscalationPolicyUpdateSerializer(EscalationPolicySerializer):
                     instance.notify_to_users_queue.clear()
                 if step not in [
                     EscalationPolicy.STEP_NOTIFY_TEAM_MEMBERS,
-                    EscalationPolicy.STEP_NOTIFY_TEAM_MEMBERS_IMPORTANT
+                    EscalationPolicy.STEP_NOTIFY_TEAM_MEMBERS_IMPORTANT,
                 ]:
                     instance.notify_to_team_members = None
                 if step not in [EscalationPolicy.STEP_NOTIFY_GROUP, EscalationPolicy.STEP_NOTIFY_GROUP_IMPORTANT]:

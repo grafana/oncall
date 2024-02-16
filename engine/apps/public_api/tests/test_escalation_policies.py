@@ -457,6 +457,7 @@ def test_update_escalation_policy_from_and_to_time(
         else:
             assert response.json()[field][0] == "Time has wrong format. Use one of these formats instead: hh:mm:ssZ."
 
+
 @pytest.mark.django_db
 def test_create_escalation_policy_using_notify_team_members(
     make_organization_and_user_with_token,
@@ -471,7 +472,7 @@ def test_create_escalation_policy_using_notify_team_members(
         "escalation_chain_id": escalation_chain.public_primary_key,
         "type": "notify_team_members",
         "position": 0,
-        "notify_to_team_members": team.team_id
+        "notify_to_team_members": team.team_id,
     }
 
     client = APIClient()

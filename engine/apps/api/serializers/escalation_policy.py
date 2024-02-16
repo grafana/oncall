@@ -6,7 +6,7 @@ from rest_framework import serializers
 from apps.alerts.models import CustomButton, EscalationChain, EscalationPolicy
 from apps.schedules.models import OnCallSchedule
 from apps.slack.models import SlackUserGroup
-from apps.user_management.models import User, Team
+from apps.user_management.models import Team, User
 from apps.webhooks.models import Webhook
 from common.api_helpers.custom_fields import (
     OrganizationFilteredPrimaryKeyRelatedField,

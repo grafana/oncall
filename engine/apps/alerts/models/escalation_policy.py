@@ -120,7 +120,10 @@ class EscalationPolicy(OrderedModel):
         # Common steps
         STEP_WAIT: ("Wait {{wait_delay}} minute(s)", "Wait"),
         STEP_NOTIFY_MULTIPLE_USERS: ("Start {{importance}} notification for {{users}}", "Notify users"),
-        STEP_NOTIFY_TEAM_MEMBERS: ("Start {{importance}} notification for {{team}} team members", "Notify all team members"),
+        STEP_NOTIFY_TEAM_MEMBERS: (
+            "Start {{importance}} notification for {{team}} team members",
+            "Notify all team members",
+        ),
         STEP_NOTIFY_SCHEDULE: (
             "Start {{importance}} notification for schedule {{schedule}}",
             "Notify users from on-call schedule",
@@ -391,7 +394,10 @@ class EscalationPolicy(OrderedModel):
             if self.notify_to_group:
                 result["user_group"] = self.notify_to_group.name
                 result["user_group_id"] = self.notify_to_group.public_primary_key
-        elif self.step in [EscalationPolicy.STEP_NOTIFY_TEAM_MEMBERS, EscalationPolicy.STEP_NOTIFY_TEAM_MEMBERS_IMPORTANT]:
+        elif self.step in [
+            EscalationPolicy.STEP_NOTIFY_TEAM_MEMBERS,
+            EscalationPolicy.STEP_NOTIFY_TEAM_MEMBERS_IMPORTANT,
+        ]:
             if self.notify_to_team_members:
                 result["team"] = self.notify_to_team_members.name
                 result["team_id"] = self.notify_to_team_members.public_primary_key

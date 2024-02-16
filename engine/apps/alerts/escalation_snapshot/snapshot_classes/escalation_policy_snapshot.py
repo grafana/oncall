@@ -15,7 +15,6 @@ from apps.alerts.tasks import (
     custom_webhook_result,
     notify_all_task,
     notify_group_task,
-    notify_team_members_task,
     notify_user_task,
     resolve_by_last_step_task,
 )
@@ -378,18 +377,39 @@ class EscalationPolicySnapshot:
             )
             log_record.save()
         else:
-            notify_team_members = notify_team_members_task.signature(
-                args=(
-                    self.notify_to_team_members.pk,
-                    alert_group.pk,
-                ),
-                kwargs={
-                    "reason": reason,
-                    "important": self.step == EscalationPolicy.STEP_NOTIFY_TEAM_MEMBERS_IMPORTANT,
-                },
-                immutable=True,
+            log_record = AlertGroupLogRecord(
+                type=AlertGroupLogRecord.TYPE_ESCALATION_TRIGGERED,
+                alert_group=alert_group,
+                reason=reason,
+                escalation_policy=self.escalation_policy,
+                escalation_policy_step=self.step,
+                step_specific_info={"team": self.notify_to_team_members.name},
             )
-            tasks.append(notify_team_members)
+            log_record.save()
+            self.notify_to_users_queue = self.notify_to_team_members.users.all()
+            reason = "user belongs to team {}".format(self.notify_to_team_members.name)
+            for notify_to_user in self.notify_to_users_queue:
+                notify_task = notify_user_task.signature(
+                    (
+                        notify_to_user.pk,
+                        alert_group.pk,
+                    ),
+                    {
+                        "reason": reason,
+                        "important": self.step == EscalationPolicy.STEP_NOTIFY_TEAM_MEMBERS_IMPORTANT,
+                    },
+                    immutable=True,
+                )
+                tasks.append(notify_task)
+                AlertGroupLogRecord.objects.create(
+                    type=AlertGroupLogRecord.TYPE_ESCALATION_TRIGGERED,
+                    author=notify_to_user,
+                    alert_group=alert_group,
+                    reason=reason,
+                    escalation_policy=self.escalation_policy,
+                    escalation_policy_step=self.step,
+                )
+
         self._execute_tasks(tasks)
 
     def _escalation_step_notify_if_time(self, alert_group: "AlertGroup", _reason: str) -> StepExecutionResultData:

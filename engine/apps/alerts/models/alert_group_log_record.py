@@ -520,7 +520,10 @@ class AlertGroupLogRecord(models.Model):
                 result += 'skipped escalation step "Notify Schedule" because it is not configured'
             elif self.escalation_error_code == AlertGroupLogRecord.ERROR_ESCALATION_NOTIFY_GROUP_STEP_IS_NOT_CONFIGURED:
                 result += 'skipped escalation step "Notify Group" because it is not configured'
-            elif self.escalation_error_code == AlertGroupLogRecord.ERROR_ESCALATION_NOTIFY_TEAM_MEMBERS_STEP_IS_NOT_CONFIGURED:
+            elif (
+                self.escalation_error_code
+                == AlertGroupLogRecord.ERROR_ESCALATION_NOTIFY_TEAM_MEMBERS_STEP_IS_NOT_CONFIGURED
+            ):
                 result += 'skipped escalation step "Notify Team Members" because it is not configured'
             elif (
                 self.escalation_error_code
