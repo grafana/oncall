@@ -71,7 +71,7 @@ interface IncidentsPageState {
   isFirstIncidentsFetchDone: boolean;
 }
 
-const POLLING_NUM_SECONDS = 5;
+const POLLING_NUM_SECONDS = 15;
 
 const PAGINATION_OPTIONS = [
   { label: '25', value: 25 },
