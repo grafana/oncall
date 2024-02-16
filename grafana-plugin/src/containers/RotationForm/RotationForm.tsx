@@ -708,7 +708,7 @@ export const RotationForm = observer((props: RotationFormProps) => {
   );
 
   function onResize() {
-    onHide(false);
+    onHide();
   }
 
   function onDraggableInit(_e: DraggableEvent, data: DraggableData) {

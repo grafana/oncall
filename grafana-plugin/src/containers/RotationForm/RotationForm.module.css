@@ -1,14 +1,11 @@
-.root {
-  max-height: 75vh;
-  overflow-y: auto;
-}
-
 .container {
   margin: 15px 0;
   padding: 15px 0;
   border-top: var(--border-medium);
   border-bottom: var(--border-medium);
   width: 100%;
+  max-height: 56vh;
+  overflow-y: auto;
 }
 
 .override-form-content {
@@ -98,4 +95,22 @@
 .updated-shift-info {
   margin-bottom: 10px;
   width: 100%;
+}
+
+@media (max-height: 768px) {
+  .container {
+    max-height: 45vh;
+  }
+}
+
+@media (max-height: 868px) {
+  .container {
+    max-height: 48vh;
+  }
+}
+
+@media (max-height: 968px) {
+  .container {
+    max-height: 52vh;
+  }
 }
