@@ -23,10 +23,10 @@ class KaveNegarPhoneProvider(PhoneProvider):
     def __init__(self):
         
         self.api=KavenegarAPI(
-        settings.KAVENEGAR_SETTING.get('api-key')
+        settings.KAVENEGAR_API_KEY
         )
         
-        self.verification_sms_template=settings.KAVENEGAR_SETTING.get('verification_sms_template')
+        self.verification_sms_template=settings.KAVENEGAR_VERIFICATION_SMS_TEMPLATE
         
     def make_notification_call(self, number: str, text: str):
         self.make_call(number, text)
@@ -41,7 +41,7 @@ class KaveNegarPhoneProvider(PhoneProvider):
         }
         try:
             response = self.api.call_maketts(params)
-            # TODO : maybe save the response
+            logger.info(f"KaveNegarPhoneProvider.make_call: {response.data}")
 
         
         except Exception as e:
@@ -56,7 +56,7 @@ class KaveNegarPhoneProvider(PhoneProvider):
         }
         try:
             response = self.api.sms_send(params)
-            # TODO : maybe save the response
+            logger.info(f"KaveNegarPhoneProvider.make_call: {response.data}")
         
         except Exception as e:
             logger.error(f"KaveNegarPhoneProvider.send_sms: failed {e}")
@@ -75,8 +75,7 @@ class KaveNegarPhoneProvider(PhoneProvider):
         
         try:
             response = self.api.verify_lookup(params)
-            print(response)
-            # TODO : maybe save the response
+            logger.info(f"KaveNegarPhoneProvider.make_call: {response.data}")
             
         except Exception as e:
             logger.error(f"KaveNegarPhoneProvider.send_verification_sms: failed {e}")
