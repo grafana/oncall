@@ -1,6 +1,7 @@
 import time
 from datetime import timedelta
 
+from django.utils.functional import cached_property
 from rest_framework import serializers
 
 from apps.alerts.models import CustomButton, EscalationChain, EscalationPolicy
@@ -25,6 +26,7 @@ NUM_ALERTS_IN_WINDOW = "num_alerts_in_window"
 NUM_MINUTES_IN_WINDOW = "num_minutes_in_window"
 CUSTOM_BUTTON_TRIGGER = "custom_button_trigger"
 CUSTOM_WEBHOOK_TRIGGER = "custom_webhook"
+RUN_FROM_STAGE = "run_from_stage"
 
 STEP_TYPE_TO_RELATED_FIELD_MAP = {
     EscalationPolicy.STEP_WAIT: [WAIT_DELAY],
@@ -37,6 +39,7 @@ STEP_TYPE_TO_RELATED_FIELD_MAP = {
     EscalationPolicy.STEP_NOTIFY_IF_NUM_ALERTS_IN_TIME_WINDOW: [NUM_ALERTS_IN_WINDOW, NUM_MINUTES_IN_WINDOW],
     EscalationPolicy.STEP_TRIGGER_CUSTOM_BUTTON: [CUSTOM_BUTTON_TRIGGER],
     EscalationPolicy.STEP_TRIGGER_CUSTOM_WEBHOOK: [CUSTOM_WEBHOOK_TRIGGER],
+    EscalationPolicy.STEP_RUN_ESCALATION_FROM_STAGE_N_TIMES: [RUN_FROM_STAGE],
 }
 
 
@@ -107,6 +110,7 @@ class EscalationPolicySerializer(EagerLoadingMixin, serializers.ModelSerializer)
             "notify_to_group",
             "notify_to_team_members",
             "important",
+            "run_from_stage",
         ]
 
     SELECT_RELATED = [
@@ -118,6 +122,16 @@ class EscalationPolicySerializer(EagerLoadingMixin, serializers.ModelSerializer)
         "custom_webhook",
     ]
     PREFETCH_RELATED = ["notify_to_users_queue"]
+
+    @cached_property
+    def escalation_chain_record(self):
+        if self.instance is not None:
+            escalation_chain = self.instance.escalation_chain
+        else:
+            escalation_chain = EscalationChain.objects.get(
+                public_primary_key=self.initial_data["escalation_chain"],
+            )
+        return escalation_chain
 
     def validate(self, data):
         fields_to_check = [
@@ -132,6 +146,7 @@ class EscalationPolicySerializer(EagerLoadingMixin, serializers.ModelSerializer)
             NUM_MINUTES_IN_WINDOW,
             CUSTOM_BUTTON_TRIGGER,
             CUSTOM_WEBHOOK_TRIGGER,
+            RUN_FROM_STAGE,
         ]
 
         step = data.get("step")
@@ -162,14 +177,27 @@ class EscalationPolicySerializer(EagerLoadingMixin, serializers.ModelSerializer)
             raise serializers.ValidationError("Invalid escalation step type: step is Slack-specific")
         return step_type
 
+    def validate_run_from_stage(self, run_from_stage):
+        step = self.initial_data.get("step")
+        escalation_policy_count = self.escalation_chain_record.escalation_policies.count()
+        if step == EscalationPolicy.STEP_RUN_ESCALATION_FROM_STAGE_N_TIMES and (
+            run_from_stage > escalation_policy_count - 1 or run_from_stage < 0
+        ):
+            raise serializers.ValidationError(f"Invalid value in {RUN_FROM_STAGE} for step {step}")
+        return run_from_stage
+
     def to_internal_value(self, data):
         data = self._wait_delay_to_internal_value(data)
+        if data.get(RUN_FROM_STAGE, None) is not None:
+            data[RUN_FROM_STAGE] -= 1
         return super().to_internal_value(data)
 
     def to_representation(self, instance):
         step = instance.step
         result = super().to_representation(instance)
         result = EscalationPolicySerializer._get_important_field(step, result)
+        if result.get(RUN_FROM_STAGE, None) is not None:
+            result[RUN_FROM_STAGE] += 1
         return result
 
     @staticmethod
@@ -241,6 +269,7 @@ class EscalationPolicyUpdateSerializer(EscalationPolicySerializer):
             NUM_MINUTES_IN_WINDOW,
             CUSTOM_BUTTON_TRIGGER,
             CUSTOM_WEBHOOK_TRIGGER,
+            RUN_FROM_STAGE,
         ]
 
         for f in STEP_TYPE_TO_RELATED_FIELD_MAP.get(step, []):

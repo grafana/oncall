@@ -109,6 +109,7 @@ class EscalationPolicySerializer(EagerLoadingMixin, OrderedModelSerializer):
             "notify_if_time_to",
             "num_alerts_in_window",
             "num_minutes_in_window",
+            "run_from_stage",
         ]
 
     PREFETCH_RELATED = ["notify_to_users_queue"]
@@ -130,6 +131,15 @@ class EscalationPolicySerializer(EagerLoadingMixin, OrderedModelSerializer):
 
         return step_type
 
+    def validate_run_from_stage(self, run_from_stage):
+        step_type = self.initial_data.get("type")
+        escalation_policy_count = self.escalation_chain.escalation_policies.count()
+        if step_type == EscalationPolicy.PUBLIC_STEP_CHOICES_MAP[
+            EscalationPolicy.STEP_RUN_ESCALATION_FROM_STAGE_N_TIMES
+        ] and (run_from_stage > escalation_policy_count - 1 or run_from_stage < 0):
+            raise serializers.ValidationError(f"Invalid value in run_from_stage for step {step_type}")
+        return run_from_stage
+
     def create(self, validated_data):
         validated_data = self._correct_validated_data(validated_data)
         return super().create(validated_data)
@@ -140,6 +150,8 @@ class EscalationPolicySerializer(EagerLoadingMixin, OrderedModelSerializer):
         result = self._get_field_to_represent(step, result)
         if "duration" in result and result["duration"] is not None:
             result["duration"] = result["duration"].seconds
+        if "run_from_stage" in result and result["run_from_stage"] is not None:
+            result["run_from_stage"] += 1
         return result
 
     def to_internal_value(self, data):
@@ -155,6 +167,8 @@ class EscalationPolicySerializer(EagerLoadingMixin, OrderedModelSerializer):
             data["persons_to_notify"] = []
         if data.get("persons_to_notify_next_each_time", []) is None:  # terraform case
             data["persons_to_notify_next_each_time"] = []
+        if data.get("run_from_stage", None) is not None:
+            data["run_from_stage"] -= 1
         return super().to_internal_value(data)
 
     def _get_field_to_represent(self, step, result):
@@ -171,6 +185,7 @@ class EscalationPolicySerializer(EagerLoadingMixin, OrderedModelSerializer):
             "notify_if_time_to",
             "num_alerts_in_window",
             "num_minutes_in_window",
+            "run_from_stage",
         ]
         if step == EscalationPolicy.STEP_WAIT:
             fields_to_remove.remove("duration")
@@ -198,6 +213,8 @@ class EscalationPolicySerializer(EagerLoadingMixin, OrderedModelSerializer):
         elif step == EscalationPolicy.STEP_NOTIFY_IF_NUM_ALERTS_IN_TIME_WINDOW:
             fields_to_remove.remove("num_alerts_in_window")
             fields_to_remove.remove("num_minutes_in_window")
+        elif step == EscalationPolicy.STEP_RUN_ESCALATION_FROM_STAGE_N_TIMES:
+            fields_to_remove.remove("run_from_stage")
 
         if (
             step in EscalationPolicy.DEFAULT_TO_IMPORTANT_STEP_MAPPING
@@ -222,6 +239,7 @@ class EscalationPolicySerializer(EagerLoadingMixin, OrderedModelSerializer):
             "to_time",
             "num_alerts_in_window",
             "num_minutes_in_window",
+            "run_from_stage",
         ]
         step = validated_data.get("step")
         important = validated_data.pop("important", None)
@@ -254,6 +272,8 @@ class EscalationPolicySerializer(EagerLoadingMixin, OrderedModelSerializer):
         elif step == EscalationPolicy.STEP_NOTIFY_IF_NUM_ALERTS_IN_TIME_WINDOW:
             validated_data_fields_to_remove.remove("num_alerts_in_window")
             validated_data_fields_to_remove.remove("num_minutes_in_window")
+        elif step == EscalationPolicy.STEP_RUN_ESCALATION_FROM_STAGE_N_TIMES:
+            validated_data_fields_to_remove.remove("run_from_stage")
 
         for field in validated_data_fields_to_remove:
             validated_data.pop(field, None)
@@ -312,5 +332,7 @@ class EscalationPolicyUpdateSerializer(EscalationPolicySerializer):
                 if step != EscalationPolicy.STEP_NOTIFY_IF_NUM_ALERTS_IN_TIME_WINDOW:
                     instance.num_alerts_in_window = None
                     instance.num_minutes_in_window = None
+                if step != EscalationPolicy.STEP_RUN_ESCALATION_FROM_STAGE_N_TIMES:
+                    instance.run_from_stage = None
 
         return super().update(instance, validated_data)

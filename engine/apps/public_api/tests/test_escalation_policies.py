@@ -27,6 +27,11 @@ def escalation_policies_setup():
             step=EscalationPolicy.STEP_NOTIFY_MULTIPLE_USERS,
         )
 
+        escalation_policy_run_from_stage = escalation_chain.escalation_policies.create(
+            step=EscalationPolicy.STEP_RUN_ESCALATION_FROM_STAGE_N_TIMES,
+            run_from_stage=1,
+        )
+
         escalation_policy_notify_persons_payload = {
             "id": escalation_policy_notify_persons.public_primary_key,
             "escalation_chain_id": escalation_policy_notify_persons.escalation_chain.public_primary_key,
@@ -44,6 +49,14 @@ def escalation_policies_setup():
             "duration": timezone.timedelta(seconds=300).seconds,
         }
 
+        escalation_policy_run_from_stage_payload = {
+            "id": escalation_policy_run_from_stage.public_primary_key,
+            "escalation_chain_id": escalation_policy_run_from_stage.escalation_chain.public_primary_key,
+            "position": escalation_policy_run_from_stage.order,
+            "type": "run_escalation_from_stage",
+            "run_from_stage": 2,
+        }
+
         escalation_policy_notify_persons_empty_payload = {
             "id": escalation_policy_notify_persons_empty.public_primary_key,
             "escalation_chain_id": escalation_policy_notify_persons_empty.escalation_chain.public_primary_key,
@@ -54,13 +67,14 @@ def escalation_policies_setup():
         }
 
         escalation_policies_payload = {
-            "count": 3,
+            "count": 4,
             "next": None,
             "previous": None,
             "results": [
                 escalation_policy_notify_persons_payload,
                 escalation_policy_wait_payload,
                 escalation_policy_notify_persons_empty_payload,
+                escalation_policy_run_from_stage_payload,
             ],
             "current_page_number": 1,
             "page_size": 50,
@@ -68,7 +82,12 @@ def escalation_policies_setup():
         }
         return (
             escalation_chain,
-            (escalation_policy_notify_persons, escalation_policy_wait, escalation_policy_notify_persons_empty),
+            (
+                escalation_policy_notify_persons,
+                escalation_policy_wait,
+                escalation_policy_notify_persons_empty,
+                escalation_policy_run_from_stage,
+            ),
             escalation_policies_payload,
         )
 
@@ -159,7 +178,7 @@ def test_create_escalation_policy_manual_order_duplicated_position(
     data_for_create = {
         "escalation_chain_id": escalation_chain.public_primary_key,
         "type": "notify_person_next_each_time",
-        "position": 0,
+        "position": 1,
         "persons_to_notify_next_each_time": [user.public_primary_key],
         "manual_order": True,
     }
@@ -169,13 +188,13 @@ def test_create_escalation_policy_manual_order_duplicated_position(
     response = client.post(url, data=data_for_create, format="json", HTTP_AUTHORIZATION=token)
 
     assert response.status_code == status.HTTP_201_CREATED
-    assert response.data["position"] == 0
+    assert response.data["position"] == 1
 
     for escalation_policy in escalation_policies:
         escalation_policy.refresh_from_db()
 
     orders = [escalation_policy.order for escalation_policy in escalation_policies]
-    assert orders == [3, 1, 2]  # Check orders are swapped when manual_order is True
+    assert orders == [0, 4, 2, 3]  # Check orders are swapped when manual_order is True
 
 
 @pytest.mark.django_db
@@ -204,7 +223,7 @@ def test_create_escalation_policy_no_manual_order_duplicated_position(
         escalation_policy.refresh_from_db()
 
     orders = [escalation_policy.order for escalation_policy in escalation_policies]
-    assert orders == [1, 2, 3]  # Check policies are moved down manual_order is False
+    assert orders == [1, 2, 3, 4]  # Check policies are moved down manual_order is False
 
 
 @pytest.mark.django_db
@@ -307,7 +326,7 @@ def test_update_escalation_policy_manual_order_duplicated_position(
         escalation_policy.refresh_from_db()
 
     orders = [escalation_policy.order for escalation_policy in escalation_policies]
-    assert orders == [1, 0, 2]  # Check orders are swapped when manual_order is True
+    assert orders == [1, 0, 2, 3]  # Check orders are swapped when manual_order is True
 
 
 @pytest.mark.django_db
@@ -336,6 +355,59 @@ def test_create_escalation_policy_using_webhooks(
     escalation_policy = EscalationPolicy.objects.get(public_primary_key=response.data["id"])
     serializer = EscalationPolicySerializer(escalation_policy)
     assert response.data == serializer.data
+
+
+@pytest.mark.django_db
+def test_create_escalation_policy_using_run_from_stage(
+    make_organization_and_user_with_token,
+    escalation_policies_setup,
+):
+    organization, user, token = make_organization_and_user_with_token()
+    escalation_chain, _, _ = escalation_policies_setup(organization, user)
+
+    data_for_create = {
+        "escalation_chain_id": escalation_chain.public_primary_key,
+        "type": "run_escalation_from_stage",
+        "position": 0,
+        "run_from_stage": 2,
+    }
+
+    client = APIClient()
+    url = reverse("api-public:escalation_policies-list")
+    response = client.post(url, data=data_for_create, format="json", HTTP_AUTHORIZATION=token)
+
+    assert response.status_code == status.HTTP_201_CREATED
+
+    escalation_policy = EscalationPolicy.objects.get(public_primary_key=response.data["id"])
+    serializer = EscalationPolicySerializer(escalation_policy)
+    assert response.data == serializer.data
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "run_from_stage",
+    [0, 10],
+)
+def test_cannot_create_escalation_policy_with_invalid_run_from_stage(
+    make_organization_and_user_with_token,
+    escalation_policies_setup,
+    run_from_stage,
+):
+    organization, user, token = make_organization_and_user_with_token()
+    escalation_chain, _, _ = escalation_policies_setup(organization, user)
+
+    data_for_create = {
+        "escalation_chain_id": escalation_chain.public_primary_key,
+        "type": "run_escalation_from_stage",
+        "position": 0,
+        "run_from_stage": run_from_stage,
+    }
+
+    client = APIClient()
+    url = reverse("api-public:escalation_policies-list")
+    response = client.post(url, data=data_for_create, format="json", HTTP_AUTHORIZATION=token)
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
 
 
 @pytest.mark.django_db
