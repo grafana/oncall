@@ -19,9 +19,11 @@ logger = logging.getLogger(__name__)
 
 
 class KaveNegarPhoneProvider(PhoneProvider):
+    """Custom phone provider class that uses kavenegar."""
     
     def __init__(self):
         
+        # setting api key and sms template
         self.api=KavenegarAPI(
         settings.KAVENEGAR_API_KEY
         )
@@ -63,7 +65,9 @@ class KaveNegarPhoneProvider(PhoneProvider):
             raise FailedToSendSMS
 
     def send_verification_sms(self, number: str):
+        # generating random code
         code = str(randint(100000, 999999))
+        # cache the code
         cache.set(self._cache_key(number), code, timeout=10 * 60)
             
         params={
@@ -82,21 +86,8 @@ class KaveNegarPhoneProvider(PhoneProvider):
             raise FailedToStartVerification
     
 
-    # def make_verification_call(self, number: str):
-    #     """
-    #     make_verification_call starts phone number verification by calling to user
-
-    #     Args:
-    #         number: number to verify
-
-    #     Raises:
-    #         FailedToStartVerification: if some exception in external provider occurred
-    #         ProviderNotSupports: if concrete provider not phone number verification via call
-    #     """
-    #     raise ProviderNotSupports
-
     def finish_verification(self, number: str, code: str):
-        
+        """compare and checking users entered verification code with cached code"""
         has = cache.get(self._cache_key(number))
         if has is not None and has == code:
             return number
@@ -110,6 +101,7 @@ class KaveNegarPhoneProvider(PhoneProvider):
 
     @property
     def flags(self) -> ProviderFlags:
+        """specifies available features of this provider"""
         return ProviderFlags(
             configured=True,
             test_sms=True,
