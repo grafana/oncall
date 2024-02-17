@@ -2,7 +2,7 @@ from kavenegar import *
 
 import typing
 import logging
-from django.conf import settings
+from apps.base.utils import live_settings
 from apps.base.models import LiveSetting
 from apps.base.utils import live_settings
 from apps.phone_notifications.exceptions import (
@@ -25,10 +25,10 @@ class KaveNegarPhoneProvider(PhoneProvider):
         
         # setting api key and sms template
         self.api=KavenegarAPI(
-        settings.KAVENEGAR_API_KEY
+        live_settings.KAVENEGAR_API_KEY
         )
         
-        self.verification_sms_template=settings.KAVENEGAR_VERIFICATION_SMS_TEMPLATE
+        self.verification_sms_template=live_settings.KAVENEGAR_VERIFICATION_SMS_TEMPLATE
         
     def make_notification_call(self, number: str, text: str):
         self.make_call(number, text)
@@ -43,7 +43,7 @@ class KaveNegarPhoneProvider(PhoneProvider):
         }
         try:
             response = self.api.call_maketts(params)
-            logger.info(f"KaveNegarPhoneProvider.make_call: {response.data}")
+            logger.info(f"KaveNegarPhoneProvider.make_call: {response}")
 
         
         except Exception as e:
@@ -58,7 +58,7 @@ class KaveNegarPhoneProvider(PhoneProvider):
         }
         try:
             response = self.api.sms_send(params)
-            logger.info(f"KaveNegarPhoneProvider.make_call: {response.data}")
+            logger.info(f"KaveNegarPhoneProvider.make_call: {response}")
         
         except Exception as e:
             logger.error(f"KaveNegarPhoneProvider.send_sms: failed {e}")
@@ -79,7 +79,7 @@ class KaveNegarPhoneProvider(PhoneProvider):
         
         try:
             response = self.api.verify_lookup(params)
-            logger.info(f"KaveNegarPhoneProvider.make_call: {response.data}")
+            logger.info(f"KaveNegarPhoneProvider.send_verification_sms: {response}")
             
         except Exception as e:
             logger.error(f"KaveNegarPhoneProvider.send_verification_sms: failed {e}")
