@@ -280,6 +280,7 @@ INSTALLED_APPS = [
     "django_dbconn_retry",
     "apps.phone_notifications",
     "drf_spectacular",
+    "apps.kavenegarphonecall"
 ]
 
 REST_FRAMEWORK = {
@@ -850,7 +851,5 @@ DETACHED_INTEGRATIONS_SERVER = getenv_boolean("DETACHED_INTEGRATIONS_SERVER", de
 
 ACKNOWLEDGE_REMINDER_TASK_EXPIRY_DAYS = os.environ.get("ACKNOWLEDGE_REMINDER_TASK_EXPIRY_DAYS", default=14)
 
-KAVENEGAR_SETTING={
-    'api-key':os.environ.get("KAVENEGAR_API_KEY", None),
-    'verification_sms_template':os.environ.get("KAVENEGAR_API_KEY", None),
-}
+KAVENEGAR_API_KEY=os.environ.get("KAVENEGAR_API_KEY", None)
+KAVENEGAR_VERIFICATION_SMS_TEMPLATE=os.environ.get("KAVENEGAR_VERIFICATION_SMS_TEMPLATE", None)

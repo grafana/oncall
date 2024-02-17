@@ -71,6 +71,8 @@ class LiveSetting(models.Model):
         "ZVONOK_POSTBACK_USER_CHOICE",
         "ZVONOK_POSTBACK_USER_CHOICE_ACK",
         "ZVONOK_VERIFICATION_TEMPLATE",
+        "KAVENEGAR_API_KEY",
+        "KAVENEGAR_VERIFICATION_SMS_TEMPLATE",
     )
 
     DESCRIPTIONS = {
@@ -169,6 +171,8 @@ class LiveSetting(models.Model):
         "ZVONOK_POSTBACK_USER_CHOICE": "'Postback' user choice (ct_user_choice) query parameter name (optional).",
         "ZVONOK_POSTBACK_USER_CHOICE_ACK": "'Postback' user choice (ct_user_choice) query parameter value for acknowledge alert group (optional).",
         "ZVONOK_VERIFICATION_TEMPLATE": "The message template used for phone number verification (optional).",
+        "KAVENEGAR_API_KEY": "your kavenegar accounts api key",
+        "KAVENEGAR_VERIFICATION_SMS_TEMPLATE": "Template that you defined for verification with sms.(it shoud be in this format: *%token*)",
     }
 
     SECRET_SETTING_NAMES = (
@@ -185,6 +189,8 @@ class LiveSetting(models.Model):
         "TELEGRAM_TOKEN",
         "GRAFANA_CLOUD_ONCALL_TOKEN",
         "ZVONOK_API_KEY",
+        "KAVENEGAR_API_KEY",
+        "KAVENEGAR_VERIFICATION_SMS_TEMPLATE",
     )
 
     def __str__(self):
