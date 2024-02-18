@@ -618,6 +618,8 @@ when broker.type != rabbitmq, we do not need to include rabbitmq environment var
       optional: true
 - name: EMAIL_USE_TLS
   value: {{ .Values.oncall.smtp.tls | default true | toString | title | quote }}
+- name: EMAIL_USE_SSL
+  value: {{ .Values.oncall.smtp.ssl | default false | toString | title | quote }}
 - name: EMAIL_FROM_ADDRESS
   value: {{ .Values.oncall.smtp.fromEmail | quote }}
 - name: EMAIL_NOTIFICATIONS_LIMIT
