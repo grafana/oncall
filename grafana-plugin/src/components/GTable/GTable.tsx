@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo, ChangeEvent, ReactElement } from 'react';
 
-import { Pagination, Checkbox, Icon, LoadingPlaceholder } from '@grafana/ui';
+import { Pagination, Checkbox, Icon } from '@grafana/ui';
 import cn from 'classnames/bind';
 import Table from 'rc-table';
 import { TableProps } from 'rc-table/lib/Table';
