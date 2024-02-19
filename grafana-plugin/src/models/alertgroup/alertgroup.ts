@@ -29,9 +29,6 @@ export class AlertGroupStore extends BaseStore {
   searchResult: { [key: string]: Array<Alert['pk']> } = {};
 
   @observable
-  alertGroupsLoading = false;
-
-  @observable
   incidentFilters: any;
 
   initialQuery = qs.parse(window.location.search);
@@ -69,6 +66,9 @@ export class AlertGroupStore extends BaseStore {
 
   @observable
   liveUpdatesPaused = false;
+
+  @observable
+  latestFetchAlertGroupsTimestamp: number;
 
   @observable
   columns: AlertGroupColumn[] = [];
@@ -231,17 +231,14 @@ export class AlertGroupStore extends BaseStore {
     });
   }
 
-  // methods were moved from rootBaseStore.
-  // TODO check if methods are dublicating existing ones
-  async updateIncidents() {
+  async fetchIncidentsAndStats(isPollingJob = false) {
     await Promise.all([
       this.getNewIncidentsStats(),
       this.getAcknowledgedIncidentsStats(),
       this.getResolvedIncidentsStats(),
       this.getSilencedIncidentsStats(),
-      this.updateAlertGroups(),
+      this.fetchAlertGroups(isPollingJob),
     ]);
-
     this.setLiveUpdatesPaused(false);
   }
 
@@ -251,21 +248,20 @@ export class AlertGroupStore extends BaseStore {
   }
 
   @action
-  async updateIncidentFilters(params: any, keepCursor = false) {
+  @AutoLoadingState(ActionKey.UPDATE_FILTERS_AND_FETCH_INCIDENTS)
+  async updateIncidentFiltersAndRefetchIncidentsAndStats(params: any, keepCursor = false) {
     if (!keepCursor) {
       this.setIncidentsCursor(undefined);
     }
-
     this.incidentFilters = params;
-
-    await this.updateIncidents();
+    await this.fetchIncidentsAndStats();
   }
 
   @action
   async updateIncidentsCursor(cursor: string) {
     this.setIncidentsCursor(cursor);
 
-    this.updateAlertGroups();
+    this.fetchAlertGroups();
   }
 
   @action
@@ -279,13 +275,17 @@ export class AlertGroupStore extends BaseStore {
   async setIncidentsItemsPerPage() {
     this.setIncidentsCursor(undefined);
 
-    this.updateAlertGroups();
+    this.fetchAlertGroups();
   }
 
   @action.bound
-  async updateAlertGroups() {
-    this.alertGroupsLoading = true;
-
+  async fetchAlertGroups(isPollingJob = false) {
+    this.rootStore.loaderStore.setLoadingAction(
+      isPollingJob ? ActionKey.FETCH_INCIDENTS_POLLING : ActionKey.FETCH_INCIDENTS,
+      true
+    );
+    const timestamp = new Date().getTime();
+    this.latestFetchAlertGroupsTimestamp = timestamp;
     const {
       results,
       next: nextRaw,
@@ -306,12 +306,16 @@ export class AlertGroupStore extends BaseStore {
     const newAlerts = new Map(
       results.map((alert: Alert) => {
         const oldAlert = this.alerts.get(alert.pk) || {};
-        const mergedAlertData = { ...oldAlert, ...alert };
+        const mergedAlertData = { ...oldAlert, ...alert, undoAction: alert.undoAction };
         return [alert.pk, mergedAlertData];
       })
     );
 
     runInAction(() => {
+      // If previous fetch took longer than the next one, we ignore result of the previous fetch
+      if (timestamp !== this.latestFetchAlertGroupsTimestamp) {
+        return;
+      }
       // @ts-ignore
       this.alerts = new Map<number, Alert>([...this.alerts, ...newAlerts]);
 
@@ -321,8 +325,10 @@ export class AlertGroupStore extends BaseStore {
         results: results.map((alert: Alert) => alert.pk),
         page_size,
       };
-
-      this.alertGroupsLoading = false;
+      this.rootStore.loaderStore.setLoadingAction(
+        [ActionKey.FETCH_INCIDENTS, ActionKey.FETCH_INCIDENTS_POLLING],
+        false
+      );
     });
   }
 
