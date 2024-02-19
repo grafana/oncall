@@ -81,6 +81,11 @@
   max-width: 25%;
 }
 
+.loadingPlaceholder {
+  margin-bottom: 0;
+  text-align: center;
+}
+
 @media (max-width: 1200px) {
   .col {
     flex: 0 0 50%;

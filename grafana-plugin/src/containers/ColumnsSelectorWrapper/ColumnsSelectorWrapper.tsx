@@ -3,7 +3,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useStyles2, Button, HorizontalGroup, Icon, LoadingPlaceholder, Modal, VerticalGroup } from '@grafana/ui';
 import { observer } from 'mobx-react';
 
-import Text from 'components/Text/Text';
+import { Text } from 'components/Text/Text';
 import { ColumnsSelector, convertColumnsToTableSettings } from 'containers/ColumnsSelector/ColumnsSelector';
 import { getColumnsSelectorWrapperStyles } from 'containers/ColumnsSelectorWrapper/ColumnsSelectorWrapper.styles';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
@@ -11,20 +11,21 @@ import { AlertGroupColumn } from 'models/alertgroup/alertgroup.types';
 import { ActionKey } from 'models/loader/action-keys';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
-import { UserActions } from 'utils/authorization';
+import { UserActions } from 'utils/authorization/authorization';
 import { WrapAutoLoadingState, WrapWithGlobalNotification } from 'utils/decorators';
+import { useIsLoading } from 'utils/hooks';
 
 import { ColumnsModal } from './ColumnsModal';
 
 interface ColumnsSelectorWrapperProps {}
 
-const ColumnsSelectorWrapper: React.FC<ColumnsSelectorWrapperProps> = observer(() => {
+export const ColumnsSelectorWrapper: React.FC<ColumnsSelectorWrapperProps> = observer(() => {
   const [isConfirmRemovalModalOpen, setIsConfirmRemovalModalOpen] = useState(false);
   const [columnToBeRemoved, setColumnToBeRemoved] = useState<AlertGroupColumn>(undefined);
   const [isColumnAddModalOpen, setIsColumnAddModalOpen] = useState(false);
   const [isFloatingDisplayOpen, setIsFloatingDisplayOpen] = useState(false);
-
   const [labelKeys, setLabelKeys] = useState<Array<ApiSchemas['LabelKey']>>([]);
+  const isRemoveLoading = useIsLoading(ActionKey.REMOVE_COLUMN_FROM_ALERT_GROUP);
 
   const inputRef = useRef<HTMLInputElement>(null);
   const wrappingFloatingContainerRef = useRef<HTMLDivElement>(null);
@@ -48,8 +49,6 @@ const ColumnsSelectorWrapper: React.FC<ColumnsSelectorWrapperProps> = observer((
       document.removeEventListener('click', onFloatingDisplayClick);
     };
   }, []);
-
-  const isRemoveLoading = store.loaderStore.isLoading(ActionKey.REMOVE_COLUMN_FROM_ALERT_GROUP);
 
   return (
     <>
@@ -158,5 +157,3 @@ const ColumnsSelectorWrapper: React.FC<ColumnsSelectorWrapperProps> = observer((
 function forceOpenToggletip() {
   document.getElementById('toggletip-button')?.click();
 }
-
-export default ColumnsSelectorWrapper;

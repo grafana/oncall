@@ -3,6 +3,7 @@ from unittest.mock import call, patch
 import pytest
 from django.utils import timezone
 
+from apps.labels.client import LabelsRepoAPIException
 from apps.labels.models import LabelKeyCache, LabelValueCache
 from apps.labels.tasks import update_instances_labels_cache, update_labels_cache
 from apps.labels.utils import LABEL_OUTDATED_TIMEOUT_MINUTES
@@ -136,3 +137,26 @@ def test_update_instances_labels_cache_outdated(
     assert mock_get_label_by_key_id.called
     assert mock_update_cache.called
     assert mock_update_cache.call_args == call((label_option,))
+
+
+@pytest.mark.django_db
+def test_update_instances_labels_cache_error(
+    make_organization, make_alert_receive_channel, make_integration_label_association
+):
+    organization = make_organization()
+    alert_receive_channel = make_alert_receive_channel(organization)
+    label_association = make_integration_label_association(organization, alert_receive_channel)
+    outdated_last_synced = timezone.now() - timezone.timedelta(minutes=LABEL_OUTDATED_TIMEOUT_MINUTES + 1)
+
+    LabelKeyCache.objects.filter(id=label_association.key_id).update(last_synced=outdated_last_synced)
+    LabelValueCache.objects.filter(id=label_association.value_id).update(last_synced=outdated_last_synced)
+
+    with patch(
+        "apps.labels.client.LabelsAPIClient.get_label_by_key_id", side_effect=LabelsRepoAPIException("test", "test")
+    ) as mock_get_label_by_key_id:
+        with patch("apps.labels.tasks.update_labels_cache.apply_async") as mock_update_cache:
+            update_instances_labels_cache(
+                organization.id, [alert_receive_channel.id], alert_receive_channel._meta.model.__name__
+            )
+    mock_get_label_by_key_id.assert_called_once_with(label_association.key_id)
+    mock_update_cache.assert_not_called()

@@ -7,12 +7,12 @@ import { observer } from 'mobx-react';
 import hash from 'object-hash';
 
 import { ScheduleFiltersType } from 'components/ScheduleFilters/ScheduleFilters.types';
-import Text from 'components/Text/Text';
-import ScheduleSlot from 'containers/ScheduleSlot/ScheduleSlot';
+import { Text } from 'components/Text/Text';
+import { ScheduleSlot } from 'containers/ScheduleSlot/ScheduleSlot';
 import { Event, RotationFormLiveParams, ShiftSwap } from 'models/schedule/schedule.types';
 import { useStore } from 'state/useStore';
 
-import RotationTutorial from './RotationTutorial';
+import { RotationTutorial } from './RotationTutorial';
 
 import styles from './Rotation.module.css';
 
@@ -39,7 +39,7 @@ interface RotationProps {
   showScheduleNameAsSlotTitle?: boolean;
 }
 
-const Rotation: FC<RotationProps> = observer((props) => {
+export const Rotation: FC<RotationProps> = observer((props) => {
   const {
     timezoneStore: { calendarStartDate },
   } = useStore();
@@ -186,5 +186,3 @@ const Empty = ({ text }: { text: string }) => {
     </div>
   );
 };
-
-export default Rotation;

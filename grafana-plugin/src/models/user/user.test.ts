@@ -1,11 +1,11 @@
-import { makeRequest as makeRequestOriginal } from 'network';
-import { RootStore } from 'state';
+import { makeRequest as makeRequestOriginal } from 'network/network';
+import { RootStore } from 'state/rootStore';
 
 import { UserStore } from './user';
 
 const makeRequest = makeRequestOriginal as jest.Mock<ReturnType<typeof makeRequestOriginal>>;
 
-jest.mock('network');
+jest.mock('network/network');
 
 afterEach(() => {
   jest.resetAllMocks();

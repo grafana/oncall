@@ -8,6 +8,7 @@ from rest_framework.test import APIClient
 
 from apps.alerts.models import AlertReceiveChannel
 from apps.api.permissions import LegacyAccessControlRole
+from apps.api.serializers.user import UserHiddenFieldsSerializer
 from apps.schedules.models import CustomOnCallShift, OnCallScheduleCalendar, OnCallScheduleWeb
 from apps.user_management.models import Team
 from common.api_helpers.filters import NO_TEAM_VALUE
@@ -429,7 +430,11 @@ def test_team_permissions_not_in_team(
     url = reverse("api-internal:user-detail", kwargs={"pk": another_user.public_primary_key})
     response = client.get(url, **make_user_auth_headers(user, token))
 
-    assert response.status_code == status.HTTP_403_FORBIDDEN
+    assert response.status_code == status.HTTP_200_OK
+    user_details = response.json()
+    for f_name in user_details:
+        if f_name not in UserHiddenFieldsSerializer.fields_available_for_all_users:
+            user_details[f_name] = "******"
 
 
 @pytest.mark.django_db

@@ -30,9 +30,9 @@ import { TelegramChannelStore } from 'models/telegram_channel/telegram_channel';
 import { TimezoneStore } from 'models/timezone/timezone';
 import { UserStore } from 'models/user/user';
 import { UserGroupStore } from 'models/user_group/user_group';
-import { makeRequest } from 'network';
+import { makeRequest } from 'network/network';
 import { AppFeature } from 'state/features';
-import PluginState from 'state/plugin';
+import { PluginState } from 'state/plugin/plugin';
 import { retryFailingPromises } from 'utils/async';
 import {
   APP_VERSION,
@@ -42,7 +42,7 @@ import {
   GRAFANA_LICENSE_OSS,
   PLUGIN_ROOT,
 } from 'utils/consts';
-import FaroHelper from 'utils/faro';
+import { FaroHelper } from 'utils/faro';
 
 // ------ Dashboard ------ //
 
