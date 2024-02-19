@@ -37,17 +37,20 @@ def test_send_webhook_event_filters(
     other_organization = make_organization()
     alert_receive_channel = make_alert_receive_channel(organization)
     alert_group = make_alert_group(alert_receive_channel)
+    trigger_types = [t for t, _ in Webhook.TRIGGER_TYPES if t != Webhook.TRIGGER_STATUS_CHANGE]
 
     webhooks = {}
-    for trigger_type, _ in Webhook.TRIGGER_TYPES:
+    for trigger_type in trigger_types:
         webhooks[trigger_type] = make_custom_webhook(
             organization=organization, trigger_type=trigger_type, team=make_team(organization)
         )
 
-    for trigger_type, _ in Webhook.TRIGGER_TYPES:
+    for trigger_type in trigger_types:
         with patch("apps.webhooks.tasks.trigger_webhook.execute_webhook.apply_async") as mock_execute:
             send_webhook_event(trigger_type, alert_group.pk, organization_id=organization.pk)
-        assert mock_execute.call_args == call((webhooks[trigger_type].pk, alert_group.pk, None, None))
+        assert mock_execute.call_args == call(
+            (webhooks[trigger_type].pk, alert_group.pk, None, None), kwargs={"trigger_type": trigger_type}
+        )
 
     # other org
     other_org_webhook = make_custom_webhook(
@@ -58,7 +61,37 @@ def test_send_webhook_event_filters(
     alert_group = make_alert_group(alert_receive_channel)
     with patch("apps.webhooks.tasks.trigger_webhook.execute_webhook.apply_async") as mock_execute:
         send_webhook_event(Webhook.TRIGGER_ALERT_GROUP_CREATED, alert_group.pk, organization_id=other_organization.pk)
-    assert mock_execute.call_args == call((other_org_webhook.pk, alert_group.pk, None, None))
+    assert mock_execute.call_args == call(
+        (other_org_webhook.pk, alert_group.pk, None, None), kwargs={"trigger_type": Webhook.TRIGGER_ALERT_GROUP_CREATED}
+    )
+
+
+@pytest.mark.django_db
+def test_send_webhook_event_status_change(
+    make_organization, make_team, make_alert_receive_channel, make_alert_group, make_custom_webhook
+):
+    organization = make_organization()
+    alert_receive_channel = make_alert_receive_channel(organization)
+    alert_group = make_alert_group(alert_receive_channel)
+
+    webhooks = {}
+    for trigger_type, _ in Webhook.TRIGGER_TYPES:
+        webhooks[trigger_type] = make_custom_webhook(
+            organization=organization, trigger_type=trigger_type, team=make_team(organization)
+        )
+
+    for trigger_type in Webhook.STATUS_CHANGE_TRIGGERS:
+        with patch("apps.webhooks.tasks.trigger_webhook.execute_webhook.apply_async") as mock_execute:
+            send_webhook_event(trigger_type, alert_group.pk, organization_id=organization.pk)
+        # execute is called for the trigger type itself and the status change trigger too (with the original type passed)
+        assert mock_execute.call_count == 2
+        mock_execute.assert_any_call(
+            (webhooks[trigger_type].pk, alert_group.pk, None, None), kwargs={"trigger_type": trigger_type}
+        )
+        status_change_trigger_type = Webhook.TRIGGER_STATUS_CHANGE
+        mock_execute.assert_any_call(
+            (webhooks[status_change_trigger_type].pk, alert_group.pk, None, None), kwargs={"trigger_type": trigger_type}
+        )
 
 
 @pytest.mark.django_db
@@ -285,6 +318,10 @@ def test_execute_webhook_via_escalation_ok(
 
 
 @pytest.mark.django_db
+@pytest.mark.parametrize(
+    "webhook_trigger_type",
+    [Webhook.TRIGGER_ACKNOWLEDGE, Webhook.TRIGGER_STATUS_CHANGE],
+)
 def test_execute_webhook_ok_forward_all(
     make_organization,
     make_user_for_organization,
@@ -292,6 +329,7 @@ def test_execute_webhook_ok_forward_all(
     make_alert_group,
     make_user_notification_policy_log_record,
     make_custom_webhook,
+    webhook_trigger_type,
 ):
     organization = make_organization()
     user = make_user_for_organization(organization)
@@ -316,7 +354,7 @@ def test_execute_webhook_ok_forward_all(
         organization=organization,
         url="https://something/{{ alert_group_id }}/",
         http_method="POST",
-        trigger_type=Webhook.TRIGGER_ACKNOWLEDGE,
+        trigger_type=webhook_trigger_type,
         forward_all=True,
     )
 
@@ -325,7 +363,7 @@ def test_execute_webhook_ok_forward_all(
         mock_gethostbyname.return_value = "8.8.8.8"
         with patch("apps.webhooks.models.webhook.requests") as mock_requests:
             mock_requests.post.return_value = mock_response
-            execute_webhook(webhook.pk, alert_group.pk, user.pk, None)
+            execute_webhook(webhook.pk, alert_group.pk, user.pk, None, trigger_type=Webhook.TRIGGER_ACKNOWLEDGE)
 
     assert mock_requests.post.called
     expected_data = {
