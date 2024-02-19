@@ -2,7 +2,15 @@ import React, { SyntheticEvent } from 'react';
 
 import { SelectableValue } from '@grafana/data';
 import { LabelTag } from '@grafana/labels';
-import { Button, HorizontalGroup, Icon, RadioButtonGroup, Tooltip, VerticalGroup } from '@grafana/ui';
+import {
+  Button,
+  HorizontalGroup,
+  Icon,
+  LoadingPlaceholder,
+  RadioButtonGroup,
+  Tooltip,
+  VerticalGroup,
+} from '@grafana/ui';
 import cn from 'classnames/bind';
 import { capitalize } from 'lodash-es';
 import { observer } from 'mobx-react';
@@ -303,7 +311,13 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
   renderIncidentFilters() {
     const { query, store } = this.props;
     return (
-      <div className={cx('filters')}>
+      <div
+        className={
+          LoaderHelper.isLoading(store.loaderStore, ActionKey.FETCH_INCIDENTS)
+            ? cx('filtersTableLoading')
+            : cx('filters')
+        }
+      >
         <RemoteFilters
           query={query}
           page={PAGE.Incidents}
@@ -538,10 +552,10 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
 
     return (
       <div className={cx('root')} ref={this.rootElRef}>
+        {isLoading && <LoadingPlaceholder text="Loading..." className={cx('loadingPlaceholder')} />}
         {this.renderBulkActions()}
         <GTable
           emptyText={isLoading ? 'Loading...' : 'No alert groups found'}
-          loading={isLoading}
           className={cx({ 'horizontal-scroll-table': isHorizontalScrolling })}
           rowSelection={{
             selectedRowKeys: selectedIncidentIds,

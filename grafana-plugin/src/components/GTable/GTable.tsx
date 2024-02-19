@@ -11,7 +11,6 @@ import styles from './GTable.module.css';
 const cx = cn.bind(styles);
 
 export interface Props<RecordType = unknown> extends TableProps<RecordType> {
-  loading?: boolean;
   pagination?: {
     page: number;
     total: number;
@@ -38,7 +37,6 @@ export const GTable = <RT extends DefaultRecordType = DefaultRecordType>(props: 
     data,
     className,
     pagination,
-    loading,
     rowSelection,
     rowKey,
     expandable,
@@ -140,25 +138,19 @@ export const GTable = <RT extends DefaultRecordType = DefaultRecordType>(props: 
 
   return (
     <div className={cx('root')} data-testid="test__gTable">
-      {loading ? (
-        <LoadingPlaceholder text="Loading..." />
-      ) : (
-        <>
-          <Table<RT>
-            expandable={expandable}
-            rowKey={rowKey}
-            className={cx('filter-table', className)}
-            columns={columns}
-            data={data}
-            showHeader={showHeader}
-            {...restProps}
-          />
-          {pagination && (
-            <div className={cx('pagination')}>
-              <Pagination hideWhenSinglePage currentPage={page} numberOfPages={numberOfPages} onNavigate={onNavigate} />
-            </div>
-          )}
-        </>
+      <Table<RT>
+        expandable={expandable}
+        rowKey={rowKey}
+        className={cx('filter-table', className)}
+        columns={columns}
+        data={data}
+        showHeader={showHeader}
+        {...restProps}
+      />
+      {pagination && (
+        <div className={cx('pagination')}>
+          <Pagination hideWhenSinglePage currentPage={page} numberOfPages={numberOfPages} onNavigate={onNavigate} />
+        </div>
       )}
     </div>
   );
