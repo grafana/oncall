@@ -3,22 +3,18 @@ import { SceneFlexItem, SceneQueryRunner, VizPanel } from '@grafana/scenes';
 
 import { InsightsConfig } from 'pages/insights/Insights.types';
 
-export default function getNewAlertGroupsNotificationsDuringTimePeriodScene({ datasource }: InsightsConfig) {
+export function getMTTRChangedTimeseriesScene({ datasource, stack }: InsightsConfig) {
   const query = new SceneQueryRunner({
     datasource,
     queries: [
       {
-        disableTextWrap: false,
         editorMode: 'code',
-        excludeNullMetadata: false,
         exemplar: false,
-        expr: 'increase(max_over_time(sum by (username) (avg without(pod, instance) ($user_was_notified_of_alert_groups_total{slug=~"$stack"}))[30m:])[1h:])',
-        fullMetaSearch: false,
+        expr: `avg(sum($alert_groups_response_time_seconds_sum{slug=~"${stack}", team=~"$team", integration=~"$integration"}) / sum($alert_groups_response_time_seconds_count{slug=~"${stack}", team=~"$team", integration=~"$integration"}))`,
         instant: false,
         legendFormat: '__auto',
         range: true,
         refId: 'A',
-        useBackend: false,
       },
     ],
   });
@@ -26,12 +22,14 @@ export default function getNewAlertGroupsNotificationsDuringTimePeriodScene({ da
   return new SceneFlexItem({
     $data: query,
     body: new VizPanel({
-      title: 'New alert groups notifications during time period',
+      title: 'Mean time to respond (MTTR) changed',
       pluginId: 'timeseries',
       fieldConfig: {
         defaults: {
           color: {
-            mode: 'palette-classic',
+            fixedColor: 'green',
+            mode: 'fixed',
+            seriesBy: 'min',
           },
           custom: {
             axisCenteredZero: false,
@@ -40,14 +38,13 @@ export default function getNewAlertGroupsNotificationsDuringTimePeriodScene({ da
             axisPlacement: 'auto',
             barAlignment: 0,
             drawStyle: 'line',
-            fillOpacity: 80,
+            fillOpacity: 54,
             gradientMode: 'opacity',
             hideFrom: {
               legend: false,
               tooltip: false,
               viz: false,
             },
-            insertNulls: false,
             lineInterpolation: 'linear',
             lineStyle: {
               fill: 'solid',
@@ -58,45 +55,37 @@ export default function getNewAlertGroupsNotificationsDuringTimePeriodScene({ da
               type: 'linear',
             },
             showPoints: 'auto',
-            spanNulls: false,
+            spanNulls: true,
             stacking: {
               group: 'A',
-              mode: 'normal',
+              mode: 'none',
             },
             thresholdsStyle: {
               mode: 'off',
             },
           },
-          decimals: 0,
           mappings: [],
           thresholds: {
             mode: ThresholdsMode.Absolute,
             steps: [
               {
-                color: 'green',
-                value: null,
+                color: 'text',
+                value: 0,
               },
             ],
           },
+          unit: 's',
         },
         overrides: [
           {
             matcher: {
-              id: 'byValue',
-              options: {
-                op: 'gte',
-                reducer: 'allIsZero',
-                value: 0,
-              },
+              id: 'byName',
+              options: 'Value',
             },
             properties: [
               {
-                id: 'custom.hideFrom',
-                value: {
-                  legend: true,
-                  tooltip: true,
-                  viz: true,
-                },
+                id: 'displayName',
+                value: 'MTTR',
               },
             ],
           },
@@ -106,11 +95,11 @@ export default function getNewAlertGroupsNotificationsDuringTimePeriodScene({ da
         legend: {
           displayMode: 'list',
           placement: 'bottom',
-          showLegend: true,
+          showLegend: false,
         },
         tooltip: {
-          mode: 'multi',
-          sort: 'desc',
+          mode: 'single',
+          sort: 'none',
         },
       },
     }),

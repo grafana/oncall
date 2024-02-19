@@ -5,16 +5,16 @@ import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 import moment from 'moment-timezone';
 
-import GTable from 'components/GTable/GTable';
-import Text from 'components/Text/Text';
-import WithConfirm from 'components/WithConfirm/WithConfirm';
+import { GTable } from 'components/GTable/GTable';
+import { Text } from 'components/Text/Text';
+import { WithConfirm } from 'components/WithConfirm/WithConfirm';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { ApiToken } from 'models/api_token/api_token.types';
 import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
-import { generateMissingPermissionMessage, isUserActionAllowed, UserActions } from 'utils/authorization';
+import { generateMissingPermissionMessage, isUserActionAllowed, UserActions } from 'utils/authorization/authorization';
 
-import ApiTokenForm from './ApiTokenForm';
+import { ApiTokenForm } from './ApiTokenForm';
 
 import styles from './ApiTokenSettings.module.css';
 
@@ -26,7 +26,7 @@ const REQUIRED_PERMISSION_TO_VIEW = UserActions.APIKeysWrite;
 interface ApiTokensProps extends WithStoreProps {}
 
 @observer
-class ApiTokens extends React.Component<ApiTokensProps, any> {
+class _ApiTokenSettings extends React.Component<ApiTokensProps, any> {
   constructor(props: any) {
     super(props);
 
@@ -158,4 +158,4 @@ class ApiTokens extends React.Component<ApiTokensProps, any> {
   };
 }
 
-export default withMobXProviderContext(ApiTokens);
+export const ApiTokenSettings = withMobXProviderContext(_ApiTokenSettings);

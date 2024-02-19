@@ -8,7 +8,7 @@ interface ScheduleWarningProps {
   item: Schedule;
 }
 
-const ScheduleWarning = (props: ScheduleWarningProps) => {
+export const ScheduleWarning = (props: ScheduleWarningProps) => {
   const { item } = props;
   if (item.warnings.length > 0) {
     const tooltipContent = (
@@ -27,5 +27,3 @@ const ScheduleWarning = (props: ScheduleWarningProps) => {
 
   return null;
 };
-
-export default ScheduleWarning;

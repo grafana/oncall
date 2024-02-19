@@ -9,7 +9,7 @@ from rest_framework.response import Response
 
 from apps.alerts.models import AlertReceiveChannel
 from apps.alerts.paging import DirectPagingUserTeamValidationError, UserNotifications, direct_paging, user_is_oncall
-from apps.api.permissions import RBACPermission
+from apps.api.permissions import RBACPermission, user_is_authorized
 from apps.schedules.ical_utils import get_cached_oncall_users_for_multiple_schedules
 from apps.slack.constants import DIVIDER, PRIVATE_METADATA_MAX_LENGTH
 from apps.slack.errors import SlackAPIChannelNotFoundError
@@ -114,7 +114,6 @@ def get_current_items(
 class StartDirectPaging(scenario_step.ScenarioStep):
     """Handle slash command invocation and show initial dialog."""
 
-    REQUIRED_PERMISSIONS = [RBACPermission.Permissions.ALERT_GROUPS_DIRECT_PAGING]
     command_name = [settings.SLACK_DIRECT_PAGING_SLASH_COMMAND]
 
     def process_scenario(
@@ -147,6 +146,8 @@ class StartDirectPaging(scenario_step.ScenarioStep):
 class FinishDirectPaging(scenario_step.ScenarioStep):
     """Handle page command dialog submit."""
 
+    REQUIRED_PERMISSIONS = [RBACPermission.Permissions.ALERT_GROUPS_DIRECT_PAGING]
+
     def process_scenario(
         self,
         slack_user_identity: "SlackUserIdentity",
@@ -160,6 +161,21 @@ class FinishDirectPaging(scenario_step.ScenarioStep):
         selected_organization = _get_selected_org_from_payload(
             payload, input_id_prefix, slack_team_identity, slack_user_identity
         )
+
+        # get user in the context of the selected_organization
+        user = slack_user_identity.get_user(selected_organization)
+        if not user_is_authorized(user, self.REQUIRED_PERMISSIONS):
+            unauthorized_error = _get_unauthorized_warning(error=True)
+            return Response(
+                {
+                    "response_action": "update",
+                    "view": render_dialog(
+                        slack_user_identity, slack_team_identity, payload, validation_errors=unauthorized_error
+                    ),
+                },
+                status=200,
+            )
+
         _, selected_team = _get_selected_team_from_payload(payload, input_id_prefix)
         user = slack_user_identity.get_user(selected_organization)
 
@@ -416,6 +432,11 @@ def render_dialog(
     if validation_errors:
         blocks += validation_errors
 
+    # get user in the context of the selected_organization
+    user = slack_user_identity.get_user(selected_organization)
+    if not user_is_authorized(user, FinishDirectPaging.REQUIRED_PERMISSIONS):
+        blocks += _get_unauthorized_warning()
+
     blocks.append(_get_message_input(payload))
 
     # Add organization select if more than one organization available for user
@@ -444,6 +465,19 @@ def render_dialog(
     )
 
     return _get_form_view(submit_routing_uid, blocks, json.dumps(new_private_metadata))
+
+
+def _get_unauthorized_warning(error=False):
+    icon = ":warning:" if not error else ":no_entry:"
+    text = f"{icon} You do not have permission to perform this action."
+    if not error:
+        text += "\nAsk an admin to upgrade your permissions."
+    return [
+        typing.cast(
+            Block.Section,
+            {"type": "section", "text": {"type": "mrkdwn", "text": text}},
+        )
+    ]
 
 
 def _get_form_view(routing_uid: str, blocks: Block.AnyBlocks, private_metadata: str) -> ModalView:

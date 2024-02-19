@@ -17,26 +17,26 @@ import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 import { useHistory } from 'react-router-dom';
 
-import Block from 'components/GBlock/Block';
-import GForm, { CustomFieldSectionRendererProps } from 'components/GForm/GForm';
+import { Block } from 'components/GBlock/Block';
+import { GForm, CustomFieldSectionRendererProps } from 'components/GForm/GForm';
 import { FormItem, FormItemType } from 'components/GForm/GForm.types';
-import IntegrationLogo from 'components/IntegrationLogo/IntegrationLogo';
+import { IntegrationLogo } from 'components/IntegrationLogo/IntegrationLogo';
 import { logoCoors } from 'components/IntegrationLogo/IntegrationLogo.config';
-import RenderConditionally from 'components/RenderConditionally/RenderConditionally';
-import Text from 'components/Text/Text';
-import Labels, { LabelsProps } from 'containers/Labels/Labels';
+import { RenderConditionally } from 'components/RenderConditionally/RenderConditionally';
+import { Text } from 'components/Text/Text';
+import { Labels, LabelsProps } from 'containers/Labels/Labels';
 import { getWebhookPresetIcons } from 'containers/OutgoingWebhookForm/WebhookPresetIcons.config';
-import OutgoingWebhookStatus from 'containers/OutgoingWebhookStatus/OutgoingWebhookStatus';
-import WebhooksTemplateEditor from 'containers/WebhooksTemplateEditor/WebhooksTemplateEditor';
+import { OutgoingWebhookStatus } from 'containers/OutgoingWebhookStatus/OutgoingWebhookStatus';
+import { WebhooksTemplateEditor } from 'containers/WebhooksTemplateEditor/WebhooksTemplateEditor';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { LabelKeyValue } from 'models/label/label.types';
 import { OutgoingWebhook, OutgoingWebhookPreset } from 'models/outgoing_webhook/outgoing_webhook.types';
 import { WebhookFormActionType } from 'pages/outgoing_webhooks/OutgoingWebhooks.types';
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
-import { KeyValuePair } from 'utils';
-import { UserActions } from 'utils/authorization';
+import { UserActions } from 'utils/authorization/authorization';
 import { PLUGIN_ROOT } from 'utils/consts';
+import { KeyValuePair } from 'utils/utils';
 
 import { createForm } from './OutgoingWebhookForm.config';
 import { WebhookFormFieldName } from './OutgoingWebhookForm.types';
@@ -80,7 +80,7 @@ const CustomFieldSectionRenderer: React.FC<CustomFieldSectionRendererProps> = ob
   );
 });
 
-const OutgoingWebhookForm = observer((props: OutgoingWebhookFormProps) => {
+export const OutgoingWebhookForm = observer((props: OutgoingWebhookFormProps) => {
   const history = useHistory();
   const { id, action, onUpdate, onHide, onDelete } = props;
   const [onFormChangeFn, setOnFormChangeFn] = useState<{ fn: (value: string) => void }>(undefined);
@@ -498,5 +498,3 @@ const WebhookPresetBlocks: React.FC<{
     </div>
   );
 });
-
-export default OutgoingWebhookForm;

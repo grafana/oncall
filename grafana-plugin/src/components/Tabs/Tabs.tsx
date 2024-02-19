@@ -15,7 +15,7 @@ interface TabsProps {
   tabContentClassName?: string;
 }
 
-const Tabs: FC<TabsProps> = ({ tabs, defaultActiveLabel, tabContentClassName }) => {
+export const Tabs: FC<TabsProps> = ({ tabs, defaultActiveLabel, tabContentClassName }) => {
   const styles = useStyles2(getStyles);
   const [activeTabLabel, setActiveTabLabel] = useState(defaultActiveLabel || tabs[0].label);
 
@@ -43,5 +43,3 @@ export const getStyles = () => ({
     marginTop: '16px',
   }),
 });
-
-export default Tabs;

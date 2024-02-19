@@ -18,7 +18,7 @@ export interface TimelineItemProps {
   children?: any;
 }
 
-const TimelineItem: React.FC<TimelineItemProps> = ({
+export const TimelineItem: React.FC<TimelineItemProps> = ({
   className,
   contentClassName,
   children,
@@ -42,5 +42,3 @@ const TimelineItem: React.FC<TimelineItemProps> = ({
     </li>
   );
 };
-
-export default TimelineItem;

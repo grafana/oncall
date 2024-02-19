@@ -16,16 +16,16 @@ import {
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
-import GTable from 'components/GTable/GTable';
-import IntegrationBlock from 'components/Integrations/IntegrationBlock';
-import Tag from 'components/Tag/Tag';
-import Text from 'components/Text/Text';
-import WithConfirm from 'components/WithConfirm/WithConfirm';
+import { GTable } from 'components/GTable/GTable';
+import { IntegrationBlock } from 'components/Integrations/IntegrationBlock';
+import { Tag } from 'components/Tag/Tag';
+import { Text } from 'components/Text/Text';
+import { WithConfirm } from 'components/WithConfirm/WithConfirm';
 import { AlertReceiveChannel, ContactPoint } from 'models/alert_receive_channel/alert_receive_channel.types';
 import styles from 'pages/integration/Integration.module.scss';
 import { useStore } from 'state/useStore';
-import { openErrorNotification, openNotification } from 'utils';
 import { getVar } from 'utils/DOM';
+import { openErrorNotification, openNotification } from 'utils/utils';
 
 const cx = cn.bind(styles);
 
@@ -45,7 +45,7 @@ interface IntegrationContactPointState {
   contactPointOptions: Array<{ label: string; value: string }>;
 }
 
-const IntegrationContactPoint: React.FC<{
+export const IntegrationContactPoint: React.FC<{
   id: AlertReceiveChannel['id'];
 }> = observer(({ id }) => {
   const { alertReceiveChannelStore } = useStore();
@@ -390,5 +390,3 @@ const IntegrationContactPoint: React.FC<{
     ];
   }
 });
-
-export default IntegrationContactPoint;

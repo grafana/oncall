@@ -5,9 +5,10 @@ import userEvent from '@testing-library/user-event';
 import { useLocation as useLocationOriginal } from 'react-router-dom';
 import { OnCallPluginConfigPageProps } from 'types';
 
-import PluginState from 'state/plugin';
+import { PluginState } from 'state/plugin/plugin';
 
-import PluginConfigPage, {
+import {
+  PluginConfigPage,
   reloadPageWithPluginConfiguredQueryParams,
   removePluginConfiguredQueryParams,
 } from './PluginConfigPage';

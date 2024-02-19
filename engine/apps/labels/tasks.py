@@ -5,7 +5,7 @@ from celery.utils.log import get_task_logger
 from django.conf import settings
 from django.utils import timezone
 
-from apps.labels.client import LabelsAPIClient
+from apps.labels.client import LabelsAPIClient, LabelsRepoAPIException
 from apps.labels.types import LabelOption, LabelPair
 from apps.labels.utils import LABEL_OUTDATED_TIMEOUT_MINUTES, get_associating_label_model
 from apps.user_management.models import Organization
@@ -49,6 +49,11 @@ def update_labels_cache(labels_data: typing.List[LabelOption] | LabelOption):
     Deprecated and left for backward compatibility.
     """
     from apps.labels.models import LabelKeyCache, LabelValueCache
+
+    # this is a quick fix for tasks with wrong labels_data and can be removed later since handling this error happens in
+    # the parent task now
+    if isinstance(labels_data, dict) and labels_data.get("error"):
+        return
 
     values_data: typing.Dict[str, KVPair] = unify_labels_data(labels_data)
     values = LabelValueCache.objects.filter(id__in=values_data).select_related("key")
@@ -147,6 +152,13 @@ def update_instances_labels_cache(organization_id: int, instance_ids: typing.Lis
 
     client = LabelsAPIClient(organization.grafana_url, organization.api_token)
     for key_id in keys_ids:
-        label_option, _ = client.get_label_by_key_id(key_id)
+        try:
+            label_option, _ = client.get_label_by_key_id(key_id)
+        except LabelsRepoAPIException as e:
+            logger.warning(
+                f"Error on get label data: organization: {organization_id}, key_id {key_id}, error: {e}, "
+                f"error message: {e.msg}"
+            )
+            continue
         if label_option:
             update_label_option_cache.apply_async((label_option,))

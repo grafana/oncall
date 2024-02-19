@@ -3,16 +3,16 @@ import React, { useCallback } from 'react';
 import { Alert, Button, HorizontalGroup, InlineField, Input, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 
-import Tag from 'components/Tag/Tag';
-import Text from 'components/Text/Text';
-import WithConfirm from 'components/WithConfirm/WithConfirm';
+import { Tag } from 'components/Tag/Tag';
+import { Text } from 'components/Text/Text';
+import { WithConfirm } from 'components/WithConfirm/WithConfirm';
 import { UserSettingsTab } from 'containers/UserSettings/UserSettings.types';
 import { User } from 'models/user/user.types';
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
 import { getVar } from 'utils/DOM';
 
-import styles from 'containers/UserSettings/parts/index.module.css';
+import styles from 'containers/UserSettings/parts/UserSettingsParts.module.css';
 
 const cx = cn.bind(styles);
 
@@ -21,7 +21,7 @@ interface PhoneConnectorProps {
   onTabChange: (tab: UserSettingsTab) => void;
 }
 
-const PhoneConnector = (props: PhoneConnectorProps) => {
+export const PhoneConnector = (props: PhoneConnectorProps) => {
   const { id, onTabChange } = props;
 
   const store = useStore();
@@ -175,5 +175,3 @@ const PhoneConnector = (props: PhoneConnectorProps) => {
     </div>
   );
 };
-
-export default PhoneConnector;

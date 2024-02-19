@@ -6,12 +6,12 @@ import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 import moment from 'moment-timezone';
 
-import Text from 'components/Text/Text';
-import GSelect from 'containers/GSelect/GSelect';
+import { Text } from 'components/Text/Text';
+import { GSelect } from 'containers/GSelect/GSelect';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { Alert } from 'models/alertgroup/alertgroup.types';
 import { useStore } from 'state/useStore';
-import { UserActions } from 'utils/authorization';
+import { UserActions } from 'utils/authorization/authorization';
 
 import styles from './AttachIncidentForm.module.css';
 
@@ -27,7 +27,7 @@ interface GroupedAlertNumberProps {
   value: Alert['pk'];
 }
 
-const AttachIncidentForm = observer(({ id, onUpdate, onHide }: AttachIncidentFormProps) => {
+export const AttachIncidentForm = observer(({ id, onUpdate, onHide }: AttachIncidentFormProps) => {
   const store = useStore();
 
   const { alertGroupStore } = store;
@@ -100,5 +100,3 @@ const AttachIncidentForm = observer(({ id, onUpdate, onHide }: AttachIncidentFor
     </Modal>
   );
 });
-
-export default AttachIncidentForm;

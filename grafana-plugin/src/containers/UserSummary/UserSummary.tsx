@@ -10,7 +10,7 @@ interface UserSummaryProps {
   id: User['pk'];
 }
 
-const UserSummary = observer((props: UserSummaryProps) => {
+export const UserSummary = observer((props: UserSummaryProps) => {
   const { id } = props;
 
   const store = useStore();
@@ -27,5 +27,3 @@ const UserSummary = observer((props: UserSummaryProps) => {
 
   return getUserNotificationsSummary(user);
 });
-
-export default UserSummary;

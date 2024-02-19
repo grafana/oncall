@@ -6,7 +6,7 @@
 
 import 'plugin/dayjs';
 
-import { RootBaseStore } from './rootBaseStore';
+import { RootBaseStore } from './rootBaseStore/RootBaseStore';
 
 export class RootStore extends RootBaseStore {}
 
