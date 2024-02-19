@@ -29,6 +29,7 @@ import { AlertGroupColumn, AlertGroupColumnType } from 'models/alertgroup/alertg
 import { ActionKey } from 'models/loader/action-keys';
 import { useStore } from 'state/useStore';
 import { UserActions } from 'utils/authorization/authorization';
+import { useIsLoading } from 'utils/hooks';
 import { openErrorNotification } from 'utils/utils';
 
 import { getColumnsSelectorStyles } from './ColumnsSelector.styles';
@@ -115,7 +116,8 @@ interface ColumnsSelectorProps {
 
 export const ColumnsSelector: React.FC<ColumnsSelectorProps> = observer(
   ({ onColumnAddModalOpen, onConfirmRemovalModalOpen }) => {
-    const { alertGroupStore, loaderStore } = useStore();
+    const { alertGroupStore } = useStore();
+    const isResetLoading = useIsLoading(ActionKey.RESET_COLUMNS_FROM_ALERT_GROUP);
 
     const styles = useStyles2(getColumnsSelectorStyles);
 
@@ -132,8 +134,6 @@ export const ColumnsSelector: React.FC<ColumnsSelectorProps> = observer(
         coordinateGetter: sortableKeyboardCoordinates,
       })
     );
-
-    const isResetLoading = loaderStore.isLoading(ActionKey.RESET_COLUMNS_FROM_ALERT_GROUP);
 
     return (
       <div className={styles.columnsSelectorView}>

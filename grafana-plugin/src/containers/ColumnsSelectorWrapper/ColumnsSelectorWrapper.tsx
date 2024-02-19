@@ -13,6 +13,7 @@ import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
 import { UserActions } from 'utils/authorization/authorization';
 import { WrapAutoLoadingState, WrapWithGlobalNotification } from 'utils/decorators';
+import { useIsLoading } from 'utils/hooks';
 
 import { ColumnsModal } from './ColumnsModal';
 
@@ -23,8 +24,8 @@ export const ColumnsSelectorWrapper: React.FC<ColumnsSelectorWrapperProps> = obs
   const [columnToBeRemoved, setColumnToBeRemoved] = useState<AlertGroupColumn>(undefined);
   const [isColumnAddModalOpen, setIsColumnAddModalOpen] = useState(false);
   const [isFloatingDisplayOpen, setIsFloatingDisplayOpen] = useState(false);
-
   const [labelKeys, setLabelKeys] = useState<Array<ApiSchemas['LabelKey']>>([]);
+  const isRemoveLoading = useIsLoading(ActionKey.REMOVE_COLUMN_FROM_ALERT_GROUP);
 
   const inputRef = useRef<HTMLInputElement>(null);
   const wrappingFloatingContainerRef = useRef<HTMLDivElement>(null);
@@ -48,8 +49,6 @@ export const ColumnsSelectorWrapper: React.FC<ColumnsSelectorWrapperProps> = obs
       document.removeEventListener('click', onFloatingDisplayClick);
     };
   }, []);
-
-  const isRemoveLoading = store.loaderStore.isLoading(ActionKey.REMOVE_COLUMN_FROM_ALERT_GROUP);
 
   return (
     <>

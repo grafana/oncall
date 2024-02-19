@@ -268,7 +268,6 @@ class _IntegrationsPage extends React.Component<IntegrationsProps, IntegrationsS
               )}
               <GTable
                 emptyText={count === undefined ? 'Loading...' : 'No integrations found'}
-                loading={count === undefined}
                 data-testid="integrations-table"
                 rowKey="id"
                 data={results}
