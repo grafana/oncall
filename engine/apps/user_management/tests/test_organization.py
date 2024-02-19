@@ -217,6 +217,7 @@ def test_get_notifiable_direct_paging_integrations(
             assert arc in notifiable_direct_paging_integrations
         else:
             assert arc not in notifiable_direct_paging_integrations
+        return notifiable_direct_paging_integrations
 
     # integration has no default channel filter
     org, arc = _make_org_and_arc()
@@ -269,3 +270,11 @@ def test_get_notifiable_direct_paging_integrations(
     escalation_chain = make_escalation_chain(org)
     make_channel_filter(arc, is_default=True, notify_in_slack=False, escalation_chain=escalation_chain)
     _assert(org, arc)
+
+    # integration has more than one channel filter associated with it, nevertheless the integration should only
+    # be returned once
+    org, arc = _make_org_and_arc()
+    make_channel_filter(arc, is_default=True)
+    make_channel_filter(arc, is_default=False)
+    notifiable_direct_paging_integrations = _assert(org, arc)
+    assert notifiable_direct_paging_integrations.count() == 1

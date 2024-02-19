@@ -36,12 +36,32 @@
   margin-right: 4px;
 }
 
+.u-margin-bottom-none {
+  margin-bottom: 0;
+}
+
+.u-margin-bottom-md {
+  margin-bottom: 12px;
+}
+
+.u-margin-top-xs {
+  margin-top: 4px;
+}
+
 .u-padding-top-md {
   padding-top: 12px;
 }
 
-.u-margin-bottom-none {
-  margin-bottom: 0;
+.u-padding-top-none {
+  padding-top: 0;
+}
+
+.u-padding-left-lg {
+  padding-left: 24px;
+}
+
+.u-padding-vertical-xs {
+  padding: 4px 0;
 }
 
 .u-pull-right {
@@ -61,6 +81,11 @@
 }
 
 .u-height-100 {
+  height: 100%;
+}
+
+.u-width-height-100 {
+  width: 100%;
   height: 100%;
 }
 
@@ -143,10 +168,59 @@
   -webkit-box-orient: vertical;
 }
 
+.overflow-child--line-1 {
+  -webkit-line-clamp: 1;
+}
+
 .break-word {
   word-break: break-all;
 }
 
 .line-clamp-3 {
   -webkit-line-clamp: 3;
+}
+
+/* -----
+ * CSSTransitionGroup fading
+ */
+
+.fade-enter {
+  max-height: 0;
+  opacity: 0;
+}
+
+.fade-enter.fade-enter-active {
+  max-height: 50px;
+  opacity: 1;
+  transition: opacity 300ms ease-in, max-height 300ms ease-in;
+}
+
+.fade-leave {
+  opacity: 1;
+  max-height: 50px;
+}
+
+.fade-leave.fade-leave-active {
+  max-height: 0;
+  opacity: 0;
+  transition: opacity 300ms ease-in, max-height 300ms ease-in;
+}
+
+.fade-exit {
+  opacity: 1;
+  max-height: 50px;
+}
+
+.fade-exit.fade-exit-active {
+  max-height: 0;
+  opacity: 0;
+  transition: opacity 300ms ease-in, max-height 300ms ease-in;
+}
+
+/* -----
+ * Widths
+ */
+
+.u-max-width-1000 {
+  max-width: 1000px;
 }

@@ -5,8 +5,8 @@ import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 import { useMediaQuery } from 'react-responsive';
 
-import Avatar from 'components/Avatar/Avatar';
-import { Tabs, TabsContent } from 'containers/UserSettings/parts';
+import { Avatar } from 'components/Avatar/Avatar';
+import { Tabs, TabsContent } from 'containers/UserSettings/parts/UserSettingsParts';
 import { User as UserType } from 'models/user/user.types';
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
@@ -26,7 +26,7 @@ interface UserFormProps {
   tab?: UserSettingsTab;
 }
 
-const UserSettings = observer(({ id, onHide, tab = UserSettingsTab.UserInfo }: UserFormProps) => {
+export const UserSettings = observer(({ id, onHide, tab = UserSettingsTab.UserInfo }: UserFormProps) => {
   const store = useStore();
   const { userStore, organizationStore } = store;
 
@@ -49,11 +49,18 @@ const UserSettings = observer(({ id, onHide, tab = UserSettingsTab.UserInfo }: U
     setActiveTab(tab);
   }, []);
 
-  const [showNotificationSettingsTab, showSlackConnectionTab, showTelegramConnectionTab, showMobileAppConnectionTab] = [
+  const [
+    showNotificationSettingsTab,
+    showSlackConnectionTab,
+    showTelegramConnectionTab,
+    showMobileAppConnectionTab,
+    showMsTeamsConnectionTab,
+  ] = [
     !isDesktopOrLaptop,
     isCurrent && organizationStore.currentOrganization?.slack_team_identity && !storeUser.slack_user_identity,
     isCurrent && store.hasFeature(AppFeature.Telegram) && !storeUser.telegram_configuration,
     isCurrent,
+    store.hasFeature(AppFeature.MsTeams) && !storeUser.messaging_backends.MSTEAMS,
   ];
 
   const title = (
@@ -73,6 +80,7 @@ const UserSettings = observer(({ id, onHide, tab = UserSettingsTab.UserInfo }: U
             showSlackConnectionTab={showSlackConnectionTab}
             showTelegramConnectionTab={showTelegramConnectionTab}
             showMobileAppConnectionTab={showMobileAppConnectionTab}
+            showMsTeamsConnectionTab={showMsTeamsConnectionTab}
           />
           <TabsContent id={id} activeTab={activeTab} onTabChange={onTabChange} isDesktopOrLaptop={isDesktopOrLaptop} />
         </div>
@@ -80,5 +88,3 @@ const UserSettings = observer(({ id, onHide, tab = UserSettingsTab.UserInfo }: U
     </>
   );
 });
-
-export default UserSettings;

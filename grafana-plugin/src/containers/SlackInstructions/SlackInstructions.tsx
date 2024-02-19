@@ -4,9 +4,9 @@ import { Button, VerticalGroup, Icon, Field, Input } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
-import Block from 'components/GBlock/Block';
-import Text from 'components/Text/Text';
-import { SlackNewIcon } from 'icons';
+import { Block } from 'components/GBlock/Block';
+import { Text } from 'components/Text/Text';
+import { SlackNewIcon } from 'icons/Icons';
 import { DOCS_SLACK_SETUP } from 'utils/consts';
 
 import styles from './SlackInstructions.module.css';
@@ -15,7 +15,7 @@ const cx = cn.bind(styles);
 
 interface SlackInstructionsProps {}
 /* This component will be used when we will work on moving ENV variables to chat-ops, but we need to do work on backend side first */
-const SlackInstructions: FC<SlackInstructionsProps> = observer(() => {
+export const SlackInstructions: FC<SlackInstructionsProps> = observer(() => {
   return (
     <div>
       <VerticalGroup spacing="lg">
@@ -68,5 +68,3 @@ const SlackInstructions: FC<SlackInstructionsProps> = observer(() => {
     </div>
   );
 });
-
-export default SlackInstructions;

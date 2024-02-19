@@ -4,8 +4,8 @@ import { SelectableValue } from '@grafana/data';
 import { AsyncMultiSelect, AsyncSelect } from '@grafana/ui';
 import { inject, observer } from 'mobx-react';
 
-import { makeRequest, isNetworkError } from 'network';
-import { UserAction, generateMissingPermissionMessage } from 'utils/authorization';
+import { makeRequest, isNetworkError } from 'network/network';
+import { UserAction, generateMissingPermissionMessage } from 'utils/authorization/authorization';
 import { useDebouncedCallback } from 'utils/hooks';
 
 interface RemoteSelectProps {
@@ -27,9 +27,10 @@ interface RemoteSelectProps {
   showError?: boolean;
   maxMenuHeight?: number;
   requiredUserAction?: UserAction;
+  predefinedOptions?: any[];
 }
 
-const RemoteSelect = inject('store')(
+export const RemoteSelect = inject('store')(
   observer((props: RemoteSelectProps) => {
     const {
       autoFocus,
@@ -49,6 +50,7 @@ const RemoteSelect = inject('store')(
       showError,
       maxMenuHeight,
       requiredUserAction,
+      predefinedOptions,
     } = props;
 
     const [noOptionsMessage, setNoOptionsMessage] = useState<string>('No options found');
@@ -66,7 +68,7 @@ const RemoteSelect = inject('store')(
       return oldOptions.concat(newOptions.filter(({ value }) => !existingValues.includes(value)));
     }
 
-    const [options, setOptions] = useReducer(mergeOptions, []);
+    const [options, setOptions] = useReducer(mergeOptions, getOptions(predefinedOptions || []));
 
     const loadOptionsCallback = useDebouncedCallback(async (query: string, cb) => {
       try {
@@ -133,5 +135,3 @@ const RemoteSelect = inject('store')(
     );
   })
 );
-
-export default RemoteSelect;

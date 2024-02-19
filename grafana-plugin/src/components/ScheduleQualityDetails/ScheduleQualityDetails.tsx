@@ -3,7 +3,7 @@ import React, { FC, useCallback, useState } from 'react';
 import { HorizontalGroup, Icon, IconButton } from '@grafana/ui';
 import cn from 'classnames/bind';
 
-import Text from 'components/Text/Text';
+import { Text } from 'components/Text/Text';
 import { ScheduleScoreQualityResponse, ScheduleScoreQualityResult } from 'models/schedule/schedule.types';
 import { getVar } from 'utils/DOM';
 
@@ -106,7 +106,11 @@ export const ScheduleQualityDetails: FC<ScheduleQualityDetailsProps> = ({ qualit
                 Calculation methodology
               </Text>
             </HorizontalGroup>
-            <IconButton name={expanded ? 'arrow-down' : 'arrow-right'} onClick={handleExpandClick} />
+            <IconButton
+              aria-label={expanded ? 'Collapse' : 'Expand'}
+              name={expanded ? 'arrow-down' : 'arrow-right'}
+              onClick={handleExpandClick}
+            />
           </HorizontalGroup>
           {expanded && (
             <Text type="primary" className={cx('text')}>

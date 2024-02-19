@@ -7,10 +7,9 @@ from urllib.parse import urlparse
 from django.conf import settings
 
 from apps.base.utils import live_settings
+from apps.labels.utils import get_alert_group_labels_dict, get_labels_dict, is_labels_feature_enabled
 from apps.schedules.ical_utils import list_users_to_notify_from_ical
 from common.jinja_templater import apply_jinja_template
-
-OUTGOING_WEBHOOK_TIMEOUT = 10
 
 
 class InvalidWebhookUrl(Exception):
@@ -81,7 +80,7 @@ def escape_string(string: str):
     json.dumps is the simples way to escape all special characters in string.
     First and last chars are quotes from json.dumps(), we don't need them, only escaping.
     """
-    return json.dumps(string)[1:-1]
+    return json.dumps(string, ensure_ascii=False)[1:-1]
 
 
 class EscapeDoubleQuotesDict(dict):
@@ -150,7 +149,7 @@ def _extract_users_from_escalation_snapshot(escalation_snapshot):
     return list({u["id"]: u for u in users if u}.values())
 
 
-def serialize_event(event, alert_group, user, responses=None):
+def serialize_event(event, alert_group, user, webhook, responses=None):
     from apps.public_api.serializers import IncidentSerializer
 
     alert_payload = alert_group.alerts.first()
@@ -179,4 +178,10 @@ def serialize_event(event, alert_group, user, responses=None):
     if responses:
         data["responses"] = responses
 
+    # Enrich webhook data with labels payloads if labels feature is enabled
+    # TODO: once feature flag will be removed this code should go to the 'data' dict declaration
+    if is_labels_feature_enabled(alert_group.channel.organization):
+        data["webhook"] = {"id": webhook.public_primary_key, "name": webhook.name, "labels": get_labels_dict(webhook)}
+        data["integration"]["labels"] = get_labels_dict(alert_group.channel)
+        data["alert_group"]["labels"] = get_alert_group_labels_dict(alert_group)
     return data

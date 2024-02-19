@@ -1,10 +1,10 @@
 from rest_framework import fields, serializers
 
 from apps.alerts.models import AlertReceiveChannel, ChannelFilter, EscalationChain
-from apps.api.serializers.alert_receive_channel import valid_jinja_template_for_serializer_method_field
 from apps.base.messaging import get_messaging_backend_from_id, get_messaging_backends
 from common.api_helpers.custom_fields import OrganizationFilteredPrimaryKeyRelatedField
 from common.api_helpers.exceptions import BadRequest
+from common.api_helpers.utils import valid_jinja_template_for_serializer_method_field
 from common.jinja_templater.apply_jinja_template import JinjaTemplateError
 from common.ordered_model.serializer import OrderedModelSerializer
 from common.utils import is_regex_valid
@@ -17,7 +17,7 @@ class BaseChannelFilterSerializer(OrderedModelSerializer):
         """Update existing fields of the serializer with messaging backends fields"""
 
         super().__init__(*args, **kwargs)
-        for backend_id, backend in get_messaging_backends():
+        for _, backend in get_messaging_backends():
             if backend is None:
                 continue
             field = backend.slug
@@ -86,6 +86,8 @@ class BaseChannelFilterSerializer(OrderedModelSerializer):
             slack_channel_id = slack_channel_id.upper()
             organization = self.context["request"].auth.organization
             slack_team_identity = organization.slack_team_identity
+            if not slack_team_identity:
+                raise BadRequest(detail="Slack isn't connected to this workspace")
             try:
                 slack_team_identity.get_cached_channels().get(slack_id=slack_channel_id)
             except SlackChannel.DoesNotExist:

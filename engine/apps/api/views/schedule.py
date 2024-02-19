@@ -67,7 +67,7 @@ class ScheduleFilter(ByTeamModelFieldFilterMixin, ModelFieldFilterMixin, filters
 
 class ScheduleView(
     TeamFilteringMixin,
-    PublicPrimaryKeyMixin,
+    PublicPrimaryKeyMixin[OnCallSchedule],
     ShortSerializerMixin,
     CreateSerializerMixin,
     UpdateSerializerMixin,
@@ -137,8 +137,14 @@ class ScheduleView(
         The result of this method is cached and is reused for the whole lifetime of a request,
         since self.get_serializer_context() is called multiple times for every instance in the queryset.
         """
-        current_page_schedules = self.paginate_queryset(self.filter_queryset(self.get_queryset(annotate=False)))
-        return get_oncall_users_for_multiple_schedules(current_page_schedules)
+        current_schedules = self.get_queryset(annotate=False).none()
+        if self.action == "list":
+            # listing page, only get oncall users for current page schedules
+            current_schedules = self.paginate_queryset(self.filter_queryset(self.get_queryset(annotate=False)))
+        elif self.kwargs.get("pk"):
+            # if this is a particular schedule detail, only consider it as current
+            current_schedules = [self.get_object(annotate=False)]
+        return get_oncall_users_for_multiple_schedules(current_schedules)
 
     def get_serializer_context(self):
         context = super().get_serializer_context()
@@ -449,8 +455,7 @@ class ScheduleView(
     def reload_ical(self, request, pk):
         schedule = self.get_object(annotate=False)
         schedule.drop_cached_ical()
-        schedule.check_empty_shifts_for_next_week()
-        schedule.check_gaps_for_next_week()
+        schedule.check_gaps_and_empty_shifts_for_next_week()
 
         if schedule.user_group is not None:
             update_slack_user_group_for_schedules.apply_async((schedule.user_group.pk,))

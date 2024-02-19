@@ -1,8 +1,8 @@
-import { action, computed, observable } from 'mobx';
+import { action, computed, observable, makeObservable, runInAction } from 'mobx';
 
-import BaseStore from 'models/base_store';
-import { makeRequest } from 'network';
-import { RootStore } from 'state';
+import { BaseStore } from 'models/base_store';
+import { makeRequest } from 'network/network';
+import { RootStore } from 'state/rootStore';
 
 import { TelegramChannel } from './telegram_channel.types';
 
@@ -21,6 +21,8 @@ export class TelegramChannelStore extends BaseStore {
   constructor(rootStore: RootStore) {
     super(rootStore);
 
+    makeObservable(this);
+
     this.path = '/telegram_channels/';
   }
 
@@ -36,43 +38,49 @@ export class TelegramChannelStore extends BaseStore {
       {}
     );
 
-    this.items = {
-      ...this.items,
-      ...items,
-    };
+    runInAction(() => {
+      this.items = {
+        ...this.items,
+        ...items,
+      };
 
-    this.currentTeamToTelegramChannel = response.map((telegramChannel: TelegramChannel) => telegramChannel.id);
+      this.currentTeamToTelegramChannel = response.map((telegramChannel: TelegramChannel) => telegramChannel.id);
+    });
   }
 
   @action
   async updateById(id: TelegramChannel['id']) {
     const response = await this.getById(id);
 
-    this.items = {
-      ...this.items,
-      [id]: response,
-    };
+    runInAction(() => {
+      this.items = {
+        ...this.items,
+        [id]: response,
+      };
+    });
   }
 
   @action
   async updateItems(query = '') {
     const result = await this.getAll();
 
-    this.items = {
-      ...this.items,
-      ...result.reduce(
-        (acc: { [key: number]: TelegramChannel }, item: TelegramChannel) => ({
-          ...acc,
-          [item.id]: item,
-        }),
-        {}
-      ),
-    };
+    runInAction(() => {
+      this.items = {
+        ...this.items,
+        ...result.reduce(
+          (acc: { [key: number]: TelegramChannel }, item: TelegramChannel) => ({
+            ...acc,
+            [item.id]: item,
+          }),
+          {}
+        ),
+      };
 
-    this.searchResult = {
-      ...this.searchResult,
-      [query]: result.map((item: TelegramChannel) => item.id),
-    };
+      this.searchResult = {
+        ...this.searchResult,
+        [query]: result.map((item: TelegramChannel) => item.id),
+      };
+    });
   }
 
   getSearchResult(query = '') {

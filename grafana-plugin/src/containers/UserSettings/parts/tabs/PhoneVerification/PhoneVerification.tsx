@@ -4,15 +4,15 @@ import { Alert, Button, Field, HorizontalGroup, Icon, Input, Switch, Tooltip, Ve
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
-import PluginLink from 'components/PluginLink/PluginLink';
-import Text from 'components/Text/Text';
+import { PluginLink } from 'components/PluginLink/PluginLink';
+import { Text } from 'components/Text/Text';
 import { WithPermissionControlDisplay } from 'containers/WithPermissionControl/WithPermissionControlDisplay';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { User } from 'models/user/user.types';
-import { rootStore } from 'state';
 import { AppFeature } from 'state/features';
+import { rootStore } from 'state/rootStore';
 import { useStore } from 'state/useStore';
-import { isUserActionAllowed, UserAction, UserActions } from 'utils/authorization';
+import { isUserActionAllowed, UserAction, UserActions } from 'utils/authorization/authorization';
 
 import styles from './PhoneVerification.module.css';
 
@@ -34,7 +34,7 @@ interface PhoneVerificationState {
 
 const PHONE_REGEX = /^\+\d{8,15}$/;
 
-const PhoneVerification = observer((props: PhoneVerificationProps) => {
+export const PhoneVerification = observer((props: PhoneVerificationProps) => {
   const { userPk: propsUserPk } = props;
   const store = useStore();
   const { userStore, organizationStore } = store;
@@ -53,7 +53,7 @@ const PhoneVerification = observer((props: PhoneVerificationProps) => {
     }),
     {
       code: '',
-      phone: user.verified_phone_number || '+',
+      phone: user.verified_phone_number || user.unverified_phone_number || '+',
       isLoading: false,
       isCodeSent: false,
       isPhoneCallInitiated: false,
@@ -429,5 +429,3 @@ function PhoneVerificationButtonsGroup({
     </HorizontalGroup>
   );
 }
-
-export default PhoneVerification;

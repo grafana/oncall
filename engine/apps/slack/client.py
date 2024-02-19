@@ -6,6 +6,7 @@ from django.utils import timezone
 from rest_framework import status
 from slack_sdk.errors import SlackApiError as SlackSDKApiError
 from slack_sdk.http_retry import HttpRequest, HttpResponse, RetryHandler, RetryState, default_retry_handlers
+from slack_sdk.http_retry.builtin_handlers import RateLimitErrorRetryHandler
 from slack_sdk.web import SlackResponse, WebClient
 
 from apps.slack.errors import SlackAPIRatelimitError, SlackAPIServerError, SlackAPITokenError, get_error_class
@@ -42,15 +43,23 @@ class SlackServerErrorRetryHandler(RetryHandler):
         return False
 
 
+# retries when HTTP status 429 is returned using the Retry-After header information
+rate_limit_handler = RateLimitErrorRetryHandler(max_retry_count=1)
 server_error_retry_handler = SlackServerErrorRetryHandler(max_retry_count=2)
 
 
 class SlackClient(WebClient):
-    def __init__(self, slack_team_identity: "SlackTeamIdentity", timeout: int = 30) -> None:
+    def __init__(
+        self, slack_team_identity: "SlackTeamIdentity", enable_ratelimit_retry=False, timeout: int = 30
+    ) -> None:
+        retry_handlers = default_retry_handlers() + [server_error_retry_handler]
+        if enable_ratelimit_retry:
+            retry_handlers += [rate_limit_handler]
+
         super().__init__(
             token=slack_team_identity.bot_access_token,
             timeout=timeout,
-            retry_handlers=default_retry_handlers() + [server_error_retry_handler],
+            retry_handlers=retry_handlers,
         )
         self.slack_team_identity = slack_team_identity
 

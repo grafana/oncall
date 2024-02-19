@@ -4,15 +4,15 @@ import { Alert } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { sanitize } from 'dompurify';
 
-import PluginLink from 'components/PluginLink/PluginLink';
+import { PluginLink } from 'components/PluginLink/PluginLink';
 import { getSlackMessage } from 'containers/DefaultPageLayout/DefaultPageLayout.helpers';
 import { SlackError } from 'containers/DefaultPageLayout/DefaultPageLayout.types';
 import { getIfChatOpsConnected } from 'containers/DefaultPageLayout/helper';
 import { isTopNavbar } from 'plugin/GrafanaPluginRootPage.helpers';
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
-import LocationHelper from 'utils/LocationHelper';
-import { isUserActionAllowed, UserActions } from 'utils/authorization';
+import { LocationHelper } from 'utils/LocationHelper';
+import { isUserActionAllowed, UserActions } from 'utils/authorization/authorization';
 import { useForceUpdate, useQueryParams } from 'utils/hooks';
 import { getItem, setItem } from 'utils/localStorage';
 
@@ -26,7 +26,7 @@ enum AlertID {
   CONNECTIVITY_WARNING = 'Connectivity Warning',
 }
 
-export default function Alerts() {
+export const Alerts = function () {
   const queryParams = useQueryParams();
   const [showSlackInstallAlert, setShowSlackInstallAlert] = useState<SlackError | undefined>();
 
@@ -147,7 +147,7 @@ export default function Alerts() {
 
   function showMismatchWarning(): boolean {
     return (
-      store.isOpenSource() &&
+      store.isOpenSource &&
       store.backendVersion &&
       plugin?.version &&
       store.backendVersion !== plugin?.version &&
@@ -164,4 +164,4 @@ export default function Alerts() {
         !getItem(AlertID.CONNECTIVITY_WARNING)
     );
   }
-}
+};

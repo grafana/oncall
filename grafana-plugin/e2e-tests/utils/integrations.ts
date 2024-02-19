@@ -1,4 +1,4 @@
-import { Locator, Page, expect } from '@playwright/test';
+import { Page, expect } from '@playwright/test';
 
 import { clickButton, generateRandomValue, selectDropdownValue } from './forms';
 import { goToOnCallPage } from './navigation';
@@ -38,17 +38,24 @@ export const createIntegration = async ({
     .click();
 
   // fill in the required inputs
-  (await page.waitForSelector('input[name="verbal_name"]', { state: 'attached' })).fill(integrationName);
-  (await page.waitForSelector('textarea[name="description_short"]', { state: 'attached' })).fill(
-    'Here goes your integration description'
-  );
+  await page.getByPlaceholder('Integration Name').fill(integrationName);
+  await page.getByPlaceholder('Integration Description').fill('Here goes your integration description');
+  await page.getByTestId('update-integration-button').focus();
+  await page.getByTestId('update-integration-button').click();
 
-  const grafanaUpdateBtn = page.getByTestId('update-integration-button');
-  await grafanaUpdateBtn.click();
+  await goToOnCallPage(page, 'integrations');
+  await searchIntegrationAndAssertItsPresence({ page, integrationName });
+
+  await page.getByRole('link', { name: integrationName }).click();
 };
 
 export const assignEscalationChainToIntegration = async (page: Page, escalationChainName: string): Promise<void> => {
-  await page.getByTestId('integration-escalation-chain-not-selected').click();
+  const notSelected = page.getByTestId('integration-escalation-chain-not-selected');
+  if (await notSelected.isHidden()) {
+    await clickButton({ page, buttonText: 'Add route' });
+    await page.waitForTimeout(500);
+  }
+  await notSelected.last().click();
 
   // assign the escalation chain to the integration
   await selectDropdownValue({
@@ -56,7 +63,7 @@ export const assignEscalationChainToIntegration = async (page: Page, escalationC
     selectType: 'grafanaSelect',
     placeholderText: 'Select Escalation Chain',
     value: escalationChainName,
-    startingLocator: page.getByTestId('escalation-chain-select'),
+    startingLocator: page.getByTestId('escalation-chain-select').last(),
   });
 };
 
@@ -92,11 +99,9 @@ export const filterIntegrationsTableAndGoToDetailPage = async (page: Page, integ
 export const searchIntegrationAndAssertItsPresence = async ({
   page,
   integrationName,
-  integrationsTable,
   visibleExpected = true,
 }: {
   page: Page;
-  integrationsTable: Locator;
   integrationName: string;
   visibleExpected?: boolean;
 }) => {
@@ -105,6 +110,7 @@ export const searchIntegrationAndAssertItsPresence = async ({
     .filter({ hasText: /^Search or filter results\.\.\.$/ })
     .nth(1)
     .click();
+  const integrationsTable = page.getByTestId('integrations-table');
   await page.keyboard.insertText(integrationName);
   await page.keyboard.press('Enter');
   await page.waitForTimeout(2000);

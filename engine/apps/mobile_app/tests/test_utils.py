@@ -1,11 +1,13 @@
 from unittest.mock import Mock, patch
 
+import firebase_admin.messaging
 import pytest
 from firebase_admin.exceptions import FirebaseError
 from requests import HTTPError
 
 from apps.mobile_app import utils
 from apps.mobile_app.models import FCMDevice
+from apps.mobile_app.utils import add_stack_slug_to_message_title
 from apps.oss_installation.models import CloudConnector
 
 MOBILE_APP_BACKEND_ID = 5
@@ -29,7 +31,8 @@ def test_send_push_notification_cloud(
     settings.LICENSE = CLOUD_LICENSE_NAME
     settings.IS_OPEN_SOURCE = False
 
-    utils.send_push_notification(device, mock_message)
+    succeeded = utils.send_push_notification(device, mock_message)
+    assert succeeded
     mock_send_message.assert_called_once_with(mock_message)
 
 
@@ -57,6 +60,40 @@ def test_send_push_notification_cloud_firebase_error(
     mock_send_message.assert_called_once_with(mock_message)
 
 
+@patch.object(FCMDevice, "send_message")
+@pytest.mark.parametrize(
+    "ExceptionClass,exception_kwargs",
+    [
+        (firebase_admin.messaging.UnregisteredError, {"message": "test_error_message"}),
+    ],
+)
+@pytest.mark.django_db
+def test_send_push_notification_cloud_ignores_certain_errors(
+    mock_send_message,
+    settings,
+    make_organization_and_user,
+    ExceptionClass,
+    exception_kwargs,
+):
+    mock_send_message.return_value = ExceptionClass(**exception_kwargs)
+
+    # create a user and connect a mobile device
+    _, user = make_organization_and_user()
+    device = FCMDevice.objects.create(user=user, registration_id="test_device_id")
+    mock_message = {"foo": "bar"}
+
+    # check FCM is contacted directly when using the cloud license
+    settings.LICENSE = CLOUD_LICENSE_NAME
+    settings.IS_OPEN_SOURCE = False
+
+    try:
+        utils.send_push_notification(device, mock_message)
+    except Exception:
+        pytest.fail(f"send_push_notification should not raise an exception for {ExceptionClass.__name__} errors")
+
+    mock_send_message.assert_called_once_with(mock_message)
+
+
 @patch("apps.mobile_app.utils._send_push_notification_to_fcm_relay", return_value="ok")
 @pytest.mark.django_db
 def test_send_push_notification_oss(
@@ -76,8 +113,8 @@ def test_send_push_notification_oss(
     device = FCMDevice.objects.create(user=user, registration_id="test_device_id")
     mock_message = {"foo": "bar"}
 
-    utils.send_push_notification(device, mock_message, mock_error_cb)
-
+    succeeded = utils.send_push_notification(device, mock_message, mock_error_cb)
+    assert succeeded
     mock_error_cb.assert_not_called()
     mock_send_push_notification_to_fcm_relay.assert_called_once_with(mock_message)
 
@@ -98,8 +135,9 @@ def test_send_push_notification_oss_no_cloud_connector(
     device = FCMDevice.objects.create(user=user, registration_id="test_device_id")
     mock_message = {"foo": "bar"}
 
-    utils.send_push_notification(device, mock_message, mock_error_cb)
+    succeeded = utils.send_push_notification(device, mock_message, mock_error_cb)
 
+    assert not succeeded
     mock_error_cb.assert_called_once_with()
     mock_send_push_notification_to_fcm_relay.assert_not_called()
 
@@ -127,7 +165,8 @@ def test_send_push_notification_oss_fcm_relay_returns_client_error(
     device = FCMDevice.objects.create(user=user, registration_id="test_device_id")
     mock_message = {"foo": "bar"}
 
-    utils.send_push_notification(device, mock_message, mock_error_cb)
+    succeeded = utils.send_push_notification(device, mock_message, mock_error_cb)
+    assert not succeeded
     mock_send_push_notification_to_fcm_relay.assert_called_once_with(mock_message)
 
 
@@ -159,3 +198,13 @@ def test_send_push_notification_oss_fcm_relay_returns_server_error(
 
     mock_error_cb.assert_not_called()
     mock_send_push_notification_to_fcm_relay.assert_called_once_with(mock_message)
+
+
+@pytest.mark.django_db
+def test_add_stack_slug_to_message_title(make_organization):
+    test_stack_slug = "my-org"
+    organization = make_organization(stack_slug=test_stack_slug)
+    some_message_title = "Test title"
+    expected_result = "[my-org] Test title"
+    result = add_stack_slug_to_message_title(some_message_title, organization)
+    assert result == expected_result

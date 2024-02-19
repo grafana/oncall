@@ -4,9 +4,9 @@ import { HorizontalGroup, IconButton, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import CopyToClipboard from 'react-copy-to-clipboard';
 
-import Block from 'components/GBlock/Block';
-import Text from 'components/Text/Text';
-import { openNotification } from 'utils';
+import { Block } from 'components/GBlock/Block';
+import { Text } from 'components/Text/Text';
+import { openNotification } from 'utils/utils';
 
 import { CheatSheetInterface, CheatSheetItem } from './CheatSheet.config';
 import styles from './CheatSheet.module.scss';
@@ -19,7 +19,7 @@ interface CheatSheetProps {
 
 const cx = cn.bind(styles);
 
-const CheatSheet = (props: CheatSheetProps) => {
+export const CheatSheet = (props: CheatSheetProps) => {
   const { cheatSheetName, cheatSheetData, onClose } = props;
   return (
     <div className={cx('cheatsheet-container')}>
@@ -27,7 +27,7 @@ const CheatSheet = (props: CheatSheetProps) => {
         <VerticalGroup>
           <HorizontalGroup justify="space-between">
             <Text strong>{cheatSheetName} cheatsheet</Text>
-            <IconButton name="times" onClick={onClose} />
+            <IconButton aria-label="Close" name="times" onClick={onClose} />
           </HorizontalGroup>
           <Text type="secondary">{cheatSheetData.description}</Text>
           <div className={cx('u-width-100')}>
@@ -70,7 +70,7 @@ const CheatSheetListItem = (props: CheatSheetListItemProps) => {
                         {item.codeExample}
                       </Text>
                       <CopyToClipboard text={item.codeExample} onCopy={() => openNotification('Example copied')}>
-                        <IconButton name="copy" />
+                        <IconButton aria-label="Copy" name="copy" />
                       </CopyToClipboard>
                     </HorizontalGroup>
                   </Block>
@@ -83,5 +83,3 @@ const CheatSheetListItem = (props: CheatSheetListItemProps) => {
     </>
   );
 };
-
-export default CheatSheet;

@@ -6,7 +6,11 @@ from apps.alerts.constants import ActionSource
 from apps.alerts.incident_appearance.renderers.phone_call_renderer import AlertGroupPhoneCallRenderer
 from apps.alerts.models import AlertGroup, AlertGroupLogRecord
 from apps.alerts.tasks import wipe
-from apps.alerts.tasks.delete_alert_group import delete_alert_group
+from apps.alerts.tasks.delete_alert_group import (
+    delete_alert_group,
+    finish_delete_alert_group,
+    send_alert_group_signal_for_delete,
+)
 from apps.slack.client import SlackClient
 from apps.slack.errors import SlackAPIMessageNotFoundError, SlackAPIRatelimitError
 from apps.slack.models import SlackMessage
@@ -85,9 +89,9 @@ def test_delete(
     make_alert,
     make_slack_message,
     make_resolution_note_slack_message,
+    django_capture_on_commit_callbacks,
 ):
     """test alert group deleting"""
-
     organization, slack_team_identity = make_organization_with_slack_team_identity()
     user = make_user(organization=organization)
 
@@ -119,7 +123,20 @@ def test_delete(
     assert alert_group.slack_messages.count() == 1
     assert alert_group.resolution_note_slack_messages.count() == 2
 
-    delete_alert_group(alert_group.pk, user.pk)
+    with patch(
+        "apps.alerts.tasks.delete_alert_group.send_alert_group_signal_for_delete.delay", return_value=None
+    ) as mock_send_alert_group_signal:
+        with django_capture_on_commit_callbacks(execute=True):
+            delete_alert_group(alert_group.pk, user.pk)
+    assert mock_send_alert_group_signal.call_count == 1
+
+    with patch(
+        "apps.alerts.tasks.delete_alert_group.finish_delete_alert_group.apply_async", return_value=None
+    ) as mock_finish_delete_alert_group:
+        send_alert_group_signal_for_delete(*mock_send_alert_group_signal.call_args.args)
+    assert mock_finish_delete_alert_group.call_count == 1
+
+    finish_delete_alert_group(alert_group.pk)
 
     assert not alert_group.alerts.exists()
     assert not alert_group.slack_messages.exists()
@@ -140,10 +157,10 @@ def test_delete(
 
 
 @pytest.mark.parametrize("api_method", ["reactions_remove", "chat_delete"])
-@patch.object(delete_alert_group, "apply_async")
+@patch.object(send_alert_group_signal_for_delete, "apply_async")
 @pytest.mark.django_db
 def test_delete_slack_ratelimit(
-    mock_delete_alert_group,
+    mock_send_alert_group_signal_for_delete,
     api_method,
     make_organization_with_slack_team_identity,
     make_user,
@@ -152,6 +169,7 @@ def test_delete_slack_ratelimit(
     make_alert,
     make_slack_message,
     make_resolution_note_slack_message,
+    django_capture_on_commit_callbacks,
 ):
     organization, slack_team_identity = make_organization_with_slack_team_identity()
     user = make_user(organization=organization)
@@ -180,17 +198,31 @@ def test_delete_slack_ratelimit(
         ts="test2_ts",
     )
 
-    with patch.object(
-        SlackClient,
-        api_method,
-        side_effect=SlackAPIRatelimitError(
-            response=build_slack_response({"ok": False, "error": "ratelimited"}, headers={"Retry-After": 42})
-        ),
-    ):
-        delete_alert_group(alert_group.pk, user.pk)
+    with patch(
+        "apps.alerts.tasks.delete_alert_group.send_alert_group_signal_for_delete.delay", return_value=None
+    ) as mock_send_alert_group_signal:
+        with django_capture_on_commit_callbacks(execute=True):
+            delete_alert_group(alert_group.pk, user.pk)
+    assert mock_send_alert_group_signal.call_count == 1
+
+    with patch(
+        "apps.alerts.tasks.delete_alert_group.finish_delete_alert_group.apply_async", return_value=None
+    ) as mock_finish_delete_alert_group:
+        with patch.object(
+            SlackClient,
+            api_method,
+            side_effect=SlackAPIRatelimitError(
+                response=build_slack_response({"ok": False, "error": "ratelimited"}, headers={"Retry-After": 42})
+            ),
+        ):
+            send_alert_group_signal_for_delete(*mock_send_alert_group_signal.call_args.args)
+
+    assert mock_finish_delete_alert_group.call_count == 0
 
     # Check task is retried gracefully
-    mock_delete_alert_group.assert_called_once_with((alert_group.pk, user.pk), countdown=42)
+    mock_send_alert_group_signal_for_delete.assert_called_once_with(
+        mock_send_alert_group_signal.call_args.args, countdown=42
+    )
 
 
 @pytest.mark.parametrize("api_method", ["reactions_remove", "chat_delete"])
@@ -577,3 +609,59 @@ def test_filter_active_alert_groups(
     assert active_alert_groups.count() == 2
     assert alert_group_active in active_alert_groups
     assert alert_group_active_silenced in active_alert_groups
+
+
+@patch("apps.alerts.models.AlertGroup.hard_delete")
+@patch("apps.alerts.models.AlertGroup.un_attach_by_delete")
+@patch("apps.alerts.models.AlertGroup.stop_escalation")
+@patch("apps.alerts.tasks.delete_alert_group.alert_group_action_triggered_signal")
+@pytest.mark.django_db
+def test_delete_by_user(
+    mock_alert_group_action_triggered_signal,
+    _mock_stop_escalation,
+    _mock_un_attach_by_delete,
+    _mock_hard_delete,
+    make_organization_and_user,
+    make_alert_receive_channel,
+    make_alert_group,
+    django_capture_on_commit_callbacks,
+):
+    organization, user = make_organization_and_user()
+    alert_receive_channel = make_alert_receive_channel(organization)
+
+    alert_group = make_alert_group(alert_receive_channel)
+
+    # make a few dependent alert groups
+    dependent_alert_groups = [make_alert_group(alert_receive_channel, root_alert_group=alert_group) for _ in range(3)]
+
+    assert alert_group.log_records.filter(type=AlertGroupLogRecord.TYPE_DELETED).count() == 0
+
+    with patch(
+        "apps.alerts.tasks.delete_alert_group.send_alert_group_signal_for_delete.delay", return_value=None
+    ) as mock_send_alert_group_signal:
+        with django_capture_on_commit_callbacks(execute=True):
+            delete_alert_group(alert_group.pk, user.pk)
+
+    assert mock_send_alert_group_signal.call_count == 1
+    assert alert_group.log_records.filter(type=AlertGroupLogRecord.TYPE_DELETED).count() == 1
+    deleted_log_record = alert_group.log_records.get(type=AlertGroupLogRecord.TYPE_DELETED)
+    alert_group.stop_escalation.assert_called_once_with()
+
+    with patch(
+        "apps.alerts.tasks.delete_alert_group.finish_delete_alert_group.apply_async", return_value=None
+    ) as mock_finish_delete_alert_group:
+        send_alert_group_signal_for_delete(*mock_send_alert_group_signal.call_args.args)
+    assert mock_finish_delete_alert_group.call_count == 1
+
+    mock_alert_group_action_triggered_signal.send.assert_called_once_with(
+        sender=send_alert_group_signal_for_delete,
+        log_record=deleted_log_record.pk,
+        force_sync=True,
+    )
+
+    finish_delete_alert_group(alert_group.pk)
+
+    alert_group.hard_delete.assert_called_once_with()
+
+    for dependent_alert_group in dependent_alert_groups:
+        dependent_alert_group.un_attach_by_delete.assert_called_with()

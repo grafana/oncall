@@ -1,8 +1,8 @@
-import { action, observable } from 'mobx';
+import { action, observable, makeObservable, runInAction } from 'mobx';
 
-import BaseStore from 'models/base_store';
-import { makeRequest } from 'network';
-import { RootStore } from 'state';
+import { BaseStore } from 'models/base_store';
+import { makeRequest } from 'network/network';
+import { RootStore } from 'state/rootStore';
 
 import { Organization } from './organization.types';
 
@@ -12,15 +12,19 @@ export class OrganizationStore extends BaseStore {
 
   constructor(rootStore: RootStore) {
     super(rootStore);
+    makeObservable(this);
     this.path = '/organization/';
   }
 
-  @action
+  @action.bound
   async loadCurrentOrganization() {
-    this.currentOrganization = await makeRequest(this.path, {});
+    const organization = await makeRequest(this.path, {});
+
+    runInAction(() => {
+      this.currentOrganization = organization;
+    });
   }
 
-  @action
   async saveCurrentOrganization(data: Partial<Organization>) {
     this.currentOrganization = await makeRequest(this.path, {
       method: 'PUT',

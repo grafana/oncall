@@ -61,6 +61,13 @@ class AlertGroupLogRecord(models.Model):
         TYPE_RESTRICTED,
     ) = range(26)
 
+    TYPES_SKIPPING_UPDATE_SIGNAL = (
+        TYPE_DELETED,
+        TYPE_REGISTERED,  # set on creation before having an alert assigned, skip to avoid retries
+        TYPE_ROUTE_ASSIGNED,  # set on creation before having an alert assigned, skip to avoid retries
+        TYPE_ACK_REMINDER_TRIGGERED,  # set on acknowledged reminder, no updates to the alert group log
+    )
+
     TYPES_FOR_LICENCE_CALCULATION = (
         TYPE_ACK,
         TYPE_UN_ACK,
@@ -587,10 +594,16 @@ class AlertGroupLogRecord(models.Model):
                 step_specific_info = json.loads(self.step_specific_info)
         return step_specific_info
 
+    def delete(self):
+        logger.debug(
+            f"alert_group_log_record for alert_group deleted" f"alert_group={self.alert_group.pk} log_id={self.pk}"
+        )
+        super().delete()
+
 
 @receiver(post_save, sender=AlertGroupLogRecord)
 def listen_for_alertgrouplogrecord(sender, instance, created, *args, **kwargs):
-    if instance.type != AlertGroupLogRecord.TYPE_DELETED:
+    if instance.type not in AlertGroupLogRecord.TYPES_SKIPPING_UPDATE_SIGNAL:
         alert_group_pk = instance.alert_group.pk
         logger.debug(
             f"send_update_log_report_signal for alert_group {alert_group_pk}, "

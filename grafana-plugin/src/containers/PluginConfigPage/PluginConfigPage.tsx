@@ -4,12 +4,12 @@ import { Button, HorizontalGroup, Label, Legend, LinkButton, LoadingPlaceholder,
 import { useLocation } from 'react-router-dom';
 import { OnCallPluginConfigPageProps } from 'types';
 
-import PluginState, { PluginStatusResponseBase } from 'state/plugin';
-import { FALLBACK_LICENSE, GRAFANA_LICENSE_OSS } from 'utils/consts';
+import { PluginState, PluginStatusResponseBase } from 'state/plugin/plugin';
+import { FALLBACK_LICENSE, getOnCallApiUrl, GRAFANA_LICENSE_OSS, hasPluginBeenConfigured } from 'utils/consts';
 
-import ConfigurationForm from './parts/ConfigurationForm';
-import RemoveCurrentConfigurationButton from './parts/RemoveCurrentConfigurationButton';
-import StatusMessageBlock from './parts/StatusMessageBlock';
+import { ConfigurationForm } from './parts/ConfigurationForm/ConfigurationForm';
+import { RemoveCurrentConfigurationButton } from './parts/RemoveCurrentConfigurationButton/RemoveCurrentConfigurationButton';
+import { StatusMessageBlock } from './parts/StatusMessageBlock/StatusMessageBlock';
 
 const PLUGIN_CONFIGURED_QUERY_PARAM = 'pluginConfigured';
 const PLUGIN_CONFIGURED_QUERY_PARAM_TRUTHY_VALUE = 'true';
@@ -44,9 +44,10 @@ export const removePluginConfiguredQueryParams = (pluginIsEnabled: boolean): voi
   }
 };
 
-const PluginConfigPage: FC<OnCallPluginConfigPageProps> = ({
+export const PluginConfigPage: FC<OnCallPluginConfigPageProps> = ({
   plugin: {
-    meta: { jsonData, enabled: pluginIsEnabled },
+    meta,
+    meta: { enabled: pluginIsEnabled },
   },
 }) => {
   const { search } = useLocation();
@@ -75,11 +76,8 @@ const PluginConfigPage: FC<OnCallPluginConfigPageProps> = ({
 
   const [resettingPlugin, setResettingPlugin] = useState<boolean>(false);
   const [pluginResetError, setPluginResetError] = useState<string>(null);
-
-  const pluginMetaOnCallApiUrl = jsonData?.onCallApiUrl;
-  const processEnvOnCallApiUrl = process.env.ONCALL_API_URL; // don't destructure this, will break how webpack supplies this
-  const onCallApiUrl = pluginMetaOnCallApiUrl || processEnvOnCallApiUrl;
   const licenseType = pluginIsConnected?.license || FALLBACK_LICENSE;
+  const onCallApiUrl = getOnCallApiUrl(meta);
 
   const resetQueryParams = useCallback(() => removePluginConfiguredQueryParams(pluginIsEnabled), [pluginIsEnabled]);
 
@@ -110,12 +108,12 @@ const PluginConfigPage: FC<OnCallPluginConfigPageProps> = ({
        * Supplying the env var basically allows to skip the configuration form
        * (check webpack.config.js to see how this is set)
        */
-      if (!pluginMetaOnCallApiUrl && processEnvOnCallApiUrl) {
+      if (!hasPluginBeenConfigured(meta) && onCallApiUrl) {
         /**
          * onCallApiUrl is not yet saved in the grafana plugin settings, but has been supplied as an env var
          * lets auto-trigger a self-hosted plugin install w/ the onCallApiUrl passed in as an env var
          */
-        const errorMsg = await PluginState.selfHostedInstallPlugin(processEnvOnCallApiUrl, true);
+        const errorMsg = await PluginState.selfHostedInstallPlugin(onCallApiUrl, true);
         if (errorMsg) {
           setPluginConnectionCheckError(errorMsg);
           setCheckingIfPluginIsConnected(false);
@@ -146,7 +144,7 @@ const PluginConfigPage: FC<OnCallPluginConfigPageProps> = ({
     if (!pluginConfiguredRedirect) {
       configurePluginAndUpdatePluginStatus();
     }
-  }, [pluginMetaOnCallApiUrl, processEnvOnCallApiUrl, onCallApiUrl, pluginConfiguredRedirect]);
+  }, [onCallApiUrl, pluginConfiguredRedirect]);
 
   const resetMessages = useCallback(() => {
     setPluginResetError(null);
@@ -210,9 +208,7 @@ const PluginConfigPage: FC<OnCallPluginConfigPageProps> = ({
       </>
     );
   } else if (!pluginIsConnected) {
-    content = (
-      <ConfigurationForm onSuccessfulSetup={triggerUpdatePluginStatus} defaultOnCallApiUrl={processEnvOnCallApiUrl} />
-    );
+    content = <ConfigurationForm onSuccessfulSetup={triggerUpdatePluginStatus} defaultOnCallApiUrl={onCallApiUrl} />;
   } else {
     // plugin is fully connected and synced
     const pluginLink = (
@@ -250,5 +246,3 @@ const PluginConfigPage: FC<OnCallPluginConfigPageProps> = ({
     </>
   );
 };
-
-export default PluginConfigPage;

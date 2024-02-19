@@ -1,8 +1,10 @@
-import { action, observable } from 'mobx';
+import { action, observable, makeObservable, runInAction } from 'mobx';
 
-import BaseStore from 'models/base_store';
-import { makeRequest } from 'network';
-import { RootStore } from 'state';
+import { BaseStore } from 'models/base_store';
+import { LabelKeyValue } from 'models/label/label.types';
+import { makeRequest } from 'network/network';
+import { RootStore } from 'state/rootStore';
+import { LocationHelper } from 'utils/LocationHelper';
 import { PAGE } from 'utils/consts';
 import { getItem, setItem } from 'utils/localStorage';
 
@@ -28,6 +30,8 @@ export class FiltersStore extends BaseStore {
 
   constructor(rootStore: RootStore) {
     super(rootStore);
+
+    makeObservable(this);
 
     const savedFilters = getItem(LOCAL_STORAGE_FILTERS_KEY);
     if (savedFilters) {
@@ -59,10 +63,12 @@ export class FiltersStore extends BaseStore {
       result.unshift({ name: 'search', type: 'search' });
     }
 
-    this.options = {
-      ...this.options,
-      [page]: result,
-    };
+    runInAction(() => {
+      this.options = {
+        ...this.options,
+        [page]: result,
+      };
+    });
 
     return result;
   }
@@ -79,4 +85,21 @@ export class FiltersStore extends BaseStore {
   setCurrentTablePageNum(page: PAGE, currentTablePageNum: number) {
     this.currentTablePageNum[page] = currentTablePageNum;
   }
+
+  @action
+  applyLabelFilter = (label: LabelKeyValue, page: PAGE) => {
+    const currentLabelFilterValues = this.values[page]?.label || [];
+    const labelToAddString = `${label.key.id}:${label.value.id}`;
+    const newLabelFilter = [...currentLabelFilterValues, labelToAddString];
+
+    if (currentLabelFilterValues?.some((label) => label === labelToAddString)) {
+      return;
+    }
+
+    this.updateValuesForPage(page, {
+      label: newLabelFilter,
+    });
+    LocationHelper.update({ label: newLabelFilter }, 'partial');
+    this.setNeedToParseFilters(true);
+  };
 }

@@ -4,12 +4,12 @@ import { Button, HorizontalGroup, Icon, IconButton, Badge, LoadingPlaceholder } 
 import cn from 'classnames/bind';
 import { debounce } from 'lodash-es';
 
-import MonacoEditor, { MONACO_LANGUAGE } from 'components/MonacoEditor/MonacoEditor';
+import { MonacoEditor, MONACO_LANGUAGE } from 'components/MonacoEditor/MonacoEditor';
 import { MONACO_EDITABLE_CONFIG } from 'components/MonacoEditor/MonacoEditor.config';
-import Text from 'components/Text/Text';
-import TooltipBadge from 'components/TooltipBadge/TooltipBadge';
+import { Text } from 'components/Text/Text';
+import { TooltipBadge } from 'components/TooltipBadge/TooltipBadge';
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
-import { AlertTemplatesDTO } from 'models/alert_templates';
+import { AlertTemplatesDTO } from 'models/alert_templates/alert_templates';
 import { Alert } from 'models/alertgroup/alertgroup.types';
 import { OutgoingWebhook, OutgoingWebhookResponse } from 'models/outgoing_webhook/outgoing_webhook.types';
 import { useStore } from 'state/useStore';
@@ -17,8 +17,6 @@ import { useStore } from 'state/useStore';
 import styles from './TemplatesAlertGroupsList.module.css';
 
 const cx = cn.bind(styles);
-const HEADER_OF_CONTAINER_HEIGHT = 59;
-const BADGE_WITH_PADDINGS_HEIGHT = 42;
 
 export enum TEMPLATE_PAGE {
   Integrations,
@@ -38,7 +36,7 @@ interface TemplatesAlertGroupsListProps {
   onLoadAlertGroupsList?: (isRecentAlertExising: boolean) => void;
 }
 
-const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) => {
+export const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) => {
   const {
     templatePage,
     heading = 'Recent Alert groups',
@@ -70,18 +68,6 @@ const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) => {
       });
     }
   }, []);
-
-  const getCodeEditorHeight = () => {
-    const mainDiv = document.getElementById('alerts-content-container-id');
-    const height = mainDiv?.getBoundingClientRect().height - HEADER_OF_CONTAINER_HEIGHT;
-    return `${height}px`;
-  };
-
-  const getCodeEditorHeightWithBadge = () => {
-    const mainDiv = document.getElementById('alerts-content-container-id');
-    const height = mainDiv?.getBoundingClientRect().height - HEADER_OF_CONTAINER_HEIGHT - BADGE_WITH_PADDINGS_HEIGHT;
-    return `${height}px`;
-  };
 
   const getChangeHandler = () => {
     return debounce((value: string) => {
@@ -143,7 +129,7 @@ const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) => {
               <Text>Edit custom payload</Text>
 
               <HorizontalGroup>
-                <IconButton name="times" onClick={returnToListView} />
+                <IconButton aria-label="List View" name="times" onClick={returnToListView} />
               </HorizontalGroup>
             </HorizontalGroup>
           </div>
@@ -158,7 +144,7 @@ const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) => {
                 ...MONACO_EDITABLE_CONFIG,
                 readOnly: false,
               }}
-              height={getCodeEditorHeight()}
+              height="100%"
               onChange={getChangeHandler()}
             />
           </div>
@@ -263,7 +249,7 @@ const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) => {
             <Text>Edit custom payload</Text>
 
             <HorizontalGroup>
-              <IconButton name="times" onClick={() => returnToListView()} />
+              <IconButton aria-label="List View" name="times" onClick={() => returnToListView()} />
             </HorizontalGroup>
           </HorizontalGroup>
         </div>
@@ -271,7 +257,7 @@ const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) => {
           <MonacoEditor
             value={JSON.stringify(selectedPayload, null, 4)}
             data={templates}
-            height={getCodeEditorHeight()}
+            height="100%"
             onChange={getChangeHandler()}
             showLineNumbers
             useAutoCompleteList={false}
@@ -292,8 +278,8 @@ const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) => {
               <Text>{selectedTitle}</Text>
             </div>
             <div className={cx('title-action-icons')}>
-              <IconButton name="edit" onClick={() => setIsEditMode(true)} />
-              <IconButton name="times" onClick={() => returnToListView()} />
+              <IconButton aria-label="Edit" name="edit" onClick={() => setIsEditMode(true)} />
+              <IconButton aria-label="List View" name="times" onClick={() => returnToListView()} />
             </div>
           </div>
         </div>
@@ -310,7 +296,7 @@ const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) => {
               value={JSON.stringify(selectedPayload, null, 4)}
               data={undefined}
               disabled
-              height={getCodeEditorHeightWithBadge()}
+              height="100%"
               onChange={getChangeHandler()}
               useAutoCompleteList={false}
               language={MONACO_LANGUAGE.json}
@@ -325,5 +311,3 @@ const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) => {
     );
   }
 };
-
-export default TemplatesAlertGroupsList;

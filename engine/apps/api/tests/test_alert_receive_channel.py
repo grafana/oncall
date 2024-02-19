@@ -9,6 +9,7 @@ from rest_framework.test import APIClient
 
 from apps.alerts.models import AlertReceiveChannel, EscalationPolicy
 from apps.api.permissions import LegacyAccessControlRole
+from apps.labels.models import LabelKeyCache, LabelValueCache
 
 
 @pytest.fixture()
@@ -147,6 +148,100 @@ def test_create_alert_receive_channel(alert_receive_channel_internal_api_setup, 
     }
     response = client.post(url, data, format="json", **make_user_auth_headers(user, token))
     assert response.status_code == status.HTTP_201_CREATED
+
+
+@pytest.mark.django_db
+def test_alert_receive_channel_name_uniqueness(
+    alert_receive_channel_internal_api_setup,
+    make_team,
+    make_user_auth_headers,
+):
+    user, token, alert_receive_channel = alert_receive_channel_internal_api_setup
+    client = APIClient()
+
+    url = reverse("api-internal:alert_receive_channel-list")
+    data = {
+        "integration": AlertReceiveChannel.INTEGRATION_GRAFANA,
+        "team": alert_receive_channel.team.public_primary_key if alert_receive_channel.team else None,
+        "verbal_name": alert_receive_channel.verbal_name,
+    }
+    response = client.post(url, data, format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    # name can be reused in a different team
+    another_team = make_team(alert_receive_channel.organization)
+    data = {
+        "integration": AlertReceiveChannel.INTEGRATION_GRAFANA,
+        "team": another_team.public_primary_key,
+        "verbal_name": alert_receive_channel.verbal_name,
+    }
+    response = client.post(url, data, format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_201_CREATED
+
+    # update works
+    url = reverse("api-internal:alert_receive_channel-detail", kwargs={"pk": alert_receive_channel.public_primary_key})
+    response = client.put(
+        url,
+        data=json.dumps(
+            {
+                "team": alert_receive_channel.team,
+                "verbal_name": alert_receive_channel.verbal_name,
+                "description": "update description",
+            }
+        ),
+        content_type="application/json",
+        **make_user_auth_headers(user, token),
+    )
+    assert response.status_code == status.HTTP_200_OK
+
+    # but updating team will fail if name exists
+    response = client.put(
+        url,
+        data=json.dumps(
+            {
+                "team": another_team.public_primary_key,
+                "verbal_name": alert_receive_channel.verbal_name,
+            }
+        ),
+        content_type="application/json",
+        **make_user_auth_headers(user, token),
+    )
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+@pytest.mark.django_db
+def test_alert_receive_channel_name_duplicated(
+    alert_receive_channel_internal_api_setup,
+    make_alert_receive_channel,
+    make_user_auth_headers,
+):
+    # this could happen in case a team is removed and integrations are set to have "no team"
+    user, token, alert_receive_channel = alert_receive_channel_internal_api_setup
+    # another integration with the same verbal name
+    make_alert_receive_channel(
+        alert_receive_channel.organization,
+        verbal_name=alert_receive_channel.verbal_name,
+    )
+
+    client = APIClient()
+
+    # updating team will require changing the name or the team
+    url = reverse("api-internal:alert_receive_channel-detail", kwargs={"pk": alert_receive_channel.public_primary_key})
+    response = client.put(
+        url,
+        data=json.dumps({"verbal_name": alert_receive_channel.verbal_name}),
+        content_type="application/json",
+        **make_user_auth_headers(user, token),
+    )
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    response = client.put(
+        url,
+        data=json.dumps({"verbal_name": "a new name"}),
+        content_type="application/json",
+        **make_user_auth_headers(user, token),
+    )
+    assert response.status_code == status.HTTP_200_OK
 
 
 @pytest.mark.django_db
@@ -784,45 +879,17 @@ def test_get_alert_receive_channels_direct_paging_present_for_filters(
 
 
 @pytest.mark.django_db
-def test_create_alert_receive_channels_direct_paging(
+def test_cant_create_alert_receive_channels_direct_paging(
     make_organization_and_user_with_plugin_token, make_team, make_alert_receive_channel, make_user_auth_headers
 ):
     organization, user, token = make_organization_and_user_with_plugin_token()
-    team = make_team(organization)
 
     client = APIClient()
     url = reverse("api-internal:alert_receive_channel-list")
-
-    response_1 = client.post(
+    response = client.post(
         url, data={"integration": "direct_paging"}, format="json", **make_user_auth_headers(user, token)
     )
-    response_2 = client.post(
-        url, data={"integration": "direct_paging"}, format="json", **make_user_auth_headers(user, token)
-    )
-
-    response_3 = client.post(
-        url,
-        data={"integration": "direct_paging", "team": team.public_primary_key},
-        format="json",
-        **make_user_auth_headers(user, token),
-    )
-    response_4 = client.post(
-        url,
-        data={"integration": "direct_paging", "team": team.public_primary_key},
-        format="json",
-        **make_user_auth_headers(user, token),
-    )
-
-    # Check direct paging integration for "No team" is created
-    assert response_1.status_code == status.HTTP_201_CREATED
-    # Check direct paging integration is not created, as it already exists for "No team"
-    assert response_2.status_code == status.HTTP_400_BAD_REQUEST
-
-    # Check direct paging integration for team is created
-    assert response_3.status_code == status.HTTP_201_CREATED
-    # Check direct paging integration is not created, as it already exists for team
-    assert response_4.status_code == status.HTTP_400_BAD_REQUEST
-    assert response_4.json()["detail"] == AlertReceiveChannel.DuplicateDirectPagingError.DETAIL
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
 
 
 @pytest.mark.django_db
@@ -852,32 +919,24 @@ def test_update_alert_receive_channels_direct_paging(
 
 
 @pytest.mark.django_db
-def test_delete_alert_receive_channel_direct_paging_duplicate(
-    make_organization_and_user_with_plugin_token, make_team, make_alert_receive_channel, make_user_auth_headers
+def test_cant_delete_direct_paging_integration(
+    make_organization_and_user_with_plugin_token, make_alert_receive_channel, make_user_auth_headers
 ):
-    """Check that it's possible to delete direct paging integration even if there is a duplicate for the team."""
     organization, user, token = make_organization_and_user_with_plugin_token()
-    integration = make_alert_receive_channel(
-        organization, integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING, team=None
-    )
+    integration = make_alert_receive_channel(organization, integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING)
 
-    # Create a team, add direct paging integration to it, then delete the team.
-    # There will be 2 direct paging integrations for the team "No team" as a result.
-    team = make_team(organization)
-    make_alert_receive_channel(organization, integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING, team=team)
-    team.delete()
-    assert (
-        organization.alert_receive_channels.filter(
-            integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING, team=None
-        ).count()
-        == 2
-    )
+    # check allow_delete is False (so the frontend can hide the delete button)
+    client = APIClient()
+    url = reverse("api-internal:alert_receive_channel-detail", kwargs={"pk": integration.public_primary_key})
+    response = client.get(url, **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()["allow_delete"] is False
 
+    # check delete is not allowed
     client = APIClient()
     url = reverse("api-internal:alert_receive_channel-detail", kwargs={"pk": integration.public_primary_key})
     response = client.delete(url, **make_user_auth_headers(user, token))
-
-    assert response.status_code == status.HTTP_204_NO_CONTENT
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
 
 
 @pytest.mark.django_db
@@ -1310,7 +1369,6 @@ def test_integration_filter_by_labels(
 def test_update_alert_receive_channel_labels(
     make_organization_and_user_with_plugin_token,
     make_alert_receive_channel,
-    make_integration_label_association,
     make_user_auth_headers,
 ):
     organization, user, token = make_organization_and_user_with_plugin_token()
@@ -1353,7 +1411,6 @@ def test_update_alert_receive_channel_labels(
 def test_update_alert_receive_channel_labels_duplicate_key(
     make_organization_and_user_with_plugin_token,
     make_alert_receive_channel,
-    make_integration_label_association,
     make_user_auth_headers,
 ):
     organization, user, token = make_organization_and_user_with_plugin_token()
@@ -1385,23 +1442,49 @@ def test_update_alert_receive_channel_labels_duplicate_key(
 def test_alert_group_labels_get(
     make_organization_and_user_with_plugin_token,
     make_alert_receive_channel,
+    make_label_key_and_value,
     make_integration_label_association,
     make_user_auth_headers,
 ):
     organization, user, token = make_organization_and_user_with_plugin_token()
     alert_receive_channel = make_alert_receive_channel(organization)
+    label_key, label_value = make_label_key_and_value(organization)
+    label_key_1, _ = make_label_key_and_value(organization)
 
     client = APIClient()
     url = reverse("api-internal:alert_receive_channel-detail", kwargs={"pk": alert_receive_channel.public_primary_key})
 
     response = client.get(url, **make_user_auth_headers(user, token))
     assert response.status_code == status.HTTP_200_OK
-    assert response.json()["alert_group_labels"] == {"inheritable": {}}
+    assert response.json()["alert_group_labels"] == {"inheritable": {}, "custom": [], "template": None}
 
     label = make_integration_label_association(organization, alert_receive_channel)
+
+    template = "{{ payload.labels | tojson }}"
+    alert_receive_channel.alert_group_labels_template = template
+
+    alert_receive_channel.alert_group_labels_custom = [
+        (label_key.id, label_value.id, None),
+        (label_key_1.id, None, "{{ payload.foo }}"),
+    ]
+    alert_receive_channel.save(update_fields=["alert_group_labels_custom", "alert_group_labels_template"])
+
     response = client.get(url, **make_user_auth_headers(user, token))
     assert response.status_code == status.HTTP_200_OK
-    assert response.json()["alert_group_labels"] == {"inheritable": {label.key_id: True}}
+    assert response.json()["alert_group_labels"] == {
+        "inheritable": {label.key_id: True},
+        "custom": [
+            {
+                "key": {"id": label_key.id, "name": label_key.name},
+                "value": {"id": label_value.id, "name": label_value.name},
+            },
+            {
+                "key": {"id": label_key_1.id, "name": label_key_1.name},
+                "value": {"id": None, "name": "{{ payload.foo }}"},
+            },
+        ],
+        "template": template,
+    }
 
 
 @pytest.mark.django_db
@@ -1415,14 +1498,75 @@ def test_alert_group_labels_put(
     alert_receive_channel = make_alert_receive_channel(organization)
     label_1 = make_integration_label_association(organization, alert_receive_channel)
     label_2 = make_integration_label_association(organization, alert_receive_channel, inheritable=False)
+    label_3 = make_integration_label_association(organization, alert_receive_channel, inheritable=False)
+
+    custom = [
+        # plain label
+        {
+            "key": {"id": label_2.key.id, "name": label_2.key.name},
+            "value": {"id": label_2.value.id, "name": label_2.value.name},
+        },
+        # plain label not present in DB cache
+        {
+            "key": {"id": "hello", "name": "world"},
+            "value": {"id": "foo", "name": "bar"},
+        },
+        # templated label
+        {
+            "key": {"id": label_3.key.id, "name": label_3.key.name},
+            "value": {"id": None, "name": "{{ payload.foo }}"},
+        },
+    ]
+    template = "{{ payload.labels | tojson }}"  # advanced template
 
     client = APIClient()
     url = reverse("api-internal:alert_receive_channel-detail", kwargs={"pk": alert_receive_channel.public_primary_key})
-    data = {"alert_group_labels": {"inheritable": {label_1.key_id: False, label_2.key_id: True}}}
+    data = {
+        "alert_group_labels": {
+            "inheritable": {label_1.key_id: False, label_2.key_id: True, label_3.key_id: False},
+            "custom": custom,
+            "template": template,
+        }
+    }
     response = client.put(url, data, format="json", **make_user_auth_headers(user, token))
 
     assert response.status_code == status.HTTP_200_OK
-    assert response.json()["alert_group_labels"] == {"inheritable": {label_1.key_id: False, label_2.key_id: True}}
+    assert response.json()["alert_group_labels"] == {
+        "inheritable": {label_1.key_id: False, label_2.key_id: True, label_3.key_id: False},
+        "custom": custom,
+        "template": template,
+    }
+
+    alert_receive_channel.refresh_from_db()
+    assert alert_receive_channel.alert_group_labels_custom == [
+        [label_2.key_id, label_2.value_id, None],
+        ["hello", "foo", None],
+        [label_3.key_id, None, "{{ payload.foo }}"],
+    ]
+    assert alert_receive_channel.alert_group_labels_template == template
+
+    # check label keys & values are created
+    key = LabelKeyCache.objects.filter(id="hello", name="world", organization=organization).first()
+    assert key is not None
+    assert LabelValueCache.objects.filter(key=key, id="foo", name="bar").exists()
+
+
+@pytest.mark.django_db
+def test_alert_group_labels_put_none(
+    make_organization_and_user_with_plugin_token,
+    make_alert_receive_channel,
+    make_user_auth_headers,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+    alert_receive_channel = make_alert_receive_channel(organization)
+
+    client = APIClient()
+    url = reverse("api-internal:alert_receive_channel-detail", kwargs={"pk": alert_receive_channel.public_primary_key})
+    response = client.put(url, {"verbal_name": "123"}, format="json", **make_user_auth_headers(user, token))
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()["verbal_name"] == "123"
+    assert response.json()["alert_group_labels"] == {"inheritable": {}, "custom": [], "template": None}
 
 
 @pytest.mark.django_db
@@ -1430,7 +1574,11 @@ def test_alert_group_labels_post(alert_receive_channel_internal_api_setup, make_
     user, token, _ = alert_receive_channel_internal_api_setup
 
     labels = [{"key": {"id": "test", "name": "test"}, "value": {"id": "123", "name": "123"}}]
-    alert_group_labels = {"inheritable": {"test": False}}
+    alert_group_labels = {
+        "inheritable": {"test": False},
+        "custom": [{"key": {"id": "test", "name": "test"}, "value": {"id": "123", "name": "123"}}],
+        "template": "{{ payload.labels | tojson }}",
+    }
     data = {
         "integration": AlertReceiveChannel.INTEGRATION_GRAFANA,
         "team": None,
@@ -1445,3 +1593,32 @@ def test_alert_group_labels_post(alert_receive_channel_internal_api_setup, make_
     assert response.status_code == status.HTTP_201_CREATED
     assert response.json()["labels"] == labels
     assert response.json()["alert_group_labels"] == alert_group_labels
+
+    alert_receive_channel = AlertReceiveChannel.objects.get(public_primary_key=response.json()["id"])
+    assert alert_receive_channel.alert_group_labels_custom == [["test", "123", None]]
+    assert alert_receive_channel.alert_group_labels_template == "{{ payload.labels | tojson }}"
+
+
+@pytest.mark.django_db
+def test_team_not_updated_if_not_in_data(
+    make_organization_and_user_with_plugin_token,
+    make_alert_receive_channel,
+    make_team,
+    make_user_auth_headers,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+    team = make_team(organization)
+    alert_receive_channel = make_alert_receive_channel(organization, team=team)
+
+    assert alert_receive_channel.team == team
+
+    client = APIClient()
+    url = reverse("api-internal:alert_receive_channel-detail", kwargs={"pk": alert_receive_channel.public_primary_key})
+    data = {"verbal_name": "test integration"}
+    response = client.put(url, data, format="json", **make_user_auth_headers(user, token))
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()["team"] == alert_receive_channel.team.public_primary_key
+
+    alert_receive_channel.refresh_from_db()
+    assert alert_receive_channel.team == team

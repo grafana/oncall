@@ -6,7 +6,7 @@ from django.utils import timezone
 
 from apps.api.permissions import LegacyAccessControlRole
 from apps.schedules.models import CustomOnCallShift, OnCallScheduleWeb
-from apps.schedules.tasks import notify_about_empty_shifts_in_schedule
+from apps.schedules.tasks import notify_about_empty_shifts_in_schedule_task
 
 
 @pytest.mark.django_db
@@ -47,12 +47,13 @@ def test_no_empty_shifts_no_triggering_notification(
     empty_shifts_report_sent_at = schedule.empty_shifts_report_sent_at
 
     with patch("apps.slack.client.SlackClient.chat_postMessage") as mock_slack_api_call:
-        notify_about_empty_shifts_in_schedule(schedule.pk)
+        notify_about_empty_shifts_in_schedule_task(schedule.pk)
 
     assert not mock_slack_api_call.called
 
     schedule.refresh_from_db()
     assert empty_shifts_report_sent_at != schedule.empty_shifts_report_sent_at
+    assert schedule.has_empty_shifts is False
 
 
 @pytest.mark.django_db
@@ -93,7 +94,7 @@ def test_empty_shifts_trigger_notification(
     empty_shifts_report_sent_at = schedule.empty_shifts_report_sent_at
 
     with patch("apps.slack.client.SlackClient.chat_postMessage") as mock_slack_api_call:
-        notify_about_empty_shifts_in_schedule(schedule.pk)
+        notify_about_empty_shifts_in_schedule_task(schedule.pk)
 
     assert mock_slack_api_call.called
 
@@ -154,7 +155,7 @@ def test_empty_non_empty_shifts_trigger_notification(
     empty_shifts_report_sent_at = schedule.empty_shifts_report_sent_at
 
     with patch("apps.slack.client.SlackClient.chat_postMessage") as mock_slack_api_call:
-        notify_about_empty_shifts_in_schedule(schedule.pk)
+        notify_about_empty_shifts_in_schedule_task(schedule.pk)
 
     assert mock_slack_api_call.called
 

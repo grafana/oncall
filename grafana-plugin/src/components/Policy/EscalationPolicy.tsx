@@ -7,13 +7,13 @@ import moment from 'moment-timezone';
 import { SortableElement } from 'react-sortable-hoc';
 import reactStringReplace from 'react-string-replace';
 
-import PluginLink from 'components/PluginLink/PluginLink';
-import Text from 'components/Text/Text';
-import TimeRange from 'components/TimeRange/TimeRange';
-import Timeline from 'components/Timeline/Timeline';
-import GSelect from 'containers/GSelect/GSelect';
-import TeamName from 'containers/TeamName/TeamName';
-import UserTooltip from 'containers/UserTooltip/UserTooltip';
+import { PluginLink } from 'components/PluginLink/PluginLink';
+import { Text } from 'components/Text/Text';
+import { TimeRange } from 'components/TimeRange/TimeRange';
+import { Timeline } from 'components/Timeline/Timeline';
+import { GSelect } from 'containers/GSelect/GSelect';
+import { TeamName } from 'containers/TeamName/TeamName';
+import { UserTooltip } from 'containers/UserTooltip/UserTooltip';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { prepareEscalationPolicy } from 'models/escalation_policy/escalation_policy.helpers';
 import {
@@ -23,13 +23,12 @@ import {
 import { GrafanaTeamStore } from 'models/grafana_team/grafana_team';
 import { OutgoingWebhookStore } from 'models/outgoing_webhook/outgoing_webhook';
 import { ScheduleStore } from 'models/schedule/schedule';
-import { WaitDelay } from 'models/wait_delay';
 import { SelectOption } from 'state/types';
 import { getVar } from 'utils/DOM';
-import { UserActions } from 'utils/authorization';
+import { UserActions } from 'utils/authorization/authorization';
 
-import DragHandle from './DragHandle';
-import PolicyNote from './PolicyNote';
+import { DragHandle } from './DragHandle';
+import { PolicyNote } from './PolicyNote';
 
 import styles from './EscalationPolicy.module.css';
 
@@ -49,16 +48,17 @@ export interface EscalationPolicyProps extends ElementSortableProps {
   onDelete: (data: EscalationPolicyType) => void;
   escalationChoices: any[];
   number: number;
-  backgroundColor: string;
+  backgroundClassName?: string;
+  backgroundHexNumber?: string;
   isSlackInstalled: boolean;
   teamStore: GrafanaTeamStore;
   outgoingWebhookStore: OutgoingWebhookStore;
   scheduleStore: ScheduleStore;
 }
 
-export class EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
+class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
   render() {
-    const { data, escalationChoices, number, backgroundColor, isDisabled } = this.props;
+    const { data, escalationChoices, number, isDisabled, backgroundClassName, backgroundHexNumber } = this.props;
     const { id, step, is_final } = data;
 
     const escalationOption = escalationChoices.find(
@@ -71,7 +71,8 @@ export class EscalationPolicy extends React.Component<EscalationPolicyProps, any
         contentClassName={cx('root')}
         number={number}
         textColor={isDisabled ? getVar('--tag-text-success') : undefined}
-        backgroundColor={backgroundColor}
+        backgroundClassName={backgroundClassName}
+        backgroundHexNumber={backgroundHexNumber}
       >
         {!isDisabled && (
           <WithPermissionControlTooltip disableByPaywall userAction={UserActions.EscalationChainsWrite}>
@@ -255,7 +256,7 @@ export class EscalationPolicy extends React.Component<EscalationPolicyProps, any
           // @ts-ignore
           value={wait_delay}
           onChange={this._getOnSelectChangeHandler('wait_delay')}
-          options={waitDelays.map((waitDelay: WaitDelay) => ({
+          options={waitDelays.map((waitDelay: SelectOption) => ({
             value: waitDelay.value,
             label: waitDelay.display_name,
           }))}
@@ -482,4 +483,4 @@ export class EscalationPolicy extends React.Component<EscalationPolicyProps, any
   };
 }
 
-export default SortableElement(EscalationPolicy) as React.ComponentClass<EscalationPolicyProps>;
+export const EscalationPolicy = SortableElement(_EscalationPolicy) as React.ComponentClass<EscalationPolicyProps>;

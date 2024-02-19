@@ -5,18 +5,19 @@ from celery.utils.log import get_task_logger
 from django.conf import settings
 from django.utils import timezone
 
-from apps.labels.client import LabelsAPIClient
-from apps.labels.utils import LABEL_OUTDATED_TIMEOUT_MINUTES, LabelKeyData, LabelsData, get_associating_label_model
+from apps.labels.client import LabelsAPIClient, LabelsRepoAPIException
+from apps.labels.utils import (
+    LABEL_OUTDATED_TIMEOUT_MINUTES,
+    LabelKeyData,
+    LabelsData,
+    ValueData,
+    get_associating_label_model,
+)
 from apps.user_management.models import Organization
 from common.custom_celery_tasks import shared_dedicated_queue_retry_task
 
 logger = get_task_logger(__name__)
 logger.setLevel(logging.DEBUG)
-
-
-class ValueData(typing.TypedDict):
-    value_name: str
-    key_name: str
 
 
 def unify_labels_data(labels_data: LabelsData | LabelKeyData) -> typing.Dict[str, ValueData]:
@@ -39,6 +40,11 @@ def unify_labels_data(labels_data: LabelsData | LabelKeyData) -> typing.Dict[str
 )
 def update_labels_cache(labels_data: LabelsData | LabelKeyData):
     from apps.labels.models import LabelKeyCache, LabelValueCache
+
+    # this is a quick fix for tasks with wrong labels_data and can be removed later since handling this error happens in
+    # the parent task now
+    if isinstance(labels_data, dict) and labels_data.get("error"):
+        return
 
     values_data: typing.Dict[str, ValueData] = unify_labels_data(labels_data)
     values = LabelValueCache.objects.filter(id__in=values_data).select_related("key")
@@ -86,6 +92,13 @@ def update_instances_labels_cache(organization_id: int, instance_ids: typing.Lis
 
     client = LabelsAPIClient(organization.grafana_url, organization.api_token)
     for key_id in keys_ids:
-        label_data, _ = client.get_values(key_id)
+        try:
+            label_data, _ = client.get_values(key_id)
+        except LabelsRepoAPIException as e:
+            logger.warning(
+                f"Error on get label data: organization: {organization_id}, key_id {key_id}, error: {e}, "
+                f"error message: {e.msg}"
+            )
+            continue
         if label_data:
             update_labels_cache.apply_async((label_data,))

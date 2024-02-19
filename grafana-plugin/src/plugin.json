@@ -1,8 +1,9 @@
 {
-  "$schema": "https://raw.githubusercontent.com/grafana/grafana/master/docs/sources/developers/plugins/plugin.schema.json",
+  "$schema": "https://raw.githubusercontent.com/grafana/grafana/main/docs/sources/developers/plugins/plugin.schema.json",
   "type": "app",
   "name": "Grafana OnCall",
   "id": "grafana-oncall-app",
+  "preload": true,
   "info": {
     "description": "Collect and analyze alerts, escalate based on schedules and deliver them to Slack, Phone Calls, SMS and others.",
     "author": {
@@ -57,7 +58,7 @@
     {
       "type": "page",
       "name": "Integrations",
-      "path": "/a/grafana-oncall-app/integrations?tab=connections",
+      "path": "/a/grafana-oncall-app/integrations?tab=monitoring-systems",
       "role": "Viewer",
       "action": "grafana-oncall-app.integrations:read",
       "addToNav": true
@@ -88,6 +89,14 @@
     },
     {
       "type": "page",
+      "name": "Insights",
+      "path": "/a/grafana-oncall-app/insights",
+      "role": "Viewer",
+      "action": "grafana-oncall-app.other-settings:read",
+      "addToNav": true
+    },
+    {
+      "type": "page",
       "name": "Settings",
       "path": "/a/grafana-oncall-app/settings",
       "role": "Viewer",
@@ -108,7 +117,7 @@
       "headers": [
         {
           "name": "X-Instance-Context",
-          "content": "{ \"stack_id\": \"{{ .JsonData.stackId }}\", \"org_id\": \"{{ .JsonData.orgId }}\", \"grafana_token\": \"{{ .SecureJsonData.grafanaToken }}\" }"
+          "content": "{ \"stack_id\": \"{{ printf \"%.0f\" .JsonData.stackId }}\", \"org_id\": \"{{ printf \"%.0f\" .JsonData.orgId }}\", \"grafana_token\": \"{{ .SecureJsonData.grafanaToken }}\" }"
         },
         {
           "name": "Authorization",
@@ -134,7 +143,7 @@
       "headers": [
         {
           "name": "X-Instance-Context",
-          "content": "{ \"stack_id\": \"{{ .JsonData.stackId }}\", \"org_id\": \"{{ .JsonData.orgId }}\" }"
+          "content": "{ \"stack_id\": \"{{ printf \"%.0f\" .JsonData.stackId }}\", \"org_id\": \"{{ printf \"%.0f\" .JsonData.orgId }}\" }"
         },
         {
           "name": "Authorization",
@@ -149,7 +158,7 @@
       "headers": [
         {
           "name": "X-Instance-Context",
-          "content": "{ \"stack_id\": \"{{ .JsonData.stackId }}\", \"org_id\": \"{{ .JsonData.orgId }}\" }"
+          "content": "{ \"stack_id\": \"{{ printf \"%.0f\" .JsonData.stackId }}\", \"org_id\": \"{{ printf \"%.0f\" .JsonData.orgId }}\" }"
         },
         {
           "name": "Authorization",
@@ -164,7 +173,7 @@
       "headers": [
         {
           "name": "X-Instance-Context",
-          "content": "{ \"stack_id\": \"{{ .JsonData.stackId }}\", \"org_id\": \"{{ .JsonData.orgId }}\" }"
+          "content": "{ \"stack_id\": \"{{ printf \"%.0f\" .JsonData.stackId }}\", \"org_id\": \"{{ printf \"%.0f\" .JsonData.orgId }}\" }"
         },
         {
           "name": "Authorization",
@@ -179,7 +188,7 @@
       "headers": [
         {
           "name": "X-Instance-Context",
-          "content": "{ \"stack_id\": \"{{ .JsonData.stackId }}\", \"org_id\": \"{{ .JsonData.orgId }}\" }"
+          "content": "{ \"stack_id\": \"{{ printf \"%.0f\" .JsonData.stackId }}\", \"org_id\": \"{{ printf \"%.0f\" .JsonData.orgId }}\" }"
         },
         {
           "name": "Authorization",

@@ -131,7 +131,7 @@ class SlackMessage(models.Model):
                 },
             }
         ]
-        sc = SlackClient(self.slack_team_identity)
+        sc = SlackClient(self.slack_team_identity, enable_ratelimit_retry=True)
         channel_id = slack_message.channel_id
 
         try:
@@ -172,6 +172,15 @@ class SlackMessage(models.Model):
                 organization=self.organization,
                 _slack_team_identity=self.slack_team_identity,
                 channel_id=channel_id,
+            )
+            # create success record
+            UserNotificationPolicyLogRecord.objects.create(
+                author=user,
+                type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_SUCCESS,
+                notification_policy=notification_policy,
+                alert_group=alert_group,
+                notification_step=notification_policy.step,
+                notification_channel=notification_policy.notify_by,
             )
 
         # Check if escalated user is in channel. Otherwise send notification and request to invite him.

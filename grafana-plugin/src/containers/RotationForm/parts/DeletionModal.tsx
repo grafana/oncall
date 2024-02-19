@@ -3,7 +3,7 @@ import React, { ChangeEvent, useCallback, useState } from 'react';
 import { VerticalGroup, Modal as GrafanaModal, HorizontalGroup, Button, InlineSwitch } from '@grafana/ui';
 import cn from 'classnames/bind';
 
-import Text from 'components/Text/Text';
+import { Text } from 'components/Text/Text';
 
 import styles from 'containers/RotationForm/RotationForm.module.css';
 
@@ -14,7 +14,7 @@ interface DeletionModalProps {
   onConfirm: (force: boolean) => void;
 }
 
-const DeletionModal = ({ onHide, onConfirm }: DeletionModalProps) => {
+export const DeletionModal = ({ onHide, onConfirm }: DeletionModalProps) => {
   const [isForceDelete, setIsForceDelete] = useState<boolean>(false);
 
   const handleIsForceDeleteChange = useCallback((event: ChangeEvent<HTMLInputElement>) => {
@@ -55,5 +55,3 @@ const DeletionModal = ({ onHide, onConfirm }: DeletionModalProps) => {
     </GrafanaModal>
   );
 };
-
-export default DeletionModal;

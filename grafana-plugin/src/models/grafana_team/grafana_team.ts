@@ -1,9 +1,9 @@
-import { action, observable } from 'mobx';
+import { action, observable, makeObservable, runInAction } from 'mobx';
 
-import BaseStore from 'models/base_store';
+import { BaseStore } from 'models/base_store';
 import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
-import { makeRequest } from 'network';
-import { RootStore } from 'state';
+import { makeRequest } from 'network/network';
+import { RootStore } from 'state/rootStore';
 
 type TeamItems = { [id: string]: GrafanaTeam };
 
@@ -17,6 +17,8 @@ export class GrafanaTeamStore extends BaseStore {
   constructor(rootStore: RootStore) {
     super(rootStore);
 
+    makeObservable(this);
+
     this.path = '/teams/';
   }
 
@@ -24,13 +26,15 @@ export class GrafanaTeamStore extends BaseStore {
   async updateTeam(id: GrafanaTeam['id'], data: Partial<GrafanaTeam>) {
     const result = await this.update(id, data);
 
-    this.items = {
-      ...this.items,
-      [id]: result,
-    };
+    runInAction(() => {
+      this.items = {
+        ...this.items,
+        [id]: result,
+      };
+    });
   }
 
-  @action
+  @action.bound
   async updateItems(query = '', includeNoTeam = true, onlyIncludeNotifiableTeams = false, short = true) {
     const result = await makeRequest<GrafanaTeam[]>(`${this.path}`, {
       params: {
@@ -41,18 +45,20 @@ export class GrafanaTeamStore extends BaseStore {
       },
     });
 
-    this.items = {
-      ...this.items,
-      ...result.reduce<TeamItems>(
-        (acc, item) => ({
-          ...acc,
-          [item.id]: item,
-        }),
-        {}
-      ),
-    };
+    runInAction(() => {
+      this.items = {
+        ...this.items,
+        ...result.reduce<TeamItems>(
+          (acc, item) => ({
+            ...acc,
+            [item.id]: item,
+          }),
+          {}
+        ),
+      };
 
-    this.searchResult = result.map((item: GrafanaTeam) => item.id);
+      this.searchResult = result.map((item: GrafanaTeam) => item.id);
+    });
   }
 
   getSearchResult() {

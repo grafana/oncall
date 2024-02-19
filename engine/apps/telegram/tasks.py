@@ -3,6 +3,7 @@ import logging
 from celery import uuid as celery_uuid
 from celery.utils.log import get_task_logger
 from django.conf import settings
+from django.core.exceptions import ObjectDoesNotExist
 from telegram import error
 
 from apps.alerts.models import Alert, AlertGroup
@@ -170,6 +171,12 @@ def send_log_and_actions_message(self, channel_chat_id, group_chat_id, channel_m
                         f"due to 'Chat not found'. alert_group {alert_group.pk}"
                     )
                     return
+                elif e.message == "Message to reply not found":
+                    logger.warning(
+                        f"Could not send log and actions messages to Telegram group with id {group_chat_id} "
+                        f"due to 'Message to reply not found'. alert_group {alert_group.pk}"
+                    )
+                    return
                 else:
                     raise
 
@@ -184,8 +191,14 @@ def on_create_alert_telegram_representative_async(self, alert_pk):
     """
     It's async in order to prevent Telegram downtime or formatting issues causing delay with SMS and other destinations.
     """
-
-    alert = Alert.objects.get(pk=alert_pk)
+    try:
+        alert = Alert.objects.get(pk=alert_pk)
+    except Alert.DoesNotExist as e:
+        if on_create_alert_telegram_representative_async.request.retries >= 10:
+            logger.error(f"Alert {alert_pk} was not found. Probably it was deleted. Stop retrying")
+            return
+        else:
+            raise e
     alert_group = alert.group
 
     alert_group_messages = alert_group.telegram_messages.filter(
@@ -215,3 +228,31 @@ def on_create_alert_telegram_representative_async(self, alert_pk):
     )
     for message in messages_to_edit:
         edit_message.delay(message_pk=message.pk)
+
+
+@shared_dedicated_queue_retry_task(
+    autoretry_for=(Exception,),
+    retry_backoff=True,
+    dont_autoretry_for=(ObjectDoesNotExist,),
+    max_retries=1 if settings.DEBUG else None,
+)
+def on_alert_group_action_triggered_async(log_record_id):
+    from apps.alerts.models import AlertGroupLogRecord
+
+    from .alert_group_representative import AlertGroupTelegramRepresentative
+
+    logger.info(f"AlertGroupTelegramRepresentative ACTION SIGNAL, log record {log_record_id}")
+    # temporary solution to handle cases when alert group and related log records were deleted
+
+    try:
+        log_record = AlertGroupLogRecord.objects.get(pk=log_record_id)
+    except AlertGroupLogRecord.DoesNotExist as e:
+        logger.warning(
+            f"AlertGroupTelegramRepresentative: log record {log_record_id} never created or has been deleted"
+        )
+        raise e
+
+    instance = AlertGroupTelegramRepresentative(log_record)
+    if instance.is_applicable():
+        handler = instance.get_handler()
+        handler()

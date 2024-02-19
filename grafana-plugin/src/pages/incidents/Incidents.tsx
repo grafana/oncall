@@ -1,37 +1,60 @@
 import React, { SyntheticEvent } from 'react';
 
+import { SelectableValue } from '@grafana/data';
 import { LabelTag } from '@grafana/labels';
-import { Button, HorizontalGroup, Icon, VerticalGroup } from '@grafana/ui';
+import {
+  Button,
+  HorizontalGroup,
+  Icon,
+  LoadingPlaceholder,
+  RadioButtonGroup,
+  Tooltip,
+  VerticalGroup,
+} from '@grafana/ui';
 import cn from 'classnames/bind';
+import { capitalize } from 'lodash-es';
 import { observer } from 'mobx-react';
 import moment from 'moment-timezone';
 import Emoji from 'react-emoji-render';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 
-import CardButton from 'components/CardButton/CardButton';
-import CursorPagination from 'components/CursorPagination/CursorPagination';
-import GTable from 'components/GTable/GTable';
-import IntegrationLogo from 'components/IntegrationLogo/IntegrationLogo';
-import ManualAlertGroup from 'components/ManualAlertGroup/ManualAlertGroup';
-import PluginLink from 'components/PluginLink/PluginLink';
-import Text from 'components/Text/Text';
-import TextEllipsisTooltip from 'components/TextEllipsisTooltip/TextEllipsisTooltip';
-import TooltipBadge from 'components/TooltipBadge/TooltipBadge';
-import Tutorial from 'components/Tutorial/Tutorial';
+import { CardButton } from 'components/CardButton/CardButton';
+import { CursorPagination } from 'components/CursorPagination/CursorPagination';
+import { GTable } from 'components/GTable/GTable';
+import { IntegrationLogo } from 'components/IntegrationLogo/IntegrationLogo';
+import { ManualAlertGroup } from 'components/ManualAlertGroup/ManualAlertGroup';
+import { PluginLink } from 'components/PluginLink/PluginLink';
+import { RenderConditionally } from 'components/RenderConditionally/RenderConditionally';
+import { Text } from 'components/Text/Text';
+import { TextEllipsisTooltip } from 'components/TextEllipsisTooltip/TextEllipsisTooltip';
+import { TooltipBadge } from 'components/TooltipBadge/TooltipBadge';
+import { Tutorial } from 'components/Tutorial/Tutorial';
 import { TutorialStep } from 'components/Tutorial/Tutorial.types';
+import { ColumnsSelectorWrapper } from 'containers/ColumnsSelectorWrapper/ColumnsSelectorWrapper';
 import { IncidentsFiltersType } from 'containers/IncidentsFilters/IncidentFilters.types';
-import RemoteFilters from 'containers/RemoteFilters/RemoteFilters';
-import TeamName from 'containers/TeamName/TeamName';
+import { RemoteFilters } from 'containers/RemoteFilters/RemoteFilters';
+import { TeamName } from 'containers/TeamName/TeamName';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
-import { Alert, Alert as AlertType, AlertAction, IncidentStatus } from 'models/alertgroup/alertgroup.types';
+import {
+  Alert,
+  Alert as AlertType,
+  AlertAction,
+  IncidentStatus,
+  AlertGroupColumn,
+  AlertGroupColumnType,
+} from 'models/alertgroup/alertgroup.types';
 import { LabelKeyValue } from 'models/label/label.types';
+import { ActionKey } from 'models/loader/action-keys';
+import { LoaderHelper } from 'models/loader/loader.helpers';
 import { renderRelatedUsers } from 'pages/incident/Incident.helpers';
 import { AppFeature } from 'state/features';
 import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
-import LocationHelper from 'utils/LocationHelper';
-import { UserActions } from 'utils/authorization';
-import { PAGE, PLUGIN_ROOT, TEXT_ELLIPSIS_CLASS } from 'utils/consts';
+import { LocationHelper } from 'utils/LocationHelper';
+import { UserActions } from 'utils/authorization/authorization';
+import { INCIDENT_HORIZONTAL_SCROLLING_STORAGE, PAGE, PLUGIN_ROOT, TEXT_ELLIPSIS_CLASS } from 'utils/consts';
+import { getItem, setItem } from 'utils/localStorage';
+import { TableColumn } from 'utils/types';
 
 import styles from './Incidents.module.scss';
 import { IncidentDropdown } from './parts/IncidentDropdown';
@@ -51,6 +74,9 @@ interface IncidentsPageState {
   filters?: Record<string, any>;
   pagination: Pagination;
   showAddAlertGroupForm: boolean;
+  isSelectorColumnMenuOpen: boolean;
+  isHorizontalScrolling: boolean;
+  isFirstIncidentsFetchDone: boolean;
 }
 
 const POLLING_NUM_SECONDS = 15;
@@ -61,8 +87,27 @@ const PAGINATION_OPTIONS = [
   { label: '100', value: 100 },
 ];
 
+const TABLE_SCROLL_OPTIONS: SelectableValue[] = [
+  {
+    value: false,
+    component: () => (
+      <Tooltip content="Wrapped columns content">
+        <Icon aria-label="Wrap text" name="wrap-text" />
+      </Tooltip>
+    ),
+  },
+  {
+    value: true,
+    component: () => (
+      <Tooltip content="One row content with horizontal scrolling">
+        <Icon aria-label="One row content" name="arrow-from-right" />
+      </Tooltip>
+    ),
+  },
+];
+
 @observer
-class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> {
+class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageState> {
   constructor(props: IncidentsPageProps) {
     super(props);
 
@@ -76,6 +121,8 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
 
     store.alertGroupStore.incidentsCursor = cursorQuery || undefined;
 
+    this.rootElRef = React.createRef<HTMLDivElement>();
+
     this.state = {
       selectedIncidentIds: [],
       affectedRows: {},
@@ -84,16 +131,27 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
         start,
         end: start + pageSize,
       },
+      isSelectorColumnMenuOpen: true,
+      isHorizontalScrolling: getItem(INCIDENT_HORIZONTAL_SCROLLING_STORAGE) || false,
+      isFirstIncidentsFetchDone: false,
     };
   }
 
+  private rootElRef: React.RefObject<HTMLDivElement>;
   private pollingIntervalId: NodeJS.Timer = undefined;
 
   componentDidMount() {
-    const { alertGroupStore } = this.props.store;
+    const { store } = this.props;
+    const { alertGroupStore } = store;
 
     alertGroupStore.updateBulkActions();
     alertGroupStore.updateSilenceOptions();
+
+    if (store.hasFeature(AppFeature.Labels)) {
+      alertGroupStore.fetchTableSettings();
+    }
+
+    this.setPollingInterval();
   }
 
   componentWillUnmount(): void {
@@ -138,9 +196,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
     );
   }
 
-  renderCards(filtersState, setFiltersState, filtersOnFiltersValueChange) {
-    const { store } = this.props;
-
+  renderCards(filtersState, setFiltersState, filtersOnFiltersValueChange, store) {
     const { values } = filtersState;
 
     const { newIncidents, acknowledgedIncidents, resolvedIncidents, silencedIncidents } = store.alertGroupStore;
@@ -260,7 +316,9 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
           query={query}
           page={PAGE.Incidents}
           onChange={this.handleFiltersChange}
-          extraFilters={this.renderCards.bind(this)}
+          extraFilters={(...args) => {
+            return this.renderCards(...args, store);
+          }}
           grafanaTeamStore={store.grafanaTeamStore}
           defaultFilters={{
             team: [],
@@ -286,16 +344,14 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
     this.setState({
       filters,
       selectedIncidentIds: [],
+      affectedRows: {},
     });
 
     if (!isOnMount) {
       this.setPagination(1, alertGroupStore.alertsSearchResult['default'].page_size);
     }
 
-    this.clearPollingInterval();
-    this.setPollingInterval(filters, isOnMount);
-
-    await this.fetchIncidentData(filters, isOnMount);
+    await this.fetchIncidentData(filters);
 
     if (isOnMount) {
       this.setPagination(start, start + alertGroupStore.alertsSearchResult['default'].page_size - 1);
@@ -311,10 +367,14 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
     });
   };
 
-  fetchIncidentData = async (filters: IncidentsFiltersType, isOnMount: boolean) => {
+  fetchIncidentData = async (filters: IncidentsFiltersType) => {
     const { store } = this.props;
-    await store.alertGroupStore.updateIncidentFilters(filters, isOnMount); // this line fetches the incidents
+    await store.alertGroupStore.updateIncidentFiltersAndRefetchIncidentsAndStats(
+      filters,
+      !this.state.isFirstIncidentsFetchDone
+    );
     LocationHelper.update({ ...store.alertGroupStore.incidentFilters }, 'partial');
+    this.setState({ isFirstIncidentsFetchDone: true });
   };
 
   onChangeCursor = (cursor: string, direction: 'prev' | 'next') => {
@@ -335,6 +395,11 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
         LocationHelper.update({ start: this.state.pagination.start, perpage: pageSize }, 'partial');
       }
     );
+  };
+
+  onEnableHorizontalScroll = (value: boolean) => {
+    setItem(INCIDENT_HORIZONTAL_SCROLLING_STORAGE, value);
+    this.setState({ isHorizontalScrolling: value });
   };
 
   handleChangeItemsPerPage = (value: number) => {
@@ -359,7 +424,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
   };
 
   renderBulkActions = () => {
-    const { selectedIncidentIds, affectedRows } = this.state;
+    const { selectedIncidentIds, affectedRows, isHorizontalScrolling } = this.state;
     const { store } = this.props;
 
     if (!store.alertGroupStore.bulkActions) {
@@ -369,14 +434,15 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
     const { results } = store.alertGroupStore.getAlertSearchResult('default');
 
     const hasSelected = selectedIncidentIds.length > 0;
+    const isLoading = LoaderHelper.isLoading(store.loaderStore, ActionKey.FETCH_INCIDENTS);
     const hasInvalidatedAlert = Boolean(
       (results && results.some((alert: AlertType) => alert.undoAction)) || Object.keys(affectedRows).length
     );
 
     return (
       <div className={cx('above-incidents-table')}>
-        <div className={cx('bulk-actions')}>
-          <HorizontalGroup>
+        <div className={cx('bulk-actions-container')}>
+          <div className={cx('bulk-actions-list')}>
             {'resolve' in store.alertGroupStore.bulkActions && (
               <WithPermissionControlTooltip key="resolve" userAction={UserActions.AlertGroupsWrite}>
                 <Button
@@ -423,31 +489,43 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
                 ? `${selectedIncidentIds.length} Alert Group${selectedIncidentIds.length > 1 ? 's' : ''} selected`
                 : 'No Alert Groups selected'}
             </Text>
-          </HorizontalGroup>
-        </div>
-        {hasInvalidatedAlert && (
-          <div className={cx('out-of-date')}>
-            <Text type="secondary">Results out of date</Text>
-            <Button
-              style={{ marginLeft: '8px' }}
-              disabled={store.alertGroupStore.alertGroupsLoading}
-              variant="primary"
-              onClick={this.onIncidentsUpdateClick}
-            >
-              Refresh
-            </Button>
           </div>
-        )}
+
+          <div className={cx('fields-dropdown')}>
+            <RenderConditionally shouldRender={!isLoading && hasInvalidatedAlert}>
+              <HorizontalGroup spacing="xs">
+                <Text type="secondary">Results out of date</Text>
+                <Button className={cx('btn-results')} variant="primary" onClick={this.onIncidentsUpdateClick}>
+                  Refresh
+                </Button>
+              </HorizontalGroup>
+            </RenderConditionally>
+
+            <RenderConditionally shouldRender={isLoading}>
+              <LoadingPlaceholder text="Loading..." className={cx('loadingPlaceholder')} />
+            </RenderConditionally>
+
+            <RenderConditionally shouldRender={store.hasFeature(AppFeature.Labels)}>
+              <RadioButtonGroup
+                options={TABLE_SCROLL_OPTIONS}
+                value={isHorizontalScrolling}
+                onChange={this.onEnableHorizontalScroll}
+              />
+              <ColumnsSelectorWrapper />
+            </RenderConditionally>
+          </div>
+        </div>
       </div>
     );
   };
 
   renderTable() {
-    const { selectedIncidentIds, pagination } = this.state;
-    const { alertGroupStore, filtersStore } = this.props.store;
+    const { selectedIncidentIds, pagination, isHorizontalScrolling } = this.state;
+    const { alertGroupStore, filtersStore, loaderStore } = this.props.store;
 
     const { results, prev, next } = alertGroupStore.getAlertSearchResult('default');
-    const isLoading = alertGroupStore.alertGroupsLoading || filtersStore.options['incidents'] === undefined;
+    const isLoading =
+      LoaderHelper.isLoading(loaderStore, ActionKey.FETCH_INCIDENTS) || filtersStore.options['incidents'] === undefined;
 
     if (results && !results.length) {
       return (
@@ -470,20 +548,23 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
       );
     }
 
+    const tableColumns = this.getTableColumns();
+
     return (
-      <div className={cx('root')}>
+      <div className={cx('root')} ref={this.rootElRef}>
         {this.renderBulkActions()}
         <GTable
           emptyText={isLoading ? 'Loading...' : 'No alert groups found'}
-          loading={isLoading}
-          className={cx('incidents-table')}
+          className={cx({ 'horizontal-scroll-table': isHorizontalScrolling })}
           rowSelection={{
             selectedRowKeys: selectedIncidentIds,
             onChange: this.handleSelectedIncidentIdsChange,
           }}
           rowKey="pk"
           data={results}
-          columns={this.getTableColumns()}
+          columns={tableColumns}
+          tableLayout="auto"
+          scroll={{ x: isHorizontalScrolling ? 'max-content' : undefined }}
         />
         {this.shouldShowPagination() && (
           <div className={cx('pagination')}>
@@ -505,7 +586,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
   renderId(record: AlertType) {
     return (
       <TextEllipsisTooltip placement="top" content={`#${record.inside_organization_number}`}>
-        <Text type="secondary" className={cx(TEXT_ELLIPSIS_CLASS)}>
+        <Text type="secondary" className={cx(TEXT_ELLIPSIS_CLASS, 'overflow-child--line-1')}>
           #{record.inside_organization_number}
         </Text>
       </TextEllipsisTooltip>
@@ -520,7 +601,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
     return (
       <div>
         <TextEllipsisTooltip placement="top" content={record.render_for_web.title}>
-          <Text type="link" size="medium" className={cx('overflow-parent')}>
+          <Text type="link" size="medium" className={cx('overflow-parent')} data-testid="integration-url">
             <PluginLink
               query={{
                 page: 'alert-groups',
@@ -557,7 +638,11 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
         content={record?.alert_receive_channel?.verbal_name || ''}
       >
         <IntegrationLogo integration={integration} scale={0.1} />
-        <Emoji className={cx(TEXT_ELLIPSIS_CLASS)} text={record.alert_receive_channel?.verbal_name || ''} />
+        <Emoji
+          className={cx(TEXT_ELLIPSIS_CLASS)}
+          text={record.alert_receive_channel?.verbal_name || ''}
+          data-testid="integration-name"
+        />
       </TextEllipsisTooltip>
     );
   };
@@ -576,18 +661,31 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
     );
   };
 
-  renderStartedAt(alert: AlertType) {
+  renderStartedAt = (alert: AlertType) => {
     const m = moment(alert.started_at);
+    const { isHorizontalScrolling } = this.state;
+
+    const date = m.format('MMM DD, YYYY');
+    const time = m.format('HH:mm');
+
+    if (isHorizontalScrolling) {
+      // display date as 1 line
+      return (
+        <Text type="secondary">
+          {date} {time}
+        </Text>
+      );
+    }
 
     return (
       <VerticalGroup spacing="none">
-        <Text type="secondary">{m.format('MMM DD, YYYY')}</Text>
-        <Text type="secondary">{m.format('HH:mm')}</Text>
+        <Text type="secondary">{date}</Text>
+        <Text type="secondary">{time}</Text>
       </VerticalGroup>
     );
-  }
+  };
 
-  renderLabels(item: AlertType) {
+  renderLabels = (item: AlertType) => {
     if (!item.labels.length) {
       return null;
     }
@@ -616,7 +714,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
         }
       />
     );
-  }
+  };
 
   renderTeam(record: AlertType, teams: any) {
     return (
@@ -649,6 +747,18 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
     };
   };
 
+  renderCustomColumn = (column: AlertGroupColumn, alert: AlertType) => {
+    const matchingLabel = alert.labels?.find((label) => label.key.name === column.name)?.value.name;
+
+    return (
+      <TextEllipsisTooltip placement="top" content={matchingLabel}>
+        <Text type="secondary" className={cx(TEXT_ELLIPSIS_CLASS, 'overflow-child--line-1')}>
+          {matchingLabel}
+        </Text>
+      </TextEllipsisTooltip>
+    );
+  };
+
   shouldShowPagination() {
     const { alertGroupStore } = this.props.store;
 
@@ -665,71 +775,121 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
     });
   };
 
-  getTableColumns(): Array<{ width: string; title: string; key: string; render }> {
+  getTableColumns(): TableColumn[] {
     const { store } = this.props;
+    const { isHorizontalScrolling } = this.state;
 
-    const columns = [
-      {
-        width: '140px',
-        title: 'Status',
-        key: 'time',
-        render: this.renderStatus,
-      },
-      {
-        width: '10%',
+    const columnMapping: { [key: string]: TableColumn } = {
+      ID: {
         title: 'ID',
         key: 'id',
         render: this.renderId,
+        width: 150,
       },
-      {
-        width: '35%',
-        title: 'Title',
-        key: 'title',
-        render: this.renderTitle,
+      Status: {
+        title: 'Status',
+        key: 'time',
+        render: this.renderStatus,
+        width: 140,
       },
-      {
-        width: '5%',
+      Alerts: {
         title: 'Alerts',
         key: 'alerts',
         render: this.renderAlertsCounter,
+        width: 100,
       },
-      {
-        width: '15%',
+      Integration: {
         title: 'Integration',
-        key: 'source',
+        key: 'integration',
         render: this.renderSource,
+        grow: 1.7,
       },
-      {
-        width: '10%',
+      Title: {
+        title: 'Title',
+        key: 'title',
+        render: this.renderTitle,
+        className: 'u-max-width-1000',
+        grow: 3.5,
+      },
+      Created: {
         title: 'Created',
         key: 'created',
         render: this.renderStartedAt,
+        grow: 1,
       },
-      {
-        width: '10%',
+      Team: {
         title: 'Team',
         key: 'team',
         render: (item: AlertType) => this.renderTeam(item, store.grafanaTeamStore.items),
+        grow: 1,
       },
-      {
-        width: '15%',
+      Users: {
         title: 'Users',
         key: 'users',
         render: renderRelatedUsers,
+        grow: 1.5,
       },
-    ];
+    };
 
     if (store.hasFeature(AppFeature.Labels)) {
-      columns.splice(-2, 0, {
-        width: '5%',
+      // add labels specific column if enabled
+      columnMapping['Labels'] = {
+        width: '60px',
         title: 'Labels',
         key: 'labels',
-        render: (item: AlertType) => this.renderLabels(item),
-      });
-      columns.find((column) => column.key === 'title').width = '30%';
+        render: this.renderLabels,
+      };
+    } else {
+      // no filtering needed if we don't have Labels enabled
+      return Object.keys(columnMapping).map((col) => columnMapping[col]);
     }
 
-    return columns;
+    const visibleColumns = store.alertGroupStore.columns.filter((col) => col.isVisible);
+    const visibleColumnsWidth = visibleColumns
+      .filter((col) => col.type === AlertGroupColumnType.DEFAULT)
+      .reduce((total, current) => {
+        const column = columnMapping[current.name];
+        return typeof column.width === 'number' ? total + column.width : total;
+      }, 0);
+
+    const columnsGrowSum = visibleColumns.reduce((total, current) => {
+      const column = columnMapping[current.name];
+      return total + (column?.grow || 1);
+    }, 0);
+
+    // we set the total width based on the number of columns in the table (200xColCount)
+    const totalContainerWidth = isHorizontalScrolling
+      ? 200 * visibleColumns.length
+      : this.rootElRef?.current?.offsetWidth;
+    const remainingContainerWidth = totalContainerWidth - visibleColumnsWidth;
+
+    const mappedColumns: TableColumn[] = store.alertGroupStore.columns
+      .filter((col) => col.isVisible)
+      .map((column: AlertGroupColumn): TableColumn => {
+        // each column has a grow property, simillar to flex-grow
+        // and that dictates how much space it should take relative to the other columns
+        // we also keep in mind the remaining fixed width columns
+        // (such as Status/Alerts which always take up the same amount of space)
+        const grow = columnMapping[column.name]?.grow || 1;
+        const growWidth = (grow / columnsGrowSum) * remainingContainerWidth;
+        const columnWidth = columnMapping[column.name]?.width || growWidth;
+
+        if (column.type === AlertGroupColumnType.DEFAULT && columnMapping[column.name]) {
+          return {
+            ...columnMapping[column.name],
+            width: columnWidth,
+          };
+        }
+
+        return {
+          width: columnWidth,
+          title: capitalize(column.name),
+          key: column.id,
+          render: (item: AlertType) => this.renderCustomColumn(column, item),
+        };
+      });
+
+    return mappedColumns;
   }
 
   getOnActionButtonClick = (incidentId: string, action: AlertAction): ((e: SyntheticEvent) => Promise<void>) => {
@@ -768,7 +928,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
 
     this.setPollingInterval();
 
-    store.alertGroupStore.liveUpdatesPaused = true;
+    store.alertGroupStore.setLiveUpdatesPaused(true);
     const delay = typeof event === 'number' ? event : 0;
 
     this.setState(
@@ -796,7 +956,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
     const { store } = this.props;
 
     this.setState({ affectedRows: {} }, () => {
-      store.alertGroupStore.updateIncidents();
+      store.alertGroupStore.fetchIncidentsAndStats();
     });
   };
 
@@ -805,13 +965,20 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
     this.pollingIntervalId = null;
   }
 
-  setPollingInterval(filters: IncidentsFiltersType = this.state.filters, isOnMount = false) {
+  setPollingInterval() {
     const startPolling = (delayed = false) => {
       this.pollingIntervalId = setTimeout(
         async () => {
           const isBrowserWindowInactive = document.hidden;
-          if (!isBrowserWindowInactive) {
-            await this.fetchIncidentData(filters, isOnMount);
+          if (
+            !isBrowserWindowInactive &&
+            !LoaderHelper.isLoading(this.props.store.loaderStore, [
+              ActionKey.FETCH_INCIDENTS,
+              ActionKey.FETCH_INCIDENTS_POLLING,
+            ]) &&
+            !this.props.store.alertGroupStore.liveUpdatesPaused
+          ) {
+            await this.props.store.alertGroupStore.fetchIncidentsAndStats(true);
           }
 
           if (this.pollingIntervalId === null) {
@@ -827,4 +994,4 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
   }
 }
 
-export default withRouter(withMobXProviderContext(Incidents));
+export const IncidentsPage = withRouter(withMobXProviderContext(_IncidentsPage));

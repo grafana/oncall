@@ -35,6 +35,7 @@ class TelegramToUserConnector(models.Model):
                 alert_group=alert_group,
                 user=user,
                 notification_policy=notification_policy,
+                reason="No linked telegram account",
                 error_code=UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_TELEGRAM_IS_NOT_LINKED_TO_SLACK_ACC,
             )
 
@@ -42,28 +43,50 @@ class TelegramToUserConnector(models.Model):
         telegram_channel = TelegramToOrganizationConnector.get_channel_for_alert_group(alert_group)
 
         if telegram_channel is not None:
-            send_link_to_channel_message_or_fallback_to_full_alert_group.delay(
-                alert_group_pk=alert_group.pk,
-                notification_policy_pk=notification_policy.pk,
-                user_connector_pk=self.pk,
+            # Call this task with a countdown to avoid unnecessary retry when alert group telegram message hasn't been
+            # created yet
+            send_link_to_channel_message_or_fallback_to_full_alert_group.apply_async(
+                kwargs={
+                    "alert_group_pk": alert_group.pk,
+                    "notification_policy_pk": notification_policy.pk,
+                    "user_connector_pk": self.pk,
+                },
+                countdown=3,
             )
         else:
             self.send_full_alert_group(alert_group=alert_group, notification_policy=notification_policy)
 
     @staticmethod
-    def create_telegram_notification_error(
-        alert_group: AlertGroup, user: User, notification_policy: UserNotificationPolicy, error_code: int
+    def create_telegram_notification_success(
+        alert_group: AlertGroup, user: User, notification_policy: UserNotificationPolicy
     ) -> None:
-        log_record = UserNotificationPolicyLogRecord(
+        UserNotificationPolicyLogRecord.objects.create(
+            author=user,
+            type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_SUCCESS,
+            notification_policy=notification_policy,
+            alert_group=alert_group,
+            notification_step=notification_policy.step if notification_policy else None,
+            notification_channel=notification_policy.notify_by if notification_policy else None,
+        )
+
+    @staticmethod
+    def create_telegram_notification_error(
+        alert_group: AlertGroup,
+        user: User,
+        notification_policy: UserNotificationPolicy,
+        error_code: int,
+        reason: str | None,
+    ) -> None:
+        UserNotificationPolicyLogRecord.objects.create(
             author=user,
             type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED,
             notification_policy=notification_policy,
             alert_group=alert_group,
             notification_error_code=error_code,
+            reason=reason,
             notification_step=notification_policy.step if notification_policy else None,
             notification_channel=notification_policy.notify_by if notification_policy else None,
         )
-        log_record.save()
 
     # send the actual alert group and log to user's DM
     def send_full_alert_group(self, alert_group: AlertGroup, notification_policy: UserNotificationPolicy) -> None:
@@ -75,6 +98,7 @@ class TelegramToUserConnector(models.Model):
                 self.user,
                 notification_policy,
                 UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_TELEGRAM_TOKEN_ERROR,
+                reason="Invalid token",
             )
             return
 
@@ -94,6 +118,13 @@ class TelegramToUserConnector(models.Model):
                     alert_group=alert_group,
                 )
             except error.BadRequest:
+                TelegramToUserConnector.create_telegram_notification_error(
+                    alert_group,
+                    self.user,
+                    notification_policy,
+                    UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_FORMATTING_ERROR,
+                    reason="Notification sent but there was a formatting error in the rendered template",
+                )
                 telegram_client.send_message(
                     chat_id=self.telegram_chat_id,
                     message_type=TelegramMessage.FORMATTING_ERROR,
@@ -106,6 +137,7 @@ class TelegramToUserConnector(models.Model):
                         self.user,
                         notification_policy,
                         UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_TELEGRAM_BOT_IS_DELETED,
+                        reason="Bot was blocked by the user",
                     )
                 elif e.message == "Invalid token":
                     TelegramToUserConnector.create_telegram_notification_error(
@@ -113,6 +145,7 @@ class TelegramToUserConnector(models.Model):
                         self.user,
                         notification_policy,
                         UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_TELEGRAM_TOKEN_ERROR,
+                        reason="Invalid token",
                     )
                 elif e.message == "Forbidden: user is deactivated":
                     TelegramToUserConnector.create_telegram_notification_error(
@@ -120,11 +153,17 @@ class TelegramToUserConnector(models.Model):
                         self.user,
                         notification_policy,
                         UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_TELEGRAM_USER_IS_DEACTIVATED,
+                        reason="Telegram user was disabled",
                     )
                 else:
                     raise e
+            else:
+                TelegramToUserConnector.create_telegram_notification_success(
+                    alert_group, self.user, notification_policy
+                )
         else:
             self._nudge_about_alert_group_message(telegram_client, old_alert_group_message)
+            TelegramToUserConnector.create_telegram_notification_success(alert_group, self.user, notification_policy)
 
     # send DM message with the link to the alert group post in channel
     def send_link_to_channel_message(self, alert_group: AlertGroup, notification_policy: UserNotificationPolicy):
@@ -136,6 +175,7 @@ class TelegramToUserConnector(models.Model):
                 self.user,
                 notification_policy,
                 UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_TELEGRAM_TOKEN_ERROR,
+                reason="Invalid token",
             )
             return
 
@@ -159,6 +199,7 @@ class TelegramToUserConnector(models.Model):
                     self.user,
                     notification_policy,
                     UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_TELEGRAM_BOT_IS_DELETED,
+                    reason="Bot was blocked by the user",
                 )
             elif e.message == "Invalid token":
                 TelegramToUserConnector.create_telegram_notification_error(
@@ -166,9 +207,20 @@ class TelegramToUserConnector(models.Model):
                     self.user,
                     notification_policy,
                     UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_TELEGRAM_TOKEN_ERROR,
+                    reason="Invalid token",
+                )
+            elif e.message == "Forbidden: user is deactivated":
+                TelegramToUserConnector.create_telegram_notification_error(
+                    alert_group,
+                    self.user,
+                    notification_policy,
+                    UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_TELEGRAM_USER_IS_DEACTIVATED,
+                    reason="Telegram user was disabled",
                 )
             else:
                 raise e
+        else:
+            TelegramToUserConnector.create_telegram_notification_success(alert_group, self.user, notification_policy)
 
     @staticmethod
     @ignore_reply_to_message_deleted

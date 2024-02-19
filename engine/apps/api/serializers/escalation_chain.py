@@ -2,13 +2,13 @@ from rest_framework import serializers
 
 from apps.alerts.models import EscalationChain
 from common.api_helpers.custom_fields import TeamPrimaryKeyRelatedField
-from common.api_helpers.utils import CurrentOrganizationDefault, CurrentTeamDefault
+from common.api_helpers.utils import CurrentOrganizationDefault
 
 
 class EscalationChainSerializer(serializers.ModelSerializer):
     id = serializers.CharField(read_only=True, source="public_primary_key")
     organization = serializers.HiddenField(default=CurrentOrganizationDefault())
-    team = TeamPrimaryKeyRelatedField(allow_null=True, default=CurrentTeamDefault())
+    team = TeamPrimaryKeyRelatedField(allow_null=True, required=False)
 
     class Meta:
         model = EscalationChain
@@ -24,11 +24,11 @@ class EscalationChainListSerializer(EscalationChainSerializer):
 
     def get_number_of_integrations(self, obj):
         # num_integrations param added in queryset via annotate. Check EscalationChainViewSet.get_queryset
-        return getattr(obj, "num_integrations")
+        return getattr(obj, "num_integrations", 0)
 
     def get_number_of_routes(self, obj):
         # num_routes param added in queryset via annotate. Check EscalationChainViewSet.get_queryset
-        return getattr(obj, "num_routes")
+        return getattr(obj, "num_routes", 0)
 
 
 class FilterEscalationChainSerializer(serializers.ModelSerializer):

@@ -1,10 +1,11 @@
 import React from 'react';
 
-import { Button, InlineLabel, LoadingPlaceholder, Tooltip } from '@grafana/ui';
+import { Button, InlineLabel, LoadingPlaceholder } from '@grafana/ui';
 import cn from 'classnames/bind';
 
+import { WithConfirm } from 'components/WithConfirm/WithConfirm';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
-import { UserActions } from 'utils/authorization';
+import { UserActions } from 'utils/authorization/authorization';
 
 import styles from './IntegrationTemplateBlock.module.scss';
 
@@ -17,13 +18,14 @@ interface IntegrationTemplateBlockProps {
   renderInput: () => React.ReactNode;
   showHelp?: boolean;
   isLoading?: boolean;
+  warningOnEdit?: string;
 
   onEdit: (templateName) => void;
   onRemove?: () => void;
   onHelp?: () => void;
 }
 
-const IntegrationTemplateBlock: React.FC<IntegrationTemplateBlockProps> = ({
+export const IntegrationTemplateBlock: React.FC<IntegrationTemplateBlockProps> = ({
   label,
   labelTooltip,
   isTemplateEditable,
@@ -31,6 +33,7 @@ const IntegrationTemplateBlock: React.FC<IntegrationTemplateBlockProps> = ({
   onEdit,
   onRemove,
   isLoading,
+  warningOnEdit,
 }) => {
   let tooltip = labelTooltip;
   let inlineLabelProps = { tooltip };
@@ -48,14 +51,24 @@ const IntegrationTemplateBlock: React.FC<IntegrationTemplateBlockProps> = ({
         {isTemplateEditable && (
           <>
             <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
-              <Tooltip content={'Edit'}>
-                <Button variant={'secondary'} icon={'edit'} tooltip="Edit" size={'md'} onClick={onEdit} />
-              </Tooltip>
+              <WithConfirm skip={!warningOnEdit} title="" body={warningOnEdit} confirmText="Edit">
+                <Button variant={'secondary'} icon="edit" tooltip="Edit" size="md" onClick={onEdit} />
+              </WithConfirm>
             </WithPermissionControlTooltip>
             <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
-              <Tooltip content={'Reset template to default'}>
-                <Button variant={'secondary'} icon={'times'} size={'md'} onClick={onRemove} />
-              </Tooltip>
+              <WithConfirm
+                title=""
+                body={`Are you sure you want to reset the ${label} template to its default state?`}
+                confirmText="Reset"
+              >
+                <Button
+                  variant="secondary"
+                  icon="times"
+                  size="md"
+                  tooltip="Reset template to default"
+                  onClick={onRemove}
+                />
+              </WithConfirm>
             </WithPermissionControlTooltip>
           </>
         )}
@@ -65,5 +78,3 @@ const IntegrationTemplateBlock: React.FC<IntegrationTemplateBlockProps> = ({
     </div>
   );
 };
-
-export default IntegrationTemplateBlock;

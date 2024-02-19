@@ -53,7 +53,7 @@ TEMPLATE_PUBLIC_API_NAME_TO_DB_FIELD = {
 TEMPLATES_WITH_SEPARATE_DB_FIELD = [SLACK, WEB, PHONE_CALL, SMS, TELEGRAM] + PUBLIC_BEHAVIOUR_TEMPLATES_FIELDS
 
 PUBLIC_API_CUSTOMIZABLE_NOTIFICATION_CHANNEL_TEMPLATES = [SLACK, WEB, PHONE_CALL, SMS, TELEGRAM]
-for backend_id, backend in get_messaging_backends():
+for _, backend in get_messaging_backends():
     if backend.customizable_templates:
         PUBLIC_API_CUSTOMIZABLE_NOTIFICATION_CHANNEL_TEMPLATES.append(backend.slug)
 
@@ -67,6 +67,8 @@ class IntegrationTypeField(fields.CharField):
             raise BadRequest(detail="Invalid integration type")
         if has_legacy_prefix(data):
             raise BadRequest("This integration type is deprecated")
+        if data == AlertReceiveChannel.INTEGRATION_DIRECT_PAGING:
+            raise BadRequest(detail="Direct paging integrations can't be created")
         return data
 
 
@@ -147,16 +149,24 @@ class IntegrationSerializer(EagerLoadingMixin, serializers.ModelSerializer, Main
     def validate(self, attrs):
         organization = self.context["request"].auth.organization
         verbal_name = attrs.get("verbal_name", None)
+        team = attrs.get("team", None)
         if verbal_name is None:
             return attrs
         try:
-            obj = AlertReceiveChannel.objects.get(organization=organization, verbal_name=verbal_name)
+            obj = AlertReceiveChannel.objects.get(
+                organization=organization,
+                team=team,
+                verbal_name=verbal_name,
+            )
         except AlertReceiveChannel.DoesNotExist:
             return attrs
+        except AlertReceiveChannel.MultipleObjectsReturned:
+            raise BadRequest(detail="An integration with this name already exists for this team")
+
         if self.instance and obj.id == self.instance.id:
             return attrs
         else:
-            raise BadRequest(detail="Integration with this name already exists")
+            raise BadRequest(detail="An integration with this name already exists for this team")
 
     def validate_templates(self, templates):
         if not isinstance(templates, dict):

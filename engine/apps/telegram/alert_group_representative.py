@@ -3,7 +3,11 @@ import logging
 from apps.alerts.models import AlertGroup
 from apps.alerts.representative import AlertGroupAbstractRepresentative
 from apps.telegram.models import TelegramMessage
-from apps.telegram.tasks import edit_message, on_create_alert_telegram_representative_async
+from apps.telegram.tasks import (
+    edit_message,
+    on_alert_group_action_triggered_async,
+    on_create_alert_telegram_representative_async,
+)
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -60,8 +64,13 @@ class AlertGroupTelegramRepresentative(AlertGroupAbstractRepresentative):
     def on_alert_group_update_log_report(cls, **kwargs):
         logger.info("AlertGroupTelegramRepresentative UPDATE LOG REPORT SIGNAL")
         alert_group = kwargs["alert_group"]
+
         if not isinstance(alert_group, AlertGroup):
-            alert_group = AlertGroup.objects.get(pk=alert_group)
+            try:
+                alert_group = AlertGroup.objects.get(pk=alert_group)
+            except AlertGroup.DoesNotExist as e:
+                logger.warning(f"Telegram update log report: alert group {alert_group} has been deleted")
+                raise e
 
         messages_to_edit = alert_group.telegram_messages.filter(
             message_type__in=(
@@ -78,15 +87,11 @@ class AlertGroupTelegramRepresentative(AlertGroupAbstractRepresentative):
         from apps.alerts.models import AlertGroupLogRecord
 
         log_record = kwargs["log_record"]
-        logger.info(f"AlertGroupTelegramRepresentative ACTION SIGNAL, log record {log_record}")
-
-        if not isinstance(log_record, AlertGroupLogRecord):
-            log_record = AlertGroupLogRecord.objects.get(pk=log_record)
-
-        instance = cls(log_record)
-        if instance.is_applicable():
-            handler = instance.get_handler()
-            handler()
+        if isinstance(log_record, AlertGroupLogRecord):
+            log_record_id = log_record.pk
+        else:
+            log_record_id = log_record
+        on_alert_group_action_triggered_async.apply_async((log_record_id,))
 
     @staticmethod
     def on_create_alert(**kwargs):

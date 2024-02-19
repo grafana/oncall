@@ -33,8 +33,11 @@ from apps.schedules.constants import (
     RE_EVENT_UID_V1,
     RE_EVENT_UID_V2,
     RE_PRIORITY,
+    SCHEDULE_ONCALL_CACHE_KEY_PREFIX,
+    SCHEDULE_ONCALL_CACHE_TTL,
 )
 from apps.schedules.ical_events import ical_events
+from common.cache import ensure_cache_key_allocates_to_the_same_hash_slot
 from common.timezones import is_valid_timezone
 from common.utils import timed_lru_cache
 
@@ -79,7 +82,7 @@ def users_in_ical(
     organization : apps.user_management.models.organization.Organization
         The organization in question
     """
-    required_permission = RBACPermission.Permissions.SCHEDULES_WRITE
+    required_permission = RBACPermission.Permissions.NOTIFICATIONS_READ
 
     emails_from_ical = [username.lower() for username in usernames_from_ical]
 
@@ -386,6 +389,22 @@ def get_oncall_users_for_multiple_schedules(
     return oncall_users
 
 
+def _generate_cache_key_for_schedule_oncall_users(schedule: "OnCallSchedule") -> str:
+    return ensure_cache_key_allocates_to_the_same_hash_slot(
+        f"{SCHEDULE_ONCALL_CACHE_KEY_PREFIX}{schedule.public_primary_key}", SCHEDULE_ONCALL_CACHE_KEY_PREFIX
+    )
+
+
+def update_cached_oncall_users_for_schedule(schedule: "OnCallSchedule"):
+    oncall_users = get_oncall_users_for_multiple_schedules([schedule])
+    users = oncall_users.get(schedule, [])
+    cache.set(
+        _generate_cache_key_for_schedule_oncall_users(schedule),
+        [user.public_primary_key for user in users],
+        timeout=SCHEDULE_ONCALL_CACHE_TTL,
+    )
+
+
 def get_cached_oncall_users_for_multiple_schedules(schedules: typing.List["OnCallSchedule"]) -> SchedulesOnCallUsers:
     """
     More "performant" version of `apps.schedules.ical_utils.get_oncall_users_for_multiple_schedules`
@@ -403,15 +422,15 @@ def get_cached_oncall_users_for_multiple_schedules(schedules: typing.List["OnCal
     from apps.schedules.models import OnCallSchedule
     from apps.user_management.models import User
 
-    def _generate_cache_key_for_schedule_oncall_users(schedule: "OnCallSchedule") -> str:
-        return f"schedule_{schedule.public_primary_key}_oncall_users"
-
     def _get_schedule_public_primary_key_from_schedule_oncall_users_cache_key(cache_key: str) -> str:
-        return cache_key.replace("schedule_", "").replace("_oncall_users", "")
+        """
+        remove any brackets that might be included in the cache key (when redis cluster is active).
+        See `_generate_cache_key_for_schedule_oncall_users` just above
+        """
+        cache_key = cache_key.replace("{", "").replace("}", "")
+        return cache_key.replace(SCHEDULE_ONCALL_CACHE_KEY_PREFIX, "")
 
-    CACHE_TTL = 15 * 60  # 15 minutes in seconds
-
-    cache_keys: typing.List[str] = [_generate_cache_key_for_schedule_oncall_users(schedule) for schedule in schedules]
+    cache_keys = [_generate_cache_key_for_schedule_oncall_users(schedule) for schedule in schedules]
 
     # get_many returns a dictionary with all the keys we asked for that actually exist
     # in the cache (and haven’t expired)
@@ -454,7 +473,7 @@ def get_cached_oncall_users_for_multiple_schedules(schedules: typing.List["OnCal
             _generate_cache_key_for_schedule_oncall_users(schedule)
         ] = oncall_user_public_primary_keys
 
-    cache.set_many(new_results_to_update_in_cache, timeout=CACHE_TTL)
+    cache.set_many(new_results_to_update_in_cache, timeout=SCHEDULE_ONCALL_CACHE_TTL)
 
     # make two queries to the database, one to fetch the schedule objects we need and the other to fetch
     # the user objects we need
@@ -488,7 +507,7 @@ def parse_username_from_string(string: str) -> str:
     Example output:
     bob@company.com
     """
-    return re.sub(RE_PRIORITY, "", string.strip(), 1).strip()
+    return re.sub(RE_PRIORITY, "", string.strip(), count=1).strip()
 
 
 def parse_priority_from_string(string: str) -> int:
@@ -697,7 +716,7 @@ def create_base_icalendar(name: str) -> Calendar:
     cal.add("version", "2.0")
     cal.add("prodid", "//Grafana Labs//Grafana On-Call//")
     # suggested minimum interval for polling for changes
-    cal.add("REFRESH-INTERVAL;VALUE=DURATION", "P1H")
+    cal.add("REFRESH-INTERVAL;VALUE=DURATION", "PT1H")
 
     return cal
 

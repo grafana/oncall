@@ -4,6 +4,7 @@ export type OnCallPluginMetaJSONData = {
   stackId: number;
   orgId: number;
   onCallApiUrl: string;
+  insightsDatasource?: string;
   license: string;
 };
 
@@ -18,6 +19,11 @@ export type AppRootProps = BaseAppRootProps<OnCallPluginMetaJSONData>;
 // the typing on AppPluginMeta does not seem correct atm..
 export type OnCallAppPluginMeta = AppPluginMeta<null | OnCallPluginMetaJSONData>;
 export type OnCallPluginConfigPageProps = PluginConfigPageProps<OnCallAppPluginMeta>;
+
+// Extension points that other plugins can use to hook into the OnCall app.
+export enum OnCallPluginExtensionPoints {
+  AlertGroupAction = 'plugins/grafana-oncall-app/alert-group/action',
+}
 
 declare global {
   export interface Window {

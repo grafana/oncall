@@ -1,19 +1,14 @@
-/*
-  [oncall-private]
-  Any change to this file needs to be done in the oncall-private also
-*/
-
 import { IconName } from '@grafana/ui';
 import dayjs from 'dayjs';
 
 import { AlertReceiveChannel, MaintenanceMode } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
-import { RootStore } from 'state';
 import { AppFeature } from 'state/features';
+import { RootStore } from 'state/rootStore';
 
 import { MAX_CHARACTERS_COUNT, TEXTAREA_ROWS_COUNT } from './IntegrationCommon.config';
 
-const IntegrationHelper = {
+export const IntegrationHelper = {
   isSpecificIntegration: (alertReceiveChannel: AlertReceiveChannel | string, name: string) => {
     if (!alertReceiveChannel) {
       return false;
@@ -66,24 +61,28 @@ const IntegrationHelper = {
     return totalDiffString;
   },
 
-  fetchChatOps(_store: RootStore): Promise<void> {
-    // in oncall-private this fetches MSTeams data
-    return Promise.resolve();
-  },
-
   hasChatopsInstalled(store: RootStore) {
     const hasSlack = Boolean(store.organizationStore.currentOrganization?.slack_team_identity);
     const hasTelegram =
       store.hasFeature(AppFeature.Telegram) && store.telegramChannelStore.currentTeamToTelegramChannel?.length > 0;
-    return hasSlack || hasTelegram;
+    const isMSTeamsInstalled = Boolean(store.msteamsChannelStore.currentTeamToMSTeamsChannel?.length > 0);
+
+    return hasSlack || hasTelegram || isMSTeamsInstalled;
+  },
+
+  fetchChatOps(store: RootStore): Promise<void> {
+    return store.msteamsChannelStore.updateMSTeamsChannels();
   },
 
   getChatOpsChannels(channelFilter: ChannelFilter, store: RootStore): Array<{ name: string; icon: IconName }> {
     const channels: Array<{ name: string; icon: IconName }> = [];
+    const telegram = Object.keys(store.telegramChannelStore.items).map((k) => store.telegramChannelStore.items[k]);
 
     if (store.hasFeature(AppFeature.Slack) && channelFilter.notify_in_slack) {
-      const matchingSlackChannel = store.organizationStore.currentOrganization?.slack_channel?.id
-        ? store.slackChannelStore.items[store.organizationStore.currentOrganization.slack_channel?.id]
+      const { currentOrganization } = store.organizationStore;
+
+      const matchingSlackChannel = currentOrganization?.slack_channel?.id
+        ? store.slackChannelStore.items[currentOrganization.slack_channel?.id]
         : undefined;
       if (channelFilter.slack_channel?.display_name || matchingSlackChannel?.display_name) {
         channels.push({
@@ -93,16 +92,36 @@ const IntegrationHelper = {
       }
     }
 
+    const matchingTelegram = telegram.find((t) => t.id === channelFilter.telegram_channel);
+
     if (
       store.hasFeature(AppFeature.Telegram) &&
-      channelFilter.telegram_channel_details &&
-      channelFilter.notify_in_telegram
+      channelFilter.telegram_channel &&
+      channelFilter.notify_in_telegram &&
+      matchingTelegram?.channel_name
     ) {
-      channels.push({ name: channelFilter.telegram_channel_details.display_name, icon: 'telegram-alt' });
+      channels.push({
+        name: matchingTelegram.channel_name,
+        icon: 'telegram-alt',
+      });
+    }
+
+    const { notification_backends } = channelFilter;
+    const msteamsChannels = store.msteamsChannelStore.items;
+
+    if (
+      notification_backends?.MSTEAMS &&
+      notification_backends?.MSTEAMS.enabled &&
+      msteamsChannels[notification_backends.MSTEAMS.channel]
+    ) {
+      channels.push({
+        name: msteamsChannels[notification_backends.MSTEAMS.channel].display_name,
+        icon: 'microsoft',
+      });
     }
 
     return channels;
   },
 };
 
-export default IntegrationHelper;
+export const getIsBidirectionalIntegration = ({ integration }: AlertReceiveChannel) => integration === 'servicenow';

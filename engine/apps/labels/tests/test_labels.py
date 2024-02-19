@@ -1,8 +1,14 @@
 import pytest
 
 from apps.alerts.models import AlertReceiveChannel
-from apps.labels.models import AlertReceiveChannelAssociatedLabel, AssociatedLabel, LabelValueCache
+from apps.labels.models import (
+    AlertReceiveChannelAssociatedLabel,
+    AssociatedLabel,
+    LabelValueCache,
+    WebhookAssociatedLabel,
+)
 from apps.labels.utils import get_associating_label_model, is_labels_feature_enabled
+from apps.webhooks.models import Webhook
 
 
 @pytest.mark.django_db
@@ -10,18 +16,39 @@ def test_labels_feature_flag(mock_is_labels_feature_enabled_for_org, make_organi
     organization = make_organization()
     # returns True if feature flag is enabled
     assert settings.FEATURE_LABELS_ENABLED_FOR_ALL
-    assert organization.id not in settings.FEATURE_LABELS_ENABLED_FOR_GRAFANA_ORGS
+    assert organization.id not in settings.FEATURE_LABELS_ENABLED_PER_ORG
     assert is_labels_feature_enabled(organization)
 
-    mock_is_labels_feature_enabled_for_org(organization.org_id)
+    mock_is_labels_feature_enabled_for_org(organization.id)
     # returns True if feature flag is disabled and organization is in the feature list
     assert not settings.FEATURE_LABELS_ENABLED_FOR_ALL
-    assert organization.org_id in settings.FEATURE_LABELS_ENABLED_FOR_GRAFANA_ORGS
+    assert organization.id in settings.FEATURE_LABELS_ENABLED_PER_ORG
     assert is_labels_feature_enabled(organization)
 
     mock_is_labels_feature_enabled_for_org(12345)
     # returns False if feature flag is disabled and organization is not in the feature list
-    assert organization.org_id not in settings.FEATURE_LABELS_ENABLED_FOR_GRAFANA_ORGS
+    assert organization.org_id not in settings.FEATURE_LABELS_ENABLED_PER_ORG
+
+    assert not is_labels_feature_enabled(organization)
+
+
+@pytest.mark.django_db
+def test_labels_feature_flag_when_plugin_is_disabled(
+    mock_is_labels_feature_enabled_for_org, make_organization, settings
+):
+    organization = make_organization()
+    organization.is_grafana_labels_enabled = False
+    # returns False if feature flag is enabled, but plugin is disabled
+    assert settings.FEATURE_LABELS_ENABLED_FOR_ALL
+    assert organization.id not in settings.FEATURE_LABELS_ENABLED_PER_ORG
+    assert is_labels_feature_enabled(organization) is False
+
+    mock_is_labels_feature_enabled_for_org(organization.id)
+    # returns False if feature flag is disabled, organization is in the feature list, , but plugin is disabled
+    assert not settings.FEATURE_LABELS_ENABLED_FOR_ALL
+    assert organization.id in settings.FEATURE_LABELS_ENABLED_PER_ORG
+    assert is_labels_feature_enabled(organization) is False
+
     assert not is_labels_feature_enabled(organization)
 
 
@@ -101,6 +128,11 @@ def test_label_update_association_by_removing_label(
 def test_get_associating_label_model():
     model_name = AlertReceiveChannel.__name__
     expected_result = AlertReceiveChannelAssociatedLabel
+    result = get_associating_label_model(model_name)
+    assert result == expected_result
+
+    model_name = Webhook.__name__
+    expected_result = WebhookAssociatedLabel
     result = get_associating_label_model(model_name)
     assert result == expected_result
 

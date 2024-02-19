@@ -5,6 +5,7 @@ import typing
 import pytz
 from celery import uuid as celery_uuid
 from dateutil.parser import parse
+from django.utils import timezone
 from django.utils.functional import cached_property
 from rest_framework.exceptions import ValidationError
 
@@ -213,6 +214,12 @@ class EscalationSnapshotMixin:
         return self.raw_escalation_snapshot.get("pause_escalation", False)
 
     @property
+    def last_active_escalation_policy_order(self) -> typing.Optional[int]:
+        if not self.raw_escalation_snapshot:
+            return None
+        return self.raw_escalation_snapshot.get("last_active_escalation_policy_order")
+
+    @property
     def next_step_eta(self) -> typing.Optional[datetime.datetime]:
         """
         get next_step_eta field directly to avoid serialization overhead
@@ -222,6 +229,19 @@ class EscalationSnapshotMixin:
 
         raw_next_step_eta = self.raw_escalation_snapshot.get("next_step_eta")
         return None if not raw_next_step_eta else parse(raw_next_step_eta).replace(tzinfo=pytz.UTC)
+
+    def next_step_eta_is_valid(self) -> typing.Optional[bool]:
+        """
+        `next_step_eta` should never be less than the current time (with a 5 minute buffer provided)
+        as this field should be updated as the escalation policy is executed over time. If it is, this means that
+        an escalation policy step has been missed, or is substantially delayed
+
+        if `next_step_eta` is `None` then `None` is returned, otherwise a boolean is returned
+        representing the result of the time comparision
+        """
+        if self.next_step_eta is None:
+            return None
+        return self.next_step_eta > (timezone.now() - datetime.timedelta(minutes=5))
 
     def update_next_step_eta(self, increase_by_timedelta: datetime.timedelta) -> typing.Optional[dict]:
         """

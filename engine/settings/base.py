@@ -64,13 +64,13 @@ FEATURE_SLACK_INTEGRATION_ENABLED = getenv_boolean("FEATURE_SLACK_INTEGRATION_EN
 FEATURE_MULTIREGION_ENABLED = getenv_boolean("FEATURE_MULTIREGION_ENABLED", default=False)
 FEATURE_INBOUND_EMAIL_ENABLED = getenv_boolean("FEATURE_INBOUND_EMAIL_ENABLED", default=True)
 FEATURE_PROMETHEUS_EXPORTER_ENABLED = getenv_boolean("FEATURE_PROMETHEUS_EXPORTER_ENABLED", default=False)
-FEATURE_GRAFANA_ALERTING_V2_ENABLED = getenv_boolean("FEATURE_GRAFANA_ALERTING_V2_ENABLED", default=False)
+FEATURE_GRAFANA_ALERTING_V2_ENABLED = getenv_boolean("FEATURE_GRAFANA_ALERTING_V2_ENABLED", default=True)
 GRAFANA_CLOUD_ONCALL_HEARTBEAT_ENABLED = getenv_boolean("GRAFANA_CLOUD_ONCALL_HEARTBEAT_ENABLED", default=True)
 GRAFANA_CLOUD_NOTIFICATIONS_ENABLED = getenv_boolean("GRAFANA_CLOUD_NOTIFICATIONS_ENABLED", default=True)
 # Enable labels feature fo all organizations. This flag overrides FEATURE_LABELS_ENABLED_FOR_GRAFANA_ORGS
 FEATURE_LABELS_ENABLED_FOR_ALL = getenv_boolean("FEATURE_LABELS_ENABLED_FOR_ALL", default=False)
-# Enable labels feature for organizations from the list. Use Grafana org_id, not OnCall id, for this flag
-FEATURE_LABELS_ENABLED_FOR_GRAFANA_ORGS = getenv_list("FEATURE_LABELS_ENABLED_FOR_GRAFANA_ORGS", default=list())
+# Enable labels feature for organizations from the list. Use OnCall organization ID, for this flag
+FEATURE_LABELS_ENABLED_PER_ORG = getenv_list("FEATURE_LABELS_ENABLED_PER_ORG", default=list())
 
 TWILIO_API_KEY_SID = os.environ.get("TWILIO_API_KEY_SID")
 TWILIO_API_KEY_SECRET = os.environ.get("TWILIO_API_KEY_SECRET")
@@ -91,12 +91,14 @@ GRAFANA_CLOUD_ONCALL_TOKEN = os.environ.get("GRAFANA_CLOUD_ONCALL_TOKEN", None)
 
 # Outgoing webhook settings
 DANGEROUS_WEBHOOKS_ENABLED = getenv_boolean("DANGEROUS_WEBHOOKS_ENABLED", default=False)
+OUTGOING_WEBHOOK_TIMEOUT = getenv_integer("OUTGOING_WEBHOOK_TIMEOUT", default=4)
 WEBHOOK_RESPONSE_LIMIT = 50000
 
 # Multiregion settings
 ONCALL_GATEWAY_URL = os.environ.get("ONCALL_GATEWAY_URL", "")
 ONCALL_GATEWAY_API_TOKEN = os.environ.get("ONCALL_GATEWAY_API_TOKEN", "")
 ONCALL_BACKEND_REGION = os.environ.get("ONCALL_BACKEND_REGION")
+CHATOPS_V3 = getenv_boolean("CHATOPS_V3", False)
 
 # Prometheus exporter metrics endpoint auth
 PROMETHEUS_EXPORTER_SECRET = os.environ.get("PROMETHEUS_EXPORTER_SECRET")
@@ -194,6 +196,7 @@ REDIS_URI = os.getenv("REDIS_URI")
 if not REDIS_URI:
     REDIS_URI = f"{REDIS_PROTOCOL}://{REDIS_USERNAME}:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}/{REDIS_DATABASE}"
 
+USE_REDIS_CLUSTER = getenv_boolean("USE_REDIS_CLUSTER", default=False)
 REDIS_USE_SSL = os.getenv("REDIS_USE_SSL")
 REDIS_SSL_CONFIG = {}
 
@@ -219,11 +222,11 @@ if REDIS_USE_SSL:
 # Cache
 CACHES = {
     "default": {
-        "BACKEND": "redis_cache.RedisCache",
+        "BACKEND": "django_redis.cache.RedisCache",
         "LOCATION": REDIS_URI,
         "OPTIONS": {
             "DB": REDIS_DATABASE,
-            "PARSER_CLASS": "redis.connection.HiredisParser",
+            "PARSER_CLASS": "redis.connection._HiredisParser",
             "CONNECTION_POOL_CLASS": "redis.BlockingConnectionPool",
             "CONNECTION_POOL_CLASS_KWARGS": REDIS_SSL_CONFIG
             | {
@@ -286,7 +289,7 @@ REST_FRAMEWORK = {
         "rest_framework.parsers.MultiPartParser",
     ),
     "DEFAULT_AUTHENTICATION_CLASSES": [],
-    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    "DEFAULT_SCHEMA_CLASS": "engine.schema.CustomAutoSchema",
 }
 
 
@@ -314,6 +317,8 @@ if SWAGGER_UI_SETTINGS_URL:
 SPECTACULAR_INCLUDED_PATHS = [
     "/features",
     "/alertgroups",
+    "/alert_receive_channels",
+    "/users",
     "/labels",
 ]
 
@@ -494,7 +499,7 @@ CELERY_BEAT_SCHEDULE = {
     },
     "start_refresh_ical_files": {
         "task": "apps.schedules.tasks.refresh_ical_files.start_refresh_ical_files",
-        "schedule": 10 * 60,
+        "schedule": crontab(minute="*/10"),  # every 10 minutes
         "args": (),
     },
     "start_notify_about_gaps_in_schedule": {
@@ -502,19 +507,9 @@ CELERY_BEAT_SCHEDULE = {
         "schedule": crontab(minute=1, hour=12, day_of_week="monday"),
         "args": (),
     },
-    "start_check_gaps_in_schedule": {
-        "task": "apps.schedules.tasks.notify_about_gaps_in_schedule.start_check_gaps_in_schedule",
-        "schedule": crontab(minute=0, hour=0),
-        "args": (),
-    },
     "start_notify_about_empty_shifts_in_schedule": {
         "task": "apps.schedules.tasks.notify_about_empty_shifts_in_schedule.start_notify_about_empty_shifts_in_schedule",
         "schedule": crontab(minute=0, hour=12, day_of_week="monday"),
-        "args": (),
-    },
-    "start_check_empty_shifts_in_schedule": {
-        "task": "apps.schedules.tasks.notify_about_empty_shifts_in_schedule.start_check_empty_shifts_in_schedule",
-        "schedule": crontab(minute=0, hour=0),
         "args": (),
     },
     "populate_slack_usergroups": {
@@ -544,24 +539,24 @@ CELERY_BEAT_SCHEDULE = {
     },
     "process_failed_to_invoke_celery_tasks": {
         "task": "apps.base.tasks.process_failed_to_invoke_celery_tasks",
-        "schedule": 60 * 10,
+        "schedule": crontab(minute="*/10"),  # every 10 minutes
         "args": (),
     },
     "conditionally_send_going_oncall_push_notifications_for_all_schedules": {
         "task": "apps.mobile_app.tasks.going_oncall_notification.conditionally_send_going_oncall_push_notifications_for_all_schedules",
-        "schedule": 10 * 60,
+        "schedule": crontab(minute="*/10"),  # every 10 minutes
     },
     "notify_shift_swap_requests": {
         "task": "apps.mobile_app.tasks.new_shift_swap_request.notify_shift_swap_requests",
-        "schedule": getenv_integer("NOTIFY_SHIFT_SWAP_REQUESTS_INTERVAL", default=10 * 60),
+        "schedule": crontab(minute="*/{}".format(getenv_integer("NOTIFY_SHIFT_SWAP_REQUESTS_INTERVAL", default=10))),
     },
     "send_shift_swap_request_slack_followups": {
         "task": "apps.schedules.tasks.shift_swaps.slack_followups.send_shift_swap_request_slack_followups",
-        "schedule": 10 * 60,
+        "schedule": crontab(minute="*/10"),  # every 10 minutes
     },
     "save_organizations_ids_in_cache": {
         "task": "apps.metrics_exporter.tasks.save_organizations_ids_in_cache",
-        "schedule": 60 * 30,
+        "schedule": crontab(minute="*/30"),  # every 30 minutes
         "args": (),
     },
     "check_heartbeats": {
@@ -578,7 +573,16 @@ if ESCALATION_AUDITOR_ENABLED:
         #
         # ex. if the integration is configured to expect a heartbeat every 15 minutes then this value should be set
         # to something like 13 * 60 (every 13 minutes)
-        "schedule": getenv_integer("ALERT_GROUP_ESCALATION_AUDITOR_CELERY_TASK_HEARTBEAT_INTERVAL", 13 * 60),
+        "schedule": crontab(
+            minute="*/{}".format(
+                getenv_integer("ALERT_GROUP_ESCALATION_AUDITOR_CELERY_TASK_HEARTBEAT_INTERVAL", default=13)
+            )
+        ),
+        "args": (),
+    }
+    CELERY_BEAT_SCHEDULE["check_personal_notifications"] = {
+        "task": "apps.alerts.tasks.check_escalation_finished.check_personal_notifications_task",
+        "schedule": crontab(minute="*/15"),  # every 15 minutes
         "args": (),
     }
 
@@ -629,8 +633,6 @@ SLACK_SIGNING_SECRET_LIVE = os.environ.get("SLACK_SIGNING_SECRET_LIVE", "")
 
 SLACK_CLIENT_OAUTH_ID = os.environ.get("SLACK_CLIENT_OAUTH_ID")
 SLACK_CLIENT_OAUTH_SECRET = os.environ.get("SLACK_CLIENT_OAUTH_SECRET")
-
-SLACK_SLASH_COMMAND_NAME = os.environ.get("SLACK_SLASH_COMMAND_NAME", "/oncall")
 SLACK_DIRECT_PAGING_SLASH_COMMAND = os.environ.get("SLACK_DIRECT_PAGING_SLASH_COMMAND", "/escalate")
 
 # Controls if slack integration can be installed/uninstalled.
@@ -711,6 +713,10 @@ FCM_DJANGO_SETTINGS = {
     "UPDATE_ON_DUPLICATE_REG_ID": True,
     "USER_MODEL": "user_management.User",
 }
+
+MOBILE_APP_GATEWAY_ENABLED = getenv_boolean("MOBILE_APP_GATEWAY_ENABLED", default=False)
+GRAFANA_CLOUD_AUTH_API_URL = os.environ.get("GRAFANA_CLOUD_AUTH_API_URL", None)
+GRAFANA_CLOUD_AUTH_API_SYSTEM_TOKEN = os.environ.get("GRAFANA_CLOUD_AUTH_API_SYSTEM_TOKEN", None)
 
 SELF_HOSTED_SETTINGS = {
     "STACK_ID": 5,
@@ -836,5 +842,8 @@ ZVONOK_POSTBACK_CAMPAIGN_ID = os.getenv("ZVONOK_POSTBACK_CAMPAIGN_ID", "campaign
 ZVONOK_POSTBACK_STATUS = os.getenv("ZVONOK_POSTBACK_STATUS", "status")
 ZVONOK_POSTBACK_USER_CHOICE = os.getenv("ZVONOK_POSTBACK_USER_CHOICE", None)
 ZVONOK_POSTBACK_USER_CHOICE_ACK = os.getenv("ZVONOK_POSTBACK_USER_CHOICE_ACK", None)
+ZVONOK_VERIFICATION_TEMPLATE = os.getenv("ZVONOK_VERIFICATION_TEMPLATE", None)
 
 DETACHED_INTEGRATIONS_SERVER = getenv_boolean("DETACHED_INTEGRATIONS_SERVER", default=False)
+
+ACKNOWLEDGE_REMINDER_TASK_EXPIRY_DAYS = os.environ.get("ACKNOWLEDGE_REMINDER_TASK_EXPIRY_DAYS", default=14)

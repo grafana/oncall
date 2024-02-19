@@ -1,7 +1,11 @@
+import typing
+
 from django.db.models import Q
 from django_filters import rest_framework as filters
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import status
+from drf_spectacular.plumbing import resolve_type_hint
+from drf_spectacular.utils import PolymorphicProxySerializer, extend_schema, extend_schema_view, inline_serializer
+from rest_framework import serializers, status
 from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter
 from rest_framework.permissions import IsAuthenticated
@@ -11,6 +15,7 @@ from rest_framework.viewsets import ModelViewSet
 from apps.alerts.grafana_alerting_sync_manager.grafana_alerting_sync import GrafanaAlertingSyncManager
 from apps.alerts.models import Alert, AlertGroup, AlertReceiveChannel
 from apps.alerts.models.maintainable_object import MaintainableObject
+from apps.api.label_filtering import parse_label_query
 from apps.api.permissions import RBACPermission
 from apps.api.serializers.alert_receive_channel import (
     AlertReceiveChannelSerializer,
@@ -18,13 +23,13 @@ from apps.api.serializers.alert_receive_channel import (
     FilterAlertReceiveChannelSerializer,
 )
 from apps.api.throttlers import DemoAlertThrottler
-from apps.api.views.labels import LabelsAssociatingMixin
+from apps.api.views.labels import schedule_update_label_cache
 from apps.auth_token.auth import PluginAuthentication
 from apps.integrations.legacy_prefix import has_legacy_prefix, remove_legacy_prefix
 from apps.labels.utils import is_labels_feature_enabled
 from apps.mobile_app.auth import MobileAppAuthTokenAuthentication
 from common.api_helpers.exceptions import BadRequest
-from common.api_helpers.filters import ByTeamModelFieldFilterMixin, TeamModelMultipleChoiceFilter
+from common.api_helpers.filters import NO_TEAM_VALUE, ByTeamModelFieldFilterMixin, TeamModelMultipleChoiceFilter
 from common.api_helpers.mixins import (
     FilterSerializerMixin,
     PreviewTemplateException,
@@ -36,6 +41,14 @@ from common.api_helpers.mixins import (
 from common.api_helpers.paginators import FifteenPageSizePaginator
 from common.exceptions import MaintenanceCouldNotBeStartedError, TeamCanNotBeChangedError, UnableToSendDemoAlert
 from common.insight_log import EntityEvent, write_resource_insight_log
+
+
+class AlertReceiveChannelCounter(typing.TypedDict):
+    alerts_count: int
+    alert_groups_count: int
+
+
+AlertReceiveChannelCounters = dict[str, AlertReceiveChannelCounter]
 
 
 class AlertReceiveChannelFilter(ByTeamModelFieldFilterMixin, filters.FilterSet):
@@ -70,15 +83,29 @@ class AlertReceiveChannelFilter(ByTeamModelFieldFilterMixin, filters.FilterSet):
         return queryset
 
 
+@extend_schema_view(
+    list=extend_schema(
+        responses=PolymorphicProxySerializer(
+            component_name="AlertReceiveChannelPolymorphic",
+            serializers=[AlertReceiveChannelSerializer, FilterAlertReceiveChannelSerializer],
+            resource_type_field_name=None,
+        )
+    ),
+    update=extend_schema(responses=AlertReceiveChannelUpdateSerializer),
+    partial_update=extend_schema(responses=AlertReceiveChannelUpdateSerializer),
+)
 class AlertReceiveChannelView(
     PreviewTemplateMixin,
     TeamFilteringMixin,
-    PublicPrimaryKeyMixin,
+    PublicPrimaryKeyMixin[AlertReceiveChannel],
     FilterSerializerMixin,
     UpdateSerializerMixin,
-    LabelsAssociatingMixin,
     ModelViewSet,
 ):
+    """
+    Internal API endpoints for alert receive channels (integrations).
+    """
+
     authentication_classes = (
         MobileAppAuthTokenAuthentication,
         PluginAuthentication,
@@ -86,6 +113,7 @@ class AlertReceiveChannelView(
     permission_classes = (IsAuthenticated, RBACPermission)
 
     model = AlertReceiveChannel
+    queryset = AlertReceiveChannel.objects.none()  # needed for drf-spectacular introspection
     serializer_class = AlertReceiveChannelSerializer
     filter_serializer_class = FilterAlertReceiveChannelSerializer
     update_serializer_class = AlertReceiveChannelUpdateSerializer
@@ -134,6 +162,14 @@ class AlertReceiveChannelView(
             new_state=new_state,
         )
 
+    def destroy(self, request, *args, **kwargs):
+        # don't allow deleting direct paging integrations
+        instance = self.get_object()
+        if instance.integration == AlertReceiveChannel.INTEGRATION_DIRECT_PAGING:
+            raise BadRequest(detail="Direct paging integrations can't be deleted")
+
+        return super().destroy(request, *args, **kwargs)
+
     def perform_destroy(self, instance):
         write_resource_insight_log(
             instance=instance,
@@ -159,7 +195,17 @@ class AlertReceiveChannelView(
         if not ignore_filtering_by_available_teams:
             queryset = queryset.filter(*self.available_teams_lookup_args).distinct()
 
-        queryset = self.filter_by_labels(queryset)
+        # filter labels
+        label_query = self.request.query_params.getlist("label", [])
+        kv_pairs = parse_label_query(label_query)
+        for key, value in kv_pairs:
+            queryset = queryset.filter(
+                labels__key_id=key,
+                labels__value_id=value,
+            )
+
+        # distinct to remove duplicates after alert_receive_channels X labels join
+        queryset = queryset.distinct()
 
         return queryset
 
@@ -170,8 +216,20 @@ class AlertReceiveChannelView(
         """
         if self.request.query_params.get("skip_pagination", "false").lower() == "true":
             return None
-        return super().paginate_queryset(queryset)
+        page = super().paginate_queryset(queryset)
+        if page is not None:
+            ids = [d.id for d in queryset]
+            schedule_update_label_cache(self.model.__name__, self.request.auth.organization, ids)
+        return page
 
+    @extend_schema(
+        request=inline_serializer(
+            name="AlertReceiveChannelSendDemoAlert",
+            fields={
+                "demo_alert_payload": serializers.DictField(required=False, allow_null=True),
+            },
+        ),
+    )
     @action(detail=True, methods=["post"], throttle_classes=[DemoAlertThrottler])
     def send_demo_alert(self, request, pk):
         instance = self.get_object()
@@ -187,6 +245,19 @@ class AlertReceiveChannelView(
 
         return Response(status=status.HTTP_200_OK)
 
+    @extend_schema(
+        responses=inline_serializer(
+            name="AlertReceiveChannelIntegrationOptions",
+            fields={
+                "value": serializers.CharField(),
+                "display_name": serializers.CharField(),
+                "short_description": serializers.CharField(),
+                "featured": serializers.BooleanField(),
+                "featured_tag_name": serializers.CharField(allow_null=True),
+            },
+            many=True,
+        )
+    )
     @action(detail=False, methods=["get"])
     def integration_options(self, request):
         choices = []
@@ -209,6 +280,11 @@ class AlertReceiveChannelView(
                     choices.append(choice)
         return Response(featured_choices + choices)
 
+    @extend_schema(
+        parameters=[
+            inline_serializer(name="AlertReceiveChannelChangeTeam", fields={"team_id": serializers.CharField()})
+        ]
+    )
     @action(detail=True, methods=["put"])
     def change_team(self, request, pk):
         instance = self.get_object()
@@ -217,7 +293,7 @@ class AlertReceiveChannelView(
             raise BadRequest(detail="team_id must be specified")
 
         team_id = request.query_params["team_id"]
-        if team_id == "null":
+        if team_id == NO_TEAM_VALUE:
             team_id = None
 
         try:
@@ -227,6 +303,7 @@ class AlertReceiveChannelView(
 
         return Response()
 
+    @extend_schema(responses={status.HTTP_200_OK: resolve_type_hint(AlertReceiveChannelCounters)})
     @action(methods=["get"], detail=False)
     def counters(self, request):
         queryset = self.filter_queryset(self.get_queryset(eager=False))
@@ -238,6 +315,11 @@ class AlertReceiveChannelView(
             }
         return Response(response)
 
+    @extend_schema(
+        # make operation_id unique, otherwise drf-spectacular will issue a warning
+        operation_id="alert_receive_channels_counters_per_integration_retrieve",
+        responses={status.HTTP_200_OK: resolve_type_hint(AlertReceiveChannelCounters)},
+    )
     @action(methods=["get"], detail=True, url_path="counters")
     def counters_per_integration(self, request, pk):
         alert_receive_channel = self.get_object()
@@ -265,10 +347,22 @@ class AlertReceiveChannelView(
         except AttributeError:
             return None
 
+    @extend_schema(
+        responses=inline_serializer(
+            name="AlertReceiveChannelFilters",
+            fields={
+                "name": serializers.CharField(),
+                "display_name": serializers.CharField(required=False),
+                "type": serializers.CharField(),
+                "href": serializers.CharField(),
+                "global": serializers.BooleanField(required=False),
+            },
+            many=True,
+        )
+    )
     @action(methods=["get"], detail=False)
     def filters(self, request):
         organization = self.request.auth.organization
-        filter_name = request.query_params.get("search", None)
         api_root = "/api/internal/v1/"
 
         filter_options = [
@@ -295,11 +389,19 @@ class AlertReceiveChannelView(
                 }
             )
 
-        if filter_name is not None:
-            filter_options = list(filter(lambda f: filter_name in f["name"], filter_options))
-
         return Response(filter_options)
 
+    @extend_schema(
+        request=inline_serializer(
+            name="AlertReceiveChannelStartMaintenance",
+            fields={
+                "mode": serializers.ChoiceField(choices=MaintainableObject.MAINTENANCE_MODE_CHOICES),
+                "duration": serializers.ChoiceField(
+                    choices=MaintainableObject.maintenance_duration_options_in_seconds()
+                ),
+            },
+        ),
+    )
     @action(detail=True, methods=["post"])
     def start_maintenance(self, request, pk):
         instance = self.get_object()
@@ -333,8 +435,7 @@ class AlertReceiveChannelView(
     @action(detail=True, methods=["post"])
     def stop_maintenance(self, request, pk):
         instance = self.get_object()
-        user = request.user
-        instance.force_disable_maintenance(user)
+        instance.force_disable_maintenance(request.user)
         return Response(status=status.HTTP_200_OK)
 
     @action(detail=True, methods=["post"])
@@ -372,6 +473,20 @@ class AlertReceiveChannelView(
         instance.save()
         return Response(status=status.HTTP_200_OK)
 
+    @extend_schema(
+        parameters=[
+            inline_serializer(
+                name="AlertReceiveChannelValidateName",
+                fields={
+                    "verbal_name": serializers.CharField(),
+                },
+            )
+        ],
+        responses={
+            status.HTTP_200_OK: None,
+            status.HTTP_409_CONFLICT: None,
+        },
+    )
     @action(detail=False, methods=["get"])
     def validate_name(self, request):
         """
@@ -390,6 +505,17 @@ class AlertReceiveChannelView(
 
         return r
 
+    @extend_schema(
+        responses=inline_serializer(
+            name="AlertReceiveChannelConnectedContactPoints",
+            fields={
+                "uid": serializers.CharField(),
+                "name": serializers.CharField(),
+                "contact_points": serializers.ListField(child=serializers.CharField()),
+            },
+            many=True,
+        )
+    )
     @action(detail=True, methods=["get"])
     def connected_contact_points(self, request, pk):
         instance = self.get_object()
@@ -398,12 +524,32 @@ class AlertReceiveChannelView(
         contact_points = instance.grafana_alerting_sync_manager.get_connected_contact_points()
         return Response(contact_points)
 
+    @extend_schema(
+        responses=inline_serializer(
+            name="AlertReceiveChannelContactPoints",
+            fields={
+                "uid": serializers.CharField(),
+                "name": serializers.CharField(),
+                "contact_points": serializers.ListField(child=serializers.CharField()),
+            },
+            many=True,
+        )
+    )
     @action(detail=False, methods=["get"])
     def contact_points(self, request):
         organization = request.auth.organization
         contact_points = GrafanaAlertingSyncManager.get_contact_points(organization)
         return Response(contact_points)
 
+    @extend_schema(
+        request=inline_serializer(
+            name="AlertReceiveChannelConnectContactPoint",
+            fields={
+                "datasource_uid": serializers.CharField(),
+                "contact_point_name": serializers.CharField(),
+            },
+        ),
+    )
     @action(detail=True, methods=["post"])
     def connect_contact_point(self, request, pk):
         instance = self.get_object()
@@ -421,6 +567,15 @@ class AlertReceiveChannelView(
             raise BadRequest(detail=error)
         return Response(status=status.HTTP_200_OK)
 
+    @extend_schema(
+        request=inline_serializer(
+            name="AlertReceiveChannelCreateContactPoint",
+            fields={
+                "datasource_uid": serializers.CharField(),
+                "contact_point_name": serializers.CharField(),
+            },
+        ),
+    )
     @action(detail=True, methods=["post"])
     def create_contact_point(self, request, pk):
         instance = self.get_object()
@@ -438,6 +593,15 @@ class AlertReceiveChannelView(
             raise BadRequest(detail=error)
         return Response(status=status.HTTP_201_CREATED)
 
+    @extend_schema(
+        request=inline_serializer(
+            name="AlertReceiveChannelDisconnectContactPoint",
+            fields={
+                "datasource_uid": serializers.CharField(),
+                "contact_point_name": serializers.CharField(),
+            },
+        ),
+    )
     @action(detail=True, methods=["post"])
     def disconnect_contact_point(self, request, pk):
         instance = self.get_object()

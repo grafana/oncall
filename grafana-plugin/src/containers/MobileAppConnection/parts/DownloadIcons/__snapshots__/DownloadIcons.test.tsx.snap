@@ -3,11 +3,11 @@
 exports[`DownloadIcons it renders properly 1`] = `
 <div>
   <div
-    class="css-1j7sh2x-vertical-group"
+    class="css-gjl87o-vertical-group"
     style="width: 100%; height: 100%;"
   >
     <div
-      class="css-ztyofd-layoutChildrenWrapper"
+      class="css-12oo3x0-layoutChildrenWrapper"
     >
       <span
         class="root text text--primary text--medium text--strong"
@@ -16,7 +16,7 @@ exports[`DownloadIcons it renders properly 1`] = `
       </span>
     </div>
     <div
-      class="css-ztyofd-layoutChildrenWrapper"
+      class="css-12oo3x0-layoutChildrenWrapper"
     >
       <span
         class="root text text--primary text--medium"
@@ -25,14 +25,14 @@ exports[`DownloadIcons it renders properly 1`] = `
       </span>
     </div>
     <div
-      class="css-ztyofd-layoutChildrenWrapper"
+      class="css-12oo3x0-layoutChildrenWrapper"
     >
       <div
-        class="css-1j7sh2x-vertical-group"
+        class="css-gjl87o-vertical-group"
         style="width: 100%; height: 100%;"
       >
         <div
-          class="css-bxa289-layoutChildrenWrapper"
+          class="css-gxt817-layoutChildrenWrapper"
         >
           <a
             href="https://apps.apple.com/us/app/grafana-oncall-preview/id1669759048"
@@ -57,7 +57,7 @@ exports[`DownloadIcons it renders properly 1`] = `
           </a>
         </div>
         <div
-          class="css-bxa289-layoutChildrenWrapper"
+          class="css-gxt817-layoutChildrenWrapper"
         >
           <a
             href="https://play.google.com/store/apps/details?id=com.grafana.oncall.prod"

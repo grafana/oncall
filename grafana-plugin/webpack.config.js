@@ -1,6 +1,7 @@
 const webpack = require('webpack');
 const path = require('path');
 const dotenv = require('dotenv');
+const LiveReloadPlugin = require('webpack-livereload-plugin');
 
 const CircularDependencyPlugin = require('circular-dependency-plugin');
 
@@ -149,13 +150,8 @@ module.exports.getWebpackConfig = (config, options) => {
       new webpack.DefinePlugin({
         'process.env': JSON.stringify(dotenv.config().parsed),
       }),
+      ...(options.production ? [] : [new LiveReloadPlugin({ appendScriptTag: true, useSourceHash: true })]),
     ],
-
-    resolve: {
-      ...config.resolve,
-      symlinks: false,
-      modules: [path.resolve(__dirname, './frontend_enterprise/src'), ...config.resolve.modules],
-    },
   };
 
   return newConfig;

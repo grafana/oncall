@@ -5,15 +5,13 @@ import cn from 'classnames/bind';
 import dayjs from 'dayjs';
 import Draggable from 'react-draggable';
 
-import Modal from 'components/Modal/Modal';
-import Tag from 'components/Tag/Tag';
-import Text from 'components/Text/Text';
-import UserGroups from 'components/UserGroups/UserGroups';
-import WithConfirm from 'components/WithConfirm/WithConfirm';
+import { Modal } from 'components/Modal/Modal';
+import { Tag } from 'components/Tag/Tag';
+import { Text } from 'components/Text/Text';
+import { UserGroups } from 'components/UserGroups/UserGroups';
+import { WithConfirm } from 'components/WithConfirm/WithConfirm';
 import { getShiftName } from 'models/schedule/schedule.helpers';
 import { Schedule, Shift } from 'models/schedule/schedule.types';
-import { getTzOffsetString } from 'models/timezone/timezone.helpers';
-import { Timezone } from 'models/timezone/timezone.types';
 import { User } from 'models/user/user.types';
 import { getDateTime, getUTCString } from 'pages/schedule/Schedule.helpers';
 import { useStore } from 'state/useStore';
@@ -21,16 +19,14 @@ import { getCoords, getVar, waitForElement } from 'utils/DOM';
 import { GRAFANA_HEADER_HEIGHT } from 'utils/consts';
 import { useDebouncedCallback } from 'utils/hooks';
 
-import DateTimePicker from './parts/DateTimePicker';
-import UserItem from './parts/UserItem';
+import { DateTimePicker } from './parts/DateTimePicker';
+import { UserItem } from './parts/UserItem';
 
 import styles from './RotationForm.module.css';
 
 interface RotationFormProps {
   onHide: () => void;
   shiftId: Shift['id'] | 'new';
-  startMoment: dayjs.Dayjs;
-  currentTimezone: Timezone;
   scheduleId: Schedule['id'];
   shiftStart?: dayjs.Dayjs;
   shiftEnd?: dayjs.Dayjs;
@@ -42,16 +38,14 @@ interface RotationFormProps {
 
 const cx = cn.bind(styles);
 
-const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
+export const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
   const {
     onHide,
     onCreate,
-    currentTimezone,
     scheduleId,
     onUpdate,
     onDelete,
     shiftId,
-    startMoment,
     shiftStart: propsShiftStart = dayjs().startOf('day').add(1, 'day'),
     shiftEnd: propsShiftEnd,
     shiftColor = getVar('--tag-warning'),
@@ -116,7 +110,7 @@ const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
       frequency: null,
       name: rotationName,
     }),
-    [currentTimezone, shiftStart, shiftEnd, userGroups, rotationName]
+    [shiftStart, shiftEnd, userGroups, rotationName, store.timezoneStore.selectedTimezoneOffset]
   );
 
   useEffect(() => {
@@ -172,7 +166,7 @@ const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
     setErrors({});
 
     store.scheduleStore
-      .updateRotationPreview(scheduleId, shiftId, startMoment, true, params)
+      .updateRotationPreview(scheduleId, shiftId, store.timezoneStore.calendarStartDate, true, params)
       .catch(onError)
       .finally(() => {
         setIsOpen(true);
@@ -185,7 +179,7 @@ const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
 
   const handleChange = useDebouncedCallback(updatePreview, 200);
 
-  useEffect(handleChange, [params, startMoment]);
+  useEffect(handleChange, [params, store.timezoneStore.calendarStartDate]);
 
   const isFormValid = useMemo(() => !Object.keys(errors).length, [errors]);
 
@@ -218,7 +212,7 @@ const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
                 <IconButton variant="secondary" tooltip="Delete" name="trash-alt" onClick={handleDeleteClick} />
               </WithConfirm>
             )}
-            <IconButton variant="secondary" className={cx('drag-handler')} name="draggabledots" />
+            <IconButton aria-label="Drag" variant="secondary" className={cx('drag-handler')} name="draggabledots" />
             <IconButton
               name="times"
               variant="secondary"
@@ -242,7 +236,6 @@ const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
                   disabled={disabled}
                   value={shiftStart}
                   onChange={updateShiftStart}
-                  timezone={currentTimezone}
                   error={errors.shift_start}
                 />
               </Field>
@@ -254,13 +247,7 @@ const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
                   </Text>
                 }
               >
-                <DateTimePicker
-                  disabled={disabled}
-                  value={shiftEnd}
-                  onChange={setShiftEnd}
-                  timezone={currentTimezone}
-                  error={errors.shift_end}
-                />
+                <DateTimePicker disabled={disabled} value={shiftEnd} onChange={setShiftEnd} error={errors.shift_end} />
               </Field>
             </HorizontalGroup>
             <UserGroups
@@ -276,7 +263,7 @@ const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
           </VerticalGroup>
         </div>
         <HorizontalGroup justify="space-between">
-          <Text type="secondary">Current timezone: {getTzOffsetString(dayjs().tz(currentTimezone))}</Text>
+          <Text type="secondary">Current timezone: {store.timezoneStore.selectedTimezoneLabel}</Text>
           <HorizontalGroup>
             <Button variant="primary" onClick={handleCreate} disabled={disabled || !isFormValid}>
               {shiftId === 'new' ? 'Create' : 'Update'}
@@ -287,5 +274,3 @@ const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
     </Modal>
   );
 };
-
-export default ScheduleOverrideForm;

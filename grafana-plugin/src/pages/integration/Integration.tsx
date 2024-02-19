@@ -7,7 +7,6 @@ import {
   VerticalGroup,
   Icon,
   LoadingPlaceholder,
-  CascaderOption,
   IconButton,
   ConfirmModal,
   Drawer,
@@ -16,60 +15,64 @@ import {
 import cn from 'classnames/bind';
 import { get } from 'lodash-es';
 import { observer } from 'mobx-react';
+import moment from 'moment-timezone';
 import CopyToClipboard from 'react-copy-to-clipboard';
 import Emoji from 'react-emoji-render';
 import { RouteComponentProps, useHistory, withRouter } from 'react-router-dom';
 
-import { templateForEdit } from 'components/AlertTemplates/AlertTemplatesForm.config';
+import { getTemplatesForEdit } from 'components/AlertTemplates/AlertTemplatesForm.config';
 import { TemplateForEdit } from 'components/AlertTemplates/CommonAlertTemplatesForm.config';
-import HamburgerMenu from 'components/HamburgerMenu/HamburgerMenu';
-import IntegrationCollapsibleTreeView, {
+import { HamburgerMenu } from 'components/HamburgerMenu/HamburgerMenu';
+import {
+  IntegrationCollapsibleTreeView,
   IntegrationCollapsibleItem,
 } from 'components/IntegrationCollapsibleTreeView/IntegrationCollapsibleTreeView';
-import IntegrationContactPoint from 'components/IntegrationContactPoint/IntegrationContactPoint';
-import IntegrationHowToConnect from 'components/IntegrationHowToConnect/IntegrationHowToConnect';
-import IntegrationLogo from 'components/IntegrationLogo/IntegrationLogo';
-import IntegrationSendDemoAlertModal from 'components/IntegrationSendDemoAlertModal/IntegrationSendDemoAlertModal';
-import IntegrationBlock from 'components/Integrations/IntegrationBlock';
-import PageErrorHandlingWrapper, { PageBaseState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
+import { IntegrationContactPoint } from 'components/IntegrationContactPoint/IntegrationContactPoint';
+import { IntegrationHowToConnect } from 'components/IntegrationHowToConnect/IntegrationHowToConnect';
+import { IntegrationLogo } from 'components/IntegrationLogo/IntegrationLogo';
+import { IntegrationSendDemoAlertModal } from 'components/IntegrationSendDemoAlertModal/IntegrationSendDemoAlertModal';
+import { IntegrationBlock } from 'components/Integrations/IntegrationBlock';
+import { PageErrorHandlingWrapper, PageBaseState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
 import { initErrorDataState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper.helpers';
-import PluginLink from 'components/PluginLink/PluginLink';
-import Tag from 'components/Tag/Tag';
-import Text from 'components/Text/Text';
-import TooltipBadge from 'components/TooltipBadge/TooltipBadge';
+import { PluginLink } from 'components/PluginLink/PluginLink';
+import { RenderConditionally } from 'components/RenderConditionally/RenderConditionally';
+import { Tabs } from 'components/Tabs/Tabs';
+import { Tag } from 'components/Tag/Tag';
+import { Text } from 'components/Text/Text';
+import { TooltipBadge } from 'components/TooltipBadge/TooltipBadge';
 import { WithContextMenu } from 'components/WithContextMenu/WithContextMenu';
-import EditRegexpRouteTemplateModal from 'containers/EditRegexpRouteTemplateModal/EditRegexpRouteTemplateModal';
-import CollapsedIntegrationRouteDisplay from 'containers/IntegrationContainers/CollapsedIntegrationRouteDisplay/CollapsedIntegrationRouteDisplay';
-import ExpandedIntegrationRouteDisplay from 'containers/IntegrationContainers/ExpandedIntegrationRouteDisplay/ExpandedIntegrationRouteDisplay';
-import IntegrationHeartbeatForm from 'containers/IntegrationContainers/IntegrationHeartbeatForm/IntegrationHeartbeatForm';
-import IntegrationTemplateList from 'containers/IntegrationContainers/IntegrationTemplatesList';
-import IntegrationForm from 'containers/IntegrationForm/IntegrationForm';
-import IntegrationLabelsForm from 'containers/IntegrationLabelsForm/IntegrationLabelsForm';
-import IntegrationTemplate from 'containers/IntegrationTemplate/IntegrationTemplate';
-import MaintenanceForm from 'containers/MaintenanceForm/MaintenanceForm';
-import TeamName from 'containers/TeamName/TeamName';
-import UserDisplayWithAvatar from 'containers/UserDisplay/UserDisplayWithAvatar';
+import { EditRegexpRouteTemplateModal } from 'containers/EditRegexpRouteTemplateModal/EditRegexpRouteTemplateModal';
+import { CollapsedIntegrationRouteDisplay } from 'containers/IntegrationContainers/CollapsedIntegrationRouteDisplay/CollapsedIntegrationRouteDisplay';
+import { ExpandedIntegrationRouteDisplay } from 'containers/IntegrationContainers/ExpandedIntegrationRouteDisplay/ExpandedIntegrationRouteDisplay';
+import { IntegrationHeartbeatForm } from 'containers/IntegrationContainers/IntegrationHeartbeatForm/IntegrationHeartbeatForm';
+import { IntegrationTemplateList } from 'containers/IntegrationContainers/IntegrationTemplatesList';
+import { IntegrationForm } from 'containers/IntegrationForm/IntegrationForm';
+import { IntegrationLabelsForm } from 'containers/IntegrationLabelsForm/IntegrationLabelsForm';
+import { IntegrationTemplate } from 'containers/IntegrationTemplate/IntegrationTemplate';
+import { MaintenanceForm } from 'containers/MaintenanceForm/MaintenanceForm';
+import { TeamName } from 'containers/TeamName/TeamName';
+import { UserDisplayWithAvatar } from 'containers/UserDisplay/UserDisplayWithAvatar';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
-import { HeartIcon, HeartRedIcon } from 'icons';
+import { HeartIcon, HeartRedIcon } from 'icons/Icons';
 import {
   AlertReceiveChannel,
   AlertReceiveChannelCounters,
 } from 'models/alert_receive_channel/alert_receive_channel.types';
-import { AlertTemplatesDTO } from 'models/alert_templates';
-import { ChannelFilter } from 'models/channel_filter';
-import { INTEGRATION_TEMPLATES_LIST } from 'pages/integration/Integration.config';
-import IntegrationHelper from 'pages/integration/Integration.helper';
+import { AlertTemplatesDTO } from 'models/alert_templates/alert_templates';
+import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
+import { IntegrationHelper, getIsBidirectionalIntegration } from 'pages/integration/Integration.helper';
 import styles from 'pages/integration/Integration.module.scss';
 import { AppFeature } from 'state/features';
 import { PageProps, SelectOption, WithStoreProps } from 'state/types';
 import { useStore } from 'state/useStore';
 import { withMobXProviderContext } from 'state/withStore';
-import { openNotification, openErrorNotification } from 'utils';
 import { getVar } from 'utils/DOM';
-import LocationHelper from 'utils/LocationHelper';
-import { UserActions } from 'utils/authorization';
+import { LocationHelper } from 'utils/LocationHelper';
+import { UserActions } from 'utils/authorization/authorization';
 import { PLUGIN_ROOT } from 'utils/consts';
-import sanitize from 'utils/sanitize';
+import { getItem, setItem } from 'utils/localStorage';
+import { sanitize } from 'utils/sanitize';
+import { openNotification, openErrorNotification } from 'utils/utils';
 
 const cx = cn.bind(styles);
 
@@ -90,7 +93,7 @@ interface IntegrationState extends PageBaseState {
 const NEW_ROUTE_DEFAULT = '';
 
 @observer
-class Integration extends React.Component<IntegrationProps, IntegrationState> {
+class _IntegrationPage extends React.Component<IntegrationProps, IntegrationState> {
   constructor(props: IntegrationProps) {
     super(props);
 
@@ -156,6 +159,36 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
     const isLegacyIntegration = integration && (integration?.value as string).toLowerCase().startsWith('legacy_');
     const contactPoints = alertReceiveChannelStore.connectedContactPoints?.[alertReceiveChannel.id];
 
+    const incomingPart = (
+      <>
+        <IntegrationCollapsibleTreeView configElements={this.getConfigForTreeComponent(id, templates) as any} />
+        {isEditTemplateModalOpen && (
+          <IntegrationTemplate
+            id={id}
+            onHide={() => {
+              this.setState({
+                isEditTemplateModalOpen: undefined,
+              });
+              if (selectedTemplate?.name !== 'route_template') {
+                this.setState({ isTemplateSettingsOpen: true });
+              }
+              LocationHelper.update({ template: undefined, routeId: undefined }, 'partial');
+            }}
+            channelFilterId={channelFilterIdForEdit}
+            onUpdateTemplates={this.onUpdateTemplatesCallback}
+            onUpdateRoute={this.onUpdateRoutesCallback}
+            template={selectedTemplate}
+            templateBody={
+              selectedTemplate?.name === 'route_template'
+                ? this.getRoutingTemplate(channelFilterIdForEdit)
+                : templates[selectedTemplate?.name]
+            }
+            templates={templates}
+          />
+        )}
+      </>
+    );
+
     return (
       <PageErrorHandlingWrapper errorData={errorData} objectName="integration" pageName="Integration">
         {() => (
@@ -181,7 +214,7 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
 
             <div className={cx('integration__heading-container')}>
               <PluginLink query={{ page: 'integrations', ...query }} className={cx('back-arrow')}>
-                <IconButton name="arrow-left" size="xl" />
+                <IconButton aria-label="Go Back" name="arrow-left" size="xl" />
               </PluginLink>
               <h2 className={cx('integration__name')}>
                 <Emoji text={alertReceiveChannel.verbal_name} />
@@ -195,6 +228,7 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
 
             <div className={cx('integration__subheading-container')}>
               {this.renderDeprecatedHeaderMaybe(integration, isLegacyIntegration)}
+              {this.renderAlertmanagerV2MigrationHeaderMaybe(alertReceiveChannel)}
 
               {this.renderDescriptionMaybe(alertReceiveChannel)}
 
@@ -224,32 +258,17 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
               )}
             </div>
 
-            <IntegrationCollapsibleTreeView configElements={this.getConfigForTreeComponent(id, templates) as any} />
-
-            {isEditTemplateModalOpen && (
-              <IntegrationTemplate
-                id={id}
-                onHide={() => {
-                  this.setState({
-                    isEditTemplateModalOpen: undefined,
-                  });
-                  if (selectedTemplate?.name !== 'route_template') {
-                    this.setState({ isTemplateSettingsOpen: true });
-                  }
-                  LocationHelper.update({ template: undefined, routeId: undefined }, 'partial');
-                }}
-                channelFilterId={channelFilterIdForEdit}
-                onUpdateTemplates={this.onUpdateTemplatesCallback}
-                onUpdateRoute={this.onUpdateRoutesCallback}
-                template={selectedTemplate}
-                templateBody={
-                  selectedTemplate?.name === 'route_template'
-                    ? this.getRoutingTemplate(channelFilterIdForEdit)
-                    : templates[selectedTemplate?.name]
-                }
-                templates={templates}
+            {getIsBidirectionalIntegration(alertReceiveChannel) ? (
+              <Tabs
+                tabs={[
+                  { label: 'Incoming', content: incomingPart },
+                  { label: 'Outgoing', content: <div>outgoing tab content</div> },
+                ]}
               />
+            ) : (
+              <>{incomingPart}</>
             )}
+
             {isEditRegexpRouteTemplateModalOpen && (
               <EditRegexpRouteTemplateModal
                 alertReceiveChannelId={id}
@@ -312,6 +331,65 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
     }
   }
 
+  renderAlertmanagerV2MigrationHeaderMaybe(alertReceiveChannel: AlertReceiveChannel) {
+    if (!alertReceiveChannel.alertmanager_v2_migrated_at) {
+      return null;
+    }
+
+    const alertID = `alertmanager_v2_alert_hidden_${alertReceiveChannel.id}`;
+    if (getItem(alertID)) {
+      return null;
+    }
+    const onAlertRemove = () => {
+      setItem(alertID, true);
+      this.forceUpdate();
+    };
+
+    const migratedAt = moment(alertReceiveChannel.alertmanager_v2_migrated_at).toString();
+    const docsURL = `https://grafana.com/docs/oncall/latest/integrations/${alertReceiveChannel.integration.replace(
+      '_',
+      '-'
+    )}`;
+
+    return (
+      <div className="u-padding-top-md">
+        <Alert
+          severity="warning"
+          onRemove={onAlertRemove}
+          title={
+            (
+              <VerticalGroup>
+                <Text type="secondary">
+                  This legacy integration was automatically migrated at {migratedAt}. It now relies on Alertmanager's
+                  grouping and autoresolution mechanism.
+                </Text>
+                <Text type="secondary">Here are the steps you need to take to ensure a smooth transition:</Text>
+                <Text type="secondary">
+                  1. Check and adjust integration templates, as they were dropped back to default values during the
+                  migration.
+                </Text>
+                <Text type="secondary">
+                  2. Check and adjust integration routes so that they match the new payload shape.
+                </Text>
+                <Text type="secondary">
+                  3. Check and adjust outgoing webhooks that use alerts from this integration so that they match the new
+                  payload shape.
+                </Text>
+                <Text type="secondary">
+                  Refer to{' '}
+                  <a href={docsURL} target="_blank" rel="noreferrer">
+                    <Text type="link">the docs</Text>
+                  </a>{' '}
+                  for more information.
+                </Text>
+              </VerticalGroup>
+            ) as any
+          }
+        />
+      </div>
+    );
+  }
+
   renderDescriptionMaybe(alertReceiveChannel: AlertReceiveChannel) {
     if (!alertReceiveChannel.description_short) {
       return null;
@@ -361,13 +439,14 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
     const isAlerting = IntegrationHelper.isSpecificIntegration(alertReceiveChannel, 'grafana_alerting');
     const isLegacyAlerting = IntegrationHelper.isSpecificIntegration(alertReceiveChannel, 'legacy_grafana_alerting');
 
-    return [
+    const configs: Array<IntegrationCollapsibleItem | IntegrationCollapsibleItem[]> = [
       (isAlerting || isLegacyAlerting) && {
         isHidden: isLegacyAlerting || contactPoints === null || contactPoints === undefined,
         isCollapsible: false,
         customIcon: 'grafana',
         canHoverIcon: false,
         collapsedView: null,
+        startingElemPosition: '50%',
         expandedView: () => <IntegrationContactPoint id={id} />,
       },
       {
@@ -375,6 +454,7 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
         customIcon: 'plug',
         canHoverIcon: false,
         collapsedView: null,
+        startingElemPosition: '50%',
         expandedView: () => <IntegrationHowToConnect id={id} />,
       },
       {
@@ -382,6 +462,7 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
         isExpanded: false,
         isCollapsible: false,
         canHoverIcon: false,
+        startingElemPosition: '50%',
         expandedView: () => (
           <IntegrationBlock
             noContent
@@ -419,7 +500,7 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
                         Autoresolve:
                       </Text>
                       <Text type="primary">
-                        {IntegrationHelper.truncateLine(templates['resolve_condition_template'] || 'disabled')}
+                        {IntegrationHelper.truncateLine(templates?.['resolve_condition_template'] || 'disabled')}
                       </Text>
                     </div>
 
@@ -452,10 +533,11 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
         collapsedView: undefined,
       },
       {
-        customIcon: 'code-branch',
+        customIcon: 'plus',
         isCollapsible: false,
         collapsedView: null,
         canHoverIcon: false,
+        startingElemPosition: '40px',
         expandedView: () => (
           <div className={cx('routesSection')}>
             <VerticalGroup spacing="md">
@@ -468,14 +550,18 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
                     Add route
                   </Button>
                 </WithPermissionControlTooltip>
-                {this.state.isAddingRoute && <LoadingPlaceholder text="Loading..." />}
+                {this.state.isAddingRoute && (
+                  <LoadingPlaceholder text="Loading..." className={cx('loadingPlaceholder')} />
+                )}
               </HorizontalGroup>
             </VerticalGroup>
           </div>
         ),
       },
-      this.renderRoutesFn(),
-    ].filter((opt) => opt);
+      this.renderRoutesFn() as IntegrationCollapsibleItem[],
+    ];
+
+    return configs.filter(Boolean);
   }
 
   getRoutingTemplate = (channelFilterId: ChannelFilter['id']) => {
@@ -549,6 +635,7 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
         ({
           canHoverIcon: true,
           isCollapsible: true,
+          startingElemPosition: '50%',
           isExpanded: openRoutes.indexOf(channelFilterId) > -1,
           onStateChange: (isChecked: boolean) => {
             const newOpenRoutes = [...openRoutes];
@@ -583,7 +670,7 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
             />
           ),
         } as IntegrationCollapsibleItem)
-    );
+    ) as IntegrationCollapsibleItem[];
   };
 
   handleEditRegexpRouteTemplate = (channelFilterId) => {
@@ -647,9 +734,11 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
       });
   };
 
-  getTemplatesList = (): CascaderOption[] => INTEGRATION_TEMPLATES_LIST;
-
   openEditTemplateModal = (templateName, channelFilterId?: ChannelFilter['id']) => {
+    const { store } = this.props;
+
+    const templateForEdit = getTemplatesForEdit(store.features);
+
     if (templateForEdit[templateName]) {
       this.setState({
         isEditTemplateModalOpen: true,
@@ -789,6 +878,10 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
           onHide={() => setIsIntegrationSettingsOpen(false)}
           onSubmit={() => alertReceiveChannelStore.updateItem(alertReceiveChannel['id'])}
           id={alertReceiveChannel['id']}
+          navigateToAlertGroupLabels={(_id: AlertReceiveChannel['id']) => {
+            setIsIntegrationSettingsOpen(false);
+            setLabelsFormOpen(true);
+          }}
         />
       )}
 
@@ -799,7 +892,7 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
           }}
           onSubmit={() => alertReceiveChannelStore.updateItem(alertReceiveChannel['id'])}
           id={alertReceiveChannel['id']}
-          onOpenIntegraionSettings={() => {
+          onOpenIntegrationSettings={() => {
             setIsIntegrationSettingsOpen(true);
           }}
         />
@@ -845,7 +938,7 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
                 {store.hasFeature(AppFeature.Labels) && (
                   <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
                     <div className={cx('integration__actionItem')} onClick={() => openLabelsForm()}>
-                      <Text type="primary">Alert group labels</Text>
+                      <Text type="primary">Alert group labeling</Text>
                     </div>
                   </WithPermissionControlTooltip>
                 )}
@@ -958,37 +1051,37 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
                     </HorizontalGroup>
                   </div>
                 </CopyToClipboard>
-
-                <div className={cx('thin-line-break')} />
-
-                <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
-                  <div className={cx('integration__actionItem')}>
-                    <div
-                      onClick={() => {
-                        setConfirmModal({
-                          isOpen: true,
-                          title: 'Delete Integration?',
-                          body: (
-                            <Text type="primary">
-                              Are you sure you want to delete <Emoji text={alertReceiveChannel.verbal_name} /> ?
-                            </Text>
-                          ),
-                          onConfirm: deleteIntegration,
-                          dismissText: 'Cancel',
-                          confirmText: 'Delete',
-                        });
-                      }}
-                      className="u-width-100"
-                    >
-                      <Text type="danger">
-                        <HorizontalGroup spacing={'xs'}>
-                          <Icon name="trash-alt" />
-                          <span>Delete Integration</span>
-                        </HorizontalGroup>
-                      </Text>
+                <RenderConditionally shouldRender={alertReceiveChannel.allow_delete}>
+                  <div className={cx('thin-line-break')} />
+                  <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
+                    <div className={cx('integration__actionItem')}>
+                      <div
+                        onClick={() => {
+                          setConfirmModal({
+                            isOpen: true,
+                            title: 'Delete Integration?',
+                            body: (
+                              <Text type="primary">
+                                Are you sure you want to delete <Emoji text={alertReceiveChannel.verbal_name} /> ?
+                              </Text>
+                            ),
+                            onConfirm: deleteIntegration,
+                            dismissText: 'Cancel',
+                            confirmText: 'Delete',
+                          });
+                        }}
+                        className="u-width-100"
+                      >
+                        <Text type="danger">
+                          <HorizontalGroup spacing={'xs'}>
+                            <Icon name="trash-alt" />
+                            <span>Delete Integration</span>
+                          </HorizontalGroup>
+                        </Text>
+                      </div>
                     </div>
-                  </div>
-                </WithPermissionControlTooltip>
+                  </WithPermissionControlTooltip>
+                </RenderConditionally>
               </div>
             )}
           >
@@ -1126,7 +1219,7 @@ const IntegrationHeader: React.FC<IntegrationHeaderProps> = ({
 
       {alertReceiveChannel.maintenance_till && (
         <TooltipBadge
-          data-testid="maintenance-mode-remaining-time-tooltip"
+          testId="maintenance-mode-remaining-time-tooltip"
           borderType="primary"
           icon="pause"
           text={IntegrationHelper.getMaintenanceText(alertReceiveChannel.maintenance_till)}
@@ -1188,7 +1281,6 @@ const IntegrationHeader: React.FC<IntegrationHeaderProps> = ({
 
     return (
       <TooltipBadge
-        data-testid="heartbeat-badge"
         text={undefined}
         className={cx('heartbeat-badge')}
         borderType={heartbeatStatus ? 'success' : 'danger'}
@@ -1200,4 +1292,4 @@ const IntegrationHeader: React.FC<IntegrationHeaderProps> = ({
   }
 };
 
-export default withRouter(withMobXProviderContext(Integration));
+export const IntegrationPage = withRouter(withMobXProviderContext(_IntegrationPage));

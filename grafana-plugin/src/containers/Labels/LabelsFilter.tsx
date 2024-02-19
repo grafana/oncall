@@ -1,15 +1,10 @@
 import React, { useEffect, useState } from 'react';
 
 import { SelectableValue } from '@grafana/data';
-import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
-import LabelsFilterComponent from 'components/LabelsFilter/LabelsFilter';
+import { LabelsFilterComponent } from 'components/LabelsFilter/LabelsFilter';
 import { useStore } from 'state/useStore';
-
-import styles from './Labels.module.css';
-
-const cx = cn.bind(styles);
 
 interface LabelsFilterProps {
   filterType: 'labels' | 'alert_group_labels';
@@ -19,21 +14,16 @@ interface LabelsFilterProps {
   onChange: (value: Array<{ key: SelectableValue<string>; value: SelectableValue<string> }>) => void;
 }
 
-const LabelsFilter = observer((props: LabelsFilterProps) => {
+export const LabelsFilter = observer((props: LabelsFilterProps) => {
   const { filterType, className, autoFocus, value: propsValue, onChange } = props;
   const [value, setValue] = useState([]);
   const [keys, setKeys] = useState([]);
   const { alertGroupStore, labelsStore } = useStore();
 
-  const loadKeys =
-    filterType === 'alert_group_labels'
-      ? alertGroupStore.loadLabelsKeys.bind(alertGroupStore)
-      : labelsStore.loadKeys.bind(labelsStore);
+  const loadKeys = filterType === 'alert_group_labels' ? alertGroupStore.loadLabelsKeys : labelsStore.loadKeys;
 
   const loadValuesForKey =
-    filterType === 'alert_group_labels'
-      ? alertGroupStore.loadValuesForLabelKey.bind(alertGroupStore)
-      : labelsStore.loadValuesForKey.bind(labelsStore);
+    filterType === 'alert_group_labels' ? alertGroupStore.loadValuesForLabelKey : labelsStore.loadValuesForKey;
 
   useEffect(() => {
     loadKeys().then(setKeys);
@@ -77,7 +67,7 @@ const LabelsFilter = observer((props: LabelsFilterProps) => {
   };
 
   return (
-    <div className={cx('root', className)}>
+    <div className={className}>
       <LabelsFilterComponent
         autoFocus={autoFocus}
         labelField="name"
@@ -88,5 +78,3 @@ const LabelsFilter = observer((props: LabelsFilterProps) => {
     </div>
   );
 });
-
-export default LabelsFilter;

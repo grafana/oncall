@@ -331,7 +331,7 @@ def test_create_schedules_same_name(make_organization_and_user_with_token):
         "time_zone": "UTC",
     }
 
-    for i in range(2):
+    for _ in range(2):
         response = client.post(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
         assert response.status_code == status.HTTP_201_CREATED
 
@@ -842,6 +842,65 @@ def test_create_schedule_invalid_timezone(make_organization_and_user_with_token,
     response = client.post(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert response.json() == {"time_zone": ["Invalid timezone"]}
+
+
+@pytest.mark.django_db
+def test_create_calendar_schedule_slack_error(make_organization_and_user_with_token):
+    organization, user, token = make_organization_and_user_with_token()
+    client = APIClient()
+
+    url = reverse("api-public:schedules-list")
+    # with slack channel id
+    data = {
+        "team_id": None,
+        "name": "schedule test name",
+        "time_zone": "Europe/Moscow",
+        "type": "calendar",
+        "slack": {
+            "channel_id": "TEST_SLACK_ID",
+        },
+    }
+
+    response = client.post(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.data["detail"] == "Slack isn't connected to this workspace"
+    # with slack user group id
+    data = {
+        "team_id": None,
+        "name": "schedule test name",
+        "time_zone": "Europe/Moscow",
+        "type": "calendar",
+        "slack": {
+            "user_group_id": "TEST_SLACK_ID",
+        },
+    }
+
+    response = client.post(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.data["detail"] == "Slack isn't connected to this workspace"
+
+
+@pytest.mark.django_db
+def test_update_calendar_schedule_slack_error(
+    make_organization_and_user_with_token,
+    make_schedule,
+):
+    organization, user, token = make_organization_and_user_with_token()
+    client = APIClient()
+    schedule = make_schedule(organization, schedule_class=OnCallScheduleCalendar)
+    url = reverse("api-public:schedules-detail", kwargs={"pk": schedule.public_primary_key})
+
+    data = {"slack": {"channel_id": "TEST_SLACK_ID"}}
+
+    response = client.put(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.data["detail"] == "Slack isn't connected to this workspace"
+
+    data = {"slack": {"user_group_id": "TEST_SLACK_ID"}}
+
+    response = client.put(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.data["detail"] == "Slack isn't connected to this workspace"
 
 
 @pytest.mark.django_db

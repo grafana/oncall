@@ -7,10 +7,10 @@ import { observer } from 'mobx-react';
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
 
 import { ScheduleFiltersType } from 'components/ScheduleFilters/ScheduleFilters.types';
-import Text from 'components/Text/Text';
-import TimelineMarks from 'components/TimelineMarks/TimelineMarks';
-import Rotation from 'containers/Rotation/Rotation';
-import ScheduleOverrideForm from 'containers/RotationForm/ScheduleOverrideForm';
+import { Text } from 'components/Text/Text';
+import { Rotation } from 'containers/Rotation/Rotation';
+import { ScheduleOverrideForm } from 'containers/RotationForm/ScheduleOverrideForm';
+import { TimelineMarks } from 'containers/TimelineMarks/TimelineMarks';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import {
   getLayersFromStore,
@@ -20,11 +20,10 @@ import {
   SHIFT_SWAP_COLOR,
 } from 'models/schedule/schedule.helpers';
 import { Schedule, Shift, ShiftEvents, ShiftSwap } from 'models/schedule/schedule.types';
-import { Timezone } from 'models/timezone/timezone.types';
-import { getStartOfDay, getUTCString } from 'pages/schedule/Schedule.helpers';
+import { getUTCString } from 'pages/schedule/Schedule.helpers';
 import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
-import { UserActions } from 'utils/authorization';
+import { UserActions } from 'utils/authorization/authorization';
 
 import { DEFAULT_TRANSITION_TIMEOUT } from './Rotations.config';
 import { findClosestUserEvent, findColor } from './Rotations.helpers';
@@ -34,10 +33,8 @@ import styles from './Rotations.module.css';
 const cx = cn.bind(styles);
 
 interface ScheduleOverridesProps extends WithStoreProps {
-  startMoment: dayjs.Dayjs;
   shiftStartToShowOverrideForm: dayjs.Dayjs;
   shiftEndToShowOverrideForm: dayjs.Dayjs;
-  currentTimezone: Timezone;
   scheduleId: Schedule['id'];
   shiftIdToShowRotationForm?: Shift['id'] | 'new';
   onShowRotationForm: (shiftId: Shift['id'] | 'new') => void;
@@ -56,7 +53,7 @@ interface ScheduleOverridesState {
 }
 
 @observer
-class ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverridesState> {
+class _ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverridesState> {
   state: ScheduleOverridesState = {
     shiftStartToShowOverrideForm: undefined,
     shiftEndToShowOverrideForm: undefined,
@@ -65,8 +62,6 @@ class ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverri
   render() {
     const {
       scheduleId,
-      startMoment,
-      currentTimezone,
       onCreate,
       onUpdate,
       onDelete,
@@ -84,14 +79,17 @@ class ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverri
     } = this.props;
     const { shiftStartToShowOverrideForm, shiftEndToShowOverrideForm } = this.state;
 
-    const shifts = getOverridesFromStore(store, scheduleId, startMoment) as ShiftEvents[];
+    const shifts = getOverridesFromStore(store, scheduleId, store.timezoneStore.calendarStartDate) as ShiftEvents[];
 
-    const layers = getLayersFromStore(store, scheduleId, startMoment);
+    const layers = getLayersFromStore(store, scheduleId, store.timezoneStore.calendarStartDate);
 
-    const shiftSwaps = getShiftSwapsFromStore(store, scheduleId, startMoment);
+    const shiftSwaps = getShiftSwapsFromStore(store, scheduleId, store.timezoneStore.calendarStartDate);
 
     const base = 7 * 24 * 60; // in minutes
-    const diff = dayjs().tz(currentTimezone).diff(startMoment, 'minutes');
+    const diff = store.timezoneStore.currentDateInSelectedTimezone.diff(
+      store.timezoneStore.calendarStartDate,
+      'minutes'
+    );
 
     const currentTimeX = diff / base;
 
@@ -119,7 +117,7 @@ class ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverri
                     const closestEvent = findClosestUserEvent(dayjs(), currentUserPk, layers);
                     const swapStart = closestEvent
                       ? dayjs(closestEvent.start)
-                      : dayjs().tz(currentTimezone).startOf('day').add(1, 'day');
+                      : store.timezoneStore.currentDateInSelectedTimezone.startOf('day').add(1, 'day');
 
                     const swapEnd = closestEvent ? dayjs(closestEvent.end) : swapStart.add(1, 'day');
 
@@ -151,7 +149,7 @@ class ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverri
           </div>
           <div className={cx('header-plus-content')}>
             {!currentTimeHidden && <div className={cx('current-time')} style={{ left: `${currentTimeX * 100}%` }} />}
-            <TimelineMarks startMoment={startMoment} timezone={currentTimezone} />
+            <TimelineMarks />
             <TransitionGroup className={cx('rotations')}>
               {shiftSwaps && shiftSwaps.length
                 ? shiftSwaps.map(({ isPreview, events }, index) => (
@@ -159,8 +157,6 @@ class ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverri
                       <Rotation
                         events={events}
                         color={SHIFT_SWAP_COLOR}
-                        startMoment={startMoment}
-                        currentTimezone={currentTimezone}
                         onSlotClick={(event) => {
                           if (event.is_gap) {
                             return;
@@ -181,8 +177,6 @@ class ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverri
                     <Rotation
                       events={events}
                       color={getOverrideColor(index)}
-                      startMoment={startMoment}
-                      currentTimezone={currentTimezone}
                       onClick={(shiftStart, shiftEnd) => {
                         this.onRotationClick(shiftId, shiftStart, shiftEnd);
                       }}
@@ -196,8 +190,6 @@ class ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverri
                   <Rotation
                     key={0}
                     events={[]}
-                    startMoment={startMoment}
-                    currentTimezone={currentTimezone}
                     onClick={(shiftStart, shiftEnd) => {
                       this.onRotationClick('new', shiftStart, shiftEnd);
                     }}
@@ -212,8 +204,6 @@ class ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverri
             shiftId={shiftIdToShowRotationForm}
             shiftColor={findColor(shiftIdToShowRotationForm, undefined, shifts)}
             scheduleId={scheduleId}
-            startMoment={startMoment}
-            currentTimezone={currentTimezone}
             shiftStart={propsShiftStartToShowOverrideForm || shiftStartToShowOverrideForm}
             shiftEnd={propsShiftEndToShowOverrideForm || shiftEndToShowOverrideForm}
             onHide={() => {
@@ -262,11 +252,12 @@ class ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverri
     }
 
     // use start of current day as default start time for override
-    const startMoment = getStartOfDay(store.currentTimezone);
-
-    this.setState({ shiftStartToShowOverrideForm: startMoment }, () => {
-      this.onShowRotationForm('new');
-    });
+    this.setState(
+      { shiftStartToShowOverrideForm: store.timezoneStore.currentDateInSelectedTimezone.startOf('day') },
+      () => {
+        this.onShowRotationForm('new');
+      }
+    );
   };
 
   handleHide = () => {
@@ -282,4 +273,4 @@ class ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverri
   };
 }
 
-export default withMobXProviderContext(ScheduleOverrides);
+export const ScheduleOverrides = withMobXProviderContext(_ScheduleOverrides);

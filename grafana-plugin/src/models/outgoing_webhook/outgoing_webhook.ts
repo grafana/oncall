@@ -1,8 +1,9 @@
-import { action, observable } from 'mobx';
+import { action, observable, makeObservable, runInAction } from 'mobx';
 
-import BaseStore from 'models/base_store';
-import { makeRequest } from 'network';
-import { RootStore } from 'state';
+import { BaseStore } from 'models/base_store';
+import { LabelsErrors } from 'models/label/label.types';
+import { makeRequest } from 'network/network';
+import { RootStore } from 'state/rootStore';
 
 import { OutgoingWebhook, OutgoingWebhookPreset } from './outgoing_webhook.types';
 
@@ -16,8 +17,13 @@ export class OutgoingWebhookStore extends BaseStore {
   @observable.shallow
   outgoingWebhookPresets: OutgoingWebhookPreset[] = [];
 
+  @observable
+  labelsFormErrors?: LabelsErrors;
+
   constructor(rootStore: RootStore) {
     super(rootStore);
+
+    makeObservable(this);
 
     this.path = '/webhooks/';
   }
@@ -26,10 +32,12 @@ export class OutgoingWebhookStore extends BaseStore {
   async loadItem(id: OutgoingWebhook['id'], skipErrorHandling = false): Promise<OutgoingWebhook> {
     const outgoingWebhook = await this.getById(id, skipErrorHandling);
 
-    this.items = {
-      ...this.items,
-      [id]: outgoingWebhook,
-    };
+    runInAction(() => {
+      this.items = {
+        ...this.items,
+        [id]: outgoingWebhook,
+      };
+    });
 
     return outgoingWebhook;
   }
@@ -38,19 +46,24 @@ export class OutgoingWebhookStore extends BaseStore {
   async updateById(id: OutgoingWebhook['id']) {
     const response = await this.getById(id);
 
-    this.items = {
-      ...this.items,
-      [id]: response,
-    };
+    runInAction(() => {
+      this.items = {
+        ...this.items,
+        [id]: response,
+      };
+    });
   }
 
   @action
   async updateItem(id: OutgoingWebhook['id'], fromOrganization = false) {
     const response = await this.getById(id, false, fromOrganization);
-    this.items = {
-      ...this.items,
-      [id]: response,
-    };
+
+    runInAction(() => {
+      this.items = {
+        ...this.items,
+        [id]: response,
+      };
+    });
   }
 
   @action
@@ -61,23 +74,25 @@ export class OutgoingWebhookStore extends BaseStore {
       params,
     });
 
-    this.items = {
-      ...this.items,
-      ...results.reduce(
-        (acc: { [key: number]: OutgoingWebhook }, item: OutgoingWebhook) => ({
-          ...acc,
-          [item.id]: item,
-        }),
-        {}
-      ),
-    };
+    runInAction(() => {
+      this.items = {
+        ...this.items,
+        ...results.reduce(
+          (acc: { [key: number]: OutgoingWebhook }, item: OutgoingWebhook) => ({
+            ...acc,
+            [item.id]: item,
+          }),
+          {}
+        ),
+      };
 
-    const key = typeof query === 'string' ? query : '';
+      const key = typeof query === 'string' ? query : '';
 
-    this.searchResult = {
-      ...this.searchResult,
-      [key]: results.map((item: OutgoingWebhook) => item.id),
-    };
+      this.searchResult = {
+        ...this.searchResult,
+        [key]: results.map((item: OutgoingWebhook) => item.id),
+      };
+    });
   }
 
   getSearchResult(query = '') {
@@ -101,9 +116,17 @@ export class OutgoingWebhookStore extends BaseStore {
     });
   }
 
-  @action
-  async updateOutgoingWebhookPresets() {
+  @action.bound
+  async updateOutgoingWebhookPresetsOptions() {
     const response = await makeRequest(`/webhooks/preset_options/`, {});
-    this.outgoingWebhookPresets = response;
+
+    runInAction(() => {
+      this.outgoingWebhookPresets = response;
+    });
+  }
+
+  @action.bound
+  setLabelsFormErrors(errors: LabelsErrors) {
+    this.labelsFormErrors = errors;
   }
 }

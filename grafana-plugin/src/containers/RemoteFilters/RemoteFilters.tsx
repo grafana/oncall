@@ -19,15 +19,15 @@ import { observer } from 'mobx-react';
 import moment from 'moment-timezone';
 import Emoji from 'react-emoji-render';
 
-import Text from 'components/Text/Text';
-import LabelsFilter from 'containers/Labels/LabelsFilter';
-import RemoteSelect from 'containers/RemoteSelect/RemoteSelect';
-import TeamName from 'containers/TeamName/TeamName';
+import { Text } from 'components/Text/Text';
+import { LabelsFilter } from 'containers/Labels/LabelsFilter';
+import { RemoteSelect } from 'containers/RemoteSelect/RemoteSelect';
+import { TeamName } from 'containers/TeamName/TeamName';
 import { FiltersValues } from 'models/filters/filters.types';
 import { GrafanaTeamStore } from 'models/grafana_team/grafana_team';
 import { SelectOption, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
-import LocationHelper from 'utils/LocationHelper';
+import { LocationHelper } from 'utils/LocationHelper';
 import { PAGE } from 'utils/consts';
 
 import { parseFilters } from './RemoteFilters.helpers';
@@ -55,7 +55,7 @@ interface RemoteFiltersState {
 }
 
 @observer
-class RemoteFilters extends Component<RemoteFiltersProps, RemoteFiltersState> {
+class _RemoteFilters extends Component<RemoteFiltersProps, RemoteFiltersState> {
   state: RemoteFiltersState = {
     filterOptions: undefined,
     filters: undefined,
@@ -75,7 +75,7 @@ class RemoteFilters extends Component<RemoteFiltersProps, RemoteFiltersState> {
 
       const { filterOptions } = this.state;
 
-      let { filters, values } = parseFilters(query, filterOptions, query);
+      let { filters, values } = parseFilters({ ...query, ...filtersStore.globalValues }, filterOptions, query);
 
       this.setState({ filterOptions, filters, values }, () => this.onChange());
     }
@@ -103,7 +103,7 @@ class RemoteFilters extends Component<RemoteFiltersProps, RemoteFiltersState> {
     let { filters, values } = parseFilters({ ...query, ...filtersStore.globalValues }, filterOptions, query);
 
     if (isEmpty(values)) {
-      ({ filters, values } = parseFilters(defaultFilters || { team: [] }, filterOptions, query));
+      ({ filters, values } = parseFilters(defaultFilters, filterOptions, query));
     }
 
     this.setState({ filterOptions, filters, values }, () => this.onChange(true));
@@ -273,6 +273,7 @@ class RemoteFilters extends Component<RemoteFiltersProps, RemoteFiltersState> {
             value={values[filter.name]}
             onChange={this.getRemoteOptionsChangeHandler(filter.name)}
             getOptionLabel={(item: SelectableValue) => <Emoji text={item.label || ''} />}
+            predefinedOptions={filter.default ? [filter.default] : undefined}
           />
         );
 
@@ -454,6 +455,6 @@ class RemoteFilters extends Component<RemoteFiltersProps, RemoteFiltersState> {
   debouncedOnChange = debounce(this.onChange, 500);
 }
 
-export default withMobXProviderContext(RemoteFilters) as unknown as React.ComponentClass<
+export const RemoteFilters = withMobXProviderContext(_RemoteFilters) as unknown as React.ComponentClass<
   Omit<RemoteFiltersProps, 'store'>
 >;

@@ -2,7 +2,7 @@ import React, { FC, useCallback } from 'react';
 
 import { CodeEditor, CodeEditorSuggestionItemKind, LoadingPlaceholder } from '@grafana/ui';
 
-import { getPaths } from 'utils';
+import { getPaths } from 'utils/utils';
 
 import { conf, language as jinja2Language } from './jinja2';
 
@@ -34,9 +34,10 @@ const PREDEFINED_TERMS = [
   'grafana_oncall_incident_id',
   'source_link',
   'tojson_pretty',
+  'tojson',
 ];
 
-const MonacoEditor: FC<MonacoEditorProps> = (props) => {
+export const MonacoEditor: FC<MonacoEditorProps> = (props) => {
   const {
     value,
     onChange,
@@ -99,8 +100,7 @@ const MonacoEditor: FC<MonacoEditorProps> = (props) => {
       height={height}
       onEditorDidMount={handleMount}
       getSuggestions={useAutoCompleteList ? autoCompleteList : undefined}
+      containerStyles="u-width-height-100"
     />
   );
 };
-
-export default MonacoEditor;

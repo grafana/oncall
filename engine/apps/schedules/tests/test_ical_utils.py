@@ -9,7 +9,7 @@ import pytz
 from django.core.cache import cache
 from django.utils import timezone
 
-from apps.api.permissions import LegacyAccessControlRole
+from apps.api.permissions import LegacyAccessControlRole, RBACPermission
 from apps.schedules.ical_utils import (
     get_cached_oncall_users_for_multiple_schedules,
     get_icalendar_tz_or_utc,
@@ -93,17 +93,59 @@ def test_users_in_ical_email_case_insensitive(make_organization_and_user, make_u
 
 
 @pytest.mark.django_db
-def test_users_in_ical_viewers_inclusion(make_organization_and_user, make_user_for_organization):
+@pytest.mark.parametrize(
+    "role,included",
+    [
+        (LegacyAccessControlRole.ADMIN, True),
+        (LegacyAccessControlRole.EDITOR, True),
+        (LegacyAccessControlRole.VIEWER, False),
+        (LegacyAccessControlRole.NONE, False),
+    ],
+)
+def test_users_in_ical_basic_role(make_organization_and_user, make_user_for_organization, role, included):
     organization, user = make_organization_and_user()
-    viewer = make_user_for_organization(organization, role=LegacyAccessControlRole.VIEWER)
+    organization.is_rbac_permissions_enabled = False
+    organization.save()
 
-    usernames = [user.username, viewer.username]
+    other_user = make_user_for_organization(organization, role=role)
+
+    usernames = [user.username, other_user.username]
+    expected_result = {user}
+    if included:
+        expected_result.add(other_user)
+
     result = users_in_ical(usernames, organization)
-    assert set(result) == {user}
+    assert set(result) == expected_result
 
 
 @pytest.mark.django_db
-def test_list_users_to_notify_from_ical_viewers_inclusion(
+@pytest.mark.parametrize(
+    "permission,included",
+    [
+        (RBACPermission.Permissions.NOTIFICATIONS_READ, True),
+        (RBACPermission.Permissions.SCHEDULES_READ, False),
+        (None, False),
+    ],
+)
+def test_users_in_ical_rbac(make_organization_and_user, make_user_for_organization, permission, included):
+    organization, _ = make_organization_and_user()
+    organization.is_rbac_permissions_enabled = True
+    organization.save()
+
+    viewer = make_user_for_organization(organization, role=LegacyAccessControlRole.VIEWER)
+    usernames = [viewer.username]
+
+    # viewer doesn't yet have the required permission, they shouldn't be included
+    assert len(users_in_ical(usernames, organization)) == 0
+
+    viewer.permissions = [{"action": permission.value}] if permission else []
+    viewer.save()
+
+    assert users_in_ical(usernames, organization) == ([viewer] if included else [])
+
+
+@pytest.mark.django_db
+def test_list_users_to_notify_from_ical_viewers_exclusion(
     make_organization_and_user, make_user_for_organization, make_schedule, make_on_call_shift
 ):
     organization, user = make_organization_and_user()
@@ -542,7 +584,7 @@ def test_get_cached_oncall_users_for_multiple_schedules(
         return users, (schedule1, schedule2, schedule3)
 
     def _generate_cache_key(schedule):
-        return f"schedule_{schedule.public_primary_key}_oncall_users"
+        return f"schedule_oncall_users_{schedule.public_primary_key}"
 
     # scenario: nothing is cached, need to recalculate everything and cache it
     users, schedules = _test_setup()

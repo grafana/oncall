@@ -63,12 +63,15 @@ class AlertGroupSlackService:
             pass
 
     def publish_message_to_alert_group_thread(
-        self, alert_group: "AlertGroup", attachments=[], mrkdwn=True, unfurl_links=True, text=None
+        self, alert_group: "AlertGroup", attachments=None, mrkdwn=True, unfurl_links=True, text=None
     ) -> None:
         # TODO: refactor checking the possibility of sending message to slack
         # do not try to post message to slack if integration is rate limited
         if alert_group.channel.is_rate_limited_in_slack:
             return
+
+        if attachments is None:
+            attachments = []
 
         try:
             result = self._slack_client.chat_postMessage(

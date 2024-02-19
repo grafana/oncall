@@ -1,12 +1,12 @@
 import logging
 
+import requests
 from drf_spectacular.utils import extend_schema, inline_serializer
 from rest_framework.exceptions import NotFound
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ViewSet
 
-from apps.alerts.models import AlertReceiveChannel
 from apps.api.permissions import BasicRolePermission, LegacyAccessControlRole
 from apps.api.serializers.labels import (
     LabelKeySerializer,
@@ -15,7 +15,7 @@ from apps.api.serializers.labels import (
     LabelValueSerializer,
 )
 from apps.auth_token.auth import PluginAuthentication
-from apps.labels.client import LabelsAPIClient
+from apps.labels.client import LabelsAPIClient, LabelsRepoAPIException
 from apps.labels.tasks import update_instances_labels_cache, update_labels_cache
 from apps.labels.utils import is_labels_feature_enabled
 from common.api_helpers.exceptions import BadRequest
@@ -25,9 +25,9 @@ logger = logging.getLogger(__name__)
 
 class LabelsFeatureFlagViewSet(ViewSet):
     def initial(self, request, *args, **kwargs):
-        super().initial(request, *args, **kwargs)
         if not is_labels_feature_enabled(self.request.auth.organization):
             raise NotFound
+        super().initial(request, *args, **kwargs)
 
 
 class LabelsViewSet(LabelsFeatureFlagViewSet):
@@ -51,26 +51,24 @@ class LabelsViewSet(LabelsFeatureFlagViewSet):
     def get_keys(self, request):
         """List of labels keys"""
         organization = self.request.auth.organization
-        result, response_info = LabelsAPIClient(organization.grafana_url, organization.api_token).get_keys()
-        return Response(result, status=response_info["status_code"])
+        result, response = LabelsAPIClient(organization.grafana_url, organization.api_token).get_keys()
+        return Response(result, status=response.status_code)
 
     @extend_schema(responses=LabelKeyValuesSerializer)
     def get_key(self, request, key_id):
         """Key with the list of values"""
         organization = self.request.auth.organization
-        result, response_info = LabelsAPIClient(organization.grafana_url, organization.api_token).get_values(key_id)
+        result, response = LabelsAPIClient(organization.grafana_url, organization.api_token).get_values(key_id)
         self._update_labels_cache(result)
-        return Response(result, status=response_info["status_code"])
+        return Response(result, status=response.status_code)
 
     @extend_schema(responses=LabelValueSerializer)
     def get_value(self, request, key_id, value_id):
         """Value name"""
         organization = self.request.auth.organization
-        result, response_info = LabelsAPIClient(organization.grafana_url, organization.api_token).get_value(
-            key_id, value_id
-        )
+        result, response = LabelsAPIClient(organization.grafana_url, organization.api_token).get_value(key_id, value_id)
         self._update_labels_cache(result)
-        return Response(result, status=response_info["status_code"])
+        return Response(result, status=response.status_code)
 
     @extend_schema(request=LabelReprSerializer, responses=LabelKeyValuesSerializer)
     def rename_key(self, request, key_id):
@@ -79,11 +77,11 @@ class LabelsViewSet(LabelsFeatureFlagViewSet):
         label_data = self.request.data
         if not label_data:
             raise BadRequest(detail="name is required")
-        result, response_info = LabelsAPIClient(organization.grafana_url, organization.api_token).rename_key(
+        result, response = LabelsAPIClient(organization.grafana_url, organization.api_token).rename_key(
             key_id, label_data
         )
         self._update_labels_cache(result)
-        return Response(result, status=response_info["status_code"])
+        return Response(result, status=response.status_code)
 
     @extend_schema(
         request=inline_serializer(
@@ -99,10 +97,8 @@ class LabelsViewSet(LabelsFeatureFlagViewSet):
         label_data = self.request.data
         if not label_data:
             raise BadRequest(detail="key data (name, values) is required")
-        result, response_info = LabelsAPIClient(organization.grafana_url, organization.api_token).create_label(
-            label_data
-        )
-        return Response(result, status=response_info["status_code"])
+        result, response = LabelsAPIClient(organization.grafana_url, organization.api_token).create_label(label_data)
+        return Response(result, status=response.status_code)
 
     @extend_schema(request=LabelReprSerializer, responses=LabelKeyValuesSerializer)
     def add_value(self, request, key_id):
@@ -111,10 +107,11 @@ class LabelsViewSet(LabelsFeatureFlagViewSet):
         label_data = self.request.data
         if not label_data:
             raise BadRequest(detail="name is required")
-        result, response_info = LabelsAPIClient(organization.grafana_url, organization.api_token).add_value(
+        result, response = LabelsAPIClient(organization.grafana_url, organization.api_token).add_value(
             key_id, label_data
         )
-        return Response(result, status=response_info["status_code"])
+        status = response.status_code
+        return Response(result, status=status)
 
     @extend_schema(request=LabelReprSerializer, responses=LabelKeyValuesSerializer)
     def rename_value(self, request, key_id, value_id):
@@ -123,11 +120,12 @@ class LabelsViewSet(LabelsFeatureFlagViewSet):
         label_data = self.request.data
         if not label_data:
             raise BadRequest(detail="name is required")
-        result, response_info = LabelsAPIClient(organization.grafana_url, organization.api_token).rename_value(
+        result, response = LabelsAPIClient(organization.grafana_url, organization.api_token).rename_value(
             key_id, value_id, label_data
         )
+        status = response.status_code
         self._update_labels_cache(result)
-        return Response(result, status=response_info["status_code"])
+        return Response(result, status=status)
 
     def _update_labels_cache(self, label_data):
         if not label_data:
@@ -136,7 +134,19 @@ class LabelsViewSet(LabelsFeatureFlagViewSet):
         if serializer.is_valid():
             update_labels_cache.apply_async((label_data,))
 
+    def handle_exception(self, exc):
+        if isinstance(exc, LabelsRepoAPIException):
+            logging.error(f'msg="LabelsViewSet: LabelRepo error: {exc}"')
+            return Response({"message": exc.msg}, status=exc.status)
+        elif isinstance(exc, requests.RequestException):
+            logging.error(f'msg="LabelsViewSet: error while requesting LabelRepo: {exc}"')
+            return Response({"message": "Something went wrong"}, status=500)
+        else:
+            return super().handle_exception(exc)
 
+
+# specifying a tag explicitly to avoid these endpoints being grouped with alert group endpoints
+@extend_schema(tags=["alert group labels"])
 class AlertGroupLabelsViewSet(LabelsFeatureFlagViewSet):
     """
     This viewset is similar to LabelsViewSet, but it works with alert group labels.
@@ -172,30 +182,8 @@ class AlertGroupLabelsViewSet(LabelsFeatureFlagViewSet):
         )
 
 
-class LabelsAssociatingMixin:  # use for labelable objects views (ex. AlertReceiveChannelView)
-    def filter_by_labels(self, queryset):
-        """Call this method in `get_queryset()` to add filtering by labels"""
-        if not is_labels_feature_enabled(self.request.auth.organization):
-            return queryset
-        labels = self.request.query_params.getlist("label")  # ["key1:value1", "key2:value2"]
-        if not labels:
-            return queryset
-        for label in labels:
-            label_data = label.split(":")
-            if len(label_data) != 2:  # ["key1", "value1"]
-                continue
-            key_id, value_id = label_data
-            queryset &= AlertReceiveChannel.objects_with_deleted.filter(
-                labels__key_id=key_id, labels__value_id=value_id
-            ).distinct()
-        return queryset
-
-    def paginate_queryset(self, queryset):
-        organization = self.request.auth.organization
-        data = super().paginate_queryset(queryset)
-        if not is_labels_feature_enabled(self.request.auth.organization):
-            return data
-        ids = [d.id for d in data]
-        logger.info(f"start update_instances_labels_cache for ids: {ids}")
-        update_instances_labels_cache.apply_async((organization.id, ids, self.model.__name__))
-        return data
+def schedule_update_label_cache(model_name, org, ids):
+    if not is_labels_feature_enabled(org):
+        return
+    logger.info(f"start update_instances_labels_cache for ids: {ids}")
+    update_instances_labels_cache.apply_async((org.id, ids, model_name))

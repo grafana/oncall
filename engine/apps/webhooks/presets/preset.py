@@ -1,3 +1,4 @@
+import typing
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import List
@@ -34,3 +35,8 @@ class WebhookPreset(ABC):
     def override_parameters_at_runtime(self, webhook: Webhook):
         """Implement this to write parameters before the webhook is executed (These will not be persisted)"""
         pass
+
+    @abstractmethod
+    def get_masked_headers(self) -> typing.List[str]:
+        """Implement this to write sensitive header data as ******** when writing to logs"""
+        return []

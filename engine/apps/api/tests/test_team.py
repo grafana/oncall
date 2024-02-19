@@ -8,10 +8,12 @@ from rest_framework.test import APIClient
 
 from apps.alerts.models import AlertReceiveChannel
 from apps.api.permissions import LegacyAccessControlRole
+from apps.api.serializers.user import UserHiddenFieldsSerializer
 from apps.schedules.models import CustomOnCallShift, OnCallScheduleCalendar, OnCallScheduleWeb
 from apps.user_management.models import Team
+from common.api_helpers.filters import NO_TEAM_VALUE
 
-GENERAL_TEAM = Team(public_primary_key="null", name="No team", email=None, avatar_url=None)
+GENERAL_TEAM = Team(public_primary_key=NO_TEAM_VALUE, name="No team", email=None, avatar_url=None)
 
 
 def get_payload_from_team(team, long=False):
@@ -165,10 +167,12 @@ def test_teams_number_of_users_currently_oncall_attribute_works_properly(
     team3 = make_team(organization)
 
     team1.users.set([user1, user2, user3])
-    team2.users.set([user1])
+    team2.users.set([user1, user2])
     team3.users.set([user3])
 
-    def _make_schedule(team=None, oncall_users=[]):
+    def _make_schedule(team=None, oncall_users=None):
+        if oncall_users is None:
+            oncall_users = []
         schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
 
         if team:
@@ -190,7 +194,9 @@ def test_teams_number_of_users_currently_oncall_attribute_works_properly(
             schedule.refresh_ical_file()
             schedule.refresh_ical_final_schedule()
 
+    # create two schedules for team 1 to make sure that every user is calculated only once per team
     _make_schedule(team=team1, oncall_users=[user1, user2])
+    _make_schedule(team=team1, oncall_users=[user1, user3])
     _make_schedule(team=team2, oncall_users=[user1])
     _make_schedule(team=team3, oncall_users=[])
 
@@ -200,10 +206,10 @@ def test_teams_number_of_users_currently_oncall_attribute_works_properly(
     response = client.get(url, format="json", **make_user_auth_headers(user1, token))
 
     number_of_oncall_users = {
-        team1.public_primary_key: 2,
+        team1.public_primary_key: 3,
         team2.public_primary_key: 1,
         team3.public_primary_key: 0,
-        "null": 0,  # this covers the case of "No team"
+        NO_TEAM_VALUE: 0,  # this covers the case of "No team"
     }
 
     for team in response.json():
@@ -424,7 +430,12 @@ def test_team_permissions_not_in_team(
     url = reverse("api-internal:user-detail", kwargs={"pk": another_user.public_primary_key})
     response = client.get(url, **make_user_auth_headers(user, token))
 
-    assert response.status_code == status.HTTP_403_FORBIDDEN
+    assert response.status_code == status.HTTP_200_OK
+    user_details = response.json()
+    available_fields = UserHiddenFieldsSerializer.fields_available_for_all_users + ["hidden_fields"]
+    for f_name in user_details:
+        if f_name not in available_fields:
+            assert user_details[f_name] == "******"
 
 
 @pytest.mark.django_db

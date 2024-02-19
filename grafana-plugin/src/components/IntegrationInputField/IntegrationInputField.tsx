@@ -4,7 +4,7 @@ import { HorizontalGroup, IconButton, Input } from '@grafana/ui';
 import cn from 'classnames/bind';
 import CopyToClipboard from 'react-copy-to-clipboard';
 
-import { openNotification } from 'utils';
+import { openNotification } from 'utils/utils';
 
 import styles from './IntegrationInputField.module.scss';
 
@@ -19,8 +19,8 @@ interface IntegrationInputFieldProps {
 
 const cx = cn.bind(styles);
 
-const IntegrationInputField: React.FC<IntegrationInputFieldProps> = ({
-  isMasked = true,
+export const IntegrationInputField: React.FC<IntegrationInputFieldProps> = ({
+  isMasked = false,
   value,
   showEye = true,
   showCopy = true,
@@ -35,13 +35,13 @@ const IntegrationInputField: React.FC<IntegrationInputFieldProps> = ({
 
       <div className={cx('icons')}>
         <HorizontalGroup spacing={'xs'}>
-          {showEye && <IconButton name={'eye'} size={'xs'} onClick={onInputReveal} />}
+          {showEye && <IconButton aria-label="Reveal" name={'eye'} size={'xs'} onClick={onInputReveal} />}
           {showCopy && (
             <CopyToClipboard text={value} onCopy={onCopy}>
-              <IconButton name={'copy'} size={'xs'} />
+              <IconButton aria-label="Copy" name={'copy'} size={'xs'} />
             </CopyToClipboard>
           )}
-          {showExternal && <IconButton name={'external-link-alt'} size={'xs'} onClick={onOpen} />}
+          {showExternal && <IconButton aria-label="Open" name={'external-link-alt'} size={'xs'} onClick={onOpen} />}
         </HorizontalGroup>
       </div>
     </div>
@@ -63,5 +63,3 @@ const IntegrationInputField: React.FC<IntegrationInputFieldProps> = ({
     window.open(value, '_blank');
   }
 };
-
-export default IntegrationInputField;

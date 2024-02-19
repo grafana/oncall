@@ -4,9 +4,14 @@ base_url_protocol: http
 env:
   - name: GRAFANA_CLOUD_NOTIFICATIONS_ENABLED
     value: "False"
+  - name: FEATURE_PROMETHEUS_EXPORTER_ENABLED
+    value: "True"
 image:
+  repository: oncall/engine
   tag: latest
-  pullPolicy: Always
+  pullPolicy: IfNotPresent
+oncall:
+  devMode: true
 broker:
   type: redis
 redis:
@@ -104,3 +109,11 @@ service:
   type: NodePort
   port: 8080
   nodePort: 30001
+prometheus:
+  enabled: true
+  extraScrapeConfigs: |
+    - job_name: 'oncall-exporter'
+      metrics_path: /metrics/
+      static_configs:
+        - targets:
+          - oncall-dev-engine.default.svc.cluster.local:8080

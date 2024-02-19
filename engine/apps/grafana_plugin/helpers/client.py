@@ -160,6 +160,10 @@ class APIClient:
 
 
 class GrafanaAPIClient(APIClient):
+    GRAFANA_INCIDENT_PLUGIN = "grafana-incident-app"
+    GRAFANA_INCIDENT_PLUGIN_BACKEND_URL_KEY = "backendUrl"
+    GRAFANA_LABELS_PLUGIN = "grafana-labels-app"
+
     USER_PERMISSION_ENDPOINT = f"api/access-control/users/permissions/search?actionPrefix={ACTION_PREFIX}"
 
     class Types:
@@ -176,8 +180,30 @@ class GrafanaAPIClient(APIClient):
             avatarUrl: str
             memberCount: int
 
+        class GrafanaServiceAccount(typing.TypedDict):
+            id: int
+            name: str
+            login: str
+            orgId: int
+            isDisabled: bool
+            role: str
+            tokens: int
+            avatarUrl: str
+
+        class GrafanaServiceAccountToken(typing.TypedDict):
+            id: int
+            name: str
+            key: str
+
+        class PluginSettings(typing.TypedDict):
+            enabled: bool
+            jsonData: typing.NotRequired[typing.Dict[str, str]]
+
         class TeamsResponse(_BaseGrafanaAPIResponse):
             teams: typing.List["GrafanaAPIClient.Types.GrafanaTeam"]
+
+        class ServiceAccountResponse(_BaseGrafanaAPIResponse):
+            serviceAccounts: typing.List["GrafanaAPIClient.Types.GrafanaServiceAccount"]
 
     def __init__(self, api_url: str, api_token: str) -> None:
         super().__init__(api_url, api_token)
@@ -271,8 +297,33 @@ class GrafanaAPIClient(APIClient):
     def get_alerting_notifiers(self):
         return self.api_get("api/alert-notifiers")
 
-    def get_grafana_plugin_settings(self, recipient: str) -> APIClientResponse:
+    def get_grafana_plugin_settings(self, recipient: str) -> APIClientResponse["GrafanaAPIClient.Types.PluginSettings"]:
         return self.api_get(f"api/plugins/{recipient}/settings")
+
+    def get_grafana_incident_plugin_settings(self) -> APIClientResponse["GrafanaAPIClient.Types.PluginSettings"]:
+        return self.get_grafana_plugin_settings(self.GRAFANA_INCIDENT_PLUGIN)
+
+    def get_grafana_labels_plugin_settings(self) -> APIClientResponse["GrafanaAPIClient.Types.PluginSettings"]:
+        return self.get_grafana_plugin_settings(self.GRAFANA_LABELS_PLUGIN)
+
+    def get_service_account(self, login: str) -> APIClientResponse["GrafanaAPIClient.Types.ServiceAccountResponse"]:
+        return self.api_get(f"api/serviceaccounts/search?query={login}")
+
+    def create_service_account(
+        self, name: str, role: str
+    ) -> APIClientResponse["GrafanaAPIClient.Types.GrafanaServiceAccount"]:
+        return self.api_post("api/serviceaccounts", {"name": name, "role": role})
+
+    def create_service_account_token(
+        self, service_account_id: int, name: str, seconds_to_live=int | None
+    ) -> APIClientResponse["GrafanaAPIClient.Types.GrafanaServiceAccountToken"]:
+        token_config = {"name": name}
+        if seconds_to_live:
+            token_config["secondsToLive"] = seconds_to_live
+        return self.api_post(f"api/serviceaccounts/{service_account_id}/tokens", token_config)
+
+    def get_service_account_token_permissions(self) -> APIClientResponse[typing.Dict[str, typing.List[str]]]:
+        return self.api_get("api/access-control/user/permissions")
 
 
 class GcomAPIClient(APIClient):

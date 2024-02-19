@@ -3,23 +3,22 @@ import React, { FC, useMemo, useState } from 'react';
 import { HorizontalGroup, LoadingPlaceholder } from '@grafana/ui';
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
+import { observer } from 'mobx-react';
 import hash from 'object-hash';
 
 import { ScheduleFiltersType } from 'components/ScheduleFilters/ScheduleFilters.types';
-import Text from 'components/Text/Text';
-import ScheduleSlot from 'containers/ScheduleSlot/ScheduleSlot';
+import { Text } from 'components/Text/Text';
+import { ScheduleSlot } from 'containers/ScheduleSlot/ScheduleSlot';
 import { Event, RotationFormLiveParams, ShiftSwap } from 'models/schedule/schedule.types';
-import { Timezone } from 'models/timezone/timezone.types';
+import { useStore } from 'state/useStore';
 
-import RotationTutorial from './RotationTutorial';
+import { RotationTutorial } from './RotationTutorial';
 
 import styles from './Rotation.module.css';
 
 const cx = cn.bind(styles);
 
 interface RotationProps {
-  startMoment: dayjs.Dayjs;
-  currentTimezone: Timezone;
   layerIndex?: number;
   rotationIndex?: number;
   color?: string;
@@ -40,11 +39,12 @@ interface RotationProps {
   showScheduleNameAsSlotTitle?: boolean;
 }
 
-const Rotation: FC<RotationProps> = (props) => {
+export const Rotation: FC<RotationProps> = observer((props) => {
+  const {
+    timezoneStore: { calendarStartDate },
+  } = useStore();
   const {
     events,
-    startMoment,
-    currentTimezone,
     color: propsColor,
     days = 7,
     transparent = false,
@@ -71,7 +71,7 @@ const Rotation: FC<RotationProps> = (props) => {
 
     const dayOffset = Math.floor((x / width) * 7);
 
-    const shiftStart = startMoment.add(dayOffset, 'day');
+    const shiftStart = calendarStartDate.add(dayOffset, 'day');
     const shiftEnd = shiftStart.add(1, 'day');
 
     onClick(shiftStart, shiftEnd);
@@ -133,7 +133,7 @@ const Rotation: FC<RotationProps> = (props) => {
     }
 
     const firstShift = events[0];
-    const firstShiftOffset = dayjs(firstShift.start).diff(startMoment, 'seconds');
+    const firstShiftOffset = dayjs(firstShift.start).diff(calendarStartDate, 'seconds');
     const base = 60 * 60 * 24 * days;
 
     return firstShiftOffset / base;
@@ -142,7 +142,7 @@ const Rotation: FC<RotationProps> = (props) => {
   return (
     <div className={cx('root')} onClick={onClick && handleRotationClick}>
       <div className={cx('timeline')}>
-        {tutorialParams && <RotationTutorial startMoment={startMoment} {...tutorialParams} />}
+        {tutorialParams && <RotationTutorial {...tutorialParams} />}
         {events ? (
           events.length ? (
             <div
@@ -154,8 +154,6 @@ const Rotation: FC<RotationProps> = (props) => {
                   <ScheduleSlot
                     key={hash(event)}
                     event={event}
-                    startMoment={startMoment}
-                    currentTimezone={currentTimezone}
                     color={propsColor || getColor(event)}
                     handleAddOverride={getAddOverrideClickHandler(event)}
                     handleAddShiftSwap={getAddShiftSwapClickHandler(event)}
@@ -179,7 +177,7 @@ const Rotation: FC<RotationProps> = (props) => {
       </div>
     </div>
   );
-};
+});
 
 const Empty = ({ text }: { text: string }) => {
   return (
@@ -188,5 +186,3 @@ const Empty = ({ text }: { text: string }) => {
     </div>
   );
 };
-
-export default Rotation;

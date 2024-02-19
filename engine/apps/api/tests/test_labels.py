@@ -9,9 +9,14 @@ from rest_framework.test import APIClient
 from apps.api.permissions import LegacyAccessControlRole
 
 
+class MockResponse:
+    def __init__(self, status_code):
+        self.status_code = status_code
+
+
 @patch(
     "apps.labels.client.LabelsAPIClient.get_keys",
-    return_value=([{"name": "team", "id": "keyid123"}], {"status_code": status.HTTP_200_OK}),
+    return_value=([{"name": "team", "id": "keyid123"}], MockResponse(status_code=200)),
 )
 @pytest.mark.django_db
 def test_labels_get_keys(
@@ -35,7 +40,7 @@ def test_labels_get_keys(
     "apps.labels.client.LabelsAPIClient.get_values",
     return_value=(
         {"key": {"id": "keyid123", "name": "team"}, "values": [{"id": "valueid123", "name": "yolo"}]},
-        {"status_code": status.HTTP_200_OK},
+        MockResponse(status_code=200),
     ),
 )
 @pytest.mark.django_db
@@ -43,7 +48,6 @@ def test_get_update_key_get(
     mocked_get_values,
     make_organization_and_user_with_plugin_token,
     make_user_auth_headers,
-    make_alert_receive_channel,
 ):
     organization, user, token = make_organization_and_user_with_plugin_token()
     client = APIClient()
@@ -60,7 +64,7 @@ def test_get_update_key_get(
     "apps.labels.client.LabelsAPIClient.rename_key",
     return_value=(
         {"key": {"id": "keyid123", "name": "team"}, "values": [{"id": "valueid123", "name": "yolo"}]},
-        {"status_code": status.HTTP_200_OK},
+        MockResponse(status_code=200),
     ),
 )
 @pytest.mark.django_db
@@ -68,7 +72,6 @@ def test_get_update_key_put(
     mocked_rename_key,
     make_organization_and_user_with_plugin_token,
     make_user_auth_headers,
-    make_alert_receive_channel,
 ):
     organization, user, token = make_organization_and_user_with_plugin_token()
     client = APIClient()
@@ -86,7 +89,7 @@ def test_get_update_key_put(
     "apps.labels.client.LabelsAPIClient.add_value",
     return_value=(
         {"key": {"id": "keyid123", "name": "team"}, "values": [{"id": "valueid123", "name": "yolo"}]},
-        {"status_code": status.HTTP_200_OK},
+        MockResponse(status_code=200),
     ),
 )
 @pytest.mark.django_db
@@ -94,7 +97,6 @@ def test_add_value(
     mocked_add_value,
     make_organization_and_user_with_plugin_token,
     make_user_auth_headers,
-    make_alert_receive_channel,
 ):
     organization, user, token = make_organization_and_user_with_plugin_token()
     client = APIClient()
@@ -112,7 +114,7 @@ def test_add_value(
     "apps.labels.client.LabelsAPIClient.rename_value",
     return_value=(
         {"key": {"id": "keyid123", "name": "team"}, "values": [{"id": "valueid123", "name": "yolo"}]},
-        {"status_code": status.HTTP_200_OK},
+        MockResponse(status_code=200),
     ),
 )
 @pytest.mark.django_db
@@ -120,7 +122,6 @@ def test_rename_value(
     mocked_rename_value,
     make_organization_and_user_with_plugin_token,
     make_user_auth_headers,
-    make_alert_receive_channel,
 ):
     organization, user, token = make_organization_and_user_with_plugin_token()
     client = APIClient()
@@ -138,7 +139,7 @@ def test_rename_value(
     "apps.labels.client.LabelsAPIClient.get_value",
     return_value=(
         {"id": "valueid123", "name": "yolo"},
-        {"status_code": status.HTTP_200_OK},
+        MockResponse(status_code=200),
     ),
 )
 @pytest.mark.django_db
@@ -146,7 +147,6 @@ def test_get_value(
     mocked_get_value,
     make_organization_and_user_with_plugin_token,
     make_user_auth_headers,
-    make_alert_receive_channel,
 ):
     organization, user, token = make_organization_and_user_with_plugin_token()
     client = APIClient()
@@ -163,7 +163,7 @@ def test_get_value(
     "apps.labels.client.LabelsAPIClient.create_label",
     return_value=(
         {"key": {"id": "keyid123", "name": "team"}, "values": [{"id": "valueid123", "name": "yolo"}]},
-        {"status_code": status.HTTP_201_CREATED},
+        MockResponse(status_code=201),
     ),
 )
 @pytest.mark.django_db
@@ -171,7 +171,6 @@ def test_labels_create_label(
     mocked_create_label,
     make_organization_and_user_with_plugin_token,
     make_user_auth_headers,
-    make_alert_receive_channel,
 ):
     organization, user, token = make_organization_and_user_with_plugin_token()
     client = APIClient()
@@ -189,10 +188,9 @@ def test_labels_create_label(
 def test_labels_feature_false(
     make_organization_and_user_with_plugin_token,
     make_user_auth_headers,
-    make_alert_receive_channel,
     settings,
 ):
-    setattr(settings, "FEATURE_LABELS_ENABLED_FOR_ALL", False)
+    settings.FEATURE_LABELS_ENABLED_FOR_ALL = False
 
     organization, user, token = make_organization_and_user_with_plugin_token()
     client = APIClient()
@@ -239,7 +237,6 @@ def test_labels_feature_false(
 def test_labels_permissions_get_actions(
     make_organization_and_user_with_plugin_token,
     make_user_auth_headers,
-    make_alert_receive_channel,
     role,
     expected_status,
 ):
@@ -274,7 +271,6 @@ def test_labels_permissions_get_actions(
 def test_labels_permissions_create_update_actions(
     make_organization_and_user_with_plugin_token,
     make_user_auth_headers,
-    make_alert_receive_channel,
     role,
     expected_status,
 ):

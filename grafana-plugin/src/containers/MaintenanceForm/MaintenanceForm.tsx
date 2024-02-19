@@ -5,12 +5,12 @@ import cn from 'classnames/bind';
 import { cloneDeep } from 'lodash-es';
 import { observer } from 'mobx-react';
 
-import GForm from 'components/GForm/GForm';
+import { GForm } from 'components/GForm/GForm';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { useStore } from 'state/useStore';
-import { openNotification, showApiError } from 'utils';
-import { UserActions } from 'utils/authorization';
+import { UserActions } from 'utils/authorization/authorization';
+import { openNotification, showApiError } from 'utils/utils';
 
 import { form } from './MaintenanceForm.config';
 
@@ -27,7 +27,7 @@ interface MaintenanceFormProps {
   onUpdate: () => void;
 }
 
-const MaintenanceForm = observer((props: MaintenanceFormProps) => {
+export const MaintenanceForm = observer((props: MaintenanceFormProps) => {
   const { onUpdate, onHide, initialData = {} } = props;
   const maintenanceForm = useMemo(() => (initialData.disabled ? cloneDeep(form) : form), [initialData]);
 
@@ -82,5 +82,3 @@ const MaintenanceForm = observer((props: MaintenanceFormProps) => {
     </Drawer>
   );
 });
-
-export default MaintenanceForm;

@@ -5,21 +5,19 @@ import cn from 'classnames/bind';
 import dayjs from 'dayjs';
 import Draggable from 'react-draggable';
 
-import Modal from 'components/Modal/Modal';
-import Tag from 'components/Tag/Tag';
-import Text from 'components/Text/Text';
-import WithConfirm from 'components/WithConfirm/WithConfirm';
+import { Modal } from 'components/Modal/Modal';
+import { Tag } from 'components/Tag/Tag';
+import { Text } from 'components/Text/Text';
+import { WithConfirm } from 'components/WithConfirm/WithConfirm';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { SHIFT_SWAP_COLOR } from 'models/schedule/schedule.helpers';
 import { Schedule, ShiftSwap } from 'models/schedule/schedule.types';
-import { getTzOffsetString } from 'models/timezone/timezone.helpers';
-import { Timezone } from 'models/timezone/timezone.types';
 import { getUTCString } from 'pages/schedule/Schedule.helpers';
 import { useStore } from 'state/useStore';
-import { UserActions } from 'utils/authorization';
+import { UserActions } from 'utils/authorization/authorization';
 
-import DateTimePicker from './parts/DateTimePicker';
-import UserItem from './parts/UserItem';
+import { DateTimePicker } from './parts/DateTimePicker';
+import { UserItem } from './parts/UserItem';
 
 import styles from './RotationForm.module.css';
 
@@ -28,17 +26,13 @@ const cx = cn.bind(styles);
 interface ShiftSwapFormProps {
   id: ShiftSwap['id'] | 'new';
   scheduleId: Schedule['id'];
-  startMoment: dayjs.Dayjs;
   params: Partial<ShiftSwap>;
-  currentTimezone: Timezone;
-
   onUpdate: () => void;
-
   onHide: () => void;
 }
 
-const ShiftSwapForm = (props: ShiftSwapFormProps) => {
-  const { onUpdate, onHide, id, scheduleId, startMoment, params: defaultParams, currentTimezone } = props;
+export const ShiftSwapForm = (props: ShiftSwapFormProps) => {
+  const { onUpdate, onHide, id, scheduleId, params: defaultParams } = props;
 
   const [shiftSwap, setShiftSwap] = useState({ ...defaultParams });
 
@@ -84,13 +78,13 @@ const ShiftSwapForm = (props: ShiftSwapFormProps) => {
 
   useEffect(() => {
     if (id === 'new') {
-      store.scheduleStore.updateShiftsSwapPreview(scheduleId, startMoment, {
+      store.scheduleStore.updateShiftsSwapPreview(scheduleId, store.timezoneStore.calendarStartDate, {
         id: 'new',
         beneficiary: { pk: currentUserPk },
         ...shiftSwap,
       });
     }
-  }, [shiftSwap, startMoment]);
+  }, [shiftSwap, store.timezoneStore.calendarStartDate]);
 
   const handleDescriptionChange = useCallback(
     (event) => {
@@ -158,7 +152,7 @@ const ShiftSwapForm = (props: ShiftSwapFormProps) => {
                   </WithConfirm>
                 </WithPermissionControlTooltip>
               )}
-              <IconButton variant="secondary" className={cx('drag-handler')} name="draggabledots" />
+              <IconButton aria-label="Drag" variant="secondary" className={cx('drag-handler')} name="draggabledots" />
               <IconButton name="times" variant="secondary" tooltip="Close" onClick={handleHide} />
             </HorizontalGroup>
           </HorizontalGroup>
@@ -173,7 +167,6 @@ const ShiftSwapForm = (props: ShiftSwapFormProps) => {
             <HorizontalGroup height="auto">
               <Field label="Swap start">
                 <DateTimePicker
-                  timezone={store.currentTimezone}
                   disabled={!isNew}
                   value={dayjs(shiftSwap.swap_start)}
                   onChange={handleShiftSwapStartChange}
@@ -181,7 +174,6 @@ const ShiftSwapForm = (props: ShiftSwapFormProps) => {
               </Field>
               <Field label="Swap end">
                 <DateTimePicker
-                  timezone={store.currentTimezone}
                   disabled={!isNew}
                   value={dayjs(shiftSwap.swap_end)}
                   onChange={handleShiftSwapEndChange}
@@ -211,7 +203,7 @@ const ShiftSwapForm = (props: ShiftSwapFormProps) => {
           </div>
 
           <HorizontalGroup justify="space-between">
-            <Text type="secondary">Current timezone: {getTzOffsetString(dayjs().tz(currentTimezone))}</Text>
+            <Text type="secondary">Current timezone: {store.timezoneStore.selectedTimezoneLabel}</Text>
             <HorizontalGroup>
               <WithPermissionControlTooltip userAction={UserActions.SchedulesWrite}>
                 {isNew ? (
@@ -237,5 +229,3 @@ const ShiftSwapForm = (props: ShiftSwapFormProps) => {
     </Modal>
   );
 };
-
-export default ShiftSwapForm;

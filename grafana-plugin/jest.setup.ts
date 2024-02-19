@@ -4,6 +4,8 @@
  */
 import '@testing-library/jest-dom';
 
+import 'plugin/dayjs';
+
 // https://stackoverflow.com/a/66055672
 // https://jestjs.io/docs/manual-mocks#mocking-methods-which-are-not-implemented-in-jsdom
 Object.defineProperty(window, 'matchMedia', {
@@ -18,4 +20,35 @@ Object.defineProperty(window, 'matchMedia', {
     removeEventListener: jest.fn(),
     dispatchEvent: jest.fn(),
   })),
+});
+
+Object.defineProperty(window, 'ResizeObserver', {
+  writable: true,
+  value: class ResizeObserver {
+    constructor(callback: ResizeObserverCallback) {
+      setTimeout(() => {
+        callback(
+          [
+            {
+              contentRect: {
+                x: 1,
+                y: 2,
+                width: 500,
+                height: 500,
+                top: 100,
+                bottom: 0,
+                left: 100,
+                right: 0,
+              },
+              target: {},
+            } as ResizeObserverEntry,
+          ],
+          this
+        );
+      });
+    }
+    observe() {}
+    disconnect() {}
+    unobserve() {}
+  },
 });

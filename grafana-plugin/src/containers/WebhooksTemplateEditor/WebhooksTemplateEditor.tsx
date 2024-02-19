@@ -1,20 +1,19 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 
 import { Button, Drawer, HorizontalGroup, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { debounce } from 'lodash-es';
 
-import CheatSheet from 'components/CheatSheet/CheatSheet';
-import { genericTemplateCheatSheet } from 'components/CheatSheet/CheatSheet.config';
-import MonacoEditor from 'components/MonacoEditor/MonacoEditor';
-import Text from 'components/Text/Text';
+import { CheatSheet } from 'components/CheatSheet/CheatSheet';
+import { genericTemplateCheatSheet, webhookPayloadCheatSheet } from 'components/CheatSheet/CheatSheet.config';
+import { MonacoEditor } from 'components/MonacoEditor/MonacoEditor';
+import { Text } from 'components/Text/Text';
 import styles from 'containers/IntegrationTemplate/IntegrationTemplate.module.scss';
-import TemplateResult from 'containers/TemplateResult/TemplateResult';
-import TemplatesAlertGroupsList, { TEMPLATE_PAGE } from 'containers/TemplatesAlertGroupsList/TemplatesAlertGroupsList';
+import { TemplateResult } from 'containers/TemplateResult/TemplateResult';
+import { TemplatesAlertGroupsList, TEMPLATE_PAGE } from 'containers/TemplatesAlertGroupsList/TemplatesAlertGroupsList';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { OutgoingWebhook } from 'models/outgoing_webhook/outgoing_webhook.types';
-import { waitForElement } from 'utils/DOM';
-import { UserActions } from 'utils/authorization';
+import { UserActions } from 'utils/authorization/authorization';
 
 const cx = cn.bind(styles);
 
@@ -32,20 +31,16 @@ interface WebhooksTemplateEditorProps {
   handleSubmit: (template: string) => void;
 }
 
-const WebhooksTemplateEditor: React.FC<WebhooksTemplateEditorProps> = ({ template, id, onHide, handleSubmit }) => {
+export const WebhooksTemplateEditor: React.FC<WebhooksTemplateEditorProps> = ({
+  template,
+  id,
+  onHide,
+  handleSubmit,
+}) => {
   const [isCheatSheetVisible, setIsCheatSheetVisible] = useState<boolean>(false);
   const [changedTemplateBody, setChangedTemplateBody] = useState<string>(template.value);
-  const [editorHeight, setEditorHeight] = useState<string>(undefined);
   const [selectedPayload, setSelectedPayload] = useState(undefined);
   const [resultError, setResultError] = useState<string>(undefined);
-
-  useEffect(() => {
-    waitForElement('#content-container-id').then(() => {
-      const mainDiv = document.getElementById('content-container-id');
-      const height = mainDiv?.getBoundingClientRect().height - 59;
-      setEditorHeight(`${height}px`);
-    });
-  }, []);
 
   const getChangeHandler = () => {
     return debounce((value: string) => {
@@ -80,6 +75,15 @@ const WebhooksTemplateEditor: React.FC<WebhooksTemplateEditorProps> = ({ templat
     setIsCheatSheetVisible(false);
   }, []);
 
+  const getCheatSheet = (templateKey: string) => {
+    switch (templateKey) {
+      case 'data':
+        return webhookPayloadCheatSheet;
+      default:
+        return genericTemplateCheatSheet;
+    }
+  };
+
   return (
     <Drawer
       title={
@@ -110,7 +114,7 @@ const WebhooksTemplateEditor: React.FC<WebhooksTemplateEditorProps> = ({ templat
       width="95%"
     >
       <div className={cx('container-wrapper')}>
-        <div className={cx('container')} id={'content-container-id'}>
+        <div className={cx('container')}>
           <TemplatesAlertGroupsList
             heading="Last events"
             templatePage={TEMPLATE_PAGE.Webhooks}
@@ -128,8 +132,8 @@ const WebhooksTemplateEditor: React.FC<WebhooksTemplateEditorProps> = ({ templat
 
           {isCheatSheetVisible ? (
             <CheatSheet
-              cheatSheetName="Generic"
-              cheatSheetData={genericTemplateCheatSheet}
+              cheatSheetName={template.displayName}
+              cheatSheetData={getCheatSheet(template.name)}
               onClose={onCloseCheatSheet}
             />
           ) : (
@@ -148,7 +152,7 @@ const WebhooksTemplateEditor: React.FC<WebhooksTemplateEditorProps> = ({ templat
                     value={template.value}
                     data={{ payload_example: selectedPayload }}
                     showLineNumbers={true}
-                    height={editorHeight}
+                    height="100%"
                     onChange={getChangeHandler()}
                     suggestionPrefix=""
                   />
@@ -172,5 +176,3 @@ const WebhooksTemplateEditor: React.FC<WebhooksTemplateEditorProps> = ({ templat
     </Drawer>
   );
 };
-
-export default WebhooksTemplateEditor;

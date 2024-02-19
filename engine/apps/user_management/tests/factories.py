@@ -8,6 +8,7 @@ class OrganizationFactory(factory.DjangoModelFactory):
     org_title = factory.Faker("word")
     stack_id = UniqueFaker("pyint")
     org_id = UniqueFaker("pyint")
+    stack_slug = factory.Faker("word")
 
     class Meta:
         model = Organization

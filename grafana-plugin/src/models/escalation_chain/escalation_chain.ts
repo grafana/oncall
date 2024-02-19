@@ -1,8 +1,8 @@
-import { action, observable } from 'mobx';
+import { action, observable, makeObservable, runInAction } from 'mobx';
 
-import BaseStore from 'models/base_store';
-import { makeRequest } from 'network';
-import { RootStore } from 'state';
+import { BaseStore } from 'models/base_store';
+import { makeRequest } from 'network/network';
+import { RootStore } from 'state/rootStore';
 
 import { EscalationChain, EscalationChainDetails } from './escalation_chain.types';
 
@@ -25,6 +25,8 @@ export class EscalationChainStore extends BaseStore {
   constructor(rootStore: RootStore) {
     super(rootStore);
 
+    makeObservable(this);
+
     this.path = '/escalation_chains/';
   }
 
@@ -32,10 +34,12 @@ export class EscalationChainStore extends BaseStore {
   async loadItem(id: EscalationChain['id'], skipErrorHandling = false): Promise<EscalationChain> {
     const escalationChain = await this.getById(id, skipErrorHandling);
 
-    this.items = {
-      ...this.items,
-      [id]: escalationChain,
-    };
+    runInAction(() => {
+      this.items = {
+        ...this.items,
+        [id]: escalationChain,
+      };
+    });
 
     return escalationChain;
   }
@@ -44,30 +48,36 @@ export class EscalationChainStore extends BaseStore {
   async updateById(id: EscalationChain['id']) {
     const response = await this.getById(id);
 
-    this.items = {
-      ...this.items,
-      [id]: response,
-    };
+    runInAction(() => {
+      this.items = {
+        ...this.items,
+        [id]: response,
+      };
+    });
   }
 
   @action
   async save(id: EscalationChain['id'], data: Partial<EscalationChain>) {
     const response = await super.update(id, data);
 
-    this.items = {
-      ...this.items,
-      [id]: response,
-    };
+    runInAction(() => {
+      this.items = {
+        ...this.items,
+        [id]: response,
+      };
+    });
   }
 
   @action
   async updateEscalationChainDetails(id: EscalationChain['id']) {
     const response = await makeRequest(`${this.path}${id}/details/`, {});
 
-    this.details = {
-      ...this.details,
-      [id]: response,
-    };
+    runInAction(() => {
+      this.details = {
+        ...this.details,
+        [id]: response,
+      };
+    });
   }
 
   @action
@@ -86,10 +96,12 @@ export class EscalationChainStore extends BaseStore {
     }
 
     if (escalationChain) {
-      this.items = {
-        ...this.items,
-        [id]: escalationChain,
-      };
+      runInAction(() => {
+        this.items = {
+          ...this.items,
+          [id]: escalationChain,
+        };
+      });
     }
 
     return escalationChain;
@@ -105,23 +117,25 @@ export class EscalationChainStore extends BaseStore {
       params,
     });
 
-    this.items = {
-      ...this.items,
-      ...results.reduce(
-        (acc: { [key: number]: EscalationChain }, item: EscalationChain) => ({
-          ...acc,
-          [item.id]: item,
-        }),
-        {}
-      ),
-    };
+    runInAction(() => {
+      this.items = {
+        ...this.items,
+        ...results.reduce(
+          (acc: { [key: number]: EscalationChain }, item: EscalationChain) => ({
+            ...acc,
+            [item.id]: item,
+          }),
+          {}
+        ),
+      };
 
-    const key = typeof query === 'string' ? query : '';
+      const key = typeof query === 'string' ? query : '';
 
-    this.searchResult = {
-      ...this.searchResult,
-      [key]: results.map((item: EscalationChain) => item.id),
-    };
+      this.searchResult = {
+        ...this.searchResult,
+        [key]: results.map((item: EscalationChain) => item.id),
+      };
+    });
 
     this.loading = false;
   }

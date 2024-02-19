@@ -14,6 +14,7 @@ import {
   Field,
   Modal,
   Tooltip,
+  Divider,
 } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
@@ -22,33 +23,28 @@ import CopyToClipboard from 'react-copy-to-clipboard';
 import Emoji from 'react-emoji-render';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 import reactStringReplace from 'react-string-replace';
+import { OnCallPluginExtensionPoints } from 'types';
 
-import Collapse from 'components/Collapse/Collapse';
-import Block from 'components/GBlock/Block';
-import IntegrationLogo from 'components/IntegrationLogo/IntegrationLogo';
-import PageErrorHandlingWrapper, { PageBaseState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
+import errorSVG from 'assets/img/error.svg';
+import { Collapse } from 'components/Collapse/Collapse';
+import { ExtensionLinkDropdown } from 'components/ExtensionLinkMenu/ExtensionLinkDropdown';
+import { Block } from 'components/GBlock/Block';
+import { IntegrationLogo } from 'components/IntegrationLogo/IntegrationLogo';
+import { PageErrorHandlingWrapper, PageBaseState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
 import {
   getWrongTeamResponseInfo,
   initErrorDataState,
 } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper.helpers';
-import { PluginBridge, SupportedPlugin } from 'components/PluginBridge/PluginBridge';
-import PluginLink from 'components/PluginLink/PluginLink';
-import SourceCode from 'components/SourceCode/SourceCode';
-import Text from 'components/Text/Text';
-import TooltipBadge from 'components/TooltipBadge/TooltipBadge';
-import AddResponders from 'containers/AddResponders/AddResponders';
+import { PluginLink } from 'components/PluginLink/PluginLink';
+import { SourceCode } from 'components/SourceCode/SourceCode';
+import { Text } from 'components/Text/Text';
+import { TooltipBadge } from 'components/TooltipBadge/TooltipBadge';
+import { AddResponders } from 'containers/AddResponders/AddResponders';
 import { prepareForUpdate } from 'containers/AddResponders/AddResponders.helpers';
 import { UserResponder } from 'containers/AddResponders/AddResponders.types';
-import AttachIncidentForm from 'containers/AttachIncidentForm/AttachIncidentForm';
+import { AttachIncidentForm } from 'containers/AttachIncidentForm/AttachIncidentForm';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
-import {
-  Alert as AlertType,
-  Alert,
-  AlertAction,
-  TimeLineItem,
-  TimeLineRealm,
-  GroupedAlert,
-} from 'models/alertgroup/alertgroup.types';
+import { Alert, AlertAction, TimeLineItem, TimeLineRealm, GroupedAlert } from 'models/alertgroup/alertgroup.types';
 import { ResolutionNoteSourceTypesToDisplayName } from 'models/resolution_note/resolution_note.types';
 import { User } from 'models/user/user.types';
 import { IncidentDropdown } from 'pages/incidents/parts/IncidentDropdown';
@@ -56,11 +52,11 @@ import { AppFeature } from 'state/features';
 import { PageProps, WithStoreProps } from 'state/types';
 import { useStore } from 'state/useStore';
 import { withMobXProviderContext } from 'state/withStore';
-import { openNotification } from 'utils';
-import { UserActions } from 'utils/authorization';
+import { UserActions } from 'utils/authorization/authorization';
 import { PLUGIN_ROOT } from 'utils/consts';
-import sanitize from 'utils/sanitize';
+import { sanitize } from 'utils/sanitize';
 import { parseURL } from 'utils/url';
+import { openNotification } from 'utils/utils';
 
 import { getActionButtons } from './Incident.helpers';
 import styles from './Incident.module.scss';
@@ -68,10 +64,7 @@ import styles from './Incident.module.scss';
 const cx = cn.bind(styles);
 const INTEGRATION_NAME_LENGTH_LIMIT = 30;
 
-interface IncidentPageProps extends WithStoreProps, PageProps, RouteComponentProps<{ id: string }> {
-  pageTitle: string;
-  setPageTitle: (value: string) => void;
-}
+interface IncidentPageProps extends WithStoreProps, PageProps, RouteComponentProps<{ id: string }> {}
 
 interface IncidentPageState extends PageBaseState {
   showIntegrationSettings?: boolean;
@@ -81,7 +74,7 @@ interface IncidentPageState extends PageBaseState {
 }
 
 @observer
-class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState> {
+class _IncidentPage extends React.Component<IncidentPageProps, IncidentPageState> {
   state: IncidentPageState = {
     timelineFilter: 'all',
     resolutionNoteText: '',
@@ -97,9 +90,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
   }
 
   componentWillUnmount(): void {
-    const { setPageTitle } = this.props;
-
-    setPageTitle(undefined);
+    this.props.store.setPageTitle('');
   }
 
   componentDidUpdate(prevProps: IncidentPageProps) {
@@ -116,13 +107,12 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
       match: {
         params: { id },
       },
-      setPageTitle,
     } = this.props;
 
     store.alertGroupStore
       .getAlert(id)
       .then((alertGroup) => {
-        setPageTitle(`#${alertGroup.inside_organization_number} ${alertGroup.render_for_web.title}`);
+        store.setPageTitle(`#${alertGroup.inside_organization_number} ${alertGroup.render_for_web.title}`);
       })
       .catch((error) => this.setState({ errorData: { ...getWrongTeamResponseInfo(error) } }));
   };
@@ -137,11 +127,30 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
     } = this.props;
 
     const { errorData, showIntegrationSettings, showAttachIncidentForm } = this.state;
-    const { isNotFoundError, isWrongTeamError } = errorData;
+    const { isNotFoundError, isWrongTeamError, isUnknownError } = errorData;
     // const { alertReceiveChannelStore } = store;
     const { alerts } = store.alertGroupStore;
 
     const incident = alerts.get(id);
+
+    if (isUnknownError) {
+      return (
+        <AlertGroupStub
+          buttons={getActionButtons(
+            incident,
+            {
+              onResolve: this.getOnActionButtonClick(id, AlertAction.Resolve),
+              onUnacknowledge: this.getOnActionButtonClick(id, AlertAction.unAcknowledge),
+              onUnresolve: this.getOnActionButtonClick(id, AlertAction.unResolve),
+              onAcknowledge: this.getOnActionButtonClick(id, AlertAction.Acknowledge),
+              onSilence: this.getSilenceClickHandler(id),
+              onUnsilence: this.getUnsilenceClickHandler(id),
+            },
+            true
+          )}
+        />
+      );
+    }
 
     if (!incident && !isNotFoundError && !isWrongTeamError) {
       return (
@@ -260,7 +269,6 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
       match: {
         params: { id },
       },
-      pageTitle,
     } = this.props;
 
     const { alerts } = store.alertGroupStore;
@@ -281,12 +289,12 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
           <HorizontalGroup justify="space-between">
             <HorizontalGroup className={cx('title')}>
               <PluginLink query={{ page: 'alert-groups', ...query }}>
-                <IconButton name="arrow-left" size="xl" />
+                <IconButton aria-label="Go Back" name="arrow-left" size="xl" />
               </PluginLink>
               {/* @ts-ignore*/}
               <HorizontalGroup align="baseline">
                 <Text.Title level={3} data-testid="incident-title">
-                  {pageTitle}
+                  {store.pageTitle}
                 </Text.Title>
                 {incident.root_alert_group && (
                   <Text type="secondary">
@@ -337,8 +345,8 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
                   onUnacknowledge={this.getOnActionButtonClick(incident.pk, AlertAction.unAcknowledge)}
                   onUnresolve={this.getOnActionButtonClick(incident.pk, AlertAction.unResolve)}
                   onAcknowledge={this.getOnActionButtonClick(incident.pk, AlertAction.Acknowledge)}
-                  onSilence={this.getSilenceClickHandler(incident)}
-                  onUnsilence={this.getUnsilenceClickHandler(incident)}
+                  onSilence={this.getSilenceClickHandler(incident.pk)}
+                  onUnsilence={this.getUnsilenceClickHandler(incident.pk)}
                 />
               </div>
 
@@ -418,23 +426,20 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
           </div>
           <HorizontalGroup justify="space-between" className={cx('buttons-row')}>
             <HorizontalGroup>
-              {getActionButtons(incident, cx, {
+              {getActionButtons(incident, {
                 onResolve: this.getOnActionButtonClick(incident.pk, AlertAction.Resolve),
                 onUnacknowledge: this.getOnActionButtonClick(incident.pk, AlertAction.unAcknowledge),
                 onUnresolve: this.getOnActionButtonClick(incident.pk, AlertAction.unResolve),
                 onAcknowledge: this.getOnActionButtonClick(incident.pk, AlertAction.Acknowledge),
-                onSilence: this.getSilenceClickHandler(incident),
-                onUnsilence: this.getUnsilenceClickHandler(incident),
+                onSilence: this.getSilenceClickHandler(incident.pk),
+                onUnsilence: this.getUnsilenceClickHandler(incident.pk),
               })}
-              {incident.grafana_incident_id === null && (
-                <PluginBridge plugin={SupportedPlugin.Incident}>
-                  <a href={incident.declare_incident_link} target="_blank" rel="noreferrer">
-                    <Button variant="secondary" size="md" icon="fire">
-                      Declare incident
-                    </Button>
-                  </a>
-                </PluginBridge>
-              )}
+              <ExtensionLinkDropdown
+                incident={incident}
+                extensionPointId={OnCallPluginExtensionPoints.AlertGroupAction}
+                declareIncidentLink={incident.declare_incident_link}
+                grafanaIncidentId={incident.grafana_incident_id}
+              />
             </HorizontalGroup>
 
             <Button
@@ -614,7 +619,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
     };
   };
 
-  getOnActionButtonClick = (incidentId: string, action: AlertAction) => {
+  getOnActionButtonClick = (incidentId: Alert['pk'], action: AlertAction) => {
     const { store } = this.props;
 
     return (e: SyntheticEvent) => {
@@ -624,23 +629,23 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
     };
   };
 
-  getSilenceClickHandler = (alert: AlertType) => {
+  getSilenceClickHandler = (incidentId: Alert['pk']) => {
     const { store } = this.props;
 
     return (value: number) => {
-      return store.alertGroupStore.doIncidentAction(alert.pk, AlertAction.Silence, false, {
+      return store.alertGroupStore.doIncidentAction(incidentId, AlertAction.Silence, false, {
         delay: value,
       });
     };
   };
 
-  getUnsilenceClickHandler = (alert: AlertType) => {
+  getUnsilenceClickHandler = (incidentId: Alert['pk']) => {
     const { store } = this.props;
 
     return (event: any) => {
       event.stopPropagation();
 
-      return store.alertGroupStore.doIncidentAction(alert.pk, AlertAction.unSilence, false);
+      return store.alertGroupStore.doIncidentAction(incidentId, AlertAction.unSilence, false);
     };
   };
 
@@ -757,7 +762,7 @@ function GroupedIncident({ incident, datetimeReference }: { incident: GroupedAle
           <div className={cx('incident-row-right')}>
             <HorizontalGroup wrap={false} justify={'flex-end'}>
               <Tooltip placement="top" content="Alert Payload">
-                <IconButton name="arrow" onClick={() => openIncidentResponse(incident)} />
+                <IconButton aria-label="Alert Payload" name="arrow" onClick={() => openIncidentResponse(incident)} />
               </Tooltip>
             </HorizontalGroup>
           </div>
@@ -824,4 +829,26 @@ function AttachedIncidentsList({
   );
 }
 
-export default withRouter(withMobXProviderContext(IncidentPage));
+const AlertGroupStub = ({ buttons }: { buttons: React.ReactNode }) => {
+  return (
+    <div className={cx('alert-group-stub')}>
+      <VerticalGroup align="center" spacing="md">
+        <img src={errorSVG} alt="" />
+        <Text.Title level={3}>An unexpected error happened</Text.Title>
+        <Text type="secondary">
+          OnCall is not able to receive any information about the current Alert Group. It's unknown if it's firing,
+          acknowledged, silenced, or resolved.
+        </Text>
+        <div className={cx('alert-group-stub-divider')}>
+          <Divider />
+        </div>
+        <Text type="secondary">Meanwhile, you could try changing the status of this Alert Group:</Text>
+        <HorizontalGroup wrap justify="center">
+          {buttons}
+        </HorizontalGroup>
+      </VerticalGroup>
+    </div>
+  );
+};
+
+export const IncidentPage = withRouter(withMobXProviderContext(_IncidentPage));

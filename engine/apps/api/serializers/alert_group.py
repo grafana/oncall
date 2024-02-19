@@ -4,7 +4,7 @@ import typing
 
 from django.core.cache import cache
 from django.utils import timezone
-from drf_spectacular.utils import extend_schema_field, inline_serializer
+from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
 from apps.alerts.incident_appearance.renderers.web_renderer import AlertGroupWebRenderer
@@ -20,6 +20,17 @@ from .user import FastUserSerializer, UserShortSerializer
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
+
+
+class RenderForWeb(typing.TypedDict):
+    title: str
+    message: str
+    image_url: str | None
+    source_link: str | None
+
+
+class EmptyRenderForWeb(typing.TypedDict):
+    pass
 
 
 class AlertGroupFieldsCacheSerializerMixin(AlertsFieldCacheBusterMixin):
@@ -80,18 +91,7 @@ class ShortAlertGroupSerializer(AlertGroupFieldsCacheSerializerMixin, serializer
         fields = ["pk", "render_for_web", "alert_receive_channel", "inside_organization_number"]
         read_only_fields = ["pk", "render_for_web", "alert_receive_channel", "inside_organization_number"]
 
-    @extend_schema_field(
-        inline_serializer(
-            name="render_for_web",
-            fields={
-                "title": serializers.CharField(),
-                "message": serializers.CharField(),
-                "image_url": serializers.CharField(),
-                "source_link": serializers.CharField(),
-            },
-        )
-    )
-    def get_render_for_web(self, obj: "AlertGroup"):
+    def get_render_for_web(self, obj: "AlertGroup") -> RenderForWeb | EmptyRenderForWeb:
         last_alert = obj.alerts.last()
         if last_alert is None:
             return {}
@@ -125,6 +125,7 @@ class AlertGroupListSerializer(
     PREFETCH_RELATED = [
         "dependent_alert_groups",
         "log_records__author",
+        "labels",
     ]
 
     SELECT_RELATED = [
@@ -169,18 +170,7 @@ class AlertGroupListSerializer(
             "labels",
         ]
 
-    @extend_schema_field(
-        inline_serializer(
-            name="render_for_web",
-            fields={
-                "title": serializers.CharField(),
-                "message": serializers.CharField(),
-                "image_url": serializers.CharField(),
-                "source_link": serializers.CharField(),
-            },
-        )
-    )
-    def get_render_for_web(self, obj: "AlertGroup"):
+    def get_render_for_web(self, obj: "AlertGroup") -> RenderForWeb | EmptyRenderForWeb:
         if not obj.last_alert:
             return {}
         return AlertGroupFieldsCacheSerializerMixin.get_or_set_web_template_field(

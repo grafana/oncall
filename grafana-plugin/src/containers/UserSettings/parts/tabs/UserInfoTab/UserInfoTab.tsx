@@ -2,9 +2,9 @@ import React from 'react';
 
 import { InlineField, Input, Legend } from '@grafana/ui';
 
-import GrafanaTeamSelect from 'containers/GrafanaTeamSelect/GrafanaTeamSelect';
+import { GrafanaTeamSelect } from 'containers/GrafanaTeamSelect/GrafanaTeamSelect';
 import { UserSettingsTab } from 'containers/UserSettings/UserSettings.types';
-import { Connectors } from 'containers/UserSettings/parts/connectors';
+import { Connectors } from 'containers/UserSettings/parts/connectors/Connectors';
 import { User } from 'models/user/user.types';
 import { useStore } from 'state/useStore';
 
@@ -50,7 +50,7 @@ export const UserInfoTab = (props: UserInfoTabProps) => {
           withoutModal
           defaultValue={storeUser.current_team}
           onSelect={async (value) => {
-            await userStore.updateCurrentUser({ current_team: value });
+            await userStore.updateUser({ pk: storeUser.pk, current_team: value });
             store.grafanaTeamStore.updateItems();
           }}
         />

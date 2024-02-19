@@ -5,6 +5,8 @@ import cn from 'classnames/bind';
 import { isArray, isUndefined } from 'lodash-es';
 import { observer } from 'mobx-react';
 
+import { Text } from 'components/Text/Text';
+
 import styles from './IntegrationCollapsibleTreeView.module.scss';
 
 const cx = cn.bind(styles);
@@ -13,19 +15,24 @@ export interface IntegrationCollapsibleItem {
   isHidden?: boolean;
   customIcon?: IconName;
   canHoverIcon: boolean;
+  isTextIcon?: boolean;
   collapsedView: (toggle?: () => void) => React.ReactNode; // needs toggle param for toggling on click
   expandedView: () => React.ReactNode; // for consistency, this is also a function
   isCollapsible: boolean;
+  iconText?: string;
   isExpanded?: boolean;
+  startingElemPosition?: string;
   onStateChange?(isChecked: boolean): void;
 }
 
 interface IntegrationCollapsibleTreeViewProps {
+  startingElemPosition?: string;
+  isRouteView?: boolean;
   configElements: Array<IntegrationCollapsibleItem | IntegrationCollapsibleItem[]>;
 }
 
-const IntegrationCollapsibleTreeView: React.FC<IntegrationCollapsibleTreeViewProps> = observer((props) => {
-  const { configElements } = props;
+export const IntegrationCollapsibleTreeView: React.FC<IntegrationCollapsibleTreeViewProps> = observer((props) => {
+  const { configElements, isRouteView } = props;
 
   const [expandedList, setExpandedList] = useState(getStartingExpandedState());
 
@@ -34,7 +41,7 @@ const IntegrationCollapsibleTreeView: React.FC<IntegrationCollapsibleTreeViewPro
   }, [configElements]);
 
   return (
-    <div className={cx('integrationTree__container')}>
+    <div className={cx('integrationTree__container', isRouteView ? 'integrationTree__container--timeline-view' : '')}>
       {configElements
         .filter((config) => config) // filter out falsy values
         .map((item: IntegrationCollapsibleItem | IntegrationCollapsibleItem[], idx) => {
@@ -53,6 +60,7 @@ const IntegrationCollapsibleTreeView: React.FC<IntegrationCollapsibleTreeViewPro
             <IntegrationCollapsibleTreeItem
               item={item}
               key={idx}
+              elementPosition={idx + 1} // start from 1 instead of 0
               onClick={() => expandOrCollapseAtPos(expandedList[idx] as boolean, idx)}
               isExpanded={expandedList[idx] as boolean}
             />
@@ -103,19 +111,21 @@ const IntegrationCollapsibleTreeView: React.FC<IntegrationCollapsibleTreeViewPro
 
 const IntegrationCollapsibleTreeItem: React.FC<{
   item: IntegrationCollapsibleItem;
+  elementPosition?: number;
   isExpanded: boolean;
   onClick: () => void;
-}> = ({ item, isExpanded, onClick }) => {
-  const iconOnClickFn = !item.isCollapsible ? undefined : onClick;
+}> = ({ item, elementPosition, isExpanded, onClick }) => {
+  const handleIconClick = !item.isCollapsible ? undefined : onClick;
 
   return (
     <div className={cx('integrationTree__group', { 'integrationTree__group--hidden': item.isHidden })}>
-      <div className={cx('integrationTree__icon')}>
-        {item.canHoverIcon ? (
-          <IconButton name={getIconName()} onClick={iconOnClickFn} size="lg" />
-        ) : (
-          <Icon name={getIconName()} onClick={iconOnClickFn} size="lg" />
-        )}
+      <div
+        className={cx('integrationTree__icon')}
+        style={{
+          transform: `translateY(${item.startingElemPosition || 0})`,
+        }}
+      >
+        {renderIcon()}
       </div>
       <div className={cx('integrationTree__element', { 'integrationTree__element--visible': isExpanded })}>
         {item.expandedView?.()}
@@ -126,6 +136,22 @@ const IntegrationCollapsibleTreeItem: React.FC<{
     </div>
   );
 
+  function renderIcon() {
+    if (item.isTextIcon && elementPosition) {
+      return (
+        <Text type="primary" customTag="h6" className={cx('number-icon')}>
+          {elementPosition}
+        </Text>
+      );
+    }
+
+    if (item.canHoverIcon) {
+      return <IconButton aria-label="" name={getIconName()} onClick={handleIconClick} size="lg" />;
+    }
+
+    return <Icon name={getIconName()} onClick={handleIconClick} size="lg" />;
+  }
+
   function getIconName(): IconName {
     if (item.customIcon) {
       return item.customIcon;
@@ -133,5 +159,3 @@ const IntegrationCollapsibleTreeItem: React.FC<{
     return isExpanded ? 'angle-down' : 'angle-right';
   }
 };
-
-export default IntegrationCollapsibleTreeView;

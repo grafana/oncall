@@ -5,8 +5,10 @@ import Emoji from 'react-emoji-render';
 
 import { FormItem, FormItemType } from 'components/GForm/GForm.types';
 import { OutgoingWebhookPreset } from 'models/outgoing_webhook/outgoing_webhook.types';
-import { KeyValuePair } from 'utils';
 import { generateAssignToTeamInputDescription } from 'utils/consts';
+import { KeyValuePair } from 'utils/utils';
+
+import { WebhookFormFieldName } from './OutgoingWebhookForm.types';
 
 export const WebhookTriggerType = {
   EscalationStep: new KeyValuePair('0', 'Escalation Step'),
@@ -19,23 +21,29 @@ export const WebhookTriggerType = {
   Unacknowledged: new KeyValuePair('7', 'Unacknowledged'),
 };
 
-export function createForm(presets: OutgoingWebhookPreset[]): { name: string; fields: FormItem[] } {
+export function createForm(
+  presets: OutgoingWebhookPreset[] = [],
+  hasLabelsFeature?: boolean
+): {
+  name: string;
+  fields: FormItem[];
+} {
   return {
     name: 'OutgoingWebhook',
     fields: [
       {
-        name: 'name',
+        name: WebhookFormFieldName.Name,
         type: FormItemType.Input,
         validation: { required: true },
       },
       {
-        name: 'is_webhook_enabled',
+        name: WebhookFormFieldName.IsWebhookEnabled,
         label: 'Enabled',
         normalize: (value) => Boolean(value),
         type: FormItemType.Switch,
       },
       {
-        name: 'team',
+        name: WebhookFormFieldName.Team,
         label: 'Assign to Team',
         description: `${generateAssignToTeamInputDescription(
           'Outgoing Webhooks'
@@ -51,7 +59,7 @@ export function createForm(presets: OutgoingWebhookPreset[]): { name: string; fi
         },
       },
       {
-        name: 'trigger_type',
+        name: WebhookFormFieldName.TriggerType,
         label: 'Trigger Type',
         description: 'The type of event which will cause this webhook to execute.',
         type: FormItemType.Select,
@@ -92,13 +100,11 @@ export function createForm(presets: OutgoingWebhookPreset[]): { name: string; fi
             },
           ],
         },
-        isVisible: (data) => {
-          return isPresetFieldVisible(data.preset, presets, 'trigger_type');
-        },
+        isHidden: (data) => !isPresetFieldVisible(data.preset, presets, WebhookFormFieldName.TriggerType),
         normalize: (value) => value,
       },
       {
-        name: 'http_method',
+        name: WebhookFormFieldName.HttpMethod,
         label: 'HTTP Method',
         type: FormItemType.Select,
         extra: {
@@ -117,6 +123,10 @@ export function createForm(presets: OutgoingWebhookPreset[]): { name: string; fi
               label: 'PUT',
             },
             {
+              value: 'PATCH',
+              label: 'PATCH',
+            },
+            {
               value: 'DELETE',
               label: 'DELETE',
             },
@@ -126,19 +136,16 @@ export function createForm(presets: OutgoingWebhookPreset[]): { name: string; fi
             },
           ],
         },
-        isVisible: (data) => isPresetFieldVisible(data.preset, presets, 'http_method'),
+        isHidden: (data) => !isPresetFieldVisible(data.preset, presets, WebhookFormFieldName.HttpMethod),
         normalize: (value) => value,
       },
       {
-        name: 'integration_filter',
+        name: WebhookFormFieldName.IntegrationFilter,
         label: 'Integrations',
         type: FormItemType.MultiSelect,
-        isVisible: (data) => {
-          return (
-            isPresetFieldVisible(data.preset, presets, 'integration_filter') &&
-            data.trigger_type !== WebhookTriggerType.EscalationStep.key
-          );
-        },
+        isHidden: (data) =>
+          !isPresetFieldVisible(data.preset, presets, WebhookFormFieldName.IntegrationFilter) ||
+          data.trigger_type === WebhookTriggerType.EscalationStep.key,
         extra: {
           placeholder: 'Choose (Optional)',
           modelName: 'alertReceiveChannelStore',
@@ -151,88 +158,79 @@ export function createForm(presets: OutgoingWebhookPreset[]): { name: string; fi
           'Integrations that this webhook applies to. If this is empty the webhook will execute for all integrations',
       },
       {
-        name: 'url',
+        name: WebhookFormFieldName.Labels,
+        label: 'Labels',
+        type: FormItemType.Other,
+        render: true,
+      },
+      {
+        name: WebhookFormFieldName.Url,
         label: 'Webhook URL',
         type: FormItemType.Monaco,
         extra: {
           height: 30,
         },
-        isVisible: (data) => {
-          return isPresetFieldVisible(data.preset, presets, 'url');
-        },
+        isHidden: (data) => !isPresetFieldVisible(data.preset, presets, WebhookFormFieldName.Url),
       },
       {
-        name: 'headers',
+        name: WebhookFormFieldName.Headers,
         label: 'Webhook Headers',
         description: 'Request headers should be in JSON format.',
         type: FormItemType.Monaco,
         extra: {
           rows: 3,
         },
-        isVisible: (data) => {
-          return isPresetFieldVisible(data.preset, presets, 'headers');
-        },
+        isHidden: (data) => !isPresetFieldVisible(data.preset, presets, WebhookFormFieldName.Headers),
       },
       {
-        name: 'username',
+        name: WebhookFormFieldName.Username,
         type: FormItemType.Input,
-        isVisible: (data) => {
-          return isPresetFieldVisible(data.preset, presets, 'username');
-        },
+        isHidden: (data) => !isPresetFieldVisible(data.preset, presets, WebhookFormFieldName.Username),
       },
       {
-        name: 'password',
+        name: WebhookFormFieldName.Password,
         type: FormItemType.Password,
-        isVisible: (data) => {
-          return isPresetFieldVisible(data.preset, presets, 'password');
-        },
+        isHidden: (data) => !isPresetFieldVisible(data.preset, presets, WebhookFormFieldName.Password),
       },
       {
-        name: 'authorization_header',
+        name: WebhookFormFieldName.AuthorizationHeader,
         description:
           'Value of the Authorization header, do not need to prefix with "Authorization:". For example: Bearer AbCdEf123456',
         type: FormItemType.Password,
-        isVisible: (data) => {
-          return isPresetFieldVisible(data.preset, presets, 'authorization_header');
-        },
+        isHidden: (data) => !isPresetFieldVisible(data.preset, presets, WebhookFormFieldName.AuthorizationHeader),
       },
       {
-        name: 'trigger_template',
+        name: WebhookFormFieldName.TriggerTemplate,
         type: FormItemType.Monaco,
         description:
           'Trigger template is used to conditionally execute the webhook based on incoming data. The trigger template must be empty or evaluate to true or 1 for the webhook to be sent',
         extra: {
           rows: 2,
         },
-        isVisible: (data) => {
-          return isPresetFieldVisible(data.preset, presets, 'trigger_template');
-        },
+        isHidden: (data) => !isPresetFieldVisible(data.preset, presets, WebhookFormFieldName.TriggerTemplate),
       },
       {
-        name: 'forward_all',
+        name: WebhookFormFieldName.ForwardAll,
         normalize: (value) => (value ? Boolean(value) : value),
         type: FormItemType.Switch,
         description: "Forwards whole payload of the alert group and context data to the webhook's url as POST/PUT data",
-        isVisible: (data) => {
-          return isPresetFieldVisible(data.preset, presets, 'forward_all');
-        },
+        isHidden: (data) => !isPresetFieldVisible(data.preset, presets, WebhookFormFieldName.ForwardAll),
       },
       {
-        name: 'data',
+        name: WebhookFormFieldName.Data,
         getDisabled: (data) => Boolean(data?.forward_all),
         type: FormItemType.Monaco,
-        description:
-          'Available variables: {{ event }}, {{ user }}, {{ alert_group }}, {{ alert_group_id }}, {{ alert_payload }}, {{ integration }}, {{ notified_users }}, {{ users_to_be_notified }}, {{ responses }}',
+        description: `Available variables: {{ event }}, {{ user }}, {{ alert_group }}, {{ alert_group_id }}, {{ alert_payload }}, {{ integration }}, {{ notified_users }}, {{ users_to_be_notified }}, {{ responses }}${
+          hasLabelsFeature ? ' {{ webhook }}' : ''
+        }`,
         extra: {},
-        isVisible: (data) => {
-          return isPresetFieldVisible(data.preset, presets, 'data');
-        },
+        isHidden: (data) => !isPresetFieldVisible(data.preset, presets, WebhookFormFieldName.Data),
       },
     ],
   };
 }
 
-function isPresetFieldVisible(presetId: string, presets: OutgoingWebhookPreset[], fieldName: string) {
+function isPresetFieldVisible(presetId: string, presets: OutgoingWebhookPreset[], fieldName: WebhookFormFieldName) {
   if (presetId == null) {
     return true;
   }

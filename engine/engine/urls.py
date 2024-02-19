@@ -50,16 +50,14 @@ if settings.FEATURE_PROMETHEUS_EXPORTER_ENABLED:
         path("metrics/", include("apps.metrics_exporter.urls")),
     ]
 
+if settings.FEATURE_TELEGRAM_INTEGRATION_ENABLED:
+    urlpatterns += [
+        path("telegram/", include("apps.telegram.urls")),
+    ]
+
 if settings.FEATURE_SLACK_INTEGRATION_ENABLED:
     urlpatterns += [
         path("api/internal/v1/slack/", include("apps.slack.urls")),
-    ]
-
-if settings.FEATURE_TELEGRAM_INTEGRATION_ENABLED:
-    urlpatterns += [path("telegram/", include("apps.telegram.urls"))]
-
-if settings.FEATURE_SLACK_INTEGRATION_ENABLED:
-    urlpatterns += [
         path("slack/", include("apps.slack.urls")),
     ]
 
@@ -84,9 +82,9 @@ if settings.SILK_PROFILER_ENABLED:
     ]
 
 if settings.DRF_SPECTACULAR_ENABLED:
-    from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
+    from drf_spectacular.views import SpectacularSwaggerView, SpectacularYAMLAPIView
 
     urlpatterns += [
-        path("internal/schema/", SpectacularAPIView.as_view(api_version="internal/v1"), name="schema"),
+        path("internal/schema/", SpectacularYAMLAPIView.as_view(api_version="internal/v1"), name="schema"),
         path("internal/schema/swagger-ui/", SpectacularSwaggerView.as_view(url_name="schema"), name="swagger-ui"),
     ]

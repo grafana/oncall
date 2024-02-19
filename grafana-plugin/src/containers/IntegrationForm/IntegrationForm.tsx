@@ -12,31 +12,30 @@ import {
   RadioButtonGroup,
   Select,
   Icon,
-  Label,
   Field,
 } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 import { useHistory } from 'react-router-dom';
 
-import Collapse from 'components/Collapse/Collapse';
-import Block from 'components/GBlock/Block';
-import GForm from 'components/GForm/GForm';
-import { FormItem } from 'components/GForm/GForm.types';
-import IntegrationLogo from 'components/IntegrationLogo/IntegrationLogo';
-import Text from 'components/Text/Text';
-import Labels from 'containers/Labels/Labels';
+import { Collapse } from 'components/Collapse/Collapse';
+import { Block } from 'components/GBlock/Block';
+import { GForm, CustomFieldSectionRendererProps } from 'components/GForm/GForm';
+import { IntegrationLogo } from 'components/IntegrationLogo/IntegrationLogo';
+import { PluginLink } from 'components/PluginLink/PluginLink';
+import { Text } from 'components/Text/Text';
+import { Labels } from 'containers/Labels/Labels';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import {
   AlertReceiveChannel,
   AlertReceiveChannelOption,
 } from 'models/alert_receive_channel/alert_receive_channel.types';
-import IntegrationHelper from 'pages/integration/Integration.helper';
+import { IntegrationHelper } from 'pages/integration/Integration.helper';
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
-import { openErrorNotification } from 'utils';
-import { UserActions } from 'utils/authorization';
+import { UserActions } from 'utils/authorization/authorization';
 import { PLUGIN_ROOT } from 'utils/consts';
+import { openErrorNotification } from 'utils/utils';
 
 import { form } from './IntegrationForm.config';
 import { prepareForEdit } from './IntegrationForm.helpers';
@@ -49,15 +48,16 @@ interface IntegrationFormProps {
   isTableView?: boolean;
   onHide: () => void;
   onSubmit: () => Promise<void>;
+  navigateToAlertGroupLabels: (id: AlertReceiveChannel['id']) => void;
 }
 
-const IntegrationForm = observer((props: IntegrationFormProps) => {
+export const IntegrationForm = observer((props: IntegrationFormProps) => {
   const store = useStore();
   const history = useHistory();
 
   const labelsRef = useRef(null);
 
-  const { id, onHide, onSubmit, isTableView = true } = props;
+  const { id, onHide, onSubmit, isTableView = true, navigateToAlertGroupLabels } = props;
   const {
     alertReceiveChannelStore,
     userStore: { currentUser: user },
@@ -86,6 +86,11 @@ const IntegrationForm = observer((props: IntegrationFormProps) => {
   const options = alertReceiveChannelOptions
     ? alertReceiveChannelOptions.filter((option: AlertReceiveChannelOption) => {
         if (option.value === 'grafana_alerting' && !window.grafanaBootData.settings.unifiedAlertingEnabled) {
+          return false;
+        }
+
+        // don't allow creating direct paging integrations
+        if (option.value === 'direct_paging') {
           return false;
         }
 
@@ -135,7 +140,25 @@ const IntegrationForm = observer((props: IntegrationFormProps) => {
 
               {store.hasFeature(AppFeature.Labels) && (
                 <div className={cx('labels')}>
-                  <Labels ref={labelsRef} errors={errors?.labels} value={data.labels} />
+                  <Labels
+                    ref={labelsRef}
+                    errors={errors?.labels}
+                    value={data.labels}
+                    description={
+                      <>
+                        Labels{id === 'new' ? ' will be ' : ' '}applied to the integration and inherited by alert
+                        groups.
+                        <br />
+                        You can modify behaviour in{' '}
+                        {id === 'new' ? (
+                          'Alert group labeling'
+                        ) : (
+                          <PluginLink onClick={() => navigateToAlertGroupLabels(id)}>Alert group labeling</PluginLink>
+                        )}{' '}
+                        drawer.
+                      </>
+                    }
+                  />
                 </div>
               )}
 
@@ -211,7 +234,7 @@ const IntegrationForm = observer((props: IntegrationFormProps) => {
     onHide();
 
     function createNewIntegration(): Promise<void | AlertReceiveChannel> {
-      let promise = alertReceiveChannelStore.create<AlertReceiveChannel>(data);
+      let promise = alertReceiveChannelStore.create<AlertReceiveChannel>(data, true);
 
       const pushHistory = (id) => history.push(`${PLUGIN_ROOT}/integrations/${id}`);
 
@@ -261,14 +284,6 @@ const IntegrationForm = observer((props: IntegrationFormProps) => {
     return id === 'new' ? `New ${selectedOption?.display_name} integration` : `Edit integration`;
   }
 });
-
-export interface CustomFieldSectionRendererProps {
-  control: any;
-  formItem: FormItem;
-  errors: any;
-  register: any;
-  setValue: (fieldName: string, fieldValue: any) => void;
-}
 
 interface CustomFieldSectionRendererState {
   isExistingContactPoint: boolean;
@@ -342,8 +357,10 @@ const CustomFieldSectionRenderer: React.FC<CustomFieldSectionRendererProps> = ({
     <div className={cx('extra-fields')}>
       <VerticalGroup spacing="md">
         <HorizontalGroup spacing="xs" align="center">
-          <Label>Grafana Alerting Contact point</Label>
-          <Icon name="info-circle" className={cx('extra-fields__icon')} />
+          <Text type="primary" size="small">
+            Grafana Alerting Contact point
+          </Text>
+          <Icon name="info-circle" />
         </HorizontalGroup>
 
         <div className={cx('extra-fields__radio')}>
@@ -513,5 +530,3 @@ const IntegrationBlocks: React.FC<{
     </div>
   );
 };
-
-export default IntegrationForm;

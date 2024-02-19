@@ -1,4 +1,5 @@
 import logging
+import uuid
 
 from celery.utils.log import get_task_logger
 from django.conf import settings
@@ -7,12 +8,25 @@ from django.utils import timezone
 from apps.grafana_plugin.helpers.client import GcomAPIClient, GrafanaAPIClient
 from apps.user_management.models import Organization, Team, User
 from apps.user_management.signals import org_sync_signal
+from common.utils import task_lock
 
 logger = get_task_logger(__name__)
 logger.setLevel(logging.DEBUG)
 
 
 def sync_organization(organization: Organization) -> None:
+    # ensure one sync task is running at most for a given org at a given time
+    lock_id = "sync-organization-lock-{}".format(organization.id)
+    random_value = str(uuid.uuid4())
+    with task_lock(lock_id, random_value) as acquired:
+        if acquired:
+            _sync_organization(organization)
+        else:
+            # sync already running
+            logger.info(f"Sync for Organization {organization.pk} already in progress.")
+
+
+def _sync_organization(organization: Organization) -> None:
     grafana_api_client = GrafanaAPIClient(api_url=organization.grafana_url, api_token=organization.api_token)
 
     # NOTE: checking whether or not RBAC is enabled depends on whether we are dealing with an open-source or cloud
@@ -28,6 +42,7 @@ def sync_organization(organization: Organization) -> None:
         rbac_is_enabled = grafana_api_client.is_rbac_enabled_for_organization()
 
     organization.is_rbac_permissions_enabled = rbac_is_enabled
+    logger.info(f"RBAC status org={organization.pk} rbac_enabled={organization.is_rbac_permissions_enabled}")
 
     _sync_instance_info(organization)
 
@@ -36,9 +51,12 @@ def sync_organization(organization: Organization) -> None:
         organization.api_token_status = Organization.API_TOKEN_STATUS_OK
         sync_users_and_teams(grafana_api_client, organization)
         organization.last_time_synced = timezone.now()
-        organization.is_grafana_incident_enabled = check_grafana_incident_is_enabled(grafana_api_client)
+
+        _sync_grafana_incident_plugin(organization, grafana_api_client)
+        _sync_grafana_labels_plugin(organization, grafana_api_client)
     else:
         organization.api_token_status = Organization.API_TOKEN_STATUS_FAILED
+        logger.warning(f"Sync not successful org={organization.pk} token_status=FAILED")
 
     organization.save(
         update_fields=[
@@ -53,6 +71,8 @@ def sync_organization(organization: Organization) -> None:
             "gcom_token_org_last_time_synced",
             "is_rbac_permissions_enabled",
             "is_grafana_incident_enabled",
+            "is_grafana_labels_enabled",
+            "grafana_incident_backend_url",
         ]
     )
 
@@ -74,6 +94,32 @@ def _sync_instance_info(organization: Organization) -> None:
         organization.grafana_url = instance_info["url"]
         organization.cluster_slug = instance_info["clusterSlug"]
         organization.gcom_token_org_last_time_synced = timezone.now()
+
+
+def _sync_grafana_labels_plugin(organization: Organization, grafana_api_client) -> None:
+    """
+    _sync_grafana_labels_plugin checks if grafana-labels-app plugin is enabled and sets a flag in the organization.
+    It intended to use only inside _sync_organization. It mutates, but not saves org, it's saved in _sync_organization.
+    """
+    grafana_labels_plugin_settings, _ = grafana_api_client.get_grafana_labels_plugin_settings()
+    if grafana_labels_plugin_settings is not None:
+        organization.is_grafana_labels_enabled = grafana_labels_plugin_settings["enabled"]
+
+
+def _sync_grafana_incident_plugin(organization: Organization, grafana_api_client) -> None:
+    """
+    _sync_grafana_incident_plugin check if incident plugin is enabled and sets a flag and its url in the organization.
+    It intended to use only inside _sync_organization. It mutates, but not saves org, it's saved in _sync_organization.
+    """
+    grafana_incident_settings, _ = grafana_api_client.get_grafana_incident_plugin_settings()
+    organization.is_grafana_incident_enabled = False
+    organization.grafana_incident_backend_url = None
+
+    if grafana_incident_settings is not None:
+        organization.is_grafana_incident_enabled = grafana_incident_settings["enabled"]
+        organization.grafana_incident_backend_url = (grafana_incident_settings.get("jsonData") or {}).get(
+            GrafanaAPIClient.GRAFANA_INCIDENT_PLUGIN_BACKEND_URL_KEY
+        )
 
 
 def sync_users_and_teams(client: GrafanaAPIClient, organization: Organization) -> None:
@@ -112,15 +158,6 @@ def sync_users_for_teams(client: GrafanaAPIClient, organization: Organization, *
         return
     api_teams = api_teams_result["teams"]
     Team.objects.sync_for_organization(organization=organization, api_teams=api_teams)
-
-
-def check_grafana_incident_is_enabled(client: GrafanaAPIClient) -> bool:
-    GRAFANA_INCIDENT_PLUGIN = "grafana-incident-app"
-    grafana_incident_settings, _ = client.get_grafana_plugin_settings(GRAFANA_INCIDENT_PLUGIN)
-    is_grafana_incident_enabled = False
-    if isinstance(grafana_incident_settings, dict) and grafana_incident_settings.get("enabled"):
-        is_grafana_incident_enabled = True
-    return is_grafana_incident_enabled
 
 
 def delete_organization_if_needed(organization: Organization) -> bool:

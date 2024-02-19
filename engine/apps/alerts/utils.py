@@ -44,7 +44,7 @@ def render_curl_command(webhook_url, http_request_type, post_kwargs):
 
 
 # TODO: remove this function when we remove CustomButton model
-def request_outgoing_webhook(webhook_url, http_request_type, post_kwargs={}) -> Tuple[bool, str]:
+def request_outgoing_webhook(webhook_url, http_request_type, post_kwargs=None) -> Tuple[bool, str]:
     OUTGOING_WEBHOOK_TIMEOUT = 10
     if http_request_type not in ["POST", "GET"]:
         raise Exception(f"Wrong http_method parameter: {http_request_type}")
@@ -64,6 +64,9 @@ def request_outgoing_webhook(webhook_url, http_request_type, post_kwargs={}) -> 
         if not live_settings.DANGEROUS_WEBHOOKS_ENABLED:
             if ipaddress.ip_address(socket.gethostbyname(webhook_url_ip_address)).is_private:
                 return False, "This url is not supported for outgoing webhooks"
+
+    if post_kwargs is None:
+        post_kwargs = {}
 
     try:
         if http_request_type == "POST":

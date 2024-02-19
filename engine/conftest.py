@@ -12,7 +12,6 @@ from django.db.models.signals import post_save
 from django.urls import clear_url_caches
 from django.utils import timezone
 from pytest_factoryboy import register
-from rest_framework.test import APIClient
 from telegram import Bot
 
 from apps.alerts.models import (
@@ -62,6 +61,7 @@ from apps.labels.tests.factories import (
     AlertReceiveChannelAssociatedLabelFactory,
     LabelKeyFactory,
     LabelValueFactory,
+    WebhookAssociatedLabelFactory,
 )
 from apps.mobile_app.models import MobileAppAuthToken, MobileAppVerificationToken
 from apps.phone_notifications.phone_backend import PhoneBackend
@@ -143,9 +143,25 @@ IS_RBAC_ENABLED = os.getenv("ONCALL_TESTING_RBAC_ENABLED", "True") == "True"
 
 
 @pytest.fixture(autouse=True)
+def isolated_cache(settings):
+    """
+    https://github.com/pytest-dev/pytest-django/issues/527#issuecomment-1115887487
+    """
+    cache_version = uuid.uuid4().hex
+
+    for name in settings.CACHES.keys():
+        settings.CACHES[name]["VERSION"] = cache_version
+
+    from django.test.signals import clear_cache_handlers
+
+    clear_cache_handlers(setting="CACHES")
+
+
+@pytest.fixture(autouse=True)
 def mock_slack_api_call(monkeypatch):
     def mock_api_call(*args, **kwargs):
         return {
+            "ts": timezone.now().isoformat(),
             "status": 200,
             "usergroups": [],
             "channel": {"id": "TEST_CHANNEL_ID"},
@@ -185,21 +201,21 @@ def mock_apply_async(monkeypatch):
 
 
 @pytest.fixture(autouse=True)
-def mock_is_labels_feature_enabled(settings):
-    setattr(settings, "FEATURE_LABELS_ENABLED_FOR_ALL", True)
-
-
-@pytest.fixture(autouse=True)
 def clear_ical_users_cache():
     # clear users pks <-> organization cache (persisting between tests)
     memoized_users_in_ical.cache_clear()
 
 
+@pytest.fixture(autouse=True)
+def mock_is_labels_feature_enabled(settings):
+    settings.FEATURE_LABELS_ENABLED_FOR_ALL = True
+
+
 @pytest.fixture
 def mock_is_labels_feature_enabled_for_org(settings):
     def _mock_is_labels_feature_enabled_for_org(org_id):
-        setattr(settings, "FEATURE_LABELS_ENABLED_FOR_ALL", False)
-        setattr(settings, "FEATURE_LABELS_ENABLED_FOR_GRAFANA_ORGS", [org_id])
+        settings.FEATURE_LABELS_ENABLED_FOR_ALL = False
+        settings.FEATURE_LABELS_ENABLED_PER_ORG = [org_id]
 
     return _mock_is_labels_feature_enabled_for_org
 
@@ -207,7 +223,9 @@ def mock_is_labels_feature_enabled_for_org(settings):
 @pytest.fixture
 def make_organization():
     def _make_organization(**kwargs):
-        return OrganizationFactory(**kwargs, is_rbac_permissions_enabled=IS_RBAC_ENABLED)
+        return OrganizationFactory(
+            **kwargs, is_rbac_permissions_enabled=IS_RBAC_ENABLED, is_grafana_labels_enabled=True
+        )
 
     return _make_organization
 
@@ -439,19 +457,6 @@ def make_slack_message():
         return slack_message
 
     return _make_slack_message
-
-
-@pytest.fixture
-def client_with_user():
-    def _client_with_user(user):
-        """The client with logged in user"""
-
-        client = APIClient()
-        client.force_login(user)
-
-        return client
-
-    return _client_with_user
 
 
 @pytest.fixture
@@ -869,13 +874,19 @@ def reload_urls(settings):
     Reloads Django URLs, especially useful when testing conditionally registered URLs
     """
 
-    def _reload_urls():
+    def _reload_urls(app_url_file_to_reload: str = None):
         clear_url_caches()
+
+        # this can be useful when testing conditionally registered URLs
+        # for example when a django app's urls.py file has conditional logic that is being
+        # overriden/tested, you will need to reload that urls.py file before relaoding the ROOT_URLCONF file
+        if app_url_file_to_reload is not None:
+            reload(import_module(app_url_file_to_reload))
+
         urlconf = settings.ROOT_URLCONF
         if urlconf in sys.modules:
             reload(sys.modules[urlconf])
-        else:
-            import_module(urlconf)
+        import_module(urlconf)
 
     return _reload_urls
 
@@ -953,7 +964,13 @@ def webhook_preset_api_setup():
 
 @pytest.fixture
 def make_label_key():
-    def _make_label_key(organization, **kwargs):
+    def _make_label_key(organization, key_id=None, key_name=None, **kwargs):
+        if key_id is not None:
+            kwargs["id"] = key_id
+
+        if key_name is not None:
+            kwargs["name"] = key_name
+
         return LabelKeyFactory(organization=organization, **kwargs)
 
     return _make_label_key
@@ -961,7 +978,13 @@ def make_label_key():
 
 @pytest.fixture
 def make_label_value():
-    def _make_label_value(key, **kwargs):
+    def _make_label_value(key, value_id=None, value_name=None, **kwargs):
+        if value_id is not None:
+            kwargs["id"] = value_id
+
+        if value_name is not None:
+            kwargs["name"] = value_name
+
         return LabelValueFactory(key=key, **kwargs)
 
     return _make_label_value
@@ -969,9 +992,9 @@ def make_label_value():
 
 @pytest.fixture
 def make_label_key_and_value(make_label_key, make_label_value):
-    def _make_label_key_and_value(organization):
-        key = make_label_key(organization=organization)
-        value = make_label_value(key=key)
+    def _make_label_key_and_value(organization, key_id=None, key_name=None, value_id=None, value_name=None):
+        key = make_label_key(organization=organization, key_id=key_id, key_name=key_name)
+        value = make_label_value(key=key, value_id=value_id, value_name=value_name)
         return key, value
 
     return _make_label_key_and_value
@@ -979,8 +1002,12 @@ def make_label_key_and_value(make_label_key, make_label_value):
 
 @pytest.fixture
 def make_integration_label_association(make_label_key_and_value):
-    def _make_integration_label_association(organization, alert_receive_channel, **kwargs):
-        key, value = make_label_key_and_value(organization)
+    def _make_integration_label_association(
+        organization, alert_receive_channel, key_id=None, key_name=None, value_id=None, value_name=None, **kwargs
+    ):
+        key, value = make_label_key_and_value(
+            organization, key_id=key_id, key_name=key_name, value_id=value_id, value_name=value_name
+        )
         return AlertReceiveChannelAssociatedLabelFactory(
             alert_receive_channel=alert_receive_channel, organization=organization, key=key, value=value, **kwargs
         )
@@ -994,3 +1021,12 @@ def make_alert_group_label_association():
         return AlertGroupAssociatedLabelFactory(alert_group=alert_group, organization=organization, **kwargs)
 
     return _make_alert_group_label_association
+
+
+@pytest.fixture
+def make_webhook_label_association(make_label_key_and_value):
+    def _make_integration_label_association(organization, webhook, **kwargs):
+        key, value = make_label_key_and_value(organization)
+        return WebhookAssociatedLabelFactory(webhook=webhook, organization=organization, key=key, value=value, **kwargs)
+
+    return _make_integration_label_association

@@ -2,10 +2,9 @@ import json
 import logging
 
 from apps.alerts.models import AlertGroup
-from apps.api.permissions import LegacyAccessControlCompatiblePermissions, user_is_authorized
+from apps.api.permissions import user_is_authorized
 from apps.slack.models import SlackMessage, SlackTeamIdentity
 from apps.slack.types import EventPayload
-from apps.user_management.models import User
 
 logger = logging.getLogger(__name__)
 
@@ -14,10 +13,6 @@ class AlertGroupActionsMixin:
     """
     Mixin for alert group actions (ack, resolve, etc.). Intended to be used as a mixin along with ScenarioStep.
     """
-
-    user: User | None
-
-    REQUIRED_PERMISSIONS: LegacyAccessControlCompatiblePermissions = []
 
     def get_alert_group(self, slack_team_identity: SlackTeamIdentity, payload: EventPayload) -> AlertGroup:
         """
@@ -39,20 +34,13 @@ class AlertGroupActionsMixin:
 
     def is_authorized(self, alert_group: AlertGroup) -> bool:
         """
-        Check that user has required permissions to perform an action.
+        Customize ScenarioStep.is_authorized method to check for alert group permissions.
         """
 
         return (
             self.user is not None
             and self.user.organization == alert_group.channel.organization
             and user_is_authorized(self.user, self.REQUIRED_PERMISSIONS)
-        )
-
-    def open_unauthorized_warning(self, payload: EventPayload) -> None:
-        self.open_warning_window(
-            payload,
-            warning_text="You do not have permission to perform this action. Ask an admin to upgrade your permissions.",
-            title="Permission denied",
         )
 
     def _repair_alert_group(

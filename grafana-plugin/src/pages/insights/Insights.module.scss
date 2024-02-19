@@ -1,0 +1,15 @@
+// Required to remove inner page padding since grafana-scenes doesn't support its style modification
+.insights div[class*='page-inner'] {
+  padding-left: 0;
+  padding-right: 0;
+  border: none;
+  margin: 0;
+}
+
+.spaceTop {
+  margin-top: 16px;
+}
+
+.alertBox {
+  margin-top: 32px;
+}

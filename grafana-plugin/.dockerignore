@@ -1,5 +1,3 @@
 node_modules
-frontend_enterprise
 .DS_Store
-test-results
 playwright-report

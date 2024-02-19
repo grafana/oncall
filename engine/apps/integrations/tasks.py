@@ -1,5 +1,6 @@
 import logging
 import random
+import typing
 
 from celery import shared_task
 from celery.utils.log import get_task_logger
@@ -13,6 +14,9 @@ from apps.slack.errors import SlackAPIError
 from common.custom_celery_tasks import shared_dedicated_queue_retry_task
 from common.custom_celery_tasks.create_alert_base_task import CreateAlertBaseTask
 
+if typing.TYPE_CHECKING:
+    from apps.alerts.models import Alert
+
 logger = get_task_logger(__name__)
 logger.setLevel(logging.DEBUG)
 
@@ -23,7 +27,7 @@ logger.setLevel(logging.DEBUG)
     retry_backoff=True,
     max_retries=1 if settings.DEBUG else None,
 )
-def create_alertmanager_alerts(alert_receive_channel_pk, alert, is_demo=False, force_route_id=None):
+def create_alertmanager_alerts(alert_receive_channel_pk, alert, is_demo=False, received_at=None):
     from apps.alerts.models import Alert, AlertReceiveChannel
 
     alert_receive_channel = AlertReceiveChannel.objects_with_deleted.get(pk=alert_receive_channel_pk)
@@ -45,7 +49,7 @@ def create_alertmanager_alerts(alert_receive_channel_pk, alert, is_demo=False, f
             raw_request_data=alert,
             enable_autoresolve=False,
             is_demo=is_demo,
-            force_route_id=force_route_id,
+            received_at=received_at,
         )
     except ConcurrentUpdateError:
         # This error is raised when there are concurrent updates on AlertGroupCounter due to optimistic lock on it.
@@ -62,7 +66,9 @@ def create_alertmanager_alerts(alert_receive_channel_pk, alert, is_demo=False, f
             alert.group.active_resolve_calculation_id = task.id
             alert.group.save(update_fields=["active_resolve_calculation_id"])
 
-    logger.info(f"Created alert {alert.pk} for alert group {alert.group.pk}")
+    logger.debug(
+        f"Created alertmanager alert alert_id={alert.pk} alert_group_id={alert.group.pk} channel_id={alert_receive_channel.pk}"
+    )
 
 
 @shared_task(
@@ -72,16 +78,16 @@ def create_alertmanager_alerts(alert_receive_channel_pk, alert, is_demo=False, f
     max_retries=1 if settings.DEBUG else None,
 )
 def create_alert(
-    title,
-    message,
-    image_url,
-    link_to_upstream_details,
-    alert_receive_channel_pk,
-    integration_unique_data,
-    raw_request_data,
-    is_demo=False,
-    force_route_id=None,
-):
+    title: typing.Optional[str],
+    message: typing.Optional[str],
+    image_url: typing.Optional[str],
+    link_to_upstream_details: typing.Optional[str],
+    alert_receive_channel_pk: int,
+    integration_unique_data: typing.Optional[typing.Dict],
+    raw_request_data: "Alert.RawRequestData",
+    is_demo: bool = False,
+    received_at: typing.Optional[str] = None,
+) -> None:
     from apps.alerts.models import Alert, AlertReceiveChannel
 
     try:
@@ -101,10 +107,12 @@ def create_alert(
             alert_receive_channel=alert_receive_channel,
             integration_unique_data=integration_unique_data,
             raw_request_data=raw_request_data,
-            force_route_id=force_route_id,
             is_demo=is_demo,
+            received_at=received_at,
         )
-        logger.info(f"Created alert {alert.pk} for alert group {alert.group.pk}")
+        logger.debug(
+            f"Created alert alert_id={alert.pk} alert_group_id={alert.group.pk} channel_id={alert_receive_channel.pk}"
+        )
     except ConcurrentUpdateError:
         # This error is raised when there are concurrent updates on AlertGroupCounter due to optimistic lock on it.
         # The idea is to not block the worker with a database lock and retry the task in case of concurrent updates.
@@ -119,6 +127,9 @@ def create_alert(
                 integration_unique_data,
                 raw_request_data,
             ),
+            kwargs={
+                "received_at": received_at,
+            },
             countdown=countdown,
         )
         logger.warning(f"Retrying the task gracefully in {countdown} seconds due to ConcurrentUpdateError")
@@ -158,7 +169,7 @@ def notify_about_integration_ratelimit_in_slack(organization_id, text, **kwargs)
         slack_team_identity = organization.slack_team_identity
         if slack_team_identity is not None:
             try:
-                sc = SlackClient(slack_team_identity)
-                sc.chat_postMessage(channel=organization.general_log_channel_id, text=text, team=slack_team_identity)
+                sc = SlackClient(slack_team_identity, enable_ratelimit_retry=True)
+                sc.chat_postMessage(channel=organization.general_log_channel_id, text=text)
             except SlackAPIError as e:
                 logger.warning(f"Slack exception {e} while sending message for organization {organization_id}")

@@ -1,5 +1,5 @@
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
-import { Channel } from 'models/channel';
+import { Channel } from 'models/channel/channel';
 import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
 import { LabelKeyValue } from 'models/label/label.types';
 import { PagedUser, User } from 'models/user/user.types';
@@ -88,6 +88,18 @@ export interface Alert {
   // set by client
   loading?: boolean;
   undoAction?: AlertAction;
+}
+
+export interface AlertGroupColumn {
+  id: string;
+  name: string;
+  isVisible: boolean;
+  type?: AlertGroupColumnType;
+}
+
+export enum AlertGroupColumnType {
+  DEFAULT = 'default',
+  LABEL = 'label',
 }
 
 interface RenderForWeb {

@@ -1,6 +1,5 @@
 import React from 'react';
 
-import { LabelTag } from '@grafana/labels';
 import {
   HorizontalGroup,
   Button,
@@ -20,46 +19,46 @@ import CopyToClipboard from 'react-copy-to-clipboard';
 import Emoji from 'react-emoji-render';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 
-import GTable from 'components/GTable/GTable';
-import HamburgerMenu from 'components/HamburgerMenu/HamburgerMenu';
-import IntegrationLogo from 'components/IntegrationLogo/IntegrationLogo';
+import { GTable } from 'components/GTable/GTable';
+import { HamburgerMenu } from 'components/HamburgerMenu/HamburgerMenu';
+import { IntegrationLogo } from 'components/IntegrationLogo/IntegrationLogo';
+import { LabelsTooltipBadge } from 'components/LabelsTooltipBadge/LabelsTooltipBadge';
 import { PageBaseState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
 import {
   getWrongTeamResponseInfo,
   initErrorDataState,
 } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper.helpers';
-import PluginLink from 'components/PluginLink/PluginLink';
-import RenderConditionally from 'components/RenderConditionally/RenderConditionally';
-import Text from 'components/Text/Text';
-import TextEllipsisTooltip from 'components/TextEllipsisTooltip/TextEllipsisTooltip';
-import TooltipBadge from 'components/TooltipBadge/TooltipBadge';
+import { PluginLink } from 'components/PluginLink/PluginLink';
+import { RenderConditionally } from 'components/RenderConditionally/RenderConditionally';
+import { Text } from 'components/Text/Text';
+import { TextEllipsisTooltip } from 'components/TextEllipsisTooltip/TextEllipsisTooltip';
+import { TooltipBadge } from 'components/TooltipBadge/TooltipBadge';
 import { WithContextMenu } from 'components/WithContextMenu/WithContextMenu';
-import IntegrationForm from 'containers/IntegrationForm/IntegrationForm';
-import IntegrationLabelsForm from 'containers/IntegrationLabelsForm/IntegrationLabelsForm';
-import RemoteFilters from 'containers/RemoteFilters/RemoteFilters';
-import TeamName from 'containers/TeamName/TeamName';
+import { IntegrationForm } from 'containers/IntegrationForm/IntegrationForm';
+import { IntegrationLabelsForm } from 'containers/IntegrationLabelsForm/IntegrationLabelsForm';
+import { RemoteFilters } from 'containers/RemoteFilters/RemoteFilters';
+import { TeamName } from 'containers/TeamName/TeamName';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
-import { HeartIcon, HeartRedIcon } from 'icons';
+import { HeartIcon, HeartRedIcon } from 'icons/Icons';
 import { AlertReceiveChannelStore } from 'models/alert_receive_channel/alert_receive_channel';
 import {
   AlertReceiveChannel,
   MaintenanceMode,
   SupportedIntegrationFilters,
 } from 'models/alert_receive_channel/alert_receive_channel.types';
-import { LabelKeyValue } from 'models/label/label.types';
-import IntegrationHelper from 'pages/integration/Integration.helper';
+import { IntegrationHelper } from 'pages/integration/Integration.helper';
 import { AppFeature } from 'state/features';
 import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
-import { openNotification } from 'utils';
-import LocationHelper from 'utils/LocationHelper';
-import { UserActions } from 'utils/authorization';
+import { LocationHelper } from 'utils/LocationHelper';
+import { UserActions } from 'utils/authorization/authorization';
 import { PAGE, TEXT_ELLIPSIS_CLASS } from 'utils/consts';
+import { openNotification } from 'utils/utils';
 
 import styles from './Integrations.module.scss';
 
 enum TabType {
-  Connections = 'connections',
+  MonitoringSystems = 'monitoring-systems',
   DirectPaging = 'direct-paging',
 }
 
@@ -67,11 +66,11 @@ const TAB_QUERY_PARAM_KEY = 'tab';
 
 const TABS = [
   {
-    label: 'Connections',
-    value: TabType.Connections,
+    label: 'Monitoring Systems',
+    value: TabType.MonitoringSystems,
   },
   {
-    label: 'Direct Paging',
+    label: 'Manual Direct Paging',
     value: TabType.DirectPaging,
   },
 ];
@@ -99,7 +98,7 @@ interface IntegrationsState extends PageBaseState {
 interface IntegrationsProps extends WithStoreProps, PageProps, RouteComponentProps<{ id: string }> {}
 
 @observer
-class Integrations extends React.Component<IntegrationsProps, IntegrationsState> {
+class _IntegrationsPage extends React.Component<IntegrationsProps, IntegrationsState> {
   constructor(props: IntegrationsProps) {
     super(props);
 
@@ -107,7 +106,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
       integrationsFilters: { searchTerm: '', integration_ne: ['direct_paging'] },
       errorData: initErrorDataState(),
       confirmationModal: undefined,
-      activeTab: props.query[TAB_QUERY_PARAM_KEY] || TabType.Connections,
+      activeTab: props.query[TAB_QUERY_PARAM_KEY] || TabType.MonitoringSystems,
     };
   }
 
@@ -205,8 +204,8 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
     const { alertReceiveChannelStore } = store;
 
     const { count, results, page_size } = alertReceiveChannelStore.getPaginatedSearchResult();
-    const isDirectPagingSelectedOnConnectionsTab =
-      activeTab === TabType.Connections && integrationsFilters.integration?.includes('direct_paging');
+    const isDirectPagingSelectedOnMonitoringSystemsTab =
+      activeTab === TabType.MonitoringSystems && integrationsFilters.integration?.includes('direct_paging');
 
     return (
       <>
@@ -254,7 +253,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
                   skipFilterOptionFn: ({ name }) => name === 'integration',
                 })}
               />
-              {isDirectPagingSelectedOnConnectionsTab && (
+              {isDirectPagingSelectedOnMonitoringSystemsTab && (
                 <Alert
                   className={cx('goToDirectPagingAlert')}
                   severity="info"
@@ -271,11 +270,10 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
               )}
               <GTable
                 emptyText={count === undefined ? 'Loading...' : 'No integrations found'}
-                loading={count === undefined}
                 data-testid="integrations-table"
                 rowKey="id"
                 data={results}
-                columns={this.getTableColumns(store.hasFeature.bind(store))}
+                columns={this.getTableColumns(store.hasFeature)}
                 className={cx('integrations-table')}
                 rowClassName={cx('integrations-table-row')}
                 pagination={{
@@ -295,6 +293,9 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
             }}
             onSubmit={this.update}
             id={alertReceiveChannelId}
+            navigateToAlertGroupLabels={(id: AlertReceiveChannel['id']) => {
+              this.setState({ alertReceiveChannelId: undefined, alertReceiveChannelIdToShowLabels: id });
+            }}
           />
         )}
 
@@ -305,7 +306,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
             }}
             onSubmit={this.update}
             id={alertReceiveChannelIdToShowLabels}
-            onOpenIntegraionSettings={(id: AlertReceiveChannel['id']) => {
+            onOpenIntegrationSettings={(id: AlertReceiveChannel['id']) => {
               this.setState({ alertReceiveChannelId: id });
             }}
           />
@@ -345,7 +346,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
       >
         <TextEllipsisTooltip placement="top" content={item.verbal_name}>
           <Text type="link" size="medium">
-            <Emoji className={cx('title', TEXT_ELLIPSIS_CLASS)} text={item.verbal_name} />
+            <Emoji className={cx(TEXT_ELLIPSIS_CLASS)} text={item.verbal_name} />
           </Text>
         </TextEllipsisTooltip>
       </PluginLink>
@@ -438,6 +439,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
       <div>
         {alertReceiveChannel.is_available_for_integration_heartbeat && heartbeat?.last_heartbeat_time_verbal && (
           <TooltipBadge
+            testId="heartbeat-badge"
             text={undefined}
             className={cx('heartbeat-badge')}
             placement="top"
@@ -472,37 +474,6 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
     return null;
   }
 
-  renderLabels(item: AlertReceiveChannel) {
-    if (!item.labels.length) {
-      return null;
-    }
-
-    return (
-      <TooltipBadge
-        borderType="secondary"
-        icon="tag-alt"
-        addPadding
-        text={item.labels?.length}
-        tooltipContent={
-          <VerticalGroup spacing="sm">
-            {item.labels.map((label) => (
-              <HorizontalGroup spacing="sm" key={label.key.id}>
-                <LabelTag label={label.key.name} value={label.value.name} key={label.key.id} />
-                <Button
-                  size="sm"
-                  icon="filter"
-                  tooltip="Apply filter"
-                  variant="secondary"
-                  onClick={this.getApplyLabelFilterClickHandler(label)}
-                />
-              </HorizontalGroup>
-            ))}
-          </VerticalGroup>
-        }
-      />
-    );
-  }
-
   renderTeam(item: AlertReceiveChannel, teams: any) {
     return (
       <TextEllipsisTooltip placement="top" content={teams[item.team]?.name}>
@@ -527,7 +498,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
             {store.hasFeature(AppFeature.Labels) && (
               <WithPermissionControlTooltip key="edit" userAction={UserActions.IntegrationsWrite}>
                 <div className={cx('integrations-actionItem')} onClick={() => this.onLabelsEditClick(item.id)}>
-                  <Text type="primary">Alert group labels</Text>
+                  <Text type="primary">Alert group labeling</Text>
                 </div>
               </WithPermissionControlTooltip>
             )}
@@ -583,8 +554,12 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
   };
 
   getTableColumns = (hasFeatureFn) => {
-    const { grafanaTeamStore, alertReceiveChannelStore } = this.props.store;
-    const isConnectionsTab = this.state.activeTab === TabType.Connections;
+    const {
+      grafanaTeamStore,
+      alertReceiveChannelStore,
+      filtersStore: { applyLabelFilter },
+    } = this.props.store;
+    const isMonitoringSystemsTab = this.state.activeTab === TabType.MonitoringSystems;
 
     const columns = [
       {
@@ -606,7 +581,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
         key: 'datasource',
         render: (item: AlertReceiveChannel) => this.renderDatasource(item, alertReceiveChannelStore),
       },
-      ...(isConnectionsTab
+      ...(isMonitoringSystemsTab
         ? [
             {
               width: '10%',
@@ -623,7 +598,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
           ]
         : []),
       {
-        width: isConnectionsTab ? '15%' : '30%',
+        width: isMonitoringSystemsTab ? '15%' : '30%',
         title: 'Team',
         render: (item: AlertReceiveChannel) => this.renderTeam(item, grafanaTeamStore.items),
       },
@@ -639,7 +614,9 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
       columns.splice(-2, 0, {
         width: '10%',
         title: 'Labels',
-        render: (item: AlertReceiveChannel) => this.renderLabels(item),
+        render: ({ labels }: AlertReceiveChannel) => (
+          <LabelsTooltipBadge labels={labels} onClick={(label) => applyLabelFilter(label, PAGE.Integrations)} />
+        ),
       });
       columns.find((column) => column.key === 'datasource').width = '15%';
     }
@@ -683,29 +660,6 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
     this.setState({ integrationsFilters }, () => this.debouncedUpdateIntegrations(isOnMount));
   };
 
-  getApplyLabelFilterClickHandler = (label: LabelKeyValue) => {
-    const {
-      store: { filtersStore },
-    } = this.props;
-
-    const {
-      integrationsFilters: { label: oldLabelFilter = [] },
-    } = this.state;
-
-    return () => {
-      const labelToAddString = `${label.key.id}:${label.value.id}`;
-      if (oldLabelFilter.some((label) => label === labelToAddString)) {
-        return;
-      }
-
-      const newLabelFilter = [...oldLabelFilter, labelToAddString];
-
-      LocationHelper.update({ label: newLabelFilter }, 'partial');
-
-      filtersStore.setNeedToParseFilters(true);
-    };
-  };
-
   applyFilters = async (isOnMount: boolean) => {
     const { store } = this.props;
     const { alertReceiveChannelStore } = store;
@@ -727,4 +681,4 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
   debouncedUpdateIntegrations = debounce(this.applyFilters, FILTERS_DEBOUNCE_MS);
 }
 
-export default withRouter(withMobXProviderContext(Integrations));
+export const IntegrationsPage = withRouter(withMobXProviderContext(_IntegrationsPage));

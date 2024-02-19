@@ -1,12 +1,8 @@
-export interface Label {
-  id: string;
-  name: string;
-}
-
-export interface LabelKey extends Label {}
-export interface LabelValue extends Label {}
+import { ApiSchemas } from 'network/oncall-api/api.types';
 
 export interface LabelKeyValue {
-  key: LabelKey;
-  value: LabelValue;
+  key: ApiSchemas['LabelKey'];
+  value: ApiSchemas['LabelValue'];
 }
+
+export type LabelsErrors = Array<{ key?: { id: string[]; name: string[] }; value?: { id: string[]; name: string[] } }>;

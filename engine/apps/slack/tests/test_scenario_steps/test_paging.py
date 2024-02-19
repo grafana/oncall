@@ -5,6 +5,7 @@ import pytest
 from django.utils import timezone
 
 from apps.alerts.models import AlertReceiveChannel
+from apps.api.permissions import LegacyAccessControlRole
 from apps.schedules.models import CustomOnCallShift, OnCallScheduleWeb
 from apps.slack.scenarios.paging import (
     DIRECT_PAGING_MESSAGE_INPUT_ID,
@@ -64,15 +65,32 @@ def make_slack_payload(organization, team=None, user=None, current_users=None, a
 def test_initial_state(
     make_organization_and_user_with_slack_identities,
 ):
-    _, _, slack_team_identity, slack_user_identity = make_organization_and_user_with_slack_identities()
+    _, user, slack_team_identity, slack_user_identity = make_organization_and_user_with_slack_identities()
+    payload = {"channel_id": "123", "trigger_id": "111"}
+
+    step = StartDirectPaging(slack_team_identity, user=user)
+    with patch.object(step._slack_client, "views_open") as mock_slack_api_call:
+        step.process_scenario(slack_user_identity, slack_team_identity, payload)
+
+    metadata = json.loads(mock_slack_api_call.call_args.kwargs["view"]["private_metadata"])
+    assert metadata[DataKey.USERS] == {}
+
+
+@pytest.mark.parametrize("role", (LegacyAccessControlRole.VIEWER, LegacyAccessControlRole.NONE))
+@pytest.mark.django_db
+def test_initial_unauthorized(make_organization_and_user_with_slack_identities, role):
+    _, _, slack_team_identity, slack_user_identity = make_organization_and_user_with_slack_identities(role=role)
     payload = {"channel_id": "123", "trigger_id": "111"}
 
     step = StartDirectPaging(slack_team_identity)
     with patch.object(step._slack_client, "views_open") as mock_slack_api_call:
         step.process_scenario(slack_user_identity, slack_team_identity, payload)
 
-    metadata = json.loads(mock_slack_api_call.call_args.kwargs["view"]["private_metadata"])
-    assert metadata[DataKey.USERS] == {}
+    view = mock_slack_api_call.call_args.kwargs["view"]
+    assert (
+        view["blocks"][0]["text"]["text"]
+        == ":warning: You do not have permission to perform this action.\nAsk an admin to upgrade your permissions."
+    )
 
 
 @pytest.mark.django_db
@@ -214,10 +232,10 @@ def test_remove_user(make_organization_and_user_with_slack_identities):
 
 @pytest.mark.django_db
 def test_trigger_paging_no_team_or_user_selected(make_organization_and_user_with_slack_identities):
-    organization, _, slack_team_identity, slack_user_identity = make_organization_and_user_with_slack_identities()
+    organization, user, slack_team_identity, slack_user_identity = make_organization_and_user_with_slack_identities()
     payload = make_slack_payload(organization=organization)
 
-    step = FinishDirectPaging(slack_team_identity)
+    step = FinishDirectPaging(slack_team_identity, user=user)
 
     with patch.object(step._slack_client, "api_call"):
         response = step.process_scenario(slack_user_identity, slack_team_identity, payload)
@@ -228,6 +246,25 @@ def test_trigger_paging_no_team_or_user_selected(make_organization_and_user_with
     assert (
         response["view"]["blocks"][0]["text"]["text"]
         == ":warning: At least one team or one user must be selected to directly page"
+    )
+
+
+@pytest.mark.parametrize("role", (LegacyAccessControlRole.VIEWER, LegacyAccessControlRole.NONE))
+@pytest.mark.django_db
+def test_trigger_paging_unauthorized(make_organization_and_user_with_slack_identities, role):
+    organization, user, slack_team_identity, slack_user_identity = make_organization_and_user_with_slack_identities(
+        role=role
+    )
+    payload = make_slack_payload(organization=organization)
+
+    step = FinishDirectPaging(slack_team_identity)
+    with patch.object(step._slack_client, "api_call"):
+        response = step.process_scenario(slack_user_identity, slack_team_identity, payload)
+    response = response.data
+
+    assert response["response_action"] == "update"
+    assert (
+        response["view"]["blocks"][0]["text"]["text"] == ":no_entry: You do not have permission to perform this action."
     )
 
 
@@ -284,6 +321,9 @@ def test_get_team_select_blocks(
 
     input_id_prefix = "nmxcnvmnxv"
 
+    def _contstruct_team_option(team):
+        return {"text": {"emoji": True, "text": team.name, "type": "plain_text"}, "value": str(team.pk)}
+
     # no team selected - no team direct paging integrations available
     organization, _, _, slack_user_identity = make_organization_and_user_with_slack_identities()
     blocks = _get_team_select_blocks(slack_user_identity, organization, False, None, input_id_prefix)
@@ -309,33 +349,64 @@ def test_get_team_select_blocks(
     assert len(blocks) == 2
     input_block, context_block = blocks
 
-    team_option = {"text": {"emoji": True, "text": team.name, "type": "plain_text"}, "value": str(team.pk)}
-
     assert input_block["type"] == "input"
     assert len(input_block["element"]["options"]) == 1
-    assert input_block["element"]["options"] == [team_option]
+    assert input_block["element"]["options"] == [_contstruct_team_option(team)]
     assert context_block["elements"][0]["text"] == info_msg
 
     # team selected
     organization, _, _, slack_user_identity = make_organization_and_user_with_slack_identities()
-    team = make_team(organization)
-    arc = make_alert_receive_channel(organization, team=team, integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING)
-    escalation_chain = make_escalation_chain(organization)
-    make_channel_filter(arc, is_default=True, escalation_chain=escalation_chain)
+    team1 = make_team(organization)
+    team2 = make_team(organization)
 
-    blocks = _get_team_select_blocks(slack_user_identity, organization, True, team.pk, input_id_prefix)
+    def _setup_direct_paging_integration(team):
+        arc = make_alert_receive_channel(
+            organization, team=team, integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING
+        )
+        escalation_chain = make_escalation_chain(organization)
+        make_channel_filter(arc, is_default=True, escalation_chain=escalation_chain)
+        return arc
+
+    _setup_direct_paging_integration(team1)
+    team2_direct_paging_arc = _setup_direct_paging_integration(team2)
+
+    blocks = _get_team_select_blocks(slack_user_identity, organization, True, team2, input_id_prefix)
 
     assert len(blocks) == 2
     input_block, context_block = blocks
 
-    team_option = {"text": {"emoji": True, "text": team.name, "type": "plain_text"}, "value": str(team.pk)}
+    team1_option = _contstruct_team_option(team1)
+    team2_option = _contstruct_team_option(team2)
+
+    def _sort_team_options(options):
+        return sorted(options, key=lambda o: o["value"])
 
     assert input_block["type"] == "input"
-    assert len(input_block["element"]["options"]) == 1
-    assert input_block["element"]["options"] == [team_option]
-    assert input_block["element"]["initial_option"] == team_option
+    assert len(input_block["element"]["options"]) == 2
+    assert _sort_team_options(input_block["element"]["options"]) == _sort_team_options([team1_option, team2_option])
+    assert input_block["element"]["initial_option"] == team2_option
 
     assert (
         context_block["elements"][0]["text"]
-        == f"Integration <{arc.web_link}|{arc.verbal_name}> will be used for notification."
+        == f"Integration <{team2_direct_paging_arc.web_link}|{team2_direct_paging_arc.verbal_name}> will be used for notification."
     )
+
+    # team's direct paging integration has two routes associated with it
+    # the team should only be displayed once
+    organization, _, _, slack_user_identity = make_organization_and_user_with_slack_identities()
+    team = make_team(organization)
+
+    arc = make_alert_receive_channel(organization, team=team, integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING)
+    escalation_chain = make_escalation_chain(organization)
+    make_channel_filter(arc, is_default=True, escalation_chain=escalation_chain)
+    make_channel_filter(arc, escalation_chain=escalation_chain)
+
+    blocks = _get_team_select_blocks(slack_user_identity, organization, False, None, input_id_prefix)
+
+    assert len(blocks) == 2
+    input_block, context_block = blocks
+
+    assert input_block["type"] == "input"
+    assert len(input_block["element"]["options"]) == 1
+    assert input_block["element"]["options"] == [_contstruct_team_option(team)]
+    assert context_block["elements"][0]["text"] == info_msg

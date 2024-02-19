@@ -5,20 +5,19 @@ import { Button, IconButton, Select } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { SortableElement } from 'react-sortable-hoc';
 
-import PluginLink from 'components/PluginLink/PluginLink';
-import Timeline from 'components/Timeline/Timeline';
+import { PluginLink } from 'components/PluginLink/PluginLink';
+import { Timeline } from 'components/Timeline/Timeline';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
-import { Channel } from 'models/channel';
-import { NotificationPolicyType, prepareNotificationPolicy } from 'models/notification_policy';
-import { NotifyBy } from 'models/notify_by';
+import { Channel } from 'models/channel/channel';
+import { NotificationPolicyType, prepareNotificationPolicy } from 'models/notification_policy/notification_policy';
 import { User } from 'models/user/user.types';
-import { WaitDelay } from 'models/wait_delay';
-import { RootStore } from 'state';
 import { AppFeature } from 'state/features';
-import { UserAction } from 'utils/authorization';
+import { RootStore } from 'state/rootStore';
+import { SelectOption } from 'state/types';
+import { UserAction } from 'utils/authorization/authorization';
 
-import DragHandle from './DragHandle';
-import PolicyNote from './PolicyNote';
+import { DragHandle } from './DragHandle';
+import { PolicyNote } from './PolicyNote';
 
 import styles from './NotificationPolicy.module.css';
 
@@ -34,8 +33,8 @@ export interface NotificationPolicyProps {
   onDelete: (id: string) => void;
   notificationChoices: any[];
   channels?: any[];
-  waitDelays?: WaitDelay[];
-  notifyByOptions?: NotifyBy[];
+  waitDelays?: SelectOption[];
+  notifyByOptions?: SelectOption[];
   telegramVerified: boolean;
   phoneStatus: number;
   isMobileAppConnected: boolean;
@@ -53,7 +52,7 @@ export class NotificationPolicy extends React.Component<NotificationPolicyProps,
     const { id, step } = data;
 
     return (
-      <Timeline.Item className={cx('root')} number={number} backgroundColor={color}>
+      <Timeline.Item className={cx('root')} number={number} backgroundHexNumber={color}>
         <div className={cx('step')}>
           {!isDisabled && (
             <WithPermissionControlTooltip disableByPaywall userAction={userAction}>
@@ -72,6 +71,7 @@ export class NotificationPolicy extends React.Component<NotificationPolicyProps,
           {this._renderControls(isDisabled)}
           <WithPermissionControlTooltip userAction={userAction}>
             <IconButton
+              aria-label="Remove"
               className={cx('control')}
               name="trash-alt"
               onClick={this._getDeleteClickHandler(id)}
@@ -184,7 +184,7 @@ export class NotificationPolicy extends React.Component<NotificationPolicyProps,
           value={wait_delay}
           disabled={disabled}
           onChange={this._getOnChangeHandler('wait_delay')}
-          options={waitDelays.map((waitDelay: WaitDelay) => ({
+          options={waitDelays.map((waitDelay: SelectOption) => ({
             label: waitDelay.display_name,
             value: waitDelay.value,
           }))}
@@ -207,7 +207,7 @@ export class NotificationPolicy extends React.Component<NotificationPolicyProps,
           value={notify_by}
           disabled={disabled}
           onChange={this._getOnChangeHandler('notify_by')}
-          options={notifyByOptions.map((notifyByOption: NotifyBy) => ({
+          options={notifyByOptions.map((notifyByOption: SelectOption) => ({
             label: notifyByOption.display_name,
             value: notifyByOption.value,
           }))}

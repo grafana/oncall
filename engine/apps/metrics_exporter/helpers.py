@@ -22,9 +22,11 @@ from apps.metrics_exporter.constants import (
     RecalculateMetricsTimer,
     UserWasNotifiedOfAlertGroupsMetricsDict,
 )
+from common.cache import ensure_cache_key_allocates_to_the_same_hash_slot
 
 if typing.TYPE_CHECKING:
     from apps.alerts.models import AlertReceiveChannel
+    from apps.user_management.models import Organization
 
 
 def get_organization_ids_from_db():
@@ -97,24 +99,27 @@ def get_metrics_cache_timeout(organization_id):
 
 
 def get_metrics_cache_timer_key(organization_id) -> str:
-    return f"{METRICS_CACHE_TIMER}_{organization_id}"
-
-
-def get_metrics_cache_timer_for_organization(organization_id):
-    key = get_metrics_cache_timer_key(organization_id)
-    return cache.get(key)
+    return ensure_cache_key_allocates_to_the_same_hash_slot(
+        f"{METRICS_CACHE_TIMER}_{organization_id}", METRICS_CACHE_TIMER
+    )
 
 
 def get_metric_alert_groups_total_key(organization_id) -> str:
-    return f"{ALERT_GROUPS_TOTAL}_{organization_id}"
+    return ensure_cache_key_allocates_to_the_same_hash_slot(
+        f"{ALERT_GROUPS_TOTAL}_{organization_id}", ALERT_GROUPS_TOTAL
+    )
 
 
 def get_metric_alert_groups_response_time_key(organization_id) -> str:
-    return f"{ALERT_GROUPS_RESPONSE_TIME}_{organization_id}"
+    return ensure_cache_key_allocates_to_the_same_hash_slot(
+        f"{ALERT_GROUPS_RESPONSE_TIME}_{organization_id}", ALERT_GROUPS_RESPONSE_TIME
+    )
 
 
 def get_metric_user_was_notified_of_alert_groups_key(organization_id) -> str:
-    return f"{USER_WAS_NOTIFIED_OF_ALERT_GROUPS}_{organization_id}"
+    return ensure_cache_key_allocates_to_the_same_hash_slot(
+        f"{USER_WAS_NOTIFIED_OF_ALERT_GROUPS}_{organization_id}", USER_WAS_NOTIFIED_OF_ALERT_GROUPS
+    )
 
 
 def get_metric_calculation_started_key(metric_name) -> str:
@@ -156,50 +161,56 @@ def metrics_remove_deleted_integration_from_cache(integration: "AlertReceiveChan
             cache.set(metric_key, metric_cache, timeout=metrics_cache_timeout)
 
 
-def metrics_add_integration_to_cache(integration: "AlertReceiveChannel"):
-    """Add new integration data to metrics cache"""
-    metrics_cache_timeout = get_metrics_cache_timeout(integration.organization_id)
-    metric_alert_groups_total_key = get_metric_alert_groups_total_key(integration.organization_id)
+def metrics_add_integrations_to_cache(integrations: list["AlertReceiveChannel"], organization: "Organization"):
+    """
+    Bulk add new integration data to metrics cache. This method is safe to call multiple times on the same integrations.
+    """
+    metrics_cache_timeout = get_metrics_cache_timeout(organization.id)
+    metric_alert_groups_total_key = get_metric_alert_groups_total_key(organization.id)
 
-    instance_slug = integration.organization.stack_slug
-    instance_id = integration.organization.stack_id
-    grafana_org_id = integration.organization.org_id
+    instance_slug = organization.stack_slug
+    instance_id = organization.stack_id
+    grafana_org_id = organization.org_id
     metric_alert_groups_total: typing.Dict[int, AlertGroupsTotalMetricsDict] = cache.get(
         metric_alert_groups_total_key, {}
     )
-    metric_alert_groups_total.setdefault(
-        integration.id,
-        {
-            "integration_name": integration.emojized_verbal_name,
-            "team_name": integration.team_name,
-            "team_id": integration.team_id_or_no_team,
-            "org_id": grafana_org_id,
-            "slug": instance_slug,
-            "id": instance_id,
-            AlertGroupState.FIRING.value: 0,
-            AlertGroupState.ACKNOWLEDGED.value: 0,
-            AlertGroupState.RESOLVED.value: 0,
-            AlertGroupState.SILENCED.value: 0,
-        },
-    )
+
+    for integration in integrations:
+        metric_alert_groups_total.setdefault(
+            integration.id,
+            {
+                "integration_name": integration.emojized_verbal_name,
+                "team_name": integration.team_name,
+                "team_id": integration.team_id_or_no_team,
+                "org_id": grafana_org_id,
+                "slug": instance_slug,
+                "id": instance_id,
+                AlertGroupState.FIRING.value: 0,
+                AlertGroupState.ACKNOWLEDGED.value: 0,
+                AlertGroupState.RESOLVED.value: 0,
+                AlertGroupState.SILENCED.value: 0,
+            },
+        )
     cache.set(metric_alert_groups_total_key, metric_alert_groups_total, timeout=metrics_cache_timeout)
 
-    metric_alert_groups_response_time_key = get_metric_alert_groups_response_time_key(integration.organization_id)
+    metric_alert_groups_response_time_key = get_metric_alert_groups_response_time_key(organization.id)
     metric_alert_groups_response_time: typing.Dict[int, AlertGroupsResponseTimeMetricsDict] = cache.get(
         metric_alert_groups_response_time_key, {}
     )
-    metric_alert_groups_response_time.setdefault(
-        integration.id,
-        {
-            "integration_name": integration.emojized_verbal_name,
-            "team_name": integration.team_name,
-            "team_id": integration.team_id_or_no_team,
-            "org_id": grafana_org_id,
-            "slug": instance_slug,
-            "id": instance_id,
-            "response_time": [],
-        },
-    )
+
+    for integration in integrations:
+        metric_alert_groups_response_time.setdefault(
+            integration.id,
+            {
+                "integration_name": integration.emojized_verbal_name,
+                "team_name": integration.team_name,
+                "team_id": integration.team_id_or_no_team,
+                "org_id": grafana_org_id,
+                "slug": instance_slug,
+                "id": instance_id,
+                "response_time": [],
+            },
+        )
     cache.set(metric_alert_groups_response_time_key, metric_alert_groups_response_time, timeout=metrics_cache_timeout)
 
 

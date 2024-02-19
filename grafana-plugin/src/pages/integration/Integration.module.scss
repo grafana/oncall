@@ -101,14 +101,14 @@ $LARGE-MARGIN: 24px;
 }
 
 .routesSection {
-  padding-top: 20px;
-
   &__heading {
     font-size: 16px;
   }
+}
 
-  &__add {
-    margin-bottom: $LARGE-MARGIN;
+:global(.theme-light) {
+  .input {
+    border: var(--border-weak);
   }
 }
 
@@ -116,6 +116,7 @@ $LARGE-MARGIN: 24px;
   flex-grow: 1;
   max-width: calc(100% - 80px);
 }
+
 .input-with-toggler {
   max-width: calc(100% - 134px);
 }
@@ -213,6 +214,7 @@ $LARGE-MARGIN: 24px;
 
 .inline-switch {
   height: 34px;
+  border: var(--border-weak);
 }
 
 .contactpoints {

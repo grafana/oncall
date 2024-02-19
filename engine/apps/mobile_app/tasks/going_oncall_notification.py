@@ -12,9 +12,15 @@ from django.utils import timezone
 from firebase_admin.messaging import APNSPayload, Aps, ApsAlert, CriticalSound, Message
 
 from apps.mobile_app.types import FCMMessageData, MessageType, Platform
-from apps.mobile_app.utils import MAX_RETRIES, construct_fcm_message, send_push_notification
+from apps.mobile_app.utils import (
+    MAX_RETRIES,
+    add_stack_slug_to_message_title,
+    construct_fcm_message,
+    send_push_notification,
+)
 from apps.schedules.models.on_call_schedule import OnCallSchedule, ScheduleEvent
 from apps.user_management.models import User
+from common.cache import ensure_cache_key_allocates_to_the_same_hash_slot
 from common.custom_celery_tasks import shared_dedicated_queue_retry_task
 from common.l10n import format_localized_datetime, format_localized_time
 
@@ -27,7 +33,12 @@ logger.setLevel(logging.DEBUG)
 
 
 def _get_notification_title(seconds_until_going_oncall: int) -> str:
-    return f"Your on-call shift starts in {humanize.naturaldelta(seconds_until_going_oncall)}"
+    from apps.mobile_app.models import MobileAppUserSettings
+
+    rounded_seconds = min(
+        MobileAppUserSettings.ALL_NOTIFICATION_TIMING_CHOICES_SECONDS, key=lambda x: abs(x - seconds_until_going_oncall)
+    )
+    return f"Your on-call shift starts in {humanize.naturaldelta(rounded_seconds)}"
 
 
 def _get_notification_subtitle(
@@ -71,8 +82,9 @@ def _get_fcm_message(
     notification_subtitle = _get_notification_subtitle(schedule, schedule_event, mobile_app_user_settings)
 
     data: FCMMessageData = {
-        "title": notification_title,
+        "title": add_stack_slug_to_message_title(notification_title, user.organization),
         "subtitle": notification_subtitle,
+        "orgName": user.organization.stack_slug,
         "info_notification_sound_name": mobile_app_user_settings.get_notification_sound_name(
             MessageType.INFO, Platform.ANDROID
         ),
@@ -164,7 +176,10 @@ def _should_we_send_push_notification(
 
 
 def _generate_cache_key(user_pk: str, schedule_event: ScheduleEvent) -> str:
-    return f"going_oncall_push_notification:{user_pk}:{schedule_event['shift']['pk']}"
+    KEY_PREFIX = "going_oncall_push_notification"
+    return ensure_cache_key_allocates_to_the_same_hash_slot(
+        f"{KEY_PREFIX}:{user_pk}:{schedule_event['shift']['pk']}", KEY_PREFIX
+    )
 
 
 @shared_dedicated_queue_retry_task(autoretry_for=(Exception,), retry_backoff=True, max_retries=MAX_RETRIES)

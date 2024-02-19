@@ -4,7 +4,7 @@ import { OrgRole } from '@grafana/data';
 import { contextSrv } from 'grafana/app/core/core';
 import renderer from 'react-test-renderer';
 
-import Unauthorized from 'components/Unauthorized';
+import { Unauthorized } from 'components/Unauthorized/Unauthorized';
 
 jest.mock('grafana/app/core/core', () => ({
   contextSrv: {

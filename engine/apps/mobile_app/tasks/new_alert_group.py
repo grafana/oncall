@@ -6,9 +6,14 @@ from celery.utils.log import get_task_logger
 from firebase_admin.messaging import APNSPayload, Aps, ApsAlert, CriticalSound, Message
 
 from apps.alerts.models import AlertGroup
-from apps.mobile_app.alert_rendering import get_push_notification_subtitle
+from apps.mobile_app.alert_rendering import get_push_notification_subtitle, get_push_notification_title
 from apps.mobile_app.types import FCMMessageData, MessageType, Platform
-from apps.mobile_app.utils import MAX_RETRIES, construct_fcm_message, send_push_notification
+from apps.mobile_app.utils import (
+    MAX_RETRIES,
+    add_stack_slug_to_message_title,
+    construct_fcm_message,
+    send_push_notification,
+)
 from apps.user_management.models import User
 from common.custom_celery_tasks import shared_dedicated_queue_retry_task
 
@@ -26,7 +31,7 @@ def _get_fcm_message(alert_group: AlertGroup, user: User, device_to_notify: "FCM
 
     thread_id = f"{alert_group.channel.organization.public_primary_key}:{alert_group.public_primary_key}"
 
-    alert_title = "New Important Alert" if critical else "New Alert"
+    alert_title = get_push_notification_title(alert_group, critical)
     alert_subtitle = get_push_notification_subtitle(alert_group)
 
     mobile_app_user_settings, _ = MobileAppUserSettings.objects.get_or_create(user=user)
@@ -41,7 +46,7 @@ def _get_fcm_message(alert_group: AlertGroup, user: User, device_to_notify: "FCM
     apns_sound_name = mobile_app_user_settings.get_notification_sound_name(message_type, Platform.IOS)
 
     fcm_message_data: FCMMessageData = {
-        "title": alert_title,
+        "title": add_stack_slug_to_message_title(alert_title, alert_group.channel.organization),
         "subtitle": alert_subtitle,
         "orgId": alert_group.channel.organization.public_primary_key,
         "orgName": alert_group.channel.organization.stack_slug,
@@ -113,7 +118,7 @@ def notify_user_about_new_alert_group(user_pk, alert_group_pk, notification_poli
         logger.warning(f"User notification policy {notification_policy_pk} does not exist")
         return
 
-    def _create_error_log_record():
+    def _create_error_log_record(notification_error_code=None):
         """
         Utility method to create a UserNotificationPolicyLogRecord with error
         """
@@ -125,15 +130,28 @@ def notify_user_about_new_alert_group(user_pk, alert_group_pk, notification_poli
             reason="Mobile push notification error",
             notification_step=notification_policy.step,
             notification_channel=notification_policy.notify_by,
+            notification_error_code=notification_error_code,
         )
 
     device_to_notify = FCMDevice.get_active_device_for_user(user)
 
     # create an error log in case user has no devices set up
     if not device_to_notify:
-        _create_error_log_record()
+        _create_error_log_record(UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_MOBILE_USER_HAS_NO_ACTIVE_DEVICE)
         logger.error(f"Error while sending a mobile push notification: user {user_pk} has no device set up")
         return
 
     message = _get_fcm_message(alert_group, user, device_to_notify, critical)
-    send_push_notification(device_to_notify, message, _create_error_log_record)
+    succeeded = send_push_notification(device_to_notify, message, _create_error_log_record)
+
+    if succeeded:
+        # record success log
+        # (note: send_push_notification should have created a failed log entry if there was an error)
+        UserNotificationPolicyLogRecord.objects.create(
+            author=user,
+            type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_SUCCESS,
+            notification_policy=notification_policy,
+            alert_group=alert_group,
+            notification_step=notification_policy.step,
+            notification_channel=notification_policy.notify_by,
+        )

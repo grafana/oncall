@@ -5,18 +5,18 @@ import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 
-import Block from 'components/GBlock/Block';
-import GTable from 'components/GTable/GTable';
-import Text from 'components/Text/Text';
-import WithConfirm from 'components/WithConfirm/WithConfirm';
-import { CrossCircleIcon, HeartIcon } from 'icons';
+import { Block } from 'components/GBlock/Block';
+import { GTable } from 'components/GTable/GTable';
+import { Text } from 'components/Text/Text';
+import { WithConfirm } from 'components/WithConfirm/WithConfirm';
+import { CrossCircleIcon, HeartIcon } from 'icons/Icons';
 import { Cloud } from 'models/cloud/cloud.types';
 import { WithStoreProps } from 'state/types';
 import { useStore } from 'state/useStore';
 import { withMobXProviderContext } from 'state/withStore';
-import { openErrorNotification } from 'utils';
-import { UserActions, determineRequiredAuthString } from 'utils/authorization';
+import { UserActions, determineRequiredAuthString } from 'utils/authorization/authorization';
 import { PLUGIN_ROOT } from 'utils/consts';
+import { openErrorNotification } from 'utils/utils';
 
 import styles from './CloudPage.module.css';
 
@@ -25,7 +25,7 @@ const cx = cn.bind(styles);
 interface CloudPageProps extends WithStoreProps, RouteComponentProps {}
 const ITEMS_PER_PAGE = 50;
 
-const CloudPage = observer((props: CloudPageProps) => {
+const _CloudPage = observer((props: CloudPageProps) => {
   const store = useStore();
   const [page, setPage] = useState<number>(1);
   const [cloudApiKey, setCloudApiKey] = useState<string>('');
@@ -401,4 +401,4 @@ const CloudPage = observer((props: CloudPageProps) => {
   );
 });
 
-export default withRouter(withMobXProviderContext(CloudPage));
+export const CloudPage = withRouter(withMobXProviderContext(_CloudPage));

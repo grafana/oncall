@@ -1,8 +1,8 @@
-import { action, observable } from 'mobx';
+import { action, observable, makeObservable, runInAction } from 'mobx';
 
-import BaseStore from 'models/base_store';
-import { makeRequest } from 'network';
-import { RootStore } from 'state';
+import { BaseStore } from 'models/base_store';
+import { makeRequest } from 'network/network';
+import { RootStore } from 'state/rootStore';
 
 import { Cloud } from './cloud.types';
 
@@ -19,6 +19,8 @@ export class CloudStore extends BaseStore {
   constructor(rootStore: RootStore) {
     super(rootStore);
 
+    makeObservable(this);
+
     this.path = '/cloud_users/';
   }
 
@@ -28,21 +30,23 @@ export class CloudStore extends BaseStore {
       params: { page },
     });
 
-    this.items = {
-      ...this.items,
-      ...results.reduce(
-        (acc: { [key: number]: Cloud }, item: Cloud) => ({
-          ...acc,
-          [item.id]: item,
-        }),
-        {}
-      ),
-    };
+    runInAction(() => {
+      this.items = {
+        ...this.items,
+        ...results.reduce(
+          (acc: { [key: number]: Cloud }, item: Cloud) => ({
+            ...acc,
+            [item.id]: item,
+          }),
+          {}
+        ),
+      };
 
-    this.searchResult = {
-      matched_users_count,
-      results: results.map((item: Cloud) => item.id),
-    };
+      this.searchResult = {
+        matched_users_count,
+        results: results.map((item: Cloud) => item.id),
+      };
+    });
   }
 
   getSearchResult() {
@@ -68,15 +72,19 @@ export class CloudStore extends BaseStore {
     return await makeRequest(`${this.path}${id}`, { method: 'GET' });
   }
 
+  @action.bound
   async loadCloudConnectionStatus() {
-    this.cloudConnectionStatus = await this.getCloudConnectionStatus();
+    const result = await this.getCloudConnectionStatus();
+
+    runInAction(() => {
+      this.cloudConnectionStatus = result;
+    });
   }
 
   async getCloudConnectionStatus() {
     return await makeRequest(`/cloud_connection/`, { method: 'GET' });
   }
 
-  @action
   async disconnectToCloud() {
     return await makeRequest(`/cloud_connection/`, { method: 'DELETE' });
   }
