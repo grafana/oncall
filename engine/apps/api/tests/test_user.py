@@ -578,11 +578,12 @@ def test_user_detail_other_permissions(
 
     assert response.status_code == expected_status
     # hidden information for editor/viewer
+    available_fields = UserHiddenFieldsSerializer.fields_available_for_all_users + ["hidden_fields"]
     if role in (LegacyAccessControlRole.EDITOR, LegacyAccessControlRole.VIEWER):
         user_details = response.json()
         for f_name in user_details:
-            if f_name not in UserHiddenFieldsSerializer.fields_available_for_all_users:
-                user_details[f_name] = "******"
+            if f_name not in available_fields:
+                assert user_details[f_name] == "******"
 
 
 @pytest.mark.django_db
@@ -1127,9 +1128,10 @@ def test_user_can_detail_users(
     assert response.status_code == status.HTTP_200_OK
     # hidden information though
     user_details = response.json()
+    available_fields = UserHiddenFieldsSerializer.fields_available_for_all_users + ["hidden_fields"]
     for f_name in user_details:
-        if f_name not in UserHiddenFieldsSerializer.fields_available_for_all_users:
-            user_details[f_name] = "******"
+        if f_name not in available_fields:
+            assert user_details[f_name] == "******"
 
 
 @patch("apps.phone_notifications.phone_backend.PhoneBackend.send_verification_sms", return_value=Mock())
