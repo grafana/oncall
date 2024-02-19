@@ -79,7 +79,8 @@ class Webhook(models.Model):
         TRIGGER_UNSILENCE,
         TRIGGER_UNRESOLVE,
         TRIGGER_UNACKNOWLEDGE,
-    ) = range(8)
+        TRIGGER_STATUS_CHANGE,
+    ) = range(9)
 
     # Must be the same order as previous
     TRIGGER_TYPES = (
@@ -91,9 +92,18 @@ class Webhook(models.Model):
         (TRIGGER_UNSILENCE, "Unsilenced"),
         (TRIGGER_UNRESOLVE, "Unresolved"),
         (TRIGGER_UNACKNOWLEDGE, "Unacknowledged"),
+        (TRIGGER_STATUS_CHANGE, "Status change"),
     )
 
     ALL_TRIGGER_TYPES = [i[0] for i in TRIGGER_TYPES]
+    STATUS_CHANGE_TRIGGERS = {
+        TRIGGER_ACKNOWLEDGE,
+        TRIGGER_RESOLVE,
+        TRIGGER_SILENCE,
+        TRIGGER_UNSILENCE,
+        TRIGGER_UNRESOLVE,
+        TRIGGER_UNACKNOWLEDGE,
+    }
 
     PUBLIC_TRIGGER_TYPES_MAP = {
         TRIGGER_ESCALATION_STEP: "escalation",
@@ -104,6 +114,7 @@ class Webhook(models.Model):
         TRIGGER_UNSILENCE: "unsilence",
         TRIGGER_UNRESOLVE: "unresolve",
         TRIGGER_UNACKNOWLEDGE: "unacknowledge",
+        TRIGGER_STATUS_CHANGE: "status change",
     }
 
     PUBLIC_ALL_TRIGGER_TYPES = [i for i in PUBLIC_TRIGGER_TYPES_MAP.values()]
@@ -120,7 +131,7 @@ class Webhook(models.Model):
     )
 
     team = models.ForeignKey(
-        "user_management.Team", null=True, on_delete=models.CASCADE, related_name="webhooks", default=None
+        "user_management.Team", null=True, on_delete=models.SET_NULL, related_name="webhooks", default=None
     )
 
     user = models.ForeignKey(

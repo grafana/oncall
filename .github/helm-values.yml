@@ -7,8 +7,11 @@ env:
   - name: FEATURE_PROMETHEUS_EXPORTER_ENABLED
     value: "True"
 image:
+  repository: oncall/engine
   tag: latest
-  pullPolicy: Always
+  pullPolicy: IfNotPresent
+oncall:
+  devMode: true
 broker:
   type: redis
 redis:

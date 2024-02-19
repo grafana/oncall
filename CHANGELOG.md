@@ -7,14 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+
+- Add status change trigger type to webhooks ([#3920](https://github.com/grafana/oncall/pull/3920))
+
 ### Fixed
 
 - Fix edit default team by admin @mderynck ([#3885](https://github.com/grafana/oncall/pull/3885))
 - Unblock slack install by skipping check chatops gateway link in OSS deployment @mderynck ([#3893](https://github.com/grafana/oncall/pull/3893))
+- Fix multiple issues of alert groups table ([#3894](https://github.com/grafana/oncall/issues/3894))
+- Improvements for dragging the add rotation form in Schedules ([#3904](https://github.com/grafana/oncall/pull/3904))
 
 ### Changed
 
 - Check for permissions on Slack escalate command ([#3891](https://github.com/grafana/oncall/pull/3891))
+- Update OnCall Insights dashboard @Ferril ([#3875](https://github.com/grafana/oncall/pull/3875))
+- Do not delete webhook if its team is deleted @mderynck ([#3873](https://github.com/grafana/oncall/pull/3873))
+- Update user details internal API perms ([#3900](https://github.com/grafana/oncall/pull/3900))
 
 ## v1.3.105 (2024-02-13)
 

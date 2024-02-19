@@ -11,7 +11,6 @@ import styles from './GTable.module.css';
 const cx = cn.bind(styles);
 
 export interface Props<RecordType = unknown> extends TableProps<RecordType> {
-  loading?: boolean;
   pagination?: {
     page: number;
     total: number;
@@ -38,7 +37,6 @@ export const GTable = <RT extends DefaultRecordType = DefaultRecordType>(props: 
     data,
     className,
     pagination,
-    loading,
     rowSelection,
     rowKey,
     expandable,

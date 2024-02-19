@@ -234,7 +234,6 @@ class UserView(
         IsOwnerOrHasUserSettingsAdminPermission: [
             "metadata",
             "list",
-            "retrieve",
             "update",
             "partial_update",
             "destroy",
@@ -255,6 +254,7 @@ class UserView(
         ],
         IsOwnerOrHasUserSettingsReadPermission: [
             "check_availability",
+            "retrieve",
         ],
     }
 

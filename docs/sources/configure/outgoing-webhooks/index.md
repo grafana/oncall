@@ -87,7 +87,8 @@ The type of event that will cause this outgoing webhook to execute. The types of
 - [Silenced](#silenced)
 - [Unsilenced](#unsilenced)
 - [Unresolved](#unresolved)
-- [Unacknowledged](#acknowledged)
+- [Unacknowledged](#unacknowledged)
+- [Status Change](#status-change)
 
 For more details about types of triggers see [Event types](#event-types)
 
@@ -448,6 +449,14 @@ This event will trigger when a user unresolves an alert group.
 `event.type` `unacknowledge`
 
 This event will trigger when a user unacknowledges an alert group.
+
+### Status Change
+
+`event.type` `status change`
+
+This event will trigger when any of the status change actions happen (acknowledge, resolve, silence,
+unacknowledge, unresolve, or unsilence). The event details included in the payload will match those of
+the original action triggering the event.
 
 ## Viewing status of outgoing webhooks
 

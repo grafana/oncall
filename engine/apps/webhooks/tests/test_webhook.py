@@ -304,3 +304,19 @@ def test_escaping_unicode_in_string(make_organization, make_custom_webhook, data
     }
     request_kwargs = webhook.build_request_kwargs(payload)
     assert request_kwargs == {"headers": {}, **expected_kwargs}
+
+
+@pytest.mark.django_db
+def test_webhook_not_deleted_with_team(make_organization, make_team, make_custom_webhook):
+    organization = make_organization()
+    team = make_team(organization=organization)
+    webhook = make_custom_webhook(
+        organization=organization,
+        team=team,
+    )
+    assert webhook.team == team
+    webhook_pk = webhook.pk
+    team.delete()
+
+    webhook = Webhook.objects.get(pk=webhook_pk)
+    assert webhook.team is None
