@@ -311,13 +311,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
   renderIncidentFilters() {
     const { query, store } = this.props;
     return (
-      <div
-        className={
-          LoaderHelper.isLoading(store.loaderStore, ActionKey.FETCH_INCIDENTS)
-            ? cx('filtersTableLoading')
-            : cx('filters')
-        }
-      >
+      <div className={cx('filters')}>
         <RemoteFilters
           query={query}
           page={PAGE.Incidents}
@@ -350,6 +344,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
     this.setState({
       filters,
       selectedIncidentIds: [],
+      affectedRows: {},
     });
 
     if (!isOnMount) {
@@ -439,6 +434,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
     const { results } = store.alertGroupStore.getAlertSearchResult('default');
 
     const hasSelected = selectedIncidentIds.length > 0;
+    const isLoading = LoaderHelper.isLoading(store.loaderStore, ActionKey.FETCH_INCIDENTS);
     const hasInvalidatedAlert = Boolean(
       (results && results.some((alert: AlertType) => alert.undoAction)) || Object.keys(affectedRows).length
     );
@@ -496,13 +492,17 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
           </div>
 
           <div className={cx('fields-dropdown')}>
-            <RenderConditionally shouldRender={hasInvalidatedAlert}>
+            <RenderConditionally shouldRender={!isLoading && hasInvalidatedAlert}>
               <HorizontalGroup spacing="xs">
                 <Text type="secondary">Results out of date</Text>
                 <Button className={cx('btn-results')} variant="primary" onClick={this.onIncidentsUpdateClick}>
                   Refresh
                 </Button>
               </HorizontalGroup>
+            </RenderConditionally>
+
+            <RenderConditionally shouldRender={isLoading}>
+              <LoadingPlaceholder text="Loading..." className={cx('loadingPlaceholder')} />
             </RenderConditionally>
 
             <RenderConditionally shouldRender={store.hasFeature(AppFeature.Labels)}>
@@ -552,7 +552,6 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
 
     return (
       <div className={cx('root')} ref={this.rootElRef}>
-        {isLoading && <LoadingPlaceholder text="Loading..." className={cx('loadingPlaceholder')} />}
         {this.renderBulkActions()}
         <GTable
           emptyText={isLoading ? 'Loading...' : 'No alert groups found'}
