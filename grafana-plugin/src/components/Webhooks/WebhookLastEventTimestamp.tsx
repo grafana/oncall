@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { css } from '@emotion/css';
-import { useTheme2, useStyles2, HorizontalGroup, Badge, Button } from '@grafana/ui';
+import { useTheme2, useStyles2, HorizontalGroup, Button } from '@grafana/ui';
 import dayjs from 'dayjs';
 
 import { Tag } from 'components/Tag/Tag';

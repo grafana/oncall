@@ -7577,6 +7577,18 @@ eslint-plugin-rulesdir@^0.2.1:
   resolved "https://registry.yarnpkg.com/eslint-plugin-rulesdir/-/eslint-plugin-rulesdir-0.2.1.tgz#e246bb9657e68eb0a30680c60775f40aa829ec0b"
   integrity sha512-t7rQvEyfE4JZJu6dPl4/uVr6Fr0fxopBhzVbtq3isfOHMKdlIe9xW/5CtIaWZI0E1U+wzAk0lEnZC8laCD5YLA==
 
+eslint-plugin-unused-imports@^3.1.0:
+  version "3.1.0"
+  resolved "https://registry.yarnpkg.com/eslint-plugin-unused-imports/-/eslint-plugin-unused-imports-3.1.0.tgz#db015b569d3774e17a482388c95c17bd303bc602"
+  integrity sha512-9l1YFCzXKkw1qtAru1RWUtG2EVDZY0a0eChKXcL+EZ5jitG7qxdctu4RnvhOJHv4xfmUf7h+JJPINlVpGhZMrw==
+  dependencies:
+    eslint-rule-composer "^0.3.0"
+
+eslint-rule-composer@^0.3.0:
+  version "0.3.0"
+  resolved "https://registry.yarnpkg.com/eslint-rule-composer/-/eslint-rule-composer-0.3.0.tgz#79320c927b0c5c0d3d3d2b76c8b4a488f25bbaf9"
+  integrity sha512-bt+Sh8CtDmn2OajxvNO+BX7Wn4CIWMpTRm3MaiKPCQcnnlm0CS2mhui6QaoeQugs+3Kj2ESKEEGJUdVafwhiCg==
+
 eslint-scope@5.1.1, eslint-scope@^5.1.1:
   version "5.1.1"
   resolved "https://registry.yarnpkg.com/eslint-scope/-/eslint-scope-5.1.1.tgz#e786e59a66cb92b3f6c1fb0d508aab174848f48c"

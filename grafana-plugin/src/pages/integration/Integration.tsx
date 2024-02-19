@@ -38,7 +38,6 @@ import { initErrorDataState } from 'components/PageErrorHandlingWrapper/PageErro
 import { PluginLink } from 'components/PluginLink/PluginLink';
 import { RenderConditionally } from 'components/RenderConditionally/RenderConditionally';
 import { Tabs } from 'components/Tabs/Tabs';
-import { Tag } from 'components/Tag/Tag';
 import { Text } from 'components/Text/Text';
 import { TooltipBadge } from 'components/TooltipBadge/TooltipBadge';
 import { WithContextMenu } from 'components/WithContextMenu/WithContextMenu';
@@ -67,7 +66,6 @@ import { AppFeature } from 'state/features';
 import { PageProps, SelectOption, WithStoreProps } from 'state/types';
 import { useStore } from 'state/useStore';
 import { withMobXProviderContext } from 'state/withStore';
-import { getVar } from 'utils/DOM';
 import { LocationHelper } from 'utils/LocationHelper';
 import { UserActions } from 'utils/authorization/authorization';
 import { PLUGIN_ROOT } from 'utils/consts';
