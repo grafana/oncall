@@ -119,7 +119,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: "~/.cache/ms-playwright"
-          key: ${{ runner.os }}-playwright-${{ env.PLAYWRIGHT_VERSION }}-chromium-firefox-webkit
+          key: ${{ runner.os }}-playwright-${{ env.PLAYWRIGHT_VERSION }}-${{ inputs.browsers }}
 
       # For the next two steps, use the binary directly from node_modules/.bin as opposed to npx playwright
       # due to this bug (https://github.com/microsoft/playwright/issues/13188)
@@ -206,6 +206,6 @@ jobs:
       - uses: actions/upload-artifact@v3
         if: failure()
         with:
-          name: playwright-report
+          name: playwright-report-${{ inputs.grafana-image-tag }}
           path: ./grafana-plugin/playwright-report/
           retention-days: 30

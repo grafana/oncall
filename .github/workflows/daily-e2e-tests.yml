@@ -2,6 +2,7 @@ name: Daily e2e tests
 "on":
   # allows manual run on github actions
   workflow_dispatch:
+  pull_request: # TODO: temporary just for my testing
   schedule:
     - cron: "0 6 * * 1-5"
 
@@ -21,18 +22,18 @@ jobs:
           - 9.3.16
           - 9.4.13
           - 9.5.7
-          - 10.0.2
-
-          # NOTE: don't run on > 10.0.3 until this issue is fixed. It appears that something was changed
-          # with the plugin-proxy that caused it to start throwing HTTP 502s from time to time
-          # https://raintank-corp.slack.com/archives/C01C4K8DETW/p1692279329797149
+          - 10.0.11
+          - 10.1.7
+          # TODO: fix issues with running e2e tests against Grafana v10.2.x and v10.3.x
+          # - 10.2.4
           # - latest
       fail-fast: false
     uses: ./.github/workflows/e2e-tests.yml
     with:
       grafana-image-tag: ${{ matrix.grafana-image-tag }}
-      run-expensive-tests: true
-      browsers: "chromium firefox webkit"
+      run-expensive-tests: false
+      # browsers: "chromium firefox webkit"
+      browsers: "chromium"
     secrets: inherit
 
   post-status-to-slack:
@@ -40,19 +41,23 @@ jobs:
     needs: end-to-end-tests
     if: always()
     steps:
+      # Useful references
+      # https://stackoverflow.com/questions/59073850/github-actions-get-url-of-test-build
+      # https://github.com/orgs/community/discussions/26822#discussioncomment-3305794
+      #
       - uses: slackapi/slack-github-action@v1.24.0
         with:
-          channel-id: irm-amixr-flux
+          # channel-id: irm-amixr-flux
+          channel-id: joey-testing
           # yamllint disable rule:line-length
           payload: |
             {
-              "text": "Daily e2e tests build result: ${{ job.status }}\n${{ github.event.pull_request.html_url || github.event.head_commit.url }}",
               "blocks": [
                 {
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "Daily e2e tests build result: ${{ job.status }}\n${{ github.event.pull_request.html_url || github.event.head_commit.url }}"
+                    "text": "Daily e2e tests build result: ${{ needs.end-to-end-tests.result == 'success' && ':check:' || ':alert:' }}\n${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
                   }
                 }
               ]
