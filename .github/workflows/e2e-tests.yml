@@ -82,16 +82,13 @@ jobs:
       - name: Set up Docker Buildx # We need this step for docker caching
         uses: docker/setup-buildx-action@v2
 
-      - name: Build engine Docker image locally # using github actions docker cache
+      - name: Build engine Docker image locally
         uses: docker/build-push-action@v4
         with:
           context: ./engine
           file: ./engine/Dockerfile
           push: false
-          load: true
           tags: oncall/engine:latest
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
           outputs: type=docker,dest=/tmp/oncall-engine.tar
 
       - name: Load engine Docker image on the nodes of the cluster
