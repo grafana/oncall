@@ -242,7 +242,7 @@ def execute_webhook(webhook_pk, alert_group_id, user_id, escalation_policy_id, t
     # create response entry
     WebhookResponse.objects.create(
         alert_group=alert_group,
-        trigger_type=webhook.trigger_type,
+        trigger_type=trigger_type or webhook.trigger_type,
         **status,
     )
 

@@ -409,6 +409,7 @@ def test_execute_webhook_ok_forward_all(
     assert mock_requests.post.call_args == expected_call
     # check logs
     log = webhook.responses.all()[0]
+    assert log.trigger_type == Webhook.TRIGGER_ACKNOWLEDGE
     assert log.status_code == 200
     assert log.content == json.dumps(mock_response.json())
     assert json.loads(log.request_data) == expected_data
