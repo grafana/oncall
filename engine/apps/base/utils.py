@@ -157,6 +157,11 @@ class LiveSettingValidator:
         _, err = CloudConnector.sync_with_cloud(grafana_oncall_token)
         return err
 
+    @classmethod
+    def _check_email_use_ssl(cls, email_use_ssl):
+        if settings.EMAIL_USE_TLS is "True" and email_use_ssl is "True":
+            return "Cannot set Email (SMTP) to use SSL and TLS at the same time"
+
     @staticmethod
     def _is_email_valid(email):
         return re.match(r"^[^@]+@[^@]+\.[^@]+$", email)
