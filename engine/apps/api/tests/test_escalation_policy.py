@@ -102,6 +102,43 @@ def test_update_notify_multiple_users_step(escalation_policy_internal_api_setup,
 
 
 @pytest.mark.django_db
+def test_manage_escalation_policy_notify_team(escalation_policy_internal_api_setup, make_team, make_user_auth_headers):
+    token, escalation_chain, _, user, _ = escalation_policy_internal_api_setup
+    client = APIClient()
+    url = reverse("api-internal:escalation_policy-list")
+
+    team = make_team(organization=user.organization)
+    data = {
+        "step": EscalationPolicy.STEP_NOTIFY_TEAM_MEMBERS,
+        "escalation_chain": escalation_chain.public_primary_key,
+        "notify_to_team_members": team.public_primary_key,
+    }
+
+    max_order = EscalationPolicy.objects.filter(escalation_chain=escalation_chain).aggregate(maxorder=Max("order"))[
+        "maxorder"
+    ]
+
+    response = client.post(url, data, format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_201_CREATED
+    assert response.data["notify_to_team_members"] == team.public_primary_key
+    escalation_policy = EscalationPolicy.objects.get(public_primary_key=response.data["id"])
+    assert escalation_policy.order == max_order + 1
+    assert escalation_policy.notify_to_team_members == team
+
+    # update team in policy
+    url = reverse("api-internal:escalation_policy-detail", kwargs={"pk": escalation_policy.public_primary_key})
+    another_team = make_team(organization=user.organization)
+    data = {
+        "step": EscalationPolicy.STEP_NOTIFY_TEAM_MEMBERS,
+        "notify_to_team_members": another_team.public_primary_key,
+    }
+    response = client.put(url, data, format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()["step"] == EscalationPolicy.STEP_NOTIFY_TEAM_MEMBERS
+    assert response.json()["notify_to_team_members"] == another_team.public_primary_key
+
+
+@pytest.mark.django_db
 def test_move_to_position(escalation_policy_internal_api_setup, make_user_auth_headers):
     token, _, escalation_policy, user, _ = escalation_policy_internal_api_setup
     client = APIClient()
