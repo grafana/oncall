@@ -1,5 +1,6 @@
 import React, { ChangeEvent, useState } from 'react';
 
+import { ServiceLabels } from '@grafana/labels';
 import {
   Alert,
   Button,
@@ -18,7 +19,6 @@ import Collapse from 'components/Collapse/Collapse';
 import MonacoEditor, { MONACO_LANGUAGE } from 'components/MonacoEditor/MonacoEditor';
 import PluginLink from 'components/PluginLink/PluginLink';
 import RenderConditionally from 'components/RenderConditionally/RenderConditionally';
-import { ServiceLabels } from 'components/ServiceLabels/ServiceLabels';
 import Text from 'components/Text/Text';
 import IntegrationTemplate from 'containers/IntegrationTemplate/IntegrationTemplate';
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
