@@ -14,12 +14,12 @@ class LoaderStoreClass {
 
   @action.bound
   setLoadingAction(actionKey: string | string[], isLoading: boolean) {
-    if (typeof actionKey === 'string') {
-      this.items[actionKey] = isLoading;
-    } else {
+    if (Array.isArray(actionKey)) {
       actionKey.forEach((key) => {
         this.items[key] = isLoading;
       });
+    } else {
+      this.items[actionKey] = isLoading;
     }
   }
 }
