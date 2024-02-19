@@ -4,8 +4,8 @@ import { Button, IconButton } from '@grafana/ui';
 import cn from 'classnames/bind';
 import CopyToClipboard from 'react-copy-to-clipboard';
 
-import { openNotification } from 'utils';
 import { formatSourceCodeJsonString } from 'utils/string';
+import { openNotification } from 'utils/utils';
 
 import styles from './SourceCode.module.scss';
 
@@ -20,7 +20,7 @@ interface SourceCodeProps {
   prettifyJsonString?: boolean;
 }
 
-const SourceCode: FC<SourceCodeProps> = ({
+export const SourceCode: FC<SourceCodeProps> = ({
   children,
   noMaxHeight = false,
   showClipboardIconOnly = false,
@@ -74,5 +74,3 @@ const SourceCode: FC<SourceCodeProps> = ({
     </div>
   );
 };
-
-export default SourceCode;

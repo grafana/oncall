@@ -4,7 +4,7 @@ import { Button, Field, HorizontalGroup, Input, useStyles2, VerticalGroup } from
 import { useForm } from 'react-hook-form';
 
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
-import { UserActions } from 'utils/authorization';
+import { UserActions } from 'utils/authorization/authorization';
 import { useCommonStyles } from 'utils/hooks';
 
 import { getStyles } from './OutgoingTab.styles';

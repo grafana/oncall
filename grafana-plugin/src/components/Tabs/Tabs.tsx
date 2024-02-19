@@ -4,7 +4,7 @@ import { css } from '@emotion/css';
 import { Tab, TabsBar, TabContent, useStyles2 } from '@grafana/ui';
 import cn from 'classnames';
 
-import LocationHelper from 'utils/LocationHelper';
+import { LocationHelper } from 'utils/LocationHelper';
 
 interface TabConfig {
   label: string;
@@ -19,7 +19,7 @@ interface TabsProps {
   queryStringKey?: string;
 }
 
-const Tabs: FC<TabsProps> = ({
+export const Tabs: FC<TabsProps> = ({
   tabs,
   tabContentClassName,
   shouldBeSyncedWithQueryString = true,
@@ -66,5 +66,3 @@ export const getStyles = () => ({
     marginTop: '16px',
   }),
 });
-
-export default Tabs;

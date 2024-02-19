@@ -177,6 +177,8 @@ class MobileAppUserSettings(models.Model):
         (TWELVE_HOURS_IN_SECONDS, "12 hours before"),
         (ONE_DAY_IN_SECONDS, "1 day before"),
     )
+    ALL_NOTIFICATION_TIMING_CHOICES_SECONDS = [choice[0] for choice in NOTIFICATION_TIMING_CHOICES]
+
     going_oncall_notification_timing = JSONField(default=default_notification_timing_options)
 
     locale = models.CharField(max_length=50, null=True)

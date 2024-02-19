@@ -18,7 +18,7 @@ interface OutgoingWebhookStatusProps {
   closeDrawer: () => void;
 }
 
-const OutgoingWebhookStatus = observer(({ id, closeDrawer }: OutgoingWebhookStatusProps) => {
+export const OutgoingWebhookStatus = observer(({ id, closeDrawer }: OutgoingWebhookStatusProps) => {
   const {
     outgoingWebhookStore: {
       items: { [id]: webhook },
@@ -39,5 +39,3 @@ const OutgoingWebhookStatus = observer(({ id, closeDrawer }: OutgoingWebhookStat
     </div>
   );
 });
-
-export default OutgoingWebhookStatus;

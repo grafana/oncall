@@ -4,16 +4,16 @@ import { IconButton, HorizontalGroup, Icon, ConfirmModal } from '@grafana/ui';
 import { observer } from 'mobx-react-lite';
 import CopyToClipboard from 'react-copy-to-clipboard';
 
-import GTable from 'components/GTable/GTable';
-import HamburgerContextMenu from 'components/HamburgerContextMenu/HamburgerContextMenu';
-import Text from 'components/Text/Text';
+import { GTable } from 'components/GTable/GTable';
+import { HamburgerContextMenu } from 'components/HamburgerContextMenu/HamburgerContextMenu';
+import { Text } from 'components/Text/Text';
 import { WebhookLastEventTimestamp } from 'components/Webhooks/WebhookLastEventTimestamp';
 import { OutgoingWebhook } from 'models/outgoing_webhook/outgoing_webhook.types';
 import { useStore } from 'state/useStore';
-import { openNotification } from 'utils';
-import LocationHelper from 'utils/LocationHelper';
-import { UserActions } from 'utils/authorization';
+import { LocationHelper } from 'utils/LocationHelper';
+import { UserActions } from 'utils/authorization/authorization';
 import { useConfirmModal } from 'utils/hooks';
+import { openNotification } from 'utils/utils';
 
 import { OutgoingTabDrawerKey, TriggerDetailsQueryStringKey, TriggerDetailsTab } from './OutgoingTab.types';
 

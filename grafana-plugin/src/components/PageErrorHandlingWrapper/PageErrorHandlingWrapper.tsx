@@ -3,9 +3,9 @@ import React, { useEffect } from 'react';
 import { VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 
-import PluginLink from 'components/PluginLink/PluginLink';
-import Text from 'components/Text/Text';
-import { openWarningNotification } from 'utils';
+import { PluginLink } from 'components/PluginLink/PluginLink';
+import { Text } from 'components/Text/Text';
+import { openWarningNotification } from 'utils/utils';
 
 import styles from './PageErrorHandlingWrapper.module.css';
 
@@ -18,11 +18,12 @@ export interface PageBaseState {
 export interface PageErrorData {
   isNotFoundError?: boolean;
   isWrongTeamError?: boolean;
+  isUnknownError?: boolean;
   wrongTeamNoPermissions?: boolean;
   switchToTeam?: { name: string; id: string };
 }
 
-export default function PageErrorHandlingWrapper({
+export const PageErrorHandlingWrapper = function ({
   errorData,
   objectName,
   pageName,
@@ -69,4 +70,4 @@ export default function PageErrorHandlingWrapper({
       </VerticalGroup>
     </div>
   );
-}
+};

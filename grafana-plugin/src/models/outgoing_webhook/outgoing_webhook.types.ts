@@ -1,6 +1,6 @@
 import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
 import { LabelKeyValue } from 'models/label/label.types';
-import { KeyValuePair } from 'utils';
+import { KeyValuePair } from 'utils/utils';
 
 export interface OutgoingWebhook {
   authorization_header: string;

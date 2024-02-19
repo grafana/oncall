@@ -18,8 +18,8 @@ interface IntegrationInputFieldProps {
 
 const cx = cn.bind(styles);
 
-const IntegrationInputField: React.FC<IntegrationInputFieldProps> = ({
-  isMasked = true,
+export const IntegrationInputField: React.FC<IntegrationInputFieldProps> = ({
+  isMasked = false,
   value,
   showEye = true,
   showCopy = true,
@@ -54,5 +54,3 @@ const IntegrationInputField: React.FC<IntegrationInputFieldProps> = ({
     window.open(value, '_blank');
   }
 };
-
-export default IntegrationInputField;

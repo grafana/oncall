@@ -4,17 +4,17 @@ import { HorizontalGroup, Icon, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { noop } from 'lodash-es';
 
-import IntegrationInputField from 'components/IntegrationInputField/IntegrationInputField';
-import IntegrationBlock from 'components/Integrations/IntegrationBlock';
-import IntegrationTag from 'components/Integrations/IntegrationTag';
-import Text from 'components/Text/Text';
+import { IntegrationInputField } from 'components/IntegrationInputField/IntegrationInputField';
+import { IntegrationBlock } from 'components/Integrations/IntegrationBlock';
+import { IntegrationTag } from 'components/Integrations/IntegrationTag';
+import { Text } from 'components/Text/Text';
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import styles from 'pages/integration/Integration.module.scss';
 import { useStore } from 'state/useStore';
 
 const cx = cn.bind(styles);
 
-const IntegrationHowToConnect: React.FC<{ id: AlertReceiveChannel['id'] }> = ({ id }) => {
+export const IntegrationHowToConnect: React.FC<{ id: AlertReceiveChannel['id'] }> = ({ id }) => {
   const { alertReceiveChannelStore } = useStore();
   const alertReceiveChannelCounter = alertReceiveChannelStore.counters[id];
   const hasAlerts = !!alertReceiveChannelCounter?.alerts_count;
@@ -108,5 +108,3 @@ const IntegrationHowToConnect: React.FC<{ id: AlertReceiveChannel['id'] }> = ({ 
     );
   }
 };
-
-export default IntegrationHowToConnect;

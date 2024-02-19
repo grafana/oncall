@@ -4,17 +4,17 @@ import { css } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
 import { useStyles2 } from '@grafana/ui';
 
-import HamburgerMenu from 'components/HamburgerMenu/HamburgerMenu';
+import { HamburgerMenu } from 'components/HamburgerMenu/HamburgerMenu';
 import { WithContextMenu } from 'components/WithContextMenu/WithContextMenu';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
-import { isUserActionAllowed, UserAction } from 'utils/authorization';
+import { isUserActionAllowed, UserAction } from 'utils/authorization/authorization';
 
 interface HamburgerContextMenuProps {
   items: Array<{ onClick?: () => void; label: ReactNode; requiredPermission?: UserAction } | 'divider'>;
   hamburgerIconClassName?: string;
 }
 
-const HamburgerContextMenu: FC<HamburgerContextMenuProps> = ({ items, hamburgerIconClassName }) => {
+export const HamburgerContextMenu: FC<HamburgerContextMenuProps> = ({ items, hamburgerIconClassName }) => {
   const styles = useStyles2(getStyles);
 
   return (
@@ -71,5 +71,3 @@ export const getStyles = (theme: GrafanaTheme2) => ({
     },
   }),
 });
-
-export default HamburgerContextMenu;

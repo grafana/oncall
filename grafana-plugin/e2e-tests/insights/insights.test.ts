@@ -43,14 +43,13 @@ test.describe('Insights', () => {
   test('Viewer can see all the panels in OnCall insights', async ({ viewerRolePage: { page } }) => {
     await goToOnCallPage(page, 'insights');
     [
-      'Total alert groups',
-      'Total alert groups by state',
-      'New alert groups for selected period',
-      'Mean time to respond \\(MTTR\\)',
-      'MTTR changed for period',
-      'New alert groups during time period',
+      'New alert groups',
+      'Mean time to respond \\(MTTR\\) average',
       'Alert groups by Integration',
       'Mean time to respond \\(MTTR\\) by Integration',
+      'Alert groups by Team',
+      'Mean time to respond \\(MTTR\\) by Team',
+      'New alert groups notifications',
     ].forEach(async (panelTitle) => {
       await expect(page.getByRole('heading', { name: new RegExp(`^${panelTitle}$`) }).first()).toBeVisible();
     });
@@ -58,7 +57,7 @@ test.describe('Insights', () => {
 
   test('There is no panel that misses data', async ({ adminRolePage: { page } }) => {
     await goToOnCallPage(page, 'insights');
-    await page.getByText('Last 7 days').click();
+    await page.getByText('Last 24 hours').click();
     await page.getByText('Last 1 hour').click();
     await page.waitForTimeout(2000);
     await expect(page.getByText('No data')).toBeHidden();

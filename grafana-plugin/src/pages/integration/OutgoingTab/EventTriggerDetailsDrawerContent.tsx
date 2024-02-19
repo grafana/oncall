@@ -4,12 +4,12 @@ import { Button, HorizontalGroup, useStyles2, VerticalGroup } from '@grafana/ui'
 import { observer } from 'mobx-react-lite';
 import { useForm, FormProvider } from 'react-hook-form';
 
-import Tabs from 'components/Tabs/Tabs';
+import { Tabs } from 'components/Tabs/Tabs';
 import WebhookLastEventDetails from 'components/Webhooks/WebhookLastEventDetails';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { useStore } from 'state/useStore';
-import LocationHelper from 'utils/LocationHelper';
-import { UserActions } from 'utils/authorization';
+import { LocationHelper } from 'utils/LocationHelper';
+import { UserActions } from 'utils/authorization/authorization';
 import { useCommonStyles } from 'utils/hooks';
 
 import { EventTriggerFormFields } from './EventTriggerFormFields';

@@ -1,10 +1,10 @@
-import React, { FC, useEffect } from 'react';
+import React, { FC } from 'react';
 
 import { Button, HorizontalGroup, useStyles2, VerticalGroup } from '@grafana/ui';
 import { useForm, FormProvider } from 'react-hook-form';
 
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
-import { UserActions } from 'utils/authorization';
+import { UserActions } from 'utils/authorization/authorization';
 import { useCommonStyles } from 'utils/hooks';
 
 import { EventTriggerFormFields } from './EventTriggerFormFields';

@@ -3,12 +3,12 @@ import React from 'react';
 import { useStyles2, Input, IconButton, Button, Drawer } from '@grafana/ui';
 
 import CopyToClipboardIcon from 'components/CopyToClipboardIcon/CopyToClipboardIcon';
-import HamburgerContextMenu from 'components/HamburgerContextMenu/HamburgerContextMenu';
-import IntegrationCollapsibleTreeView from 'components/IntegrationCollapsibleTreeView/IntegrationCollapsibleTreeView';
-import IntegrationBlock from 'components/Integrations/IntegrationBlock';
-import IntegrationTag from 'components/Integrations/IntegrationTag';
-import Text from 'components/Text/Text';
-import { UserActions } from 'utils/authorization';
+import { HamburgerContextMenu } from 'components/HamburgerContextMenu/HamburgerContextMenu';
+import { IntegrationCollapsibleTreeView } from 'components/IntegrationCollapsibleTreeView/IntegrationCollapsibleTreeView';
+import { IntegrationBlock } from 'components/Integrations/IntegrationBlock';
+import { IntegrationTag } from 'components/Integrations/IntegrationTag';
+import { Text } from 'components/Text/Text';
+import { UserActions } from 'utils/authorization/authorization';
 import { useDrawer } from 'utils/hooks';
 
 import { EventTriggerDetailsDrawerContent } from './EventTriggerDetailsDrawerContent';
@@ -18,7 +18,7 @@ import { getStyles } from './OutgoingTab.styles';
 import { OutgoingTabDrawerKey } from './OutgoingTab.types';
 import { UrlSettingsDrawerContent } from './UrlSettingsDrawerContent';
 
-const OutgoingTab = () => {
+export const OutgoingTab = () => {
   const { openDrawer, closeDrawer, getIsDrawerOpened } = useDrawer<OutgoingTabDrawerKey>();
 
   return (
@@ -111,5 +111,3 @@ const AddEventTrigger = ({ openDrawer }: { openDrawer: (key: OutgoingTabDrawerKe
     </Button>
   );
 };
-
-export default OutgoingTab;

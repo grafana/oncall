@@ -3,9 +3,9 @@ import React, { FC, useState } from 'react';
 import { Button, Field, Icon, Label, Select, Switch, Tooltip, useStyles2, VerticalGroup } from '@grafana/ui';
 import { Controller, useFormContext } from 'react-hook-form';
 
-import MonacoEditor from 'components/MonacoEditor/MonacoEditor';
+import { MonacoEditor } from 'components/MonacoEditor/MonacoEditor';
 import { MONACO_READONLY_CONFIG } from 'components/MonacoEditor/MonacoEditor.config';
-import WebhooksTemplateEditor from 'containers/WebhooksTemplateEditor/WebhooksTemplateEditor';
+import { WebhooksTemplateEditor } from 'containers/WebhooksTemplateEditor/WebhooksTemplateEditor';
 import { WEBHOOK_TRIGGGER_TYPE_OPTIONS } from 'models/outgoing_webhook/outgoing_webhook.types';
 
 import { getStyles } from './OutgoingTab.styles';

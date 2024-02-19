@@ -59,12 +59,11 @@ def test_shift_starts_within_range(timing_window_lower, timing_window_upper, sec
 @pytest.mark.parametrize(
     "seconds_until_going_oncall,humanized_time_until_going_oncall",
     [
-        (600, "10 minutes"),
-        # TODO: right now this returns 11 hours but it should probably round up to 12 hours instead..
-        # 11 hours and 53 minutes
-        ((60 * 60 * 11) + (53 * 60), "11 hours"),
-        # 12 hours and 10 minutes
-        ((60 * 60 * 12) + (10 * 60), "12 hours"),
+        (8 * 60, "15 minutes"),  # 8 minutes
+        (600, "15 minutes"),
+        ((60 * 60 * 11) + (53 * 60), "12 hours"),  # 11 hours and 53 minutes
+        ((60 * 60 * 12) + (10 * 60), "12 hours"),  # 12 hours and 10 minutes
+        (60 * 60 * 26, "a day"),  # 1 day and 2 hours
     ],
 )
 @pytest.mark.django_db

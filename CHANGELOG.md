@@ -7,9 +7,89 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Fixed
+
+- Fix edit default team by admin @mderynck ([#3885](https://github.com/grafana/oncall/pull/3885))
+- Unblock slack install by skipping check chatops gateway link in OSS deployment @mderynck ([#3893](https://github.com/grafana/oncall/pull/3893))
+- Fix multiple issues of alert groups table ([#3894](https://github.com/grafana/oncall/issues/3894))
+- Improvements for dragging the add rotation form in Schedules ([#3904](https://github.com/grafana/oncall/pull/3904))
+
+### Changed
+
+- Check for permissions on Slack escalate command ([#3891](https://github.com/grafana/oncall/pull/3891))
+- Update OnCall Insights dashboard @Ferril ([#3875](https://github.com/grafana/oncall/pull/3875))
+- Do not delete webhook if its team is deleted @mderynck ([#3873](https://github.com/grafana/oncall/pull/3873))
+- Update user details internal API perms ([#3900](https://github.com/grafana/oncall/pull/3900))
+
+## v1.3.105 (2024-02-13)
+
+### Fixed
+
+- Quotes in templates not rendering results correctly @mderynck ([#3884](https://github.com/grafana/oncall/pull/3884))
+
+## v1.3.104 (2024-02-12)
+
+### Changed
+
+- Revert requiring permission on Slack direct paging ([#3881](https://github.com/grafana/oncall/pull/3881))
+
+## v1.3.103 (2024-02-12)
+
 ### Added
 
+- Improved zvonok verification call @sreway ([#3768](https://github.com/grafana/oncall/pull/3768))
+- Add permission checks for Slack paging and shift swaps actions ([#3861](https://github.com/grafana/oncall/pull/3861))
+- Include all upcoming shifts in upcoming shifts internal endpoint ([#3871](https://github.com/grafana/oncall/pull/3871))
+
+### Changed
+
+- Allow mobile app to access escalation options endpoints @imtoori ([#3847](https://github.com/grafana/oncall/pull/3847))
+- Enable templating for alert escalation mobile app push notifications by @joeyorlando ([#3845](https://github.com/grafana/oncall/pull/3845))
+- Change email notification template to not wrap user template @mderynck ([#3862](https://github.com/grafana/oncall/pull/3862))
+- Update integration name uniqueness check to be per team ([#3863](https://github.com/grafana/oncall/pull/3863))
+
+### Fixed
+
+- Fix rounding issue with displayed time when sending "You're going oncall" push notification by @joeyorlando ([#3872](https://github.com/grafana/oncall/pull/3872))
+
+## v1.3.102 (2024-02-06)
+
+### Fixed
+
+Maintenance release
+
+## v1.3.101 (2024-02-05)
+
+### Added
+
+– Enable labels feature (Currently cloud-only)
+
+### Fixed
+
+- Address outgoing webhook encoding error when passing non-latin characters in the webhook request body by @joeyorlando
+  ([#3832](https://github.com/grafana/oncall/pull/3832))
+
+## v1.3.100 (2024-02-01)
+
+### Added
+
+- Allow configuration of outgoing webhook timeout via `OUTGOING_WEBHOOK_TIMEOUT` environment variable @kevindw-fluxys ([#3801](https://github.com/grafana/oncall/pull/3801))
+- Include teams info in users API ([#3817](https://github.com/grafana/oncall/pull/3817))
+
+### Fixed
+
+- Handle alert group does not exist on telegram button press ([#3814](https://github.com/grafana/oncall/pull/3814))
+
+## v1.3.99 (2024-02-01)
+
+### Added
+
+- Render alert group action buttons even if getting AG data fails ([#2383](https://github.com/grafana/oncall-private/issues/2383))
 - Enable Grafana Alerting V2 feature flag by default
+
+### Fixed
+
+- Incorrect end date on creating weekly on-call shift ([#3755](https://github.com/grafana/oncall/issues/3755))
 
 ## v1.3.98 (2024-02-01)
 

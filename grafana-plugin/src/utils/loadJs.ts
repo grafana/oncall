@@ -3,7 +3,7 @@
  * @param  {string} url of the script
  * @param  {string} id optional id. If specified, the script will be loaded only once for that given id
  */
-export default function loadJs(url: string, id: string = undefined) {
+export const loadJs = function (url: string, id: string = undefined) {
   if (id) {
     const existingScript = document.getElementById(url);
     if (existingScript) {
@@ -20,4 +20,4 @@ export default function loadJs(url: string, id: string = undefined) {
   }
 
   document.head.appendChild(script);
-}
+};

@@ -3,14 +3,14 @@ import { SceneDataTransformer, SceneFlexItem, SceneQueryRunner, VizPanel } from 
 
 import { InsightsConfig } from 'pages/insights/Insights.types';
 
-export default function getAlertGroupsByIntegrationScene({ datasource }: InsightsConfig) {
+export function getAlertGroupsByIntegrationScene({ datasource, stack }: InsightsConfig) {
   const query = new SceneQueryRunner({
     datasource,
     queries: [
       {
         editorMode: 'code',
         exemplar: false,
-        expr: 'sort_desc(max_over_time(sum by(integration) (avg without(pod, instance)($alert_groups_total{slug=~"$stack", team=~"$team", integration=~"$integration"}))[1d:]))',
+        expr: `sort_desc(delta(max_over_time(sum by(integration) (avg without(pod, instance)($alert_groups_total{slug=~"${stack}", team=~"$team", integration=~"$integration"}))[1h:])[$__range:])>=0)`,
         format: 'table',
         instant: true,
         legendFormat: '__auto',
@@ -74,6 +74,7 @@ export default function getAlertGroupsByIntegrationScene({ datasource }: Insight
               },
             ],
           },
+          decimals: 0,
         },
         overrides: [
           {
@@ -97,7 +98,7 @@ export default function getAlertGroupsByIntegrationScene({ datasource }: Insight
         ],
       },
       options: {
-        cellHeight: 'sm',
+        cellHeight: 'md',
         footer: {
           countRows: false,
           fields: '',

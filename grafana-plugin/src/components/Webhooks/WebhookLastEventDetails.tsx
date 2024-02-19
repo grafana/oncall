@@ -5,9 +5,9 @@ import { GrafanaTheme2 } from '@grafana/data';
 import { VerticalGroup, HorizontalGroup, Badge, useStyles2, Tooltip, Icon, useTheme2 } from '@grafana/ui';
 import dayjs from 'dayjs';
 
-import SourceCode from 'components/SourceCode/SourceCode';
-import Tabs from 'components/Tabs/Tabs';
-import Text from 'components/Text/Text';
+import { SourceCode } from 'components/SourceCode/SourceCode';
+import { Tabs } from 'components/Tabs/Tabs';
+import { Text } from 'components/Text/Text';
 import { OutgoingWebhook } from 'models/outgoing_webhook/outgoing_webhook.types';
 import { getTzOffsetString } from 'models/timezone/timezone.helpers';
 

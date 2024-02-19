@@ -3,7 +3,11 @@ import React, { ComponentProps, useEffect, useRef, useState } from 'react';
 import { ConfirmModal, useStyles2 } from '@grafana/ui';
 import { useLocation } from 'react-router-dom';
 
-import LocationHelper from './LocationHelper';
+import { ActionKey } from 'models/loader/action-keys';
+import { LoaderHelper } from 'models/loader/loader.helpers';
+import { useStore } from 'state/useStore';
+
+import { LocationHelper } from './LocationHelper';
 import { getCommonStyles } from './styles';
 
 export function useForceUpdate() {
@@ -123,3 +127,8 @@ export const useConfirmModal = () => {
 };
 
 export const useCommonStyles = () => useStyles2(getCommonStyles);
+
+export const useIsLoading = (actionKey: ActionKey) => {
+  const { loaderStore } = useStore();
+  return LoaderHelper.isLoading(loaderStore, actionKey);
+};

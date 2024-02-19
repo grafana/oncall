@@ -4,14 +4,14 @@ import { css } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
 import { useStyles2 } from '@grafana/ui';
 
-import Tag from 'components/Tag/Tag';
-import Text from 'components/Text/Text';
+import { Tag } from 'components/Tag/Tag';
+import { Text } from 'components/Text/Text';
 
 interface IntegrationTagProps {
   children: React.ReactNode;
 }
 
-const IntegrationTag: FC<IntegrationTagProps> = ({ children }) => {
+export const IntegrationTag: FC<IntegrationTagProps> = ({ children }) => {
   const styles = useStyles2(getStyles);
 
   return (

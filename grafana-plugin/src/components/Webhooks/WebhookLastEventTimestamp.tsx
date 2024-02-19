@@ -4,7 +4,7 @@ import { css } from '@emotion/css';
 import { useTheme2, useStyles2, HorizontalGroup, Badge, Button } from '@grafana/ui';
 import dayjs from 'dayjs';
 
-import Tag from 'components/Tag/Tag';
+import { Tag } from 'components/Tag/Tag';
 import { OutgoingWebhook } from 'models/outgoing_webhook/outgoing_webhook.types';
 import { getTzOffsetString } from 'models/timezone/timezone.helpers';
 import { OutgoingTabDrawerKey } from 'pages/integration/OutgoingTab/OutgoingTab.types';

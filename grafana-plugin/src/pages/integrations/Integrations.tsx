@@ -19,41 +19,41 @@ import CopyToClipboard from 'react-copy-to-clipboard';
 import Emoji from 'react-emoji-render';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 
-import GTable from 'components/GTable/GTable';
-import HamburgerMenu from 'components/HamburgerMenu/HamburgerMenu';
-import IntegrationLogo from 'components/IntegrationLogo/IntegrationLogo';
-import LabelsTooltipBadge from 'components/LabelsTooltipBadge/LabelsTooltipBadge';
+import { GTable } from 'components/GTable/GTable';
+import { HamburgerMenu } from 'components/HamburgerMenu/HamburgerMenu';
+import { IntegrationLogo } from 'components/IntegrationLogo/IntegrationLogo';
+import { LabelsTooltipBadge } from 'components/LabelsTooltipBadge/LabelsTooltipBadge';
 import { PageBaseState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
 import {
   getWrongTeamResponseInfo,
   initErrorDataState,
 } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper.helpers';
-import PluginLink from 'components/PluginLink/PluginLink';
-import RenderConditionally from 'components/RenderConditionally/RenderConditionally';
-import Text from 'components/Text/Text';
-import TextEllipsisTooltip from 'components/TextEllipsisTooltip/TextEllipsisTooltip';
-import TooltipBadge from 'components/TooltipBadge/TooltipBadge';
+import { PluginLink } from 'components/PluginLink/PluginLink';
+import { RenderConditionally } from 'components/RenderConditionally/RenderConditionally';
+import { Text } from 'components/Text/Text';
+import { TextEllipsisTooltip } from 'components/TextEllipsisTooltip/TextEllipsisTooltip';
+import { TooltipBadge } from 'components/TooltipBadge/TooltipBadge';
 import { WithContextMenu } from 'components/WithContextMenu/WithContextMenu';
-import IntegrationForm from 'containers/IntegrationForm/IntegrationForm';
-import IntegrationLabelsForm from 'containers/IntegrationLabelsForm/IntegrationLabelsForm';
-import RemoteFilters from 'containers/RemoteFilters/RemoteFilters';
-import TeamName from 'containers/TeamName/TeamName';
+import { IntegrationForm } from 'containers/IntegrationForm/IntegrationForm';
+import { IntegrationLabelsForm } from 'containers/IntegrationLabelsForm/IntegrationLabelsForm';
+import { RemoteFilters } from 'containers/RemoteFilters/RemoteFilters';
+import { TeamName } from 'containers/TeamName/TeamName';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
-import { HeartIcon, HeartRedIcon } from 'icons';
+import { HeartIcon, HeartRedIcon } from 'icons/Icons';
 import { AlertReceiveChannelStore } from 'models/alert_receive_channel/alert_receive_channel';
 import {
   AlertReceiveChannel,
   MaintenanceMode,
   SupportedIntegrationFilters,
 } from 'models/alert_receive_channel/alert_receive_channel.types';
-import IntegrationHelper from 'pages/integration/Integration.helper';
+import { IntegrationHelper } from 'pages/integration/Integration.helper';
 import { AppFeature } from 'state/features';
 import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
-import { openNotification } from 'utils';
-import LocationHelper from 'utils/LocationHelper';
-import { UserActions } from 'utils/authorization';
+import { LocationHelper } from 'utils/LocationHelper';
+import { UserActions } from 'utils/authorization/authorization';
 import { PAGE, TEXT_ELLIPSIS_CLASS } from 'utils/consts';
+import { openNotification } from 'utils/utils';
 
 import styles from './Integrations.module.scss';
 
@@ -98,7 +98,7 @@ interface IntegrationsState extends PageBaseState {
 interface IntegrationsProps extends WithStoreProps, PageProps, RouteComponentProps<{ id: string }> {}
 
 @observer
-class Integrations extends React.Component<IntegrationsProps, IntegrationsState> {
+class _IntegrationsPage extends React.Component<IntegrationsProps, IntegrationsState> {
   constructor(props: IntegrationsProps) {
     super(props);
 
@@ -270,7 +270,6 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
               )}
               <GTable
                 emptyText={count === undefined ? 'Loading...' : 'No integrations found'}
-                loading={count === undefined}
                 data-testid="integrations-table"
                 rowKey="id"
                 data={results}
@@ -347,7 +346,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
       >
         <TextEllipsisTooltip placement="top" content={item.verbal_name}>
           <Text type="link" size="medium">
-            <Emoji className={cx('title', TEXT_ELLIPSIS_CLASS)} text={item.verbal_name} />
+            <Emoji className={cx(TEXT_ELLIPSIS_CLASS)} text={item.verbal_name} />
           </Text>
         </TextEllipsisTooltip>
       </PluginLink>
@@ -682,4 +681,4 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
   debouncedUpdateIntegrations = debounce(this.applyFilters, FILTERS_DEBOUNCE_MS);
 }
 
-export default withRouter(withMobXProviderContext(Integrations));
+export const IntegrationsPage = withRouter(withMobXProviderContext(_IntegrationsPage));

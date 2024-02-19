@@ -17,7 +17,7 @@ interface TagProps {
 
 const cx = cn.bind(styles);
 
-const Tag: FC<TagProps> = (props) => {
+export const Tag: FC<TagProps> = (props) => {
   const { children, color, text, className, border, onClick, size = 'medium' } = props;
   const style: React.CSSProperties = {};
 
@@ -39,5 +39,3 @@ const Tag: FC<TagProps> = (props) => {
     </span>
   );
 };
-
-export default Tag;

@@ -1,6 +1,6 @@
 import React from 'react';
 
-import PluginLink from 'components/PluginLink/PluginLink';
+import { PluginLink } from 'components/PluginLink/PluginLink';
 import { Organization } from 'models/organization/organization.types';
 
 import { SlackError } from './DefaultPageLayout.types';

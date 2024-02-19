@@ -25,13 +25,12 @@ if BROKER_TYPE == BrokerTypes.RABBITMQ:
 elif BROKER_TYPE == BrokerTypes.REDIS:
     CELERY_BROKER_URL = REDIS_URI
 
-# use redis as cache and celery broker on CI tests
-if BROKER_TYPE != BrokerTypes.REDIS:
-    CACHES = {
-        "default": {
-            "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
-        }
+# always use in-memory cache for testing.. this makes things alot easier wrt pytest-xdist (parallel test execution)
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
     }
+}
 
 # Dummy Telegram token (fake one)
 TELEGRAM_TOKEN = "0000000000:XXXXXXXXXXXXXXXXXXXXXXXXXXXX-XXXXXX"

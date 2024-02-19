@@ -5,7 +5,7 @@ import { findColor } from 'containers/Rotations/Rotations.helpers';
 import { getLayersFromStore, getOverridesFromStore, getShiftsFromStore } from 'models/schedule/schedule.helpers';
 import { Event, Layer } from 'models/schedule/schedule.types';
 import { Timezone } from 'models/timezone/timezone.types';
-import { RootStore } from 'state';
+import { RootStore } from 'state/rootStore';
 import { SelectOption } from 'state/types';
 
 export const getWeekStartString = () => {
