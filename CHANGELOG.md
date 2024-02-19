@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+
+- Add status change trigger type to webhooks ([#3920](https://github.com/grafana/oncall/pull/3920))
+
 ### Fixed
 
 - Fix edit default team by admin @mderynck ([#3885](https://github.com/grafana/oncall/pull/3885))
