@@ -17,6 +17,7 @@ import { User } from 'models/user/user.types';
 import { getStartOfWeekBasedOnCurrentDate } from 'pages/schedule/Schedule.helpers';
 import { useStore } from 'state/useStore';
 import { PLUGIN_ROOT } from 'utils/consts';
+import { useIsLoading } from 'utils/hooks';
 
 import { DEFAULT_TRANSITION_TIMEOUT } from './Rotations.config';
 
@@ -31,7 +32,8 @@ interface SchedulePersonalProps extends RouteComponentProps {
 
 const _SchedulePersonal: FC<SchedulePersonalProps> = observer(({ userPk, onSlotClick, history }) => {
   const store = useStore();
-  const { timezoneStore, scheduleStore, userStore, loaderStore } = store;
+  const { timezoneStore, scheduleStore, userStore } = store;
+  const updatePersonalEventsLoading = useIsLoading(ActionKey.UPDATE_PERSONAL_EVENTS);
 
   useEffect(() => {
     updatePersonalEvents();
@@ -74,9 +76,7 @@ const _SchedulePersonal: FC<SchedulePersonalProps> = observer(({ userPk, onSlotC
 
   const storeUser = userStore.items[userPk];
 
-  const emptyRotationsText = loaderStore.isLoading(ActionKey.UPDATE_PERSONAL_EVENTS)
-    ? 'Loading ...'
-    : 'There are no schedules relevant to user';
+  const emptyRotationsText = updatePersonalEventsLoading ? 'Loading ...' : 'There are no schedules relevant to user';
 
   return (
     <div className={cx('root')}>

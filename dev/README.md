@@ -593,3 +593,42 @@ In order to automate types creation and prevent API usage pitfalls, OnCall proje
        }
    }
    ```
+
+## System components
+```mermaid
+flowchart TD
+    client[Monitoring System]
+    third_party["Slack, Twilio, 
+           3rd party services.."]
+    server[Server]
+    celery[Celery Worker]
+    db[(SQL Database)]
+    redis[("Cache
+            (Redis)")]
+    broker[("AMPQ Broker
+             (Redis or RabbitMQ)")]
+    
+    subgraph OnCall Backend
+    server <--> redis
+    server <--> db
+    server -->|"Schedule tasks 
+                with ETA"| broker
+    broker -->|"Fetch tasks"| celery
+    celery --> db
+
+    end
+    subgraph Grafana Stack
+    plugin["OnCall Frontend 
+            Plugin"]
+    proxy[Plugin Proxy]
+    api[Grafana API]
+    plugin --> proxy --> server
+    api --> server
+    end
+
+    client -->|Alerts| server
+    third_party -->|"Statuses, 
+               events"| server
+    celery -->|"Notifications, 
+                Outgoing Webhooks"| third_party
+```

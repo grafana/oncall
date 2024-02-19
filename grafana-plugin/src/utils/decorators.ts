@@ -3,13 +3,19 @@ import { openErrorNotification, openNotification, openWarningNotification } from
 
 export function AutoLoadingState(actionKey: string) {
   return function (_target: object, _key: string, descriptor: PropertyDescriptor) {
+    let nbOfPendingActions = 0;
     const originalFunction = descriptor.value;
     descriptor.value = async function (...args: any) {
       LoaderStore.setLoadingAction(actionKey, true);
+      nbOfPendingActions++;
       try {
         await originalFunction.apply(this, args);
       } finally {
-        LoaderStore.setLoadingAction(actionKey, false);
+        nbOfPendingActions--;
+        // if there are other pending actions with the same key, wait till the last one is done
+        if (nbOfPendingActions === 0) {
+          LoaderStore.setLoadingAction(actionKey, false);
+        }
       }
     };
   };

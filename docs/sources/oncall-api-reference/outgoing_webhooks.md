@@ -115,6 +115,7 @@ For more detail, refer to [Event types][].
 - `unsilence`
 - `unresolve`
 - `unacknowledge`
+- `status change`
 
 ### HTTP Methods
 

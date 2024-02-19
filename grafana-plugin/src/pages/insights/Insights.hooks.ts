@@ -7,7 +7,7 @@ const FIVE_SECS = 5_000;
 
 export const useAlertCreationChecker = () => {
   const {
-    alertGroupStore: { updateAlertGroups, alerts },
+    alertGroupStore: { fetchAlertGroups, alerts },
   } = useStore();
   const [isFirstAlertCheckDone, setIsFirstAlertCheckDone] = useState(false);
 
@@ -20,7 +20,7 @@ export const useAlertCreationChecker = () => {
   useEffect(() => {
     const fetch = async () => {
       if (!isAnyAlertCreatedMoreThan20SecsAgo) {
-        await updateAlertGroups();
+        await fetchAlertGroups();
       }
       setIsFirstAlertCheckDone(true);
     };

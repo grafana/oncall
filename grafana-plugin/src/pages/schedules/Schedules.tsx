@@ -104,7 +104,6 @@ class _SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSt
             <GTable
               columns={this.getTableColumns()}
               data={results}
-              loading={!results}
               pagination={{
                 page,
                 total: results ? Math.ceil((count || 0) / page_size) : 0,

@@ -131,9 +131,11 @@ const NoDatasourceWarning = () => {
   );
 
   return alertVisible ? (
-    <Alert onRemove={() => setAlertVisible(false)} severity="warning" title="" className={styles.alertBox}>
-      Insights data has missing Prometheus configuration. Open OnCall {docsLink} to see how to setup it.
-    </Alert>
+    <div className={styles.alertBox}>
+      <Alert onRemove={() => setAlertVisible(false)} severity="warning" title="">
+        Insights data has missing Prometheus configuration. Open OnCall {docsLink} to see how to setup it.
+      </Alert>
+    </div>
   ) : null;
 };
 
