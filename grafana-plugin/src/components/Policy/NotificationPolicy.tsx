@@ -55,11 +55,11 @@ export class NotificationPolicy extends React.Component<NotificationPolicyProps,
       <Timeline.Item className={cx('root')} number={number} backgroundHexNumber={color}>
         <div className={cx('step')}>
           {!isDisabled && (
-            <WithPermissionControlTooltip disableByPaywall userAction={userAction}>
+            <WithPermissionControlTooltip userAction={userAction}>
               <DragHandle />
             </WithPermissionControlTooltip>
           )}
-          <WithPermissionControlTooltip disableByPaywall userAction={userAction}>
+          <WithPermissionControlTooltip userAction={userAction}>
             <Select
               className={cx('select', 'control')}
               onChange={this._getOnChangeHandler('step')}
@@ -175,7 +175,7 @@ export class NotificationPolicy extends React.Component<NotificationPolicyProps,
     const { wait_delay } = data;
 
     return (
-      <WithPermissionControlTooltip userAction={userAction} disableByPaywall>
+      <WithPermissionControlTooltip userAction={userAction}>
         <Select
           key="wait-delay"
           placeholder="Wait Delay"
@@ -198,7 +198,7 @@ export class NotificationPolicy extends React.Component<NotificationPolicyProps,
     const { notify_by } = data;
 
     return (
-      <WithPermissionControlTooltip userAction={userAction} disableByPaywall>
+      <WithPermissionControlTooltip userAction={userAction}>
         <Select
           key="notify_by"
           placeholder="Notify by"
