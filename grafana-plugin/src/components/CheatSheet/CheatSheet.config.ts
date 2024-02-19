@@ -81,6 +81,7 @@ export const genericTemplateCheatSheet: CheatSheetInterface = {
       name: 'Additional jinja2 variables',
       listItems: [
         { listItemName: 'payload - payload of last alert in the group' },
+        { listItemName: 'labels - labels assigned to the last alert in the group' },
         { listItemName: 'web_title, web_mesage, web_image_url - templates from Web' },
         { listItemName: 'payload, grafana_oncall_link, grafana_oncall_incident_id, integration_name, source_link' },
         { listItemName: 'time(), datetimeformat, datetimeformat_as_timezone, iso8601_to_time' },
@@ -97,13 +98,12 @@ export const genericTemplateCheatSheet: CheatSheetInterface = {
           codeExample: '{%- if "status" in payload %} \n **Status**: {{ payload.status }} \n {% endif -%}',
         },
         {
-          listItemName: 'Show field value or “N/A” is not exist',
-          codeExample: '{{ payload.labels.foo | default(“N/A”) }}',
+          listItemName: 'Check if field exists in payload, or labels, otherwise show “N/A” if neither exist',
+          codeExample: '{{ payload.foo | labels.bar | default(“N/A”) }}',
         },
         {
           listItemName: 'Iterate over labels dictionary',
-          codeExample:
-            '**Labels:** \n {% for k, v in payload["labels"].items() %} \n *{{ k }}*: {{ v }} \n {% endfor %} ',
+          codeExample: '**Labels:** \n {% for k, v in labels.items() %} \n *{{ k }}*: {{ v }} \n {% endfor %} ',
         },
       ],
     },
