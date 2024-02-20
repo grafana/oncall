@@ -227,5 +227,5 @@ Built-in functions:
   - Usage example: `{{ payload.ruleName | regex_match(".*") }}`
 - `b64decode` - performs a base64 string decode
   - Usage example: `{{ payload.data | b64decode }}`
-- `json_loads` - loads a given json string into an object
-  - Usage example: `{{ (payload.data | b64decode | json_loads).name }}`
+- `parse_json` - parses a given json string to an object
+  - Usage example: `{{ (payload.data | b64decode | parse_json).name }}`

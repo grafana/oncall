@@ -12,7 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Support prescribed labels ([#3848](https://github.com/grafana/oncall/pull/3848))
 - Add status change trigger type to webhooks ([#3920](https://github.com/grafana/oncall/pull/3920))
 - Add `EMAIL_USE_SSL` environment setting by @WoodyWoodsta ([#3911](https://github.com/grafana/oncall/pull/3911))
-- Add `json_loads` Jinja2 template filter by @KarimDarwish ([#00](https://github.com/grafana/oncall/pull/00))
+- Add `parse_json` Jinja2 template filter by @KarimDarwish ([#00](https://github.com/grafana/oncall/pull/00))
 
 ### Fixed
 
