@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 – Support prescribed labels ([#3848](https://github.com/grafana/oncall/pull/3848))
 - Add status change trigger type to webhooks ([#3920](https://github.com/grafana/oncall/pull/3920))
+- Add `EMAIL_USE_SSL` environment setting by @WoodyWoodsta ([#3911](https://github.com/grafana/oncall/pull/3911))
 
 ### Fixed
 
@@ -25,7 +26,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Update OnCall Insights dashboard @Ferril ([#3875](https://github.com/grafana/oncall/pull/3875))
 - Do not delete webhook if its team is deleted @mderynck ([#3873](https://github.com/grafana/oncall/pull/3873))
 - Update user details internal API perms ([#3900](https://github.com/grafana/oncall/pull/3900))
-- Add EMAIL_USE_SSL environment setting ([#3911](https://github.com/grafana/oncall/pull/3911))
 
 ## v1.3.105 (2024-02-13)
 
