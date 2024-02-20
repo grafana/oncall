@@ -17,26 +17,26 @@ import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 import { useHistory } from 'react-router-dom';
 
-import Block from 'components/GBlock/Block';
-import GForm, { CustomFieldSectionRendererProps } from 'components/GForm/GForm';
+import { Block } from 'components/GBlock/Block';
+import { GForm, CustomFieldSectionRendererProps } from 'components/GForm/GForm';
 import { FormItem, FormItemType } from 'components/GForm/GForm.types';
-import IntegrationLogo from 'components/IntegrationLogo/IntegrationLogo';
+import { IntegrationLogo } from 'components/IntegrationLogo/IntegrationLogo';
 import { logoCoors } from 'components/IntegrationLogo/IntegrationLogo.config';
-import RenderConditionally from 'components/RenderConditionally/RenderConditionally';
-import Text from 'components/Text/Text';
-import Labels, { LabelsProps } from 'containers/Labels/Labels';
+import { RenderConditionally } from 'components/RenderConditionally/RenderConditionally';
+import { Text } from 'components/Text/Text';
+import { Labels, LabelsProps } from 'containers/Labels/Labels';
 import { getWebhookPresetIcons } from 'containers/OutgoingWebhookForm/WebhookPresetIcons.config';
-import OutgoingWebhookStatus from 'containers/OutgoingWebhookStatus/OutgoingWebhookStatus';
-import WebhooksTemplateEditor from 'containers/WebhooksTemplateEditor/WebhooksTemplateEditor';
+import { OutgoingWebhookStatus } from 'containers/OutgoingWebhookStatus/OutgoingWebhookStatus';
+import { WebhooksTemplateEditor } from 'containers/WebhooksTemplateEditor/WebhooksTemplateEditor';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { LabelKeyValue } from 'models/label/label.types';
 import { OutgoingWebhook, OutgoingWebhookPreset } from 'models/outgoing_webhook/outgoing_webhook.types';
 import { WebhookFormActionType } from 'pages/outgoing_webhooks/OutgoingWebhooks.types';
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
-import { KeyValuePair } from 'utils';
-import { UserActions } from 'utils/authorization';
+import { UserActions } from 'utils/authorization/authorization';
 import { PLUGIN_ROOT } from 'utils/consts';
+import { KeyValuePair } from 'utils/utils';
 
 import { createForm } from './OutgoingWebhookForm.config';
 import { WebhookFormFieldName } from './OutgoingWebhookForm.types';
@@ -80,7 +80,7 @@ const CustomFieldSectionRenderer: React.FC<CustomFieldSectionRendererProps> = ob
   );
 });
 
-const OutgoingWebhookForm = observer((props: OutgoingWebhookFormProps) => {
+export const OutgoingWebhookForm = observer((props: OutgoingWebhookFormProps) => {
   const history = useHistory();
   const { id, action, onUpdate, onHide, onDelete } = props;
   const [onFormChangeFn, setOnFormChangeFn] = useState<{ fn: (value: string) => void }>(undefined);
@@ -93,10 +93,15 @@ const OutgoingWebhookForm = observer((props: OutgoingWebhookFormProps) => {
   const [selectedPreset, setSelectedPreset] = useState<OutgoingWebhookPreset>(undefined);
   const [filterValue, setFilterValue] = useState('');
 
-  const { outgoingWebhookStore, hasFeature } = useStore();
+  const { outgoingWebhookStore, hasFeature, grafanaTeamStore, alertReceiveChannelStore } = useStore();
   const isNew = action === WebhookFormActionType.NEW;
   const isNewOrCopy = isNew || action === WebhookFormActionType.COPY;
-  const form = createForm(outgoingWebhookStore.outgoingWebhookPresets, hasFeature(AppFeature.Labels));
+  const form = createForm({
+    presets: outgoingWebhookStore.outgoingWebhookPresets,
+    grafanaTeamStore,
+    alertReceiveChannelStore,
+    hasLabelsFeature: hasFeature(AppFeature.Labels),
+  });
 
   const handleSubmit = useCallback(
     async (data: Partial<OutgoingWebhook>) => {
@@ -386,75 +391,76 @@ interface WebhookTabsProps {
   formElement: React.ReactElement;
 }
 
-const WebhookTabsContent: React.FC<WebhookTabsProps> = ({
-  id,
-  action,
-  activeTab,
-  data,
-  onHide,
-  onUpdate,
-  onDelete,
-  formElement,
-}) => {
-  const [confirmationModal, setConfirmationModal] = useState<ConfirmModalProps>(undefined);
-  const { outgoingWebhookStore, hasFeature } = useStore();
-  const form = createForm(outgoingWebhookStore.outgoingWebhookPresets, hasFeature(AppFeature.Labels));
-  return (
-    <div className={cx('tabs__content')}>
-      {confirmationModal && (
-        <ConfirmModal {...(confirmationModal as ConfirmModalProps)} onDismiss={() => setConfirmationModal(undefined)} />
-      )}
+const WebhookTabsContent: React.FC<WebhookTabsProps> = observer(
+  ({ id, action, activeTab, data, onHide, onUpdate, onDelete, formElement }) => {
+    const [confirmationModal, setConfirmationModal] = useState<ConfirmModalProps>(undefined);
+    const { outgoingWebhookStore, hasFeature, grafanaTeamStore, alertReceiveChannelStore } = useStore();
+    const form = createForm({
+      presets: outgoingWebhookStore.outgoingWebhookPresets,
+      grafanaTeamStore,
+      alertReceiveChannelStore,
+      hasLabelsFeature: hasFeature(AppFeature.Labels),
+    });
+    return (
+      <div className={cx('tabs__content')}>
+        {confirmationModal && (
+          <ConfirmModal
+            {...(confirmationModal as ConfirmModalProps)}
+            onDismiss={() => setConfirmationModal(undefined)}
+          />
+        )}
 
-      {activeTab === WebhookTabs.Settings.key && (
-        <>
-          <div className={cx('content')}>
-            {formElement}
-            <div className={cx('buttons')}>
-              <HorizontalGroup justify={'flex-end'}>
-                <Button variant="secondary" onClick={onHide}>
-                  Cancel
-                </Button>
-                <WithPermissionControlTooltip userAction={UserActions.OutgoingWebhooksWrite}>
-                  <Button
-                    form={form.name}
-                    variant="destructive"
-                    type="button"
-                    disabled={data.is_legacy}
-                    onClick={() => {
-                      setConfirmationModal({
-                        isOpen: true,
-                        body: 'The action cannot be undone.',
-                        confirmText: 'Delete',
-                        dismissText: 'Cancel',
-                        onConfirm: onDelete,
-                        title: `Are you sure you want to delete webhook?`,
-                      } as ConfirmModalProps);
-                    }}
-                  >
-                    Delete Webhook
-                  </Button>
-                </WithPermissionControlTooltip>
-                <WithPermissionControlTooltip userAction={UserActions.OutgoingWebhooksWrite}>
-                  <Button form={form.name} type="submit" disabled={data.is_legacy}>
-                    {action === WebhookFormActionType.NEW ? 'Create' : 'Update'} Webhook
-                  </Button>
-                </WithPermissionControlTooltip>
-              </HorizontalGroup>
-            </div>
-          </div>
-          {data.is_legacy ? (
+        {activeTab === WebhookTabs.Settings.key && (
+          <>
             <div className={cx('content')}>
-              <Text type="secondary">Legacy migrated webhooks are not editable. Make a copy to make changes.</Text>
+              {formElement}
+              <div className={cx('buttons')}>
+                <HorizontalGroup justify={'flex-end'}>
+                  <Button variant="secondary" onClick={onHide}>
+                    Cancel
+                  </Button>
+                  <WithPermissionControlTooltip userAction={UserActions.OutgoingWebhooksWrite}>
+                    <Button
+                      form={form.name}
+                      variant="destructive"
+                      type="button"
+                      disabled={data.is_legacy}
+                      onClick={() => {
+                        setConfirmationModal({
+                          isOpen: true,
+                          body: 'The action cannot be undone.',
+                          confirmText: 'Delete',
+                          dismissText: 'Cancel',
+                          onConfirm: onDelete,
+                          title: `Are you sure you want to delete webhook?`,
+                        } as ConfirmModalProps);
+                      }}
+                    >
+                      Delete Webhook
+                    </Button>
+                  </WithPermissionControlTooltip>
+                  <WithPermissionControlTooltip userAction={UserActions.OutgoingWebhooksWrite}>
+                    <Button form={form.name} type="submit" disabled={data.is_legacy}>
+                      {action === WebhookFormActionType.NEW ? 'Create' : 'Update'} Webhook
+                    </Button>
+                  </WithPermissionControlTooltip>
+                </HorizontalGroup>
+              </div>
             </div>
-          ) : (
-            ''
-          )}
-        </>
-      )}
-      {activeTab === WebhookTabs.LastRun.key && <OutgoingWebhookStatus id={id} onUpdate={onUpdate} />}
-    </div>
-  );
-};
+            {data.is_legacy ? (
+              <div className={cx('content')}>
+                <Text type="secondary">Legacy migrated webhooks are not editable. Make a copy to make changes.</Text>
+              </div>
+            ) : (
+              ''
+            )}
+          </>
+        )}
+        {activeTab === WebhookTabs.LastRun.key && <OutgoingWebhookStatus id={id} onUpdate={onUpdate} />}
+      </div>
+    );
+  }
+);
 
 const WebhookPresetBlocks: React.FC<{
   presets: OutgoingWebhookPreset[];
@@ -498,5 +504,3 @@ const WebhookPresetBlocks: React.FC<{
     </div>
   );
 });
-
-export default OutgoingWebhookForm;

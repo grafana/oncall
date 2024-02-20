@@ -1,7 +1,7 @@
 import { action, observable, makeObservable, runInAction } from 'mobx';
 
-import BaseStore from 'models/base_store';
-import { RootStore } from 'state';
+import { BaseStore } from 'models/base_store';
+import { RootStore } from 'state/rootStore';
 
 import { GlobalSetting } from './global_setting.types';
 
@@ -20,7 +20,7 @@ export class GlobalSettingStore extends BaseStore {
     this.path = '/live_settings/';
   }
 
-  @action
+  @action.bound
   async updateById(id: GlobalSetting['id']) {
     const response = await this.getById(id);
 
@@ -32,7 +32,7 @@ export class GlobalSettingStore extends BaseStore {
     });
   }
 
-  @action
+  @action.bound
   async updateItems(query = '') {
     const results = await this.getAll();
 
@@ -55,13 +55,13 @@ export class GlobalSettingStore extends BaseStore {
     });
   }
 
-  getSearchResult(query = '') {
+  getSearchResult = (query = '') => {
     if (!this.searchResult[query]) {
       return undefined;
     }
 
     return this.searchResult[query].map((globalSettingId: GlobalSetting['id']) => this.items[globalSettingId]);
-  }
+  };
 
   async getGlobalSettingItemByName(name: string) {
     const results = await this.getAll();

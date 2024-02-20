@@ -1,32 +1,5 @@
 # Developer quickstart
 
-- [Quick Start using Kubernetes and Tilt (beta)](#quick-start-using-kubernetes-and-tilt-beta)
-- [Running the project with docker-compose](#running-the-project-with-docker-compose)
-  - [`COMPOSE_PROFILES`](#compose_profiles)
-  - [`GRAFANA_IMAGE`](#grafana_image)
-  - [Configuring Grafana](#configuring-grafana)
-  - [Enabling RBAC for OnCall for local development](#enabling-rbac-for-oncall-for-local-development)
-  - [Django Silk Profiling](#django-silk-profiling)
-  - [Running backend services outside Docker](#running-backend-services-outside-docker)
-- [UI E2E Tests](#ui-e2e-tests)
-- [Helm Unit Tests](#helm-unit-tests)
-- [Useful `make` commands](#useful-make-commands)
-- [Setting environment variables](#setting-environment-variables)
-- [Slack application setup](#slack-application-setup)
-- [Update drone build](#update-drone-build)
-- [Troubleshooting](#troubleshooting)
-  - [ld: library not found for -lssl](#ld-library-not-found-for--lssl)
-  - [Could not build wheels for cryptography which use PEP 517 and cannot be installed directly](#could-not-build-wheels-for-cryptography-which-use-pep-517-and-cannot-be-installed-directly)
-  - [django.db.utils.OperationalError: (1366, "Incorrect string value")](#djangodbutilsoperationalerror-1366-incorrect-string-value)
-  - [/bin/sh: line 0: cd: grafana-plugin: No such file or directory](#binsh-line-0-cd-grafana-plugin-no-such-file-or-directory)
-  - [Encountered error while trying to install package - grpcio](#encountered-error-while-trying-to-install-package---grpcio)
-  - [distutils.errors.CompileError: command '/usr/bin/clang' failed with exit code 1](#distutilserrorscompileerror-command-usrbinclang-failed-with-exit-code-1)
-  - [symbol not found in flat namespace '\_EVP_DigestSignUpdate'](#symbol-not-found-in-flat-namespace-_evp_digestsignupdate)
-- [IDE Specific Instructions](#ide-specific-instructions)
-  - [PyCharm](#pycharm)
-- [How to write database migrations](#how-to-write-database-migrations)
-- [Autogenerating TS types based on OpenAPI schema](#autogenerating-ts-types-based-on-openapi-schema)
-
 Related: [How to develop integrations](/engine/config_integrations/README.md)
 
 ## Quick Start using Kubernetes and Tilt (beta)
@@ -545,11 +518,11 @@ In order to automate types creation and prevent API usage pitfalls, OnCall proje
 
    ```ts
    import { ApiSchemas } from "network/oncall-api/api.types";
-   import onCallApi from "network/oncall-api/http-client";
+   import { onCallApi } from "network/oncall-api/http-client";
 
    const {
      data: { results },
-   } = await onCallApi.GET("/alertgroups/");
+   } = await onCallApi().GET("/alertgroups/");
    const alertGroups: Array<ApiSchemas["AlertGroup"]> = results;
    ```
 
@@ -593,3 +566,43 @@ In order to automate types creation and prevent API usage pitfalls, OnCall proje
        }
    }
    ```
+
+## System components
+
+```mermaid
+flowchart TD
+    client[Monitoring System]
+    third_party["Slack, Twilio, 
+           3rd party services.."]
+    server[Server]
+    celery[Celery Worker]
+    db[(SQL Database)]
+    redis[("Cache
+            (Redis)")]
+    broker[("AMPQ Broker
+             (Redis or RabbitMQ)")]
+    
+    subgraph OnCall Backend
+    server <--> redis
+    server <--> db
+    server -->|"Schedule tasks 
+                with ETA"| broker
+    broker -->|"Fetch tasks"| celery
+    celery --> db
+
+    end
+    subgraph Grafana Stack
+    plugin["OnCall Frontend 
+            Plugin"]
+    proxy[Plugin Proxy]
+    api[Grafana API]
+    plugin --> proxy --> server
+    api --> server
+    end
+
+    client -->|Alerts| server
+    third_party -->|"Statuses, 
+               events"| server
+    celery -->|"Notifications, 
+                Outgoing Webhooks"| third_party
+```

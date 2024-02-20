@@ -6,12 +6,12 @@ import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 import moment from 'moment-timezone';
 
-import Text from 'components/Text/Text';
-import GSelect from 'containers/GSelect/GSelect';
+import { Text } from 'components/Text/Text';
+import { GSelect } from 'containers/GSelect/GSelect';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { Alert } from 'models/alertgroup/alertgroup.types';
 import { useStore } from 'state/useStore';
-import { UserActions } from 'utils/authorization';
+import { UserActions } from 'utils/authorization/authorization';
 
 import styles from './AttachIncidentForm.module.css';
 
@@ -27,7 +27,18 @@ interface GroupedAlertNumberProps {
   value: Alert['pk'];
 }
 
-const AttachIncidentForm = observer(({ id, onUpdate, onHide }: AttachIncidentFormProps) => {
+const GroupedAlertNumber = observer(({ value }: GroupedAlertNumberProps) => {
+  const { alertGroupStore } = useStore();
+  const alert = alertGroupStore.items[value];
+
+  return (
+    <div>
+      #{alert?.inside_organization_number} {alert?.render_for_web?.title}
+    </div>
+  );
+});
+
+export const AttachIncidentForm = observer(({ id, onUpdate, onHide }: AttachIncidentFormProps) => {
   const store = useStore();
 
   const { alertGroupStore } = store;
@@ -44,17 +55,6 @@ const AttachIncidentForm = observer(({ id, onUpdate, onHide }: AttachIncidentFor
       onUpdate();
     });
   }, [selected, alertGroupStore, id, onHide, onUpdate]);
-
-  const GroupedAlertNumber = observer(({ value }: GroupedAlertNumberProps) => {
-    const { alertGroupStore } = useStore();
-    const alert = alertGroupStore.items[value];
-
-    return (
-      <div>
-        #{alert?.inside_organization_number} {alert?.render_for_web?.title}
-      </div>
-    );
-  });
 
   return (
     <Modal
@@ -74,12 +74,15 @@ const AttachIncidentForm = observer(({ id, onUpdate, onHide }: AttachIncidentFor
         description="Linking alert groups together can help the team investigate the underlying issue."
       >
         <WithPermissionControlTooltip userAction={UserActions.AlertGroupsWrite}>
-          <GSelect
+          <GSelect<Alert>
             showSearch
-            modelName="alertGroupStore"
+            items={alertGroupStore.items}
+            fetchItemsFn={alertGroupStore.fetchItemsAvailableForAttachment}
+            fetchItemFn={alertGroupStore.updateItem}
+            getSearchResult={alertGroupStore.getSearchResult}
             valueField="pk"
             displayField="render_for_web.title"
-            placeholder="Select Incident"
+            placeholder="Select Alert Group"
             className={cx('select', 'control')}
             filterOptions={(optionId) => optionId !== id}
             value={selected}
@@ -100,5 +103,3 @@ const AttachIncidentForm = observer(({ id, onUpdate, onHide }: AttachIncidentFor
     </Modal>
   );
 });
-
-export default AttachIncidentForm;

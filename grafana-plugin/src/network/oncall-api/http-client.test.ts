@@ -1,12 +1,12 @@
 import { SpanStatusCode } from '@opentelemetry/api';
 
-import FaroHelper from 'utils/faro';
+import { FaroHelper } from 'utils/faro';
 
-import { customFetch } from './http-client';
+import { getCustomFetchFn } from './http-client';
 
 jest.mock('utils/faro', () => ({
   __esModule: true,
-  default: {
+  FaroHelper: {
     faro: {
       api: {
         getOTEL: jest.fn(() => undefined),
@@ -31,6 +31,7 @@ const REQUEST_CONFIG = {
 const URL = 'https://someurl.com';
 const SUCCESSFUL_RESPONSE_MOCK = { ok: true };
 const ERROR_MOCK = 'error';
+const customFetch = getCustomFetchFn({ withGlobalErrorHandler: true });
 
 describe('customFetch', () => {
   beforeAll(() => {
@@ -54,8 +55,8 @@ describe('customFetch', () => {
     describe('if response is not successful', () => {
       it('should push event and error to faro', async () => {
         (FaroHelper.faro.api.getOTEL as unknown as jest.Mock).mockReturnValueOnce(undefined);
-        fetchMock.mockRejectedValueOnce(ERROR_MOCK);
-        await expect(customFetch(URL, REQUEST_CONFIG)).rejects.toEqual(Error(ERROR_MOCK));
+        fetchMock.mockResolvedValueOnce({ ok: false, json: () => ERROR_MOCK });
+        await expect(customFetch(URL, REQUEST_CONFIG)).rejects.toEqual(ERROR_MOCK);
         expect(FaroHelper.faro.api.pushEvent).toHaveBeenCalledWith('Request failed', { url: URL });
         expect(FaroHelper.faro.api.pushError).toHaveBeenCalledWith(ERROR_MOCK);
       });
@@ -113,7 +114,7 @@ describe('customFetch', () => {
 
     describe('if response is not successful', () => {
       it('should reject Promise, push event to faro, set span status to error and end span', async () => {
-        fetchMock.mockRejectedValueOnce(ERROR_MOCK);
+        fetchMock.mockResolvedValueOnce({ ok: false, json: () => ERROR_MOCK });
         await expect(customFetch(URL, REQUEST_CONFIG)).rejects.toEqual(ERROR_MOCK);
         expect(FaroHelper.faro.api.pushEvent).toHaveBeenCalledWith('Request failed', { url: URL });
         expect(FaroHelper.faro.api.pushError).toHaveBeenCalledWith(ERROR_MOCK);

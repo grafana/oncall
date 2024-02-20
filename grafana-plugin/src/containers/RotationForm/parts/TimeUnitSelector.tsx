@@ -19,7 +19,7 @@ interface TimeUnitSelectorProps {
   disabled?: boolean;
 }
 
-const TimeUnitSelector = ({ value, unit, onChange, maxValue, className, disabled }: TimeUnitSelectorProps) => {
+export const TimeUnitSelector = ({ value, unit, onChange, maxValue, className, disabled }: TimeUnitSelectorProps) => {
   const handleChange = ({ value }) => {
     onChange(value);
   };
@@ -41,5 +41,3 @@ const TimeUnitSelector = ({ value, unit, onChange, maxValue, className, disabled
     </div>
   );
 };
-
-export default TimeUnitSelector;

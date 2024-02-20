@@ -4,14 +4,14 @@ import { Button, Drawer, HorizontalGroup, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
-import GForm from 'components/GForm/GForm';
+import { GForm } from 'components/GForm/GForm';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { Schedule, ScheduleType } from 'models/schedule/schedule.types';
 import { useStore } from 'state/useStore';
-import { openWarningNotification } from 'utils';
-import { UserActions } from 'utils/authorization';
+import { UserActions } from 'utils/authorization/authorization';
+import { openWarningNotification } from 'utils/utils';
 
-import { apiForm, calendarForm, iCalForm } from './ScheduleForm.config';
+import { getApiForm, getCalendarForm, getICalForm } from './ScheduleForm.config';
 import { prepareForEdit } from './ScheduleForm.helpers';
 
 import styles from './ScheduleForm.module.css';
@@ -25,19 +25,22 @@ interface ScheduleFormProps {
   type?: ScheduleType;
 }
 
-const scheduleTypeToForm = {
-  [ScheduleType.Calendar]: calendarForm,
-  [ScheduleType.Ical]: iCalForm,
-  [ScheduleType.API]: apiForm,
-};
-
-const ScheduleForm = observer((props: ScheduleFormProps) => {
+export const ScheduleForm = observer((props: ScheduleFormProps) => {
   const { id, type, onSubmit, onHide } = props;
   const isNew = id === 'new';
 
   const store = useStore();
 
   const { scheduleStore, userStore } = store;
+
+  const scheduleTypeToForm = useMemo(
+    () => ({
+      [ScheduleType.Calendar]: getCalendarForm(store),
+      [ScheduleType.Ical]: getICalForm(store),
+      [ScheduleType.API]: getApiForm(store),
+    }),
+    []
+  );
 
   const data = useMemo(() => {
     return isNew ? { team: userStore.currentUser?.current_team, type } : prepareForEdit(scheduleStore.items[id]);
@@ -94,5 +97,3 @@ const ScheduleForm = observer((props: ScheduleFormProps) => {
     </Drawer>
   );
 });
-
-export default ScheduleForm;

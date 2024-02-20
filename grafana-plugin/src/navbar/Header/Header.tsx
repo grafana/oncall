@@ -6,7 +6,7 @@ import { observer } from 'mobx-react';
 
 import gitHubStarSVG from 'assets/img/github_star.svg';
 import logo from 'assets/img/logo.svg';
-import Alerts from 'containers/Alerts/Alerts';
+import { Alerts } from 'containers/Alerts/Alerts';
 import { isTopNavbar } from 'plugin/GrafanaPluginRootPage.helpers';
 import { useStore } from 'state/useStore';
 import { APP_SUBTITLE } from 'utils/consts';
@@ -15,7 +15,7 @@ import styles from './Header.module.scss';
 
 const cx = cn.bind(styles);
 
-const Header = observer(() => {
+export const Header = observer(() => {
   const store = useStore();
 
   return (
@@ -75,5 +75,3 @@ const Banners: React.FC = () => {
     </div>
   );
 };
-
-export default Header;

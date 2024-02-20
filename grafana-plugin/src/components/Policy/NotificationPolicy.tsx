@@ -5,19 +5,19 @@ import { Button, IconButton, Select } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { SortableElement } from 'react-sortable-hoc';
 
-import PluginLink from 'components/PluginLink/PluginLink';
-import Timeline from 'components/Timeline/Timeline';
+import { PluginLink } from 'components/PluginLink/PluginLink';
+import { Timeline } from 'components/Timeline/Timeline';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { Channel } from 'models/channel/channel';
 import { NotificationPolicyType, prepareNotificationPolicy } from 'models/notification_policy/notification_policy';
 import { User } from 'models/user/user.types';
-import { RootStore } from 'state';
 import { AppFeature } from 'state/features';
+import { RootStore } from 'state/rootStore';
 import { SelectOption } from 'state/types';
-import { UserAction } from 'utils/authorization';
+import { UserAction } from 'utils/authorization/authorization';
 
-import DragHandle from './DragHandle';
-import PolicyNote from './PolicyNote';
+import { DragHandle } from './DragHandle';
+import { PolicyNote } from './PolicyNote';
 
 import styles from './NotificationPolicy.module.css';
 
@@ -55,11 +55,11 @@ export class NotificationPolicy extends React.Component<NotificationPolicyProps,
       <Timeline.Item className={cx('root')} number={number} backgroundHexNumber={color}>
         <div className={cx('step')}>
           {!isDisabled && (
-            <WithPermissionControlTooltip disableByPaywall userAction={userAction}>
+            <WithPermissionControlTooltip userAction={userAction}>
               <DragHandle />
             </WithPermissionControlTooltip>
           )}
-          <WithPermissionControlTooltip disableByPaywall userAction={userAction}>
+          <WithPermissionControlTooltip userAction={userAction}>
             <Select
               className={cx('select', 'control')}
               onChange={this._getOnChangeHandler('step')}
@@ -175,7 +175,7 @@ export class NotificationPolicy extends React.Component<NotificationPolicyProps,
     const { wait_delay } = data;
 
     return (
-      <WithPermissionControlTooltip userAction={userAction} disableByPaywall>
+      <WithPermissionControlTooltip userAction={userAction}>
         <Select
           key="wait-delay"
           placeholder="Wait Delay"
@@ -198,7 +198,7 @@ export class NotificationPolicy extends React.Component<NotificationPolicyProps,
     const { notify_by } = data;
 
     return (
-      <WithPermissionControlTooltip userAction={userAction} disableByPaywall>
+      <WithPermissionControlTooltip userAction={userAction}>
         <Select
           key="notify_by"
           placeholder="Notify by"

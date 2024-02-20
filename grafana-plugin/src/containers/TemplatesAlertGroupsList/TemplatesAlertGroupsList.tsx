@@ -4,14 +4,14 @@ import { Button, HorizontalGroup, Icon, IconButton, Badge, LoadingPlaceholder } 
 import cn from 'classnames/bind';
 import { debounce } from 'lodash-es';
 
-import MonacoEditor, { MONACO_LANGUAGE } from 'components/MonacoEditor/MonacoEditor';
+import { MonacoEditor, MONACO_LANGUAGE } from 'components/MonacoEditor/MonacoEditor';
 import { MONACO_EDITABLE_CONFIG } from 'components/MonacoEditor/MonacoEditor.config';
-import Text from 'components/Text/Text';
-import TooltipBadge from 'components/TooltipBadge/TooltipBadge';
-import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
+import { Text } from 'components/Text/Text';
+import { TooltipBadge } from 'components/TooltipBadge/TooltipBadge';
 import { AlertTemplatesDTO } from 'models/alert_templates/alert_templates';
 import { Alert } from 'models/alertgroup/alertgroup.types';
 import { OutgoingWebhook, OutgoingWebhookResponse } from 'models/outgoing_webhook/outgoing_webhook.types';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
 
 import styles from './TemplatesAlertGroupsList.module.css';
@@ -26,7 +26,7 @@ export enum TEMPLATE_PAGE {
 interface TemplatesAlertGroupsListProps {
   templatePage: TEMPLATE_PAGE;
   templates: AlertTemplatesDTO[];
-  alertReceiveChannelId?: AlertReceiveChannel['id'];
+  alertReceiveChannelId?: ApiSchemas['AlertReceiveChannel']['id'];
   outgoingwebhookId?: OutgoingWebhook['id'];
   heading?: string;
 
@@ -36,7 +36,7 @@ interface TemplatesAlertGroupsListProps {
   onLoadAlertGroupsList?: (isRecentAlertExising: boolean) => void;
 }
 
-const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) => {
+export const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) => {
   const {
     templatePage,
     heading = 'Recent Alert groups',
@@ -311,5 +311,3 @@ const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) => {
     );
   }
 };
-
-export default TemplatesAlertGroupsList;

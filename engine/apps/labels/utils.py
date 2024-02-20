@@ -16,34 +16,6 @@ LABEL_OUTDATED_TIMEOUT_MINUTES = 30
 ASSOCIATED_MODEL_NAME = "AssociatedLabel"
 
 
-class LabelUpdateParam(typing.TypedDict):
-    name: str
-
-
-class LabelParams(typing.TypedDict):
-    id: str
-    name: str
-
-
-class LabelData(typing.TypedDict):
-    key: LabelParams
-    value: LabelParams
-
-
-class ValueData(typing.TypedDict):
-    value_name: str
-    key_name: str
-
-
-class LabelKeyData(typing.TypedDict):
-    key: LabelParams
-    values: typing.List[LabelParams]
-
-
-LabelsData = typing.List[LabelData]
-LabelsKeysData = typing.List[LabelParams]
-
-
 def get_associating_label_model(obj_model_name: str) -> typing.Type["AssociatedLabel"]:
     associating_label_model_name = obj_model_name + ASSOCIATED_MODEL_NAME
     label_model = apps.get_model("labels", associating_label_model_name)

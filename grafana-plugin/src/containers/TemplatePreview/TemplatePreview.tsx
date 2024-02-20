@@ -4,15 +4,16 @@ import { Badge, HorizontalGroup, Icon, LoadingPlaceholder, VerticalGroup } from 
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
-import Text from 'components/Text/Text';
-import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
+import { Text } from 'components/Text/Text';
+import { AlertReceiveChannelHelper } from 'models/alert_receive_channel/alert_receive_channel.helpers';
 import { Alert } from 'models/alertgroup/alertgroup.types';
 import { OutgoingWebhook } from 'models/outgoing_webhook/outgoing_webhook.types';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 import { LabelTemplateOptions } from 'pages/integration/IntegrationCommon.config';
 import { useStore } from 'state/useStore';
-import { openErrorNotification } from 'utils';
 import { useDebouncedCallback } from 'utils/hooks';
-import sanitize from 'utils/sanitize';
+import { sanitize } from 'utils/sanitize';
+import { openErrorNotification } from 'utils/utils';
 
 import styles from './TemplatePreview.module.css';
 
@@ -23,8 +24,8 @@ interface TemplatePreviewProps {
   templateBody: string | null;
   templateType?: 'plain' | 'html' | 'image' | 'boolean';
   templateIsRoute?: boolean;
-  payload?: JSON;
-  alertReceiveChannelId: AlertReceiveChannel['id'];
+  payload?: { [key: string]: unknown };
+  alertReceiveChannelId: ApiSchemas['AlertReceiveChannel']['id'];
   alertGroupId?: Alert['pk'];
   outgoingWebhookId?: OutgoingWebhook['id'];
   templatePage: TEMPLATE_PAGE;
@@ -39,7 +40,7 @@ export enum TEMPLATE_PAGE {
   Webhooks,
 }
 
-const TemplatePreview = observer((props: TemplatePreviewProps) => {
+export const TemplatePreview = observer((props: TemplatePreviewProps) => {
   const {
     templateName,
     templateBody,
@@ -58,14 +59,14 @@ const TemplatePreview = observer((props: TemplatePreviewProps) => {
   const [conditionalResult, setConditionalResult] = useState<ConditionalResult>({});
 
   const store = useStore();
-  const { alertReceiveChannelStore, alertGroupStore, outgoingWebhookStore } = store;
+  const { alertGroupStore, outgoingWebhookStore } = store;
 
   const handleTemplateBodyChange = useDebouncedCallback(() => {
     (templatePage === TEMPLATE_PAGE.Webhooks
       ? outgoingWebhookStore.renderPreview(outgoingWebhookId, templateName, templateBody, payload)
       : alertGroupId
       ? alertGroupStore.renderPreview(alertGroupId, templateName, templateBody)
-      : alertReceiveChannelStore.renderPreview(alertReceiveChannelId, templateName, templateBody, payload)
+      : AlertReceiveChannelHelper.renderPreview(alertReceiveChannelId, templateName, templateBody, payload)
     )
       .then((data) => {
         setResult(data);
@@ -217,5 +218,3 @@ const TemplatePreview = observer((props: TemplatePreviewProps) => {
     <LoadingPlaceholder text="Loading..." />
   );
 });
-
-export default TemplatePreview;

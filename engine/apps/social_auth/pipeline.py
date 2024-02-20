@@ -95,9 +95,10 @@ def populate_slack_identities(response, backend, user, organization, **kwargs):
         return HttpResponse(status=status.HTTP_400_BAD_REQUEST)
 
     slack_team_id = response["team"]["id"]
-    can_link = can_link_slack_team_wrapper(str(organization.uuid), slack_team_id, settings.ONCALL_BACKEND_REGION)
-    if settings.FEATURE_MULTIREGION_ENABLED and not can_link:
-        raise InstallMultiRegionSlackException
+    if settings.LICENSE == settings.CLOUD_LICENSE_NAME:
+        can_link = can_link_slack_team_wrapper(str(organization.uuid), slack_team_id, settings.ONCALL_BACKEND_REGION)
+        if settings.FEATURE_MULTIREGION_ENABLED and not can_link:
+            raise InstallMultiRegionSlackException
 
     slack_team_identity, is_slack_team_identity_created = SlackTeamIdentity.objects.get_or_create(
         slack_id=slack_team_id,

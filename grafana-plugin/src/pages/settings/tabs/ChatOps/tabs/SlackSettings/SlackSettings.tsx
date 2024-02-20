@@ -14,22 +14,22 @@ import {
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
-import Block from 'components/GBlock/Block';
-import PluginLink from 'components/PluginLink/PluginLink';
-import Text from 'components/Text/Text';
-import WithConfirm from 'components/WithConfirm/WithConfirm';
-import GSelect from 'containers/GSelect/GSelect';
-import RemoteSelect from 'containers/RemoteSelect/RemoteSelect';
+import { Block } from 'components/GBlock/Block';
+import { PluginLink } from 'components/PluginLink/PluginLink';
+import { Text } from 'components/Text/Text';
+import { WithConfirm } from 'components/WithConfirm/WithConfirm';
+import { GSelect } from 'containers/GSelect/GSelect';
+import { RemoteSelect } from 'containers/RemoteSelect/RemoteSelect';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
-import { SlackNewIcon } from 'icons';
+import { SlackNewIcon } from 'icons/Icons';
 import { PRIVATE_CHANNEL_NAME } from 'models/slack_channel/slack_channel.config';
 import { SlackChannel } from 'models/slack_channel/slack_channel.types';
 import { AppFeature } from 'state/features';
 import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
-import { showApiError } from 'utils';
-import { UserActions } from 'utils/authorization';
+import { UserActions } from 'utils/authorization/authorization';
 import { DOCS_SLACK_SETUP } from 'utils/consts';
+import { showApiError } from 'utils/utils';
 
 import styles from './SlackSettings.module.css';
 
@@ -42,7 +42,7 @@ interface SlackState {
 }
 
 @observer
-class SlackSettings extends Component<SlackProps, SlackState> {
+class _SlackSettings extends Component<SlackProps, SlackState> {
   state: SlackState = {
     showENVVariablesButton: false,
   };
@@ -106,6 +106,7 @@ class SlackSettings extends Component<SlackProps, SlackState> {
     const {
       organizationStore: { currentOrganization },
       slackStore,
+      slackChannelStore,
     } = store;
 
     return (
@@ -119,9 +120,12 @@ class SlackSettings extends Component<SlackProps, SlackState> {
           tooltip="The selected channel will be used as a fallback in the event that a schedule or integration does not have a configured channel"
         >
           <WithPermissionControlTooltip userAction={UserActions.ChatOpsUpdateSettings}>
-            <GSelect
+            <GSelect<SlackChannel>
               showSearch
-              modelName="slackChannelStore"
+              items={slackChannelStore.items}
+              fetchItemsFn={slackChannelStore.updateItems}
+              fetchItemFn={slackChannelStore.updateItem}
+              getSearchResult={slackChannelStore.getSearchResult}
               displayField="display_name"
               valueField="id"
               placeholder="Select Slack Channel"
@@ -201,17 +205,22 @@ class SlackSettings extends Component<SlackProps, SlackState> {
   };
 
   renderSlackChannels = () => {
-    const { store } = this.props;
+    const {
+      store: { organizationStore, slackChannelStore },
+    } = this.props;
     return (
       <WithPermissionControlTooltip userAction={UserActions.ChatOpsUpdateSettings}>
-        <GSelect
+        <GSelect<SlackChannel>
           showSearch
           className={cx('select', 'control')}
-          modelName="slackChannelStore"
+          items={slackChannelStore.items}
+          fetchItemsFn={slackChannelStore.updateItems}
+          fetchItemFn={slackChannelStore.updateItem}
+          getSearchResult={slackChannelStore.getSearchResult}
           displayField="display_name"
           valueField="id"
           placeholder="Select Slack Channel"
-          value={store.organizationStore.currentOrganization?.slack_channel?.id}
+          value={organizationStore.currentOrganization?.slack_channel?.id}
           onChange={this.handleSlackChannelChange}
           nullItemName={PRIVATE_CHANNEL_NAME}
         />
@@ -305,4 +314,4 @@ class SlackSettings extends Component<SlackProps, SlackState> {
   };
 }
 
-export default withMobXProviderContext(SlackSettings);
+export const SlackSettings = withMobXProviderContext(_SlackSettings);

@@ -6,10 +6,10 @@ import { observer } from 'mobx-react';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
 
-import Avatar from 'components/Avatar/Avatar';
-import Text from 'components/Text/Text';
-import Rotation from 'containers/Rotation/Rotation';
-import TimelineMarks from 'containers/TimelineMarks/TimelineMarks';
+import { Avatar } from 'components/Avatar/Avatar';
+import { Text } from 'components/Text/Text';
+import { Rotation } from 'containers/Rotation/Rotation';
+import { TimelineMarks } from 'containers/TimelineMarks/TimelineMarks';
 import { ActionKey } from 'models/loader/action-keys';
 import { getColorForSchedule, getPersonalShiftsFromStore } from 'models/schedule/schedule.helpers';
 import { Event } from 'models/schedule/schedule.types';
@@ -17,6 +17,7 @@ import { User } from 'models/user/user.types';
 import { getStartOfWeekBasedOnCurrentDate } from 'pages/schedule/Schedule.helpers';
 import { useStore } from 'state/useStore';
 import { PLUGIN_ROOT } from 'utils/consts';
+import { useIsLoading } from 'utils/hooks';
 
 import { DEFAULT_TRANSITION_TIMEOUT } from './Rotations.config';
 
@@ -29,9 +30,10 @@ interface SchedulePersonalProps extends RouteComponentProps {
   onSlotClick?: (event: Event) => void;
 }
 
-const SchedulePersonal: FC<SchedulePersonalProps> = observer(({ userPk, onSlotClick, history }) => {
+const _SchedulePersonal: FC<SchedulePersonalProps> = observer(({ userPk, onSlotClick, history }) => {
   const store = useStore();
-  const { timezoneStore, scheduleStore, userStore, loaderStore } = store;
+  const { timezoneStore, scheduleStore, userStore } = store;
+  const updatePersonalEventsLoading = useIsLoading(ActionKey.UPDATE_PERSONAL_EVENTS);
 
   useEffect(() => {
     updatePersonalEvents();
@@ -74,9 +76,7 @@ const SchedulePersonal: FC<SchedulePersonalProps> = observer(({ userPk, onSlotCl
 
   const storeUser = userStore.items[userPk];
 
-  const emptyRotationsText = loaderStore.isLoading(ActionKey.UPDATE_PERSONAL_EVENTS)
-    ? 'Loading ...'
-    : 'There are no schedules relevant to user';
+  const emptyRotationsText = updatePersonalEventsLoading ? 'Loading ...' : 'There are no schedules relevant to user';
 
   return (
     <div className={cx('root')}>
@@ -147,4 +147,4 @@ const SchedulePersonal: FC<SchedulePersonalProps> = observer(({ userPk, onSlotCl
   );
 });
 
-export default withRouter(SchedulePersonal);
+export const SchedulePersonal = withRouter(_SchedulePersonal);

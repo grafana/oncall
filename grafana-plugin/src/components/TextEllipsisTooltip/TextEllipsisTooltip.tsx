@@ -16,7 +16,7 @@ interface TextEllipsisTooltipProps {
   children: JSX.Element | JSX.Element[];
 }
 
-const TextEllipsisTooltip: React.FC<TextEllipsisTooltipProps> = ({
+export const TextEllipsisTooltip: React.FC<TextEllipsisTooltipProps> = ({
   queryClassName = TEXT_ELLIPSIS_CLASS,
   className,
   content: textContent,
@@ -56,5 +56,3 @@ const TextEllipsisTooltip: React.FC<TextEllipsisTooltipProps> = ({
     setIsEllipsis(el.offsetHeight < el.scrollHeight);
   }
 };
-
-export default TextEllipsisTooltip;

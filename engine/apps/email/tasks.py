@@ -95,6 +95,7 @@ def notify_user_async(user_pk, alert_group_pk, notification_policy_pk):
         username=live_settings.EMAIL_HOST_USER,
         password=live_settings.EMAIL_HOST_PASSWORD,
         use_tls=live_settings.EMAIL_USE_TLS,
+        use_ssl=live_settings.EMAIL_USE_SSL,
         fail_silently=False,
         timeout=5,
     )
