@@ -74,7 +74,7 @@ class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
         backgroundHexNumber={backgroundHexNumber}
       >
         {!isDisabled && (
-          <WithPermissionControlTooltip disableByPaywall userAction={UserActions.EscalationChainsWrite}>
+          <WithPermissionControlTooltip userAction={UserActions.EscalationChainsWrite}>
             <DragHandle />
           </WithPermissionControlTooltip>
         )}
@@ -160,11 +160,7 @@ class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
     const { notify_to_users_queue } = data;
 
     return (
-      <WithPermissionControlTooltip
-        key="users-multiple"
-        disableByPaywall
-        userAction={UserActions.EscalationChainsWrite}
-      >
+      <WithPermissionControlTooltip key="users-multiple" userAction={UserActions.EscalationChainsWrite}>
         <GSelect<User>
           isMulti
           showSearch
@@ -192,7 +188,7 @@ class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
     const { important } = data;
 
     return (
-      <WithPermissionControlTooltip key="importance" disableByPaywall userAction={UserActions.EscalationChainsWrite}>
+      <WithPermissionControlTooltip key="importance" userAction={UserActions.EscalationChainsWrite}>
         <Select
           menuShouldPortal
           className={cx('select', 'control')}
@@ -236,7 +232,7 @@ class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
     const { data, isDisabled } = this.props;
 
     return (
-      <WithPermissionControlTooltip key="time-range" disableByPaywall userAction={UserActions.EscalationChainsWrite}>
+      <WithPermissionControlTooltip key="time-range" userAction={UserActions.EscalationChainsWrite}>
         <TimeRange
           from={data.from_time}
           to={data.to_time}
@@ -253,7 +249,7 @@ class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
     const { wait_delay } = data;
 
     return (
-      <WithPermissionControlTooltip key="wait-delay" disableByPaywall userAction={UserActions.EscalationChainsWrite}>
+      <WithPermissionControlTooltip key="wait-delay" userAction={UserActions.EscalationChainsWrite}>
         <Select
           menuShouldPortal
           disabled={isDisabled}
@@ -277,11 +273,7 @@ class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
     const { num_alerts_in_window } = data;
 
     return (
-      <WithPermissionControlTooltip
-        key="num_alerts_in_window"
-        disableByPaywall
-        userAction={UserActions.EscalationChainsWrite}
-      >
+      <WithPermissionControlTooltip key="num_alerts_in_window" userAction={UserActions.EscalationChainsWrite}>
         <Input
           placeholder="Count"
           disabled={isDisabled}
@@ -304,11 +296,7 @@ class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
     const { num_minutes_in_window } = data;
 
     return (
-      <WithPermissionControlTooltip
-        key="num_minutes_in_window"
-        disableByPaywall
-        userAction={UserActions.EscalationChainsWrite}
-      >
+      <WithPermissionControlTooltip key="num_minutes_in_window" userAction={UserActions.EscalationChainsWrite}>
         <Select
           menuShouldPortal
           disabled={isDisabled}
@@ -335,11 +323,7 @@ class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
     const { notify_schedule } = data;
 
     return (
-      <WithPermissionControlTooltip
-        key="notify_schedule"
-        disableByPaywall
-        userAction={UserActions.EscalationChainsWrite}
-      >
+      <WithPermissionControlTooltip key="notify_schedule" userAction={UserActions.EscalationChainsWrite}>
         <GSelect<Schedule>
           showSearch
           allowClear
@@ -376,11 +360,7 @@ class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
     const { notify_to_group } = data;
 
     return (
-      <WithPermissionControlTooltip
-        key="notify_to_group"
-        disableByPaywall
-        userAction={UserActions.EscalationChainsWrite}
-      >
+      <WithPermissionControlTooltip key="notify_to_group" userAction={UserActions.EscalationChainsWrite}>
         <GSelect<UserGroup[]>
           disabled={isDisabled}
           items={userGroupStore.items}
@@ -407,11 +387,7 @@ class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
     const { custom_webhook } = data;
 
     return (
-      <WithPermissionControlTooltip
-        key="custom-webhook"
-        disableByPaywall
-        userAction={UserActions.EscalationChainsWrite}
-      >
+      <WithPermissionControlTooltip key="custom-webhook" userAction={UserActions.EscalationChainsWrite}>
         <GSelect<OutgoingWebhook>
           showSearch
           disabled={isDisabled}

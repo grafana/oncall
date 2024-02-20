@@ -13,7 +13,6 @@ const cx = cn.bind(styles);
 interface WithPermissionControlTooltipProps {
   userAction: UserAction;
   children: ReactElement;
-  disableByPaywall?: boolean;
   className?: string;
 }
 
