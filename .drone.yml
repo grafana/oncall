@@ -57,7 +57,7 @@ steps:
     environment:
       DJANGO_SETTINGS_MODULE: settings.ci-test
     commands:
-      - pip install $(grep "pre-commit" engine/requirements-dev.txt)
+      - pip install $(grep "pre-commit==" engine/requirements-dev.txt)
       - pre-commit run isort --all-files
       - pre-commit run black --all-files
       - pre-commit run flake8 --all-files
@@ -379,4 +379,6 @@ kind: secret
 name: github_api_token
 ---
 kind: signature
-hmac: b9e499a424faecd9a8f41552cc307bd3431cb0e3fac77f3ee99ce19258fc0fec
+hmac: f717f3a2708568d8d9ad3e8c738544b96a82455ecd1413feec9f502414807397
+
+...
