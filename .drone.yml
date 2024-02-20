@@ -217,7 +217,7 @@ steps:
         from_secret: gcom_plugin_publisher_api_key
     commands:
       # yamllint disable rule:line-length
-      - 'curl -f -s -H "Authorization: Bearer $${GRAFANA_API_KEY}" -d "download[any][url]=https://storage.googleapis.com/grafana-oncall-app/releases/grafana-oncall-app-${DRONE_TAG}.zip" -d "download[any][md5]=$$(curl -sL https://storage.googleapis.com/grafana-oncall-app/releases/grafana-oncall-app-${DRONE_TAG}.zip | md5sum | cut -d'' '' -f1)" -d url=https://github.com/grafana/oncall/grafana-plugin https://grafana.com/api/plugins'
+      - 'curl -f -w "status=%{http_code}" -s -H "Authorization: Bearer $${GRAFANA_API_KEY}" -d "download[any][url]=https://storage.googleapis.com/grafana-oncall-app/releases/grafana-oncall-app-${DRONE_TAG}.zip" -d "download[any][md5]=$$(curl -sL https://storage.googleapis.com/grafana-oncall-app/releases/grafana-oncall-app-${DRONE_TAG}.zip | md5sum | cut -d'' '' -f1)" -d url=https://github.com/grafana/oncall/grafana-plugin https://grafana.com/api/plugins -w ""'
       # yamllint enable rule:line-length
     depends_on:
       - sign and package plugin
@@ -379,6 +379,6 @@ kind: secret
 name: github_api_token
 ---
 kind: signature
-hmac: f717f3a2708568d8d9ad3e8c738544b96a82455ecd1413feec9f502414807397
+hmac: 398cf3e889ce1cd7e1fc8d8a4768844fb19df72b92b75023b2376aec3fa8ca31
 
 ...
