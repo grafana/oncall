@@ -37,9 +37,9 @@ export const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = o
     alertReceiveChannelAllowSourceBasedResolving,
   }) => {
     const { alertReceiveChannelStore, features } = useStore();
-    const [isRestoringTemplate, setIsRestoringTemplate] = useState<boolean>(false);
+    const [isRestoringTemplate, setIsRestoringTemplate] = useState(false);
     const [templateRestoreName, setTemplateRestoreName] = useState<string>(undefined);
-    const [autoresolveValue, setAutoresolveValue] = useState<boolean>(alertReceiveChannelAllowSourceBasedResolving);
+    const [autoresolveValue, setAutoresolveValue] = useState(alertReceiveChannelAllowSourceBasedResolving);
 
     const handleSaveClick = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
       setAutoresolveValue(event.target.checked);

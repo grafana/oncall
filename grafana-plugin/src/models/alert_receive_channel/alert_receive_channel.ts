@@ -13,6 +13,7 @@ import { onCallApi } from 'network/oncall-api/http-client';
 import { move } from 'state/helpers';
 import { RootBaseStore } from 'state/rootBaseStore/RootBaseStore';
 import { WithGlobalNotification } from 'utils/decorators';
+import { OmitReadonlyMembers } from 'utils/types';
 
 import { AlertReceiveChannelCounters, ContactPoint } from './alert_receive_channel.types';
 
@@ -307,12 +308,18 @@ export class AlertReceiveChannelStore {
   @WithGlobalNotification({ success: 'Integration has been saved', failure: 'Failed to save integration' })
   async saveAlertReceiveChannel(
     id: ApiSchemas['AlertReceiveChannel']['id'],
-    payload: Partial<ApiSchemas['AlertReceiveChannelUpdate']>
+    payload: OmitReadonlyMembers<ApiSchemas['AlertReceiveChannelUpdate']>
   ) {
+    const currentIntegration = this.items[id];
     const { data } = await onCallApi().PUT('/alert_receive_channels/{id}/', {
       params: { path: { id } },
-      // TODO: fix 400 when inbound_email is missing and get rid of casting
-      body: { heartbeat: payload.heartbeat || null, ...payload } as ApiSchemas['AlertReceiveChannelUpdate'],
+      body: {
+        description_short: currentIntegration.description_short,
+        verbal_name: currentIntegration.verbal_name,
+        allow_source_based_resolving: currentIntegration.allow_source_based_resolving,
+        alert_group_labels: currentIntegration.alert_group_labels,
+        ...payload,
+      } as ApiSchemas['AlertReceiveChannelUpdate'],
     });
 
     runInAction(() => {
@@ -365,8 +372,7 @@ export class AlertReceiveChannelStore {
         ...this.connectedContactPoints,
 
         [alertReceiveChannelId]: data.reduce((list: ContactPoint[], payload) => {
-          // TODO: seems that backend sends contactPoint as string and on frontend we use it as { name: string, notification_connected: boolean }
-          payload.contact_points.forEach((contactPoint: any) => {
+          payload.contact_points.forEach((contactPoint) => {
             list.push({
               dataSourceName: payload.name,
               dataSourceId: payload.uid,

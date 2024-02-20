@@ -1367,7 +1367,7 @@ export interface components {
       readonly routes_count: number;
       readonly connected_escalations_chains_count: number;
       readonly is_based_on_alertmanager: boolean;
-      inbound_email?: string;
+      readonly inbound_email: string;
       readonly is_legacy: boolean;
       labels?: components['schemas']['LabelPair'][];
       alert_group_labels?: components['schemas']['IntegrationAlertGroupLabels'];
@@ -1381,7 +1381,11 @@ export interface components {
     AlertReceiveChannelConnectedContactPoints: {
       uid: string;
       name: string;
-      contact_points: string[];
+      contact_points: components['schemas']['AlertReceiveChannelConnectedContactPointsInner'][];
+    };
+    AlertReceiveChannelConnectedContactPointsInner: {
+      name: string;
+      notification_connected: boolean;
     };
     AlertReceiveChannelContactPoints: {
       uid: string;
@@ -1455,7 +1459,7 @@ export interface components {
       readonly routes_count: number;
       readonly connected_escalations_chains_count: number;
       readonly is_based_on_alertmanager: boolean;
-      inbound_email?: string;
+      readonly inbound_email: string;
       readonly is_legacy: boolean;
       labels?: components['schemas']['LabelPair'][];
       alert_group_labels?: components['schemas']['IntegrationAlertGroupLabels'];
@@ -1730,7 +1734,7 @@ export interface components {
       readonly routes_count?: number;
       readonly connected_escalations_chains_count?: number;
       readonly is_based_on_alertmanager?: boolean;
-      inbound_email?: string;
+      readonly inbound_email?: string;
       readonly is_legacy?: boolean;
       labels?: components['schemas']['LabelPair'][];
       alert_group_labels?: components['schemas']['IntegrationAlertGroupLabels'];
