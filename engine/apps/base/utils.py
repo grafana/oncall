@@ -162,15 +162,11 @@ class LiveSettingValidator:
 
     @classmethod
     def _check_email_use_tls(cls, email_use_tls: bool) -> typing.Optional[str]:
-        if live_settings.EMAIL_USE_SSL is True and email_use_tls is True:
-            return cls.EMAIL_SSL_TLS_ERROR_MSG
-        return None
+        return cls.EMAIL_SSL_TLS_ERROR_MSG if live_settings.EMAIL_USE_SSL is True and email_use_tls is True else None
 
     @classmethod
     def _check_email_use_ssl(cls, email_use_ssl: bool) -> typing.Optional[str]:
-        if live_settings.EMAIL_USE_TLS is True and email_use_ssl is True:
-            return cls.EMAIL_SSL_TLS_ERROR_MSG
-        return None
+        return cls.EMAIL_SSL_TLS_ERROR_MSG if live_settings.EMAIL_USE_TLS is True and email_use_ssl is True else None
 
     @staticmethod
     def _is_email_valid(email):
