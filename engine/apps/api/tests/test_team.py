@@ -432,9 +432,10 @@ def test_team_permissions_not_in_team(
 
     assert response.status_code == status.HTTP_200_OK
     user_details = response.json()
+    available_fields = UserHiddenFieldsSerializer.fields_available_for_all_users + ["hidden_fields"]
     for f_name in user_details:
-        if f_name not in UserHiddenFieldsSerializer.fields_available_for_all_users:
-            user_details[f_name] = "******"
+        if f_name not in available_fields:
+            assert user_details[f_name] == "******"
 
 
 @pytest.mark.django_db

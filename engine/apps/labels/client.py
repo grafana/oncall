@@ -6,7 +6,11 @@ import requests
 from django.conf import settings
 
 if typing.TYPE_CHECKING:
-    from apps.labels.utils import LabelKeyData, LabelsKeysData, LabelUpdateParam
+    from apps.labels.types import LabelKey, LabelOption, LabelValue
+
+
+class LabelUpdateParam(typing.TypedDict):
+    name: str
 
 
 class LabelsRepoAPIException(Exception):
@@ -37,20 +41,22 @@ class LabelsAPIClient:
 
     def create_label(
         self, label_data: "LabelUpdateParam"
-    ) -> typing.Tuple[typing.Optional["LabelKeyData"], requests.models.Response]:
+    ) -> typing.Tuple[typing.Optional["LabelOption"], requests.models.Response]:
         url = self.api_url
         response = requests.post(url, json=label_data, timeout=TIMEOUT, headers=self._request_headers)
         self._check_response(response)
         return response.json(), response
 
-    def get_keys(self) -> typing.Tuple[typing.Optional["LabelsKeysData"], requests.models.Response]:
+    def get_keys(self) -> typing.Tuple[typing.Optional[typing.List["LabelKey"]], requests.models.Response]:
         url = urljoin(self.api_url, "keys")
 
         response = requests.get(url, timeout=TIMEOUT, headers=self._request_headers)
         self._check_response(response)
         return response.json(), response
 
-    def get_values(self, key_id: str) -> typing.Tuple[typing.Optional["LabelKeyData"], requests.models.Response]:
+    def get_label_by_key_id(
+        self, key_id: str
+    ) -> typing.Tuple[typing.Optional["LabelOption"], requests.models.Response]:
         url = urljoin(self.api_url, f"id/{key_id}")
 
         response = requests.get(url, timeout=TIMEOUT, headers=self._request_headers)
@@ -59,7 +65,7 @@ class LabelsAPIClient:
 
     def get_value(
         self, key_id: str, value_id: str
-    ) -> typing.Tuple[typing.Optional["LabelKeyData"], requests.models.Response]:
+    ) -> typing.Tuple[typing.Optional["LabelValue"], requests.models.Response]:
         url = urljoin(self.api_url, f"id/{key_id}/values/{value_id}")
 
         response = requests.get(url, timeout=TIMEOUT, headers=self._request_headers)
@@ -68,7 +74,7 @@ class LabelsAPIClient:
 
     def add_value(
         self, key_id: str, label_data: "LabelUpdateParam"
-    ) -> typing.Tuple[typing.Optional["LabelKeyData"], requests.models.Response]:
+    ) -> typing.Tuple[typing.Optional["LabelOption"], requests.models.Response]:
         url = urljoin(self.api_url, f"id/{key_id}/values")
 
         response = requests.post(url, json=label_data, timeout=TIMEOUT, headers=self._request_headers)
@@ -77,7 +83,7 @@ class LabelsAPIClient:
 
     def rename_key(
         self, key_id: str, label_data: "LabelUpdateParam"
-    ) -> typing.Tuple[typing.Optional["LabelKeyData"], requests.models.Response]:
+    ) -> typing.Tuple[typing.Optional["LabelOption"], requests.models.Response]:
         url = urljoin(self.api_url, f"id/{key_id}")
 
         response = requests.put(url, json=label_data, timeout=TIMEOUT, headers=self._request_headers)
@@ -86,7 +92,7 @@ class LabelsAPIClient:
 
     def rename_value(
         self, key_id: str, value_id: str, label_data: "LabelUpdateParam"
-    ) -> typing.Tuple[typing.Optional["LabelKeyData"], requests.models.Response]:
+    ) -> typing.Tuple[typing.Optional["LabelOption"], requests.models.Response]:
         url = urljoin(self.api_url, f"id/{key_id}/values/{value_id}")
 
         response = requests.put(url, json=label_data, timeout=TIMEOUT, headers=self._request_headers)

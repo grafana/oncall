@@ -1,4 +1,4 @@
-import { action, observable, makeObservable, runInAction } from 'mobx';
+import { action, makeObservable } from 'mobx';
 
 import { BaseStore } from 'models/base_store';
 import { makeRequest } from 'network/network';
@@ -8,12 +8,6 @@ import { RootStore } from 'state/rootStore';
 import { WithGlobalNotification } from 'utils/decorators';
 
 export class LabelStore extends BaseStore {
-  @observable.shallow
-  public keys: Array<ApiSchemas['LabelKey']> = [];
-
-  @observable.shallow
-  public values: { [key: string]: Array<ApiSchemas['LabelValue']> } = {};
-
   constructor(rootStore: RootStore) {
     super(rootStore);
 
@@ -23,14 +17,12 @@ export class LabelStore extends BaseStore {
   }
 
   @action.bound
-  public async loadKeys() {
+  public async loadKeys(search = '') {
     const { data } = await onCallApi().GET('/labels/keys/', undefined);
 
-    runInAction(() => {
-      this.keys = data;
-    });
+    const filtered = data.filter((k) => k.name.toLowerCase().includes(search.toLowerCase()));
 
-    return data;
+    return filtered;
   }
 
   @action.bound
@@ -43,14 +35,7 @@ export class LabelStore extends BaseStore {
       params: { search },
     });
 
-    const filteredValues = result.values.filter((v) => v.name.toLowerCase().includes(search.toLowerCase())); // TODO remove after backend search implementation
-
-    runInAction(() => {
-      this.values = {
-        ...this.values,
-        [key]: filteredValues,
-      };
-    });
+    const filteredValues = result.values.filter((v) => v.name.toLowerCase().includes(search.toLowerCase()));
 
     return { ...result, values: filteredValues };
   }
