@@ -12,14 +12,14 @@ import { LocationHelper } from 'utils/LocationHelper';
 import { UserActions } from 'utils/authorization/authorization';
 import { useCommonStyles } from 'utils/hooks';
 
-import { EventTriggerFormFields } from './EventTriggerFormFields';
+import { OutgoingWebhookFormFields } from './OutgoingWebhookFormFields';
 import { getStyles } from './OutgoingTab.styles';
 import { TriggerDetailsQueryStringKey, TriggerDetailsTab, FormValues } from './OutgoingTab.types';
 
-interface EventTriggerDetailsDrawerContentProps {
+interface OutgoingWebhookDetailsDrawerContentProps {
   closeDrawer: () => void;
 }
-export const EventTriggerDetailsDrawerContent: FC<EventTriggerDetailsDrawerContentProps> = ({ closeDrawer }) => {
+export const OutgoingWebhookDetailsDrawerContent: FC<OutgoingWebhookDetailsDrawerContentProps> = ({ closeDrawer }) => {
   return (
     <Tabs
       queryStringKey={TriggerDetailsQueryStringKey.ActiveTab}
@@ -47,7 +47,7 @@ const Settings: FC<SettingsProps> = ({ closeDrawer }) => {
       <form onSubmit={formMethods.handleSubmit(onSubmit)} className={styles.form}>
         <VerticalGroup justify="space-between">
           <div className={styles.formFieldsWrapper}>
-            <EventTriggerFormFields webhookId={webhookId} />
+            <OutgoingWebhookFormFields webhookId={webhookId} />
           </div>
           <div className={commonStyles.bottomDrawerButtons}>
             <HorizontalGroup justify="flex-end">

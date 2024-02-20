@@ -7,7 +7,7 @@ import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/W
 import { UserActions } from 'utils/authorization/authorization';
 import { useCommonStyles } from 'utils/hooks';
 
-import { EventTriggerFormFields } from './EventTriggerFormFields';
+import { EventTriggerFormFields } from './OutgoingWebhookFormFields';
 import { getStyles } from './OutgoingTab.styles';
 import { FormValues } from './OutgoingTab.types';
 

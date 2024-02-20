@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 
-import { IconButton, HorizontalGroup, Icon, ConfirmModal } from '@grafana/ui';
+import { IconButton, HorizontalGroup, Icon, ConfirmModal, useStyles2 } from '@grafana/ui';
 import { observer } from 'mobx-react-lite';
 import CopyToClipboard from 'react-copy-to-clipboard';
 
@@ -16,8 +16,10 @@ import { useConfirmModal } from 'utils/hooks';
 import { openNotification } from 'utils/utils';
 
 import { OutgoingTabDrawerKey, TriggerDetailsQueryStringKey, TriggerDetailsTab } from './OutgoingTab.types';
+import { getStyles } from './OutgoingTab.styles';
 
-export const EventTriggersTable = observer(({ openDrawer }: { openDrawer: (key: OutgoingTabDrawerKey) => void }) => {
+export const OutgoingWebhooksTable = observer(({ openDrawer }: { openDrawer: (key: OutgoingTabDrawerKey) => void }) => {
+  const styles = useStyles2(getStyles);
   const {
     outgoingWebhookStore: { getSearchResult, updateItems },
   } = useStore();
@@ -42,6 +44,7 @@ export const EventTriggersTable = observer(({ openDrawer }: { openDrawer: (key: 
       rowKey="id"
       columns={getColumns(openTriggerDetailsDrawer)}
       data={webhooks}
+      className={styles.outgoingWebhooksTable}
     />
   );
 });
@@ -49,13 +52,13 @@ export const EventTriggersTable = observer(({ openDrawer }: { openDrawer: (key: 
 const getColumns = (openTriggerDetailsDrawer: (tab: TriggerDetailsTab, webhookId: string) => void) => [
   {
     width: '35%',
-    title: 'Event Trigger',
+    title: <Text type="secondary">Trigger type</Text>,
     dataIndex: 'trigger_type_name',
     render: (triggerType: string) => <>{triggerType}</>,
   },
   {
     width: '65%',
-    title: 'Last event',
+    title: <Text type="secondary">Last event</Text>,
     render: (webhook: OutgoingWebhook) => (
       <WebhookLastEventTimestamp
         webhook={webhook}
@@ -66,12 +69,12 @@ const getColumns = (openTriggerDetailsDrawer: (tab: TriggerDetailsTab, webhookId
   {
     key: 'action',
     render: (webhook: OutgoingWebhook) => (
-      <EventTriggerContextMenu webhook={webhook} openDrawer={openTriggerDetailsDrawer} />
+      <OutgoingWebhookContextMenu webhook={webhook} openDrawer={openTriggerDetailsDrawer} />
     ),
   },
 ];
 
-const EventTriggerContextMenu = ({
+const OutgoingWebhookContextMenu = ({
   webhook,
   openDrawer,
 }: {

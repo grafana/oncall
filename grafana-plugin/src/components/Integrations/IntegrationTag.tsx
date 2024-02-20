@@ -26,7 +26,7 @@ export const IntegrationTag: FC<IntegrationTagProps> = ({ children }) => {
 export const getStyles = (theme: GrafanaTheme2) => ({
   tag: css({
     height: '25px',
-    background: theme.colors.secondary.shade,
+    background: theme.colors.background.secondary,
     border: `1px solid ${theme.colors.border.weak}`,
   }),
   radius: css({

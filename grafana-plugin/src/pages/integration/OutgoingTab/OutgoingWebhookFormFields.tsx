@@ -1,6 +1,17 @@
 import React, { FC, useState } from 'react';
 
-import { Button, Field, Icon, Label, Select, Switch, Tooltip, useStyles2, VerticalGroup } from '@grafana/ui';
+import {
+  Button,
+  Field,
+  HorizontalGroup,
+  Icon,
+  Label,
+  Select,
+  Switch,
+  Tooltip,
+  useStyles2,
+  VerticalGroup,
+} from '@grafana/ui';
 import { Controller, useFormContext } from 'react-hook-form';
 
 import { MonacoEditor } from 'components/MonacoEditor/MonacoEditor';
@@ -17,12 +28,12 @@ interface TemplateToEdit {
   name: string;
 }
 
-interface EventTriggerFormFieldsProps {
+interface OutgoingWebhookFormFieldsProps {
   // "new" should be used for new event trigger
   webhookId: string;
 }
 
-export const EventTriggerFormFields: FC<EventTriggerFormFieldsProps> = ({ webhookId }) => {
+export const OutgoingWebhookFormFields: FC<OutgoingWebhookFormFieldsProps> = ({ webhookId }) => {
   const styles = useStyles2(getStyles);
   const { control, watch } = useFormContext<FormValues>();
   const [templateToEdit, setTemplateToEdit] = useState<TemplateToEdit>();
@@ -36,11 +47,19 @@ export const EventTriggerFormFields: FC<EventTriggerFormFieldsProps> = ({ webhoo
 
   return (
     <VerticalGroup spacing="lg">
+      <div className={styles.switcherFieldWrapper}>
+        <Controller
+          control={control}
+          name="isEnabled"
+          render={({ field: { value, onChange } }) => <Switch value={value} onChange={() => onChange(!value)} />}
+        />
+        <Label className={styles.switcherLabel}>Enabled</Label>
+      </div>
       <Field
         key="triggerType"
         label={
           <Label>
-            <span>Event trigger type</span>&nbsp;
+            <span>Trigger type</span>&nbsp;
             <Tooltip content="Some description" placement="right">
               <Icon name="info-circle" className={styles.infoIcon} />
             </Tooltip>
@@ -67,16 +86,6 @@ export const EventTriggerFormFields: FC<EventTriggerFormFieldsProps> = ({ webhoo
           )}
         />
       </Field>
-      {isEditingExistingWebhook && (
-        <div className={styles.switcherFieldWrapper}>
-          <Controller
-            control={control}
-            name="isEnabled"
-            render={({ field: { value, onChange } }) => <Switch value={value} onChange={() => onChange(!value)} />}
-          />
-          <Label className={styles.switcherLabel}>Enabled</Label>
-        </div>
-      )}
       <div className={styles.switcherFieldWrapper}>
         <Controller
           control={control}
@@ -131,60 +140,47 @@ export const EventTriggerFormFields: FC<EventTriggerFormFieldsProps> = ({ webhoo
           )}
         />
       )}
-      <div className={styles.switcherFieldWrapper}>
-        <Controller
-          control={control}
-          name="forwardedDataTemplateToogle"
-          render={({ field: { value, onChange } }) => <Switch value={value} onChange={() => onChange(!value)} />}
-        />
-        <Label className={styles.switcherLabel}>
-          <span>Customise forwarded data template</span>
-          <Tooltip content="Some description" placement="right">
-            <Icon name="info-circle" className={styles.infoIcon} />
-          </Tooltip>
-        </Label>
-      </div>
-      {showForwardedDataTemplate && (
-        <Controller
-          control={control}
-          name="forwardedDataTemplate"
-          render={({ field }) => (
-            <>
-              <div className={styles.monacoEditorWrapper}>
-                <MonacoEditor
-                  {...field}
-                  data={{}} // TODO:update
-                  showLineNumbers={false}
-                  monacoOptions={MONACO_READONLY_CONFIG}
-                  onChange={field.onChange}
-                />
-                <Button
-                  icon="edit"
-                  variant="secondary"
-                  onClick={() => {
-                    setTemplateToEdit({
-                      value: field.value,
-                      displayName: 'forwarded data',
-                      name: field.name,
-                    });
-                  }}
-                />
-              </div>
-              {templateToEdit?.['name'] === field.name && (
-                <WebhooksTemplateEditor
-                  id={webhookId}
-                  handleSubmit={(value) => {
-                    field.onChange(value);
-                    setTemplateToEdit(undefined);
-                  }}
-                  onHide={() => setTemplateToEdit(undefined)}
-                  template={templateToEdit}
-                />
-              )}
-            </>
-          )}
-        />
-      )}
+
+      <Controller
+        control={control}
+        name="forwardedDataTemplate"
+        render={({ field }) => (
+          <VerticalGroup>
+            <HorizontalGroup width="100%" justify="space-between">
+              <Label className={styles.switcherLabel}>Data template</Label>
+              <Button
+                icon="edit"
+                variant="secondary"
+                onClick={() => {
+                  setTemplateToEdit({
+                    value: field.value,
+                    displayName: 'forwarded data',
+                    name: field.name,
+                  });
+                }}
+              />
+            </HorizontalGroup>
+            <MonacoEditor
+              {...field}
+              data={{}} // TODO:update
+              showLineNumbers={false}
+              monacoOptions={MONACO_READONLY_CONFIG}
+              onChange={field.onChange}
+            />
+            {templateToEdit?.['name'] === field.name && (
+              <WebhooksTemplateEditor
+                id={webhookId}
+                handleSubmit={(value) => {
+                  field.onChange(value);
+                  setTemplateToEdit(undefined);
+                }}
+                onHide={() => setTemplateToEdit(undefined)}
+                template={templateToEdit}
+              />
+            )}
+          </VerticalGroup>
+        )}
+      />
     </VerticalGroup>
   );
 };

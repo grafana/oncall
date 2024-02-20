@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { useStyles2, Input, IconButton, Button, Drawer } from '@grafana/ui';
+import { useStyles2, Input, IconButton, Button, Drawer, useTheme2, Badge } from '@grafana/ui';
 
 import CopyToClipboardIcon from 'components/CopyToClipboardIcon/CopyToClipboardIcon';
 import { HamburgerContextMenu } from 'components/HamburgerContextMenu/HamburgerContextMenu';
@@ -11,12 +11,13 @@ import { Text } from 'components/Text/Text';
 import { UserActions } from 'utils/authorization/authorization';
 import { useDrawer } from 'utils/hooks';
 
-import { EventTriggerDetailsDrawerContent } from './EventTriggerDetailsDrawerContent';
-import { EventTriggersTable } from './EventTriggersTable';
+import { OutgoingWebhookDetailsDrawerContent } from './OutgoingWebhookDetailsDrawerContent';
+import { OutgoingWebhooksTable } from './OutgoingWebhooksTable';
 import { NewEventTriggerDrawerContent } from './NewEventTriggerDrawerContent';
 import { getStyles } from './OutgoingTab.styles';
 import { OutgoingTabDrawerKey } from './OutgoingTab.types';
 import { UrlSettingsDrawerContent } from './UrlSettingsDrawerContent';
+import { OtherIntegrationsTable } from './OtherIntegrationsTable';
 
 export const OutgoingTab = () => {
   const { openDrawer, closeDrawer, getIsDrawerOpened } = useDrawer<OutgoingTabDrawerKey>();
@@ -29,8 +30,8 @@ export const OutgoingTab = () => {
         </Drawer>
       )}
       {getIsDrawerOpened('triggerDetails') && (
-        <Drawer title="Event trigger details" onClose={closeDrawer} width="640px">
-          <EventTriggerDetailsDrawerContent closeDrawer={closeDrawer} />
+        <Drawer title="Outgoing webhook details" onClose={closeDrawer} width="640px">
+          <OutgoingWebhookDetailsDrawerContent closeDrawer={closeDrawer} />
         </Drawer>
       )}
       {getIsDrawerOpened('newEventTrigger') && (
@@ -40,19 +41,32 @@ export const OutgoingTab = () => {
       )}
       <IntegrationCollapsibleTreeView
         configElements={[
-          { customIcon: 'plug', expandedView: () => <Url openDrawer={openDrawer} /> },
+          {
+            customIcon: 'plug',
+            startingElemPosition: '50%',
+            expandedView: () => <Connection openDrawer={openDrawer} />,
+          },
           {
             customIcon: 'plus',
-            expandedView: () => <AddEventTrigger openDrawer={openDrawer} />,
+            expandedView: () => (
+              <>
+                <AddOutgoingWebhook openDrawer={openDrawer} />
+                <OutgoingWebhooksTable openDrawer={openDrawer} />
+              </>
+            ),
+          },
+          {
+            customIcon: 'exchange-alt',
+            startingElemPosition: '50%',
+            expandedView: () => <OtherIntegrationsTable openDrawer={openDrawer} />,
           },
         ]}
       />
-      <EventTriggersTable openDrawer={openDrawer} />
     </>
   );
 };
 
-const Url = ({ openDrawer }: { openDrawer: (key: OutgoingTabDrawerKey) => void }) => {
+const Connection = ({ openDrawer }: { openDrawer: (key: OutgoingTabDrawerKey) => void }) => {
   const styles = useStyles2(getStyles);
   const FAKE_URL = 'https://example.com';
 
@@ -65,7 +79,8 @@ const Url = ({ openDrawer }: { openDrawer: (key: OutgoingTabDrawerKey) => void }
         className={styles.urlIntegrationBlock}
         heading={
           <div className={styles.horizontalGroup}>
-            <IntegrationTag>ServiceNow URL</IntegrationTag>
+            <IntegrationTag>ServiceNow connection</IntegrationTag>
+            <Badge text="OK" color="green" />
             <Input
               value={value}
               disabled
@@ -81,33 +96,24 @@ const Url = ({ openDrawer }: { openDrawer: (key: OutgoingTabDrawerKey) => void }
                 </>
               }
             />
-            <HamburgerContextMenu
-              items={[
-                {
-                  onClick: () => openDrawer('urlSettings'),
-                  label: 'URL Settings',
-                  requiredPermission: UserActions.IntegrationsWrite,
-                },
-              ]}
-              hamburgerIconClassName={styles.hamburgerIcon}
+            <Button
+              size="sm"
+              icon="cog"
+              tooltip="Open ServiceNow configuration"
+              variant="secondary"
+              name="cog"
+              aria-label="Open ServiceNow configuration"
+              onClick={() => openDrawer('triggerDetails')}
+              className={styles.openConfigurationBtn}
             />
           </div>
         }
       />
-      <h4>Outgoing events</h4>
-      <div>
-        <Text type="secondary">Webhooks managed by this integration.</Text>
-      </div>
+      <h4>Outgoing webhooks</h4>
     </div>
   );
 };
 
-const AddEventTrigger = ({ openDrawer }: { openDrawer: (key: OutgoingTabDrawerKey) => void }) => {
-  const styles = useStyles2(getStyles);
-
-  return (
-    <Button onClick={() => openDrawer('newEventTrigger')} className={styles.addEventTriggerBtn}>
-      Add Event Trigger
-    </Button>
-  );
-};
+const AddOutgoingWebhook = ({ openDrawer }: { openDrawer: (key: OutgoingTabDrawerKey) => void }) => (
+  <Button onClick={() => openDrawer('newEventTrigger')}>Add webhook</Button>
+);

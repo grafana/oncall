@@ -73,6 +73,7 @@ import { sanitize } from 'utils/sanitize';
 import { openNotification, openErrorNotification } from 'utils/utils';
 
 import { OutgoingTab } from './OutgoingTab/OutgoingTab';
+import IntegrationLogoWithTitle from 'components/IntegrationLogo/IntegrationLogoWithTitle';
 
 const cx = cn.bind(styles);
 
@@ -1224,10 +1225,7 @@ const IntegrationHeader: React.FC<IntegrationHeaderProps> = ({
       <div style={{ display: 'flex', flexDirection: 'row', gap: '16px', marginLeft: '8px' }}>
         <div className={cx('headerTop__item')}>
           <Text type="secondary">Type:</Text>
-          <HorizontalGroup spacing="xs">
-            <IntegrationLogo scale={0.08} integration={integration} />
-            <Text type="primary">{integration?.display_name}</Text>
-          </HorizontalGroup>
+          <IntegrationLogoWithTitle integration={integration} />
         </div>
         <div className={cx('headerTop__item')}>
           <Text type="secondary">Team:</Text>

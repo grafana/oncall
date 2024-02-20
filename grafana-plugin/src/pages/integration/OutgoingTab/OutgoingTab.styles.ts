@@ -20,7 +20,11 @@ export const getStyles = (theme: GrafanaTheme2) => ({
     width: '100%',
   }),
   infoIcon: css({
-    marginLeft: '10px',
+    marginLeft: '4px',
+  }),
+  monacoEditorLabelWrapper: css({
+    display: 'flex',
+    width: '100%',
   }),
   monacoEditorWrapper: css({
     display: 'flex',
@@ -46,7 +50,14 @@ export const getStyles = (theme: GrafanaTheme2) => ({
     display: 'flex',
     gap: '8px',
   }),
-  addEventTriggerBtn: css({
-    marginTop: '16px',
+  openConfigurationBtn: css({
+    background: theme.colors.secondary.shade,
+  }),
+  outgoingWebhooksTable: css({
+    marginBottom: '24px',
+  }),
+  backsyncColumn: css({
+    display: 'flex',
+    justifyContent: 'flex-end',
   }),
 });
