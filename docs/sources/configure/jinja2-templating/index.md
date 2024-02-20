@@ -17,6 +17,7 @@ aliases:
   - ../jinja2-templating/ # /docs/oncall/<ONCALL_VERSION>/jinja2-templating/
 ---
 
+
 ## Jinja2 templating
 
 Grafana OnCall can integrate with any monitoring system that can send alerts via
@@ -97,11 +98,9 @@ customization, use Jinja templates.
 
 ### Routing template
 
-- `Routing Template` - used to route alerts to different Escalation Chains based on alert content (conditional template,
-  output should be `True`)
+- `Routing Template` - used to route alerts to different Escalation Chains based on alert content (conditional template, output should be `True`)
 
-  > **Note:** For conditional templates, the output should be `True` to be applied, for
-  example `{{ True if payload.state == 'OK' else False }}`
+   > **Note:** For conditional templates, the output should be `True` to be applied, for example `{{ True if payload.state == 'OK' else False }}`
 
 #### Appearance templates
 
@@ -132,7 +131,7 @@ How alerts are displayed in the UI, messengers, and notifications
   example `{{ True if payload.state == 'OK' else False }}`
 
 > **Pro Tip:** As a best practice, add _Playbooks_, _Useful links_, or _Checklists_ to the
-> alert message.
+alert message.
 
 #### How to edit templates
 
@@ -167,8 +166,7 @@ functions, and more.
 
 > **NOTE:** Every alert from a monitoring system comes in the key/value format.
 
-Grafana OnCall has rules about which of the keys match to: `__title`, `message`, `image`, `grouping`,
-and `auto-resolve__`.
+Grafana OnCall has rules about which of the keys match to: `__title`, `message`, `image`, `grouping`, and `auto-resolve__`.
 
 ### Loops
 
@@ -213,8 +211,7 @@ Built-in functions:
 - `abs`
 - `capitalize`
 - `trim`
-- You can see the full list of Jinja built-in functions on
-  github [here](https://github.com/pallets/jinja/blob/3915eb5c2a7e2e4d49ebdf0ecb167ea9c21c60b2/src/jinja2/filters.py#L1307)
+- You can see the full list of Jinja built-in functions on github [here](https://github.com/pallets/jinja/blob/3915eb5c2a7e2e4d49ebdf0ecb167ea9c21c60b2/src/jinja2/filters.py#L1307)
 
 ### Functions added by Grafana OnCall
 
@@ -224,12 +221,11 @@ Built-in functions:
 - `iso8601_to_time` - converts time from iso8601 (`2015-02-17T18:30:20.000Z`) to datetime
 - `datetimeformat` - converts time from datetime to the given format (`%H:%M / %d-%m-%Y` by default)
 - `datetimeformat_as_timezone` - same as `datetimeformat`, with the inclusion of timezone conversion (`UTC` by default)
-    - Usage
-      example: `{{ payload.alerts.startsAt | iso8601_to_time | datetimeformat_as_timezone('%Y-%m-%dT%H:%M:%S%z', 'America/Chicago') }}`
+  - Usage example: `{{ payload.alerts.startsAt | iso8601_to_time | datetimeformat_as_timezone('%Y-%m-%dT%H:%M:%S%z', 'America/Chicago') }}`
 - `regex_replace` - performs a regex find and replace
 - `regex_match` - performs a regex match, returns `True` or `False`
-    - Usage example: `{{ payload.ruleName | regex_match(".*") }}`
+  - Usage example: `{{ payload.ruleName | regex_match(".*") }}`
 - `b64decode` - performs a base64 string decode
-    - Usage example: `{{ payload.data | b64decode }}`
+  - Usage example: `{{ payload.data | b64decode }}`
 - `json_loads` - loads a given json string into an object
-    - Usage example: `{{ (payload.data | b64decode | json_loads).name }}`
+  - Usage example: `{{ (payload.data | b64decode | json_loads).name }}`
