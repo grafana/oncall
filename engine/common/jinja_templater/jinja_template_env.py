@@ -9,11 +9,11 @@ from .filters import (
     datetimeformat_as_timezone,
     iso8601_to_time,
     json_dumps,
+    json_loads,
     regex_match,
     regex_replace,
     regex_search,
     to_pretty_json,
-    json_loads
 )
 
 

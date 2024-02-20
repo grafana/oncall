@@ -195,7 +195,10 @@ def test_apply_jinja_template_json_loads():
 
     expected = json.loads(decoded)["name"]
 
-    assert apply_jinja_template(
-        "{{ (payload.message | b64decode | json_loads).name }}",
-        payload,
-    ) == expected
+    assert (
+        apply_jinja_template(
+            "{{ (payload.message | b64decode | json_loads).name }}",
+            payload,
+        )
+        == expected
+    )
