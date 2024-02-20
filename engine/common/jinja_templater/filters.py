@@ -73,5 +73,5 @@ def b64decode(value):
 def json_loads(value):
     try:
         return json.loads(value)
-    except (ValueError, AttributeError, TypeError, json.JSONDecodeError):
+    except (ValueError, AttributeError, TypeError):
         return None

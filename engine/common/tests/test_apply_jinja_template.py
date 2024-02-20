@@ -190,15 +190,13 @@ def test_templated_value_is_truthy(value, expected):
 
 
 def test_apply_jinja_template_json_loads():
-    payload = {"message": "eyJuYW1lIjogInRlc3QifQ=="}
-    decoded = base64.b64decode(payload["message"]).decode("utf-8")
-
-    expected = json.loads(decoded)["name"]
+    payload = {"message": base64.b64encode(b'{"name": "test"}').decode("utf-8")}
+    expected_name = "test"
 
     assert (
         apply_jinja_template(
             "{{ (payload.message | b64decode | json_loads).name }}",
             payload,
         )
-        == expected
+        == expected_name
     )
