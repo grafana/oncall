@@ -1577,6 +1577,7 @@ def test_alert_group_labels_put(
             "value": {
                 "id": None,
                 "name": "{{ payload.foo }}",
+                "prescribed": False,
             },
         },
     ]
