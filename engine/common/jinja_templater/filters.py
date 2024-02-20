@@ -70,7 +70,7 @@ def b64decode(value):
         return None
 
 
-def json_loads(value):
+def parse_json(value):
     try:
         return json.loads(value)
     except (ValueError, AttributeError, TypeError):
