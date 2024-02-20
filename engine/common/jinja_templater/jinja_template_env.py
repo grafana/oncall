@@ -9,6 +9,7 @@ from .filters import (
     datetimeformat_as_timezone,
     iso8601_to_time,
     json_dumps,
+    parse_json,
     regex_match,
     regex_replace,
     regex_search,
@@ -33,3 +34,4 @@ jinja_template_env.filters["regex_match"] = regex_match
 jinja_template_env.filters["regex_search"] = regex_search
 jinja_template_env.filters["json_dumps"] = json_dumps
 jinja_template_env.filters["b64decode"] = b64decode
+jinja_template_env.filters["parse_json"] = parse_json
