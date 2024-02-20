@@ -341,6 +341,7 @@ oncall:
     username: ~
     password: ~
     tls: ~
+    ssl: ~
     fromEmail: ~
   exporter:
     enabled: false

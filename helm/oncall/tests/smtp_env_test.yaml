@@ -1,0 +1,53 @@
+suite: test SMTP/Email envs for deployments
+templates:
+  - engine/deployment.yaml
+release:
+  name: oncall
+tests:
+  - it: smtp.ssl -> mutually exclusive with smtp.tls default
+    set:
+      oncall.smtp:
+        ssl: "True"
+    asserts:
+      - failedTemplate:
+          errorMessage: cannot set Email (SMTP) to use SSL and TLS at the same time
+  - it: smtp.ssl -> mutually exclusive with smtp.tls set
+    set:
+      oncall.smtp:
+        tls: "True"
+        ssl: "True"
+    asserts:
+      - failedTemplate:
+          errorMessage: cannot set Email (SMTP) to use SSL and TLS at the same time
+  - it: smtp.ssl -> mutually exclusive with smtp.tls disabled
+    set:
+      oncall.smtp:
+        tls: "False"
+        ssl: "True"
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: EMAIL_USE_TLS
+            value: "False"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: EMAIL_USE_SSL
+            value: "True"
+  - it: smtp.tls -> mutually exclusive with smtp.ssl disabled
+    set:
+      oncall.smtp:
+        tls: "True"
+        ssl: "False"
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: EMAIL_USE_TLS
+            value: "True"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: EMAIL_USE_SSL
+            value: "False"

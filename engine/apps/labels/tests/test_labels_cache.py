@@ -98,12 +98,12 @@ def test_update_instances_labels_cache_recently_synced(
     assert not label_association.key.is_outdated
     assert not label_association.value.is_outdated
 
-    with patch("apps.labels.client.LabelsAPIClient.get_values") as mock_get_values:
+    with patch("apps.labels.client.LabelsAPIClient.get_label_by_key_id") as mock_get_label_by_key_id:
         with patch("apps.labels.tasks.update_labels_cache.apply_async") as mock_update_cache:
             update_instances_labels_cache(
                 organization.id, [alert_receive_channel.id], alert_receive_channel._meta.model.__name__
             )
-    assert not mock_get_values.called
+    assert not mock_get_label_by_key_id.called
     assert not mock_update_cache.called
 
 
@@ -122,19 +122,21 @@ def test_update_instances_labels_cache_outdated(
     assert label_association.key.is_outdated
     assert label_association.value.is_outdated
 
-    label_data = {
+    label_option = {
         "key": {"id": label_association.key.id, "name": label_association.key.name},
         "values": [{"id": label_association.value.id, "name": label_association.value.name}],
     }
 
-    with patch("apps.labels.client.LabelsAPIClient.get_values", return_value=(label_data, None)) as mock_get_values:
-        with patch("apps.labels.tasks.update_labels_cache.apply_async") as mock_update_cache:
+    with patch(
+        "apps.labels.client.LabelsAPIClient.get_label_by_key_id", return_value=(label_option, None)
+    ) as mock_get_label_by_key_id:
+        with patch("apps.labels.tasks.update_label_option_cache.apply_async") as mock_update_cache:
             update_instances_labels_cache(
                 organization.id, [alert_receive_channel.id], alert_receive_channel._meta.model.__name__
             )
-    assert mock_get_values.called
+    assert mock_get_label_by_key_id.called
     assert mock_update_cache.called
-    assert mock_update_cache.call_args == call((label_data,))
+    assert mock_update_cache.call_args == call((label_option,))
 
 
 @pytest.mark.django_db
@@ -150,11 +152,11 @@ def test_update_instances_labels_cache_error(
     LabelValueCache.objects.filter(id=label_association.value_id).update(last_synced=outdated_last_synced)
 
     with patch(
-        "apps.labels.client.LabelsAPIClient.get_values", side_effect=LabelsRepoAPIException("test", "test")
-    ) as mock_get_values:
+        "apps.labels.client.LabelsAPIClient.get_label_by_key_id", side_effect=LabelsRepoAPIException("test", "test")
+    ) as mock_get_label_by_key_id:
         with patch("apps.labels.tasks.update_labels_cache.apply_async") as mock_update_cache:
             update_instances_labels_cache(
                 organization.id, [alert_receive_channel.id], alert_receive_channel._meta.model.__name__
             )
-    mock_get_values.assert_called_once_with(label_association.key_id)
+    mock_get_label_by_key_id.assert_called_once_with(label_association.key_id)
     mock_update_cache.assert_not_called()

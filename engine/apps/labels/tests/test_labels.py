@@ -60,8 +60,8 @@ def test_label_associate_new_label(make_organization, make_alert_receive_channel
     label_value_id = "testvalueid"
     labels_data = [
         {
-            "key": {"id": label_key_id, "name": "testkey"},
-            "value": {"id": label_value_id, "name": "testvalue"},
+            "key": {"id": label_key_id, "name": "testkey", "prescribed": False},
+            "value": {"id": label_value_id, "name": "testvalue", "prescribed": False},
         }
     ]
 
@@ -80,8 +80,8 @@ def test_label_associate_existing_label(make_label_key_and_value, make_organizat
     label_key, label_value = make_label_key_and_value(organization)
     labels_data = [
         {
-            "key": {"id": label_key.id, "name": label_key.name},
-            "value": {"id": label_value.id, "name": label_value.name},
+            "key": {"id": label_key.id, "name": label_key.name, "prescribed": False},
+            "value": {"id": label_value.id, "name": label_value.name, "prescribed": False},
         }
     ]
     assert not alert_receive_channel.labels.exists()
@@ -100,8 +100,8 @@ def test_label_update_association_by_removing_label(
     label_association_2 = make_integration_label_association(organization, alert_receive_channel)
     labels_data = [
         {
-            "key": {"id": label_association_1.key_id, "name": label_association_1.key.name},
-            "value": {"id": label_association_1.value_id, "name": label_association_1.value.name},
+            "key": {"id": label_association_1.key_id, "name": label_association_1.key.name, "prescribed": False},
+            "value": {"id": label_association_1.value_id, "name": label_association_1.value.name, "prescribed": False},
         }
     ]
 
