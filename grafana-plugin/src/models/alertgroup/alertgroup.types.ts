@@ -79,7 +79,7 @@ export interface Alert {
   status: IncidentStatus;
   short?: boolean;
   root_alert_group?: Alert;
-  alert_receive_channel: Partial<ApiSchemas['AlertReceiveChannel']>;
+  alert_receive_channel: Partial<ApiSchemas['FastAlertReceiveChannel']>;
   paged_users: PagedUser[];
   team: GrafanaTeam['id'];
   grafana_incident_id: string | null;

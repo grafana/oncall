@@ -264,8 +264,8 @@ const CustomLabels = (props: CustomLabelsProps) => {
       custom: [
         ...alertGroupLabels.custom,
         {
-          key: { id: undefined, name: undefined },
-          value: { id: undefined, name: undefined },
+          key: { id: undefined, name: undefined, prescribed: false },
+          value: { id: undefined, name: undefined, prescribed: false },
         },
       ],
     });
@@ -276,8 +276,8 @@ const CustomLabels = (props: CustomLabelsProps) => {
       custom: [
         ...alertGroupLabels.custom,
         {
-          key: { id: undefined, name: undefined },
-          value: { id: null, name: undefined }, // id = null means it's a templated value
+          key: { id: undefined, name: undefined, prescribed: false },
+          value: { id: null, name: undefined, prescribed: false }, // id = null means it's a templated value
         },
       ],
     });

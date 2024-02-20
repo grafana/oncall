@@ -750,7 +750,7 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    /** @description Key with the list of values */
+    /** @description get_key returns LabelOption – key with the list of values */
     get: operations['labels_id_retrieve'];
     /** @description Rename the key */
     put: operations['labels_id_update'];
@@ -785,7 +785,7 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    /** @description Value name */
+    /** @description get_value returns a Value */
     get: operations['labels_id_values_retrieve'];
     /** @description Rename the value */
     put: operations['labels_id_values_update'];
@@ -1334,7 +1334,7 @@ export interface components {
     AlertGroupUnpageUser: {
       user_id: string;
     };
-    AlertReceiveChannel: CustomApiSchemas['AlertReceiveChannel'] & {
+    AlertReceiveChannel: {
       readonly id: string;
       readonly description: string | null;
       description_short?: string | null;
@@ -1369,7 +1369,7 @@ export interface components {
       readonly is_based_on_alertmanager: boolean;
       inbound_email?: string;
       readonly is_legacy: boolean;
-      labels?: components['schemas']['Label'][];
+      labels?: components['schemas']['LabelPair'][];
       alert_group_labels?: components['schemas']['IntegrationAlertGroupLabels'];
       /** Format: date-time */
       readonly alertmanager_v2_migrated_at: string | null;
@@ -1457,14 +1457,14 @@ export interface components {
       readonly is_based_on_alertmanager: boolean;
       inbound_email?: string;
       readonly is_legacy: boolean;
-      labels?: components['schemas']['Label'][];
+      labels?: components['schemas']['LabelPair'][];
       alert_group_labels?: components['schemas']['IntegrationAlertGroupLabels'];
       /** Format: date-time */
       readonly alertmanager_v2_migrated_at: string | null;
     };
     /** @enum {integer} */
     CloudConnectionStatusEnum: 0 | 1 | 2 | 3;
-    /** @description This serializer is consistent with apps.api.serializers.labels.LabelSerializer, but allows null for value ID. */
+    /** @description This serializer is consistent with apps.api.serializers.labels.LabelPairSerializer, but allows null for value ID. */
     CustomLabel: {
       key: components['schemas']['CustomLabelKey'];
       value: components['schemas']['CustomLabelValue'];
@@ -1472,10 +1472,14 @@ export interface components {
     CustomLabelKey: {
       id: string;
       name: string;
+      /** @default false */
+      prescribed: boolean;
     };
     CustomLabelValue: {
       id: string | null;
       name: string;
+      /** @default false */
+      prescribed: boolean;
     };
     /**
      * @description * `3600` - 3600
@@ -1576,10 +1580,6 @@ export interface components {
       id: string;
       name: string;
     };
-    Label: {
-      key: components['schemas']['LabelKey'];
-      value: components['schemas']['LabelValue'];
-    };
     LabelCreate: {
       key: components['schemas']['LabelRepr'];
       values: components['schemas']['LabelRepr'][];
@@ -1587,11 +1587,16 @@ export interface components {
     LabelKey: {
       id: string;
       name: string;
-      prescribed?: boolean;
+      /** @default false */
+      prescribed: boolean;
     };
-    LabelKeyValues: {
+    LabelOption: {
       key: components['schemas']['LabelKey'];
       values: components['schemas']['LabelValue'][];
+    };
+    LabelPair: {
+      key: components['schemas']['LabelKey'];
+      value: components['schemas']['LabelValue'];
     };
     LabelRepr: {
       name: string;
@@ -1599,7 +1604,8 @@ export interface components {
     LabelValue: {
       id: string;
       name: string;
-      prescribed?: boolean;
+      /** @default false */
+      prescribed: boolean;
     };
     ListUser: {
       readonly pk: string;
@@ -1726,7 +1732,7 @@ export interface components {
       readonly is_based_on_alertmanager?: boolean;
       inbound_email?: string;
       readonly is_legacy?: boolean;
-      labels?: components['schemas']['Label'][];
+      labels?: components['schemas']['LabelPair'][];
       alert_group_labels?: components['schemas']['IntegrationAlertGroupLabels'];
       /** Format: date-time */
       readonly alertmanager_v2_migrated_at?: string | null;
@@ -2980,7 +2986,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          'application/json': components['schemas']['LabelKeyValues'];
+          'application/json': components['schemas']['LabelOption'];
         };
       };
     };
@@ -3110,7 +3116,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          'application/json': components['schemas']['LabelKeyValues'];
+          'application/json': components['schemas']['LabelOption'];
         };
       };
     };
@@ -3131,7 +3137,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          'application/json': components['schemas']['LabelKeyValues'];
+          'application/json': components['schemas']['LabelOption'];
         };
       };
     };
@@ -3158,7 +3164,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          'application/json': components['schemas']['LabelKeyValues'];
+          'application/json': components['schemas']['LabelOption'];
         };
       };
     };
@@ -3185,7 +3191,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          'application/json': components['schemas']['LabelKeyValues'];
+          'application/json': components['schemas']['LabelOption'];
         };
       };
     };
@@ -3235,7 +3241,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          'application/json': components['schemas']['LabelKeyValues'];
+          'application/json': components['schemas']['LabelOption'];
         };
       };
     };
