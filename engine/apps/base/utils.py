@@ -1,5 +1,6 @@
 import json
 import re
+import typing
 from urllib.parse import urlparse
 
 import phonenumbers
@@ -39,6 +40,8 @@ class LiveSettingValidator:
         "TWILIO_API_KEY_SID",
         "TWILIO_API_KEY_SECRET",
     )
+
+    EMAIL_SSL_TLS_ERROR_MSG = "Cannot set Email (SMTP) to use SSL and TLS at the same time"
 
     def __init__(self, live_setting):
         self.live_setting = live_setting
@@ -158,9 +161,14 @@ class LiveSettingValidator:
         return err
 
     @classmethod
-    def _check_email_use_ssl(cls, email_use_ssl):
-        if settings.EMAIL_USE_TLS is "True" and email_use_ssl is "True":
-            return "Cannot set Email (SMTP) to use SSL and TLS at the same time"
+    def _check_email_use_tls(cls, email_use_tls: bool) -> typing.Optional[str]:
+        if live_settings.EMAIL_USE_SSL is True and email_use_tls is True:
+            return cls.EMAIL_SSL_TLS_ERROR_MSG
+
+    @classmethod
+    def _check_email_use_ssl(cls, email_use_ssl: bool) -> typing.Optional[str]:
+        if live_settings.EMAIL_USE_TLS is True and email_use_ssl is True:
+            return cls.EMAIL_SSL_TLS_ERROR_MSG
 
     @staticmethod
     def _is_email_valid(email):
