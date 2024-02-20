@@ -58,13 +58,13 @@ class CustomLabelSerializer(serializers.Serializer):
     class CustomLabelKeySerializer(serializers.Serializer):
         id = serializers.CharField()
         name = serializers.CharField()
-        prescribed = serializers.BooleanField(required=False, default=False)
+        prescribed = serializers.BooleanField(default=False)
 
     class CustomLabelValueSerializer(serializers.Serializer):
         # ID is null for templated labels. For such labels, the "name" value is a Jinja2 template.
         id = serializers.CharField(allow_null=True)
         name = serializers.CharField()
-        prescribed = serializers.BooleanField(required=False, default=False)
+        prescribed = serializers.BooleanField(default=False)
 
     key = CustomLabelKeySerializer()
     value = CustomLabelValueSerializer()
