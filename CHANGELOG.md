@@ -9,7 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Support prescribed labels ([#3848](https://github.com/grafana/oncall/pull/3848))
 - Add status change trigger type to webhooks ([#3920](https://github.com/grafana/oncall/pull/3920))
+- Add `EMAIL_USE_SSL` environment setting by @WoodyWoodsta ([#3911](https://github.com/grafana/oncall/pull/3911))
 
 ### Fixed
 

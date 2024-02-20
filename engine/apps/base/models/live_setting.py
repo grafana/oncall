@@ -39,6 +39,7 @@ class LiveSetting(models.Model):
         "EMAIL_HOST_USER",
         "EMAIL_HOST_PASSWORD",
         "EMAIL_USE_TLS",
+        "EMAIL_USE_SSL",
         "EMAIL_FROM_ADDRESS",
         "INBOUND_EMAIL_ESP",
         "INBOUND_EMAIL_DOMAIN",
@@ -79,6 +80,7 @@ class LiveSetting(models.Model):
         "EMAIL_HOST_USER": "SMTP server user",
         "EMAIL_HOST_PASSWORD": "SMTP server password",
         "EMAIL_USE_TLS": "SMTP enable/disable TLS",
+        "EMAIL_USE_SSL": "SMTP enable/disable SSL. Should be used mutually exclusively with EMAIL_USE_TLS.",
         "EMAIL_FROM_ADDRESS": "Email address used to send emails. If not specified, EMAIL_HOST_USER will be used.",
         "INBOUND_EMAIL_DOMAIN": "Inbound email domain",
         "INBOUND_EMAIL_ESP": (
