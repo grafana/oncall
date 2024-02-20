@@ -118,17 +118,17 @@ How alerts are displayed in the UI, messengers, and notifications
 #### Behavioral templates
 
 - `Grouping Id` - applied to every incoming alert payload after the `Routing Template`. It
-  can be based on time, alert content, or both. If the resulting grouping id matches an
-  existing non-resolved alert group grouping id, the alert will be grouped accordingly.
-  Otherwise, a new alert group will be created
+can be based on time, alert content, or both. If the resulting grouping id matches an
+existing non-resolved alert group grouping id, the alert will be grouped accordingly.
+Otherwise, a new alert group will be created
 - `Autoresolution` - used to auto-resolve alert groups with status `Resolved by source`
-  (Conditional template, output should be `True`)
+(Conditional template, output should be `True`)
 - `Auto acknowledge` - used to auto-acknowledge alert groups with status `Acknowledged by
-  source` (Conditional template, output should be `True`)
+source` (Conditional template, output should be `True`)
 - `Source link` - Used to customize the URL link to provide as the "source" of the alert.
 
-  > **Note:** For conditional templates, the output should be `True` to be applied, for
-  example `{{ True if payload.state == 'OK' else False }}`
+   > **Note:** For conditional templates, the output should be `True` to be applied, for
+   example `{{ True if payload.state == 'OK' else False }}`
 
 > **Pro Tip:** As a best practice, add _Playbooks_, _Useful links_, or _Checklists_ to the
 alert message.
@@ -136,21 +136,21 @@ alert message.
 #### How to edit templates
 
 1. Open the **Integration** page for the integration you want to edit
-   1`. Click the **Edit** button for the Templates Section. Now you can see previews of all
-   templates for the Integration
+1`. Click the **Edit** button for the Templates Section. Now you can see previews of all
+templates for the Integration
 1. Select the template you want to edit and click the **Edit** button to the right to the template
-   name. The template editor will open. The first column is the example alert payload, second
-   column is the Template itself, and third column is used to view rendered result.
+name. The template editor will open. The first column is the example alert payload, second
+column is the Template itself, and third column is used to view rendered result.
 1. Select one of the **Recent Alert groups** for the integration to see its `latest alert
-   payload`. If you want to edit this payload, click the **Edit** button right to the Alert Group
-   Name.
+payload`. If you want to edit this payload, click the **Edit** button right to the Alert Group
+Name.
 1. Alternatively, you can click **Use custom payload** and write your own payload to see
-   how it will be rendered
+how it will be rendered
 1. Press `Control + Enter` in the editor to see suggestions
 1. Click **Cheatsheet** in the second column to get some inspiration.
 1. If you edit Messenger templates, click **Save and open Alert Group in ChatOps** to see
-   how the alert will be rendered in the messenger, right in the messenger (Only works for
-   an Alert Group that exists in the messenger)
+how the alert will be rendered in the messenger, right in the messenger (Only works for
+an Alert Group that exists in the messenger)
 1. Click **Save** to save the template
 
 ## Advanced Jinja templates
