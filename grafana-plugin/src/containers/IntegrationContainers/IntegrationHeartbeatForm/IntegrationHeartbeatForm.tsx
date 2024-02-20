@@ -8,7 +8,7 @@ import { observer } from 'mobx-react';
 import { IntegrationInputField } from 'components/IntegrationInputField/IntegrationInputField';
 import { Text } from 'components/Text/Text';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
-import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 import { SelectOption } from 'state/types';
 import { useStore } from 'state/useStore';
 import { withMobXProviderContext } from 'state/withStore';
@@ -20,7 +20,7 @@ import styles from './IntegrationHeartbeatForm.module.scss';
 const cx = cn.bind(styles);
 
 interface IntegrationHeartbeatFormProps {
-  alertReceveChannelId: AlertReceiveChannel['id'];
+  alertReceveChannelId: ApiSchemas['AlertReceiveChannel']['id'];
   onClose?: () => void;
 }
 
@@ -117,7 +117,7 @@ const _IntegrationHeartbeatForm = observer(({ alertReceveChannelId, onClose }: I
 
     openNotification('Heartbeat settings have been updated');
 
-    await alertReceiveChannelStore.loadItem(alertReceveChannelId);
+    await alertReceiveChannelStore.fetchItemById(alertReceveChannelId);
   }
 });
 

@@ -1,8 +1,8 @@
-import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { Channel } from 'models/channel/channel';
 import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
 import { LabelKeyValue } from 'models/label/label.types';
 import { PagedUser, User } from 'models/user/user.types';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 
 export enum IncidentStatus {
   'Firing',
@@ -79,7 +79,7 @@ export interface Alert {
   status: IncidentStatus;
   short?: boolean;
   root_alert_group?: Alert;
-  alert_receive_channel: Partial<AlertReceiveChannel>;
+  alert_receive_channel: Partial<ApiSchemas['FastAlertReceiveChannel']>;
   paged_users: PagedUser[];
   team: GrafanaTeam['id'];
   grafana_incident_id: string | null;

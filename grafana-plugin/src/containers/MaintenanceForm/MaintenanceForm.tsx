@@ -7,12 +7,13 @@ import { observer } from 'mobx-react';
 
 import { GForm } from 'components/GForm/GForm';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
-import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
+import { AlertReceiveChannelHelper } from 'models/alert_receive_channel/alert_receive_channel.helpers';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
 import { UserActions } from 'utils/authorization/authorization';
 import { openNotification, showApiError } from 'utils/utils';
 
-import { form } from './MaintenanceForm.config';
+import { getForm } from './MaintenanceForm.config';
 
 import styles from './MaintenanceForm.module.css';
 
@@ -20,7 +21,7 @@ const cx = cn.bind(styles);
 
 interface MaintenanceFormProps {
   initialData: {
-    alert_receive_channel_id?: AlertReceiveChannel['id'];
+    alert_receive_channel_id?: ApiSchemas['AlertReceiveChannel']['id'];
     disabled?: boolean;
   };
   onHide: () => void;
@@ -29,20 +30,17 @@ interface MaintenanceFormProps {
 
 export const MaintenanceForm = observer((props: MaintenanceFormProps) => {
   const { onUpdate, onHide, initialData = {} } = props;
+  const { alertReceiveChannelStore } = useStore();
+  const form = useMemo(() => getForm(alertReceiveChannelStore), [alertReceiveChannelStore]);
   const maintenanceForm = useMemo(() => (initialData.disabled ? cloneDeep(form) : form), [initialData]);
-
-  const store = useStore();
-
-  const { alertReceiveChannelStore } = store;
 
   const handleSubmit = useCallback(async (data) => {
     try {
-      await alertReceiveChannelStore.startMaintenanceMode(
+      await AlertReceiveChannelHelper.startMaintenanceMode(
         initialData.alert_receive_channel_id,
         data.mode,
         data.duration
       );
-
       onHide();
       onUpdate();
       openNotification('Maintenance has been started');

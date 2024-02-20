@@ -518,11 +518,11 @@ In order to automate types creation and prevent API usage pitfalls, OnCall proje
 
    ```ts
    import { ApiSchemas } from "network/oncall-api/api.types";
-   import onCallApi from "network/oncall-api/http-client";
+   import { onCallApi } from "network/oncall-api/http-client";
 
    const {
      data: { results },
-   } = await onCallApi.GET("/alertgroups/");
+   } = await onCallApi().GET("/alertgroups/");
    const alertGroups: Array<ApiSchemas["AlertGroup"]> = results;
    ```
 

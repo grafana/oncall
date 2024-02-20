@@ -8,19 +8,19 @@ import { Block } from 'components/GBlock/Block';
 import { Text } from 'components/Text/Text';
 import styles from 'containers/IntegrationTemplate/IntegrationTemplate.module.scss';
 import { TemplatePreview, TEMPLATE_PAGE } from 'containers/TemplatePreview/TemplatePreview';
-import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { OutgoingWebhook } from 'models/outgoing_webhook/outgoing_webhook.types';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 
 const cx = cn.bind(styles);
 
 interface ResultProps {
-  alertReceiveChannelId?: AlertReceiveChannel['id'];
+  alertReceiveChannelId?: ApiSchemas['AlertReceiveChannel']['id'];
   outgoingWebhookId?: OutgoingWebhook['id'];
   templateBody: string;
   template: TemplateForEdit;
   isAlertGroupExisting?: boolean;
   chatOpsPermalink?: string;
-  payload?: JSON;
+  payload?: { [key: string]: unknown };
   error?: string;
   onSaveAndFollowLink?: (link: string) => void;
   templateIsRoute?: boolean;
