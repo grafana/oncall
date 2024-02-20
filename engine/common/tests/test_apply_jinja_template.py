@@ -187,3 +187,15 @@ def test_apply_jinja_template_to_alert_payload_and_labels(mock_apply_jinja_templ
 )
 def test_templated_value_is_truthy(value, expected):
     assert templated_value_is_truthy(value) == expected
+
+
+def test_apply_jinja_template_json_loads():
+    payload = {"message": "eyJuYW1lIjogInRlc3QifQ=="}
+    decoded = base64.b64decode(payload["message"]).decode("utf-8")
+
+    expected = json.loads(decoded)["name"]
+
+    assert apply_jinja_template(
+        "{{ (payload.message | b64decode | json_loads).name }}",
+        payload,
+    ) == expected

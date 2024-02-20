@@ -68,3 +68,10 @@ def b64decode(value):
         return base64.b64decode(value).decode("utf-8")
     except (ValueError, AttributeError, TypeError):
         return None
+
+
+def json_loads(value):
+    try:
+        return json.loads(value)
+    except (ValueError, AttributeError, TypeError, json.JSONDecodeError):
+        return None

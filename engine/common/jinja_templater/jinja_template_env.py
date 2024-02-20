@@ -13,6 +13,7 @@ from .filters import (
     regex_replace,
     regex_search,
     to_pretty_json,
+    json_loads
 )
 
 
@@ -33,3 +34,4 @@ jinja_template_env.filters["regex_match"] = regex_match
 jinja_template_env.filters["regex_search"] = regex_search
 jinja_template_env.filters["json_dumps"] = json_dumps
 jinja_template_env.filters["b64decode"] = b64decode
+jinja_template_env.filters["json_loads"] = json_loads
