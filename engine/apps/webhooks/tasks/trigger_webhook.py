@@ -44,6 +44,7 @@ TRIGGER_TYPE_TO_LABEL = {
     Webhook.TRIGGER_UNRESOLVE: "unresolve",
     Webhook.TRIGGER_ESCALATION_STEP: "escalation",
     Webhook.TRIGGER_UNACKNOWLEDGE: "unacknowledge",
+    Webhook.TRIGGER_STATUS_CHANGE: "status change",
 }
 
 
@@ -68,27 +69,38 @@ def send_webhook_event(trigger_type, alert_group_id, organization_id=None, user_
         trigger_type=trigger_type,
         organization_id=organization_id,
     ).exclude(is_webhook_enabled=False)
+    # include status change triggered webhooks if needed
+    if trigger_type in Webhook.STATUS_CHANGE_TRIGGERS:
+        webhooks_qs |= Webhook.objects.filter(
+            trigger_type=Webhook.TRIGGER_STATUS_CHANGE,
+            organization_id=organization_id,
+        ).exclude(is_webhook_enabled=False)
 
     for webhook in webhooks_qs:
-        execute_webhook.apply_async((webhook.pk, alert_group_id, user_id, None))
+        execute_webhook.apply_async((webhook.pk, alert_group_id, user_id, None), kwargs={"trigger_type": trigger_type})
 
 
 def _isoformat_date(date_value: datetime) -> typing.Optional[str]:
     return date_value.isoformat() if date_value else None
 
 
-def _build_payload(webhook: Webhook, alert_group: AlertGroup, user: User) -> typing.Dict[str, typing.Any]:
-    trigger_type = webhook.trigger_type
+def _build_payload(
+    webhook: Webhook, alert_group: AlertGroup, user: User, trigger_type: int | None
+) -> typing.Dict[str, typing.Any]:
+    payload_trigger_type = webhook.trigger_type
+    if payload_trigger_type == Webhook.TRIGGER_STATUS_CHANGE and trigger_type is not None:
+        # use original trigger type when generating the payload if status change is set
+        payload_trigger_type = trigger_type
     event = {
-        "type": TRIGGER_TYPE_TO_LABEL[trigger_type],
+        "type": TRIGGER_TYPE_TO_LABEL[payload_trigger_type],
     }
-    if trigger_type == Webhook.TRIGGER_ALERT_GROUP_CREATED:
+    if payload_trigger_type == Webhook.TRIGGER_ALERT_GROUP_CREATED:
         event["time"] = _isoformat_date(alert_group.started_at)
-    elif trigger_type == Webhook.TRIGGER_ACKNOWLEDGE:
+    elif payload_trigger_type == Webhook.TRIGGER_ACKNOWLEDGE:
         event["time"] = _isoformat_date(alert_group.acknowledged_at)
-    elif trigger_type == Webhook.TRIGGER_RESOLVE:
+    elif payload_trigger_type == Webhook.TRIGGER_RESOLVE:
         event["time"] = _isoformat_date(alert_group.resolved_at)
-    elif trigger_type == Webhook.TRIGGER_SILENCE:
+    elif payload_trigger_type == Webhook.TRIGGER_SILENCE:
         event["time"] = _isoformat_date(alert_group.silenced_at)
         event["until"] = _isoformat_date(alert_group.silenced_until)
 
@@ -195,7 +207,7 @@ def make_request(
 @shared_dedicated_queue_retry_task(
     autoretry_for=(Exception,), retry_backoff=True, max_retries=1 if settings.DEBUG else EXECUTE_WEBHOOK_RETRIES
 )
-def execute_webhook(webhook_pk, alert_group_id, user_id, escalation_policy_id, manual_retry_num=0):
+def execute_webhook(webhook_pk, alert_group_id, user_id, escalation_policy_id, trigger_type=None, manual_retry_num=0):
     from apps.webhooks.models import Webhook
 
     try:
@@ -224,13 +236,13 @@ def execute_webhook(webhook_pk, alert_group_id, user_id, escalation_policy_id, m
     if user_id is not None:
         user = User.objects.filter(pk=user_id).first()
 
-    data = _build_payload(webhook, alert_group, user)
+    data = _build_payload(webhook, alert_group, user, trigger_type)
     triggered, status, error, exception = make_request(webhook, alert_group, data)
 
     # create response entry
     WebhookResponse.objects.create(
         alert_group=alert_group,
-        trigger_type=webhook.trigger_type,
+        trigger_type=trigger_type or webhook.trigger_type,
         **status,
     )
 
