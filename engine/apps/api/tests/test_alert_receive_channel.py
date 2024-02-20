@@ -1378,7 +1378,14 @@ def test_update_alert_receive_channel_labels(
     url = reverse("api-internal:alert_receive_channel-detail", kwargs={"pk": alert_receive_channel.public_primary_key})
     key_id = "testkey"
     value_id = "testvalue"
-    data = {"labels": [{"key": {"id": key_id, "name": "test"}, "value": {"id": value_id, "name": "testv"}}]}
+    data = {
+        "labels": [
+            {
+                "key": {"id": key_id, "name": "test", "prescribed": False},
+                "value": {"id": value_id, "name": "testv", "prescribed": False},
+            }
+        ]
+    }
     response = client.patch(
         url,
         data=json.dumps(data),
@@ -1528,12 +1535,12 @@ def test_alert_group_labels_get(
         "inheritable": {label.key_id: True},
         "custom": [
             {
-                "key": {"id": label_key.id, "name": label_key.name},
-                "value": {"id": label_value.id, "name": label_value.name},
+                "key": {"id": label_key.id, "name": label_key.name, "prescribed": False},
+                "value": {"id": label_value.id, "name": label_value.name, "prescribed": False},
             },
             {
-                "key": {"id": label_key_1.id, "name": label_key_1.name},
-                "value": {"id": None, "name": "{{ payload.foo }}"},
+                "key": {"id": label_key_1.id, "name": label_key_1.name, "prescribed": False},
+                "value": {"id": None, "name": "{{ payload.foo }}", "prescribed": False},
             },
         ],
         "template": template,
@@ -1556,18 +1563,21 @@ def test_alert_group_labels_put(
     custom = [
         # plain label
         {
-            "key": {"id": label_2.key.id, "name": label_2.key.name},
-            "value": {"id": label_2.value.id, "name": label_2.value.name},
+            "key": {"id": label_2.key.id, "name": label_2.key.name, "prescribed": False},
+            "value": {"id": label_2.value.id, "name": label_2.value.name, "prescribed": False},
         },
         # plain label not present in DB cache
         {
-            "key": {"id": "hello", "name": "world"},
-            "value": {"id": "foo", "name": "bar"},
+            "key": {"id": "hello", "name": "world", "prescribed": False},
+            "value": {"id": "foo", "name": "bar", "prescribed": False},
         },
         # templated label
         {
-            "key": {"id": label_3.key.id, "name": label_3.key.name},
-            "value": {"id": None, "name": "{{ payload.foo }}"},
+            "key": {"id": label_3.key.id, "name": label_3.key.name, "prescribed": False},
+            "value": {
+                "id": None,
+                "name": "{{ payload.foo }}",
+            },
         },
     ]
     template = "{{ payload.labels | tojson }}"  # advanced template
