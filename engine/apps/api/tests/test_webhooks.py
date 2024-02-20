@@ -787,7 +787,14 @@ def test_update_webhook_labels(
     url = reverse("api-internal:webhooks-detail", kwargs={"pk": webhook.public_primary_key})
     key_id = "testkey"
     value_id = "testvalue"
-    data = {"labels": [{"key": {"id": key_id, "name": "test"}, "value": {"id": value_id, "name": "testv"}}]}
+    data = {
+        "labels": [
+            {
+                "key": {"id": key_id, "name": "test", "prescribed": False},
+                "value": {"id": value_id, "name": "testv", "prescribed": False},
+            }
+        ]
+    }
     response = client.patch(
         url,
         data=json.dumps(data),
@@ -833,7 +840,12 @@ def test_create_webhook_with_labels(
         "url": TEST_URL,
         "trigger_type": Webhook.TRIGGER_ALERT_GROUP_CREATED,
         "http_method": "POST",
-        "labels": [{"key": {"id": key_id, "name": "test"}, "value": {"id": value_id, "name": "testv"}}],
+        "labels": [
+            {
+                "key": {"id": key_id, "name": "test", "prescribed": False},
+                "value": {"id": value_id, "name": "testv", "prescribed": False},
+            }
+        ],
         "team": None,
     }
 

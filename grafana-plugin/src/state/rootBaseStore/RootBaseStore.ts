@@ -5,7 +5,6 @@ import qs from 'query-string';
 import { OnCallAppPluginMeta } from 'types';
 
 import { AlertReceiveChannelStore } from 'models/alert_receive_channel/alert_receive_channel';
-import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { AlertReceiveChannelFiltersStore } from 'models/alert_receive_channel_filters/alert_receive_channel_filters';
 import { AlertGroupStore } from 'models/alertgroup/alertgroup';
 import { ApiTokenStore } from 'models/api_token/api_token';
@@ -31,6 +30,7 @@ import { TimezoneStore } from 'models/timezone/timezone';
 import { UserStore } from 'models/user/user';
 import { UserGroupStore } from 'models/user_group/user_group';
 import { makeRequest } from 'network/network';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 import { AppFeature } from 'state/features';
 import { PluginState } from 'state/plugin/plugin';
 import { retryFailingPromises } from 'utils/async';
@@ -71,7 +71,7 @@ export class RootBaseStore {
   initialQuery = qs.parse(window.location.search);
 
   @observable
-  selectedAlertReceiveChannel?: AlertReceiveChannel['id'];
+  selectedAlertReceiveChannel?: ApiSchemas['AlertReceiveChannel']['id'];
 
   @observable
   features?: { [key: string]: boolean };
@@ -141,7 +141,7 @@ export class RootBaseStore {
     Promise.all([
       this.userStore.updateNotificationPolicyOptions(),
       this.userStore.updateNotifyByOptions(),
-      this.alertReceiveChannelStore.updateAlertReceiveChannelOptions(),
+      this.alertReceiveChannelStore.fetchAlertReceiveChannelOptions(),
     ]);
   };
 

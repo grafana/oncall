@@ -26,7 +26,7 @@ export class TelegramChannelStore extends BaseStore {
     this.path = '/telegram_channels/';
   }
 
-  @action
+  @action.bound
   async updateTelegramChannels() {
     const response = await makeRequest(this.path, {});
 
@@ -48,7 +48,7 @@ export class TelegramChannelStore extends BaseStore {
     });
   }
 
-  @action
+  @action.bound
   async updateById(id: TelegramChannel['id']) {
     const response = await this.getById(id);
 
@@ -60,7 +60,7 @@ export class TelegramChannelStore extends BaseStore {
     });
   }
 
-  @action
+  @action.bound
   async updateItems(query = '') {
     const result = await this.getAll();
 
@@ -83,12 +83,12 @@ export class TelegramChannelStore extends BaseStore {
     });
   }
 
-  getSearchResult(query = '') {
+  getSearchResult = (query = '') => {
     if (!this.searchResult[query]) {
       return undefined;
     }
     return this.searchResult[query].map((telegramChannelId: TelegramChannel['id']) => this.items[telegramChannelId]);
-  }
+  };
 
   @computed
   get hasItems() {
@@ -111,14 +111,14 @@ export class TelegramChannelStore extends BaseStore {
     });
   }
 
-  @action
+  @action.bound
   async makeTelegramChannelDefault(id: TelegramChannel['id']) {
     return makeRequest(`/telegram_channels/${id}/set_default/`, {
       method: 'POST',
     });
   }
 
-  @action
+  @action.bound
   async deleteTelegramChannel(id: TelegramChannel['id']) {
     return super.delete(id);
   }

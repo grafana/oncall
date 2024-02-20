@@ -9,8 +9,9 @@ import { TemplateForEdit } from 'components/AlertTemplates/CommonAlertTemplatesF
 import { Block } from 'components/GBlock/Block';
 import { MonacoEditor } from 'components/MonacoEditor/MonacoEditor';
 import { Text } from 'components/Text/Text';
-import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
+import { AlertReceiveChannelHelper } from 'models/alert_receive_channel/alert_receive_channel.helpers';
 import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
 import { openErrorNotification } from 'utils/utils';
 
@@ -21,7 +22,7 @@ const cx = cn.bind(styles);
 interface EditRegexpRouteTemplateModalProps {
   channelFilterId: ChannelFilter['id'];
   template?: TemplateForEdit;
-  alertReceiveChannelId?: AlertReceiveChannel['id'];
+  alertReceiveChannelId?: ApiSchemas['AlertReceiveChannel']['id'];
   onHide: () => void;
   onUpdateRoute: (values: any, channelFilterId: ChannelFilter['id'], type: number) => void;
   onOpenEditIntegrationTemplate?: (templateName: string, channelFilterId: ChannelFilter['id']) => void;
@@ -59,14 +60,14 @@ export const EditRegexpRouteTemplateModal = observer((props: EditRegexpRouteTemp
   }, [regexpTemplateBody]);
 
   const handleConvertToJinja2 = useCallback(() => {
-    alertReceiveChannelStore.convertRegexpTemplateToJinja2Template(channelFilterId).then((response) => {
+    AlertReceiveChannelHelper.convertRegexpTemplateToJinja2Template(channelFilterId).then((response) => {
       alertReceiveChannelStore
         .saveChannelFilter(channelFilterId, {
           filtering_term: response?.filtering_term_as_jinja2,
           filtering_term_type: 1,
         })
         .then(() => {
-          alertReceiveChannelStore.updateChannelFilters(alertReceiveChannelId, true).then(() => {
+          alertReceiveChannelStore.fetchChannelFilters(alertReceiveChannelId, true).then(() => {
             onOpenEditIntegrationTemplate('route_template', channelFilterId);
           });
         });

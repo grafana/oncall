@@ -601,6 +601,13 @@ when broker.type != rabbitmq, we do not need to include rabbitmq environment var
 {{- end }}
 
 {{- define "snippet.oncall.smtp.env" -}}
+  {{- $smtpTLS:=.Values.oncall.smtp.tls | default true | toString | title | quote }}
+  {{- $smtpSSL:=.Values.oncall.smtp.ssl | default false | toString | title | quote }}
+  {{- if eq $smtpTLS "\"True\"" }}
+  {{- if eq $smtpSSL "\"True\"" }}
+  {{- fail "cannot set Email (SMTP) to use SSL and TLS at the same time" }}
+  {{- end }}
+  {{- end }}
 - name: FEATURE_EMAIL_INTEGRATION_ENABLED
   value: {{ .Values.oncall.smtp.enabled | toString | title | quote }}
 {{- if .Values.oncall.smtp.enabled }}
@@ -617,7 +624,9 @@ when broker.type != rabbitmq, we do not need to include rabbitmq environment var
       key: smtp-password
       optional: true
 - name: EMAIL_USE_TLS
-  value: {{ .Values.oncall.smtp.tls | default true | toString | title | quote }}
+  value: {{ $smtpTLS }}
+- name: EMAIL_USE_SSL
+  value: {{ $smtpSSL }}
 - name: EMAIL_FROM_ADDRESS
   value: {{ .Values.oncall.smtp.fromEmail | quote }}
 - name: EMAIL_NOTIFICATIONS_LIMIT

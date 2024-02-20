@@ -29,6 +29,7 @@ export const SlackConnector = (props: SlackConnectorProps) => {
   const {
     organizationStore: { currentOrganization },
     alertReceiveChannelStore,
+    slackChannelStore,
   } = store;
 
   const channelFilter = store.alertReceiveChannelStore.channelFilters[channelFilterId];
@@ -56,11 +57,14 @@ export const SlackConnector = (props: SlackConnectorProps) => {
         </div>
         Slack Channel
         <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
-          <GSelect
+          <GSelect<SlackChannel>
             showSearch
             allowClear
             className={cx('select', 'control')}
-            modelName="slackChannelStore"
+            items={slackChannelStore.items}
+            fetchItemsFn={slackChannelStore.updateItems}
+            fetchItemFn={slackChannelStore.updateItem}
+            getSearchResult={slackChannelStore.getSearchResult}
             displayField="display_name"
             valueField="id"
             placeholder="Select Slack Channel"

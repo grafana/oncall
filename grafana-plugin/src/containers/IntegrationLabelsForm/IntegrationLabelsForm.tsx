@@ -1,4 +1,4 @@
-import React, { ChangeEvent, useCallback, useState } from 'react';
+import React, { ChangeEvent, useState } from 'react';
 
 import { ServiceLabels } from '@grafana/labels';
 import {
@@ -21,7 +21,7 @@ import { PluginLink } from 'components/PluginLink/PluginLink';
 import { RenderConditionally } from 'components/RenderConditionally/RenderConditionally';
 import { Text } from 'components/Text/Text';
 import { IntegrationTemplate } from 'containers/IntegrationTemplate/IntegrationTemplate';
-import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
+import { splitToGroups } from 'models/label/label.helpers';
 import { LabelsErrors } from 'models/label/label.types';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { LabelTemplateOptions } from 'pages/integration/IntegrationCommon.config';
@@ -38,10 +38,10 @@ const cx = cn.bind(styles);
 const INPUT_WIDTH = 280;
 
 interface IntegrationLabelsFormProps {
-  id: AlertReceiveChannel['id'];
+  id: ApiSchemas['AlertReceiveChannel']['id'];
   onSubmit: () => void;
   onHide: () => void;
-  onOpenIntegrationSettings: (id: AlertReceiveChannel['id']) => void;
+  onOpenIntegrationSettings: (id: ApiSchemas['AlertReceiveChannel']['id']) => void;
 }
 
 export const IntegrationLabelsForm = observer((props: IntegrationLabelsFormProps) => {
@@ -62,7 +62,9 @@ export const IntegrationLabelsForm = observer((props: IntegrationLabelsFormProps
 
   const handleSave = async () => {
     try {
-      await alertReceiveChannelStore.saveAlertReceiveChannel(id, { alert_group_labels: alertGroupLabels });
+      await alertReceiveChannelStore.saveAlertReceiveChannel(id, {
+        alert_group_labels: alertGroupLabels,
+      });
       onSubmit();
       onHide();
     } catch (err) {
@@ -245,9 +247,9 @@ export const IntegrationLabelsForm = observer((props: IntegrationLabelsFormProps
 });
 
 interface CustomLabelsProps {
-  alertGroupLabels: AlertReceiveChannel['alert_group_labels'];
+  alertGroupLabels: ApiSchemas['AlertReceiveChannel']['alert_group_labels'];
   customLabelsErrors: LabelsErrors;
-  onChange: (value: AlertReceiveChannel['alert_group_labels']) => void;
+  onChange: (value: ApiSchemas['AlertReceiveChannel']['alert_group_labels']) => void;
   onShowTemplateEditor: (index: number) => void;
 }
 
@@ -262,8 +264,8 @@ const CustomLabels = (props: CustomLabelsProps) => {
       custom: [
         ...alertGroupLabels.custom,
         {
-          key: { id: undefined, name: undefined },
-          value: { id: undefined, name: undefined },
+          key: { id: undefined, name: undefined, prescribed: false },
+          value: { id: undefined, name: undefined, prescribed: false },
         },
       ],
     });
@@ -274,43 +276,41 @@ const CustomLabels = (props: CustomLabelsProps) => {
       custom: [
         ...alertGroupLabels.custom,
         {
-          key: { id: undefined, name: undefined },
-          value: { id: null, name: undefined }, // id = null means it's a templated value
+          key: { id: undefined, name: undefined, prescribed: false },
+          value: { id: null, name: undefined, prescribed: false }, // id = null means it's a templated value
         },
       ],
     });
   };
 
-  const cachedOnLoadKeys = useCallback(() => {
+  const onLoadKeys = async (search?: string) => {
     let result = undefined;
-    return async (search?: string) => {
-      if (!result) {
-        try {
-          result = await labelsStore.loadKeys();
-        } catch (error) {
-          openErrorNotification('There was an error processing your request. Please try again');
-        }
-      }
 
-      return result.filter((k) => k.name.toLowerCase().includes(search.toLowerCase()));
-    };
-  }, []);
+    try {
+      result = await labelsStore.loadKeys(search);
+    } catch (error) {
+      openErrorNotification('There was an error processing your request. Please try again');
+    }
 
-  const cachedOnLoadValuesForKey = useCallback(() => {
+    const groups = splitToGroups(result);
+
+    return groups;
+  };
+
+  const onLoadValuesForKey = async (key: string, search?: string) => {
     let result = undefined;
-    return async (key: string, search?: string) => {
-      if (!result) {
-        try {
-          const { values } = await labelsStore.loadValuesForKey(key, search);
-          result = values;
-        } catch (error) {
-          openErrorNotification('There was an error processing your request. Please try again');
-        }
-      }
 
-      return result.filter((k) => k.name.toLowerCase().includes(search.toLowerCase()));
-    };
-  }, []);
+    try {
+      const { values } = await labelsStore.loadValuesForKey(key, search);
+      result = values;
+    } catch (error) {
+      openErrorNotification('There was an error processing your request. Please try again');
+    }
+
+    const groups = splitToGroups(result);
+
+    return groups;
+  };
 
   return (
     <VerticalGroup>
@@ -328,8 +328,8 @@ const CustomLabels = (props: CustomLabelsProps) => {
         inputWidth={INPUT_WIDTH}
         errors={customLabelsErrors}
         value={alertGroupLabels.custom}
-        onLoadKeys={cachedOnLoadKeys()}
-        onLoadValuesForKey={cachedOnLoadValuesForKey()}
+        onLoadKeys={onLoadKeys}
+        onLoadValuesForKey={onLoadValuesForKey}
         onCreateKey={labelsStore.createKey}
         onUpdateKey={labelsStore.updateKey}
         onCreateValue={labelsStore.createValue}
@@ -377,6 +377,8 @@ const CustomLabels = (props: CustomLabelsProps) => {
             custom: value,
           });
         }}
+        getIsKeyEditable={(option) => !option.prescribed}
+        getIsValueEditable={(option) => !option.prescribed}
       />
       <Dropdown
         overlay={

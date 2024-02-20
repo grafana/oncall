@@ -1,7 +1,10 @@
 import { getIsTooManyLabelsWarningVisible } from './IntegrationLabelsForm.helpers';
 
 describe('getIsTooManyLabelsWarningVisible()', () => {
-  const CUSTOM_LABEL = { key: { id: 'c', name: 'c' }, value: { id: 'c', name: 'c' } };
+  const CUSTOM_LABEL = {
+    key: { id: 'c', name: 'c', prescribed: false },
+    value: { id: 'c', name: 'c', prescribed: false },
+  };
 
   it('should return false if limit is not exceeded', () => {
     expect(
