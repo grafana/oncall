@@ -207,6 +207,22 @@ By default everything runs inside Docker. If you would like to run the backend s
 - `make run-backend-server` - runs the HTTP server
 - `make run-backend-celery` - runs Celery workers
 
+### Adding or updating Python dependencies
+
+We are using [pip-tools](https://github.com/jazzband/pip-tools) to manage our dependencies. It helps
+making builds deterministic, controlling deps (and indirect deps) upgrades (and versions consistency)
+avoiding unexpected (and potentially breaking) changes.
+
+We keep our direct deps in `requirements.in` from which we generate (through `pip-compile`) the
+`requirements.txt` (where all deps are pinned). We also constrain dev (and enterprise) deps based
+on our base requirements. Check [how to update deps](https://github.com/jazzband/pip-tools?tab=readme-ov-file#updating-requirements).
+
+`pip install -r requirements.txt` will keep working (the difference is that this should never
+bring additional dependencies or different versions not listed there), and when starting an env
+from scratch, it would be the same as running `pip-sync`. `pip-sync` on the other hand will also
+ensure to clean up any deps not listed in the requirements, keeping the env exactly as described
+in `requirements.txt`.
+
 ## UI E2E Tests
 
 We've developed a suite of "end-to-end" integration tests using [Playwright](https://playwright.dev/). These tests
