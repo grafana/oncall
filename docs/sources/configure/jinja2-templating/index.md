@@ -17,7 +17,6 @@ aliases:
   - ../jinja2-templating/ # /docs/oncall/<ONCALL_VERSION>/jinja2-templating/
 ---
 
-
 ## Jinja2 templating
 
 Grafana OnCall can integrate with any monitoring system that can send alerts via
@@ -98,9 +97,11 @@ customization, use Jinja templates.
 
 ### Routing template
 
-- `Routing Template` - used to route alerts to different Escalation Chains based on alert content (conditional template, output should be `True`)
+- `Routing Template` - used to route alerts to different Escalation Chains based on alert content (conditional template,
+  output should be `True`)
 
-   > **Note:** For conditional templates, the output should be `True` to be applied, for example `{{ True if payload.state == 'OK' else False }}`
+  > **Note:** For conditional templates, the output should be `True` to be applied, for
+  example `{{ True if payload.state == 'OK' else False }}`
 
 #### Appearance templates
 
@@ -118,39 +119,39 @@ How alerts are displayed in the UI, messengers, and notifications
 #### Behavioral templates
 
 - `Grouping Id` - applied to every incoming alert payload after the `Routing Template`. It
-can be based on time, alert content, or both. If the resulting grouping id matches an
-existing non-resolved alert group grouping id, the alert will be grouped accordingly.
-Otherwise, a new alert group will be created
+  can be based on time, alert content, or both. If the resulting grouping id matches an
+  existing non-resolved alert group grouping id, the alert will be grouped accordingly.
+  Otherwise, a new alert group will be created
 - `Autoresolution` - used to auto-resolve alert groups with status `Resolved by source`
-(Conditional template, output should be `True`)
+  (Conditional template, output should be `True`)
 - `Auto acknowledge` - used to auto-acknowledge alert groups with status `Acknowledged by
-source` (Conditional template, output should be `True`)
+  source` (Conditional template, output should be `True`)
 - `Source link` - Used to customize the URL link to provide as the "source" of the alert.
 
-   > **Note:** For conditional templates, the output should be `True` to be applied, for
-   example `{{ True if payload.state == 'OK' else False }}`
+  > **Note:** For conditional templates, the output should be `True` to be applied, for
+  example `{{ True if payload.state == 'OK' else False }}`
 
 > **Pro Tip:** As a best practice, add _Playbooks_, _Useful links_, or _Checklists_ to the
-alert message.
+> alert message.
 
 #### How to edit templates
 
 1. Open the **Integration** page for the integration you want to edit
-1`. Click the **Edit** button for the Templates Section. Now you can see previews of all
-templates for the Integration
+   1`. Click the **Edit** button for the Templates Section. Now you can see previews of all
+   templates for the Integration
 1. Select the template you want to edit and click the **Edit** button to the right to the template
-name. The template editor will open. The first column is the example alert payload, second
-column is the Template itself, and third column is used to view rendered result.
+   name. The template editor will open. The first column is the example alert payload, second
+   column is the Template itself, and third column is used to view rendered result.
 1. Select one of the **Recent Alert groups** for the integration to see its `latest alert
-payload`. If you want to edit this payload, click the **Edit** button right to the Alert Group
-Name.
+   payload`. If you want to edit this payload, click the **Edit** button right to the Alert Group
+   Name.
 1. Alternatively, you can click **Use custom payload** and write your own payload to see
-how it will be rendered
+   how it will be rendered
 1. Press `Control + Enter` in the editor to see suggestions
 1. Click **Cheatsheet** in the second column to get some inspiration.
 1. If you edit Messenger templates, click **Save and open Alert Group in ChatOps** to see
-how the alert will be rendered in the messenger, right in the messenger (Only works for
-an Alert Group that exists in the messenger)
+   how the alert will be rendered in the messenger, right in the messenger (Only works for
+   an Alert Group that exists in the messenger)
 1. Click **Save** to save the template
 
 ## Advanced Jinja templates
@@ -166,7 +167,8 @@ functions, and more.
 
 > **NOTE:** Every alert from a monitoring system comes in the key/value format.
 
-Grafana OnCall has rules about which of the keys match to: `__title`, `message`, `image`, `grouping`, and `auto-resolve__`.
+Grafana OnCall has rules about which of the keys match to: `__title`, `message`, `image`, `grouping`,
+and `auto-resolve__`.
 
 ### Loops
 
@@ -211,7 +213,8 @@ Built-in functions:
 - `abs`
 - `capitalize`
 - `trim`
-- You can see the full list of Jinja built-in functions on github [here](https://github.com/pallets/jinja/blob/3915eb5c2a7e2e4d49ebdf0ecb167ea9c21c60b2/src/jinja2/filters.py#L1307)
+- You can see the full list of Jinja built-in functions on
+  github [here](https://github.com/pallets/jinja/blob/3915eb5c2a7e2e4d49ebdf0ecb167ea9c21c60b2/src/jinja2/filters.py#L1307)
 
 ### Functions added by Grafana OnCall
 
@@ -221,9 +224,12 @@ Built-in functions:
 - `iso8601_to_time` - converts time from iso8601 (`2015-02-17T18:30:20.000Z`) to datetime
 - `datetimeformat` - converts time from datetime to the given format (`%H:%M / %d-%m-%Y` by default)
 - `datetimeformat_as_timezone` - same as `datetimeformat`, with the inclusion of timezone conversion (`UTC` by default)
-  - Usage example: `{{ payload.alerts.startsAt | iso8601_to_time | datetimeformat_as_timezone('%Y-%m-%dT%H:%M:%S%z', 'America/Chicago') }}`
+    - Usage
+      example: `{{ payload.alerts.startsAt | iso8601_to_time | datetimeformat_as_timezone('%Y-%m-%dT%H:%M:%S%z', 'America/Chicago') }}`
 - `regex_replace` - performs a regex find and replace
 - `regex_match` - performs a regex match, returns `True` or `False`
-  - Usage example: `{{ payload.ruleName | regex_match(".*") }}`
+    - Usage example: `{{ payload.ruleName | regex_match(".*") }}`
 - `b64decode` - performs a base64 string decode
-  - Usage example: `{{ payload.data | b64decode }}`
+    - Usage example: `{{ payload.data | b64decode }}`
+- `json_loads` - loads a given json string into an object
+    - Usage example: `{{ (payload.data | b64decode | json_loads).name }}`
