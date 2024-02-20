@@ -20,7 +20,7 @@ if typing.TYPE_CHECKING:
     from django.db.models.manager import RelatedManager
 
     from apps.alerts.models import Alert, AlertGroup, AlertReceiveChannel
-    from apps.labels.types import Labels
+    from apps.labels.types import AlertLabels
 
 logger = logging.getLogger(__name__)
 
@@ -120,12 +120,12 @@ class ChannelFilter(OrderedModel):
         return None
 
     def is_satisfying(
-        self, raw_request_data: "Alert.RawRequestData", alert_labels: typing.Optional["Labels"] = None
+        self, raw_request_data: "Alert.RawRequestData", alert_labels: typing.Optional["AlertLabels"] = None
     ) -> bool:
         return self.is_default or self.check_filter(raw_request_data, alert_labels)
 
     def check_filter(
-        self, raw_request_data: "Alert.RawRequestData", alert_labels: typing.Optional["Labels"] = None
+        self, raw_request_data: "Alert.RawRequestData", alert_labels: typing.Optional["AlertLabels"] = None
     ) -> bool:
         if self.filtering_term_type == ChannelFilter.FILTERING_TERM_TYPE_JINJA2:
             try:
