@@ -3,12 +3,12 @@ import React, { FC, useCallback, useState } from 'react';
 import { Button, Drawer, HorizontalGroup, Icon, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 
-import Block from 'components/GBlock/Block';
-import Text from 'components/Text/Text';
-import ScheduleForm from 'containers/ScheduleForm/ScheduleForm';
+import { Block } from 'components/GBlock/Block';
+import { Text } from 'components/Text/Text';
+import { ScheduleForm } from 'containers/ScheduleForm/ScheduleForm';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { Schedule, ScheduleType } from 'models/schedule/schedule.types';
-import { UserActions } from 'utils/authorization';
+import { UserActions } from 'utils/authorization/authorization';
 
 import styles from './NewScheduleSelector.module.css';
 
@@ -19,7 +19,7 @@ interface NewScheduleSelectorProps {
 
 const cx = cn.bind(styles);
 
-const NewScheduleSelector: FC<NewScheduleSelectorProps> = ({ onHide, onCreate }) => {
+export const NewScheduleSelector: FC<NewScheduleSelectorProps> = ({ onHide, onCreate }) => {
   const [showScheduleForm, setShowScheduleForm] = useState<boolean>(false);
   const [type, setType] = useState<ScheduleType | undefined>();
 
@@ -97,5 +97,3 @@ const NewScheduleSelector: FC<NewScheduleSelectorProps> = ({ onHide, onCreate })
     </Drawer>
   );
 };
-
-export default NewScheduleSelector;

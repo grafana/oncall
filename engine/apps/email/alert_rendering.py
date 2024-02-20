@@ -39,17 +39,17 @@ def build_subject_and_message(alert_group, emails_left):
     content = render_to_string(
         "email_notification.html",
         {
-            "url": alert_group.slack_permalink or alert_group.web_link,
-            "title": str_or_backup(templated_alert.title, title_fallback),
-            "message": str_or_backup(message, ""),  # not render message at all if smth goes wrong
-            "organization": alert_group.channel.organization.org_title,
-            "integration": emojize(alert_group.channel.short_name, language="alias"),
+            "message": str_or_backup(message, title_fallback),
             "limit_notification": emails_left <= 20,
             "emails_left": emails_left,
+            "url": alert_group.slack_permalink or alert_group.web_link,
+            "alert_group_number": str(alert_group.inside_organization_number),
+            "integration": emojize(alert_group.channel.short_name, language="alias"),
+            "instance_url": alert_group.channel.organization.grafana_url,
         },
     )
 
     title = str_or_backup(templated_alert.title, title_fallback)
-    subject = f"[{title}] You are invited to check an alert group".replace("\n", "")
+    subject = f"{title}".replace("\n", "")
 
     return subject, content

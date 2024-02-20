@@ -1,7 +1,7 @@
-import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { EscalationChain } from 'models/escalation_chain/escalation_chain.types';
 import { SlackChannel } from 'models/slack_channel/slack_channel.types';
 import { TelegramChannel, TelegramChannelDetails } from 'models/telegram_channel/telegram_channel.types';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 
 export enum FilteringTermType {
   regex,
@@ -10,7 +10,7 @@ export enum FilteringTermType {
 
 export interface ChannelFilter {
   id: string;
-  alert_receive_channel: AlertReceiveChannel['id'];
+  alert_receive_channel: ApiSchemas['AlertReceiveChannel']['id'];
   slack_channel_id?: SlackChannel['id'];
   slack_channel?: SlackChannel;
   telegram_channel?: TelegramChannel['id'];

@@ -43,7 +43,7 @@
         "content": "<div>\n  <img src=\"/public/plugins/grafana-oncall-app/assets/img/logo.svg\">\n</div>",
         "mode": "html"
       },
-      "pluginVersion": "9.5.2",
+      "pluginVersion": "10.4.0-65875",
       "transparent": true,
       "type": "text"
     },
@@ -69,7 +69,7 @@
         "content": "# Grafana OnCall Insights",
         "mode": "markdown"
       },
-      "pluginVersion": "9.5.2",
+      "pluginVersion": "10.4.0-65875",
       "transparent": true,
       "type": "text"
     },
@@ -94,7 +94,7 @@
         "content": "📣 This is a read-only dashboard. To make a copy, click \"Settings\" and \"Save as\".\n\n📝 If you see *\"No data\"* errors, check the right datasource is selected\nand that you have already used and setup the [OnCall](/a/grafana-oncall-app/alert-groups) plugin.\nYou can also try [re-importing the dashboard](/plugins/grafana-oncall-app?page=dashboards)\nto confirm you have the latest updates. If you just copied the dashboard,\nyou may need to reload it.",
         "mode": "markdown"
       },
-      "pluginVersion": "9.5.2",
+      "pluginVersion": "10.4.0-65875",
       "transparent": true,
       "type": "text"
     },
@@ -110,216 +110,6 @@
       "panels": [],
       "title": "Overview",
       "type": "row"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${datasource}"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "text",
-                "value": null
-              }
-            ]
-          },
-          "unit": "none"
-        },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Value"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "Total alert groups"
-              }
-            ]
-          }
-        ]
-      },
-      "gridPos": {
-        "h": 7,
-        "w": 5,
-        "x": 0,
-        "y": 6
-      },
-      "id": 25,
-      "options": {
-        "colorMode": "value",
-        "graphMode": "none",
-        "justifyMode": "center",
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": ["lastNotNull"],
-          "fields": "",
-          "values": false
-        },
-        "textMode": "auto"
-      },
-      "pluginVersion": "9.5.2",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "disableTextWrap": false,
-          "editorMode": "code",
-          "excludeNullMetadata": false,
-          "exemplar": false,
-          "expr": "max_over_time(sum(avg without(pod, instance) ($alert_groups_total{slug=~\"$instance\", team=~\"$team\", integration=~\"$integration\"}))[1d:])",
-          "format": "time_series",
-          "fullMetaSearch": false,
-          "instant": false,
-          "legendFormat": "__auto",
-          "range": true,
-          "refId": "A",
-          "useBackend": false
-        }
-      ],
-      "title": "Total alert groups",
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${datasource}"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          }
-        },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "firing"
-            },
-            "properties": [
-              {
-                "id": "color",
-                "value": {
-                  "fixedColor": "red",
-                  "mode": "fixed"
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "acknowledged"
-            },
-            "properties": [
-              {
-                "id": "color",
-                "value": {
-                  "fixedColor": "dark-yellow",
-                  "mode": "fixed"
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "silenced"
-            },
-            "properties": [
-              {
-                "id": "color",
-                "value": {
-                  "mode": "fixed"
-                }
-              }
-            ]
-          }
-        ]
-      },
-      "gridPos": {
-        "h": 7,
-        "w": 6,
-        "x": 5,
-        "y": 6
-      },
-      "id": 1,
-      "options": {
-        "displayMode": "gradient",
-        "minVizHeight": 10,
-        "minVizWidth": 0,
-        "orientation": "vertical",
-        "reduceOptions": {
-          "calcs": ["lastNotNull"],
-          "fields": "",
-          "values": false
-        },
-        "showUnfilled": true,
-        "valueMode": "color"
-      },
-      "pluginVersion": "9.5.2",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "disableTextWrap": false,
-          "editorMode": "code",
-          "excludeNullMetadata": false,
-          "expr": "sum by (state) (avg without(pod, instance) ($alert_groups_total{slug=~\"$instance\", team=~\"$team\", integration=~\"$integration\"}))",
-          "fullMetaSearch": false,
-          "legendFormat": "__auto",
-          "range": true,
-          "refId": "A",
-          "useBackend": false
-        }
-      ],
-      "title": "Total alert groups by state",
-      "transformations": [
-        {
-          "id": "joinByLabels",
-          "options": {
-            "value": "state"
-          }
-        },
-        {
-          "id": "organize",
-          "options": {
-            "excludeByName": {},
-            "indexByName": {
-              "acknowledged": 1,
-              "firing": 0,
-              "resolved": 2,
-              "silenced": 3
-            },
-            "renameByName": {}
-          }
-        }
-      ],
-      "type": "bargauge"
     },
     {
       "datasource": {
@@ -360,9 +150,9 @@
         ]
       },
       "gridPos": {
-        "h": 7,
-        "w": 5,
-        "x": 11,
+        "h": 8,
+        "w": 12,
+        "x": 0,
         "y": 6
       },
       "id": 29,
@@ -376,9 +166,11 @@
           "fields": "",
           "values": false
         },
-        "textMode": "auto"
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
       },
-      "pluginVersion": "9.5.2",
+      "pluginVersion": "10.4.0-65875",
       "targets": [
         {
           "datasource": {
@@ -389,7 +181,7 @@
           "editorMode": "code",
           "excludeNullMetadata": false,
           "exemplar": false,
-          "expr": "increase(max_over_time(sum(avg without(pod, instance) ($alert_groups_total{slug=~\"$instance\", team=~\"$team\", integration=~\"$integration\"}))[1d:])[$__range:])",
+          "expr": "delta(max_over_time(sum(avg without(pod, instance) ($alert_groups_total{slug=~\"$instance\", team=~\"$team\", integration=~\"$integration\"}))[30m:])[$__range:]) >= 0",
           "format": "time_series",
           "fullMetaSearch": false,
           "includeNullMetadata": true,
@@ -401,7 +193,7 @@
         }
       ],
       "timeTo": "5m",
-      "title": "New alert groups for selected period",
+      "title": "New alert groups",
       "type": "stat"
     },
     {
@@ -443,12 +235,12 @@
         ]
       },
       "gridPos": {
-        "h": 7,
-        "w": 4,
-        "x": 16,
+        "h": 8,
+        "w": 12,
+        "x": 12,
         "y": 6
       },
-      "id": 14,
+      "id": 32,
       "options": {
         "colorMode": "value",
         "graphMode": "none",
@@ -459,10 +251,11 @@
           "fields": "",
           "values": false
         },
-        "text": {},
-        "textMode": "auto"
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
       },
-      "pluginVersion": "9.5.2",
+      "pluginVersion": "10.4.0-65875",
       "targets": [
         {
           "datasource": {
@@ -478,91 +271,7 @@
           "refId": "A"
         }
       ],
-      "title": "Mean time to respond (MTTR)",
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${datasource}"
-      },
-      "description": "",
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "blue",
-                "value": null
-              },
-              {
-                "color": "green",
-                "value": -10000000
-              },
-              {
-                "color": "super-light-yellow",
-                "value": 0
-              }
-            ]
-          },
-          "unit": "s"
-        },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Value"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "MTTR"
-              }
-            ]
-          }
-        ]
-      },
-      "gridPos": {
-        "h": 7,
-        "w": 4,
-        "x": 20,
-        "y": 6
-      },
-      "id": 32,
-      "options": {
-        "colorMode": "value",
-        "graphMode": "none",
-        "justifyMode": "center",
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": ["diff"],
-          "fields": "",
-          "values": false
-        },
-        "textMode": "auto"
-      },
-      "pluginVersion": "9.5.2",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "editorMode": "code",
-          "exemplar": false,
-          "expr": "avg(sum($alert_groups_response_time_seconds_sum{slug=~\"$instance\", team=~\"$team\", integration=~\"$integration\"}) / sum($alert_groups_response_time_seconds_count{slug=~\"$instance\", team=~\"$team\", integration=~\"$integration\"}))",
-          "instant": false,
-          "legendFormat": "__auto",
-          "range": true,
-          "refId": "A"
-        }
-      ],
-      "title": "MTTR changed for period",
+      "title": "Average Mean time to respond (MTTR)",
       "type": "stat"
     },
     {
@@ -576,6 +285,7 @@
             "mode": "palette-classic"
           },
           "custom": {
+            "axisBorderShow": false,
             "axisCenteredZero": false,
             "axisColorMode": "text",
             "axisLabel": "",
@@ -589,6 +299,7 @@
               "tooltip": false,
               "viz": false
             },
+            "insertNulls": false,
             "lineInterpolation": "linear",
             "lineStyle": {
               "fill": "solid"
@@ -619,7 +330,8 @@
                 "value": null
               }
             ]
-          }
+          },
+          "unitScale": true
         },
         "overrides": [
           {
@@ -645,10 +357,10 @@
         ]
       },
       "gridPos": {
-        "h": 10,
-        "w": 24,
+        "h": 9,
+        "w": 12,
         "x": 0,
-        "y": 13
+        "y": 14
       },
       "id": 24,
       "options": {
@@ -673,7 +385,7 @@
           "editorMode": "code",
           "excludeNullMetadata": false,
           "exemplar": false,
-          "expr": "increase(max_over_time(sum by (integration) (avg without(pod, instance) ($alert_groups_total{slug=~\"$instance\", team=~\"$team\", integration=~\"$integration\"}))[30m:])[1h:])",
+          "expr": "delta(max_over_time(sum by (integration) (avg without(pod, instance) ($alert_groups_total{slug=~\"$instance\", team=~\"$team\", integration=~\"$integration\"}))[30m:])[1h:]) >= 0",
           "fullMetaSearch": false,
           "instant": false,
           "legendFormat": "__auto",
@@ -682,7 +394,7 @@
           "useBackend": false
         }
       ],
-      "title": "New alert groups during time period",
+      "title": "New alert groups",
       "type": "timeseries"
     },
     {
@@ -699,6 +411,7 @@
             "seriesBy": "min"
           },
           "custom": {
+            "axisBorderShow": false,
             "axisCenteredZero": false,
             "axisColorMode": "text",
             "axisLabel": "",
@@ -712,6 +425,7 @@
               "tooltip": false,
               "viz": false
             },
+            "insertNulls": false,
             "lineInterpolation": "linear",
             "lineStyle": {
               "fill": "solid"
@@ -741,7 +455,8 @@
               }
             ]
           },
-          "unit": "s"
+          "unit": "s",
+          "unitScale": true
         },
         "overrides": [
           {
@@ -760,9 +475,9 @@
       },
       "gridPos": {
         "h": 9,
-        "w": 24,
-        "x": 0,
-        "y": 23
+        "w": 12,
+        "x": 12,
+        "y": 14
       },
       "id": 34,
       "options": {
@@ -793,7 +508,7 @@
           "refId": "A"
         }
       ],
-      "title": "MTTR changed for period",
+      "title": "Mean time to respond (MTTR)",
       "type": "timeseries"
     },
     {
@@ -802,7 +517,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 32
+        "y": 23
       },
       "id": 11,
       "panels": [],
@@ -830,6 +545,7 @@
             "filterable": false,
             "inspect": false
           },
+          "decimals": 0,
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
@@ -839,7 +555,8 @@
                 "value": null
               }
             ]
-          }
+          },
+          "unitScale": true
         },
         "overrides": [
           {
@@ -863,14 +580,14 @@
         ]
       },
       "gridPos": {
-        "h": 23,
+        "h": 10,
         "w": 12,
         "x": 0,
-        "y": 33
+        "y": 24
       },
       "id": 20,
       "options": {
-        "cellHeight": "sm",
+        "cellHeight": "md",
         "footer": {
           "countRows": false,
           "fields": "",
@@ -880,7 +597,7 @@
         "showHeader": true,
         "sortBy": []
       },
-      "pluginVersion": "9.5.2",
+      "pluginVersion": "10.4.0-65875",
       "targets": [
         {
           "datasource": {
@@ -889,7 +606,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "sort_desc(max_over_time(sum by(integration) (avg without(pod, instance)($alert_groups_total{slug=~\"$instance\", team=~\"$team\", integration=~\"$integration\"}))[1d:]))",
+          "expr": "sort_desc(delta(max_over_time(sum by(integration) (avg without(pod, instance)($alert_groups_total{slug=~\"$instance\", team=~\"$team\", integration=~\"$integration\"}))[1h:])[$__range:])>=0)",
           "format": "table",
           "instant": true,
           "legendFormat": "__auto",
@@ -955,7 +672,8 @@
               }
             ]
           },
-          "unit": "s"
+          "unit": "s",
+          "unitScale": true
         },
         "overrides": [
           {
@@ -979,14 +697,14 @@
         ]
       },
       "gridPos": {
-        "h": 23,
+        "h": 10,
         "w": 12,
         "x": 12,
-        "y": 33
+        "y": 24
       },
       "id": 21,
       "options": {
-        "cellHeight": "sm",
+        "cellHeight": "md",
         "footer": {
           "countRows": false,
           "fields": "",
@@ -996,7 +714,7 @@
         "showHeader": true,
         "sortBy": []
       },
-      "pluginVersion": "9.5.2",
+      "pluginVersion": "10.4.0-65875",
       "targets": [
         {
           "datasource": {
@@ -1052,366 +770,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 56
-      },
-      "id": 38,
-      "panels": [],
-      "title": "Notified alert groups by Users (based on all Integrations)",
-      "type": "row"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${datasource}"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "drawStyle": "line",
-            "fillOpacity": 80,
-            "gradientMode": "opacity",
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            },
-            "insertNulls": false,
-            "lineInterpolation": "linear",
-            "lineStyle": {
-              "fill": "solid"
-            },
-            "lineWidth": 1,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "auto",
-            "spanNulls": false,
-            "stacking": {
-              "group": "A",
-              "mode": "normal"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
-          },
-          "decimals": 0,
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          }
-        },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byValue",
-              "options": {
-                "op": "gte",
-                "reducer": "allIsZero",
-                "value": 0
-              }
-            },
-            "properties": [
-              {
-                "id": "custom.hideFrom",
-                "value": {
-                  "legend": true,
-                  "tooltip": true,
-                  "viz": true
-                }
-              }
-            ]
-          }
-        ]
-      },
-      "gridPos": {
-        "h": 10,
-        "w": 24,
-        "x": 0,
-        "y": 57
-      },
-      "id": 36,
-      "options": {
-        "legend": {
-          "calcs": [],
-          "displayMode": "list",
-          "placement": "bottom",
-          "showLegend": true
-        },
-        "tooltip": {
-          "mode": "multi",
-          "sort": "desc"
-        }
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "disableTextWrap": false,
-          "editorMode": "code",
-          "excludeNullMetadata": false,
-          "exemplar": false,
-          "expr": "increase(max_over_time(sum by (username) (avg without(pod, instance) ($user_was_notified_of_alert_groups_total{slug=~\"$instance\"}))[30m:])[1h:])",
-          "fullMetaSearch": false,
-          "instant": false,
-          "legendFormat": "__auto",
-          "range": true,
-          "refId": "A",
-          "useBackend": false
-        }
-      ],
-      "title": "New alert groups notifications during time period",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${datasource}"
-      },
-      "description": "",
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "custom": {
-            "align": "auto",
-            "cellOptions": {
-              "mode": "gradient",
-              "type": "gauge",
-              "valueDisplayMode": "color"
-            },
-            "filterable": false,
-            "inspect": false
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          }
-        },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Username"
-            },
-            "properties": [
-              {
-                "id": "custom.cellOptions",
-                "value": {
-                  "type": "auto"
-                }
-              },
-              {
-                "id": "custom.width",
-                "value": 300
-              }
-            ]
-          }
-        ]
-      },
-      "gridPos": {
-        "h": 11,
-        "w": 12,
-        "x": 0,
-        "y": 67
-      },
-      "id": 35,
-      "options": {
-        "cellHeight": "sm",
-        "footer": {
-          "countRows": false,
-          "fields": "",
-          "reducer": ["sum"],
-          "show": false
-        },
-        "showHeader": true,
-        "sortBy": []
-      },
-      "pluginVersion": "9.5.2",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "editorMode": "code",
-          "exemplar": false,
-          "expr": "sort_desc(max_over_time(sum by(username) (avg without(pod, instance)($user_was_notified_of_alert_groups_total{slug=~\"$instance\"}))[1d:]))",
-          "format": "table",
-          "instant": true,
-          "legendFormat": "__auto",
-          "range": false,
-          "refId": "A"
-        }
-      ],
-      "title": "New alert groups notifications in total",
-      "transformations": [
-        {
-          "id": "seriesToRows",
-          "options": {}
-        },
-        {
-          "id": "organize",
-          "options": {
-            "excludeByName": {
-              "Time": true,
-              "username": false
-            },
-            "indexByName": {},
-            "renameByName": {
-              "Metric": "Integration",
-              "Value": "Alert groups",
-              "team": "Team",
-              "username": "Username"
-            }
-          }
-        }
-      ],
-      "type": "table"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${datasource}"
-      },
-      "description": "",
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "custom": {
-            "align": "auto",
-            "cellOptions": {
-              "type": "gauge"
-            },
-            "filterable": false,
-            "inspect": false
-          },
-          "decimals": 0,
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          },
-          "unit": "none"
-        },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Username"
-            },
-            "properties": [
-              {
-                "id": "custom.cellOptions",
-                "value": {
-                  "type": "auto"
-                }
-              },
-              {
-                "id": "custom.width",
-                "value": 300
-              }
-            ]
-          }
-        ]
-      },
-      "gridPos": {
-        "h": 11,
-        "w": 12,
-        "x": 12,
-        "y": 67
-      },
-      "id": 37,
-      "options": {
-        "cellHeight": "sm",
-        "footer": {
-          "countRows": false,
-          "fields": "",
-          "reducer": ["sum"],
-          "show": false
-        },
-        "showHeader": true,
-        "sortBy": []
-      },
-      "pluginVersion": "9.5.2",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "editorMode": "code",
-          "exemplar": false,
-          "expr": "sort_desc(increase(max_over_time(sum by (username) (avg without(pod, instance) ($user_was_notified_of_alert_groups_total{slug=~\"$instance\"}))[1h:])[$__range:]))",
-          "format": "table",
-          "instant": true,
-          "legendFormat": "__auto",
-          "range": false,
-          "refId": "A"
-        }
-      ],
-      "title": "New alert groups notifications for period",
-      "transformations": [
-        {
-          "id": "seriesToRows",
-          "options": {}
-        },
-        {
-          "id": "organize",
-          "options": {
-            "excludeByName": {
-              "Time": true,
-              "username": false
-            },
-            "indexByName": {},
-            "renameByName": {
-              "Metric": "Integration",
-              "Value": "Alert groups",
-              "team": "Team",
-              "username": "Username"
-            }
-          }
-        }
-      ],
-      "type": "table"
-    },
-    {
-      "collapsed": false,
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 78
+        "y": 34
       },
       "id": 12,
       "panels": [],
@@ -1439,6 +798,7 @@
             "filterable": false,
             "inspect": false
           },
+          "decimals": 0,
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
@@ -1448,7 +808,8 @@
                 "value": null
               }
             ]
-          }
+          },
+          "unitScale": true
         },
         "overrides": [
           {
@@ -1475,11 +836,11 @@
         "h": 11,
         "w": 12,
         "x": 0,
-        "y": 79
+        "y": 35
       },
       "id": 22,
       "options": {
-        "cellHeight": "sm",
+        "cellHeight": "md",
         "footer": {
           "countRows": false,
           "fields": "",
@@ -1489,7 +850,7 @@
         "showHeader": true,
         "sortBy": []
       },
-      "pluginVersion": "9.5.2",
+      "pluginVersion": "10.4.0-65875",
       "targets": [
         {
           "datasource": {
@@ -1498,7 +859,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "sort_desc(max_over_time(sum by(team) (avg without(pod, instance)($alert_groups_total{slug=~\"$instance\", team=~\"$team\", integration=~\"$integration\"}))[1d:]))",
+          "expr": "sort_desc(delta(max_over_time(sum by(team) (avg without(pod, instance)($alert_groups_total{slug=~\"$instance\", team=~\"$team\", integration=~\"$integration\"}))[1h:])[$__range:])>=0)",
           "format": "table",
           "instant": true,
           "legendFormat": "__auto",
@@ -1564,7 +925,8 @@
               }
             ]
           },
-          "unit": "s"
+          "unit": "s",
+          "unitScale": true
         },
         "overrides": [
           {
@@ -1591,11 +953,11 @@
         "h": 11,
         "w": 12,
         "x": 12,
-        "y": 79
+        "y": 35
       },
       "id": 23,
       "options": {
-        "cellHeight": "sm",
+        "cellHeight": "md",
         "footer": {
           "countRows": false,
           "fields": "",
@@ -1605,7 +967,7 @@
         "showHeader": true,
         "sortBy": []
       },
-      "pluginVersion": "9.5.2",
+      "pluginVersion": "10.4.0-65875",
       "targets": [
         {
           "datasource": {
@@ -1622,7 +984,7 @@
           "refId": "A"
         }
       ],
-      "title": "Mean time to respond by Team (MTTR)",
+      "title": "Mean time to respond (MTTR) by Team",
       "transformations": [
         {
           "id": "seriesToRows",
@@ -1644,10 +1006,259 @@
         }
       ],
       "type": "table"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 46
+      },
+      "id": 38,
+      "panels": [],
+      "title": "Notified alert groups by Users (based on all Teams and Integrations)",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 80,
+            "gradientMode": "opacity",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineStyle": {
+              "fill": "solid"
+            },
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "normal"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "decimals": 0,
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unitScale": true
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byValue",
+              "options": {
+                "op": "gte",
+                "reducer": "allIsZero",
+                "value": 0
+              }
+            },
+            "properties": [
+              {
+                "id": "custom.hideFrom",
+                "value": {
+                  "legend": true,
+                  "tooltip": true,
+                  "viz": true
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 11,
+        "w": 12,
+        "x": 0,
+        "y": 47
+      },
+      "id": 36,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "disableTextWrap": false,
+          "editorMode": "code",
+          "excludeNullMetadata": false,
+          "exemplar": false,
+          "expr": "delta(max_over_time(sum by (username) (avg without(pod, instance) ($user_was_notified_of_alert_groups_total{slug=~\"$instance\"}))[30m:])[1h:]) >= 0",
+          "fullMetaSearch": false,
+          "instant": false,
+          "legendFormat": "__auto",
+          "range": true,
+          "refId": "A",
+          "useBackend": false
+        }
+      ],
+      "title": "New alert groups notifications",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "gauge"
+            },
+            "filterable": false,
+            "inspect": false
+          },
+          "decimals": 0,
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "none",
+          "unitScale": true
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Username"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "auto"
+                }
+              },
+              {
+                "id": "custom.width",
+                "value": 300
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 11,
+        "w": 12,
+        "x": 12,
+        "y": 47
+      },
+      "id": 37,
+      "options": {
+        "cellHeight": "md",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": ["sum"],
+          "show": false
+        },
+        "showHeader": true,
+        "sortBy": []
+      },
+      "pluginVersion": "10.4.0-65875",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "exemplar": false,
+          "expr": "sort_desc(delta(max_over_time(sum by (username) (avg without(pod, instance) ($user_was_notified_of_alert_groups_total{slug=~\"$instance\"}))[30m:])[$__range:])>=0)",
+          "format": "table",
+          "instant": true,
+          "legendFormat": "__auto",
+          "range": false,
+          "refId": "A"
+        }
+      ],
+      "title": "New alert groups notifications",
+      "transformations": [
+        {
+          "id": "seriesToRows",
+          "options": {}
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "username": false
+            },
+            "indexByName": {},
+            "renameByName": {
+              "Metric": "Integration",
+              "Value": "Alert groups",
+              "team": "Team",
+              "username": "Username"
+            }
+          }
+        }
+      ],
+      "type": "table"
     }
   ],
   "refresh": false,
-  "schemaVersion": 38,
+  "schemaVersion": 39,
   "style": "dark",
   "tags": ["oncall"],
   "templating": {

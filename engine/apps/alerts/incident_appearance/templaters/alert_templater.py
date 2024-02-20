@@ -117,10 +117,10 @@ class AlertTemplater(ABC):
             preformatted_data = request_data
         return preformatted_data
 
-    def _preformat(self, data):
+    def _preformat(self, data: str) -> str:
         return data
 
-    def _postformat(self, templated_alert):
+    def _postformat(self, templated_alert: TemplatedAlert) -> TemplatedAlert:
         return templated_alert
 
     def _apply_templates(self, data):

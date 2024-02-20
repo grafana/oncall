@@ -21,7 +21,7 @@ interface WorkingHoursProps {
 
 const cx = cn.bind(styles);
 
-const WorkingHours: FC<WorkingHoursProps> = (props) => {
+export const WorkingHours: FC<WorkingHoursProps> = (props) => {
   const { timezone, workingHours = default_working_hours, startMoment, duration, className, light } = props;
 
   const endMoment = startMoment.add(duration, 'seconds');
@@ -52,9 +52,9 @@ const WorkingHours: FC<WorkingHoursProps> = (props) => {
             <rect
               className={cx('stripes')}
               key={index}
-              x={`${(start * 100) / duration}%`}
+              x={`${duration > 0 ? (start * 100) / duration : 0}%`} // x/0 is NaN
               y={0}
-              width={`${(diff * 100) / duration}%`}
+              width={`${duration > 0 ? (diff * 100) / duration : 0} %`} // x/0 is NaN
               height="100%"
               fill={light ? 'url(#stripes_light)' : 'url(#stripes)'}
             />
@@ -63,5 +63,3 @@ const WorkingHours: FC<WorkingHoursProps> = (props) => {
     </svg>
   );
 };
-
-export default WorkingHours;

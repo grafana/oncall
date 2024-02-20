@@ -6,21 +6,21 @@ import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 import Emoji from 'react-emoji-render';
 
-import Text from 'components/Text/Text';
+import { Text } from 'components/Text/Text';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
-import { HeartGreenIcon, HeartRedIcon } from 'icons';
-import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
+import { HeartGreenIcon, HeartRedIcon } from 'icons/Icons';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 import { SelectOption } from 'state/types';
 import { useStore } from 'state/useStore';
 import { withMobXProviderContext } from 'state/withStore';
-import { UserActions } from 'utils/authorization';
+import { UserActions } from 'utils/authorization/authorization';
 
 import styles from './HeartbeatForm.module.css';
 
 const cx = cn.bind(styles);
 
 interface HeartBeatModalProps {
-  alertReceveChannelId: AlertReceiveChannel['id'];
+  alertReceveChannelId: ApiSchemas['AlertReceiveChannel']['id'];
   onUpdate: () => void;
 }
 

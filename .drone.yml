@@ -55,7 +55,7 @@ steps:
     environment:
       DJANGO_SETTINGS_MODULE: settings.ci-test
     commands:
-      - pip install $(grep "pre-commit" engine/requirements-dev.txt)
+      - pip install $(grep "pre-commit==" engine/requirements-dev.txt)
       - pre-commit run isort --all-files
       - pre-commit run black --all-files
       - pre-commit run flake8 --all-files
@@ -385,6 +385,6 @@ name: cloud_access_policy_token
 
 ---
 kind: signature
-hmac: 29acf2998ce27ea3c42bd7f69b2000428312e9692b9ff448fb498b203f0fdaf6
+hmac: 5bf89aaec69ebec6d4489b6ef712f92d10ede5b242b88c8f62930d78ba780f7d
 
 ...

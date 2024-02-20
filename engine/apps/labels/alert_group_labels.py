@@ -23,7 +23,7 @@ MAX_LABELS_PER_ALERT_GROUP = 15
 
 def gather_labels_from_alert_receive_channel_and_raw_request_data(
     alert_receive_channel: "AlertReceiveChannel", raw_request_data: "Alert.RawRequestData"
-) -> typing.Optional[types.Labels]:
+) -> typing.Optional[types.AlertLabels]:
     if not is_labels_feature_enabled(alert_receive_channel.organization):
         return None
 
@@ -43,7 +43,7 @@ def gather_labels_from_alert_receive_channel_and_raw_request_data(
 
 
 def assign_labels(
-    alert_group: "AlertGroup", alert_receive_channel: "AlertReceiveChannel", labels: typing.Optional[types.Labels]
+    alert_group: "AlertGroup", alert_receive_channel: "AlertReceiveChannel", labels: typing.Optional[types.AlertLabels]
 ) -> None:
     from apps.labels.models import AlertGroupAssociatedLabel
 
@@ -78,7 +78,7 @@ def assign_labels(
 
 def _custom_labels(
     alert_receive_channel: "AlertReceiveChannel", raw_request_data: "Alert.RawRequestData"
-) -> types.Labels:
+) -> types.AlertLabels:
     from apps.labels.models import MAX_VALUE_NAME_LENGTH, LabelKeyCache, LabelValueCache
 
     if alert_receive_channel.alert_group_labels_custom is None:
@@ -143,7 +143,7 @@ def _custom_labels(
 
 def _template_labels(
     alert_receive_channel: "AlertReceiveChannel", raw_request_data: "Alert.RawRequestData"
-) -> types.Labels:
+) -> types.AlertLabels:
     from apps.labels.models import MAX_KEY_NAME_LENGTH, MAX_VALUE_NAME_LENGTH
 
     if not alert_receive_channel.alert_group_labels_template:

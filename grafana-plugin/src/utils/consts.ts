@@ -20,6 +20,8 @@ export const FALLBACK_LICENSE = CLOUD_VERSION_REGEX.test(APP_VERSION) ? GRAFANA_
 // height of new Grafana sticky header with breadcrumbs
 export const GRAFANA_HEADER_HEIGHT = 80;
 
+export const GRAFANA_LEGACY_SIDEBAR_WIDTH = 56;
+
 // Reusable breakpoint sizes
 export const BREAKPOINT_TABS = 1024;
 

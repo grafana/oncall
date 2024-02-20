@@ -2,6 +2,10 @@ import React, { useEffect, useRef, useState } from 'react';
 
 import { useLocation } from 'react-router-dom';
 
+import { ActionKey } from 'models/loader/action-keys';
+import { LoaderHelper } from 'models/loader/loader.helpers';
+import { useStore } from 'state/useStore';
+
 export function useForceUpdate() {
   const [, setValue] = useState(0);
   return () => setValue((value) => value + 1);
@@ -69,3 +73,8 @@ export function useDebouncedCallback<A extends any[]>(callback: (...args: A) => 
     }, wait);
   };
 }
+
+export const useIsLoading = (actionKey: ActionKey) => {
+  const { loaderStore } = useStore();
+  return LoaderHelper.isLoading(loaderStore, actionKey);
+};

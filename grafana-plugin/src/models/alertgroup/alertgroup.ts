@@ -1,17 +1,16 @@
 import { action, observable, makeObservable, runInAction } from 'mobx';
 import qs from 'query-string';
 
-import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
-import BaseStore from 'models/base_store';
+import { BaseStore } from 'models/base_store';
 import { ActionKey } from 'models/loader/action-keys';
 import { User } from 'models/user/user.types';
-import { makeRequest } from 'network';
+import { makeRequest } from 'network/network';
 import { ApiSchemas } from 'network/oncall-api/api.types';
-import { RootStore } from 'state';
+import { RootStore } from 'state/rootStore';
 import { SelectOption } from 'state/types';
-import { openErrorNotification, refreshPageError, showApiError } from 'utils';
-import LocationHelper from 'utils/LocationHelper';
+import { LocationHelper } from 'utils/LocationHelper';
 import { AutoLoadingState, WithGlobalNotification } from 'utils/decorators';
+import { openErrorNotification, refreshPageError, showApiError } from 'utils/utils';
 
 import { AlertGroupColumn, Alert, AlertAction, IncidentStatus } from './alertgroup.types';
 
@@ -27,9 +26,6 @@ export class AlertGroupStore extends BaseStore {
 
   @observable.shallow
   searchResult: { [key: string]: Array<Alert['pk']> } = {};
-
-  @observable
-  alertGroupsLoading = false;
 
   @observable
   incidentFilters: any;
@@ -71,6 +67,9 @@ export class AlertGroupStore extends BaseStore {
   liveUpdatesPaused = false;
 
   @observable
+  latestFetchAlertGroupsTimestamp: number;
+
+  @observable
   columns: AlertGroupColumn[] = [];
 
   @observable
@@ -97,27 +96,58 @@ export class AlertGroupStore extends BaseStore {
     }).catch(showApiError);
   }
 
-  @action
+  @action.bound
   async updateItem(id: Alert['pk']) {
     const item = await this.getById(id);
 
     runInAction(() => {
       this.items = {
         ...this.items,
-        [item.id]: item,
+        [item.pk]: item,
       };
     });
   }
 
-  getSearchResult(query = '') {
+  @action.bound
+  async fetchItems(query = '', params = {}) {
+    const { results } = await makeRequest(`${this.path}`, {
+      params: { search: query, ...params },
+    });
+
+    runInAction(() => {
+      this.items = {
+        ...this.items,
+        ...results.reduce(
+          (acc: { [key: number]: Alert }, item: Alert) => ({
+            ...acc,
+            [item.pk]: item,
+          }),
+          {}
+        ),
+      };
+
+      this.searchResult = {
+        ...this.searchResult,
+        [query]: results.map((item: Alert) => item.pk),
+      };
+    });
+  }
+
+  @action.bound
+  async fetchItemsAvailableForAttachment(query: string) {
+    await this.fetchItems(query, {
+      status: [IncidentStatus.Acknowledged, IncidentStatus.Firing, IncidentStatus.Silenced],
+    });
+  }
+
+  getSearchResult = (query = '') => {
     if (!this.searchResult[query]) {
       return undefined;
     }
-
     return this.searchResult[query].map((id: Alert['pk']) => this.items[id]);
-  }
+  };
 
-  async getAlertGroupsForIntegration(integrationId: AlertReceiveChannel['id']) {
+  async getAlertGroupsForIntegration(integrationId: ApiSchemas['AlertReceiveChannel']['id']) {
     const { results } = await makeRequest(`${this.path}`, {
       params: { integration: integrationId },
     });
@@ -202,7 +232,7 @@ export class AlertGroupStore extends BaseStore {
     await this.fetchTableSettings();
   }
 
-  @action
+  @action.bound
   async updateBulkActions() {
     const response = await makeRequest(`${this.path}bulk_action_options/`, {});
 
@@ -231,61 +261,61 @@ export class AlertGroupStore extends BaseStore {
     });
   }
 
-  // methods were moved from rootBaseStore.
-  // TODO check if methods are dublicating existing ones
-  async updateIncidents() {
+  async fetchIncidentsAndStats(isPollingJob = false) {
     await Promise.all([
       this.getNewIncidentsStats(),
       this.getAcknowledgedIncidentsStats(),
       this.getResolvedIncidentsStats(),
       this.getSilencedIncidentsStats(),
-      this.updateAlertGroups(),
+      this.fetchAlertGroups(isPollingJob),
     ]);
-
     this.setLiveUpdatesPaused(false);
   }
 
-  @action
+  @action.bound
   setLiveUpdatesPaused(value: boolean) {
     this.liveUpdatesPaused = value;
   }
 
-  @action
-  async updateIncidentFilters(params: any, keepCursor = false) {
+  @action.bound
+  @AutoLoadingState(ActionKey.UPDATE_FILTERS_AND_FETCH_INCIDENTS)
+  async updateIncidentFiltersAndRefetchIncidentsAndStats(params: any, keepCursor = false) {
     if (!keepCursor) {
       this.setIncidentsCursor(undefined);
     }
-
     this.incidentFilters = params;
-
-    await this.updateIncidents();
+    await this.fetchIncidentsAndStats();
   }
 
-  @action
+  @action.bound
   async updateIncidentsCursor(cursor: string) {
     this.setIncidentsCursor(cursor);
 
-    this.updateAlertGroups();
+    this.fetchAlertGroups();
   }
 
-  @action
+  @action.bound
   async setIncidentsCursor(cursor: string) {
     this.incidentsCursor = cursor;
 
     LocationHelper.update({ cursor }, 'partial');
   }
 
-  @action
+  @action.bound
   async setIncidentsItemsPerPage() {
     this.setIncidentsCursor(undefined);
 
-    this.updateAlertGroups();
+    this.fetchAlertGroups();
   }
 
-  @action
-  async updateAlertGroups() {
-    this.alertGroupsLoading = true;
-
+  @action.bound
+  async fetchAlertGroups(isPollingJob = false) {
+    this.rootStore.loaderStore.setLoadingAction(
+      isPollingJob ? ActionKey.FETCH_INCIDENTS_POLLING : ActionKey.FETCH_INCIDENTS,
+      true
+    );
+    const timestamp = new Date().getTime();
+    this.latestFetchAlertGroupsTimestamp = timestamp;
     const {
       results,
       next: nextRaw,
@@ -306,12 +336,16 @@ export class AlertGroupStore extends BaseStore {
     const newAlerts = new Map(
       results.map((alert: Alert) => {
         const oldAlert = this.alerts.get(alert.pk) || {};
-        const mergedAlertData = { ...oldAlert, ...alert };
+        const mergedAlertData = { ...oldAlert, ...alert, undoAction: alert.undoAction };
         return [alert.pk, mergedAlertData];
       })
     );
 
     runInAction(() => {
+      // If previous fetch took longer than the next one, we ignore result of the previous fetch
+      if (timestamp !== this.latestFetchAlertGroupsTimestamp) {
+        return;
+      }
       // @ts-ignore
       this.alerts = new Map<number, Alert>([...this.alerts, ...newAlerts]);
 
@@ -321,8 +355,10 @@ export class AlertGroupStore extends BaseStore {
         results: results.map((alert: Alert) => alert.pk),
         page_size,
       };
-
-      this.alertGroupsLoading = false;
+      this.rootStore.loaderStore.setLoadingAction(
+        [ActionKey.FETCH_INCIDENTS, ActionKey.FETCH_INCIDENTS_POLLING],
+        false
+      );
     });
   }
 
@@ -354,7 +390,7 @@ export class AlertGroupStore extends BaseStore {
     return await makeRequest(`/alerts/${pk}`, {});
   }
 
-  @action
+  @action.bound
   async getNewIncidentsStats() {
     const result = await makeRequest(`${this.path}stats/`, {
       params: {
@@ -368,7 +404,7 @@ export class AlertGroupStore extends BaseStore {
     });
   }
 
-  @action
+  @action.bound
   async getAcknowledgedIncidentsStats() {
     const result = await makeRequest(`${this.path}stats/`, {
       params: {
@@ -382,7 +418,7 @@ export class AlertGroupStore extends BaseStore {
     });
   }
 
-  @action
+  @action.bound
   async getResolvedIncidentsStats() {
     const result = await makeRequest(`${this.path}stats/`, {
       params: {
@@ -396,7 +432,7 @@ export class AlertGroupStore extends BaseStore {
     });
   }
 
-  @action
+  @action.bound
   async getSilencedIncidentsStats() {
     const result = await makeRequest(`${this.path}stats/`, {
       params: {
@@ -410,7 +446,7 @@ export class AlertGroupStore extends BaseStore {
     });
   }
 
-  @action
+  @action.bound
   async doIncidentAction(alertId: Alert['pk'], action: AlertAction, isUndo = false, data?: any) {
     this.updateAlert(alertId, { loading: true });
 
@@ -457,7 +493,7 @@ export class AlertGroupStore extends BaseStore {
     }
   }
 
-  @action
+  @action.bound
   async updateAlert(pk: Alert['pk'], value: Partial<Alert>) {
     this.alerts.set(pk, {
       ...(this.alerts.get(pk) as Alert),
@@ -472,7 +508,7 @@ export class AlertGroupStore extends BaseStore {
     }).catch(this.onApiError);
   }
 
-  @action
+  @action.bound
   async fetchTableSettings(): Promise<void> {
     const tableSettings = await makeRequest('/alertgroup_table_settings', {});
 
@@ -487,7 +523,7 @@ export class AlertGroupStore extends BaseStore {
     });
   }
 
-  @action
+  @action.bound
   @AutoLoadingState(ActionKey.ADD_NEW_COLUMN_TO_ALERT_GROUP)
   async updateTableSettings(
     columns: { visible: AlertGroupColumn[]; hidden: AlertGroupColumn[] },

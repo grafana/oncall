@@ -8,10 +8,10 @@ import styles from './Policy.module.css';
 
 const cx = cn.bind(styles);
 
-const DragHandle = ({ disabled }: { disabled?: boolean }) => (
+const _DragHandle = ({ disabled }: { disabled?: boolean }) => (
   <div className={cx('control', 'handle', { handle_disabled: disabled })}>
     <Icon name="draggabledots" />
   </div>
 );
 
-export default SortableHandle(DragHandle);
+export const DragHandle = SortableHandle(_DragHandle);

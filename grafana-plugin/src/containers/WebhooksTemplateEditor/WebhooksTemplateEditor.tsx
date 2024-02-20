@@ -4,16 +4,16 @@ import { Button, Drawer, HorizontalGroup, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { debounce } from 'lodash-es';
 
-import CheatSheet from 'components/CheatSheet/CheatSheet';
+import { CheatSheet } from 'components/CheatSheet/CheatSheet';
 import { genericTemplateCheatSheet, webhookPayloadCheatSheet } from 'components/CheatSheet/CheatSheet.config';
-import MonacoEditor from 'components/MonacoEditor/MonacoEditor';
-import Text from 'components/Text/Text';
+import { MonacoEditor } from 'components/MonacoEditor/MonacoEditor';
+import { Text } from 'components/Text/Text';
 import styles from 'containers/IntegrationTemplate/IntegrationTemplate.module.scss';
-import TemplateResult from 'containers/TemplateResult/TemplateResult';
-import TemplatesAlertGroupsList, { TEMPLATE_PAGE } from 'containers/TemplatesAlertGroupsList/TemplatesAlertGroupsList';
+import { TemplateResult } from 'containers/TemplateResult/TemplateResult';
+import { TemplatesAlertGroupsList, TEMPLATE_PAGE } from 'containers/TemplatesAlertGroupsList/TemplatesAlertGroupsList';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { OutgoingWebhook } from 'models/outgoing_webhook/outgoing_webhook.types';
-import { UserActions } from 'utils/authorization';
+import { UserActions } from 'utils/authorization/authorization';
 
 const cx = cn.bind(styles);
 
@@ -31,7 +31,12 @@ interface WebhooksTemplateEditorProps {
   handleSubmit: (template: string) => void;
 }
 
-const WebhooksTemplateEditor: React.FC<WebhooksTemplateEditorProps> = ({ template, id, onHide, handleSubmit }) => {
+export const WebhooksTemplateEditor: React.FC<WebhooksTemplateEditorProps> = ({
+  template,
+  id,
+  onHide,
+  handleSubmit,
+}) => {
   const [isCheatSheetVisible, setIsCheatSheetVisible] = useState<boolean>(false);
   const [changedTemplateBody, setChangedTemplateBody] = useState<string>(template.value);
   const [selectedPayload, setSelectedPayload] = useState(undefined);
@@ -171,5 +176,3 @@ const WebhooksTemplateEditor: React.FC<WebhooksTemplateEditorProps> = ({ templat
     </Drawer>
   );
 };
-
-export default WebhooksTemplateEditor;

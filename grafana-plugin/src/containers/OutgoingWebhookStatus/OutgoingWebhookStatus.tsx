@@ -4,9 +4,9 @@ import { Label, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
-import Block from 'components/GBlock/Block';
-import SourceCode from 'components/SourceCode/SourceCode';
-import Text from 'components/Text/Text';
+import { Block } from 'components/GBlock/Block';
+import { SourceCode } from 'components/SourceCode/SourceCode';
+import { Text } from 'components/Text/Text';
 import { OutgoingWebhook } from 'models/outgoing_webhook/outgoing_webhook.types';
 import { useStore } from 'state/useStore';
 
@@ -47,7 +47,7 @@ function format_response_field(str) {
   }
 }
 
-const OutgoingWebhookStatus = observer((props: OutgoingWebhookStatusProps) => {
+export const OutgoingWebhookStatus = observer((props: OutgoingWebhookStatusProps) => {
   const { id } = props;
 
   const store = useStore();
@@ -118,5 +118,3 @@ const OutgoingWebhookStatus = observer((props: OutgoingWebhookStatusProps) => {
     </div>
   );
 });
-
-export default OutgoingWebhookStatus;
