@@ -103,9 +103,7 @@ class AssociatedLabel(models.Model):
         LabelValueCache.objects.bulk_create(labels_values, ignore_conflicts=True, batch_size=5000)
         instance.labels.model.objects.bulk_create(labels_associations, ignore_conflicts=True, batch_size=5000)
 
-        # Many labels
         update_label_pairs_cache.apply_async((label_pairs,))
-        # update_labels_cache.apply_async((label_pairs,))
 
     @staticmethod
     def get_associating_label_field_name() -> str:

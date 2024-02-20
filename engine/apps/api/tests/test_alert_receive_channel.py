@@ -1626,7 +1626,12 @@ def test_alert_group_labels_put_none(
 def test_alert_group_labels_post(alert_receive_channel_internal_api_setup, make_user_auth_headers):
     user, token, _ = alert_receive_channel_internal_api_setup
 
-    labels = [{"key": {"id": "test", "name": "test"}, "value": {"id": "123", "name": "123"}}]
+    labels = [
+        {
+            "key": {"id": "test", "name": "test", "prescribed": False},
+            "value": {"id": "123", "name": "123", "prescribed": False},
+        }
+    ]
     alert_group_labels = {
         "inheritable": {"test": False},
         "custom": [
