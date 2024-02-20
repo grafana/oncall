@@ -22,6 +22,7 @@ export const WebhookTriggerType = {
   Unsilenced: new KeyValuePair('5', 'Unsilenced'),
   Unresolved: new KeyValuePair('6', 'Unresolved'),
   Unacknowledged: new KeyValuePair('7', 'Unacknowledged'),
+  AlertGroupStatusChange: new KeyValuePair('8', 'Alert Group Status Change'),
 };
 
 export function createForm({
@@ -85,6 +86,10 @@ export function createForm({
             {
               value: WebhookTriggerType.AlertGroupCreated.key,
               label: WebhookTriggerType.AlertGroupCreated.value,
+            },
+            {
+              value: WebhookTriggerType.AlertGroupStatusChange.key,
+              label: WebhookTriggerType.AlertGroupStatusChange.value,
             },
             {
               value: WebhookTriggerType.Acknowledged.key,
