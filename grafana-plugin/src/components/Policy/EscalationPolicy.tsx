@@ -20,10 +20,10 @@ import {
   EscalationPolicy as EscalationPolicyType,
   EscalationPolicyOption,
 } from 'models/escalation_policy/escalation_policy.types';
+import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
 import { OutgoingWebhook } from 'models/outgoing_webhook/outgoing_webhook.types';
 import { Schedule } from 'models/schedule/schedule.types';
 import { User } from 'models/user/user.types';
-import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
 import { UserGroup } from 'models/user_group/user_group.types';
 import { SelectOption, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
@@ -432,7 +432,7 @@ class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
     const { notify_to_team_members } = data;
 
     return (
-      <WithPermissionControlTooltip key="notify_to_team" userAction={UserActions.EscalationChainsWrite}>
+      <WithPermissionControlTooltip key="notify_to_team_members" userAction={UserActions.EscalationChainsWrite}>
         <GSelect<GrafanaTeam>
           disabled={isDisabled}
           items={grafanaTeamStore.items}
@@ -443,7 +443,7 @@ class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
           placeholder="Select Team"
           className={cx('select', 'control')}
           value={notify_to_team_members}
-          onChange={this.getOnChangeHandler('notify_to_team')}
+          onChange={this.getOnChangeHandler('notify_to_team_members')}
           width={'auto'}
         />
       </WithPermissionControlTooltip>
