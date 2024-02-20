@@ -571,6 +571,7 @@ export interface components {
     LabelKey: {
       id: string;
       name: string;
+      prescribed?: boolean;
     };
     LabelKeyValues: {
       key: components['schemas']['LabelKey'];
@@ -582,6 +583,7 @@ export interface components {
     LabelValue: {
       id: string;
       name: string;
+      prescribed?: boolean;
     };
     PaginatedAlertGroupListList: {
       next?: string | null;

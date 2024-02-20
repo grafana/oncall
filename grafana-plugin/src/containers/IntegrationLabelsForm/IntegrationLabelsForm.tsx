@@ -1,4 +1,4 @@
-import React, { ChangeEvent, useCallback, useState } from 'react';
+import React, { ChangeEvent, useState } from 'react';
 
 import { ServiceLabels } from '@grafana/labels';
 import {
@@ -22,6 +22,7 @@ import { RenderConditionally } from 'components/RenderConditionally/RenderCondit
 import { Text } from 'components/Text/Text';
 import { IntegrationTemplate } from 'containers/IntegrationTemplate/IntegrationTemplate';
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
+import { splitToGroups } from 'models/label/label.helpers';
 import { LabelsErrors } from 'models/label/label.types';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { LabelTemplateOptions } from 'pages/integration/IntegrationCommon.config';
@@ -281,36 +282,34 @@ const CustomLabels = (props: CustomLabelsProps) => {
     });
   };
 
-  const cachedOnLoadKeys = useCallback(() => {
+  const onLoadKeys = async (search?: string) => {
     let result = undefined;
-    return async (search?: string) => {
-      if (!result) {
-        try {
-          result = await labelsStore.loadKeys();
-        } catch (error) {
-          openErrorNotification('There was an error processing your request. Please try again');
-        }
-      }
 
-      return result.filter((k) => k.name.toLowerCase().includes(search.toLowerCase()));
-    };
-  }, []);
+    try {
+      result = await labelsStore.loadKeys(search);
+    } catch (error) {
+      openErrorNotification('There was an error processing your request. Please try again');
+    }
 
-  const cachedOnLoadValuesForKey = useCallback(() => {
+    const groups = splitToGroups(result);
+
+    return groups;
+  };
+
+  const onLoadValuesForKey = async (key: string, search?: string) => {
     let result = undefined;
-    return async (key: string, search?: string) => {
-      if (!result) {
-        try {
-          const { values } = await labelsStore.loadValuesForKey(key, search);
-          result = values;
-        } catch (error) {
-          openErrorNotification('There was an error processing your request. Please try again');
-        }
-      }
 
-      return result.filter((k) => k.name.toLowerCase().includes(search.toLowerCase()));
-    };
-  }, []);
+    try {
+      const { values } = await labelsStore.loadValuesForKey(key, search);
+      result = values;
+    } catch (error) {
+      openErrorNotification('There was an error processing your request. Please try again');
+    }
+
+    const groups = splitToGroups(result);
+
+    return groups;
+  };
 
   return (
     <VerticalGroup>
@@ -328,8 +327,8 @@ const CustomLabels = (props: CustomLabelsProps) => {
         inputWidth={INPUT_WIDTH}
         errors={customLabelsErrors}
         value={alertGroupLabels.custom}
-        onLoadKeys={cachedOnLoadKeys()}
-        onLoadValuesForKey={cachedOnLoadValuesForKey()}
+        onLoadKeys={onLoadKeys}
+        onLoadValuesForKey={onLoadValuesForKey}
         onCreateKey={labelsStore.createKey}
         onUpdateKey={labelsStore.updateKey}
         onCreateValue={labelsStore.createValue}
@@ -377,6 +376,8 @@ const CustomLabels = (props: CustomLabelsProps) => {
             custom: value,
           });
         }}
+        getIsKeyEditable={(option) => !option.prescribed}
+        getIsValueEditable={(option) => !option.prescribed}
       />
       <Dropdown
         overlay={

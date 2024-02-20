@@ -6,32 +6,36 @@ from apps.labels.utils import is_labels_feature_enabled
 
 class LabelKeySerializer(serializers.ModelSerializer):
     id = serializers.CharField()
+    prescribed = serializers.BooleanField(default=False)
 
     class Meta:
         model = LabelKeyCache
         fields = (
             "id",
             "name",
+            "prescribed",
         )
 
 
 class LabelValueSerializer(serializers.ModelSerializer):
     id = serializers.CharField()
+    prescribed = serializers.BooleanField(default=False)
 
     class Meta:
         model = LabelValueCache
         fields = (
             "id",
             "name",
+            "prescribed",
         )
 
 
-class LabelSerializer(serializers.Serializer):
+class LabelPairSerializer(serializers.Serializer):
     key = LabelKeySerializer()
     value = LabelValueSerializer()
 
 
-class LabelKeyValuesSerializer(serializers.Serializer):
+class LabelOptionSerializer(serializers.Serializer):
     key = LabelKeySerializer()
     values = LabelValueSerializer(many=True)
 
@@ -41,7 +45,7 @@ class LabelReprSerializer(serializers.Serializer):
 
 
 class LabelsSerializerMixin(serializers.Serializer):
-    labels = LabelSerializer(many=True, required=False)
+    labels = LabelPairSerializer(many=True, required=False)
 
     def validate_labels(self, labels):
         if labels:

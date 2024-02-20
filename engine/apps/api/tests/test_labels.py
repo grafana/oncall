@@ -37,7 +37,7 @@ def test_labels_get_keys(
 
 
 @patch(
-    "apps.labels.client.LabelsAPIClient.get_values",
+    "apps.labels.client.LabelsAPIClient.get_label_by_key_id",
     return_value=(
         {"key": {"id": "keyid123", "name": "team"}, "values": [{"id": "valueid123", "name": "yolo"}]},
         MockResponse(status_code=200),
@@ -45,7 +45,7 @@ def test_labels_get_keys(
 )
 @pytest.mark.django_db
 def test_get_update_key_get(
-    mocked_get_values,
+    mocked_get_label_by_key_id,
     make_organization_and_user_with_plugin_token,
     make_user_auth_headers,
 ):
@@ -55,7 +55,7 @@ def test_get_update_key_get(
     response = client.get(url, format="json", **make_user_auth_headers(user, token))
     expected_result = {"key": {"id": "keyid123", "name": "team"}, "values": [{"id": "valueid123", "name": "yolo"}]}
 
-    assert mocked_get_values.called
+    assert mocked_get_label_by_key_id.called
     assert response.status_code == status.HTTP_200_OK
     assert response.json() == expected_result
 
