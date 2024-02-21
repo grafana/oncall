@@ -41,6 +41,7 @@ export const OutgoingWebhookFormFields: FC<OutgoingWebhookFormFieldsProps> = ({ 
   const [templateToEdit, setTemplateToEdit] = useState<TemplateToEdit>();
 
   const [showTriggerTemplate] = watch(['triggerTemplateToogle', 'forwardedDataTemplateToogle']);
+
   return (
     <VerticalGroup spacing="lg">
       <div className={styles.switcherFieldWrapper}>

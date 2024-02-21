@@ -9,7 +9,7 @@ import { IntegrationTag } from 'components/Integrations/IntegrationTag';
 import { useDrawer } from 'utils/hooks';
 
 import { NewOutgoingWebhookDrawerContent } from './NewOutgoingWebhookDrawerContent';
-import { OtherIntegrationsTable } from './OtherIntegrationsTable';
+import { OtherIntegrations } from './OtherIntegrations';
 import { getStyles } from './OutgoingTab.styles';
 import { OutgoingTabDrawerKey } from './OutgoingTab.types';
 import { OutgoingWebhookDetailsDrawerContent } from './OutgoingWebhookDetailsDrawerContent';
@@ -35,7 +35,7 @@ export const OutgoingTab = () => {
           {
             customIcon: 'plug',
             startingElemPosition: '50%',
-            expandedView: Connection,
+            expandedView: () => <Connection />,
           },
           {
             customIcon: 'plus',
@@ -49,7 +49,7 @@ export const OutgoingTab = () => {
           {
             customIcon: 'exchange-alt',
             startingElemPosition: '50%',
-            expandedView: OtherIntegrationsTable,
+            expandedView: () => <OtherIntegrations />,
           },
         ]}
       />
