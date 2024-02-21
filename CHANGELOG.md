@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Change plugin build to use new packages instead of deprecated grafana-toolkit @maskin25 ([#3837](https://github.com/grafana/oncall/pull/3837))
 
+### Fixed
+
+- Fix template preview by @vadimkerr ([#3937](https://github.com/grafana/oncall/pull/3937))
+
 ## v1.3.106 (2024-02-20)
 
 ### Added
