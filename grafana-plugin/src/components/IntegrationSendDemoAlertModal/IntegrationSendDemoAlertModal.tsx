@@ -10,7 +10,8 @@ import { MonacoEditor, MONACO_LANGUAGE } from 'components/MonacoEditor/MonacoEdi
 import { MONACO_EDITABLE_CONFIG } from 'components/MonacoEditor/MonacoEditor.config';
 import { PluginLink } from 'components/PluginLink/PluginLink';
 import { Text } from 'components/Text/Text';
-import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
+import { AlertReceiveChannelHelper } from 'models/alert_receive_channel/alert_receive_channel.helpers';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 import styles from 'pages/integration/Integration.module.scss';
 import { useStore } from 'state/useStore';
 import { openNotification } from 'utils/utils';
@@ -19,7 +20,7 @@ const cx = cn.bind(styles);
 
 interface IntegrationSendDemoPayloadModalProps {
   isOpen: boolean;
-  alertReceiveChannel: AlertReceiveChannel;
+  alertReceiveChannel: ApiSchemas['AlertReceiveChannel'];
   onHideOrCancel: () => void;
 }
 
@@ -88,7 +89,7 @@ export const IntegrationSendDemoAlertModal: React.FC<IntegrationSendDemoPayloadM
           <CopyToClipboard text={getCurlText()} onCopy={() => openNotification('CURL has been copied')}>
             <Button variant={'secondary'}>Copy as CURL</Button>
           </CopyToClipboard>
-          <Button variant={'primary'} onClick={sendDemoAlert} data-testid="submit-send-alert">
+          <Button variant={'primary'} onClick={onSendAlert} data-testid="submit-send-alert">
             Send Alert
           </Button>
         </HorizontalGroup>
@@ -100,14 +101,14 @@ export const IntegrationSendDemoAlertModal: React.FC<IntegrationSendDemoPayloadM
     setDemoPayload(value);
   }
 
-  function sendDemoAlert() {
+  function onSendAlert() {
     let parsedPayload = undefined;
     try {
       parsedPayload = JSON.parse(demoPayload);
     } catch (ex) {}
 
-    alertReceiveChannelStore.sendDemoAlert(alertReceiveChannel.id, parsedPayload).then(() => {
-      alertReceiveChannelStore.updateCounters();
+    AlertReceiveChannelHelper.sendDemoAlert(alertReceiveChannel.id, parsedPayload).then(() => {
+      alertReceiveChannelStore.fetchCounters();
       openNotification(<DemoNotification />);
       onHideOrCancel();
     });

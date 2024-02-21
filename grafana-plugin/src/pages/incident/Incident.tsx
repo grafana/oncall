@@ -44,6 +44,7 @@ import { prepareForUpdate } from 'containers/AddResponders/AddResponders.helpers
 import { UserResponder } from 'containers/AddResponders/AddResponders.types';
 import { AttachIncidentForm } from 'containers/AttachIncidentForm/AttachIncidentForm';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
+import { AlertReceiveChannelHelper } from 'models/alert_receive_channel/alert_receive_channel.helpers';
 import { Alert, AlertAction, TimeLineItem, TimeLineRealm, GroupedAlert } from 'models/alertgroup/alertgroup.types';
 import { ResolutionNoteSourceTypesToDisplayName } from 'models/resolution_note/resolution_note.types';
 import { User } from 'models/user/user.types';
@@ -270,17 +271,14 @@ class _IncidentPage extends React.Component<IncidentPageProps, IncidentPageState
         params: { id },
       },
     } = this.props;
-
     const { alerts } = store.alertGroupStore;
-
     const incident = alerts.get(id);
-
-    const integration = store.alertReceiveChannelStore.getIntegration(incident.alert_receive_channel);
-
+    const integration = AlertReceiveChannelHelper.getIntegration(
+      store.alertReceiveChannelStore,
+      incident.alert_receive_channel
+    );
     const showLinkTo = !incident.dependent_alert_groups.length && !incident.root_alert_group && !incident.resolved;
-
     const integrationNameWithEmojies = <Emoji text={incident.alert_receive_channel.verbal_name} />;
-
     const sourceLink = incident?.render_for_web?.source_link;
 
     return (

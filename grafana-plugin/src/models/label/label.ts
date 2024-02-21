@@ -3,7 +3,7 @@ import { action, makeObservable } from 'mobx';
 import { BaseStore } from 'models/base_store';
 import { makeRequest } from 'network/network';
 import { ApiSchemas } from 'network/oncall-api/api.types';
-import onCallApi from 'network/oncall-api/http-client';
+import { onCallApi } from 'network/oncall-api/http-client';
 import { RootStore } from 'state/rootStore';
 import { WithGlobalNotification } from 'utils/decorators';
 
@@ -18,7 +18,7 @@ export class LabelStore extends BaseStore {
 
   @action.bound
   public async loadKeys(search = '') {
-    const { data } = await onCallApi.GET('/labels/keys/', undefined);
+    const { data } = await onCallApi().GET('/labels/keys/', undefined);
 
     const filtered = data.filter((k) => k.name.toLowerCase().includes(search.toLowerCase()));
 

@@ -30,9 +30,12 @@ Grafana OnCall mobile app key features:
 
 - Override Do Not Disturb on your device to ensure delivery of important alerts
 - Receive push notifications according to your personal notification settings
-- Viewing, filtering and responding to Alert Groups (acknowledge, resolve, silence, etc).
-- Login with a quick and secure QR code authorization
-- View your on-call status and information about current and upcoming shift
+- Login with a quick and secure QR code authorization, even to multiple OnCall stacks
+- Viewing, filtering and responding to Alert Groups (acknowledge, resolve, silence, etc)
+- Adding responders to Alert Groups
+- Creating new escalation manually
+- Browsing and filtering schedules
+- View your on-call status and information about current and upcoming shifts
 
 The OnCall mobile app allows users to receive push notifications as part of their notification policy.
 Push notifications are one of the many notification options in Grafana OnCall.

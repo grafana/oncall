@@ -9,8 +9,9 @@ import { Block } from 'components/GBlock/Block';
 import { MonacoEditor } from 'components/MonacoEditor/MonacoEditor';
 import { Text } from 'components/Text/Text';
 import { IncidentMatcher } from 'containers/IncidentMatcher/IncidentMatcher';
-import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
+import { AlertReceiveChannelHelper } from 'models/alert_receive_channel/alert_receive_channel.helpers';
 import { ChannelFilter, FilteringTermType } from 'models/channel_filter/channel_filter.types';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
 import { openErrorNotification } from 'utils/utils';
 
@@ -20,7 +21,7 @@ const cx = cn.bind(styles);
 
 interface ChannelFilterFormProps {
   id: ChannelFilter['id'] | 'new';
-  alertReceiveChannelId: AlertReceiveChannel['id'];
+  alertReceiveChannelId: ApiSchemas['AlertReceiveChannel']['id'];
   onHide: () => void;
   onUpdate: (channelFilterId: ChannelFilter['id']) => void;
   data?: ChannelFilter;
@@ -63,7 +64,7 @@ export const ChannelFilterForm = observer((props: ChannelFilterFormProps) => {
 
   const onUpdateClickCallback = useCallback(() => {
     (id === 'new'
-      ? alertReceiveChannelStore.createChannelFilter({
+      ? AlertReceiveChannelHelper.createChannelFilter({
           alert_receive_channel: alertReceiveChannelId,
           filtering_term: filteringTerm,
           filtering_term_type: filteringTermType,

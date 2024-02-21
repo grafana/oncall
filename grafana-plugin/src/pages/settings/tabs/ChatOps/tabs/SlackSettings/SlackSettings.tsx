@@ -106,6 +106,7 @@ class _SlackSettings extends Component<SlackProps, SlackState> {
     const {
       organizationStore: { currentOrganization },
       slackStore,
+      slackChannelStore,
     } = store;
 
     return (
@@ -119,9 +120,12 @@ class _SlackSettings extends Component<SlackProps, SlackState> {
           tooltip="The selected channel will be used as a fallback in the event that a schedule or integration does not have a configured channel"
         >
           <WithPermissionControlTooltip userAction={UserActions.ChatOpsUpdateSettings}>
-            <GSelect
+            <GSelect<SlackChannel>
               showSearch
-              modelName="slackChannelStore"
+              items={slackChannelStore.items}
+              fetchItemsFn={slackChannelStore.updateItems}
+              fetchItemFn={slackChannelStore.updateItem}
+              getSearchResult={slackChannelStore.getSearchResult}
               displayField="display_name"
               valueField="id"
               placeholder="Select Slack Channel"
@@ -201,17 +205,22 @@ class _SlackSettings extends Component<SlackProps, SlackState> {
   };
 
   renderSlackChannels = () => {
-    const { store } = this.props;
+    const {
+      store: { organizationStore, slackChannelStore },
+    } = this.props;
     return (
       <WithPermissionControlTooltip userAction={UserActions.ChatOpsUpdateSettings}>
-        <GSelect
+        <GSelect<SlackChannel>
           showSearch
           className={cx('select', 'control')}
-          modelName="slackChannelStore"
+          items={slackChannelStore.items}
+          fetchItemsFn={slackChannelStore.updateItems}
+          fetchItemFn={slackChannelStore.updateItem}
+          getSearchResult={slackChannelStore.getSearchResult}
           displayField="display_name"
           valueField="id"
           placeholder="Select Slack Channel"
-          value={store.organizationStore.currentOrganization?.slack_channel?.id}
+          value={organizationStore.currentOrganization?.slack_channel?.id}
           onChange={this.handleSlackChannelChange}
           nullItemName={PRIVATE_CHANNEL_NAME}
         />
