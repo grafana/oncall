@@ -2,8 +2,10 @@ import logging
 
 from celery.utils.log import get_task_logger
 from django.conf import settings
+from django.db.models import Count
 from django.utils import timezone
 
+from apps.alerts.models import AlertReceiveChannel
 from apps.grafana_plugin.helpers import GcomAPIClient
 from apps.grafana_plugin.helpers.client import GrafanaAPIClient
 from apps.grafana_plugin.helpers.gcom import get_active_instance_ids, get_deleted_instance_ids, get_stack_regions
@@ -139,3 +141,26 @@ def sync_team_members_for_organization_async(organization_pk):
 
     grafana_api_client = GrafanaAPIClient(api_url=organization.grafana_url, api_token=organization.api_token)
     sync_team_members(grafana_api_client, organization)
+
+
+@shared_dedicated_queue_retry_task(autoretry_for=(Exception,), max_retries=1)
+def cleanup_empty_deleted_integrations(organization_pk, dry_run=True):
+    try:
+        organization = Organization.objects.get(pk=organization_pk)
+    except Organization.DoesNotExist:
+        logger.info(f"Organization {organization_pk} was not found")
+        return
+
+    integrations_qs = (
+        AlertReceiveChannel.objects_with_deleted.filter(deleted_at__isnull=True, organization=organization)
+        .annotate(num_alert_groups=Count("channel"))
+        .filter(num_alert_groups=0)
+    )
+    logger.info(f"Found count={len(integrations_qs)} integrations that are both empty and deleted")
+
+    for integration in integrations_qs:
+        logger.info(
+            f"Deleting integration ppk={integration.public_primary_key} in organization={organization.stack_slug} dry_run={dry_run}"
+        )
+        if not dry_run:
+            integration.hard_delete()
