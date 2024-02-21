@@ -20,8 +20,8 @@ steps:
   - name: Sign and Package Plugin
     image: node:18.16.0-buster
     environment:
-      GRAFANA_API_KEY:
-        from_secret: gcom_plugin_publisher_api_key
+      GRAFANA_ACCESS_POLICY_TOKEN:
+        from_secret: cloud_access_policy_token
     depends_on:
       - Build Plugin
     commands:
@@ -30,9 +30,7 @@ steps:
       - cd grafana-plugin
       - yarn sign
       - if [ ! -f dist/MANIFEST.txt ]; then echo "Sign failed, MANIFEST.txt not created, aborting." && exit 1; fi
-      - yarn ci-build:finish
-      - yarn ci-package
-      - cd ci/dist
+      - mv dist grafana-oncall-app
       - zip -r grafana-oncall-app.zip ./grafana-oncall-app
       # yamllint disable rule:line-length
       - if [ -z "$DRONE_TAG" ]; then echo "No tag, skipping archive"; else cp grafana-oncall-app.zip grafana-oncall-app-${DRONE_TAG}.zip; fi
@@ -192,8 +190,8 @@ steps:
   - name: sign and package plugin
     image: node:18.16.0-buster
     environment:
-      GRAFANA_API_KEY:
-        from_secret: gcom_plugin_publisher_api_key
+      GRAFANA_ACCESS_POLICY_TOKEN:
+        from_secret: cloud_access_policy_token
     depends_on:
       - build plugin
     commands:
@@ -202,9 +200,7 @@ steps:
       - cd grafana-plugin
       - yarn sign
       - if [ ! -f dist/MANIFEST.txt ]; then echo "Sign failed, MANIFEST.txt not created, aborting." && exit 1; fi
-      - yarn ci-build:finish
-      - yarn ci-package
-      - cd ci/dist
+      - mv dist grafana-oncall-app
       - zip -r grafana-oncall-app.zip ./grafana-oncall-app
       # yamllint disable rule:line-length
       - if [ -z "$DRONE_TAG" ]; then echo "No tag, skipping archive"; else cp grafana-oncall-app.zip grafana-oncall-app-${DRONE_TAG}.zip; fi
@@ -355,6 +351,7 @@ get:
   path: infra/data/ci/docker_hub
 kind: secret
 name: docker_username
+
 ---
 get:
   name: password
@@ -377,8 +374,17 @@ get:
   path: ci/data/repo/grafana/oncall/drone
 kind: secret
 name: github_api_token
+
+---
+# Secret for signing plugin
+get:
+  name: cloud_access_policy_token
+  path: ci/data/repo/grafana/oncall/sign_plugin
+kind: secret
+name: cloud_access_policy_token
+
 ---
 kind: signature
-hmac: f717f3a2708568d8d9ad3e8c738544b96a82455ecd1413feec9f502414807397
+hmac: 5bf89aaec69ebec6d4489b6ef712f92d10ede5b242b88c8f62930d78ba780f7d
 
 ...

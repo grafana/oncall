@@ -57,7 +57,7 @@ const getStyles = (theme: GrafanaTheme2, color?: string, size?: string) => {
       color: ${fontColor};
       font-size: ${theme.typography.bodySmall.fontSize};
 
-      border-radius: ${theme.shape.borderRadius(2)};
+      border-radius: ${theme.shape.radius.default};
     `,
     label: css`
       display: flex;
@@ -68,8 +68,8 @@ const getStyles = (theme: GrafanaTheme2, color?: string, size?: string) => {
       background: ${backgroundColor};
 
       border: solid 1px ${borderColor};
-      border-top-left-radius: ${theme.shape.borderRadius(2)};
-      border-bottom-left-radius: ${theme.shape.borderRadius(2)};
+      border-top-left-radius: ${theme.shape.radius.default};
+      border-bottom-left-radius: ${theme.shape.radius.default};
     `,
     value: css`
       color: inherit;
@@ -78,8 +78,8 @@ const getStyles = (theme: GrafanaTheme2, color?: string, size?: string) => {
 
       border: solid 1px ${borderColor};
       border-left: none;
-      border-top-right-radius: ${theme.shape.borderRadius(2)};
-      border-bottom-right-radius: ${theme.shape.borderRadius(2)};
+      border-top-right-radius: ${theme.shape.radius.default};
+      border-bottom-right-radius: ${theme.shape.radius.default};
     `,
   };
 };
