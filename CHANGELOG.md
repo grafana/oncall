@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+### Changed
+
+- Change plugin build to use new packages instead of deprecated grafana-toolkit @maskin25 ([#3837](https://github.com/grafana/oncall/pull/3837))
+
+### Fixed
+
+- Fix template preview by @vadimkerr ([#3937](https://github.com/grafana/oncall/pull/3937))
+
 ## v1.3.106 (2024-02-20)
 
 ### Added
@@ -20,6 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Unblock slack install by skipping check chatops gateway link in OSS deployment @mderynck ([#3893](https://github.com/grafana/oncall/pull/3893))
 - Fix multiple issues of alert groups table ([#3894](https://github.com/grafana/oncall/issues/3894))
 - Improvements for dragging the add rotation form in Schedules ([#3904](https://github.com/grafana/oncall/pull/3904))
+- Allow external-redis secret creation when the broker is rabbitmq ([#3903](https://github.com/grafana/oncall/pull/3903))
 
 ### Changed
 

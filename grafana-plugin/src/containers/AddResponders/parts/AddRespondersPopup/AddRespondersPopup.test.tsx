@@ -28,6 +28,7 @@ describe('AddRespondersPopup', () => {
       },
       grafanaTeamStore: {
         getSearchResult: jest.fn().mockReturnValue(teams),
+        updateItems: jest.fn(),
       },
       userStore: {
         search: jest.fn().mockReturnValue({ results: [] }),
