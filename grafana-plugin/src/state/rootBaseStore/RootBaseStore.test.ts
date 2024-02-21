@@ -181,7 +181,7 @@ describe('rootBaseStore', () => {
     });
     isUserActionAllowed.mockReturnValueOnce(true);
     PluginState.installPlugin = jest.fn().mockResolvedValueOnce(null);
-    rootBaseStore.userStore.loadCurrentUser = mockedLoadCurrentUser;
+    Object.defineProperty(rootBaseStore.userStore, 'loadCurrentUser', { value: mockedLoadCurrentUser });
 
     // test
     await rootBaseStore.setupPlugin(generatePluginData(onCallApiUrl));
@@ -224,7 +224,7 @@ describe('rootBaseStore', () => {
     });
     isUserActionAllowed.mockReturnValueOnce(true);
     PluginState.installPlugin = jest.fn().mockResolvedValueOnce(null);
-    rootBaseStore.userStore.loadCurrentUser = mockedLoadCurrentUser;
+    Object.defineProperty(rootBaseStore.userStore, 'loadCurrentUser', { value: mockedLoadCurrentUser });
 
     // test
     await rootBaseStore.setupPlugin(generatePluginData(onCallApiUrl));
@@ -300,7 +300,7 @@ describe('rootBaseStore', () => {
       version: 'asdfasdf',
       license: 'asdfasdf',
     });
-    rootBaseStore.userStore.loadCurrentUser = mockedLoadCurrentUser;
+    Object.defineProperty(rootBaseStore.userStore, 'loadCurrentUser', { value: mockedLoadCurrentUser });
 
     // test
     await rootBaseStore.setupPlugin(generatePluginData(onCallApiUrl));
@@ -329,7 +329,7 @@ describe('rootBaseStore', () => {
       license: 'asdfasdf',
     });
     PluginState.updatePluginStatus = jest.fn().mockResolvedValueOnce(updatePluginStatusError);
-    rootBaseStore.userStore.loadCurrentUser = mockedLoadCurrentUser;
+    Object.defineProperty(rootBaseStore.userStore, 'loadCurrentUser', { value: mockedLoadCurrentUser });
 
     // test
     await rootBaseStore.setupPlugin(generatePluginData(onCallApiUrl));

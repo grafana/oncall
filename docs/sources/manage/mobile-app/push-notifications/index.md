@@ -89,7 +89,9 @@ You can also enable or disable Do Not Disturb override for **important** notific
 
 ### On-call shift notifications
 
-On-call shift notifications are sent to announce upcoming shifts, roughly ~15 minutes in advance.
+On-call shift notifications are sent to announce upcoming shifts, you can select multiple timing options in the settings page.
+
+<img src="/static/img/oncall/mobile-app-sound-recommendation.png" width="300px">
 
 To enable or disable on-call shift notifications, use the **info notifications** section in the **Push notifications** settings.
 

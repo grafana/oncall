@@ -1,7 +1,6 @@
 import { action, observable, makeObservable, runInAction } from 'mobx';
 import qs from 'query-string';
 
-import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { BaseStore } from 'models/base_store';
 import { ActionKey } from 'models/loader/action-keys';
 import { User } from 'models/user/user.types';
@@ -97,27 +96,58 @@ export class AlertGroupStore extends BaseStore {
     }).catch(showApiError);
   }
 
-  @action
+  @action.bound
   async updateItem(id: Alert['pk']) {
     const item = await this.getById(id);
 
     runInAction(() => {
       this.items = {
         ...this.items,
-        [item.id]: item,
+        [item.pk]: item,
       };
     });
   }
 
-  getSearchResult(query = '') {
+  @action.bound
+  async fetchItems(query = '', params = {}) {
+    const { results } = await makeRequest(`${this.path}`, {
+      params: { search: query, ...params },
+    });
+
+    runInAction(() => {
+      this.items = {
+        ...this.items,
+        ...results.reduce(
+          (acc: { [key: number]: Alert }, item: Alert) => ({
+            ...acc,
+            [item.pk]: item,
+          }),
+          {}
+        ),
+      };
+
+      this.searchResult = {
+        ...this.searchResult,
+        [query]: results.map((item: Alert) => item.pk),
+      };
+    });
+  }
+
+  @action.bound
+  async fetchItemsAvailableForAttachment(query: string) {
+    await this.fetchItems(query, {
+      status: [IncidentStatus.Acknowledged, IncidentStatus.Firing, IncidentStatus.Silenced],
+    });
+  }
+
+  getSearchResult = (query = '') => {
     if (!this.searchResult[query]) {
       return undefined;
     }
-
     return this.searchResult[query].map((id: Alert['pk']) => this.items[id]);
-  }
+  };
 
-  async getAlertGroupsForIntegration(integrationId: AlertReceiveChannel['id']) {
+  async getAlertGroupsForIntegration(integrationId: ApiSchemas['AlertReceiveChannel']['id']) {
     const { results } = await makeRequest(`${this.path}`, {
       params: { integration: integrationId },
     });
@@ -202,7 +232,7 @@ export class AlertGroupStore extends BaseStore {
     await this.fetchTableSettings();
   }
 
-  @action
+  @action.bound
   async updateBulkActions() {
     const response = await makeRequest(`${this.path}bulk_action_options/`, {});
 
@@ -242,12 +272,12 @@ export class AlertGroupStore extends BaseStore {
     this.setLiveUpdatesPaused(false);
   }
 
-  @action
+  @action.bound
   setLiveUpdatesPaused(value: boolean) {
     this.liveUpdatesPaused = value;
   }
 
-  @action
+  @action.bound
   @AutoLoadingState(ActionKey.UPDATE_FILTERS_AND_FETCH_INCIDENTS)
   async updateIncidentFiltersAndRefetchIncidentsAndStats(params: any, keepCursor = false) {
     if (!keepCursor) {
@@ -257,21 +287,21 @@ export class AlertGroupStore extends BaseStore {
     await this.fetchIncidentsAndStats();
   }
 
-  @action
+  @action.bound
   async updateIncidentsCursor(cursor: string) {
     this.setIncidentsCursor(cursor);
 
     this.fetchAlertGroups();
   }
 
-  @action
+  @action.bound
   async setIncidentsCursor(cursor: string) {
     this.incidentsCursor = cursor;
 
     LocationHelper.update({ cursor }, 'partial');
   }
 
-  @action
+  @action.bound
   async setIncidentsItemsPerPage() {
     this.setIncidentsCursor(undefined);
 
@@ -360,7 +390,7 @@ export class AlertGroupStore extends BaseStore {
     return await makeRequest(`/alerts/${pk}`, {});
   }
 
-  @action
+  @action.bound
   async getNewIncidentsStats() {
     const result = await makeRequest(`${this.path}stats/`, {
       params: {
@@ -374,7 +404,7 @@ export class AlertGroupStore extends BaseStore {
     });
   }
 
-  @action
+  @action.bound
   async getAcknowledgedIncidentsStats() {
     const result = await makeRequest(`${this.path}stats/`, {
       params: {
@@ -388,7 +418,7 @@ export class AlertGroupStore extends BaseStore {
     });
   }
 
-  @action
+  @action.bound
   async getResolvedIncidentsStats() {
     const result = await makeRequest(`${this.path}stats/`, {
       params: {
@@ -402,7 +432,7 @@ export class AlertGroupStore extends BaseStore {
     });
   }
 
-  @action
+  @action.bound
   async getSilencedIncidentsStats() {
     const result = await makeRequest(`${this.path}stats/`, {
       params: {
@@ -416,7 +446,7 @@ export class AlertGroupStore extends BaseStore {
     });
   }
 
-  @action
+  @action.bound
   async doIncidentAction(alertId: Alert['pk'], action: AlertAction, isUndo = false, data?: any) {
     this.updateAlert(alertId, { loading: true });
 
@@ -463,7 +493,7 @@ export class AlertGroupStore extends BaseStore {
     }
   }
 
-  @action
+  @action.bound
   async updateAlert(pk: Alert['pk'], value: Partial<Alert>) {
     this.alerts.set(pk, {
       ...(this.alerts.get(pk) as Alert),
@@ -478,7 +508,7 @@ export class AlertGroupStore extends BaseStore {
     }).catch(this.onApiError);
   }
 
-  @action
+  @action.bound
   async fetchTableSettings(): Promise<void> {
     const tableSettings = await makeRequest('/alertgroup_table_settings', {});
 
@@ -493,7 +523,7 @@ export class AlertGroupStore extends BaseStore {
     });
   }
 
-  @action
+  @action.bound
   @AutoLoadingState(ActionKey.ADD_NEW_COLUMN_TO_ALERT_GROUP)
   async updateTableSettings(
     columns: { visible: AlertGroupColumn[]; hidden: AlertGroupColumn[] },

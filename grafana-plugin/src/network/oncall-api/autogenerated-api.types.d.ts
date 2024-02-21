@@ -1,6 +1,317 @@
 import type { CustomApiSchemas } from './types-generator/custom-schemas';
 
 export interface paths {
+  '/alert_receive_channels/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** @description Internal API endpoints for alert receive channels (integrations). */
+    get: operations['alert_receive_channels_list'];
+    put?: never;
+    /** @description Internal API endpoints for alert receive channels (integrations). */
+    post: operations['alert_receive_channels_create'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/alert_receive_channels/{id}/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** @description Internal API endpoints for alert receive channels (integrations). */
+    get: operations['alert_receive_channels_retrieve'];
+    /** @description Internal API endpoints for alert receive channels (integrations). */
+    put: operations['alert_receive_channels_update'];
+    post?: never;
+    /** @description Internal API endpoints for alert receive channels (integrations). */
+    delete: operations['alert_receive_channels_destroy'];
+    options?: never;
+    head?: never;
+    /** @description Internal API endpoints for alert receive channels (integrations). */
+    patch: operations['alert_receive_channels_partial_update'];
+    trace?: never;
+  };
+  '/alert_receive_channels/{id}/change_team/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    /** @description Internal API endpoints for alert receive channels (integrations). */
+    put: operations['alert_receive_channels_change_team_update'];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/alert_receive_channels/{id}/connect_contact_point/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** @description Internal API endpoints for alert receive channels (integrations). */
+    post: operations['alert_receive_channels_connect_contact_point_create'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/alert_receive_channels/{id}/connected_contact_points/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** @description Internal API endpoints for alert receive channels (integrations). */
+    get: operations['alert_receive_channels_connected_contact_points_list'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/alert_receive_channels/{id}/counters/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** @description Internal API endpoints for alert receive channels (integrations). */
+    get: operations['alert_receive_channels_counters_per_integration_retrieve'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/alert_receive_channels/{id}/create_contact_point/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** @description Internal API endpoints for alert receive channels (integrations). */
+    post: operations['alert_receive_channels_create_contact_point_create'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/alert_receive_channels/{id}/disconnect_contact_point/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** @description Internal API endpoints for alert receive channels (integrations). */
+    post: operations['alert_receive_channels_disconnect_contact_point_create'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/alert_receive_channels/{id}/migrate/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** @description Internal API endpoints for alert receive channels (integrations). */
+    post: operations['alert_receive_channels_migrate_create'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/alert_receive_channels/{id}/preview_template/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** @description Preview template */
+    post: operations['alert_receive_channels_preview_template_create'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/alert_receive_channels/{id}/send_demo_alert/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** @description Internal API endpoints for alert receive channels (integrations). */
+    post: operations['alert_receive_channels_send_demo_alert_create'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/alert_receive_channels/{id}/start_maintenance/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** @description Internal API endpoints for alert receive channels (integrations). */
+    post: operations['alert_receive_channels_start_maintenance_create'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/alert_receive_channels/{id}/stop_maintenance/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** @description Internal API endpoints for alert receive channels (integrations). */
+    post: operations['alert_receive_channels_stop_maintenance_create'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/alert_receive_channels/contact_points/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** @description Internal API endpoints for alert receive channels (integrations). */
+    get: operations['alert_receive_channels_contact_points_list'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/alert_receive_channels/counters/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** @description Internal API endpoints for alert receive channels (integrations). */
+    get: operations['alert_receive_channels_counters_retrieve'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/alert_receive_channels/filters/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** @description Internal API endpoints for alert receive channels (integrations). */
+    get: operations['alert_receive_channels_filters_list'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/alert_receive_channels/integration_options/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** @description Internal API endpoints for alert receive channels (integrations). */
+    get: operations['alert_receive_channels_integration_options_list'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/alert_receive_channels/validate_name/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** @description Checks if verbal_name is available.
+     *     It is needed for OnCall <-> Alerting integration. */
+    get: operations['alert_receive_channels_validate_name_retrieve'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/alertgroups/': {
     parameters: {
       query?: never;
@@ -8,7 +319,7 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    /** @description Fetch a list of alert groups */
+    /** @description Internal API endpoints for alert groups. */
     get: operations['alertgroups_list'];
     put?: never;
     post?: never;
@@ -25,11 +336,65 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    /** @description Fetch a single alert group */
+    /** @description Return alert group details.
+     *
+     *     It is worth mentioning that `render_after_resolve_report_json` property will return a list
+     *     of log entries including actions involving the alert group, notifications triggered for a user
+     *     and resolution notes updates.
+     *
+     *     A few additional notes about the possible values for each key in the logs:
+     *
+     *     - `time`: humanized time delta respect to now when the action took place
+     *     - `action`: human-readable description of the action
+     *     - `realm`: resource involved in the action; one of three possible values:
+     *     `alert_group`, `user_notification`, `resolution_note`
+     *     - `type`: integer value indicating the type of action (see below)
+     *     - `created_at`: timestamp corresponding to when the action happened
+     *     - `author`: details about the user performing the action
+     *
+     *     Possible `type` values depending on the realm value:
+     *
+     *     For `alert_group`:
+     *     - 0: Acknowledged
+     *     - 1: Unacknowledged
+     *     - 2: Invite
+     *     - 3: Stop invitation
+     *     - 4: Re-invite
+     *     - 5: Escalation triggered
+     *     - 6: Invitation triggered
+     *     - 7: Silenced
+     *     - 8: Attached
+     *     - 9: Unattached
+     *     - 10: Custom button triggered
+     *     - 11: Unacknowledged by timeout
+     *     - 12: Failed attachment
+     *     - 13: Incident resolved
+     *     - 14: Incident unresolved
+     *     - 15: Unsilenced
+     *     - 16: Escalation finished
+     *     - 17: Escalation failed
+     *     - 18: Acknowledge reminder triggered
+     *     - 19: Wiped
+     *     - 20: Deleted
+     *     - 21: Incident registered
+     *     - 22: A route is assigned to the incident
+     *     - 23: Trigger direct paging escalation
+     *     - 24: Unpage a user
+     *     - 25: Restricted
+     *
+     *     For `user_notification`:
+     *     - 0: Personal notification triggered
+     *     - 1: Personal notification finished
+     *     - 2: Personal notification success,
+     *     - 3: Personal notification failed
+     *
+     *     For `resolution_note`:
+     *     - 0: slack
+     *     - 1: web */
     get: operations['alertgroups_retrieve'];
     put?: never;
     post?: never;
-    /** @description Delete an alert group */
+    /** @description Internal API endpoints for alert groups. */
     delete: operations['alertgroups_destroy'];
     options?: never;
     head?: never;
@@ -70,6 +435,23 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/alertgroups/{id}/escalation_snapshot/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** @description Internal API endpoints for alert groups. */
+    get: operations['alertgroups_escalation_snapshot_retrieve'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/alertgroups/{id}/preview_template/': {
     parameters: {
       query?: never;
@@ -79,7 +461,7 @@ export interface paths {
     };
     get?: never;
     put?: never;
-    /** @description Preview a template for an alert group */
+    /** @description Preview template */
     post: operations['alertgroups_preview_template_create'];
     delete?: never;
     options?: never;
@@ -231,7 +613,7 @@ export interface paths {
       cookie?: never;
     };
     /** @description Retrieve a list of valid bulk action options */
-    get: operations['alertgroups_bulk_action_options_retrieve'];
+    get: operations['alertgroups_bulk_action_options_list'];
     put?: never;
     post?: never;
     delete?: never;
@@ -248,7 +630,7 @@ export interface paths {
       cookie?: never;
     };
     /** @description Retrieve a list of valid filter options that can be used to filter alert groups */
-    get: operations['alertgroups_filters_retrieve'];
+    get: operations['alertgroups_filters_list'];
     put?: never;
     post?: never;
     delete?: never;
@@ -300,7 +682,7 @@ export interface paths {
       cookie?: never;
     };
     /** @description Retrieve a list of valid silence options */
-    get: operations['alertgroups_silence_options_list'];
+    get: operations['alertgroups_silence_options_retrieve'];
     put?: never;
     post?: never;
     delete?: never;
@@ -368,7 +750,7 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    /** @description Key with the list of values */
+    /** @description get_key returns LabelOption – key with the list of values */
     get: operations['labels_id_retrieve'];
     /** @description Rename the key */
     put: operations['labels_id_update'];
@@ -403,7 +785,7 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    /** @description Value name */
+    /** @description get_value returns a Value */
     get: operations['labels_id_values_retrieve'];
     /** @description Rename the value */
     put: operations['labels_id_values_update'];
@@ -431,15 +813,321 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/users/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** @description Internal API endpoints for users. */
+    get: operations['users_list'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/users/{id}/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** @description Internal API endpoints for users. */
+    get: operations['users_retrieve'];
+    /** @description Internal API endpoints for users. */
+    put: operations['users_update'];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    /** @description Internal API endpoints for users. */
+    patch: operations['users_partial_update'];
+    trace?: never;
+  };
+  '/users/{id}/export_token/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** @description Internal API endpoints for users. */
+    get: operations['users_export_token_retrieve'];
+    put?: never;
+    /** @description Internal API endpoints for users. */
+    post: operations['users_export_token_create'];
+    /** @description Internal API endpoints for users. */
+    delete: operations['users_export_token_destroy'];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/users/{id}/forget_number/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    /** @description Internal API endpoints for users. */
+    put: operations['users_forget_number_update'];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/users/{id}/get_backend_verification_code/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** @description Internal API endpoints for users. */
+    get: operations['users_get_backend_verification_code_retrieve'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/users/{id}/get_telegram_verification_code/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** @description Internal API endpoints for users. */
+    get: operations['users_get_telegram_verification_code_retrieve'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/users/{id}/get_verification_call/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** @description Internal API endpoints for users. */
+    get: operations['users_get_verification_call_retrieve'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/users/{id}/get_verification_code/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** @description Internal API endpoints for users. */
+    get: operations['users_get_verification_code_retrieve'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/users/{id}/make_test_call/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** @description Internal API endpoints for users. */
+    post: operations['users_make_test_call_create'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/users/{id}/send_test_push/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** @description Internal API endpoints for users. */
+    post: operations['users_send_test_push_create'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/users/{id}/send_test_sms/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** @description Internal API endpoints for users. */
+    post: operations['users_send_test_sms_create'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/users/{id}/unlink_backend/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** @description Internal API endpoints for users. */
+    post: operations['users_unlink_backend_create'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/users/{id}/unlink_slack/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** @description Internal API endpoints for users. */
+    post: operations['users_unlink_slack_create'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/users/{id}/unlink_telegram/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** @description Internal API endpoints for users. */
+    post: operations['users_unlink_telegram_create'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/users/{id}/upcoming_shifts/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** @description Internal API endpoints for users. */
+    get: operations['users_upcoming_shifts_retrieve'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/users/{id}/verify_number/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    /** @description Internal API endpoints for users. */
+    put: operations['users_verify_number_update'];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/users/timezone_options/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** @description Internal API endpoints for users. */
+    get: operations['users_timezone_options_retrieve'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
 }
 export type webhooks = Record<string, never>;
 export interface components {
   schemas: {
+    /**
+     * @description * `acknowledge` - acknowledge
+     *     * `resolve` - resolve
+     *     * `silence` - silence
+     *     * `restart` - restart
+     * @enum {string}
+     */
+    ActionEnum: 'acknowledge' | 'resolve' | 'silence' | 'restart';
     Alert: {
       readonly id: string;
       /** Format: uri */
       link_to_upstream_details?: string | null;
-      readonly render_for_web: string;
+      readonly render_for_web: {
+        title: string;
+        message: string;
+        image_url: string | null;
+        source_link: string | null;
+      };
       /** Format: date-time */
       readonly created_at: string;
     };
@@ -467,10 +1155,17 @@ export interface components {
       /** Format: date-time */
       readonly started_at: string;
       readonly related_users: components['schemas']['UserShort'][];
-      readonly render_for_web: components['schemas']['render_for_web'];
+      readonly render_for_web:
+        | {
+            title: string;
+            message: string;
+            image_url: string | null;
+            source_link: string | null;
+          }
+        | Record<string, never>;
       dependent_alert_groups: components['schemas']['ShortAlertGroup'][];
       root_alert_group: components['schemas']['ShortAlertGroup'];
-      readonly status: string;
+      readonly status: number;
       /** @description Generate a link for AlertGroup to declare Grafana Incident by click */
       readonly declare_incident_link: string;
       team: string | null;
@@ -509,6 +1204,34 @@ export interface components {
         important: boolean;
       }[];
     };
+    AlertGroupAttach: {
+      root_alert_group_pk: string;
+    };
+    AlertGroupBulkActionOptions: {
+      value: components['schemas']['ActionEnum'];
+      display_name: components['schemas']['ActionEnum'];
+    };
+    AlertGroupBulkActionRequest: {
+      alert_group_pks: string[];
+      action: components['schemas']['ActionEnum'];
+      /** @description only applicable for silence */
+      delay?: number | null;
+    };
+    AlertGroupFilters: {
+      name: string;
+      type: string;
+      href?: string;
+      global?: boolean;
+      default?: {
+        [key: string]: unknown;
+      };
+      description?: string;
+      options: components['schemas']['AlertGroupFiltersOptions'];
+    };
+    AlertGroupFiltersOptions: {
+      value: string;
+      display_name: number;
+    };
     AlertGroupLabel: {
       key: components['schemas']['Key'];
       value: components['schemas']['Value'];
@@ -537,28 +1260,325 @@ export interface components {
       /** Format: date-time */
       readonly started_at: string;
       readonly related_users: components['schemas']['UserShort'][];
-      readonly render_for_web: components['schemas']['render_for_web'];
+      readonly render_for_web:
+        | {
+            title: string;
+            message: string;
+            image_url: string | null;
+            source_link: string | null;
+          }
+        | Record<string, never>;
       dependent_alert_groups: components['schemas']['ShortAlertGroup'][];
       root_alert_group: components['schemas']['ShortAlertGroup'];
-      readonly status: string;
+      readonly status: number;
       /** @description Generate a link for AlertGroup to declare Grafana Incident by click */
       readonly declare_incident_link: string;
       team: string | null;
       grafana_incident_id?: string | null;
       readonly labels: components['schemas']['AlertGroupLabel'][];
     };
+    AlertGroupResolve: {
+      resolution_note?: string | null;
+    };
+    AlertGroupSilence: {
+      delay: number;
+    };
+    AlertGroupSilenceOptions: {
+      value: components['schemas']['AlertGroupSilenceOptionsValueEnum'];
+      display_name: components['schemas']['AlertGroupSilenceOptionsDisplayNameEnum'];
+    };
+    /**
+     * @description * `30 minutes` - 30 minutes
+     *     * `1 hour` - 1 hour
+     *     * `2 hours` - 2 hours
+     *     * `3 hours` - 3 hours
+     *     * `4 hours` - 4 hours
+     *     * `6 hours` - 6 hours
+     *     * `12 hours` - 12 hours
+     *     * `16 hours` - 16 hours
+     *     * `20 hours` - 20 hours
+     *     * `24 hours` - 24 hours
+     *     * `Forever` - Forever
+     * @enum {string}
+     */
+    AlertGroupSilenceOptionsDisplayNameEnum:
+      | '30 minutes'
+      | '1 hour'
+      | '2 hours'
+      | '3 hours'
+      | '4 hours'
+      | '6 hours'
+      | '12 hours'
+      | '16 hours'
+      | '20 hours'
+      | '24 hours'
+      | 'Forever';
+    /**
+     * @description * `1800` - 1800
+     *     * `3600` - 3600
+     *     * `7200` - 7200
+     *     * `10800` - 10800
+     *     * `14400` - 14400
+     *     * `21600` - 21600
+     *     * `43200` - 43200
+     *     * `57600` - 57600
+     *     * `72000` - 72000
+     *     * `86400` - 86400
+     *     * `-1` - -1
+     * @enum {integer}
+     */
+    AlertGroupSilenceOptionsValueEnum: 1800 | 3600 | 7200 | 10800 | 14400 | 21600 | 43200 | 57600 | 72000 | 86400 | -1;
     AlertGroupStats: {
       count: number;
     };
+    AlertGroupUnpageUser: {
+      user_id: string;
+    };
+    AlertReceiveChannel: {
+      readonly id: string;
+      readonly description: string | null;
+      description_short?: string | null;
+      integration: components['schemas']['IntegrationEnum'];
+      readonly smile_code: string;
+      verbal_name?: string | null;
+      readonly author: string;
+      readonly organization: string;
+      team?: string | null;
+      /** Format: date-time */
+      readonly created_at: string;
+      readonly integration_url: string | null;
+      readonly alert_count: number;
+      readonly alert_groups_count: number;
+      allow_source_based_resolving?: boolean;
+      readonly instructions: string;
+      readonly is_able_to_autoresolve: boolean;
+      readonly default_channel_filter: string | null;
+      readonly demo_alert_enabled: boolean;
+      readonly maintenance_mode:
+        | (components['schemas']['MaintenanceModeEnum'] | components['schemas']['NullEnum'])
+        | null;
+      readonly maintenance_till: number | null;
+      readonly heartbeat: components['schemas']['IntegrationHeartBeat'] | null;
+      readonly is_available_for_integration_heartbeat: boolean;
+      readonly allow_delete: boolean;
+      readonly demo_alert_payload: {
+        [key: string]: unknown;
+      };
+      readonly routes_count: number;
+      readonly connected_escalations_chains_count: number;
+      readonly is_based_on_alertmanager: boolean;
+      readonly inbound_email: string;
+      readonly is_legacy: boolean;
+      labels?: components['schemas']['LabelPair'][];
+      alert_group_labels?: components['schemas']['IntegrationAlertGroupLabels'];
+      /** Format: date-time */
+      readonly alertmanager_v2_migrated_at: string | null;
+    };
+    AlertReceiveChannelConnectContactPoint: {
+      datasource_uid: string;
+      contact_point_name: string;
+    };
+    AlertReceiveChannelConnectedContactPoints: {
+      uid: string;
+      name: string;
+      contact_points: components['schemas']['AlertReceiveChannelConnectedContactPointsInner'][];
+    };
+    AlertReceiveChannelConnectedContactPointsInner: {
+      name: string;
+      notification_connected: boolean;
+    };
+    AlertReceiveChannelContactPoints: {
+      uid: string;
+      name: string;
+      contact_points: string[];
+    };
+    AlertReceiveChannelCreateContactPoint: {
+      datasource_uid: string;
+      contact_point_name: string;
+    };
+    AlertReceiveChannelDisconnectContactPoint: {
+      datasource_uid: string;
+      contact_point_name: string;
+    };
+    AlertReceiveChannelFilters: {
+      name: string;
+      display_name?: string;
+      type: string;
+      href: string;
+      global?: boolean;
+    };
+    AlertReceiveChannelIntegrationOptions: {
+      value: string;
+      display_name: string;
+      short_description: string;
+      featured: boolean;
+      featured_tag_name: string | null;
+    };
+    AlertReceiveChannelPolymorphic:
+      | components['schemas']['AlertReceiveChannel']
+      | components['schemas']['FilterAlertReceiveChannel'];
+    AlertReceiveChannelSendDemoAlert: {
+      demo_alert_payload?: {
+        [key: string]: unknown;
+      } | null;
+    };
+    AlertReceiveChannelStartMaintenance: {
+      mode: components['schemas']['ModeEnum'];
+      duration: components['schemas']['DurationEnum'];
+    };
+    AlertReceiveChannelUpdate: {
+      readonly id: string;
+      readonly description: string | null;
+      description_short?: string | null;
+      readonly integration: components['schemas']['IntegrationEnum'];
+      readonly smile_code: string;
+      verbal_name?: string | null;
+      readonly author: string;
+      readonly organization: string;
+      team?: string | null;
+      /** Format: date-time */
+      readonly created_at: string;
+      readonly integration_url: string | null;
+      readonly alert_count: number;
+      readonly alert_groups_count: number;
+      allow_source_based_resolving?: boolean;
+      readonly instructions: string;
+      readonly is_able_to_autoresolve: boolean;
+      readonly default_channel_filter: string | null;
+      readonly demo_alert_enabled: boolean;
+      readonly maintenance_mode:
+        | (components['schemas']['MaintenanceModeEnum'] | components['schemas']['NullEnum'])
+        | null;
+      readonly maintenance_till: number | null;
+      readonly heartbeat: components['schemas']['IntegrationHeartBeat'] | null;
+      readonly is_available_for_integration_heartbeat: boolean;
+      readonly allow_delete: boolean;
+      readonly demo_alert_payload: {
+        [key: string]: unknown;
+      };
+      readonly routes_count: number;
+      readonly connected_escalations_chains_count: number;
+      readonly is_based_on_alertmanager: boolean;
+      readonly inbound_email: string;
+      readonly is_legacy: boolean;
+      labels?: components['schemas']['LabelPair'][];
+      alert_group_labels?: components['schemas']['IntegrationAlertGroupLabels'];
+      /** Format: date-time */
+      readonly alertmanager_v2_migrated_at: string | null;
+    };
+    /** @enum {integer} */
+    CloudConnectionStatusEnum: 0 | 1 | 2 | 3;
+    /** @description This serializer is consistent with apps.api.serializers.labels.LabelPairSerializer, but allows null for value ID. */
+    CustomLabel: {
+      key: components['schemas']['CustomLabelKey'];
+      value: components['schemas']['CustomLabelValue'];
+    };
+    CustomLabelKey: {
+      id: string;
+      name: string;
+      /** @default false */
+      prescribed: boolean;
+    };
+    CustomLabelValue: {
+      id: string | null;
+      name: string;
+      /** @default false */
+      prescribed: boolean;
+    };
+    /**
+     * @description * `3600` - 3600
+     *     * `10800` - 10800
+     *     * `21600` - 21600
+     *     * `43200` - 43200
+     *     * `86400` - 86400
+     * @enum {integer}
+     */
+    DurationEnum: 3600 | 10800 | 21600 | 43200 | 86400;
     FastAlertReceiveChannel: {
       readonly id: string;
       readonly integration: string;
       verbal_name?: string | null;
       readonly deleted: boolean;
     };
+    FastOrganization: {
+      readonly pk: string;
+      readonly name: string;
+    };
+    FastTeam: {
+      readonly id: string;
+      name: string;
+      email?: string | null;
+      /** Format: uri */
+      avatar_url: string;
+    };
     FastUser: {
       pk: string;
       readonly username: string;
+    };
+    FilterAlertReceiveChannel: {
+      readonly value: string;
+      readonly display_name: string;
+      readonly integration_url: string | null;
+    };
+    FilterUser: {
+      value: string;
+      display_name: string;
+    };
+    /** @description Alert group labels configuration for the integration. See AlertReceiveChannel.alert_group_labels for details. */
+    IntegrationAlertGroupLabels: {
+      inheritable: {
+        [key: string]: boolean | undefined;
+      };
+      custom: components['schemas']['CustomLabel'][];
+      template: string | null;
+    };
+    /**
+     * @description * `alertmanager` - Alertmanager
+     *     * `legacy_alertmanager` - (Legacy) AlertManager
+     *     * `grafana` - Grafana
+     *     * `grafana_alerting` - Grafana Alerting
+     *     * `legacy_grafana_alerting` - (Legacy) Grafana Alerting
+     *     * `formatted_webhook` - Formatted webhook
+     *     * `webhook` - Webhook
+     *     * `kapacitor` - Kapacitor
+     *     * `elastalert` - Elastalert
+     *     * `heartbeat` - Heartbeat
+     *     * `inbound_email` - Inbound Email
+     *     * `maintenance` - Maintenance
+     *     * `manual` - Manual
+     *     * `slack_channel` - Slack Channel
+     *     * `zabbix` - Zabbix
+     *     * `direct_paging` - Direct paging
+     * @enum {string}
+     */
+    IntegrationEnum:
+      | 'alertmanager'
+      | 'legacy_alertmanager'
+      | 'grafana'
+      | 'grafana_alerting'
+      | 'legacy_grafana_alerting'
+      | 'formatted_webhook'
+      | 'webhook'
+      | 'kapacitor'
+      | 'elastalert'
+      | 'heartbeat'
+      | 'inbound_email'
+      | 'maintenance'
+      | 'manual'
+      | 'slack_channel'
+      | 'zabbix'
+      | 'direct_paging';
+    IntegrationHeartBeat: {
+      readonly id: string;
+      timeout_seconds: components['schemas']['TimeoutSecondsEnum'];
+      alert_receive_channel: string;
+      readonly link: string | null;
+      readonly last_heartbeat_time_verbal: string | null;
+      /** @description Return bool indicates heartbeat status.
+       *     True if first heartbeat signal was sent and flow is ok else False.
+       *     If first heartbeat signal was not send it means that configuration was not finished and status not ok. */
+      readonly status: boolean;
+      readonly instruction: string;
     };
     Key: {
       id: string;
@@ -571,11 +1591,16 @@ export interface components {
     LabelKey: {
       id: string;
       name: string;
-      prescribed?: boolean;
+      /** @default false */
+      prescribed: boolean;
     };
-    LabelKeyValues: {
+    LabelOption: {
       key: components['schemas']['LabelKey'];
       values: components['schemas']['LabelValue'][];
+    };
+    LabelPair: {
+      key: components['schemas']['LabelKey'];
+      value: components['schemas']['LabelValue'];
     };
     LabelRepr: {
       name: string;
@@ -583,17 +1608,184 @@ export interface components {
     LabelValue: {
       id: string;
       name: string;
-      prescribed?: boolean;
+      /** @default false */
+      prescribed: boolean;
     };
+    ListUser: {
+      readonly pk: string;
+      readonly organization: components['schemas']['FastOrganization'];
+      current_team?: string | null;
+      /** Format: email */
+      readonly email: string;
+      readonly username: string;
+      readonly name: string;
+      readonly role: components['schemas']['RoleEnum'];
+      /** Format: uri */
+      readonly avatar: string;
+      /** Format: uri */
+      readonly avatar_full: string;
+      timezone?: string | null;
+      working_hours?: components['schemas']['WorkingHours'];
+      unverified_phone_number?: string | null;
+      /** @description Use property to highlight that _verified_phone_number should not be modified directly */
+      readonly verified_phone_number: string | null;
+      readonly slack_user_identity: components['schemas']['SlackUserIdentity'];
+      readonly telegram_configuration: components['schemas']['TelegramToUserConnector'];
+      readonly messaging_backends: {
+        [key: string]:
+          | {
+              [key: string]: unknown;
+            }
+          | undefined;
+      };
+      readonly notification_chain_verbal: {
+        default: string;
+        important: string;
+      };
+      readonly cloud_connection_status: components['schemas']['CloudConnectionStatusEnum'] | null;
+      hide_phone_number?: boolean;
+    };
+    /**
+     * @description * `0` - Debug
+     *     * `1` - Maintenance
+     * @enum {integer}
+     */
+    MaintenanceModeEnum: 0 | 1;
+    /**
+     * @description * `0` - Debug
+     *     * `1` - Maintenance
+     * @enum {integer}
+     */
+    ModeEnum: 0 | 1;
+    /** @enum {unknown} */
+    NullEnum: null;
     PaginatedAlertGroupListList: {
       next?: string | null;
       previous?: string | null;
       results?: components['schemas']['AlertGroupList'][];
+      page_size?: number;
     };
-    Paginatedsilence_optionsList: {
+    PaginatedAlertReceiveChannelPolymorphicList: {
+      /** @example 123 */
+      count?: number;
+      /**
+       * Format: uri
+       * @example http://api.example.org/accounts/?page=4
+       */
       next?: string | null;
+      /**
+       * Format: uri
+       * @example http://api.example.org/accounts/?page=2
+       */
       previous?: string | null;
-      results?: components['schemas']['silence_options'][];
+      results?: components['schemas']['AlertReceiveChannelPolymorphic'][];
+      page_size?: number;
+      current_page_number?: number;
+      total_pages?: number;
+    };
+    PaginatedUserPolymorphicList: {
+      /** @example 123 */
+      count?: number;
+      /**
+       * Format: uri
+       * @example http://api.example.org/accounts/?page=4
+       */
+      next?: string | null;
+      /**
+       * Format: uri
+       * @example http://api.example.org/accounts/?page=2
+       */
+      previous?: string | null;
+      results?: components['schemas']['UserPolymorphic'][];
+      page_size?: number;
+      current_page_number?: number;
+      total_pages?: number;
+    };
+    PatchedAlertReceiveChannelUpdate: {
+      readonly id?: string;
+      readonly description?: string | null;
+      description_short?: string | null;
+      readonly integration?: components['schemas']['IntegrationEnum'];
+      readonly smile_code?: string;
+      verbal_name?: string | null;
+      readonly author?: string;
+      readonly organization?: string;
+      team?: string | null;
+      /** Format: date-time */
+      readonly created_at?: string;
+      readonly integration_url?: string | null;
+      readonly alert_count?: number;
+      readonly alert_groups_count?: number;
+      allow_source_based_resolving?: boolean;
+      readonly instructions?: string;
+      readonly is_able_to_autoresolve?: boolean;
+      readonly default_channel_filter?: string | null;
+      readonly demo_alert_enabled?: boolean;
+      readonly maintenance_mode?:
+        | (components['schemas']['MaintenanceModeEnum'] | components['schemas']['NullEnum'])
+        | null;
+      readonly maintenance_till?: number | null;
+      readonly heartbeat?: components['schemas']['IntegrationHeartBeat'] | null;
+      readonly is_available_for_integration_heartbeat?: boolean;
+      readonly allow_delete?: boolean;
+      readonly demo_alert_payload?: {
+        [key: string]: unknown;
+      };
+      readonly routes_count?: number;
+      readonly connected_escalations_chains_count?: number;
+      readonly is_based_on_alertmanager?: boolean;
+      readonly inbound_email?: string;
+      readonly is_legacy?: boolean;
+      labels?: components['schemas']['LabelPair'][];
+      alert_group_labels?: components['schemas']['IntegrationAlertGroupLabels'];
+      /** Format: date-time */
+      readonly alertmanager_v2_migrated_at?: string | null;
+    };
+    PatchedUser: {
+      readonly pk?: string;
+      readonly organization?: components['schemas']['FastOrganization'];
+      current_team?: string | null;
+      /** Format: email */
+      readonly email?: string;
+      readonly username?: string;
+      readonly name?: string;
+      readonly role?: components['schemas']['RoleEnum'];
+      /** Format: uri */
+      readonly avatar?: string;
+      /** Format: uri */
+      readonly avatar_full?: string;
+      timezone?: string | null;
+      working_hours?: components['schemas']['WorkingHours'];
+      unverified_phone_number?: string | null;
+      /** @description Use property to highlight that _verified_phone_number should not be modified directly */
+      readonly verified_phone_number?: string | null;
+      readonly slack_user_identity?: components['schemas']['SlackUserIdentity'];
+      readonly telegram_configuration?: components['schemas']['TelegramToUserConnector'];
+      readonly messaging_backends?: {
+        [key: string]:
+          | {
+              [key: string]: unknown;
+            }
+          | undefined;
+      };
+      readonly notification_chain_verbal?: {
+        default: string;
+        important: string;
+      };
+      readonly cloud_connection_status?: components['schemas']['CloudConnectionStatusEnum'] | null;
+      hide_phone_number?: boolean;
+      readonly is_currently_oncall?: boolean;
+    };
+    PreviewTemplateRequest: {
+      template_body?: string | null;
+      template_name?: string | null;
+      payload?: {
+        [key: string]: unknown;
+      } | null;
+    };
+    PreviewTemplateResponse: {
+      preview: string | null;
+      is_valid_json_object: boolean;
     };
     /**
      * @description * `0` - source
@@ -607,12 +1799,119 @@ export interface components {
      * @enum {integer}
      */
     ResolvedByEnum: 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7;
+    /**
+     * @description * `0` - ADMIN
+     *     * `1` - EDITOR
+     *     * `2` - VIEWER
+     *     * `3` - NONE
+     * @enum {integer}
+     */
+    RoleEnum: 0 | 1 | 2 | 3;
     ShortAlertGroup: {
       readonly pk: string;
-      readonly render_for_web: components['schemas']['render_for_web'];
+      readonly render_for_web:
+        | {
+            title: string;
+            message: string;
+            image_url: string | null;
+            source_link: string | null;
+          }
+        | Record<string, never>;
       alert_receive_channel: components['schemas']['FastAlertReceiveChannel'];
       readonly inside_organization_number: number;
     };
+    SlackUserIdentity: {
+      readonly slack_login: string;
+      readonly slack_id: string;
+      readonly avatar: string;
+      readonly name: string;
+      readonly display_name: string | null;
+    };
+    TelegramToUserConnector: {
+      telegram_nick_name?: string | null;
+      /** Format: int64 */
+      telegram_chat_id: number;
+    };
+    /**
+     * @description * `60` - 1 minute
+     *     * `120` - 2 minutes
+     *     * `180` - 3 minutes
+     *     * `300` - 5 minutes
+     *     * `600` - 10 minutes
+     *     * `900` - 15 minutes
+     *     * `1800` - 30 minutes
+     *     * `3600` - 1 hour
+     *     * `43200` - 12 hours
+     *     * `86400` - 1 day
+     * @enum {integer}
+     */
+    TimeoutSecondsEnum: 60 | 120 | 180 | 300 | 600 | 900 | 1800 | 3600 | 43200 | 86400;
+    User: {
+      readonly pk: string;
+      readonly organization: components['schemas']['FastOrganization'];
+      current_team?: string | null;
+      /** Format: email */
+      readonly email: string;
+      readonly username: string;
+      readonly name: string;
+      readonly role: components['schemas']['RoleEnum'];
+      /** Format: uri */
+      readonly avatar: string;
+      /** Format: uri */
+      readonly avatar_full: string;
+      timezone?: string | null;
+      working_hours?: components['schemas']['WorkingHours'];
+      unverified_phone_number?: string | null;
+      /** @description Use property to highlight that _verified_phone_number should not be modified directly */
+      readonly verified_phone_number: string | null;
+      readonly slack_user_identity: components['schemas']['SlackUserIdentity'];
+      readonly telegram_configuration: components['schemas']['TelegramToUserConnector'];
+      readonly messaging_backends: {
+        [key: string]:
+          | {
+              [key: string]: unknown;
+            }
+          | undefined;
+      };
+      readonly notification_chain_verbal: {
+        default: string;
+        important: string;
+      };
+      readonly cloud_connection_status: components['schemas']['CloudConnectionStatusEnum'] | null;
+      hide_phone_number?: boolean;
+      readonly is_currently_oncall: boolean;
+    };
+    UserExportTokenGetResponse: {
+      /** Format: date-time */
+      created_at: string;
+      /** Format: date-time */
+      revoked_at: string | null;
+      active: boolean;
+    };
+    UserExportTokenPostResponse: {
+      token: string;
+      /** Format: date-time */
+      created_at: string;
+      export_url: string;
+    };
+    UserGetTelegramVerificationCode: {
+      telegram_code: string;
+      bot_link: string;
+    };
+    UserIsCurrentlyOnCall: {
+      username: string;
+      pk: string;
+      avatar: string;
+      avatar_full: string;
+      name: string;
+      readonly timezone: string | null;
+      readonly teams: components['schemas']['FastTeam'][];
+      readonly is_currently_oncall: boolean;
+    };
+    UserPolymorphic:
+      | components['schemas']['FilterUser']
+      | components['schemas']['UserIsCurrentlyOnCall']
+      | components['schemas']['ListUser'];
     UserShort: {
       username: string;
       pk: string;
@@ -623,15 +1922,18 @@ export interface components {
       id: string;
       name: string;
     };
-    render_for_web: {
-      title: string;
-      message: string;
-      image_url: string;
-      source_link: string;
+    WorkingHours: {
+      monday: components['schemas']['WorkingHoursPeriod'][];
+      tuesday: components['schemas']['WorkingHoursPeriod'][];
+      wednesday: components['schemas']['WorkingHoursPeriod'][];
+      thursday: components['schemas']['WorkingHoursPeriod'][];
+      friday: components['schemas']['WorkingHoursPeriod'][];
+      saturday: components['schemas']['WorkingHoursPeriod'][];
+      sunday: components['schemas']['WorkingHoursPeriod'][];
     };
-    silence_options: {
-      value: string;
-      display_name: string;
+    WorkingHoursPeriod: {
+      start: string;
+      end: string;
     };
   };
   responses: never;
@@ -642,15 +1944,643 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
-  alertgroups_list: {
+  alert_receive_channels_list: {
     parameters: {
       query?: {
-        /** @description The pagination cursor value. */
-        cursor?: string;
+        /** @description * `alertmanager` - Alertmanager
+         *     * `legacy_alertmanager` - (Legacy) AlertManager
+         *     * `grafana` - Grafana
+         *     * `grafana_alerting` - Grafana Alerting
+         *     * `legacy_grafana_alerting` - (Legacy) Grafana Alerting
+         *     * `formatted_webhook` - Formatted webhook
+         *     * `webhook` - Webhook
+         *     * `kapacitor` - Kapacitor
+         *     * `elastalert` - Elastalert
+         *     * `heartbeat` - Heartbeat
+         *     * `inbound_email` - Inbound Email
+         *     * `maintenance` - Maintenance
+         *     * `manual` - Manual
+         *     * `slack_channel` - Slack Channel
+         *     * `zabbix` - Zabbix
+         *     * `direct_paging` - Direct paging */
+        integration?: (
+          | 'alertmanager'
+          | 'direct_paging'
+          | 'elastalert'
+          | 'formatted_webhook'
+          | 'grafana'
+          | 'grafana_alerting'
+          | 'heartbeat'
+          | 'inbound_email'
+          | 'kapacitor'
+          | 'legacy_alertmanager'
+          | 'legacy_grafana_alerting'
+          | 'maintenance'
+          | 'manual'
+          | 'slack_channel'
+          | 'webhook'
+          | 'zabbix'
+        )[];
+        /** @description * `alertmanager` - Alertmanager
+         *     * `legacy_alertmanager` - (Legacy) AlertManager
+         *     * `grafana` - Grafana
+         *     * `grafana_alerting` - Grafana Alerting
+         *     * `legacy_grafana_alerting` - (Legacy) Grafana Alerting
+         *     * `formatted_webhook` - Formatted webhook
+         *     * `webhook` - Webhook
+         *     * `kapacitor` - Kapacitor
+         *     * `elastalert` - Elastalert
+         *     * `heartbeat` - Heartbeat
+         *     * `inbound_email` - Inbound Email
+         *     * `maintenance` - Maintenance
+         *     * `manual` - Manual
+         *     * `slack_channel` - Slack Channel
+         *     * `zabbix` - Zabbix
+         *     * `direct_paging` - Direct paging */
+        integration_ne?: (
+          | 'alertmanager'
+          | 'direct_paging'
+          | 'elastalert'
+          | 'formatted_webhook'
+          | 'grafana'
+          | 'grafana_alerting'
+          | 'heartbeat'
+          | 'inbound_email'
+          | 'kapacitor'
+          | 'legacy_alertmanager'
+          | 'legacy_grafana_alerting'
+          | 'maintenance'
+          | 'manual'
+          | 'slack_channel'
+          | 'webhook'
+          | 'zabbix'
+        )[];
+        /** @description * `0` - Debug
+         *     * `1` - Maintenance */
+        maintenance_mode?: (0 | 1)[];
+        /** @description A page number within the paginated result set. */
+        page?: number;
         /** @description Number of results to return per page. */
         perpage?: number;
         /** @description A search term. */
         search?: string;
+        team?: string[];
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['PaginatedAlertReceiveChannelPolymorphicList'];
+        };
+      };
+    };
+  };
+  alert_receive_channels_create: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['AlertReceiveChannel'];
+        'application/x-www-form-urlencoded': components['schemas']['AlertReceiveChannel'];
+        'multipart/form-data': components['schemas']['AlertReceiveChannel'];
+      };
+    };
+    responses: {
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['AlertReceiveChannel'];
+        };
+      };
+    };
+  };
+  alert_receive_channels_retrieve: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A string identifying this alert receive channel. */
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['AlertReceiveChannel'];
+        };
+      };
+    };
+  };
+  alert_receive_channels_update: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A string identifying this alert receive channel. */
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: {
+      content: {
+        'application/json': components['schemas']['AlertReceiveChannelUpdate'];
+        'application/x-www-form-urlencoded': components['schemas']['AlertReceiveChannelUpdate'];
+        'multipart/form-data': components['schemas']['AlertReceiveChannelUpdate'];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['AlertReceiveChannelUpdate'];
+        };
+      };
+    };
+  };
+  alert_receive_channels_destroy: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A string identifying this alert receive channel. */
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description No response body */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  alert_receive_channels_partial_update: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A string identifying this alert receive channel. */
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: {
+      content: {
+        'application/json': components['schemas']['PatchedAlertReceiveChannelUpdate'];
+        'application/x-www-form-urlencoded': components['schemas']['PatchedAlertReceiveChannelUpdate'];
+        'multipart/form-data': components['schemas']['PatchedAlertReceiveChannelUpdate'];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['AlertReceiveChannelUpdate'];
+        };
+      };
+    };
+  };
+  alert_receive_channels_change_team_update: {
+    parameters: {
+      query: {
+        team_id: string;
+      };
+      header?: never;
+      path: {
+        /** @description A string identifying this alert receive channel. */
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description No response body */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  alert_receive_channels_connect_contact_point_create: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A string identifying this alert receive channel. */
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['AlertReceiveChannelConnectContactPoint'];
+        'application/x-www-form-urlencoded': components['schemas']['AlertReceiveChannelConnectContactPoint'];
+        'multipart/form-data': components['schemas']['AlertReceiveChannelConnectContactPoint'];
+      };
+    };
+    responses: {
+      /** @description No response body */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  alert_receive_channels_connected_contact_points_list: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A string identifying this alert receive channel. */
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['AlertReceiveChannelConnectedContactPoints'][];
+        };
+      };
+    };
+  };
+  alert_receive_channels_counters_per_integration_retrieve: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A string identifying this alert receive channel. */
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': {
+            [key: string]:
+              | {
+                  alerts_count: number;
+                  alert_groups_count: number;
+                }
+              | undefined;
+          };
+        };
+      };
+    };
+  };
+  alert_receive_channels_create_contact_point_create: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A string identifying this alert receive channel. */
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['AlertReceiveChannelCreateContactPoint'];
+        'application/x-www-form-urlencoded': components['schemas']['AlertReceiveChannelCreateContactPoint'];
+        'multipart/form-data': components['schemas']['AlertReceiveChannelCreateContactPoint'];
+      };
+    };
+    responses: {
+      /** @description No response body */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  alert_receive_channels_disconnect_contact_point_create: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A string identifying this alert receive channel. */
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['AlertReceiveChannelDisconnectContactPoint'];
+        'application/x-www-form-urlencoded': components['schemas']['AlertReceiveChannelDisconnectContactPoint'];
+        'multipart/form-data': components['schemas']['AlertReceiveChannelDisconnectContactPoint'];
+      };
+    };
+    responses: {
+      /** @description No response body */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  alert_receive_channels_migrate_create: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A string identifying this alert receive channel. */
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description No response body */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  alert_receive_channels_preview_template_create: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A string identifying this alert receive channel. */
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: {
+      content: {
+        'application/json': components['schemas']['PreviewTemplateRequest'];
+        'application/x-www-form-urlencoded': components['schemas']['PreviewTemplateRequest'];
+        'multipart/form-data': components['schemas']['PreviewTemplateRequest'];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['PreviewTemplateResponse'];
+        };
+      };
+    };
+  };
+  alert_receive_channels_send_demo_alert_create: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A string identifying this alert receive channel. */
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: {
+      content: {
+        'application/json': components['schemas']['AlertReceiveChannelSendDemoAlert'];
+        'application/x-www-form-urlencoded': components['schemas']['AlertReceiveChannelSendDemoAlert'];
+        'multipart/form-data': components['schemas']['AlertReceiveChannelSendDemoAlert'];
+      };
+    };
+    responses: {
+      /** @description No response body */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  alert_receive_channels_start_maintenance_create: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A string identifying this alert receive channel. */
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['AlertReceiveChannelStartMaintenance'];
+        'application/x-www-form-urlencoded': components['schemas']['AlertReceiveChannelStartMaintenance'];
+        'multipart/form-data': components['schemas']['AlertReceiveChannelStartMaintenance'];
+      };
+    };
+    responses: {
+      /** @description No response body */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  alert_receive_channels_stop_maintenance_create: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A string identifying this alert receive channel. */
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description No response body */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  alert_receive_channels_contact_points_list: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['AlertReceiveChannelContactPoints'][];
+        };
+      };
+    };
+  };
+  alert_receive_channels_counters_retrieve: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': {
+            [key: string]:
+              | {
+                  alerts_count: number;
+                  alert_groups_count: number;
+                }
+              | undefined;
+          };
+        };
+      };
+    };
+  };
+  alert_receive_channels_filters_list: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['AlertReceiveChannelFilters'][];
+        };
+      };
+    };
+  };
+  alert_receive_channels_integration_options_list: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['AlertReceiveChannelIntegrationOptions'][];
+        };
+      };
+    };
+  };
+  alert_receive_channels_validate_name_retrieve: {
+    parameters: {
+      query: {
+        verbal_name: string;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description No response body */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description No response body */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  alertgroups_list: {
+    parameters: {
+      query?: {
+        acknowledged_by?: string[];
+        /** @description The pagination cursor value. */
+        cursor?: string;
+        escalation_chain?: string[];
+        integration?: string[];
+        invitees_are?: string[];
+        involved_users_are?: string[];
+        is_root?: boolean;
+        mine?: boolean;
+        /** @description Number of results to return per page. */
+        perpage?: number;
+        resolved_at?: string;
+        resolved_by?: string[];
+        /** @description A search term. */
+        search?: string;
+        silenced_by?: string[];
+        started_at?: string;
+        /** @description * `0` - New
+         *     * `1` - Acknowledged
+         *     * `2` - Resolved
+         *     * `3` - Silenced */
+        status?: (0 | 1 | 2 | 3)[];
+        with_resolution_note?: boolean;
       };
       header?: never;
       path?: never;
@@ -673,6 +2603,7 @@ export interface operations {
       query?: never;
       header?: never;
       path: {
+        /** @description A string identifying this alert group. */
         id: string;
       };
       cookie?: never;
@@ -694,6 +2625,7 @@ export interface operations {
       query?: never;
       header?: never;
       path: {
+        /** @description A string identifying this alert group. */
         id: string;
       };
       cookie?: never;
@@ -714,17 +2646,12 @@ export interface operations {
       query?: never;
       header?: never;
       path: {
+        /** @description A string identifying this alert group. */
         id: string;
       };
       cookie?: never;
     };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['AlertGroup'];
-        'application/x-www-form-urlencoded': components['schemas']['AlertGroup'];
-        'multipart/form-data': components['schemas']['AlertGroup'];
-      };
-    };
+    requestBody?: never;
     responses: {
       200: {
         headers: {
@@ -741,15 +2668,16 @@ export interface operations {
       query?: never;
       header?: never;
       path: {
+        /** @description A string identifying this alert group. */
         id: string;
       };
       cookie?: never;
     };
     requestBody: {
       content: {
-        'application/json': components['schemas']['AlertGroup'];
-        'application/x-www-form-urlencoded': components['schemas']['AlertGroup'];
-        'multipart/form-data': components['schemas']['AlertGroup'];
+        'application/json': components['schemas']['AlertGroupAttach'];
+        'application/x-www-form-urlencoded': components['schemas']['AlertGroupAttach'];
+        'multipart/form-data': components['schemas']['AlertGroupAttach'];
       };
     };
     responses: {
@@ -763,20 +2691,42 @@ export interface operations {
       };
     };
   };
+  alertgroups_escalation_snapshot_retrieve: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A string identifying this alert group. */
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description No response body */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
   alertgroups_preview_template_create: {
     parameters: {
       query?: never;
       header?: never;
       path: {
+        /** @description A string identifying this alert group. */
         id: string;
       };
       cookie?: never;
     };
-    requestBody: {
+    requestBody?: {
       content: {
-        'application/json': components['schemas']['AlertGroup'];
-        'application/x-www-form-urlencoded': components['schemas']['AlertGroup'];
-        'multipart/form-data': components['schemas']['AlertGroup'];
+        'application/json': components['schemas']['PreviewTemplateRequest'];
+        'application/x-www-form-urlencoded': components['schemas']['PreviewTemplateRequest'];
+        'multipart/form-data': components['schemas']['PreviewTemplateRequest'];
       };
     };
     responses: {
@@ -785,7 +2735,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          'application/json': components['schemas']['AlertGroup'];
+          'application/json': components['schemas']['PreviewTemplateResponse'];
         };
       };
     };
@@ -795,15 +2745,16 @@ export interface operations {
       query?: never;
       header?: never;
       path: {
+        /** @description A string identifying this alert group. */
         id: string;
       };
       cookie?: never;
     };
-    requestBody: {
+    requestBody?: {
       content: {
-        'application/json': components['schemas']['AlertGroup'];
-        'application/x-www-form-urlencoded': components['schemas']['AlertGroup'];
-        'multipart/form-data': components['schemas']['AlertGroup'];
+        'application/json': components['schemas']['AlertGroupResolve'];
+        'application/x-www-form-urlencoded': components['schemas']['AlertGroupResolve'];
+        'multipart/form-data': components['schemas']['AlertGroupResolve'];
       };
     };
     responses: {
@@ -822,15 +2773,16 @@ export interface operations {
       query?: never;
       header?: never;
       path: {
+        /** @description A string identifying this alert group. */
         id: string;
       };
       cookie?: never;
     };
     requestBody: {
       content: {
-        'application/json': components['schemas']['AlertGroup'];
-        'application/x-www-form-urlencoded': components['schemas']['AlertGroup'];
-        'multipart/form-data': components['schemas']['AlertGroup'];
+        'application/json': components['schemas']['AlertGroupSilence'];
+        'application/x-www-form-urlencoded': components['schemas']['AlertGroupSilence'];
+        'multipart/form-data': components['schemas']['AlertGroupSilence'];
       };
     };
     responses: {
@@ -849,17 +2801,12 @@ export interface operations {
       query?: never;
       header?: never;
       path: {
+        /** @description A string identifying this alert group. */
         id: string;
       };
       cookie?: never;
     };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['AlertGroup'];
-        'application/x-www-form-urlencoded': components['schemas']['AlertGroup'];
-        'multipart/form-data': components['schemas']['AlertGroup'];
-      };
-    };
+    requestBody?: never;
     responses: {
       200: {
         headers: {
@@ -876,17 +2823,12 @@ export interface operations {
       query?: never;
       header?: never;
       path: {
+        /** @description A string identifying this alert group. */
         id: string;
       };
       cookie?: never;
     };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['AlertGroup'];
-        'application/x-www-form-urlencoded': components['schemas']['AlertGroup'];
-        'multipart/form-data': components['schemas']['AlertGroup'];
-      };
-    };
+    requestBody?: never;
     responses: {
       200: {
         headers: {
@@ -903,15 +2845,16 @@ export interface operations {
       query?: never;
       header?: never;
       path: {
+        /** @description A string identifying this alert group. */
         id: string;
       };
       cookie?: never;
     };
     requestBody: {
       content: {
-        'application/json': components['schemas']['AlertGroup'];
-        'application/x-www-form-urlencoded': components['schemas']['AlertGroup'];
-        'multipart/form-data': components['schemas']['AlertGroup'];
+        'application/json': components['schemas']['AlertGroupUnpageUser'];
+        'application/x-www-form-urlencoded': components['schemas']['AlertGroupUnpageUser'];
+        'multipart/form-data': components['schemas']['AlertGroupUnpageUser'];
       };
     };
     responses: {
@@ -930,17 +2873,12 @@ export interface operations {
       query?: never;
       header?: never;
       path: {
+        /** @description A string identifying this alert group. */
         id: string;
       };
       cookie?: never;
     };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['AlertGroup'];
-        'application/x-www-form-urlencoded': components['schemas']['AlertGroup'];
-        'multipart/form-data': components['schemas']['AlertGroup'];
-      };
-    };
+    requestBody?: never;
     responses: {
       200: {
         headers: {
@@ -957,17 +2895,12 @@ export interface operations {
       query?: never;
       header?: never;
       path: {
+        /** @description A string identifying this alert group. */
         id: string;
       };
       cookie?: never;
     };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['AlertGroup'];
-        'application/x-www-form-urlencoded': components['schemas']['AlertGroup'];
-        'multipart/form-data': components['schemas']['AlertGroup'];
-      };
-    };
+    requestBody?: never;
     responses: {
       200: {
         headers: {
@@ -988,23 +2921,22 @@ export interface operations {
     };
     requestBody: {
       content: {
-        'application/json': components['schemas']['AlertGroup'];
-        'application/x-www-form-urlencoded': components['schemas']['AlertGroup'];
-        'multipart/form-data': components['schemas']['AlertGroup'];
+        'application/json': components['schemas']['AlertGroupBulkActionRequest'];
+        'application/x-www-form-urlencoded': components['schemas']['AlertGroupBulkActionRequest'];
+        'multipart/form-data': components['schemas']['AlertGroupBulkActionRequest'];
       };
     };
     responses: {
+      /** @description No response body */
       200: {
         headers: {
           [name: string]: unknown;
         };
-        content: {
-          'application/json': components['schemas']['AlertGroup'];
-        };
+        content?: never;
       };
     };
   };
-  alertgroups_bulk_action_options_retrieve: {
+  alertgroups_bulk_action_options_list: {
     parameters: {
       query?: never;
       header?: never;
@@ -1018,12 +2950,12 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          'application/json': components['schemas']['AlertGroup'];
+          'application/json': components['schemas']['AlertGroupBulkActionOptions'][];
         };
       };
     };
   };
-  alertgroups_filters_retrieve: {
+  alertgroups_filters_list: {
     parameters: {
       query?: never;
       header?: never;
@@ -1037,7 +2969,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          'application/json': components['schemas']['AlertGroup'];
+          'application/json': components['schemas']['AlertGroupFilters'][];
         };
       };
     };
@@ -1058,7 +2990,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          'application/json': components['schemas']['LabelKeyValues'];
+          'application/json': components['schemas']['LabelOption'];
         };
       };
     };
@@ -1082,16 +3014,9 @@ export interface operations {
       };
     };
   };
-  alertgroups_silence_options_list: {
+  alertgroups_silence_options_retrieve: {
     parameters: {
-      query?: {
-        /** @description The pagination cursor value. */
-        cursor?: string;
-        /** @description Number of results to return per page. */
-        perpage?: number;
-        /** @description A search term. */
-        search?: string;
-      };
+      query?: never;
       header?: never;
       path?: never;
       cookie?: never;
@@ -1103,14 +3028,34 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          'application/json': components['schemas']['Paginatedsilence_optionsList'];
+          'application/json': components['schemas']['AlertGroupSilenceOptions'];
         };
       };
     };
   };
   alertgroups_stats_retrieve: {
     parameters: {
-      query?: never;
+      query?: {
+        acknowledged_by?: string[];
+        escalation_chain?: string[];
+        integration?: string[];
+        invitees_are?: string[];
+        involved_users_are?: string[];
+        is_root?: boolean;
+        mine?: boolean;
+        resolved_at?: string;
+        resolved_by?: string[];
+        /** @description A search term. */
+        search?: string;
+        silenced_by?: string[];
+        started_at?: string;
+        /** @description * `0` - New
+         *     * `1` - Acknowledged
+         *     * `2` - Resolved
+         *     * `3` - Silenced */
+        status?: (0 | 1 | 2 | 3)[];
+        with_resolution_note?: boolean;
+      };
       header?: never;
       path?: never;
       cookie?: never;
@@ -1141,9 +3086,16 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          'application/json': {
-            [key: string]: unknown;
-          };
+          'application/json': (
+            | 'msteams'
+            | 'slack'
+            | 'telegram'
+            | 'live_settings'
+            | 'grafana_cloud_notifications'
+            | 'grafana_cloud_connection'
+            | 'grafana_alerting_v2'
+            | 'labels'
+          )[];
         };
       };
     };
@@ -1168,7 +3120,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          'application/json': components['schemas']['LabelKeyValues'];
+          'application/json': components['schemas']['LabelOption'];
         };
       };
     };
@@ -1189,7 +3141,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          'application/json': components['schemas']['LabelKeyValues'];
+          'application/json': components['schemas']['LabelOption'];
         };
       };
     };
@@ -1216,7 +3168,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          'application/json': components['schemas']['LabelKeyValues'];
+          'application/json': components['schemas']['LabelOption'];
         };
       };
     };
@@ -1243,7 +3195,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          'application/json': components['schemas']['LabelKeyValues'];
+          'application/json': components['schemas']['LabelOption'];
         };
       };
     };
@@ -1293,7 +3245,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          'application/json': components['schemas']['LabelKeyValues'];
+          'application/json': components['schemas']['LabelOption'];
         };
       };
     };
@@ -1313,6 +3265,611 @@ export interface operations {
         };
         content: {
           'application/json': components['schemas']['LabelKey'][];
+        };
+      };
+    };
+  };
+  users_list: {
+    parameters: {
+      query?: {
+        email?: string;
+        /** @description A page number within the paginated result set. */
+        page?: number;
+        /** @description * `grafana-oncall-app.alert-groups:direct-paging` - ALERT_GROUPS_DIRECT_PAGING
+         *     * `grafana-oncall-app.alert-groups:read` - ALERT_GROUPS_READ
+         *     * `grafana-oncall-app.alert-groups:write` - ALERT_GROUPS_WRITE
+         *     * `grafana-oncall-app.api-keys:read` - API_KEYS_READ
+         *     * `grafana-oncall-app.api-keys:write` - API_KEYS_WRITE
+         *     * `grafana-oncall-app.chatops:read` - CHATOPS_READ
+         *     * `grafana-oncall-app.chatops:update-settings` - CHATOPS_UPDATE_SETTINGS
+         *     * `grafana-oncall-app.chatops:write` - CHATOPS_WRITE
+         *     * `grafana-oncall-app.escalation-chains:read` - ESCALATION_CHAINS_READ
+         *     * `grafana-oncall-app.escalation-chains:write` - ESCALATION_CHAINS_WRITE
+         *     * `grafana-oncall-app.integrations:read` - INTEGRATIONS_READ
+         *     * `grafana-oncall-app.integrations:test` - INTEGRATIONS_TEST
+         *     * `grafana-oncall-app.integrations:write` - INTEGRATIONS_WRITE
+         *     * `grafana-oncall-app.maintenance:read` - MAINTENANCE_READ
+         *     * `grafana-oncall-app.maintenance:write` - MAINTENANCE_WRITE
+         *     * `grafana-oncall-app.notifications:read` - NOTIFICATIONS_READ
+         *     * `grafana-oncall-app.notification-settings:read` - NOTIFICATION_SETTINGS_READ
+         *     * `grafana-oncall-app.notification-settings:write` - NOTIFICATION_SETTINGS_WRITE
+         *     * `grafana-oncall-app.other-settings:read` - OTHER_SETTINGS_READ
+         *     * `grafana-oncall-app.other-settings:write` - OTHER_SETTINGS_WRITE
+         *     * `grafana-oncall-app.outgoing-webhooks:read` - OUTGOING_WEBHOOKS_READ
+         *     * `grafana-oncall-app.outgoing-webhooks:write` - OUTGOING_WEBHOOKS_WRITE
+         *     * `grafana-oncall-app.schedules:export` - SCHEDULES_EXPORT
+         *     * `grafana-oncall-app.schedules:read` - SCHEDULES_READ
+         *     * `grafana-oncall-app.schedules:write` - SCHEDULES_WRITE
+         *     * `grafana-oncall-app.user-settings:admin` - USER_SETTINGS_ADMIN
+         *     * `grafana-oncall-app.user-settings:read` - USER_SETTINGS_READ
+         *     * `grafana-oncall-app.user-settings:write` - USER_SETTINGS_WRITE */
+        permission?:
+          | 'grafana-oncall-app.alert-groups:direct-paging'
+          | 'grafana-oncall-app.alert-groups:read'
+          | 'grafana-oncall-app.alert-groups:write'
+          | 'grafana-oncall-app.api-keys:read'
+          | 'grafana-oncall-app.api-keys:write'
+          | 'grafana-oncall-app.chatops:read'
+          | 'grafana-oncall-app.chatops:update-settings'
+          | 'grafana-oncall-app.chatops:write'
+          | 'grafana-oncall-app.escalation-chains:read'
+          | 'grafana-oncall-app.escalation-chains:write'
+          | 'grafana-oncall-app.integrations:read'
+          | 'grafana-oncall-app.integrations:test'
+          | 'grafana-oncall-app.integrations:write'
+          | 'grafana-oncall-app.maintenance:read'
+          | 'grafana-oncall-app.maintenance:write'
+          | 'grafana-oncall-app.notification-settings:read'
+          | 'grafana-oncall-app.notification-settings:write'
+          | 'grafana-oncall-app.notifications:read'
+          | 'grafana-oncall-app.other-settings:read'
+          | 'grafana-oncall-app.other-settings:write'
+          | 'grafana-oncall-app.outgoing-webhooks:read'
+          | 'grafana-oncall-app.outgoing-webhooks:write'
+          | 'grafana-oncall-app.schedules:export'
+          | 'grafana-oncall-app.schedules:read'
+          | 'grafana-oncall-app.schedules:write'
+          | 'grafana-oncall-app.user-settings:admin'
+          | 'grafana-oncall-app.user-settings:read'
+          | 'grafana-oncall-app.user-settings:write';
+        /** @description Number of results to return per page. */
+        perpage?: number;
+        /** @description * `0` - ADMIN
+         *     * `1` - EDITOR
+         *     * `2` - VIEWER
+         *     * `3` - NONE */
+        roles?: (0 | 1 | 2 | 3)[];
+        /** @description A search term. */
+        search?: string;
+        team?: string[];
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['PaginatedUserPolymorphicList'];
+        };
+      };
+    };
+  };
+  users_retrieve: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A string identifying this user. */
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['User'];
+        };
+      };
+    };
+  };
+  users_update: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A string identifying this user. */
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: {
+      content: {
+        'application/json': components['schemas']['User'];
+        'application/x-www-form-urlencoded': components['schemas']['User'];
+        'multipart/form-data': components['schemas']['User'];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['User'];
+        };
+      };
+    };
+  };
+  users_partial_update: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A string identifying this user. */
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: {
+      content: {
+        'application/json': components['schemas']['PatchedUser'];
+        'application/x-www-form-urlencoded': components['schemas']['PatchedUser'];
+        'multipart/form-data': components['schemas']['PatchedUser'];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['User'];
+        };
+      };
+    };
+  };
+  users_export_token_retrieve: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A string identifying this user. */
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['UserExportTokenGetResponse'];
+        };
+      };
+    };
+  };
+  users_export_token_create: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A string identifying this user. */
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['UserExportTokenPostResponse'];
+        };
+      };
+    };
+  };
+  users_export_token_destroy: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A string identifying this user. */
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description No response body */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  users_forget_number_update: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A string identifying this user. */
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description No response body */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  users_get_backend_verification_code_retrieve: {
+    parameters: {
+      query: {
+        backend: string;
+      };
+      header?: never;
+      path: {
+        /** @description A string identifying this user. */
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description No response body */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  users_get_telegram_verification_code_retrieve: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A string identifying this user. */
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['UserGetTelegramVerificationCode'];
+        };
+      };
+    };
+  };
+  users_get_verification_call_retrieve: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A string identifying this user. */
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description No response body */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  users_get_verification_code_retrieve: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A string identifying this user. */
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description No response body */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  users_make_test_call_create: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A string identifying this user. */
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description No response body */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  users_send_test_push_create: {
+    parameters: {
+      query?: {
+        critical?: boolean;
+      };
+      header?: never;
+      path: {
+        /** @description A string identifying this user. */
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description No response body */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  users_send_test_sms_create: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A string identifying this user. */
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description No response body */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  users_unlink_backend_create: {
+    parameters: {
+      query: {
+        backend: string;
+      };
+      header?: never;
+      path: {
+        /** @description A string identifying this user. */
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description No response body */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  users_unlink_slack_create: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A string identifying this user. */
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description No response body */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  users_unlink_telegram_create: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A string identifying this user. */
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description No response body */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  users_upcoming_shifts_retrieve: {
+    parameters: {
+      query?: {
+        days?: number;
+      };
+      header?: never;
+      path: {
+        /** @description A string identifying this user. */
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': {
+            schedule_id: string;
+            schedule_name: string;
+            is_oncall: boolean;
+            current_shift: {
+              all_day: boolean;
+              /** Format: date-time */
+              start: string;
+              /** Format: date-time */
+              end: string;
+              users: {
+                display_name: string;
+                pk: string;
+                email: string;
+                avatar_full: string;
+                swap_request: {
+                  pk: string;
+                  user: {
+                    display_name: string;
+                    pk: string;
+                    email: string;
+                    avatar_full: string;
+                  } | null;
+                } | null;
+              }[];
+              missing_users: string[];
+              priority_level: number | null;
+              source: string | null;
+              calendar_type: number | null;
+              is_empty: boolean;
+              is_gap: boolean;
+              is_override: boolean;
+              shift: {
+                pk: string;
+              };
+            } | null;
+            next_shift: {
+              all_day: boolean;
+              /** Format: date-time */
+              start: string;
+              /** Format: date-time */
+              end: string;
+              users: {
+                display_name: string;
+                pk: string;
+                email: string;
+                avatar_full: string;
+                swap_request: {
+                  pk: string;
+                  user: {
+                    display_name: string;
+                    pk: string;
+                    email: string;
+                    avatar_full: string;
+                  } | null;
+                } | null;
+              }[];
+              missing_users: string[];
+              priority_level: number | null;
+              source: string | null;
+              calendar_type: number | null;
+              is_empty: boolean;
+              is_gap: boolean;
+              is_override: boolean;
+              shift: {
+                pk: string;
+              };
+            } | null;
+          }[];
+        };
+      };
+    };
+  };
+  users_verify_number_update: {
+    parameters: {
+      query: {
+        token: string;
+      };
+      header?: never;
+      path: {
+        /** @description A string identifying this user. */
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description No response body */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  users_timezone_options_retrieve: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': string[];
         };
       };
     };

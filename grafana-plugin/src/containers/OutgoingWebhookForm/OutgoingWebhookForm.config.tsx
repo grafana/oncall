@@ -4,6 +4,9 @@ import { SelectableValue } from '@grafana/data';
 import Emoji from 'react-emoji-render';
 
 import { FormItem, FormItemType } from 'components/GForm/GForm.types';
+import { AlertReceiveChannelStore } from 'models/alert_receive_channel/alert_receive_channel';
+import { AlertReceiveChannelHelper } from 'models/alert_receive_channel/alert_receive_channel.helpers';
+import { GrafanaTeamStore } from 'models/grafana_team/grafana_team';
 import { OutgoingWebhookPreset } from 'models/outgoing_webhook/outgoing_webhook.types';
 import { generateAssignToTeamInputDescription } from 'utils/consts';
 import { KeyValuePair } from 'utils/utils';
@@ -19,12 +22,20 @@ export const WebhookTriggerType = {
   Unsilenced: new KeyValuePair('5', 'Unsilenced'),
   Unresolved: new KeyValuePair('6', 'Unresolved'),
   Unacknowledged: new KeyValuePair('7', 'Unacknowledged'),
+  AlertGroupStatusChange: new KeyValuePair('8', 'Alert Group Status Change'),
 };
 
-export function createForm(
-  presets: OutgoingWebhookPreset[] = [],
-  hasLabelsFeature?: boolean
-): {
+export function createForm({
+  presets = [],
+  grafanaTeamStore,
+  alertReceiveChannelStore,
+  hasLabelsFeature,
+}: {
+  presets: OutgoingWebhookPreset[];
+  grafanaTeamStore: GrafanaTeamStore;
+  alertReceiveChannelStore: AlertReceiveChannelStore;
+  hasLabelsFeature?: boolean;
+}): {
   name: string;
   fields: FormItem[];
 } {
@@ -50,7 +61,9 @@ export function createForm(
         )} This setting does not effect execution of the webhook.`,
         type: FormItemType.GSelect,
         extra: {
-          modelName: 'grafanaTeamStore',
+          items: grafanaTeamStore.items,
+          fetchItemsFn: grafanaTeamStore.updateItems,
+          getSearchResult: grafanaTeamStore.getSearchResult,
           displayField: 'name',
           valueField: 'id',
           showSearch: true,
@@ -73,6 +86,10 @@ export function createForm(
             {
               value: WebhookTriggerType.AlertGroupCreated.key,
               label: WebhookTriggerType.AlertGroupCreated.value,
+            },
+            {
+              value: WebhookTriggerType.AlertGroupStatusChange.key,
+              label: WebhookTriggerType.AlertGroupStatusChange.value,
             },
             {
               value: WebhookTriggerType.Acknowledged.key,
@@ -148,7 +165,10 @@ export function createForm(
           data.trigger_type === WebhookTriggerType.EscalationStep.key,
         extra: {
           placeholder: 'Choose (Optional)',
-          modelName: 'alertReceiveChannelStore',
+          items: alertReceiveChannelStore.items,
+          fetchItemsFn: alertReceiveChannelStore.fetchItems,
+          fetchItemFn: alertReceiveChannelStore.fetchItemById,
+          getSearchResult: () => AlertReceiveChannelHelper.getSearchResult(alertReceiveChannelStore),
           displayField: 'verbal_name',
           valueField: 'id',
           showSearch: true,

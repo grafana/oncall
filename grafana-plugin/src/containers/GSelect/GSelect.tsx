@@ -6,23 +6,24 @@ import cn from 'classnames/bind';
 import { get, isNil } from 'lodash-es';
 import { observer } from 'mobx-react';
 
-import { BaseStore } from 'models/base_store';
-import { RootBaseStore } from 'state/rootBaseStore/RootBaseStore';
-import { useStore } from 'state/useStore';
 import { useDebouncedCallback } from 'utils/hooks';
-import { PropertiesThatExtendsAnotherClass } from 'utils/types';
 
 import styles from './GSelect.module.scss';
 
 const cx = cn.bind(styles);
 
-interface GSelectProps {
+interface GSelectProps<Item> {
+  items: {
+    [key: string]: Item;
+  };
+  fetchItemsFn: (query?: string) => Promise<Item[] | void>;
+  fetchItemFn?: (id: string) => Promise<Item | void>;
+  getSearchResult: (query?: string) => Item[] | { page_size: number; count: number; results: Item[] };
   placeholder: string;
   isLoading?: boolean;
   value?: string | string[] | null;
   defaultValue?: string | string[] | null;
   onChange: (value: string, item: any) => void;
-  modelName: PropertiesThatExtendsAnotherClass<RootBaseStore, BaseStore>;
   autoFocus?: boolean;
   defaultOpen?: boolean;
   disabled?: boolean;
@@ -44,7 +45,7 @@ interface GSelectProps {
   icon?: string;
 }
 
-export const GSelect = observer((props: GSelectProps) => {
+export const GSelect = observer(<Item,>(props: GSelectProps<Item>) => {
   const {
     autoFocus,
     showSearch = false,
@@ -58,7 +59,6 @@ export const GSelect = observer((props: GSelectProps) => {
     onChange,
     disabled,
     showError,
-    modelName,
     displayField = 'display_name',
     valueField = 'id',
     isMulti = false,
@@ -68,34 +68,37 @@ export const GSelect = observer((props: GSelectProps) => {
     filterOptions,
     width = null,
     icon = null,
+    items: propItems,
+    fetchItemsFn,
+    fetchItemFn,
+    getSearchResult,
   } = props;
-
-  const store = useStore();
-  const model = (store as any)[modelName];
 
   const onChangeCallback = useCallback(
     (option) => {
       if (isMulti) {
         const values = option.map((option: SelectableValue) => option.value);
-        const items = option.map((option: SelectableValue) => model.items[option.value]);
+        const items = option.map((option: SelectableValue) => propItems[option.value]);
 
         onChange(values, items);
       } else {
         if (option) {
           const id = option.value;
-          const item = model.items[id];
+          const item = propItems[id];
           onChange(id, item);
         } else {
           onChange(null, null);
         }
       }
     },
-    [model, onChange]
+    [propItems, onChange]
   );
 
   const loadOptions = useDebouncedCallback((query: string, cb) => {
-    model.updateItems(query).then(() => {
-      const searchResult = model.getSearchResult(query);
+    fetchItemsFn(query).then(() => {
+      const searchResult = getSearchResult(query);
+      // TODO: we need to unify interface of search results to get rid of ts-ignore
+      // @ts-ignore
       let items = Array.isArray(searchResult.results) ? searchResult.results : searchResult;
       if (filterOptions) {
         items = items.filter((opt: any) => filterOptions(opt[valueField]));
@@ -112,19 +115,17 @@ export const GSelect = observer((props: GSelectProps) => {
 
   const values = isMulti
     ? (value ? (value as string[]) : [])
-        .filter((id) => id in model.items)
+        .filter((id) => id in propItems)
         .map((id: string) => ({
           value: id,
-          label: get(model.items[id], displayField),
-          description: getDescription && getDescription(model.items[id]),
+          label: get(propItems[id], displayField),
+          description: getDescription && getDescription(propItems[id]),
         }))
-    : model.items[value as string]
+    : propItems[value as string]
     ? {
         value,
-        label: get(model.items[value as string], displayField)
-          ? get(model.items[value as string], displayField)
-          : 'hidden',
-        description: getDescription && getDescription(model.items[value as string]),
+        label: get(propItems[value as string], displayField) ? get(propItems[value as string], displayField) : 'hidden',
+        description: getDescription && getDescription(propItems[value as string]),
       }
     : value;
 
@@ -132,8 +133,8 @@ export const GSelect = observer((props: GSelectProps) => {
     const values = isMulti ? value : [value];
 
     (values ? (values as string[]) : []).forEach((value: string) => {
-      if (!isNil(value) && !model.items[value] && model.updateItem) {
-        model.updateItem(value, true);
+      if (!isNil(value) && !propItems[value] && fetchItemFn) {
+        fetchItemFn(value);
       }
     });
   }, [value]);

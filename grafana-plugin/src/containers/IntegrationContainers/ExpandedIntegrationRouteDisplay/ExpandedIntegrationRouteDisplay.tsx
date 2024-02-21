@@ -33,10 +33,10 @@ import { EscalationChainSteps } from 'containers/EscalationChainSteps/Escalation
 import styles from 'containers/IntegrationContainers/ExpandedIntegrationRouteDisplay/ExpandedIntegrationRouteDisplay.module.scss';
 import { TeamName } from 'containers/TeamName/TeamName';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
-import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { AlertTemplatesDTO } from 'models/alert_templates/alert_templates';
 import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
 import { EscalationChain } from 'models/escalation_chain/escalation_chain.types';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 import { CommonIntegrationHelper } from 'pages/integration/CommonIntegration.helper';
 import { IntegrationHelper } from 'pages/integration/Integration.helper';
 import { MONACO_INPUT_HEIGHT_SMALL } from 'pages/integration/IntegrationCommon.config';
@@ -47,7 +47,7 @@ import { openNotification } from 'utils/utils';
 const cx = cn.bind(styles);
 
 interface ExpandedIntegrationRouteDisplayProps {
-  alertReceiveChannelId: AlertReceiveChannel['id'];
+  alertReceiveChannelId: ApiSchemas['AlertReceiveChannel']['id'];
   channelFilterId: ChannelFilter['id'];
   routeIndex: number;
   templates: AlertTemplatesDTO[];
@@ -372,7 +372,7 @@ const ReadOnlyEscalationChain: React.FC<{ escalationChainId: string }> = ({ esca
 };
 
 interface RouteButtonsDisplayProps {
-  alertReceiveChannelId: AlertReceiveChannel['id'];
+  alertReceiveChannelId: ApiSchemas['AlertReceiveChannel']['id'];
   channelFilterId: ChannelFilter['id'];
   routeIndex: number;
   setRouteIdForDeletion(): void;
