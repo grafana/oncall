@@ -8,7 +8,7 @@ import { IntegrationBlock } from 'components/Integrations/IntegrationBlock';
 import { IntegrationTag } from 'components/Integrations/IntegrationTag';
 import { useDrawer } from 'utils/hooks';
 
-import { NewEventTriggerDrawerContent } from './NewEventTriggerDrawerContent';
+import { NewOutgoingWebhookDrawerContent } from './NewOutgoingWebhookDrawerContent';
 import { OtherIntegrationsTable } from './OtherIntegrationsTable';
 import { getStyles } from './OutgoingTab.styles';
 import { OutgoingTabDrawerKey } from './OutgoingTab.types';
@@ -27,7 +27,7 @@ export const OutgoingTab = () => {
       )}
       {getIsDrawerOpened('newOutgoingWebhook') && (
         <Drawer title="New Outgoing Webhook" onClose={closeDrawer} width="640px">
-          <NewEventTriggerDrawerContent closeDrawer={closeDrawer} />
+          <NewOutgoingWebhookDrawerContent closeDrawer={closeDrawer} />
         </Drawer>
       )}
       <IntegrationCollapsibleTreeView
@@ -35,7 +35,7 @@ export const OutgoingTab = () => {
           {
             customIcon: 'plug',
             startingElemPosition: '50%',
-            expandedView: () => <Connection openDrawer={openDrawer} />,
+            expandedView: Connection,
           },
           {
             customIcon: 'plus',
@@ -49,7 +49,7 @@ export const OutgoingTab = () => {
           {
             customIcon: 'exchange-alt',
             startingElemPosition: '50%',
-            expandedView: () => <OtherIntegrationsTable openDrawer={openDrawer} />,
+            expandedView: OtherIntegrationsTable,
           },
         ]}
       />
@@ -57,7 +57,7 @@ export const OutgoingTab = () => {
   );
 };
 
-const Connection = ({ openDrawer }: { openDrawer: (key: OutgoingTabDrawerKey) => void }) => {
+const Connection = () => {
   const styles = useStyles2(getStyles);
   const FAKE_URL = 'https://example.com';
 

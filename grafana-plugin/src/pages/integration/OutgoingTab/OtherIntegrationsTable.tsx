@@ -11,43 +11,39 @@ import { Text } from 'components/Text/Text';
 import { useStore } from 'state/useStore';
 
 import { getStyles } from './OutgoingTab.styles';
-import { OutgoingTabDrawerKey } from './OutgoingTab.types';
 
+export const OtherIntegrationsTable = observer(() => {
+  const {
+    outgoingWebhookStore: { getSearchResult, updateItems },
+  } = useStore();
 
-export const OtherIntegrationsTable = observer(
-  ({ openDrawer }: { openDrawer: (key: OutgoingTabDrawerKey) => void }) => {
-    const {
-      outgoingWebhookStore: { getSearchResult, updateItems },
-    } = useStore();
+  useEffect(() => {
+    updateItems();
+  }, []);
 
-    useEffect(() => {
-      updateItems();
-    }, []);
+  const webhooks = getSearchResult();
 
-    const webhooks = getSearchResult();
-
-    return (
-      <IntegrationBlock
-        heading={
-          <HorizontalGroup justify="space-between">
-            <IntegrationTag>Send data from other integrations</IntegrationTag>
-            <Button size="sm" variant="secondary">
-              Connect
-            </Button>
-          </HorizontalGroup>
-        }
-        content={
-          <GTable
-            emptyText={webhooks ? 'No outgoing webhooks found' : 'Loading...'}
-            rowKey="id"
-            columns={getColumns()}
-            data={webhooks}
-          />
-        }
-      />
-    );
-  }
-);
+  return (
+    <IntegrationBlock
+      heading={
+        <HorizontalGroup justify="space-between">
+          <IntegrationTag>Send data from other integrations</IntegrationTag>
+          <Button size="sm" variant="secondary">
+            Connect
+          </Button>
+        </HorizontalGroup>
+      }
+      content={
+        <GTable
+          emptyText={webhooks ? 'No outgoing webhooks found' : 'Loading...'}
+          rowKey="id"
+          columns={getColumns()}
+          data={webhooks}
+        />
+      }
+    />
+  );
+});
 
 const getColumns = () => [
   {

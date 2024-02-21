@@ -73,13 +73,11 @@ export const OutgoingWebhookFormFields: FC<OutgoingWebhookFormFieldsProps> = ({ 
             className={styles.selectField}
           >
             <Select
+              {...field}
+              onChange={({ value }) => field.onChange(value)}
               menuShouldPortal
               options={WEBHOOK_TRIGGGER_TYPE_OPTIONS}
               placeholder="Select event"
-              value={field.value}
-              onChange={({ value }) => {
-                field.onChange(value);
-              }}
             />
           </Field>
         )}
@@ -122,13 +120,11 @@ export const OutgoingWebhookFormFields: FC<OutgoingWebhookFormFieldsProps> = ({ 
             className={styles.selectField}
           >
             <Select
+              {...field}
+              onChange={({ value }) => field.onChange(value)}
               menuShouldPortal
               options={HTTP_METHOD_OPTIONS}
               placeholder="Select HTTP method"
-              value={field.value}
-              onChange={({ value }) => {
-                field.onChange(value);
-              }}
             />
           </Field>
         )}

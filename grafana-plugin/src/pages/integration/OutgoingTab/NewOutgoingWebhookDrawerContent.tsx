@@ -11,16 +11,19 @@ import { getStyles } from './OutgoingTab.styles';
 import { FormValues } from './OutgoingTab.types';
 import { OutgoingWebhookFormFields } from './OutgoingWebhookFormFields';
 
-interface NewEventTriggerDrawerContentProps {
+interface NewOutgoingWebhookDrawerContentProps {
   closeDrawer: () => void;
 }
 
-export const NewEventTriggerDrawerContent: FC<NewEventTriggerDrawerContentProps> = ({ closeDrawer }) => {
+export const NewOutgoingWebhookDrawerContent: FC<NewOutgoingWebhookDrawerContentProps> = ({ closeDrawer }) => {
   const styles = useStyles2(getStyles);
   const commonStyles = useCommonStyles();
   const formMethods = useForm<FormValues>({ mode: 'all' });
 
-  const onSubmit = () => {};
+  const onSubmit = (values) => {
+    console.log(values);
+  };
+
   return (
     <FormProvider {...formMethods}>
       <form onSubmit={formMethods.handleSubmit(onSubmit)} className={styles.form}>
