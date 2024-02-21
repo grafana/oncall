@@ -1,6 +1,9 @@
-import { HorizontalGroup } from '@grafana/ui';
-import { Text } from 'components/Text/Text';
 import React, { FC } from 'react';
+
+import { HorizontalGroup } from '@grafana/ui';
+
+import { Text } from 'components/Text/Text';
+
 import { IntegrationLogo, IntegrationLogoProps } from './IntegrationLogo';
 
 interface IntegrationLogoWithTitleProps {

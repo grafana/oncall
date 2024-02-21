@@ -1,19 +1,18 @@
 import React, { useEffect } from 'react';
 
+import { Button, HorizontalGroup, Icon, IconButton, Switch, Tooltip, useStyles2 } from '@grafana/ui';
 import { observer } from 'mobx-react-lite';
 
 import { GTable } from 'components/GTable/GTable';
-import { Text } from 'components/Text/Text';
-import { OutgoingWebhook } from 'models/outgoing_webhook/outgoing_webhook.types';
-import { useStore } from 'state/useStore';
-import { LocationHelper } from 'utils/LocationHelper';
-
-import { OutgoingTabDrawerKey, TriggerDetailsQueryStringKey, TriggerDetailsTab } from './OutgoingTab.types';
+import IntegrationLogoWithTitle from 'components/IntegrationLogo/IntegrationLogoWithTitle';
 import { IntegrationBlock } from 'components/Integrations/IntegrationBlock';
 import IntegrationTag from 'components/Integrations/IntegrationTag';
-import IntegrationLogoWithTitle from 'components/IntegrationLogo/IntegrationLogoWithTitle';
-import { HorizontalGroup, Icon, IconButton, Switch, Tooltip, useStyles2 } from '@grafana/ui';
+import { Text } from 'components/Text/Text';
+import { useStore } from 'state/useStore';
+
 import { getStyles } from './OutgoingTab.styles';
+import { OutgoingTabDrawerKey } from './OutgoingTab.types';
+
 
 export const OtherIntegrationsTable = observer(
   ({ openDrawer }: { openDrawer: (key: OutgoingTabDrawerKey) => void }) => {
@@ -25,14 +24,6 @@ export const OtherIntegrationsTable = observer(
       updateItems();
     }, []);
 
-    const openTriggerDetailsDrawer = (tab: TriggerDetailsTab, webhookId: string) => {
-      LocationHelper.update(
-        { [TriggerDetailsQueryStringKey.ActiveTab]: tab, [TriggerDetailsQueryStringKey.WebhookId]: webhookId },
-        'partial'
-      );
-      openDrawer('triggerDetails');
-    };
-
     const webhooks = getSearchResult();
 
     return (
@@ -40,7 +31,9 @@ export const OtherIntegrationsTable = observer(
         heading={
           <HorizontalGroup justify="space-between">
             <IntegrationTag>Send data from other integrations</IntegrationTag>
-            <IntegrationTag>Connect</IntegrationTag>
+            <Button size="sm" variant="secondary">
+              Connect
+            </Button>
           </HorizontalGroup>
         }
         content={

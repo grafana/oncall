@@ -15,8 +15,8 @@ import { UserActions } from 'utils/authorization/authorization';
 import { useConfirmModal } from 'utils/hooks';
 import { openNotification } from 'utils/utils';
 
-import { OutgoingTabDrawerKey, TriggerDetailsQueryStringKey, TriggerDetailsTab } from './OutgoingTab.types';
 import { getStyles } from './OutgoingTab.styles';
+import { OutgoingTabDrawerKey, TriggerDetailsQueryStringKey, TriggerDetailsTab } from './OutgoingTab.types';
 
 export const OutgoingWebhooksTable = observer(({ openDrawer }: { openDrawer: (key: OutgoingTabDrawerKey) => void }) => {
   const styles = useStyles2(getStyles);
@@ -33,7 +33,7 @@ export const OutgoingWebhooksTable = observer(({ openDrawer }: { openDrawer: (ke
       { [TriggerDetailsQueryStringKey.ActiveTab]: tab, [TriggerDetailsQueryStringKey.WebhookId]: webhookId },
       'partial'
     );
-    openDrawer('triggerDetails');
+    openDrawer('webhookDetails');
   };
 
   const webhooks = getSearchResult();
@@ -90,6 +90,13 @@ const OutgoingWebhookContextMenu = ({
         items={[
           {
             onClick: () => {
+              openDrawer(TriggerDetailsTab.Settings, webhook.id);
+            },
+            requiredPermission: UserActions.OutgoingWebhooksWrite,
+            label: <Text type="primary">Webhook settings</Text>,
+          },
+          {
+            onClick: () => {
               openDrawer(TriggerDetailsTab.LastEvent, webhook.id);
             },
             requiredPermission: UserActions.OutgoingWebhooksRead,
@@ -97,18 +104,13 @@ const OutgoingWebhookContextMenu = ({
           },
           {
             onClick: () => {
-              openDrawer(TriggerDetailsTab.Settings, webhook.id);
-            },
-            requiredPermission: UserActions.OutgoingWebhooksWrite,
-            label: <Text type="primary">Edit settings</Text>,
-          },
-          {
-            onClick: () => {
               openModal({
                 onConfirm: () => {
                   console.log('TODO: disable webhook');
                 },
-                title: `Are you sure you want to ${webhook.is_webhook_enabled ? 'disable' : 'enable'} event trigger?`,
+                title: `Are you sure you want to ${
+                  webhook.is_webhook_enabled ? 'disable' : 'enable'
+                } outgoing webhook?`,
               });
             },
             requiredPermission: UserActions.OutgoingWebhooksWrite,
@@ -137,14 +139,14 @@ const OutgoingWebhookContextMenu = ({
                 onConfirm: () => {
                   console.log('TODO: delete webhook');
                 },
-                title: `Are you sure you want to delete event trigger?`,
+                title: `Are you sure you want to delete outgoing webhook?`,
               });
             },
             requiredPermission: UserActions.OutgoingWebhooksWrite,
             label: (
               <HorizontalGroup spacing="xs">
                 <IconButton tooltip="Remove" tooltipPlacement="top" variant="destructive" name="trash-alt" />
-                <Text type="danger">Delete</Text>
+                <Text type="danger">Delete webhook</Text>
               </HorizontalGroup>
             ),
           },

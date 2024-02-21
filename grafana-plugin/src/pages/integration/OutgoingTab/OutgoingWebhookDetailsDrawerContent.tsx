@@ -12,9 +12,9 @@ import { LocationHelper } from 'utils/LocationHelper';
 import { UserActions } from 'utils/authorization/authorization';
 import { useCommonStyles } from 'utils/hooks';
 
-import { OutgoingWebhookFormFields } from './OutgoingWebhookFormFields';
 import { getStyles } from './OutgoingTab.styles';
 import { TriggerDetailsQueryStringKey, TriggerDetailsTab, FormValues } from './OutgoingTab.types';
+import { OutgoingWebhookFormFields } from './OutgoingWebhookFormFields';
 
 interface OutgoingWebhookDetailsDrawerContentProps {
   closeDrawer: () => void;
@@ -37,14 +37,14 @@ interface SettingsProps {
 const Settings: FC<SettingsProps> = ({ closeDrawer }) => {
   const styles = useStyles2(getStyles);
   const commonStyles = useCommonStyles();
-  const formMethods = useForm<FormValues>({ mode: 'all' });
+  const form = useForm<FormValues>({ mode: 'all' });
   const webhookId = LocationHelper.getQueryParam(TriggerDetailsQueryStringKey.WebhookId);
 
   const onSubmit = () => {};
 
   return (
-    <FormProvider {...formMethods}>
-      <form onSubmit={formMethods.handleSubmit(onSubmit)} className={styles.form}>
+    <FormProvider {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className={styles.form}>
         <VerticalGroup justify="space-between">
           <div className={styles.formFieldsWrapper}>
             <OutgoingWebhookFormFields webhookId={webhookId} />
@@ -55,12 +55,19 @@ const Settings: FC<SettingsProps> = ({ closeDrawer }) => {
                 Close
               </Button>
               <WithPermissionControlTooltip userAction={UserActions.OutgoingWebhooksWrite}>
-                <Button type="submit" variant="destructive">
-                  Delete
+                <Button
+                  type="submit"
+                  onClick={() => {
+                    form.handleSubmit(onSubmit);
+                  }}
+                >
+                  Update
                 </Button>
               </WithPermissionControlTooltip>
               <WithPermissionControlTooltip userAction={UserActions.OutgoingWebhooksWrite}>
-                <Button type="submit">Update</Button>
+                <Button type="submit" variant="destructive" fill="outline">
+                  Delete
+                </Button>
               </WithPermissionControlTooltip>
             </HorizontalGroup>
           </div>
@@ -80,8 +87,6 @@ const LastEventDetails: FC<LastEventDetailsProps> = observer(({ closeDrawer }) =
     outgoingWebhookStore: { items },
   } = useStore();
   const webhook = items[LocationHelper.getQueryParam(TriggerDetailsQueryStringKey.WebhookId)];
-
-  const onSubmit = () => {};
 
   if (!webhook) {
     return null;

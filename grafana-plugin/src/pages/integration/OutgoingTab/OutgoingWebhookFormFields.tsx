@@ -5,6 +5,7 @@ import {
   Field,
   HorizontalGroup,
   Icon,
+  Input,
   Label,
   Select,
   Switch,
@@ -12,12 +13,13 @@ import {
   useStyles2,
   VerticalGroup,
 } from '@grafana/ui';
+import cn from 'classnames';
 import { Controller, useFormContext } from 'react-hook-form';
 
 import { MonacoEditor } from 'components/MonacoEditor/MonacoEditor';
 import { MONACO_READONLY_CONFIG } from 'components/MonacoEditor/MonacoEditor.config';
 import { WebhooksTemplateEditor } from 'containers/WebhooksTemplateEditor/WebhooksTemplateEditor';
-import { WEBHOOK_TRIGGGER_TYPE_OPTIONS } from 'models/outgoing_webhook/outgoing_webhook.types';
+import { HTTP_METHOD_OPTIONS, WEBHOOK_TRIGGGER_TYPE_OPTIONS } from 'models/outgoing_webhook/outgoing_webhook.types';
 
 import { getStyles } from './OutgoingTab.styles';
 import { FormValues } from './OutgoingTab.types';
@@ -29,22 +31,16 @@ interface TemplateToEdit {
 }
 
 interface OutgoingWebhookFormFieldsProps {
-  // "new" should be used for new event trigger
+  // "new" should be used for new webhook
   webhookId: string;
 }
 
 export const OutgoingWebhookFormFields: FC<OutgoingWebhookFormFieldsProps> = ({ webhookId }) => {
   const styles = useStyles2(getStyles);
-  const { control, watch } = useFormContext<FormValues>();
+  const { control, watch, formState, register } = useFormContext<FormValues>();
   const [templateToEdit, setTemplateToEdit] = useState<TemplateToEdit>();
 
-  const isEditingExistingWebhook = webhookId !== 'new';
-
-  const [showTriggerTemplate, showForwardedDataTemplate] = watch([
-    'triggerTemplateToogle',
-    'forwardedDataTemplateToogle',
-  ]);
-
+  const [showTriggerTemplate] = watch(['triggerTemplateToogle', 'forwardedDataTemplateToogle']);
   return (
     <VerticalGroup spacing="lg">
       <div className={styles.switcherFieldWrapper}>
@@ -55,25 +51,27 @@ export const OutgoingWebhookFormFields: FC<OutgoingWebhookFormFieldsProps> = ({ 
         />
         <Label className={styles.switcherLabel}>Enabled</Label>
       </div>
-      <Field
-        key="triggerType"
-        label={
-          <Label>
-            <span>Trigger type</span>&nbsp;
-            <Tooltip content="Some description" placement="right">
-              <Icon name="info-circle" className={styles.infoIcon} />
-            </Tooltip>
-          </Label>
-        }
-        className={styles.selectField}
-      >
-        <Controller
-          control={control}
-          name="triggerType"
-          rules={{
-            required: 'Trigger type is required',
-          }}
-          render={({ field }) => (
+      <Controller
+        control={control}
+        name="triggerType"
+        rules={{
+          required: 'Trigger type is required',
+        }}
+        render={({ field }) => (
+          <Field
+            key="triggerType"
+            invalid={Boolean(formState.errors.triggerType)}
+            error={formState.errors.triggerType?.message}
+            label={
+              <Label>
+                <span>Trigger type</span>&nbsp;
+                <Tooltip content="Some description" placement="right">
+                  <Icon name="info-circle" className={styles.infoIcon} />
+                </Tooltip>
+              </Label>
+            }
+            className={styles.selectField}
+          >
             <Select
               menuShouldPortal
               options={WEBHOOK_TRIGGGER_TYPE_OPTIONS}
@@ -83,64 +81,58 @@ export const OutgoingWebhookFormFields: FC<OutgoingWebhookFormFieldsProps> = ({ 
                 field.onChange(value);
               }}
             />
-          )}
-        />
+          </Field>
+        )}
+      />
+      <Field
+        key="url"
+        invalid={Boolean(formState.errors.url)}
+        error={formState.errors.url?.message}
+        label={
+          <Label>
+            <span>Webhook URL</span>&nbsp;
+            <Tooltip content="Some description" placement="right">
+              <Icon name="info-circle" className={styles.infoIcon} />
+            </Tooltip>
+          </Label>
+        }
+        className={styles.selectField}
+      >
+        <Input {...register('url', { required: 'URL is required' })} />
       </Field>
-      <div className={styles.switcherFieldWrapper}>
-        <Controller
-          control={control}
-          name="triggerTemplateToogle"
-          render={({ field: { value, onChange } }) => <Switch value={value} onChange={() => onChange(!value)} />}
-        />
-        <Label className={styles.switcherLabel}>
-          <span>Add trigger template</span>
-          <Tooltip content="Some description" placement="right">
-            <Icon name="info-circle" className={styles.infoIcon} />
-          </Tooltip>
-        </Label>
-      </div>
-      {showTriggerTemplate && (
-        <Controller
-          control={control}
-          name="triggerTemplate"
-          render={({ field }) => (
-            <>
-              <div className={styles.monacoEditorWrapper}>
-                <MonacoEditor
-                  {...field}
-                  data={{}} // TODO:update
-                  showLineNumbers={false}
-                  monacoOptions={MONACO_READONLY_CONFIG}
-                  onChange={field.onChange}
-                />
-                <Button
-                  icon="edit"
-                  variant="secondary"
-                  onClick={() => {
-                    setTemplateToEdit({
-                      value: field.value,
-                      displayName: 'event trigger',
-                      name: field.name,
-                    });
-                  }}
-                />
-              </div>
-              {templateToEdit?.['name'] === field.name && (
-                <WebhooksTemplateEditor
-                  id={webhookId}
-                  handleSubmit={(value) => {
-                    field.onChange(value);
-                    setTemplateToEdit(undefined);
-                  }}
-                  onHide={() => setTemplateToEdit(undefined)}
-                  template={templateToEdit}
-                />
-              )}
-            </>
-          )}
-        />
-      )}
-
+      <Controller
+        control={control}
+        name="httpMethod"
+        rules={{
+          required: 'HTTP method is required',
+        }}
+        render={({ field }) => (
+          <Field
+            key="httpMethod"
+            invalid={Boolean(formState.errors.httpMethod)}
+            error={formState.errors.httpMethod?.message}
+            label={
+              <Label>
+                <span>HTTP method</span>&nbsp;
+                <Tooltip content="Some description" placement="right">
+                  <Icon name="info-circle" className={styles.infoIcon} />
+                </Tooltip>
+              </Label>
+            }
+            className={styles.selectField}
+          >
+            <Select
+              menuShouldPortal
+              options={HTTP_METHOD_OPTIONS}
+              placeholder="Select HTTP method"
+              value={field.value}
+              onChange={({ value }) => {
+                field.onChange(value);
+              }}
+            />
+          </Field>
+        )}
+      />
       <Controller
         control={control}
         name="forwardedDataTemplate"
@@ -181,6 +173,61 @@ export const OutgoingWebhookFormFields: FC<OutgoingWebhookFormFieldsProps> = ({ 
           </VerticalGroup>
         )}
       />
+      <div className={styles.triggerTemplateWrapper}>
+        <div className={cn(styles.switcherFieldWrapper, styles.addTriggerTemplate)}>
+          <Controller
+            control={control}
+            name="triggerTemplateToogle"
+            render={({ field: { value, onChange } }) => <Switch value={value} onChange={() => onChange(!value)} />}
+          />
+          <Label className={styles.switcherLabel}>
+            <span>Add trigger template</span>
+            <Tooltip content="Some description" placement="right">
+              <Icon name="info-circle" className={styles.infoIcon} />
+            </Tooltip>
+          </Label>
+        </div>
+        {showTriggerTemplate && (
+          <Controller
+            control={control}
+            name="triggerTemplate"
+            render={({ field }) => (
+              <>
+                <MonacoEditor
+                  {...field}
+                  data={{}}
+                  showLineNumbers={false}
+                  monacoOptions={MONACO_READONLY_CONFIG}
+                  onChange={field.onChange}
+                />
+                <Button
+                  icon="edit"
+                  variant="secondary"
+                  className={styles.editTriggerTemplateBtn}
+                  onClick={() => {
+                    setTemplateToEdit({
+                      value: field.value,
+                      displayName: 'outgoing webhook',
+                      name: field.name,
+                    });
+                  }}
+                />
+                {templateToEdit?.['name'] === field.name && (
+                  <WebhooksTemplateEditor
+                    id={webhookId}
+                    handleSubmit={(value) => {
+                      field.onChange(value);
+                      setTemplateToEdit(undefined);
+                    }}
+                    onHide={() => setTemplateToEdit(undefined)}
+                    template={templateToEdit}
+                  />
+                )}
+              </>
+            )}
+          />
+        )}
+      </div>
     </VerticalGroup>
   );
 };

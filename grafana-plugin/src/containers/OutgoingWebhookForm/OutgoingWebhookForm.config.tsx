@@ -4,14 +4,15 @@ import { SelectableValue } from '@grafana/data';
 import Emoji from 'react-emoji-render';
 
 import { FormItem, FormItemType } from 'components/GForm/GForm.types';
+import { AlertReceiveChannelStore } from 'models/alert_receive_channel/alert_receive_channel';
+import { AlertReceiveChannelHelper } from 'models/alert_receive_channel/alert_receive_channel.helpers';
+import { GrafanaTeamStore } from 'models/grafana_team/grafana_team';
 import {
+  HTTP_METHOD_OPTIONS,
   OutgoingWebhookPreset,
   WebhookTriggerType,
   WEBHOOK_TRIGGGER_TYPE_OPTIONS,
 } from 'models/outgoing_webhook/outgoing_webhook.types';
-import { AlertReceiveChannelStore } from 'models/alert_receive_channel/alert_receive_channel';
-import { AlertReceiveChannelHelper } from 'models/alert_receive_channel/alert_receive_channel.helpers';
-import { GrafanaTeamStore } from 'models/grafana_team/grafana_team';
 import { generateAssignToTeamInputDescription } from 'utils/consts';
 
 import { WebhookFormFieldName } from './OutgoingWebhookForm.types';
@@ -80,32 +81,7 @@ export function createForm({
         type: FormItemType.Select,
         extra: {
           placeholder: 'Choose (Required)',
-          options: [
-            {
-              value: 'GET',
-              label: 'GET',
-            },
-            {
-              value: 'POST',
-              label: 'POST',
-            },
-            {
-              value: 'PUT',
-              label: 'PUT',
-            },
-            {
-              value: 'PATCH',
-              label: 'PATCH',
-            },
-            {
-              value: 'DELETE',
-              label: 'DELETE',
-            },
-            {
-              value: 'OPTIONS',
-              label: 'OPTIONS',
-            },
-          ],
+          options: HTTP_METHOD_OPTIONS,
         },
         isHidden: (data) => !isPresetFieldVisible(data.preset, presets, WebhookFormFieldName.HttpMethod),
         normalize: (value) => value,

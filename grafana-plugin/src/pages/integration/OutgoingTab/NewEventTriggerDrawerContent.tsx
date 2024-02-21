@@ -7,9 +7,9 @@ import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/W
 import { UserActions } from 'utils/authorization/authorization';
 import { useCommonStyles } from 'utils/hooks';
 
-import { EventTriggerFormFields } from './OutgoingWebhookFormFields';
 import { getStyles } from './OutgoingTab.styles';
 import { FormValues } from './OutgoingTab.types';
+import { OutgoingWebhookFormFields } from './OutgoingWebhookFormFields';
 
 interface NewEventTriggerDrawerContentProps {
   closeDrawer: () => void;
@@ -26,7 +26,7 @@ export const NewEventTriggerDrawerContent: FC<NewEventTriggerDrawerContentProps>
       <form onSubmit={formMethods.handleSubmit(onSubmit)} className={styles.form}>
         <VerticalGroup justify="space-between">
           <div className={styles.formFieldsWrapper}>
-            <EventTriggerFormFields webhookId="new" />
+            <OutgoingWebhookFormFields webhookId="new" />
           </div>
           <div className={commonStyles.bottomDrawerButtons}>
             <HorizontalGroup justify="flex-end">

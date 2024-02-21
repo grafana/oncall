@@ -1,41 +1,32 @@
 import React from 'react';
 
-import { useStyles2, Input, IconButton, Button, Drawer, useTheme2, Badge } from '@grafana/ui';
+import { useStyles2, Input, IconButton, Button, Drawer, Badge } from '@grafana/ui';
 
 import CopyToClipboardIcon from 'components/CopyToClipboardIcon/CopyToClipboardIcon';
-import { HamburgerContextMenu } from 'components/HamburgerContextMenu/HamburgerContextMenu';
 import { IntegrationCollapsibleTreeView } from 'components/IntegrationCollapsibleTreeView/IntegrationCollapsibleTreeView';
 import { IntegrationBlock } from 'components/Integrations/IntegrationBlock';
 import { IntegrationTag } from 'components/Integrations/IntegrationTag';
-import { Text } from 'components/Text/Text';
-import { UserActions } from 'utils/authorization/authorization';
 import { useDrawer } from 'utils/hooks';
 
-import { OutgoingWebhookDetailsDrawerContent } from './OutgoingWebhookDetailsDrawerContent';
-import { OutgoingWebhooksTable } from './OutgoingWebhooksTable';
 import { NewEventTriggerDrawerContent } from './NewEventTriggerDrawerContent';
+import { OtherIntegrationsTable } from './OtherIntegrationsTable';
 import { getStyles } from './OutgoingTab.styles';
 import { OutgoingTabDrawerKey } from './OutgoingTab.types';
-import { UrlSettingsDrawerContent } from './UrlSettingsDrawerContent';
-import { OtherIntegrationsTable } from './OtherIntegrationsTable';
+import { OutgoingWebhookDetailsDrawerContent } from './OutgoingWebhookDetailsDrawerContent';
+import { OutgoingWebhooksTable } from './OutgoingWebhooksTable';
 
 export const OutgoingTab = () => {
   const { openDrawer, closeDrawer, getIsDrawerOpened } = useDrawer<OutgoingTabDrawerKey>();
 
   return (
     <>
-      {getIsDrawerOpened('urlSettings') && (
-        <Drawer title="Outgoing URL Settings" onClose={closeDrawer} width="640px">
-          <UrlSettingsDrawerContent closeDrawer={closeDrawer} />
-        </Drawer>
-      )}
-      {getIsDrawerOpened('triggerDetails') && (
+      {getIsDrawerOpened('webhookDetails') && (
         <Drawer title="Outgoing webhook details" onClose={closeDrawer} width="640px">
           <OutgoingWebhookDetailsDrawerContent closeDrawer={closeDrawer} />
         </Drawer>
       )}
-      {getIsDrawerOpened('newEventTrigger') && (
-        <Drawer title="New event trigger" onClose={closeDrawer} width="640px">
+      {getIsDrawerOpened('newOutgoingWebhook') && (
+        <Drawer title="New Outgoing Webhook" onClose={closeDrawer} width="640px">
           <NewEventTriggerDrawerContent closeDrawer={closeDrawer} />
         </Drawer>
       )}
@@ -103,7 +94,6 @@ const Connection = ({ openDrawer }: { openDrawer: (key: OutgoingTabDrawerKey) =>
               variant="secondary"
               name="cog"
               aria-label="Open ServiceNow configuration"
-              onClick={() => openDrawer('triggerDetails')}
               className={styles.openConfigurationBtn}
             />
           </div>
@@ -115,5 +105,5 @@ const Connection = ({ openDrawer }: { openDrawer: (key: OutgoingTabDrawerKey) =>
 };
 
 const AddOutgoingWebhook = ({ openDrawer }: { openDrawer: (key: OutgoingTabDrawerKey) => void }) => (
-  <Button onClick={() => openDrawer('newEventTrigger')}>Add webhook</Button>
+  <Button onClick={() => openDrawer('newOutgoingWebhook')}>Add webhook</Button>
 );

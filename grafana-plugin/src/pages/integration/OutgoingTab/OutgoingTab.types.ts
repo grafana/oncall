@@ -1,4 +1,4 @@
-export type OutgoingTabDrawerKey = 'urlSettings' | 'triggerDetails' | 'newEventTrigger';
+export type OutgoingTabDrawerKey = 'webhookDetails' | 'newOutgoingWebhook';
 
 export const TriggerDetailsQueryStringKey = {
   ActiveTab: 'activeEventTriggerDrawerTab',
@@ -14,6 +14,8 @@ export type TriggerDetailsTab = (typeof TriggerDetailsTab)[keyof typeof TriggerD
 export interface FormValues {
   triggerType: string;
   isEnabled?: boolean;
+  url: string;
+  httpMethod: string;
   triggerTemplateToogle?: boolean;
   triggerTemplate?: string;
   forwardedDataTemplateToogle?: boolean;

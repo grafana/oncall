@@ -10,7 +10,9 @@ import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/W
 import { isUserActionAllowed, UserAction } from 'utils/authorization/authorization';
 
 interface HamburgerContextMenuProps {
-  items: Array<{ onClick?: () => void; label: ReactNode; requiredPermission?: UserAction } | 'divider'>;
+  items: Array<
+    { onClick?: () => void; label: ReactNode; requiredPermission?: UserAction; hidden?: boolean } | 'divider'
+  >;
   hamburgerIconClassName?: string;
 }
 
@@ -24,6 +26,8 @@ export const HamburgerContextMenu: FC<HamburgerContextMenuProps> = ({ items, ham
           {items.map((item, idx) => {
             if (item === 'divider') {
               return <div key="line-break" className="thin-line-break" />;
+            } else if (item.hidden) {
+              return null;
             }
 
             return item.requiredPermission ? (

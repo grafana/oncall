@@ -59,7 +59,7 @@ export const WebhookLastEventTimestamp = ({
         tooltip="Go to event details"
         variant="secondary"
         className={styles.eventDetailsIconButton}
-        onClick={() => openDrawer('triggerDetails')}
+        onClick={() => openDrawer('webhookDetails')}
       />
     </HorizontalGroup>
   );

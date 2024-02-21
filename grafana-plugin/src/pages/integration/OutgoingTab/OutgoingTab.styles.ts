@@ -26,11 +26,6 @@ export const getStyles = (theme: GrafanaTheme2) => ({
     display: 'flex',
     width: '100%',
   }),
-  monacoEditorWrapper: css({
-    display: 'flex',
-    width: '100%',
-    gap: '6px',
-  }),
   switcherFieldWrapper: css({
     display: 'flex',
     gap: '8px',
@@ -54,10 +49,22 @@ export const getStyles = (theme: GrafanaTheme2) => ({
     background: theme.colors.secondary.shade,
   }),
   outgoingWebhooksTable: css({
-    marginBottom: '24px',
+    margin: '24px 0',
   }),
   backsyncColumn: css({
     display: 'flex',
     justifyContent: 'flex-end',
+  }),
+  triggerTemplateWrapper: css({
+    position: 'relative',
+    width: '100%',
+  }),
+  addTriggerTemplate: css({
+    marginBottom: '16px',
+  }),
+  editTriggerTemplateBtn: css({
+    position: 'absolute',
+    top: '-8px',
+    right: 0,
   }),
 });

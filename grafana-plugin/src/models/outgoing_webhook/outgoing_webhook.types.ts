@@ -93,3 +93,30 @@ export const WEBHOOK_TRIGGGER_TYPE_OPTIONS = [
     label: WebhookTriggerType.Unacknowledged.value,
   },
 ];
+
+export const HTTP_METHOD_OPTIONS = [
+  {
+    value: 'GET',
+    label: 'GET',
+  },
+  {
+    value: 'POST',
+    label: 'POST',
+  },
+  {
+    value: 'PUT',
+    label: 'PUT',
+  },
+  {
+    value: 'PATCH',
+    label: 'PATCH',
+  },
+  {
+    value: 'DELETE',
+    label: 'DELETE',
+  },
+  {
+    value: 'OPTIONS',
+    label: 'OPTIONS',
+  },
+];
