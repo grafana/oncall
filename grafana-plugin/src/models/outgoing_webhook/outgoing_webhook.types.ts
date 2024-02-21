@@ -52,6 +52,7 @@ export const WebhookTriggerType = {
   Unsilenced: new KeyValuePair('5', 'Unsilenced'),
   Unresolved: new KeyValuePair('6', 'Unresolved'),
   Unacknowledged: new KeyValuePair('7', 'Unacknowledged'),
+  AlertGroupStatusChange: new KeyValuePair('8', 'Alert Group Status Change'),
 };
 
 export const WEBHOOK_TRIGGGER_TYPE_OPTIONS = [
@@ -62,6 +63,10 @@ export const WEBHOOK_TRIGGGER_TYPE_OPTIONS = [
   {
     value: WebhookTriggerType.AlertGroupCreated.key,
     label: WebhookTriggerType.AlertGroupCreated.value,
+  },
+  {
+    value: WebhookTriggerType.AlertGroupStatusChange.key,
+    label: WebhookTriggerType.AlertGroupStatusChange.value,
   },
   {
     value: WebhookTriggerType.Acknowledged.key,
