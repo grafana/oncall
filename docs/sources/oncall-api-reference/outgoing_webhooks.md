@@ -143,7 +143,7 @@ The above command returns JSON structured in the following way:
   "forward_all": true,
   "http_method": "POST",
   "trigger_type": "resolve",
-  "integration_filter": []
+  "integration_filter": null
 }
 ```
 
@@ -177,7 +177,7 @@ The above command returns JSON structured in the following way:
   "forward_all": true,
   "http_method": "POST",
   "trigger_type": "resolve",
-  "integration_filter": []
+  "integration_filter": null
 }
 ```
 

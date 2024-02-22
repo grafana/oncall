@@ -37,7 +37,7 @@ def test_get_custom_actions(make_organization_and_user_with_token, make_custom_w
                 "headers": custom_action.headers,
                 "http_method": custom_action.http_method,
                 "trigger_type": Webhook.PUBLIC_TRIGGER_TYPES_MAP[custom_action.trigger_type],
-                "integration_filter": [i.public_primary_key for i in custom_action.filtered_integrations.all()],
+                "integration_filter": [i.public_primary_key for i in custom_action.filtered_integrations.all()] or None,
             }
         ],
         "current_page_number": 1,
@@ -83,7 +83,7 @@ def test_get_custom_actions_filter_by_name(
                 "headers": custom_action.headers,
                 "http_method": custom_action.http_method,
                 "trigger_type": Webhook.PUBLIC_TRIGGER_TYPES_MAP[custom_action.trigger_type],
-                "integration_filter": [i.public_primary_key for i in custom_action.filtered_integrations.all()],
+                "integration_filter": [i.public_primary_key for i in custom_action.filtered_integrations.all()] or None,
             }
         ],
         "current_page_number": 1,
@@ -152,7 +152,7 @@ def test_get_custom_action(
         "headers": custom_action.headers,
         "http_method": custom_action.http_method,
         "trigger_type": Webhook.PUBLIC_TRIGGER_TYPES_MAP[custom_action.trigger_type],
-        "integration_filter": [i.public_primary_key for i in custom_action.filtered_integrations.all()],
+        "integration_filter": [i.public_primary_key for i in custom_action.filtered_integrations.all()] or None,
     }
 
     assert response.status_code == status.HTTP_200_OK
@@ -217,7 +217,7 @@ def test_create_custom_action(make_organization_and_user_with_token, data):
         "headers": custom_action.headers,
         "http_method": custom_action.http_method,
         "trigger_type": Webhook.PUBLIC_TRIGGER_TYPES_MAP[custom_action.trigger_type],
-        "integration_filter": [i.public_primary_key for i in custom_action.filtered_integrations.all()],
+        "integration_filter": [i.public_primary_key for i in custom_action.filtered_integrations.all()] or None,
     }
 
     assert response.status_code == status.HTTP_201_CREATED
@@ -260,7 +260,7 @@ def test_create_custom_action_nested_data(make_organization_and_user_with_token)
         "headers": custom_action.headers,
         "http_method": custom_action.http_method,
         "trigger_type": Webhook.PUBLIC_TRIGGER_TYPES_MAP[custom_action.trigger_type],
-        "integration_filter": [i.public_primary_key for i in custom_action.filtered_integrations.all()],
+        "integration_filter": [i.public_primary_key for i in custom_action.filtered_integrations.all()] or None,
     }
 
     assert response.status_code == status.HTTP_201_CREATED
@@ -303,7 +303,7 @@ def test_create_custom_action_valid_after_render(make_organization_and_user_with
         "headers": custom_action.headers,
         "http_method": custom_action.http_method,
         "trigger_type": Webhook.PUBLIC_TRIGGER_TYPES_MAP[custom_action.trigger_type],
-        "integration_filter": [i.public_primary_key for i in custom_action.filtered_integrations.all()],
+        "integration_filter": [i.public_primary_key for i in custom_action.filtered_integrations.all()] or None,
     }
 
     assert response.status_code == status.HTTP_201_CREATED
@@ -346,7 +346,7 @@ def test_create_custom_action_valid_after_render_use_all_data(make_organization_
         "headers": custom_action.headers,
         "http_method": custom_action.http_method,
         "trigger_type": Webhook.PUBLIC_TRIGGER_TYPES_MAP[custom_action.trigger_type],
-        "integration_filter": [i.public_primary_key for i in custom_action.filtered_integrations.all()],
+        "integration_filter": [i.public_primary_key for i in custom_action.filtered_integrations.all()] or None,
     }
 
     assert response.status_code == status.HTTP_201_CREATED
@@ -419,7 +419,7 @@ def test_update_custom_action(
         "headers": custom_action.headers,
         "http_method": custom_action.http_method,
         "trigger_type": Webhook.PUBLIC_TRIGGER_TYPES_MAP[custom_action.trigger_type],
-        "integration_filter": [i.public_primary_key for i in custom_action.filtered_integrations.all()],
+        "integration_filter": [i.public_primary_key for i in custom_action.filtered_integrations.all()] or None,
     }
 
     assert response.status_code == status.HTTP_200_OK

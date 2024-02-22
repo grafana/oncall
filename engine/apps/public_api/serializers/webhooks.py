@@ -100,6 +100,8 @@ class WebhookCreateSerializer(serializers.ModelSerializer):
             result["password"] = WEBHOOK_FIELD_PLACEHOLDER
         if instance.authorization_header:
             result["authorization_header"] = WEBHOOK_FIELD_PLACEHOLDER
+        if instance.filtered_integrations.count() == 0:
+            result["integration_filter"] = None
         return result
 
     def to_internal_value(self, data):
@@ -108,6 +110,8 @@ class WebhookCreateSerializer(serializers.ModelSerializer):
             data["password"] = webhook.password
         if data.get("authorization_header") == WEBHOOK_FIELD_PLACEHOLDER:
             data["authorization_header"] = webhook.authorization_header
+        if not data.get("integration_filter"):
+            data["integration_filter"] = []
         return super().to_internal_value(data)
 
     def _validate_template_field(self, template):

@@ -26,7 +26,7 @@ def _get_expected_result(webhook):
         "headers": webhook.headers,
         "http_method": webhook.http_method,
         "trigger_type": Webhook.PUBLIC_TRIGGER_TYPES_MAP[webhook.trigger_type],
-        "integration_filter": [i.public_primary_key for i in webhook.filtered_integrations.all()],
+        "integration_filter": [i.public_primary_key for i in webhook.filtered_integrations.all()] or None,
         "preset": webhook.preset,
     }
 
@@ -193,7 +193,7 @@ def test_create_webhook_optional_fields(make_organization_and_user_with_token, o
         "headers": optional_value,
         "forward_all": True,
         "is_webhook_enabled": True,
-        "integration_filter": [],
+        "integration_filter": None,
     }
 
     response = client.post(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
@@ -348,10 +348,6 @@ def test_webhook_validate_integration_filters(
     response = client.put(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
     assert response.status_code == 400
 
-    data["integration_filter"] = None
-    response = client.put(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
-    assert response.status_code == 400
-
     data["integration_filter"] = [alert_receive_channel.public_primary_key]
     response = client.put(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
     webhook.refresh_from_db()
@@ -363,7 +359,14 @@ def test_webhook_validate_integration_filters(
     response = client.put(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
     webhook.refresh_from_db()
     assert response.status_code == 200
-    assert response.data["integration_filter"] == data["integration_filter"]
+    assert response.data["integration_filter"] is None
+    assert list(webhook.filtered_integrations.all()) == []
+
+    data["integration_filter"] = None
+    response = client.put(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
+    webhook.refresh_from_db()
+    assert response.status_code == 200
+    assert response.data["integration_filter"] is None
     assert list(webhook.filtered_integrations.all()) == []
 
 
