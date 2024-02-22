@@ -74,7 +74,7 @@ const configureOnCallPlugin = async (page: Page): Promise<void> => {
    * go to the oncall plugin configuration page and wait for the page to be loaded
    */
   await goToGrafanaPage(page, '/plugins/grafana-oncall-app');
-  await page.waitForTimeout(2000);
+  await page.waitForTimeout(3000);
 
   // if plugin is configured, go to OnCall
   const isConfigured = (await page.getByText('Connected to OnCall').count()) >= 1;
