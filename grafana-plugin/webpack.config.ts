@@ -46,10 +46,10 @@ const config = async (env): Promise<Configuration> => {
         use: CustomizeRule.Merge,
       },
     },
-    plugins: CustomizeRule.Merge,
     watchOptions: {
       use: CustomizeRule.Merge,
     },
+    plugins: CustomizeRule.Merge,
   })(baseConfig, customConfig);
 };
 
