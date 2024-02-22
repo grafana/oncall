@@ -20,7 +20,7 @@ import { useHistory } from 'react-router-dom';
 
 import { Collapse } from 'components/Collapse/Collapse';
 import { Block } from 'components/GBlock/Block';
-import { GForm, CustomFieldSectionRendererProps } from 'components/GForm/GForm';
+import { CustomFieldSectionRendererProps } from 'components/GForm/GForm';
 import { IntegrationLogo } from 'components/IntegrationLogo/IntegrationLogo';
 import { PluginLink } from 'components/PluginLink/PluginLink';
 import { Text } from 'components/Text/Text';
@@ -35,6 +35,7 @@ import { UserActions } from 'utils/authorization/authorization';
 import { PLUGIN_ROOT } from 'utils/consts';
 import { openErrorNotification } from 'utils/utils';
 
+import { HookForm } from './HookForm';
 import { getForm } from './IntegrationForm.config';
 import { prepareForEdit } from './IntegrationForm.helpers';
 import styles from './IntegrationForm.module.scss';
@@ -108,6 +109,8 @@ export const IntegrationForm = observer((props: IntegrationFormProps) => {
     extraGFormProps.customFieldSectionRenderer = CustomFieldSectionRenderer;
   }
 
+  console.log('Form DISPLAY []');
+
   return (
     <>
       {showIntegrarionsListDrawer && (
@@ -137,7 +140,7 @@ export const IntegrationForm = observer((props: IntegrationFormProps) => {
         <Drawer scrollableContent title={getTitle()} onClose={onHide} closeOnMaskClick={false} width="640px">
           <div className={cx('content')}>
             <VerticalGroup>
-              <GForm form={form} data={data} onSubmit={handleSubmit} {...extraGFormProps} />
+              <HookForm />
 
               {store.hasFeature(AppFeature.Labels) && (
                 <div className={cx('labels')}>
@@ -163,31 +166,7 @@ export const IntegrationForm = observer((props: IntegrationFormProps) => {
                 </div>
               )}
 
-              {isTableView && <HowTheIntegrationWorks selectedOption={selectedOption} />}
-
-              <HorizontalGroup justify="flex-end">
-                {id === 'new' ? (
-                  <Button
-                    variant="secondary"
-                    onClick={() => {
-                      setShowNewIntegrationForm(false);
-                      setShowIntegrarionsListDrawer(true);
-                    }}
-                  >
-                    Back
-                  </Button>
-                ) : (
-                  <Button variant="secondary" onClick={onHide}>
-                    Cancel
-                  </Button>
-                )}
-
-                <WithPermissionControlTooltip userAction={UserActions.SchedulesWrite}>
-                  <Button form={form.name} type="submit" data-testid="update-integration-button">
-                    {id === 'new' ? 'Create' : 'Update'} Integration
-                  </Button>
-                </WithPermissionControlTooltip>
-              </HorizontalGroup>
+              {/* {isTableView && <HowTheIntegrationWorks selectedOption={selectedOption} />} */}
             </VerticalGroup>
           </div>
         </Drawer>
