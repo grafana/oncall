@@ -20,9 +20,7 @@ export const NewOutgoingWebhookDrawerContent: FC<NewOutgoingWebhookDrawerContent
   const commonStyles = useCommonStyles();
   const formMethods = useForm<FormValues>({ mode: 'all' });
 
-  const onSubmit = (values) => {
-    console.log(values);
-  };
+  const onSubmit = () => {};
 
   return (
     <FormProvider {...formMethods}>

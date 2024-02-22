@@ -392,7 +392,7 @@ interface WebhookTabsProps {
 }
 
 const WebhookTabsContent: React.FC<WebhookTabsProps> = observer(
-  ({ id, action, activeTab, data, onHide, onUpdate, onDelete, formElement }) => {
+  ({ id, action, activeTab, data, onHide, onDelete, formElement }) => {
     const [confirmationModal, setConfirmationModal] = useState<ConfirmModalProps>(undefined);
     const { outgoingWebhookStore, hasFeature, grafanaTeamStore, alertReceiveChannelStore } = useStore();
     const form = createForm({

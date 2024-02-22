@@ -105,9 +105,7 @@ const OutgoingWebhookContextMenu = ({
           {
             onClick: () => {
               openModal({
-                onConfirm: () => {
-                  console.log('TODO: disable webhook');
-                },
+                onConfirm: () => {},
                 title: `Are you sure you want to ${
                   webhook.is_webhook_enabled ? 'disable' : 'enable'
                 } outgoing webhook?`,
@@ -136,9 +134,7 @@ const OutgoingWebhookContextMenu = ({
           {
             onClick: () => {
               openModal({
-                onConfirm: () => {
-                  console.log('TODO: delete webhook');
-                },
+                onConfirm: () => {},
                 title: `Are you sure you want to delete outgoing webhook?`,
               });
             },
