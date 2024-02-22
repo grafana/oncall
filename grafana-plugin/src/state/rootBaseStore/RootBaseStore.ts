@@ -1,4 +1,3 @@
-import { locationService } from '@grafana/runtime';
 import { contextSrv } from 'grafana/app/core/core';
 import { action, computed, makeObservable, observable, runInAction } from 'mobx';
 import qs from 'query-string';
@@ -40,7 +39,6 @@ import {
   getOnCallApiUrl,
   GRAFANA_LICENSE_CLOUD,
   GRAFANA_LICENSE_OSS,
-  PLUGIN_ROOT,
 } from 'utils/consts';
 import { FaroHelper } from 'utils/faro';
 
