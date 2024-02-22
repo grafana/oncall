@@ -37,6 +37,8 @@ def test_get_webhooks(make_organization_and_user_with_token, make_custom_webhook
     client = APIClient()
 
     webhook = make_custom_webhook(organization=organization)
+    # connected integration webhooks are not included
+    make_custom_webhook(organization=organization, is_from_connected_integration=True)
 
     url = reverse("api-public:webhooks-list")
 
