@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+
+- Add manually run task to cleanup unused integrations @mderynck ([#3941](https://github.com/grafana/oncall/pull/3941))
+
 ### Changed
 
 - Change plugin build to use new packages instead of deprecated grafana-toolkit @maskin25 ([#3837](https://github.com/grafana/oncall/pull/3837))
