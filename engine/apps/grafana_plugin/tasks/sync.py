@@ -152,8 +152,8 @@ def cleanup_empty_deleted_integrations(organization_pk, dry_run=True):
         return
 
     integrations_qs = (
-        AlertReceiveChannel.objects_with_deleted.filter(deleted_at__isnull=True, organization=organization)
-        .annotate(num_alert_groups=Count("channel"))
+        AlertReceiveChannel.objects_with_deleted.filter(deleted_at__isnull=False, organization=organization)
+        .annotate(num_alert_groups=Count("alert_groups"))
         .filter(num_alert_groups=0)
     )
     logger.info(f"Found count={len(integrations_qs)} integrations that are both empty and deleted")
