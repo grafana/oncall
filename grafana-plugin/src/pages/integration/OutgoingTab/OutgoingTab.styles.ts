@@ -67,4 +67,7 @@ export const getStyles = (theme: GrafanaTheme2) => ({
     top: '-8px',
     right: 0,
   }),
+  searchIntegrationsInput: css({
+    marginBottom: '24px',
+  }),
 });
