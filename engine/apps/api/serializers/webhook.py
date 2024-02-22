@@ -7,7 +7,7 @@ from apps.api.serializers.labels import LabelsSerializerMixin
 from apps.webhooks.models import Webhook, WebhookResponse
 from apps.webhooks.models.webhook import PUBLIC_WEBHOOK_HTTP_METHODS, WEBHOOK_FIELD_PLACEHOLDER
 from apps.webhooks.presets.preset_options import WebhookPresetOptions
-from common.api_helpers.custom_fields import TeamPrimaryKeyRelatedField
+from common.api_helpers.custom_fields import IntegrationFilteredByOrganizationField, TeamPrimaryKeyRelatedField
 from common.api_helpers.utils import CurrentOrganizationDefault, CurrentUserDefault
 from common.jinja_templater import apply_jinja_template
 from common.jinja_templater.apply_jinja_template import JinjaTemplateError, JinjaTemplateWarning
@@ -37,6 +37,9 @@ class WebhookSerializer(LabelsSerializerMixin, serializers.ModelSerializer):
     last_response_log = serializers.SerializerMethodField()
     trigger_type = serializers.CharField(allow_null=True)
     trigger_type_name = serializers.SerializerMethodField()
+    integration_filter = IntegrationFilteredByOrganizationField(
+        source="filtered_integrations", many=True, allow_null=True, required=False
+    )
 
     PREFETCH_RELATED = ["labels", "labels__key", "labels__value"]
 
