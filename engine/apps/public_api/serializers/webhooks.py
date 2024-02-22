@@ -54,7 +54,7 @@ class WebhookCreateSerializer(serializers.ModelSerializer):
     user = serializers.HiddenField(default=CurrentUserDefault())
     trigger_type = WebhookTriggerTypeField()
     integration_filter = IntegrationFilteredByOrganizationField(
-        source="filtered_integrations", many=True, allow_null=True, required=False
+        source="filtered_integrations", many=True, required=False
     )
 
     class Meta:

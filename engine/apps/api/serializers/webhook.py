@@ -38,7 +38,7 @@ class WebhookSerializer(LabelsSerializerMixin, serializers.ModelSerializer):
     trigger_type = serializers.CharField(allow_null=True)
     trigger_type_name = serializers.SerializerMethodField()
     integration_filter = IntegrationFilteredByOrganizationField(
-        source="filtered_integrations", many=True, allow_null=True, required=False
+        source="filtered_integrations", many=True, required=False
     )
 
     PREFETCH_RELATED = ["labels", "labels__key", "labels__value"]
