@@ -1,5 +1,6 @@
 import { OnCallAppPluginMeta } from 'types';
 
+//@ts-ignore
 import plugin from '../../package.json'; // eslint-disable-line
 
 // Navbar

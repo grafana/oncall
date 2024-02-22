@@ -1,6 +1,11 @@
+// force timezone to UTC to allow tests to work regardless of local timezone
+// generally used by snapshots, but can affect specific tests
+process.env.TZ = 'UTC';
+
 const esModules = ['@grafana', 'uplot', 'ol', 'd3', 'react-colorful', 'uuid', 'openapi-fetch'].join('|');
 
 module.exports = {
+  ...require('./.config/jest.config'),
   testEnvironment: 'jsdom',
 
   moduleDirectories: ['node_modules', 'src'],
@@ -23,4 +28,20 @@ module.exports = {
 
   testTimeout: 10000,
   testPathIgnorePatterns: ['/node_modules/', '/e2e-tests/'],
+  transform: {
+    '^.+\\.(t|j)sx?$': [
+      '@swc/jest',
+      {
+        sourceMaps: 'inline',
+        jsc: {
+          parser: {
+            syntax: 'typescript',
+            tsx: true,
+            decorators: true,
+            dynamicImport: true,
+          },
+        },
+      },
+    ],
+  },
 };

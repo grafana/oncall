@@ -1491,5 +1491,6 @@
   "timezone": "browser",
   "title": "OnCall Insights",
   "version": 2,
+  "revision": 2,
   "weekStart": ""
 }
