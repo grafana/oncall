@@ -233,7 +233,6 @@ export class RootBaseStore {
            * therefore there is no need to trigger an additional/separate sync, nor poll a status
            */
           await PluginState.installPlugin();
-          locationService.push(PLUGIN_ROOT);
         } catch (e) {
           return this.setupPluginError(
             PluginState.getHumanReadableErrorFromOnCallError(e, this.onCallApiUrl, 'install')
