@@ -1,4 +1,5 @@
 import type { Configuration } from 'webpack';
+import LiveReloadPlugin from 'webpack-livereload-plugin';
 import { mergeWithRules, CustomizeRule } from 'webpack-merge';
 import grafanaConfig from './.config/webpack/webpack.config';
 
@@ -24,6 +25,7 @@ const config = async (env): Promise<Configuration> => {
     watchOptions: {
       ignored: ['**/node_modules/', '**/dist'],
     },
+    plugins: env.development ? [new LiveReloadPlugin({ appendScriptTag: true, useSourceHash: true })] : [],
   };
 
   return mergeWithRules({
@@ -33,6 +35,7 @@ const config = async (env): Promise<Configuration> => {
         use: CustomizeRule.Merge,
       },
     },
+    plugins: CustomizeRule.Replace,
     watchOptions: {
       use: CustomizeRule.Merge,
     },
