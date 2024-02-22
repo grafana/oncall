@@ -1,6 +1,10 @@
-import type { Configuration } from 'webpack';
+import { Configuration, DefinePlugin, EnvironmentPlugin } from 'webpack';
+import LiveReloadPlugin from 'webpack-livereload-plugin';
 import { mergeWithRules, CustomizeRule } from 'webpack-merge';
+
 import grafanaConfig from './.config/webpack/webpack.config';
+
+const dotenv = require('dotenv');
 
 const config = async (env): Promise<Configuration> => {
   const baseConfig = await grafanaConfig(env);
@@ -24,6 +28,15 @@ const config = async (env): Promise<Configuration> => {
     watchOptions: {
       ignored: ['**/node_modules/', '**/dist'],
     },
+    plugins: [
+      new EnvironmentPlugin({
+        ONCALL_API_URL: null,
+      }),
+      new DefinePlugin({
+        'process.env': JSON.stringify(dotenv.config().parsed),
+      }),
+      ...(env.development ? [new LiveReloadPlugin({ appendScriptTag: true, useSourceHash: true })] : []),
+    ],
   };
 
   return mergeWithRules({
@@ -33,6 +46,7 @@ const config = async (env): Promise<Configuration> => {
         use: CustomizeRule.Merge,
       },
     },
+    plugins: CustomizeRule.Replace,
     watchOptions: {
       use: CustomizeRule.Merge,
     },
