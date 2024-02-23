@@ -13,7 +13,15 @@ import {
   VerticalGroup,
 } from '@grafana/ui';
 import React, { useEffect, useReducer, useRef, useState } from 'react';
-import { Control, Controller, FieldError, useForm } from 'react-hook-form';
+import {
+  Control,
+  Controller,
+  FieldError,
+  FieldErrors,
+  UseFormGetValues,
+  UseFormSetValue,
+  useForm,
+} from 'react-hook-form';
 
 import styles from 'containers/IntegrationForm/HookForm.module.scss';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
@@ -69,6 +77,8 @@ export const HookForm = observer(({ navigateToAlertGroupLabels }: HookFormProps)
   const {
     control,
     handleSubmit,
+    getValues,
+    setValue,
     formState: { errors },
   } = useForm(); // add { formValues } if def values needed
 
@@ -85,6 +95,8 @@ export const HookForm = observer(({ navigateToAlertGroupLabels }: HookFormProps)
     id === 'new'
       ? { integration: selectedOption?.value, team: userStore.currentUser?.current_team, labels: [] }
       : prepareForEdit(alertReceiveChannelStore.items[id]);
+
+  console.log(getValues());
 
   return (
     <form onSubmit={handleSubmit(onFormSubmit)} className={cx('form')}>
@@ -159,7 +171,7 @@ export const HookForm = observer(({ navigateToAlertGroupLabels }: HookFormProps)
         )}
       />
 
-      <GrafanaContactPoint control={control} errors={errors} />
+      <GrafanaContactPoint control={control} getValues={getValues} setValue={setValue} errors={errors} />
 
       {store.hasFeature(AppFeature.Labels) && (
         <div className={cx('labels')}>
@@ -223,10 +235,13 @@ interface GrafanaContactPointState {
 
 interface GrafanaContactPointProps {
   control: Control;
-  errors: FieldError;
+  errors: FieldErrors;
+  // TODO: add interface typing
+  getValues: UseFormGetValues<any>;
+  setValue: UseFormSetValue<any>;
 }
 
-const GrafanaContactPoint = observer(({ control, errors }) => {
+const GrafanaContactPoint = observer(({ control, errors, getValues, setValue }: GrafanaContactPointProps) => {
   const radioOptions = [
     {
       label: 'Connect existing Contact point',
@@ -263,10 +278,11 @@ const GrafanaContactPoint = observer(({ control, errors }) => {
     }
   );
 
+  console.log({ contactPoints });
+
   useEffect(() => {
     (async function () {
       const response = await AlertReceiveChannelHelper.getGrafanaAlertingContactPoints();
-      console.log({ response });
 
       setState({
         allContactPoints: response,
@@ -275,8 +291,7 @@ const GrafanaContactPoint = observer(({ control, errors }) => {
       });
     })();
 
-    // TODO: figure out how is this converted
-    // setValue('is_existing', true);
+    setValue('IsExisting', true);
   }, []);
 
   return (
@@ -290,21 +305,28 @@ const GrafanaContactPoint = observer(({ control, errors }) => {
         </HorizontalGroup>
 
         <div className={cx('extra-fields__radio')}>
-          <RadioButtonGroup
-            options={radioOptions}
-            value={isExistingContactPoint ? 'existing' : 'new'}
-            onChange={(radioValue) => {
-              setState({
-                isExistingContactPoint: radioValue === 'existing',
-                contactPoints: [],
-                selectedAlertManagerOption: null,
-                selectedContactPointOption: null,
-              });
+          <Controller
+            name={'IsExisting'}
+            control={control}
+            render={({ field }) => (
+              <RadioButtonGroup
+                {...field}
+                options={radioOptions}
+                value={isExistingContactPoint ? 'existing' : 'new'}
+                onChange={(radioValue) => {
+                  setState({
+                    isExistingContactPoint: radioValue === 'existing',
+                    contactPoints: [],
+                    selectedAlertManagerOption: null,
+                    selectedContactPointOption: null,
+                  });
 
-              //   setValue('is_existing', radioValue === 'existing');
-              //   setValue('alert_manager', undefined);
-              //   setValue('contact_point', undefined);
-            }}
+                  setValue('IsExisting', radioValue === 'existing');
+                  setValue('AlertManager', undefined);
+                  setValue('ContactPoint', undefined);
+                }}
+              />
+            )}
           />
         </div>
 
@@ -340,7 +362,7 @@ const GrafanaContactPoint = observer(({ control, errors }) => {
                 key={'ContactPoint'}
                 placeholder="Select Contact Point"
                 invalid={!!errors['ContactPoint']}
-                error={errors['ContactPoint]?.message as string']}
+                error={errors['ContactPoint']?.message as string}
               >
                 {isExistingContactPoint ? (
                   <Select
@@ -355,9 +377,9 @@ const GrafanaContactPoint = observer(({ control, errors }) => {
                     value={selectedContactPointOption}
                     placeholder="Choose Contact Point"
                     onChange={({ target }) => {
-                      // const value = (target as HTMLInputElement).value;
-                      // setState({ selectedContactPointOption: value });
-                      // setValue('contact_point', value);
+                      const value = (target as HTMLInputElement).value;
+                      setState({ selectedContactPointOption: value });
+                      setValue('ContactPoint', value);
                     }}
                   />
                 )}
@@ -370,51 +392,26 @@ const GrafanaContactPoint = observer(({ control, errors }) => {
   );
 
   function onAlertManagerChange(option: SelectableValue<string>) {
-    // const contactPointsForCurrentOption = allContactPoints
-    //   .find((opt) => opt.uid === option.value)
-    //   .contact_points?.map((cp) => ({ value: cp, label: cp }));
-    // const newState: Partial<CustomFieldSectionRendererState> = {
-    //   selectedAlertManagerOption: option.value,
-    //   contactPoints: contactPointsForCurrentOption,
-    // };
-    // if (isExistingContactPoint) {
-    //   newState.selectedContactPointOption = null;
-    //   setValue('contact_point', undefined);
-    // }
-    // setState(newState);
-    // setValue('alert_manager', option.value);
+    const contactPointsForCurrentOption = allContactPoints
+      .find((opt) => opt.uid === option.value)
+      .contact_points?.map((cp) => ({ value: cp, label: cp }));
+
+    const newState: Partial<GrafanaContactPointState> = {
+      selectedAlertManagerOption: option.value,
+      contactPoints: contactPointsForCurrentOption,
+    };
+
+    if (isExistingContactPoint) {
+      newState.selectedContactPointOption = null;
+      setValue('ContactPoint', undefined);
+    }
+
+    setState(newState);
+    setValue('AlertManager', option.value);
   }
 
   function onContactPointChange(option: SelectableValue<string>) {
-    console.log({ option });
-
-    // setState({ selectedContactPointOption: option.value });
-    // setValue('contact_point', option.value);
+    setState({ selectedContactPointOption: option.value });
+    setValue('ContactPoint', option.value);
   }
 });
-
-// interface IFormInputs {
-//   TextField: string;
-//   MyCheckbox: boolean;
-// }
-
-// export const HookForm = () => {
-//   const { handleSubmit, control, reset } = useForm<IFormInputs>({
-//     defaultValues: {
-//       MyCheckbox: false,
-//     },
-//   });
-//   const onSubmit: SubmitHandler<IFormInputs> = (data) => console.log(data);
-
-//   return (
-//     <form onSubmit={handleSubmit(onSubmit)}>
-//       <Controller
-//         name="MyCheckbox"
-//         control={control}
-//         rules={{ required: true }}
-//         render={({ field }) => <input type="text" {...field as any} />}
-//       />
-//       <input type="submit" />
-//     </form>
-//   );
-// };
