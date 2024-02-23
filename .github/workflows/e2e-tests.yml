@@ -170,7 +170,7 @@ jobs:
           MAILSLURP_API_KEY: ${{ secrets.MAILSLURP_API_KEY }}
           BROWSERS: ${{ inputs.browsers }}
         working-directory: ./grafana-plugin
-        run: yarn test:e2e quality.test
+        run: yarn test:e2e
 
       - name: Run expensive e2e Tests
         if: inputs.run-expensive-tests
@@ -217,11 +217,13 @@ jobs:
 
       - name: Setup Pages
         uses: actions/configure-pages@v2
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v1
         with:
           # Upload entire repository
           path: ./grafana-plugin/playwright-report/
+
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
