@@ -140,31 +140,7 @@ export const IntegrationForm = observer((props: IntegrationFormProps) => {
         <Drawer scrollableContent title={getTitle()} onClose={onHide} closeOnMaskClick={false} width="640px">
           <div className={cx('content')}>
             <VerticalGroup>
-              <HookForm />
-
-              {store.hasFeature(AppFeature.Labels) && (
-                <div className={cx('labels')}>
-                  <Labels
-                    ref={labelsRef}
-                    errors={errors?.labels}
-                    value={data.labels}
-                    description={
-                      <>
-                        Labels{id === 'new' ? ' will be ' : ' '}applied to the integration and inherited by alert
-                        groups.
-                        <br />
-                        You can modify behaviour in{' '}
-                        {id === 'new' ? (
-                          'Alert group labeling'
-                        ) : (
-                          <PluginLink onClick={() => navigateToAlertGroupLabels(id)}>Alert group labeling</PluginLink>
-                        )}{' '}
-                        drawer.
-                      </>
-                    }
-                  />
-                </div>
-              )}
+              <HookForm navigateToAlertGroupLabels={navigateToAlertGroupLabels} />
 
               {/* {isTableView && <HowTheIntegrationWorks selectedOption={selectedOption} />} */}
             </VerticalGroup>

@@ -12,7 +12,7 @@ import {
   Tooltip,
   VerticalGroup,
 } from '@grafana/ui';
-import React, { useEffect, useReducer } from 'react';
+import React, { useEffect, useReducer, useRef, useState } from 'react';
 import { Control, Controller, FieldError, useForm } from 'react-hook-form';
 
 import styles from 'containers/IntegrationForm/HookForm.module.scss';
@@ -25,6 +25,11 @@ import { observer } from 'mobx-react';
 import { AlertReceiveChannelHelper } from 'models/alert_receive_channel/alert_receive_channel.helpers';
 import { Text } from 'components/Text/Text';
 import { SelectableValue } from '@grafana/data';
+import { AppFeature } from 'state/features';
+import { Labels } from 'containers/Labels/Labels';
+import { PluginLink } from 'components/PluginLink/PluginLink';
+import { ApiSchemas } from 'network/oncall-api/api.types';
+import { prepareForEdit } from './IntegrationForm.helpers';
 
 const cx = cn.bind(styles);
 
@@ -56,7 +61,11 @@ const fields: { [key in FieldKey]: Field } = {
   },
 };
 
-export const HookForm = observer(() => {
+interface HookFormProps {
+  navigateToAlertGroupLabels: (id: ApiSchemas['AlertReceiveChannel']['id']) => void;
+}
+
+export const HookForm = observer(({ navigateToAlertGroupLabels }: HookFormProps) => {
   const {
     control,
     handleSubmit,
@@ -64,9 +73,18 @@ export const HookForm = observer(() => {
   } = useForm(); // add { formValues } if def values needed
 
   const store = useStore();
-  const { grafanaTeamStore } = store;
+  const { userStore, grafanaTeamStore, alertReceiveChannelStore } = store;
+
+  const [selectedOption, setSelectedOption] = useState<ApiSchemas['AlertReceiveChannelIntegrationOptions']>(undefined);
+
+  const labelsRef = useRef(null);
 
   const id = 'new';
+
+  const data =
+    id === 'new'
+      ? { integration: selectedOption?.value, team: userStore.currentUser?.current_team, labels: [] }
+      : prepareForEdit(alertReceiveChannelStore.items[id]);
 
   return (
     <form onSubmit={handleSubmit(onFormSubmit)} className={cx('form')}>
@@ -143,23 +161,48 @@ export const HookForm = observer(() => {
 
       <GrafanaContactPoint control={control} errors={errors} />
 
-      <HorizontalGroup justify="flex-end">
-        {id === 'new' ? (
-          <Button variant="secondary" onClick={() => console.log('click')}>
-            Back
-          </Button>
-        ) : (
-          <Button variant="secondary" onClick={() => console.log('click')}>
-            Cancel
-          </Button>
-        )}
+      {store.hasFeature(AppFeature.Labels) && (
+        <div className={cx('labels')}>
+          <Labels
+            ref={labelsRef}
+            errors={errors?.labels}
+            value={data.labels}
+            description={
+              <>
+                Labels{id === 'new' ? ' will be ' : ' '}applied to the integration and inherited by alert groups.
+                <br />
+                You can modify behaviour in{' '}
+                {id === 'new' ? (
+                  'Alert group labeling'
+                ) : (
+                  <PluginLink onClick={() => navigateToAlertGroupLabels(id)}>Alert group labeling</PluginLink>
+                )}{' '}
+                drawer.
+              </>
+            }
+          />
+        </div>
+      )}
 
-        <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
-          <Button type="submit" data-testid="update-integration-button">
-            {id === 'new' ? 'Create' : 'Update'} Integration
-          </Button>
-        </WithPermissionControlTooltip>
-      </HorizontalGroup>
+      <div>
+        <HorizontalGroup justify="flex-end">
+          {id === 'new' ? (
+            <Button variant="secondary" onClick={() => console.log('click')}>
+              Back
+            </Button>
+          ) : (
+            <Button variant="secondary" onClick={() => console.log('click')}>
+              Cancel
+            </Button>
+          )}
+
+          <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
+            <Button type="submit" data-testid="update-integration-button">
+              {id === 'new' ? 'Create' : 'Update'} Integration
+            </Button>
+          </WithPermissionControlTooltip>
+        </HorizontalGroup>
+      </div>
     </form>
   );
 
@@ -223,6 +266,8 @@ const GrafanaContactPoint = observer(({ control, errors }) => {
   useEffect(() => {
     (async function () {
       const response = await AlertReceiveChannelHelper.getGrafanaAlertingContactPoints();
+      console.log({ response });
+
       setState({
         allContactPoints: response,
         dataSources: response.map((res) => ({ label: res.name, value: res.uid })),
@@ -233,8 +278,6 @@ const GrafanaContactPoint = observer(({ control, errors }) => {
     // TODO: figure out how is this converted
     // setValue('is_existing', true);
   }, []);
-
-  console.log('works');
 
   return (
     <div className={cx('extra-fields')}>
@@ -288,61 +331,57 @@ const GrafanaContactPoint = observer(({ control, errors }) => {
             )}
           />
 
-          {/* <Field invalid={!!errors['alert_manager']} error={'Alert Manager is required'}>
-            <Select
-              {...register('alert_manager', { required: true })}
-              options={dataSources}
-              onChange={onAlertManagerChange}
-              value={selectedAlertManagerOption}
-              placeholder="Select Alert Manager"
-            />
-          </Field>
-
-          <Field invalid={!!errors['contact_point']} error={'Contact Point is required'}>
-            {isExistingContactPoint ? (
-              <Select
-                {...register('contact_point', { required: true })}
-                options={contactPoints}
-                onChange={onContactPointChange}
-                value={selectedContactPointOption}
+          <Controller
+            name={'ContactPoint'}
+            control={control}
+            rules={{ required: 'Contact Point is required' }}
+            render={({ field }) => (
+              <Field
+                key={'ContactPoint'}
                 placeholder="Select Contact Point"
-              />
-            ) : (
-              <Input
-                value={selectedContactPointOption}
-                placeholder="Choose Contact Point"
-                onChange={({ target }) => {
-                  const value = (target as HTMLInputElement).value;
-                  setState({ selectedContactPointOption: value });
-                  setValue('contact_point', value);
-                }}
-              />
+                invalid={!!errors['ContactPoint']}
+                error={errors['ContactPoint]?.message as string']}
+              >
+                {isExistingContactPoint ? (
+                  <Select
+                    {...field}
+                    options={contactPoints}
+                    onChange={onContactPointChange}
+                    value={selectedContactPointOption}
+                    placeholder="Select Contact Point"
+                  />
+                ) : (
+                  <Input
+                    value={selectedContactPointOption}
+                    placeholder="Choose Contact Point"
+                    onChange={({ target }) => {
+                      // const value = (target as HTMLInputElement).value;
+                      // setState({ selectedContactPointOption: value });
+                      // setValue('contact_point', value);
+                    }}
+                  />
+                )}
+              </Field>
             )}
-          </Field> */}
+          />
         </div>
       </VerticalGroup>
     </div>
   );
 
   function onAlertManagerChange(option: SelectableValue<string>) {
-    console.log('tralala');
-
     // const contactPointsForCurrentOption = allContactPoints
     //   .find((opt) => opt.uid === option.value)
     //   .contact_points?.map((cp) => ({ value: cp, label: cp }));
-
     // const newState: Partial<CustomFieldSectionRendererState> = {
     //   selectedAlertManagerOption: option.value,
     //   contactPoints: contactPointsForCurrentOption,
     // };
-
     // if (isExistingContactPoint) {
     //   newState.selectedContactPointOption = null;
     //   setValue('contact_point', undefined);
     // }
-
     // setState(newState);
-
     // setValue('alert_manager', option.value);
   }
 
