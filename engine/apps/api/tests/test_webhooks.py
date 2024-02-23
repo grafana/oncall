@@ -32,8 +32,11 @@ def webhook_internal_api_setup(make_organization_and_user_with_plugin_token, mak
 
 
 @pytest.mark.django_db
-def test_get_list_webhooks(webhook_internal_api_setup, make_user_auth_headers):
+def test_get_list_webhooks(webhook_internal_api_setup, make_custom_webhook, make_user_auth_headers):
     user, token, webhook = webhook_internal_api_setup
+    # connected integration webhooks are not included
+    make_custom_webhook(organization=user.organization, is_from_connected_integration=True)
+
     client = APIClient()
     url = reverse("api-internal:webhooks-list")
 
