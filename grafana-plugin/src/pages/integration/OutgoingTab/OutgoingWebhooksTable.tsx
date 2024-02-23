@@ -100,7 +100,7 @@ const OutgoingWebhookContextMenu = ({
               openDrawer(TriggerDetailsTab.LastEvent, webhook.id);
             },
             requiredPermission: UserActions.OutgoingWebhooksRead,
-            label: <Text type="primary">View Last Run</Text>,
+            label: <Text type="primary">View Last Event</Text>,
           },
           {
             onClick: () => {

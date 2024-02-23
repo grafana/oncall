@@ -15,6 +15,7 @@ export const getStyles = (theme: GrafanaTheme2) => ({
   form: css({
     height: '100%',
     paddingBottom: '64px',
+    marginTop: '32px',
   }),
   formFieldsWrapper: css({
     width: '100%',
@@ -69,5 +70,8 @@ export const getStyles = (theme: GrafanaTheme2) => ({
   }),
   searchIntegrationsInput: css({
     marginBottom: '24px',
+  }),
+  tabsWrapper: css({
+    padding: '16px 16px 16px 8px',
   }),
 });

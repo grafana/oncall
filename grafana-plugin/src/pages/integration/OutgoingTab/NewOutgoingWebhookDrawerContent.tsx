@@ -8,7 +8,7 @@ import { UserActions } from 'utils/authorization/authorization';
 import { useCommonStyles } from 'utils/hooks';
 
 import { getStyles } from './OutgoingTab.styles';
-import { FormValues } from './OutgoingTab.types';
+import { OutgoingTabFormValues } from './OutgoingTab.types';
 import { OutgoingWebhookFormFields } from './OutgoingWebhookFormFields';
 
 interface NewOutgoingWebhookDrawerContentProps {
@@ -18,7 +18,7 @@ interface NewOutgoingWebhookDrawerContentProps {
 export const NewOutgoingWebhookDrawerContent: FC<NewOutgoingWebhookDrawerContentProps> = ({ closeDrawer }) => {
   const styles = useStyles2(getStyles);
   const commonStyles = useCommonStyles();
-  const formMethods = useForm<FormValues>({ mode: 'all' });
+  const formMethods = useForm<OutgoingTabFormValues>({ mode: 'all' });
 
   const onSubmit = () => {};
 

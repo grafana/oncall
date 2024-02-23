@@ -275,7 +275,7 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
           {
             onClick: () => this.onLastRunClick(record.id),
             requiredPermission: UserActions.OutgoingWebhooksRead,
-            label: <Text type="primary">View Last Run</Text>,
+            label: <Text type="primary">View Last Event</Text>,
           },
           {
             onClick: () => this.onEditClick(record.id),

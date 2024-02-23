@@ -12,7 +12,7 @@ import { NewOutgoingWebhookDrawerContent } from './NewOutgoingWebhookDrawerConte
 import { OtherIntegrations } from './OtherIntegrations';
 import { getStyles } from './OutgoingTab.styles';
 import { OutgoingTabDrawerKey } from './OutgoingTab.types';
-import { OutgoingWebhookDetailsDrawerContent } from './OutgoingWebhookDetailsDrawerContent';
+import { OutgoingWebhookDetailsDrawerTabs } from './OutgoingWebhookDetailsDrawerTabs';
 import { OutgoingWebhooksTable } from './OutgoingWebhooksTable';
 
 export const OutgoingTab = () => {
@@ -21,8 +21,13 @@ export const OutgoingTab = () => {
   return (
     <>
       {getIsDrawerOpened('webhookDetails') && (
-        <Drawer title="Outgoing webhook details" onClose={closeDrawer} width="640px">
-          <OutgoingWebhookDetailsDrawerContent closeDrawer={closeDrawer} />
+        <Drawer
+          title="Outgoing webhook details"
+          onClose={closeDrawer}
+          width="640px"
+          tabs={<OutgoingWebhookDetailsDrawerTabs closeDrawer={closeDrawer} />}
+        >
+          <div />
         </Drawer>
       )}
       {getIsDrawerOpened('newOutgoingWebhook') && (

@@ -32,7 +32,7 @@ const WebhookLastEventDetails: FC<WebhookLastEventDetailsProps> = ({ webhook }) 
   return (
     <>
       <div className={styles.lastEventDetailsRowsWrapper}>
-        <VerticalGroup spacing="lg">
+        <VerticalGroup spacing="md">
           {rows.map(({ title, value }) => (
             <HorizontalGroup key={title}>
               <span className={styles.lastEventDetailsRowTitle}>{title}</span>

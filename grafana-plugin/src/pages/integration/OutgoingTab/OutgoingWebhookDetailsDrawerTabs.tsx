@@ -13,21 +13,25 @@ import { UserActions } from 'utils/authorization/authorization';
 import { useCommonStyles } from 'utils/hooks';
 
 import { getStyles } from './OutgoingTab.styles';
-import { TriggerDetailsQueryStringKey, TriggerDetailsTab, FormValues } from './OutgoingTab.types';
+import { OutgoingTabFormValues, TriggerDetailsQueryStringKey, TriggerDetailsTab } from './OutgoingTab.types';
 import { OutgoingWebhookFormFields } from './OutgoingWebhookFormFields';
 
-interface OutgoingWebhookDetailsDrawerContentProps {
+interface OutgoingWebhookDetailsDrawerTabsProps {
   closeDrawer: () => void;
 }
-export const OutgoingWebhookDetailsDrawerContent: FC<OutgoingWebhookDetailsDrawerContentProps> = ({ closeDrawer }) => {
+export const OutgoingWebhookDetailsDrawerTabs: FC<OutgoingWebhookDetailsDrawerTabsProps> = ({ closeDrawer }) => {
+  const styles = useStyles2(getStyles);
+
   return (
-    <Tabs
-      queryStringKey={TriggerDetailsQueryStringKey.ActiveTab}
-      tabs={[
-        { label: TriggerDetailsTab.Settings, content: <Settings closeDrawer={closeDrawer} /> },
-        { label: TriggerDetailsTab.LastEvent, content: <LastEventDetails closeDrawer={closeDrawer} /> },
-      ]}
-    />
+    <div className={styles.tabsWrapper}>
+      <Tabs
+        queryStringKey={TriggerDetailsQueryStringKey.ActiveTab}
+        tabs={[
+          { label: TriggerDetailsTab.Settings, content: <Settings closeDrawer={closeDrawer} /> },
+          { label: TriggerDetailsTab.LastEvent, content: <LastEventDetails closeDrawer={closeDrawer} /> },
+        ]}
+      />
+    </div>
   );
 };
 
@@ -37,7 +41,7 @@ interface SettingsProps {
 const Settings: FC<SettingsProps> = ({ closeDrawer }) => {
   const styles = useStyles2(getStyles);
   const commonStyles = useCommonStyles();
-  const form = useForm<FormValues>({ mode: 'all' });
+  const form = useForm<OutgoingTabFormValues>({ mode: 'all' });
   const webhookId = LocationHelper.getQueryParam(TriggerDetailsQueryStringKey.WebhookId);
 
   const onSubmit = () => {};

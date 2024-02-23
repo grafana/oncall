@@ -11,7 +11,7 @@ export const TriggerDetailsTab = {
 } as const;
 export type TriggerDetailsTab = (typeof TriggerDetailsTab)[keyof typeof TriggerDetailsTab];
 
-export interface FormValues {
+export interface OutgoingTabFormValues {
   triggerType: string;
   isEnabled?: boolean;
   url: string;

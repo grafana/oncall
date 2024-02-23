@@ -22,7 +22,7 @@ import { WebhooksTemplateEditor } from 'containers/WebhooksTemplateEditor/Webhoo
 import { HTTP_METHOD_OPTIONS, WEBHOOK_TRIGGGER_TYPE_OPTIONS } from 'models/outgoing_webhook/outgoing_webhook.types';
 
 import { getStyles } from './OutgoingTab.styles';
-import { FormValues } from './OutgoingTab.types';
+import { OutgoingTabFormValues } from './OutgoingTab.types';
 
 interface TemplateToEdit {
   value: string;
@@ -37,7 +37,7 @@ interface OutgoingWebhookFormFieldsProps {
 
 export const OutgoingWebhookFormFields: FC<OutgoingWebhookFormFieldsProps> = ({ webhookId }) => {
   const styles = useStyles2(getStyles);
-  const { control, watch, formState, register } = useFormContext<FormValues>();
+  const { control, watch, formState, register } = useFormContext<OutgoingTabFormValues>();
   const [templateToEdit, setTemplateToEdit] = useState<TemplateToEdit>();
 
   const [showTriggerTemplate] = watch(['triggerTemplateToogle', 'forwardedDataTemplateToogle']);
