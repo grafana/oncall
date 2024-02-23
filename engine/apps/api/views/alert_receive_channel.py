@@ -151,6 +151,10 @@ class AlertReceiveChannelView(
         "connect_contact_point": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
         "create_contact_point": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
         "disconnect_contact_point": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
+        "webhooks_get": [RBACPermission.Permissions.INTEGRATIONS_READ],
+        "webhooks_post": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
+        "webhooks_put": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
+        "webhooks_delete": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
     }
 
     def perform_update(self, serializer):
@@ -633,7 +637,8 @@ class AlertReceiveChannelView(
         return Response(WebhookSerializer(instance.webhooks.all(), many=True).data)
 
     @extend_schema(request=WebhookSerializer, responses=WebhookSerializer)
-    @action(detail=True, methods=["post"], url_path="webhooks")
+    @webhooks_get.mapping.post
+    # https://www.django-rest-framework.org/api-guide/viewsets/#routing-additional-http-methods-for-extra-actions
     def webhooks_post(self, request, pk):
         instance = self.get_object()
         serializer = WebhookSerializer(data=request.data)
@@ -655,7 +660,8 @@ class AlertReceiveChannelView(
         return Response(serializer.validated_data, status=status.HTTP_200_OK)
 
     @extend_schema(request=None, responses=None)
-    @action(detail=True, methods=["delete"], url_path=r"webhooks/(?P<webhook_id>\w+)")
+    @webhooks_put.mapping.delete
+    # https://www.django-rest-framework.org/api-guide/viewsets/#routing-additional-http-methods-for-extra-actions
     def webhooks_delete(self, request, pk, webhook_id):
         instance = self.get_object()
         try:
