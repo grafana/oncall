@@ -10,7 +10,6 @@ type NotifyBy = 'SMS' | 'Phone call';
 const openUserSettingsModal = async (page: Page): Promise<void> => {
   await goToOnCallPage(page, 'users');
   await clickButton({ page, buttonText: 'View my profile' });
-  await page.locator('text=To edit user details such as Username, email, and role').waitFor({ state: 'visible' });
 };
 
 const getForgetPhoneNumberButton = (page: Page): Locator => page.locator('button >> text=Forget Phone Number');
