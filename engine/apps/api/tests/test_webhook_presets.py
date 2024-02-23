@@ -61,7 +61,7 @@ def test_create_webhook_from_preset(
         "forward_all": True,
         "headers": None,
         "http_method": "GET",
-        "integration_filter": None,
+        "integration_filter": [],
         "is_webhook_enabled": True,
         "labels": [],
         "is_legacy": False,
