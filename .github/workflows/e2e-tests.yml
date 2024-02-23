@@ -165,7 +165,7 @@ jobs:
           MAILSLURP_API_KEY: ${{ secrets.MAILSLURP_API_KEY }}
           BROWSERS: ${{ inputs.browsers }}
         working-directory: ./grafana-plugin
-        run: yarn test:e2e
+        run: yarn test:e2e quality.test
 
       - name: Run expensive e2e Tests
         if: inputs.run-expensive-tests
@@ -209,3 +209,10 @@ jobs:
           name: playwright-report
           path: ./grafana-plugin/playwright-report/
           retention-days: 30
+
+      - name: Publish Playwright HTML report to GH Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./grafana-plugin/playwright-report/
+          destination_dir: e2e/${{ GITHUB_HEAD_REF }}
