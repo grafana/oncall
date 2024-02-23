@@ -634,17 +634,17 @@ class AlertReceiveChannelView(
     @action(detail=True, methods=["get"], url_path="webhooks")
     def webhooks_get(self, request, pk):
         instance = self.get_object()
-        return Response(WebhookSerializer(instance.webhooks.all(), many=True).data)
+        return Response(WebhookSerializer(instance.webhooks.all(), many=True, context={"request": request}).data)
 
     @extend_schema(request=WebhookSerializer, responses=WebhookSerializer)
     @webhooks_get.mapping.post
     # https://www.django-rest-framework.org/api-guide/viewsets/#routing-additional-http-methods-for-extra-actions
     def webhooks_post(self, request, pk):
         instance = self.get_object()
-        serializer = WebhookSerializer(data=request.data)
+        serializer = WebhookSerializer(data=request.data, context={"request": request})
         serializer.is_valid(raise_exception=True)
-        serializer.save(alert_receive_channel=instance)
-        return Response(serializer.validated_data, status=status.HTTP_201_CREATED)
+        serializer.save(filtered_integrations=[instance])
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     @extend_schema(request=WebhookSerializer, responses=WebhookSerializer)
     @action(detail=True, methods=["put"], url_path=r"webhooks/(?P<webhook_id>\w+)")
@@ -654,10 +654,10 @@ class AlertReceiveChannelView(
             webhook = instance.webhooks.get(public_primary_key=webhook_id)
         except ObjectDoesNotExist:
             raise NotFound
-        serializer = WebhookSerializer(webhook, data=request.data)
+        serializer = WebhookSerializer(webhook, data=request.data, context={"request": request})
         serializer.is_valid(raise_exception=True)
-        serializer.save(alert_receive_channel=instance)
-        return Response(serializer.validated_data, status=status.HTTP_200_OK)
+        serializer.save(filtered_integrations=[instance])
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     @extend_schema(request=None, responses=None)
     @webhooks_put.mapping.delete
