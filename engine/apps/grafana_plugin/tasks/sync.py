@@ -2,7 +2,6 @@ import logging
 
 from celery.utils.log import get_task_logger
 from django.conf import settings
-from django.db.models import Count
 from django.utils import timezone
 
 from apps.alerts.models import AlertReceiveChannel
@@ -151,12 +150,12 @@ def cleanup_empty_deleted_integrations(organization_pk, dry_run=True):
         logger.info(f"Organization {organization_pk} was not found")
         return
 
-    integrations_qs = (
-        AlertReceiveChannel.objects_with_deleted.filter(deleted_at__isnull=False, organization=organization)
-        .annotate(num_alert_groups=Count("alert_groups"))
-        .filter(num_alert_groups=0)
+    integrations_qs = AlertReceiveChannel.objects_with_deleted.filter(
+        organization=organization, deleted_at__isnull=False, alert_groups=None
+    ).distinct()
+    logger.info(
+        f"Found count={len(integrations_qs)} integrations in org={organization.public_primary_key} that are both empty and deleted"
     )
-    logger.info(f"Found count={len(integrations_qs)} integrations that are both empty and deleted")
 
     for integration in integrations_qs:
         logger.info(
