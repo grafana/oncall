@@ -1,5 +1,8 @@
 import { Page } from '@playwright/test';
 
-// close the currently opened modal
+/**
+ * in Grafana v9 the aria-label is "Close dialog"
+ * in Grafana v10+ the aria-label is "Close dialogue"
+ */
 export const closeModal = async (page: Page): Promise<void> =>
-  (await page.waitForSelector('button[aria-label="Close dialogue"]')).click();
+  (await page.waitForSelector('button[aria-label*="Close dialog"]')).click();
