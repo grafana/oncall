@@ -662,7 +662,7 @@ class AlertReceiveChannelView(
             raise NotFound
         serializer = WebhookSerializer(webhook, data=request.data, context={"request": request})
         serializer.is_valid(raise_exception=True)
-        serializer.save(filtered_integrations=[instance], is_from_connected_integration=True)
+        serializer.save()
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     @extend_schema(request=None, responses=None)

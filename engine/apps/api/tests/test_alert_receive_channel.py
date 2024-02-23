@@ -1779,7 +1779,7 @@ def test_alert_receive_channel_webhooks_post(
     )
 
     data = {
-        "name": "Test",  # TODO: no name
+        "name": None,
         "enabled": True,
         "url": "http://example.com/",
         "http_method": "POST",
@@ -1790,8 +1790,6 @@ def test_alert_receive_channel_webhooks_post(
 
     assert response.status_code == status.HTTP_201_CREATED
     assert response.json() == _webhook_data(
-        webhook_id=ANY,
-        webhook_name="Test",
         webhook_url="http://example.com/",
         alert_receive_channel_id=alert_receive_channel.public_primary_key,
     )
