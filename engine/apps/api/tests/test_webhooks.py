@@ -50,7 +50,7 @@ def test_get_list_webhooks(webhook_internal_api_setup, make_user_auth_headers):
             "forward_all": False,
             "headers": None,
             "http_method": "POST",
-            "integration_filter": None,
+            "integration_filter": [],
             "is_webhook_enabled": True,
             "labels": [],
             "is_legacy": False,
@@ -94,7 +94,7 @@ def test_get_detail_webhook(webhook_internal_api_setup, make_user_auth_headers):
         "forward_all": False,
         "headers": None,
         "http_method": "POST",
-        "integration_filter": None,
+        "integration_filter": [],
         "is_webhook_enabled": True,
         "labels": [],
         "is_legacy": False,
@@ -143,7 +143,7 @@ def test_create_webhook(webhook_internal_api_setup, make_user_auth_headers):
         "forward_all": True,
         "headers": None,
         "http_method": "POST",
-        "integration_filter": None,
+        "integration_filter": [],
         "is_webhook_enabled": True,
         "labels": [],
         "is_legacy": False,
@@ -204,7 +204,7 @@ def test_create_valid_templated_field(webhook_internal_api_setup, make_user_auth
         "headers": None,
         "data": None,
         "http_method": "POST",
-        "integration_filter": None,
+        "integration_filter": [],
         "is_webhook_enabled": True,
         "labels": [],
         "is_legacy": False,
@@ -286,6 +286,70 @@ def test_delete_webhook(webhook_internal_api_setup, make_user_auth_headers):
 
     response = client.delete(url, **make_user_auth_headers(user, token))
     assert response.status_code == status.HTTP_204_NO_CONTENT
+
+
+@pytest.mark.django_db
+def test_webhook_integration_filter(webhook_internal_api_setup, make_alert_receive_channel, make_user_auth_headers):
+    user, token, webhook = webhook_internal_api_setup
+    alert_receive_channel_1 = make_alert_receive_channel(user.organization)
+    alert_receive_channel_2 = make_alert_receive_channel(user.organization)
+
+    client = APIClient()
+
+    # create webhook setting integrations filter
+    url = reverse("api-internal:webhooks-list")
+    data = {
+        "name": "the_webhook",
+        "url": TEST_URL,
+        "trigger_type": Webhook.TRIGGER_ALERT_GROUP_CREATED,
+        "http_method": "POST",
+        "team": None,
+        "integration_filter": [alert_receive_channel_1.public_primary_key],
+    }
+    response = client.post(url, data, format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_201_CREATED
+    webhook = Webhook.objects.get(public_primary_key=response.json()["id"])
+    assert list(webhook.filtered_integrations.all()) == [alert_receive_channel_1]
+    assert response.json()["integration_filter"] == [alert_receive_channel_1.public_primary_key]
+
+    # update filter
+    url = reverse("api-internal:webhooks-detail", kwargs={"pk": webhook.public_primary_key})
+    data = {
+        "name": "github_button_updated",
+        "url": "https://github.com/",
+        "trigger_type": Webhook.TRIGGER_ALERT_GROUP_CREATED,
+        "http_method": "POST",
+        "team": None,
+        "integration_filter": [alert_receive_channel_1.public_primary_key, alert_receive_channel_2.public_primary_key],
+    }
+    response = client.put(
+        url, data=json.dumps(data), content_type="application/json", **make_user_auth_headers(user, token)
+    )
+    webhook.refresh_from_db()
+    assert response.status_code == status.HTTP_200_OK
+    assert list(webhook.filtered_integrations.all()) == [alert_receive_channel_1, alert_receive_channel_2]
+    assert response.json()["integration_filter"] == [
+        alert_receive_channel_1.public_primary_key,
+        alert_receive_channel_2.public_primary_key,
+    ]
+
+    # clear filter
+    url = reverse("api-internal:webhooks-detail", kwargs={"pk": webhook.public_primary_key})
+    data = {
+        "name": "github_button_updated",
+        "url": "https://github.com/",
+        "trigger_type": Webhook.TRIGGER_ALERT_GROUP_CREATED,
+        "http_method": "POST",
+        "team": None,
+        "integration_filter": [],
+    }
+    response = client.put(
+        url, data=json.dumps(data), content_type="application/json", **make_user_auth_headers(user, token)
+    )
+    webhook.refresh_from_db()
+    assert response.status_code == status.HTTP_200_OK
+    assert list(webhook.filtered_integrations.all()) == []
+    assert response.json()["integration_filter"] == []
 
 
 @pytest.mark.django_db
@@ -585,7 +649,7 @@ def test_webhook_field_masking(webhook_internal_api_setup, make_user_auth_header
         "forward_all": True,
         "headers": None,
         "http_method": "POST",
-        "integration_filter": None,
+        "integration_filter": [],
         "is_webhook_enabled": True,
         "labels": [],
         "is_legacy": False,
@@ -645,7 +709,7 @@ def test_webhook_copy(webhook_internal_api_setup, make_user_auth_headers):
         "forward_all": True,
         "headers": None,
         "http_method": "POST",
-        "integration_filter": None,
+        "integration_filter": [],
         "is_webhook_enabled": True,
         "labels": [],
         "is_legacy": False,
@@ -867,7 +931,7 @@ def test_create_webhook_with_labels(
         "forward_all": True,
         "headers": None,
         "http_method": "POST",
-        "integration_filter": None,
+        "integration_filter": [],
         "is_webhook_enabled": True,
         "is_legacy": False,
         "last_response_log": {
