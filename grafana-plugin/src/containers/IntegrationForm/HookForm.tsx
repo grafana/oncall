@@ -1,4 +1,6 @@
-import cn from 'classnames/bind';
+import React, { useEffect, useReducer, useRef, useState } from 'react';
+
+import { SelectableValue } from '@grafana/data';
 import {
   Button,
   Field,
@@ -12,31 +14,24 @@ import {
   Tooltip,
   VerticalGroup,
 } from '@grafana/ui';
-import React, { useEffect, useReducer, useRef, useState } from 'react';
-import {
-  Control,
-  Controller,
-  FieldError,
-  FieldErrors,
-  UseFormGetValues,
-  UseFormSetValue,
-  useForm,
-} from 'react-hook-form';
+import cn from 'classnames/bind';
+import { observer } from 'mobx-react';
+import { Control, Controller, FieldErrors, UseFormGetValues, UseFormSetValue, useForm } from 'react-hook-form';
 
+import { Collapse } from 'components/Collapse/Collapse';
+import { PluginLink } from 'components/PluginLink/PluginLink';
+import { Text } from 'components/Text/Text';
+import { GSelect } from 'containers/GSelect/GSelect';
 import styles from 'containers/IntegrationForm/HookForm.module.scss';
+import { Labels } from 'containers/Labels/Labels';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
+import { AlertReceiveChannelHelper } from 'models/alert_receive_channel/alert_receive_channel.helpers';
+import { ApiSchemas } from 'network/oncall-api/api.types';
+import { AppFeature } from 'state/features';
+import { useStore } from 'state/useStore';
 import { UserActions } from 'utils/authorization/authorization';
 import { generateAssignToTeamInputDescription } from 'utils/consts';
-import { GSelect } from 'containers/GSelect/GSelect';
-import { useStore } from 'state/useStore';
-import { observer } from 'mobx-react';
-import { AlertReceiveChannelHelper } from 'models/alert_receive_channel/alert_receive_channel.helpers';
-import { Text } from 'components/Text/Text';
-import { SelectableValue } from '@grafana/data';
-import { AppFeature } from 'state/features';
-import { Labels } from 'containers/Labels/Labels';
-import { PluginLink } from 'components/PluginLink/PluginLink';
-import { ApiSchemas } from 'network/oncall-api/api.types';
+
 import { prepareForEdit } from './IntegrationForm.helpers';
 
 const cx = cn.bind(styles);
@@ -59,44 +54,47 @@ enum FieldKey {
   Name = 'Name',
 }
 
-const fields: { [key in FieldKey]: Field } = {
-  [FieldKey.Name]: {
-    name: 'name',
-    label: 'Name',
-    placeholder: 'Integration Name',
-    type: FieldType.Input,
-    required: 'Integration Name is required',
-  },
-};
+interface FormFields {
+  Name: string;
+  Description: string;
+  AssignToTeam: string;
+  IsExisting: boolean;
+  AlertManager: string;
+  ContactPoint: string;
+}
 
 interface HookFormProps {
+  // TODO: make it more suggestive
+  selectedOption: ApiSchemas['AlertReceiveChannelIntegrationOptions'];
   navigateToAlertGroupLabels: (id: ApiSchemas['AlertReceiveChannel']['id']) => void;
 }
 
-export const HookForm = observer(({ navigateToAlertGroupLabels }: HookFormProps) => {
+export const HookForm = observer(({ navigateToAlertGroupLabels, selectedOption }: HookFormProps) => {
   const {
     control,
     handleSubmit,
     getValues,
     setValue,
     formState: { errors },
-  } = useForm(); // add { formValues } if def values needed
+  } = useForm<FormFields>();
 
   const store = useStore();
   const { userStore, grafanaTeamStore, alertReceiveChannelStore } = store;
 
-  const [selectedOption, setSelectedOption] = useState<ApiSchemas['AlertReceiveChannelIntegrationOptions']>(undefined);
-
   const labelsRef = useRef(null);
 
+  // TODO: figure these out
   const id = 'new';
+  const isTableView = true;
 
   const data =
     id === 'new'
       ? { integration: selectedOption?.value, team: userStore.currentUser?.current_team, labels: [] }
       : prepareForEdit(alertReceiveChannelStore.items[id]);
 
-  console.log(getValues());
+  const validationErrors: any = {};
+
+  console.log({ selectedOption });
 
   return (
     <form onSubmit={handleSubmit(onFormSubmit)} className={cx('form')}>
@@ -129,7 +127,8 @@ export const HookForm = observer(({ navigateToAlertGroupLabels }: HookFormProps)
             invalid={!!errors['Description']}
             error={errors['Description']?.message as string}
           >
-            <TextArea {...field} />
+            {/* TOOD: need to figure out bug on hover from grafana */}
+            <TextArea {...field} className={cx('textarea')} />
           </Field>
         )}
       />
@@ -177,7 +176,7 @@ export const HookForm = observer(({ navigateToAlertGroupLabels }: HookFormProps)
         <div className={cx('labels')}>
           <Labels
             ref={labelsRef}
-            errors={errors?.labels}
+            errors={validationErrors?.labels}
             value={data.labels}
             description={
               <>
@@ -195,6 +194,8 @@ export const HookForm = observer(({ navigateToAlertGroupLabels }: HookFormProps)
           />
         </div>
       )}
+
+      {isTableView && <HowTheIntegrationWorks selectedOption={selectedOption} />}
 
       <div>
         <HorizontalGroup justify="flex-end">
@@ -234,7 +235,7 @@ interface GrafanaContactPointState {
 }
 
 interface GrafanaContactPointProps {
-  control: Control;
+  control: Control<FormFields, any, FormFields>;
   errors: FieldErrors;
   // TODO: add interface typing
   getValues: UseFormGetValues<any>;
@@ -277,8 +278,6 @@ const GrafanaContactPoint = observer(({ control, errors, getValues, setValue }: 
       allContactPoints: [],
     }
   );
-
-  console.log({ contactPoints });
 
   useEffect(() => {
     (async function () {
@@ -415,3 +414,46 @@ const GrafanaContactPoint = observer(({ control, errors, getValues, setValue }: 
     setValue('ContactPoint', option.value);
   }
 });
+
+const HowTheIntegrationWorks: React.FC<{ selectedOption: ApiSchemas['AlertReceiveChannelIntegrationOptions'] }> = ({
+  selectedOption,
+}) => {
+  if (!selectedOption) {
+    return null;
+  }
+
+  return (
+    <Collapse
+      headerWithBackground
+      className={cx('collapse')}
+      isOpen={false}
+      label={<Text type="link">How the integration works</Text>}
+      contentClassName={cx('collapsable-content')}
+    >
+      <Text type="secondary">
+        The integration will generate the following:
+        <ul className={cx('integration-info-list')}>
+          <li className={cx('integration-info-item')}>Unique URL endpoint for receiving alerts </li>
+          <li className={cx('integration-info-item')}>
+            Templates to interpret alerts, tailored for {selectedOption.display_name}{' '}
+          </li>
+          <li className={cx('integration-info-item')}>{selectedOption.display_name} contact point </li>
+          <li className={cx('integration-info-item')}>{selectedOption.display_name} notification</li>
+        </ul>
+        What you'll need to do next:
+        <ul className={cx('integration-info-list')}>
+          <li className={cx('integration-info-item')}>
+            Finish connecting Monitoring system using Unique URL that will be provided on the next step{' '}
+          </li>
+          <li className={cx('integration-info-item')}>
+            Set up routes that are based on alert content, such as severity, region, and service{' '}
+          </li>
+          <li className={cx('integration-info-item')}>Connect escalation chains to the routes</li>
+          <li className={cx('integration-info-item')}>
+            Review templates and personalize according to your requirements
+          </li>
+        </ul>
+      </Text>
+    </Collapse>
+  );
+};

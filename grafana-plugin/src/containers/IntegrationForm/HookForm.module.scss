@@ -23,3 +23,25 @@
   flex-direction: column;
   margin-bottom: -15px;
 }
+
+.textarea:hover {
+  // TODO: change this to fetch from emotion instead
+}
+
+.collapse {
+  width: 100%;
+  margin-bottom: 24px;
+}
+
+.collapse svg {
+  color: var(--primary-text-link) !important;
+}
+
+.integration-info-list {
+  list-style-position: inside;
+  margin: 16px 0;
+}
+
+.integration-info-item {
+  margin-left: 16px;
+}
