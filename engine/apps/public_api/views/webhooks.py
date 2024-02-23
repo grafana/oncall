@@ -34,7 +34,10 @@ class WebhooksView(RateLimitHeadersMixin, UpdateSerializerMixin, ModelViewSet):
 
     def get_queryset(self):
         webhook_name = self.request.query_params.get("name", None)
-        queryset = Webhook.objects.filter(organization=self.request.auth.organization)
+        queryset = Webhook.objects.filter(
+            organization=self.request.auth.organization,
+            is_from_connected_integration=False,
+        )
 
         if webhook_name:
             queryset = queryset.filter(name=webhook_name)

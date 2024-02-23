@@ -103,6 +103,25 @@ class UsersFilteredByOrganizationField(serializers.Field):
         return queryset.filter(organization=request.user.organization, public_primary_key__in=data).distinct()
 
 
+class IntegrationFilteredByOrganizationField(serializers.RelatedField):
+    def get_queryset(self):
+        request = self.context.get("request", None)
+        if not request:
+            return None
+        return request.user.organization.alert_receive_channels.all()
+
+    def to_internal_value(self, data):
+        try:
+            return self.get_queryset().get(public_primary_key=data)
+        except ObjectDoesNotExist:
+            raise ValidationError("Integration does not exist")
+        except (TypeError, ValueError):
+            raise ValidationError("Invalid integration")
+
+    def to_representation(self, value):
+        return value.public_primary_key
+
+
 class RouteIdField(fields.CharField):
     def to_internal_value(self, data):
         try:
