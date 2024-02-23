@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Change plugin build to use new packages instead of deprecated grafana-toolkit @maskin25 ([#3837](https://github.com/grafana/oncall/pull/3837))
 - Remove explicit uWSGI and Django request size limits by @vadimkerr ([#3878](https://github.com/grafana/oncall/pull/3878))
+- Migrate webhooks integration_filter to use a m2m field instead ([#3946](https://github.com/grafana/oncall/pull/3946))
 
 ### Fixed
 
