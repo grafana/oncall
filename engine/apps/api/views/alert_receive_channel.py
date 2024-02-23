@@ -634,7 +634,13 @@ class AlertReceiveChannelView(
     @action(detail=True, methods=["get"], url_path="webhooks")
     def webhooks_get(self, request, pk):
         instance = self.get_object()
-        return Response(WebhookSerializer(instance.webhooks.all(), many=True, context={"request": request}).data)
+        return Response(
+            WebhookSerializer(
+                instance.webhooks.filter(is_from_connected_integration=True),
+                many=True,
+                context={"request": request},
+            ).data
+        )
 
     @extend_schema(request=WebhookSerializer, responses=WebhookSerializer)
     @webhooks_get.mapping.post
@@ -643,7 +649,7 @@ class AlertReceiveChannelView(
         instance = self.get_object()
         serializer = WebhookSerializer(data=request.data, context={"request": request})
         serializer.is_valid(raise_exception=True)
-        serializer.save(filtered_integrations=[instance])
+        serializer.save(filtered_integrations=[instance], is_from_connected_integration=True)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     @extend_schema(request=WebhookSerializer, responses=WebhookSerializer)
@@ -651,12 +657,12 @@ class AlertReceiveChannelView(
     def webhooks_put(self, request, pk, webhook_id):
         instance = self.get_object()
         try:
-            webhook = instance.webhooks.get(public_primary_key=webhook_id)
+            webhook = instance.webhooks.get(is_from_connected_integration=True, public_primary_key=webhook_id)
         except ObjectDoesNotExist:
             raise NotFound
         serializer = WebhookSerializer(webhook, data=request.data, context={"request": request})
         serializer.is_valid(raise_exception=True)
-        serializer.save(filtered_integrations=[instance])
+        serializer.save(filtered_integrations=[instance], is_from_connected_integration=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     @extend_schema(request=None, responses=None)
@@ -665,7 +671,7 @@ class AlertReceiveChannelView(
     def webhooks_delete(self, request, pk, webhook_id):
         instance = self.get_object()
         try:
-            webhook = instance.webhooks.get(public_primary_key=webhook_id)
+            webhook = instance.webhooks.get(is_from_connected_integration=True, public_primary_key=webhook_id)
         except ObjectDoesNotExist:
             raise NotFound
         webhook.delete()

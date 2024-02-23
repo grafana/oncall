@@ -1741,10 +1741,13 @@ def test_alert_receive_channel_webhooks_get(
 ):
     organization, user, token = make_organization_and_user_with_plugin_token()
     alert_receive_channel = make_alert_receive_channel(organization)
-    webhook = make_custom_webhook(organization)
+    webhook = make_custom_webhook(organization, is_from_connected_integration=True)
     webhook.filtered_integrations.set([alert_receive_channel])
-    make_custom_webhook(organization)  # another webhook that's not connected to integration
-    # TODO: is_from_connected_integration
+
+    # create 2 webhooks that are not connected to the integration
+    make_custom_webhook(organization)
+    webhook2 = make_custom_webhook(organization, is_from_connected_integration=False)
+    webhook2.filtered_integrations.set([alert_receive_channel])
 
     client = APIClient()
     url = reverse(
@@ -1792,7 +1795,7 @@ def test_alert_receive_channel_webhooks_post(
         webhook_url="http://example.com/",
         alert_receive_channel_id=alert_receive_channel.public_primary_key,
     )
-    assert alert_receive_channel.webhooks.count() == 1
+    assert alert_receive_channel.webhooks.get().is_from_connected_integration is True
 
 
 @pytest.mark.django_db
@@ -1804,7 +1807,7 @@ def test_alert_receive_channel_webhooks_put(
 ):
     organization, user, token = make_organization_and_user_with_plugin_token()
     alert_receive_channel = make_alert_receive_channel(organization)
-    webhook = make_custom_webhook(organization)
+    webhook = make_custom_webhook(organization, is_from_connected_integration=True)
     webhook.filtered_integrations.set([alert_receive_channel])
 
     client = APIClient()
@@ -1835,7 +1838,7 @@ def test_alert_receive_channel_webhooks_delete(
 ):
     organization, user, token = make_organization_and_user_with_plugin_token()
     alert_receive_channel = make_alert_receive_channel(organization)
-    webhook = make_custom_webhook(organization)
+    webhook = make_custom_webhook(organization, is_from_connected_integration=True)
     webhook.filtered_integrations.set([alert_receive_channel])
 
     client = APIClient()
