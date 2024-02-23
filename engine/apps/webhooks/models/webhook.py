@@ -152,7 +152,9 @@ class Webhook(models.Model):
     http_method = models.CharField(max_length=32, default="POST", null=True)
     trigger_type = models.IntegerField(choices=TRIGGER_TYPES, default=TRIGGER_ESCALATION_STEP, null=True)
     is_webhook_enabled = models.BooleanField(null=True, default=True)
+    # NOTE: integration_filter is deprecated (to be removed), use filtered_integrations instead
     integration_filter = models.JSONField(default=None, null=True, blank=True)
+    filtered_integrations = models.ManyToManyField("alerts.AlertReceiveChannel", related_name="webhooks")
     is_legacy = models.BooleanField(null=True, default=False)
     preset = models.CharField(max_length=100, null=True, blank=True, default=None)
 
@@ -241,9 +243,9 @@ class Webhook(models.Model):
         return url
 
     def check_integration_filter(self, alert_group):
-        if not self.integration_filter:
+        if self.filtered_integrations.count() == 0:
             return True
-        return alert_group.channel.public_primary_key in self.integration_filter
+        return self.filtered_integrations.filter(id=alert_group.channel.id).exists()
 
     def check_trigger(self, event_data):
         if not self.trigger_template:
