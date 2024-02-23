@@ -89,6 +89,8 @@ jobs:
           file: ./engine/Dockerfile
           push: false
           tags: oncall/engine:latest
+          # this will substantially speed up building the backend Docker image
+          cache-from: type=registry,ref=grafana/oncall:latest,ref=grafana/oncall:dev
           outputs: type=docker,dest=/tmp/oncall-engine.tar
 
       - name: Load engine Docker image on the nodes of the cluster
