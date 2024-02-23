@@ -1,5 +1,6 @@
 import typing
 
+from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Q
 from django_filters import rest_framework as filters
 from django_filters.rest_framework import DjangoFilterBackend
@@ -7,6 +8,7 @@ from drf_spectacular.plumbing import resolve_type_hint
 from drf_spectacular.utils import PolymorphicProxySerializer, extend_schema, extend_schema_view, inline_serializer
 from rest_framework import serializers, status
 from rest_framework.decorators import action
+from rest_framework.exceptions import NotFound
 from rest_framework.filters import SearchFilter
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -22,6 +24,7 @@ from apps.api.serializers.alert_receive_channel import (
     AlertReceiveChannelUpdateSerializer,
     FilterAlertReceiveChannelSerializer,
 )
+from apps.api.serializers.webhook import WebhookSerializer
 from apps.api.throttlers import DemoAlertThrottler
 from apps.api.views.labels import schedule_update_label_cache
 from apps.auth_token.auth import PluginAuthentication
@@ -622,3 +625,42 @@ class AlertReceiveChannelView(
         if not disconnected:
             raise BadRequest(detail=error)
         return Response(status=status.HTTP_200_OK)
+
+    @extend_schema(request=None, responses=WebhookSerializer(many=True))
+    @action(detail=True, methods=["get"], url_path="webhooks")
+    def webhooks_get(self, request, pk):
+        instance = self.get_object()
+        return Response(WebhookSerializer(instance.webhooks.all(), many=True).data)
+
+    @extend_schema(request=WebhookSerializer, responses=WebhookSerializer)
+    @action(detail=True, methods=["post"], url_path="webhooks")
+    def webhooks_post(self, request, pk):
+        instance = self.get_object()
+        serializer = WebhookSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save(alert_receive_channel=instance)
+        return Response(serializer.validated_data, status=status.HTTP_201_CREATED)
+
+    @extend_schema(request=WebhookSerializer, responses=WebhookSerializer)
+    @action(detail=True, methods=["put"], url_path=r"webhooks/(?P<webhook_id>\w+)")
+    def webhooks_put(self, request, pk, webhook_id):
+        instance = self.get_object()
+        try:
+            webhook = instance.webhooks.get(public_primary_key=webhook_id)
+        except ObjectDoesNotExist:
+            raise NotFound
+        serializer = WebhookSerializer(webhook, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save(alert_receive_channel=instance)
+        return Response(serializer.validated_data, status=status.HTTP_200_OK)
+
+    @extend_schema(request=None, responses=None)
+    @action(detail=True, methods=["delete"], url_path=r"webhooks/(?P<webhook_id>\w+)")
+    def webhooks_delete(self, request, pk, webhook_id):
+        instance = self.get_object()
+        try:
+            webhook = instance.webhooks.get(public_primary_key=webhook_id)
+        except ObjectDoesNotExist:
+            raise NotFound
+        webhook.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
