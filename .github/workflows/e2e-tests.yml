@@ -210,9 +210,13 @@ jobs:
           path: ./grafana-plugin/playwright-report/
           retention-days: 30
 
-      - name: Publish Playwright HTML report to GH Pages
-        uses: peaceiris/actions-gh-pages@v3
+      - name: Setup Pages
+        uses: actions/configure-pages@v2
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v1
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./grafana-plugin/playwright-report/
-          destination_dir: e2e/${{ GITHUB_HEAD_REF }}
+          # Upload entire repository
+          path: ./grafana-plugin/playwright-report/
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v1
