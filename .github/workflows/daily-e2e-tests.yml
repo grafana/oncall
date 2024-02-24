@@ -33,6 +33,8 @@ jobs:
       grafana-image-tag: ${{ matrix.grafana-image-tag }}
       run-expensive-tests: true
       # TODO: fix issues with some tests on firefox and webkit
+      # example CI build with firefox/webkit failing tests
+      # https://github.com/grafana/oncall/actions/runs/8022194346/job/21915964672#step:19:905
       # browsers: "chromium firefox webkit"
       browsers: "chromium"
     secrets: inherit
@@ -48,8 +50,7 @@ jobs:
       #
       - uses: slackapi/slack-github-action@v1.24.0
         with:
-          # channel-id: irm-amixr-flux
-          channel-id: joey-testing
+          channel-id: gops-oncall-dev
           # yamllint disable rule:line-length
           payload: |
             {
