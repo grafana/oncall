@@ -13,10 +13,14 @@ RUN apk add bash \
             mariadb-connector-c-dev \
             libffi-dev \
             git \
-            postgresql-dev 
+            postgresql-dev
 
 WORKDIR /etc/app
 COPY ./requirements.txt ./
+
+# TODO: figure out how to get this to work.. see comment in .github/workflows/e2e-tests.yml
+# https://stackoverflow.com/a/71846527
+# RUN --mount=type=cache,target=/root/.cache/pip,from=pip_cache pip install -r requirements.txt
 RUN pip install -r requirements.txt
 
 # we intentionally have two COPY commands, this is to have the requirements.txt in a separate build step
@@ -47,9 +51,15 @@ ENV prometheus_multiproc_dir "/tmp/prometheus_django_metrics"
 
 FROM base AS dev
 RUN apk add sqlite mysql-client postgresql-client
+# TODO: figure out how to get this to work.. see comment in .github/workflows/e2e-tests.yml
+# https://stackoverflow.com/a/71846527
+# RUN --mount=type=cache,target=/root/.cache/pip,from=pip_cache pip install -r requirements-dev.txt
 RUN pip install -r requirements-dev.txt
 
 FROM dev AS dev-enterprise
+# TODO: figure out how to get this to work.. see comment in .github/workflows/e2e-tests.yml
+# https://stackoverflow.com/a/71846527
+# RUN --mount=type=cache,target=/root/.cache/pip,from=pip_cache pip install -r requirements-enterprise-docker.txt
 RUN pip install -r requirements-enterprise-docker.txt
 
 FROM base AS prod
