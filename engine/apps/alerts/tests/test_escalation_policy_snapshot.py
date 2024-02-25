@@ -59,7 +59,7 @@ def test_escalation_step_wait(
 
     assert result.eta is not None
     assert wait_delay + timezone.timedelta(minutes=1) > result.eta - now >= wait_delay
-    assert result.stop_escalation is False and result.pause_escalation is False and result.start_from_beginning is False
+    assert result.stop_escalation is False and result.pause_escalation is False and result.start_from_stage is None
     assert wait_step.log_records.filter(type=AlertGroupLogRecord.TYPE_ESCALATION_TRIGGERED).exists()
     assert not mocked_execute_tasks.called
 
@@ -85,7 +85,7 @@ def test_escalation_step_notify_all(
         eta=result.eta,
         stop_escalation=False,
         pause_escalation=False,
-        start_from_beginning=False,
+        start_from_stage=None,
     )
     assert expected_eta + timezone.timedelta(seconds=15) > result.eta > expected_eta - timezone.timedelta(seconds=15)
     assert result == expected_result
@@ -118,7 +118,7 @@ def test_escalation_step_notify_users_queue(
         eta=result.eta,
         stop_escalation=False,
         pause_escalation=False,
-        start_from_beginning=False,
+        start_from_stage=None,
     )
     assert expected_eta + timezone.timedelta(seconds=15) > result.eta > expected_eta - timezone.timedelta(seconds=15)
     assert result == expected_result
@@ -149,7 +149,7 @@ def test_escalation_step_notify_multiple_users(
         eta=result.eta,
         stop_escalation=False,
         pause_escalation=False,
-        start_from_beginning=False,
+        start_from_stage=None,
     )
     assert expected_eta + timezone.timedelta(seconds=15) > result.eta > expected_eta - timezone.timedelta(seconds=15)
     assert result == expected_result
@@ -194,7 +194,7 @@ def test_escalation_step_notify_on_call_schedule(
         eta=result.eta,
         stop_escalation=False,
         pause_escalation=False,
-        start_from_beginning=False,
+        start_from_stage=None,
     )
     assert expected_eta + timezone.timedelta(seconds=15) > result.eta > expected_eta - timezone.timedelta(seconds=15)
     assert result == expected_result
@@ -242,7 +242,7 @@ def test_escalation_step_notify_on_call_schedule_viewer_user(
         eta=result.eta,
         stop_escalation=False,
         pause_escalation=False,
-        start_from_beginning=False,
+        start_from_stage=None,
     )
     assert expected_eta + timezone.timedelta(seconds=15) > result.eta > expected_eta - timezone.timedelta(seconds=15)
     assert result == expected_result
@@ -278,7 +278,7 @@ def test_escalation_step_notify_user_group(
         eta=result.eta,
         stop_escalation=False,
         pause_escalation=False,
-        start_from_beginning=False,
+        start_from_stage=None,
     )
     assert expected_eta + timezone.timedelta(seconds=15) > result.eta > expected_eta - timezone.timedelta(seconds=15)
     assert result == expected_result
@@ -311,7 +311,7 @@ def test_escalation_step_notify_if_time(
         eta=estimated_time_of_arrival,
         stop_escalation=False,
         pause_escalation=False,
-        start_from_beginning=False,
+        start_from_stage=None,
     )
     assert estimated_time_of_arrival is not None
 
@@ -341,7 +341,7 @@ def test_escalation_step_notify_if_time(
         eta=result.eta,
         stop_escalation=False,
         pause_escalation=False,
-        start_from_beginning=False,
+        start_from_stage=None,
     )
     assert expected_eta + timezone.timedelta(seconds=15) > result.eta > expected_eta - timezone.timedelta(seconds=15)
 
@@ -374,7 +374,7 @@ def test_escalation_step_notify_if_num_alerts_in_window(
         eta=expected_eta,
         stop_escalation=False,
         pause_escalation=True,
-        start_from_beginning=False,
+        start_from_stage=None,
     )
     assert result.eta == expected_eta
     assert result == expected_result
@@ -401,7 +401,7 @@ def test_escalation_step_notify_if_num_alerts_in_window(
         eta=result.eta,
         stop_escalation=False,
         pause_escalation=False,
-        start_from_beginning=False,
+        start_from_stage=None,
     )
     assert expected_eta + timezone.timedelta(seconds=15) > result.eta > expected_eta - timezone.timedelta(seconds=15)
     assert result == expected_result
@@ -439,7 +439,7 @@ def test_escalation_step_notify_if_num_alerts_in_window_deleted_escalation_polic
         eta=None,
         stop_escalation=False,
         pause_escalation=True,
-        start_from_beginning=False,
+        start_from_stage=None,
     )
     assert result == expected_result
     assert alert_group.log_records.filter(
@@ -472,7 +472,7 @@ def test_escalation_step_trigger_custom_button(
         eta=result.eta,
         stop_escalation=False,
         pause_escalation=False,
-        start_from_beginning=False,
+        start_from_stage=None,
     )
     assert expected_eta + timezone.timedelta(seconds=15) > result.eta > expected_eta - timezone.timedelta(seconds=15)
     assert result == expected_result
@@ -503,7 +503,7 @@ def test_escalation_step_trigger_custom_webhook(
         eta=result.eta,
         stop_escalation=False,
         pause_escalation=False,
-        start_from_beginning=False,
+        start_from_stage=None,
     )
     assert expected_eta + timezone.timedelta(seconds=15) > result.eta > expected_eta - timezone.timedelta(seconds=15)
     assert result == expected_result
@@ -533,12 +533,61 @@ def test_escalation_step_repeat_escalation_n_times(
         eta=result.eta,
         stop_escalation=False,
         pause_escalation=False,
-        start_from_beginning=True,
+        start_from_stage=0,
     )
     assert expected_eta + timezone.timedelta(seconds=15) > result.eta > expected_eta - timezone.timedelta(seconds=15)
     assert escalation_policy_snapshot.escalation_counter == 1
     assert result == expected_result
     assert repeat_escalation_step.log_records.filter(type=AlertGroupLogRecord.TYPE_ESCALATION_TRIGGERED).exists()
+    assert not mocked_execute_tasks.called
+
+@patch("apps.alerts.escalation_snapshot.snapshot_classes.EscalationPolicySnapshot._execute_tasks", return_value=None)
+@pytest.mark.django_db
+def test_escalation_step_run_escalation_from_stage_n_times(
+    mocked_execute_tasks,
+    escalation_step_test_setup,
+    make_escalation_policy,
+):
+    _, user, _, channel_filter, alert_group, reason = escalation_step_test_setup
+    notify_users_step_1 = make_escalation_policy(
+        escalation_chain=channel_filter.escalation_chain,
+        escalation_policy_step=EscalationPolicy.STEP_NOTIFY_MULTIPLE_USERS,
+    )
+    notify_users_step_1.notify_to_users_queue.set([user])
+
+    make_escalation_policy(
+        escalation_chain=channel_filter.escalation_chain,
+        escalation_policy_step=EscalationPolicy.STEP_WAIT,
+        wait_delay=EscalationPolicy.ONE_MINUTE,
+    )
+
+    notify_users_step_2 = make_escalation_policy(
+        escalation_chain=channel_filter.escalation_chain,
+        escalation_policy_step=EscalationPolicy.STEP_NOTIFY_MULTIPLE_USERS,
+    )
+    notify_users_step_2.notify_to_users_queue.set([user])
+
+    run_escalation_from_stage = make_escalation_policy(
+        escalation_chain=channel_filter.escalation_chain,
+        escalation_policy_step=EscalationPolicy.STEP_RUN_ESCALATION_FROM_STAGE_N_TIMES,
+        run_from_stage=2,
+    )
+    escalation_policy_snapshot = get_escalation_policy_snapshot_from_model(run_escalation_from_stage)
+
+    assert escalation_policy_snapshot.escalation_counter == 0
+
+    expected_eta = timezone.now() + timezone.timedelta(seconds=NEXT_ESCALATION_DELAY)
+    result = escalation_policy_snapshot.execute(alert_group, reason)
+    expected_result = EscalationPolicySnapshot.StepExecutionResultData(
+        eta=result.eta,
+        stop_escalation=False,
+        pause_escalation=False,
+        start_from_stage=2,
+    )
+    assert expected_eta + timezone.timedelta(seconds=15) > result.eta > expected_eta - timezone.timedelta(seconds=15)
+    assert escalation_policy_snapshot.escalation_counter == 1
+    assert result == expected_result
+    assert run_escalation_from_stage.log_records.filter(type=AlertGroupLogRecord.TYPE_ESCALATION_TRIGGERED).exists()
     assert not mocked_execute_tasks.called
 
 
@@ -562,7 +611,7 @@ def test_escalation_step_resolve(
         eta=result.eta,
         stop_escalation=True,
         pause_escalation=False,
-        start_from_beginning=False,
+        start_from_stage=None,
     )
     assert expected_eta + timezone.timedelta(seconds=15) > result.eta > expected_eta - timezone.timedelta(seconds=15)
     assert result == expected_result
@@ -590,7 +639,7 @@ def test_escalation_step_is_not_configured(
         eta=result.eta,
         stop_escalation=False,
         pause_escalation=False,
-        start_from_beginning=False,
+        start_from_stage=None,
     )
     assert expected_eta + timezone.timedelta(seconds=15) > result.eta > expected_eta - timezone.timedelta(seconds=15)
     assert result == expected_result
@@ -670,7 +719,7 @@ def test_notify_team_members(
         eta=result.eta,
         stop_escalation=False,
         pause_escalation=False,
-        start_from_beginning=False,
+        start_from_stage=None,
     )
     assert expected_eta + timezone.timedelta(seconds=15) > result.eta > expected_eta - timezone.timedelta(seconds=15)
     assert result == expected_result

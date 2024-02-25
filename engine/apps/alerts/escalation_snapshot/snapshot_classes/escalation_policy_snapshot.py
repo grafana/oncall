@@ -45,11 +45,12 @@ class EscalationPolicySnapshot:
         "escalation_counter",
         "passed_last_time",
         "pause_escalation",
+        "run_from_stage",
     )
 
     StepExecutionResultData = namedtuple(
         "StepExecutionResultData",
-        ["eta", "stop_escalation", "start_from_beginning", "pause_escalation"],
+        ["eta", "stop_escalation", "start_from_stage", "pause_escalation"],
     )
 
     StepExecutionFunc = typing.Callable[["AlertGroup", str], typing.Optional[StepExecutionResultData]]
@@ -73,6 +74,7 @@ class EscalationPolicySnapshot:
         escalation_counter,
         passed_last_time,
         pause_escalation,
+        run_from_stage,
         notify_to_team_members=None,
     ):
         self.id = id
@@ -93,6 +95,7 @@ class EscalationPolicySnapshot:
         self.escalation_counter = escalation_counter  # used for STEP_REPEAT_ESCALATION_N_TIMES
         self.passed_last_time = passed_last_time  # used for building escalation plan
         self.pause_escalation = pause_escalation  # used for STEP_NOTIFY_IF_NUM_ALERTS_IN_TIME_WINDOW
+        self.run_from_stage = run_from_stage
 
     def __str__(self) -> str:
         return f"Escalation link, order: {self.order}, step: '{self.step_display}'"
@@ -108,6 +111,10 @@ class EscalationPolicySnapshot:
     @property
     def sorted_users_queue(self) -> typing.List[User]:
         return sorted(self.notify_to_users_queue, key=lambda user: (user.username or "", user.pk))
+
+    @property
+    def next_stage_to_run(self) -> int:
+        return self.escalation_policy.run_from_stage
 
     @property
     def next_user_in_sorted_queue(self) -> User:
@@ -138,6 +145,7 @@ class EscalationPolicySnapshot:
             EscalationPolicy.STEP_NOTIFY_IF_NUM_ALERTS_IN_TIME_WINDOW: self._escalation_step_notify_if_num_alerts_in_time_window,
             EscalationPolicy.STEP_NOTIFY_MULTIPLE_USERS: self._escalation_step_notify_multiple_users,
             EscalationPolicy.STEP_NOTIFY_MULTIPLE_USERS_IMPORTANT: self._escalation_step_notify_multiple_users,
+            EscalationPolicy.STEP_RUN_ESCALATION_FROM_STAGE_N_TIMES: self._escalation_step_repeat_escalation_from_stage_n_times,
             None: self._escalation_step_not_configured,
         }
         result = action_map[self.step](alert_group, reason)
@@ -534,8 +542,22 @@ class EscalationPolicySnapshot:
             )
             log_record.save()
             self.escalation_counter += 1
-            return self._get_result_tuple(start_from_beginning=True)
+            return self._get_result_tuple(start_from_stage=0)
         return None
+
+    def _escalation_step_repeat_escalation_from_stage_n_times(self, alert_group: "AlertGroup", _reason: str) -> None:
+        if self.escalation_counter < EscalationPolicy.MAX_TIMES_REPEAT:
+            log_record = AlertGroupLogRecord(
+                type=AlertGroupLogRecord.TYPE_ESCALATION_TRIGGERED,
+                author=None,
+                alert_group=alert_group,
+                reason="repeat escalation",
+                escalation_policy=self.escalation_policy,
+                escalation_policy_step=self.step,
+            )
+            log_record.save()
+            self.escalation_counter += 1
+            return self._get_result_tuple(start_from_stage=self.run_from_stage)
 
     def _escalation_step_resolve(self, alert_group: "AlertGroup", _reason: str) -> StepExecutionResultData:
         tasks = []
@@ -570,9 +592,9 @@ class EscalationPolicySnapshot:
         transaction.on_commit(_apply_tasks)
 
     def _get_result_tuple(
-        self, eta=None, stop_escalation=False, start_from_beginning=False, pause_escalation=False
+        self, eta=None, stop_escalation=False, start_from_stage=None, pause_escalation=False
     ) -> StepExecutionResultData:
         # use default delay for eta, if eta was not counted by step and escalation was not paused
         if not pause_escalation:
             eta = eta or timezone.now() + datetime.timedelta(seconds=NEXT_ESCALATION_DELAY)
-        return self.StepExecutionResultData(eta, stop_escalation, start_from_beginning, pause_escalation)
+        return self.StepExecutionResultData(eta, stop_escalation, start_from_stage, pause_escalation)

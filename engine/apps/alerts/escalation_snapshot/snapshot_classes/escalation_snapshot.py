@@ -134,8 +134,8 @@ class EscalationSnapshot:
             # use the index of last escalation policy snapshot, since orders are not guaranteed to be sequential
             last_active_escalation_policy_order = self.escalation_policies_snapshots.index(escalation_policy_snapshot)
 
-            if execution_result.start_from_beginning:  # result of STEP_REPEAT_ESCALATION_N_TIMES
-                last_active_escalation_policy_order = None
+            if execution_result.start_from_stage is not None:  # result of STEP_REPEAT_ESCALATION_N_TIMES
+                last_active_escalation_policy_order = execution_result.start_from_stage - 1
 
             # do not advance to the next escalation policy if escalation is paused
             if execution_result.pause_escalation:

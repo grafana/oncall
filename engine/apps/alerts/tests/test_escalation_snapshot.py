@@ -50,6 +50,7 @@ def test_raw_escalation_snapshot(escalation_snapshot_test_setup):
                 "escalation_counter": 0,
                 "passed_last_time": None,
                 "pause_escalation": False,
+                "run_from_stage": None,
             },
             {
                 "id": wait_step.pk,
@@ -70,6 +71,7 @@ def test_raw_escalation_snapshot(escalation_snapshot_test_setup):
                 "escalation_counter": 0,
                 "passed_last_time": None,
                 "pause_escalation": False,
+                "run_from_stage": None,
             },
             {
                 "id": notify_if_time_step.pk,
@@ -90,6 +92,7 @@ def test_raw_escalation_snapshot(escalation_snapshot_test_setup):
                 "escalation_counter": 0,
                 "passed_last_time": None,
                 "pause_escalation": False,
+                "run_from_stage": None,
             },
         ],
     }
