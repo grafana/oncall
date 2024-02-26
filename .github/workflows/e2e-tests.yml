@@ -224,6 +224,7 @@ jobs:
         id: deployment
         uses: actions/deploy-pages@v3
         with:
+          artifact_name: playwright-report
           preview: true
 
       - name: Linked Github Page
