@@ -79,23 +79,23 @@ export function useDebouncedCallback<A extends any[]>(callback: (...args: A) => 
 }
 
 export const useDrawer = <DrawerKey extends string, DrawerData = unknown>(initialDrawerData?: DrawerData) => {
-  const [openedDrawer, setOpenedDrawer] = useState<DrawerKey>(LocationHelper.getQueryParam('openedDrawerKey'));
+  const [openedDrawerKey, setOpenedDrawerKey] = useState<DrawerKey>(LocationHelper.getQueryParam('openedDrawerKey'));
   const [drawerData, setDrawerData] = useState<DrawerData>(initialDrawerData);
 
   return {
     openDrawer: (drawerKey: DrawerKey, drawerData?: DrawerData) => {
-      setOpenedDrawer(drawerKey);
+      setOpenedDrawerKey(drawerKey);
       if (drawerData) {
         setDrawerData(drawerData);
       }
       LocationHelper.update({ openedDrawerKey: drawerKey }, 'partial');
     },
     closeDrawer: () => {
-      setOpenedDrawer(undefined);
+      setOpenedDrawerKey(undefined);
       LocationHelper.update({ openedDrawerKey: undefined }, 'partial');
     },
-    getIsDrawerOpened: (drawerKey: DrawerKey) => openedDrawer === drawerKey,
-    openedDrawer,
+    getIsDrawerOpened: (drawerKey: DrawerKey) => openedDrawerKey === drawerKey,
+    openedDrawerKey,
     drawerData,
   };
 };

@@ -4,7 +4,7 @@ import { css } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
 import { useStyles2 } from '@grafana/ui';
 
-import { HamburgerMenu } from 'components/HamburgerMenu/HamburgerMenu';
+import { HamburgerMenuIcon } from 'components/HamburgerMenuIcon/HamburgerMenuIcon';
 import { WithContextMenu } from 'components/WithContextMenu/WithContextMenu';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { isUserActionAllowed, UserAction } from 'utils/authorization/authorization';
@@ -50,7 +50,7 @@ export const HamburgerContextMenu: FC<HamburgerContextMenuProps> = ({ items, ham
       )}
     >
       {({ openMenu }) => (
-        <HamburgerMenu openMenu={openMenu} listBorder={2} listWidth={225} className={hamburgerIconClassName} />
+        <HamburgerMenuIcon openMenu={openMenu} listBorder={2} listWidth={225} className={hamburgerIconClassName} />
       )}
     </WithContextMenu>
   );
