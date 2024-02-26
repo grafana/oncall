@@ -167,8 +167,10 @@ class EscalationPolicySerializer(EagerLoadingMixin, OrderedModelSerializer):
             data["persons_to_notify"] = []
         if data.get("persons_to_notify_next_each_time", []) is None:  # terraform case
             data["persons_to_notify_next_each_time"] = []
-        if data.get("run_from_stage", None) is not None:
-            data["run_from_stage"] -= 1
+        if isinstance(data.get("run_from_stage", None), int) or (
+            isinstance(data.get("run_from_stage", None), str) and data["run_from_stage"].isdigit()
+        ):
+            data["run_from_stage"] = int(data["run_from_stage"]) - 1
         return super().to_internal_value(data)
 
     def _get_field_to_represent(self, step, result):

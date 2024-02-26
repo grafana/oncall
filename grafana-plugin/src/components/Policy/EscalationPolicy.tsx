@@ -122,6 +122,8 @@ class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
         return this.renderNumAlertsInWindow();
       case 'num_minutes_in_window':
         return this.renderNumMinutesInWindowOptions();
+      case 'run_from_stage':
+        return this.renderRunEscalationFromStage();
       default:
         console.warn('Unknown escalation step placeholder');
         return '';
@@ -451,6 +453,29 @@ class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
           value={notify_to_team_members}
           onChange={this.getOnChangeHandler('notify_to_team_members')}
           width={'auto'}
+        />
+      </WithPermissionControlTooltip>
+    );
+  }
+
+  renderRunEscalationFromStage() {
+    const { data, isDisabled } = this.props;
+    const { run_from_stage } = data;
+
+    return (
+      <WithPermissionControlTooltip key="run_from_stage" userAction={UserActions.EscalationChainsWrite}>
+        <Input
+          placeholder="From Stage"
+          disabled={isDisabled}
+          className={cx('control')}
+          value={run_from_stage}
+          onChange={this.getOnInputChangeHandler('run_from_stage')}
+          ref={(node) => {
+            if (node) {
+              node.setAttribute('type', 'number');
+              node.setAttribute('min', '1');
+            }
+          }}
         />
       </WithPermissionControlTooltip>
     );

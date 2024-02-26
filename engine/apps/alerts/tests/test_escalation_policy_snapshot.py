@@ -541,6 +541,7 @@ def test_escalation_step_repeat_escalation_n_times(
     assert repeat_escalation_step.log_records.filter(type=AlertGroupLogRecord.TYPE_ESCALATION_TRIGGERED).exists()
     assert not mocked_execute_tasks.called
 
+
 @patch("apps.alerts.escalation_snapshot.snapshot_classes.EscalationPolicySnapshot._execute_tasks", return_value=None)
 @pytest.mark.django_db
 def test_escalation_step_run_escalation_from_stage_n_times(

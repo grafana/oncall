@@ -188,8 +188,10 @@ class EscalationPolicySerializer(EagerLoadingMixin, serializers.ModelSerializer)
 
     def to_internal_value(self, data):
         data = self._wait_delay_to_internal_value(data)
-        if data.get(RUN_FROM_STAGE, None) is not None:
-            data[RUN_FROM_STAGE] -= 1
+        if isinstance(data.get(RUN_FROM_STAGE, None), int) or (
+            isinstance(data.get(RUN_FROM_STAGE, None), str) and data[RUN_FROM_STAGE].isdigit()
+        ):
+            data[RUN_FROM_STAGE] = int(data[RUN_FROM_STAGE]) - 1
         return super().to_internal_value(data)
 
     def to_representation(self, instance):
