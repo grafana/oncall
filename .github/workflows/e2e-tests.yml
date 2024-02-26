@@ -212,12 +212,11 @@ jobs:
         if: failure()
         uses: actions/configure-pages@v2
 
-      - uses: actions/upload-artifact@v3
-        if: failure()
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v1
         with:
-          name: playwright-report
           path: ./grafana-plugin/playwright-report/
-          retention-days: 30
+          name: playwright-report
 
       - name: Deploy to GitHub Pages
         if: failure()
