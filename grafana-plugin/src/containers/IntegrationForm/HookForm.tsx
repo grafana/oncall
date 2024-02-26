@@ -30,9 +30,12 @@ import { ApiSchemas } from 'network/oncall-api/api.types';
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
 import { UserActions } from 'utils/authorization/authorization';
-import { generateAssignToTeamInputDescription } from 'utils/consts';
+import { PLUGIN_ROOT, generateAssignToTeamInputDescription } from 'utils/consts';
 
 import { prepareForEdit } from './IntegrationForm.helpers';
+import { openErrorNotification } from 'utils/utils';
+import { IntegrationHelper } from 'pages/integration/Integration.helper';
+import { useHistory } from 'react-router-dom';
 
 const cx = cn.bind(styles);
 
@@ -67,9 +70,11 @@ interface HookFormProps {
   // TODO: make it more suggestive
   selectedOption: ApiSchemas['AlertReceiveChannelIntegrationOptions'];
   navigateToAlertGroupLabels: (id: ApiSchemas['AlertReceiveChannel']['id']) => void;
+  onSubmit: () => Promise<void>;
+  onHide: () => void;
 }
 
-export const HookForm = observer(({ navigateToAlertGroupLabels, selectedOption }: HookFormProps) => {
+export const HookForm = observer(({ navigateToAlertGroupLabels, selectedOption, onSubmit, onHide }: HookFormProps) => {
   const {
     control,
     handleSubmit,
@@ -79,9 +84,47 @@ export const HookForm = observer(({ navigateToAlertGroupLabels, selectedOption }
   } = useForm<FormFields>();
 
   const store = useStore();
+  const history = useHistory();
   const { userStore, grafanaTeamStore, alertReceiveChannelStore } = store;
 
+  const radioOptions = [
+    {
+      label: 'Connect existing Contact point',
+      value: 'existing',
+    },
+    {
+      label: 'Create a new one',
+      value: 'new',
+    },
+  ];
+
+  const [
+    {
+      isExistingContactPoint,
+      dataSources,
+      contactPoints,
+      selectedAlertManagerOption,
+      selectedContactPointOption,
+      allContactPoints,
+    },
+    setState,
+  ] = useReducer(
+    (state: GrafanaContactPointState, newState: Partial<GrafanaContactPointState>) => ({
+      ...state,
+      ...newState,
+    }),
+    {
+      isExistingContactPoint: true,
+      selectedAlertManagerOption: undefined,
+      selectedContactPointOption: undefined,
+      dataSources: [],
+      contactPoints: [],
+      allContactPoints: [],
+    }
+  );
+
   const labelsRef = useRef(null);
+  const contactPointRef = useRef(null);
 
   // TODO: figure these out
   const id = 'new';
@@ -170,7 +213,18 @@ export const HookForm = observer(({ navigateToAlertGroupLabels, selectedOption }
         )}
       />
 
-      <GrafanaContactPoint control={control} getValues={getValues} setValue={setValue} errors={errors} />
+      <GrafanaContactPoint
+        isExistingContactPoint={isExistingContactPoint}
+        dataSources={dataSources}
+        contactPoints={contactPoints}
+        selectedAlertManagerOption={selectedAlertManagerOption}
+        selectedContactPointOption={selectedContactPointOption}
+        allContactPoints={allContactPoints}
+        control={control}
+        getValues={getValues}
+        setValue={setValue}
+        errors={errors}
+      />
 
       {store.hasFeature(AppFeature.Labels) && (
         <div className={cx('labels')}>
@@ -219,8 +273,58 @@ export const HookForm = observer(({ navigateToAlertGroupLabels, selectedOption }
     </form>
   );
 
-  function onFormSubmit(data) {
-    console.log({ data });
+  async function onFormSubmit(data): Promise<void> {
+    const { alert_manager, contact_point, is_existing: isExisting } = data;
+
+    const labels = labelsRef.current?.getValue();
+
+    data = { ...data, labels };
+
+    const matchingAlertManager = allContactPoints.find((cp) => cp.uid === alert_manager);
+    const hasContactPointInput = alert_manager && contact_point;
+
+    if (
+      !isExisting &&
+      hasContactPointInput &&
+      matchingAlertManager?.contact_points.find((cp) => cp === contact_point)
+    ) {
+      openErrorNotification('A contact point already exists for this data source');
+      return;
+    }
+
+    const isCreate = id === 'new';
+
+    try {
+      if (isCreate) {
+        await createNewIntegration();
+      } else {
+        await alertReceiveChannelStore.update({ id, data, skipErrorHandling: true });
+      }
+    } catch (error) {
+      // setErrors(error);
+      return;
+    }
+
+    await onSubmit();
+    onHide();
+
+    async function createNewIntegration(): Promise<void | ApiSchemas['AlertReceiveChannel']> {
+      const response = await alertReceiveChannelStore.create({ data, skipErrorHandling: true });
+      const pushHistory = (id) => history.push(`${PLUGIN_ROOT}/integrations/${id}`);
+      if (!response) {
+        return;
+      }
+
+      if (!IntegrationHelper.isSpecificIntegration(selectedOption.value, 'grafana_alerting')) {
+        pushHistory(response.id);
+      }
+
+      await (data.is_existing
+        ? AlertReceiveChannelHelper.connectContactPoint
+        : AlertReceiveChannelHelper.createContactPoint)(response.id, data.alert_manager, data.contact_point);
+
+      pushHistory(response.id);
+    }
   }
 });
 
@@ -240,45 +344,16 @@ interface GrafanaContactPointProps {
   // TODO: add interface typing
   getValues: UseFormGetValues<any>;
   setValue: UseFormSetValue<any>;
+
+  isExistingContactPoint: any;
+  dataSources: any;
+  contactPoints: any;
+  selectedAlertManagerOption: any;
+  selectedContactPointOption: any;
+  allContactPoints: any;
 }
 
 const GrafanaContactPoint = observer(({ control, errors, getValues, setValue }: GrafanaContactPointProps) => {
-  const radioOptions = [
-    {
-      label: 'Connect existing Contact point',
-      value: 'existing',
-    },
-    {
-      label: 'Create a new one',
-      value: 'new',
-    },
-  ];
-
-  const [
-    {
-      isExistingContactPoint,
-      dataSources,
-      contactPoints,
-      selectedAlertManagerOption,
-      selectedContactPointOption,
-      allContactPoints,
-    },
-    setState,
-  ] = useReducer(
-    (state: GrafanaContactPointState, newState: Partial<GrafanaContactPointState>) => ({
-      ...state,
-      ...newState,
-    }),
-    {
-      isExistingContactPoint: true,
-      selectedAlertManagerOption: undefined,
-      selectedContactPointOption: undefined,
-      dataSources: [],
-      contactPoints: [],
-      allContactPoints: [],
-    }
-  );
-
   useEffect(() => {
     (async function () {
       const response = await AlertReceiveChannelHelper.getGrafanaAlertingContactPoints();

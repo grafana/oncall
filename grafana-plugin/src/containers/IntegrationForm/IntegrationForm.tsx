@@ -138,7 +138,12 @@ export const IntegrationForm = observer((props: IntegrationFormProps) => {
         <Drawer scrollableContent title={getTitle()} onClose={onHide} closeOnMaskClick={false} width="640px">
           <div className={cx('content')}>
             <VerticalGroup>
-              <HookForm navigateToAlertGroupLabels={navigateToAlertGroupLabels} selectedOption={selectedOption} />
+              <HookForm
+                navigateToAlertGroupLabels={navigateToAlertGroupLabels}
+                selectedOption={selectedOption}
+                onSubmit={onSubmit}
+                onHide={onHide}
+              />
             </VerticalGroup>
           </div>
         </Drawer>
