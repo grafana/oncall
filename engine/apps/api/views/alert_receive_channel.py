@@ -511,7 +511,11 @@ class AlertReceiveChannelView(
             fields={
                 "uid": serializers.CharField(),
                 "name": serializers.CharField(),
-                "contact_points": serializers.ListField(child=serializers.CharField()),
+                "contact_points": inline_serializer(
+                    "AlertReceiveChannelConnectedContactPointsInner",
+                    fields={"name": serializers.CharField(), "notification_connected": serializers.BooleanField()},
+                    many=True,
+                ),
             },
             many=True,
         )

@@ -1,9 +1,9 @@
 import { action, observable, makeObservable, runInAction } from 'mobx';
 
-import BaseStore from 'models/base_store';
+import { BaseStore } from 'models/base_store';
 import { LabelsErrors } from 'models/label/label.types';
-import { makeRequest } from 'network';
-import { RootStore } from 'state';
+import { makeRequest } from 'network/network';
+import { RootStore } from 'state/rootStore';
 
 import { OutgoingWebhook, OutgoingWebhookPreset } from './outgoing_webhook.types';
 
@@ -28,7 +28,7 @@ export class OutgoingWebhookStore extends BaseStore {
     this.path = '/webhooks/';
   }
 
-  @action
+  @action.bound
   async loadItem(id: OutgoingWebhook['id'], skipErrorHandling = false): Promise<OutgoingWebhook> {
     const outgoingWebhook = await this.getById(id, skipErrorHandling);
 
@@ -42,7 +42,7 @@ export class OutgoingWebhookStore extends BaseStore {
     return outgoingWebhook;
   }
 
-  @action
+  @action.bound
   async updateById(id: OutgoingWebhook['id']) {
     const response = await this.getById(id);
 
@@ -54,7 +54,7 @@ export class OutgoingWebhookStore extends BaseStore {
     });
   }
 
-  @action
+  @action.bound
   async updateItem(id: OutgoingWebhook['id'], fromOrganization = false) {
     const response = await this.getById(id, false, fromOrganization);
 
@@ -66,7 +66,7 @@ export class OutgoingWebhookStore extends BaseStore {
     });
   }
 
-  @action
+  @action.bound
   async updateItems(query: any = '') {
     const params = typeof query === 'string' ? { search: query } : query;
 
@@ -95,13 +95,13 @@ export class OutgoingWebhookStore extends BaseStore {
     });
   }
 
-  getSearchResult(query = '') {
+  getSearchResult = (query = '') => {
     if (!this.searchResult[query]) {
       return undefined;
     }
 
     return this.searchResult[query].map((outgoingWebhookId: OutgoingWebhook['id']) => this.items[outgoingWebhookId]);
-  }
+  };
 
   async getLastResponses(id: OutgoingWebhook['id']) {
     const result = await makeRequest(`${this.path}${id}/responses`, {});

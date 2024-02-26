@@ -4,27 +4,30 @@ import { SelectableValue } from '@grafana/data';
 import Emoji from 'react-emoji-render';
 
 import { FormItem, FormItemType } from 'components/GForm/GForm.types';
-import { OutgoingWebhookPreset } from 'models/outgoing_webhook/outgoing_webhook.types';
-import { KeyValuePair } from 'utils';
+import { AlertReceiveChannelStore } from 'models/alert_receive_channel/alert_receive_channel';
+import { AlertReceiveChannelHelper } from 'models/alert_receive_channel/alert_receive_channel.helpers';
+import { GrafanaTeamStore } from 'models/grafana_team/grafana_team';
+import {
+  HTTP_METHOD_OPTIONS,
+  OutgoingWebhookPreset,
+  WebhookTriggerType,
+  WEBHOOK_TRIGGGER_TYPE_OPTIONS,
+} from 'models/outgoing_webhook/outgoing_webhook.types';
 import { generateAssignToTeamInputDescription } from 'utils/consts';
 
 import { WebhookFormFieldName } from './OutgoingWebhookForm.types';
 
-export const WebhookTriggerType = {
-  EscalationStep: new KeyValuePair('0', 'Escalation Step'),
-  AlertGroupCreated: new KeyValuePair('1', 'Alert Group Created'),
-  Acknowledged: new KeyValuePair('2', 'Acknowledged'),
-  Resolved: new KeyValuePair('3', 'Resolved'),
-  Silenced: new KeyValuePair('4', 'Silenced'),
-  Unsilenced: new KeyValuePair('5', 'Unsilenced'),
-  Unresolved: new KeyValuePair('6', 'Unresolved'),
-  Unacknowledged: new KeyValuePair('7', 'Unacknowledged'),
-};
-
-export function createForm(
-  presets: OutgoingWebhookPreset[] = [],
-  hasLabelsFeature?: boolean
-): {
+export function createForm({
+  presets = [],
+  grafanaTeamStore,
+  alertReceiveChannelStore,
+  hasLabelsFeature,
+}: {
+  presets: OutgoingWebhookPreset[];
+  grafanaTeamStore: GrafanaTeamStore;
+  alertReceiveChannelStore: AlertReceiveChannelStore;
+  hasLabelsFeature?: boolean;
+}): {
   name: string;
   fields: FormItem[];
 } {
@@ -50,7 +53,9 @@ export function createForm(
         )} This setting does not effect execution of the webhook.`,
         type: FormItemType.GSelect,
         extra: {
-          modelName: 'grafanaTeamStore',
+          items: grafanaTeamStore.items,
+          fetchItemsFn: grafanaTeamStore.updateItems,
+          getSearchResult: grafanaTeamStore.getSearchResult,
           displayField: 'name',
           valueField: 'id',
           showSearch: true,
@@ -65,40 +70,7 @@ export function createForm(
         type: FormItemType.Select,
         extra: {
           placeholder: 'Choose (Required)',
-          options: [
-            {
-              value: WebhookTriggerType.EscalationStep.key,
-              label: WebhookTriggerType.EscalationStep.value,
-            },
-            {
-              value: WebhookTriggerType.AlertGroupCreated.key,
-              label: WebhookTriggerType.AlertGroupCreated.value,
-            },
-            {
-              value: WebhookTriggerType.Acknowledged.key,
-              label: WebhookTriggerType.Acknowledged.value,
-            },
-            {
-              value: WebhookTriggerType.Resolved.key,
-              label: WebhookTriggerType.Resolved.value,
-            },
-            {
-              value: WebhookTriggerType.Silenced.key,
-              label: WebhookTriggerType.Silenced.value,
-            },
-            {
-              value: WebhookTriggerType.Unsilenced.key,
-              label: WebhookTriggerType.Unsilenced.value,
-            },
-            {
-              value: WebhookTriggerType.Unresolved.key,
-              label: WebhookTriggerType.Unresolved.value,
-            },
-            {
-              value: WebhookTriggerType.Unacknowledged.key,
-              label: WebhookTriggerType.Unacknowledged.value,
-            },
-          ],
+          options: WEBHOOK_TRIGGGER_TYPE_OPTIONS,
         },
         isHidden: (data) => !isPresetFieldVisible(data.preset, presets, WebhookFormFieldName.TriggerType),
         normalize: (value) => value,
@@ -109,32 +81,7 @@ export function createForm(
         type: FormItemType.Select,
         extra: {
           placeholder: 'Choose (Required)',
-          options: [
-            {
-              value: 'GET',
-              label: 'GET',
-            },
-            {
-              value: 'POST',
-              label: 'POST',
-            },
-            {
-              value: 'PUT',
-              label: 'PUT',
-            },
-            {
-              value: 'PATCH',
-              label: 'PATCH',
-            },
-            {
-              value: 'DELETE',
-              label: 'DELETE',
-            },
-            {
-              value: 'OPTIONS',
-              label: 'OPTIONS',
-            },
-          ],
+          options: HTTP_METHOD_OPTIONS,
         },
         isHidden: (data) => !isPresetFieldVisible(data.preset, presets, WebhookFormFieldName.HttpMethod),
         normalize: (value) => value,
@@ -148,7 +95,10 @@ export function createForm(
           data.trigger_type === WebhookTriggerType.EscalationStep.key,
         extra: {
           placeholder: 'Choose (Optional)',
-          modelName: 'alertReceiveChannelStore',
+          items: alertReceiveChannelStore.items,
+          fetchItemsFn: alertReceiveChannelStore.fetchItems,
+          fetchItemFn: alertReceiveChannelStore.fetchItemById,
+          getSearchResult: () => AlertReceiveChannelHelper.getSearchResult(alertReceiveChannelStore),
           displayField: 'verbal_name',
           valueField: 'id',
           showSearch: true,

@@ -2,8 +2,8 @@ const rulesDirPlugin = require('eslint-plugin-rulesdir');
 rulesDirPlugin.RULES_DIR = 'tools/eslint-rules';
 
 module.exports = {
-  extends: ['@grafana/eslint-config'],
-  plugins: ['rulesdir', 'import'],
+  extends: ['./.config/.eslintrc'],
+  plugins: ['rulesdir', 'import', 'unused-imports'],
   settings: {
     'import/internal-regex':
       '^assets|^components|^containers|^contexts|^icons|^models|^network|^pages|^services|^state|^utils|^plugin',
@@ -37,7 +37,9 @@ module.exports = {
       },
     ],
     'no-console': ['warn', { allow: ['warn', 'error'] }],
-    'no-unused-vars': [
+    'no-unused-vars': 'off',
+    'unused-imports/no-unused-imports': ['warn'],
+    'unused-imports/no-unused-vars': [
       'warn',
       {
         vars: 'all',

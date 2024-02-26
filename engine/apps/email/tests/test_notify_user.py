@@ -211,4 +211,4 @@ def test_subject_newlines_removed(
     make_alert(alert_group, raw_request_data={})
 
     subject, _ = build_subject_and_message(alert_group, 1)
-    assert subject == "[testnewlines] You are invited to check an alert group"
+    assert subject == "testnewlines"

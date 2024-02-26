@@ -151,6 +151,100 @@ def test_create_alert_receive_channel(alert_receive_channel_internal_api_setup, 
 
 
 @pytest.mark.django_db
+def test_alert_receive_channel_name_uniqueness(
+    alert_receive_channel_internal_api_setup,
+    make_team,
+    make_user_auth_headers,
+):
+    user, token, alert_receive_channel = alert_receive_channel_internal_api_setup
+    client = APIClient()
+
+    url = reverse("api-internal:alert_receive_channel-list")
+    data = {
+        "integration": AlertReceiveChannel.INTEGRATION_GRAFANA,
+        "team": alert_receive_channel.team.public_primary_key if alert_receive_channel.team else None,
+        "verbal_name": alert_receive_channel.verbal_name,
+    }
+    response = client.post(url, data, format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    # name can be reused in a different team
+    another_team = make_team(alert_receive_channel.organization)
+    data = {
+        "integration": AlertReceiveChannel.INTEGRATION_GRAFANA,
+        "team": another_team.public_primary_key,
+        "verbal_name": alert_receive_channel.verbal_name,
+    }
+    response = client.post(url, data, format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_201_CREATED
+
+    # update works
+    url = reverse("api-internal:alert_receive_channel-detail", kwargs={"pk": alert_receive_channel.public_primary_key})
+    response = client.put(
+        url,
+        data=json.dumps(
+            {
+                "team": alert_receive_channel.team,
+                "verbal_name": alert_receive_channel.verbal_name,
+                "description": "update description",
+            }
+        ),
+        content_type="application/json",
+        **make_user_auth_headers(user, token),
+    )
+    assert response.status_code == status.HTTP_200_OK
+
+    # but updating team will fail if name exists
+    response = client.put(
+        url,
+        data=json.dumps(
+            {
+                "team": another_team.public_primary_key,
+                "verbal_name": alert_receive_channel.verbal_name,
+            }
+        ),
+        content_type="application/json",
+        **make_user_auth_headers(user, token),
+    )
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+@pytest.mark.django_db
+def test_alert_receive_channel_name_duplicated(
+    alert_receive_channel_internal_api_setup,
+    make_alert_receive_channel,
+    make_user_auth_headers,
+):
+    # this could happen in case a team is removed and integrations are set to have "no team"
+    user, token, alert_receive_channel = alert_receive_channel_internal_api_setup
+    # another integration with the same verbal name
+    make_alert_receive_channel(
+        alert_receive_channel.organization,
+        verbal_name=alert_receive_channel.verbal_name,
+    )
+
+    client = APIClient()
+
+    # updating team will require changing the name or the team
+    url = reverse("api-internal:alert_receive_channel-detail", kwargs={"pk": alert_receive_channel.public_primary_key})
+    response = client.put(
+        url,
+        data=json.dumps({"verbal_name": alert_receive_channel.verbal_name}),
+        content_type="application/json",
+        **make_user_auth_headers(user, token),
+    )
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    response = client.put(
+        url,
+        data=json.dumps({"verbal_name": "a new name"}),
+        content_type="application/json",
+        **make_user_auth_headers(user, token),
+    )
+    assert response.status_code == status.HTTP_200_OK
+
+
+@pytest.mark.django_db
 def test_create_invalid_alert_receive_channel(alert_receive_channel_internal_api_setup, make_user_auth_headers):
     user, token, _ = alert_receive_channel_internal_api_setup
     client = APIClient()
@@ -1284,7 +1378,14 @@ def test_update_alert_receive_channel_labels(
     url = reverse("api-internal:alert_receive_channel-detail", kwargs={"pk": alert_receive_channel.public_primary_key})
     key_id = "testkey"
     value_id = "testvalue"
-    data = {"labels": [{"key": {"id": key_id, "name": "test"}, "value": {"id": value_id, "name": "testv"}}]}
+    data = {
+        "labels": [
+            {
+                "key": {"id": key_id, "name": "test", "prescribed": False},
+                "value": {"id": value_id, "name": "testv", "prescribed": False},
+            }
+        ]
+    }
     response = client.patch(
         url,
         data=json.dumps(data),
@@ -1299,6 +1400,59 @@ def test_update_alert_receive_channel_labels(
     label = alert_receive_channel.labels.first()
     assert label.key_id == key_id
     assert label.value_id == value_id
+
+    response = client.patch(
+        url,
+        data=json.dumps({"labels": []}),
+        content_type="application/json",
+        **make_user_auth_headers(user, token),
+    )
+
+    alert_receive_channel.refresh_from_db()
+
+    assert response.status_code == status.HTTP_200_OK
+    assert alert_receive_channel.labels.count() == 0
+
+
+@pytest.mark.django_db
+def test_update_alert_receive_channel_presribed_labels(
+    make_organization_and_user_with_plugin_token,
+    make_alert_receive_channel,
+    make_user_auth_headers,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+    alert_receive_channel = make_alert_receive_channel(organization)
+    client = APIClient()
+
+    url = reverse("api-internal:alert_receive_channel-detail", kwargs={"pk": alert_receive_channel.public_primary_key})
+    key_id = "testkey"
+    value_id = "testvalue"
+    data = {
+        "labels": [
+            {
+                "key": {"id": key_id, "name": "test", "prescribed": True},
+                "value": {"id": value_id, "name": "testv", "prescribed": True},
+            }
+        ]
+    }
+    response = client.patch(
+        url,
+        data=json.dumps(data),
+        content_type="application/json",
+        **make_user_auth_headers(user, token),
+    )
+
+    alert_receive_channel.refresh_from_db()
+
+    assert response.status_code == status.HTTP_200_OK
+    assert alert_receive_channel.labels.count() == 1
+    label = alert_receive_channel.labels.first()
+    assert label.key_id == key_id
+    assert label.value_id == value_id
+
+    # Check if cached labels are prescribed
+    assert label.key.prescribed is True
+    assert label.value.prescribed is True
 
     response = client.patch(
         url,
@@ -1381,12 +1535,12 @@ def test_alert_group_labels_get(
         "inheritable": {label.key_id: True},
         "custom": [
             {
-                "key": {"id": label_key.id, "name": label_key.name},
-                "value": {"id": label_value.id, "name": label_value.name},
+                "key": {"id": label_key.id, "name": label_key.name, "prescribed": False},
+                "value": {"id": label_value.id, "name": label_value.name, "prescribed": False},
             },
             {
-                "key": {"id": label_key_1.id, "name": label_key_1.name},
-                "value": {"id": None, "name": "{{ payload.foo }}"},
+                "key": {"id": label_key_1.id, "name": label_key_1.name, "prescribed": False},
+                "value": {"id": None, "name": "{{ payload.foo }}", "prescribed": False},
             },
         ],
         "template": template,
@@ -1409,18 +1563,22 @@ def test_alert_group_labels_put(
     custom = [
         # plain label
         {
-            "key": {"id": label_2.key.id, "name": label_2.key.name},
-            "value": {"id": label_2.value.id, "name": label_2.value.name},
+            "key": {"id": label_2.key.id, "name": label_2.key.name, "prescribed": False},
+            "value": {"id": label_2.value.id, "name": label_2.value.name, "prescribed": False},
         },
         # plain label not present in DB cache
         {
-            "key": {"id": "hello", "name": "world"},
-            "value": {"id": "foo", "name": "bar"},
+            "key": {"id": "hello", "name": "world", "prescribed": False},
+            "value": {"id": "foo", "name": "bar", "prescribed": False},
         },
         # templated label
         {
-            "key": {"id": label_3.key.id, "name": label_3.key.name},
-            "value": {"id": None, "name": "{{ payload.foo }}"},
+            "key": {"id": label_3.key.id, "name": label_3.key.name, "prescribed": False},
+            "value": {
+                "id": None,
+                "name": "{{ payload.foo }}",
+                "prescribed": False,
+            },
         },
     ]
     template = "{{ payload.labels | tojson }}"  # advanced template
@@ -1479,10 +1637,20 @@ def test_alert_group_labels_put_none(
 def test_alert_group_labels_post(alert_receive_channel_internal_api_setup, make_user_auth_headers):
     user, token, _ = alert_receive_channel_internal_api_setup
 
-    labels = [{"key": {"id": "test", "name": "test"}, "value": {"id": "123", "name": "123"}}]
+    labels = [
+        {
+            "key": {"id": "test", "name": "test", "prescribed": False},
+            "value": {"id": "123", "name": "123", "prescribed": False},
+        }
+    ]
     alert_group_labels = {
         "inheritable": {"test": False},
-        "custom": [{"key": {"id": "test", "name": "test"}, "value": {"id": "123", "name": "123"}}],
+        "custom": [
+            {
+                "key": {"id": "test", "name": "test", "prescribed": False},
+                "value": {"id": "123", "name": "123", "prescribed": False},
+            }
+        ],
         "template": "{{ payload.labels | tojson }}",
     }
     data = {

@@ -13,7 +13,7 @@ interface SearchInputProps {
   className?: string;
 }
 
-const SearchInput = (props: SearchInputProps) => {
+export const SearchInput = (props: SearchInputProps) => {
   const { value = { searchTerm: '' }, onChange, className } = props;
 
   const onSearchTermChangeCallback = useCallback(
@@ -40,5 +40,3 @@ const SearchInput = (props: SearchInputProps) => {
     </div>
   );
 };
-
-export default SearchInput;

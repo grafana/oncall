@@ -53,6 +53,6 @@ test('from_time and to_time for "Continue escalation if current UTC time is in r
   await page.reload();
   await page.waitForLoadState('networkidle');
 
-  expect(_getFromTimeInput()).toHaveValue(FROM_TIME);
-  expect(_getToTimeInput()).toHaveValue(TO_TIME);
+  await expect(_getFromTimeInput()).toHaveValue(FROM_TIME);
+  await expect(_getToTimeInput()).toHaveValue(TO_TIME);
 });

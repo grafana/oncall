@@ -6,7 +6,7 @@ import cn from 'classnames/bind';
 import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
 
-import Text from 'components/Text/Text';
+import { Text } from 'components/Text/Text';
 import { getDateForDatePicker } from 'containers/RotationForm/RotationForm.helpers';
 import { useStore } from 'state/useStore';
 
@@ -23,7 +23,7 @@ interface DateTimePickerProps {
   error?: string[];
 }
 
-const DateTimePicker = observer(
+export const DateTimePicker = observer(
   ({ value: propValue, onChange, disabled, onFocus, onBlur, error }: DateTimePickerProps) => {
     const {
       timezoneStore: { getDateInSelectedTimezone },
@@ -90,5 +90,3 @@ const DateTimePicker = observer(
     );
   }
 );
-
-export default DateTimePicker;

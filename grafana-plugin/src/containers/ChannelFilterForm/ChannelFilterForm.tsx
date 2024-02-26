@@ -5,14 +5,15 @@ import cn from 'classnames/bind';
 import { get } from 'lodash-es';
 import { observer } from 'mobx-react';
 
-import Block from 'components/GBlock/Block';
-import MonacoEditor from 'components/MonacoEditor/MonacoEditor';
-import Text from 'components/Text/Text';
-import IncidentMatcher from 'containers/IncidentMatcher/IncidentMatcher';
-import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
+import { Block } from 'components/GBlock/Block';
+import { MonacoEditor } from 'components/MonacoEditor/MonacoEditor';
+import { Text } from 'components/Text/Text';
+import { IncidentMatcher } from 'containers/IncidentMatcher/IncidentMatcher';
+import { AlertReceiveChannelHelper } from 'models/alert_receive_channel/alert_receive_channel.helpers';
 import { ChannelFilter, FilteringTermType } from 'models/channel_filter/channel_filter.types';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
-import { openErrorNotification } from 'utils';
+import { openErrorNotification } from 'utils/utils';
 
 import styles from './ChannelFilterForm.module.css';
 
@@ -20,14 +21,14 @@ const cx = cn.bind(styles);
 
 interface ChannelFilterFormProps {
   id: ChannelFilter['id'] | 'new';
-  alertReceiveChannelId: AlertReceiveChannel['id'];
+  alertReceiveChannelId: ApiSchemas['AlertReceiveChannel']['id'];
   onHide: () => void;
   onUpdate: (channelFilterId: ChannelFilter['id']) => void;
   data?: ChannelFilter;
   className?: string;
 }
 
-const ChannelFilterForm = observer((props: ChannelFilterFormProps) => {
+export const ChannelFilterForm = observer((props: ChannelFilterFormProps) => {
   const { id, alertReceiveChannelId, onHide, onUpdate, data, className } = props;
 
   // TODO: use FilteringTermType.jinja2 instead of 1
@@ -63,7 +64,7 @@ const ChannelFilterForm = observer((props: ChannelFilterFormProps) => {
 
   const onUpdateClickCallback = useCallback(() => {
     (id === 'new'
-      ? alertReceiveChannelStore.createChannelFilter({
+      ? AlertReceiveChannelHelper.createChannelFilter({
           alert_receive_channel: alertReceiveChannelId,
           filtering_term: filteringTerm,
           filtering_term_type: filteringTermType,
@@ -183,5 +184,3 @@ const ChannelFilterForm = observer((props: ChannelFilterFormProps) => {
     </Block>
   );
 });
-
-export default ChannelFilterForm;

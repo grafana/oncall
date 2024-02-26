@@ -5,10 +5,10 @@ import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 import CopyToClipboard from 'react-copy-to-clipboard';
 
-import Text from 'components/Text/Text';
+import { Text } from 'components/Text/Text';
 import { CreateScheduleExportTokenResponse, Schedule } from 'models/schedule/schedule.types';
 import { useStore } from 'state/useStore';
-import { openNotification } from 'utils';
+import { openNotification } from 'utils/utils';
 
 import styles from './ScheduleIcalLink.module.css';
 
@@ -18,7 +18,7 @@ interface ScheduleICalSettingsProps {
   id: Schedule['id'];
 }
 
-const ScheduleICalSettings: FC<ScheduleICalSettingsProps> = observer((props) => {
+export const ScheduleICalSettings: FC<ScheduleICalSettingsProps> = observer((props) => {
   const { id } = props;
   const store = useStore();
 
@@ -107,5 +107,3 @@ const ScheduleICalSettings: FC<ScheduleICalSettingsProps> = observer((props) => 
     </VerticalGroup>
   );
 });
-
-export default ScheduleICalSettings;

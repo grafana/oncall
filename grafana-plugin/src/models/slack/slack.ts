@@ -1,9 +1,9 @@
 import { action, observable, makeObservable, runInAction } from 'mobx';
 
-import BaseStore from 'models/base_store';
+import { BaseStore } from 'models/base_store';
 import { SlackChannel } from 'models/slack_channel/slack_channel.types';
-import { makeRequest } from 'network';
-import { RootStore } from 'state';
+import { makeRequest } from 'network/network';
+import { RootStore } from 'state/rootStore';
 
 import { SlackSettings } from './slack.types';
 
@@ -19,7 +19,7 @@ export class SlackStore extends BaseStore {
     makeObservable(this);
   }
 
-  @action
+  @action.bound
   async updateSlackSettings() {
     const result = await makeRequest('/slack_settings/', {});
 
@@ -28,7 +28,7 @@ export class SlackStore extends BaseStore {
     });
   }
 
-  @action
+  @action.bound
   async saveSlackSettings(data: Partial<SlackSettings>) {
     const result = await makeRequest('/slack_settings/', {
       data,
@@ -40,7 +40,7 @@ export class SlackStore extends BaseStore {
     });
   }
 
-  @action
+  @action.bound
   async setGeneralLogChannelId(id: SlackChannel['id']) {
     return await makeRequest('/set_general_channel/', {
       method: 'POST',
@@ -48,7 +48,7 @@ export class SlackStore extends BaseStore {
     });
   }
 
-  @action
+  @action.bound
   async updateSlackIntegrationData(slack_id: string) {
     const result = await makeRequest('/slack_integration/', {
       params: { slack_id },

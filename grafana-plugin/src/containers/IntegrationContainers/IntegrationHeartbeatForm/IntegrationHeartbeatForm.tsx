@@ -5,26 +5,26 @@ import { Button, Drawer, Field, HorizontalGroup, Icon, Select, VerticalGroup } f
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
-import IntegrationInputField from 'components/IntegrationInputField/IntegrationInputField';
-import Text from 'components/Text/Text';
+import { IntegrationInputField } from 'components/IntegrationInputField/IntegrationInputField';
+import { Text } from 'components/Text/Text';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
-import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 import { SelectOption } from 'state/types';
 import { useStore } from 'state/useStore';
 import { withMobXProviderContext } from 'state/withStore';
-import { openNotification } from 'utils';
-import { UserActions } from 'utils/authorization';
+import { UserActions } from 'utils/authorization/authorization';
+import { openNotification } from 'utils/utils';
 
 import styles from './IntegrationHeartbeatForm.module.scss';
 
 const cx = cn.bind(styles);
 
 interface IntegrationHeartbeatFormProps {
-  alertReceveChannelId: AlertReceiveChannel['id'];
+  alertReceveChannelId: ApiSchemas['AlertReceiveChannel']['id'];
   onClose?: () => void;
 }
 
-const IntegrationHeartbeatForm = observer(({ alertReceveChannelId, onClose }: IntegrationHeartbeatFormProps) => {
+const _IntegrationHeartbeatForm = observer(({ alertReceveChannelId, onClose }: IntegrationHeartbeatFormProps) => {
   const [interval, setInterval] = useState<number>(undefined);
 
   const { heartbeatStore, alertReceiveChannelStore } = useStore();
@@ -117,10 +117,10 @@ const IntegrationHeartbeatForm = observer(({ alertReceveChannelId, onClose }: In
 
     openNotification('Heartbeat settings have been updated');
 
-    await alertReceiveChannelStore.loadItem(alertReceveChannelId);
+    await alertReceiveChannelStore.fetchItemById(alertReceveChannelId);
   }
 });
 
-export default withMobXProviderContext(IntegrationHeartbeatForm) as ({
+export const IntegrationHeartbeatForm = withMobXProviderContext(_IntegrationHeartbeatForm) as ({
   alertReceveChannelId,
 }: IntegrationHeartbeatFormProps) => JSX.Element;

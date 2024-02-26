@@ -5,9 +5,10 @@ import userEvent from '@testing-library/user-event';
 import { useLocation as useLocationOriginal } from 'react-router-dom';
 import { OnCallPluginConfigPageProps } from 'types';
 
-import PluginState from 'state/plugin';
+import { PluginState } from 'state/plugin/plugin';
 
-import PluginConfigPage, {
+import {
+  PluginConfigPage,
   reloadPageWithPluginConfiguredQueryParams,
   removePluginConfiguredQueryParams,
 } from './PluginConfigPage';
@@ -126,7 +127,7 @@ describe('reloadPageWithPluginConfiguredQueryParams', () => {
 describe('removePluginConfiguredQueryParams', () => {
   test('it removes all the query params if history.pushState is available, and plugin is enabled', () => {
     removePluginConfiguredQueryParams(true);
-    expect(window.history.pushState).toBeCalledWith({ path: MOCK_URL }, '', MOCK_URL);
+    expect(window.history.pushState).toHaveBeenCalledWith({ path: MOCK_URL }, '', MOCK_URL);
   });
 
   test('it does not remove all the query params if history.pushState is available, and plugin is disabled', () => {
@@ -147,7 +148,7 @@ describe('PluginConfigPage', () => {
     await screen.findByTestId(STATUS_MESSAGE_BLOCK_DATA_ID);
 
     // assertions
-    expect(window.history.pushState).toBeCalledWith({ path: MOCK_URL }, '', MOCK_URL);
+    expect(window.history.pushState).toHaveBeenCalledWith({ path: MOCK_URL }, '', MOCK_URL);
 
     expect(PluginState.updatePluginStatus).toHaveBeenCalledTimes(1);
     expect(PluginState.updatePluginStatus).toHaveBeenCalledWith(metaJsonDataOnCallApiUrl);

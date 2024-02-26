@@ -1,4 +1,5 @@
-import { TimeOption, TimeRange, TimeZone, rangeUtil } from '@grafana/data';
+import { TimeOption, TimeRange, rangeUtil } from '@grafana/data';
+import { TimeZone } from '@grafana/schema';
 
 // Valid mapping accepted by @grafana/ui and @grafana/data packages
 export const quickOptions = [

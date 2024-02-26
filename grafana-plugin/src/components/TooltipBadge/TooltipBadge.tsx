@@ -3,7 +3,7 @@ import React, { FC } from 'react';
 import { Icon, Tooltip, IconName, VerticalGroup, HorizontalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 
-import Text, { TextType } from 'components/Text/Text';
+import { Text, TextType } from 'components/Text/Text';
 
 import styles from './TooltipBadge.module.scss';
 
@@ -25,7 +25,7 @@ interface TooltipBadgeProps {
 
 const cx = cn.bind(styles);
 
-const TooltipBadge: FC<TooltipBadgeProps> = (props) => {
+export const TooltipBadge: FC<TooltipBadgeProps> = (props) => {
   const {
     borderType,
     text,
@@ -90,5 +90,3 @@ const TooltipBadge: FC<TooltipBadgeProps> = (props) => {
     return <Icon className={cx('element__icon', { [`element__icon--${borderType}`]: true })} name={icon as IconName} />;
   }
 };
-
-export default TooltipBadge;

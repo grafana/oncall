@@ -18,7 +18,7 @@ export interface CollapseProps {
 
 const cx = cn.bind(styles);
 
-const Collapse: FC<CollapseProps> = (props) => {
+export const Collapse: FC<CollapseProps> = (props) => {
   const { label, isOpen: propsIsOpen, onToggle, children, className, contentClassName, headerWithBackground } = props;
 
   const [stateIsOpen, setStateIsOpen] = useState<boolean>(propsIsOpen);
@@ -59,5 +59,3 @@ const Collapse: FC<CollapseProps> = (props) => {
     </div>
   );
 };
-
-export default Collapse;

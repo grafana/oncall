@@ -45,7 +45,7 @@ docker_build_sub(
     live_update=[
         sync("./engine/", "/etc/app"),
         run(
-            "cd /etc/app && pip install -r requirements.txt",
+            "cd /etc/app && pip install pip-tools && pip-sync",
             trigger="./engine/requirements.txt",
         ),
     ],

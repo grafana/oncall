@@ -6,12 +6,13 @@ import { observer } from 'mobx-react';
 import CopyToClipboard from 'react-copy-to-clipboard';
 import Emoji from 'react-emoji-render';
 
-import IntegrationLogo from 'components/IntegrationLogo/IntegrationLogo';
-import PluginLink from 'components/PluginLink/PluginLink';
-import Text from 'components/Text/Text';
-import TeamName from 'containers/TeamName/TeamName';
-import { HeartGreenIcon, HeartRedIcon } from 'icons';
-import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
+import { IntegrationLogo } from 'components/IntegrationLogo/IntegrationLogo';
+import { PluginLink } from 'components/PluginLink/PluginLink';
+import { Text } from 'components/Text/Text';
+import { TeamName } from 'containers/TeamName/TeamName';
+import { HeartGreenIcon, HeartRedIcon } from 'icons/Icons';
+import { AlertReceiveChannelHelper } from 'models/alert_receive_channel/alert_receive_channel.helpers';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
 
 import styles from './AlertReceiveChannelCard.module.scss';
@@ -19,11 +20,11 @@ import styles from './AlertReceiveChannelCard.module.scss';
 const cx = cn.bind(styles);
 
 interface AlertReceiveChannelCardProps {
-  id: AlertReceiveChannel['id'];
+  id: ApiSchemas['AlertReceiveChannel']['id'];
   onShowHeartbeatModal: () => void;
 }
 
-const AlertReceiveChannelCard = observer((props: AlertReceiveChannelCardProps) => {
+export const AlertReceiveChannelCard = observer((props: AlertReceiveChannelCardProps) => {
   const { id, onShowHeartbeatModal } = props;
 
   const store = useStore();
@@ -38,7 +39,7 @@ const AlertReceiveChannelCard = observer((props: AlertReceiveChannelCardProps) =
 
   const heartbeatStatus = Boolean(heartbeat?.status);
 
-  const integration = alertReceiveChannelStore.getIntegration(alertReceiveChannel);
+  const integration = AlertReceiveChannelHelper.getIntegration(alertReceiveChannelStore, alertReceiveChannel);
 
   return (
     <div className={cx('root')}>
@@ -111,5 +112,3 @@ const AlertReceiveChannelCard = observer((props: AlertReceiveChannelCardProps) =
     </div>
   );
 });
-
-export default AlertReceiveChannelCard;

@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 if typing.TYPE_CHECKING:
     from apps.alerts.models import Alert
-    from apps.labels.types import Labels
+    from apps.labels.types import AlertLabels
 
 
 class JinjaTemplateError(Exception):
@@ -53,7 +53,7 @@ def apply_jinja_template(
 
 
 def apply_jinja_template_to_alert_payload_and_labels(
-    template: str, payload: typing.Optional["Alert.RawRequestData"], labels: typing.Optional["Labels"]
+    template: str, payload: typing.Optional["Alert.RawRequestData"], labels: typing.Optional["AlertLabels"]
 ) -> str:
     return apply_jinja_template(template, payload=payload, labels=labels)
 

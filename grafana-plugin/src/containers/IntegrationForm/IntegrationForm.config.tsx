@@ -2,10 +2,11 @@ import React from 'react';
 
 import { Icon, Label, Tooltip } from '@grafana/ui';
 
-import { FormItem, FormItemType } from 'components/GForm/GForm.types';
+import { FormItemType } from 'components/GForm/GForm.types';
+import { GrafanaTeamStore } from 'models/grafana_team/grafana_team';
 import { generateAssignToTeamInputDescription } from 'utils/consts';
 
-export const form: { name: string; fields: FormItem[] } = {
+export const getForm = (grafanaTeamStore: GrafanaTeamStore) => ({
   name: 'Integration',
   fields: [
     {
@@ -33,7 +34,9 @@ export const form: { name: string; fields: FormItem[] } = {
       ),
       type: FormItemType.GSelect,
       extra: {
-        modelName: 'grafanaTeamStore',
+        items: grafanaTeamStore.items,
+        fetchItemsFn: grafanaTeamStore.updateItems,
+        getSearchResult: grafanaTeamStore.getSearchResult,
         displayField: 'name',
         valueField: 'id',
         showSearch: true,
@@ -77,4 +80,4 @@ export const form: { name: string; fields: FormItem[] } = {
       render: true,
     },
   ],
-};
+});

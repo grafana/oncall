@@ -5,7 +5,7 @@ import cn from 'classnames/bind';
 import { isArray, isUndefined } from 'lodash-es';
 import { observer } from 'mobx-react';
 
-import Text from 'components/Text/Text';
+import { Text } from 'components/Text/Text';
 
 import styles from './IntegrationCollapsibleTreeView.module.scss';
 
@@ -14,12 +14,11 @@ const cx = cn.bind(styles);
 export interface IntegrationCollapsibleItem {
   isHidden?: boolean;
   customIcon?: IconName;
-  canHoverIcon: boolean;
+  canHoverIcon?: boolean;
   isTextIcon?: boolean;
-  collapsedView: (toggle?: () => void) => React.ReactNode; // needs toggle param for toggling on click
+  collapsedView?: (toggle?: () => void) => React.ReactNode; // needs toggle param for toggling on click
   expandedView: () => React.ReactNode; // for consistency, this is also a function
-  isCollapsible: boolean;
-  iconText?: string;
+  isCollapsible?: boolean;
   isExpanded?: boolean;
   startingElemPosition?: string;
   onStateChange?(isChecked: boolean): void;
@@ -31,7 +30,7 @@ interface IntegrationCollapsibleTreeViewProps {
   configElements: Array<IntegrationCollapsibleItem | IntegrationCollapsibleItem[]>;
 }
 
-const IntegrationCollapsibleTreeView: React.FC<IntegrationCollapsibleTreeViewProps> = observer((props) => {
+export const IntegrationCollapsibleTreeView: React.FC<IntegrationCollapsibleTreeViewProps> = observer((props) => {
   const { configElements, isRouteView } = props;
 
   const [expandedList, setExpandedList] = useState(getStartingExpandedState());
@@ -159,5 +158,3 @@ const IntegrationCollapsibleTreeItem: React.FC<{
     return isExpanded ? 'angle-down' : 'angle-right';
   }
 };
-
-export default IntegrationCollapsibleTreeView;

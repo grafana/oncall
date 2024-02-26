@@ -3,13 +3,13 @@ import dayjs from 'dayjs';
 import { get } from 'lodash-es';
 import { action, computed, observable, makeObservable, runInAction } from 'mobx';
 
-import BaseStore from 'models/base_store';
+import { BaseStore } from 'models/base_store';
 import { NotificationPolicyType } from 'models/notification_policy/notification_policy';
-import { makeRequest } from 'network';
-import { RootStore } from 'state';
+import { makeRequest } from 'network/network';
 import { move } from 'state/helpers';
-import { throttlingError } from 'utils';
-import { isUserActionAllowed, UserActions } from 'utils/authorization';
+import { RootStore } from 'state/rootStore';
+import { isUserActionAllowed, UserActions } from 'utils/authorization/authorization';
+import { throttlingError } from 'utils/utils';
 
 import { getTimezone, prepareForUpdate } from './user.helpers';
 import { User } from './user.types';
@@ -60,7 +60,7 @@ export class UserStore extends BaseStore {
     return this.items[this.currentUserPk as User['pk']];
   }
 
-  @action
+  @action.bound
   async loadCurrentUser() {
     const response = await makeRequest('/user/', {});
     const timezone = await this.refreshTimezone(response.pk);
@@ -74,7 +74,7 @@ export class UserStore extends BaseStore {
     });
   }
 
-  @action
+  @action.bound
   async refreshTimezone(id: User['pk']) {
     const { timezone: grafanaPreferencesTimezone } = config.bootData.user;
     const timezone = grafanaPreferencesTimezone === 'browser' ? dayjs.tz.guess() : grafanaPreferencesTimezone;
@@ -87,7 +87,7 @@ export class UserStore extends BaseStore {
     return timezone;
   }
 
-  @action
+  @action.bound
   async loadUser(userPk: User['pk'], skipErrorHandling = false): Promise<User> {
     const user = await this.getById(userPk, skipErrorHandling);
 
@@ -101,7 +101,7 @@ export class UserStore extends BaseStore {
     return user;
   }
 
-  @action
+  @action.bound
   async updateItem(userPk: User['pk']) {
     if (this.itemsCurrentlyUpdating[userPk]) {
       return;
@@ -132,7 +132,7 @@ export class UserStore extends BaseStore {
     });
   }
 
-  @action
+  @action.bound
   async updateItems(f: any = { searchTerm: '' }, page = 1, invalidateFn?: () => boolean): Promise<any> {
     const response = await this.search(f, page);
 
@@ -167,19 +167,19 @@ export class UserStore extends BaseStore {
     return response;
   }
 
-  getSearchResult() {
+  getSearchResult = () => {
     return {
       page_size: this.searchResult.page_size,
       count: this.searchResult.count,
       results: this.searchResult.results?.map((userPk: User['pk']) => this.items?.[userPk]),
     };
-  }
+  };
 
   sendTelegramConfirmationCode = async (userPk: User['pk']) => {
     return await makeRequest(`/users/${userPk}/get_telegram_verification_code/`, {});
   };
 
-  @action
+  @action.bound
   unlinkSlack = async (userPk: User['pk']) => {
     await makeRequest(`/users/${userPk}/unlink_slack/`, {
       method: 'POST',
@@ -195,7 +195,7 @@ export class UserStore extends BaseStore {
     });
   };
 
-  @action
+  @action.bound
   unlinkTelegram = async (userPk: User['pk']) => {
     await makeRequest(`/users/${userPk}/unlink_telegram/`, {
       method: 'POST',
@@ -216,7 +216,7 @@ export class UserStore extends BaseStore {
       method: 'GET',
     });
 
-  @action
+  @action.bound
   unlinkBackend = async (userPk: User['pk'], backend: string) => {
     await makeRequest(`/users/${userPk}/unlink_backend/?backend=${backend}`, {
       method: 'POST',
@@ -225,7 +225,7 @@ export class UserStore extends BaseStore {
     this.loadCurrentUser();
   };
 
-  @action
+  @action.bound
   async createUser(data: any) {
     const user = await this.create(data);
 
@@ -239,7 +239,7 @@ export class UserStore extends BaseStore {
     return user;
   }
 
-  @action
+  @action.bound
   async updateUser(data: Partial<User>) {
     const user = await makeRequest(`/users/${data.pk}/`, {
       method: 'PUT',
@@ -261,7 +261,7 @@ export class UserStore extends BaseStore {
     });
   }
 
-  @action
+  @action.bound
   async updateCurrentUser(data: Partial<User>) {
     const user = await makeRequest(`/user/`, {
       method: 'PUT',
@@ -279,7 +279,7 @@ export class UserStore extends BaseStore {
     });
   }
 
-  @action
+  @action.bound
   async fetchVerificationCode(userPk: User['pk'], recaptchaToken: string) {
     await makeRequest(`/users/${userPk}/get_verification_code/`, {
       method: 'GET',
@@ -287,7 +287,7 @@ export class UserStore extends BaseStore {
     }).catch(throttlingError);
   }
 
-  @action
+  @action.bound
   async fetchVerificationCall(userPk: User['pk'], recaptchaToken: string) {
     await makeRequest(`/users/${userPk}/get_verification_call/`, {
       method: 'GET',
@@ -295,21 +295,21 @@ export class UserStore extends BaseStore {
     }).catch(throttlingError);
   }
 
-  @action
+  @action.bound
   async verifyPhone(userPk: User['pk'], token: string) {
     return await makeRequest(`/users/${userPk}/verify_number/?token=${token}`, {
       method: 'PUT',
     }).catch(throttlingError);
   }
 
-  @action
+  @action.bound
   async forgetPhone(userPk: User['pk']) {
     return await makeRequest(`/users/${userPk}/forget_number/`, {
       method: 'PUT',
     });
   }
 
-  @action
+  @action.bound
   async updateNotificationPolicies(id: User['pk']) {
     const importantEPs = await makeRequest('/notification_policies/', {
       params: { user: id, important: true },
@@ -327,7 +327,7 @@ export class UserStore extends BaseStore {
     });
   }
 
-  @action
+  @action.bound
   async moveNotificationPolicyToPosition(userPk: User['pk'], oldIndex: number, newIndex: number, offset: number) {
     const notificationPolicy = this.notificationPolicies[userPk][oldIndex + offset];
 
@@ -342,7 +342,7 @@ export class UserStore extends BaseStore {
     this.updateItem(userPk); // to update notification_chain_verbal
   }
 
-  @action
+  @action.bound
   async addNotificationPolicy(userPk: User['pk'], important: NotificationPolicyType['important']) {
     await makeRequest(`/notification_policies/`, {
       method: 'POST',
@@ -354,7 +354,7 @@ export class UserStore extends BaseStore {
     this.updateItem(userPk); // to update notification_chain_verbal
   }
 
-  @action
+  @action.bound
   async updateNotificationPolicy(userPk: User['pk'], id: NotificationPolicyType['id'], value: NotificationPolicyType) {
     this.notificationPolicies = {
       ...this.notificationPolicies,
@@ -380,7 +380,7 @@ export class UserStore extends BaseStore {
     this.updateItem(userPk); // to update notification_chain_verbal
   }
 
-  @action
+  @action.bound
   async deleteNotificationPolicy(userPk: User['pk'], id: NotificationPolicyType['id']) {
     await makeRequest(`/notification_policies/${id}`, { method: 'DELETE' }).catch(this.onApiError);
 
@@ -400,7 +400,7 @@ export class UserStore extends BaseStore {
     });
   }
 
-  @action
+  @action.bound
   async sendTestPushNotification(userId: User['pk'], isCritical: boolean) {
     return await makeRequest(`/users/${userId}/send_test_push`, {
       method: 'POST',
@@ -419,7 +419,7 @@ export class UserStore extends BaseStore {
     });
   }
 
-  @action
+  @action.bound
   async makeTestCall(userPk: User['pk']) {
     this.isTestCallInProgress = true;
 

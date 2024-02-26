@@ -79,7 +79,8 @@ class Webhook(models.Model):
         TRIGGER_UNSILENCE,
         TRIGGER_UNRESOLVE,
         TRIGGER_UNACKNOWLEDGE,
-    ) = range(8)
+        TRIGGER_STATUS_CHANGE,
+    ) = range(9)
 
     # Must be the same order as previous
     TRIGGER_TYPES = (
@@ -91,9 +92,18 @@ class Webhook(models.Model):
         (TRIGGER_UNSILENCE, "Unsilenced"),
         (TRIGGER_UNRESOLVE, "Unresolved"),
         (TRIGGER_UNACKNOWLEDGE, "Unacknowledged"),
+        (TRIGGER_STATUS_CHANGE, "Status change"),
     )
 
     ALL_TRIGGER_TYPES = [i[0] for i in TRIGGER_TYPES]
+    STATUS_CHANGE_TRIGGERS = {
+        TRIGGER_ACKNOWLEDGE,
+        TRIGGER_RESOLVE,
+        TRIGGER_SILENCE,
+        TRIGGER_UNSILENCE,
+        TRIGGER_UNRESOLVE,
+        TRIGGER_UNACKNOWLEDGE,
+    }
 
     PUBLIC_TRIGGER_TYPES_MAP = {
         TRIGGER_ESCALATION_STEP: "escalation",
@@ -104,6 +114,7 @@ class Webhook(models.Model):
         TRIGGER_UNSILENCE: "unsilence",
         TRIGGER_UNRESOLVE: "unresolve",
         TRIGGER_UNACKNOWLEDGE: "unacknowledge",
+        TRIGGER_STATUS_CHANGE: "status change",
     }
 
     PUBLIC_ALL_TRIGGER_TYPES = [i for i in PUBLIC_TRIGGER_TYPES_MAP.values()]
@@ -120,7 +131,7 @@ class Webhook(models.Model):
     )
 
     team = models.ForeignKey(
-        "user_management.Team", null=True, on_delete=models.CASCADE, related_name="webhooks", default=None
+        "user_management.Team", null=True, on_delete=models.SET_NULL, related_name="webhooks", default=None
     )
 
     user = models.ForeignKey(
@@ -141,9 +152,13 @@ class Webhook(models.Model):
     http_method = models.CharField(max_length=32, default="POST", null=True)
     trigger_type = models.IntegerField(choices=TRIGGER_TYPES, default=TRIGGER_ESCALATION_STEP, null=True)
     is_webhook_enabled = models.BooleanField(null=True, default=True)
+    # NOTE: integration_filter is deprecated (to be removed), use filtered_integrations instead
     integration_filter = models.JSONField(default=None, null=True, blank=True)
+    filtered_integrations = models.ManyToManyField("alerts.AlertReceiveChannel", related_name="webhooks")
     is_legacy = models.BooleanField(null=True, default=False)
     preset = models.CharField(max_length=100, null=True, blank=True, default=None)
+
+    is_from_connected_integration = models.BooleanField(null=True, default=False)
 
     class Meta:
         unique_together = ("name", "organization")
@@ -230,9 +245,9 @@ class Webhook(models.Model):
         return url
 
     def check_integration_filter(self, alert_group):
-        if not self.integration_filter:
+        if self.filtered_integrations.count() == 0:
             return True
-        return alert_group.channel.public_primary_key in self.integration_filter
+        return self.filtered_integrations.filter(id=alert_group.channel.id).exists()
 
     def check_trigger(self, event_data):
         if not self.trigger_template:

@@ -2,7 +2,15 @@ import React, { SyntheticEvent } from 'react';
 
 import { SelectableValue } from '@grafana/data';
 import { LabelTag } from '@grafana/labels';
-import { Button, HorizontalGroup, Icon, RadioButtonGroup, Tooltip, VerticalGroup } from '@grafana/ui';
+import {
+  Button,
+  HorizontalGroup,
+  Icon,
+  LoadingPlaceholder,
+  RadioButtonGroup,
+  Tooltip,
+  VerticalGroup,
+} from '@grafana/ui';
 import cn from 'classnames/bind';
 import { capitalize } from 'lodash-es';
 import { observer } from 'mobx-react';
@@ -10,23 +18,24 @@ import moment from 'moment-timezone';
 import Emoji from 'react-emoji-render';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 
-import CardButton from 'components/CardButton/CardButton';
-import CursorPagination from 'components/CursorPagination/CursorPagination';
-import GTable from 'components/GTable/GTable';
-import IntegrationLogo from 'components/IntegrationLogo/IntegrationLogo';
-import ManualAlertGroup from 'components/ManualAlertGroup/ManualAlertGroup';
-import PluginLink from 'components/PluginLink/PluginLink';
-import RenderConditionally from 'components/RenderConditionally/RenderConditionally';
-import Text from 'components/Text/Text';
-import TextEllipsisTooltip from 'components/TextEllipsisTooltip/TextEllipsisTooltip';
-import TooltipBadge from 'components/TooltipBadge/TooltipBadge';
-import Tutorial from 'components/Tutorial/Tutorial';
+import { CardButton } from 'components/CardButton/CardButton';
+import { CursorPagination } from 'components/CursorPagination/CursorPagination';
+import { GTable } from 'components/GTable/GTable';
+import { IntegrationLogo } from 'components/IntegrationLogo/IntegrationLogo';
+import { ManualAlertGroup } from 'components/ManualAlertGroup/ManualAlertGroup';
+import { PluginLink } from 'components/PluginLink/PluginLink';
+import { RenderConditionally } from 'components/RenderConditionally/RenderConditionally';
+import { Text } from 'components/Text/Text';
+import { TextEllipsisTooltip } from 'components/TextEllipsisTooltip/TextEllipsisTooltip';
+import { TooltipBadge } from 'components/TooltipBadge/TooltipBadge';
+import { Tutorial } from 'components/Tutorial/Tutorial';
 import { TutorialStep } from 'components/Tutorial/Tutorial.types';
-import ColumnsSelectorWrapper from 'containers/ColumnsSelectorWrapper/ColumnsSelectorWrapper';
+import { ColumnsSelectorWrapper } from 'containers/ColumnsSelectorWrapper/ColumnsSelectorWrapper';
 import { IncidentsFiltersType } from 'containers/IncidentsFilters/IncidentFilters.types';
-import RemoteFilters from 'containers/RemoteFilters/RemoteFilters';
-import TeamName from 'containers/TeamName/TeamName';
+import { RemoteFilters } from 'containers/RemoteFilters/RemoteFilters';
+import { TeamName } from 'containers/TeamName/TeamName';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
+import { AlertReceiveChannelHelper } from 'models/alert_receive_channel/alert_receive_channel.helpers';
 import {
   Alert,
   Alert as AlertType,
@@ -36,12 +45,14 @@ import {
   AlertGroupColumnType,
 } from 'models/alertgroup/alertgroup.types';
 import { LabelKeyValue } from 'models/label/label.types';
+import { ActionKey } from 'models/loader/action-keys';
+import { LoaderHelper } from 'models/loader/loader.helpers';
 import { renderRelatedUsers } from 'pages/incident/Incident.helpers';
 import { AppFeature } from 'state/features';
 import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
-import LocationHelper from 'utils/LocationHelper';
-import { UserActions } from 'utils/authorization';
+import { LocationHelper } from 'utils/LocationHelper';
+import { UserActions } from 'utils/authorization/authorization';
 import { INCIDENT_HORIZONTAL_SCROLLING_STORAGE, PAGE, PLUGIN_ROOT, TEXT_ELLIPSIS_CLASS } from 'utils/consts';
 import { getItem, setItem } from 'utils/localStorage';
 import { TableColumn } from 'utils/types';
@@ -66,6 +77,7 @@ interface IncidentsPageState {
   showAddAlertGroupForm: boolean;
   isSelectorColumnMenuOpen: boolean;
   isHorizontalScrolling: boolean;
+  isFirstIncidentsFetchDone: boolean;
 }
 
 const POLLING_NUM_SECONDS = 15;
@@ -96,7 +108,7 @@ const TABLE_SCROLL_OPTIONS: SelectableValue[] = [
 ];
 
 @observer
-class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> {
+class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageState> {
   constructor(props: IncidentsPageProps) {
     super(props);
 
@@ -122,11 +134,12 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
       },
       isSelectorColumnMenuOpen: true,
       isHorizontalScrolling: getItem(INCIDENT_HORIZONTAL_SCROLLING_STORAGE) || false,
+      isFirstIncidentsFetchDone: false,
     };
   }
 
   private rootElRef: React.RefObject<HTMLDivElement>;
-  private pollingIntervalId: NodeJS.Timer = undefined;
+  private pollingIntervalId: ReturnType<typeof setInterval> = undefined;
 
   componentDidMount() {
     const { store } = this.props;
@@ -138,6 +151,8 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
     if (store.hasFeature(AppFeature.Labels)) {
       alertGroupStore.fetchTableSettings();
     }
+
+    this.setPollingInterval();
   }
 
   componentWillUnmount(): void {
@@ -330,16 +345,14 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
     this.setState({
       filters,
       selectedIncidentIds: [],
+      affectedRows: {},
     });
 
     if (!isOnMount) {
       this.setPagination(1, alertGroupStore.alertsSearchResult['default'].page_size);
     }
 
-    this.clearPollingInterval();
-    this.setPollingInterval(filters, isOnMount);
-
-    await this.fetchIncidentData(filters, isOnMount);
+    await this.fetchIncidentData(filters);
 
     if (isOnMount) {
       this.setPagination(start, start + alertGroupStore.alertsSearchResult['default'].page_size - 1);
@@ -355,10 +368,14 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
     });
   };
 
-  fetchIncidentData = async (filters: IncidentsFiltersType, isOnMount: boolean) => {
+  fetchIncidentData = async (filters: IncidentsFiltersType) => {
     const { store } = this.props;
-    await store.alertGroupStore.updateIncidentFilters(filters, isOnMount); // this line fetches the incidents
+    await store.alertGroupStore.updateIncidentFiltersAndRefetchIncidentsAndStats(
+      filters,
+      !this.state.isFirstIncidentsFetchDone
+    );
     LocationHelper.update({ ...store.alertGroupStore.incidentFilters }, 'partial');
+    this.setState({ isFirstIncidentsFetchDone: true });
   };
 
   onChangeCursor = (cursor: string, direction: 'prev' | 'next') => {
@@ -418,6 +435,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
     const { results } = store.alertGroupStore.getAlertSearchResult('default');
 
     const hasSelected = selectedIncidentIds.length > 0;
+    const isLoading = LoaderHelper.isLoading(store.loaderStore, ActionKey.FETCH_INCIDENTS);
     const hasInvalidatedAlert = Boolean(
       (results && results.some((alert: AlertType) => alert.undoAction)) || Object.keys(affectedRows).length
     );
@@ -475,18 +493,17 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
           </div>
 
           <div className={cx('fields-dropdown')}>
-            <RenderConditionally shouldRender={hasInvalidatedAlert}>
+            <RenderConditionally shouldRender={!isLoading && hasInvalidatedAlert}>
               <HorizontalGroup spacing="xs">
                 <Text type="secondary">Results out of date</Text>
-                <Button
-                  className={cx('btn-results')}
-                  disabled={store.alertGroupStore.alertGroupsLoading}
-                  variant="primary"
-                  onClick={this.onIncidentsUpdateClick}
-                >
+                <Button className={cx('btn-results')} variant="primary" onClick={this.onIncidentsUpdateClick}>
                   Refresh
                 </Button>
               </HorizontalGroup>
+            </RenderConditionally>
+
+            <RenderConditionally shouldRender={isLoading}>
+              <LoadingPlaceholder text="Loading..." className={cx('loadingPlaceholder')} />
             </RenderConditionally>
 
             <RenderConditionally shouldRender={store.hasFeature(AppFeature.Labels)}>
@@ -505,10 +522,11 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
 
   renderTable() {
     const { selectedIncidentIds, pagination, isHorizontalScrolling } = this.state;
-    const { alertGroupStore, filtersStore } = this.props.store;
+    const { alertGroupStore, filtersStore, loaderStore } = this.props.store;
 
     const { results, prev, next } = alertGroupStore.getAlertSearchResult('default');
-    const isLoading = alertGroupStore.alertGroupsLoading || filtersStore.options['incidents'] === undefined;
+    const isLoading =
+      LoaderHelper.isLoading(loaderStore, ActionKey.FETCH_INCIDENTS) || filtersStore.options['incidents'] === undefined;
 
     if (results && !results.length) {
       return (
@@ -538,7 +556,6 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
         {this.renderBulkActions()}
         <GTable
           emptyText={isLoading ? 'Loading...' : 'No alert groups found'}
-          loading={isLoading}
           className={cx({ 'horizontal-scroll-table': isHorizontalScrolling })}
           rowSelection={{
             selectedRowKeys: selectedIncidentIds,
@@ -613,7 +630,10 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
     const {
       store: { alertReceiveChannelStore },
     } = this.props;
-    const integration = alertReceiveChannelStore.getIntegration(record.alert_receive_channel);
+    const integration = AlertReceiveChannelHelper.getIntegration(
+      alertReceiveChannelStore,
+      record.alert_receive_channel
+    );
 
     return (
       <TextEllipsisTooltip
@@ -912,7 +932,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
 
     this.setPollingInterval();
 
-    store.alertGroupStore.liveUpdatesPaused = true;
+    store.alertGroupStore.setLiveUpdatesPaused(true);
     const delay = typeof event === 'number' ? event : 0;
 
     this.setState(
@@ -940,7 +960,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
     const { store } = this.props;
 
     this.setState({ affectedRows: {} }, () => {
-      store.alertGroupStore.updateIncidents();
+      store.alertGroupStore.fetchIncidentsAndStats();
     });
   };
 
@@ -949,13 +969,20 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
     this.pollingIntervalId = null;
   }
 
-  setPollingInterval(filters: IncidentsFiltersType = this.state.filters, isOnMount = false) {
+  setPollingInterval() {
     const startPolling = (delayed = false) => {
       this.pollingIntervalId = setTimeout(
         async () => {
           const isBrowserWindowInactive = document.hidden;
-          if (!isBrowserWindowInactive) {
-            await this.fetchIncidentData(filters, isOnMount);
+          if (
+            !isBrowserWindowInactive &&
+            !LoaderHelper.isLoading(this.props.store.loaderStore, [
+              ActionKey.FETCH_INCIDENTS,
+              ActionKey.FETCH_INCIDENTS_POLLING,
+            ]) &&
+            !this.props.store.alertGroupStore.liveUpdatesPaused
+          ) {
+            await this.props.store.alertGroupStore.fetchIncidentsAndStats(true);
           }
 
           if (this.pollingIntervalId === null) {
@@ -971,4 +998,4 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
   }
 }
 
-export default withRouter(withMobXProviderContext(Incidents));
+export const IncidentsPage = withRouter(withMobXProviderContext(_IncidentsPage));
