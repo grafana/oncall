@@ -228,3 +228,7 @@ jobs:
         uses: actions/deploy-pages@v3
         with:
           preview: true
+
+      - name: Linked Github Page
+        run: |
+          echo "Test report has been deployed to [GitHub Pages](https://grafana.github.io/oncall/) :rocket:" >> $GITHUB_STEP_SUMMARY
