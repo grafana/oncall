@@ -158,6 +158,8 @@ class Webhook(models.Model):
     is_legacy = models.BooleanField(null=True, default=False)
     preset = models.CharField(max_length=100, null=True, blank=True, default=None)
 
+    is_from_connected_integration = models.BooleanField(null=True, default=False)
+
     class Meta:
         unique_together = ("name", "organization")
 
