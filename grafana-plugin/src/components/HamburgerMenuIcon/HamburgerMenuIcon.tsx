@@ -3,9 +3,9 @@ import React, { useRef } from 'react';
 import { Icon } from '@grafana/ui';
 import cn from 'classnames/bind';
 
-import styles from './HamburgerMenu.module.scss';
+import styles from './HamburgerMenuIcon.module.scss';
 
-interface HamburgerMenuProps {
+interface HamburgerMenuIconProps {
   openMenu: React.MouseEventHandler<HTMLElement>;
   listWidth: number;
   listBorder: number;
@@ -16,7 +16,7 @@ interface HamburgerMenuProps {
 
 const cx = cn.bind(styles);
 
-export const HamburgerMenu: React.FC<HamburgerMenuProps> = (props) => {
+export const HamburgerMenuIcon: React.FC<HamburgerMenuIconProps> = (props) => {
   const ref = useRef<HTMLDivElement>();
   const { openMenu, listBorder, listWidth, withBackground, className, stopPropagation = false } = props;
   return (

@@ -11,9 +11,9 @@ const cx = cn.bind(styles);
 
 interface IntegrationBlockProps {
   className?: string;
-  noContent: boolean;
+  noContent?: boolean;
   heading: React.ReactNode;
-  content: React.ReactNode;
+  content?: React.ReactNode;
   toggle?: () => void;
 }
 

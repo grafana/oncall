@@ -20,7 +20,7 @@ import Emoji from 'react-emoji-render';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 
 import { GTable } from 'components/GTable/GTable';
-import { HamburgerMenu } from 'components/HamburgerMenu/HamburgerMenu';
+import { HamburgerMenuIcon } from 'components/HamburgerMenuIcon/HamburgerMenuIcon';
 import { IntegrationLogo } from 'components/IntegrationLogo/IntegrationLogo';
 import { LabelsTooltipBadge } from 'components/LabelsTooltipBadge/LabelsTooltipBadge';
 import { PageBaseState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
@@ -546,7 +546,7 @@ class _IntegrationsPage extends React.Component<IntegrationsProps, IntegrationsS
           </div>
         )}
       >
-        {({ openMenu }) => <HamburgerMenu openMenu={openMenu} listBorder={2} listWidth={200} />}
+        {({ openMenu }) => <HamburgerMenuIcon openMenu={openMenu} listBorder={2} listWidth={200} />}
       </WithContextMenu>
     );
   };
