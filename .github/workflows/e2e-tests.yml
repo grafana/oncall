@@ -213,17 +213,16 @@ jobs:
         uses: actions/configure-pages@v2
 
       - name: Upload artifact
+        if: failure()
         uses: actions/upload-pages-artifact@v1
         with:
           path: ./grafana-plugin/playwright-report/
-          name: playwright-report
 
       - name: Deploy to GitHub Pages
         if: failure()
         id: deployment
         uses: actions/deploy-pages@v3
         with:
-          artifact_name: playwright-report
           preview: true
 
       - name: Linked Github Page
