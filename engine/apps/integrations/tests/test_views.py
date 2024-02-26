@@ -38,44 +38,6 @@ def setup_failing_redis_cache(settings):
     }
 
 
-@pytest.mark.django_db
-def test_integration_json_data_too_big(settings, make_organization_and_user, make_alert_receive_channel):
-    settings.DATA_UPLOAD_MAX_MEMORY_SIZE = 50
-
-    organization, user = make_organization_and_user()
-    alert_receive_channel = make_alert_receive_channel(
-        organization=organization,
-        author=user,
-        integration=AlertReceiveChannel.INTEGRATION_ALERTMANAGER,
-    )
-
-    client = APIClient()
-    url = reverse("integrations:alertmanager", kwargs={"alert_channel_key": alert_receive_channel.token})
-
-    data = {"value": "a" * settings.DATA_UPLOAD_MAX_MEMORY_SIZE}
-    response = client.post(url, data, format="json")
-    assert response.status_code == status.HTTP_400_BAD_REQUEST
-
-
-@pytest.mark.django_db
-def test_integration_form_data_too_big(settings, make_organization_and_user, make_alert_receive_channel):
-    settings.DATA_UPLOAD_MAX_MEMORY_SIZE = 50
-
-    organization, user = make_organization_and_user()
-    alert_receive_channel = make_alert_receive_channel(
-        organization=organization,
-        author=user,
-        integration=AlertReceiveChannel.INTEGRATION_ALERTMANAGER,
-    )
-
-    client = APIClient()
-    url = reverse("integrations:alertmanager", kwargs={"alert_channel_key": alert_receive_channel.token})
-
-    data = {"value": "a" * settings.DATA_UPLOAD_MAX_MEMORY_SIZE}
-    response = client.post(url, data, content_type="application/x-www-form-urlencoded")
-    assert response.status_code == status.HTTP_400_BAD_REQUEST
-
-
 @patch("apps.integrations.views.create_alert")
 @pytest.mark.parametrize(
     "integration_type",

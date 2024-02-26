@@ -1,7 +1,7 @@
 import { Page } from '@playwright/test';
 import dayjs from 'dayjs';
 
-import { clickButton, fillInInput, selectDropdownValue } from './forms';
+import { clickButton, selectDropdownValue } from './forms';
 import { goToOnCallPage } from './navigation';
 
 export const createOnCallSchedule = async (page: Page, scheduleName: string, userName: string): Promise<void> => {
@@ -13,7 +13,7 @@ export const createOnCallSchedule = async (page: Page, scheduleName: string, use
   (await page.waitForSelector('button >> text=Create >> nth=0')).click();
 
   // fill in the name input
-  await fillInInput(page, 'div[class*="ScheduleForm"] input[name="name"]', scheduleName);
+  await page.getByTestId('schedule-form').locator('input[name="name"]').fill(scheduleName);
 
   // Add a new layer w/ the current user to it
   await clickButton({ page, buttonText: 'Create Schedule' });
