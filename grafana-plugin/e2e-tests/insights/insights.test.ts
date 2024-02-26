@@ -43,7 +43,7 @@ test.describe('Insights', () => {
   test('Viewer can see all the panels in OnCall insights', async ({ viewerRolePage: { page } }) => {
     await goToOnCallPage(page, 'insights');
     [
-      'New alert groups',
+      'New alert groups WRONGG',
       'Mean time to respond \\(MTTR\\) average',
       'Alert groups by Integration',
       'Mean time to respond \\(MTTR\\) by Integration',

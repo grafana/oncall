@@ -208,6 +208,10 @@ jobs:
         with:
           important-workloads: deploy/oncall-ci-grafana
 
+      - name: Setup Pages
+        if: failure()
+        uses: actions/configure-pages@v2
+
       - uses: actions/upload-artifact@v3
         if: failure()
         with:
@@ -215,21 +219,15 @@ jobs:
           path: ./grafana-plugin/playwright-report/
           retention-days: 30
 
-      - name: Setup Pages
-        uses: actions/configure-pages@v2
-
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v1
-        with:
-          path: ./grafana-plugin/playwright-report/
-
       - name: Deploy to GitHub Pages
+        if: failure()
         id: deployment
         uses: actions/deploy-pages@v3
         with:
           preview: true
 
       - name: Linked Github Page
+        if: failure()
         run: |
           echo "Test report has been deployed to [GitHub Pages](https://grafana.github.io/oncall/) :rocket:" \
           >> $GITHUB_STEP_SUMMARY
