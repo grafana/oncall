@@ -7,6 +7,7 @@ import { observer } from 'mobx-react';
 
 import { IntegrationInputField } from 'components/IntegrationInputField/IntegrationInputField';
 import { Text } from 'components/Text/Text';
+import { WithConfirm } from 'components/WithConfirm/WithConfirm';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { SelectOption } from 'state/types';
@@ -49,7 +50,7 @@ const _IntegrationHeartbeatForm = observer(({ alertReceveChannelId, onClose }: I
         <VerticalGroup spacing={'lg'}>
           <Text type="secondary">
             A heartbeat acts as a healthcheck for alert group monitoring. You can configure you monitoring to regularly
-            send alerts to the heartbeat endpoint. If OnCall doen't receive one of these alerts, it will create an new
+            send alerts to the heartbeat endpoint. If OnCall doesn't receive one of these alerts, it will create an new
             alert group and escalate it
           </Text>
 
@@ -100,6 +101,13 @@ const _IntegrationHeartbeatForm = observer(({ alertReceveChannelId, onClose }: I
                   Update
                 </Button>
               </WithPermissionControlTooltip>
+              <WithPermissionControlTooltip key="reset" userAction={UserActions.IntegrationsWrite}>
+                <WithConfirm title="Are you sure to reset integration heartbeat?" confirmText="Reset">
+                  <Button variant="destructive" onClick={onReset} data-testid="reset-heartbeat">
+                    Reset
+                  </Button>
+                </WithConfirm>
+              </WithPermissionControlTooltip>
             </HorizontalGroup>
           </VerticalGroup>
         </VerticalGroup>
@@ -116,6 +124,16 @@ const _IntegrationHeartbeatForm = observer(({ alertReceveChannelId, onClose }: I
     onClose();
 
     openNotification('Heartbeat settings have been updated');
+
+    await alertReceiveChannelStore.fetchItemById(alertReceveChannelId);
+  }
+
+  async function onReset() {
+    await heartbeatStore.resetHeartbeat(heartbeatId);
+
+    onClose();
+
+    openNotification('Heartbeat has been reset');
 
     await alertReceiveChannelStore.fetchItemById(alertReceveChannelId);
   }

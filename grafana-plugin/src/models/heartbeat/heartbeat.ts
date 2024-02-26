@@ -70,4 +70,20 @@ export class HeartbeatStore extends BaseStore {
       };
     });
   }
+
+  @action.bound
+  async resetHeartbeat(id: Heartbeat['id']) {
+    const response = await makeRequest(`${this.path}${id}/reset`, { method: 'POST' });
+
+    if (!response) {
+      return;
+    }
+
+    runInAction(() => {
+      this.items = {
+        ...this.items,
+        [response.id]: response,
+      };
+    });
+  }
 }
