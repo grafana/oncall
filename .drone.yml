@@ -386,5 +386,3 @@ name: cloud_access_policy_token
 ---
 kind: signature
 hmac: 198b7c7d2c94fc5698b22a722e7748181990207755cf1778b2290137e262518c
-
-...

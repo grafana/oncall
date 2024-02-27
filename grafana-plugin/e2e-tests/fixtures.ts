@@ -1,4 +1,4 @@
-import { test as base, Browser, Page, TestInfo } from '@playwright/test';
+import { test as base, Browser, Fixtures, Page, TestInfo } from '@playwright/test';
 
 import { VIEWER_USER_STORAGE_STATE, EDITOR_USER_STORAGE_STATE, ADMIN_USER_STORAGE_STATE } from '../playwright.config';
 
@@ -6,8 +6,6 @@ import { GRAFANA_ADMIN_USERNAME, GRAFANA_EDITOR_USERNAME, GRAFANA_VIEWER_USERNAM
 
 import * as fs from 'fs';
 import * as path from 'path';
-
-
 
 export class BaseRolePage {
   page: Page;
@@ -32,11 +30,14 @@ class AdminRolePage extends BaseRolePage {
   userName = GRAFANA_ADMIN_USERNAME;
 }
 
-type Fixtures = {
+interface TestFixtures extends Fixtures {
+  // currentGrafanaVersion: string;
   viewerRolePage: ViewerRolePage;
   editorRolePage: EditorRolePage;
   adminRolePage: AdminRolePage;
-};
+}
+
+interface WorkerFixtures extends Fixtures {}
 
 /**
  * NOTE: currently videos are not generated automatically because of how we generate a browserContext within our
@@ -77,11 +78,16 @@ const _recordTestVideo = async (
 };
 
 export * from '@playwright/test';
-export const test = base.extend<Fixtures>({
+export const test = base.extend<TestFixtures, WorkerFixtures>({
   viewerRolePage: ({ browser }, use, testInfo) =>
     _recordTestVideo(browser, use, testInfo, VIEWER_USER_STORAGE_STATE, ViewerRolePage),
   editorRolePage: async ({ browser }, use, testInfo) =>
     _recordTestVideo(browser, use, testInfo, EDITOR_USER_STORAGE_STATE, EditorRolePage),
   adminRolePage: async ({ browser }, use, testInfo) =>
     _recordTestVideo(browser, use, testInfo, ADMIN_USER_STORAGE_STATE, AdminRolePage),
+  /**
+   * add back this fixture once this bug is fixed
+   * https://github.com/microsoft/playwright/issues/29608
+   */
+  // currentGrafanaVersion: ({}, use) => use('9.0.0'),
 });
