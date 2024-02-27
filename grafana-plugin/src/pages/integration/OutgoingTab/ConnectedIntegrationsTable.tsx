@@ -1,31 +1,36 @@
 import React, { FC } from 'react';
 
-import { HorizontalGroup, Tooltip, Icon, useStyles2, IconButton, Switch } from '@grafana/ui';
+import { HorizontalGroup, Tooltip, Icon, useStyles2, IconButton, Switch, Checkbox } from '@grafana/ui';
 
 import { GTable } from 'components/GTable/GTable';
 import IntegrationLogoWithTitle from 'components/IntegrationLogo/IntegrationLogoWithTitle';
 import { Text } from 'components/Text/Text';
 
 import { getStyles } from './OutgoingTab.styles';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 
 interface ConnectedIntegrationsTableProps {
   allowDelete?: boolean;
+  selectable?: boolean;
+  onChange?: (integration: ApiSchemas['AlertReceiveChannel'], checked: boolean) => void;
+  data: Array<ApiSchemas['AlertReceiveChannel']>;
 }
 
 const ConnectedIntegrationsTable: FC<ConnectedIntegrationsTableProps> = (props) => {
-  const FAKE_INTEGRATIONS = [{ a: 'a' }];
-
-  return (
-    <GTable
-      emptyText={FAKE_INTEGRATIONS ? 'No integrations found' : 'Loading...'}
-      rowKey="id"
-      columns={getColumns(props)}
-      data={FAKE_INTEGRATIONS}
-    />
-  );
+  return <GTable emptyText={'No integrations found'} rowKey="id" columns={getColumns(props)} data={props.data} />;
 };
 
-const getColumns = ({ allowDelete }: ConnectedIntegrationsTableProps) => [
+const getColumns = ({ allowDelete, selectable, onChange }: ConnectedIntegrationsTableProps) => [
+  ...(selectable
+    ? [
+        {
+          width: '5%',
+          render: (integration: ApiSchemas['AlertReceiveChannel']) => (
+            <Checkbox onChange={(event) => onChange(integration, event.currentTarget.checked)} />
+          ),
+        },
+      ]
+    : []),
   {
     width: '45%',
     title: <Text type="secondary">Integration name</Text>,
