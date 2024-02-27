@@ -22,25 +22,23 @@ import { RouteComponentProps, useHistory, withRouter } from 'react-router-dom';
 
 import { getTemplatesForEdit } from 'components/AlertTemplates/AlertTemplatesForm.config';
 import { TemplateForEdit } from 'components/AlertTemplates/CommonAlertTemplatesForm.config';
-import { HamburgerMenu } from 'components/HamburgerMenu/HamburgerMenu';
+import { HamburgerContextMenu } from 'components/HamburgerContextMenu/HamburgerContextMenu';
 import {
   IntegrationCollapsibleTreeView,
   IntegrationCollapsibleItem,
 } from 'components/IntegrationCollapsibleTreeView/IntegrationCollapsibleTreeView';
 import { IntegrationContactPoint } from 'components/IntegrationContactPoint/IntegrationContactPoint';
 import { IntegrationHowToConnect } from 'components/IntegrationHowToConnect/IntegrationHowToConnect';
-import { IntegrationLogo } from 'components/IntegrationLogo/IntegrationLogo';
+import IntegrationLogoWithTitle from 'components/IntegrationLogo/IntegrationLogoWithTitle';
 import { IntegrationSendDemoAlertModal } from 'components/IntegrationSendDemoAlertModal/IntegrationSendDemoAlertModal';
 import { IntegrationBlock } from 'components/Integrations/IntegrationBlock';
+import { IntegrationTag } from 'components/Integrations/IntegrationTag';
 import { PageErrorHandlingWrapper, PageBaseState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
 import { initErrorDataState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper.helpers';
 import { PluginLink } from 'components/PluginLink/PluginLink';
-import { RenderConditionally } from 'components/RenderConditionally/RenderConditionally';
 import { Tabs } from 'components/Tabs/Tabs';
-import { Tag } from 'components/Tag/Tag';
 import { Text } from 'components/Text/Text';
 import { TooltipBadge } from 'components/TooltipBadge/TooltipBadge';
-import { WithContextMenu } from 'components/WithContextMenu/WithContextMenu';
 import { EditRegexpRouteTemplateModal } from 'containers/EditRegexpRouteTemplateModal/EditRegexpRouteTemplateModal';
 import { CollapsedIntegrationRouteDisplay } from 'containers/IntegrationContainers/CollapsedIntegrationRouteDisplay/CollapsedIntegrationRouteDisplay';
 import { ExpandedIntegrationRouteDisplay } from 'containers/IntegrationContainers/ExpandedIntegrationRouteDisplay/ExpandedIntegrationRouteDisplay';
@@ -65,13 +63,14 @@ import { AppFeature } from 'state/features';
 import { PageProps, SelectOption, WithStoreProps } from 'state/types';
 import { useStore } from 'state/useStore';
 import { withMobXProviderContext } from 'state/withStore';
-import { getVar } from 'utils/DOM';
 import { LocationHelper } from 'utils/LocationHelper';
 import { UserActions } from 'utils/authorization/authorization';
 import { PLUGIN_ROOT } from 'utils/consts';
 import { getItem, setItem } from 'utils/localStorage';
 import { sanitize } from 'utils/sanitize';
 import { openNotification, openErrorNotification } from 'utils/utils';
+
+import { OutgoingTab } from './OutgoingTab/OutgoingTab';
 
 const cx = cn.bind(styles);
 
@@ -261,7 +260,7 @@ class _IntegrationPage extends React.Component<IntegrationProps, IntegrationStat
               <Tabs
                 tabs={[
                   { label: 'Incoming', content: incomingPart },
-                  { label: 'Outgoing', content: <div>outgoing tab content</div> },
+                  { label: 'Outgoing', content: <OutgoingTab /> },
                 ]}
               />
             ) : (
@@ -467,15 +466,7 @@ class _IntegrationPage extends React.Component<IntegrationProps, IntegrationStat
             noContent
             heading={
               <div className={cx('templates__outer-container')}>
-                <Tag
-                  color={getVar('--tag-secondary-transparent')}
-                  border={getVar('--border-weak')}
-                  className={cx('tag')}
-                >
-                  <Text type="primary" size="small" className={cx('radius')}>
-                    Templates
-                  </Text>
-                </Tag>
+                <IntegrationTag>Templates</IntegrationTag>
 
                 <div className={cx('templates__content')}>
                   <div className={cx('templates__container')}>
@@ -925,165 +916,132 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
         </WithPermissionControlTooltip>
 
         <div data-testid="integration-settings-context-menu-wrapper">
-          <WithContextMenu
-            renderMenuItems={() => (
-              <div className={cx('integration__actionsList')} id="integration-menu-options">
-                <div className={cx('integration__actionItem')} onClick={() => openIntegrationSettings()}>
-                  <Text type="primary">Integration Settings</Text>
-                </div>
-
-                {store.hasFeature(AppFeature.Labels) && (
-                  <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
-                    <div className={cx('integration__actionItem')} onClick={() => openLabelsForm()}>
-                      <Text type="primary">Alert group labeling</Text>
-                    </div>
-                  </WithPermissionControlTooltip>
-                )}
-
-                {showHeartbeatSettings() && (
-                  <WithPermissionControlTooltip key="ok" userAction={UserActions.IntegrationsWrite}>
-                    <div
-                      className={cx('integration__actionItem')}
-                      onClick={() => setIsHeartbeatFormOpen(true)}
-                      data-testid="integration-heartbeat-settings"
-                    >
-                      Heartbeat Settings
-                    </div>
-                  </WithPermissionControlTooltip>
-                )}
-
-                {!alertReceiveChannel.maintenance_till && (
-                  <WithPermissionControlTooltip userAction={UserActions.MaintenanceWrite}>
-                    <div
-                      className={cx('integration__actionItem')}
-                      onClick={openStartMaintenance}
-                      data-testid="integration-start-maintenance"
-                    >
-                      <Text type="primary">Start Maintenance</Text>
-                    </div>
-                  </WithPermissionControlTooltip>
-                )}
-
-                <WithPermissionControlTooltip userAction={UserActions.MaintenanceWrite}>
-                  <div className={cx('integration__actionItem')} onClick={changeIsTemplateSettingsOpen}>
-                    <Text type="primary">Edit Templates</Text>
-                  </div>
-                </WithPermissionControlTooltip>
-
-                {alertReceiveChannel.maintenance_till && (
-                  <WithPermissionControlTooltip userAction={UserActions.MaintenanceWrite}>
-                    <div
-                      className={cx('integration__actionItem')}
-                      onClick={() => {
-                        setConfirmModal({
-                          isOpen: true,
-                          confirmText: 'Stop',
-                          dismissText: 'Cancel',
-                          onConfirm: onStopMaintenance,
-                          title: 'Stop Maintenance',
-                          body: (
-                            <Text type="primary">
-                              Are you sure you want to stop the maintenance for{' '}
-                              <Emoji text={alertReceiveChannel.verbal_name} /> ?
-                            </Text>
-                          ),
-                        });
-                      }}
-                      data-testid="integration-stop-maintenance"
-                    >
-                      <Text type="primary">Stop Maintenance</Text>
-                    </div>
-                  </WithPermissionControlTooltip>
-                )}
-
-                {isLegacyIntegration && (
-                  <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
-                    <div
-                      className={cx('integration__actionItem')}
-                      onClick={() =>
-                        setConfirmModal({
-                          isOpen: true,
-                          title: 'Migrate Integration?',
-                          body: (
-                            <VerticalGroup spacing="lg">
-                              <Text type="primary">
-                                Are you sure you want to migrate <Emoji text={alertReceiveChannel.verbal_name} /> ?
-                              </Text>
-
-                              <VerticalGroup spacing="xs">
-                                <Text type="secondary">- Integration internal behaviour will be changed</Text>
-                                <Text type="secondary">
-                                  - Integration URL will stay the same, so no need to change {getMigrationDisplayName()}{' '}
-                                  configuration
-                                </Text>
-                                <Text type="secondary">
-                                  - Integration templates will be reset to suit the new payload
-                                </Text>
-                                <Text type="secondary">
-                                  - It is needed to adjust routes manually to the new payload
-                                </Text>
-                              </VerticalGroup>
-                            </VerticalGroup>
-                          ),
-                          onConfirm: onIntegrationMigrate,
-                          dismissText: 'Cancel',
-                          confirmText: 'Migrate',
-                        })
-                      }
-                    >
-                      Migrate
-                    </div>
-                  </WithPermissionControlTooltip>
-                )}
-
-                <CopyToClipboard
-                  text={alertReceiveChannel.id}
-                  onCopy={() => openNotification('Integration ID is copied')}
-                >
-                  <div className={cx('integration__actionItem')}>
-                    <HorizontalGroup spacing={'xs'}>
-                      <Icon name="copy" />
-
-                      <Text type="primary">UID: {alertReceiveChannel.id}</Text>
-                    </HorizontalGroup>
-                  </div>
-                </CopyToClipboard>
-                <RenderConditionally shouldRender={alertReceiveChannel.allow_delete}>
-                  <div className={cx('thin-line-break')} />
-                  <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
-                    <div className={cx('integration__actionItem')}>
-                      <div
-                        onClick={() => {
-                          setConfirmModal({
-                            isOpen: true,
-                            title: 'Delete Integration?',
-                            body: (
-                              <Text type="primary">
-                                Are you sure you want to delete <Emoji text={alertReceiveChannel.verbal_name} /> ?
-                              </Text>
-                            ),
-                            onConfirm: deleteIntegration,
-                            dismissText: 'Cancel',
-                            confirmText: 'Delete',
-                          });
-                        }}
-                        className="u-width-100"
-                      >
-                        <Text type="danger">
-                          <HorizontalGroup spacing={'xs'}>
-                            <Icon name="trash-alt" />
-                            <span>Delete Integration</span>
-                          </HorizontalGroup>
+          <HamburgerContextMenu
+            items={[
+              {
+                onClick: openIntegrationSettings,
+                label: 'Integration Settings',
+              },
+              {
+                label: 'ServiceNow configuration',
+                hidden: !getIsBidirectionalIntegration(alertReceiveChannel),
+              },
+              {
+                onClick: openLabelsForm,
+                hidden: !store.hasFeature(AppFeature.Labels),
+                label: 'Alert group labeling',
+                requiredPermission: UserActions.IntegrationsWrite,
+              },
+              {
+                onClick: () => setIsHeartbeatFormOpen(true),
+                hidden: !showHeartbeatSettings(),
+                label: <div data-testid="integration-heartbeat-settings">Heartbeat Settings</div>,
+                requiredPermission: UserActions.IntegrationsWrite,
+              },
+              {
+                onClick: openStartMaintenance,
+                hidden: Boolean(alertReceiveChannel.maintenance_till),
+                label: 'Start Maintenance',
+                requiredPermission: UserActions.MaintenanceWrite,
+              },
+              {
+                onClick: changeIsTemplateSettingsOpen,
+                label: 'Edit Templates',
+                requiredPermission: UserActions.MaintenanceWrite,
+              },
+              {
+                onClick: () => {
+                  setConfirmModal({
+                    isOpen: true,
+                    confirmText: 'Stop',
+                    dismissText: 'Cancel',
+                    onConfirm: onStopMaintenance,
+                    title: 'Stop Maintenance',
+                    body: (
+                      <Text type="primary">
+                        Are you sure you want to stop the maintenance for{' '}
+                        <Emoji text={alertReceiveChannel.verbal_name} /> ?
+                      </Text>
+                    ),
+                  });
+                },
+                hidden: !alertReceiveChannel.maintenance_till,
+                label: 'Stop Maintenance',
+                requiredPermission: UserActions.MaintenanceWrite,
+              },
+              {
+                onClick: () =>
+                  setConfirmModal({
+                    isOpen: true,
+                    title: 'Migrate Integration?',
+                    body: (
+                      <VerticalGroup spacing="lg">
+                        <Text type="primary">
+                          Are you sure you want to migrate <Emoji text={alertReceiveChannel.verbal_name} /> ?
                         </Text>
-                      </div>
+
+                        <VerticalGroup spacing="xs">
+                          <Text type="secondary">- Integration internal behaviour will be changed</Text>
+                          <Text type="secondary">
+                            - Integration URL will stay the same, so no need to change {getMigrationDisplayName()}{' '}
+                            configuration
+                          </Text>
+                          <Text type="secondary">- Integration templates will be reset to suit the new payload</Text>
+                          <Text type="secondary">- It is needed to adjust routes manually to the new payload</Text>
+                        </VerticalGroup>
+                      </VerticalGroup>
+                    ),
+                    onConfirm: onIntegrationMigrate,
+                    dismissText: 'Cancel',
+                    confirmText: 'Migrate',
+                  }),
+                hidden: !isLegacyIntegration,
+                label: 'Migrate',
+                requiredPermission: UserActions.IntegrationsWrite,
+              },
+              {
+                label: (
+                  <CopyToClipboard
+                    text={alertReceiveChannel.id}
+                    onCopy={() => openNotification('Integration ID is copied')}
+                  >
+                    <div>
+                      <HorizontalGroup spacing={'xs'}>
+                        <Icon name="copy" />
+                        <Text type="primary">UID: {alertReceiveChannel.id}</Text>
+                      </HorizontalGroup>
                     </div>
-                  </WithPermissionControlTooltip>
-                </RenderConditionally>
-              </div>
-            )}
-          >
-            {({ openMenu }) => <HamburgerMenu openMenu={openMenu} listBorder={2} listWidth={200} withBackground />}
-          </WithContextMenu>
+                  </CopyToClipboard>
+                ),
+              },
+              {
+                onClick: () => {
+                  setConfirmModal({
+                    isOpen: true,
+                    title: 'Delete Integration?',
+                    body: (
+                      <Text type="primary">
+                        Are you sure you want to delete <Emoji text={alertReceiveChannel.verbal_name} /> ?
+                      </Text>
+                    ),
+                    onConfirm: deleteIntegration,
+                    dismissText: 'Cancel',
+                    confirmText: 'Delete',
+                  });
+                },
+                hidden: !alertReceiveChannel.allow_delete,
+                label: (
+                  <Text type="danger">
+                    <HorizontalGroup spacing={'xs'}>
+                      <Icon name="trash-alt" />
+                      <span>Delete Integration</span>
+                    </HorizontalGroup>
+                  </Text>
+                ),
+                requiredPermission: UserActions.IntegrationsWrite,
+              },
+            ]}
+          />
         </div>
       </div>
     </>
@@ -1231,10 +1189,7 @@ const IntegrationHeader: React.FC<IntegrationHeaderProps> = ({
       <div style={{ display: 'flex', flexDirection: 'row', gap: '16px', marginLeft: '8px' }}>
         <div className={cx('headerTop__item')}>
           <Text type="secondary">Type:</Text>
-          <HorizontalGroup spacing="xs">
-            <IntegrationLogo scale={0.08} integration={integration} />
-            <Text type="primary">{integration?.display_name}</Text>
-          </HorizontalGroup>
+          <IntegrationLogoWithTitle integration={integration} />
         </div>
         <div className={cx('headerTop__item')}>
           <Text type="secondary">Team:</Text>

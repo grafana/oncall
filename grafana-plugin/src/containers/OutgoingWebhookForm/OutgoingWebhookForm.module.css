@@ -10,9 +10,8 @@
   margin: 4px;
 }
 
-.tabs__content {
+.tabsWrapper {
   padding-top: 16px;
-  padding-bottom: 16px;
 }
 
 .form-row {

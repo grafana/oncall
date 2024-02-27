@@ -18,6 +18,10 @@ class BaseLocationHelper {
       }
     }
   }
+
+  getQueryParam(paramKey: string) {
+    return getQueryParams()?.[paramKey];
+  }
 }
 
 function toQueryString(queryParams: KeyValue) {
