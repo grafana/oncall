@@ -16,7 +16,7 @@ import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 import CopyToClipboard from 'react-copy-to-clipboard';
 
-import { HamburgerMenu } from 'components/HamburgerMenu/HamburgerMenu';
+import { HamburgerMenuIcon } from 'components/HamburgerMenuIcon/HamburgerMenuIcon';
 import {
   IntegrationCollapsibleTreeView,
   IntegrationCollapsibleItem,
@@ -444,7 +444,7 @@ export const RouteButtonsDisplay: React.FC<RouteButtonsDisplayProps> = ({
           )}
         >
           {({ openMenu }) => (
-            <HamburgerMenu
+            <HamburgerMenuIcon
               openMenu={openMenu}
               listBorder={2}
               listWidth={200}

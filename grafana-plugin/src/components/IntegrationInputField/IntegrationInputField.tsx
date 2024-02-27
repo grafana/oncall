@@ -2,9 +2,8 @@ import React, { useState } from 'react';
 
 import { HorizontalGroup, IconButton, Input } from '@grafana/ui';
 import cn from 'classnames/bind';
-import CopyToClipboard from 'react-copy-to-clipboard';
 
-import { openNotification } from 'utils/utils';
+import { CopyToClipboardIcon } from 'components/CopyToClipboardIcon/CopyToClipboardIcon';
 
 import styles from './IntegrationInputField.module.scss';
 
@@ -36,11 +35,7 @@ export const IntegrationInputField: React.FC<IntegrationInputFieldProps> = ({
       <div className={cx('icons')}>
         <HorizontalGroup spacing={'xs'}>
           {showEye && <IconButton aria-label="Reveal" name={'eye'} size={'xs'} onClick={onInputReveal} />}
-          {showCopy && (
-            <CopyToClipboard text={value} onCopy={onCopy}>
-              <IconButton aria-label="Copy" name={'copy'} size={'xs'} />
-            </CopyToClipboard>
-          )}
+          {showCopy && <CopyToClipboardIcon text={value} iconButtonProps={{ size: 'xs' }} />}
           {showExternal && <IconButton aria-label="Open" name={'external-link-alt'} size={'xs'} onClick={onOpen} />}
         </HorizontalGroup>
       </div>
@@ -53,10 +48,6 @@ export const IntegrationInputField: React.FC<IntegrationInputFieldProps> = ({
 
   function onInputReveal() {
     setIsMasked(!isInputMasked);
-  }
-
-  function onCopy() {
-    openNotification("Integration's HTTP Endpoint is copied");
   }
 
   function onOpen() {

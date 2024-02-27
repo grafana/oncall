@@ -104,7 +104,6 @@ export const Root = observer((props: AppRootProps) => {
           <LegacyNavTabsBar currentPage={page} />
         </>
       )}
-
       <div
         className={classnames('u-position-relative', 'u-flex-grow-1', {
           'u-overflow-x-auto': !isTopNavbar(),

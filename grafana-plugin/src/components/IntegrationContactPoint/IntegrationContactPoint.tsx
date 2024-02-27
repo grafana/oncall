@@ -18,7 +18,7 @@ import { observer } from 'mobx-react';
 
 import { GTable } from 'components/GTable/GTable';
 import { IntegrationBlock } from 'components/Integrations/IntegrationBlock';
-import { Tag } from 'components/Tag/Tag';
+import { IntegrationTag } from 'components/Integrations/IntegrationTag';
 import { Text } from 'components/Text/Text';
 import { WithConfirm } from 'components/WithConfirm/WithConfirm';
 import { AlertReceiveChannelHelper } from 'models/alert_receive_channel/alert_receive_channel.helpers';
@@ -26,7 +26,6 @@ import { ContactPoint } from 'models/alert_receive_channel/alert_receive_channel
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import styles from 'pages/integration/Integration.module.scss';
 import { useStore } from 'state/useStore';
-import { getVar } from 'utils/DOM';
 import { openErrorNotification, openNotification } from 'utils/utils';
 
 const cx = cn.bind(styles);
@@ -145,11 +144,7 @@ export const IntegrationContactPoint: React.FC<{
           )}
 
           <HorizontalGroup spacing="md">
-            <Tag color={getVar('--tag-secondary-transparent')} border={getVar('--border-weak')} className={cx('tag')}>
-              <Text type="primary" size="small" className={cx('radius')}>
-                Contact point
-              </Text>
-            </Tag>
+            <IntegrationTag>Contact point</IntegrationTag>
 
             {contactPoints?.length ? (
               <HorizontalGroup>

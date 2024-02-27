@@ -40,7 +40,7 @@ test.describe('maintenance mode works', () => {
   const enableMaintenanceMode = async (page: Page, mode: MaintenanceModeType): Promise<void> => {
     await _openIntegrationSettingsPopup(page, true);
     // open the maintenance mode settings drawer + fill in the maintenance details
-    await page.getByTestId('integration-start-maintenance').click();
+    await page.getByText('Start Maintenance').click();
 
     // fill in the form
     const maintenanceModeDrawer = page.getByTestId('maintenance-mode-drawer');
@@ -78,14 +78,10 @@ test.describe('maintenance mode works', () => {
     await _openIntegrationSettingsPopup(page, true);
 
     // click the stop maintenance button
-    await page.getByTestId('integration-stop-maintenance').click();
+    await page.getByText('Stop Maintenance').click();
 
     // in the modal popup, confirm that we want to stop it
-    await clickButton({
-      page,
-      buttonText: 'Stop',
-      startingLocator: page.getByRole('dialog'),
-    });
+    await page.locator('button >> text=Stop').click();
 
     await getRemainingTimeTooltip(page).waitFor({ state: 'hidden' });
   };

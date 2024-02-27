@@ -1,3 +1,4 @@
+import re
 from unittest.mock import patch
 
 import pytest
@@ -27,7 +28,11 @@ def test_internal_api_detail_actions_get_object(
     organization, user, token = make_organization_and_user_with_plugin_token()
     client = APIClient()
 
-    url = reverse(f"api-internal:{basename}-{action.url_name}", kwargs={"pk": "NONEXISTENT"})
+    # get additional kwargs based on url_path regex
+    # example: for /alert_receive_channel/<pk>/webhooks/<webhook_id>, url_path_kwargs = {"webhook_id": "NONEXISTENT"}
+    url_path_kwargs = {key: "NONEXISTENT" for key in re.compile(action.url_path).groupindex.keys()}
+
+    url = reverse(f"api-internal:{basename}-{action.url_name}", kwargs={"pk": "NONEXISTENT", **url_path_kwargs})
 
     with patch.object(viewset_class, "get_object", side_effect=NotFound) as mock_get_object:
         method = list(action.mapping.keys())[0]  # get the first allowed method
