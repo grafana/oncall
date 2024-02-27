@@ -18,18 +18,14 @@ import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 import { useHistory } from 'react-router-dom';
 
-import { Collapse } from 'components/Collapse/Collapse';
 import { Block } from 'components/GBlock/Block';
-import { CustomFieldSectionRendererProps } from 'components/GForm/GForm';
+import { CustomFieldSectionRendererProps, GForm } from 'components/GForm/GForm';
 import { IntegrationLogo } from 'components/IntegrationLogo/IntegrationLogo';
-import { PluginLink } from 'components/PluginLink/PluginLink';
 import { Text } from 'components/Text/Text';
-import { Labels } from 'containers/Labels/Labels';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { AlertReceiveChannelHelper } from 'models/alert_receive_channel/alert_receive_channel.helpers';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { IntegrationHelper } from 'pages/integration/Integration.helper';
-import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
 import { UserActions } from 'utils/authorization/authorization';
 import { PLUGIN_ROOT } from 'utils/consts';
@@ -52,36 +48,16 @@ interface IntegrationFormProps {
 
 export const IntegrationForm = observer((props: IntegrationFormProps) => {
   const store = useStore();
-  const history = useHistory();
-
-  const labelsRef = useRef(null);
 
   const { id, onHide, onSubmit, isTableView = true, navigateToAlertGroupLabels } = props;
-  const {
-    alertReceiveChannelStore,
-    userStore: { currentUser: user },
-    grafanaTeamStore,
-  } = store;
+  const { alertReceiveChannelStore, grafanaTeamStore } = store;
 
   const [filterValue, setFilterValue] = useState('');
   const [showNewIntegrationForm, setShowNewIntegrationForm] = useState(false);
   const [selectedOption, setSelectedOption] = useState<ApiSchemas['AlertReceiveChannelIntegrationOptions']>(undefined);
   const [showIntegrarionsListDrawer, setShowIntegrarionsListDrawer] = useState(id === 'new');
-  const [allContactPoints, setAllContactPoints] = useState([]);
-  const [errors, setErrors] = useState<Record<string, any>>();
 
   const form = useMemo(() => getForm(grafanaTeamStore), [grafanaTeamStore]);
-
-  useEffect(() => {
-    (async function () {
-      setAllContactPoints(await AlertReceiveChannelHelper.getGrafanaAlertingContactPoints());
-    })();
-  }, []);
-
-  const data =
-    id === 'new'
-      ? { integration: selectedOption?.value, team: user?.current_team, labels: [] }
-      : prepareForEdit(alertReceiveChannelStore.items[id]);
 
   const { alertReceiveChannelOptions } = alertReceiveChannelStore;
 
@@ -139,8 +115,9 @@ export const IntegrationForm = observer((props: IntegrationFormProps) => {
           <div className={cx('content')}>
             <VerticalGroup>
               <HookForm
+                id={id}
                 navigateToAlertGroupLabels={navigateToAlertGroupLabels}
-                selectedOption={selectedOption}
+                selectedIntegration={selectedOption}
                 onSubmit={onSubmit}
                 onHide={onHide}
               />
@@ -150,60 +127,6 @@ export const IntegrationForm = observer((props: IntegrationFormProps) => {
       )}
     </>
   );
-
-  async function handleSubmit(data): Promise<void> {
-    const { alert_manager, contact_point, is_existing: isExisting } = data;
-
-    const labels = labelsRef.current?.getValue();
-
-    data = { ...data, labels };
-
-    const matchingAlertManager = allContactPoints.find((cp) => cp.uid === alert_manager);
-    const hasContactPointInput = alert_manager && contact_point;
-
-    if (
-      !isExisting &&
-      hasContactPointInput &&
-      matchingAlertManager?.contact_points.find((cp) => cp === contact_point)
-    ) {
-      openErrorNotification('A contact point already exists for this data source');
-      return;
-    }
-
-    const isCreate = id === 'new';
-
-    try {
-      if (isCreate) {
-        await createNewIntegration();
-      } else {
-        await alertReceiveChannelStore.update({ id, data, skipErrorHandling: true });
-      }
-    } catch (error) {
-      setErrors(error);
-      return;
-    }
-
-    await onSubmit();
-    onHide();
-
-    async function createNewIntegration(): Promise<void | ApiSchemas['AlertReceiveChannel']> {
-      const response = await alertReceiveChannelStore.create({ data, skipErrorHandling: true });
-      const pushHistory = (id) => history.push(`${PLUGIN_ROOT}/integrations/${id}`);
-      if (!response) {
-        return;
-      }
-
-      if (!IntegrationHelper.isSpecificIntegration(selectedOption.value, 'grafana_alerting')) {
-        pushHistory(response.id);
-      }
-
-      await (data.is_existing
-        ? AlertReceiveChannelHelper.connectContactPoint
-        : AlertReceiveChannelHelper.createContactPoint)(response.id, data.alert_manager, data.contact_point);
-
-      pushHistory(response.id);
-    }
-  }
 
   function onBlockClick(option: ApiSchemas['AlertReceiveChannelIntegrationOptions']) {
     setSelectedOption(option);
