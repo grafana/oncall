@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## Added
+
+- Add reset button to disable integration heartbeat @mderynck ([#3959](https://github.com/grafana/oncall/pull/3959))
+
 ## v1.3.107 (2024-02-27)
 
 ### Added
