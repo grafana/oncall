@@ -1,6 +1,6 @@
 import React, { FC } from 'react';
 
-import { Button, HorizontalGroup, useStyles2, VerticalGroup } from '@grafana/ui';
+import { Button, HorizontalGroup, useStyles2 } from '@grafana/ui';
 import { useForm, FormProvider } from 'react-hook-form';
 
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
