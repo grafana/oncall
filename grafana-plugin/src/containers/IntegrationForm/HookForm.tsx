@@ -10,17 +10,17 @@ import {
   Label,
   RadioButtonGroup,
   Select,
+  Switch,
   TextArea,
   Tooltip,
   VerticalGroup,
 } from '@grafana/ui';
 import cn from 'classnames/bind';
-import { toJS } from 'mobx';
+import { noop } from 'lodash';
 import { observer } from 'mobx-react';
 import { Control, Controller, FieldErrors, UseFormGetValues, UseFormSetValue, useForm } from 'react-hook-form';
 import { useHistory } from 'react-router-dom';
 
-import { Collapse } from 'components/Collapse/Collapse';
 import { PluginLink } from 'components/PluginLink/PluginLink';
 import { Text } from 'components/Text/Text';
 import { GSelect } from 'containers/GSelect/GSelect';
@@ -34,8 +34,8 @@ import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
 import { UserActions } from 'utils/authorization/authorization';
 import { PLUGIN_ROOT, generateAssignToTeamInputDescription } from 'utils/consts';
-import { openErrorNotification } from 'utils/utils';
 
+import { HowTheIntegrationWorks } from './HowTheIntegrationWorks';
 import { prepareForEdit } from './IntegrationForm.helpers';
 
 const cx = cn.bind(styles);
@@ -58,13 +58,15 @@ enum FormFieldKeys {
   Name = 'verbal_name',
   Description = 'description_short',
   Team = 'team',
-  ServiceNowUrl = 'servicenow_url',
-  AuthorizationHeader = 'authorization_header',
   AlertManager = 'alert_manager',
   ContactPoint = 'contact_point',
   IsExisting = 'is_existing',
   Alerting = 'alerting',
   Integration = 'integration',
+
+  ServiceNowUrl = 'servicenow_url',
+  AuthUsername = 'auth_username',
+  AuthPassword = 'auth_password',
 }
 
 interface FormFields {
@@ -76,20 +78,33 @@ interface FormFields {
   [FormFieldKeys.ContactPoint]: string;
   [FormFieldKeys.Alerting]: string;
   [FormFieldKeys.ServiceNowUrl]: string;
-  [FormFieldKeys.AuthorizationHeader]: string;
+  [FormFieldKeys.AuthUsername]: string;
+  [FormFieldKeys.AuthPassword]: string;
   [FormFieldKeys.Integration]: string;
 }
 
 interface HookFormProps {
   id: ApiSchemas['AlertReceiveChannel']['id'] | 'new';
+  isTableView?: boolean;
   selectedIntegration: ApiSchemas['AlertReceiveChannelIntegrationOptions'];
   navigateToAlertGroupLabels: (id: ApiSchemas['AlertReceiveChannel']['id']) => void;
   onSubmit: () => Promise<void>;
   onHide: () => void;
 }
 
+const radioOptions = [
+  {
+    label: 'Connect existing Contact point',
+    value: 'existing',
+  },
+  {
+    label: 'Create a new one',
+    value: 'new',
+  },
+];
+
 export const HookForm = observer(
-  ({ navigateToAlertGroupLabels, selectedIntegration, onSubmit, onHide }: HookFormProps) => {
+  ({ id, isTableView, navigateToAlertGroupLabels, selectedIntegration, onSubmit, onHide }: HookFormProps) => {
     const {
       control,
       handleSubmit,
@@ -106,17 +121,6 @@ export const HookForm = observer(
     const store = useStore();
     const history = useHistory();
     const { userStore, grafanaTeamStore, alertReceiveChannelStore } = store;
-
-    const radioOptions = [
-      {
-        label: 'Connect existing Contact point',
-        value: 'existing',
-      },
-      {
-        label: 'Create a new one',
-        value: 'new',
-      },
-    ];
 
     const [
       {
@@ -153,16 +157,12 @@ export const HookForm = observer(
 
     const labelsRef = useRef(null);
 
-    // TODO: figure these out
-    const id = 'new';
-    const isTableView = true;
-
     const data =
       id === 'new'
         ? { integration: selectedIntegration?.value, team: userStore.currentUser?.current_team, labels: [] }
         : prepareForEdit(alertReceiveChannelStore.items[id]);
 
-    const validationErrors: any = {};
+    const [labelsErrors, setLabelErrors] = useState([]);
 
     return (
       <form onSubmit={handleSubmit(onFormSubmit)} className={cx('form')}>
@@ -232,7 +232,6 @@ export const HookForm = observer(
                   allowClear: true,
                 }}
                 onChange={(value) => {
-                  console.log({ value });
                   field.onChange(value);
                 }}
               />
@@ -259,7 +258,7 @@ export const HookForm = observer(
           <div className={cx('labels')}>
             <Labels
               ref={labelsRef}
-              errors={validationErrors?.labels}
+              errors={labelsErrors}
               value={data.labels}
               description={
                 <>
@@ -279,6 +278,70 @@ export const HookForm = observer(
         )}
 
         {isTableView && <HowTheIntegrationWorks selectedOption={selectedIntegration} />}
+
+        <Text type="primary">ServiceNow configuration</Text>
+
+        {/* // TODO: check if is serviceNow Integration first */}
+        {true && (
+          <VerticalGroup>
+            <Controller
+              name={FormFieldKeys.ServiceNowUrl}
+              control={control}
+              rules={{ required: true }}
+              render={({ field }) => (
+                <Field
+                  key={'InstanceURL'}
+                  label={'Instance URL'}
+                  invalid={!!errors[FormFieldKeys.ServiceNowUrl]}
+                  error={errors[FormFieldKeys.ServiceNowUrl]?.message as string}
+                >
+                  <Input {...field} />
+                </Field>
+              )}
+            />
+
+            <Controller
+              name={FormFieldKeys.AuthUsername}
+              control={control}
+              rules={{ required: true }}
+              render={({ field }) => (
+                <Field
+                  key={'AuthUsername'}
+                  label={'Username'}
+                  invalid={!!errors[FormFieldKeys.AuthUsername]}
+                  error={errors[FormFieldKeys.AuthPassword]?.message as string}
+                >
+                  <Input {...field} />
+                </Field>
+              )}
+            />
+
+            <Controller
+              name={FormFieldKeys.AuthPassword}
+              control={control}
+              rules={{ required: true }}
+              render={({ field }) => (
+                <Field
+                  key={'InstanceURL'}
+                  label={'Instance URL'}
+                  invalid={!!errors[FormFieldKeys.ServiceNowUrl]}
+                  error={errors[FormFieldKeys.ServiceNowUrl]?.message as string}
+                >
+                  <Input {...field} type="password" />
+                </Field>
+              )}
+            />
+
+            <Button variant="secondary" onClick={() => console.log('Test')}>
+              Test
+            </Button>
+
+            <HorizontalGroup>
+              <Switch value={true} onChange={noop} />
+              <Text type="primary"> Create default outgoing webhook events</Text>
+            </HorizontalGroup>
+          </VerticalGroup>
+        )}
 
         <div>
           <HorizontalGroup justify="flex-end">
@@ -302,24 +365,11 @@ export const HookForm = observer(
       </form>
     );
 
-    async function onFormSubmit(data): Promise<void> {
-      const { alert_manager, contact_point, is_existing: isExisting } = data;
-
+    async function onFormSubmit(formData): Promise<void> {
       const labels = labelsRef.current?.getValue();
+      const data = { ...formData, labels };
 
-      data = { ...data, labels };
-
-      const matchingAlertManager = allContactPoints.find((cp) => cp.uid === alert_manager);
-      const hasContactPointInput = alert_manager && contact_point;
-
-      if (
-        !isExisting &&
-        hasContactPointInput &&
-        matchingAlertManager?.contact_points.find((cp) => cp === contact_point)
-      ) {
-        openErrorNotification('A contact point already exists for this data source');
-        return;
-      }
+      delete data.integration;
 
       const isCreate = id === 'new';
 
@@ -330,7 +380,10 @@ export const HookForm = observer(
           await alertReceiveChannelStore.update({ id, data, skipErrorHandling: true });
         }
       } catch (error) {
-        // setErrors(error);
+        if (error.labels) {
+          setLabelErrors(error.labels);
+        }
+
         return;
       }
 
@@ -339,7 +392,8 @@ export const HookForm = observer(
 
       async function createNewIntegration(): Promise<void | ApiSchemas['AlertReceiveChannel']> {
         const response = await alertReceiveChannelStore.create({ data, skipErrorHandling: true });
-        const pushHistory = (id) => history.push(`${PLUGIN_ROOT}/integrations/${id}`);
+        const pushHistory = (id: ApiSchemas['AlertReceiveChannel']['id']) =>
+          history.push(`${PLUGIN_ROOT}/integrations/${id}`);
         if (!response) {
           return;
         }
@@ -358,6 +412,12 @@ export const HookForm = observer(
   }
 );
 
+interface ContactPoint {
+  name: string;
+  uid: string;
+  contact_points: string[];
+}
+
 interface GrafanaContactPointState {
   isExistingContactPoint: boolean;
   selectedAlertManagerOption: string;
@@ -365,7 +425,7 @@ interface GrafanaContactPointState {
 
   dataSources: Array<{ label: string; value: string }>;
   contactPoints: Array<{ label: string; value: string }>;
-  allContactPoints: Array<{ name: string; uid: string; contact_points: string[] }>;
+  allContactPoints: ContactPoint[];
 }
 
 interface GrafanaContactPointProps {
@@ -379,7 +439,7 @@ interface GrafanaContactPointProps {
   contactPoints: any;
   selectedAlertManagerOption: any;
   selectedContactPointOption: any;
-  allContactPoints: any;
+  allContactPoints: ContactPoint[];
   radioOptions: Array<{
     label: string;
     value: string;
@@ -479,7 +539,7 @@ const GrafanaContactPoint = observer(
             <Controller
               name={FormFieldKeys.ContactPoint}
               control={control}
-              rules={{ required: 'Contact Point is required' }}
+              rules={{ required: 'Contact Point is required', validate: contactPointValidator }}
               render={({ field }) => (
                 <Field
                   key={FormFieldKeys.ContactPoint}
@@ -514,7 +574,26 @@ const GrafanaContactPoint = observer(
       </div>
     );
 
+    function contactPointValidator(contactPointInputValue: string) {
+      const alertManager = getValues(FormFieldKeys.AlertManager);
+      const isExisting = getValues(FormFieldKeys.IsExisting);
+
+      const matchingAlertManager = allContactPoints.find((cp) => cp.uid === alertManager);
+      const hasContactPointInput = alertManager && contactPointInputValue;
+
+      if (
+        !isExisting &&
+        hasContactPointInput &&
+        matchingAlertManager?.contact_points.find((cp) => cp === contactPointInputValue)
+      ) {
+        return 'A contact point already exists for this data source';
+      }
+
+      return true;
+    }
+
     function onAlertManagerChange(option: SelectableValue<string>) {
+      // filter contact points for current alert manager
       const contactPointsForCurrentOption = allContactPoints
         .find((opt) => opt.uid === option.value)
         .contact_points?.map((cp) => ({ value: cp, label: cp }));
@@ -539,46 +618,3 @@ const GrafanaContactPoint = observer(
     }
   }
 );
-
-const HowTheIntegrationWorks: React.FC<{ selectedOption: ApiSchemas['AlertReceiveChannelIntegrationOptions'] }> = ({
-  selectedOption,
-}) => {
-  if (!selectedOption) {
-    return null;
-  }
-
-  return (
-    <Collapse
-      headerWithBackground
-      className={cx('collapse')}
-      isOpen={false}
-      label={<Text type="link">How the integration works</Text>}
-      contentClassName={cx('collapsable-content')}
-    >
-      <Text type="secondary">
-        The integration will generate the following:
-        <ul className={cx('integration-info-list')}>
-          <li className={cx('integration-info-item')}>Unique URL endpoint for receiving alerts </li>
-          <li className={cx('integration-info-item')}>
-            Templates to interpret alerts, tailored for {selectedOption.display_name}{' '}
-          </li>
-          <li className={cx('integration-info-item')}>{selectedOption.display_name} contact point </li>
-          <li className={cx('integration-info-item')}>{selectedOption.display_name} notification</li>
-        </ul>
-        What you'll need to do next:
-        <ul className={cx('integration-info-list')}>
-          <li className={cx('integration-info-item')}>
-            Finish connecting Monitoring system using Unique URL that will be provided on the next step{' '}
-          </li>
-          <li className={cx('integration-info-item')}>
-            Set up routes that are based on alert content, such as severity, region, and service{' '}
-          </li>
-          <li className={cx('integration-info-item')}>Connect escalation chains to the routes</li>
-          <li className={cx('integration-info-item')}>
-            Review templates and personalize according to your requirements
-          </li>
-        </ul>
-      </Text>
-    </Collapse>
-  );
-};

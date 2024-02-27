@@ -16,24 +16,17 @@ import {
 } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
-import { useHistory } from 'react-router-dom';
 
 import { Block } from 'components/GBlock/Block';
 import { CustomFieldSectionRendererProps, GForm } from 'components/GForm/GForm';
 import { IntegrationLogo } from 'components/IntegrationLogo/IntegrationLogo';
 import { Text } from 'components/Text/Text';
-import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { AlertReceiveChannelHelper } from 'models/alert_receive_channel/alert_receive_channel.helpers';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { IntegrationHelper } from 'pages/integration/Integration.helper';
 import { useStore } from 'state/useStore';
-import { UserActions } from 'utils/authorization/authorization';
-import { PLUGIN_ROOT } from 'utils/consts';
-import { openErrorNotification } from 'utils/utils';
 
 import { HookForm } from './HookForm';
-import { getForm } from './IntegrationForm.config';
-import { prepareForEdit } from './IntegrationForm.helpers';
 import styles from './IntegrationForm.module.scss';
 
 const cx = cn.bind(styles);
@@ -56,8 +49,6 @@ export const IntegrationForm = observer((props: IntegrationFormProps) => {
   const [showNewIntegrationForm, setShowNewIntegrationForm] = useState(false);
   const [selectedOption, setSelectedOption] = useState<ApiSchemas['AlertReceiveChannelIntegrationOptions']>(undefined);
   const [showIntegrarionsListDrawer, setShowIntegrarionsListDrawer] = useState(id === 'new');
-
-  const form = useMemo(() => getForm(grafanaTeamStore), [grafanaTeamStore]);
 
   const { alertReceiveChannelOptions } = alertReceiveChannelStore;
 
