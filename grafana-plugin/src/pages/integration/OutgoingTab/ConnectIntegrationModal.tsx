@@ -1,18 +1,44 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import { Button, HorizontalGroup, Icon, Input, Modal, useStyles2 } from '@grafana/ui';
+import cn from 'classnames';
 
 import { Text } from 'components/Text/Text';
 
 import ConnectedIntegrationsTable from './ConnectedIntegrationsTable';
 import { getStyles } from './OutgoingTab.styles';
 import { ApiSchemas } from 'network/oncall-api/api.types';
-import { useCommonStyles } from 'utils/hooks';
+import { useCommonStyles, useIsLoading } from 'utils/hooks';
+import { observer } from 'mobx-react-lite';
+import { useStore } from 'state/useStore';
+import { AlertReceiveChannelHelper } from 'models/alert_receive_channel/alert_receive_channel.helpers';
+import { ActionKey } from 'models/loader/action-keys';
+import { debounce } from 'lodash-es';
 
-export const ConnectIntegrationModal = ({ onDismiss }: { onDismiss: () => void }) => {
+const DEBOUNCE_MS = 500;
+
+export const ConnectIntegrationModal = observer(({ onDismiss }: { onDismiss: () => void }) => {
+  const { alertReceiveChannelStore } = useStore();
+  const isLoading = useIsLoading(ActionKey.FETCH_INTEGRATIONS);
   const commonStyles = useCommonStyles();
   const [selectedIntegrations, setSelectedIntegrations] = useState<Array<ApiSchemas['AlertReceiveChannel']>>([]);
+  const [page, setPage] = useState(1);
   const styles = useStyles2(getStyles);
+
+  const { count, results, page_size } = AlertReceiveChannelHelper.getPaginatedSearchResult(alertReceiveChannelStore);
+
+  useEffect(() => {
+    fetchItems();
+  }, [page]);
+
+  const fetchItems = async (search?: string) => {
+    // TODO: openapi schema should be updated to support servicenow
+    await alertReceiveChannelStore.fetchPaginatedItems({
+      filters: { integration_ne: ['servicenow' as any], search },
+      perpage: 10,
+      page,
+    });
+  };
 
   const onChange = (integration: ApiSchemas['AlertReceiveChannel'], checked) => {
     if (checked) {
@@ -22,6 +48,20 @@ export const ConnectIntegrationModal = ({ onDismiss }: { onDismiss: () => void }
     }
   };
 
+  const onConnect = () => {
+    console.log(selectedIntegrations);
+  };
+
+  const debouncedSearch = debounce(fetchItems, DEBOUNCE_MS);
+
+  const onSearchInputChange = (searchTerm: string) => {
+    debouncedSearch(searchTerm);
+  };
+
+  const onChangePage = (page: number) => {
+    setPage(page);
+  };
+
   return (
     <Modal
       isOpen
@@ -29,16 +69,30 @@ export const ConnectIntegrationModal = ({ onDismiss }: { onDismiss: () => void }
       closeOnBackdropClick={false}
       closeOnEscape
       onDismiss={onDismiss}
+      contentClassName={styles.connectIntegrationModalContent}
     >
       <Input
         className={styles.searchIntegrationsInput}
         suffix={<Icon name="search" />}
         placeholder="Search integrations..."
+        onChange={(e) => onSearchInputChange(e.currentTarget.value)}
       />
-      <ConnectedIntegrationsTable data={[{ a: 'a' } as any]} selectable onChange={onChange} />
-      <div className={commonStyles.bottomDrawerButtons}>
+      <ConnectedIntegrationsTable
+        selectable
+        onChange={onChange}
+        tableProps={{
+          data: results,
+          pagination: {
+            page,
+            total: results ? Math.ceil((count || 0) / page_size) : 0,
+            onChange: onChangePage,
+          },
+          emptyText: isLoading ? 'Loading...' : 'No integrations found',
+        }}
+      />
+      <div className={cn(commonStyles.bottomDrawerButtons, styles.connectIntegrationModalButtons)}>
         <HorizontalGroup justify="flex-end">
-          <Button variant="secondary" onClick={onDismiss}>
+          <Button variant="primary" onClick={onConnect}>
             Connect
           </Button>
           <Button variant="secondary" onClick={onDismiss}>
@@ -48,4 +102,4 @@ export const ConnectIntegrationModal = ({ onDismiss }: { onDismiss: () => void }
       </div>
     </Modal>
   );
-};
+});
