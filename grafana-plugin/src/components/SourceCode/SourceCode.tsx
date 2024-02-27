@@ -16,7 +16,8 @@ interface SourceCodeProps {
   showClipboardIconOnly?: boolean;
   showCopyToClipboard?: boolean;
   children?: string;
-  className?: string;
+  rootClassName?: string;
+  preClassName?: string;
   prettifyJsonString?: boolean;
 }
 
@@ -25,13 +26,14 @@ export const SourceCode: FC<SourceCodeProps> = ({
   noMaxHeight = false,
   showClipboardIconOnly = false,
   showCopyToClipboard = true,
-  className,
+  rootClassName,
+  preClassName,
   prettifyJsonString,
 }) => {
   const showClipboardCopy = showClipboardIconOnly || showCopyToClipboard;
 
   return (
-    <div className={cx('root')}>
+    <div className={cx('root', rootClassName)}>
       {showClipboardCopy && (
         <CopyToClipboard
           text={children}
@@ -66,7 +68,7 @@ export const SourceCode: FC<SourceCodeProps> = ({
           {
             'scroller--maxHeight': !noMaxHeight,
           },
-          className
+          preClassName
         )}
       >
         <code>{prettifyJsonString ? formatSourceCodeJsonString(children) : children}</code>

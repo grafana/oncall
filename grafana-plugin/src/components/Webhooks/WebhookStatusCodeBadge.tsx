@@ -9,12 +9,12 @@ interface WebhookStatusCodeBadgeProps {
   webhook: OutgoingWebhook;
 }
 
-const WebhookStatusCodeBadge: FC<WebhookStatusCodeBadgeProps> = ({ webhook }) => {
+export const WebhookStatusCodeBadge: FC<WebhookStatusCodeBadgeProps> = ({ webhook }) => {
   const styles = useStyles2(getStyles);
 
   return (
     <Badge
-      color={webhook.last_response_log?.status_code?.startsWith?.('2') ? 'green' : 'orange'}
+      color={`${webhook.last_response_log?.status_code}`?.startsWith?.('2') ? 'green' : 'orange'}
       text={webhook.last_response_log?.status_code || 'No status'}
       className={styles.lastEventBadge}
     />
@@ -27,5 +27,3 @@ const getStyles = () => ({
     whiteSpace: 'nowrap',
   }),
 });
-
-export default WebhookStatusCodeBadge;

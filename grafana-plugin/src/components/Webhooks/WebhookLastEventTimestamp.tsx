@@ -9,7 +9,7 @@ import { OutgoingWebhook } from 'models/outgoing_webhook/outgoing_webhook.types'
 import { getTzOffsetString } from 'models/timezone/timezone.helpers';
 import { OutgoingTabDrawerKey } from 'pages/integration/OutgoingTab/OutgoingTab.types';
 
-import WebhookStatusCodeBadge from './WebhookStatusCodeBadge';
+import { WebhookStatusCodeBadge } from './WebhookStatusCodeBadge';
 
 export const WebhookLastEventTimestamp = ({
   webhook,

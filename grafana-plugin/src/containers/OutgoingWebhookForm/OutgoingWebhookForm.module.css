@@ -29,6 +29,11 @@
   display: none !important;
 }
 
+.sourceCodeRoot {
+  height: calc(100vh - 530px);
+  min-height: 200px;
+}
+
 .cards {
   display: flex;
   flex-wrap: wrap;

@@ -29,7 +29,7 @@ import {
 } from 'components/IntegrationCollapsibleTreeView/IntegrationCollapsibleTreeView';
 import { IntegrationContactPoint } from 'components/IntegrationContactPoint/IntegrationContactPoint';
 import { IntegrationHowToConnect } from 'components/IntegrationHowToConnect/IntegrationHowToConnect';
-import IntegrationLogoWithTitle from 'components/IntegrationLogo/IntegrationLogoWithTitle';
+import { IntegrationLogoWithTitle } from 'components/IntegrationLogo/IntegrationLogoWithTitle';
 import { IntegrationSendDemoAlertModal } from 'components/IntegrationSendDemoAlertModal/IntegrationSendDemoAlertModal';
 import { IntegrationBlock } from 'components/Integrations/IntegrationBlock';
 import { IntegrationTag } from 'components/Integrations/IntegrationTag';

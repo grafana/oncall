@@ -4,7 +4,7 @@ import { HorizontalGroup, Button } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
-import WebhookLastEventDetails from 'components/Webhooks/WebhookLastEventDetails';
+import { WebhookLastEventDetails } from 'components/Webhooks/WebhookLastEventDetails';
 import { OutgoingWebhook } from 'models/outgoing_webhook/outgoing_webhook.types';
 import { useStore } from 'state/useStore';
 import { useCommonStyles } from 'utils/hooks';
@@ -28,7 +28,7 @@ export const OutgoingWebhookStatus = observer(({ id, closeDrawer }: OutgoingWebh
 
   return (
     <div className={cx('content')}>
-      <WebhookLastEventDetails webhook={webhook} />
+      <WebhookLastEventDetails webhook={webhook} sourceCodeRootClassName={cx('sourceCodeRoot')} />
       <div className={commonStyles.bottomDrawerButtons}>
         <HorizontalGroup justify="flex-end">
           <Button variant="secondary" onClick={closeDrawer}>
