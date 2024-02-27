@@ -86,6 +86,7 @@ interface LastEventDetailsProps {
 }
 const LastEventDetails: FC<LastEventDetailsProps> = observer(({ closeDrawer }) => {
   const commonStyles = useCommonStyles();
+  const styles = useStyles2(getStyles);
 
   const {
     outgoingWebhookStore: { items },
@@ -98,7 +99,7 @@ const LastEventDetails: FC<LastEventDetailsProps> = observer(({ closeDrawer }) =
 
   return (
     <div>
-      <WebhookLastEventDetails webhook={webhook} />
+      <WebhookLastEventDetails webhook={webhook} sourceCodeRootClassName={styles.sourceCodeRoot} />
       <div className={commonStyles.bottomDrawerButtons}>
         <HorizontalGroup justify="flex-end">
           <Button variant="secondary" onClick={closeDrawer}>

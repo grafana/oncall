@@ -28,7 +28,7 @@ export const OutgoingWebhookStatus = observer(({ id, closeDrawer }: OutgoingWebh
 
   return (
     <div className={cx('content')}>
-      <WebhookLastEventDetails webhook={webhook} />
+      <WebhookLastEventDetails webhook={webhook} sourceCodeRootClassName={cx('sourceCodeRoot')} />
       <div className={commonStyles.bottomDrawerButtons}>
         <HorizontalGroup justify="flex-end">
           <Button variant="secondary" onClick={closeDrawer}>

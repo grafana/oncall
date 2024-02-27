@@ -14,7 +14,7 @@ const WebhookStatusCodeBadge: FC<WebhookStatusCodeBadgeProps> = ({ webhook }) =>
 
   return (
     <Badge
-      color={webhook.last_response_log?.status_code?.startsWith?.('2') ? 'green' : 'orange'}
+      color={`${webhook.last_response_log?.status_code}`?.startsWith?.('2') ? 'green' : 'orange'}
       text={webhook.last_response_log?.status_code || 'No status'}
       className={styles.lastEventBadge}
     />

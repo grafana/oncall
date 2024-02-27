@@ -25,21 +25,19 @@ export const NewOutgoingWebhookDrawerContent: FC<NewOutgoingWebhookDrawerContent
   return (
     <FormProvider {...formMethods}>
       <form onSubmit={formMethods.handleSubmit(onSubmit)} className={styles.form}>
-        <VerticalGroup justify="space-between">
-          <div className={styles.formFieldsWrapper}>
-            <OutgoingWebhookFormFields webhookId="new" />
-          </div>
-          <div className={commonStyles.bottomDrawerButtons}>
-            <HorizontalGroup justify="flex-end">
-              <Button variant="secondary" onClick={closeDrawer}>
-                Close
-              </Button>
-              <WithPermissionControlTooltip userAction={UserActions.OutgoingWebhooksWrite}>
-                <Button type="submit">Create</Button>
-              </WithPermissionControlTooltip>
-            </HorizontalGroup>
-          </div>
-        </VerticalGroup>
+        <div className={styles.formFieldsWrapper}>
+          <OutgoingWebhookFormFields webhookId="new" />
+        </div>
+        <div className={commonStyles.bottomDrawerButtons}>
+          <HorizontalGroup justify="flex-end">
+            <Button variant="secondary" onClick={closeDrawer}>
+              Close
+            </Button>
+            <WithPermissionControlTooltip userAction={UserActions.OutgoingWebhooksWrite}>
+              <Button type="submit">Create</Button>
+            </WithPermissionControlTooltip>
+          </HorizontalGroup>
+        </div>
       </form>
     </FormProvider>
   );

@@ -2,8 +2,7 @@ import { css } from '@emotion/css';
 
 export const getCommonStyles = () => ({
   bottomDrawerButtons: css({
-    position: 'absolute',
-    bottom: '16px',
-    right: '16px',
+    padding: '16px 0',
+    width: '100%',
   }),
 });
