@@ -97,7 +97,7 @@ to the heartbeat endpoint. If OnCall doesn't receive one of these alerts, it wil
 1. Copy **Endpoint** into you monitoring system.
 
 If you need to disable heartbeat monitoring on an integration use the **Reset** button to return it to the state of being
-inactive. To start the heartbeat monitoring again send a request the **Endpoint**.
+inactive. To start the heartbeat monitoring again send a request to the **Endpoint**.
 
 More specific instructions can be found in a specific integration's documentation.
 
