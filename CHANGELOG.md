@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## v1.3.107 (2024-02-27)
+
 ### Added
 
 - Add manually run task to cleanup unused integrations @mderynck ([#3941](https://github.com/grafana/oncall/pull/3941))
