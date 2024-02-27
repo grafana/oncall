@@ -10,7 +10,7 @@ interface CopyToClipboardProps {
   iconButtonProps?: Partial<Parameters<typeof IconButton>[0]>;
 }
 
-const CopyToClipboardIcon: FC<CopyToClipboardProps> = ({ text, iconButtonProps }) => {
+export const CopyToClipboardIcon: FC<CopyToClipboardProps> = ({ text, iconButtonProps }) => {
   const onCopy = () => {
     openNotification('Copied to clipboard');
   };
@@ -21,5 +21,3 @@ const CopyToClipboardIcon: FC<CopyToClipboardProps> = ({ text, iconButtonProps }
     </CopyToClipboard>
   );
 };
-
-export default CopyToClipboardIcon;

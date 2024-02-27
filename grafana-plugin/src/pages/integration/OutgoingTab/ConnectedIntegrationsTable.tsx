@@ -3,7 +3,7 @@ import React, { FC } from 'react';
 import { HorizontalGroup, Tooltip, Icon, useStyles2, IconButton, Switch, Checkbox } from '@grafana/ui';
 
 import { GTable } from 'components/GTable/GTable';
-import IntegrationLogoWithTitle from 'components/IntegrationLogo/IntegrationLogoWithTitle';
+import { IntegrationLogoWithTitle } from 'components/IntegrationLogo/IntegrationLogoWithTitle';
 import { Text } from 'components/Text/Text';
 
 import { getStyles } from './OutgoingTab.styles';

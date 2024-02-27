@@ -18,7 +18,7 @@ import { observer } from 'mobx-react';
 
 import { GTable } from 'components/GTable/GTable';
 import { IntegrationBlock } from 'components/Integrations/IntegrationBlock';
-import IntegrationTag from 'components/Integrations/IntegrationTag';
+import { IntegrationTag } from 'components/Integrations/IntegrationTag';
 import { Text } from 'components/Text/Text';
 import { WithConfirm } from 'components/WithConfirm/WithConfirm';
 import { AlertReceiveChannelHelper } from 'models/alert_receive_channel/alert_receive_channel.helpers';

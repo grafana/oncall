@@ -14,11 +14,14 @@ export const getStyles = (theme: GrafanaTheme2) => ({
   }),
   form: css({
     height: '100%',
-    paddingBottom: '64px',
-    marginTop: '32px',
+    paddingTop: '32px',
   }),
   formFieldsWrapper: css({
     width: '100%',
+  }),
+  sourceCodeRoot: css({
+    minHeight: '200px',
+    height: 'calc(100vh - 550px)',
   }),
   infoIcon: css({
     marginLeft: '4px',
@@ -72,6 +75,6 @@ export const getStyles = (theme: GrafanaTheme2) => ({
     marginBottom: '24px',
   }),
   tabsWrapper: css({
-    padding: '16px 16px 16px 8px',
+    padding: '16px 16px 0 8px',
   }),
 });

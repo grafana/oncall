@@ -2,7 +2,7 @@ import React from 'react';
 
 import { useStyles2, Input, IconButton, Button, Drawer, Badge } from '@grafana/ui';
 
-import CopyToClipboardIcon from 'components/CopyToClipboardIcon/CopyToClipboardIcon';
+import { CopyToClipboardIcon } from 'components/CopyToClipboardIcon/CopyToClipboardIcon';
 import { IntegrationCollapsibleTreeView } from 'components/IntegrationCollapsibleTreeView/IntegrationCollapsibleTreeView';
 import { IntegrationBlock } from 'components/Integrations/IntegrationBlock';
 import { IntegrationTag } from 'components/Integrations/IntegrationTag';
