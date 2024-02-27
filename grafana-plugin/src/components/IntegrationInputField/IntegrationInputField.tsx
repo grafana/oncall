@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { HorizontalGroup, IconButton, Input } from '@grafana/ui';
 import cn from 'classnames/bind';
 
-import CopyToClipboardIcon from 'components/CopyToClipboardIcon/CopyToClipboardIcon';
+import { CopyToClipboardIcon } from 'components/CopyToClipboardIcon/CopyToClipboardIcon';
 
 import styles from './IntegrationInputField.module.scss';
 

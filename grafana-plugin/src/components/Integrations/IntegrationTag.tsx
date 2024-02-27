@@ -33,5 +33,3 @@ export const getStyles = (theme: GrafanaTheme2) => ({
     borderRadius: '4px',
   }),
 });
-
-export default IntegrationTag;

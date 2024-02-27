@@ -5,7 +5,7 @@ import { observer } from 'mobx-react-lite';
 import { useForm, FormProvider } from 'react-hook-form';
 
 import { Tabs } from 'components/Tabs/Tabs';
-import WebhookLastEventDetails from 'components/Webhooks/WebhookLastEventDetails';
+import { WebhookLastEventDetails } from 'components/Webhooks/WebhookLastEventDetails';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { useStore } from 'state/useStore';
 import { LocationHelper } from 'utils/LocationHelper';

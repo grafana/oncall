@@ -9,7 +9,7 @@ interface WebhookStatusCodeBadgeProps {
   webhook: OutgoingWebhook;
 }
 
-const WebhookStatusCodeBadge: FC<WebhookStatusCodeBadgeProps> = ({ webhook }) => {
+export const WebhookStatusCodeBadge: FC<WebhookStatusCodeBadgeProps> = ({ webhook }) => {
   const styles = useStyles2(getStyles);
 
   return (
@@ -27,5 +27,3 @@ const getStyles = () => ({
     whiteSpace: 'nowrap',
   }),
 });
-
-export default WebhookStatusCodeBadge;

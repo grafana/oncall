@@ -11,19 +11,19 @@ import { Text } from 'components/Text/Text';
 import { OutgoingWebhook } from 'models/outgoing_webhook/outgoing_webhook.types';
 import { getTzOffsetString } from 'models/timezone/timezone.helpers';
 
-import WebhookStatusCodeBadge from './WebhookStatusCodeBadge';
+import { WebhookStatusCodeBadge } from './WebhookStatusCodeBadge';
 
 interface WebhookLastEventDetailsProps {
   webhook: OutgoingWebhook;
   sourceCodeRootClassName?: string;
 }
 
-const WebhookLastEventDetails: FC<WebhookLastEventDetailsProps> = ({ webhook, sourceCodeRootClassName }) => {
+export const WebhookLastEventDetails: FC<WebhookLastEventDetailsProps> = ({ webhook, sourceCodeRootClassName }) => {
   const styles = useStyles2(getStyles);
   const theme = useTheme2();
   const rows = useMemo(() => getEventDetailsRows(theme, webhook), [theme, webhook]);
 
-  const sourceCodeProps = {
+  const commonSourceCodeProps = {
     showClipboardIconOnly: true,
     prettifyJsonString: true,
     noMaxHeight: true,
@@ -56,17 +56,21 @@ const WebhookLastEventDetails: FC<WebhookLastEventDetailsProps> = ({ webhook, so
           {
             label: 'Event body',
             content: (
-              <SourceCode {...sourceCodeProps}>{webhook.last_response_log.request_data || 'No data'}</SourceCode>
+              <SourceCode {...commonSourceCodeProps}>{webhook.last_response_log.request_data || 'No data'}</SourceCode>
             ),
           },
           {
             label: 'Response body',
-            content: <SourceCode {...sourceCodeProps}>{webhook.last_response_log.content || 'No data'}</SourceCode>,
+            content: (
+              <SourceCode {...commonSourceCodeProps}>{webhook.last_response_log.content || 'No data'}</SourceCode>
+            ),
           },
           {
             label: 'Request headers',
             content: (
-              <SourceCode {...sourceCodeProps}>{webhook.last_response_log.request_headers || 'No data'}</SourceCode>
+              <SourceCode {...commonSourceCodeProps}>
+                {webhook.last_response_log.request_headers || 'No data'}
+              </SourceCode>
             ),
           },
         ]}
@@ -126,5 +130,3 @@ const getStyles = () => ({
     height: '100%',
   }),
 });
-
-export default WebhookLastEventDetails;
