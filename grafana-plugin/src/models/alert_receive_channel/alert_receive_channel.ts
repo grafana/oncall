@@ -94,11 +94,11 @@ export class AlertReceiveChannelStore {
   }
 
   async fetchItems(query: any = '') {
-    const params = typeof query === 'string' ? { search: query } : query;
-
     const {
       data: { results },
-    } = await onCallApi().GET('/alert_receive_channels/', { params });
+    } = await onCallApi().GET('/alert_receive_channels/', {
+      params: { query: typeof query === 'string' ? { search: query } : query },
+    });
 
     runInAction(() => {
       this.items = {

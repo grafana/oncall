@@ -77,7 +77,7 @@ export const ScheduleForm = observer((props: ScheduleFormProps) => {
       onClose={onHide}
       closeOnMaskClick={false}
     >
-      <div className={cx('content')}>
+      <div className={cx('content')} data-testid="schedule-form">
         <VerticalGroup>
           <GForm form={formConfig} data={data} onSubmit={handleSubmit} />
           <div className="buttons">

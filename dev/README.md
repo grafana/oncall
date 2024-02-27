@@ -189,13 +189,11 @@ See the `django-silk` documentation [here](https://github.com/jazzband/django-si
 By default everything runs inside Docker. If you would like to run the backend services outside of Docker
 (for integrating w/ PyCharm for example), follow these instructions:
 
-1. Create a Python 3.11 virtual environment using a method of your choosing (ex.
-   [venv](https://docs.python.org/3.11/library/venv.html) or [pyenv-virtualenv](https://github.com/pyenv/pyenv-virtualenv)).
-   Make sure the virtualenv is "activated".
+1. Make sure you have Python 3.11 installed.
 2. `postgres` is a dependency on some of our Python dependencies (notably `psycopg2`
    ([docs](https://www.psycopg.org/docs/install.html#prerequisites))). Please visit
    [here](https://www.postgresql.org/download/) for installation instructions.
-3. `make backend-bootstrap` - installs all backend dependencies
+3. `make backend-bootstrap` - will create the virtual env and install all backend dependencies
 4. Modify your `.env.dev` by copying the contents of one of `.env.mysql.dev`, `.env.postgres.dev`,
    or `.env.sqlite.dev` into `.env.dev` (you should exclude the `GF_` prefixed environment variables).
 
@@ -208,6 +206,22 @@ By default everything runs inside Docker. If you would like to run the backend s
 
 - `make run-backend-server` - runs the HTTP server
 - `make run-backend-celery` - runs Celery workers
+
+### Adding or updating Python dependencies
+
+We are using [pip-tools](https://github.com/jazzband/pip-tools) to manage our dependencies. It helps
+making builds deterministic, controlling deps (and indirect deps) upgrades (and versions consistency)
+avoiding unexpected (and potentially breaking) changes.
+
+We keep our direct deps in `requirements.in` from which we generate (through `pip-compile`) the
+`requirements.txt` (where all deps are pinned). We also constrain dev (and enterprise) deps based
+on our base requirements. Check [how to update deps](https://github.com/jazzband/pip-tools?tab=readme-ov-file#updating-requirements).
+
+`pip install -r requirements.txt` will keep working (the difference is that this should never
+bring additional dependencies or different versions not listed there), and when starting an env
+from scratch, it would be the same as running `pip-sync`. `pip-sync` on the other hand will also
+ensure to clean up any deps not listed in the requirements, keeping the env exactly as described
+in `requirements.txt`.
 
 ## UI E2E Tests
 
