@@ -81,11 +81,7 @@ test.describe('maintenance mode works', () => {
     await page.getByText('Stop Maintenance').click();
 
     // in the modal popup, confirm that we want to stop it
-    await clickButton({
-      page,
-      buttonText: 'Stop',
-      startingLocator: page.getByRole('dialog'),
-    });
+    await page.locator('button >> text=Stop').click();
 
     await getRemainingTimeTooltip(page).waitFor({ state: 'hidden' });
   };
