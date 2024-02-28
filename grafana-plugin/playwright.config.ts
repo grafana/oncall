@@ -64,7 +64,7 @@ export default defineConfig({
     // baseURL: 'http://localhost:3000',
 
     trace: 'on',
-    video: 'on',
+    video: 'off',
     headless: true,
   },
 

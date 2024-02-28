@@ -33,6 +33,11 @@ jobs:
     # this will allow us to run more backend containers and parralelize the tests)
     runs-on: ubuntu-latest-8-cores
     name: "Grafana: ${{ inputs.grafana-image-tag }}"
+    environment:
+      name: github-pages
+    permissions:
+      id-token: write
+      pages: "write"
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -222,9 +227,25 @@ jobs:
         with:
           important-workloads: deploy/oncall-ci-grafana
 
-      - uses: actions/upload-artifact@v3
+      - name: Setup Pages
         if: failure()
+        uses: actions/configure-pages@v2
+
+      - name: Upload artifact
+        if: failure()
+        uses: actions/upload-pages-artifact@v1
         with:
-          name: playwright-report-${{ inputs.grafana-image-tag }}
           path: ./grafana-plugin/playwright-report/
-          retention-days: 30
+
+      - name: Deploy to GitHub Pages
+        if: failure()
+        id: deployment
+        uses: actions/deploy-pages@v3
+        with:
+          preview: true
+
+      - name: Linked Github Page
+        if: failure()
+        run: |
+          echo "Test report has been deployed to [GitHub Pages](https://grafana.github.io/oncall/) :rocket:" \
+          >> $GITHUB_STEP_SUMMARY
