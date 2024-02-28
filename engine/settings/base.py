@@ -532,6 +532,11 @@ CELERY_BEAT_SCHEDULE = {
         "schedule": crontab(minute="*/30"),
         "args": (),
     },
+    "start_cleanup_organizations": {
+        "task": "apps.grafana_plugin.tasks.sync.start_cleanup_organizations",
+        "schedule": crontab(hour="4, 16", minute=35),
+        "args": (),
+    },
     "start_cleanup_deleted_organizations": {
         "task": "apps.grafana_plugin.tasks.sync.start_cleanup_deleted_organizations",
         "schedule": crontab(hour="*", minute=15),
