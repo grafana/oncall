@@ -34,8 +34,7 @@ export const ConnectIntegrationModal = observer(({ onDismiss }: { onDismiss: () 
 
   const fetchItems = async (search?: string) => {
     await alertReceiveChannelStore.fetchPaginatedItems({
-      // TODO: openapi schema should be updated to support servicenow
-      filters: { integration_ne: ['servicenow' as any], search },
+      filters: { search },
       perpage: 10,
       page,
     });
