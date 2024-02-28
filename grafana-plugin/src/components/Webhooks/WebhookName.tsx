@@ -39,5 +39,6 @@ export const getStyles = () => ({
   }),
   disabledBadge: css({
     wordBreak: 'keep-all',
+    marginLeft: '8px',
   }),
 });
