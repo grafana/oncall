@@ -24,54 +24,51 @@ const ConnectedIntegrationsTable: FC<ConnectedIntegrationsTableProps> = observer
   ({ selectable, allowDelete, onChange, tableProps, allowBacksync }) => {
     const { alertReceiveChannelStore } = useStore();
 
-    const columns = useMemo(
-      () => [
-        ...(selectable
-          ? [
-              {
-                width: '5%',
-                render: (integration: ApiSchemas['AlertReceiveChannel']) => (
-                  <Checkbox onChange={(event) => onChange(integration, event.currentTarget.checked)} />
-                ),
-              },
-            ]
-          : []),
-        {
-          width: '45%',
-          title: <Text type="secondary">Integration name</Text>,
-          dataIndex: 'verbal_name',
-          render: (name: string) => name,
-        },
-        {
-          width: '55%',
-          title: <Text type="secondary">Type</Text>,
-          render: (integration: ApiSchemas['AlertReceiveChannel']) => (
-            <IntegrationLogoWithTitle
-              integration={AlertReceiveChannelHelper.getIntegrationSelectOption(alertReceiveChannelStore, integration)}
-            />
-          ),
-        },
-        ...(allowBacksync
-          ? [
-              {
-                title: (
-                  <HorizontalGroup>
-                    <Text type="secondary">Backsync</Text>
-                    <Tooltip content={<>Switch on to start sending data from other integrations</>}>
-                      <Icon name={'info-circle'} />
-                    </Tooltip>
-                  </HorizontalGroup>
-                ),
-                render: BacksyncSwitcher,
-              },
-            ]
-          : []),
-        {
-          render: () => <ActionsColumn allowDelete={allowDelete} />,
-        },
-      ],
-      []
-    );
+    const columns = [
+      ...(selectable
+        ? [
+            {
+              width: '5%',
+              render: (integration: ApiSchemas['AlertReceiveChannel']) => (
+                <Checkbox onChange={(event) => onChange(integration, event.currentTarget.checked)} />
+              ),
+            },
+          ]
+        : []),
+      {
+        width: '45%',
+        title: <Text type="secondary">Integration name</Text>,
+        dataIndex: 'verbal_name',
+        render: (name: string) => name,
+      },
+      {
+        width: '55%',
+        title: <Text type="secondary">Type</Text>,
+        render: (integration: ApiSchemas['AlertReceiveChannel']) => (
+          <IntegrationLogoWithTitle
+            integration={AlertReceiveChannelHelper.getIntegrationSelectOption(alertReceiveChannelStore, integration)}
+          />
+        ),
+      },
+      ...(allowBacksync
+        ? [
+            {
+              title: (
+                <HorizontalGroup>
+                  <Text type="secondary">Backsync</Text>
+                  <Tooltip content={<>Switch on to start sending data from other integrations</>}>
+                    <Icon name={'info-circle'} />
+                  </Tooltip>
+                </HorizontalGroup>
+              ),
+              render: BacksyncSwitcher,
+            },
+          ]
+        : []),
+      {
+        render: () => <ActionsColumn allowDelete={allowDelete} />,
+      },
+    ];
 
     return <GTable rowKey="id" columns={columns} {...tableProps} />;
   }
