@@ -63,6 +63,12 @@ class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
     if (this.props.data.notify_schedule) {
       this.props.store.scheduleStore.loadItem(this.props.data.notify_schedule);
     }
+    if (this.props.data.notify_to_team_members) {
+      this.props.store.grafanaTeamStore.fetchItemById(this.props.data.notify_to_team_members);
+    }
+    if (this.props.data.notify_to_group) {
+      this.props.store.userGroupStore.updateItems('', this.props.data.notify_to_group);
+    }
   }
 
   render() {
@@ -438,6 +444,7 @@ class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
       store: { grafanaTeamStore },
     } = this.props;
     const { notify_to_team_members } = data;
+    console.log({ notify_to_team_members });
 
     return (
       <WithPermissionControlTooltip key="notify_to_team_members" userAction={UserActions.EscalationChainsWrite}>
