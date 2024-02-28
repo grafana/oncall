@@ -174,6 +174,7 @@ export const HookForm = observer(
 
     const [labelsErrors, setLabelErrors] = useState([]);
     const isServiceNow = selectedIntegration.value === 'servicenow';
+    const isGrafanaAlerting = IntegrationHelper.isSpecificIntegration(selectedIntegration.value, 'grafana_alerting');
 
     return (
       <form onSubmit={handleSubmit(onFormSubmit)} className={cx('form')}>
@@ -250,20 +251,22 @@ export const HookForm = observer(
           )}
         />
 
-        <GrafanaContactPoint
-          radioOptions={radioOptions}
-          isExistingContactPoint={isExistingContactPoint}
-          dataSources={dataSources}
-          contactPoints={contactPoints}
-          selectedAlertManagerOption={selectedAlertManagerOption}
-          selectedContactPointOption={selectedContactPointOption}
-          allContactPoints={allContactPoints}
-          control={control}
-          getValues={getValues}
-          setValue={setValue}
-          setState={setState}
-          errors={errors}
-        />
+        <RenderConditionally shouldRender={isGrafanaAlerting}>
+          <GrafanaContactPoint
+            radioOptions={radioOptions}
+            isExistingContactPoint={isExistingContactPoint}
+            dataSources={dataSources}
+            contactPoints={contactPoints}
+            selectedAlertManagerOption={selectedAlertManagerOption}
+            selectedContactPointOption={selectedContactPointOption}
+            allContactPoints={allContactPoints}
+            control={control}
+            getValues={getValues}
+            setValue={setValue}
+            setState={setState}
+            errors={errors}
+          />
+        </RenderConditionally>
 
         {store.hasFeature(AppFeature.Labels) && (
           <div className={cx('labels')}>
@@ -351,7 +354,7 @@ export const HookForm = observer(
         </RenderConditionally>
 
         <RenderConditionally shouldRender={isServiceNow}>
-          <Button className={cx('webhook-test')} variant="secondary" onClick={() => console.log('Test')}>
+          <Button className={cx('webhook-test')} variant="secondary" onClick={onWebhookTestClick}>
             Test
           </Button>
         </RenderConditionally>
@@ -384,6 +387,8 @@ export const HookForm = observer(
         </div>
       </form>
     );
+
+    async function onWebhookTestClick(): Promise<void> {}
 
     async function onFormSubmit(formData): Promise<void> {
       const labels = labelsRef.current?.getValue();
