@@ -1,4 +1,4 @@
-import { test as base, Browser, Page } from '@playwright/test';
+import { test as base, Browser, Fixtures, Page } from '@playwright/test';
 
 import { VIEWER_USER_STORAGE_STATE, EDITOR_USER_STORAGE_STATE, ADMIN_USER_STORAGE_STATE } from '../playwright.config';
 
@@ -27,11 +27,14 @@ class AdminRolePage extends BaseRolePage {
   userName = GRAFANA_ADMIN_USERNAME;
 }
 
-type Fixtures = {
+interface TestFixtures extends Fixtures {
+  // currentGrafanaVersion: string;
   viewerRolePage: ViewerRolePage;
   editorRolePage: EditorRolePage;
   adminRolePage: AdminRolePage;
-};
+}
+
+interface WorkerFixtures extends Fixtures {}
 
 const setContextForPage = async (
   browser: Browser,
@@ -47,8 +50,9 @@ const setContextForPage = async (
 };
 
 export * from '@playwright/test';
-export const test = base.extend<Fixtures>({
-  viewerRolePage: ({ browser }, use) => setContextForPage(browser, use, VIEWER_USER_STORAGE_STATE, ViewerRolePage),
+export const test = base.extend<TestFixtures, WorkerFixtures>({
+  viewerRolePage: async ({ browser }, use) =>
+    setContextForPage(browser, use, VIEWER_USER_STORAGE_STATE, ViewerRolePage),
   editorRolePage: async ({ browser }, use) =>
     setContextForPage(browser, use, EDITOR_USER_STORAGE_STATE, EditorRolePage),
   adminRolePage: async ({ browser }, use) => setContextForPage(browser, use, ADMIN_USER_STORAGE_STATE, AdminRolePage),

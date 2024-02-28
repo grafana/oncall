@@ -7,8 +7,7 @@ const HEARTBEAT_SETTINGS_FORM_TEST_ID = 'heartbeat-settings-form';
 
 test.describe("updating an integration's heartbeat interval works", async () => {
   const _openHeartbeatSettingsForm = async (page: Page) => {
-    await page.getByTestId('integration-settings-context-menu-wrapper').getByRole('img').click();
-    await page.waitForTimeout(1000);
+    await page.getByTestId('integration-settings-context-menu-wrapper').click();
     await page.getByTestId('integration-heartbeat-settings').click();
   };
 

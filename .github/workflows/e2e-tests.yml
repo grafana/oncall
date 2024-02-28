@@ -42,6 +42,15 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
+      # TODO: re-enable this when we get the docker build build-context caching working.. see other TODO comment below
+      # - uses: actions/setup-python@v4
+      #   with:
+      #     python-version: "3.11.4"
+      #     cache: "pip"
+      #     cache-dependency-path: |
+      #       engine/requirements.txt
+      #       engine/requirements-dev.txt
+
       - name: Collect Workflow Telemetry
         uses: runforesight/workflow-telemetry-action@v1
         with:
@@ -95,6 +104,16 @@ jobs:
           push: false
           tags: oncall/engine:latest
           outputs: type=docker,dest=/tmp/oncall-engine.tar
+          # TODO: figure out how to get this to work.. this will substantially speed up building our docker image here
+          # because right now most time is spent building wheels for python dependencies
+          # (even though they rarely change).. this portion "should" work however I haven't yet figured out how to
+          # get the cache bind mount in engine/Dockerfile to work optionally (ie. when we don't specify
+          # the --build-context flag to docker build.. otherwise it fails if pip_cache is not available)
+          #
+          # references
+          # https://github.com/moby/buildkit/blob/master/frontend/dockerfile/docs/reference.md#run---mounttypecache
+          # https://stackoverflow.com/a/71846527
+          # build-contexts: pip_cache=/home/runner/.cache/pip
 
       - name: Load engine Docker image on the nodes of the cluster
         run: kind load image-archive --name=chart-testing /tmp/oncall-engine.tar
@@ -124,7 +143,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: "~/.cache/ms-playwright"
-          key: ${{ runner.os }}-playwright-${{ env.PLAYWRIGHT_VERSION }}-chromium-firefox-webkit
+          key: ${{ runner.os }}-playwright-${{ env.PLAYWRIGHT_VERSION }}-${{ inputs.browsers }}
 
       # For the next two steps, use the binary directly from node_modules/.bin as opposed to npx playwright
       # due to this bug (https://github.com/microsoft/playwright/issues/13188)
