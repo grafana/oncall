@@ -1,26 +1,27 @@
 import React, { FC, useMemo } from 'react';
 
 import { HorizontalGroup, Tooltip, Icon, useStyles2, IconButton, Switch, Checkbox } from '@grafana/ui';
+import { observer } from 'mobx-react';
 
 import { GTable, GTableProps } from 'components/GTable/GTable';
 import { IntegrationLogoWithTitle } from 'components/IntegrationLogo/IntegrationLogoWithTitle';
 import { Text } from 'components/Text/Text';
+import { AlertReceiveChannelHelper } from 'models/alert_receive_channel/alert_receive_channel.helpers';
+import { ApiSchemas } from 'network/oncall-api/api.types';
+import { useStore } from 'state/useStore';
 
 import { getStyles } from './OutgoingTab.styles';
-import { ApiSchemas } from 'network/oncall-api/api.types';
-import { AlertReceiveChannelHelper } from 'models/alert_receive_channel/alert_receive_channel.helpers';
-import { observer } from 'mobx-react';
-import { useStore } from 'state/useStore';
 
 interface ConnectedIntegrationsTableProps {
   allowDelete?: boolean;
+  allowBacksync?: boolean;
   selectable?: boolean;
   onChange?: (integration: ApiSchemas['AlertReceiveChannel'], checked: boolean) => void;
   tableProps: GTableProps;
 }
 
 const ConnectedIntegrationsTable: FC<ConnectedIntegrationsTableProps> = observer(
-  ({ selectable, allowDelete, onChange, tableProps }) => {
+  ({ selectable, allowDelete, onChange, tableProps, allowBacksync }) => {
     const { alertReceiveChannelStore } = useStore();
 
     const columns = useMemo(
@@ -50,17 +51,21 @@ const ConnectedIntegrationsTable: FC<ConnectedIntegrationsTableProps> = observer
             />
           ),
         },
-        {
-          title: (
-            <HorizontalGroup>
-              <Text type="secondary">Backsync</Text>
-              <Tooltip content={<>Switch on to start sending data from other integrations</>}>
-                <Icon name={'info-circle'} />
-              </Tooltip>
-            </HorizontalGroup>
-          ),
-          render: BacksyncSwitcher,
-        },
+        ...(allowBacksync
+          ? [
+              {
+                title: (
+                  <HorizontalGroup>
+                    <Text type="secondary">Backsync</Text>
+                    <Tooltip content={<>Switch on to start sending data from other integrations</>}>
+                      <Icon name={'info-circle'} />
+                    </Tooltip>
+                  </HorizontalGroup>
+                ),
+                render: BacksyncSwitcher,
+              },
+            ]
+          : []),
         {
           render: () => <ActionsColumn allowDelete={allowDelete} />,
         },

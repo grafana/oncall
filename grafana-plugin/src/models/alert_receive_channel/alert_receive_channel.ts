@@ -5,6 +5,7 @@ import { AlertTemplatesDTO } from 'models/alert_templates/alert_templates';
 import { Alert } from 'models/alertgroup/alertgroup.types';
 import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
 import { Heartbeat } from 'models/heartbeat/heartbeat.types';
+import { ActionKey } from 'models/loader/action-keys';
 import { OutgoingWebhook } from 'models/outgoing_webhook/outgoing_webhook.types';
 import { makeRequest } from 'network/network';
 import { ApiSchemas } from 'network/oncall-api/api.types';
@@ -16,7 +17,6 @@ import { AutoLoadingState, WithGlobalNotification } from 'utils/decorators';
 import { OmitReadonlyMembers } from 'utils/types';
 
 import { AlertReceiveChannelCounters, ContactPoint } from './alert_receive_channel.types';
-import { ActionKey } from 'models/loader/action-keys';
 
 export class AlertReceiveChannelStore {
   path = '/alert_receive_channels/';

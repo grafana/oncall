@@ -24,7 +24,7 @@ export const OtherIntegrations = observer(() => {
             </Button>
           </HorizontalGroup>
         }
-        content={<ConnectedIntegrationsTable allowDelete tableProps={{ data: [] }} />}
+        content={<ConnectedIntegrationsTable allowDelete allowBacksync tableProps={{ data: [] }} />}
       />
     </>
   );

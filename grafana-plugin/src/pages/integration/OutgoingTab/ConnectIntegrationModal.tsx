@@ -2,18 +2,18 @@ import React, { useEffect, useState } from 'react';
 
 import { Button, HorizontalGroup, Icon, Input, Modal, useStyles2 } from '@grafana/ui';
 import cn from 'classnames';
+import { debounce } from 'lodash-es';
+import { observer } from 'mobx-react-lite';
 
 import { Text } from 'components/Text/Text';
+import { AlertReceiveChannelHelper } from 'models/alert_receive_channel/alert_receive_channel.helpers';
+import { ActionKey } from 'models/loader/action-keys';
+import { ApiSchemas } from 'network/oncall-api/api.types';
+import { useStore } from 'state/useStore';
+import { useCommonStyles, useIsLoading } from 'utils/hooks';
 
 import ConnectedIntegrationsTable from './ConnectedIntegrationsTable';
 import { getStyles } from './OutgoingTab.styles';
-import { ApiSchemas } from 'network/oncall-api/api.types';
-import { useCommonStyles, useIsLoading } from 'utils/hooks';
-import { observer } from 'mobx-react-lite';
-import { useStore } from 'state/useStore';
-import { AlertReceiveChannelHelper } from 'models/alert_receive_channel/alert_receive_channel.helpers';
-import { ActionKey } from 'models/loader/action-keys';
-import { debounce } from 'lodash-es';
 
 const DEBOUNCE_MS = 500;
 
@@ -32,8 +32,8 @@ export const ConnectIntegrationModal = observer(({ onDismiss }: { onDismiss: () 
   }, [page]);
 
   const fetchItems = async (search?: string) => {
-    // TODO: openapi schema should be updated to support servicenow
     await alertReceiveChannelStore.fetchPaginatedItems({
+      // TODO: openapi schema should be updated to support servicenow
       filters: { integration_ne: ['servicenow' as any], search },
       perpage: 10,
       page,
@@ -42,15 +42,13 @@ export const ConnectIntegrationModal = observer(({ onDismiss }: { onDismiss: () 
 
   const onChange = (integration: ApiSchemas['AlertReceiveChannel'], checked) => {
     if (checked) {
-      setSelectedIntegrations([...selectedIntegrations, integration]);
+      setSelectedIntegrations((integrations) => [...integrations, integration]);
     } else {
-      setSelectedIntegrations(selectedIntegrations.filter(({ id }) => id !== integration.id));
+      setSelectedIntegrations((integrations) => integrations.filter(({ id }) => id !== integration.id));
     }
   };
 
-  const onConnect = () => {
-    console.log(selectedIntegrations);
-  };
+  const onConnect = () => {};
 
   const debouncedSearch = debounce(fetchItems, DEBOUNCE_MS);
 
@@ -92,11 +90,11 @@ export const ConnectIntegrationModal = observer(({ onDismiss }: { onDismiss: () 
       />
       <div className={cn(commonStyles.bottomDrawerButtons, styles.connectIntegrationModalButtons)}>
         <HorizontalGroup justify="flex-end">
-          <Button variant="primary" onClick={onConnect}>
-            Connect
-          </Button>
           <Button variant="secondary" onClick={onDismiss}>
             Close
+          </Button>
+          <Button variant="primary" onClick={onConnect} disabled={!selectedIntegrations?.length}>
+            Connect
           </Button>
         </HorizontalGroup>
       </div>
