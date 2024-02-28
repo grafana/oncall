@@ -1,4 +1,5 @@
 import semver from 'semver';
+
 import { test, expect } from '../fixtures';
 import { resolveFiringAlert } from '../utils/alertGroup';
 import { createEscalationChain, EscalationStep } from '../utils/escalationChain';

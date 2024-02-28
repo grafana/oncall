@@ -15,3 +15,5 @@ export const formatSourceCodeJsonString = (data: string) => {
     return data;
   }
 };
+
+export const VALID_URL_PATTERN = /(http|https)\:\/\/.+?\..+/;

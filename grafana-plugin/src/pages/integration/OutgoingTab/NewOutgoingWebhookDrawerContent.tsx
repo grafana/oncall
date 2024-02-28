@@ -4,6 +4,8 @@ import { Button, HorizontalGroup, useStyles2 } from '@grafana/ui';
 import { useForm, FormProvider } from 'react-hook-form';
 
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
+import { ApiSchemas } from 'network/oncall-api/api.types';
+import { useStore } from 'state/useStore';
 import { UserActions } from 'utils/authorization/authorization';
 import { useCommonStyles } from 'utils/hooks';
 
@@ -13,14 +15,21 @@ import { OutgoingWebhookFormFields } from './OutgoingWebhookFormFields';
 
 interface NewOutgoingWebhookDrawerContentProps {
   closeDrawer: () => void;
+  integrationId: ApiSchemas['AlertReceiveChannel']['id'];
 }
 
-export const NewOutgoingWebhookDrawerContent: FC<NewOutgoingWebhookDrawerContentProps> = ({ closeDrawer }) => {
+export const NewOutgoingWebhookDrawerContent: FC<NewOutgoingWebhookDrawerContentProps> = ({
+  closeDrawer,
+  integrationId,
+}) => {
+  const { alertReceiveChannelWebhooksStore } = useStore();
   const styles = useStyles2(getStyles);
   const commonStyles = useCommonStyles();
   const formMethods = useForm<OutgoingTabFormValues>({ mode: 'all' });
 
-  const onSubmit = () => {};
+  const onSubmit = async (values: OutgoingTabFormValues) => {
+    await alertReceiveChannelWebhooksStore.create(integrationId, { ...values, name: 'New Webhook' });
+  };
 
   return (
     <FormProvider {...formMethods}>

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { FC, useEffect } from 'react';
 
 import { IconButton, HorizontalGroup, Icon, ConfirmModal, useStyles2 } from '@grafana/ui';
 import { observer } from 'mobx-react-lite';
@@ -9,6 +9,7 @@ import { HamburgerContextMenu } from 'components/HamburgerContextMenu/HamburgerC
 import { Text } from 'components/Text/Text';
 import { WebhookLastEventTimestamp } from 'components/Webhooks/WebhookLastEventTimestamp';
 import { OutgoingWebhook } from 'models/outgoing_webhook/outgoing_webhook.types';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
 import { LocationHelper } from 'utils/LocationHelper';
 import { UserActions } from 'utils/authorization/authorization';
@@ -18,14 +19,19 @@ import { openNotification } from 'utils/utils';
 import { getStyles } from './OutgoingTab.styles';
 import { OutgoingTabDrawerKey, TriggerDetailsQueryStringKey, TriggerDetailsTab } from './OutgoingTab.types';
 
-export const OutgoingWebhooksTable = observer(({ openDrawer }: { openDrawer: (key: OutgoingTabDrawerKey) => void }) => {
+interface OutgoingWebhooksTableProps {
+  integrationId: ApiSchemas['AlertReceiveChannel']['id'];
+  openDrawer: (key: OutgoingTabDrawerKey) => void;
+}
+
+export const OutgoingWebhooksTable: FC<OutgoingWebhooksTableProps> = observer(({ openDrawer, integrationId }) => {
   const styles = useStyles2(getStyles);
   const {
-    outgoingWebhookStore: { getSearchResult, updateItems },
+    alertReceiveChannelWebhooksStore: { items, fetchItems },
   } = useStore();
 
   useEffect(() => {
-    updateItems();
+    fetchItems(integrationId);
   }, []);
 
   const openTriggerDetailsDrawer = (tab: TriggerDetailsTab, webhookId: string) => {
@@ -36,14 +42,12 @@ export const OutgoingWebhooksTable = observer(({ openDrawer }: { openDrawer: (ke
     openDrawer('webhookDetails');
   };
 
-  const webhooks = getSearchResult();
-
   return (
     <GTable
-      emptyText={webhooks ? 'No outgoing webhooks found' : 'Loading...'}
+      emptyText={items ? 'No outgoing webhooks found' : 'Loading...'}
       rowKey="id"
       columns={getColumns(openTriggerDetailsDrawer)}
-      data={webhooks}
+      data={Object.values(items)}
       className={styles.outgoingWebhooksTable}
     />
   );
