@@ -5,7 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Unreleased
+## v1.3.108 (2024-02-28)
+
+### Fixed
+
+- Fetch selected value of notify schedule in escalation policy, fixes ([#3966](https://github.com/grafana/oncall/issues/3966)) ([#3969](https://github.com/grafana/oncall/pull/3969))
 
 ## v1.3.107 (2024-02-27)
 
