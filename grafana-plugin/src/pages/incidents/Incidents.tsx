@@ -630,7 +630,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
     const {
       store: { alertReceiveChannelStore },
     } = this.props;
-    const integration = AlertReceiveChannelHelper.getIntegration(
+    const integration = AlertReceiveChannelHelper.getIntegrationSelectOption(
       alertReceiveChannelStore,
       record.alert_receive_channel
     );

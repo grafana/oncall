@@ -273,7 +273,7 @@ class _IncidentPage extends React.Component<IncidentPageProps, IncidentPageState
     } = this.props;
     const { alerts } = store.alertGroupStore;
     const incident = alerts.get(id);
-    const integration = AlertReceiveChannelHelper.getIntegration(
+    const integration = AlertReceiveChannelHelper.getIntegrationSelectOption(
       store.alertReceiveChannelStore,
       incident.alert_receive_channel
     );

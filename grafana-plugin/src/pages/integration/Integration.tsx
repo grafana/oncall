@@ -152,7 +152,10 @@ class _IntegrationPage extends React.Component<IntegrationProps, IntegrationStat
       );
     }
 
-    const integration = AlertReceiveChannelHelper.getIntegration(alertReceiveChannelStore, alertReceiveChannel);
+    const integration = AlertReceiveChannelHelper.getIntegrationSelectOption(
+      alertReceiveChannelStore,
+      alertReceiveChannel
+    );
     const alertReceiveChannelCounter = alertReceiveChannelStore.counters[id];
     const isLegacyIntegration = integration && (integration?.value as string).toLowerCase().startsWith('legacy_');
     const contactPoints = alertReceiveChannelStore.connectedContactPoints?.[alertReceiveChannel.id];
@@ -750,8 +753,7 @@ class _IntegrationPage extends React.Component<IntegrationProps, IntegrationStat
 
   async loadData() {
     const {
-      store,
-      store: { alertReceiveChannelStore },
+      store: { alertReceiveChannelStore, msteamsChannelStore, hasFeature },
       match: {
         params: { id },
       },
@@ -771,7 +773,9 @@ class _IntegrationPage extends React.Component<IntegrationProps, IntegrationStat
     }
 
     promises.push(alertReceiveChannelStore.fetchTemplates(id));
-    promises.push(IntegrationHelper.fetchChatOps(store));
+    if (hasFeature(AppFeature.MsTeams)) {
+      promises.push(msteamsChannelStore.updateMSTeamsChannels());
+    }
     promises.push(alertReceiveChannelStore.fetchCountersForIntegration(id));
 
     await Promise.all(promises)

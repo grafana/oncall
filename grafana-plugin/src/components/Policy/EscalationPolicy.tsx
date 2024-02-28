@@ -3,6 +3,7 @@ import React, { ChangeEvent } from 'react';
 import { SelectableValue } from '@grafana/data';
 import { Button, Input, Select, IconButton } from '@grafana/ui';
 import cn from 'classnames/bind';
+import { observer } from 'mobx-react';
 import moment from 'moment-timezone';
 import { SortableElement } from 'react-sortable-hoc';
 import reactStringReplace from 'react-string-replace';
@@ -56,7 +57,14 @@ export interface EscalationPolicyProps extends ElementSortableProps {
   isSlackInstalled: boolean;
 }
 
+@observer
 class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
+  componentDidMount() {
+    if (this.props.data.notify_schedule) {
+      this.props.store.scheduleStore.loadItem(this.props.data.notify_schedule);
+    }
+  }
+
   render() {
     const { data, escalationChoices, number, isDisabled, backgroundClassName, backgroundHexNumber } = this.props;
     const { id, step, is_final } = data;
