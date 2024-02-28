@@ -29,6 +29,7 @@ export const ConnectIntegrationModal = observer(({ onDismiss }: { onDismiss: () 
 
   useEffect(() => {
     fetchItems();
+    return alertReceiveChannelStore.resetPaginatedResults;
   }, [page]);
 
   const fetchItems = async (search?: string) => {
