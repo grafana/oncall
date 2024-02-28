@@ -107,6 +107,7 @@ export const IntegrationForm = observer((props: IntegrationFormProps) => {
             <VerticalGroup>
               <HookForm
                 id={id}
+                onBackClick={onBackClick}
                 navigateToAlertGroupLabels={navigateToAlertGroupLabels}
                 selectedIntegration={selectedOption}
                 onSubmit={onSubmit}
@@ -119,7 +120,12 @@ export const IntegrationForm = observer((props: IntegrationFormProps) => {
     </>
   );
 
-  function onBlockClick(option: ApiSchemas['AlertReceiveChannelIntegrationOptions']) {
+  function onBackClick(): void {
+    setShowNewIntegrationForm(false);
+    setShowIntegrarionsListDrawer(true);
+  }
+
+  function onBlockClick(option: ApiSchemas['AlertReceiveChannelIntegrationOptions']): void {
     setSelectedOption(option);
     setShowNewIntegrationForm(true);
     setShowIntegrarionsListDrawer(false);

@@ -22,6 +22,7 @@ import { Control, Controller, FieldErrors, UseFormGetValues, UseFormSetValue, us
 import { useHistory } from 'react-router-dom';
 
 import { PluginLink } from 'components/PluginLink/PluginLink';
+import { RenderConditionally } from 'components/RenderConditionally/RenderConditionally';
 import { Text } from 'components/Text/Text';
 import { GSelect } from 'containers/GSelect/GSelect';
 import styles from 'containers/IntegrationForm/HookForm.module.scss';
@@ -87,6 +88,7 @@ interface HookFormProps {
   id: ApiSchemas['AlertReceiveChannel']['id'] | 'new';
   isTableView?: boolean;
   selectedIntegration: ApiSchemas['AlertReceiveChannelIntegrationOptions'];
+  onBackClick: () => void;
   navigateToAlertGroupLabels: (id: ApiSchemas['AlertReceiveChannel']['id']) => void;
   onSubmit: () => Promise<void>;
   onHide: () => void;
@@ -104,7 +106,15 @@ const radioOptions = [
 ];
 
 export const HookForm = observer(
-  ({ id, isTableView, navigateToAlertGroupLabels, selectedIntegration, onSubmit, onHide }: HookFormProps) => {
+  ({
+    id,
+    isTableView,
+    navigateToAlertGroupLabels,
+    selectedIntegration,
+    onSubmit,
+    onHide,
+    onBackClick,
+  }: HookFormProps) => {
     const {
       control,
       handleSubmit,
@@ -163,6 +173,7 @@ export const HookForm = observer(
         : prepareForEdit(alertReceiveChannelStore.items[id]);
 
     const [labelsErrors, setLabelErrors] = useState([]);
+    const isServiceNow = selectedIntegration.value === 'servicenow';
 
     return (
       <form onSubmit={handleSubmit(onFormSubmit)} className={cx('form')}>
@@ -279,78 +290,87 @@ export const HookForm = observer(
 
         {isTableView && <HowTheIntegrationWorks selectedOption={selectedIntegration} />}
 
-        <Text type="primary">ServiceNow configuration</Text>
+        <RenderConditionally shouldRender={isServiceNow}>
+          <div className={cx('servicenow-heading')}>
+            <Text type="primary">ServiceNow configuration</Text>
+          </div>
+        </RenderConditionally>
 
-        {/* // TODO: check if is serviceNow Integration first */}
-        {true && (
-          <VerticalGroup>
-            <Controller
-              name={FormFieldKeys.ServiceNowUrl}
-              control={control}
-              rules={{ required: true }}
-              render={({ field }) => (
-                <Field
-                  key={'InstanceURL'}
-                  label={'Instance URL'}
-                  invalid={!!errors[FormFieldKeys.ServiceNowUrl]}
-                  error={errors[FormFieldKeys.ServiceNowUrl]?.message as string}
-                >
-                  <Input {...field} />
-                </Field>
-              )}
-            />
+        <RenderConditionally shouldRender={isServiceNow}>
+          <Controller
+            name={FormFieldKeys.ServiceNowUrl}
+            control={control}
+            rules={{ required: 'Instance URL is required' }}
+            render={({ field }) => (
+              <Field
+                key={'InstanceURL'}
+                label={'Instance URL'}
+                invalid={!!errors[FormFieldKeys.ServiceNowUrl]}
+                error={errors[FormFieldKeys.ServiceNowUrl]?.message as string}
+              >
+                <Input {...field} />
+              </Field>
+            )}
+          />
+        </RenderConditionally>
 
-            <Controller
-              name={FormFieldKeys.AuthUsername}
-              control={control}
-              rules={{ required: true }}
-              render={({ field }) => (
-                <Field
-                  key={'AuthUsername'}
-                  label={'Username'}
-                  invalid={!!errors[FormFieldKeys.AuthUsername]}
-                  error={errors[FormFieldKeys.AuthPassword]?.message as string}
-                >
-                  <Input {...field} />
-                </Field>
-              )}
-            />
+        <RenderConditionally shouldRender={isServiceNow}>
+          <Controller
+            name={FormFieldKeys.AuthUsername}
+            control={control}
+            rules={{ required: 'Username is required' }}
+            render={({ field }) => (
+              <Field
+                key={'AuthUsername'}
+                label={'Username'}
+                invalid={!!errors[FormFieldKeys.AuthUsername]}
+                error={errors[FormFieldKeys.AuthPassword]?.message as string}
+              >
+                <Input {...field} />
+              </Field>
+            )}
+          />
+        </RenderConditionally>
 
-            <Controller
-              name={FormFieldKeys.AuthPassword}
-              control={control}
-              rules={{ required: true }}
-              render={({ field }) => (
-                <Field
-                  key={'InstanceURL'}
-                  label={'Instance URL'}
-                  invalid={!!errors[FormFieldKeys.ServiceNowUrl]}
-                  error={errors[FormFieldKeys.ServiceNowUrl]?.message as string}
-                >
-                  <Input {...field} type="password" />
-                </Field>
-              )}
-            />
+        <RenderConditionally shouldRender={isServiceNow}>
+          <Controller
+            name={FormFieldKeys.AuthPassword}
+            control={control}
+            rules={{ required: 'Password is required' }}
+            render={({ field }) => (
+              <Field
+                key={'InstanceURL'}
+                label={'Instance URL'}
+                invalid={!!errors[FormFieldKeys.ServiceNowUrl]}
+                error={errors[FormFieldKeys.ServiceNowUrl]?.message as string}
+              >
+                <Input {...field} type="password" />
+              </Field>
+            )}
+          />
+        </RenderConditionally>
 
-            <Button variant="secondary" onClick={() => console.log('Test')}>
-              Test
-            </Button>
+        <RenderConditionally shouldRender={isServiceNow}>
+          <Button className={cx('webhook-test')} variant="secondary" onClick={() => console.log('Test')}>
+            Test
+          </Button>
+        </RenderConditionally>
 
-            <HorizontalGroup>
-              <Switch value={true} onChange={noop} />
-              <Text type="primary"> Create default outgoing webhook events</Text>
-            </HorizontalGroup>
-          </VerticalGroup>
-        )}
+        <RenderConditionally shouldRender={isServiceNow}>
+          <div className={cx('webhook-switch')}>
+            <Switch value={true} onChange={noop} />
+            <Text type="primary"> Create default outgoing webhook events</Text>
+          </div>
+        </RenderConditionally>
 
         <div>
           <HorizontalGroup justify="flex-end">
             {id === 'new' ? (
-              <Button variant="secondary" onClick={() => console.log('click')}>
+              <Button variant="secondary" onClick={onBackClick}>
                 Back
               </Button>
             ) : (
-              <Button variant="secondary" onClick={() => console.log('click')}>
+              <Button variant="secondary" onClick={onHide}>
                 Cancel
               </Button>
             )}
@@ -368,9 +388,6 @@ export const HookForm = observer(
     async function onFormSubmit(formData): Promise<void> {
       const labels = labelsRef.current?.getValue();
       const data = { ...formData, labels };
-
-      delete data.integration;
-
       const isCreate = id === 'new';
 
       try {
