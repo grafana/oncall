@@ -129,13 +129,8 @@ const _IntegrationHeartbeatForm = observer(({ alertReceveChannelId, onClose }: I
   }
 
   async function onReset() {
-    await heartbeatStore.resetHeartbeat(heartbeatId);
-
+    await heartbeatStore.resetHeartbeatAndRefetchIntegration(heartbeatId, alertReceveChannelId);
     onClose();
-
-    openNotification('Heartbeat has been reset');
-
-    await alertReceiveChannelStore.fetchItemById(alertReceveChannelId);
   }
 });
 
