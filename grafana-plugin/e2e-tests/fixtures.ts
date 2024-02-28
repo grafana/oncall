@@ -51,6 +51,11 @@ const setContextForPage = async (
 
 export * from '@playwright/test';
 export const test = base.extend<TestFixtures, WorkerFixtures>({
+  /**
+   * add back this fixture once this bug is fixed
+   * https://github.com/microsoft/playwright/issues/29608
+   */
+  // currentGrafanaVersion: ({}, use) => use('9.0.0'),
   viewerRolePage: async ({ browser }, use) =>
     setContextForPage(browser, use, VIEWER_USER_STORAGE_STATE, ViewerRolePage),
   editorRolePage: async ({ browser }, use) =>
