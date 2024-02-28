@@ -73,6 +73,7 @@ class LiveSetting(models.Model):
         "ZVONOK_VERIFICATION_TEMPLATE",
         "KAVENEGAR_API_KEY",
         "KAVENEGAR_VERIFICATION_SMS_TEMPLATE",
+        "TELEGRAM_API_ENDPOINT",
     )
 
     DESCRIPTIONS = {
@@ -173,6 +174,7 @@ class LiveSetting(models.Model):
         "ZVONOK_VERIFICATION_TEMPLATE": "The message template used for phone number verification (optional).",
         "KAVENEGAR_API_KEY": "your kavenegar accounts api key",
         "KAVENEGAR_VERIFICATION_SMS_TEMPLATE": "Template that you defined for verification with sms.(it shoud be in this format: *%token*)",
+        "TELEGRAM_API_ENDPOINT": "telegram api endpoint that is being used by telegram to create bot"
     }
 
     SECRET_SETTING_NAMES = (
