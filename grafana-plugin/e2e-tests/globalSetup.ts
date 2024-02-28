@@ -12,7 +12,7 @@ import { getOnCallApiUrl } from 'utils/consts';
 
 import { VIEWER_USER_STORAGE_STATE, EDITOR_USER_STORAGE_STATE, ADMIN_USER_STORAGE_STATE } from '../playwright.config';
 
-import GrafanaAPIClient from './utils/clients/grafana';
+import grafanaApiClient from './utils/clients/grafana';
 import {
   GRAFANA_ADMIN_PASSWORD,
   GRAFANA_ADMIN_USERNAME,
@@ -25,8 +25,6 @@ import {
 } from './utils/constants';
 import { clickButton, getInputByName } from './utils/forms';
 import { goToGrafanaPage } from './utils/navigation';
-
-const grafanaApiClient = new GrafanaAPIClient(GRAFANA_ADMIN_USERNAME, GRAFANA_ADMIN_PASSWORD);
 
 enum OrgRole {
   None = 'None',
@@ -153,6 +151,19 @@ setup('Configure Grafana OnCall plugin', async ({ request }, { config }) => {
     // plugin configuration can safely be skipped for cloud environments
     await configureOnCallPlugin(adminPage);
   }
+
+  /**
+   * determine the current Grafana version of the stack in question and set it such that it can be used in the tests
+   * to conditionally skip certain tests.
+   *
+   * According to the Playwright docs, the best way to set config like this on the fly, is to set values
+   * on process.env https://playwright.dev/docs/test-global-setup-teardown#example
+   *
+   * TODO: when this bug is fixed in playwright https://github.com/microsoft/playwright/issues/29608
+   * move this to the currentGrafanaVersion fixture
+   */
+  const currentGrafanaVersion = await grafanaApiClient.getGrafanaVersion(adminAuthedRequest);
+  process.env.CURRENT_GRAFANA_VERSION = currentGrafanaVersion;
 
   await adminBrowserContext.close();
 });

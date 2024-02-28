@@ -29,13 +29,14 @@ const config = async (env): Promise<Configuration> => {
       ignored: ['**/node_modules/', '**/dist'],
     },
     plugins: [
+      ...(baseConfig.plugins?.filter((plugin) => !(plugin instanceof LiveReloadPlugin)) || []),
+      ...(env.development ? [new LiveReloadPlugin({ appendScriptTag: true, useSourceHash: true })] : []),
       new EnvironmentPlugin({
         ONCALL_API_URL: null,
       }),
       new DefinePlugin({
         'process.env': JSON.stringify(dotenv.config().parsed),
       }),
-      ...(env.development ? [new LiveReloadPlugin({ appendScriptTag: true, useSourceHash: true })] : []),
     ],
   };
 
@@ -49,7 +50,7 @@ const config = async (env): Promise<Configuration> => {
     watchOptions: {
       use: CustomizeRule.Merge,
     },
-    plugins: CustomizeRule.Merge,
+    plugins: CustomizeRule.Replace,
   })(baseConfig, customConfig);
 };
 

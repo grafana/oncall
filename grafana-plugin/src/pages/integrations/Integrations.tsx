@@ -20,7 +20,7 @@ import Emoji from 'react-emoji-render';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 
 import { GTable } from 'components/GTable/GTable';
-import { HamburgerMenu } from 'components/HamburgerMenu/HamburgerMenu';
+import { HamburgerMenuIcon } from 'components/HamburgerMenuIcon/HamburgerMenuIcon';
 import { IntegrationLogo } from 'components/IntegrationLogo/IntegrationLogo';
 import { LabelsTooltipBadge } from 'components/LabelsTooltipBadge/LabelsTooltipBadge';
 import { PageBaseState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
@@ -120,6 +120,10 @@ class _IntegrationsPage extends React.Component<IntegrationsProps, IntegrationsS
     if (prevProps.query[TAB_QUERY_PARAM_KEY] !== this.props.query[TAB_QUERY_PARAM_KEY]) {
       this.onTabChange(this.props.query[TAB_QUERY_PARAM_KEY] as TabType);
     }
+  }
+
+  componentWillUnmount() {
+    this.props.store.alertReceiveChannelStore.resetPaginatedResults();
   }
 
   parseQueryParams = async () => {
@@ -353,7 +357,10 @@ class _IntegrationsPage extends React.Component<IntegrationsProps, IntegrationsS
 
   renderDatasource(item: ApiSchemas['AlertReceiveChannel'], alertReceiveChannelStore: AlertReceiveChannelStore) {
     const alertReceiveChannel = alertReceiveChannelStore.items[item.id];
-    const integration = AlertReceiveChannelHelper.getIntegration(alertReceiveChannelStore, alertReceiveChannel);
+    const integration = AlertReceiveChannelHelper.getIntegrationSelectOption(
+      alertReceiveChannelStore,
+      alertReceiveChannel
+    );
     const isLegacyIntegration = (integration?.value as string)?.toLowerCase().startsWith('legacy_');
 
     if (isLegacyIntegration) {
@@ -546,7 +553,7 @@ class _IntegrationsPage extends React.Component<IntegrationsProps, IntegrationsS
           </div>
         )}
       >
-        {({ openMenu }) => <HamburgerMenu openMenu={openMenu} listBorder={2} listWidth={200} />}
+        {({ openMenu }) => <HamburgerMenuIcon openMenu={openMenu} listBorder={2} listWidth={200} />}
       </WithContextMenu>
     );
   };
