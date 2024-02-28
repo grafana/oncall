@@ -750,8 +750,7 @@ class _IntegrationPage extends React.Component<IntegrationProps, IntegrationStat
 
   async loadData() {
     const {
-      store,
-      store: { alertReceiveChannelStore },
+      store: { alertReceiveChannelStore, msteamsChannelStore, hasFeature },
       match: {
         params: { id },
       },
@@ -771,7 +770,9 @@ class _IntegrationPage extends React.Component<IntegrationProps, IntegrationStat
     }
 
     promises.push(alertReceiveChannelStore.fetchTemplates(id));
-    promises.push(IntegrationHelper.fetchChatOps(store));
+    if (hasFeature(AppFeature.MsTeams)) {
+      promises.push(msteamsChannelStore.updateMSTeamsChannels());
+    }
     promises.push(alertReceiveChannelStore.fetchCountersForIntegration(id));
 
     await Promise.all(promises)
