@@ -12,12 +12,14 @@ export const TriggerDetailsTab = {
 export type TriggerDetailsTab = (typeof TriggerDetailsTab)[keyof typeof TriggerDetailsTab];
 
 export interface OutgoingTabFormValues {
-  triggerType: string;
-  isEnabled?: boolean;
+  // Backend fields
+  trigger_type: string;
+  is_webhook_enabled?: boolean;
   url: string;
-  httpMethod: string;
+  http_method: string;
+  data?: string;
+  trigger_template?: string;
+
+  // For UI only
   triggerTemplateToogle?: boolean;
-  triggerTemplate?: string;
-  forwardedDataTemplateToogle?: boolean;
-  forwardedDataTemplate?: string;
 }

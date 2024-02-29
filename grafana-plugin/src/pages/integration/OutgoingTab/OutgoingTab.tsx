@@ -46,7 +46,7 @@ export const OutgoingTab = () => {
             customIcon: 'plus',
             expandedView: () => (
               <>
-                <AddOutgoingWebhook openDrawer={openDrawer} />
+                <Button onClick={() => openDrawer('newOutgoingWebhook')}>Add webhook</Button>
                 <OutgoingWebhooksTable openDrawer={openDrawer} />
               </>
             ),
@@ -108,7 +108,3 @@ const Connection = () => {
     </div>
   );
 };
-
-const AddOutgoingWebhook = ({ openDrawer }: { openDrawer: (key: OutgoingTabDrawerKey) => void }) => (
-  <Button onClick={() => openDrawer('newOutgoingWebhook')}>Add webhook</Button>
-);

@@ -22,10 +22,10 @@ import {
   EscalationPolicyOption,
 } from 'models/escalation_policy/escalation_policy.types';
 import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
-import { OutgoingWebhook } from 'models/outgoing_webhook/outgoing_webhook.types';
 import { Schedule } from 'models/schedule/schedule.types';
 import { User } from 'models/user/user.types';
 import { UserGroup } from 'models/user_group/user_group.types';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 import { SelectOption, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import { getVar } from 'utils/DOM';
@@ -396,7 +396,7 @@ class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
 
     return (
       <WithPermissionControlTooltip key="custom-webhook" userAction={UserActions.EscalationChainsWrite}>
-        <GSelect<OutgoingWebhook>
+        <GSelect<ApiSchemas['Webhook']>
           showSearch
           disabled={isDisabled}
           items={outgoingWebhookStore.items}

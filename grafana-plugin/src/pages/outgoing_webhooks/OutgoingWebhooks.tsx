@@ -25,7 +25,7 @@ import { RemoteFilters } from 'containers/RemoteFilters/RemoteFilters';
 import { TeamName } from 'containers/TeamName/TeamName';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { FiltersValues } from 'models/filters/filters.types';
-import { OutgoingWebhook } from 'models/outgoing_webhook/outgoing_webhook.types';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 import { AppFeature } from 'state/features';
 import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
@@ -45,7 +45,7 @@ interface OutgoingWebhooksProps
 
 interface OutgoingWebhooksState extends PageBaseState {
   outgoingWebhookAction?: WebhookFormActionType;
-  outgoingWebhookId?: OutgoingWebhook['id'];
+  outgoingWebhookId?: ApiSchemas['Webhook']['id'];
   confirmationModal: ConfirmModalProps;
 }
 
@@ -119,8 +119,13 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
         width: '25%',
         title: 'Name',
         dataIndex: 'name',
-        render: (_name: string, webhook: OutgoingWebhook) => (
-          <WebhookName webhook={webhook} onNameClick={() => this.onEditClick(webhook.id)} />
+        render: (name: string, webhook: ApiSchemas['Webhook']) => (
+          <WebhookName
+            name={name}
+            isEnabled={webhook.is_webhook_enabled}
+            displayAsLink
+            onNameClick={() => this.onEditClick(webhook.id)}
+          />
         ),
       },
       {
@@ -137,7 +142,7 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
       {
         width: '10%',
         title: 'Last event',
-        render: (webhook: OutgoingWebhook) => (
+        render: (webhook: ApiSchemas['Webhook']) => (
           <WebhookLastEventTimestamp webhook={webhook} openDrawer={() => this.onLastRunClick(webhook.id)} />
         ),
       },
@@ -146,7 +151,7 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
             {
               width: '10%',
               title: 'Labels',
-              render: ({ labels }: OutgoingWebhook) => (
+              render: ({ labels }: ApiSchemas['Webhook']) => (
                 <LabelsTooltipBadge
                   labels={labels}
                   onClick={(label) => filtersStore.applyLabelFilter(label, PAGE.Webhooks)}
@@ -158,7 +163,7 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
       {
         width: '15%',
         title: 'Team',
-        render: (item: OutgoingWebhook) => this.renderTeam(item, grafanaTeamStore.items),
+        render: (item: ApiSchemas['Webhook']) => this.renderTeam(item, grafanaTeamStore.items),
       },
       {
         width: '20%',
@@ -264,11 +269,11 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
     });
   };
 
-  renderTeam(record: OutgoingWebhook, teams: any) {
+  renderTeam(record: ApiSchemas['Webhook'], teams: any) {
     return <TeamName className={TEXT_ELLIPSIS_CLASS} team={teams[record.team]} />;
   }
 
-  renderActionButtons = (record: OutgoingWebhook) => {
+  renderActionButtons = (record: ApiSchemas['Webhook']) => {
     return (
       <HamburgerContextMenu
         items={[
@@ -347,7 +352,7 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
     );
   }
 
-  onDeleteClick = (id: OutgoingWebhook['id']): Promise<void> => {
+  onDeleteClick = (id: ApiSchemas['Webhook']['id']): Promise<void> => {
     const { store } = this.props;
     return store.outgoingWebhookStore
       .delete(id)
@@ -357,7 +362,7 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
       .finally(() => this.setState({ confirmationModal: undefined }));
   };
 
-  onEditClick = (id: OutgoingWebhook['id']) => {
+  onEditClick = (id: ApiSchemas['Webhook']['id']) => {
     const { history } = this.props;
 
     this.setState({ outgoingWebhookId: id, outgoingWebhookAction: WebhookFormActionType.EDIT_SETTINGS }, () =>
@@ -365,7 +370,7 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
     );
   };
 
-  onCopyClick = (id: OutgoingWebhook['id']) => {
+  onCopyClick = (id: ApiSchemas['Webhook']['id']) => {
     const { history } = this.props;
 
     this.setState({ outgoingWebhookId: id, outgoingWebhookAction: WebhookFormActionType.COPY }, () =>
@@ -373,7 +378,7 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
     );
   };
 
-  onDisableWebhook = (id: OutgoingWebhook['id'], isEnabled: boolean) => {
+  onDisableWebhook = (id: ApiSchemas['Webhook']['id'], isEnabled: boolean) => {
     const {
       store: { outgoingWebhookStore },
     } = this.props;
@@ -394,7 +399,7 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
       .finally(() => this.setState({ confirmationModal: undefined }));
   };
 
-  onLastRunClick = (id: OutgoingWebhook['id']) => {
+  onLastRunClick = (id: ApiSchemas['Webhook']['id']) => {
     const { history } = this.props;
 
     this.setState({ outgoingWebhookId: id, outgoingWebhookAction: WebhookFormActionType.VIEW_LAST_RUN }, () =>
