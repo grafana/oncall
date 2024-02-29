@@ -263,7 +263,7 @@ class _IntegrationPage extends React.Component<IntegrationProps, IntegrationStat
               <Tabs
                 tabs={[
                   { label: 'Incoming', content: incomingPart },
-                  { label: 'Outgoing', content: <OutgoingTab integration={alertReceiveChannel} /> },
+                  { label: 'Outgoing', content: <OutgoingTab /> },
                 ]}
               />
             ) : (
