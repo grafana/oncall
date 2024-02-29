@@ -737,9 +737,4 @@ class AlertReceiveChannelView(
         if not request.data or not isinstance(request.data, list):
             raise BadRequest(detail="Invalid data")
         AlertReceiveChannelConnection.disconnect_channels(instance, request.data)
-        prefetch_related_objects(
-            [instance],
-            "source_alert_receive_channels__source_channel",
-            "connected_alert_receive_channels__connected_channel",
-        )
-        return Response(AlertReceiveChannelConnectionSerializer(instance, context={"request": request}).data)
+        return Response(status=status.HTTP_204_NO_CONTENT)

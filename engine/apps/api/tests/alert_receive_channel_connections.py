@@ -126,7 +126,7 @@ def test_alert_receive_channel_connect_channels_permissions(
 @pytest.mark.parametrize(
     "role,expected_status",
     [
-        (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
+        (LegacyAccessControlRole.ADMIN, status.HTTP_204_NO_CONTENT),
         (LegacyAccessControlRole.EDITOR, status.HTTP_403_FORBIDDEN),
         (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
         (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
@@ -151,7 +151,7 @@ def test_alert_receive_channel_disconnect_channels_permissions(
     )
     with patch(
         "apps.api.views.alert_receive_channel.AlertReceiveChannelView.disconnect_channels",
-        return_value=Response(status=status.HTTP_200_OK),
+        return_value=Response(status=status.HTTP_204_NO_CONTENT),
     ):
         response = client.delete(url, format="json", **make_user_auth_headers(user, token))
 
@@ -338,23 +338,8 @@ def test_alert_receive_channel_disconnect_channels(
         kwargs={"pk": source_channel.public_primary_key},
     )
 
-    expected_result = {
-        "source_alert_receive_channels": [],
-        "connected_alert_receive_channels": [
-            {
-                "alert_receive_channel": {
-                    "id": connected_channel_2.public_primary_key,
-                    "integration": connected_channel_2.integration,
-                    "verbal_name": connected_channel_2.verbal_name,
-                    "deleted": False,
-                },
-                "backsync": False,
-            },
-        ],
-    }
     assert source_channel.connected_alert_receive_channels.count() == 2
     response = client.delete(url, data=data, format="json", **make_user_auth_headers(user, token))
-    assert response.status_code == status.HTTP_200_OK
-    assert response.json() == expected_result
+    assert response.status_code == status.HTTP_204_NO_CONTENT
     assert source_channel.connected_alert_receive_channels.count() == 1
     assert source_channel.connected_alert_receive_channels.first().connected_channel == connected_channel_2
