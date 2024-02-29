@@ -17,7 +17,7 @@ import {
   useStyles2,
 } from '@grafana/ui';
 import { observer } from 'mobx-react';
-import { Control, Controller, FieldErrors, UseFormGetValues, UseFormSetValue, useForm } from 'react-hook-form';
+import { Controller, useForm, useFormContext, FormProvider } from 'react-hook-form';
 import { useHistory } from 'react-router-dom';
 
 import { PluginLink } from 'components/PluginLink/PluginLink';
@@ -100,24 +100,37 @@ export const IntegrationForm = observer(
     onHide,
     onBackClick,
   }: IntegrationFormProps) => {
-    const {
-      control,
-      handleSubmit,
-      getValues,
-      setValue,
-      formState: { errors },
-    } = useForm<FormFields>({
-      defaultValues: {
-        [FormFieldKeys.Integration]: selectedIntegration.value,
-        [FormFieldKeys.DefaultWebhooks]: true,
-      },
-      mode: 'all',
-    });
-
     const store = useStore();
     const history = useHistory();
     const styles = useStyles2(getIntegrationFormStyles);
+    const isNew = id === 'new';
     const { userStore, grafanaTeamStore, alertReceiveChannelStore } = store;
+
+    const data = isNew
+      ? { integration: selectedIntegration?.value, team: userStore.currentUser?.current_team, labels: [] }
+      : prepareForEdit(alertReceiveChannelStore.items[id]);
+
+    const { integration } = data;
+
+    const formMethods = useForm<FormFields>({
+      defaultValues: isNew
+        ? {
+            // these are the default values for creating an integration
+            [FormFieldKeys.Integration]: integration,
+            [FormFieldKeys.DefaultWebhooks]: true,
+          }
+        : {
+            // existing values from existing integration (edit-mode)
+            ...data,
+          },
+      mode: 'all',
+    });
+
+    const {
+      control,
+      handleSubmit,
+      formState: { errors },
+    } = formMethods;
 
     const [
       {
@@ -154,230 +167,221 @@ export const IntegrationForm = observer(
 
     const labelsRef = useRef(null);
 
-    const data =
-      id === 'new'
-        ? { integration: selectedIntegration?.value, team: userStore.currentUser?.current_team, labels: [] }
-        : prepareForEdit(alertReceiveChannelStore.items[id]);
-
     const [labelsErrors, setLabelErrors] = useState([]);
-    const isServiceNow = selectedIntegration.value === 'servicenow';
-    const isGrafanaAlerting = IntegrationHelper.isSpecificIntegration(selectedIntegration.value, 'grafana_alerting');
+    const isServiceNow = IntegrationHelper.isSpecificIntegration(integration, 'servicenow');
+    const isGrafanaAlerting = IntegrationHelper.isSpecificIntegration(integration, 'grafana_alerting');
 
     return (
-      <form onSubmit={handleSubmit(onFormSubmit)} className={styles.form}>
-        <Controller
-          name={FormFieldKeys.Name}
-          control={control}
-          rules={{ required: 'Name is required' }}
-          render={({ field }) => (
-            <Field
-              key={'Name'}
-              label={'Integration Name'}
-              placeholder={'Integration Name'}
-              invalid={!!errors[FormFieldKeys.Name]}
-              error={errors[FormFieldKeys.Name]?.message as string}
-            >
-              <Input {...field} />
-            </Field>
-          )}
-        />
-
-        <Controller
-          name={FormFieldKeys.Description}
-          control={control}
-          rules={{ required: 'Description is required' }}
-          render={({ field }) => (
-            <Field
-              key={'Description'}
-              label={'Integration Description'}
-              placeholder={'Integration Name'}
-              invalid={!!errors[FormFieldKeys.Description]}
-              error={errors[FormFieldKeys.Description]?.message as string}
-            >
-              <TextArea {...field} className={styles.textarea} />
-            </Field>
-          )}
-        />
-
-        <Controller
-          name={FormFieldKeys.Team}
-          control={control}
-          rules={{ required: false }}
-          render={({ field }) => (
-            <Field
-              key="Team"
-              label={
-                <Label>
-                  <span>Assign to team</span>&nbsp;
-                  <Tooltip content={generateAssignToTeamInputDescription('Integrations')} placement="right">
-                    <Icon name="info-circle" />
-                  </Tooltip>
-                </Label>
-              }
-              invalid={!!errors[FormFieldKeys.Team]}
-              error={errors[FormFieldKeys.Team]?.message as string}
-            >
-              <GSelect
-                placeholder="Assign to team"
-                {...field}
-                {...{
-                  items: grafanaTeamStore.items,
-                  fetchItemsFn: grafanaTeamStore.updateItems,
-                  getSearchResult: grafanaTeamStore.getSearchResult,
-                  displayField: 'name',
-                  valueField: 'id',
-                  showSearch: true,
-                  allowClear: true,
-                }}
-                onChange={(value) => {
-                  field.onChange(value);
-                }}
-              />
-            </Field>
-          )}
-        />
-
-        <RenderConditionally shouldRender={isGrafanaAlerting}>
-          <GrafanaContactPoint
-            radioOptions={RADIO_OPTIONS}
-            isExistingContactPoint={isExistingContactPoint}
-            dataSources={dataSources}
-            contactPoints={contactPoints}
-            selectedAlertManagerOption={selectedAlertManagerOption}
-            selectedContactPointOption={selectedContactPointOption}
-            allContactPoints={allContactPoints}
+      <FormProvider {...formMethods}>
+        <form onSubmit={handleSubmit(onFormSubmit)} className={styles.form}>
+          <Controller
+            name={FormFieldKeys.Name}
             control={control}
-            getValues={getValues}
-            setValue={setValue}
-            setState={setState}
-            errors={errors}
+            rules={{ required: 'Name is required' }}
+            render={({ field }) => (
+              <Field
+                key={'Name'}
+                label={'Integration Name'}
+                invalid={!!errors[FormFieldKeys.Name]}
+                error={errors[FormFieldKeys.Name]?.message as string}
+              >
+                <Input {...field} placeholder={'Integration Name'} />
+              </Field>
+            )}
           />
-        </RenderConditionally>
 
-        {store.hasFeature(AppFeature.Labels) && (
-          <div className={styles.labels}>
-            <Labels
-              ref={labelsRef}
-              errors={labelsErrors}
-              value={data.labels}
-              description={
-                <>
-                  Labels{id === 'new' ? ' will be ' : ' '}applied to the integration and inherited by alert groups.
-                  <br />
-                  You can modify behaviour in{' '}
-                  {id === 'new' ? (
-                    'Alert group labeling'
-                  ) : (
-                    <PluginLink onClick={() => navigateToAlertGroupLabels(id)}>Alert group labeling</PluginLink>
-                  )}{' '}
-                  drawer.
-                </>
-              }
+          <Controller
+            name={FormFieldKeys.Description}
+            control={control}
+            rules={{ required: 'Description is required' }}
+            render={({ field }) => (
+              <Field
+                key={'Description'}
+                label={'Integration Description'}
+                invalid={!!errors[FormFieldKeys.Description]}
+                error={errors[FormFieldKeys.Description]?.message as string}
+              >
+                <TextArea {...field} className={styles.textarea} placeholder={'Integration Name'} />
+              </Field>
+            )}
+          />
+
+          <Controller
+            name={FormFieldKeys.Team}
+            control={control}
+            rules={{ required: false }}
+            render={({ field }) => (
+              <Field
+                key="Team"
+                label={
+                  <Label>
+                    <span>Assign to team</span>&nbsp;
+                    <Tooltip content={generateAssignToTeamInputDescription('Integrations')} placement="right">
+                      <Icon name="info-circle" />
+                    </Tooltip>
+                  </Label>
+                }
+                invalid={!!errors[FormFieldKeys.Team]}
+                error={errors[FormFieldKeys.Team]?.message as string}
+              >
+                <GSelect
+                  placeholder="Assign to team"
+                  {...field}
+                  {...{
+                    items: grafanaTeamStore.items,
+                    fetchItemsFn: grafanaTeamStore.updateItems,
+                    getSearchResult: grafanaTeamStore.getSearchResult,
+                    displayField: 'name',
+                    valueField: 'id',
+                    showSearch: true,
+                    allowClear: true,
+                  }}
+                  onChange={(value) => {
+                    field.onChange(value);
+                  }}
+                />
+              </Field>
+            )}
+          />
+
+          <RenderConditionally shouldRender={isGrafanaAlerting}>
+            <GrafanaContactPoint
+              radioOptions={RADIO_OPTIONS}
+              isExistingContactPoint={isExistingContactPoint}
+              dataSources={dataSources}
+              contactPoints={contactPoints}
+              selectedAlertManagerOption={selectedAlertManagerOption}
+              selectedContactPointOption={selectedContactPointOption}
+              allContactPoints={allContactPoints}
+              setState={setState}
             />
+          </RenderConditionally>
+
+          {store.hasFeature(AppFeature.Labels) && (
+            <div className={styles.labels}>
+              <Labels
+                ref={labelsRef}
+                errors={labelsErrors}
+                value={data.labels}
+                description={
+                  <>
+                    Labels{id === 'new' ? ' will be ' : ' '}applied to the integration and inherited by alert groups.
+                    <br />
+                    You can modify behaviour in{' '}
+                    {id === 'new' ? (
+                      'Alert group labeling'
+                    ) : (
+                      <PluginLink onClick={() => navigateToAlertGroupLabels(id)}>Alert group labeling</PluginLink>
+                    )}{' '}
+                    drawer.
+                  </>
+                }
+              />
+            </div>
+          )}
+
+          {isTableView && <HowTheIntegrationWorks selectedOption={selectedIntegration} />}
+
+          <RenderConditionally shouldRender={isServiceNow}>
+            <div className={styles.serviceNowHeading}>
+              <Text type="primary">ServiceNow configuration</Text>
+            </div>
+          </RenderConditionally>
+
+          <RenderConditionally shouldRender={isServiceNow}>
+            <Controller
+              name={FormFieldKeys.ServiceNowUrl}
+              control={control}
+              rules={{ required: 'Instance URL is required', validate: validateURL }}
+              render={({ field }) => (
+                <Field
+                  key={'InstanceURL'}
+                  label={'Instance URL'}
+                  invalid={!!errors[FormFieldKeys.ServiceNowUrl]}
+                  error={errors[FormFieldKeys.ServiceNowUrl]?.message as string}
+                >
+                  <Input {...field} />
+                </Field>
+              )}
+            />
+          </RenderConditionally>
+
+          <RenderConditionally shouldRender={isServiceNow}>
+            <Controller
+              name={FormFieldKeys.AuthUsername}
+              control={control}
+              rules={{ required: 'Username is required' }}
+              render={({ field }) => (
+                <Field
+                  key={'AuthUsername'}
+                  label={'Username'}
+                  invalid={!!errors[FormFieldKeys.AuthUsername]}
+                  error={errors[FormFieldKeys.AuthUsername]?.message as string}
+                >
+                  <Input {...field} />
+                </Field>
+              )}
+            />
+          </RenderConditionally>
+
+          <RenderConditionally shouldRender={isServiceNow}>
+            <Controller
+              name={FormFieldKeys.AuthPassword}
+              control={control}
+              rules={{ required: 'Password is required' }}
+              render={({ field }) => (
+                <Field
+                  key={'AuthPassword'}
+                  label={'Password'}
+                  invalid={!!errors[FormFieldKeys.AuthPassword]}
+                  error={errors[FormFieldKeys.AuthPassword]?.message as string}
+                >
+                  <Input {...field} type="password" />
+                </Field>
+              )}
+            />
+          </RenderConditionally>
+
+          <RenderConditionally shouldRender={isServiceNow}>
+            <Button className={styles.webhookTest} variant="secondary" onClick={onWebhookTestClick}>
+              Test
+            </Button>
+          </RenderConditionally>
+
+          <RenderConditionally shouldRender={isServiceNow}>
+            <Controller
+              name={FormFieldKeys.DefaultWebhooks}
+              control={control}
+              render={({ field }) => (
+                <div className={styles.webhookSwitch}>
+                  <Switch value={field.value} onChange={field.onChange} />
+                  <Text type="primary"> Create default outgoing webhook events</Text>
+                </div>
+              )}
+            />
+          </RenderConditionally>
+
+          <div>
+            <HorizontalGroup justify="flex-end">
+              {id === 'new' ? (
+                <Button variant="secondary" onClick={onBackClick}>
+                  Back
+                </Button>
+              ) : (
+                <Button variant="secondary" onClick={onHide}>
+                  Cancel
+                </Button>
+              )}
+
+              <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
+                <Button type="submit" data-testid="update-integration-button">
+                  {id === 'new' ? 'Create' : 'Update'} Integration
+                </Button>
+              </WithPermissionControlTooltip>
+            </HorizontalGroup>
           </div>
-        )}
-
-        {isTableView && <HowTheIntegrationWorks selectedOption={selectedIntegration} />}
-
-        <RenderConditionally shouldRender={isServiceNow}>
-          <div className={styles.serviceNowHeading}>
-            <Text type="primary">ServiceNow configuration</Text>
-          </div>
-        </RenderConditionally>
-
-        <RenderConditionally shouldRender={isServiceNow}>
-          <Controller
-            name={FormFieldKeys.ServiceNowUrl}
-            control={control}
-            rules={{ required: 'Instance URL is required', validate: validateURL }}
-            render={({ field }) => (
-              <Field
-                key={'InstanceURL'}
-                label={'Instance URL'}
-                invalid={!!errors[FormFieldKeys.ServiceNowUrl]}
-                error={errors[FormFieldKeys.ServiceNowUrl]?.message as string}
-              >
-                <Input {...field} />
-              </Field>
-            )}
-          />
-        </RenderConditionally>
-
-        <RenderConditionally shouldRender={isServiceNow}>
-          <Controller
-            name={FormFieldKeys.AuthUsername}
-            control={control}
-            rules={{ required: 'Username is required' }}
-            render={({ field }) => (
-              <Field
-                key={'AuthUsername'}
-                label={'Username'}
-                invalid={!!errors[FormFieldKeys.AuthUsername]}
-                error={errors[FormFieldKeys.AuthUsername]?.message as string}
-              >
-                <Input {...field} />
-              </Field>
-            )}
-          />
-        </RenderConditionally>
-
-        <RenderConditionally shouldRender={isServiceNow}>
-          <Controller
-            name={FormFieldKeys.AuthPassword}
-            control={control}
-            rules={{ required: 'Password is required' }}
-            render={({ field }) => (
-              <Field
-                key={'AuthPassword'}
-                label={'Password'}
-                invalid={!!errors[FormFieldKeys.AuthPassword]}
-                error={errors[FormFieldKeys.AuthPassword]?.message as string}
-              >
-                <Input {...field} type="password" />
-              </Field>
-            )}
-          />
-        </RenderConditionally>
-
-        <RenderConditionally shouldRender={isServiceNow}>
-          <Button className={styles.webhookTest} variant="secondary" onClick={onWebhookTestClick}>
-            Test
-          </Button>
-        </RenderConditionally>
-
-        <RenderConditionally shouldRender={isServiceNow}>
-          <Controller
-            name={FormFieldKeys.DefaultWebhooks}
-            control={control}
-            render={({ field }) => (
-              <div className={styles.webhookSwitch}>
-                <Switch value={field.value} onChange={field.onChange} />
-                <Text type="primary"> Create default outgoing webhook events</Text>
-              </div>
-            )}
-          />
-        </RenderConditionally>
-
-        <div>
-          <HorizontalGroup justify="flex-end">
-            {id === 'new' ? (
-              <Button variant="secondary" onClick={onBackClick}>
-                Back
-              </Button>
-            ) : (
-              <Button variant="secondary" onClick={onHide}>
-                Cancel
-              </Button>
-            )}
-
-            <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
-              <Button type="submit" data-testid="update-integration-button">
-                {id === 'new' ? 'Create' : 'Update'} Integration
-              </Button>
-            </WithPermissionControlTooltip>
-          </HorizontalGroup>
-        </div>
-      </form>
+        </form>
+      </FormProvider>
     );
 
     function validateURL(urlFieldValue: string): string | boolean {
@@ -451,11 +455,6 @@ interface GrafanaContactPointState {
 }
 
 interface GrafanaContactPointProps {
-  control: Control<FormFields, any, FormFields>;
-  errors: FieldErrors;
-  getValues: UseFormGetValues<FormFields>;
-  setValue: UseFormSetValue<FormFields>;
-
   isExistingContactPoint: any;
   dataSources: any;
   contactPoints: any;
@@ -479,12 +478,15 @@ const GrafanaContactPoint = observer(
     selectedAlertManagerOption,
     isExistingContactPoint,
     dataSources,
-    control,
-    errors,
-    getValues,
-    setValue,
     setState,
   }: GrafanaContactPointProps) => {
+    const {
+      control,
+      getValues,
+      setValue,
+      formState: { errors },
+    } = useFormContext();
+
     useEffect(() => {
       (async function () {
         const response = await AlertReceiveChannelHelper.getGrafanaAlertingContactPoints();
@@ -545,8 +547,7 @@ const GrafanaContactPoint = observer(
               render={({ field }) => (
                 <Field
                   key={'AlertManager'}
-                  placeholder={'Integration Name'}
-                  invalid={!!errors[FormFieldKeys.AlertManager]}
+                  invalid={errors[FormFieldKeys.AlertManager] !== undefined}
                   error={errors[FormFieldKeys.AlertManager]?.message as string}
                 >
                   <Select
@@ -567,8 +568,7 @@ const GrafanaContactPoint = observer(
               render={({ field }) => (
                 <Field
                   key={FormFieldKeys.ContactPoint}
-                  placeholder="Select Contact Point"
-                  invalid={!!errors[FormFieldKeys.ContactPoint]}
+                  invalid={errors[FormFieldKeys.ContactPoint] !== undefined}
                   error={errors[FormFieldKeys.ContactPoint]?.message as string}
                 >
                   {isExistingContactPoint ? (
