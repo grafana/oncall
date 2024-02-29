@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Remove explicit uWSGI and Django request size limits by @vadimkerr ([#3878](https://github.com/grafana/oncall/pull/3878))
 - Migrate webhooks integration_filter to use a m2m field instead ([#3946](https://github.com/grafana/oncall/pull/3946))
 - Updated Faro package version ([#3970](https://github.com/grafana/oncall/pull/3970))
+- Integration form migration to react-hook-form ([#3979](https://github.com/grafana/oncall/pull/3979))
 
 ### Fixed
 
