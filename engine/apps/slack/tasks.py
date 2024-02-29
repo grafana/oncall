@@ -299,7 +299,11 @@ def post_or_update_log_report_message_task(alert_group_pk, slack_team_identity_p
     alert_group = AlertGroup.objects.get(pk=alert_group_pk)
     step = UpdateLogReportMessageStep(slack_team_identity, alert_group.channel.organization)
 
-    if alert_group.skip_escalation_in_slack or alert_group.channel.is_rate_limited_in_slack:
+    if (
+        alert_group.skip_escalation_in_slack
+        or alert_group.channel.is_rate_limited_in_slack
+        or not alert_group.channel.organization.is_slack_alert_group_log_enabled
+    ):
         return
 
     if update:  # flag to prevent multiple posting log message to slack

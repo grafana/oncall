@@ -145,6 +145,7 @@ def test_get_slack_settings(
         "pk": organization.public_primary_key,
         "acknowledge_remind_timeout": 0,
         "unacknowledge_timeout": 0,
+        "is_slack_alert_group_log_enabled": True,
     }
 
     url = reverse("api-internal:slack-settings")
@@ -166,11 +167,13 @@ def test_put_slack_settings(
         "pk": organization.public_primary_key,
         "acknowledge_remind_timeout": 0,
         "unacknowledge_timeout": 0,
+        "is_slack_alert_group_log_enabled": True,
     }
 
     data_to_update = {
         "acknowledge_remind_timeout": 1,
         "unacknowledge_timeout": 1,
+        "is_slack_alert_group_log_enabled": False,
     }
 
     url = reverse("api-internal:slack-settings")

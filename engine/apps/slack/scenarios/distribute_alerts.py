@@ -96,7 +96,8 @@ class AlertShootingStep(scenario_step.ScenarioStep):
             else:
                 # check if alert group was posted to slack before posting message to thread
                 if not alert.group.skip_escalation_in_slack:
-                    self._send_log_report_message(alert.group, channel_id)
+                    if alert.group.channel.organization.is_slack_alert_group_log_enabled:
+                        self._send_log_report_message(alert.group, channel_id)
                     self._send_message_to_thread_if_bot_not_in_channel(alert.group, channel_id)
         else:
             # check if alert group was posted to slack before updating its message
@@ -921,7 +922,11 @@ class DeleteGroupStep(scenario_step.ScenarioStep):
 
 class UpdateLogReportMessageStep(scenario_step.ScenarioStep):
     def process_signal(self, alert_group: AlertGroup) -> None:
-        if alert_group.skip_escalation_in_slack or alert_group.channel.is_rate_limited_in_slack:
+        if (
+            alert_group.skip_escalation_in_slack
+            or alert_group.channel.is_rate_limited_in_slack
+            or not alert_group.channel.organization.is_slack_alert_group_log_enabled
+        ):
             return
 
         self.update_log_message(alert_group)

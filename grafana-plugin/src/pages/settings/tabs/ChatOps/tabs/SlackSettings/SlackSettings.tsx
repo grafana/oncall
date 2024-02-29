@@ -10,6 +10,8 @@ import {
   InlineField,
   Input,
   Legend,
+  Switch,
+  Field,
 } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
@@ -195,6 +197,18 @@ class _SlackSettings extends Component<SlackProps, SlackState> {
             </WithPermissionControlTooltip>
           </HorizontalGroup>
         </InlineField>
+        <Field label="Enable" description="Show Alert Group Log In Slack Thread">
+          <WithPermissionControlTooltip userAction={UserActions.ChatOpsWrite}>
+            <Switch
+              value={!!slackStore.slackSettings?.is_slack_alert_group_log_enabled}
+              onChange={() =>
+                this.getSlackSettingsChangeHandler('is_slack_alert_group_log_enabled')(
+                  !slackStore.slackSettings?.is_slack_alert_group_log_enabled
+                )
+              }
+            />
+          </WithPermissionControlTooltip>
+        </Field>
       </div>
     );
   };

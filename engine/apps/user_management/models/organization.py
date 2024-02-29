@@ -242,6 +242,8 @@ class Organization(MaintainableObject):
         default=UNACKNOWLEDGE_TIMEOUT_NEVER,
     )
 
+    is_slack_alert_group_log_enabled = models.BooleanField(default=True, blank=False)
+
     # This field is used to calculate public suggestions time
     # Not sure if it is needed
     datetime = models.DateTimeField(auto_now_add=True)

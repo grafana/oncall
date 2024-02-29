@@ -12,6 +12,7 @@ class OrganizationSlackSettingsSerializer(serializers.ModelSerializer):
             "pk",
             "acknowledge_remind_timeout",
             "unacknowledge_timeout",
+            "is_slack_alert_group_log_enabled",
         ]
 
     def update(self, instance, validated_data):

@@ -1,11 +1,12 @@
 from unittest.mock import patch
 
 import pytest
+from django.test import override_settings
 
 from apps.alerts.models import AlertGroup
 from apps.slack.errors import SlackAPIRestrictedActionError
 from apps.slack.models import SlackMessage
-from apps.slack.scenarios.distribute_alerts import AlertShootingStep
+from apps.slack.scenarios.distribute_alerts import AlertShootingStep, UpdateLogReportMessageStep
 from apps.slack.scenarios.scenario_step import ScenarioStep
 from apps.slack.tests.conftest import build_slack_response
 
@@ -64,3 +65,29 @@ def test_alert_shooting_no_channel_filter(
 
     mock_post_alert_group_to_slack.assert_called_once()
     assert mock_post_alert_group_to_slack.call_args[1]["channel_id"] == "DEFAULT_CHANNEL_ID"
+
+
+@patch("apps.slack.tasks.post_or_update_log_report_message_task.apply_async")
+@pytest.mark.django_db
+def test_update_log_report_message_step_when_slack_log_disabled(
+    mock_apply_async,
+    make_organization_and_user_with_slack_identities,
+    make_alert_receive_channel,
+    make_alert_group,
+    make_slack_message,
+):
+    SlackUpdateLogReportMessageStep = ScenarioStep.get_step("distribute_alerts", "UpdateLogReportMessageStep")
+    organization, _, slack_team_identity, _ = make_organization_and_user_with_slack_identities()
+    alert_receive_channel = make_alert_receive_channel(organization)
+    alert_group = make_alert_group(alert_receive_channel)
+    slack_message = make_slack_message(alert_group=alert_group, organization=organization)
+    step = SlackUpdateLogReportMessageStep(slack_team_identity, organization)
+    alert_group.slack_log_message = slack_message
+    alert_group.save(update_fields=["slack_log_message"])
+    organization.is_slack_alert_group_log_enabled = False
+    organization.save(update_fields=["is_slack_alert_group_log_enabled"])
+
+    assert alert_group.slack_log_message is not None
+
+    step.process_signal(alert_group)
+    mock_apply_async.assert_not_called()
