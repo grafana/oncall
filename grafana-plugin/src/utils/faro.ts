@@ -1,9 +1,13 @@
-import { Faro, initializeFaro, getWebInstrumentations } from '@grafana/faro-web-sdk';
-import { TracingInstrumentation } from '@grafana/faro-web-tracing';
-import { DocumentLoadInstrumentation } from '@opentelemetry/instrumentation-document-load';
-import { FetchInstrumentation } from '@opentelemetry/instrumentation-fetch';
-import { UserInteractionInstrumentation } from '@opentelemetry/instrumentation-user-interaction';
-import { XMLHttpRequestInstrumentation } from '@opentelemetry/instrumentation-xml-http-request';
+import {
+  Faro,
+  initializeFaro,
+  ErrorsInstrumentation,
+  WebVitalsInstrumentation,
+  ConsoleInstrumentation,
+  LogLevel,
+  SessionInstrumentation,
+  InternalLoggerLevel,
+} from '@grafana/faro-web-sdk';
 
 import plugin from '../../package.json'; // eslint-disable-line
 import {
@@ -14,8 +18,6 @@ import {
   ONCALL_OPS,
   ONCALL_PROD,
 } from './consts';
-
-const IGNORE_URLS = [/^((?!\/{0,1}a\/grafana\-oncall\-app\\).)*$/];
 
 export function getAppNameUrlPair(onCallApiUrl: string): { appName: string; url: string } {
   const baseName = 'grafana-oncall';
@@ -47,18 +49,14 @@ class BaseFaroHelper {
         url: url,
         isolate: true,
         instrumentations: [
-          ...getWebInstrumentations({
-            captureConsole: true,
+          new ErrorsInstrumentation(),
+          new WebVitalsInstrumentation(),
+          new ConsoleInstrumentation({
+            disabledLevels: [LogLevel.TRACE, LogLevel.ERROR],
           }),
-          new TracingInstrumentation({
-            instrumentations: [
-              new DocumentLoadInstrumentation(),
-              new FetchInstrumentation({ ignoreUrls: IGNORE_URLS }),
-              new XMLHttpRequestInstrumentation({}),
-              new UserInteractionInstrumentation(),
-            ],
-          }),
+          new SessionInstrumentation(),
         ],
+        internalLoggerLevel: InternalLoggerLevel.VERBOSE,
         session: (window as any).__PRELOADED_STATE__?.faro?.session,
         app: {
           name: appName,
