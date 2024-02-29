@@ -1,54 +1,5 @@
-.content {
-  margin: 4px 4px 50px 4px;
-  padding-bottom: 24px;
-}
-
-.cards {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 24px;
-  overflow: auto;
-  scroll-snap-type: y mandatory;
+.form {
   width: 100%;
-}
-
-.cards_centered {
-  justify-content: center;
-  align-items: center;
-}
-
-.card {
-  width: 48%;
-  height: 88px;
-  scroll-snap-align: start;
-  scroll-snap-stop: normal;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: flex-start;
-  cursor: pointer;
-  position: relative;
-  gap: 20px;
-}
-
-.card_featured {
-  width: 100%;
-  height: 106px;
-}
-
-.title {
-  margin: 10px 0 10px 0;
-  max-width: 500px;
-}
-
-.footer {
-  display: block;
-  margin-top: 10px;
-}
-
-.search-integration {
-  width: 100%;
-  margin-bottom: 24px;
 }
 
 .extra-fields {
@@ -73,6 +24,40 @@
   margin-bottom: -15px;
 }
 
-.labels {
-  margin-bottom: 20px;
+.textarea:hover {
+  // TODO: change this to fetch from emotion instead
+}
+
+.collapse {
+  width: 100%;
+  margin-bottom: 24px;
+}
+
+.collapse svg {
+  color: var(--primary-text-link) !important;
+}
+
+.integration-info-list {
+  list-style-position: inside;
+  margin: 16px 0;
+}
+
+.integration-info-item {
+  margin-left: 16px;
+}
+
+.servicenow-heading {
+  margin-bottom: 16px;
+}
+
+.webhook-test {
+  margin-bottom: 16px;
+}
+
+.webhook-switch {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 24px;
 }
