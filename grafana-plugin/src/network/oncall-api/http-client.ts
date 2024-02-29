@@ -1,5 +1,3 @@
-import { SpanStatusCode } from '@opentelemetry/api';
-import { SemanticAttributes } from '@opentelemetry/semantic-conventions';
 import createClient from 'openapi-fetch';
 import qs from 'query-string';
 
@@ -48,8 +46,6 @@ export const getCustomFetchFn =
       if (!span) {
         span = tracer.startSpan('http-request');
         span.setAttribute('page_url', document.URL.split('//')[1]);
-        span.setAttribute(SemanticAttributes.HTTP_URL, url);
-        span.setAttribute(SemanticAttributes.HTTP_METHOD, requestConfig.method);
       }
 
       return new Promise((resolve, reject) => {
@@ -66,7 +62,6 @@ export const getCustomFetchFn =
             const errorData = await res.json();
             faro.api.pushEvent('Request failed', { url });
             faro.api.pushError(errorData);
-            span.setStatus({ code: SpanStatusCode.ERROR });
             span.end();
             if (withGlobalErrorHandler) {
               showApiError(res);
