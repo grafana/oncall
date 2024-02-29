@@ -61,7 +61,8 @@ def on_worker_ready(*args, **kwargs):
         register_telegram_webhook.delay()
 
 
-if settings.OTEL_TRACING_ENABLED and settings.OTEL_EXPORTER_OTLP_ENDPOINT:
+# temporary disable celery auto instrumentation in favour of simpler TracingMiddleware
+if settings.OTEL_TRACING_ENABLED and settings.OTEL_EXPORTER_OTLP_ENDPOINT and False:
 
     @celery.signals.worker_process_init.connect(weak=False)
     def init_celery_tracing(*args, **kwargs):

@@ -5,6 +5,9 @@ from django.conf import settings
 from django.core.exceptions import PermissionDenied
 from django.db import OperationalError
 from django.utils.deprecation import MiddlewareMixin
+from opentelemetry import trace
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace.export import ConsoleSpanExporter, SimpleSpanProcessor
 
 logger = logging.getLogger(__name__)
 
@@ -89,3 +92,21 @@ class BanAlertConsumptionBasedOnSettingsMiddleware(MiddlewareMixin):
                 pass
             logging.warning(f"{request.path} has been banned")
             raise PermissionDenied()
+
+
+trace.set_tracer_provider(TracerProvider())
+span_processor = SimpleSpanProcessor(ConsoleSpanExporter())
+trace.get_tracer_provider().add_span_processor(span_processor)
+
+
+class TracingMiddleware:
+    def __init__(self, get_response):
+        self.get_response = get_response
+        self.tracer = trace.get_tracer(__name__)
+
+    def __call__(self, request):
+        with self.tracer.start_as_current_span("middleware"):
+            # TODO: add span attrs
+            # Process the request
+            response = self.get_response(request)
+            return response

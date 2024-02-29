@@ -323,7 +323,6 @@ SPECTACULAR_INCLUDED_PATHS = [
 ]
 
 MIDDLEWARE = [
-    "log_request_id.middleware.RequestIDMiddleware",
     "engine.middlewares.RequestTimeLoggingMiddleware",
     "engine.middlewares.BanAlertConsumptionBasedOnSettingsMiddleware",
     "django.middleware.security.SecurityMiddleware",
@@ -344,6 +343,9 @@ MIDDLEWARE = [
     "apps.user_management.middlewares.OrganizationDeletedMiddleware",
 ]
 
+if OTEL_TRACING_ENABLED:
+    MIDDLEWARE.insert(0, "engine.middlewares.TracingMiddleware")
+
 LOG_REQUEST_ID_HEADER = "HTTP_X_CLOUD_TRACE_CONTEXT"
 
 LOGGING = {
@@ -351,7 +353,9 @@ LOGGING = {
     "disable_existing_loggers": False,
     "filters": {"request_id": {"()": "log_request_id.filters.RequestIDFilter"}},
     "formatters": {
-        "standard": {"format": "source=engine:app google_trace_id=%(request_id)s logger=%(name)s %(message)s"},
+        "standard": {
+            "format": "source=engine:app google_trace_id=%(request_id)s logger=%(name)s trace_id=%(otelTraceID)s span_id=%(otelSpanID)s %(message)s"
+        },
         "insight_logger": {"format": "insight=true logger=%(name)s %(message)s"},
     },
     "handlers": {
