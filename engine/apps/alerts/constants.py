@@ -1,3 +1,4 @@
+import typing
 from enum import Enum
 
 from django.db.models import IntegerChoices
@@ -22,3 +23,32 @@ class AlertGroupState(str, Enum):
     ACKNOWLEDGED = "acknowledged"
     RESOLVED = "resolved"
     SILENCED = "silenced"
+
+
+# ServiceNow Integration
+
+ServiceNowStateId: int
+ServiceNowStateName: str
+
+
+class ServiceNowStateMapping(typing.TypedDict):
+    firing: typing.Optional[typing.Tuple["ServiceNowStateId", "ServiceNowStateName"]]
+    acknowledged: typing.Optional[typing.Tuple["ServiceNowStateId", "ServiceNowStateName"]]
+    resolved: typing.Optional[typing.Tuple["ServiceNowStateId", "ServiceNowStateName"]]
+    silenced: typing.Optional[typing.Tuple["ServiceNowStateId", "ServiceNowStateName"]]
+
+
+class ServiceNowSettings(typing.TypedDict):
+    instance_url: str
+    username: str
+    password: str
+    state_mapping: ServiceNowStateMapping
+    is_configured: bool
+
+
+ServiceNowEmptyMapping = {
+    "firing": None,
+    "acknowledged": None,
+    "resolved": None,
+    "silenced": None,
+}

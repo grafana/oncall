@@ -24,6 +24,7 @@ from common.jinja_templater import jinja_template_env
 
 from .integration_heartbeat import IntegrationHeartBeatSerializer
 from .labels import LabelsSerializerMixin
+from .servicenow_settings import SERVICENOW_PASSWORD_PLACEHOLDER, AlertReceiveChannelServiceNowSettingsSerializer
 
 
 # AlertGroupCustomLabelValue represents custom alert group label value for API requests
@@ -244,6 +245,7 @@ class AlertReceiveChannelSerializer(
     inbound_email = serializers.CharField(required=False, read_only=True)
     is_legacy = serializers.SerializerMethodField()
     alert_group_labels = IntegrationAlertGroupLabelsSerializer(source="*", required=False)
+    additional_settings = serializers.DictField(allow_null=True, allow_empty=False, required=False, default=None)
 
     # integration heartbeat is in PREFETCH_RELATED not by mistake.
     # With using of select_related ORM builds strange join
@@ -286,6 +288,7 @@ class AlertReceiveChannelSerializer(
             "labels",
             "alert_group_labels",
             "alertmanager_v2_migrated_at",
+            "additional_settings",
         ]
         read_only_fields = [
             "created_at",
@@ -305,6 +308,21 @@ class AlertReceiveChannelSerializer(
             "alertmanager_v2_migrated_at",
         ]
         extra_kwargs = {"integration": {"required": True}}
+
+    def to_internal_value(self, data):
+        if self.instance and self.instance.additional_settings:
+            if (
+                data.get("additional_settings")
+                and data.get("additional_settings").get("password") == SERVICENOW_PASSWORD_PLACEHOLDER
+            ):
+                data["additional_settings"]["password"] = self.instance.additional_settings.get("password")
+        return super().to_internal_value(data)
+
+    def to_representation(self, instance):
+        result = super().to_representation(instance)
+        if instance.additional_settings and instance.additional_settings.get("password"):
+            result["additional_settings"]["password"] = SERVICENOW_PASSWORD_PLACEHOLDER
+        return result
 
     def validate(self, data):
         validated_data = super().validate(data)
@@ -395,6 +413,18 @@ class AlertReceiveChannelSerializer(
             raise BadRequest(detail="Direct paging integrations can't be created")
 
         return integration
+
+    def validate_additional_settings(self, data):
+        integration = self.instance.integration if self.instance else self.initial_data.get("integration")
+        if integration == AlertReceiveChannel.INTEGRATION_SERVICENOW:
+            if not data:
+                raise ValidationError(["This field is required for this integration."])
+            serializer = AlertReceiveChannelServiceNowSettingsSerializer(data=data)
+            serializer.is_valid(raise_exception=True)
+            data = serializer.validated_data
+        elif data is not None:
+            raise ValidationError(["Invalid data"])
+        return data
 
     def get_allow_delete(self, obj: "AlertReceiveChannel") -> bool:
         # don't allow deleting direct paging integrations

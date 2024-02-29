@@ -15,6 +15,7 @@ from django.utils import timezone
 from django.utils.crypto import get_random_string
 from emoji import emojize
 
+from apps.alerts.constants import ServiceNowSettings
 from apps.alerts.grafana_alerting_sync_manager.grafana_alerting_sync import GrafanaAlertingSyncManager
 from apps.alerts.integration_options_mixin import IntegrationOptionsMixin
 from apps.alerts.models.maintainable_object import MaintainableObject
@@ -304,6 +305,8 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
 
     alert_group_labels_template: str | None = models.TextField(null=True, default=None)
     """Stores a Jinja2 template for "advanced label templating" for alert group labels."""
+
+    additional_settings: typing.Optional[ServiceNowSettings] = models.JSONField(null=True, default=None)
 
     class Meta:
         constraints = [
