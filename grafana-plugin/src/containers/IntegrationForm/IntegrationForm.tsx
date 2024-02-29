@@ -20,6 +20,7 @@ import { observer } from 'mobx-react';
 import { Controller, useForm, useFormContext, FormProvider } from 'react-hook-form';
 import { useHistory } from 'react-router-dom';
 
+import { HowTheIntegrationWorks } from 'components/HowTheIntegrationWorks/HowTheIntegrationWorks';
 import { PluginLink } from 'components/PluginLink/PluginLink';
 import { RenderConditionally } from 'components/RenderConditionally/RenderConditionally';
 import { Text } from 'components/Text/Text';
@@ -27,6 +28,7 @@ import { GSelect } from 'containers/GSelect/GSelect';
 import { Labels } from 'containers/Labels/Labels';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { AlertReceiveChannelHelper } from 'models/alert_receive_channel/alert_receive_channel.helpers';
+import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { IntegrationHelper } from 'pages/integration/Integration.helper';
 import { AppFeature } from 'state/features';
@@ -34,7 +36,6 @@ import { useStore } from 'state/useStore';
 import { UserActions } from 'utils/authorization/authorization';
 import { PLUGIN_ROOT, generateAssignToTeamInputDescription } from 'utils/consts';
 
-import { HowTheIntegrationWorks } from './HowTheIntegrationWorks';
 import { prepareForEdit } from './IntegrationForm.helpers';
 import { getIntegrationFormStyles } from './IntegrationForm.styles';
 
@@ -224,12 +225,13 @@ export const IntegrationForm = observer(
                 invalid={!!errors[FormFieldKeys.Team]}
                 error={errors[FormFieldKeys.Team]?.message as string}
               >
-                <GSelect
+                <GSelect<GrafanaTeam>
                   placeholder="Assign to team"
                   {...field}
                   {...{
                     items: grafanaTeamStore.items,
                     fetchItemsFn: grafanaTeamStore.updateItems,
+                    fetchItemFn: grafanaTeamStore.fetchItemById,
                     getSearchResult: grafanaTeamStore.getSearchResult,
                     displayField: 'name',
                     valueField: 'id',
@@ -244,7 +246,7 @@ export const IntegrationForm = observer(
             )}
           />
 
-          <RenderConditionally shouldRender={isGrafanaAlerting}>
+          <RenderConditionally shouldRender={isGrafanaAlerting && !isNew}>
             <GrafanaContactPoint
               radioOptions={RADIO_OPTIONS}
               isExistingContactPoint={isExistingContactPoint}
@@ -547,7 +549,7 @@ const GrafanaContactPoint = observer(
               render={({ field }) => (
                 <Field
                   key={'AlertManager'}
-                  invalid={errors[FormFieldKeys.AlertManager] !== undefined}
+                  invalid={!!errors[FormFieldKeys.AlertManager]}
                   error={errors[FormFieldKeys.AlertManager]?.message as string}
                 >
                   <Select
@@ -568,7 +570,7 @@ const GrafanaContactPoint = observer(
               render={({ field }) => (
                 <Field
                   key={FormFieldKeys.ContactPoint}
-                  invalid={errors[FormFieldKeys.ContactPoint] !== undefined}
+                  invalid={!!errors[FormFieldKeys.ContactPoint]}
                   error={errors[FormFieldKeys.ContactPoint]?.message as string}
                 >
                   {isExistingContactPoint ? (
