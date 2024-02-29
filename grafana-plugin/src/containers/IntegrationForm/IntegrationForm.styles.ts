@@ -38,15 +38,6 @@ export const getIntegrationFormStyles = (theme: GrafanaTheme2) => {
       }
     `,
 
-    integrationInfoList: css`
-      list-style-position: inside;
-      margin: 16px 0;
-    `,
-
-    integrationInfoItem: css`
-      margin-left: 16px;
-    `,
-
     serviceNowHeading: css`
       margin-bottom: 16px;
     `,
