@@ -59,12 +59,6 @@ export interface EscalationPolicyProps extends ElementSortableProps {
 
 @observer
 class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
-  componentDidMount() {
-    if (this.props.data.notify_schedule) {
-      this.props.store.scheduleStore.loadItem(this.props.data.notify_schedule);
-    }
-  }
-
   render() {
     const { data, escalationChoices, number, isDisabled, backgroundClassName, backgroundHexNumber } = this.props;
     const { id, step, is_final } = data;
@@ -341,6 +335,7 @@ class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
           disabled={isDisabled}
           items={scheduleStore.items}
           fetchItemsFn={scheduleStore.updateItems}
+          fetchItemFn={scheduleStore.updateItem}
           getSearchResult={scheduleStore.getSearchResult}
           displayField="name"
           valueField="id"
@@ -376,6 +371,8 @@ class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
           disabled={isDisabled}
           items={userGroupStore.items}
           fetchItemsFn={userGroupStore.updateItems}
+          fetchItemFn={() => undefined}
+          // TODO: fetchItemFn
           getSearchResult={userGroupStore.getSearchResult}
           displayField="name"
           valueField="id"
@@ -445,6 +442,7 @@ class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
           disabled={isDisabled}
           items={grafanaTeamStore.items}
           fetchItemsFn={grafanaTeamStore.updateItems}
+          fetchItemFn={grafanaTeamStore.fetchItemById}
           getSearchResult={grafanaTeamStore.getSearchResult}
           displayField="name"
           valueField="id"
