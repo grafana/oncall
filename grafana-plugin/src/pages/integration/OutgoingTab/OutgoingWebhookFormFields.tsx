@@ -41,14 +41,14 @@ export const OutgoingWebhookFormFields: FC<OutgoingWebhookFormFieldsProps> = ({ 
   const { control, watch, formState, register } = useFormContext<OutgoingTabFormValues>();
   const [templateToEdit, setTemplateToEdit] = useState<TemplateToEdit>();
 
-  const [showTriggerTemplate] = watch(['triggerTemplateToogle', 'forwardedDataTemplateToogle']);
+  const [showTriggerTemplate] = watch(['triggerTemplateToogle']);
 
   return (
     <VerticalGroup spacing="lg">
       <div className={styles.switcherFieldWrapper}>
         <Controller
           control={control}
-          name="isEnabled"
+          name="is_webhook_enabled"
           render={({ field: { value, onChange } }) => <Switch value={value} onChange={() => onChange(!value)} />}
         />
         <Label className={styles.switcherLabel}>Enabled</Label>
@@ -138,7 +138,7 @@ export const OutgoingWebhookFormFields: FC<OutgoingWebhookFormFieldsProps> = ({ 
       />
       <Controller
         control={control}
-        name="forwardedDataTemplate"
+        name="data"
         render={({ field }) => (
           <VerticalGroup>
             <HorizontalGroup width="100%" justify="space-between">
@@ -193,7 +193,7 @@ export const OutgoingWebhookFormFields: FC<OutgoingWebhookFormFieldsProps> = ({ 
         {showTriggerTemplate && (
           <Controller
             control={control}
-            name="triggerTemplate"
+            name="trigger_template"
             render={({ field }) => (
               <>
                 <MonacoEditor

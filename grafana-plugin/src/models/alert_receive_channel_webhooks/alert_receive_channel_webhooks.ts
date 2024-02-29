@@ -42,10 +42,10 @@ export class AlertReceiveChannelWebhooksStore {
     success: 'Webhook has been updated.',
     failure: 'There was an issue updating a webhook. Please try again.',
   })
-  async update(integrationId: ApiSchemas['AlertReceiveChannel']['id'], webhook: ApiSchemas['Webhook']) {
+  async update(integrationId: ApiSchemas['AlertReceiveChannel']['id'], webhook: Partial<ApiSchemas['Webhook']>) {
     const { data } = await onCallApi().PUT('/alert_receive_channels/{id}/webhooks/{webhook_id}/', {
       params: { path: { id: integrationId, webhook_id: webhook.id } },
-      body: webhook,
+      body: webhook as ApiSchemas['Webhook'],
     });
     runInAction(() => {
       this.items[data.id] = data;

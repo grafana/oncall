@@ -8,7 +8,7 @@ import { GTable } from 'components/GTable/GTable';
 import { HamburgerContextMenu } from 'components/HamburgerContextMenu/HamburgerContextMenu';
 import { Text } from 'components/Text/Text';
 import { WebhookLastEventTimestamp } from 'components/Webhooks/WebhookLastEventTimestamp';
-import { OutgoingWebhook } from 'models/outgoing_webhook/outgoing_webhook.types';
+import { WebhookName } from 'components/Webhooks/WebhookName';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
 import { LocationHelper } from 'utils/LocationHelper';
@@ -16,19 +16,20 @@ import { UserActions } from 'utils/authorization/authorization';
 import { useConfirmModal } from 'utils/hooks';
 import { openNotification } from 'utils/utils';
 
+import { useIntegrationIdFromUrl } from './OutgoingTab.hooks';
 import { getStyles } from './OutgoingTab.styles';
 import { OutgoingTabDrawerKey, TriggerDetailsQueryStringKey, TriggerDetailsTab } from './OutgoingTab.types';
 
 interface OutgoingWebhooksTableProps {
-  integrationId: ApiSchemas['AlertReceiveChannel']['id'];
   openDrawer: (key: OutgoingTabDrawerKey) => void;
 }
 
-export const OutgoingWebhooksTable: FC<OutgoingWebhooksTableProps> = observer(({ openDrawer, integrationId }) => {
+export const OutgoingWebhooksTable: FC<OutgoingWebhooksTableProps> = observer(({ openDrawer }) => {
   const styles = useStyles2(getStyles);
   const {
     alertReceiveChannelWebhooksStore: { items, fetchItems },
   } = useStore();
+  const integrationId = useIntegrationIdFromUrl();
 
   useEffect(() => {
     fetchItems(integrationId);
@@ -58,12 +59,14 @@ const getColumns = (openTriggerDetailsDrawer: (tab: TriggerDetailsTab, webhookId
     width: '35%',
     title: <Text type="secondary">Trigger type</Text>,
     dataIndex: 'trigger_type_name',
-    render: (triggerType: string) => <>{triggerType}</>,
+    render: (name: string, webhook: ApiSchemas['Webhook']) => (
+      <WebhookName name={name} isEnabled={webhook.is_webhook_enabled} />
+    ),
   },
   {
     width: '65%',
     title: <Text type="secondary">Last event</Text>,
-    render: (webhook: OutgoingWebhook) => (
+    render: (webhook: ApiSchemas['Webhook']) => (
       <WebhookLastEventTimestamp
         webhook={webhook}
         openDrawer={() => openTriggerDetailsDrawer(TriggerDetailsTab.LastEvent, webhook.id)}
@@ -72,86 +75,93 @@ const getColumns = (openTriggerDetailsDrawer: (tab: TriggerDetailsTab, webhookId
   },
   {
     key: 'action',
-    render: (webhook: OutgoingWebhook) => (
+    render: (webhook: ApiSchemas['Webhook']) => (
       <OutgoingWebhookContextMenu webhook={webhook} openDrawer={openTriggerDetailsDrawer} />
     ),
   },
 ];
 
-const OutgoingWebhookContextMenu = ({
-  webhook,
-  openDrawer,
-}: {
-  webhook: OutgoingWebhook;
-  openDrawer: (tab: TriggerDetailsTab, webhookId: string) => void;
-}) => {
-  const { modalProps, openModal } = useConfirmModal();
+const OutgoingWebhookContextMenu = observer(
+  ({
+    webhook,
+    openDrawer,
+  }: {
+    webhook: ApiSchemas['Webhook'];
+    openDrawer: (tab: TriggerDetailsTab, webhookId: string) => void;
+  }) => {
+    const { alertReceiveChannelWebhooksStore } = useStore();
+    const { modalProps, openModal } = useConfirmModal();
+    const integrationId = useIntegrationIdFromUrl();
 
-  return (
-    <>
-      <ConfirmModal {...modalProps} />
-      <HamburgerContextMenu
-        items={[
-          {
-            onClick: () => {
-              openDrawer(TriggerDetailsTab.Settings, webhook.id);
+    return (
+      <>
+        <ConfirmModal {...modalProps} />
+        <HamburgerContextMenu
+          items={[
+            {
+              onClick: () => {
+                openDrawer(TriggerDetailsTab.Settings, webhook.id);
+              },
+              requiredPermission: UserActions.OutgoingWebhooksWrite,
+              label: <Text type="primary">Webhook settings</Text>,
             },
-            requiredPermission: UserActions.OutgoingWebhooksWrite,
-            label: <Text type="primary">Webhook settings</Text>,
-          },
-          {
-            onClick: () => {
-              openDrawer(TriggerDetailsTab.LastEvent, webhook.id);
+            {
+              onClick: () => {
+                openDrawer(TriggerDetailsTab.LastEvent, webhook.id);
+              },
+              requiredPermission: UserActions.OutgoingWebhooksRead,
+              label: <Text type="primary">View Last Event</Text>,
             },
-            requiredPermission: UserActions.OutgoingWebhooksRead,
-            label: <Text type="primary">View Last Event</Text>,
-          },
-          {
-            onClick: () => {
-              openModal({
-                onConfirm: () => {},
-                title: `Are you sure you want to ${
-                  webhook.is_webhook_enabled ? 'disable' : 'enable'
-                } outgoing webhook?`,
-              });
+            {
+              onClick: () => {
+                openModal({
+                  onConfirm: () => {},
+                  title: `Are you sure you want to ${
+                    webhook.is_webhook_enabled ? 'disable' : 'enable'
+                  } outgoing webhook?`,
+                });
+              },
+              requiredPermission: UserActions.OutgoingWebhooksWrite,
+              label: <Text type="primary">{webhook.is_webhook_enabled ? 'Disable' : 'Enable'}</Text>,
             },
-            requiredPermission: UserActions.OutgoingWebhooksWrite,
-            label: <Text type="primary">{webhook.is_webhook_enabled ? 'Disable' : 'Enable'}</Text>,
-          },
-          {
-            label: (
-              <CopyToClipboard
-                key="uid"
-                text={webhook.id}
-                onCopy={() => openNotification('Webhook ID has been copied')}
-              >
-                <div>
-                  <HorizontalGroup type="primary" spacing="xs">
-                    <Icon name="clipboard-alt" />
-                    <Text type="primary">UID: {webhook.id}</Text>
-                  </HorizontalGroup>
-                </div>
-              </CopyToClipboard>
-            ),
-          },
-          'divider',
-          {
-            onClick: () => {
-              openModal({
-                onConfirm: () => {},
-                title: `Are you sure you want to delete outgoing webhook?`,
-              });
+            {
+              label: (
+                <CopyToClipboard
+                  key="uid"
+                  text={webhook.id}
+                  onCopy={() => openNotification('Webhook ID has been copied')}
+                >
+                  <div>
+                    <HorizontalGroup type="primary" spacing="xs">
+                      <Icon name="clipboard-alt" />
+                      <Text type="primary">UID: {webhook.id}</Text>
+                    </HorizontalGroup>
+                  </div>
+                </CopyToClipboard>
+              ),
             },
-            requiredPermission: UserActions.OutgoingWebhooksWrite,
-            label: (
-              <HorizontalGroup spacing="xs">
-                <IconButton tooltip="Remove" tooltipPlacement="top" variant="destructive" name="trash-alt" />
-                <Text type="danger">Delete webhook</Text>
-              </HorizontalGroup>
-            ),
-          },
-        ]}
-      />
-    </>
-  );
-};
+            'divider',
+            {
+              onClick: () => {
+                openModal({
+                  confirmText: 'Delete',
+                  onConfirm: async () => {
+                    await alertReceiveChannelWebhooksStore.delete(integrationId, webhook.id);
+                  },
+                  title: `Are you sure you want to delete outgoing webhook?`,
+                });
+              },
+              requiredPermission: UserActions.OutgoingWebhooksWrite,
+              label: (
+                <HorizontalGroup spacing="xs">
+                  <IconButton tooltip="Remove" tooltipPlacement="top" variant="destructive" name="trash-alt" />
+                  <Text type="danger">Delete webhook</Text>
+                </HorizontalGroup>
+              ),
+            },
+          ]}
+        />
+      </>
+    );
+  }
+);

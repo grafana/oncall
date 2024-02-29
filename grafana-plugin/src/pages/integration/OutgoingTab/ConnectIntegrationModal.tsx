@@ -78,6 +78,7 @@ export const ConnectIntegrationModal = observer(({ onDismiss }: { onDismiss: () 
       <ConnectedIntegrationsTable
         selectable
         onChange={onChange}
+        allowBacksync
         tableProps={{
           data: results,
           pagination: {

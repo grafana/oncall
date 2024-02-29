@@ -1,3 +1,5 @@
+import { useParams } from 'react-router-dom';
+
 import { useStore } from 'state/useStore';
 import { LocationHelper } from 'utils/LocationHelper';
 
@@ -10,3 +12,5 @@ export const useDrawerWebhook = () => {
   } = useStore();
   return items[webhookId];
 };
+
+export const useIntegrationIdFromUrl = () => useParams<{ id: string }>().id;

@@ -10,7 +10,7 @@ import { Text } from 'components/Text/Text';
 import { TooltipBadge } from 'components/TooltipBadge/TooltipBadge';
 import { AlertTemplatesDTO } from 'models/alert_templates/alert_templates';
 import { Alert } from 'models/alertgroup/alertgroup.types';
-import { OutgoingWebhook, OutgoingWebhookResponse } from 'models/outgoing_webhook/outgoing_webhook.types';
+import { OutgoingWebhookResponse } from 'models/outgoing_webhook/outgoing_webhook.types';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
 
@@ -27,7 +27,7 @@ interface TemplatesAlertGroupsListProps {
   templatePage: TEMPLATE_PAGE;
   templates: AlertTemplatesDTO[];
   alertReceiveChannelId?: ApiSchemas['AlertReceiveChannel']['id'];
-  outgoingwebhookId?: OutgoingWebhook['id'];
+  outgoingwebhookId?: ApiSchemas['Webhook']['id'];
   heading?: string;
 
   onSelectAlertGroup?: (alertGroup: Alert) => void;

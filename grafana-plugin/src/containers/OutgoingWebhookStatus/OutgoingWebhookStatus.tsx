@@ -5,7 +5,7 @@ import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
 import { WebhookLastEventDetails } from 'components/Webhooks/WebhookLastEventDetails';
-import { OutgoingWebhook } from 'models/outgoing_webhook/outgoing_webhook.types';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
 import { useCommonStyles } from 'utils/hooks';
 
@@ -14,7 +14,7 @@ import styles from 'containers/OutgoingWebhookForm/OutgoingWebhookForm.module.cs
 const cx = cn.bind(styles);
 
 interface OutgoingWebhookStatusProps {
-  id: OutgoingWebhook['id'];
+  id: ApiSchemas['Webhook']['id'];
   closeDrawer: () => void;
 }
 

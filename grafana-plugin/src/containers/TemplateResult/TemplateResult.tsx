@@ -8,14 +8,13 @@ import { Block } from 'components/GBlock/Block';
 import { Text } from 'components/Text/Text';
 import styles from 'containers/IntegrationTemplate/IntegrationTemplate.module.scss';
 import { TemplatePreview, TEMPLATE_PAGE } from 'containers/TemplatePreview/TemplatePreview';
-import { OutgoingWebhook } from 'models/outgoing_webhook/outgoing_webhook.types';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 
 const cx = cn.bind(styles);
 
 interface ResultProps {
   alertReceiveChannelId?: ApiSchemas['AlertReceiveChannel']['id'];
-  outgoingWebhookId?: OutgoingWebhook['id'];
+  outgoingWebhookId?: ApiSchemas['Webhook']['id'];
   templateBody: string;
   template: TemplateForEdit;
   isAlertGroupExisting?: boolean;
