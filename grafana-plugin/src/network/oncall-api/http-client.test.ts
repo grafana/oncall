@@ -1,5 +1,3 @@
-import { SpanStatusCode } from '@opentelemetry/api';
-
 import { FaroHelper } from 'utils/faro';
 
 import { getCustomFetchFn } from './http-client';
