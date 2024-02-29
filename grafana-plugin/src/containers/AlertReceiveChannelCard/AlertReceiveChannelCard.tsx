@@ -39,7 +39,10 @@ export const AlertReceiveChannelCard = observer((props: AlertReceiveChannelCardP
 
   const heartbeatStatus = Boolean(heartbeat?.status);
 
-  const integration = AlertReceiveChannelHelper.getIntegration(alertReceiveChannelStore, alertReceiveChannel);
+  const integration = AlertReceiveChannelHelper.getIntegrationSelectOption(
+    alertReceiveChannelStore,
+    alertReceiveChannel
+  );
 
   return (
     <div className={cx('root')}>

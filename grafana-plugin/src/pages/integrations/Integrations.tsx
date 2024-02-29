@@ -122,6 +122,10 @@ class _IntegrationsPage extends React.Component<IntegrationsProps, IntegrationsS
     }
   }
 
+  componentWillUnmount() {
+    this.props.store.alertReceiveChannelStore.resetPaginatedResults();
+  }
+
   parseQueryParams = async () => {
     const {
       store,
@@ -353,7 +357,10 @@ class _IntegrationsPage extends React.Component<IntegrationsProps, IntegrationsS
 
   renderDatasource(item: ApiSchemas['AlertReceiveChannel'], alertReceiveChannelStore: AlertReceiveChannelStore) {
     const alertReceiveChannel = alertReceiveChannelStore.items[item.id];
-    const integration = AlertReceiveChannelHelper.getIntegration(alertReceiveChannelStore, alertReceiveChannel);
+    const integration = AlertReceiveChannelHelper.getIntegrationSelectOption(
+      alertReceiveChannelStore,
+      alertReceiveChannel
+    );
     const isLegacyIntegration = (integration?.value as string)?.toLowerCase().startsWith('legacy_');
 
     if (isLegacyIntegration) {
