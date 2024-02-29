@@ -9,6 +9,7 @@ from rest_framework.test import APIClient
 
 from apps.alerts.models import AlertReceiveChannel, EscalationPolicy
 from apps.api.permissions import LegacyAccessControlRole
+from apps.api.serializers.servicenow_settings import SERVICENOW_PASSWORD_PLACEHOLDER
 from apps.labels.models import LabelKeyCache, LabelValueCache
 
 
@@ -1696,6 +1697,198 @@ def test_team_not_updated_if_not_in_data(
 
     alert_receive_channel.refresh_from_db()
     assert alert_receive_channel.team == team
+
+
+@pytest.mark.django_db
+def test_create_servicenow_integration(
+    make_organization_and_user_with_plugin_token,
+    make_user_auth_headers,
+):
+    _, user, token = make_organization_and_user_with_plugin_token()
+    client = APIClient()
+
+    url = reverse("api-internal:alert_receive_channel-list")
+    # create without additional_settings
+    data = {
+        "integration": AlertReceiveChannel.INTEGRATION_SERVICENOW,
+        "team": None,
+    }
+    response = client.post(url, data, format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    # create with empty additional_settings
+    data = {"integration": AlertReceiveChannel.INTEGRATION_SERVICENOW, "team": None, "additional_settings": {}}
+    response = client.post(url, data, format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    # create with wrong additional_settings
+    data = {
+        "integration": AlertReceiveChannel.INTEGRATION_SERVICENOW,
+        "team": None,
+        "additional_settings": {"test": "test"},
+    }
+    response = client.post(url, data, format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    # create with correct additional_settings
+    data = {
+        "integration": AlertReceiveChannel.INTEGRATION_SERVICENOW,
+        "team": None,
+        "additional_settings": {"instance_url": "test", "username": "test", "password": "test"},
+    }
+    response = client.post(url, data, format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_201_CREATED
+
+
+@pytest.mark.django_db
+def test_update_servicenow_integration_settings(
+    make_organization_and_user_with_plugin_token,
+    make_alert_receive_channel,
+    make_user_auth_headers,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+    client = APIClient()
+    settings = {
+        "instance_url": "test",
+        "username": "test",
+        "password": "test",
+        "is_configured": False,
+        "state_mapping": {
+            "firing": None,
+            "acknowledged": None,
+            "resolved": None,
+            "silenced": None,
+        },
+    }
+    alert_receive_channel = make_alert_receive_channel(
+        organization, integration=AlertReceiveChannel.INTEGRATION_SERVICENOW, additional_settings=settings
+    )
+
+    url = reverse("api-internal:alert_receive_channel-detail", kwargs={"pk": alert_receive_channel.public_primary_key})
+    # wrong additional_settings
+    data = {"additional_settings": {"test": "test", "username": "test", "password": "test"}}
+    response = client.put(url, data, format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    data = {"additional_settings": {}}
+    response = client.put(url, data, format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    data = {"additional_settings": None}
+    response = client.put(url, data, format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    data = {"additional_settings": {"test": "test", "username": "test", "password": "test", "state_mapping": None}}
+    response = client.put(url, data, format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    data = {
+        "additional_settings": {
+            "test": "test",
+            "username": "test",
+            "password": "test",
+            "state_mapping": {
+                "firing": 1,
+                "acknowledged": None,
+                "resolved": None,
+                "silenced": None,
+            },
+        }
+    }
+    response = client.put(url, data, format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    data = {
+        "additional_settings": {
+            "test": "test",
+            "username": "test",
+            "password": "test",
+            "state_mapping": {
+                "firing": (1, 1),
+                "acknowledged": None,
+                "resolved": None,
+                "silenced": None,
+            },
+        }
+    }
+    response = client.put(url, data, format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    # update with correct settings
+    data = {
+        "additional_settings": {
+            "instance_url": "test2",
+            "username": "test2",
+            "password": "test2",
+            "is_configured": True,
+            "state_mapping": {
+                "firing": [1, "New"],
+                "acknowledged": None,
+                "resolved": None,
+                "silenced": None,
+            },
+        }
+    }
+    response = client.put(url, data, format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_200_OK
+
+    alert_receive_channel.refresh_from_db()
+    assert alert_receive_channel.additional_settings == data["additional_settings"]
+
+    data["additional_settings"]["password"] = SERVICENOW_PASSWORD_PLACEHOLDER
+    assert response.json()["additional_settings"] == data["additional_settings"]
+
+    # don't update password if it == SERVICENOW_PASSWORD_PLACEHOLDER
+    data = {
+        "additional_settings": {
+            "instance_url": "test2",
+            "username": "test2",
+            "password": SERVICENOW_PASSWORD_PLACEHOLDER,
+            "is_configured": True,
+            "state_mapping": {
+                "firing": [1, "New"],
+                "acknowledged": None,
+                "resolved": None,
+                "silenced": None,
+            },
+        }
+    }
+    current_password = alert_receive_channel.additional_settings["password"]
+    response = client.put(url, data, format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()["additional_settings"] == data["additional_settings"]
+
+    alert_receive_channel.refresh_from_db()
+    assert alert_receive_channel.additional_settings["password"] == current_password
+
+
+@pytest.mark.django_db
+def test_update_other_integration_additional_settings(
+    make_organization_and_user_with_plugin_token,
+    make_alert_receive_channel,
+    make_user_auth_headers,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+    client = APIClient()
+    alert_receive_channel = make_alert_receive_channel(organization)
+    url = reverse("api-internal:alert_receive_channel-detail", kwargs={"pk": alert_receive_channel.public_primary_key})
+    # integration doesn't have additional_settings
+    data = {
+        "additional_settings": {
+            "instance_url": "test",
+            "username": "test",
+            "password": "test",
+            "is_configured": True,
+            "state_mapping": {
+                "firing": [1, "New"],
+                "acknowledged": None,
+                "resolved": None,
+                "silenced": None,
+            },
+        }
+    }
+    response = client.put(url, data, format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
 
 
 def _webhook_data(webhook_id=ANY, webhook_name=ANY, webhook_url=ANY, alert_receive_channel_id=ANY):

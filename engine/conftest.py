@@ -28,6 +28,7 @@ from apps.alerts.tests.factories import (
     AlertFactory,
     AlertGroupFactory,
     AlertGroupLogRecordFactory,
+    AlertReceiveChannelConnectionFactory,
     AlertReceiveChannelFactory,
     ChannelFilterFactory,
     CustomActionFactory,
@@ -103,6 +104,7 @@ register(TeamFactory)
 
 
 register(AlertReceiveChannelFactory)
+register(AlertReceiveChannelConnectionFactory)
 register(ChannelFilterFactory)
 register(EscalationPolicyFactory)
 register(OnCallScheduleICalFactory)
@@ -479,6 +481,32 @@ def make_alert_receive_channel():
         return alert_receive_channel
 
     return _make_alert_receive_channel
+
+
+@pytest.fixture
+def make_alert_receive_channel_connection():
+    def _make_alert_receive_channel_connection(source_channel, connected_channel, **kwargs):
+        alert_receive_channel_connection = AlertReceiveChannelConnectionFactory(
+            source_channel=source_channel, connected_channel=connected_channel, **kwargs
+        )
+        return alert_receive_channel_connection
+
+    return _make_alert_receive_channel_connection
+
+
+@pytest.fixture
+def make_alert_receive_channel_connection_with_channels(
+    make_alert_receive_channel, make_alert_receive_channel_connection
+):
+    def _make_alert_receive_channel_connection_with_channels(organization, **kwargs):
+        source_channel = make_alert_receive_channel(
+            organization, integration=AlertReceiveChannel.INTEGRATION_SERVICENOW
+        )
+        connected_channel = make_alert_receive_channel(organization)
+        alert_receive_channel_connection = make_alert_receive_channel_connection(source_channel, connected_channel)
+        return source_channel, connected_channel, alert_receive_channel_connection
+
+    return _make_alert_receive_channel_connection_with_channels
 
 
 @pytest.fixture
