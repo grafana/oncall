@@ -26,16 +26,11 @@ class AlertGroupState(str, Enum):
 
 
 # ServiceNow Integration
-
-ServiceNowStateId: int
-ServiceNowStateName: str
-
-
 class ServiceNowStateMapping(typing.TypedDict):
-    firing: typing.Optional[typing.Tuple["ServiceNowStateId", "ServiceNowStateName"]]
-    acknowledged: typing.Optional[typing.Tuple["ServiceNowStateId", "ServiceNowStateName"]]
-    resolved: typing.Optional[typing.Tuple["ServiceNowStateId", "ServiceNowStateName"]]
-    silenced: typing.Optional[typing.Tuple["ServiceNowStateId", "ServiceNowStateName"]]
+    firing: typing.Optional[typing.Tuple[int, str]]
+    acknowledged: typing.Optional[typing.Tuple[int, str]]
+    resolved: typing.Optional[typing.Tuple[int, str]]
+    silenced: typing.Optional[typing.Tuple[int, str]]
 
 
 class ServiceNowSettings(typing.TypedDict):
