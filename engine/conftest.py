@@ -209,7 +209,7 @@ def clear_ical_users_cache():
 
 
 @pytest.fixture(autouse=True)
-def mock_servicenow_integration_enabled(monkeypatch):
+def mock_alert_receive_channel_servicenow_integration(monkeypatch):
     AlertReceiveChannel.INTEGRATION_SERVICENOW = "servicenow"
     monkeypatch.setattr(
         AlertReceiveChannel, "WEB_INTEGRATION_CHOICES", AlertReceiveChannel.WEB_INTEGRATION_CHOICES[:] + ["servicenow"]

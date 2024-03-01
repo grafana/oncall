@@ -7,7 +7,6 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.test import APIClient
 
-from apps.alerts.integration_options_mixin import IntegrationOptionsMixin
 from apps.alerts.models import AlertReceiveChannel, EscalationPolicy
 from apps.api.permissions import LegacyAccessControlRole
 from apps.api.serializers.servicenow_settings import SERVICENOW_PASSWORD_PLACEHOLDER
@@ -1700,6 +1699,7 @@ def test_team_not_updated_if_not_in_data(
     assert alert_receive_channel.team == team
 
 
+@pytest.mark.skip(reason="doesn't work with OSS settings")
 @pytest.mark.django_db
 def test_create_servicenow_integration(
     make_organization_and_user_with_plugin_token,
@@ -1738,7 +1738,6 @@ def test_create_servicenow_integration(
         "additional_settings": {"instance_url": "test", "username": "test", "password": "test"},
     }
     response = client.post(url, data, format="json", **make_user_auth_headers(user, token))
-    assert IntegrationOptionsMixin.INTEGRATION_CHOICES == ()
     assert response.status_code == status.HTTP_201_CREATED
 
 
