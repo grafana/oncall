@@ -89,7 +89,11 @@ export const ConnectIntegrationModal = observer(({ onDismiss }: { onDismiss: () 
           emptyText: isLoading ? 'Loading...' : 'No integrations found',
         }}
       />
-      <div className={cn(commonStyles.bottomDrawerButtons, styles.connectIntegrationModalButtons)}>
+      <div
+        className={cn(commonStyles.bottomDrawerButtons, {
+          [styles.connectIntegrationModalButtons]: count > page_size,
+        })}
+      >
         <HorizontalGroup justify="flex-end">
           <Button variant="secondary" onClick={onDismiss}>
             Close

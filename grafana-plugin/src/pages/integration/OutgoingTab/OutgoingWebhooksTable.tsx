@@ -115,7 +115,12 @@ const OutgoingWebhookContextMenu = observer(
             {
               onClick: () => {
                 openModal({
-                  onConfirm: () => {},
+                  onConfirm: async () => {
+                    await alertReceiveChannelWebhooksStore[webhook.is_webhook_enabled ? 'disable' : 'enable'](
+                      integrationId,
+                      webhook.id
+                    );
+                  },
                   title: `Are you sure you want to ${
                     webhook.is_webhook_enabled ? 'disable' : 'enable'
                   } outgoing webhook?`,
