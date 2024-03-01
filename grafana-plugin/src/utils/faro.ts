@@ -1,14 +1,4 @@
-import {
-  Faro,
-  initializeFaro,
-  ErrorsInstrumentation,
-  WebVitalsInstrumentation,
-  ConsoleInstrumentation,
-  LogLevel,
-  SessionInstrumentation,
-  InternalLoggerLevel,
-  getWebInstrumentations,
-} from '@grafana/faro-web-sdk';
+import { Faro, initializeFaro, LogLevel, InternalLoggerLevel, getWebInstrumentations } from '@grafana/faro-web-sdk';
 
 import plugin from '../../package.json'; // eslint-disable-line
 import {
