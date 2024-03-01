@@ -40,7 +40,7 @@ test('create advanced webhook and check it is displayed on the list correctly', 
   await webhooksFormDivs.locator('.monaco-editor').first().click();
   await page.keyboard.insertText(WEBHOOK_URL);
 
-  await clickButton({ page, buttonText: 'Create Webhook' });
+  await clickButton({ page, buttonText: 'Create' });
 
   await checkWebhookPresenceInTable({ page, webhookName: WEBHOOK_NAME, expectedTriggerType: 'Resolved' });
 });

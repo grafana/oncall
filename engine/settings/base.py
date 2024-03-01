@@ -284,8 +284,8 @@ INSTALLED_APPS = [
 
 REST_FRAMEWORK = {
     "DEFAULT_PARSER_CLASSES": (
-        "engine.parsers.JSONParser",
-        "engine.parsers.FormParser",
+        "rest_framework.parsers.JSONParser",
+        "rest_framework.parsers.FormParser",
         "rest_framework.parsers.MultiPartParser",
     ),
     "DEFAULT_AUTHENTICATION_CLASSES": [],
@@ -741,7 +741,6 @@ SELF_HOSTED_SETTINGS = {
 
 GRAFANA_INCIDENT_STATIC_API_KEY = os.environ.get("GRAFANA_INCIDENT_STATIC_API_KEY", None)
 
-DATA_UPLOAD_MAX_MEMORY_SIZE = getenv_integer("DATA_UPLOAD_MAX_MEMORY_SIZE", 1_048_576)  # 1mb by default
 JINJA_TEMPLATE_MAX_LENGTH = 50000
 JINJA_RESULT_TITLE_MAX_LENGTH = 500
 JINJA_RESULT_MAX_LENGTH = 50000

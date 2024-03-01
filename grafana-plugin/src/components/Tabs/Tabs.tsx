@@ -1,8 +1,10 @@
-import React, { FC, useState } from 'react';
+import React, { FC, useEffect, useState } from 'react';
 
 import { css } from '@emotion/css';
 import { Tab, TabsBar, TabContent, useStyles2 } from '@grafana/ui';
 import cn from 'classnames';
+
+import { LocationHelper } from 'utils/LocationHelper';
 
 interface TabConfig {
   label: string;
@@ -11,24 +13,45 @@ interface TabConfig {
 
 interface TabsProps {
   tabs: TabConfig[];
-  defaultActiveLabel?: string;
   tabContentClassName?: string;
+  shouldBeSyncedWithQueryString?: boolean;
+  // in case there are more than 1 <Tabs /> in the page, we want to use different queryString keys
+  queryStringKey?: string;
 }
 
-export const Tabs: FC<TabsProps> = ({ tabs, defaultActiveLabel, tabContentClassName }) => {
+export const Tabs: FC<TabsProps> = ({
+  tabs,
+  tabContentClassName,
+  shouldBeSyncedWithQueryString = true,
+  queryStringKey = 'activeTab',
+}) => {
   const styles = useStyles2(getStyles);
-  const [activeTabLabel, setActiveTabLabel] = useState(defaultActiveLabel || tabs[0].label);
+
+  const defaultActiveLabel =
+    (shouldBeSyncedWithQueryString && LocationHelper.getQueryParam(queryStringKey)) || tabs[0].label;
+  const [activeTabLabel, setActiveTabLabel] = useState(defaultActiveLabel);
+
+  const setLabel = (label: string) => {
+    setActiveTabLabel(label);
+    if (shouldBeSyncedWithQueryString) {
+      LocationHelper.update({ [queryStringKey]: label }, 'partial');
+    }
+  };
+
+  useEffect(
+    () => () => {
+      if (shouldBeSyncedWithQueryString) {
+        LocationHelper.update({ [queryStringKey]: undefined }, 'partial');
+      }
+    },
+    []
+  );
 
   return (
     <>
       <TabsBar>
         {tabs.map(({ label }) => (
-          <Tab
-            label={label}
-            key={label}
-            onChangeTab={() => setActiveTabLabel(label)}
-            active={activeTabLabel === label}
-          />
+          <Tab label={label} key={label} onChangeTab={() => setLabel(label)} active={activeTabLabel === label} />
         ))}
       </TabsBar>
       <TabContent className={cn(styles.content, tabContentClassName)}>

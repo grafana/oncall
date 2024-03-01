@@ -139,7 +139,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
   }
 
   private rootElRef: React.RefObject<HTMLDivElement>;
-  private pollingIntervalId: NodeJS.Timer = undefined;
+  private pollingIntervalId: ReturnType<typeof setInterval> = undefined;
 
   componentDidMount() {
     const { store } = this.props;
@@ -630,7 +630,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
     const {
       store: { alertReceiveChannelStore },
     } = this.props;
-    const integration = AlertReceiveChannelHelper.getIntegration(
+    const integration = AlertReceiveChannelHelper.getIntegrationSelectOption(
       alertReceiveChannelStore,
       record.alert_receive_channel
     );

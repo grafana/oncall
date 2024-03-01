@@ -30,7 +30,8 @@ import { OutgoingWebhookStatus } from 'containers/OutgoingWebhookStatus/Outgoing
 import { WebhooksTemplateEditor } from 'containers/WebhooksTemplateEditor/WebhooksTemplateEditor';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { LabelKeyValue } from 'models/label/label.types';
-import { OutgoingWebhook, OutgoingWebhookPreset } from 'models/outgoing_webhook/outgoing_webhook.types';
+import { OutgoingWebhookPreset } from 'models/outgoing_webhook/outgoing_webhook.types';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 import { WebhookFormActionType } from 'pages/outgoing_webhooks/OutgoingWebhooks.types';
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
@@ -46,7 +47,7 @@ import styles from 'containers/OutgoingWebhookForm/OutgoingWebhookForm.module.cs
 const cx = cn.bind(styles);
 
 interface OutgoingWebhookFormProps {
-  id: OutgoingWebhook['id'] | 'new';
+  id: ApiSchemas['Webhook']['id'] | 'new';
   action: WebhookFormActionType;
   onHide: () => void;
   onUpdate: () => void;
@@ -55,7 +56,7 @@ interface OutgoingWebhookFormProps {
 
 export const WebhookTabs = {
   Settings: new KeyValuePair('Settings', 'Settings'),
-  LastRun: new KeyValuePair('LastRun', 'Last Run'),
+  LastRun: new KeyValuePair('LastRun', 'Last Event'),
 };
 
 const CustomFieldSectionRenderer: React.FC<CustomFieldSectionRendererProps> = observer(({ setValue, getValues }) => {
@@ -104,7 +105,7 @@ export const OutgoingWebhookForm = observer((props: OutgoingWebhookFormProps) =>
   });
 
   const handleSubmit = useCallback(
-    async (data: Partial<OutgoingWebhook>) => {
+    async (data: Partial<ApiSchemas['Webhook']>) => {
       try {
         if (isNewOrCopy) {
           await outgoingWebhookStore.create(data);
@@ -168,7 +169,7 @@ export const OutgoingWebhookForm = observer((props: OutgoingWebhookFormProps) =>
   }
 
   let data:
-    | OutgoingWebhook
+    | ApiSchemas['Webhook']
     | {
         is_webhook_enabled: boolean;
         is_legacy: boolean;
@@ -275,30 +276,38 @@ export const OutgoingWebhookForm = observer((props: OutgoingWebhookFormProps) =>
   return (
     // show tabbed drawer (edit/live_run)
     <>
-      <Drawer scrollableContent title={'Outgoing webhook details'} onClose={onHide} closeOnMaskClick={false}>
+      <Drawer
+        scrollableContent
+        title={'Outgoing webhook details'}
+        onClose={onHide}
+        closeOnMaskClick={false}
+        tabs={
+          <div className={cx('tabsWrapper')}>
+            <TabsBar>
+              <Tab
+                key={WebhookTabs.Settings.key}
+                onChangeTab={() => {
+                  setActiveTab(WebhookTabs.Settings.key);
+                  history.push(`${PLUGIN_ROOT}/outgoing_webhooks/edit/${id}`);
+                }}
+                active={activeTab === WebhookTabs.Settings.key}
+                label={WebhookTabs.Settings.value}
+              />
+
+              <Tab
+                key={WebhookTabs.LastRun.key}
+                onChangeTab={() => {
+                  setActiveTab(WebhookTabs.LastRun.key);
+                  history.push(`${PLUGIN_ROOT}/outgoing_webhooks/last_run/${id}`);
+                }}
+                active={activeTab === WebhookTabs.LastRun.key}
+                label={WebhookTabs.LastRun.value}
+              />
+            </TabsBar>
+          </div>
+        }
+      >
         <div className={cx('webhooks__drawerContent')}>
-          <TabsBar>
-            <Tab
-              key={WebhookTabs.Settings.key}
-              onChangeTab={() => {
-                setActiveTab(WebhookTabs.Settings.key);
-                history.push(`${PLUGIN_ROOT}/outgoing_webhooks/edit/${id}`);
-              }}
-              active={activeTab === WebhookTabs.Settings.key}
-              label={WebhookTabs.Settings.value}
-            />
-
-            <Tab
-              key={WebhookTabs.LastRun.key}
-              onChangeTab={() => {
-                setActiveTab(WebhookTabs.LastRun.key);
-                history.push(`${PLUGIN_ROOT}/outgoing_webhooks/last_run/${id}`);
-              }}
-              active={activeTab === WebhookTabs.LastRun.key}
-              label={WebhookTabs.LastRun.value}
-            />
-          </TabsBar>
-
           <WebhookTabsContent
             id={id}
             action={action}
@@ -362,7 +371,7 @@ export const OutgoingWebhookForm = observer((props: OutgoingWebhookFormProps) =>
               )}
               <WithPermissionControlTooltip userAction={UserActions.OutgoingWebhooksWrite}>
                 <Button form={form.name} type="submit" disabled={data.is_legacy}>
-                  {isNewOrCopy ? 'Create' : 'Update'} Webhook
+                  {isNewOrCopy ? 'Create' : 'Update'}
                 </Button>
               </WithPermissionControlTooltip>
             </HorizontalGroup>
@@ -374,11 +383,11 @@ export const OutgoingWebhookForm = observer((props: OutgoingWebhookFormProps) =>
 });
 
 interface WebhookTabsProps {
-  id: OutgoingWebhook['id'] | 'new';
+  id: ApiSchemas['Webhook']['id'] | 'new';
   activeTab: string;
   action: WebhookFormActionType;
   data:
-    | OutgoingWebhook
+    | ApiSchemas['Webhook']
     | {
         is_webhook_enabled: boolean;
         is_legacy: boolean;
@@ -387,12 +396,12 @@ interface WebhookTabsProps {
   onHide: () => void;
   onUpdate: () => void;
   onDelete: () => void;
-  handleSubmit: (data: Partial<OutgoingWebhook>) => void;
+  handleSubmit: (data: Partial<ApiSchemas['Webhook']>) => void;
   formElement: React.ReactElement;
 }
 
 const WebhookTabsContent: React.FC<WebhookTabsProps> = observer(
-  ({ id, action, activeTab, data, onHide, onUpdate, onDelete, formElement }) => {
+  ({ id, action, activeTab, data, onHide, onDelete, formElement }) => {
     const [confirmationModal, setConfirmationModal] = useState<ConfirmModalProps>(undefined);
     const { outgoingWebhookStore, hasFeature, grafanaTeamStore, alertReceiveChannelStore } = useStore();
     const form = createForm({
@@ -441,7 +450,7 @@ const WebhookTabsContent: React.FC<WebhookTabsProps> = observer(
                   </WithPermissionControlTooltip>
                   <WithPermissionControlTooltip userAction={UserActions.OutgoingWebhooksWrite}>
                     <Button form={form.name} type="submit" disabled={data.is_legacy}>
-                      {action === WebhookFormActionType.NEW ? 'Create' : 'Update'} Webhook
+                      {action === WebhookFormActionType.NEW ? 'Create' : 'Update'}
                     </Button>
                   </WithPermissionControlTooltip>
                 </HorizontalGroup>
@@ -456,7 +465,7 @@ const WebhookTabsContent: React.FC<WebhookTabsProps> = observer(
             )}
           </>
         )}
-        {activeTab === WebhookTabs.LastRun.key && <OutgoingWebhookStatus id={id} onUpdate={onUpdate} />}
+        {activeTab === WebhookTabs.LastRun.key && <OutgoingWebhookStatus id={id} closeDrawer={onHide} />}
       </div>
     );
   }

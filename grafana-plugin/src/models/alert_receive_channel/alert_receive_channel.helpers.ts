@@ -43,7 +43,7 @@ export class AlertReceiveChannelHelper {
       : undefined;
   }
 
-  static getIntegration(
+  static getIntegrationSelectOption(
     store: AlertReceiveChannelStore,
     alertReceiveChannel: Partial<ApiSchemas['AlertReceiveChannel'] | ApiSchemas['FastAlertReceiveChannel']>
   ): SelectOption {
@@ -126,7 +126,7 @@ export class AlertReceiveChannelHelper {
     payload: { [key: string]: unknown }
   ) {
     return (
-      await onCallApi().POST('/alertgroups/{id}/preview_template/', {
+      await onCallApi().POST('/alert_receive_channels/{id}/preview_template/', {
         params: { path: { id } },
         body: { template_name, template_body, payload },
       })

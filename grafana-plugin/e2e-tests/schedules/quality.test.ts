@@ -18,10 +18,6 @@ test('check schedule quality for simple 1-user schedule', async ({ adminRolePage
   const scheduleQualityDetailsElement = page.getByTestId('schedule-quality-details');
   await scheduleQualityDetailsElement.waitFor({ state: 'visible' });
 
-  await expect(scheduleQualityDetailsElement.locator('span[class*="Text"] >> nth=2 ')).toHaveText(
-    'Schedule has no gaps'
-  );
-  await expect(scheduleQualityDetailsElement.locator('span[class*="Text"] >> nth=3 ')).toHaveText(
-    'Schedule is perfectly balanced'
-  );
+  await expect(scheduleQualityDetailsElement).toHaveText(/Schedule has no gaps/);
+  await expect(scheduleQualityDetailsElement).toHaveText(/Schedule is perfectly balanced/);
 });
