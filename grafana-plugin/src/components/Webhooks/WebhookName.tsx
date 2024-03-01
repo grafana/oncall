@@ -3,23 +3,30 @@ import React from 'react';
 import { css } from '@emotion/css';
 import { Badge, Button, useStyles2 } from '@grafana/ui';
 
-import { OutgoingWebhook } from 'models/outgoing_webhook/outgoing_webhook.types';
-
 export const WebhookName = ({
-  webhook: { is_webhook_enabled, name },
+  name,
+  isEnabled,
   onNameClick,
+  displayAsLink,
 }: {
-  webhook: OutgoingWebhook;
-  onNameClick: () => void;
+  name: string;
+  isEnabled: boolean;
+  onNameClick?: () => void;
+  displayAsLink?: boolean;
 }) => {
   const styles = useStyles2(getStyles);
 
   return (
     <div className={styles.nameColumn}>
-      <Button fill="text" className={styles.webhookName} onClick={onNameClick}>
-        {name}
-      </Button>
-      {!is_webhook_enabled && <Badge className={styles.disabledBadge} text="Disabled" color="orange" icon="pause" />}
+      {displayAsLink ? (
+        <Button fill="text" className={styles.webhookName} onClick={onNameClick}>
+          {name}
+        </Button>
+      ) : (
+        <span className={styles.webhookName}>{name}</span>
+      )}
+
+      {!isEnabled && <Badge className={styles.disabledBadge} text="Disabled" color="orange" icon="pause" />}
     </div>
   );
 };

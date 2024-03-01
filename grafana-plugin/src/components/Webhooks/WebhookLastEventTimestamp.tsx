@@ -5,8 +5,8 @@ import { useTheme2, useStyles2, HorizontalGroup, Button } from '@grafana/ui';
 import dayjs from 'dayjs';
 
 import { Tag } from 'components/Tag/Tag';
-import { OutgoingWebhook } from 'models/outgoing_webhook/outgoing_webhook.types';
 import { getTzOffsetString } from 'models/timezone/timezone.helpers';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 import { OutgoingTabDrawerKey } from 'pages/integration/OutgoingTab/OutgoingTab.types';
 
 import { WebhookStatusCodeBadge } from './WebhookStatusCodeBadge';
@@ -15,7 +15,7 @@ export const WebhookLastEventTimestamp = ({
   webhook,
   openDrawer,
 }: {
-  webhook: OutgoingWebhook;
+  webhook: ApiSchemas['Webhook'];
   openDrawer: (key: OutgoingTabDrawerKey) => void;
 }) => {
   const theme = useTheme2();

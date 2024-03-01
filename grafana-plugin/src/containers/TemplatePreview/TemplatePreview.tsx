@@ -7,7 +7,6 @@ import { observer } from 'mobx-react';
 import { Text } from 'components/Text/Text';
 import { AlertReceiveChannelHelper } from 'models/alert_receive_channel/alert_receive_channel.helpers';
 import { Alert } from 'models/alertgroup/alertgroup.types';
-import { OutgoingWebhook } from 'models/outgoing_webhook/outgoing_webhook.types';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { LabelTemplateOptions } from 'pages/integration/IntegrationCommon.config';
 import { useStore } from 'state/useStore';
@@ -27,7 +26,7 @@ interface TemplatePreviewProps {
   payload?: { [key: string]: unknown };
   alertReceiveChannelId: ApiSchemas['AlertReceiveChannel']['id'];
   alertGroupId?: Alert['pk'];
-  outgoingWebhookId?: OutgoingWebhook['id'];
+  outgoingWebhookId?: ApiSchemas['Webhook']['id'];
   templatePage: TEMPLATE_PAGE;
 }
 interface ConditionalResult {
