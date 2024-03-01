@@ -201,7 +201,7 @@ export const IntegrationForm = observer(
                 invalid={!!errors[FormFieldKeys.Description]}
                 error={errors[FormFieldKeys.Description]?.message}
               >
-                <TextArea {...field} className={styles.textarea} placeholder={'Integration Name'} />
+                <TextArea {...field} className={styles.textarea} placeholder={'Integration Description'} />
               </Field>
             )}
           />
