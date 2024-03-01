@@ -1,5 +1,3 @@
-import { SpanStatusCode } from '@opentelemetry/api';
-import { SemanticAttributes } from '@opentelemetry/semantic-conventions';
 import axios from 'axios';
 import qs from 'query-string';
 
@@ -53,8 +51,6 @@ export const makeRequest = async <RT = any>(path: string, config: RequestConfig)
     if (!span) {
       span = tracer.startSpan('http-request');
       span.setAttribute('page_url', document.URL.split('//')[1]);
-      span.setAttribute(SemanticAttributes.HTTP_URL, url);
-      span.setAttribute(SemanticAttributes.HTTP_METHOD, method);
     }
 
     return new Promise<RT>((resolve, reject) => {
@@ -88,7 +84,6 @@ export const makeRequest = async <RT = any>(path: string, config: RequestConfig)
           .catch((ex) => {
             FaroHelper.faro.api.pushEvent('Request failed', { url });
             FaroHelper.faro.api.pushError(ex);
-            span.setStatus({ code: SpanStatusCode.ERROR });
             span.end();
             reject(ex);
           });

@@ -1,7 +1,7 @@
 import { test, expect, Page, Locator } from '../fixtures';
 import { verifyThatAlertGroupIsRoutedCorrectlyButNotEscalated } from '../utils/alertGroup';
 import { EscalationStep, createEscalationChain } from '../utils/escalationChain';
-import { clickButton, generateRandomValue, selectDropdownValue } from '../utils/forms';
+import { generateRandomValue, selectDropdownValue } from '../utils/forms';
 import {
   assignEscalationChainToIntegration,
   createIntegration,

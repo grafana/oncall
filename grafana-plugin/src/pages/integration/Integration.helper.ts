@@ -71,10 +71,6 @@ export const IntegrationHelper = {
     return hasSlack || hasTelegram || isMSTeamsInstalled;
   },
 
-  fetchChatOps(store: RootStore): Promise<void> {
-    return store.msteamsChannelStore.updateMSTeamsChannels();
-  },
-
   getChatOpsChannels(channelFilter: ChannelFilter, store: RootStore): Array<{ name: string; icon: IconName }> {
     const channels: Array<{ name: string; icon: IconName }> = [];
     const telegram = Object.keys(store.telegramChannelStore.items).map((k) => store.telegramChannelStore.items[k]);

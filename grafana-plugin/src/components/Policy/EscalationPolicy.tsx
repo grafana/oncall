@@ -3,6 +3,7 @@ import React, { ChangeEvent } from 'react';
 import { SelectableValue } from '@grafana/data';
 import { Button, Input, Select, IconButton } from '@grafana/ui';
 import cn from 'classnames/bind';
+import { observer } from 'mobx-react';
 import moment from 'moment-timezone';
 import { SortableElement } from 'react-sortable-hoc';
 import reactStringReplace from 'react-string-replace';
@@ -21,10 +22,10 @@ import {
   EscalationPolicyOption,
 } from 'models/escalation_policy/escalation_policy.types';
 import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
-import { OutgoingWebhook } from 'models/outgoing_webhook/outgoing_webhook.types';
 import { Schedule } from 'models/schedule/schedule.types';
 import { User } from 'models/user/user.types';
 import { UserGroup } from 'models/user_group/user_group.types';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 import { SelectOption, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import { getVar } from 'utils/DOM';
@@ -56,6 +57,7 @@ export interface EscalationPolicyProps extends ElementSortableProps {
   isSlackInstalled: boolean;
 }
 
+@observer
 class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
   render() {
     const { data, escalationChoices, number, isDisabled, backgroundClassName, backgroundHexNumber } = this.props;
@@ -333,6 +335,7 @@ class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
           disabled={isDisabled}
           items={scheduleStore.items}
           fetchItemsFn={scheduleStore.updateItems}
+          fetchItemFn={scheduleStore.updateItem}
           getSearchResult={scheduleStore.getSearchResult}
           displayField="name"
           valueField="id"
@@ -368,6 +371,8 @@ class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
           disabled={isDisabled}
           items={userGroupStore.items}
           fetchItemsFn={userGroupStore.updateItems}
+          fetchItemFn={() => undefined}
+          // TODO: fetchItemFn
           getSearchResult={userGroupStore.getSearchResult}
           displayField="name"
           valueField="id"
@@ -391,7 +396,7 @@ class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
 
     return (
       <WithPermissionControlTooltip key="custom-webhook" userAction={UserActions.EscalationChainsWrite}>
-        <GSelect<OutgoingWebhook>
+        <GSelect<ApiSchemas['Webhook']>
           showSearch
           disabled={isDisabled}
           items={outgoingWebhookStore.items}
@@ -437,6 +442,7 @@ class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
           disabled={isDisabled}
           items={grafanaTeamStore.items}
           fetchItemsFn={grafanaTeamStore.updateItems}
+          fetchItemFn={grafanaTeamStore.fetchItemById}
           getSearchResult={grafanaTeamStore.getSearchResult}
           displayField="name"
           valueField="id"

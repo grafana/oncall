@@ -56,6 +56,7 @@ export const GrafanaTeamSelect = observer(
         showSearch
         items={grafanaTeamStore.items}
         fetchItemsFn={grafanaTeamStore.updateItems}
+        fetchItemFn={grafanaTeamStore.fetchItemById}
         getSearchResult={grafanaTeamStore.getSearchResult}
         displayField="name"
         valueField="id"

@@ -239,6 +239,7 @@ export const IntegrationForm = observer((props: IntegrationFormProps) => {
 
       if (!IntegrationHelper.isSpecificIntegration(selectedOption.value, 'grafana_alerting')) {
         pushHistory(response.id);
+        return;
       }
 
       await (data.is_existing

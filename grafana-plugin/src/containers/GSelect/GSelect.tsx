@@ -17,7 +17,7 @@ interface GSelectProps<Item> {
     [key: string]: Item;
   };
   fetchItemsFn: (query?: string) => Promise<Item[] | void>;
-  fetchItemFn?: (id: string) => Promise<Item | void>;
+  fetchItemFn: (id: string) => Promise<Item | void>;
   getSearchResult: (query?: string) => Item[] | { page_size: number; count: number; results: Item[] };
   placeholder: string;
   isLoading?: boolean;
@@ -133,6 +133,8 @@ export const GSelect = observer(<Item,>(props: GSelectProps<Item>) => {
     const values = isMulti ? value : [value];
 
     (values ? (values as string[]) : []).forEach((value: string) => {
+      // Handle case when selected value is not retrieved by fetchItemsFn (e.g. due to pagination).
+      // Then we need to retrieve a selected value fron the backend separately by id
       if (!isNil(value) && !propItems[value] && fetchItemFn) {
         fetchItemFn(value);
       }

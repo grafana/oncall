@@ -3,10 +3,10 @@ import React, { FC } from 'react';
 import { css } from '@emotion/css';
 import { Badge, useStyles2 } from '@grafana/ui';
 
-import { OutgoingWebhook } from 'models/outgoing_webhook/outgoing_webhook.types';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 
 interface WebhookStatusCodeBadgeProps {
-  webhook: OutgoingWebhook;
+  webhook: ApiSchemas['Webhook'];
 }
 
 export const WebhookStatusCodeBadge: FC<WebhookStatusCodeBadgeProps> = ({ webhook }) => {

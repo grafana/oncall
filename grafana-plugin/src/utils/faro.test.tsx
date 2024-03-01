@@ -20,12 +20,6 @@ jest.mock('@grafana/faro-web-sdk', () => ({
 jest.mock('@grafana/faro-web-tracing', () => ({
   TracingInstrumentation: jest.fn(),
 }));
-jest.mock('@opentelemetry/instrumentation-document-load', () => ({
-  DocumentLoadInstrumentation: jest.fn(),
-}));
-jest.mock('@opentelemetry/instrumentation-fetch', () => ({
-  FetchInstrumentation: jest.fn(),
-}));
 
 describe('Faro', () => {
   beforeEach(() => {

@@ -58,6 +58,9 @@ export const getStyles = (theme: GrafanaTheme2) => ({
   backsyncColumn: css({
     display: 'flex',
     justifyContent: 'flex-end',
+    '& label': {
+      position: 'relative',
+    },
   }),
   triggerTemplateWrapper: css({
     position: 'relative',
@@ -76,5 +79,11 @@ export const getStyles = (theme: GrafanaTheme2) => ({
   }),
   tabsWrapper: css({
     padding: '16px 16px 0 8px',
+  }),
+  connectIntegrationModalContent: css({
+    paddingBottom: 0,
+  }),
+  connectIntegrationModalButtons: css({
+    marginTop: '50px',
   }),
 });

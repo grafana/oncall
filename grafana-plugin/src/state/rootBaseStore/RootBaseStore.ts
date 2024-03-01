@@ -5,6 +5,7 @@ import { OnCallAppPluginMeta } from 'types';
 
 import { AlertReceiveChannelStore } from 'models/alert_receive_channel/alert_receive_channel';
 import { AlertReceiveChannelFiltersStore } from 'models/alert_receive_channel_filters/alert_receive_channel_filters';
+import { AlertReceiveChannelWebhooksStore } from 'models/alert_receive_channel_webhooks/alert_receive_channel_webhooks';
 import { AlertGroupStore } from 'models/alertgroup/alertgroup';
 import { ApiTokenStore } from 'models/api_token/api_token';
 import { CloudStore } from 'models/cloud/cloud';
@@ -89,6 +90,7 @@ export class RootBaseStore {
   directPagingStore = new DirectPagingStore(this);
   grafanaTeamStore = new GrafanaTeamStore(this);
   alertReceiveChannelStore = new AlertReceiveChannelStore(this);
+  alertReceiveChannelWebhooksStore = new AlertReceiveChannelWebhooksStore(this);
   outgoingWebhookStore = new OutgoingWebhookStore(this);
   alertReceiveChannelFiltersStore = new AlertReceiveChannelFiltersStore(this);
   escalationChainStore = new EscalationChainStore(this);

@@ -55,6 +55,7 @@ export function createForm({
         extra: {
           items: grafanaTeamStore.items,
           fetchItemsFn: grafanaTeamStore.updateItems,
+          fetchItemFn: grafanaTeamStore.fetchItemById,
           getSearchResult: grafanaTeamStore.getSearchResult,
           displayField: 'name',
           valueField: 'id',
