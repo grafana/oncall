@@ -79,7 +79,7 @@ export const getUTCByDay = ({
   let UTCDays = [];
   let byDayOptions = [];
   dayOptions.forEach(({ value }) => byDayOptions.push(value));
-  by_day.forEach((element) => {
+  by_day?.forEach((element) => {
     let index = byDayOptions.indexOf(element);
     index = getUTCDayIndex(index, moment, false);
     UTCDays.push(byDayOptions[index]);
@@ -104,7 +104,7 @@ export const getSelectedDays = ({
   const byDayOptions = dayOptions.map(({ value }) => value);
 
   let selectedTimezoneDays = [];
-  by_day.forEach((element) => {
+  by_day?.forEach((element) => {
     let index = byDayOptions.indexOf(element);
     index = getUTCDayIndex(index, moment, true);
     selectedTimezoneDays.push(byDayOptions[index]);
