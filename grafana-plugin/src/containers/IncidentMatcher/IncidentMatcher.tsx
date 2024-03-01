@@ -7,8 +7,8 @@ import { observer } from 'mobx-react';
 import { Block } from 'components/GBlock/Block';
 import { SourceCode } from 'components/SourceCode/SourceCode';
 import { Text } from 'components/Text/Text';
-import { Alert } from 'models/alertgroup/alertgroup.types';
 import { makeRequest } from 'network/network';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
 import { useDebouncedCallback } from 'utils/hooks';
 
@@ -23,8 +23,8 @@ interface IncidentMatcherProps {
 }
 
 interface AlertItem {
-  pk: Alert['pk'];
-  title: Alert['title'];
+  pk: ApiSchemas['AlertGroup']['pk'];
+  title: ApiSchemas['AlertGroup']['title'];
   payload: any;
   inside_organization_number: number;
 }

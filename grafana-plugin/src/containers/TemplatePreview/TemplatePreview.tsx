@@ -7,7 +7,6 @@ import { observer } from 'mobx-react';
 import { Text } from 'components/Text/Text';
 import { AlertReceiveChannelHelper } from 'models/alert_receive_channel/alert_receive_channel.helpers';
 import { AlertGroupHelper } from 'models/alertgroup/alertgroup.helpers';
-import { Alert } from 'models/alertgroup/alertgroup.types';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { LabelTemplateOptions } from 'pages/integration/IntegrationCommon.config';
 import { useStore } from 'state/useStore';
@@ -26,7 +25,7 @@ interface TemplatePreviewProps {
   templateIsRoute?: boolean;
   payload?: { [key: string]: unknown };
   alertReceiveChannelId: ApiSchemas['AlertReceiveChannel']['id'];
-  alertGroupId?: Alert['pk'];
+  alertGroupId?: ApiSchemas['AlertGroup']['pk'];
   outgoingWebhookId?: ApiSchemas['Webhook']['id'];
   templatePage: TEMPLATE_PAGE;
 }

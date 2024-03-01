@@ -46,9 +46,10 @@ import { AttachIncidentForm } from 'containers/AttachIncidentForm/AttachIncident
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { AlertReceiveChannelHelper } from 'models/alert_receive_channel/alert_receive_channel.helpers';
 import { AlertGroupHelper } from 'models/alertgroup/alertgroup.helpers';
-import { Alert, AlertAction, TimeLineItem, TimeLineRealm, GroupedAlert } from 'models/alertgroup/alertgroup.types';
+import { AlertAction, TimeLineItem, TimeLineRealm, GroupedAlert } from 'models/alertgroup/alertgroup.types';
 import { ResolutionNoteSourceTypesToDisplayName } from 'models/resolution_note/resolution_note.types';
 import { User } from 'models/user/user.types';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 import { IncidentDropdown } from 'pages/incidents/parts/IncidentDropdown';
 import { AppFeature } from 'state/features';
 import { PageProps, WithStoreProps } from 'state/types';
@@ -471,7 +472,8 @@ class _IncidentPage extends React.Component<IncidentPageProps, IncidentPageState
     this.setState({ showAttachIncidentForm: true });
   };
 
-  getUnattachClickHandler = (pk: Alert['pk']) => AlertGroupHelper.unattachAlert(pk).then(this.update);
+  getUnattachClickHandler = (pk: ApiSchemas['AlertGroup']['pk']) =>
+    AlertGroupHelper.unattachAlert(pk).then(this.update);
 
   renderTimeline = () => {
     const {
@@ -609,7 +611,7 @@ class _IncidentPage extends React.Component<IncidentPageProps, IncidentPageState
     };
   };
 
-  getOnActionButtonClick = (incidentId: Alert['pk'], action: AlertAction) => {
+  getOnActionButtonClick = (incidentId: ApiSchemas['AlertGroup']['pk'], action: AlertAction) => {
     const { store } = this.props;
 
     return (e: SyntheticEvent) => {
@@ -619,7 +621,7 @@ class _IncidentPage extends React.Component<IncidentPageProps, IncidentPageState
     };
   };
 
-  getSilenceClickHandler = (incidentId: Alert['pk']) => {
+  getSilenceClickHandler = (incidentId: ApiSchemas['AlertGroup']['pk']) => {
     const { store } = this.props;
 
     return (value: number) => {
@@ -629,7 +631,7 @@ class _IncidentPage extends React.Component<IncidentPageProps, IncidentPageState
     };
   };
 
-  getUnsilenceClickHandler = (incidentId: Alert['pk']) => {
+  getUnsilenceClickHandler = (incidentId: ApiSchemas['AlertGroup']['pk']) => {
     const { store } = this.props;
 
     return (event: any) => {
@@ -639,10 +641,10 @@ class _IncidentPage extends React.Component<IncidentPageProps, IncidentPageState
     };
   };
 
-  getIncidentDatetimeReference = (incident: Alert | GroupedAlert): string => {
+  getIncidentDatetimeReference = (incident: ApiSchemas['AlertGroup'] | GroupedAlert): string => {
     let datetimeReference;
-    if ((incident as Alert).last_alert_at || incident.created_at) {
-      const m = moment((incident as Alert).last_alert_at || incident.created_at);
+    if ((incident as ApiSchemas['AlertGroup']).last_alert_at || incident.created_at) {
+      const m = moment((incident as ApiSchemas['AlertGroup']).last_alert_at || incident.created_at);
       datetimeReference = `(${m.fromNow()}, ${m.toString()})`;
     }
 
@@ -650,7 +652,7 @@ class _IncidentPage extends React.Component<IncidentPageProps, IncidentPageState
   };
 }
 
-function Incident({ incident }: { incident: Alert; datetimeReference: string }) {
+function Incident({ incident }: { incident: ApiSchemas['AlertGroup']; datetimeReference: string }) {
   return (
     <div key={incident.pk} className={cx('incident')}>
       <div

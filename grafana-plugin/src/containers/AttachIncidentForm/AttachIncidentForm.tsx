@@ -10,7 +10,6 @@ import { Text } from 'components/Text/Text';
 import { GSelect } from 'containers/GSelect/GSelect';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { AlertGroupHelper } from 'models/alertgroup/alertgroup.helpers';
-import { Alert } from 'models/alertgroup/alertgroup.types';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
 import { UserActions } from 'utils/authorization/authorization';
@@ -20,13 +19,13 @@ import styles from './AttachIncidentForm.module.css';
 const cx = cn.bind(styles);
 
 interface AttachIncidentFormProps {
-  id: Alert['pk'];
+  id: ApiSchemas['AlertGroup']['pk'];
   onUpdate: () => void;
   onHide: () => void;
 }
 
 interface GroupedAlertNumberProps {
-  value: Alert['pk'];
+  value: ApiSchemas['AlertGroup']['pk'];
 }
 
 const GroupedAlertNumber = observer(({ value }: GroupedAlertNumberProps) => {
@@ -45,7 +44,7 @@ export const AttachIncidentForm = observer(({ id, onUpdate, onHide }: AttachInci
 
   const { alertGroupStore } = store;
 
-  const [selected, setSelected] = useState<Alert['pk']>(undefined);
+  const [selected, setSelected] = useState<ApiSchemas['AlertGroup']['pk']>(undefined);
 
   const getChangeHandler = useCallback((value) => {
     setSelected(value);
@@ -89,7 +88,7 @@ export const AttachIncidentForm = observer(({ id, onUpdate, onHide }: AttachInci
             filterOptions={(optionId) => optionId !== id}
             value={selected}
             onChange={getChangeHandler}
-            getDescription={(item: Alert) => moment(item.started_at).format('MMM DD, YYYY hh:mm')}
+            getDescription={(item: ApiSchemas['AlertGroup']) => moment(item.started_at).format('MMM DD, YYYY hh:mm')}
             getOptionLabel={(item: SelectableValue) => <GroupedAlertNumber value={item.value} />}
           />
         </WithPermissionControlTooltip>

@@ -12,7 +12,7 @@ import { AutoLoadingState, WithGlobalNotification } from 'utils/decorators';
 import { openErrorNotification, refreshPageError } from 'utils/utils';
 
 import { AlertGroupHelper } from './alertgroup.helpers';
-import { AlertGroupColumn, Alert, AlertAction, IncidentStatus } from './alertgroup.types';
+import { AlertGroupColumn, AlertAction, IncidentStatus } from './alertgroup.types';
 
 export class AlertGroupStore {
   path = '/alertgroups/';
@@ -20,7 +20,7 @@ export class AlertGroupStore {
   bulkActions: any = [];
   silenceOptions: any;
   items: { [id: string]: ApiSchemas['AlertGroup'] } = {};
-  searchResult: { [key: string]: Array<Alert['pk']> } = {};
+  searchResult: { [key: string]: Array<ApiSchemas['AlertGroup']['pk']> } = {};
   incidentFilters: any;
   initialQuery = qs.parse(window.location.search);
   incidentsCursor?: string;
@@ -32,7 +32,7 @@ export class AlertGroupStore {
       page_size?: number;
     };
   } = {};
-  alerts = new Map<string, Alert>();
+  alerts = new Map<string, ApiSchemas['AlertGroup']>();
   newIncidents: any = {};
   acknowledgedIncidents: any = {};
   resolvedIncidents: any = {};
@@ -70,7 +70,7 @@ export class AlertGroupStore {
       this.items = {
         ...this.items,
         ...results.reduce(
-          (acc: { [key: number]: Alert }, item: Alert) => ({
+          (acc: { [key: number]: ApiSchemas['AlertGroup'] }, item: ApiSchemas['AlertGroup']) => ({
             ...acc,
             [item.pk]: item,
           }),
@@ -80,7 +80,7 @@ export class AlertGroupStore {
 
       this.searchResult = {
         ...this.searchResult,
-        [query]: results.map((item: Alert) => item.pk),
+        [query]: results.map((item: ApiSchemas['AlertGroup']) => item.pk),
       };
     });
   }
@@ -208,7 +208,7 @@ export class AlertGroupStore {
     const nextCursor = nextRaw ? qs.parse(qs.extract(nextRaw)).cursor : nextRaw;
 
     const newAlerts = new Map(
-      results.map((alert: Alert) => {
+      results.map((alert: ApiSchemas['AlertGroup']) => {
         const oldAlert = this.alerts.get(alert.pk) || {};
         const mergedAlertData = { ...oldAlert, ...alert, undoAction: alert.undoAction };
         return [alert.pk, mergedAlertData];
@@ -226,7 +226,7 @@ export class AlertGroupStore {
       this.alertsSearchResult['default'] = {
         prev: prevCursor,
         next: nextCursor,
-        results: results.map((alert: Alert) => alert.pk),
+        results: results.map((alert: ApiSchemas['AlertGroup']) => alert.pk),
         page_size,
       };
       this.rootStore.loaderStore.setLoadingAction(
@@ -236,7 +236,7 @@ export class AlertGroupStore {
     });
   }
 
-  async getAlert(pk: Alert['pk']) {
+  async getAlert(pk: ApiSchemas['AlertGroup']['pk']) {
     const alertGroup = await makeRequest(`${this.path}${pk}`, {});
     runInAction(() => {
       this.alerts.set(pk, alertGroup);
@@ -296,7 +296,7 @@ export class AlertGroupStore {
     });
   }
 
-  async doIncidentAction(alertId: Alert['pk'], action: AlertAction, isUndo = false, data?: any) {
+  async doIncidentAction(alertId: ApiSchemas['AlertGroup']['pk'], action: AlertAction, isUndo = false, data?: any) {
     this.updateAlert(alertId, { loading: true });
 
     let undoAction = undefined;
@@ -342,9 +342,9 @@ export class AlertGroupStore {
     }
   }
 
-  async updateAlert(pk: Alert['pk'], value: Partial<Alert>) {
+  async updateAlert(pk: ApiSchemas['AlertGroup']['pk'], value: Partial<ApiSchemas['AlertGroup']>) {
     this.alerts.set(pk, {
-      ...(this.alerts.get(pk) as Alert),
+      ...(this.alerts.get(pk) as ApiSchemas['AlertGroup']),
       ...value,
     });
   }
