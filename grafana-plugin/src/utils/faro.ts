@@ -7,6 +7,7 @@ import {
   LogLevel,
   SessionInstrumentation,
   InternalLoggerLevel,
+  getWebInstrumentations,
 } from '@grafana/faro-web-sdk';
 
 import plugin from '../../package.json'; // eslint-disable-line
@@ -49,18 +50,24 @@ class BaseFaroHelper {
         url: url,
         isolate: true,
         instrumentations: [
-          new ErrorsInstrumentation(),
-          new WebVitalsInstrumentation(),
-          new ConsoleInstrumentation({
-            disabledLevels: [LogLevel.TRACE, LogLevel.ERROR],
+          ...getWebInstrumentations({
+            captureConsoleDisabledLevels: [LogLevel.TRACE, LogLevel.ERROR],
           }),
-          new SessionInstrumentation(),
         ],
         internalLoggerLevel: InternalLoggerLevel.VERBOSE,
-        session: (window as any).__PRELOADED_STATE__?.faro?.session,
         app: {
           name: appName,
           version: plugin?.version,
+        },
+        sessionTracking: {
+          persistent: true,
+        },
+        beforeSend: (event) => {
+          if ((event.meta.page?.url ?? '').includes('grafana-oncall-app')) {
+            return event;
+          }
+
+          return null;
         },
       };
 
