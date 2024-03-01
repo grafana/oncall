@@ -9,7 +9,9 @@ import moment from 'moment-timezone';
 import { Text } from 'components/Text/Text';
 import { GSelect } from 'containers/GSelect/GSelect';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
+import { AlertGroupHelper } from 'models/alertgroup/alertgroup.helpers';
 import { Alert } from 'models/alertgroup/alertgroup.types';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
 import { UserActions } from 'utils/authorization/authorization';
 
@@ -50,7 +52,7 @@ export const AttachIncidentForm = observer(({ id, onUpdate, onHide }: AttachInci
   }, []);
 
   const handleLinkClick = useCallback(() => {
-    alertGroupStore.attachAlert(id, selected).then(() => {
+    AlertGroupHelper.attachAlert(id, selected).then(() => {
       onHide();
       onUpdate();
     });
@@ -74,12 +76,12 @@ export const AttachIncidentForm = observer(({ id, onUpdate, onHide }: AttachInci
         description="Linking alert groups together can help the team investigate the underlying issue."
       >
         <WithPermissionControlTooltip userAction={UserActions.AlertGroupsWrite}>
-          <GSelect<Alert>
+          <GSelect<ApiSchemas['AlertGroup']>
             showSearch
             items={alertGroupStore.items}
             fetchItemsFn={alertGroupStore.fetchItemsAvailableForAttachment}
-            fetchItemFn={alertGroupStore.updateItem}
-            getSearchResult={alertGroupStore.getSearchResult}
+            fetchItemFn={alertGroupStore.fetchItemById}
+            getSearchResult={(query: string) => AlertGroupHelper.getSearchResult(alertGroupStore, query)}
             valueField="pk"
             displayField="render_for_web.title"
             placeholder="Select Alert Group"

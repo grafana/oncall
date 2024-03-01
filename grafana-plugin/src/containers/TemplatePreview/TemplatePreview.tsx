@@ -6,6 +6,7 @@ import { observer } from 'mobx-react';
 
 import { Text } from 'components/Text/Text';
 import { AlertReceiveChannelHelper } from 'models/alert_receive_channel/alert_receive_channel.helpers';
+import { AlertGroupHelper } from 'models/alertgroup/alertgroup.helpers';
 import { Alert } from 'models/alertgroup/alertgroup.types';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { LabelTemplateOptions } from 'pages/integration/IntegrationCommon.config';
@@ -58,13 +59,13 @@ export const TemplatePreview = observer((props: TemplatePreviewProps) => {
   const [conditionalResult, setConditionalResult] = useState<ConditionalResult>({});
 
   const store = useStore();
-  const { alertGroupStore, outgoingWebhookStore } = store;
+  const { outgoingWebhookStore } = store;
 
   const handleTemplateBodyChange = useDebouncedCallback(() => {
     (templatePage === TEMPLATE_PAGE.Webhooks
       ? outgoingWebhookStore.renderPreview(outgoingWebhookId, templateName, templateBody, payload)
       : alertGroupId
-      ? alertGroupStore.renderPreview(alertGroupId, templateName, templateBody)
+      ? AlertGroupHelper.renderPreview(alertGroupId, templateName, templateBody)
       : AlertReceiveChannelHelper.renderPreview(alertReceiveChannelId, templateName, templateBody, payload)
     )
       .then((data) => {

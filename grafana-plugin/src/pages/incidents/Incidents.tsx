@@ -36,6 +36,7 @@ import { RemoteFilters } from 'containers/RemoteFilters/RemoteFilters';
 import { TeamName } from 'containers/TeamName/TeamName';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { AlertReceiveChannelHelper } from 'models/alert_receive_channel/alert_receive_channel.helpers';
+import { AlertGroupHelper } from 'models/alertgroup/alertgroup.helpers';
 import {
   Alert,
   Alert as AlertType,
@@ -47,6 +48,7 @@ import {
 import { LabelKeyValue } from 'models/label/label.types';
 import { ActionKey } from 'models/loader/action-keys';
 import { LoaderHelper } from 'models/loader/loader.helpers';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 import { renderRelatedUsers } from 'pages/incident/Incident.helpers';
 import { AppFeature } from 'state/features';
 import { PageProps, WithStoreProps } from 'state/types';
@@ -432,7 +434,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
       return null;
     }
 
-    const { results } = store.alertGroupStore.getAlertSearchResult('default');
+    const { results } = AlertGroupHelper.getAlertSearchResult(store.alertGroupStore, 'default');
 
     const hasSelected = selectedIncidentIds.length > 0;
     const isLoading = LoaderHelper.isLoading(store.loaderStore, ActionKey.FETCH_INCIDENTS);
@@ -524,7 +526,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
     const { selectedIncidentIds, pagination, isHorizontalScrolling } = this.state;
     const { alertGroupStore, filtersStore, loaderStore } = this.props.store;
 
-    const { results, prev, next } = alertGroupStore.getAlertSearchResult('default');
+    const { results, prev, next } = AlertGroupHelper.getAlertSearchResult(alertGroupStore, 'default');
     const isLoading =
       LoaderHelper.isLoading(loaderStore, ActionKey.FETCH_INCIDENTS) || filtersStore.options['incidents'] === undefined;
 
@@ -926,7 +928,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
     };
   };
 
-  getBulkActionClickHandler = (action: string | number, event?: any) => {
+  getBulkActionClickHandler = (action: ApiSchemas['AlertGroupBulkActionRequest']['action'], event?: any) => {
     const { selectedIncidentIds, affectedRows } = this.state;
     const { store } = this.props;
 
@@ -947,7 +949,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
         ),
       },
       () => {
-        store.alertGroupStore.bulkAction({
+        AlertGroupHelper.bulkAction({
           action,
           alert_group_pks: selectedIncidentIds,
           delay,

@@ -45,6 +45,7 @@ import { UserResponder } from 'containers/AddResponders/AddResponders.types';
 import { AttachIncidentForm } from 'containers/AttachIncidentForm/AttachIncidentForm';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { AlertReceiveChannelHelper } from 'models/alert_receive_channel/alert_receive_channel.helpers';
+import { AlertGroupHelper } from 'models/alertgroup/alertgroup.helpers';
 import { Alert, AlertAction, TimeLineItem, TimeLineRealm, GroupedAlert } from 'models/alertgroup/alertgroup.types';
 import { ResolutionNoteSourceTypesToDisplayName } from 'models/resolution_note/resolution_note.types';
 import { User } from 'models/user/user.types';
@@ -112,9 +113,6 @@ class _IncidentPage extends React.Component<IncidentPageProps, IncidentPageState
 
     store.alertGroupStore
       .getAlert(id)
-      .then((alertGroup) => {
-        store.setPageTitle(`#${alertGroup.inside_organization_number} ${alertGroup.render_for_web.title}`);
-      })
       .catch((error) => this.setState({ errorData: { ...getWrongTeamResponseInfo(error) } }));
   };
 
@@ -129,7 +127,6 @@ class _IncidentPage extends React.Component<IncidentPageProps, IncidentPageState
 
     const { errorData, showIntegrationSettings, showAttachIncidentForm } = this.state;
     const { isNotFoundError, isWrongTeamError, isUnknownError } = errorData;
-    // const { alertReceiveChannelStore } = store;
     const { alerts } = store.alertGroupStore;
 
     const incident = alerts.get(id);
@@ -251,13 +248,12 @@ class _IncidentPage extends React.Component<IncidentPageProps, IncidentPageState
   handlePagedUserRemove = (userId: User['pk']) => {
     return async () => {
       const {
-        store,
         match: {
           params: { id: alertId },
         },
       } = this.props;
 
-      await store.alertGroupStore.unpageUser(alertId, userId);
+      await AlertGroupHelper.unpageUser(alertId, userId);
 
       this.update();
     };
@@ -475,11 +471,7 @@ class _IncidentPage extends React.Component<IncidentPageProps, IncidentPageState
     this.setState({ showAttachIncidentForm: true });
   };
 
-  getUnattachClickHandler = (pk: Alert['pk']) => {
-    const { store } = this.props;
-
-    return store.alertGroupStore.unattachAlert(pk).then(this.update);
-  };
+  getUnattachClickHandler = (pk: Alert['pk']) => AlertGroupHelper.unattachAlert(pk).then(this.update);
 
   renderTimeline = () => {
     const {
@@ -713,7 +705,6 @@ function GroupedIncidentsList({
 }
 
 function GroupedIncident({ incident, datetimeReference }: { incident: GroupedAlert; datetimeReference: string }) {
-  const store = useStore();
   const [incidentRawResponse, setIncidentRawResponse] = useState<{ id: string; raw_request_data: any }>(undefined);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const payloadJSON = isModalOpen ? JSON.stringify(incidentRawResponse.raw_request_data, null, 4) : undefined;
@@ -779,7 +770,7 @@ function GroupedIncident({ incident, datetimeReference }: { incident: GroupedAle
   );
 
   async function openIncidentResponse(incident: GroupedAlert) {
-    const currentIncidentRawResponse = await store.alertGroupStore.getPayloadForIncident(incident.id);
+    const currentIncidentRawResponse = await AlertGroupHelper.getPayloadForIncident(incident.id);
     setIncidentRawResponse(currentIncidentRawResponse);
     setIsModalOpen(true);
   }
