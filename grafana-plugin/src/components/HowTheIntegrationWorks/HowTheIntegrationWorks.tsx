@@ -11,7 +11,7 @@ import { ApiSchemas } from 'network/oncall-api/api.types';
 export const HowTheIntegrationWorks: React.FC<{
   selectedOption: ApiSchemas['AlertReceiveChannelIntegrationOptions'];
 }> = ({ selectedOption }) => {
-  const styles = useStyles2(getHowTheIntegrationWorksStyles);
+  const styles = useStyles2(getStyles);
 
   if (!selectedOption) {
     return null;
@@ -53,7 +53,7 @@ export const HowTheIntegrationWorks: React.FC<{
   );
 };
 
-const getHowTheIntegrationWorksStyles = (theme: GrafanaTheme2) => {
+const getStyles = (theme: GrafanaTheme2) => {
   return {
     collapse: css({
       width: '100%',
