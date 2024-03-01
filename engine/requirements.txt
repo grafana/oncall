@@ -37,9 +37,9 @@ regex==2021.11.2
 psutil==5.9.4
 django-migration-linter==4.1.0
 django-add-default-value==0.10.0
-opentelemetry-instrumentation-celery==0.36b0
-opentelemetry-instrumentation-pymysql==0.36b0
-opentelemetry-instrumentation-wsgi==0.36b0
+opentelemetry-sdk==1.23.0
+opentelemetry-api==1.23.0
+opentelemetry-instrumentation-logging==0.44b0
 opentelemetry-exporter-otlp-proto-grpc==1.15.0
 # pyroscope-io==0.8.1
 django-dbconn-retry==0.1.7
