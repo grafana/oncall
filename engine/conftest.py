@@ -209,6 +209,11 @@ def clear_ical_users_cache():
 
 
 @pytest.fixture(autouse=True)
+def mock_servicenow_feature_enabled(settings):
+    settings.FEATURE_SERVICENOW_ENABLED = True
+
+
+@pytest.fixture(autouse=True)
 def mock_is_labels_feature_enabled(settings):
     settings.FEATURE_LABELS_ENABLED_FOR_ALL = True
 
