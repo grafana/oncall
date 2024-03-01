@@ -686,7 +686,7 @@ class AlertReceiveChannelView(
         webhook.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    @extend_schema(request=None, responses=AlertReceiveChannelConnectionSerializer())
+    @extend_schema(request=None, responses=AlertReceiveChannelConnectionSerializer)
     @action(detail=True, methods=["get"], url_path="connected_channels")
     def get_connected_channels(self, request, pk):
         instance = self.get_object()
@@ -697,7 +697,13 @@ class AlertReceiveChannelView(
         )
         return Response(AlertReceiveChannelConnectionSerializer(instance, context={"request": request}).data)
 
-    @extend_schema(request=None, responses=AlertReceiveChannelConnectedChannelSerializer())
+    @extend_schema(
+        request=inline_serializer(
+            name="UpdateChannelSerializer",
+            fields={"backsync": serializers.BooleanField()},
+        ),
+        responses=AlertReceiveChannelConnectedChannelSerializer,
+    )
     @action(detail=True, methods=["put"], url_path=r"connected_channels/(?P<connected_channel_id>\w+)")
     def update_connected_channel(self, request, pk, connected_channel_id):
         instance = self.get_object()
@@ -714,7 +720,9 @@ class AlertReceiveChannelView(
         serializer.save()
         return Response(serializer.data)
 
-    @extend_schema(request=None, responses=AlertReceiveChannelConnectionSerializer())
+    @extend_schema(
+        request=AlertReceiveChannelNewConnectionSerializer, responses=AlertReceiveChannelConnectionSerializer
+    )
     @get_connected_channels.mapping.post
     def connect_channels(self, request, pk):
         instance = self.get_object()
