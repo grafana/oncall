@@ -1737,6 +1737,7 @@ def test_create_servicenow_integration(
         "additional_settings": {"instance_url": "test", "username": "test", "password": "test"},
     }
     response = client.post(url, data, format="json", **make_user_auth_headers(user, token))
+    print(response.data)
     assert response.status_code == status.HTTP_201_CREATED
 
 
