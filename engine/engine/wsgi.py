@@ -23,7 +23,9 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "settings.prod")
 application = get_wsgi_application()
 application = WhiteNoise(application)
 
-if settings.OTEL_TRACING_ENABLED:
+# check both OTEL_TRACING_ENABLED and OTEL_EXPORTER_OTLP_ENDPOINT
+# since OTLPSpanExporter expects endpoint to send data to
+if settings.OTEL_TRACING_ENABLED and settings.OTEL_EXPORTER_OTLP_ENDPOINT:
     # Set up tracing and logging instrumentation under uwsgi web server environment
     try:
         from uwsgidecorators import postfork
