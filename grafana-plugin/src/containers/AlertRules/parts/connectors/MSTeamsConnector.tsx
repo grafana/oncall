@@ -60,6 +60,7 @@ export const MSTeamsConnector = (props: MSTeamsConnectorProps) => {
             className={cx('select', 'control')}
             items={msteamsChannelStore.items}
             fetchItemsFn={msteamsChannelStore.updateItems}
+            fetchItemFn={msteamsChannelStore.updateById}
             getSearchResult={msteamsChannelStore.getSearchResult}
             displayField="display_name"
             valueField="id"

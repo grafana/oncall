@@ -8,13 +8,13 @@ import dayjs from 'dayjs';
 import { SourceCode } from 'components/SourceCode/SourceCode';
 import { Tabs } from 'components/Tabs/Tabs';
 import { Text } from 'components/Text/Text';
-import { OutgoingWebhook } from 'models/outgoing_webhook/outgoing_webhook.types';
 import { getTzOffsetString } from 'models/timezone/timezone.helpers';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 
 import { WebhookStatusCodeBadge } from './WebhookStatusCodeBadge';
 
 interface WebhookLastEventDetailsProps {
-  webhook: OutgoingWebhook;
+  webhook: ApiSchemas['Webhook'];
   sourceCodeRootClassName?: string;
 }
 
@@ -79,7 +79,7 @@ export const WebhookLastEventDetails: FC<WebhookLastEventDetailsProps> = ({ webh
   );
 };
 
-const getEventDetailsRows = (theme: GrafanaTheme2, webhook?: OutgoingWebhook) =>
+const getEventDetailsRows = (theme: GrafanaTheme2, webhook?: ApiSchemas['Webhook']) =>
   webhook
     ? [
         {

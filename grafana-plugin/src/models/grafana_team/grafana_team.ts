@@ -61,6 +61,18 @@ export class GrafanaTeamStore extends BaseStore {
     });
   }
 
+  @action.bound
+  async fetchItemById(id: string) {
+    const team = await this.getById(id);
+
+    runInAction(() => {
+      this.items = {
+        ...this.items,
+        [id]: team,
+      };
+    });
+  }
+
   getSearchResult = () => {
     return this.searchResult.map((teamId: GrafanaTeam['id']) => this.items[teamId]);
   };
