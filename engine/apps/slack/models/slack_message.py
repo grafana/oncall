@@ -5,6 +5,7 @@ import uuid
 
 from django.db import models
 
+from apps.base.models import UserNotificationPolicy
 from apps.slack.client import SlackClient
 from apps.slack.errors import (
     SlackAPIChannelArchivedError,
@@ -139,13 +140,25 @@ class SlackMessage(models.Model):
         channel_id = slack_message.channel_id
 
         try:
-            result = sc.chat_postMessage(
-                channel=channel_id,
-                text=text,
-                blocks=blocks,
-                thread_ts=slack_message.slack_id,
-                unfurl_links=True,
-            )
+            if (
+                slack_user_identity
+                and notification_policy.notify_by == UserNotificationPolicy.NotificationChannel.SLACK_DM
+            ):
+                channel_id = slack_user_identity.im_channel_id
+                result = sc.chat_postMessage(
+                    channel=channel_id,
+                    text=text,
+                    blocks=blocks,
+                    unfurl_links=True,
+                )
+            else:
+                result = sc.chat_postMessage(
+                    channel=channel_id,
+                    text=text,
+                    blocks=blocks,
+                    thread_ts=slack_message.slack_id,
+                    unfurl_links=True,
+                )
         except SlackAPITokenError:
             UserNotificationPolicyLogRecord(
                 author=user,
