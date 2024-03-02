@@ -29,7 +29,13 @@ class TelegramClient:
 
     @property
     def api_client(self) -> Bot:
-        return Bot(self.token, request=Request(read_timeout=15))
+        
+        telegram_api=live_settings.TELEGRAM_API_ENDPOINT
+        bot= Bot(self.token, 
+                base_url= f"https://{telegram_api}/bot",
+                base_file_url= f"https://{telegram_api}/file/bot",
+                request=Request(read_timeout=15))
+        return bot
 
     def is_chat_member(self, chat_id: Union[int, str]) -> bool:
         try:

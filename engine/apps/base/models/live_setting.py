@@ -51,6 +51,7 @@ class LiveSetting(models.Model):
         "TWILIO_VERIFY_SERVICE_SID",
         "TELEGRAM_TOKEN",
         "TELEGRAM_WEBHOOK_HOST",
+        "TELEGRAM_API_ENDPOINT",
         "SLACK_CLIENT_OAUTH_ID",
         "SLACK_CLIENT_OAUTH_SECRET",
         "SLACK_SIGNING_SECRET",
@@ -151,6 +152,7 @@ class LiveSetting(models.Model):
         "TELEGRAM_WEBHOOK_HOST": (
             "Externally available URL for Telegram to make requests. Must use https and ports 80, 88, 443, 8443."
         ),
+        "TELEGRAM_API_ENDPOINT": "Telegram API endpoint that is used to work with bot",
         "SEND_ANONYMOUS_USAGE_STATS": (
             "Grafana OnCall will send anonymous, but uniquely-identifiable usage analytics to Grafana Labs."
             " These statistics are sent to https://stats.grafana.org/.  For more information on what's sent, look at the "
@@ -173,7 +175,7 @@ class LiveSetting(models.Model):
         "ZVONOK_VERIFICATION_TEMPLATE": "The message template used for phone number verification (optional).",
         "KAVENEGAR_API_KEY": "your kavenegar accounts api key",
         "KAVENEGAR_VERIFICATION_SMS_TEMPLATE": "Template that you defined for verification with sms.(it shoud be in this format: *%token*)",
-    }
+        }
 
     SECRET_SETTING_NAMES = (
         "EMAIL_HOST_PASSWORD",

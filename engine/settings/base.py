@@ -82,6 +82,7 @@ PHONE_NOTIFICATIONS_LIMIT = getenv_integer("PHONE_NOTIFICATIONS_LIMIT", 200)
 
 TELEGRAM_WEBHOOK_HOST = os.environ.get("TELEGRAM_WEBHOOK_HOST", BASE_URL)
 TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN")
+TELEGRAM_API_ENDPOINT=os.environ.get("TELEGRAM_API_ENDPOINT", "api.telegram.org")
 
 # For Grafana Cloud integration
 GRAFANA_CLOUD_ONCALL_API_URL = os.environ.get(
