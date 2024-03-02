@@ -32,8 +32,8 @@ class TelegramClient:
         
         telegram_api=live_settings.TELEGRAM_API_ENDPOINT
         bot= Bot(self.token, 
-                base_url= telegram_api + "/bot",
-                base_file_url= telegram_api + "/file/bot",
+                base_url= f"https://{telegram_api}/bot",
+                base_file_url= f"https://{telegram_api}/file/bot",
                 request=Request(read_timeout=15))
         return bot
 
