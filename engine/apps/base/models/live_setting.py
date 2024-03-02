@@ -51,6 +51,7 @@ class LiveSetting(models.Model):
         "TWILIO_VERIFY_SERVICE_SID",
         "TELEGRAM_TOKEN",
         "TELEGRAM_WEBHOOK_HOST",
+        "TELEGRAM_API_ENDPOINT",
         "SLACK_CLIENT_OAUTH_ID",
         "SLACK_CLIENT_OAUTH_SECRET",
         "SLACK_SIGNING_SECRET",
@@ -73,7 +74,6 @@ class LiveSetting(models.Model):
         "ZVONOK_VERIFICATION_TEMPLATE",
         "KAVENEGAR_API_KEY",
         "KAVENEGAR_VERIFICATION_SMS_TEMPLATE",
-        "TELEGRAM_API_ENDPOINT",
     )
 
     DESCRIPTIONS = {
