@@ -130,8 +130,14 @@ class LiveSettingValidator:
 
     @classmethod
     def _check_telegram_token(cls, telegram_token):
+        # checking connection using provided telegram api in live setting 
+        telegram_api=live_settings.TELEGRAM_API_ENDPOINT
         try:
-            bot = Bot(telegram_token)
+            bot = Bot(
+                    telegram_token,
+                    base_url= f"https://{telegram_api}/bot",
+                    base_file_url= f"https://{telegram_api}/file/bot",
+                )
             bot.get_me()
         except Exception as e:
             return f"Telegram error: {str(e)}"
