@@ -192,7 +192,6 @@ class LiveSetting(models.Model):
         "GRAFANA_CLOUD_ONCALL_TOKEN",
         "ZVONOK_API_KEY",
         "KAVENEGAR_API_KEY",
-        "KAVENEGAR_VERIFICATION_SMS_TEMPLATE",
     )
 
     def __str__(self):
