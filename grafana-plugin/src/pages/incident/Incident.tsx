@@ -557,7 +557,7 @@ class _IncidentPage extends React.Component<IncidentPageProps, IncidentPageState
     );
   };
 
-  filterTimeline = (timeline: TimeLineItem[]) => {
+  filterTimeline = (timeline: ApiSchemas['AlertGroup']['render_after_resolve_report_json']) => {
     if (this.state.timelineFilter === 'all') {
       return timeline;
     } else {

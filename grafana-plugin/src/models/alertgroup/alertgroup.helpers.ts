@@ -20,7 +20,6 @@ export class AlertGroupHelper {
   }
 
   static async getAlertGroupsForIntegration(integrationId: ApiSchemas['AlertReceiveChannel']['id']) {
-    // TODO: check if passing array as query param works ok because previously we passed string
     const {
       data: { results },
     } = await onCallApi().GET('/alertgroups/', { params: { query: { integration: [integrationId] } } });
