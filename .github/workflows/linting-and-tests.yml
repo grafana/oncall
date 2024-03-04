@@ -127,8 +127,8 @@ jobs:
         # makemigrations --check = Exit with a non-zero status if model changes are missing migrations
         # and don't actually write them.
         run: |
-          pip install pip-tools
-          pip-sync requirements.txt requirements-dev.txt
+          pip install uv
+          uv pip sync requirements.txt requirements-dev.txt
           python manage.py makemigrations --check
           python manage.py lintmigrations
 
@@ -185,8 +185,8 @@ jobs:
         working-directory: engine
         run: |
           apt-get update && apt-get install -y netcat-traditional
-          pip install pip-tools
-          pip-sync requirements.txt requirements-dev.txt
+          pip install uv
+          uv pip sync requirements.txt requirements-dev.txt
           ./wait_for_test_mysql_start.sh && pytest -x
 
   unit-test-backend-postgresql-rabbitmq:
@@ -235,8 +235,8 @@ jobs:
       - name: Unit Test Backend
         working-directory: engine
         run: |
-          pip install pip-tools
-          pip-sync requirements.txt requirements-dev.txt
+          pip install uv
+          uv pip sync requirements.txt requirements-dev.txt
           pytest -x
 
   unit-test-backend-sqlite-redis:
@@ -275,8 +275,8 @@ jobs:
         working-directory: engine
         run: |
           apt-get update && apt-get install -y netcat-traditional
-          pip install pip-tools
-          pip-sync requirements.txt requirements-dev.txt
+          pip install uv
+          uv pip sync requirements.txt requirements-dev.txt
           pytest -x
 
   unit-test-pd-migrator:
@@ -292,8 +292,8 @@ jobs:
       - name: Unit Test PD Migrator
         working-directory: tools/pagerduty-migrator
         run: |
-          pip install pip-tools
-          pip-sync requirements.txt
+          pip install uv
+          uv pip sync requirements.txt
           pytest -x
 
   mypy:
@@ -311,8 +311,8 @@ jobs:
       - name: mypy Static Type Checking
         working-directory: engine
         run: |
-          pip install pip-tools
-          pip-sync requirements.txt requirements-dev.txt
+          pip install uv
+          uv pip sync requirements.txt requirements-dev.txt
           mypy .
 
   end-to-end-tests:
