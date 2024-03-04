@@ -24,7 +24,8 @@
     "start": "yarn watch",
     "plop": "plop",
     "setversion": "setversion",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "find-dead-code": "knip"
   },
   "repository": {
     "type": "git",
@@ -88,6 +89,7 @@
     "identity-obj-proxy": "3.0.0",
     "jest": "^29.5.0",
     "jest-environment-jsdom": "^29.5.0",
+    "knip": "^5.0.3",
     "lint-staged": "^10.2.11",
     "lodash-es": "^4.17.21",
     "mailslurp-client": "^15.14.1",
@@ -140,7 +142,7 @@
     "change-case": "^4.1.1",
     "circular-dependency-plugin": "^5.2.2",
     "dayjs": "^1.11.5",
-    "eslint-plugin-import": "^2.25.4",
+    "eslint-plugin-import": "^2.29.1",
     "immutability-helper": "^3.1.1",
     "mobx": "6.12.0",
     "mobx-react": "9.1.0",
