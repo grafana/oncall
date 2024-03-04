@@ -6,15 +6,6 @@ name: On issue creation
       - opened
 
 jobs:
-  add-to-project:
-    name: Add OSS issues to team's kanban board
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/add-to-project@v0.4.1
-        with:
-          project-url: https://github.com/orgs/grafana/projects/119
-          github-token: ${{ secrets.ADD_TO_PROJECT_PAT }}
-
   add-latest-version-comment-to-feature-request-issues:
     name: Add latest version comment to feature request issues
     runs-on: ubuntu-latest

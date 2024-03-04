@@ -1,6 +1,7 @@
 import React from 'react';
 
 import { useStyles2, Input, IconButton, Button, Drawer, Badge } from '@grafana/ui';
+import { observer } from 'mobx-react';
 
 import { CopyToClipboardIcon } from 'components/CopyToClipboardIcon/CopyToClipboardIcon';
 import { IntegrationCollapsibleTreeView } from 'components/IntegrationCollapsibleTreeView/IntegrationCollapsibleTreeView';
@@ -62,11 +63,13 @@ export const OutgoingTab = () => {
   );
 };
 
-const Connection = () => {
+const Connection = observer(() => {
   const styles = useStyles2(getStyles);
-  const FAKE_URL = 'https://example.com';
 
-  const value = FAKE_URL;
+  // TODO: bring back when backend ready
+  // const integration = useCurrentIntegration();
+  // const url = integration?.additional_settings?.instance_url;
+  const url = 'https://example.com';
 
   return (
     <div>
@@ -78,16 +81,16 @@ const Connection = () => {
             <IntegrationTag>ServiceNow connection</IntegrationTag>
             <Badge text="OK" color="green" />
             <Input
-              value={value}
+              value={url}
               disabled
               className={styles.urlInput}
               suffix={
                 <>
-                  <CopyToClipboardIcon text={FAKE_URL} />
+                  <CopyToClipboardIcon text={url} />
                   <IconButton
                     aria-label="Open in new tab"
                     name="external-link-alt"
-                    onClick={() => window.open(value, '_blank')}
+                    onClick={() => window.open(url, '_blank')}
                   />
                 </>
               }
@@ -107,4 +110,4 @@ const Connection = () => {
       <h4>Outgoing webhooks</h4>
     </div>
   );
-};
+});

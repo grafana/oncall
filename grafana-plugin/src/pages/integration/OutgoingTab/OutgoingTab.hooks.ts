@@ -14,3 +14,11 @@ export const useDrawerWebhook = () => {
 };
 
 export const useIntegrationIdFromUrl = () => useParams<{ id: string }>().id;
+
+export const useCurrentIntegration = () => {
+  const {
+    alertReceiveChannelStore: { items },
+  } = useStore();
+  const id = useIntegrationIdFromUrl();
+  return items[id];
+};
