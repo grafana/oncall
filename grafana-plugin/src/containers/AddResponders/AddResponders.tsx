@@ -9,9 +9,9 @@ import { observer } from 'mobx-react';
 import { Block } from 'components/GBlock/Block';
 import { Text } from 'components/Text/Text';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
-import { Alert as AlertType } from 'models/alertgroup/alertgroup.types';
 import { getTimezone } from 'models/user/user.helpers';
 import { UserCurrentlyOnCall } from 'models/user/user.types';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
 import { UserActions } from 'utils/authorization/authorization';
 
@@ -27,7 +27,7 @@ const cx = cn.bind(styles);
 type Props = {
   mode: 'create' | 'update';
   hideAddResponderButton?: boolean;
-  existingPagedUsers?: AlertType['paged_users'];
+  existingPagedUsers?: ApiSchemas['AlertGroup']['paged_users'];
   onAddNewParticipant?: (responder: UserResponderType) => Promise<void>;
   generateRemovePreviouslyPagedUserCallback?: (userId: string) => () => Promise<void>;
 };

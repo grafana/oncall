@@ -25,6 +25,7 @@
     "plop": "plop",
     "setversion": "setversion",
     "typecheck": "tsc --noEmit",
+    "typecheck:watch": "yarn typecheck --watch --preserveWatchOutput false",
     "find-dead-code": "knip"
   },
   "repository": {
