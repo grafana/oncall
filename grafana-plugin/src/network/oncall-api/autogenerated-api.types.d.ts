@@ -1167,7 +1167,7 @@ export interface components {
       /** Format: date-time */
       readonly created_at: string;
     };
-    AlertGroup: {
+    AlertGroup: CustomApiSchemas['AlertGroup'] & {
       readonly pk: string;
       readonly alerts_count: number;
       inside_organization_number?: number;

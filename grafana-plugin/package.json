@@ -24,7 +24,8 @@
     "start": "yarn watch",
     "plop": "plop",
     "setversion": "setversion",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "typecheck:watch": "yarn typecheck --watch --preserveWatchOutput false"
   },
   "repository": {
     "type": "git",
@@ -126,8 +127,8 @@
     "@dnd-kit/utilities": "^3.2.1",
     "@emotion/css": "11.10.6",
     "@grafana/data": "^10.2.3",
-    "@grafana/faro-web-sdk": "^1.3.9",
-    "@grafana/faro-web-tracing": "^1.3.9",
+    "@grafana/faro-web-sdk": "^1.4.0",
+    "@grafana/faro-web-tracing": "^1.4.0",
     "@grafana/labels": "1.5.0",
     "@grafana/runtime": "^10.2.2",
     "@grafana/scenes": "^1.28.0",
@@ -154,6 +155,7 @@
     "react-dom": "18.2.0",
     "react-draggable": "^4.4.5",
     "react-emoji-render": "^1.2.4",
+    "react-hook-form": "^7.50.1",
     "react-modal": "^3.15.1",
     "react-responsive": "^8.1.0",
     "react-router-dom": "5.3.3",

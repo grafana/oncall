@@ -8,10 +8,10 @@ import { ColumnsType } from 'rc-table/lib/interface';
 import { Avatar } from 'components/Avatar/Avatar';
 import { GTable } from 'components/GTable/GTable';
 import { Text } from 'components/Text/Text';
-import { Alert as AlertType } from 'models/alertgroup/alertgroup.types';
 import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
 import { PaginatedUsersResponse } from 'models/user/user';
 import { UserCurrentlyOnCall } from 'models/user/user.types';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
 import { useDebouncedCallback, useOnClickOutside } from 'utils/hooks';
 
@@ -25,7 +25,7 @@ type Props = {
   setCurrentlyConsideredUser: (user: UserCurrentlyOnCall) => void;
   setShowUserConfirmationModal: (value: boolean) => void;
 
-  existingPagedUsers?: AlertType['paged_users'];
+  existingPagedUsers?: ApiSchemas['AlertGroup']['paged_users'];
 };
 
 const cx = cn.bind(styles);

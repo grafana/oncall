@@ -1,4 +1,4 @@
-from rest_framework import mixins, viewsets
+from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -30,8 +30,7 @@ class IntegrationHeartBeatView(
         "create": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
         "update": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
         "partial_update": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
-        "activate": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
-        "deactivate": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
+        "reset": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
     }
 
     model = IntegrationHeartBeat
@@ -73,6 +72,13 @@ class IntegrationHeartBeatView(
             prev_state=prev_state,
             new_state=new_state,
         )
+
+    @action(detail=True, methods=["post"])
+    def reset(self, request, pk):
+        instance = self.get_object()
+        instance.last_heartbeat_time = None
+        instance.save()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(detail=False, methods=["get"])
     def timeout_options(self, request):
