@@ -19,13 +19,6 @@ export class AlertGroupHelper {
     });
   }
 
-  static getSearchResult = (store: AlertGroupStore, query = '') => {
-    if (!store.searchResult[query]) {
-      return undefined;
-    }
-    return store.searchResult[query].map((id: ApiSchemas['AlertGroup']['pk']) => store.items[id]);
-  };
-
   static async getAlertGroupsForIntegration(integrationId: ApiSchemas['AlertReceiveChannel']['id']) {
     // TODO: check if passing array as query param works ok because previously we passed string
     const {
@@ -51,8 +44,8 @@ export class AlertGroupHelper {
     ).data;
   }
 
-  static getAlertSearchResult(store: AlertGroupStore, query: string) {
-    const result = store.alertsSearchResult[query];
+  static getAlertSearchResult(store: AlertGroupStore) {
+    const result = store.alertsSearchResult;
     if (!result) {
       return {};
     }

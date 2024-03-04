@@ -198,13 +198,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
 
   renderCards(filtersState, setFiltersState, filtersOnFiltersValueChange, store) {
     const { values } = filtersState;
-
-    const { newIncidents, acknowledgedIncidents, resolvedIncidents, silencedIncidents } = store.alertGroupStore;
-
-    const { count: newIncidentsCount } = newIncidents;
-    const { count: acknowledgedIncidentsCount } = acknowledgedIncidents;
-    const { count: resolvedIncidentsCount } = resolvedIncidents;
-    const { count: silencedIncidentsCount } = silencedIncidents;
+    const { stats } = store.alertGroupStore;
 
     const status = values.status || [];
 
@@ -214,7 +208,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
           <CardButton
             icon={<Icon name="bell" size="xxl" />}
             description="Firing"
-            title={newIncidentsCount}
+            title={stats[IncidentStatus.Firing]}
             selected={status.includes(IncidentStatus.Firing)}
             onClick={this.getStatusButtonClickHandler(
               IncidentStatus.Firing,
@@ -228,7 +222,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
           <CardButton
             icon={<Icon name="eye" size="xxl" />}
             description="Acknowledged"
-            title={acknowledgedIncidentsCount}
+            title={stats[IncidentStatus.Acknowledged]}
             selected={status.includes(IncidentStatus.Acknowledged)}
             onClick={this.getStatusButtonClickHandler(
               IncidentStatus.Acknowledged,
@@ -242,7 +236,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
           <CardButton
             icon={<Icon name="check" size="xxl" />}
             description="Resolved"
-            title={resolvedIncidentsCount}
+            title={stats[IncidentStatus.Resolved]}
             selected={status.includes(IncidentStatus.Resolved)}
             onClick={this.getStatusButtonClickHandler(
               IncidentStatus.Resolved,
@@ -256,7 +250,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
           <CardButton
             icon={<Icon name="bell-slash" size="xxl" />}
             description="Silenced"
-            title={silencedIncidentsCount}
+            title={stats[IncidentStatus.Silenced]}
             selected={status.includes(IncidentStatus.Silenced)}
             onClick={this.getStatusButtonClickHandler(
               IncidentStatus.Silenced,
@@ -348,13 +342,13 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
     });
 
     if (!isOnMount) {
-      this.setPagination(1, alertGroupStore.alertsSearchResult['default'].page_size);
+      this.setPagination(1, alertGroupStore.alertsSearchResult.page_size);
     }
 
     await this.fetchIncidentData(filters);
 
     if (isOnMount) {
-      this.setPagination(start, start + alertGroupStore.alertsSearchResult['default'].page_size - 1);
+      this.setPagination(start, start + alertGroupStore.alertsSearchResult.page_size - 1);
     }
   };
 
@@ -379,7 +373,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
 
   onChangeCursor = (cursor: string, direction: 'prev' | 'next') => {
     const { alertGroupStore } = this.props.store;
-    const pageSize = alertGroupStore.alertsSearchResult['default'].page_size;
+    const pageSize = alertGroupStore.alertsSearchResult.page_size;
 
     alertGroupStore.updateIncidentsCursor(cursor);
 
@@ -405,8 +399,8 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
   handleChangeItemsPerPage = (value: number) => {
     const { store } = this.props;
 
-    store.alertGroupStore.alertsSearchResult['default'] = {
-      ...store.alertGroupStore.alertsSearchResult['default'],
+    store.alertGroupStore.alertsSearchResult = {
+      ...store.alertGroupStore.alertsSearchResult,
       page_size: value,
     };
 
@@ -571,7 +565,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
           <div className={cx('pagination')}>
             <CursorPagination
               current={`${pagination.start}-${pagination.end}`}
-              itemsPerPage={alertGroupStore.alertsSearchResult?.['default']?.page_size}
+              itemsPerPage={alertGroupStore.alertsSearchResult?.page_size}
               itemsPerPageOptions={PAGINATION_OPTIONS}
               prev={prev}
               next={next}
@@ -608,7 +602,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
                 page: 'alert-groups',
                 id: record.pk,
                 cursor: incidentsCursor,
-                perpage: store.alertGroupStore.alertsSearchResult?.['default']?.page_size,
+                perpage: store.alertGroupStore.alertsSearchResult?.page_size,
                 start,
                 ...query,
               }}
@@ -771,9 +765,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
     const { alertGroupStore } = this.props.store;
 
     return Boolean(
-      this.state.pagination?.start &&
-        this.state.pagination?.end &&
-        alertGroupStore.alertsSearchResult?.['default']?.page_size
+      this.state.pagination?.start && this.state.pagination?.end && alertGroupStore.alertsSearchResult?.page_size
     );
   }
 

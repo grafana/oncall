@@ -15,26 +15,20 @@ import { AlertGroupColumn, AlertAction, IncidentStatus } from './alertgroup.type
 
 export class AlertGroupStore {
   rootStore: RootStore;
+  alerts = new Map<string, ApiSchemas['AlertGroup']>();
   bulkActions: any = [];
   silenceOptions: any;
-  items: { [id: string]: ApiSchemas['AlertGroup'] } = {};
   searchResult: { [key: string]: Array<ApiSchemas['AlertGroup']['pk']> } = {};
   incidentFilters: any;
   initialQuery = qs.parse(window.location.search);
   incidentsCursor?: string;
   alertsSearchResult: {
-    [key: string]: {
-      prev?: string;
-      next?: string;
-      results?: string[];
-      page_size?: number;
-    };
+    prev?: string;
+    next?: string;
+    results?: string[];
+    page_size?: number;
   } = {};
-  alerts = new Map<string, ApiSchemas['AlertGroup']>();
-  newIncidents: any = {};
-  acknowledgedIncidents: any = {};
-  resolvedIncidents: any = {};
-  silencedIncidents: any = {};
+  stats: Record<IncidentStatus, number> | {} = {};
   liveUpdatesEnabled = false;
   liveUpdatesPaused = false;
   latestFetchAlertGroupsTimestamp: number;
@@ -46,47 +40,77 @@ export class AlertGroupStore {
     this.rootStore = rootStore;
   }
 
-  async fetchItemById(id: ApiSchemas['AlertGroup']['pk']) {
-    const { data } = await onCallApi().GET('/alertgroups/{id}/', {
-      params: { path: { id } },
-    });
-
-    runInAction(() => {
-      this.items = {
-        ...this.items,
-        [data.pk]: data,
-      };
-    });
-  }
-
-  async fetchItems(query = '', params = {}) {
+  async fetchAlertGroups(isPollingJob = false, search?: string) {
+    this.rootStore.loaderStore.setLoadingAction(
+      isPollingJob ? ActionKey.FETCH_INCIDENTS_POLLING : ActionKey.FETCH_INCIDENTS,
+      true
+    );
+    const timestamp = new Date().getTime();
+    this.latestFetchAlertGroupsTimestamp = timestamp;
     const {
-      data: { results },
-    } = await onCallApi().GET('/alertgroups/', { params: { query: { search: query, ...params } } });
+      data: { results, next: nextRaw, previous: previousRaw, page_size },
+    } = await onCallApi().GET('/alertgroups/', {
+      params: {
+        query: {
+          ...this.incidentFilters,
+          search,
+          perpage: this.alertsSearchResult?.page_size,
+          cursor: this.incidentsCursor,
+          is_root: true,
+        },
+      },
+    });
+
+    const prevCursor = previousRaw ? qs.parse(qs.extract(previousRaw)).cursor : previousRaw;
+    const nextCursor = nextRaw ? qs.parse(qs.extract(nextRaw)).cursor : nextRaw;
+
+    const newAlerts = new Map(
+      results.map((alert: ApiSchemas['AlertGroup']) => {
+        const oldAlert = this.alerts.get(alert.pk) || {};
+        const mergedAlertData = { ...oldAlert, ...alert, undoAction: alert.undoAction };
+        return [alert.pk, mergedAlertData];
+      })
+    );
 
     runInAction(() => {
-      this.items = {
-        ...this.items,
-        ...results.reduce(
-          (acc: { [key: number]: ApiSchemas['AlertGroup'] }, item: ApiSchemas['AlertGroup']) => ({
-            ...acc,
-            [item.pk]: item,
-          }),
-          {}
-        ),
-      };
+      // If previous fetch took longer than the next one, we ignore result of the previous fetch
+      if (timestamp !== this.latestFetchAlertGroupsTimestamp) {
+        return;
+      }
+      this.alerts = new Map<string, ApiSchemas['AlertGroup']>([...this.alerts, ...newAlerts]);
 
-      this.searchResult = {
-        ...this.searchResult,
-        [query]: results.map((item: ApiSchemas['AlertGroup']) => item.pk),
+      this.alertsSearchResult = {
+        prev: Array.isArray(prevCursor) ? prevCursor[0] : prevCursor,
+        next: Array.isArray(nextCursor) ? nextCursor[0] : nextCursor,
+        results: results.map((alert: ApiSchemas['AlertGroup']) => alert.pk),
+        page_size,
       };
+      this.rootStore.loaderStore.setLoadingAction(
+        [ActionKey.FETCH_INCIDENTS, ActionKey.FETCH_INCIDENTS_POLLING],
+        false
+      );
     });
   }
 
-  async fetchItemsAvailableForAttachment(query: string) {
-    await this.fetchItems(query, {
-      status: [IncidentStatus.Acknowledged, IncidentStatus.Firing, IncidentStatus.Silenced],
+  async getAlert(pk: ApiSchemas['AlertGroup']['pk']) {
+    const { data: alertGroup } = await onCallApi().GET('/alertgroups/{id}/', {
+      params: { path: { id: pk } },
     });
+    runInAction(() => {
+      this.alerts.set(pk, alertGroup);
+    });
+    this.rootStore.setPageTitle(`#${alertGroup.inside_organization_number} ${alertGroup.render_for_web.title}`);
+  }
+
+  async fetchIncidentsAndStats(isPollingJob = false) {
+    await Promise.all([
+      this.fetchStats(IncidentStatus.Firing),
+      this.fetchStats(IncidentStatus.Acknowledged),
+      this.fetchStats(IncidentStatus.Resolved),
+      this.fetchStats(IncidentStatus.Silenced),
+      this.fetchAlertGroups(isPollingJob),
+    ]);
+    this.setLiveUpdatesPaused(false);
   }
 
   async fetchSilenceOptions() {
@@ -139,17 +163,6 @@ export class AlertGroupStore {
     });
   }
 
-  async fetchIncidentsAndStats(isPollingJob = false) {
-    await Promise.all([
-      this.fetchStats(IncidentStatus.Firing),
-      this.fetchStats(IncidentStatus.Acknowledged),
-      this.fetchStats(IncidentStatus.Resolved),
-      this.fetchStats(IncidentStatus.Silenced),
-      this.fetchAlertGroups(isPollingJob),
-    ]);
-    this.setLiveUpdatesPaused(false);
-  }
-
   setLiveUpdatesPaused(value: boolean) {
     this.liveUpdatesPaused = value;
   }
@@ -181,75 +194,13 @@ export class AlertGroupStore {
     this.fetchAlertGroups();
   }
 
-  async fetchAlertGroups(isPollingJob = false) {
-    this.rootStore.loaderStore.setLoadingAction(
-      isPollingJob ? ActionKey.FETCH_INCIDENTS_POLLING : ActionKey.FETCH_INCIDENTS,
-      true
-    );
-    const timestamp = new Date().getTime();
-    this.latestFetchAlertGroupsTimestamp = timestamp;
-    const {
-      data: { results, next: nextRaw, previous: previousRaw, page_size },
-    } = await onCallApi().GET('/alertgroups/', {
-      params: {
-        query: {
-          ...this.incidentFilters,
-          perpage: this.alertsSearchResult?.['default']?.page_size,
-          cursor: this.incidentsCursor,
-          is_root: true,
-        },
-      },
-    });
-
-    const prevCursor = previousRaw ? qs.parse(qs.extract(previousRaw)).cursor : previousRaw;
-    const nextCursor = nextRaw ? qs.parse(qs.extract(nextRaw)).cursor : nextRaw;
-
-    const newAlerts = new Map(
-      results.map((alert: ApiSchemas['AlertGroup']) => {
-        const oldAlert = this.alerts.get(alert.pk) || {};
-        const mergedAlertData = { ...oldAlert, ...alert, undoAction: alert.undoAction };
-        return [alert.pk, mergedAlertData];
-      })
-    );
-
-    runInAction(() => {
-      // If previous fetch took longer than the next one, we ignore result of the previous fetch
-      if (timestamp !== this.latestFetchAlertGroupsTimestamp) {
-        return;
-      }
-      this.alerts = new Map<string, ApiSchemas['AlertGroup']>([...this.alerts, ...newAlerts]);
-
-      this.alertsSearchResult['default'] = {
-        prev: Array.isArray(prevCursor) ? prevCursor[0] : prevCursor,
-        next: Array.isArray(nextCursor) ? nextCursor[0] : nextCursor,
-        results: results.map((alert: ApiSchemas['AlertGroup']) => alert.pk),
-        page_size,
-      };
-      this.rootStore.loaderStore.setLoadingAction(
-        [ActionKey.FETCH_INCIDENTS, ActionKey.FETCH_INCIDENTS_POLLING],
-        false
-      );
-    });
-  }
-
-  // TODO: it seems we should use fetchItemById instead and get rid of this.alerts entirely
-  async getAlert(pk: ApiSchemas['AlertGroup']['pk']) {
-    const { data: alertGroup } = await onCallApi().GET('/alertgroups/{id}/', {
-      params: { path: { id: pk } },
-    });
-    runInAction(() => {
-      this.alerts.set(pk, alertGroup);
-    });
-    this.rootStore.setPageTitle(`#${alertGroup.inside_organization_number} ${alertGroup.render_for_web.title}`);
-  }
-
   async fetchStats(status: IncidentStatus) {
     const { data } = await onCallApi().GET('/alertgroups/stats/', {
       params: { query: { ...this.incidentFilters, status: [status] } },
     });
 
     runInAction(() => {
-      this.newIncidents = data;
+      this.stats[status] = data.count;
     });
   }
 

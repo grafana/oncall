@@ -30,7 +30,7 @@ interface GroupedAlertNumberProps {
 
 const GroupedAlertNumber = observer(({ value }: GroupedAlertNumberProps) => {
   const { alertGroupStore } = useStore();
-  const alert = alertGroupStore.items[value];
+  const alert = alertGroupStore.alerts.get(value);
 
   return (
     <div>
@@ -77,10 +77,12 @@ export const AttachIncidentForm = observer(({ id, onUpdate, onHide }: AttachInci
         <WithPermissionControlTooltip userAction={UserActions.AlertGroupsWrite}>
           <GSelect<ApiSchemas['AlertGroup']>
             showSearch
-            items={alertGroupStore.items}
-            fetchItemsFn={alertGroupStore.fetchItemsAvailableForAttachment}
-            fetchItemFn={alertGroupStore.fetchItemById}
-            getSearchResult={(query: string) => AlertGroupHelper.getSearchResult(alertGroupStore, query)}
+            items={Object.fromEntries(alertGroupStore.alerts)}
+            fetchItemsFn={async (query: string) => {
+              await alertGroupStore.fetchAlertGroups(false, query);
+            }}
+            fetchItemFn={alertGroupStore.getAlert}
+            getSearchResult={() => AlertGroupHelper.getAlertSearchResult(alertGroupStore, 'default').results}
             valueField="pk"
             displayField="render_for_web.title"
             placeholder="Select Alert Group"
