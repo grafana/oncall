@@ -1,8 +1,11 @@
+import React from 'react';
+
 import { css } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
-import { Drawer, Field, Input, useStyles2 } from '@grafana/ui';
-import React from 'react';
+import { Drawer, Field, HorizontalGroup, Input, VerticalGroup, Icon, useStyles2, Button } from '@grafana/ui';
 import { Controller, useForm } from 'react-hook-form';
+
+import { Text } from 'components/Text/Text';
 
 interface ServiceNowConfigurationDrawerProps {
   onHide(): void;
@@ -12,6 +15,12 @@ enum FormFieldKeys {
   ServiceNowUrl = 'servicenow_url',
   AuthUsername = 'auth_username',
   AuthPassword = 'auth_password',
+}
+
+enum ServiceNowStatus {
+  New = 1,
+  InProgress = 2,
+  Resolved = 3,
 }
 
 interface FormFields {
@@ -81,11 +90,94 @@ export const ServiceNowConfigDrawer: React.FC<ServiceNowConfigurationDrawerProps
                 </Field>
               )}
             />
+
+            <Button className={''} variant="secondary" onClick={onAuthTest}>
+              Test
+            </Button>
+          </div>
+
+          <div className={styles.border}>
+            <VerticalGroup spacing="md">
+              <HorizontalGroup spacing="xs" align="center">
+                <Text type="primary" size="small">
+                  Status Mapping
+                </Text>
+                <Icon name="info-circle" />
+              </HorizontalGroup>
+
+              <table className={'filter-table'}>
+                <thead>
+                  <tr>
+                    <th>OnCall Alert group status</th>
+                    <th>ServiceNow incident status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>Firing</td>
+                    <td>TBA</td>
+                  </tr>
+
+                  <tr>
+                    <td>Acknowledged</td>
+                    <td>TBA</td>
+                  </tr>
+
+                  <tr>
+                    <td>Resolved</td>
+                    <td>TBA</td>
+                  </tr>
+
+                  <tr>
+                    <td>Silenced</td>
+                    <td>TBA</td>
+                  </tr>
+                </tbody>
+              </table>
+            </VerticalGroup>
+          </div>
+
+          <div className={styles.border}>
+            <VerticalGroup>
+              <HorizontalGroup spacing="xs" align="center">
+                <Text type="primary" size="small">
+                  Labels Mapping
+                </Text>
+                <Icon name="info-circle" />
+              </HorizontalGroup>
+
+              <Text>
+                Description for such object and{' '}
+                <a href={'#'} target="_blank" rel="noreferrer">
+                  <Text type="link">link to documentation</Text>
+                </a>
+              </Text>
+            </VerticalGroup>
+          </div>
+
+          <div className={styles.border}>
+            <VerticalGroup>
+              <HorizontalGroup spacing="xs" align="center">
+                <Text type="primary" size="small">
+                  ServiceNow API Token
+                </Text>
+                <Icon name="info-circle" />
+              </HorizontalGroup>
+
+              <Text>
+                Description for such object and{' '}
+                <a href={'#'} target="_blank" rel="noreferrer">
+                  <Text type="link">link to documentation</Text>
+                </a>
+              </Text>
+            </VerticalGroup>
           </div>
         </form>
       </Drawer>
     </>
   );
+
+  function onAuthTest() {}
 
   function validateURL() {
     return true;

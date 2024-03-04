@@ -48,6 +48,7 @@ import { IntegrationFormContainer } from 'containers/IntegrationForm/Integration
 import { IntegrationLabelsForm } from 'containers/IntegrationLabelsForm/IntegrationLabelsForm';
 import { IntegrationTemplate } from 'containers/IntegrationTemplate/IntegrationTemplate';
 import { MaintenanceForm } from 'containers/MaintenanceForm/MaintenanceForm';
+import { ServiceNowConfigDrawer } from 'containers/ServiceNowConfigDrawer/ServiceNowConfigDrawer';
 import { TeamName } from 'containers/TeamName/TeamName';
 import { UserDisplayWithAvatar } from 'containers/UserDisplay/UserDisplayWithAvatar';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
@@ -71,7 +72,6 @@ import { sanitize } from 'utils/sanitize';
 import { openNotification, openErrorNotification } from 'utils/utils';
 
 import { OutgoingTab } from './OutgoingTab/OutgoingTab';
-import { ServiceNowConfigDrawer } from 'containers/ServiceNowConfigDrawer/ServiceNowConfigDrawer';
 
 const cx = cn.bind(styles);
 
@@ -864,7 +864,7 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
         />
       )}
 
-      {isServiceNowConfigOpen && <ServiceNowConfigDrawer onHide={() => setIsIntegrationSettingsOpen(false)} />}
+      {isServiceNowConfigOpen && <ServiceNowConfigDrawer onHide={() => setServiceNowConfigOpen(false)} />}
 
       {isIntegrationSettingsOpen && (
         <IntegrationFormContainer
