@@ -716,10 +716,11 @@ export const RotationForm = observer((props: RotationFormProps) => {
       return;
     }
 
+    const scrollBarReferenceElements = document.querySelectorAll<HTMLElement>('.scrollbar-view');
     // top navbar display has 2 scrollbar-view elements (navbar & content)
-    const baseReferenceEl = document.querySelectorAll<HTMLElement>('.scrollbar-view')[1];
-
-    const baseReferenceElRect = baseReferenceEl.getBoundingClientRect();
+    const baseReferenceElRect = (
+      scrollBarReferenceElements.length === 1 ? scrollBarReferenceElements[0] : scrollBarReferenceElements[1]
+    ).getBoundingClientRect();
 
     const { right, bottom } = baseReferenceElRect;
 

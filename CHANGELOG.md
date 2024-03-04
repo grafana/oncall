@@ -35,6 +35,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Fix template preview by @vadimkerr ([#3937](https://github.com/grafana/oncall/pull/3937))
+- Fix an issue when dragging the rotation form ([#3986](https://github.com/grafana/oncall/pull/3986))
 
 ## v1.3.106 (2024-02-20)
 
