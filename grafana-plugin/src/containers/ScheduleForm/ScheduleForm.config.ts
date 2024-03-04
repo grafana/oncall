@@ -31,6 +31,7 @@ const getCommonFields = ({ slackChannelStore, userGroupStore }: RootStore): Form
       extra: {
         items: userGroupStore.items,
         fetchItemsFn: userGroupStore.updateItems,
+        // TODO: fetchItemFn
         getSearchResult: userGroupStore.getSearchResult,
         displayField: 'handle',
         showSearch: true,
@@ -105,6 +106,7 @@ export const getICalForm = (rootStore: RootStore) => ({
       extra: {
         items: rootStore.grafanaTeamStore.items,
         fetchItemsFn: rootStore.grafanaTeamStore.updateItems,
+        fetchItemFn: rootStore.grafanaTeamStore.fetchItemById,
         getSearchResult: rootStore.grafanaTeamStore.getSearchResult,
         displayField: 'name',
         valueField: 'id',
@@ -146,6 +148,7 @@ export const getCalendarForm = (rootStore: RootStore) => ({
       extra: {
         items: rootStore.grafanaTeamStore.items,
         fetchItemsFn: rootStore.grafanaTeamStore.updateItems,
+        fetchItemFn: rootStore.grafanaTeamStore.fetchItemById,
         getSearchResult: rootStore.grafanaTeamStore.getSearchResult,
         displayField: 'name',
         valueField: 'id',
@@ -188,6 +191,7 @@ export const getApiForm = (rootStore: RootStore) => ({
       extra: {
         items: rootStore.grafanaTeamStore.items,
         fetchItemsFn: rootStore.grafanaTeamStore.updateItems,
+        fetchItemFn: rootStore.grafanaTeamStore.fetchItemById,
         getSearchResult: rootStore.grafanaTeamStore.getSearchResult,
         displayField: 'name',
         valueField: 'id',

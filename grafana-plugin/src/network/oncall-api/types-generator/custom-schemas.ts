@@ -1,3 +1,22 @@
-// Custom properties not exposed by OpenAPI schema should be defined here
+import { AlertAction } from 'models/alertgroup/alertgroup.types';
 
-export type CustomApiSchemas = {};
+// Custom properties not exposed by OpenAPI schema should be defined here
+export type CustomApiSchemas = {
+  Webhook: {
+    readonly last_response_log?: {
+      timestamp: string;
+      url: string;
+      request_trigger: string;
+      request_headers: string;
+      request_data: string;
+      status_code: string;
+      content: string;
+      event_data: string;
+    };
+  };
+  AlertGroup: {
+    undoAction: AlertAction;
+    loading?: boolean;
+    created_at?: string;
+  };
+};

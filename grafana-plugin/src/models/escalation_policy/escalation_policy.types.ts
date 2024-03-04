@@ -1,10 +1,10 @@
 import { Channel } from 'models/channel/channel';
 import { EscalationChain } from 'models/escalation_chain/escalation_chain.types';
 import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
-import { OutgoingWebhook } from 'models/outgoing_webhook/outgoing_webhook.types';
 import { Schedule } from 'models/schedule/schedule.types';
 import { User } from 'models/user/user.types';
 import { UserGroup } from 'models/user_group/user_group.types';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 
 export interface EscalationPolicy {
   id: string;
@@ -18,7 +18,7 @@ export interface EscalationPolicy {
   from_time: string | null;
   to_time: string | null;
   notify_to_channel: Channel['id'] | null;
-  custom_webhook: OutgoingWebhook['id'] | null;
+  custom_webhook: ApiSchemas['Webhook']['id'] | null;
   notify_to_group: UserGroup['id'] | null;
   notify_to_team_members: GrafanaTeam['id'] | null;
   notify_schedule: Schedule['id'] | null;

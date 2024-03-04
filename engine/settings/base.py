@@ -344,14 +344,25 @@ MIDDLEWARE = [
     "apps.user_management.middlewares.OrganizationDeletedMiddleware",
 ]
 
+if OTEL_TRACING_ENABLED:
+    MIDDLEWARE.insert(0, "engine.middlewares.LogRequestHeadersMiddleware")
+
 LOG_REQUEST_ID_HEADER = "HTTP_X_CLOUD_TRACE_CONTEXT"
 
+
+log_fmt = "source=engine:app google_trace_id=%(request_id)s logger=%(name)s %(message)s"
+
+if OTEL_TRACING_ENABLED:
+    log_fmt = (
+        "source=engine:app trace_id=%(otelTraceID)s span_id=%("
+        "otelSpanID)s trace_sampled=%(otelTraceSampled)s google_trace_id=%(request_id)s logger=%(name)s %(message)s"
+    )
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
     "filters": {"request_id": {"()": "log_request_id.filters.RequestIDFilter"}},
     "formatters": {
-        "standard": {"format": "source=engine:app google_trace_id=%(request_id)s logger=%(name)s %(message)s"},
+        "standard": {"format": log_fmt},
         "insight_logger": {"format": "insight=true logger=%(name)s %(message)s"},
     },
     "handlers": {
