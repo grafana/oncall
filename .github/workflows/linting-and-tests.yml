@@ -128,7 +128,7 @@ jobs:
         # and don't actually write them.
         run: |
           pip install uv
-          uv pip sync requirements.txt requirements-dev.txt
+          uv pip sync --system requirements.txt requirements-dev.txt
           python manage.py makemigrations --check
           python manage.py lintmigrations
 
@@ -186,7 +186,7 @@ jobs:
         run: |
           apt-get update && apt-get install -y netcat-traditional
           pip install uv
-          uv pip sync requirements.txt requirements-dev.txt
+          uv pip sync --system requirements.txt requirements-dev.txt
           ./wait_for_test_mysql_start.sh && pytest -x
 
   unit-test-backend-postgresql-rabbitmq:
@@ -236,7 +236,7 @@ jobs:
         working-directory: engine
         run: |
           pip install uv
-          uv pip sync requirements.txt requirements-dev.txt
+          uv pip sync --system requirements.txt requirements-dev.txt
           pytest -x
 
   unit-test-backend-sqlite-redis:
@@ -276,7 +276,7 @@ jobs:
         run: |
           apt-get update && apt-get install -y netcat-traditional
           pip install uv
-          uv pip sync requirements.txt requirements-dev.txt
+          uv pip sync --system requirements.txt requirements-dev.txt
           pytest -x
 
   unit-test-pd-migrator:
@@ -293,7 +293,7 @@ jobs:
         working-directory: tools/pagerduty-migrator
         run: |
           pip install uv
-          uv pip sync requirements.txt
+          uv pip install --system requirements.txt
           pytest -x
 
   mypy:
@@ -312,7 +312,7 @@ jobs:
         working-directory: engine
         run: |
           pip install uv
-          uv pip sync requirements.txt requirements-dev.txt
+          uv pip sync --system requirements.txt requirements-dev.txt
           mypy .
 
   end-to-end-tests:
