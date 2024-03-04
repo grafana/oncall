@@ -34,10 +34,10 @@ humanize==0.5.1
 icalendar==5.0.10
 lxml==4.9.2
 markdown2==2.4.10
+opentelemetry-sdk==1.23.0
+opentelemetry-api==1.23.0
 opentelemetry-exporter-otlp-proto-grpc==1.15.0
-opentelemetry-instrumentation-celery==0.36b0
-opentelemetry-instrumentation-pymysql==0.36b0
-opentelemetry-instrumentation-wsgi==0.36b0
+opentelemetry-instrumentation-logging==0.44b0
 phonenumbers==8.10.0
 prometheus_client==0.16.0
 psutil==5.9.4
