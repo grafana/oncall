@@ -9,13 +9,11 @@ import { RootStore } from 'state/rootStore';
 import { SelectOption } from 'state/types';
 import { LocationHelper } from 'utils/LocationHelper';
 import { AutoLoadingState, WithGlobalNotification } from 'utils/decorators';
-import { openErrorNotification, refreshPageError } from 'utils/utils';
 
 import { AlertGroupHelper } from './alertgroup.helpers';
 import { AlertGroupColumn, AlertAction, IncidentStatus } from './alertgroup.types';
 
 export class AlertGroupStore {
-  path = '/alertgroups/';
   rootStore: RootStore;
   bulkActions: any = [];
   silenceOptions: any;
@@ -62,9 +60,9 @@ export class AlertGroupStore {
   }
 
   async fetchItems(query = '', params = {}) {
-    const { results } = await makeRequest(`${this.path}`, {
-      params: { search: query, ...params },
-    });
+    const {
+      data: { results },
+    } = await onCallApi().GET('/alertgroups/', { params: { query: { search: query, ...params } } });
 
     runInAction(() => {
       this.items = {
@@ -91,11 +89,11 @@ export class AlertGroupStore {
     });
   }
 
-  async updateSilenceOptions() {
-    const result = await makeRequest(`${this.path}silence_options/`, {});
+  async fetchSilenceOptions() {
+    const { data } = await onCallApi().GET('/alertgroups/silence_options/', undefined);
 
     runInAction(() => {
-      this.silenceOptions = result;
+      this.silenceOptions = data;
     });
   }
 
@@ -127,11 +125,11 @@ export class AlertGroupStore {
     await this.fetchTableSettings();
   }
 
-  async updateBulkActions() {
-    const response = await makeRequest(`${this.path}bulk_action_options/`, {});
+  async fetchBulkActions() {
+    const { data } = await onCallApi().GET('/alertgroups/bulk_action_options/', undefined);
 
     runInAction(() => {
-      this.bulkActions = response.reduce(
+      this.bulkActions = data.reduce(
         (acc: { [key: string]: boolean }, item: SelectOption) => ({
           ...acc,
           [item.value]: true,
@@ -143,10 +141,10 @@ export class AlertGroupStore {
 
   async fetchIncidentsAndStats(isPollingJob = false) {
     await Promise.all([
-      this.getNewIncidentsStats(),
-      this.getAcknowledgedIncidentsStats(),
-      this.getResolvedIncidentsStats(),
-      this.getSilencedIncidentsStats(),
+      this.fetchStats(IncidentStatus.Firing),
+      this.fetchStats(IncidentStatus.Acknowledged),
+      this.fetchStats(IncidentStatus.Resolved),
+      this.fetchStats(IncidentStatus.Silenced),
       this.fetchAlertGroups(isPollingJob),
     ]);
     this.setLiveUpdatesPaused(false);
@@ -191,18 +189,17 @@ export class AlertGroupStore {
     const timestamp = new Date().getTime();
     this.latestFetchAlertGroupsTimestamp = timestamp;
     const {
-      results,
-      next: nextRaw,
-      previous: previousRaw,
-      page_size,
-    } = await makeRequest(`${this.path}`, {
+      data: { results, next: nextRaw, previous: previousRaw, page_size },
+    } = await onCallApi().GET('/alertgroups/', {
       params: {
-        ...this.incidentFilters,
-        perpage: this.alertsSearchResult?.['default']?.page_size,
-        cursor: this.incidentsCursor,
-        is_root: true,
+        query: {
+          ...this.incidentFilters,
+          perpage: this.alertsSearchResult?.['default']?.page_size,
+          cursor: this.incidentsCursor,
+          is_root: true,
+        },
       },
-    }).catch(refreshPageError);
+    });
 
     const prevCursor = previousRaw ? qs.parse(qs.extract(previousRaw)).cursor : previousRaw;
     const nextCursor = nextRaw ? qs.parse(qs.extract(nextRaw)).cursor : nextRaw;
@@ -220,12 +217,11 @@ export class AlertGroupStore {
       if (timestamp !== this.latestFetchAlertGroupsTimestamp) {
         return;
       }
-      // @ts-ignore
-      this.alerts = new Map<number, Alert>([...this.alerts, ...newAlerts]);
+      this.alerts = new Map<string, ApiSchemas['AlertGroup']>([...this.alerts, ...newAlerts]);
 
       this.alertsSearchResult['default'] = {
-        prev: prevCursor,
-        next: nextCursor,
+        prev: Array.isArray(prevCursor) ? prevCursor[0] : prevCursor,
+        next: Array.isArray(nextCursor) ? nextCursor[0] : nextCursor,
         results: results.map((alert: ApiSchemas['AlertGroup']) => alert.pk),
         page_size,
       };
@@ -236,109 +232,97 @@ export class AlertGroupStore {
     });
   }
 
+  // TODO: it seems we should use fetchItemById instead and get rid of this.alerts entirely
   async getAlert(pk: ApiSchemas['AlertGroup']['pk']) {
-    const alertGroup = await makeRequest(`${this.path}${pk}`, {});
+    const { data: alertGroup } = await onCallApi().GET('/alertgroups/{id}/', {
+      params: { path: { id: pk } },
+    });
     runInAction(() => {
       this.alerts.set(pk, alertGroup);
     });
     this.rootStore.setPageTitle(`#${alertGroup.inside_organization_number} ${alertGroup.render_for_web.title}`);
   }
 
-  async getNewIncidentsStats() {
-    const result = await makeRequest(`${this.path}stats/`, {
-      params: {
-        ...this.incidentFilters,
-        status: [IncidentStatus.Firing],
-      },
+  async fetchStats(status: IncidentStatus) {
+    const { data } = await onCallApi().GET('/alertgroups/stats/', {
+      params: { query: { ...this.incidentFilters, status: [status] } },
     });
 
     runInAction(() => {
-      this.newIncidents = result;
+      this.newIncidents = data;
     });
   }
 
-  async getAcknowledgedIncidentsStats() {
-    const result = await makeRequest(`${this.path}stats/`, {
-      params: {
-        ...this.incidentFilters,
-        status: [IncidentStatus.Acknowledged],
-      },
+  async resolve(id: ApiSchemas['AlertGroup']['pk']) {
+    this.setLiveUpdatesPaused(true);
+    const { data } = await onCallApi().POST('/alertgroups/{id}/resolve/', {
+      params: { path: { id } },
     });
-
-    runInAction(() => {
-      this.acknowledgedIncidents = result;
+    this.updateAlert(id, {
+      ...data,
+      undoAction: AlertAction.Resolve,
     });
   }
 
-  async getResolvedIncidentsStats() {
-    const result = await makeRequest(`${this.path}stats/`, {
-      params: {
-        ...this.incidentFilters,
-        status: [IncidentStatus.Resolved],
-      },
-    });
-
-    runInAction(() => {
-      this.resolvedIncidents = result;
+  async unresolve(id: ApiSchemas['AlertGroup']['pk']) {
+    this.setLiveUpdatesPaused(true);
+    const { data } = await onCallApi().POST('/alertgroups/{id}/unresolve/', { params: { path: { id } } });
+    this.updateAlert(id, {
+      ...data,
+      undoAction: AlertAction.unResolve,
     });
   }
 
-  async getSilencedIncidentsStats() {
-    const result = await makeRequest(`${this.path}stats/`, {
-      params: {
-        ...this.incidentFilters,
-        status: [IncidentStatus.Silenced],
-      },
-    });
-
-    runInAction(() => {
-      this.silencedIncidents = result;
+  async acknowledge(id: ApiSchemas['AlertGroup']['pk']) {
+    this.setLiveUpdatesPaused(true);
+    const { data } = await onCallApi().POST('/alertgroups/{id}/acknowledge/', { params: { path: { id } } });
+    this.updateAlert(id, {
+      ...data,
+      undoAction: AlertAction.Acknowledge,
     });
   }
 
-  async doIncidentAction(alertId: ApiSchemas['AlertGroup']['pk'], action: AlertAction, isUndo = false, data?: any) {
-    this.updateAlert(alertId, { loading: true });
+  async unacknowledge(id: ApiSchemas['AlertGroup']['pk']) {
+    this.setLiveUpdatesPaused(true);
+    const { data } = await onCallApi().POST('/alertgroups/{id}/unacknowledge/', { params: { path: { id } } });
+    this.updateAlert(id, {
+      ...data,
+      undoAction: AlertAction.unAcknowledge,
+    });
+  }
 
-    let undoAction = undefined;
-    if (!isUndo) {
-      switch (action) {
-        case AlertAction.Acknowledge:
-          undoAction = AlertAction.unAcknowledge;
-          break;
-        case AlertAction.unAcknowledge:
-          undoAction = AlertAction.Acknowledge;
-          break;
-        case AlertAction.Resolve:
-          undoAction = AlertAction.unResolve;
-          break;
-        case AlertAction.unResolve:
-          undoAction = AlertAction.Resolve;
-          break;
-        case AlertAction.Silence:
-          undoAction = AlertAction.unSilence;
-          break;
-        case AlertAction.unSilence:
-          undoAction = AlertAction.Silence;
-          break;
-      }
+  async silence(id: ApiSchemas['AlertGroup']['pk'], delay: number) {
+    this.setLiveUpdatesPaused(true);
+    const { data } = await onCallApi().POST('/alertgroups/{id}/silence/', {
+      params: { path: { id } },
+      body: { delay },
+    });
+    this.updateAlert(id, {
+      ...data,
+      undoAction: AlertAction.Silence,
+    });
+  }
 
-      this.setLiveUpdatesPaused(true);
-    }
+  async unsilence(id: ApiSchemas['AlertGroup']['pk']) {
+    this.setLiveUpdatesPaused(true);
+    const { data } = await onCallApi().POST('/alertgroups/{id}/unsilence/', { params: { path: { id } } });
+    this.updateAlert(id, {
+      ...data,
+      undoAction: AlertAction.unSilence,
+    });
+  }
 
-    try {
-      const result = await makeRequest(`/alertgroups/${alertId}/${action}/`, {
-        method: 'POST',
-        data,
-      });
-
-      this.updateAlert(alertId, {
-        ...result,
-        loading: false,
-        undoAction,
-      });
-    } catch (e) {
-      this.updateAlert(alertId, { loading: false });
-      openErrorNotification(e.response.data?.detail || e.response.data);
+  async doIncidentAction(id: ApiSchemas['AlertGroup']['pk'], action: AlertAction, delay?: number) {
+    const actionToMethodMap = {
+      [AlertAction.Acknowledge]: this.acknowledge,
+      [AlertAction.unAcknowledge]: this.unacknowledge,
+      [AlertAction.Silence]: this.silence,
+      [AlertAction.unSilence]: this.unsilence,
+      [AlertAction.Resolve]: this.resolve,
+      [AlertAction.unResolve]: this.unresolve,
+    };
+    if (actionToMethodMap[action]) {
+      await actionToMethodMap[action](id, delay);
     }
   }
 

@@ -89,7 +89,7 @@ class _IncidentPage extends React.Component<IncidentPageProps, IncidentPageState
 
     this.update();
 
-    store.alertGroupStore.updateSilenceOptions();
+    store.alertGroupStore.fetchSilenceOptions();
   }
 
   componentWillUnmount(): void {
@@ -617,7 +617,7 @@ class _IncidentPage extends React.Component<IncidentPageProps, IncidentPageState
     return (e: SyntheticEvent) => {
       e.stopPropagation();
 
-      return store.alertGroupStore.doIncidentAction(incidentId, action, false);
+      return store.alertGroupStore.doIncidentAction(incidentId, action);
     };
   };
 
@@ -625,9 +625,7 @@ class _IncidentPage extends React.Component<IncidentPageProps, IncidentPageState
     const { store } = this.props;
 
     return (value: number) => {
-      return store.alertGroupStore.doIncidentAction(incidentId, AlertAction.Silence, false, {
-        delay: value,
-      });
+      return store.alertGroupStore.doIncidentAction(incidentId, AlertAction.Silence, value);
     };
   };
 
@@ -637,7 +635,7 @@ class _IncidentPage extends React.Component<IncidentPageProps, IncidentPageState
     return (event: any) => {
       event.stopPropagation();
 
-      return store.alertGroupStore.doIncidentAction(incidentId, AlertAction.unSilence, false);
+      return store.alertGroupStore.doIncidentAction(incidentId, AlertAction.unSilence);
     };
   };
 

@@ -144,8 +144,8 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
     const { store } = this.props;
     const { alertGroupStore } = store;
 
-    alertGroupStore.updateBulkActions();
-    alertGroupStore.updateSilenceOptions();
+    alertGroupStore.fetchBulkActions();
+    alertGroupStore.fetchSilenceOptions();
 
     if (store.hasFeature(AppFeature.Labels)) {
       alertGroupStore.fetchTableSettings();
@@ -906,7 +906,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
     return (e: SyntheticEvent) => {
       e.stopPropagation();
 
-      return store.alertGroupStore.doIncidentAction(incidentId, action, false);
+      return store.alertGroupStore.doIncidentAction(incidentId, action);
     };
   };
 
@@ -914,9 +914,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
     const { store } = this.props;
 
     return (value: number) => {
-      return store.alertGroupStore.doIncidentAction(alert.pk, AlertAction.Silence, false, {
-        delay: value,
-      });
+      return store.alertGroupStore.doIncidentAction(alert.pk, AlertAction.Silence, value);
     };
   };
 
@@ -926,7 +924,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
     return (event: React.SyntheticEvent) => {
       event.stopPropagation();
 
-      return store.alertGroupStore.doIncidentAction(alert.pk, AlertAction.unSilence, false);
+      return store.alertGroupStore.doIncidentAction(alert.pk, AlertAction.unSilence);
     };
   };
 

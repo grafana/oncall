@@ -17,7 +17,6 @@ import { OmitReadonlyMembers } from 'utils/types';
 import { AlertReceiveChannelCounters, ContactPoint } from './alert_receive_channel.types';
 
 export class AlertReceiveChannelStore {
-  path = '/alert_receive_channels/';
   rootStore: RootBaseStore;
   searchResult: Array<ApiSchemas['AlertReceiveChannel']['id']>;
   paginatedSearchResult: {

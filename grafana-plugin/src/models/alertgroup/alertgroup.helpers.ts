@@ -38,30 +38,6 @@ export class AlertGroupHelper {
     return (await onCallApi().GET('/alertgroups/{id}/', { params: { path: { id: pk } } })).data;
   }
 
-  static async resolve(id: ApiSchemas['AlertGroup']['pk'], delay: number) {
-    await onCallApi().POST('/alertgroups/{id}/silence/', { params: { path: { id } }, body: { delay } });
-  }
-
-  static async unresolve(id: ApiSchemas['AlertGroup']['pk']) {
-    await onCallApi().POST('/alertgroups/{id}/unresolve/', { params: { path: { id } } });
-  }
-
-  static async acknowledge(id: ApiSchemas['AlertGroup']['pk']) {
-    await onCallApi().POST('/alertgroups/{id}/acknowledge/', { params: { path: { id } } });
-  }
-
-  static async unacknowledge(id: ApiSchemas['AlertGroup']['pk']) {
-    await onCallApi().POST('/alertgroups/{id}/unacknowledge/', { params: { path: { id } } });
-  }
-
-  static async silence(id: ApiSchemas['AlertGroup']['pk'], delay: number) {
-    await onCallApi().POST('/alertgroups/{id}/silence/', { params: { path: { id } }, body: { delay } });
-  }
-
-  static async unsilence(id: ApiSchemas['AlertGroup']['pk']) {
-    await onCallApi().POST('/alertgroups/{id}/unsilence/', { params: { path: { id } } });
-  }
-
   static async bulkAction(data: ApiSchemas['AlertGroupBulkActionRequest']) {
     return (await onCallApi().POST('/alertgroups/bulk_action/', { params: {}, body: data })).data;
   }
