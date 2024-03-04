@@ -14,6 +14,7 @@ from django.core.wsgi import get_wsgi_application
 from opentelemetry import trace
 from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
 from opentelemetry.instrumentation.logging import LoggingInstrumentor
+from opentelemetry.instrumentation.wsgi import OpenTelemetryMiddleware
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from whitenoise import WhiteNoise
@@ -29,6 +30,8 @@ if settings.OTEL_TRACING_ENABLED and settings.OTEL_EXPORTER_OTLP_ENDPOINT:
     # Set up tracing and logging instrumentation under uwsgi web server environment
     try:
         from uwsgidecorators import postfork
+
+        application = OpenTelemetryMiddleware(application)
 
         @postfork
         def init_tracing():
