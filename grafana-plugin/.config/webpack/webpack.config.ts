@@ -147,7 +147,6 @@ const config = async (env): Promise<Configuration> => {
           { from: hasReadme() ? 'README.md' : '../README.md', to: '.', force: true },
           { from: 'plugin.json', to: '.' },
           { from: '../LICENSE', to: '.' },
-          { from: '../CHANGELOG.md', to: '.', noErrorOnMissing: true, force: true },
           { from: '**/*.json', to: '.' }, // TODO<Add an error for checking the basic structure of the repo>
           { from: '**/*.svg', to: '.', noErrorOnMissing: true }, // Optional
           { from: '**/*.png', to: '.', noErrorOnMissing: true }, // Optional

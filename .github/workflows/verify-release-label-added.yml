@@ -1,0 +1,23 @@
+name: Verify Release Label Added
+
+"on":
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - labeled
+      - unlabeled
+    branches:
+      - dev
+
+jobs:
+  verfiy-release-label-added:
+    name: Verify Release Label Added
+    runs-on: ubuntu-latest
+    steps:
+      - uses: docker://agilepathway/pull-request-label-checker:latest
+        with:
+          prefix_mode: true
+          one_of: "release:"
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
