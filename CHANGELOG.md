@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+### Fixed
+
+- Handle nullable shift.by_day on the frontend ([#9548](https://github.com/grafana/support-escalations/issues/9548))
+
 ## v1.3.108 (2024-02-28)
 
 ### Fixed
@@ -24,10 +30,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Remove explicit uWSGI and Django request size limits by @vadimkerr ([#3878](https://github.com/grafana/oncall/pull/3878))
 - Migrate webhooks integration_filter to use a m2m field instead ([#3946](https://github.com/grafana/oncall/pull/3946))
 - Updated Faro package version ([#3970](https://github.com/grafana/oncall/pull/3970))
+- Integration form migration to react-hook-form ([#3979](https://github.com/grafana/oncall/pull/3979))
 
 ### Fixed
 
 - Fix template preview by @vadimkerr ([#3937](https://github.com/grafana/oncall/pull/3937))
+- Fix an issue when dragging the rotation form ([#3986](https://github.com/grafana/oncall/pull/3986))
 
 ## v1.3.106 (2024-02-20)
 
