@@ -54,7 +54,7 @@ export class AlertGroupHelper {
       prev: result.prev,
       next: result.next,
       page_size: result.page_size,
-      results: result.results.map((pk: ApiSchemas['AlertGroup']['pk']) => store.alerts.get(pk)),
+      results: result.results?.map((pk: ApiSchemas['AlertGroup']['pk']) => store.alerts.get(pk)),
     };
   }
 

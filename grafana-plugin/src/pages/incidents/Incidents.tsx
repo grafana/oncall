@@ -425,7 +425,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
       return null;
     }
 
-    const { results } = AlertGroupHelper.getAlertSearchResult(store.alertGroupStore, 'default');
+    const { results } = AlertGroupHelper.getAlertSearchResult(store.alertGroupStore);
 
     const hasSelected = selectedIncidentIds.length > 0;
     const isLoading = LoaderHelper.isLoading(store.loaderStore, ActionKey.FETCH_INCIDENTS);
@@ -518,7 +518,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
     const { selectedIncidentIds, pagination, isHorizontalScrolling } = this.state;
     const { alertGroupStore, filtersStore, loaderStore } = this.props.store;
 
-    const { results, prev, next } = AlertGroupHelper.getAlertSearchResult(alertGroupStore, 'default');
+    const { results, prev, next } = AlertGroupHelper.getAlertSearchResult(alertGroupStore);
     const isLoading =
       LoaderHelper.isLoading(loaderStore, ActionKey.FETCH_INCIDENTS) || filtersStore.options['incidents'] === undefined;
 

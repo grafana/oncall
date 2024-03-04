@@ -82,7 +82,7 @@ export const AttachIncidentForm = observer(({ id, onUpdate, onHide }: AttachInci
               await alertGroupStore.fetchAlertGroups(false, query);
             }}
             fetchItemFn={alertGroupStore.getAlert}
-            getSearchResult={() => AlertGroupHelper.getAlertSearchResult(alertGroupStore, 'default').results}
+            getSearchResult={() => AlertGroupHelper.getAlertSearchResult(alertGroupStore).results}
             valueField="pk"
             displayField="render_for_web.title"
             placeholder="Select Alert Group"
