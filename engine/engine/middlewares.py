@@ -5,7 +5,6 @@ from django.conf import settings
 from django.core.exceptions import PermissionDenied
 from django.db import OperationalError
 from django.utils.deprecation import MiddlewareMixin
-from opentelemetry import trace
 
 logger = logging.getLogger(__name__)
 
@@ -92,14 +91,19 @@ class BanAlertConsumptionBasedOnSettingsMiddleware(MiddlewareMixin):
             raise PermissionDenied()
 
 
-class TracingMiddleware:
+class LogRequestHeadersMiddleware:
+    """
+    Middleware to log the request headers.
+    Introduced to debug tracing issues.
+    """
+
     def __init__(self, get_response):
         self.get_response = get_response
-        self.tracer = trace.get_tracer(__name__)
 
     def __call__(self, request):
-        with self.tracer.start_as_current_span("middleware"):
-            # TODO: add span attrs
-            # Process the request
-            response = self.get_response(request)
-            return response
+        # Log request headers
+        logger.info("Request Headers: %s", request.headers)
+
+        response = self.get_response(request)
+
+        return response
