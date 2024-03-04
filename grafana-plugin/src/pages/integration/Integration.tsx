@@ -71,6 +71,7 @@ import { sanitize } from 'utils/sanitize';
 import { openNotification, openErrorNotification } from 'utils/utils';
 
 import { OutgoingTab } from './OutgoingTab/OutgoingTab';
+import { ServiceNowConfigDrawer } from 'containers/ServiceNowConfigDrawer/ServiceNowConfigDrawer';
 
 const cx = cn.bind(styles);
 
@@ -827,8 +828,9 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
     onConfirm: () => void;
   }>(undefined);
 
+  const [isServiceNowConfigOpen, setServiceNowConfigOpen] = useState(false);
   const [isIntegrationSettingsOpen, setIsIntegrationSettingsOpen] = useState(false);
-  const [labelsFormOpen, setLabelsFormOpen] = useState(false);
+  const [isLabelsFormOpen, setLabelsFormOpen] = useState(false);
   const [isHeartbeatFormOpen, setIsHeartbeatFormOpen] = useState(false);
   const [isDemoModalOpen, setIsDemoModalOpen] = useState(false);
   const [maintenanceData, setMaintenanceData] = useState<{
@@ -862,6 +864,8 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
         />
       )}
 
+      {isServiceNowConfigOpen && <ServiceNowConfigDrawer onHide={() => setIsIntegrationSettingsOpen(false)} />}
+
       {isIntegrationSettingsOpen && (
         <IntegrationFormContainer
           isTableView={false}
@@ -877,7 +881,7 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
         />
       )}
 
-      {labelsFormOpen && (
+      {isLabelsFormOpen && (
         <IntegrationLabelsForm
           onHide={() => {
             setLabelsFormOpen(false);
@@ -929,6 +933,7 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
               {
                 label: 'ServiceNow configuration',
                 hidden: !getIsBidirectionalIntegration(alertReceiveChannel),
+                onClick: openServiceNowConfigDrawer,
               },
               {
                 onClick: openLabelsForm,
@@ -1094,6 +1099,10 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
 
   function openLabelsForm() {
     setLabelsFormOpen(true);
+  }
+
+  function openServiceNowConfigDrawer() {
+    setServiceNowConfigOpen(true);
   }
 
   function openStartMaintenance() {
