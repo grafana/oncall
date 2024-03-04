@@ -52,6 +52,7 @@ export const TelegramConnector = ({ channelFilterId }: TelegramConnectorProps) =
             className={cx('select', 'control')}
             items={telegramChannelStore.items}
             fetchItemsFn={telegramChannelStore.updateItems}
+            fetchItemFn={telegramChannelStore.updateById}
             getSearchResult={telegramChannelStore.getSearchResult}
             displayField="channel_name"
             valueField="id"

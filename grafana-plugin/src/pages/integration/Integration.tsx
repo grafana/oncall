@@ -44,7 +44,7 @@ import { CollapsedIntegrationRouteDisplay } from 'containers/IntegrationContaine
 import { ExpandedIntegrationRouteDisplay } from 'containers/IntegrationContainers/ExpandedIntegrationRouteDisplay/ExpandedIntegrationRouteDisplay';
 import { IntegrationHeartbeatForm } from 'containers/IntegrationContainers/IntegrationHeartbeatForm/IntegrationHeartbeatForm';
 import { IntegrationTemplateList } from 'containers/IntegrationContainers/IntegrationTemplatesList';
-import { IntegrationForm } from 'containers/IntegrationForm/IntegrationForm';
+import { IntegrationFormContainer } from 'containers/IntegrationForm/IntegrationFormContainer';
 import { IntegrationLabelsForm } from 'containers/IntegrationLabelsForm/IntegrationLabelsForm';
 import { IntegrationTemplate } from 'containers/IntegrationTemplate/IntegrationTemplate';
 import { MaintenanceForm } from 'containers/MaintenanceForm/MaintenanceForm';
@@ -152,7 +152,10 @@ class _IntegrationPage extends React.Component<IntegrationProps, IntegrationStat
       );
     }
 
-    const integration = AlertReceiveChannelHelper.getIntegration(alertReceiveChannelStore, alertReceiveChannel);
+    const integration = AlertReceiveChannelHelper.getIntegrationSelectOption(
+      alertReceiveChannelStore,
+      alertReceiveChannel
+    );
     const alertReceiveChannelCounter = alertReceiveChannelStore.counters[id];
     const isLegacyIntegration = integration && (integration?.value as string).toLowerCase().startsWith('legacy_');
     const contactPoints = alertReceiveChannelStore.connectedContactPoints?.[alertReceiveChannel.id];
@@ -750,8 +753,7 @@ class _IntegrationPage extends React.Component<IntegrationProps, IntegrationStat
 
   async loadData() {
     const {
-      store,
-      store: { alertReceiveChannelStore },
+      store: { alertReceiveChannelStore, msteamsChannelStore, hasFeature },
       match: {
         params: { id },
       },
@@ -771,7 +773,9 @@ class _IntegrationPage extends React.Component<IntegrationProps, IntegrationStat
     }
 
     promises.push(alertReceiveChannelStore.fetchTemplates(id));
-    promises.push(IntegrationHelper.fetchChatOps(store));
+    if (hasFeature(AppFeature.MsTeams)) {
+      promises.push(msteamsChannelStore.updateMSTeamsChannels());
+    }
     promises.push(alertReceiveChannelStore.fetchCountersForIntegration(id));
 
     await Promise.all(promises)
@@ -859,7 +863,7 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
       )}
 
       {isIntegrationSettingsOpen && (
-        <IntegrationForm
+        <IntegrationFormContainer
           isTableView={false}
           onHide={() => setIsIntegrationSettingsOpen(false)}
           onSubmit={async () => {

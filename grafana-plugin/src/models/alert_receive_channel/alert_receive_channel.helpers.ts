@@ -43,7 +43,7 @@ export class AlertReceiveChannelHelper {
       : undefined;
   }
 
-  static getIntegration(
+  static getIntegrationSelectOption(
     store: AlertReceiveChannelStore,
     alertReceiveChannel: Partial<ApiSchemas['AlertReceiveChannel'] | ApiSchemas['FastAlertReceiveChannel']>
   ): SelectOption {

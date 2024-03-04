@@ -7,7 +7,8 @@ import { Tag } from 'components/Tag/Tag';
 import { Text } from 'components/Text/Text';
 import { WithContextMenu } from 'components/WithContextMenu/WithContextMenu';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
-import { Alert, AlertAction, IncidentStatus } from 'models/alertgroup/alertgroup.types';
+import { AlertAction, IncidentStatus } from 'models/alertgroup/alertgroup.types';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 import styles from 'pages/incidents/parts/IncidentDropdown.module.scss';
 import { getVar } from 'utils/DOM';
 import { UserActions } from 'utils/authorization/authorization';
@@ -16,7 +17,7 @@ import { SilenceSelect } from './SilenceSelect';
 
 const cx = cn.bind(styles);
 
-const getIncidentTagColor = (alert: Alert) => {
+const getIncidentTagColor = (alert: ApiSchemas['AlertGroup']) => {
   if (alert.status === IncidentStatus.Resolved) {
     return getVar('--tag-primary');
   }
@@ -29,7 +30,13 @@ const getIncidentTagColor = (alert: Alert) => {
   return getVar('--tag-secondary');
 };
 
-function IncidentStatusTag({ alert, openMenu }: { alert: Alert; openMenu: React.MouseEventHandler<HTMLElement> }) {
+function IncidentStatusTag({
+  alert,
+  openMenu,
+}: {
+  alert: ApiSchemas['AlertGroup'];
+  openMenu: React.MouseEventHandler<HTMLElement>;
+}) {
   const forwardedRef = useRef<HTMLSpanElement>();
 
   return (
@@ -52,7 +59,7 @@ function IncidentStatusTag({ alert, openMenu }: { alert: Alert; openMenu: React.
 }
 
 export const IncidentDropdown: FC<{
-  alert: Alert;
+  alert: ApiSchemas['AlertGroup'];
   onResolve: (e: SyntheticEvent) => Promise<void>;
   onUnacknowledge: (e: SyntheticEvent) => Promise<void>;
   onUnresolve: (e: SyntheticEvent) => Promise<void>;

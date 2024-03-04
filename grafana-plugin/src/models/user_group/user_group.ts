@@ -22,9 +22,9 @@ export class UserGroupStore extends BaseStore {
   }
 
   @action.bound
-  async updateItems(query = '') {
+  async updateItems(query = '', id?: string) {
     const result = await makeRequest(`${this.path}`, {
-      params: { search: query },
+      params: { search: query, id },
     });
 
     runInAction(() => {

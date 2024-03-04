@@ -30,7 +30,8 @@ import { OutgoingWebhookStatus } from 'containers/OutgoingWebhookStatus/Outgoing
 import { WebhooksTemplateEditor } from 'containers/WebhooksTemplateEditor/WebhooksTemplateEditor';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { LabelKeyValue } from 'models/label/label.types';
-import { OutgoingWebhook, OutgoingWebhookPreset } from 'models/outgoing_webhook/outgoing_webhook.types';
+import { OutgoingWebhookPreset } from 'models/outgoing_webhook/outgoing_webhook.types';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 import { WebhookFormActionType } from 'pages/outgoing_webhooks/OutgoingWebhooks.types';
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
@@ -46,7 +47,7 @@ import styles from 'containers/OutgoingWebhookForm/OutgoingWebhookForm.module.cs
 const cx = cn.bind(styles);
 
 interface OutgoingWebhookFormProps {
-  id: OutgoingWebhook['id'] | 'new';
+  id: ApiSchemas['Webhook']['id'] | 'new';
   action: WebhookFormActionType;
   onHide: () => void;
   onUpdate: () => void;
@@ -104,7 +105,7 @@ export const OutgoingWebhookForm = observer((props: OutgoingWebhookFormProps) =>
   });
 
   const handleSubmit = useCallback(
-    async (data: Partial<OutgoingWebhook>) => {
+    async (data: Partial<ApiSchemas['Webhook']>) => {
       try {
         if (isNewOrCopy) {
           await outgoingWebhookStore.create(data);
@@ -168,7 +169,7 @@ export const OutgoingWebhookForm = observer((props: OutgoingWebhookFormProps) =>
   }
 
   let data:
-    | OutgoingWebhook
+    | ApiSchemas['Webhook']
     | {
         is_webhook_enabled: boolean;
         is_legacy: boolean;
@@ -382,11 +383,11 @@ export const OutgoingWebhookForm = observer((props: OutgoingWebhookFormProps) =>
 });
 
 interface WebhookTabsProps {
-  id: OutgoingWebhook['id'] | 'new';
+  id: ApiSchemas['Webhook']['id'] | 'new';
   activeTab: string;
   action: WebhookFormActionType;
   data:
-    | OutgoingWebhook
+    | ApiSchemas['Webhook']
     | {
         is_webhook_enabled: boolean;
         is_legacy: boolean;
@@ -395,7 +396,7 @@ interface WebhookTabsProps {
   onHide: () => void;
   onUpdate: () => void;
   onDelete: () => void;
-  handleSubmit: (data: Partial<OutgoingWebhook>) => void;
+  handleSubmit: (data: Partial<ApiSchemas['Webhook']>) => void;
   formElement: React.ReactElement;
 }
 

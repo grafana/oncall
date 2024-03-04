@@ -20,6 +20,7 @@ import { MonacoEditor } from 'components/MonacoEditor/MonacoEditor';
 import { MONACO_READONLY_CONFIG } from 'components/MonacoEditor/MonacoEditor.config';
 import { WebhooksTemplateEditor } from 'containers/WebhooksTemplateEditor/WebhooksTemplateEditor';
 import { HTTP_METHOD_OPTIONS, WEBHOOK_TRIGGGER_TYPE_OPTIONS } from 'models/outgoing_webhook/outgoing_webhook.types';
+import { VALID_URL_PATTERN } from 'utils/string';
 
 import { getStyles } from './OutgoingTab.styles';
 import { OutgoingTabFormValues } from './OutgoingTab.types';
@@ -40,29 +41,29 @@ export const OutgoingWebhookFormFields: FC<OutgoingWebhookFormFieldsProps> = ({ 
   const { control, watch, formState, register } = useFormContext<OutgoingTabFormValues>();
   const [templateToEdit, setTemplateToEdit] = useState<TemplateToEdit>();
 
-  const [showTriggerTemplate] = watch(['triggerTemplateToogle', 'forwardedDataTemplateToogle']);
+  const [showTriggerTemplate] = watch(['triggerTemplateToogle']);
 
   return (
     <VerticalGroup spacing="lg">
       <div className={styles.switcherFieldWrapper}>
         <Controller
           control={control}
-          name="isEnabled"
+          name="is_webhook_enabled"
           render={({ field: { value, onChange } }) => <Switch value={value} onChange={() => onChange(!value)} />}
         />
         <Label className={styles.switcherLabel}>Enabled</Label>
       </div>
       <Controller
         control={control}
-        name="triggerType"
+        name="trigger_type"
         rules={{
           required: 'Trigger type is required',
         }}
         render={({ field }) => (
           <Field
-            key="triggerType"
-            invalid={Boolean(formState.errors.triggerType)}
-            error={formState.errors.triggerType?.message}
+            key="trigger_type"
+            invalid={Boolean(formState.errors.trigger_type)}
+            error={formState.errors.trigger_type?.message}
             label={
               <Label>
                 <span>Trigger type</span>&nbsp;
@@ -97,19 +98,24 @@ export const OutgoingWebhookFormFields: FC<OutgoingWebhookFormFieldsProps> = ({ 
         }
         className={styles.selectField}
       >
-        <Input {...register('url', { required: 'URL is required' })} />
+        <Input
+          {...register('url', {
+            required: 'URL is required',
+            pattern: { value: VALID_URL_PATTERN, message: 'URL is invalid' },
+          })}
+        />
       </Field>
       <Controller
         control={control}
-        name="httpMethod"
+        name="http_method"
         rules={{
           required: 'HTTP method is required',
         }}
         render={({ field }) => (
           <Field
-            key="httpMethod"
-            invalid={Boolean(formState.errors.httpMethod)}
-            error={formState.errors.httpMethod?.message}
+            key="http_method"
+            invalid={Boolean(formState.errors.http_method)}
+            error={formState.errors.http_method?.message}
             label={
               <Label>
                 <span>HTTP method</span>&nbsp;
@@ -132,7 +138,7 @@ export const OutgoingWebhookFormFields: FC<OutgoingWebhookFormFieldsProps> = ({ 
       />
       <Controller
         control={control}
-        name="forwardedDataTemplate"
+        name="data"
         render={({ field }) => (
           <VerticalGroup>
             <HorizontalGroup width="100%" justify="space-between">
@@ -187,7 +193,7 @@ export const OutgoingWebhookFormFields: FC<OutgoingWebhookFormFieldsProps> = ({ 
         {showTriggerTemplate && (
           <Controller
             control={control}
-            name="triggerTemplate"
+            name="trigger_template"
             render={({ field }) => (
               <>
                 <MonacoEditor
