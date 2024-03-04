@@ -84,6 +84,6 @@ export const getStyles = (theme: GrafanaTheme2) => ({
     paddingBottom: 0,
   }),
   connectIntegrationModalButtons: css({
-    marginTop: '20px',
+    marginTop: '50px',
   }),
 });

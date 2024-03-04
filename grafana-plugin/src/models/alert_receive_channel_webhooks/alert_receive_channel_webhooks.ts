@@ -5,6 +5,7 @@ import { ApiSchemas } from 'network/oncall-api/api.types';
 import { onCallApi } from 'network/oncall-api/http-client';
 import { RootBaseStore } from 'state/rootBaseStore/RootBaseStore';
 import { WithGlobalNotification } from 'utils/decorators';
+import { OmitReadonlyMembers } from 'utils/types';
 
 export class AlertReceiveChannelWebhooksStore {
   rootStore: RootBaseStore;
@@ -28,7 +29,10 @@ export class AlertReceiveChannelWebhooksStore {
     success: 'Webhook has been created.',
     failure: 'There was an issue creating new webhook. Please try again.',
   })
-  async create(integrationId: ApiSchemas['AlertReceiveChannel']['id'], webhook: Partial<ApiSchemas['Webhook']>) {
+  async create(
+    integrationId: ApiSchemas['AlertReceiveChannel']['id'],
+    webhook: OmitReadonlyMembers<ApiSchemas['Webhook']>
+  ) {
     const { data } = await onCallApi().POST('/alert_receive_channels/{id}/webhooks/', {
       params: { path: { id: integrationId } },
       body: webhook as ApiSchemas['Webhook'],
@@ -42,14 +46,11 @@ export class AlertReceiveChannelWebhooksStore {
     success: 'Webhook has been updated.',
     failure: 'There was an issue updating a webhook. Please try again.',
   })
-  async update(integrationId: ApiSchemas['AlertReceiveChannel']['id'], webhook: Partial<ApiSchemas['Webhook']>) {
-    const { data } = await onCallApi().PUT('/alert_receive_channels/{id}/webhooks/{webhook_id}/', {
-      params: { path: { id: integrationId, webhook_id: webhook.id } },
-      body: webhook as ApiSchemas['Webhook'],
-    });
-    runInAction(() => {
-      this.items[data.id] = data;
-    });
+  async update(
+    integrationId: ApiSchemas['AlertReceiveChannel']['id'],
+    webhook: OmitReadonlyMembers<ApiSchemas['Webhook']> & { id: ApiSchemas['Webhook']['id'] }
+  ) {
+    await this._update(integrationId, webhook);
   }
 
   @WithGlobalNotification({
@@ -62,6 +63,35 @@ export class AlertReceiveChannelWebhooksStore {
     });
     runInAction(() => {
       delete this.items[webhookId];
+    });
+  }
+
+  @WithGlobalNotification({
+    success: 'Webhook has been enabled.',
+    failure: 'There was an issue enabling a webhook. Please try again.',
+  })
+  async enable(integrationId: ApiSchemas['AlertReceiveChannel']['id'], webhookId: ApiSchemas['Webhook']['id']) {
+    await this._update(integrationId, { id: webhookId, is_webhook_enabled: true });
+  }
+
+  @WithGlobalNotification({
+    success: 'Webhook has been disabled.',
+    failure: 'There was an issue disabling a webhook. Please try again.',
+  })
+  async disable(integrationId: ApiSchemas['AlertReceiveChannel']['id'], webhookId: ApiSchemas['Webhook']['id']) {
+    await this._update(integrationId, { id: webhookId, is_webhook_enabled: false });
+  }
+
+  private async _update(
+    integrationId: ApiSchemas['AlertReceiveChannel']['id'],
+    webhook: Partial<ApiSchemas['Webhook']> & { id: ApiSchemas['Webhook']['id'] }
+  ) {
+    const { data } = await onCallApi().PUT('/alert_receive_channels/{id}/webhooks/{webhook_id}/', {
+      params: { path: { id: integrationId, webhook_id: webhook.id } },
+      body: webhook as ApiSchemas['Webhook'],
+    });
+    runInAction(() => {
+      this.items[data.id] = data;
     });
   }
 }
