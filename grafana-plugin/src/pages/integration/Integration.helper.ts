@@ -121,5 +121,5 @@ export const IntegrationHelper = {
   },
 };
 
-export const getIsBidirectionalIntegration = ({ integration }: ApiSchemas['AlertReceiveChannel']) =>
+export const getIsBidirectionalIntegration = ({ integration }: Partial<ApiSchemas['AlertReceiveChannel']>) =>
   integration === ('servicenow' as ApiSchemas['AlertReceiveChannel']['integration']); // TODO: add service now in backend schema as valid value and remove casting
