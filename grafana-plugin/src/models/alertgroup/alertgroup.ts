@@ -44,7 +44,7 @@ export class AlertGroupStore {
   isDefaultColumnOrder = false;
 
   constructor(rootStore: RootStore) {
-    makeAutoObservable(this);
+    makeAutoObservable(this, undefined, { autoBind: true });
     this.rootStore = rootStore;
   }
 
