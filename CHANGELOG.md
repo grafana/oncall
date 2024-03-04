@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+## Added
+
+- Add reset button to disable integration heartbeat @mderynck ([#3959](https://github.com/grafana/oncall/pull/3959))
+
 ## v1.3.109 (2024-03-04)
 
 ### Fixed
@@ -17,10 +23,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fetch selected value of notify schedule in escalation policy, fixes ([#3966](https://github.com/grafana/oncall/issues/3966))
   ([#3969](https://github.com/grafana/oncall/pull/3969))
-
-## Added
-
-- Add reset button to disable integration heartbeat @mderynck ([#3959](https://github.com/grafana/oncall/pull/3959))
 
 ## v1.3.107 (2024-02-27)
 
