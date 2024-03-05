@@ -117,6 +117,10 @@ class WebhookSerializer(LabelsSerializerMixin, serializers.ModelSerializer):
             data["password"] = webhook.password
         if data.get("authorization_header") == WEBHOOK_FIELD_PLACEHOLDER:
             data["authorization_header"] = webhook.authorization_header
+
+        if not data.get("integration_filter"):
+            data["integration_filter"] = []
+
         return super().to_internal_value(data)
 
     def _validate_template_field(self, template):
