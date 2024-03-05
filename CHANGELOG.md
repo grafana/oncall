@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Fix selecting values in notification settings ([#9566](https://github.com/grafana/support-escalations/issues/9566))
+- Allow setting integration_filter to null in webhooks internal API ([#4011](https://github.com/grafana/oncall/pull/4011))
 
 ## v1.3.109 (2024-03-04)
 
