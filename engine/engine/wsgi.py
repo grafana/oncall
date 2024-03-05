@@ -14,6 +14,7 @@ from django.core.wsgi import get_wsgi_application
 from opentelemetry import trace
 from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
 from opentelemetry.instrumentation.logging import LoggingInstrumentor
+from opentelemetry.instrumentation.requests import RequestsInstrumentor
 from opentelemetry.instrumentation.wsgi import OpenTelemetryMiddleware
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
@@ -27,7 +28,8 @@ application = WhiteNoise(application)
 # check both OTEL_TRACING_ENABLED and OTEL_EXPORTER_OTLP_ENDPOINT
 # since OTLPSpanExporter expects endpoint to send data to
 if settings.OTEL_TRACING_ENABLED and settings.OTEL_EXPORTER_OTLP_ENDPOINT:
-    # Set up tracing and logging instrumentation under uwsgi web server environment
+    # Set up tracing and logging instrumentation under uwsgi web server environment.
+    # Since it's wsgi setup, it will be used in prod.
     try:
         from uwsgidecorators import postfork
 
@@ -38,7 +40,8 @@ if settings.OTEL_TRACING_ENABLED and settings.OTEL_EXPORTER_OTLP_ENDPOINT:
             trace.set_tracer_provider(TracerProvider())
             span_processor = BatchSpanProcessor(OTLPSpanExporter())
             trace.get_tracer_provider().add_span_processor(span_processor)
-            LoggingInstrumentor().instrument()
+            LoggingInstrumentor().instrument()  # Instrument logs to add trace_id to log lines
+            RequestsInstrumentor().instrument()  # Instrument requests to instrument downstream calls
 
     except ModuleNotFoundError:
         pass
