@@ -26,7 +26,7 @@ export const UserItem = ({ pk, shiftColor, shiftStart, shiftEnd }: UserItemProps
 
   useEffect(() => {
     if (!userStore.items[pk]) {
-      userStore.updateItem(pk);
+      userStore.fetchItemById({ userPk: pk, skipIfAlreadyPending: true });
     }
   }, []);
 

@@ -122,13 +122,13 @@ const ShiftSwapEvent = (props: ShiftSwapEventProps) => {
 
   useEffect(() => {
     if (shiftSwap?.beneficiary && !store.userStore.items[shiftSwap.beneficiary.pk]) {
-      store.userStore.updateItem(shiftSwap.beneficiary.pk);
+      store.userStore.fetchItemById({ userPk: shiftSwap.beneficiary.pk, skipIfAlreadyPending: true });
     }
   }, [shiftSwap?.beneficiary]);
 
   useEffect(() => {
     if (shiftSwap?.benefactor && !store.userStore.items[shiftSwap.benefactor.pk]) {
-      store.userStore.updateItem(shiftSwap.benefactor.pk);
+      store.userStore.fetchItemById({ userPk: shiftSwap.benefactor.pk, skipIfAlreadyPending: true });
     }
   }, [shiftSwap?.benefactor]);
 

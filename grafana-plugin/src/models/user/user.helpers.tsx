@@ -2,18 +2,17 @@ import React from 'react';
 
 import { pick } from 'lodash-es';
 
-import { User } from './user.types';
 import { onCallApi } from 'network/oncall-api/http-client';
 import { UserStore } from './user';
 import { throttlingError } from 'utils/utils';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 
 export class UserHelper {
-  static getTimezone(user: Pick<User, 'timezone'>) {
+  static getTimezone(user: Pick<ApiSchemas['User'], 'timezone'>) {
     return user.timezone || 'UTC';
   }
 
-  static getUserNotificationsSummary(user: User) {
+  static getUserNotificationsSummary(user: ApiSchemas['User']) {
     if (!user) {
       return null;
     }
@@ -27,7 +26,7 @@ export class UserHelper {
     );
   }
 
-  static prepareForUpdate(user: User) {
+  static prepareForUpdate(user: ApiSchemas['User']) {
     return pick(user, ['pk', 'email']);
   }
 
@@ -66,44 +65,29 @@ export class UserHelper {
       params: { path: { id: userPk } },
       headers: { 'X-OnCall-Recaptcha': recaptchaToken },
     });
-
-    if (!response.ok) {
-      throttlingError(response);
-    }
+    throttlingError(response);
   }
 
   static async verifyPhone(userPk: ApiSchemas['User']['pk'], token: string) {
     const { response } = await onCallApi().PUT('/users/{id}/verify_number/', {
       params: { path: { id: userPk }, query: { token } },
     });
-
-    if (!response.ok) {
-      throttlingError(response);
-    }
+    throttlingError(response);
   }
 
-  @action.bound
-  async forgetPhone(userPk: ApiSchemas['User']['pk']) {
-    return await makeRequest(`/users/${userPk}/forget_number/`, {
-      method: 'PUT',
-    });
+  static async forgetPhone(userPk: ApiSchemas['User']['pk']) {
+    return (await onCallApi().PUT('/users/{id}/forget_number/', { params: { path: { id: userPk } } })).data;
   }
 
-  async getiCalLink(userPk: ApiSchemas['User']['pk']) {
-    return await makeRequest(`/users/${userPk}/export_token/`, {
-      method: 'GET',
-    });
+  static async getiCalLink(userPk: ApiSchemas['User']['pk']) {
+    return (await onCallApi().GET('/users/{id}/export_token/', { params: { path: { id: userPk } } })).data;
   }
 
-  async createiCalLink(userPk: ApiSchemas['User']['pk']) {
-    return await makeRequest(`/users/${userPk}/export_token/`, {
-      method: 'POST',
-    });
+  static async createiCalLink(userPk: ApiSchemas['User']['pk']) {
+    return (await onCallApi().POST('/users/{id}/export_token/', { params: { path: { id: userPk } } })).data;
   }
 
-  async deleteiCalLink(userPk: ApiSchemas['User']['pk']) {
-    await makeRequest(`/users/${userPk}/export_token/`, {
-      method: 'DELETE',
-    });
+  static async deleteiCalLink(userPk: ApiSchemas['User']['pk']) {
+    return (await onCallApi().POST('/users/{id}/export_token/', { params: { path: { id: userPk } } })).data;
   }
 }

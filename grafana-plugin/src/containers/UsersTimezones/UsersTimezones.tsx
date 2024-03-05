@@ -46,7 +46,7 @@ export const UsersTimezones: FC<UsersTimezonesProps> = observer((props) => {
   useEffect(() => {
     userIds.forEach((userId) => {
       if (!store.userStore.items[userId]) {
-        store.userStore.updateItem(userId);
+        store.userStore.fetchItemById({ userPk: userId, skipIfAlreadyPending: true });
       }
     });
   }, [userIds]);

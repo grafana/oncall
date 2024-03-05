@@ -295,7 +295,7 @@ export const MobileAppConnection = observer(({ userPk }: Props) => {
     clearTimeout(refreshTimeoutId);
     setRefreshTimeoutId(undefined);
 
-    const user = await userStore.loadUser(userPk);
+    const user = await userStore.fetchItemById(userPk);
     if (!isUserConnected(user)) {
       let didCallThrottleWithNoEffect = false;
       let isRequestDone = false;
@@ -333,7 +333,7 @@ export const MobileAppConnection = observer(({ userPk }: Props) => {
     clearTimeout(userTimeoutId);
     setUserTimeoutId(undefined);
 
-    const user = await userStore.loadUser(userPk);
+    const user = await userStore.fetchItemById(userPk);
     if (!isUserConnected(user)) {
       setUserTimeoutId(setTimeout(pollUserProfile, INTERVAL_POLLING));
     } else {

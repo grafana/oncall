@@ -93,7 +93,7 @@ export const PhoneVerification = observer((props: PhoneVerificationProps) => {
 
   const handleForgetNumberClick = useCallback(() => {
     userStore.forgetPhone(userPk).then(async () => {
-      await userStore.loadUser(userPk);
+      await userStore.fetchItemById(userPk);
       setState({ phone: '', showForgetScreen: false, isCodeSent: false, isPhoneCallInitiated: false });
     });
   }, [userPk, userStore.forgetPhone, userStore.loadUser]);
@@ -106,7 +106,7 @@ export const PhoneVerification = observer((props: PhoneVerificationProps) => {
       }
       if (codeVerification) {
         userStore.verifyPhone(userPk, code).then(() => {
-          userStore.loadUser(userPk);
+          userStore.fetchItemById(userPk);
         });
       } else {
         window.grecaptcha.ready(function () {
@@ -155,7 +155,7 @@ export const PhoneVerification = observer((props: PhoneVerificationProps) => {
 
   const onVerifyCallback = useCallback(async () => {
     userStore.verifyPhone(userPk, code).then(() => {
-      userStore.loadUser(userPk);
+      userStore.fetchItemById(userPk);
     });
   }, [code, userPk, userStore.verifyPhone, userStore.loadUser]);
 

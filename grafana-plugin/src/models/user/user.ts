@@ -1,9 +1,8 @@
 import { config } from '@grafana/runtime';
 import dayjs from 'dayjs';
 import { get } from 'lodash-es';
-import { action, computed, observable, makeObservable, runInAction, makeAutoObservable } from 'mobx';
+import { action, computed, runInAction, makeAutoObservable } from 'mobx';
 
-import { BaseStore } from 'models/base_store';
 import { ActionKey } from 'models/loader/action-keys';
 import { NotificationPolicyType } from 'models/notification_policy/notification_policy';
 import { makeRequest } from 'network/network';
@@ -13,7 +12,6 @@ import { move } from 'state/helpers';
 import { RootStore } from 'state/rootStore';
 import { isUserActionAllowed, UserActions } from 'utils/authorization/authorization';
 import { AutoLoadingState } from 'utils/decorators';
-import { throttlingError } from 'utils/utils';
 
 import { UserHelper } from './user.helpers';
 import { User } from './user.types';
@@ -26,19 +24,19 @@ export type PaginatedUsersResponse<UT = User> = {
 
 export class UserStore {
   rootStore: RootStore;
-  searchResult: { count?: number; results?: Array<User['pk']>; page_size?: number } = {};
+  searchResult: { count?: number; results?: Array<ApiSchemas['User']['pk']>; page_size?: number } = {};
   items: { [pk: string]: ApiSchemas['User'] } = {};
   notificationPolicies: any = {};
   notificationChoices: any = [];
   notifyByOptions: any = [];
-  currentUserPk?: User['pk'];
+  currentUserPk?: ApiSchemas['User']['pk'];
 
   constructor(rootStore: RootStore) {
     makeAutoObservable(this, undefined, { autoBind: true });
     this.rootStore = rootStore;
   }
 
-  async updateItems(f: any = { searchTerm: '' }, page = 1, invalidateFn?: () => boolean): Promise<any> {
+  async fetchItems(f: any = { searchTerm: '' }, page = 1, invalidateFn?: () => boolean): Promise<any> {
     const response = await UserHelper.search(f, page);
 
     if (invalidateFn && invalidateFn()) {
@@ -74,18 +72,18 @@ export class UserStore {
 
   @AutoLoadingState(ActionKey.FETCH_USERS)
   @action.bound
-  async loadUser({
+  async fetchItemById({
     userPk,
     skipErrorHandling = false,
-    shouldDuplicatePendingFetch = true,
+    skipIfAlreadyPending = false,
   }: {
-    userPk: User['pk'];
+    userPk: ApiSchemas['User']['pk'];
     skipErrorHandling?: boolean;
-    shouldDuplicatePendingFetch?: boolean;
+    skipIfAlreadyPending?: boolean;
   }) {
     const isAlreadyFetching = this.rootStore.loaderStore.isLoading(ActionKey.FETCH_USERS);
 
-    if (!shouldDuplicatePendingFetch && isAlreadyFetching) {
+    if (skipIfAlreadyPending && isAlreadyFetching) {
       return this.items[userPk];
     }
 
@@ -101,27 +99,6 @@ export class UserStore {
     return data;
   }
 
-  @action.bound
-  async updateItem(userPk: User['pk']) {
-    if (this.itemsCurrentlyUpdating[userPk]) {
-      return;
-    }
-
-    this.itemsCurrentlyUpdating[userPk] = true;
-
-    const user = await this.getById(userPk);
-
-    runInAction(() => {
-      this.items = {
-        ...this.items,
-        [user.pk]: { ...user, timezone: UserHelper.getTimezone(user) },
-      };
-    });
-
-    delete this.itemsCurrentlyUpdating[userPk];
-  }
-
-  @action.bound
   async loadCurrentUser() {
     const response = await makeRequest('/user/', {});
     const timezone = await this.refreshTimezone(response.pk);
@@ -135,12 +112,15 @@ export class UserStore {
     });
   }
 
-  @action.bound
-  async refreshTimezone(id: User['pk']) {
+  async refreshTimezone(id: ApiSchemas['User']['pk']) {
     const { timezone: grafanaPreferencesTimezone } = config.bootData.user;
     const timezone = grafanaPreferencesTimezone === 'browser' ? dayjs.tz.guess() : grafanaPreferencesTimezone;
+
     if (isUserActionAllowed(UserActions.UserSettingsWrite)) {
-      this.update(id, { timezone });
+      await onCallApi().PUT('/users/{id}/', {
+        params: { path: { id } },
+        body: { timezone } as ApiSchemas['User'],
+      });
     }
 
     this.rootStore.timezoneStore.setSelectedTimezoneOffsetBasedOnTz(timezone);
@@ -148,70 +128,31 @@ export class UserStore {
     return timezone;
   }
 
-  @action.bound
-  unlinkSlack = async (userPk: User['pk']) => {
-    await makeRequest(`/users/${userPk}/unlink_slack/`, {
-      method: 'POST',
-    });
-
-    const user = await this.getById(userPk);
-
-    runInAction(() => {
-      this.items = {
-        ...this.items,
-        [user.pk]: user,
-      };
-    });
-  };
-
-  @action.bound
-  unlinkTelegram = async (userPk: User['pk']) => {
-    await makeRequest(`/users/${userPk}/unlink_telegram/`, {
-      method: 'POST',
-    });
-
-    const user = await this.getById(userPk);
-
-    runInAction(() => {
-      this.items = {
-        ...this.items,
-        [user.pk]: user,
-      };
-    });
-  };
-
-  @action.bound
-  unlinkBackend = async (userPk: User['pk'], backend: string) => {
-    await makeRequest(`/users/${userPk}/unlink_backend/?backend=${backend}`, {
-      method: 'POST',
-    });
-
-    this.loadCurrentUser();
-  };
-
-  @action.bound
-  async createUser(data: any) {
-    const user = await this.create(data);
-
-    runInAction(() => {
-      this.items = {
-        ...this.items,
-        [user.pk]: user,
-      };
-    });
-
-    return user;
+  async unlinkSlack(userPk: ApiSchemas['User']['pk']) {
+    await onCallApi().POST('/users/{id}/unlink_slack/', undefined);
+    await this.fetchItemById({ userPk });
   }
 
-  @action.bound
-  async updateUser(data: Partial<User>) {
-    const user = await makeRequest(`/users/${data.pk}/`, {
-      method: 'PUT',
-      data: {
-        ...UserHelper.prepareForUpdate(this.items[data.pk as User['pk']]),
-        ...data,
-      },
-    });
+  async unlinkTelegram(userPk: ApiSchemas['User']['pk']) {
+    await onCallApi().POST('/users/{id}/unlink_telegram/', undefined);
+    await this.fetchItemById({ userPk });
+  }
+
+  async unlinkBackend(userPk: ApiSchemas['User']['pk'], backend: string) {
+    await onCallApi().POST('/users/{id}/unlink_backend/', { params: { path: { id: userPk }, query: { backend } } });
+    this.loadCurrentUser();
+  }
+
+  async updateUser(data: Partial<ApiSchemas['User']>) {
+    const user = (
+      await onCallApi().PUT('/users/{id}/', {
+        params: { path: { id: data.pk } },
+        body: {
+          ...UserHelper.prepareForUpdate(this.items[data.pk]),
+          ...data,
+        } as ApiSchemas['User'],
+      })
+    ).data;
 
     if (data.pk === this.currentUserPk) {
       this.rootStore.userStore.loadCurrentUser();
@@ -220,7 +161,7 @@ export class UserStore {
     runInAction(() => {
       this.items = {
         ...this.items,
-        [data.pk as User['pk']]: user,
+        [data.pk]: user,
       };
     });
   }
@@ -230,7 +171,7 @@ export class UserStore {
     const user = await makeRequest(`/user/`, {
       method: 'PUT',
       data: {
-        ...UserHelper.prepareForUpdate(this.items[this.currentUserPk as User['pk']]),
+        ...UserHelper.prepareForUpdate(this.items[this.currentUserPk as ApiSchemas['User']['pk']]),
         ...data,
       },
     });
@@ -238,13 +179,13 @@ export class UserStore {
     runInAction(() => {
       this.items = {
         ...this.items,
-        [this.currentUserPk as User['pk']]: user,
+        [this.currentUserPk as ApiSchemas['User']['pk']]: user,
       };
     });
   }
 
   @action.bound
-  async updateNotificationPolicies(id: User['pk']) {
+  async updateNotificationPolicies(id: ApiSchemas['User']['pk']) {
     const importantEPs = await makeRequest('/notification_policies/', {
       params: { user: id, important: true },
     });
@@ -262,7 +203,12 @@ export class UserStore {
   }
 
   @action.bound
-  async moveNotificationPolicyToPosition(userPk: User['pk'], oldIndex: number, newIndex: number, offset: number) {
+  async moveNotificationPolicyToPosition(
+    userPk: ApiSchemas['User']['pk'],
+    oldIndex: number,
+    newIndex: number,
+    offset: number
+  ) {
     const notificationPolicy = this.notificationPolicies[userPk][oldIndex + offset];
 
     this.notificationPolicies[userPk] = move(this.notificationPolicies[userPk], oldIndex + offset, newIndex + offset);
@@ -277,7 +223,7 @@ export class UserStore {
   }
 
   @action.bound
-  async addNotificationPolicy(userPk: User['pk'], important: NotificationPolicyType['important']) {
+  async addNotificationPolicy(userPk: ApiSchemas['User']['pk'], important: NotificationPolicyType['important']) {
     await makeRequest(`/notification_policies/`, {
       method: 'POST',
       data: { user: userPk, important },
@@ -289,7 +235,11 @@ export class UserStore {
   }
 
   @action.bound
-  async updateNotificationPolicy(userPk: User['pk'], id: NotificationPolicyType['id'], value: NotificationPolicyType) {
+  async updateNotificationPolicy(
+    userPk: ApiSchemas['User']['pk'],
+    id: NotificationPolicyType['id'],
+    value: NotificationPolicyType
+  ) {
     this.notificationPolicies = {
       ...this.notificationPolicies,
       [userPk]: this.notificationPolicies[userPk].map((policy: NotificationPolicyType) =>
@@ -315,7 +265,7 @@ export class UserStore {
   }
 
   @action.bound
-  async deleteNotificationPolicy(userPk: User['pk'], id: NotificationPolicyType['id']) {
+  async deleteNotificationPolicy(userPk: ApiSchemas['User']['pk'], id: NotificationPolicyType['id']) {
     await makeRequest(`/notification_policies/${id}`, { method: 'DELETE' }).catch(this.onApiError);
 
     this.updateNotificationPolicies(userPk);
@@ -335,7 +285,7 @@ export class UserStore {
   }
 
   @action.bound
-  async sendTestPushNotification(userId: User['pk'], isCritical: boolean) {
+  async sendTestPushNotification(userId: ApiSchemas['User']['pk'], isCritical: boolean) {
     return await makeRequest(`/users/${userId}/send_test_push`, {
       method: 'POST',
       params: {
@@ -354,7 +304,7 @@ export class UserStore {
   }
 
   @action.bound
-  async makeTestCall(userPk: User['pk']) {
+  async makeTestCall(userPk: ApiSchemas['User']['pk']) {
     this.isTestCallInProgress = true;
 
     return await makeRequest(`/users/${userPk}/make_test_call/`, {
@@ -368,7 +318,7 @@ export class UserStore {
       });
   }
 
-  async sendTestSms(userPk: User['pk']) {
+  async sendTestSms(userPk: ApiSchemas['User']['pk']) {
     this.isTestCallInProgress = true;
 
     return await makeRequest(`/users/${userPk}/send_test_sms/`, {
@@ -385,6 +335,6 @@ export class UserStore {
     if (!this.currentUserPk) {
       return undefined;
     }
-    return this.items[this.currentUserPk as User['pk']];
+    return this.items[this.currentUserPk as ApiSchemas['User']['pk']];
   }
 }

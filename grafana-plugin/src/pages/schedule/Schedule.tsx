@@ -76,7 +76,7 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
   async componentDidMount() {
     const { store } = this.props;
 
-    store.userStore.updateItems();
+    store.userStore.fetchItems();
 
     store.scheduleStore.updateFrequencyOptions();
     store.scheduleStore.updateDaysOptions();

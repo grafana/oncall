@@ -85,7 +85,7 @@ class Users extends React.Component<UsersProps, UsersState> {
     }
 
     LocationHelper.update({ p: page }, 'partial');
-    await userStore.updateItems(usersFilters, page, invalidateFn);
+    await userStore.fetchItems(usersFilters, page, invalidateFn);
 
     this.forceUpdate();
   };
@@ -107,7 +107,7 @@ class Users extends React.Component<UsersProps, UsersState> {
     } = this.props;
 
     if (id) {
-      await (id === 'me' ? store.userStore.loadCurrentUser() : store.userStore.loadUser(String(id), true)).catch(
+      await (id === 'me' ? store.userStore.loadCurrentUser() : store.userStore.fetchItemById(String(id), true)).catch(
         (error) => this.setState({ errorData: { ...getWrongTeamResponseInfo(error) } })
       );
 

@@ -19,7 +19,7 @@ export const UserSummary = observer((props: UserSummaryProps) => {
 
   useEffect(() => {
     if (!userStore.items[id]) {
-      userStore.loadUser(id);
+      userStore.fetchItemById(id);
     }
   });
 

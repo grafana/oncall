@@ -17,7 +17,7 @@ export const UserDisplayWithAvatar = observer(({ id }: UserDisplayProps) => {
 
   useEffect(() => {
     if (!userStore.items[id]) {
-      userStore.updateItem(id);
+      userStore.fetchItemById({ userPk: id, skipIfAlreadyPending: true });
     }
   }, [id]);
 

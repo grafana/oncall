@@ -43,9 +43,12 @@ export function refreshPageError(error: AxiosError) {
   throw error;
 }
 
-export function throttlingError(error: Response) {
-  if (error?.status === 429) {
-    const seconds = Number(error?.headers['retry-after']);
+export function throttlingError(response: Response) {
+  if (response.ok) {
+    return;
+  }
+  if (response?.status === 429) {
+    const seconds = Number(response?.headers['retry-after']);
     const minutes = Math.floor(seconds / 60);
     const text =
       'Too many requests, please try again in ' +
@@ -53,12 +56,12 @@ export function throttlingError(error: Response) {
     openErrorNotification(text);
   } else {
     // TODO: check if it works ok
-    if (error?.statusText === '') {
+    if (response?.statusText === '') {
       openErrorNotification(
         'Grafana OnCall is unable to verify your phone number due to incorrect number or verification service being unavailable.'
       );
     } else {
-      openErrorNotification(error?.statusText);
+      openErrorNotification(response?.statusText);
     }
   }
 }

@@ -180,8 +180,8 @@ class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
           getOptionLabel={({ value }: SelectableValue) => <UserTooltip id={value} />}
           width={'auto'}
           items={userStore.items}
-          fetchItemsFn={userStore.updateItems}
-          fetchItemFn={userStore.updateItem}
+          fetchItemsFn={userStore.fetchItems}
+          fetchItemFn={async (id) => await userStore.fetchItemById({ userPk: id, skipIfAlreadyPending: true })}
           getSearchResult={userStore.getSearchResult}
         />
       </WithPermissionControlTooltip>
