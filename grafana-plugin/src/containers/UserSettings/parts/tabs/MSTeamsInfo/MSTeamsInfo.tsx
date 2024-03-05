@@ -8,6 +8,7 @@ import { MSTeamsInstructions } from 'containers/MSTeams/MSTeamsInstructions';
 import { useStore } from 'state/useStore';
 
 import styles from 'containers/UserSettings/parts/tabs/MSTeamsInfo/MSTeamsInfo.module.css';
+import { UserHelper } from 'models/user/user.helpers';
 
 const cx = cn.bind(styles);
 
@@ -18,7 +19,7 @@ export const MSTeamsInfo = observer(() => {
   const [onCallisAdded, setOnCallisAdded] = useState(false);
 
   useEffect(() => {
-    userStore.sendBackendConfirmationCode(userStore.currentUserPk, 'MSTEAMS').then(setVerificationCode);
+    UserHelper.sendBackendConfirmationCode(userStore.currentUserPk, 'MSTEAMS').then(setVerificationCode);
     msteamsChannelStore.updateItems().then(() => {
       const connectedChannels = msteamsChannelStore.getSearchResult();
       if (connectedChannels?.length) {

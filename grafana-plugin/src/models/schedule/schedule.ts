@@ -7,7 +7,6 @@ import { RemoteFiltersType } from 'containers/RemoteFilters/RemoteFilters.types'
 import { BaseStore } from 'models/base_store';
 import { EscalationChain } from 'models/escalation_chain/escalation_chain.types';
 import { ActionKey } from 'models/loader/action-keys';
-import { User } from 'models/user/user.types';
 import { makeRequest } from 'network/network';
 import { RootStore } from 'state/rootStore';
 import { SelectOption } from 'state/types';
@@ -38,6 +37,7 @@ import {
   ScheduleScoreQualityResponse,
   ShiftSwap,
 } from './schedule.types';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 
 export class ScheduleStore extends BaseStore {
   @observable
@@ -631,7 +631,12 @@ export class ScheduleStore extends BaseStore {
 
   @AutoLoadingState(ActionKey.UPDATE_PERSONAL_EVENTS)
   @action.bound
-  async updatePersonalEvents(userPk: User['pk'], startMoment: dayjs.Dayjs, days = 9, isUpdateOnCallNow = false) {
+  async updatePersonalEvents(
+    userPk: ApiSchemas['User']['pk'],
+    startMoment: dayjs.Dayjs,
+    days = 9,
+    isUpdateOnCallNow = false
+  ) {
     const fromString = getFromString(startMoment);
 
     const dayBefore = startMoment.subtract(1, 'day');

@@ -3,7 +3,6 @@ import { action, observable, makeObservable } from 'mobx';
 import { UserResponders } from 'containers/AddResponders/AddResponders.types';
 import { BaseStore } from 'models/base_store';
 import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
-import { UserCurrentlyOnCall } from 'models/user/user.types';
 import { makeRequest } from 'network/network';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { RootStore } from 'state/rootStore';
@@ -30,7 +29,7 @@ export class DirectPagingStore extends BaseStore {
   }
 
   @action.bound
-  addUserToSelectedUsers = (user: UserCurrentlyOnCall) => {
+  addUserToSelectedUsers = (user: ApiSchemas['UserIsCurrentlyOnCall']) => {
     this.selectedUserResponders = [
       ...this.selectedUserResponders,
       {

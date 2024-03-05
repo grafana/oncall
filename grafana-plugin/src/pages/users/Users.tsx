@@ -19,7 +19,6 @@ import { TooltipBadge } from 'components/TooltipBadge/TooltipBadge';
 import { UsersFilters } from 'components/UsersFilters/UsersFilters';
 import { UserSettings } from 'containers/UserSettings/UserSettings';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
-import { User as UserType } from 'models/user/user.types';
 import { AppFeature } from 'state/features';
 import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
@@ -30,6 +29,8 @@ import { PAGE, PLUGIN_ROOT } from 'utils/consts';
 import { getUserRowClassNameFn } from './Users.helpers';
 
 import styles from './Users.module.css';
+import { UserHelper } from 'models/user/user.helpers';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 
 const cx = cn.bind(styles);
 
@@ -39,7 +40,7 @@ const REQUIRED_PERMISSION_TO_VIEW_USERS = UserActions.UserSettingsWrite;
 
 interface UsersState extends PageBaseState {
   isWrongTeam: boolean;
-  userPkToEdit?: UserType['pk'] | 'new';
+  userPkToEdit?: ApiSchemas['User']['pk'] | 'new';
   usersFilters?: {
     searchTerm: string;
   };
@@ -107,9 +108,10 @@ class Users extends React.Component<UsersProps, UsersState> {
     } = this.props;
 
     if (id) {
-      await (id === 'me' ? store.userStore.loadCurrentUser() : store.userStore.fetchItemById(String(id), true)).catch(
-        (error) => this.setState({ errorData: { ...getWrongTeamResponseInfo(error) } })
-      );
+      await (id === 'me'
+        ? store.userStore.loadCurrentUser()
+        : store.userStore.fetchItemById({ userPk: String(id), skipErrorHandling: true })
+      ).catch((error) => this.setState({ errorData: { ...getWrongTeamResponseInfo(error) } }));
 
       const userPkToEdit = String(id === 'me' ? store.userStore.currentUserPk : id);
 
@@ -180,7 +182,7 @@ class Users extends React.Component<UsersProps, UsersState> {
 
     const page = filtersStore.currentTablePageNum[PAGE.Users];
 
-    const { count, results, page_size } = userStore.getSearchResult();
+    const { count, results, page_size } = UserHelper.getSearchResult(userStore);
     const columns = this.getTableColumns();
 
     const handleClear = () =>
@@ -238,7 +240,7 @@ class Users extends React.Component<UsersProps, UsersState> {
     );
   }
 
-  renderTitle = (user: UserType) => {
+  renderTitle = (user: ApiSchemas['User']) => {
     const {
       store: { userStore },
     } = this.props;
@@ -266,15 +268,15 @@ class Users extends React.Component<UsersProps, UsersState> {
     );
   };
 
-  renderNotificationsChain = (user: UserType) => {
+  renderNotificationsChain = (user: ApiSchemas['User']) => {
     return user.notification_chain_verbal.default;
   };
 
-  renderImportantNotificationsChain = (user: UserType) => {
+  renderImportantNotificationsChain = (user: ApiSchemas['User']) => {
     return user.notification_chain_verbal.important;
   };
 
-  renderContacts = (user: UserType) => {
+  renderContacts = (user: ApiSchemas['User']) => {
     const { store } = this.props;
     return (
       <div className={cx('contacts')}>
@@ -286,7 +288,7 @@ class Users extends React.Component<UsersProps, UsersState> {
     );
   };
 
-  renderButtons = (user: UserType) => {
+  renderButtons = (user: ApiSchemas['User']) => {
     const { store } = this.props;
     const { userStore } = store;
 
@@ -312,7 +314,7 @@ class Users extends React.Component<UsersProps, UsersState> {
     );
   };
 
-  renderStatus = (user: UserType) => {
+  renderStatus = (user: ApiSchemas['User']) => {
     const {
       store,
       store: { organizationStore, telegramChannelStore },

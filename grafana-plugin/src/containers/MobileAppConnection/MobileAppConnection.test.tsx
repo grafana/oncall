@@ -4,10 +4,11 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 
-import { User } from 'models/user/user.types';
 import { rootStore } from 'state/rootStore';
 
 import { MobileAppConnection } from './MobileAppConnection';
+import { ApiSchemas } from 'network/oncall-api/api.types';
+import { UserHelper } from 'models/user/user.helpers';
 
 jest.mock('plugin/GrafanaPluginRootPage.helpers', () => ({
   isTopNavbar: () => false,
@@ -48,7 +49,7 @@ const mockRootStore = (rest?: any, connected = false, cloud_connected = true) =>
       messaging_backends: {
         MOBILE_APP: { connected },
       },
-    } as unknown as User,
+    } as unknown as ApiSchemas['User'],
     ...(rest ? rest : {}),
   };
 
@@ -86,8 +87,8 @@ describe('MobileAppConnection', () => {
     expect(component.container).toMatchSnapshot();
 
     await waitFor(() => {
-      expect(rootStore.userStore.sendBackendConfirmationCode).toHaveBeenCalledTimes(1);
-      expect(rootStore.userStore.sendBackendConfirmationCode).toHaveBeenCalledWith(USER_PK, BACKEND);
+      expect(UserHelper.sendBackendConfirmationCode).toHaveBeenCalledTimes(1);
+      expect(UserHelper.sendBackendConfirmationCode).toHaveBeenCalledWith(USER_PK, BACKEND);
     });
   });
 
@@ -102,8 +103,8 @@ describe('MobileAppConnection', () => {
     await waitFor(() => {
       expect(component.container).toMatchSnapshot();
 
-      expect(rootStore.userStore.sendBackendConfirmationCode).toHaveBeenCalledTimes(1);
-      expect(rootStore.userStore.sendBackendConfirmationCode).toHaveBeenCalledWith(USER_PK, BACKEND);
+      expect(UserHelper.sendBackendConfirmationCode).toHaveBeenCalledTimes(1);
+      expect(UserHelper.sendBackendConfirmationCode).toHaveBeenCalledWith(USER_PK, BACKEND);
     });
   });
 
@@ -116,8 +117,8 @@ describe('MobileAppConnection', () => {
     expect(component.container).toMatchSnapshot();
 
     await waitFor(() => {
-      expect(rootStore.userStore.sendBackendConfirmationCode).toHaveBeenCalledTimes(1);
-      expect(rootStore.userStore.sendBackendConfirmationCode).toHaveBeenCalledWith(USER_PK, BACKEND);
+      expect(UserHelper.sendBackendConfirmationCode).toHaveBeenCalledTimes(1);
+      expect(UserHelper.sendBackendConfirmationCode).toHaveBeenCalledWith(USER_PK, BACKEND);
     });
   });
 
@@ -141,8 +142,8 @@ describe('MobileAppConnection', () => {
     expect(component.container).toMatchSnapshot();
 
     await waitFor(() => {
-      expect(rootStore.userStore.sendBackendConfirmationCode).toHaveBeenCalledTimes(1);
-      expect(rootStore.userStore.sendBackendConfirmationCode).toHaveBeenCalledWith(USER_PK, BACKEND);
+      expect(UserHelper.sendBackendConfirmationCode).toHaveBeenCalledTimes(1);
+      expect(UserHelper.sendBackendConfirmationCode).toHaveBeenCalledWith(USER_PK, BACKEND);
 
       expect(rootStore.userStore.unlinkBackend).toHaveBeenCalledTimes(1);
       expect(rootStore.userStore.unlinkBackend).toHaveBeenCalledWith(USER_PK, BACKEND);
@@ -172,8 +173,8 @@ describe('MobileAppConnection', () => {
     expect(component.container).toMatchSnapshot();
 
     await waitFor(() => {
-      expect(rootStore.userStore.sendBackendConfirmationCode).toHaveBeenCalledTimes(1);
-      expect(rootStore.userStore.sendBackendConfirmationCode).toHaveBeenCalledWith(USER_PK, BACKEND);
+      expect(UserHelper.sendBackendConfirmationCode).toHaveBeenCalledTimes(1);
+      expect(UserHelper.sendBackendConfirmationCode).toHaveBeenCalledWith(USER_PK, BACKEND);
 
       expect(rootStore.userStore.unlinkBackend).toHaveBeenCalledTimes(1);
       expect(rootStore.userStore.unlinkBackend).toHaveBeenCalledWith(USER_PK, BACKEND);
@@ -202,7 +203,7 @@ describe('MobileAppConnection', () => {
     expect(component.container).toMatchSnapshot();
 
     await waitFor(() => {
-      expect(rootStore.userStore.sendBackendConfirmationCode).toHaveBeenCalledTimes(0);
+      expect(UserHelper.sendBackendConfirmationCode).toHaveBeenCalledTimes(0);
 
       expect(rootStore.userStore.unlinkBackend).toHaveBeenCalledTimes(1);
       expect(rootStore.userStore.unlinkBackend).toHaveBeenCalledWith(USER_PK, BACKEND);

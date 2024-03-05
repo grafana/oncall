@@ -17,6 +17,7 @@ import { DOCS_TELEGRAM_SETUP } from 'utils/consts';
 import { openNotification } from 'utils/utils';
 
 import styles from './TelegramInfo.module.css';
+import { UserHelper } from 'models/user/user.helpers';
 
 const cx = cn.bind(styles);
 
@@ -32,7 +33,7 @@ export const TelegramInfo = observer((_props: TelegramInfoProps) => {
   const telegramConfigured = organizationStore.currentOrganization?.env_status.telegram_configured;
 
   useEffect(() => {
-    userStore.sendTelegramConfirmationCode(userStore.currentUserPk).then((res) => {
+    UserHelper.sendTelegramConfirmationCode(userStore.currentUserPk).then((res) => {
       setVerificationCode(res.telegram_code);
       setBotLink(res.bot_link);
     });

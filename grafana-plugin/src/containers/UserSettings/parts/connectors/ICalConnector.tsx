@@ -5,14 +5,16 @@ import CopyToClipboard from 'react-copy-to-clipboard';
 
 import { WithConfirm } from 'components/WithConfirm/WithConfirm';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
-import { User } from 'models/user/user.types';
+
 import { useStore } from 'state/useStore';
 import { UserActions } from 'utils/authorization/authorization';
 import { openNotification } from 'utils/utils';
+import { ApiSchemas } from 'network/oncall-api/api.types';
+import { UserHelper } from 'models/user/user.helpers';
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
 interface ICalConnectorProps {
-  id: User['pk'];
+  id: ApiSchemas['User']['pk'];
 }
 
 export const ICalConnector = (props: ICalConnectorProps) => {
@@ -26,8 +28,7 @@ export const ICalConnector = (props: ICalConnectorProps) => {
   const [iCalLoading, setiCalLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    userStore
-      .getiCalLink(id)
+    UserHelper.getiCalLink(id)
       .then((_res) => {
         setIsiCalLinkExisting(true);
         setiCalLoading(false);
@@ -40,13 +41,13 @@ export const ICalConnector = (props: ICalConnectorProps) => {
 
   const handleCreateiCalLink = async () => {
     setIsiCalLinkExisting(true);
-    await userStore.createiCalLink(id).then((res) => setShowiCalLink(res?.export_url));
+    await UserHelper.createiCalLink(id).then((res) => setShowiCalLink(res?.export_url));
   };
 
   const handleRevokeiCalLink = async () => {
     setIsiCalLinkExisting(false);
     setShowiCalLink(undefined);
-    await userStore.deleteiCalLink(id);
+    await UserHelper.deleteiCalLink(id);
   };
 
   const isCurrentUser = id === store.userStore.currentUserPk;

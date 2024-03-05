@@ -9,7 +9,7 @@ import { Block } from 'components/GBlock/Block';
 import { PluginLink } from 'components/PluginLink/PluginLink';
 import { Text } from 'components/Text/Text';
 import { WithPermissionControlDisplay } from 'containers/WithPermissionControl/WithPermissionControlDisplay';
-import { User } from 'models/user/user.types';
+
 import { AppFeature } from 'state/features';
 import { RootStore, rootStore as store } from 'state/rootStore';
 import { UserActions } from 'utils/authorization/authorization';
@@ -19,11 +19,13 @@ import styles from './MobileAppConnection.module.scss';
 import { DisconnectButton } from './parts/DisconnectButton/DisconnectButton';
 import { DownloadIcons } from './parts/DownloadIcons/DownloadIcons';
 import { QRCode } from './parts/QRCode/QRCode';
+import { UserHelper } from 'models/user/user.helpers';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 
 const cx = cn.bind(styles);
 
 type Props = {
-  userPk?: User['pk'];
+  userPk?: ApiSchemas['User']['pk'];
   store?: RootStore;
 };
 
@@ -89,7 +91,7 @@ export const MobileAppConnection = observer(({ userPk }: Props) => {
 
       try {
         // backend verification code that we receive is a JSON object that has been "stringified"
-        const qrCodeContent = await userStore.sendBackendConfirmationCode(userPk, BACKEND);
+        const qrCodeContent = await UserHelper.sendBackendConfirmationCode(userPk, BACKEND);
         setQRCodeValue(qrCodeContent);
       } catch (e) {
         setErrorFetchingQRCode('There was an error fetching your QR code. Please try again.');
@@ -252,7 +254,7 @@ export const MobileAppConnection = observer(({ userPk }: Props) => {
     setIsAttemptingTestNotification(true);
 
     try {
-      await userStore.sendTestPushNotification(userPk, isCritical);
+      await UserHelper.sendTestPushNotification(userPk, isCritical);
       openNotification(isCritical ? 'Push Important Notification has been sent' : 'Push Notification has been sent');
     } catch (ex) {
       if (ex.response?.status === 429) {
@@ -283,7 +285,7 @@ export const MobileAppConnection = observer(({ userPk }: Props) => {
     setTimeout(pollUserProfile, INTERVAL_POLLING);
   }
 
-  function isUserConnected(user?: User): boolean {
+  function isUserConnected(user?: ApiSchemas['User']): boolean {
     return !!(user || userStore.currentUser)?.messaging_backends[BACKEND]?.connected;
   }
 
@@ -295,7 +297,7 @@ export const MobileAppConnection = observer(({ userPk }: Props) => {
     clearTimeout(refreshTimeoutId);
     setRefreshTimeoutId(undefined);
 
-    const user = await userStore.fetchItemById(userPk);
+    const user = await userStore.fetchItemById({ userPk });
     if (!isUserConnected(user)) {
       let didCallThrottleWithNoEffect = false;
       let isRequestDone = false;
@@ -333,7 +335,7 @@ export const MobileAppConnection = observer(({ userPk }: Props) => {
     clearTimeout(userTimeoutId);
     setUserTimeoutId(undefined);
 
-    const user = await userStore.fetchItemById(userPk);
+    const user = await userStore.fetchItemById({ userPk });
     if (!isUserConnected(user)) {
       setUserTimeoutId(setTimeout(pollUserProfile, INTERVAL_POLLING));
     } else {

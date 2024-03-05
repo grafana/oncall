@@ -4,12 +4,13 @@ import { Button, HorizontalGroup, InlineField, Input } from '@grafana/ui';
 
 import { WithConfirm } from 'components/WithConfirm/WithConfirm';
 import { UserSettingsTab } from 'containers/UserSettings/UserSettings.types';
-import { User } from 'models/user/user.types';
+
 import { useStore } from 'state/useStore';
 import { getPathFromQueryParams } from 'utils/url';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 
 interface SlackConnectorProps {
-  id: User['pk'];
+  id: ApiSchemas['User']['pk'];
   onTabChange: (tab: UserSettingsTab) => void;
 }
 

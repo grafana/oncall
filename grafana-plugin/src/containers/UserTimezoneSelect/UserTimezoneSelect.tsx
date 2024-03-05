@@ -11,6 +11,7 @@ import { allTimezones, getGMTTimezoneLabelBasedOnOffset, getTzOffsetString } fro
 import { useStore } from 'state/useStore';
 
 import styles from './UserTimezoneSelect.module.css';
+import { UserHelper } from 'models/user/user.helpers';
 
 const cx = cn.bind(styles);
 
@@ -26,7 +27,7 @@ interface UserTimezoneSelectProps {
 
 export const UserTimezoneSelect: FC<UserTimezoneSelectProps> = observer(({ scheduleId }) => {
   const store = useStore();
-  const users = store.userStore.getSearchResult().results || [];
+  const users = UserHelper.getSearchResult(store.userStore).results || [];
 
   const [extraOptions, setExtraOptions] = useState<TimezoneOption[]>([
     {

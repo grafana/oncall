@@ -5,11 +5,12 @@ import { observer } from 'mobx-react';
 
 import { Avatar } from 'components/Avatar/Avatar';
 import { Text } from 'components/Text/Text';
-import { User } from 'models/user/user.types';
+
 import { useStore } from 'state/useStore';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 
 interface UserDisplayProps {
-  id: User['pk'];
+  id: ApiSchemas['User']['pk'];
 }
 
 export const UserDisplayWithAvatar = observer(({ id }: UserDisplayProps) => {

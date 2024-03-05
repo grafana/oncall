@@ -3,11 +3,12 @@ import React, { useCallback } from 'react';
 import { Button, InlineField } from '@grafana/ui';
 
 import { UserSettingsTab } from 'containers/UserSettings/UserSettings.types';
-import { User } from 'models/user/user.types';
+
 import { useStore } from 'state/useStore';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 
 interface MobileAppConnectorProps {
-  id: User['pk'];
+  id: ApiSchemas['User']['pk'];
   onTabChange: (tab: UserSettingsTab) => void;
 }
 

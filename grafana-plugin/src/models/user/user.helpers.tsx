@@ -68,6 +68,14 @@ export class UserHelper {
     throttlingError(response);
   }
 
+  static async fetchVerificationCall(userPk: ApiSchemas['User']['pk'], recaptchaToken: string) {
+    const { response } = await onCallApi().GET('/users/{id}/get_verification_call/', {
+      params: { path: { id: userPk } },
+      headers: { 'X-OnCall-Recaptcha': recaptchaToken },
+    });
+    throttlingError(response);
+  }
+
   static async verifyPhone(userPk: ApiSchemas['User']['pk'], token: string) {
     const { response } = await onCallApi().PUT('/users/{id}/verify_number/', {
       params: { path: { id: userPk }, query: { token } },
@@ -89,5 +97,13 @@ export class UserHelper {
 
   static async deleteiCalLink(userPk: ApiSchemas['User']['pk']) {
     return (await onCallApi().POST('/users/{id}/export_token/', { params: { path: { id: userPk } } })).data;
+  }
+
+  static async sendTestPushNotification(userId: ApiSchemas['User']['pk'], isCritical: boolean) {
+    return (
+      await onCallApi().POST('/users/{id}/send_test_push/', {
+        params: { path: { id: userId }, query: { critical: isCritical } },
+      })
+    ).data;
   }
 }

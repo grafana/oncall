@@ -14,9 +14,8 @@ import { isUserActionAllowed, UserActions } from 'utils/authorization/authorizat
 import { AutoLoadingState } from 'utils/decorators';
 
 import { UserHelper } from './user.helpers';
-import { User } from './user.types';
 
-export type PaginatedUsersResponse<UT = User> = {
+export type PaginatedUsersResponse<UT = ApiSchemas['User']> = {
   count: number;
   page_size: number;
   results: UT[];
@@ -166,12 +165,11 @@ export class UserStore {
     });
   }
 
-  @action.bound
-  async updateCurrentUser(data: Partial<User>) {
+  async updateCurrentUser(data: Partial<ApiSchemas['User']>) {
     const user = await makeRequest(`/user/`, {
       method: 'PUT',
       data: {
-        ...UserHelper.prepareForUpdate(this.items[this.currentUserPk as ApiSchemas['User']['pk']]),
+        ...UserHelper.prepareForUpdate(this.items[this.currentUserPk]),
         ...data,
       },
     });
@@ -179,17 +177,15 @@ export class UserStore {
     runInAction(() => {
       this.items = {
         ...this.items,
-        [this.currentUserPk as ApiSchemas['User']['pk']]: user,
+        [this.currentUserPk]: user,
       };
     });
   }
 
-  @action.bound
   async updateNotificationPolicies(id: ApiSchemas['User']['pk']) {
     const importantEPs = await makeRequest('/notification_policies/', {
       params: { user: id, important: true },
     });
-
     const nonImportantEPs = await makeRequest('/notification_policies/', {
       params: { user: id, important: false },
     });
@@ -202,7 +198,6 @@ export class UserStore {
     });
   }
 
-  @action.bound
   async moveNotificationPolicyToPosition(
     userPk: ApiSchemas['User']['pk'],
     oldIndex: number,
@@ -210,31 +205,23 @@ export class UserStore {
     offset: number
   ) {
     const notificationPolicy = this.notificationPolicies[userPk][oldIndex + offset];
-
     this.notificationPolicies[userPk] = move(this.notificationPolicies[userPk], oldIndex + offset, newIndex + offset);
-
     await makeRequest(`/notification_policies/${notificationPolicy.id}/move_to_position/?position=${newIndex}`, {
       method: 'PUT',
     });
-
     this.updateNotificationPolicies(userPk);
-
-    this.updateItem(userPk); // to update notification_chain_verbal
+    this.fetchItemById({ userPk }); // to update notification_chain_verbal
   }
 
-  @action.bound
   async addNotificationPolicy(userPk: ApiSchemas['User']['pk'], important: NotificationPolicyType['important']) {
     await makeRequest(`/notification_policies/`, {
       method: 'POST',
       data: { user: userPk, important },
     });
-
     this.updateNotificationPolicies(userPk);
-
-    this.updateItem(userPk); // to update notification_chain_verbal
+    this.fetchItemById({ userPk }); // to update notification_chain_verbal
   }
 
-  @action.bound
   async updateNotificationPolicy(
     userPk: ApiSchemas['User']['pk'],
     id: NotificationPolicyType['id'],
@@ -261,36 +248,21 @@ export class UserStore {
       };
     });
 
-    this.updateItem(userPk); // to update notification_chain_verbal
+    this.fetchItemById({ userPk }); // to update notification_chain_verbal
   }
 
-  @action.bound
   async deleteNotificationPolicy(userPk: ApiSchemas['User']['pk'], id: NotificationPolicyType['id']) {
-    await makeRequest(`/notification_policies/${id}`, { method: 'DELETE' }).catch(this.onApiError);
-
+    await makeRequest(`/notification_policies/${id}`, { method: 'DELETE' });
     this.updateNotificationPolicies(userPk);
-
-    this.updateItem(userPk); // to update notification_chain_verbal
+    this.fetchItemById({ userPk }); // to update notification_chain_verbal
   }
 
-  @action.bound
   async updateNotificationPolicyOptions() {
     const response = await makeRequest('/notification_policies/', {
       method: 'OPTIONS',
     });
-
     runInAction(() => {
       this.notificationChoices = get(response, 'actions.POST', []);
-    });
-  }
-
-  @action.bound
-  async sendTestPushNotification(userId: ApiSchemas['User']['pk'], isCritical: boolean) {
-    return await makeRequest(`/users/${userId}/send_test_push`, {
-      method: 'POST',
-      params: {
-        critical: isCritical,
-      },
     });
   }
 
@@ -303,31 +275,14 @@ export class UserStore {
     });
   }
 
-  @action.bound
+  @AutoLoadingState(ActionKey.TEST_CALL_OR_SMS)
   async makeTestCall(userPk: ApiSchemas['User']['pk']) {
-    this.isTestCallInProgress = true;
-
-    return await makeRequest(`/users/${userPk}/make_test_call/`, {
-      method: 'POST',
-    })
-      .catch(this.onApiError)
-      .finally(() => {
-        runInAction(() => {
-          this.isTestCallInProgress = false;
-        });
-      });
+    return (await onCallApi().POST('/users/{id}/make_test_call/', { params: { path: { id: userPk } } })).data;
   }
 
+  @AutoLoadingState(ActionKey.TEST_CALL_OR_SMS)
   async sendTestSms(userPk: ApiSchemas['User']['pk']) {
-    this.isTestCallInProgress = true;
-
-    return await makeRequest(`/users/${userPk}/send_test_sms/`, {
-      method: 'POST',
-    })
-      .catch(this.onApiError)
-      .finally(() => {
-        this.isTestCallInProgress = false;
-      });
+    return (await onCallApi().POST('/users/{id}/send_test_sms/', { params: { path: { id: userPk } } })).data;
   }
 
   @computed
@@ -335,6 +290,6 @@ export class UserStore {
     if (!this.currentUserPk) {
       return undefined;
     }
-    return this.items[this.currentUserPk as ApiSchemas['User']['pk']];
+    return this.items[this.currentUserPk];
   }
 }

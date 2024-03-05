@@ -48,7 +48,6 @@ import { AlertReceiveChannelHelper } from 'models/alert_receive_channel/alert_re
 import { AlertGroupHelper } from 'models/alertgroup/alertgroup.helpers';
 import { AlertAction, TimeLineItem, TimeLineRealm, GroupedAlert } from 'models/alertgroup/alertgroup.types';
 import { ResolutionNoteSourceTypesToDisplayName } from 'models/resolution_note/resolution_note.types';
-import { User } from 'models/user/user.types';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { IncidentDropdown } from 'pages/incidents/parts/IncidentDropdown';
 import { AppFeature } from 'state/features';
@@ -246,7 +245,7 @@ class _IncidentPage extends React.Component<IncidentPageProps, IncidentPageState
     );
   }
 
-  handlePagedUserRemove = (userId: User['pk']) => {
+  handlePagedUserRemove = (userId: ApiSchemas['User']['pk']) => {
     return async () => {
       const {
         match: {

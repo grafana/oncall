@@ -3,11 +3,12 @@ import { useEffect } from 'react';
 import { observer } from 'mobx-react';
 
 import { UserHelper } from 'models/user/user.helpers';
-import { User } from 'models/user/user.types';
+
 import { useStore } from 'state/useStore';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 
 interface UserSummaryProps {
-  id: User['pk'];
+  id: ApiSchemas['User']['pk'];
 }
 
 export const UserSummary = observer((props: UserSummaryProps) => {
@@ -19,7 +20,7 @@ export const UserSummary = observer((props: UserSummaryProps) => {
 
   useEffect(() => {
     if (!userStore.items[id]) {
-      userStore.fetchItemById(id);
+      userStore.fetchItemById({ userPk: id });
     }
   });
 

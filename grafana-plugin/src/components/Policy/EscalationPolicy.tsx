@@ -23,7 +23,7 @@ import {
 } from 'models/escalation_policy/escalation_policy.types';
 import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
 import { Schedule } from 'models/schedule/schedule.types';
-import { User } from 'models/user/user.types';
+
 import { UserGroup } from 'models/user_group/user_group.types';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { SelectOption, WithStoreProps } from 'state/types';
@@ -166,7 +166,7 @@ class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
 
     return (
       <WithPermissionControlTooltip key="users-multiple" userAction={UserActions.EscalationChainsWrite}>
-        <GSelect<User>
+        <GSelect<ApiSchemas['User']>
           isMulti
           showSearch
           allowClear

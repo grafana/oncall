@@ -1,7 +1,10 @@
-import { User as UserType } from 'models/user/user.types';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 
-export const getUserRowClassNameFn = (userPkToEdit?: UserType['pk'], currentUserPk?: UserType['pk']) => {
-  return (user: UserType) => {
+export const getUserRowClassNameFn = (
+  userPkToEdit?: ApiSchemas['User']['pk'],
+  currentUserPk?: ApiSchemas['User']['pk']
+) => {
+  return (user: ApiSchemas['User']) => {
     if (user.pk === currentUserPk) {
       return 'highlighted-row';
     }

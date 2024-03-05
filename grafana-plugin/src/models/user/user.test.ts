@@ -2,6 +2,7 @@ import { makeRequest as makeRequestOriginal } from 'network/network';
 import { RootStore } from 'state/rootStore';
 
 import { UserStore } from './user';
+import { UserHelper } from './user.helpers';
 
 const makeRequest = makeRequestOriginal as jest.Mock<ReturnType<typeof makeRequestOriginal>>;
 
@@ -13,7 +14,6 @@ afterEach(() => {
 
 describe('UserStore.sendBackendConfirmationCode', () => {
   const rootStore = new RootStore();
-  const userStore = new UserStore(rootStore);
 
   const userPk = '5';
   const backend = 'dfkjfdjkfdkjfdaaa';
@@ -22,7 +22,7 @@ describe('UserStore.sendBackendConfirmationCode', () => {
   test('it makes the proper API call and returns the response', async () => {
     makeRequest.mockResolvedValueOnce(mockedQrCode);
 
-    expect(await userStore.sendBackendConfirmationCode(userPk, backend)).toEqual(mockedQrCode);
+    expect(await UserHelper.sendBackendConfirmationCode(userPk, backend)).toEqual(mockedQrCode);
 
     expect(makeRequest).toHaveBeenCalledTimes(1);
     expect(makeRequest).toHaveBeenCalledWith(`/users/${userPk}/get_backend_verification_code?backend=${backend}`, {

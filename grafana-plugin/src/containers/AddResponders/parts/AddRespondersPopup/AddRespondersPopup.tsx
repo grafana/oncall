@@ -10,19 +10,19 @@ import { GTable } from 'components/GTable/GTable';
 import { Text } from 'components/Text/Text';
 import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
 import { PaginatedUsersResponse } from 'models/user/user';
-import { UserCurrentlyOnCall } from 'models/user/user.types';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
 import { useDebouncedCallback, useOnClickOutside } from 'utils/hooks';
 
 import styles from './AddRespondersPopup.module.scss';
+import { UserHelper } from 'models/user/user.helpers';
 
 type Props = {
   mode: 'create' | 'update';
   visible: boolean;
   setVisible: (value: boolean) => void;
 
-  setCurrentlyConsideredUser: (user: UserCurrentlyOnCall) => void;
+  setCurrentlyConsideredUser: (user: ApiSchemas['UserIsCurrentlyOnCall']) => void;
   setShowUserConfirmationModal: (value: boolean) => void;
 
   existingPagedUsers?: ApiSchemas['AlertGroup']['paged_users'];
@@ -44,7 +44,7 @@ export const AddRespondersPopup = observer(
     setCurrentlyConsideredUser,
     setShowUserConfirmationModal,
   }: Props) => {
-    const { directPagingStore, grafanaTeamStore, userStore } = useStore();
+    const { directPagingStore, grafanaTeamStore } = useStore();
     const { selectedTeamResponder, selectedUserResponders } = directPagingStore;
 
     const isCreateMode = mode === 'create';
@@ -52,8 +52,8 @@ export const AddRespondersPopup = observer(
     const [searchLoading, setSearchLoading] = useState<boolean>(true);
     const [activeOption, setActiveOption] = useState<TabOptions>(isCreateMode ? TabOptions.Teams : TabOptions.Users);
     const [teamSearchResults, setTeamSearchResults] = useState<GrafanaTeam[]>([]);
-    const [onCallUserSearchResults, setOnCallUserSearchResults] = useState<UserCurrentlyOnCall[]>([]);
-    const [notOnCallUserSearchResults, setNotOnCallUserSearchResults] = useState<UserCurrentlyOnCall[]>([]);
+    const [onCallUserSearchResults, setOnCallUserSearchResults] = useState<Array<ApiSchemas['User']>>([]);
+    const [notOnCallUserSearchResults, setNotOnCallUserSearchResults] = useState<Array<ApiSchemas['User']>>([]);
     const [searchTerm, setSearchTerm] = useState('');
 
     const ref = useRef();
@@ -70,7 +70,7 @@ export const AddRespondersPopup = observer(
     );
 
     const onClickUser = useCallback(
-      async (user: UserCurrentlyOnCall) => {
+      async (user: ApiSchemas['UserIsCurrentlyOnCall']) => {
         if (isCreateMode && user.is_currently_oncall) {
           directPagingStore.addUserToSelectedUsers(user);
         } else {
@@ -98,7 +98,7 @@ export const AddRespondersPopup = observer(
 
     const searchForUsers = useCallback(async () => {
       const _search = async (is_currently_oncall: boolean) => {
-        const response = await userStore.search<PaginatedUsersResponse<UserCurrentlyOnCall>>({
+        const response = await UserHelper.search({
           searchTerm,
           is_currently_oncall,
         });
@@ -107,8 +107,9 @@ export const AddRespondersPopup = observer(
 
       const [onCallUserSearchResults, notOnCallUserSearchResults] = await Promise.all([_search(true), _search(false)]);
 
-      setOnCallUserSearchResults(onCallUserSearchResults);
-      setNotOnCallUserSearchResults(notOnCallUserSearchResults);
+      // TODO: remove casting when getting rid of custom types
+      setOnCallUserSearchResults(onCallUserSearchResults as Array<ApiSchemas['User']>);
+      setNotOnCallUserSearchResults(notOnCallUserSearchResults as Array<ApiSchemas['User']>);
     }, [searchTerm]);
 
     const searchForTeams = useCallback(async () => {
@@ -161,7 +162,7 @@ export const AddRespondersPopup = observer(
       if (existingPagedUsers.length > 0) {
         const existingPagedUserIds = existingPagedUsers.map(({ pk }) => pk);
 
-        const _filterUsers = (users: UserCurrentlyOnCall[]) =>
+        const _filterUsers = (users: Array<ApiSchemas['UserIsCurrentlyOnCall']>) =>
           users.filter(({ pk }) => !existingPagedUserIds.includes(pk));
 
         setOnCallUserSearchResults(_filterUsers);
@@ -188,7 +189,8 @@ export const AddRespondersPopup = observer(
     }, []);
 
     const userIsSelected = useCallback(
-      (user: UserCurrentlyOnCall) => selectedUserResponders.some((userResponder) => userResponder.data.pk === user.pk),
+      (user: ApiSchemas['UserIsCurrentlyOnCall']) =>
+        selectedUserResponders.some((userResponder) => userResponder.data.pk === user.pk),
       [selectedUserResponders]
     );
 
@@ -219,11 +221,11 @@ export const AddRespondersPopup = observer(
       },
     ];
 
-    const userColumns: ColumnsType<UserCurrentlyOnCall> = [
+    const userColumns: ColumnsType<ApiSchemas['UserIsCurrentlyOnCall']> = [
       // TODO: how to make the rows span full width properly?
       {
         width: 300,
-        render: (user: UserCurrentlyOnCall) => {
+        render: (user: ApiSchemas['UserIsCurrentlyOnCall']) => {
           const { avatar, name, username, teams } = user;
           const disabled = userIsSelected(user);
 
@@ -244,18 +246,21 @@ export const AddRespondersPopup = observer(
       },
       {
         width: 40,
-        render: (user: UserCurrentlyOnCall) => (userIsSelected(user) ? <Icon name="check" /> : null),
+        render: (user: ApiSchemas['UserIsCurrentlyOnCall']) => (userIsSelected(user) ? <Icon name="check" /> : null),
         key: 'Checked',
       },
     ];
 
-    const UserResultsSection: FC<{ header: string; users: UserCurrentlyOnCall[] }> = ({ header, users }) =>
+    const UserResultsSection: FC<{ header: string; users: Array<ApiSchemas['UserIsCurrentlyOnCall']> }> = ({
+      header,
+      users,
+    }) =>
       users.length > 0 && (
         <>
           <Text type="secondary" className={cx('user-results-section-header')}>
             {header}
           </Text>
-          <GTable<UserCurrentlyOnCall>
+          <GTable<ApiSchemas['UserIsCurrentlyOnCall']>
             emptyText={users ? 'No users found' : 'Loading...'}
             rowKey="pk"
             columns={userColumns}

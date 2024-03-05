@@ -4,11 +4,12 @@ import { Tooltip } from '@grafana/ui';
 import { observer } from 'mobx-react';
 
 import { UserHelper } from 'models/user/user.helpers';
-import { User } from 'models/user/user.types';
+
 import { useStore } from 'state/useStore';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 
 interface UserTooltipProps {
-  id: User['pk'];
+  id: ApiSchemas['User']['pk'];
 }
 
 export const UserTooltip = observer((props: UserTooltipProps) => {

@@ -7,7 +7,7 @@ import { SortableContainer, SortableElement, SortableHandle } from 'react-sortab
 
 import { Text } from 'components/Text/Text';
 import { RemoteSelect } from 'containers/RemoteSelect/RemoteSelect';
-import { User } from 'models/user/user.types';
+
 import { UserActions } from 'utils/authorization/authorization';
 
 import { fromPlainArray, toPlainArray } from './UserGroups.helpers';
@@ -16,8 +16,8 @@ import { Item } from './UserGroups.types';
 import styles from './UserGroups.module.css';
 
 interface UserGroupsProps {
-  value: Array<Array<User['pk']>>;
-  onChange: (value: Array<Array<User['pk']>>) => void;
+  value: Array<Array<ApiSchemas['User']['pk']>>;
+  onChange: (value: Array<Array<ApiSchemas['User']['pk']>>) => void;
   isMultipleGroups: boolean;
   renderUser: (id: string) => React.ReactElement;
   showError?: boolean;
@@ -56,7 +56,7 @@ export const UserGroups = (props: UserGroupsProps) => {
   };
 
   const handleUserAdd = useCallback(
-    (pk: User['pk']) => {
+    (pk: ApiSchemas['User']['pk']) => {
       if (!pk) {
         return;
       }

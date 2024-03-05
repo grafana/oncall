@@ -31,6 +31,7 @@ import { PLUGIN_ROOT } from 'utils/consts';
 import { getStartOfWeekBasedOnCurrentDate } from './Schedule.helpers';
 
 import styles from './Schedule.module.css';
+import { UserHelper } from 'models/user/user.helpers';
 
 const cx = cn.bind(styles);
 
@@ -117,7 +118,7 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
 
     const { scheduleStore } = store;
 
-    const users = store.userStore.getSearchResult().results;
+    const users = UserHelper.getSearchResult(store.userStore).results;
     const schedule = scheduleStore.items[scheduleId];
 
     const disabledRotationForm =

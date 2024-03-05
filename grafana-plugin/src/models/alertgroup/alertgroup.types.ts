@@ -1,4 +1,4 @@
-import { User } from 'models/user/user.types';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 
 export enum IncidentStatus {
   'Firing',
@@ -24,7 +24,7 @@ export enum TimeLineRealm {
 
 export interface TimeLineItem {
   action: string;
-  author: User | null;
+  author: ApiSchemas['User'] | null;
   created_at: string;
   realm: TimeLineRealm;
   time: string;
