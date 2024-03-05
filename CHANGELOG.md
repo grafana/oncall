@@ -7,10 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
-## Added
+### Added
 
 - Add reset button to disable integration heartbeat @mderynck ([#3959](https://github.com/grafana/oncall/pull/3959))
 - Schedule deleted integration cleanup task to run every 12 hours @mderynck ([#3976](https://github.com/grafana/oncall/pull/3976))
+
+### Fixed
+
+- Fix selecting values in notification settings ([#9566](https://github.com/grafana/support-escalations/issues/9566))
 
 ## v1.3.109 (2024-03-04)
 
