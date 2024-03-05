@@ -4,6 +4,9 @@ import { pick } from 'lodash-es';
 
 import { User } from './user.types';
 import { onCallApi } from 'network/oncall-api/http-client';
+import { UserStore } from './user';
+import { throttlingError } from 'utils/utils';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 
 export class UserHelper {
   static getTimezone(user: Pick<User, 'timezone'>) {
@@ -37,66 +40,75 @@ export class UserHelper {
     return (await onCallApi().GET('/users/', { params: { query: { search, page, ...restFilters } } })).data;
   }
 
-  getSearchResult = () => {
+  static getSearchResult(userStore: UserStore) {
     return {
-      page_size: this.searchResult.page_size,
-      count: this.searchResult.count,
-      results: this.searchResult.results?.map((userPk: User['pk']) => this.items?.[userPk]),
+      page_size: userStore.searchResult.page_size,
+      count: userStore.searchResult.count,
+      results: userStore.searchResult.results?.map((userPk: ApiSchemas['User']['pk']) => userStore.items?.[userPk]),
     };
-  };
+  }
 
-  sendTelegramConfirmationCode = async (userPk: User['pk']) => {
-    return await makeRequest(`/users/${userPk}/get_telegram_verification_code/`, {});
-  };
+  static async sendTelegramConfirmationCode(userPk: ApiSchemas['User']['pk']) {
+    return (await onCallApi().GET('/users/{id}/get_telegram_verification_code/', { params: { path: { id: userPk } } }))
+      .data;
+  }
 
-  sendBackendConfirmationCode = (userPk: User['pk'], backend: string) =>
-    makeRequest<string>(`/users/${userPk}/get_backend_verification_code?backend=${backend}`, {
-      method: 'GET',
+  static async sendBackendConfirmationCode(userPk: ApiSchemas['User']['pk'], backend: string) {
+    return (
+      await onCallApi().GET('/users/{id}/get_backend_verification_code/', {
+        params: { path: { id: userPk }, query: { backend } },
+      })
+    ).data;
+  }
+
+  static async fetchVerificationCode(userPk: ApiSchemas['User']['pk'], recaptchaToken: string) {
+    const { response } = await onCallApi().GET('/users/{id}/get_verification_code/', {
+      params: { path: { id: userPk } },
+      headers: { 'X-OnCall-Recaptcha': recaptchaToken },
     });
 
-  @action.bound
-  async fetchVerificationCode(userPk: User['pk'], recaptchaToken: string) {
-    await makeRequest(`/users/${userPk}/get_verification_code/`, {
-      method: 'GET',
-      headers: { 'X-OnCall-Recaptcha': recaptchaToken },
-    }).catch(throttlingError);
+    if (!response.ok) {
+      throttlingError(response);
+    }
+  }
+
+  static async verifyPhone(userPk: ApiSchemas['User']['pk'], token: string) {
+    const { response } = await onCallApi().PUT('/users/{id}/verify_number/', {
+      params: { path: { id: userPk }, query: { token } },
+    });
+
+    if (!response.ok) {
+      throttlingError(response);
+    }
   }
 
   @action.bound
-  async fetchVerificationCall(userPk: User['pk'], recaptchaToken: string) {
-    await makeRequest(`/users/${userPk}/get_verification_call/`, {
-      method: 'GET',
-      headers: { 'X-OnCall-Recaptcha': recaptchaToken },
-    }).catch(throttlingError);
-  }
-
-  @action.bound
-  async verifyPhone(userPk: User['pk'], token: string) {
+  async verifyPhone(userPk: ApiSchemas['User']['pk'], token: string) {
     return await makeRequest(`/users/${userPk}/verify_number/?token=${token}`, {
       method: 'PUT',
     }).catch(throttlingError);
   }
 
   @action.bound
-  async forgetPhone(userPk: User['pk']) {
+  async forgetPhone(userPk: ApiSchemas['User']['pk']) {
     return await makeRequest(`/users/${userPk}/forget_number/`, {
       method: 'PUT',
     });
   }
 
-  async getiCalLink(userPk: User['pk']) {
+  async getiCalLink(userPk: ApiSchemas['User']['pk']) {
     return await makeRequest(`/users/${userPk}/export_token/`, {
       method: 'GET',
     });
   }
 
-  async createiCalLink(userPk: User['pk']) {
+  async createiCalLink(userPk: ApiSchemas['User']['pk']) {
     return await makeRequest(`/users/${userPk}/export_token/`, {
       method: 'POST',
     });
   }
 
-  async deleteiCalLink(userPk: User['pk']) {
+  async deleteiCalLink(userPk: ApiSchemas['User']['pk']) {
     await makeRequest(`/users/${userPk}/export_token/`, {
       method: 'DELETE',
     });
