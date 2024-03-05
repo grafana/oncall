@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 
 import { observer } from 'mobx-react';
 
-import { getUserNotificationsSummary } from 'models/user/user.helpers';
+import { UserHelper } from 'models/user/user.helpers';
 import { User } from 'models/user/user.types';
 import { useStore } from 'state/useStore';
 
@@ -25,5 +25,5 @@ export const UserSummary = observer((props: UserSummaryProps) => {
 
   const user = userStore.items[id];
 
-  return getUserNotificationsSummary(user);
+  return UserHelper.getUserNotificationsSummary(user);
 });

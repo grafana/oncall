@@ -1,17 +1,21 @@
 import { config } from '@grafana/runtime';
 import dayjs from 'dayjs';
 import { get } from 'lodash-es';
-import { action, computed, observable, makeObservable, runInAction } from 'mobx';
+import { action, computed, observable, makeObservable, runInAction, makeAutoObservable } from 'mobx';
 
 import { BaseStore } from 'models/base_store';
+import { ActionKey } from 'models/loader/action-keys';
 import { NotificationPolicyType } from 'models/notification_policy/notification_policy';
 import { makeRequest } from 'network/network';
+import { ApiSchemas } from 'network/oncall-api/api.types';
+import { onCallApi } from 'network/oncall-api/http-client';
 import { move } from 'state/helpers';
 import { RootStore } from 'state/rootStore';
 import { isUserActionAllowed, UserActions } from 'utils/authorization/authorization';
+import { AutoLoadingState } from 'utils/decorators';
 import { throttlingError } from 'utils/utils';
 
-import { getTimezone, prepareForUpdate } from './user.helpers';
+import { UserHelper } from './user.helpers';
 import { User } from './user.types';
 
 export type PaginatedUsersResponse<UT = User> = {
@@ -20,44 +24,101 @@ export type PaginatedUsersResponse<UT = User> = {
   results: UT[];
 };
 
-export class UserStore extends BaseStore {
-  @observable.shallow
+export class UserStore {
+  rootStore: RootStore;
   searchResult: { count?: number; results?: Array<User['pk']>; page_size?: number } = {};
-
-  @observable.shallow
-  items: { [pk: string]: User } = {};
-
-  itemsCurrentlyUpdating = {};
-
-  @observable
+  items: { [pk: string]: ApiSchemas['User'] } = {};
   notificationPolicies: any = {};
-
-  @observable
   notificationChoices: any = [];
-
-  @observable
   notifyByOptions: any = [];
-
-  @observable
-  isTestCallInProgress = false;
-
-  @observable
   currentUserPk?: User['pk'];
 
   constructor(rootStore: RootStore) {
-    super(rootStore);
-
-    makeObservable(this);
-
-    this.path = '/users/';
+    makeAutoObservable(this, undefined, { autoBind: true });
+    this.rootStore = rootStore;
   }
 
-  @computed
-  get currentUser() {
-    if (!this.currentUserPk) {
-      return undefined;
+  async updateItems(f: any = { searchTerm: '' }, page = 1, invalidateFn?: () => boolean): Promise<any> {
+    const response = await UserHelper.search(f, page);
+
+    if (invalidateFn && invalidateFn()) {
+      return;
     }
-    return this.items[this.currentUserPk as User['pk']];
+
+    const { count, results, page_size } = response;
+
+    runInAction(() => {
+      this.items = {
+        ...this.items,
+        ...results.reduce(
+          (acc: { [key: number]: ApiSchemas['User'] }, item: ApiSchemas['User']) => ({
+            ...acc,
+            [item.pk]: {
+              ...item,
+              timezone: UserHelper.getTimezone(item),
+            },
+          }),
+          {}
+        ),
+      };
+
+      this.searchResult = {
+        count,
+        page_size,
+        results: results.map((item: ApiSchemas['User']) => item.pk),
+      };
+    });
+
+    return response;
+  }
+
+  @AutoLoadingState(ActionKey.FETCH_USERS)
+  @action.bound
+  async loadUser({
+    userPk,
+    skipErrorHandling = false,
+    shouldDuplicatePendingFetch = true,
+  }: {
+    userPk: User['pk'];
+    skipErrorHandling?: boolean;
+    shouldDuplicatePendingFetch?: boolean;
+  }) {
+    const isAlreadyFetching = this.rootStore.loaderStore.isLoading(ActionKey.FETCH_USERS);
+
+    if (!shouldDuplicatePendingFetch && isAlreadyFetching) {
+      return this.items[userPk];
+    }
+
+    const { data } = await onCallApi({ skipErrorHandling }).GET('/users/{id}/', { params: { path: { id: userPk } } });
+
+    runInAction(() => {
+      this.items = {
+        ...this.items,
+        [data.pk]: { ...data, timezone: UserHelper.getTimezone(data) },
+      };
+    });
+
+    return data;
+  }
+
+  @action.bound
+  async updateItem(userPk: User['pk']) {
+    if (this.itemsCurrentlyUpdating[userPk]) {
+      return;
+    }
+
+    this.itemsCurrentlyUpdating[userPk] = true;
+
+    const user = await this.getById(userPk);
+
+    runInAction(() => {
+      this.items = {
+        ...this.items,
+        [user.pk]: { ...user, timezone: UserHelper.getTimezone(user) },
+      };
+    });
+
+    delete this.itemsCurrentlyUpdating[userPk];
   }
 
   @action.bound
@@ -86,98 +147,6 @@ export class UserStore extends BaseStore {
 
     return timezone;
   }
-
-  @action.bound
-  async loadUser(userPk: User['pk'], skipErrorHandling = false): Promise<User> {
-    const user = await this.getById(userPk, skipErrorHandling);
-
-    runInAction(() => {
-      this.items = {
-        ...this.items,
-        [user.pk]: { ...user, timezone: getTimezone(user) },
-      };
-    });
-
-    return user;
-  }
-
-  @action.bound
-  async updateItem(userPk: User['pk']) {
-    if (this.itemsCurrentlyUpdating[userPk]) {
-      return;
-    }
-
-    this.itemsCurrentlyUpdating[userPk] = true;
-
-    const user = await this.getById(userPk);
-
-    runInAction(() => {
-      this.items = {
-        ...this.items,
-        [user.pk]: { ...user, timezone: getTimezone(user) },
-      };
-    });
-
-    delete this.itemsCurrentlyUpdating[userPk];
-  }
-
-  /**
-   * NOTE: if is_currently_oncall=all the backend will not paginate the results, it will send back an array of ALL users
-   */
-  async search<RT = PaginatedUsersResponse<User>>(f: any = { searchTerm: '' }, page = 1): Promise<RT> {
-    const filters = typeof f === 'string' ? { searchTerm: f } : f; // for GSelect compatibility
-    const { searchTerm: search, ...restFilters } = filters;
-    return makeRequest<RT>(this.path, {
-      params: { search, page, ...restFilters },
-    });
-  }
-
-  @action.bound
-  async updateItems(f: any = { searchTerm: '' }, page = 1, invalidateFn?: () => boolean): Promise<any> {
-    const response = await this.search(f, page);
-
-    if (invalidateFn && invalidateFn()) {
-      return;
-    }
-
-    const { count, results, page_size } = response;
-
-    runInAction(() => {
-      this.items = {
-        ...this.items,
-        ...results.reduce(
-          (acc: { [key: number]: User }, item: User) => ({
-            ...acc,
-            [item.pk]: {
-              ...item,
-              timezone: getTimezone(item),
-            },
-          }),
-          {}
-        ),
-      };
-
-      this.searchResult = {
-        count,
-        page_size,
-        results: results.map((item: User) => item.pk),
-      };
-    });
-
-    return response;
-  }
-
-  getSearchResult = () => {
-    return {
-      page_size: this.searchResult.page_size,
-      count: this.searchResult.count,
-      results: this.searchResult.results?.map((userPk: User['pk']) => this.items?.[userPk]),
-    };
-  };
-
-  sendTelegramConfirmationCode = async (userPk: User['pk']) => {
-    return await makeRequest(`/users/${userPk}/get_telegram_verification_code/`, {});
-  };
 
   @action.bound
   unlinkSlack = async (userPk: User['pk']) => {
@@ -211,11 +180,6 @@ export class UserStore extends BaseStore {
     });
   };
 
-  sendBackendConfirmationCode = (userPk: User['pk'], backend: string) =>
-    makeRequest<string>(`/users/${userPk}/get_backend_verification_code?backend=${backend}`, {
-      method: 'GET',
-    });
-
   @action.bound
   unlinkBackend = async (userPk: User['pk'], backend: string) => {
     await makeRequest(`/users/${userPk}/unlink_backend/?backend=${backend}`, {
@@ -244,7 +208,7 @@ export class UserStore extends BaseStore {
     const user = await makeRequest(`/users/${data.pk}/`, {
       method: 'PUT',
       data: {
-        ...prepareForUpdate(this.items[data.pk as User['pk']]),
+        ...UserHelper.prepareForUpdate(this.items[data.pk as User['pk']]),
         ...data,
       },
     });
@@ -266,7 +230,7 @@ export class UserStore extends BaseStore {
     const user = await makeRequest(`/user/`, {
       method: 'PUT',
       data: {
-        ...prepareForUpdate(this.items[this.currentUserPk as User['pk']]),
+        ...UserHelper.prepareForUpdate(this.items[this.currentUserPk as User['pk']]),
         ...data,
       },
     });
@@ -276,36 +240,6 @@ export class UserStore extends BaseStore {
         ...this.items,
         [this.currentUserPk as User['pk']]: user,
       };
-    });
-  }
-
-  @action.bound
-  async fetchVerificationCode(userPk: User['pk'], recaptchaToken: string) {
-    await makeRequest(`/users/${userPk}/get_verification_code/`, {
-      method: 'GET',
-      headers: { 'X-OnCall-Recaptcha': recaptchaToken },
-    }).catch(throttlingError);
-  }
-
-  @action.bound
-  async fetchVerificationCall(userPk: User['pk'], recaptchaToken: string) {
-    await makeRequest(`/users/${userPk}/get_verification_call/`, {
-      method: 'GET',
-      headers: { 'X-OnCall-Recaptcha': recaptchaToken },
-    }).catch(throttlingError);
-  }
-
-  @action.bound
-  async verifyPhone(userPk: User['pk'], token: string) {
-    return await makeRequest(`/users/${userPk}/verify_number/?token=${token}`, {
-      method: 'PUT',
-    }).catch(throttlingError);
-  }
-
-  @action.bound
-  async forgetPhone(userPk: User['pk']) {
-    return await makeRequest(`/users/${userPk}/forget_number/`, {
-      method: 'PUT',
     });
   }
 
@@ -446,21 +380,11 @@ export class UserStore extends BaseStore {
       });
   }
 
-  async getiCalLink(userPk: User['pk']) {
-    return await makeRequest(`/users/${userPk}/export_token/`, {
-      method: 'GET',
-    });
-  }
-
-  async createiCalLink(userPk: User['pk']) {
-    return await makeRequest(`/users/${userPk}/export_token/`, {
-      method: 'POST',
-    });
-  }
-
-  async deleteiCalLink(userPk: User['pk']) {
-    await makeRequest(`/users/${userPk}/export_token/`, {
-      method: 'DELETE',
-    });
+  @computed
+  get currentUser() {
+    if (!this.currentUserPk) {
+      return undefined;
+    }
+    return this.items[this.currentUserPk as User['pk']];
   }
 }
