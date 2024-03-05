@@ -83,13 +83,6 @@ export class UserHelper {
   }
 
   @action.bound
-  async verifyPhone(userPk: ApiSchemas['User']['pk'], token: string) {
-    return await makeRequest(`/users/${userPk}/verify_number/?token=${token}`, {
-      method: 'PUT',
-    }).catch(throttlingError);
-  }
-
-  @action.bound
   async forgetPhone(userPk: ApiSchemas['User']['pk']) {
     return await makeRequest(`/users/${userPk}/forget_number/`, {
       method: 'PUT',
