@@ -264,19 +264,29 @@ opentelemetry-api==1.23.0
     #   -r ./engine/requirements.in
     #   opentelemetry-exporter-otlp-proto-grpc
     #   opentelemetry-instrumentation
+    #   opentelemetry-instrumentation-django
     #   opentelemetry-instrumentation-logging
+    #   opentelemetry-instrumentation-requests
     #   opentelemetry-instrumentation-wsgi
     #   opentelemetry-sdk
 opentelemetry-exporter-otlp-proto-grpc==1.15.0
     # via -r ./engine/requirements.in
 opentelemetry-instrumentation==0.44b0
     # via
+    #   opentelemetry-instrumentation-django
     #   opentelemetry-instrumentation-logging
+    #   opentelemetry-instrumentation-requests
     #   opentelemetry-instrumentation-wsgi
+opentelemetry-instrumentation-django==0.44b0
+    # via -r ./engine/requirements.in
 opentelemetry-instrumentation-logging==0.44b0
     # via -r ./engine/requirements.in
-opentelemetry-instrumentation-wsgi==0.44b0
+opentelemetry-instrumentation-requests==0.44b0
     # via -r ./engine/requirements.in
+opentelemetry-instrumentation-wsgi==0.44b0
+    # via
+    #   -r ./engine/requirements.in
+    #   opentelemetry-instrumentation-django
 opentelemetry-proto==1.15.0
     # via opentelemetry-exporter-otlp-proto-grpc
 opentelemetry-sdk==1.23.0
@@ -285,10 +295,15 @@ opentelemetry-sdk==1.23.0
     #   opentelemetry-exporter-otlp-proto-grpc
 opentelemetry-semantic-conventions==0.44b0
     # via
+    #   opentelemetry-instrumentation-django
+    #   opentelemetry-instrumentation-requests
     #   opentelemetry-instrumentation-wsgi
     #   opentelemetry-sdk
 opentelemetry-util-http==0.44b0
-    # via opentelemetry-instrumentation-wsgi
+    # via
+    #   opentelemetry-instrumentation-django
+    #   opentelemetry-instrumentation-requests
+    #   opentelemetry-instrumentation-wsgi
 pem==23.1.0
     # via django-sns-view
 phonenumbers==8.10.0
