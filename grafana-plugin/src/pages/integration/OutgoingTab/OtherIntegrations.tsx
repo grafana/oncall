@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import { Button, HorizontalGroup } from '@grafana/ui';
 import { observer } from 'mobx-react-lite';
@@ -8,9 +8,17 @@ import { IntegrationTag } from 'components/Integrations/IntegrationTag';
 
 import { ConnectIntegrationModal } from './ConnectIntegrationModal';
 import ConnectedIntegrationsTable from './ConnectedIntegrationsTable';
+import { useStore } from 'state/useStore';
+import { useIntegrationIdFromUrl } from './OutgoingTab.hooks';
 
 export const OtherIntegrations = observer(() => {
+  const { alertReceiveChannelConnectedChannelsStore } = useStore();
+  const integrationId = useIntegrationIdFromUrl();
   const [isConnectModalOpened, setIsConnectModalOpened] = useState(false);
+
+  useEffect(() => {
+    alertReceiveChannelConnectedChannelsStore.fetchItems(integrationId);
+  }, [integrationId]);
 
   return (
     <>
@@ -24,7 +32,17 @@ export const OtherIntegrations = observer(() => {
             </Button>
           </HorizontalGroup>
         }
-        content={<ConnectedIntegrationsTable allowDelete allowBacksync tableProps={{ data: [] }} />}
+        content={
+          <ConnectedIntegrationsTable
+            allowDelete
+            allowBacksync
+            tableProps={{
+              data: Object.values(alertReceiveChannelConnectedChannelsStore.items).map(
+                ({ alert_receive_channel }) => alert_receive_channel
+              ),
+            }}
+          />
+        }
       />
     </>
   );
