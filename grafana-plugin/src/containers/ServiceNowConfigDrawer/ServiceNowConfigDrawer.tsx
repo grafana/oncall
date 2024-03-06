@@ -13,6 +13,7 @@ import {
   Button,
   LoadingPlaceholder,
   Select,
+  SelectBaseProps,
 } from '@grafana/ui';
 import { Controller, useForm } from 'react-hook-form';
 
@@ -21,6 +22,7 @@ import { RenderConditionally } from 'components/RenderConditionally/RenderCondit
 import { useStore } from 'state/useStore';
 import { observer } from 'mobx-react';
 import { IntegrationInputField } from 'components/IntegrationInputField/IntegrationInputField';
+import { toJS } from 'mobx';
 
 interface ServiceNowConfigurationDrawerProps {
   onHide(): void;
@@ -33,16 +35,24 @@ enum FormFieldKeys {
 }
 
 enum OnCallAGStatus {
-  Resolved,
-  Silenced,
-  Acknowledged,
-  // TODO add remaining
+  Firing = 'Firing',
+  Resolved = 'Resolved',
+  Silenced = 'Silenced',
+  Acknowledged = 'Acknowledged',
 }
 
 interface FormFields {
   [FormFieldKeys.ServiceNowUrl]: string;
   [FormFieldKeys.AuthUsername]: string;
   [FormFieldKeys.AuthPassword]: string;
+}
+
+interface StatusMapping {
+  // TODO: Can this be changed to keyof usage?
+  [OnCallAGStatus.Firing]?: string;
+  [OnCallAGStatus.Resolved]?: string;
+  [OnCallAGStatus.Silenced]?: string;
+  [OnCallAGStatus.Acknowledged]?: string;
 }
 
 export const ServiceNowConfigDrawer: React.FC<ServiceNowConfigurationDrawerProps> = observer(({ onHide }) => {
@@ -56,6 +66,9 @@ export const ServiceNowConfigDrawer: React.FC<ServiceNowConfigurationDrawerProps
   const { alertReceiveChannelStore } = useStore();
   const [isAuthTestRunning, setIsAuthTestRunning] = useState(false);
   const [authTestResult, setAuthTestResult] = useState(undefined);
+
+  const [statusMapping, setStatusMapping] = useState<StatusMapping>({});
+
   const serviceNowAPIToken = 'http://url.com';
 
   useEffect(() => {
@@ -63,6 +76,12 @@ export const ServiceNowConfigDrawer: React.FC<ServiceNowConfigurationDrawerProps
       await alertReceiveChannelStore.fetchServiceNowListOfStatus();
     })();
   }, []);
+
+  const selectCommonProps: Partial<SelectBaseProps<any>> = {
+    backspaceRemovesValue: true,
+    isClearable: true,
+    placeholder: 'Not Selected',
+  };
 
   return (
     <>
@@ -160,10 +179,9 @@ export const ServiceNowConfigDrawer: React.FC<ServiceNowConfigurationDrawerProps
                       <Select
                         menuShouldPortal
                         className="select control"
-                        disabled={false}
-                        value={undefined}
-                        options={getAvailableStatusOptions()}
-                        onChange={onStatusSelectChange}
+                        options={getAvailableStatusOptions(OnCallAGStatus.Firing)}
+                        onChange={(option: SelectableValue) => onStatusSelectChange(option, OnCallAGStatus.Firing)}
+                        {...selectCommonProps}
                       />
                     </td>
                   </tr>
@@ -176,9 +194,11 @@ export const ServiceNowConfigDrawer: React.FC<ServiceNowConfigurationDrawerProps
                         menuShouldPortal
                         className="select control"
                         disabled={false}
-                        value={undefined}
-                        options={getAvailableStatusOptions()}
-                        onChange={onStatusSelectChange}
+                        options={getAvailableStatusOptions(OnCallAGStatus.Acknowledged)}
+                        onChange={(option: SelectableValue) =>
+                          onStatusSelectChange(option, OnCallAGStatus.Acknowledged)
+                        }
+                        {...selectCommonProps}
                       />
                     </td>
                   </tr>
@@ -190,9 +210,9 @@ export const ServiceNowConfigDrawer: React.FC<ServiceNowConfigurationDrawerProps
                         menuShouldPortal
                         className="select control"
                         disabled={false}
-                        value={undefined}
-                        options={getAvailableStatusOptions()}
-                        onChange={onStatusSelectChange}
+                        options={getAvailableStatusOptions(OnCallAGStatus.Resolved)}
+                        onChange={(option: SelectableValue) => onStatusSelectChange(option, OnCallAGStatus.Resolved)}
+                        {...selectCommonProps}
                       />
                     </td>
                   </tr>
@@ -204,9 +224,9 @@ export const ServiceNowConfigDrawer: React.FC<ServiceNowConfigurationDrawerProps
                         menuShouldPortal
                         className="select control"
                         disabled={false}
-                        value={undefined}
-                        options={getAvailableStatusOptions()}
-                        onChange={onStatusSelectChange}
+                        options={getAvailableStatusOptions(OnCallAGStatus.Silenced)}
+                        onChange={(option: SelectableValue) => onStatusSelectChange(option, OnCallAGStatus.Silenced)}
+                        {...selectCommonProps}
                       />
                     </td>
                   </tr>
@@ -283,14 +303,24 @@ export const ServiceNowConfigDrawer: React.FC<ServiceNowConfigurationDrawerProps
     // Call API and reset token
   }
 
-  function getAvailableStatusOptions() {
-    return (alertReceiveChannelStore.serviceNowStatusList || []).map((status) => ({
-      value: status.id,
-      label: status.name,
-    }));
+  function getAvailableStatusOptions(currentAction: OnCallAGStatus) {
+    const keys = Object.keys(statusMapping);
+    const values = keys.map((k) => statusMapping[k]).filter(Boolean);
+
+    return (alertReceiveChannelStore.serviceNowStatusList || [])
+      .filter((status) => values.indexOf(status.name) === -1 || statusMapping[currentAction] === status.name)
+      .map((status) => ({
+        value: status.id,
+        label: status.name,
+      }));
   }
 
-  function onStatusSelectChange(option: SelectableValue) {}
+  function onStatusSelectChange(option: SelectableValue, action: OnCallAGStatus) {
+    setStatusMapping({
+      ...statusMapping,
+      [action]: option?.label,
+    });
+  }
 
   function onAuthTest() {
     return new Promise(() => {
