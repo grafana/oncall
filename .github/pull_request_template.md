@@ -1,6 +1,6 @@
 # What this PR does
 
-## Which issue(s) this PR fixes
+## Which issue(s) this PR closes
 
 Closes [issue link here]
 
