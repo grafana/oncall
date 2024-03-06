@@ -1,8 +1,8 @@
 import { action, observable, makeObservable, runInAction } from 'mobx';
 
-import BaseStore from 'models/base_store';
-import { makeRequest } from 'network';
-import { RootStore } from 'state';
+import { BaseStore } from 'models/base_store';
+import { makeRequest } from 'network/network';
+import { RootStore } from 'state/rootStore';
 
 import { EscalationChain, EscalationChainDetails } from './escalation_chain.types';
 
@@ -30,7 +30,7 @@ export class EscalationChainStore extends BaseStore {
     this.path = '/escalation_chains/';
   }
 
-  @action
+  @action.bound
   async loadItem(id: EscalationChain['id'], skipErrorHandling = false): Promise<EscalationChain> {
     const escalationChain = await this.getById(id, skipErrorHandling);
 
@@ -44,7 +44,7 @@ export class EscalationChainStore extends BaseStore {
     return escalationChain;
   }
 
-  @action
+  @action.bound
   async updateById(id: EscalationChain['id']) {
     const response = await this.getById(id);
 
@@ -56,7 +56,7 @@ export class EscalationChainStore extends BaseStore {
     });
   }
 
-  @action
+  @action.bound
   async save(id: EscalationChain['id'], data: Partial<EscalationChain>) {
     const response = await super.update(id, data);
 
@@ -68,7 +68,7 @@ export class EscalationChainStore extends BaseStore {
     });
   }
 
-  @action
+  @action.bound
   async updateEscalationChainDetails(id: EscalationChain['id']) {
     const response = await makeRequest(`${this.path}${id}/details/`, {});
 
@@ -80,7 +80,7 @@ export class EscalationChainStore extends BaseStore {
     });
   }
 
-  @action
+  @action.bound
   async updateItem(id: EscalationChain['id'], skipErrorHandling = false): Promise<EscalationChain> {
     let escalationChain;
     try {
@@ -107,7 +107,7 @@ export class EscalationChainStore extends BaseStore {
     return escalationChain;
   }
 
-  @action
+  @action.bound
   async updateItems(query: any = '') {
     const params = typeof query === 'string' ? { search: query } : query;
 
@@ -140,13 +140,13 @@ export class EscalationChainStore extends BaseStore {
     this.loading = false;
   }
 
-  getSearchResult(query = '') {
+  getSearchResult = (query = '') => {
     if (!this.searchResult[query]) {
       return undefined;
     }
 
     return this.searchResult[query].map((escalationChainId: EscalationChain['id']) => this.items[escalationChainId]);
-  }
+  };
 
   clone = (escalationChainId: EscalationChain['id'], data: Partial<EscalationChain>): Promise<EscalationChain> =>
     makeRequest<EscalationChain>(`${this.path}${escalationChainId}/copy/`, {

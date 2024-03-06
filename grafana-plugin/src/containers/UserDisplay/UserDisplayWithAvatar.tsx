@@ -3,21 +3,21 @@ import React, { useEffect } from 'react';
 import { HorizontalGroup } from '@grafana/ui';
 import { observer } from 'mobx-react';
 
-import Avatar from 'components/Avatar/Avatar';
-import Text from 'components/Text/Text';
-import { User } from 'models/user/user.types';
+import { Avatar } from 'components/Avatar/Avatar';
+import { Text } from 'components/Text/Text';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
 
 interface UserDisplayProps {
-  id: User['pk'];
+  id: ApiSchemas['User']['pk'];
 }
 
-const UserDisplayWithAvatar = observer(({ id }: UserDisplayProps) => {
+export const UserDisplayWithAvatar = observer(({ id }: UserDisplayProps) => {
   const { userStore } = useStore();
 
   useEffect(() => {
     if (!userStore.items[id]) {
-      userStore.updateItem(id);
+      userStore.fetchItemById({ userPk: id, skipIfAlreadyPending: true });
     }
   }, [id]);
 
@@ -33,5 +33,3 @@ const UserDisplayWithAvatar = observer(({ id }: UserDisplayProps) => {
     </HorizontalGroup>
   );
 });
-
-export default UserDisplayWithAvatar;

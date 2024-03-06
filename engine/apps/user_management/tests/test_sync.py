@@ -8,7 +8,7 @@ from django.test import override_settings
 
 from apps.alerts.models import AlertReceiveChannel
 from apps.api.permissions import LegacyAccessControlRole
-from apps.grafana_plugin.helpers.client import GcomAPIClient, GrafanaAPIClient
+from apps.grafana_plugin.helpers.client import GrafanaAPIClient
 from apps.user_management.models import Team, User
 from apps.user_management.sync import (
     _sync_grafana_incident_plugin,
@@ -468,14 +468,36 @@ def test_duplicate_user_ids(make_organization, make_user_for_organization):
 
 
 @pytest.mark.django_db
-def test_cleanup_organization_deleted(make_organization):
+@pytest.mark.parametrize(
+    "is_deleted",
+    [
+        True,
+        False,
+    ],
+)
+def test_cleanup_organization_deleted(make_organization, is_deleted):
     organization = make_organization(gcom_token="TEST_GCOM_TOKEN")
 
-    with patch.object(GcomAPIClient, "api_get", return_value=({"items": [{"status": "deleted"}]}, None)):
+    with patch("apps.grafana_plugin.helpers.client.GcomAPIClient.is_stack_deleted", return_value=is_deleted):
         cleanup_organization(organization.id)
 
     organization.refresh_from_db()
-    assert organization.deleted_at is not None
+    assert (organization.deleted_at is not None) == is_deleted
+
+
+@pytest.mark.django_db
+def test_organization_not_deleted(make_organization):
+    organization = make_organization(gcom_token="TEST_GCOM_TOKEN")
+
+    with patch("apps.grafana_plugin.helpers.client.GcomAPIClient.is_stack_deleted") as mock_method:
+        exception_message = "Test Exception"
+        mock_method.side_effect = Exception(exception_message)
+        with pytest.raises(Exception) as e:
+            cleanup_organization(organization.id)
+        assert str(e.value) == exception_message
+
+    organization.refresh_from_db()
+    assert organization.deleted_at is None
 
 
 @pytest.mark.django_db
@@ -541,6 +563,7 @@ class TestSyncGrafanaIncidentParams:
             MOCK_GRAFANA_INCIDENT_BACKEND_URL,
         ),
         TestSyncGrafanaIncidentParams(({"enabled": True}, None), True, None),
+        TestSyncGrafanaIncidentParams(({"enabled": True, "jsonData": None}, None), True, None),
         # missing jsonData (sometimes this is what we get back from the Grafana API)
         TestSyncGrafanaIncidentParams(({"enabled": False}, None), False, None),  # plugin is disabled for some reason
     ],

@@ -6,24 +6,25 @@ import CopyToClipboard from 'react-copy-to-clipboard';
 import Emoji from 'react-emoji-render';
 import { debounce } from 'throttle-debounce';
 
-import MonacoEditor, { MONACO_LANGUAGE } from 'components/MonacoEditor/MonacoEditor';
+import { MonacoEditor, MONACO_LANGUAGE } from 'components/MonacoEditor/MonacoEditor';
 import { MONACO_EDITABLE_CONFIG } from 'components/MonacoEditor/MonacoEditor.config';
-import PluginLink from 'components/PluginLink/PluginLink';
-import Text from 'components/Text/Text';
-import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
+import { PluginLink } from 'components/PluginLink/PluginLink';
+import { Text } from 'components/Text/Text';
+import { AlertReceiveChannelHelper } from 'models/alert_receive_channel/alert_receive_channel.helpers';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 import styles from 'pages/integration/Integration.module.scss';
 import { useStore } from 'state/useStore';
-import { openNotification } from 'utils';
+import { openNotification } from 'utils/utils';
 
 const cx = cn.bind(styles);
 
 interface IntegrationSendDemoPayloadModalProps {
   isOpen: boolean;
-  alertReceiveChannel: AlertReceiveChannel;
+  alertReceiveChannel: ApiSchemas['AlertReceiveChannel'];
   onHideOrCancel: () => void;
 }
 
-const IntegrationSendDemoAlertModal: React.FC<IntegrationSendDemoPayloadModalProps> = ({
+export const IntegrationSendDemoAlertModal: React.FC<IntegrationSendDemoPayloadModalProps> = ({
   alertReceiveChannel,
   isOpen,
   onHideOrCancel,
@@ -88,7 +89,7 @@ const IntegrationSendDemoAlertModal: React.FC<IntegrationSendDemoPayloadModalPro
           <CopyToClipboard text={getCurlText()} onCopy={() => openNotification('CURL has been copied')}>
             <Button variant={'secondary'}>Copy as CURL</Button>
           </CopyToClipboard>
-          <Button variant={'primary'} onClick={sendDemoAlert} data-testid="submit-send-alert">
+          <Button variant={'primary'} onClick={onSendAlert} data-testid="submit-send-alert">
             Send Alert
           </Button>
         </HorizontalGroup>
@@ -100,14 +101,14 @@ const IntegrationSendDemoAlertModal: React.FC<IntegrationSendDemoPayloadModalPro
     setDemoPayload(value);
   }
 
-  function sendDemoAlert() {
+  function onSendAlert() {
     let parsedPayload = undefined;
     try {
       parsedPayload = JSON.parse(demoPayload);
     } catch (ex) {}
 
-    alertReceiveChannelStore.sendDemoAlert(alertReceiveChannel.id, parsedPayload).then(() => {
-      alertReceiveChannelStore.updateCounters();
+    AlertReceiveChannelHelper.sendDemoAlert(alertReceiveChannel.id, parsedPayload).then(() => {
+      alertReceiveChannelStore.fetchCounters();
       openNotification(<DemoNotification />);
       onHideOrCancel();
     });
@@ -130,5 +131,3 @@ const DemoNotification: React.FC = () => {
     </div>
   );
 };
-
-export default IntegrationSendDemoAlertModal;

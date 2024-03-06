@@ -8,6 +8,7 @@ import { sortBy } from 'lodash-es';
 import { observer } from 'mobx-react';
 
 import { allTimezones, getGMTTimezoneLabelBasedOnOffset, getTzOffsetString } from 'models/timezone/timezone.helpers';
+import { UserHelper } from 'models/user/user.helpers';
 import { useStore } from 'state/useStore';
 
 import styles from './UserTimezoneSelect.module.css';
@@ -24,9 +25,9 @@ interface UserTimezoneSelectProps {
   scheduleId?: string;
 }
 
-const UserTimezoneSelect: FC<UserTimezoneSelectProps> = observer(({ scheduleId }) => {
+export const UserTimezoneSelect: FC<UserTimezoneSelectProps> = observer(({ scheduleId }) => {
   const store = useStore();
-  const users = store.userStore.getSearchResult().results || [];
+  const users = UserHelper.getSearchResult(store.userStore).results || [];
 
   const [extraOptions, setExtraOptions] = useState<TimezoneOption[]>([
     {
@@ -129,5 +130,3 @@ const UserTimezoneSelect: FC<UserTimezoneSelectProps> = observer(({ scheduleId }
     </div>
   );
 });
-
-export default UserTimezoneSelect;

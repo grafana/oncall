@@ -45,12 +45,6 @@
   color: var(--secondary-text-color);
 }
 
-.silence-button-inline {
-  font-size: 12px;
-  height: 24px;
-  margin-right: 0;
-}
-
 .pagination {
   width: 100%;
   margin-top: 20px;
@@ -85,6 +79,11 @@
   display: block;
   flex: 0 0 25%;
   max-width: 25%;
+}
+
+.loadingPlaceholder {
+  margin-bottom: 0;
+  text-align: center;
 }
 
 @media (max-width: 1200px) {

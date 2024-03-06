@@ -3,7 +3,7 @@ import { ComponentClass } from 'react';
 import { AppPlugin, PluginExtensionPoints } from '@grafana/data';
 
 import { MobileAppConnectionWrapper } from 'containers/MobileAppConnection/MobileAppConnection';
-import PluginConfigPage from 'containers/PluginConfigPage/PluginConfigPage';
+import { PluginConfigPage } from 'containers/PluginConfigPage/PluginConfigPage';
 import { GrafanaPluginRootPage } from 'plugin/GrafanaPluginRootPage';
 import { getGrafanaVersion } from 'plugin/GrafanaPluginRootPage.helpers';
 import { IRM_TAB } from 'utils/consts';

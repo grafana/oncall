@@ -6,15 +6,15 @@ import { get } from 'lodash-es';
 import { observer } from 'mobx-react';
 
 import NotificationPolicy from 'components/Policy/NotificationPolicy';
-import SortableList from 'components/SortableList/SortableList';
-import Text from 'components/Text/Text';
-import Timeline from 'components/Timeline/Timeline';
+import { SortableList } from 'components/SortableList/SortableList';
+import { Text } from 'components/Text/Text';
+import { Timeline } from 'components/Timeline/Timeline';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { NotificationPolicyType } from 'models/notification_policy/notification_policy';
-import { User as UserType } from 'models/user/user.types';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
-import { UserActions } from 'utils/authorization';
+import { UserActions } from 'utils/authorization/authorization';
 
 import { getColor } from './PersonalNotificationSettings.helpers';
 import img from './img/default-step.png';
@@ -24,11 +24,11 @@ import styles from './PersonalNotificationSettings.module.css';
 const cx = cn.bind(styles);
 
 interface PersonalNotificationSettingsProps {
-  userPk: UserType['pk'];
+  userPk: ApiSchemas['User']['pk'];
   isImportant: boolean;
 }
 
-const PersonalNotificationSettings = observer((props: PersonalNotificationSettingsProps) => {
+export const PersonalNotificationSettings = observer((props: PersonalNotificationSettingsProps) => {
   const { userPk, isImportant } = props;
   const store = useStore();
   const { userStore } = store;
@@ -150,7 +150,10 @@ const PersonalNotificationSettings = observer((props: PersonalNotificationSettin
             store={store}
           />
         ))}
-        <Timeline.Item number={notificationPolicies.length + 1} backgroundColor={getColor(notificationPolicies.length)}>
+        <Timeline.Item
+          number={notificationPolicies.length + 1}
+          backgroundHexNumber={getColor(notificationPolicies.length)}
+        >
           <div className={cx('step')}>
             <WithPermissionControlTooltip userAction={userAction}>
               <Button icon="plus" variant="secondary" fill="text" onClick={getAddNotificationPolicyHandler()}>
@@ -163,5 +166,3 @@ const PersonalNotificationSettings = observer((props: PersonalNotificationSettin
     </div>
   );
 });
-
-export default PersonalNotificationSettings;

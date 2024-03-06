@@ -5,7 +5,7 @@ import { findColor } from 'containers/Rotations/Rotations.helpers';
 import { getLayersFromStore, getOverridesFromStore, getShiftsFromStore } from 'models/schedule/schedule.helpers';
 import { Event, Layer } from 'models/schedule/schedule.types';
 import { Timezone } from 'models/timezone/timezone.types';
-import { RootStore } from 'state';
+import { RootStore } from 'state/rootStore';
 import { SelectOption } from 'state/types';
 
 export const getWeekStartString = () => {
@@ -61,7 +61,15 @@ const getUTCDayIndex = (index: number, moment: dayjs.Dayjs, reverse: boolean) =>
   return utc_index;
 };
 
-export const getUTCByDay = (dayOptions: SelectOption[], by_day: string[], moment: dayjs.Dayjs) => {
+export const getUTCByDay = ({
+  dayOptions,
+  by_day = [],
+  moment,
+}: {
+  dayOptions: SelectOption[];
+  by_day?: string[] | null;
+  moment: dayjs.Dayjs;
+}) => {
   if (moment.day() === moment.utc().day()) {
     return by_day;
   }
@@ -71,7 +79,7 @@ export const getUTCByDay = (dayOptions: SelectOption[], by_day: string[], moment
   let UTCDays = [];
   let byDayOptions = [];
   dayOptions.forEach(({ value }) => byDayOptions.push(value));
-  by_day.forEach((element) => {
+  by_day?.forEach((element) => {
     let index = byDayOptions.indexOf(element);
     index = getUTCDayIndex(index, moment, false);
     UTCDays.push(byDayOptions[index]);
@@ -80,7 +88,15 @@ export const getUTCByDay = (dayOptions: SelectOption[], by_day: string[], moment
   return UTCDays;
 };
 
-export const getSelectedDays = (dayOptions: SelectOption[], by_day: string[], moment: dayjs.Dayjs) => {
+export const getSelectedDays = ({
+  dayOptions,
+  by_day = [],
+  moment,
+}: {
+  dayOptions: SelectOption[];
+  by_day?: string[] | null;
+  moment: dayjs.Dayjs;
+}) => {
   if (moment.day() === moment.utc().day()) {
     return by_day;
   }
@@ -88,7 +104,7 @@ export const getSelectedDays = (dayOptions: SelectOption[], by_day: string[], mo
   const byDayOptions = dayOptions.map(({ value }) => value);
 
   let selectedTimezoneDays = [];
-  by_day.forEach((element) => {
+  by_day?.forEach((element) => {
     let index = byDayOptions.indexOf(element);
     index = getUTCDayIndex(index, moment, true);
     selectedTimezoneDays.push(byDayOptions[index]);

@@ -112,7 +112,7 @@ def check_alert_group_personal_notifications_task(alert_group_id) -> None:
     # (ie. do not wait for Twilio delivered confirmation)
     sent_but_not_delivered_sms = SMSRecord.objects.filter(
         represents_alert_group_id=alert_group_id,
-        twilioapp_twiliosmss__status=TwilioSMSstatuses.SENT,
+        twilioapp_twiliosmss__status__in=[TwilioSMSstatuses.SENT, TwilioSMSstatuses.ACCEPTED],
     ).count()
 
     base_msg = f"Alert group {alert_group_id}"

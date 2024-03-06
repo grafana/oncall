@@ -49,6 +49,8 @@ detached_integrations.enabled=true -> should create integrations deployment:
               optional: true
         - name: EMAIL_USE_TLS
           value: "True"
+        - name: EMAIL_USE_SSL
+          value: "False"
         - name: EMAIL_FROM_ADDRESS
           value: null
         - name: EMAIL_NOTIFICATIONS_LIMIT

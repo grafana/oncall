@@ -57,6 +57,7 @@ module = [
     "factory.*",
     "fcm_django.*",
     "firebase_admin.*",
+    "httpretty.*",
     "humanize.*",
     "ipware.*",
     "markdown2.*",

@@ -6,26 +6,27 @@ import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 
-import PageErrorHandlingWrapper from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
-import PluginLink from 'components/PluginLink/PluginLink';
-import ScheduleFilters from 'components/ScheduleFilters/ScheduleFilters';
+import { PageErrorHandlingWrapper } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
+import { PluginLink } from 'components/PluginLink/PluginLink';
+import { ScheduleFilters } from 'components/ScheduleFilters/ScheduleFilters';
 import { ScheduleFiltersType } from 'components/ScheduleFilters/ScheduleFilters.types';
-import ScheduleQuality from 'components/ScheduleQuality/ScheduleQuality';
-import Text from 'components/Text/Text';
-import WithConfirm from 'components/WithConfirm/WithConfirm';
-import ShiftSwapForm from 'containers/RotationForm/ShiftSwapForm';
-import Rotations from 'containers/Rotations/Rotations';
-import ScheduleFinal from 'containers/Rotations/ScheduleFinal';
-import ScheduleOverrides from 'containers/Rotations/ScheduleOverrides';
-import ScheduleForm from 'containers/ScheduleForm/ScheduleForm';
-import ScheduleICalSettings from 'containers/ScheduleIcalLink/ScheduleIcalLink';
-import UserTimezoneSelect from 'containers/UserTimezoneSelect/UserTimezoneSelect';
-import UsersTimezones from 'containers/UsersTimezones/UsersTimezones';
+import { ScheduleQuality } from 'components/ScheduleQuality/ScheduleQuality';
+import { Text } from 'components/Text/Text';
+import { WithConfirm } from 'components/WithConfirm/WithConfirm';
+import { ShiftSwapForm } from 'containers/RotationForm/ShiftSwapForm';
+import { Rotations } from 'containers/Rotations/Rotations';
+import { ScheduleFinal } from 'containers/Rotations/ScheduleFinal';
+import { ScheduleOverrides } from 'containers/Rotations/ScheduleOverrides';
+import { ScheduleForm } from 'containers/ScheduleForm/ScheduleForm';
+import { ScheduleICalSettings } from 'containers/ScheduleIcalLink/ScheduleIcalLink';
+import { UserTimezoneSelect } from 'containers/UserTimezoneSelect/UserTimezoneSelect';
+import { UsersTimezones } from 'containers/UsersTimezones/UsersTimezones';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { Event, Schedule, ScheduleType, Shift, ShiftSwap } from 'models/schedule/schedule.types';
+import { UserHelper } from 'models/user/user.helpers';
 import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
-import { isUserActionAllowed, UserActions } from 'utils/authorization';
+import { isUserActionAllowed, UserActions } from 'utils/authorization/authorization';
 import { PLUGIN_ROOT } from 'utils/consts';
 
 import { getStartOfWeekBasedOnCurrentDate } from './Schedule.helpers';
@@ -53,7 +54,7 @@ interface SchedulePageState {
 }
 
 @observer
-class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState> {
+class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState> {
   highlightMyShiftsWasToggled = false;
   scheduleId = this.props.match.params.id;
 
@@ -76,7 +77,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
   async componentDidMount() {
     const { store } = this.props;
 
-    store.userStore.updateItems();
+    store.userStore.fetchItems();
 
     store.scheduleStore.updateFrequencyOptions();
     store.scheduleStore.updateDaysOptions();
@@ -117,7 +118,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
 
     const { scheduleStore } = store;
 
-    const users = store.userStore.getSearchResult().results;
+    const users = UserHelper.getSearchResult(store.userStore).results;
     const schedule = scheduleStore.items[scheduleId];
 
     const disabledRotationForm =
@@ -552,4 +553,4 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
   };
 }
 
-export default withRouter(withMobXProviderContext(SchedulePage));
+export const SchedulePage = withRouter(withMobXProviderContext(_SchedulePage));

@@ -1,534 +1,632 @@
-import React, { useState, ChangeEvent, useEffect, useReducer, useRef } from 'react';
+import React, { useEffect, useReducer, useRef, useState } from 'react';
 
 import { SelectableValue } from '@grafana/data';
 import {
-  Drawer,
-  VerticalGroup,
-  HorizontalGroup,
-  Input,
-  Tag,
-  EmptySearchResult,
   Button,
+  Field,
+  HorizontalGroup,
+  Icon,
+  Input,
+  Label,
   RadioButtonGroup,
   Select,
-  Icon,
-  Field,
+  Switch,
+  TextArea,
+  Tooltip,
+  VerticalGroup,
+  useStyles2,
 } from '@grafana/ui';
-import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
+import { Controller, useForm, useFormContext, FormProvider } from 'react-hook-form';
 import { useHistory } from 'react-router-dom';
 
-import Collapse from 'components/Collapse/Collapse';
-import Block from 'components/GBlock/Block';
-import GForm, { CustomFieldSectionRendererProps } from 'components/GForm/GForm';
-import IntegrationLogo from 'components/IntegrationLogo/IntegrationLogo';
-import PluginLink from 'components/PluginLink/PluginLink';
-import Text from 'components/Text/Text';
-import Labels from 'containers/Labels/Labels';
+import { HowTheIntegrationWorks } from 'components/HowTheIntegrationWorks/HowTheIntegrationWorks';
+import { PluginLink } from 'components/PluginLink/PluginLink';
+import { RenderConditionally } from 'components/RenderConditionally/RenderConditionally';
+import { Text } from 'components/Text/Text';
+import { GSelect } from 'containers/GSelect/GSelect';
+import { Labels } from 'containers/Labels/Labels';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
-import {
-  AlertReceiveChannel,
-  AlertReceiveChannelOption,
-} from 'models/alert_receive_channel/alert_receive_channel.types';
-import IntegrationHelper from 'pages/integration/Integration.helper';
+import { AlertReceiveChannelHelper } from 'models/alert_receive_channel/alert_receive_channel.helpers';
+import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
+import { ApiSchemas } from 'network/oncall-api/api.types';
+import { IntegrationHelper, getIsBidirectionalIntegration } from 'pages/integration/Integration.helper';
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
-import { openErrorNotification } from 'utils';
-import { UserActions } from 'utils/authorization';
-import { PLUGIN_ROOT } from 'utils/consts';
+import { UserActions } from 'utils/authorization/authorization';
+import { PLUGIN_ROOT, URL_REGEX, generateAssignToTeamInputDescription } from 'utils/consts';
 
-import { form } from './IntegrationForm.config';
 import { prepareForEdit } from './IntegrationForm.helpers';
-import styles from './IntegrationForm.module.scss';
+import { getIntegrationFormStyles } from './IntegrationForm.styles';
 
-const cx = cn.bind(styles);
+enum FormFieldKeys {
+  Name = 'verbal_name',
+  Description = 'description_short',
+  Team = 'team',
+  AlertManager = 'alert_manager',
+  ContactPoint = 'contact_point',
+  IsExisting = 'is_existing',
+  Alerting = 'alerting',
+  Integration = 'integration',
 
-interface IntegrationFormProps {
-  id: AlertReceiveChannel['id'] | 'new';
-  isTableView?: boolean;
-  onHide: () => void;
-  onSubmit: () => Promise<void>;
-  navigateToAlertGroupLabels: (id: AlertReceiveChannel['id']) => void;
+  ServiceNowUrl = 'servicenow_url',
+  AuthUsername = 'auth_username',
+  AuthPassword = 'auth_password',
+  DefaultWebhooks = 'default_webhooks',
 }
 
-const IntegrationForm = observer((props: IntegrationFormProps) => {
-  const store = useStore();
-  const history = useHistory();
+interface FormFields {
+  [FormFieldKeys.Name]: string;
+  [FormFieldKeys.Description]: string;
+  [FormFieldKeys.Team]: string;
+  [FormFieldKeys.IsExisting]: boolean;
+  [FormFieldKeys.AlertManager]: string;
+  [FormFieldKeys.ContactPoint]: string;
+  [FormFieldKeys.Alerting]: string;
+  [FormFieldKeys.ServiceNowUrl]: string;
+  [FormFieldKeys.AuthUsername]: string;
+  [FormFieldKeys.AuthPassword]: string;
+  [FormFieldKeys.Integration]: string;
+  [FormFieldKeys.DefaultWebhooks]: boolean;
+}
 
-  const labelsRef = useRef(null);
+interface IntegrationFormProps {
+  id: ApiSchemas['AlertReceiveChannel']['id'] | 'new';
+  isTableView?: boolean;
+  selectedIntegration: ApiSchemas['AlertReceiveChannelIntegrationOptions'];
+  onBackClick: () => void;
+  navigateToAlertGroupLabels: (id: ApiSchemas['AlertReceiveChannel']['id']) => void;
+  onSubmit: () => Promise<void>;
+  onHide: () => void;
+}
 
-  const { id, onHide, onSubmit, isTableView = true, navigateToAlertGroupLabels } = props;
-  const {
-    alertReceiveChannelStore,
-    userStore: { currentUser: user },
-  } = store;
+const RADIO_OPTIONS = [
+  {
+    label: 'Connect existing Contact point',
+    value: 'existing',
+  },
+  {
+    label: 'Create a new one',
+    value: 'new',
+  },
+];
 
-  const [filterValue, setFilterValue] = useState('');
-  const [showNewIntegrationForm, setShowNewIntegrationForm] = useState(false);
-  const [selectedOption, setSelectedOption] = useState<AlertReceiveChannelOption>(undefined);
-  const [showIntegrarionsListDrawer, setShowIntegrarionsListDrawer] = useState(id === 'new');
-  const [allContactPoints, setAllContactPoints] = useState([]);
-  const [errors, setErrors] = useState<Record<string, any>>();
+export const IntegrationForm = observer(
+  ({
+    id,
+    isTableView,
+    navigateToAlertGroupLabels,
+    selectedIntegration,
+    onSubmit,
+    onHide,
+    onBackClick,
+  }: IntegrationFormProps) => {
+    const store = useStore();
+    const history = useHistory();
+    const styles = useStyles2(getIntegrationFormStyles);
+    const isNew = id === 'new';
+    const { userStore, grafanaTeamStore, alertReceiveChannelStore } = store;
 
-  useEffect(() => {
-    (async function () {
-      setAllContactPoints(await alertReceiveChannelStore.getGrafanaAlertingContactPoints());
-    })();
-  }, []);
-
-  const data =
-    id === 'new'
-      ? { integration: selectedOption?.value, team: user?.current_team, labels: [] }
+    const data = isNew
+      ? { integration: selectedIntegration?.value, team: userStore.currentUser?.current_team, labels: [] }
       : prepareForEdit(alertReceiveChannelStore.items[id]);
 
-  const { alertReceiveChannelOptions } = alertReceiveChannelStore;
+    const { integration } = data;
 
-  const options = alertReceiveChannelOptions
-    ? alertReceiveChannelOptions.filter((option: AlertReceiveChannelOption) => {
-        if (option.value === 'grafana_alerting' && !window.grafanaBootData.settings.unifiedAlertingEnabled) {
-          return false;
-        }
+    const formMethods = useForm<FormFields>({
+      defaultValues: isNew
+        ? {
+            // these are the default values for creating an integration
+            [FormFieldKeys.Integration]: integration,
+            [FormFieldKeys.DefaultWebhooks]: true,
+          }
+        : {
+            // existing values from existing integration (edit-mode)
+            ...data,
+          },
+      mode: 'onChange',
+    });
+    const {
+      control,
+      handleSubmit,
+      formState: { errors },
+    } = formMethods;
 
-        // don't allow creating direct paging integrations
-        if (option.value === 'direct_paging') {
-          return false;
-        }
+    const [
+      {
+        isExistingContactPoint,
+        dataSources,
+        contactPoints,
+        selectedAlertManagerOption,
+        selectedContactPointOption,
+        allContactPoints,
+      },
+      setState,
+    ] = useReducer(
+      (state: GrafanaContactPointState, newState: Partial<GrafanaContactPointState>) => ({
+        ...state,
+        ...newState,
+      }),
+      {
+        isExistingContactPoint: true,
+        selectedAlertManagerOption: undefined,
+        selectedContactPointOption: undefined,
+        dataSources: [],
+        contactPoints: [],
+        allContactPoints: [],
+      }
+    );
 
-        return (
-          option.display_name.toLowerCase().includes(filterValue.toLowerCase()) &&
-          !option.value.toLowerCase().startsWith('legacy_')
-        );
-      })
-    : [];
+    useEffect(() => {
+      (async function () {
+        setState({
+          allContactPoints: await AlertReceiveChannelHelper.getGrafanaAlertingContactPoints(),
+        });
+      })();
+    }, []);
 
-  const extraGFormProps: { customFieldSectionRenderer?: React.FC<CustomFieldSectionRendererProps> } = {};
+    const labelsRef = useRef(null);
 
-  if (selectedOption && IntegrationHelper.isSpecificIntegration(selectedOption.value, 'grafana_alerting')) {
-    extraGFormProps.customFieldSectionRenderer = CustomFieldSectionRenderer;
-  }
+    const [labelsErrors, setLabelErrors] = useState([]);
+    const isServiceNow = getIsBidirectionalIntegration(data as Partial<ApiSchemas['AlertReceiveChannel']>);
+    const isGrafanaAlerting = IntegrationHelper.isSpecificIntegration(integration, 'grafana_alerting');
 
-  return (
-    <>
-      {showIntegrarionsListDrawer && (
-        <Drawer scrollableContent title="New Integration" onClose={onHide} closeOnMaskClick={false} width="640px">
-          <div className={cx('content')}>
-            <VerticalGroup>
-              <Text type="secondary">
-                Integration receives alerts on an unique API URL, interprets them using set of templates tailored for
-                monitoring system and starts escalations.
-              </Text>
+    return (
+      <FormProvider {...formMethods}>
+        <form onSubmit={handleSubmit(onFormSubmit)} className={styles.form}>
+          <Controller
+            name={FormFieldKeys.Name}
+            control={control}
+            rules={{ required: 'Name is required' }}
+            render={({ field }) => (
+              <Field
+                key={'Name'}
+                label={'Integration Name'}
+                invalid={!!errors[FormFieldKeys.Name]}
+                error={errors[FormFieldKeys.Name]?.message}
+              >
+                <Input {...field} placeholder={'Integration Name'} />
+              </Field>
+            )}
+          />
 
-              <div className={cx('search-integration')}>
-                <Input
-                  autoFocus
-                  value={filterValue}
-                  placeholder="Search integrations ..."
-                  onChange={(e: ChangeEvent<HTMLInputElement>) => setFilterValue(e.currentTarget.value)}
+          <Controller
+            name={FormFieldKeys.Description}
+            control={control}
+            rules={{ required: 'Description is required' }}
+            render={({ field }) => (
+              <Field
+                key={'Description'}
+                label={'Integration Description'}
+                invalid={!!errors[FormFieldKeys.Description]}
+                error={errors[FormFieldKeys.Description]?.message}
+              >
+                <TextArea {...field} className={styles.textarea} placeholder={'Integration Description'} />
+              </Field>
+            )}
+          />
+
+          <Controller
+            name={FormFieldKeys.Team}
+            control={control}
+            render={({ field }) => (
+              <Field
+                key="Team"
+                label={
+                  <Label>
+                    <span>Assign to team</span>&nbsp;
+                    <Tooltip content={generateAssignToTeamInputDescription('Integrations')} placement="right">
+                      <Icon name="info-circle" />
+                    </Tooltip>
+                  </Label>
+                }
+                invalid={!!errors[FormFieldKeys.Team]}
+                error={errors[FormFieldKeys.Team]?.message}
+              >
+                <GSelect<GrafanaTeam>
+                  placeholder="Assign to team"
+                  {...field}
+                  {...{
+                    items: grafanaTeamStore.items,
+                    fetchItemsFn: grafanaTeamStore.updateItems,
+                    fetchItemFn: grafanaTeamStore.fetchItemById,
+                    getSearchResult: grafanaTeamStore.getSearchResult,
+                    displayField: 'name',
+                    valueField: 'id',
+                    showSearch: true,
+                    allowClear: true,
+                  }}
+                  onChange={(value) => {
+                    field.onChange(value);
+                  }}
                 />
-              </div>
+              </Field>
+            )}
+          />
 
-              <IntegrationBlocks options={options} onBlockClick={onBlockClick} />
-            </VerticalGroup>
-          </div>
-        </Drawer>
-      )}
-      {(showNewIntegrationForm || !showIntegrarionsListDrawer) && (
-        <Drawer scrollableContent title={getTitle()} onClose={onHide} closeOnMaskClick={false} width="640px">
-          <div className={cx('content')}>
-            <VerticalGroup>
-              <GForm form={form} data={data} onSubmit={handleSubmit} {...extraGFormProps} />
+          <RenderConditionally shouldRender={isGrafanaAlerting && isNew}>
+            <GrafanaContactPoint
+              radioOptions={RADIO_OPTIONS}
+              isExistingContactPoint={isExistingContactPoint}
+              dataSources={dataSources}
+              contactPoints={contactPoints}
+              selectedAlertManagerOption={selectedAlertManagerOption}
+              selectedContactPointOption={selectedContactPointOption}
+              allContactPoints={allContactPoints}
+              setState={setState}
+            />
+          </RenderConditionally>
 
-              {store.hasFeature(AppFeature.Labels) && (
-                <div className={cx('labels')}>
-                  <Labels
-                    ref={labelsRef}
-                    errors={errors?.labels}
-                    value={data.labels}
-                    description={
-                      <>
-                        Labels{id === 'new' ? ' will be ' : ' '}applied to the integration and inherited by alert
-                        groups.
-                        <br />
-                        You can modify behaviour in{' '}
-                        {id === 'new' ? (
-                          'Alert group labeling'
-                        ) : (
-                          <PluginLink onClick={() => navigateToAlertGroupLabels(id)}>Alert group labeling</PluginLink>
-                        )}{' '}
-                        drawer.
-                      </>
-                    }
-                  />
+          {store.hasFeature(AppFeature.Labels) && (
+            <div className={styles.labels}>
+              <Labels
+                ref={labelsRef}
+                errors={labelsErrors}
+                value={data.labels}
+                description={
+                  <>
+                    Labels{id === 'new' ? ' will be ' : ' '}applied to the integration and inherited by alert groups.
+                    <br />
+                    You can modify behaviour in{' '}
+                    {id === 'new' ? (
+                      'Alert group labeling'
+                    ) : (
+                      <PluginLink onClick={() => navigateToAlertGroupLabels(id)}>Alert group labeling</PluginLink>
+                    )}{' '}
+                    drawer.
+                  </>
+                }
+              />
+            </div>
+          )}
+
+          {isTableView && <HowTheIntegrationWorks selectedOption={selectedIntegration} />}
+
+          <RenderConditionally shouldRender={isServiceNow}>
+            <div className={styles.serviceNowHeading}>
+              <Text type="primary">ServiceNow configuration</Text>
+            </div>
+
+            <Controller
+              name={FormFieldKeys.ServiceNowUrl}
+              control={control}
+              rules={{ required: 'Instance URL is required', validate: validateURL }}
+              render={({ field }) => (
+                <Field
+                  key={'InstanceURL'}
+                  label={'Instance URL'}
+                  invalid={!!errors[FormFieldKeys.ServiceNowUrl]}
+                  error={errors[FormFieldKeys.ServiceNowUrl]?.message}
+                >
+                  <Input {...field} />
+                </Field>
+              )}
+            />
+
+            <Controller
+              name={FormFieldKeys.AuthUsername}
+              control={control}
+              rules={{ required: 'Username is required' }}
+              render={({ field }) => (
+                <Field
+                  key={'AuthUsername'}
+                  label={'Username'}
+                  invalid={!!errors[FormFieldKeys.AuthUsername]}
+                  error={errors[FormFieldKeys.AuthUsername]?.message}
+                >
+                  <Input {...field} />
+                </Field>
+              )}
+            />
+
+            <Controller
+              name={FormFieldKeys.AuthPassword}
+              control={control}
+              rules={{ required: 'Password is required' }}
+              render={({ field }) => (
+                <Field
+                  key={'AuthPassword'}
+                  label={'Password'}
+                  invalid={!!errors[FormFieldKeys.AuthPassword]}
+                  error={errors[FormFieldKeys.AuthPassword]?.message as string}
+                >
+                  <Input {...field} type="password" />
+                </Field>
+              )}
+            />
+
+            <Button className={styles.webhookTest} variant="secondary" onClick={onWebhookTestClick}>
+              Test
+            </Button>
+
+            <Controller
+              name={FormFieldKeys.DefaultWebhooks}
+              control={control}
+              render={({ field }) => (
+                <div className={styles.webhookSwitch}>
+                  <Switch value={field.value} onChange={field.onChange} />
+                  <Text type="primary"> Create default outgoing webhook events</Text>
                 </div>
               )}
+            />
+          </RenderConditionally>
 
-              {isTableView && <HowTheIntegrationWorks selectedOption={selectedOption} />}
+          <div>
+            <HorizontalGroup justify="flex-end">
+              {id === 'new' ? (
+                <Button variant="secondary" onClick={onBackClick}>
+                  Back
+                </Button>
+              ) : (
+                <Button variant="secondary" onClick={onHide}>
+                  Cancel
+                </Button>
+              )}
 
-              <HorizontalGroup justify="flex-end">
-                {id === 'new' ? (
-                  <Button
-                    variant="secondary"
-                    onClick={() => {
-                      setShowNewIntegrationForm(false);
-                      setShowIntegrarionsListDrawer(true);
-                    }}
-                  >
-                    Back
-                  </Button>
-                ) : (
-                  <Button variant="secondary" onClick={onHide}>
-                    Cancel
-                  </Button>
-                )}
-
-                <WithPermissionControlTooltip userAction={UserActions.SchedulesWrite}>
-                  <Button form={form.name} type="submit" data-testid="update-integration-button">
-                    {id === 'new' ? 'Create' : 'Update'} Integration
-                  </Button>
-                </WithPermissionControlTooltip>
-              </HorizontalGroup>
-            </VerticalGroup>
+              <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
+                <Button type="submit" data-testid="update-integration-button">
+                  {id === 'new' ? 'Create' : 'Update'} Integration
+                </Button>
+              </WithPermissionControlTooltip>
+            </HorizontalGroup>
           </div>
-        </Drawer>
-      )}
-    </>
-  );
+        </form>
+      </FormProvider>
+    );
 
-  async function handleSubmit(data): Promise<void> {
-    const { alert_manager, contact_point, is_existing: isExisting } = data;
+    function validateURL(urlFieldValue: string): string | boolean {
+      const regex = new RegExp(URL_REGEX, 'i');
 
-    const labels = labelsRef.current?.getValue();
-
-    data = { ...data, labels };
-
-    const matchingAlertManager = allContactPoints.find((cp) => cp.uid === alert_manager);
-    const hasContactPointInput = alert_manager && contact_point;
-
-    if (
-      !isExisting &&
-      hasContactPointInput &&
-      matchingAlertManager?.contact_points.find((cp) => cp === contact_point)
-    ) {
-      openErrorNotification('A contact point already exists for this data source');
-      return;
+      return !regex.test(urlFieldValue) ? 'Instance URL is invalid' : true;
     }
 
-    const isCreate = id === 'new';
+    async function onWebhookTestClick(): Promise<void> {}
 
-    try {
-      if (isCreate) {
-        await createNewIntegration();
-      } else {
-        await alertReceiveChannelStore.update(id, data, undefined, true);
+    async function onFormSubmit(formData): Promise<void> {
+      const labels = labelsRef.current?.getValue();
+      const data = { ...formData, labels };
+      const isCreate = id === 'new';
+
+      try {
+        if (isCreate) {
+          await createNewIntegration();
+        } else {
+          await alertReceiveChannelStore.update({ id, data, skipErrorHandling: true });
+        }
+      } catch (error) {
+        if (error.labels) {
+          setLabelErrors(error.labels);
+        }
+
+        return;
       }
-    } catch (error) {
-      setErrors(error.response.data);
 
-      openErrorNotification(
-        `There was an issue ${isCreate ? 'creating' : 'updating'} the integration. Please try again.`
-      );
-      return;
-    }
+      await onSubmit();
+      onHide();
 
-    await onSubmit();
-    onHide();
+      async function createNewIntegration(): Promise<void | ApiSchemas['AlertReceiveChannel']> {
+        const response = await alertReceiveChannelStore.create({ data, skipErrorHandling: true });
+        const pushHistory = (id: ApiSchemas['AlertReceiveChannel']['id']) =>
+          history.push(`${PLUGIN_ROOT}/integrations/${id}`);
+        if (!response) {
+          return;
+        }
 
-    function createNewIntegration(): Promise<void | AlertReceiveChannel> {
-      let promise = alertReceiveChannelStore.create<AlertReceiveChannel>(data, true);
+        if (!IntegrationHelper.isSpecificIntegration(selectedIntegration.value, 'grafana_alerting')) {
+          pushHistory(response.id);
+        }
 
-      const pushHistory = (id) => history.push(`${PLUGIN_ROOT}/integrations/${id}`);
+        await (data.is_existing
+          ? AlertReceiveChannelHelper.connectContactPoint
+          : AlertReceiveChannelHelper.createContactPoint)(response.id, data.alert_manager, data.contact_point);
 
-      promise
-        .then((response) => {
-          if (!response) {
-            return;
-          }
-
-          if (!IntegrationHelper.isSpecificIntegration(selectedOption.value, 'grafana_alerting')) {
-            return pushHistory(response.id);
-          }
-
-          return (
-            data.is_existing
-              ? alertReceiveChannelStore.connectContactPoint(response.id, data.alert_manager, data.contact_point)
-              : alertReceiveChannelStore.createContactPoint(response.id, data.alert_manager, data.contact_point)
-          )
-            .catch(onCatch)
-            .finally(() => pushHistory(response.id));
-        })
-        .catch(onCatch);
-
-      return promise;
-    }
-
-    function onCatch(err: any) {
-      if (err.response?.data?.length > 0) {
-        openErrorNotification(err.response.data);
-      } else {
-        openErrorNotification('Something went wrong, please try again later.');
+        pushHistory(response.id);
       }
     }
   }
+);
 
-  function onBlockClick(option: AlertReceiveChannelOption) {
-    setSelectedOption(option);
-    setShowNewIntegrationForm(true);
-    setShowIntegrarionsListDrawer(false);
-  }
+interface ContactPoint {
+  name: string;
+  uid: string;
+  contact_points: string[];
+}
 
-  function getTitle(): string {
-    if (!isTableView) {
-      return 'Integration Settings';
-    }
-
-    return id === 'new' ? `New ${selectedOption?.display_name} integration` : `Edit integration`;
-  }
-});
-
-interface CustomFieldSectionRendererState {
+interface GrafanaContactPointState {
   isExistingContactPoint: boolean;
   selectedAlertManagerOption: string;
   selectedContactPointOption: string;
 
   dataSources: Array<{ label: string; value: string }>;
   contactPoints: Array<{ label: string; value: string }>;
-  allContactPoints: Array<{ name: string; uid: string; contact_points: string[] }>;
+  allContactPoints: ContactPoint[];
 }
 
-const CustomFieldSectionRenderer: React.FC<CustomFieldSectionRendererProps> = ({
-  control: _control,
-  formItem: _formItem,
-  errors,
-  register,
-  setValue,
-}) => {
-  const radioOptions = [
-    {
-      label: 'Connect existing Contact point',
-      value: 'existing',
-    },
-    {
-      label: 'Create a new one',
-      value: 'new',
-    },
-  ];
+interface GrafanaContactPointProps {
+  isExistingContactPoint: any;
+  dataSources: any;
+  contactPoints: any;
+  selectedAlertManagerOption: string;
+  selectedContactPointOption: string;
+  allContactPoints: ContactPoint[];
+  radioOptions: Array<{
+    label: string;
+    value: string;
+  }>;
 
-  const [
-    {
-      isExistingContactPoint,
-      dataSources,
-      contactPoints,
-      selectedAlertManagerOption,
-      selectedContactPointOption,
-      allContactPoints,
-    },
+  setState: React.Dispatch<Partial<GrafanaContactPointState>>;
+}
+
+const GrafanaContactPoint = observer(
+  ({
+    allContactPoints,
+    radioOptions,
+    contactPoints,
+    selectedContactPointOption,
+    selectedAlertManagerOption,
+    isExistingContactPoint,
+    dataSources,
     setState,
-  ] = useReducer(
-    (state: CustomFieldSectionRendererState, newState: Partial<CustomFieldSectionRendererState>) => ({
-      ...state,
-      ...newState,
-    }),
-    {
-      isExistingContactPoint: true,
-      selectedAlertManagerOption: undefined,
-      selectedContactPointOption: undefined,
-      dataSources: [],
-      contactPoints: [],
-      allContactPoints: [],
-    }
-  );
+  }: GrafanaContactPointProps) => {
+    const {
+      control,
+      getValues,
+      setValue,
+      formState: { errors },
+    } = useFormContext<FormFields>();
 
-  const { alertReceiveChannelStore } = useStore();
+    useEffect(() => {
+      (async function () {
+        const response = await AlertReceiveChannelHelper.getGrafanaAlertingContactPoints();
 
-  useEffect(() => {
-    (async function () {
-      const response = await alertReceiveChannelStore.getGrafanaAlertingContactPoints();
-      setState({
-        allContactPoints: response,
-        dataSources: response.map((res) => ({ label: res.name, value: res.uid })),
-        contactPoints: [],
-      });
-    })();
+        setState({
+          allContactPoints: response,
+          dataSources: response.map((res) => ({ label: res.name, value: res.uid })),
+          contactPoints: [],
+        });
+      })();
 
-    setValue('is_existing', true);
-  }, []);
+      setValue(FormFieldKeys.IsExisting, true);
+    }, []);
 
-  return (
-    <div className={cx('extra-fields')}>
-      <VerticalGroup spacing="md">
-        <HorizontalGroup spacing="xs" align="center">
-          <Text type="primary" size="small">
-            Grafana Alerting Contact point
-          </Text>
-          <Icon name="info-circle" />
-        </HorizontalGroup>
+    const styles = useStyles2(getIntegrationFormStyles);
 
-        <div className={cx('extra-fields__radio')}>
-          <RadioButtonGroup
-            options={radioOptions}
-            value={isExistingContactPoint ? 'existing' : 'new'}
-            onChange={(radioValue) => {
-              setState({
-                isExistingContactPoint: radioValue === 'existing',
-                contactPoints: [],
-                selectedAlertManagerOption: null,
-                selectedContactPointOption: null,
-              });
+    return (
+      <div className={styles.extraFields}>
+        <VerticalGroup spacing="md">
+          <HorizontalGroup spacing="xs" align="center">
+            <Text type="primary" size="small">
+              Grafana Alerting Contact point
+            </Text>
+            <Icon name="info-circle" />
+          </HorizontalGroup>
 
-              setValue('is_existing', radioValue === 'existing');
-              setValue('alert_manager', undefined);
-              setValue('contact_point', undefined);
-            }}
-          />
-        </div>
+          <div className={styles.extraFieldsRadio}>
+            <Controller
+              name={FormFieldKeys.IsExisting}
+              control={control}
+              render={({ field }) => (
+                <RadioButtonGroup
+                  {...field}
+                  options={radioOptions}
+                  value={isExistingContactPoint ? 'existing' : 'new'}
+                  onChange={(radioValue) => {
+                    setState({
+                      isExistingContactPoint: radioValue === 'existing',
+                      contactPoints: [],
+                      selectedAlertManagerOption: null,
+                      selectedContactPointOption: null,
+                    });
 
-        <div className={cx('selectors-container')}>
-          <Field invalid={!!errors['alert_manager']} error={'Alert Manager is required'}>
-            <Select
-              {...register('alert_manager', { required: true })}
-              options={dataSources}
-              onChange={onAlertManagerChange}
-              value={selectedAlertManagerOption}
-              placeholder="Select Alert Manager"
+                    setValue(FormFieldKeys.IsExisting, radioValue === 'existing');
+                    setValue(FormFieldKeys.AlertManager, undefined);
+                    setValue(FormFieldKeys.ContactPoint, undefined);
+                  }}
+                />
+              )}
             />
-          </Field>
+          </div>
 
-          <Field invalid={!!errors['contact_point']} error={'Contact Point is required'}>
-            {isExistingContactPoint ? (
-              <Select
-                {...register('contact_point', { required: true })}
-                options={contactPoints}
-                onChange={onContactPointChange}
-                value={selectedContactPointOption}
-                placeholder="Select Contact Point"
-              />
-            ) : (
-              <Input
-                value={selectedContactPointOption}
-                placeholder="Choose Contact Point"
-                onChange={({ target }) => {
-                  const value = (target as HTMLInputElement).value;
-                  setState({ selectedContactPointOption: value });
-                  setValue('contact_point', value);
-                }}
-              />
-            )}
-          </Field>
-        </div>
-      </VerticalGroup>
-    </div>
-  );
+          <div className={styles.selectorsContainer}>
+            <Controller
+              name={FormFieldKeys.AlertManager}
+              control={control}
+              rules={{ required: 'Alert Manager is required' }}
+              render={({ field }) => (
+                <Field
+                  key={'AlertManager'}
+                  invalid={!!errors[FormFieldKeys.AlertManager]}
+                  error={errors[FormFieldKeys.AlertManager]?.message}
+                >
+                  <Select
+                    {...field}
+                    options={dataSources}
+                    onChange={onAlertManagerChange}
+                    value={selectedAlertManagerOption}
+                    placeholder="Select Alert Manager"
+                  />
+                </Field>
+              )}
+            />
 
-  function onAlertManagerChange(option: SelectableValue<string>) {
-    const contactPointsForCurrentOption = allContactPoints
-      .find((opt) => opt.uid === option.value)
-      .contact_points?.map((cp) => ({ value: cp, label: cp }));
+            <Controller
+              name={FormFieldKeys.ContactPoint}
+              control={control}
+              rules={{ required: 'Contact Point is required', validate: contactPointValidator }}
+              render={({ field }) => (
+                <Field
+                  key={FormFieldKeys.ContactPoint}
+                  invalid={!!errors[FormFieldKeys.ContactPoint]}
+                  error={errors[FormFieldKeys.ContactPoint]?.message}
+                >
+                  {isExistingContactPoint ? (
+                    <Select
+                      {...field}
+                      options={contactPoints}
+                      onChange={onContactPointChange}
+                      value={selectedContactPointOption}
+                      placeholder="Select Contact Point"
+                    />
+                  ) : (
+                    <Input
+                      value={selectedContactPointOption}
+                      placeholder="Choose Contact Point"
+                      onChange={({ currentTarget }) => {
+                        const { value } = currentTarget;
+                        setState({ selectedContactPointOption: value });
+                        setValue(FormFieldKeys.ContactPoint, value, { shouldValidate: true });
+                      }}
+                    />
+                  )}
+                </Field>
+              )}
+            />
+          </div>
+        </VerticalGroup>
+      </div>
+    );
 
-    const newState: Partial<CustomFieldSectionRendererState> = {
-      selectedAlertManagerOption: option.value,
-      contactPoints: contactPointsForCurrentOption,
-    };
+    function contactPointValidator(contactPointInputValue: string) {
+      const alertManager = getValues(FormFieldKeys.AlertManager);
+      const isExisting = getValues(FormFieldKeys.IsExisting);
 
-    if (isExistingContactPoint) {
-      newState.selectedContactPointOption = null;
-      setValue('contact_point', undefined);
+      const matchingAlertManager = allContactPoints.find((cp) => cp.uid === alertManager);
+      const hasContactPointInput = alertManager && contactPointInputValue;
+
+      if (
+        !isExisting &&
+        hasContactPointInput &&
+        matchingAlertManager?.contact_points.find((cp) => cp === contactPointInputValue)
+      ) {
+        return 'A contact point already exists for this data source';
+      }
+
+      return true;
     }
 
-    setState(newState);
+    function onAlertManagerChange(option: SelectableValue<string>) {
+      // filter contact points for current alert manager
+      const contactPointsForCurrentOption = allContactPoints
+        .find((opt) => opt.uid === option.value)
+        .contact_points?.map((cp) => ({ value: cp, label: cp }));
 
-    setValue('alert_manager', option.value);
+      const newState: Partial<GrafanaContactPointState> = {
+        selectedAlertManagerOption: option.value,
+        contactPoints: contactPointsForCurrentOption,
+      };
+
+      if (isExistingContactPoint) {
+        newState.selectedContactPointOption = null;
+        setValue(FormFieldKeys.ContactPoint, undefined);
+      }
+
+      setState(newState);
+      setValue(FormFieldKeys.AlertManager, option.value, { shouldValidate: true });
+    }
+
+    function onContactPointChange(option: SelectableValue<string>) {
+      setState({ selectedContactPointOption: option.value });
+      setValue(FormFieldKeys.ContactPoint, option.value, { shouldValidate: true });
+    }
   }
-
-  function onContactPointChange(option: SelectableValue<string>) {
-    setState({ selectedContactPointOption: option.value });
-    setValue('contact_point', option.value);
-  }
-};
-
-const HowTheIntegrationWorks: React.FC<{ selectedOption: AlertReceiveChannelOption }> = ({ selectedOption }) => {
-  if (!selectedOption) {
-    return null;
-  }
-
-  return (
-    <Collapse
-      headerWithBackground
-      className={cx('collapse')}
-      isOpen={false}
-      label={<Text type="link">How the integration works</Text>}
-      contentClassName={cx('collapsable-content')}
-    >
-      <Text type="secondary">
-        The integration will generate the following:
-        <ul className={cx('integration-info-list')}>
-          <li className={cx('integration-info-item')}>Unique URL endpoint for receiving alerts </li>
-          <li className={cx('integration-info-item')}>
-            Templates to interpret alerts, tailored for {selectedOption.display_name}{' '}
-          </li>
-          <li className={cx('integration-info-item')}>{selectedOption.display_name} contact point </li>
-          <li className={cx('integration-info-item')}>{selectedOption.display_name} notification</li>
-        </ul>
-        What you'll need to do next:
-        <ul className={cx('integration-info-list')}>
-          <li className={cx('integration-info-item')}>
-            Finish connecting Monitoring system using Unique URL that will be provided on the next step{' '}
-          </li>
-          <li className={cx('integration-info-item')}>
-            Set up routes that are based on alert content, such as severity, region, and service{' '}
-          </li>
-          <li className={cx('integration-info-item')}>Connect escalation chains to the routes</li>
-          <li className={cx('integration-info-item')}>
-            Review templates and personalize according to your requirements
-          </li>
-        </ul>
-      </Text>
-    </Collapse>
-  );
-};
-
-const IntegrationBlocks: React.FC<{
-  options: AlertReceiveChannelOption[];
-  onBlockClick: (option: AlertReceiveChannelOption) => void;
-}> = ({ options, onBlockClick }) => {
-  return (
-    <div className={cx('cards')} data-testid="create-integration-modal">
-      {options.length ? (
-        options.map((alertReceiveChannelChoice) => {
-          return (
-            <Block
-              bordered
-              hover
-              shadowed
-              onClick={() => onBlockClick(alertReceiveChannelChoice)}
-              key={alertReceiveChannelChoice.value}
-              className={cx('card', { card_featured: alertReceiveChannelChoice.featured })}
-            >
-              <div className={cx('card-bg')}>
-                <IntegrationLogo integration={alertReceiveChannelChoice} scale={0.2} />
-              </div>
-              <div className={cx('title')}>
-                <VerticalGroup spacing={alertReceiveChannelChoice.featured ? 'xs' : 'none'}>
-                  <HorizontalGroup>
-                    <Text strong data-testid="integration-display-name">
-                      {alertReceiveChannelChoice.display_name}
-                    </Text>
-                    {alertReceiveChannelChoice.featured && alertReceiveChannelChoice.featured_tag_name && (
-                      <Tag name={alertReceiveChannelChoice.featured_tag_name} colorIndex={5} />
-                    )}
-                  </HorizontalGroup>
-                  <Text type="secondary" size="small">
-                    {alertReceiveChannelChoice.short_description}
-                  </Text>
-                </VerticalGroup>
-              </div>
-            </Block>
-          );
-        })
-      ) : (
-        <EmptySearchResult>Could not find anything matching your query</EmptySearchResult>
-      )}
-    </div>
-  );
-};
-
-export default IntegrationForm;
+);

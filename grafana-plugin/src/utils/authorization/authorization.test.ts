@@ -2,7 +2,7 @@ import { OrgRole } from '@grafana/data';
 import { config } from '@grafana/runtime';
 import { contextSrv } from 'grafana/app/core/core';
 
-import * as auth from './';
+import * as auth from './authorization';
 
 jest.mock('grafana/app/core/core', () => ({
   contextSrv: {

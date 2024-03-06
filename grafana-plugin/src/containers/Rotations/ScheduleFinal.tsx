@@ -7,9 +7,9 @@ import { observer } from 'mobx-react';
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
 
 import { ScheduleFiltersType } from 'components/ScheduleFilters/ScheduleFilters.types';
-import Text from 'components/Text/Text';
-import Rotation from 'containers/Rotation/Rotation';
-import TimelineMarks from 'containers/TimelineMarks/TimelineMarks';
+import { Text } from 'components/Text/Text';
+import { Rotation } from 'containers/Rotation/Rotation';
+import { TimelineMarks } from 'containers/TimelineMarks/TimelineMarks';
 import {
   flattenShiftEvents,
   getLayersFromStore,
@@ -37,7 +37,7 @@ interface ScheduleFinalProps extends WithStoreProps {
   onSlotClick?: (event: Event) => void;
 }
 
-const ScheduleFinal: FC<ScheduleFinalProps> = observer(
+const _ScheduleFinal: FC<ScheduleFinalProps> = observer(
   ({ store, simplified, scheduleId, filters, onShowShiftSwapForm, onShowOverrideForm, onSlotClick }) => {
     const {
       timezoneStore: { currentDateInSelectedTimezone, calendarStartDate, selectedTimezoneOffset },
@@ -113,4 +113,4 @@ const ScheduleFinal: FC<ScheduleFinalProps> = observer(
   }
 );
 
-export default withMobXProviderContext(ScheduleFinal);
+export const ScheduleFinal = withMobXProviderContext(_ScheduleFinal);

@@ -5,10 +5,10 @@ import { arrayMoveImmutable } from 'array-move';
 import cn from 'classnames/bind';
 import { SortableContainer, SortableElement, SortableHandle } from 'react-sortable-hoc';
 
-import Text from 'components/Text/Text';
-import RemoteSelect from 'containers/RemoteSelect/RemoteSelect';
-import { User } from 'models/user/user.types';
-import { UserActions } from 'utils/authorization';
+import { Text } from 'components/Text/Text';
+import { RemoteSelect } from 'containers/RemoteSelect/RemoteSelect';
+import { ApiSchemas } from 'network/oncall-api/api.types';
+import { UserActions } from 'utils/authorization/authorization';
 
 import { fromPlainArray, toPlainArray } from './UserGroups.helpers';
 import { Item } from './UserGroups.types';
@@ -16,8 +16,8 @@ import { Item } from './UserGroups.types';
 import styles from './UserGroups.module.css';
 
 interface UserGroupsProps {
-  value: Array<Array<User['pk']>>;
-  onChange: (value: Array<Array<User['pk']>>) => void;
+  value: Array<Array<ApiSchemas['User']['pk']>>;
+  onChange: (value: Array<Array<ApiSchemas['User']['pk']>>) => void;
   isMultipleGroups: boolean;
   renderUser: (id: string) => React.ReactElement;
   showError?: boolean;
@@ -30,7 +30,7 @@ const DragHandle = () => <IconButton aria-label="Drag" className={cx('icon')} na
 
 const SortableHandleHoc = SortableHandle(DragHandle);
 
-const UserGroups = (props: UserGroupsProps) => {
+export const UserGroups = (props: UserGroupsProps) => {
   const { value, onChange, isMultipleGroups, renderUser, showError, disabled } = props;
 
   const handleAddUserGroup = useCallback(() => {
@@ -56,7 +56,7 @@ const UserGroups = (props: UserGroupsProps) => {
   };
 
   const handleUserAdd = useCallback(
-    (pk: User['pk']) => {
+    (pk: ApiSchemas['User']['pk']) => {
       if (!pk) {
         return;
       }
@@ -163,7 +163,7 @@ interface SortableListProps {
   allowCreate?: boolean;
 }
 
-const SortableList = SortableContainer<SortableListProps>(
+export const SortableList = SortableContainer<SortableListProps>(
   ({ items, handleAddGroup, isMultipleGroups, renderItem, allowCreate }) => {
     const listRef = useRef<HTMLUListElement>();
 
@@ -203,5 +203,3 @@ const SortableList = SortableContainer<SortableListProps>(
     );
   }
 );
-
-export default UserGroups;

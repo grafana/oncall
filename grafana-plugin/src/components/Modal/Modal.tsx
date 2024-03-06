@@ -22,7 +22,7 @@ export interface ModalProps {
 
 const cx = cn.bind(styles);
 
-const Modal: FC<PropsWithChildren<ModalProps>> = (props) => {
+export const Modal: FC<PropsWithChildren<ModalProps>> = (props) => {
   const { title, children, onDismiss, width = '600px', contentElement, isOpen = true, top, className } = props;
 
   return (
@@ -48,5 +48,3 @@ const Modal: FC<PropsWithChildren<ModalProps>> = (props) => {
     </ReactModal>
   );
 };
-
-export default Modal;

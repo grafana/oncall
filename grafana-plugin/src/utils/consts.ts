@@ -1,5 +1,6 @@
 import { OnCallAppPluginMeta } from 'types';
 
+//@ts-ignore
 import plugin from '../../package.json'; // eslint-disable-line
 
 // Navbar
@@ -19,6 +20,8 @@ export const FALLBACK_LICENSE = CLOUD_VERSION_REGEX.test(APP_VERSION) ? GRAFANA_
 // height of new Grafana sticky header with breadcrumbs
 export const GRAFANA_HEADER_HEIGHT = 80;
 
+export const GRAFANA_LEGACY_SIDEBAR_WIDTH = 56;
+
 // Reusable breakpoint sizes
 export const BREAKPOINT_TABS = 1024;
 
@@ -33,8 +36,14 @@ export const ONCALL_OPS = 'https://oncall-ops-us-east-0.grafana.net/oncall';
 export const ONCALL_DEV = 'https://oncall-dev-us-central-0.grafana.net/oncall';
 
 // Single source of truth on the frontend for OnCall API URL
-export const getOnCallApiUrl = (meta?: OnCallAppPluginMeta) =>
-  meta?.jsonData?.onCallApiUrl || process.env.ONCALL_API_URL;
+export const getOnCallApiUrl = (meta?: OnCallAppPluginMeta) => {
+  if (meta?.jsonData?.onCallApiUrl) {
+    return meta?.jsonData?.onCallApiUrl;
+  } else if (typeof window === 'undefined') {
+    return process.env.ONCALL_API_URL;
+  }
+  return undefined;
+};
 
 // If the plugin has never been configured, onCallApiUrl will be undefined in the plugin's jsonData
 export const hasPluginBeenConfigured = (meta?: OnCallAppPluginMeta) => Boolean(meta?.jsonData?.onCallApiUrl);
@@ -67,3 +76,5 @@ export const TEXT_ELLIPSIS_CLASS = 'overflow-child';
 
 export const INCIDENT_HORIZONTAL_SCROLLING_STORAGE = 'isIncidentalTableHorizontalScrolling';
 export const IRM_TAB = 'IRM';
+
+export const URL_REGEX = /^((https?|ftp|smtp):\/\/)?(www.)?[a-z0-9]+\.[a-z]+(\/[a-zA-Z0-9#]+\/?)*$/;

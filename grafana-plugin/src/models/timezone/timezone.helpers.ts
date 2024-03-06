@@ -595,8 +595,6 @@ export const allTimezones = [
   'Zulu',
 ];
 
-// TODO: move it to utils
-
 export const getTzOffsetString = (date: dayjs.Dayjs) => {
   const userOffset = date.utcOffset();
   const userOffsetHours = userOffset / 60;

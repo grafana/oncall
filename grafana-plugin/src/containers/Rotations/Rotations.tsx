@@ -8,17 +8,17 @@ import { observer } from 'mobx-react';
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
 
 import { ScheduleFiltersType } from 'components/ScheduleFilters/ScheduleFilters.types';
-import Text from 'components/Text/Text';
-import Rotation from 'containers/Rotation/Rotation';
-import RotationForm from 'containers/RotationForm/RotationForm';
-import TimelineMarks from 'containers/TimelineMarks/TimelineMarks';
+import { Text } from 'components/Text/Text';
+import { Rotation } from 'containers/Rotation/Rotation';
+import { RotationForm } from 'containers/RotationForm/RotationForm';
+import { TimelineMarks } from 'containers/TimelineMarks/TimelineMarks';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { getColor, getLayersFromStore } from 'models/schedule/schedule.helpers';
 import { Layer, Schedule, ScheduleType, Shift, ShiftSwap, Event } from 'models/schedule/schedule.types';
-import { User } from 'models/user/user.types';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
-import { UserActions } from 'utils/authorization';
+import { UserActions } from 'utils/authorization/authorization';
 
 import { DEFAULT_TRANSITION_TIMEOUT } from './Rotations.config';
 import { findColor } from './Rotations.helpers';
@@ -37,7 +37,7 @@ interface RotationsProps extends WithStoreProps {
   onCreate: () => void;
   onUpdate: () => void;
   onDelete: () => void;
-  onShiftSwapRequest: (beneficiary: User['pk'], swap_start: string, swap_end: string) => void;
+  onShiftSwapRequest: (beneficiary: ApiSchemas['User']['pk'], swap_start: string, swap_end: string) => void;
   disabled: boolean;
   filters: ScheduleFiltersType;
   onSlotClick?: (event: Event) => void;
@@ -50,7 +50,7 @@ interface RotationsState {
 }
 
 @observer
-class Rotations extends Component<RotationsProps, RotationsState> {
+class _Rotations extends Component<RotationsProps, RotationsState> {
   state: RotationsState = {
     layerPriority: undefined,
     shiftStartToShowRotationForm: undefined,
@@ -338,4 +338,4 @@ class Rotations extends Component<RotationsProps, RotationsState> {
   };
 }
 
-export default withMobXProviderContext(Rotations);
+export const Rotations = withMobXProviderContext(_Rotations);

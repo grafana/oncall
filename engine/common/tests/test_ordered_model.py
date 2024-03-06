@@ -329,6 +329,38 @@ def test_ordered_model_swap_concurrent():
 
 @pytest.mark.skipif(SKIP_CONCURRENT, reason="OrderedModel concurrent tests are skipped to speed up tests")
 @pytest.mark.django_db(transaction=True)
+def test_ordered_model_swap_all_to_zero():
+    THREADS = 300
+    exceptions = []
+
+    TestOrderedModel.objects.all().delete()  # clear table
+    instances = [TestOrderedModel.objects.create(test_field="test") for _ in range(THREADS)]
+
+    # generate random non-unique orders
+    random.seed(42)
+    positions = [random.randint(0, THREADS - 1) for _ in range(THREADS)]
+
+    def swap(idx):
+        try:
+            instance = instances[idx]
+            instance.swap(positions[idx])
+        except Exception as e:
+            exceptions.append(e)
+
+    threads = [threading.Thread(target=swap, args=(0,)) for _ in range(THREADS)]
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join()
+
+    # can only check that orders are still sequential and that there are no exceptions
+    # can't check the exact order because it changes depending on the order of execution
+    assert not exceptions
+    assert _orders_are_sequential()
+
+
+@pytest.mark.skipif(SKIP_CONCURRENT, reason="OrderedModel concurrent tests are skipped to speed up tests")
+@pytest.mark.django_db(transaction=True)
 def test_ordered_model_swap_non_unique_orders_concurrent():
     THREADS = 300
     exceptions = []

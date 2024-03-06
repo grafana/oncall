@@ -1,3 +1,5 @@
+import semver from 'semver';
+
 import { test, expect } from '../fixtures';
 import { resolveFiringAlert } from '../utils/alertGroup';
 import { createEscalationChain, EscalationStep } from '../utils/escalationChain';
@@ -5,6 +7,18 @@ import { clickButton, generateRandomValue } from '../utils/forms';
 import { createIntegrationAndSendDemoAlert } from '../utils/integrations';
 import { goToGrafanaPage, goToOnCallPage } from '../utils/navigation';
 import { createOnCallSchedule } from '../utils/schedule';
+
+/**
+ * Insights is dependent on Scenes which were only added in Grafana 10.0.0
+ * https://grafana.com/docs/grafana/latest/whatsnew/whats-new-in-v10-0/#scenes
+ * TODO: remove the process.env.CURRENT_GRAFANA_VERSION portion
+ * and use the currentGrafanaVersion fixture once this bugged is patched in playwright
+ * https://github.com/microsoft/playwright/issues/29608
+ */
+test.skip(
+  () => semver.lt(process.env.CURRENT_GRAFANA_VERSION, '10.0.0'),
+  'Insights is only available in Grafana 10.0.0 and above'
+);
 
 test.describe('Insights', () => {
   test.beforeAll(async ({ adminRolePage: { page, userName } }) => {
@@ -43,14 +57,13 @@ test.describe('Insights', () => {
   test('Viewer can see all the panels in OnCall insights', async ({ viewerRolePage: { page } }) => {
     await goToOnCallPage(page, 'insights');
     [
-      'Total alert groups',
-      'Total alert groups by state',
-      'New alert groups for selected period',
-      'Mean time to respond \\(MTTR\\)',
-      'MTTR changed for period',
-      'New alert groups during time period',
+      'New alert groups',
+      'Mean time to respond \\(MTTR\\) average',
       'Alert groups by Integration',
       'Mean time to respond \\(MTTR\\) by Integration',
+      'Alert groups by Team',
+      'Mean time to respond \\(MTTR\\) by Team',
+      'New alert groups notifications',
     ].forEach(async (panelTitle) => {
       await expect(page.getByRole('heading', { name: new RegExp(`^${panelTitle}$`) }).first()).toBeVisible();
     });
@@ -58,7 +71,7 @@ test.describe('Insights', () => {
 
   test('There is no panel that misses data', async ({ adminRolePage: { page } }) => {
     await goToOnCallPage(page, 'insights');
-    await page.getByText('Last 7 days').click();
+    await page.getByText('Last 24 hours').click();
     await page.getByText('Last 1 hour').click();
     await page.waitForTimeout(2000);
     await expect(page.getByText('No data')).toBeHidden();

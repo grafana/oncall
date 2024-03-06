@@ -1,12 +1,11 @@
 import { action, observable, makeObservable } from 'mobx';
 
 import { UserResponders } from 'containers/AddResponders/AddResponders.types';
-import { Alert } from 'models/alertgroup/alertgroup.types';
-import BaseStore from 'models/base_store';
+import { BaseStore } from 'models/base_store';
 import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
-import { UserCurrentlyOnCall } from 'models/user/user.types';
-import { makeRequest } from 'network';
-import { RootStore } from 'state';
+import { makeRequest } from 'network/network';
+import { ApiSchemas } from 'network/oncall-api/api.types';
+import { RootStore } from 'state/rootStore';
 
 import { ManualAlertGroupPayload } from './direct_paging.types';
 
@@ -29,8 +28,8 @@ export class DirectPagingStore extends BaseStore {
     this.path = '/direct_paging/';
   }
 
-  @action
-  addUserToSelectedUsers = (user: UserCurrentlyOnCall) => {
+  @action.bound
+  addUserToSelectedUsers = (user: ApiSchemas['UserIsCurrentlyOnCall']) => {
     this.selectedUserResponders = [
       ...this.selectedUserResponders,
       {
@@ -40,22 +39,22 @@ export class DirectPagingStore extends BaseStore {
     ];
   };
 
-  @action
+  @action.bound
   resetSelectedUsers = () => {
     this.selectedUserResponders = [];
   };
 
-  @action
+  @action.bound
   updateSelectedTeam = (team: GrafanaTeam) => {
     this.selectedTeamResponder = team;
   };
 
-  @action
+  @action.bound
   resetSelectedTeam = () => {
     this.selectedTeamResponder = null;
   };
 
-  @action
+  @action.bound
   removeSelectedUser(index: number) {
     this.selectedUserResponders = [
       ...this.selectedUserResponders.slice(0, index),
@@ -63,7 +62,7 @@ export class DirectPagingStore extends BaseStore {
     ];
   }
 
-  @action
+  @action.bound
   updateSelectedUserImportantStatus(index: number, important: boolean) {
     this.selectedUserResponders = [
       ...this.selectedUserResponders.slice(0, index),
@@ -82,7 +81,10 @@ export class DirectPagingStore extends BaseStore {
     }).catch(this.onApiError);
   }
 
-  async updateAlertGroup(alertId: Alert['pk'], data: ManualAlertGroupPayload): Promise<DirectPagingResponse | void> {
+  async updateAlertGroup(
+    alertId: ApiSchemas['AlertGroup']['pk'],
+    data: ManualAlertGroupPayload
+  ): Promise<DirectPagingResponse | void> {
     return await makeRequest<DirectPagingResponse>(this.path, {
       method: 'POST',
       data: {

@@ -5,14 +5,14 @@ import cn from 'classnames/bind';
 import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
 
-import Avatar from 'components/Avatar/Avatar';
+import { Avatar } from 'components/Avatar/Avatar';
 import { ScheduleFiltersType } from 'components/ScheduleFilters/ScheduleFilters.types';
-import Text from 'components/Text/Text';
-import WorkingHours from 'components/WorkingHours/WorkingHours';
+import { Text } from 'components/Text/Text';
+import { WorkingHours } from 'components/WorkingHours/WorkingHours';
 import { getShiftName, SHIFT_SWAP_COLOR } from 'models/schedule/schedule.helpers';
 import { Event, ShiftSwap } from 'models/schedule/schedule.types';
 import { getOffsetOfCurrentUser, getTzOffsetString } from 'models/timezone/timezone.helpers';
-import { User } from 'models/user/user.types';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
 
 import { getTitle } from './ScheduleSlot.helpers';
@@ -33,7 +33,7 @@ interface ScheduleSlotProps {
 
 const cx = cn.bind(styles);
 
-const ScheduleSlot: FC<ScheduleSlotProps> = observer((props) => {
+export const ScheduleSlot: FC<ScheduleSlotProps> = observer((props) => {
   const {
     event,
     color,
@@ -105,8 +105,6 @@ const ScheduleSlot: FC<ScheduleSlotProps> = observer((props) => {
   );
 });
 
-export default ScheduleSlot;
-
 interface ShiftSwapEventProps {
   event: Event;
   currentMoment: dayjs.Dayjs;
@@ -124,13 +122,13 @@ const ShiftSwapEvent = (props: ShiftSwapEventProps) => {
 
   useEffect(() => {
     if (shiftSwap?.beneficiary && !store.userStore.items[shiftSwap.beneficiary.pk]) {
-      store.userStore.updateItem(shiftSwap.beneficiary.pk);
+      store.userStore.fetchItemById({ userPk: shiftSwap.beneficiary.pk, skipIfAlreadyPending: true });
     }
   }, [shiftSwap?.beneficiary]);
 
   useEffect(() => {
     if (shiftSwap?.benefactor && !store.userStore.items[shiftSwap.benefactor.pk]) {
-      store.userStore.updateItem(shiftSwap.benefactor.pk);
+      store.userStore.fetchItemById({ userPk: shiftSwap.benefactor.pk, skipIfAlreadyPending: true });
     }
   }, [shiftSwap?.benefactor]);
 
@@ -312,7 +310,7 @@ const RegularEvent = (props: RegularEventProps) => {
 };
 
 interface ScheduleSlotDetailsProps {
-  user: User;
+  user: ApiSchemas['User'];
   isOncall?: boolean;
   event: Event;
   handleAddOverride?: (event: React.SyntheticEvent) => void;
@@ -409,13 +407,13 @@ const ScheduleSlotDetails = observer((props: ScheduleSlotDetailsProps) => {
           <div className={cx('details-icon')}>
             <Icon className={cx('icon')} name="clock-nine" />
           </div>
-          <Text type="primary" className={cx('second-column')}>
+          <Text type="primary" className={cx('second-column')} data-testid="schedule-slot-user-local-time">
             User's local time
             <br />
             {currentMoment.tz(user?.timezone).format('DD MMM, HH:mm')}
             <br />({getTzOffsetString(currentMoment.tz(user?.timezone))})
           </Text>
-          <Text type="secondary">
+          <Text type="secondary" data-testid="schedule-slot-current-timezone">
             Current timezone
             <br />
             {currentDateInSelectedTimezone.format('DD MMM, HH:mm')}

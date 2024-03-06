@@ -1,20 +1,18 @@
-import { makeRequest as makeRequestOriginal } from 'network';
-import { RootStore } from 'state';
+import { makeRequest as makeRequestOriginal } from 'network/network';
+import { RootStore } from 'state/rootStore';
 
 import { UserStore } from './user';
+import { UserHelper } from './user.helpers';
 
 const makeRequest = makeRequestOriginal as jest.Mock<ReturnType<typeof makeRequestOriginal>>;
 
-jest.mock('network');
+jest.mock('network/network');
 
 afterEach(() => {
   jest.resetAllMocks();
 });
 
-describe('UserStore.sendBackendConfirmationCode', () => {
-  const rootStore = new RootStore();
-  const userStore = new UserStore(rootStore);
-
+describe('UserStore.fetchBackendConfirmationCode', () => {
   const userPk = '5';
   const backend = 'dfkjfdjkfdkjfdaaa';
   const mockedQrCode = 'dfkjfdkjfdkjfdjk';
@@ -22,7 +20,7 @@ describe('UserStore.sendBackendConfirmationCode', () => {
   test('it makes the proper API call and returns the response', async () => {
     makeRequest.mockResolvedValueOnce(mockedQrCode);
 
-    expect(await userStore.sendBackendConfirmationCode(userPk, backend)).toEqual(mockedQrCode);
+    expect(await UserHelper.fetchBackendConfirmationCode(userPk, backend)).toEqual(mockedQrCode);
 
     expect(makeRequest).toHaveBeenCalledTimes(1);
     expect(makeRequest).toHaveBeenCalledWith(`/users/${userPk}/get_backend_verification_code?backend=${backend}`, {
@@ -41,7 +39,7 @@ describe('UserStore.unlinkBackend', () => {
   test('it makes the proper API call and returns the response', async () => {
     makeRequest.mockResolvedValueOnce('hello');
 
-    userStore.loadCurrentUser = jest.fn();
+    Object.defineProperty(userStore, 'loadCurrentUser', { value: jest.fn() });
 
     await userStore.unlinkBackend(userPk, backend);
 

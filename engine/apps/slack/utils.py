@@ -70,7 +70,7 @@ def post_message_to_channel(organization: "Organization", channel_id: str, text:
     if not organization.slack_team_identity:
         return
 
-    slack_client = SlackClient(organization.slack_team_identity)
+    slack_client = SlackClient(organization.slack_team_identity, enable_ratelimit_retry=True)
     try:
         slack_client.chat_postMessage(channel=channel_id, text=text)
     except (

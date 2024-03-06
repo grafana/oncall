@@ -9,6 +9,9 @@ x-oncall-build: &oncall-build-args
   context: ./engine
   target: ${ONCALL_IMAGE_TARGET:-dev}
   labels: *oncall-labels
+  cache_from:
+    - grafana/oncall:latest
+    - grafana/oncall:dev
 
 x-oncall-volumes: &oncall-volumes
   - ./engine:/etc/app
@@ -56,9 +59,6 @@ services:
     volumes:
       - ./grafana-plugin:/etc/app
       - node_modules_dev:/etc/app/node_modules
-      # https://stackoverflow.com/a/60456034
-      # see the explaination above that uses the $ENTERPRISE_ENGINE env var
-      - ${ENTERPRISE_FRONTEND:-/dev/null}:${ENTERPRISE_FRONTEND_VOLUME_MOUNT_DEST_DIR:-/tmp/empty:ro}
     profiles:
       - oncall_ui
 

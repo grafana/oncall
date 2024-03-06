@@ -1,8 +1,9 @@
-import React, { FC, useCallback } from 'react';
+import React, { ComponentProps, FC, useCallback } from 'react';
 
 import { CodeEditor, CodeEditorSuggestionItemKind, LoadingPlaceholder } from '@grafana/ui';
+import cn from 'classnames';
 
-import { getPaths } from 'utils';
+import { getPaths } from 'utils/utils';
 
 import { conf, language as jinja2Language } from './jinja2';
 
@@ -21,6 +22,8 @@ interface MonacoEditorProps {
   loading?: boolean;
   monacoOptions?: any;
   suggestionPrefix?: string;
+  containerClassName?: string;
+  codeEditorProps?: Partial<ComponentProps<typeof CodeEditor>>;
 }
 
 export enum MONACO_LANGUAGE {
@@ -37,7 +40,7 @@ const PREDEFINED_TERMS = [
   'tojson',
 ];
 
-const MonacoEditor: FC<MonacoEditorProps> = (props) => {
+export const MonacoEditor: FC<MonacoEditorProps> = (props) => {
   const {
     value,
     onChange,
@@ -51,6 +54,8 @@ const MonacoEditor: FC<MonacoEditorProps> = (props) => {
     showLineNumbers = true,
     loading = false,
     suggestionPrefix = 'payload.',
+    containerClassName,
+    codeEditorProps,
   } = props;
 
   const autoCompleteList = useCallback(
@@ -100,9 +105,8 @@ const MonacoEditor: FC<MonacoEditorProps> = (props) => {
       height={height}
       onEditorDidMount={handleMount}
       getSuggestions={useAutoCompleteList ? autoCompleteList : undefined}
-      containerStyles="u-width-height-100"
+      containerStyles={cn('u-width-height-100', containerClassName)}
+      {...codeEditorProps}
     />
   );
 };
-
-export default MonacoEditor;

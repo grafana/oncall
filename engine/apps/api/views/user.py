@@ -234,7 +234,6 @@ class UserView(
         IsOwnerOrHasUserSettingsAdminPermission: [
             "metadata",
             "list",
-            "retrieve",
             "update",
             "partial_update",
             "destroy",
@@ -255,6 +254,7 @@ class UserView(
         ],
         IsOwnerOrHasUserSettingsReadPermission: [
             "check_availability",
+            "retrieve",
         ],
     }
 
@@ -631,9 +631,8 @@ class UserView(
     def get_telegram_verification_code(self, request, pk) -> Response:
         user = self.get_object()
 
-        # TODO: remove below type ignore when we fix user.is_telegram_connected
-        if not user.is_telegram_connected:  # type: ignore[truthy-function]
-            return Response(status=status.HTTP_400_BAD_REQUEST)
+        if user.is_telegram_connected:
+            return Response("This user is already connected to a Telegram account", status=status.HTTP_400_BAD_REQUEST)
 
         try:
             existing_verification_code = user.telegram_verification_code
@@ -747,6 +746,7 @@ class UserView(
                         "is_oncall": len(current_shifts) > 0,
                         "current_shift": current_shifts[0] if current_shifts else None,
                         "next_shift": upcoming_shifts[0] if upcoming_shifts else None,
+                        "upcoming_shifts": upcoming_shifts or None,
                     }
                 )
 

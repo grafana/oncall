@@ -1,6 +1,14 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { ComponentProps, useEffect, useRef, useState } from 'react';
 
+import { ConfirmModal, useStyles2 } from '@grafana/ui';
 import { useLocation } from 'react-router-dom';
+
+import { ActionKey } from 'models/loader/action-keys';
+import { LoaderHelper } from 'models/loader/loader.helpers';
+import { useStore } from 'state/useStore';
+
+import { LocationHelper } from './LocationHelper';
+import { getCommonStyles } from './styles';
 
 export function useForceUpdate() {
   const [, setValue] = useState(0);
@@ -69,3 +77,58 @@ export function useDebouncedCallback<A extends any[]>(callback: (...args: A) => 
     }, wait);
   };
 }
+
+export const useDrawer = <DrawerKey extends string, DrawerData = unknown>(initialDrawerData?: DrawerData) => {
+  const [openedDrawerKey, setOpenedDrawerKey] = useState<DrawerKey>(LocationHelper.getQueryParam('openedDrawerKey'));
+  const [drawerData, setDrawerData] = useState<DrawerData>(initialDrawerData);
+
+  return {
+    openDrawer: (drawerKey: DrawerKey, drawerData?: DrawerData) => {
+      setOpenedDrawerKey(drawerKey);
+      if (drawerData) {
+        setDrawerData(drawerData);
+      }
+      LocationHelper.update({ openedDrawerKey: drawerKey }, 'partial');
+    },
+    closeDrawer: () => {
+      setOpenedDrawerKey(undefined);
+      LocationHelper.update({ openedDrawerKey: undefined }, 'partial');
+    },
+    getIsDrawerOpened: (drawerKey: DrawerKey) => openedDrawerKey === drawerKey,
+    openedDrawerKey,
+    drawerData,
+  };
+};
+
+type ConfirmModalProps = ComponentProps<typeof ConfirmModal>;
+export const useConfirmModal = () => {
+  const [modalProps, setModalProps] = useState<ConfirmModalProps>();
+
+  return {
+    openModal: (modalProps: Pick<ConfirmModalProps, 'title' | 'onConfirm'> & Partial<ConfirmModalProps>) => {
+      setModalProps({
+        isOpen: true,
+        confirmText: 'Confirm',
+        dismissText: 'Cancel',
+        onDismiss: () => setModalProps(undefined),
+        body: null,
+        ...modalProps,
+        onConfirm: () => {
+          modalProps.onConfirm();
+          setModalProps(undefined);
+        },
+      });
+    },
+    closeModal: () => {
+      setModalProps(undefined);
+    },
+    modalProps,
+  };
+};
+
+export const useCommonStyles = () => useStyles2(getCommonStyles);
+
+export const useIsLoading = (actionKey: ActionKey) => {
+  const { loaderStore } = useStore();
+  return LoaderHelper.isLoading(loaderStore, actionKey);
+};

@@ -2,7 +2,15 @@ import React, { SyntheticEvent } from 'react';
 
 import { SelectableValue } from '@grafana/data';
 import { LabelTag } from '@grafana/labels';
-import { Button, HorizontalGroup, Icon, RadioButtonGroup, Tooltip, VerticalGroup } from '@grafana/ui';
+import {
+  Button,
+  HorizontalGroup,
+  Icon,
+  LoadingPlaceholder,
+  RadioButtonGroup,
+  Tooltip,
+  VerticalGroup,
+} from '@grafana/ui';
 import cn from 'classnames/bind';
 import { capitalize } from 'lodash-es';
 import { observer } from 'mobx-react';
@@ -10,38 +18,40 @@ import moment from 'moment-timezone';
 import Emoji from 'react-emoji-render';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 
-import CardButton from 'components/CardButton/CardButton';
-import CursorPagination from 'components/CursorPagination/CursorPagination';
-import GTable from 'components/GTable/GTable';
-import IntegrationLogo from 'components/IntegrationLogo/IntegrationLogo';
-import ManualAlertGroup from 'components/ManualAlertGroup/ManualAlertGroup';
-import PluginLink from 'components/PluginLink/PluginLink';
-import RenderConditionally from 'components/RenderConditionally/RenderConditionally';
-import Text from 'components/Text/Text';
-import TextEllipsisTooltip from 'components/TextEllipsisTooltip/TextEllipsisTooltip';
-import TooltipBadge from 'components/TooltipBadge/TooltipBadge';
-import Tutorial from 'components/Tutorial/Tutorial';
+import { CardButton } from 'components/CardButton/CardButton';
+import { CursorPagination } from 'components/CursorPagination/CursorPagination';
+import { GTable } from 'components/GTable/GTable';
+import { IntegrationLogo } from 'components/IntegrationLogo/IntegrationLogo';
+import { ManualAlertGroup } from 'components/ManualAlertGroup/ManualAlertGroup';
+import { PluginLink } from 'components/PluginLink/PluginLink';
+import { RenderConditionally } from 'components/RenderConditionally/RenderConditionally';
+import { Text } from 'components/Text/Text';
+import { TextEllipsisTooltip } from 'components/TextEllipsisTooltip/TextEllipsisTooltip';
+import { TooltipBadge } from 'components/TooltipBadge/TooltipBadge';
+import { Tutorial } from 'components/Tutorial/Tutorial';
 import { TutorialStep } from 'components/Tutorial/Tutorial.types';
-import ColumnsSelectorWrapper from 'containers/ColumnsSelectorWrapper/ColumnsSelectorWrapper';
+import { ColumnsSelectorWrapper } from 'containers/ColumnsSelectorWrapper/ColumnsSelectorWrapper';
 import { IncidentsFiltersType } from 'containers/IncidentsFilters/IncidentFilters.types';
-import RemoteFilters from 'containers/RemoteFilters/RemoteFilters';
-import TeamName from 'containers/TeamName/TeamName';
+import { RemoteFilters } from 'containers/RemoteFilters/RemoteFilters';
+import { TeamName } from 'containers/TeamName/TeamName';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
+import { AlertReceiveChannelHelper } from 'models/alert_receive_channel/alert_receive_channel.helpers';
+import { AlertGroupHelper } from 'models/alertgroup/alertgroup.helpers';
 import {
-  Alert,
-  Alert as AlertType,
   AlertAction,
   IncidentStatus,
   AlertGroupColumn,
   AlertGroupColumnType,
 } from 'models/alertgroup/alertgroup.types';
-import { LabelKeyValue } from 'models/label/label.types';
+import { ActionKey } from 'models/loader/action-keys';
+import { LoaderHelper } from 'models/loader/loader.helpers';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 import { renderRelatedUsers } from 'pages/incident/Incident.helpers';
 import { AppFeature } from 'state/features';
 import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
-import LocationHelper from 'utils/LocationHelper';
-import { UserActions } from 'utils/authorization';
+import { LocationHelper } from 'utils/LocationHelper';
+import { UserActions } from 'utils/authorization/authorization';
 import { INCIDENT_HORIZONTAL_SCROLLING_STORAGE, PAGE, PLUGIN_ROOT, TEXT_ELLIPSIS_CLASS } from 'utils/consts';
 import { getItem, setItem } from 'utils/localStorage';
 import { TableColumn } from 'utils/types';
@@ -59,13 +69,14 @@ interface Pagination {
 interface IncidentsPageProps extends WithStoreProps, PageProps, RouteComponentProps {}
 
 interface IncidentsPageState {
-  selectedIncidentIds: Array<Alert['pk']>;
+  selectedIncidentIds: Array<ApiSchemas['AlertGroup']['pk']>;
   affectedRows: { [key: string]: boolean };
   filters?: Record<string, any>;
   pagination: Pagination;
   showAddAlertGroupForm: boolean;
   isSelectorColumnMenuOpen: boolean;
   isHorizontalScrolling: boolean;
+  isFirstIncidentsFetchDone: boolean;
 }
 
 const POLLING_NUM_SECONDS = 15;
@@ -96,7 +107,7 @@ const TABLE_SCROLL_OPTIONS: SelectableValue[] = [
 ];
 
 @observer
-class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> {
+class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageState> {
   constructor(props: IncidentsPageProps) {
     super(props);
 
@@ -122,22 +133,25 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
       },
       isSelectorColumnMenuOpen: true,
       isHorizontalScrolling: getItem(INCIDENT_HORIZONTAL_SCROLLING_STORAGE) || false,
+      isFirstIncidentsFetchDone: false,
     };
   }
 
   private rootElRef: React.RefObject<HTMLDivElement>;
-  private pollingIntervalId: NodeJS.Timer = undefined;
+  private pollingIntervalId: ReturnType<typeof setInterval> = undefined;
 
   componentDidMount() {
     const { store } = this.props;
     const { alertGroupStore } = store;
 
-    alertGroupStore.updateBulkActions();
-    alertGroupStore.updateSilenceOptions();
+    alertGroupStore.fetchBulkActions();
+    alertGroupStore.fetchSilenceOptions();
 
     if (store.hasFeature(AppFeature.Labels)) {
       alertGroupStore.fetchTableSettings();
     }
+
+    this.setPollingInterval();
   }
 
   componentWillUnmount(): void {
@@ -172,7 +186,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
             onHide={() => {
               this.setState({ showAddAlertGroupForm: false });
             }}
-            onCreate={(id: Alert['pk']) => {
+            onCreate={(id: ApiSchemas['AlertGroup']['pk']) => {
               history.push(`${PLUGIN_ROOT}/alert-groups/${id}`);
             }}
             alertReceiveChannelStore={alertReceiveChannelStore}
@@ -184,13 +198,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
 
   renderCards(filtersState, setFiltersState, filtersOnFiltersValueChange, store) {
     const { values } = filtersState;
-
-    const { newIncidents, acknowledgedIncidents, resolvedIncidents, silencedIncidents } = store.alertGroupStore;
-
-    const { count: newIncidentsCount } = newIncidents;
-    const { count: acknowledgedIncidentsCount } = acknowledgedIncidents;
-    const { count: resolvedIncidentsCount } = resolvedIncidents;
-    const { count: silencedIncidentsCount } = silencedIncidents;
+    const { stats } = store.alertGroupStore;
 
     const status = values.status || [];
 
@@ -200,7 +208,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
           <CardButton
             icon={<Icon name="bell" size="xxl" />}
             description="Firing"
-            title={newIncidentsCount}
+            title={stats[IncidentStatus.Firing]}
             selected={status.includes(IncidentStatus.Firing)}
             onClick={this.getStatusButtonClickHandler(
               IncidentStatus.Firing,
@@ -214,7 +222,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
           <CardButton
             icon={<Icon name="eye" size="xxl" />}
             description="Acknowledged"
-            title={acknowledgedIncidentsCount}
+            title={stats[IncidentStatus.Acknowledged]}
             selected={status.includes(IncidentStatus.Acknowledged)}
             onClick={this.getStatusButtonClickHandler(
               IncidentStatus.Acknowledged,
@@ -228,7 +236,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
           <CardButton
             icon={<Icon name="check" size="xxl" />}
             description="Resolved"
-            title={resolvedIncidentsCount}
+            title={stats[IncidentStatus.Resolved]}
             selected={status.includes(IncidentStatus.Resolved)}
             onClick={this.getStatusButtonClickHandler(
               IncidentStatus.Resolved,
@@ -242,7 +250,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
           <CardButton
             icon={<Icon name="bell-slash" size="xxl" />}
             description="Silenced"
-            title={silencedIncidentsCount}
+            title={stats[IncidentStatus.Silenced]}
             selected={status.includes(IncidentStatus.Silenced)}
             onClick={this.getStatusButtonClickHandler(
               IncidentStatus.Silenced,
@@ -330,19 +338,17 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
     this.setState({
       filters,
       selectedIncidentIds: [],
+      affectedRows: {},
     });
 
     if (!isOnMount) {
-      this.setPagination(1, alertGroupStore.alertsSearchResult['default'].page_size);
+      this.setPagination(1, alertGroupStore.alertsSearchResult.page_size);
     }
 
-    this.clearPollingInterval();
-    this.setPollingInterval(filters, isOnMount);
-
-    await this.fetchIncidentData(filters, isOnMount);
+    await this.fetchIncidentData(filters);
 
     if (isOnMount) {
-      this.setPagination(start, start + alertGroupStore.alertsSearchResult['default'].page_size - 1);
+      this.setPagination(start, start + alertGroupStore.alertsSearchResult.page_size - 1);
     }
   };
 
@@ -355,15 +361,19 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
     });
   };
 
-  fetchIncidentData = async (filters: IncidentsFiltersType, isOnMount: boolean) => {
+  fetchIncidentData = async (filters: IncidentsFiltersType) => {
     const { store } = this.props;
-    await store.alertGroupStore.updateIncidentFilters(filters, isOnMount); // this line fetches the incidents
+    await store.alertGroupStore.updateIncidentFiltersAndRefetchIncidentsAndStats(
+      filters,
+      !this.state.isFirstIncidentsFetchDone
+    );
     LocationHelper.update({ ...store.alertGroupStore.incidentFilters }, 'partial');
+    this.setState({ isFirstIncidentsFetchDone: true });
   };
 
   onChangeCursor = (cursor: string, direction: 'prev' | 'next') => {
     const { alertGroupStore } = this.props.store;
-    const pageSize = alertGroupStore.alertsSearchResult['default'].page_size;
+    const pageSize = alertGroupStore.alertsSearchResult.page_size;
 
     alertGroupStore.updateIncidentsCursor(cursor);
 
@@ -389,8 +399,8 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
   handleChangeItemsPerPage = (value: number) => {
     const { store } = this.props;
 
-    store.alertGroupStore.alertsSearchResult['default'] = {
-      ...store.alertGroupStore.alertsSearchResult['default'],
+    store.alertGroupStore.alertsSearchResult = {
+      ...store.alertGroupStore.alertsSearchResult,
       page_size: value,
     };
 
@@ -415,11 +425,13 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
       return null;
     }
 
-    const { results } = store.alertGroupStore.getAlertSearchResult('default');
+    const { results } = AlertGroupHelper.getAlertSearchResult(store.alertGroupStore);
 
     const hasSelected = selectedIncidentIds.length > 0;
+    const isLoading = LoaderHelper.isLoading(store.loaderStore, ActionKey.FETCH_INCIDENTS);
     const hasInvalidatedAlert = Boolean(
-      (results && results.some((alert: AlertType) => alert.undoAction)) || Object.keys(affectedRows).length
+      (results && results.some((alert: ApiSchemas['AlertGroup']) => alert.undoAction)) ||
+        Object.keys(affectedRows).length
     );
 
     return (
@@ -475,18 +487,17 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
           </div>
 
           <div className={cx('fields-dropdown')}>
-            <RenderConditionally shouldRender={hasInvalidatedAlert}>
+            <RenderConditionally shouldRender={!isLoading && hasInvalidatedAlert}>
               <HorizontalGroup spacing="xs">
                 <Text type="secondary">Results out of date</Text>
-                <Button
-                  className={cx('btn-results')}
-                  disabled={store.alertGroupStore.alertGroupsLoading}
-                  variant="primary"
-                  onClick={this.onIncidentsUpdateClick}
-                >
+                <Button className={cx('btn-results')} variant="primary" onClick={this.onIncidentsUpdateClick}>
                   Refresh
                 </Button>
               </HorizontalGroup>
+            </RenderConditionally>
+
+            <RenderConditionally shouldRender={isLoading}>
+              <LoadingPlaceholder text="Loading..." className={cx('loadingPlaceholder')} />
             </RenderConditionally>
 
             <RenderConditionally shouldRender={store.hasFeature(AppFeature.Labels)}>
@@ -505,10 +516,11 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
 
   renderTable() {
     const { selectedIncidentIds, pagination, isHorizontalScrolling } = this.state;
-    const { alertGroupStore, filtersStore } = this.props.store;
+    const { alertGroupStore, filtersStore, loaderStore } = this.props.store;
 
-    const { results, prev, next } = alertGroupStore.getAlertSearchResult('default');
-    const isLoading = alertGroupStore.alertGroupsLoading || filtersStore.options['incidents'] === undefined;
+    const { results, prev, next } = AlertGroupHelper.getAlertSearchResult(alertGroupStore);
+    const isLoading =
+      LoaderHelper.isLoading(loaderStore, ActionKey.FETCH_INCIDENTS) || filtersStore.options['incidents'] === undefined;
 
     if (results && !results.length) {
       return (
@@ -538,7 +550,6 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
         {this.renderBulkActions()}
         <GTable
           emptyText={isLoading ? 'Loading...' : 'No alert groups found'}
-          loading={isLoading}
           className={cx({ 'horizontal-scroll-table': isHorizontalScrolling })}
           rowSelection={{
             selectedRowKeys: selectedIncidentIds,
@@ -554,7 +565,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
           <div className={cx('pagination')}>
             <CursorPagination
               current={`${pagination.start}-${pagination.end}`}
-              itemsPerPage={alertGroupStore.alertsSearchResult?.['default']?.page_size}
+              itemsPerPage={alertGroupStore.alertsSearchResult?.page_size}
               itemsPerPageOptions={PAGINATION_OPTIONS}
               prev={prev}
               next={next}
@@ -567,7 +578,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
     );
   }
 
-  renderId(record: AlertType) {
+  renderId(record: ApiSchemas['AlertGroup']) {
     return (
       <TextEllipsisTooltip placement="top" content={`#${record.inside_organization_number}`}>
         <Text type="secondary" className={cx(TEXT_ELLIPSIS_CLASS, 'overflow-child--line-1')}>
@@ -577,7 +588,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
     );
   }
 
-  renderTitle = (record: AlertType) => {
+  renderTitle = (record: ApiSchemas['AlertGroup']) => {
     const { store, query } = this.props;
     const { start } = this.state.pagination || {};
     const { incidentsCursor } = store.alertGroupStore;
@@ -591,7 +602,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
                 page: 'alert-groups',
                 id: record.pk,
                 cursor: incidentsCursor,
-                perpage: store.alertGroupStore.alertsSearchResult?.['default']?.page_size,
+                perpage: store.alertGroupStore.alertsSearchResult?.page_size,
                 start,
                 ...query,
               }}
@@ -605,15 +616,18 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
     );
   };
 
-  renderAlertsCounter(record: AlertType) {
+  renderAlertsCounter(record: ApiSchemas['AlertGroup']) {
     return <Text type="secondary">{record.alerts_count}</Text>;
   }
 
-  renderSource = (record: AlertType) => {
+  renderSource = (record: ApiSchemas['AlertGroup']) => {
     const {
       store: { alertReceiveChannelStore },
     } = this.props;
-    const integration = alertReceiveChannelStore.getIntegration(record.alert_receive_channel);
+    const integration = AlertReceiveChannelHelper.getIntegrationSelectOption(
+      alertReceiveChannelStore,
+      record.alert_receive_channel
+    );
 
     return (
       <TextEllipsisTooltip
@@ -631,7 +645,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
     );
   };
 
-  renderStatus = (alert: AlertType) => {
+  renderStatus = (alert: ApiSchemas['AlertGroup']) => {
     return (
       <IncidentDropdown
         alert={alert}
@@ -645,7 +659,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
     );
   };
 
-  renderStartedAt = (alert: AlertType) => {
+  renderStartedAt = (alert: ApiSchemas['AlertGroup']) => {
     const m = moment(alert.started_at);
     const { isHorizontalScrolling } = this.state;
 
@@ -669,7 +683,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
     );
   };
 
-  renderLabels = (item: AlertType) => {
+  renderLabels = (item: ApiSchemas['AlertGroup']) => {
     if (!item.labels.length) {
       return null;
     }
@@ -690,7 +704,11 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
                   icon="filter"
                   tooltip="Apply filter"
                   variant="secondary"
-                  onClick={this.getApplyLabelFilterClickHandler(label)}
+                  onClick={this.getApplyLabelFilterClickHandler({
+                    // TODO: check with backend
+                    key: { ...label.key, prescribed: false },
+                    value: { ...label.value, prescribed: false },
+                  })}
                 />
               </HorizontalGroup>
             ))}
@@ -700,7 +718,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
     );
   };
 
-  renderTeam(record: AlertType, teams: any) {
+  renderTeam(record: ApiSchemas['AlertGroup'], teams: any) {
     return (
       <TextEllipsisTooltip placement="top" content={teams[record.team]?.name}>
         <TeamName className={TEXT_ELLIPSIS_CLASS} team={teams[record.team]} />
@@ -708,7 +726,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
     );
   }
 
-  getApplyLabelFilterClickHandler = (label: LabelKeyValue) => {
+  getApplyLabelFilterClickHandler = (label: ApiSchemas['LabelPair']) => {
     const {
       store: { filtersStore },
     } = this.props;
@@ -731,7 +749,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
     };
   };
 
-  renderCustomColumn = (column: AlertGroupColumn, alert: AlertType) => {
+  renderCustomColumn = (column: AlertGroupColumn, alert: ApiSchemas['AlertGroup']) => {
     const matchingLabel = alert.labels?.find((label) => label.key.name === column.name)?.value.name;
 
     return (
@@ -747,13 +765,11 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
     const { alertGroupStore } = this.props.store;
 
     return Boolean(
-      this.state.pagination?.start &&
-        this.state.pagination?.end &&
-        alertGroupStore.alertsSearchResult?.['default']?.page_size
+      this.state.pagination?.start && this.state.pagination?.end && alertGroupStore.alertsSearchResult?.page_size
     );
   }
 
-  handleSelectedIncidentIdsChange = (ids: Array<Alert['pk']>) => {
+  handleSelectedIncidentIdsChange = (ids: Array<ApiSchemas['AlertGroup']['pk']>) => {
     this.setState({ selectedIncidentIds: ids }, () => {
       ids.length > 0 ? this.clearPollingInterval() : this.setPollingInterval();
     });
@@ -804,7 +820,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
       Team: {
         title: 'Team',
         key: 'team',
-        render: (item: AlertType) => this.renderTeam(item, store.grafanaTeamStore.items),
+        render: (item: ApiSchemas['AlertGroup']) => this.renderTeam(item, store.grafanaTeamStore.items),
         grow: 1,
       },
       Users: {
@@ -869,7 +885,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
           width: columnWidth,
           title: capitalize(column.name),
           key: column.id,
-          render: (item: AlertType) => this.renderCustomColumn(column, item),
+          render: (item: ApiSchemas['AlertGroup']) => this.renderCustomColumn(column, item),
         };
       });
 
@@ -882,44 +898,42 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
     return (e: SyntheticEvent) => {
       e.stopPropagation();
 
-      return store.alertGroupStore.doIncidentAction(incidentId, action, false);
+      return store.alertGroupStore.doIncidentAction(incidentId, action);
     };
   };
 
-  getSilenceClickHandler = (alert: AlertType): ((value: number) => Promise<void>) => {
+  getSilenceClickHandler = (alert: ApiSchemas['AlertGroup']): ((value: number) => Promise<void>) => {
     const { store } = this.props;
 
     return (value: number) => {
-      return store.alertGroupStore.doIncidentAction(alert.pk, AlertAction.Silence, false, {
-        delay: value,
-      });
+      return store.alertGroupStore.doIncidentAction(alert.pk, AlertAction.Silence, value);
     };
   };
 
-  getUnsilenceClickHandler = (alert: AlertType): ((event: any) => Promise<void>) => {
+  getUnsilenceClickHandler = (alert: ApiSchemas['AlertGroup']): ((event: any) => Promise<void>) => {
     const { store } = this.props;
 
     return (event: React.SyntheticEvent) => {
       event.stopPropagation();
 
-      return store.alertGroupStore.doIncidentAction(alert.pk, AlertAction.unSilence, false);
+      return store.alertGroupStore.doIncidentAction(alert.pk, AlertAction.unSilence);
     };
   };
 
-  getBulkActionClickHandler = (action: string | number, event?: any) => {
+  getBulkActionClickHandler = (action: ApiSchemas['AlertGroupBulkActionRequest']['action'], event?: any) => {
     const { selectedIncidentIds, affectedRows } = this.state;
     const { store } = this.props;
 
     this.setPollingInterval();
 
-    store.alertGroupStore.liveUpdatesPaused = true;
+    store.alertGroupStore.setLiveUpdatesPaused(true);
     const delay = typeof event === 'number' ? event : 0;
 
     this.setState(
       {
         selectedIncidentIds: [],
         affectedRows: selectedIncidentIds.reduce(
-          (acc, incidentId: AlertType['pk']) => ({
+          (acc, incidentId: ApiSchemas['AlertGroup']['pk']) => ({
             ...acc,
             [incidentId]: true,
           }),
@@ -927,7 +941,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
         ),
       },
       () => {
-        store.alertGroupStore.bulkAction({
+        AlertGroupHelper.bulkAction({
           action,
           alert_group_pks: selectedIncidentIds,
           delay,
@@ -940,7 +954,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
     const { store } = this.props;
 
     this.setState({ affectedRows: {} }, () => {
-      store.alertGroupStore.updateIncidents();
+      store.alertGroupStore.fetchIncidentsAndStats();
     });
   };
 
@@ -949,13 +963,20 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
     this.pollingIntervalId = null;
   }
 
-  setPollingInterval(filters: IncidentsFiltersType = this.state.filters, isOnMount = false) {
+  setPollingInterval() {
     const startPolling = (delayed = false) => {
       this.pollingIntervalId = setTimeout(
         async () => {
           const isBrowserWindowInactive = document.hidden;
-          if (!isBrowserWindowInactive) {
-            await this.fetchIncidentData(filters, isOnMount);
+          if (
+            !isBrowserWindowInactive &&
+            !LoaderHelper.isLoading(this.props.store.loaderStore, [
+              ActionKey.FETCH_INCIDENTS,
+              ActionKey.FETCH_INCIDENTS_POLLING,
+            ]) &&
+            !this.props.store.alertGroupStore.liveUpdatesPaused
+          ) {
+            await this.props.store.alertGroupStore.fetchIncidentsAndStats(true);
           }
 
           if (this.pollingIntervalId === null) {
@@ -971,4 +992,4 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
   }
 }
 
-export default withRouter(withMobXProviderContext(Incidents));
+export const IncidentsPage = withRouter(withMobXProviderContext(_IncidentsPage));

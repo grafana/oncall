@@ -3,7 +3,7 @@ import React, { FC, useCallback, useState } from 'react';
 import { HorizontalGroup, Icon, IconButton } from '@grafana/ui';
 import cn from 'classnames/bind';
 
-import Text from 'components/Text/Text';
+import { Text } from 'components/Text/Text';
 import { ScheduleScoreQualityResponse, ScheduleScoreQualityResult } from 'models/schedule/schedule.types';
 import { getVar } from 'utils/DOM';
 

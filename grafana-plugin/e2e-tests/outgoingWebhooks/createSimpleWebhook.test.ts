@@ -18,7 +18,7 @@ test('create simple webhook and check it is displayed on the list correctly', as
   await page.locator('[name=name]').fill(WEBHOOK_NAME);
   await page.getByLabel('New Outgoing Webhook').getByRole('img').nth(1).click(); // Open team dropdown
   await page.getByLabel('Select options menu').getByText('No team').click();
-  await clickButton({ page, buttonText: 'Create Webhook' });
+  await clickButton({ page, buttonText: 'Create' });
 
   await checkWebhookPresenceInTable({ page, webhookName: WEBHOOK_NAME, expectedTriggerType: 'Escalation step' });
 });

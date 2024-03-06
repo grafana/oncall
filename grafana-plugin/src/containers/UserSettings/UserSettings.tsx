@@ -5,9 +5,9 @@ import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 import { useMediaQuery } from 'react-responsive';
 
-import Avatar from 'components/Avatar/Avatar';
-import { Tabs, TabsContent } from 'containers/UserSettings/parts';
-import { User as UserType } from 'models/user/user.types';
+import { Avatar } from 'components/Avatar/Avatar';
+import { Tabs, TabsContent } from 'containers/UserSettings/parts/UserSettingsParts';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
 import { BREAKPOINT_TABS } from 'utils/consts';
@@ -20,13 +20,13 @@ const cx = cn.bind(styles);
 
 interface UserFormProps {
   onHide: () => void;
-  id: UserType['pk'] | 'new';
-  onCreate?: (data: UserType) => void;
+  id: ApiSchemas['User']['pk'] | 'new';
+  onCreate?: (data: ApiSchemas['User']) => void;
   onUpdate?: () => void;
   tab?: UserSettingsTab;
 }
 
-const UserSettings = observer(({ id, onHide, tab = UserSettingsTab.UserInfo }: UserFormProps) => {
+export const UserSettings = observer(({ id, onHide, tab = UserSettingsTab.UserInfo }: UserFormProps) => {
   const store = useStore();
   const { userStore, organizationStore } = store;
 
@@ -88,5 +88,3 @@ const UserSettings = observer(({ id, onHide, tab = UserSettingsTab.UserInfo }: U
     </>
   );
 });
-
-export default UserSettings;

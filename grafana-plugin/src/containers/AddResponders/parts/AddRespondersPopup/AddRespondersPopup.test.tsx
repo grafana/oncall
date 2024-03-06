@@ -3,7 +3,7 @@ import React from 'react';
 import { render } from '@testing-library/react';
 import { Provider } from 'mobx-react';
 
-import AddRespondersPopup from './AddRespondersPopup';
+import { AddRespondersPopup } from './AddRespondersPopup';
 
 describe('AddRespondersPopup', () => {
   const teams = [
@@ -28,6 +28,7 @@ describe('AddRespondersPopup', () => {
       },
       grafanaTeamStore: {
         getSearchResult: jest.fn().mockReturnValue(teams),
+        updateItems: jest.fn(),
       },
       userStore: {
         search: jest.fn().mockReturnValue({ results: [] }),

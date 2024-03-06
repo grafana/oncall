@@ -1,11 +1,11 @@
-import { makeRequest as makeRequestOriginal, isNetworkError as isNetworkErrorOriginal } from 'network';
+import { makeRequest as makeRequestOriginal, isNetworkError as isNetworkErrorOriginal } from 'network/network';
 
-import PluginState, { InstallationVerb, UpdateGrafanaPluginSettingsProps } from '.';
+import { PluginState, InstallationVerb, UpdateGrafanaPluginSettingsProps } from './plugin';
 
 const makeRequest = makeRequestOriginal as jest.Mock<ReturnType<typeof makeRequestOriginal>>;
 const isNetworkError = isNetworkErrorOriginal as unknown as jest.Mock<ReturnType<typeof isNetworkErrorOriginal>>;
 
-jest.mock('network');
+jest.mock('network/network');
 
 afterEach(() => {
   jest.resetAllMocks();
@@ -254,20 +254,23 @@ describe('PluginState.installPlugin', () => {
       onCallAPIResponse: mockedResponse,
     });
 
-    expect(PluginState.createGrafanaToken).toBeCalledTimes(1);
-    expect(PluginState.createGrafanaToken).toBeCalledWith();
+    expect(PluginState.createGrafanaToken).toHaveBeenCalledTimes(1);
+    expect(PluginState.createGrafanaToken).toHaveBeenCalledWith();
 
-    expect(PluginState.updateGrafanaPluginSettings).toBeCalledTimes(1);
-    expect(PluginState.updateGrafanaPluginSettings).toBeCalledWith({
+    expect(PluginState.updateGrafanaPluginSettings).toHaveBeenCalledTimes(1);
+    expect(PluginState.updateGrafanaPluginSettings).toHaveBeenCalledWith({
       secureJsonData: {
         grafanaToken,
       },
     });
 
-    expect(makeRequest).toBeCalledTimes(1);
-    expect(makeRequest).toBeCalledWith(`${PluginState.ONCALL_BASE_URL}/${selfHosted ? 'self-hosted/' : ''}install`, {
-      method: 'POST',
-    });
+    expect(makeRequest).toHaveBeenCalledTimes(1);
+    expect(makeRequest).toHaveBeenCalledWith(
+      `${PluginState.ONCALL_BASE_URL}/${selfHosted ? 'self-hosted/' : ''}install`,
+      {
+        method: 'POST',
+      }
+    );
   });
 });
 

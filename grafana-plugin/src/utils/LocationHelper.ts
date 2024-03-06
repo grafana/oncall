@@ -3,7 +3,7 @@ import { locationService } from '@grafana/runtime';
 
 import { getQueryParams } from 'plugin/GrafanaPluginRootPage.helpers';
 
-class LocationHelper {
+class BaseLocationHelper {
   update(params: KeyValue, method: 'replace' | 'push' | 'partial') {
     const queryParams = getQueryParams();
 
@@ -17,6 +17,10 @@ class LocationHelper {
         locationService[method](toQueryString(sortedNewParams));
       }
     }
+  }
+
+  getQueryParam(paramKey: string) {
+    return getQueryParams()?.[paramKey];
   }
 }
 
@@ -40,4 +44,4 @@ function sort(object: KeyValue) {
     }, {});
 }
 
-export default new LocationHelper();
+export const LocationHelper = new BaseLocationHelper();

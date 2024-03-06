@@ -5,32 +5,32 @@ import cn from 'classnames/bind';
 import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
 
-import Avatar from 'components/Avatar/Avatar';
-import ScheduleBorderedAvatar from 'components/ScheduleBorderedAvatar/ScheduleBorderedAvatar';
-import Text from 'components/Text/Text';
+import { Avatar } from 'components/Avatar/Avatar';
+import { ScheduleBorderedAvatar } from 'components/ScheduleBorderedAvatar/ScheduleBorderedAvatar';
+import { Text } from 'components/Text/Text';
 import { isInWorkingHours } from 'components/WorkingHours/WorkingHours.helpers';
 import {
   getCurrentDateInTimezone,
   getCurrentlyLoggedInUserDate,
   getTzOffsetString,
 } from 'models/timezone/timezone.helpers';
-import { User } from 'models/user/user.types';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 import { getColorSchemeMappingForUsers } from 'pages/schedule/Schedule.helpers';
 import { useStore } from 'state/useStore';
-import { isUserActionAllowed, UserActions } from 'utils/authorization';
+import { isUserActionAllowed, UserActions } from 'utils/authorization/authorization';
 
 import styles from './ScheduleUserDetails.module.css';
 
 interface ScheduleUserDetailsProps {
   currentMoment: dayjs.Dayjs;
-  user: User;
+  user: ApiSchemas['User'];
   isOncall: boolean;
   scheduleId: string;
 }
 
 const cx = cn.bind(styles);
 
-const ScheduleUserDetails: FC<ScheduleUserDetailsProps> = observer((props) => {
+export const ScheduleUserDetails: FC<ScheduleUserDetailsProps> = observer((props) => {
   const {
     timezoneStore: { calendarStartDate },
   } = useStore();
@@ -153,5 +153,3 @@ const ScheduleUserDetails: FC<ScheduleUserDetailsProps> = observer((props) => {
     </div>
   );
 });
-
-export default ScheduleUserDetails;

@@ -17,12 +17,12 @@ import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
 import Draggable, { DraggableData, DraggableEvent } from 'react-draggable';
 
-import Block from 'components/GBlock/Block';
-import Modal from 'components/Modal/Modal';
-import Tag from 'components/Tag/Tag';
-import Text from 'components/Text/Text';
-import UserGroups from 'components/UserGroups/UserGroups';
-import RemoteSelect from 'containers/RemoteSelect/RemoteSelect';
+import { Block } from 'components/GBlock/Block';
+import { Modal } from 'components/Modal/Modal';
+import { Tag } from 'components/Tag/Tag';
+import { Text } from 'components/Text/Text';
+import { UserGroups } from 'components/UserGroups/UserGroups';
+import { RemoteSelect } from 'containers/RemoteSelect/RemoteSelect';
 import {
   getRepeatShiftsEveryOptions,
   putDownMaxValues,
@@ -40,14 +40,14 @@ import {
   TIME_UNITS_ORDER,
 } from 'containers/RotationForm/RotationForm.helpers';
 import { RepeatEveryPeriod } from 'containers/RotationForm/RotationForm.types';
-import DateTimePicker from 'containers/RotationForm/parts/DateTimePicker';
-import DaysSelector from 'containers/RotationForm/parts/DaysSelector';
-import DeletionModal from 'containers/RotationForm/parts/DeletionModal';
-import TimeUnitSelector from 'containers/RotationForm/parts/TimeUnitSelector';
-import UserItem from 'containers/RotationForm/parts/UserItem';
+import { DateTimePicker } from 'containers/RotationForm/parts/DateTimePicker';
+import { DaysSelector } from 'containers/RotationForm/parts/DaysSelector';
+import { DeletionModal } from 'containers/RotationForm/parts/DeletionModal';
+import { TimeUnitSelector } from 'containers/RotationForm/parts/TimeUnitSelector';
+import { UserItem } from 'containers/RotationForm/parts/UserItem';
 import { getShiftName } from 'models/schedule/schedule.helpers';
 import { Schedule, Shift } from 'models/schedule/schedule.types';
-import { User } from 'models/user/user.types';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 import {
   getDateTime,
   getSelectedDays,
@@ -57,9 +57,10 @@ import {
   getUTCWeekStart,
   getWeekStartString,
 } from 'pages/schedule/Schedule.helpers';
+import { isTopNavbar } from 'plugin/GrafanaPluginRootPage.helpers';
 import { useStore } from 'state/useStore';
 import { getCoords, waitForElement } from 'utils/DOM';
-import { GRAFANA_HEADER_HEIGHT } from 'utils/consts';
+import { GRAFANA_HEADER_HEIGHT, GRAFANA_LEGACY_SIDEBAR_WIDTH } from 'utils/consts';
 import { useDebouncedCallback } from 'utils/hooks';
 
 import styles from './RotationForm.module.css';
@@ -80,7 +81,7 @@ interface RotationFormProps {
   onShowRotationForm: (shiftId: Shift['id']) => void;
 }
 
-const RotationForm = observer((props: RotationFormProps) => {
+export const RotationForm = observer((props: RotationFormProps) => {
   const store = useStore();
   const {
     onHide,
@@ -208,11 +209,11 @@ const RotationForm = observer((props: RotationFormProps) => {
       rolling_users: userGroups,
       interval: repeatEveryValue,
       frequency: repeatEveryPeriod,
-      by_day: getUTCByDay(
-        store.scheduleStore.byDayOptions,
-        selectedDays,
-        store.timezoneStore.getDateInSelectedTimezone(shiftStart)
-      ),
+      by_day: getUTCByDay({
+        dayOptions: store.scheduleStore.byDayOptions,
+        by_day: selectedDays,
+        moment: store.timezoneStore.getDateInSelectedTimezone(shiftStart),
+      }),
       week_start: getUTCWeekStart(
         store.scheduleStore.byDayOptions,
         store.timezoneStore.getDateInSelectedTimezone(shiftStart)
@@ -284,7 +285,7 @@ const RotationForm = observer((props: RotationFormProps) => {
         }
       }
     },
-    [showActiveOnSelectedPartOfDay, showActiveOnSelectedDays, repeatEveryValue]
+    [showActiveOnSelectedPartOfDay, showActiveOnSelectedDays, repeatEveryValue, shiftStart]
   );
 
   const handleRepeatEveryValueChange = (option) => {
@@ -384,11 +385,11 @@ const RotationForm = observer((props: RotationFormProps) => {
       setRepeatEveryValue(shift.interval);
       setRepeatEveryPeriod(shift.frequency);
       setSelectedDays(
-        getSelectedDays(
-          store.scheduleStore.byDayOptions,
-          shift.by_day,
-          store.timezoneStore.getDateInSelectedTimezone(shiftStart)
-        )
+        getSelectedDays({
+          dayOptions: store.scheduleStore.byDayOptions,
+          by_day: shift.by_day,
+          moment: store.timezoneStore.getDateInSelectedTimezone(shiftStart),
+        })
       );
 
       setShowActiveOnSelectedDays(Boolean(shift.by_day?.length));
@@ -412,14 +413,21 @@ const RotationForm = observer((props: RotationFormProps) => {
   useEffect(() => {
     if (shift) {
       setSelectedDays(
-        getSelectedDays(
-          store.scheduleStore.byDayOptions,
-          shift.by_day,
-          store.timezoneStore.getDateInSelectedTimezone(shiftStart)
-        )
+        getSelectedDays({
+          dayOptions: store.scheduleStore.byDayOptions,
+          by_day: shift.by_day,
+          moment: store.timezoneStore.getDateInSelectedTimezone(shiftStart),
+        })
       );
     }
   }, [store.timezoneStore.selectedTimezoneOffset]);
+
+  useEffect(() => {
+    window.addEventListener('resize', onResize);
+    return () => {
+      window.removeEventListener('resize', onResize);
+    };
+  }, []);
 
   const isFormValid = useMemo(() => !Object.keys(errors).length, [errors]);
 
@@ -440,7 +448,7 @@ const RotationForm = observer((props: RotationFormProps) => {
             handle=".drag-handler"
             defaultClassName={cx('draggable')}
             positionOffset={{ x: 0, y: offsetTop }}
-            bounds={bounds || 'body'}
+            bounds={{ ...bounds } || 'body'}
             onStart={onDraggableInit}
           >
             <div {...props}>{children}</div>
@@ -653,7 +661,7 @@ const RotationForm = observer((props: RotationFormProps) => {
                   value={userGroups}
                   onChange={setUserGroups}
                   isMultipleGroups={true}
-                  renderUser={(pk: User['pk']) => (
+                  renderUser={(pk: ApiSchemas['User']['pk']) => (
                     <UserItem
                       pk={pk}
                       shiftColor={shiftColor}
@@ -699,18 +707,39 @@ const RotationForm = observer((props: RotationFormProps) => {
     </>
   );
 
+  function onResize() {
+    onHide();
+  }
+
   function onDraggableInit(_e: DraggableEvent, data: DraggableData) {
     if (!data) {
       return;
     }
 
-    const scrollbarView = document.querySelector('.scrollbar-view')?.getBoundingClientRect();
+    const scrollBarReferenceElements = document.querySelectorAll<HTMLElement>('.scrollbar-view');
+    // top navbar display has 2 scrollbar-view elements (navbar & content)
+    const baseReferenceElRect = (
+      scrollBarReferenceElements.length === 1 ? scrollBarReferenceElements[0] : scrollBarReferenceElements[1]
+    ).getBoundingClientRect();
 
-    const x = data.node.offsetLeft;
-    const top = -data.node.offsetTop + (scrollbarView?.top || 100);
-    const bottom = window.innerHeight - (data.node.offsetTop + data.node.offsetHeight);
+    const { right, bottom } = baseReferenceElRect;
 
-    setDraggableBounds({ left: -x, right: x, top: top - offsetTop, bottom: bottom - offsetTop });
+    setDraggableBounds(
+      isTopNavbar()
+        ? {
+            // values are adjusted by any padding/margin differences
+            left: -data.node.offsetLeft + 4,
+            right: right - (data.node.offsetLeft + data.node.offsetWidth) - 12,
+            top: -offsetTop + GRAFANA_HEADER_HEIGHT + 4,
+            bottom: bottom - data.node.offsetHeight - offsetTop - 12,
+          }
+        : {
+            left: -data.node.offsetLeft + 4 + GRAFANA_LEGACY_SIDEBAR_WIDTH,
+            right: right - (data.node.offsetLeft + data.node.offsetWidth) - 12,
+            top: -offsetTop + 4,
+            bottom: bottom - data.node.offsetHeight - offsetTop - 12,
+          }
+    );
   }
 });
 
@@ -861,5 +890,3 @@ const ShiftPeriod = ({
     </VerticalGroup>
   );
 };
-
-export default RotationForm;

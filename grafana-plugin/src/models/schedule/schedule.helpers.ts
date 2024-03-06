@@ -1,7 +1,7 @@
 import dayjs from 'dayjs';
 
-import { User } from 'models/user/user.types';
-import { RootStore } from 'state';
+import { ApiSchemas } from 'network/oncall-api/api.types';
+import { RootStore } from 'state/rootStore';
 
 import { Event, Layer, Schedule, ScheduleType, Shift, ShiftEvents, ShiftSwap } from './schedule.types';
 
@@ -93,7 +93,7 @@ export const enrichEventsWithScheduleData = (events: Event[], schedule: Partial<
 
 export const getPersonalShiftsFromStore = (
   store: RootStore,
-  userPk: User['pk'],
+  userPk: ApiSchemas['User']['pk'],
   startMoment: dayjs.Dayjs
 ): ShiftEvents[] => {
   return store.scheduleStore.personalEvents[userPk]?.[getFromString(startMoment)] as any;

@@ -13,6 +13,9 @@ from rest_framework.test import APIClient
 from apps.alerts.models import AlertReceiveChannel
 from apps.integrations.mixins import AlertChannelDefiningMixin
 
+# https://github.com/pytest-dev/pytest-xdist/issues/432#issuecomment-528510433
+INTEGRATION_TYPES = sorted(AlertReceiveChannel.INTEGRATION_TYPES)
+
 
 class DatabaseBlocker(_DatabaseBlocker):
     """Customize pytest_django db blocker to raise OperationalError exception."""
@@ -35,50 +38,12 @@ def setup_failing_redis_cache(settings):
     }
 
 
-@pytest.mark.django_db
-def test_integration_json_data_too_big(settings, make_organization_and_user, make_alert_receive_channel):
-    settings.DATA_UPLOAD_MAX_MEMORY_SIZE = 50
-
-    organization, user = make_organization_and_user()
-    alert_receive_channel = make_alert_receive_channel(
-        organization=organization,
-        author=user,
-        integration=AlertReceiveChannel.INTEGRATION_ALERTMANAGER,
-    )
-
-    client = APIClient()
-    url = reverse("integrations:alertmanager", kwargs={"alert_channel_key": alert_receive_channel.token})
-
-    data = {"value": "a" * settings.DATA_UPLOAD_MAX_MEMORY_SIZE}
-    response = client.post(url, data, format="json")
-    assert response.status_code == status.HTTP_400_BAD_REQUEST
-
-
-@pytest.mark.django_db
-def test_integration_form_data_too_big(settings, make_organization_and_user, make_alert_receive_channel):
-    settings.DATA_UPLOAD_MAX_MEMORY_SIZE = 50
-
-    organization, user = make_organization_and_user()
-    alert_receive_channel = make_alert_receive_channel(
-        organization=organization,
-        author=user,
-        integration=AlertReceiveChannel.INTEGRATION_ALERTMANAGER,
-    )
-
-    client = APIClient()
-    url = reverse("integrations:alertmanager", kwargs={"alert_channel_key": alert_receive_channel.token})
-
-    data = {"value": "a" * settings.DATA_UPLOAD_MAX_MEMORY_SIZE}
-    response = client.post(url, data, content_type="application/x-www-form-urlencoded")
-    assert response.status_code == status.HTTP_400_BAD_REQUEST
-
-
 @patch("apps.integrations.views.create_alert")
 @pytest.mark.parametrize(
     "integration_type",
     [
         arc_type
-        for arc_type in AlertReceiveChannel.INTEGRATION_TYPES
+        for arc_type in INTEGRATION_TYPES
         if arc_type not in ["amazon_sns", "grafana", "alertmanager", "grafana_alerting", "maintenance"]
     ],
 )
@@ -230,7 +195,7 @@ def test_integration_old_grafana_endpoint(
     "integration_type",
     [
         arc_type
-        for arc_type in AlertReceiveChannel.INTEGRATION_TYPES
+        for arc_type in INTEGRATION_TYPES
         if arc_type not in ["amazon_sns", "grafana", "alertmanager", "grafana_alerting", "maintenance"]
     ],
 )
@@ -264,7 +229,7 @@ def test_integration_universal_endpoint_not_allow_files(
     "integration_type",
     [
         arc_type
-        for arc_type in AlertReceiveChannel.INTEGRATION_TYPES
+        for arc_type in INTEGRATION_TYPES
         if arc_type not in ["amazon_sns", "grafana", "alertmanager", "grafana_alerting", "maintenance"]
     ],
 )
@@ -367,7 +332,7 @@ def test_integration_grafana_endpoint_without_db_has_alerts(
     "integration_type",
     [
         arc_type
-        for arc_type in AlertReceiveChannel.INTEGRATION_TYPES
+        for arc_type in INTEGRATION_TYPES
         if arc_type not in ["amazon_sns", "grafana", "alertmanager", "grafana_alerting", "maintenance"]
     ],
 )
@@ -467,7 +432,7 @@ def test_integration_grafana_endpoint_without_cache_has_alerts(
     "integration_type",
     [
         arc_type
-        for arc_type in AlertReceiveChannel.INTEGRATION_TYPES
+        for arc_type in INTEGRATION_TYPES
         if arc_type not in ["amazon_sns", "grafana", "alertmanager", "grafana_alerting", "maintenance"]
     ],
 )

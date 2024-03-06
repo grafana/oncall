@@ -71,6 +71,7 @@ def _sync_organization(organization: Organization) -> None:
             "gcom_token_org_last_time_synced",
             "is_rbac_permissions_enabled",
             "is_grafana_incident_enabled",
+            "is_grafana_labels_enabled",
             "grafana_incident_backend_url",
         ]
     )
@@ -111,9 +112,12 @@ def _sync_grafana_incident_plugin(organization: Organization, grafana_api_client
     It intended to use only inside _sync_organization. It mutates, but not saves org, it's saved in _sync_organization.
     """
     grafana_incident_settings, _ = grafana_api_client.get_grafana_incident_plugin_settings()
+    organization.is_grafana_incident_enabled = False
+    organization.grafana_incident_backend_url = None
+
     if grafana_incident_settings is not None:
         organization.is_grafana_incident_enabled = grafana_incident_settings["enabled"]
-        organization.grafana_incident_backend_url = grafana_incident_settings.get("jsonData", {}).get(
+        organization.grafana_incident_backend_url = (grafana_incident_settings.get("jsonData") or {}).get(
             GrafanaAPIClient.GRAFANA_INCIDENT_PLUGIN_BACKEND_URL_KEY
         )
 
@@ -179,7 +183,17 @@ def delete_organization_if_needed(organization: Organization) -> bool:
 def cleanup_organization(organization_pk: int) -> None:
     logger.info(f"Start cleanup Organization {organization_pk}")
     try:
-        organization = Organization.objects.get(pk=organization_pk)
+        organization = Organization.objects_with_deleted.get(pk=organization_pk)
+
+        from apps.grafana_plugin.tasks.sync import cleanup_empty_deleted_integrations
+
+        cleanup_empty_deleted_integrations.apply_async(
+            (
+                organization.pk,
+                False,
+            ),
+        )
+
         if delete_organization_if_needed(organization):
             logger.info(
                 f"Deleting organization due to stack deletion. "
@@ -187,5 +201,6 @@ def cleanup_organization(organization_pk: int) -> None:
             )
         else:
             logger.info(f"Organization {organization_pk} not deleted in gcom, no action taken")
+
     except Organization.DoesNotExist:
         logger.info(f"Organization {organization_pk} was not found")

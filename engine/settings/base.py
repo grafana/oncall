@@ -64,7 +64,7 @@ FEATURE_SLACK_INTEGRATION_ENABLED = getenv_boolean("FEATURE_SLACK_INTEGRATION_EN
 FEATURE_MULTIREGION_ENABLED = getenv_boolean("FEATURE_MULTIREGION_ENABLED", default=False)
 FEATURE_INBOUND_EMAIL_ENABLED = getenv_boolean("FEATURE_INBOUND_EMAIL_ENABLED", default=True)
 FEATURE_PROMETHEUS_EXPORTER_ENABLED = getenv_boolean("FEATURE_PROMETHEUS_EXPORTER_ENABLED", default=False)
-FEATURE_GRAFANA_ALERTING_V2_ENABLED = getenv_boolean("FEATURE_GRAFANA_ALERTING_V2_ENABLED", default=False)
+FEATURE_GRAFANA_ALERTING_V2_ENABLED = getenv_boolean("FEATURE_GRAFANA_ALERTING_V2_ENABLED", default=True)
 GRAFANA_CLOUD_ONCALL_HEARTBEAT_ENABLED = getenv_boolean("GRAFANA_CLOUD_ONCALL_HEARTBEAT_ENABLED", default=True)
 GRAFANA_CLOUD_NOTIFICATIONS_ENABLED = getenv_boolean("GRAFANA_CLOUD_NOTIFICATIONS_ENABLED", default=True)
 # Enable labels feature fo all organizations. This flag overrides FEATURE_LABELS_ENABLED_FOR_GRAFANA_ORGS
@@ -91,6 +91,7 @@ GRAFANA_CLOUD_ONCALL_TOKEN = os.environ.get("GRAFANA_CLOUD_ONCALL_TOKEN", None)
 
 # Outgoing webhook settings
 DANGEROUS_WEBHOOKS_ENABLED = getenv_boolean("DANGEROUS_WEBHOOKS_ENABLED", default=False)
+OUTGOING_WEBHOOK_TIMEOUT = getenv_integer("OUTGOING_WEBHOOK_TIMEOUT", default=4)
 WEBHOOK_RESPONSE_LIMIT = 50000
 
 # Multiregion settings
@@ -283,8 +284,8 @@ INSTALLED_APPS = [
 
 REST_FRAMEWORK = {
     "DEFAULT_PARSER_CLASSES": (
-        "engine.parsers.JSONParser",
-        "engine.parsers.FormParser",
+        "rest_framework.parsers.JSONParser",
+        "rest_framework.parsers.FormParser",
         "rest_framework.parsers.MultiPartParser",
     ),
     "DEFAULT_AUTHENTICATION_CLASSES": [],
@@ -343,14 +344,25 @@ MIDDLEWARE = [
     "apps.user_management.middlewares.OrganizationDeletedMiddleware",
 ]
 
+if OTEL_TRACING_ENABLED:
+    MIDDLEWARE.insert(0, "engine.middlewares.LogRequestHeadersMiddleware")
+
 LOG_REQUEST_ID_HEADER = "HTTP_X_CLOUD_TRACE_CONTEXT"
 
+
+log_fmt = "source=engine:app google_trace_id=%(request_id)s logger=%(name)s %(message)s"
+
+if OTEL_TRACING_ENABLED:
+    log_fmt = (
+        "source=engine:app trace_id=%(otelTraceID)s span_id=%("
+        "otelSpanID)s trace_sampled=%(otelTraceSampled)s google_trace_id=%(request_id)s logger=%(name)s %(message)s"
+    )
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
     "filters": {"request_id": {"()": "log_request_id.filters.RequestIDFilter"}},
     "formatters": {
-        "standard": {"format": "source=engine:app google_trace_id=%(request_id)s logger=%(name)s %(message)s"},
+        "standard": {"format": log_fmt},
         "insight_logger": {"format": "insight=true logger=%(name)s %(message)s"},
     },
     "handlers": {
@@ -506,19 +518,9 @@ CELERY_BEAT_SCHEDULE = {
         "schedule": crontab(minute=1, hour=12, day_of_week="monday"),
         "args": (),
     },
-    "start_check_gaps_in_schedule": {
-        "task": "apps.schedules.tasks.notify_about_gaps_in_schedule.start_check_gaps_in_schedule",
-        "schedule": crontab(minute=0, hour=0),
-        "args": (),
-    },
     "start_notify_about_empty_shifts_in_schedule": {
         "task": "apps.schedules.tasks.notify_about_empty_shifts_in_schedule.start_notify_about_empty_shifts_in_schedule",
         "schedule": crontab(minute=0, hour=12, day_of_week="monday"),
-        "args": (),
-    },
-    "start_check_empty_shifts_in_schedule": {
-        "task": "apps.schedules.tasks.notify_about_empty_shifts_in_schedule.start_check_empty_shifts_in_schedule",
-        "schedule": crontab(minute=0, hour=0),
         "args": (),
     },
     "populate_slack_usergroups": {
@@ -539,6 +541,11 @@ CELERY_BEAT_SCHEDULE = {
     "start_sync_organizations": {
         "task": "apps.grafana_plugin.tasks.sync.start_sync_organizations",
         "schedule": crontab(minute="*/30"),
+        "args": (),
+    },
+    "start_cleanup_organizations": {
+        "task": "apps.grafana_plugin.tasks.sync.start_cleanup_organizations",
+        "schedule": crontab(hour="4, 16", minute=35),
         "args": (),
     },
     "start_cleanup_deleted_organizations": {
@@ -740,7 +747,6 @@ SELF_HOSTED_SETTINGS = {
 
 GRAFANA_INCIDENT_STATIC_API_KEY = os.environ.get("GRAFANA_INCIDENT_STATIC_API_KEY", None)
 
-DATA_UPLOAD_MAX_MEMORY_SIZE = getenv_integer("DATA_UPLOAD_MAX_MEMORY_SIZE", 1_048_576)  # 1mb by default
 JINJA_TEMPLATE_MAX_LENGTH = 50000
 JINJA_RESULT_TITLE_MAX_LENGTH = 500
 JINJA_RESULT_MAX_LENGTH = 50000
@@ -755,6 +761,7 @@ EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
 EMAIL_PORT = getenv_integer("EMAIL_PORT", 587)
 EMAIL_USE_TLS = getenv_boolean("EMAIL_USE_TLS", True)
+EMAIL_USE_SSL = getenv_boolean("EMAIL_USE_SSL", False)
 EMAIL_FROM_ADDRESS = os.getenv("EMAIL_FROM_ADDRESS")
 EMAIL_NOTIFICATIONS_LIMIT = getenv_integer("EMAIL_NOTIFICATIONS_LIMIT", 200)
 
@@ -851,6 +858,7 @@ ZVONOK_POSTBACK_CAMPAIGN_ID = os.getenv("ZVONOK_POSTBACK_CAMPAIGN_ID", "campaign
 ZVONOK_POSTBACK_STATUS = os.getenv("ZVONOK_POSTBACK_STATUS", "status")
 ZVONOK_POSTBACK_USER_CHOICE = os.getenv("ZVONOK_POSTBACK_USER_CHOICE", None)
 ZVONOK_POSTBACK_USER_CHOICE_ACK = os.getenv("ZVONOK_POSTBACK_USER_CHOICE_ACK", None)
+ZVONOK_VERIFICATION_TEMPLATE = os.getenv("ZVONOK_VERIFICATION_TEMPLATE", None)
 
 DETACHED_INTEGRATIONS_SERVER = getenv_boolean("DETACHED_INTEGRATIONS_SERVER", default=False)
 

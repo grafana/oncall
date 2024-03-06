@@ -6,7 +6,7 @@ import { observer } from 'mobx-react';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { SelectOption } from 'state/types';
 import { useStore } from 'state/useStore';
-import { UserActions } from 'utils/authorization';
+import { UserActions } from 'utils/authorization/authorization';
 
 interface SilenceButtonCascaderProps {
   className?: string;

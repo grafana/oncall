@@ -12,6 +12,7 @@ from rest_framework.test import APIClient
 
 from apps.api.permissions import GrafanaAPIPermission, LegacyAccessControlRole, RBACPermission
 from apps.api.serializers.user import UserHiddenFieldsSerializer
+from apps.api.views.user import UPCOMING_SHIFTS_DEFAULT_DAYS
 from apps.base.models import UserNotificationPolicy
 from apps.phone_notifications.exceptions import FailedToFinishVerification
 from apps.schedules.models import CustomOnCallShift, OnCallScheduleWeb
@@ -556,8 +557,8 @@ def test_user_detail_self_permissions(
     "role,expected_status",
     [
         (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
-        (LegacyAccessControlRole.EDITOR, status.HTTP_403_FORBIDDEN),
-        (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
+        (LegacyAccessControlRole.VIEWER, status.HTTP_200_OK),
         (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
@@ -576,6 +577,13 @@ def test_user_detail_other_permissions(
     response = client.get(url, format="json", **make_user_auth_headers(tester, token))
 
     assert response.status_code == expected_status
+    # hidden information for editor/viewer
+    available_fields = UserHiddenFieldsSerializer.fields_available_for_all_users + ["hidden_fields"]
+    if role in (LegacyAccessControlRole.EDITOR, LegacyAccessControlRole.VIEWER):
+        user_details = response.json()
+        for f_name in user_details:
+            if f_name not in available_fields:
+                assert user_details[f_name] == "******"
 
 
 @pytest.mark.django_db
@@ -710,6 +718,32 @@ def test_user_verify_own_phone(
     ):
         response = client.put(url, format="json", **make_user_auth_headers(tester, token))
 
+    assert response.status_code == expected_status
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "role,expected_status",
+    [
+        (LegacyAccessControlRole.ADMIN, status.HTTP_400_BAD_REQUEST),
+        (LegacyAccessControlRole.EDITOR, status.HTTP_400_BAD_REQUEST),
+        (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
+    ],
+)
+def test_user_get_own_telegram_verification_code_with_telegram_connected(
+    make_organization_and_user_with_plugin_token,
+    make_telegram_user_connector,
+    make_user_auth_headers,
+    role,
+    expected_status,
+):
+    _, tester, token = make_organization_and_user_with_plugin_token(role)
+
+    client = APIClient()
+    make_telegram_user_connector(tester)
+    url = reverse("api-internal:user-get-telegram-verification-code", kwargs={"pk": tester.public_primary_key})
+    response = client.get(url, format="json", **make_user_auth_headers(tester, token))
     assert response.status_code == expected_status
 
 
@@ -1091,7 +1125,13 @@ def test_user_can_detail_users(
     url = reverse("api-internal:user-detail", kwargs={"pk": first_user.public_primary_key})
 
     response = client.get(url, format="json", **make_user_auth_headers(second_user, token))
-    assert response.status_code == status.HTTP_403_FORBIDDEN
+    assert response.status_code == status.HTTP_200_OK
+    # hidden information though
+    user_details = response.json()
+    available_fields = UserHiddenFieldsSerializer.fields_available_for_all_users + ["hidden_fields"]
+    for f_name in user_details:
+        if f_name not in available_fields:
+            assert user_details[f_name] == "******"
 
 
 @patch("apps.phone_notifications.phone_backend.PhoneBackend.send_verification_sms", return_value=Mock())
@@ -1384,20 +1424,6 @@ def test_viewer_can_list_users(make_organization_and_user_with_plugin_token, mak
 
     response = client.get(url, format="json", **make_user_auth_headers(user, token))
     assert response.status_code == status.HTTP_200_OK
-
-
-@pytest.mark.django_db
-def test_viewer_cant_detail_users(
-    make_organization_and_user_with_plugin_token, make_user_for_organization, make_user_auth_headers
-):
-    organization, first_user, token = make_organization_and_user_with_plugin_token(role=LegacyAccessControlRole.EDITOR)
-    second_user = make_user_for_organization(organization, role=LegacyAccessControlRole.VIEWER)
-
-    client = APIClient()
-    url = reverse("api-internal:user-detail", kwargs={"pk": first_user.public_primary_key})
-    response = client.get(url, format="json", **make_user_auth_headers(second_user, token))
-
-    assert response.status_code == status.HTTP_403_FORBIDDEN
 
 
 @patch("apps.phone_notifications.phone_backend.PhoneBackend.send_verification_sms", return_value=Mock())
@@ -1892,6 +1918,9 @@ def test_upcoming_shifts_oncall(
     assert returned_data["current_shift"]["start"] == on_call_shift.start
     next_shift_start = on_call_shift.start + timezone.timedelta(days=1)
     assert returned_data["next_shift"]["start"] == next_shift_start
+    assert len(returned_data["upcoming_shifts"]) == UPCOMING_SHIFTS_DEFAULT_DAYS
+    for i, shift in enumerate(returned_data["upcoming_shifts"], start=1):
+        assert shift["start"] == on_call_shift.start + timezone.timedelta(days=i)
 
     # empty response for other user
     url = reverse("api-internal:user-upcoming-shifts", kwargs={"pk": other_user.public_primary_key})
@@ -1945,6 +1974,7 @@ def test_upcoming_shifts_override(
     assert returned_data["is_oncall"] is False
     assert returned_data["current_shift"] is None
     assert returned_data["next_shift"]["start"] == override.start
+    assert returned_data["upcoming_shifts"] == [returned_data["next_shift"]]
 
 
 @pytest.mark.django_db
@@ -1992,7 +2022,8 @@ def test_upcoming_shifts_multiple_schedules(
     client = APIClient()
     url = reverse("api-internal:user-upcoming-shifts", kwargs={"pk": admin.public_primary_key})
 
-    response = client.get(url, format="json", **make_user_auth_headers(admin, token))
+    num_days = 2
+    response = client.get(url + f"?days={num_days}", format="json", **make_user_auth_headers(admin, token))
 
     assert response.status_code == status.HTTP_200_OK
     returned_data = response.data
@@ -2003,10 +2034,16 @@ def test_upcoming_shifts_multiple_schedules(
             assert returned_data[i]["is_oncall"]
             assert returned_data[i]["current_shift"]["start"] == expected_start
             assert returned_data[i]["next_shift"]["start"] == expected_start + timezone.timedelta(days=1)
+            assert len(returned_data[i]["upcoming_shifts"]) == 2
+            for delta, shift in enumerate(returned_data[i]["upcoming_shifts"], start=1):
+                assert shift["start"] == expected_start + timezone.timedelta(days=delta)
         else:
             assert returned_data[i]["is_oncall"] is False
             assert returned_data[i]["current_shift"] is None
             assert returned_data[i]["next_shift"]["start"] == expected_start
+            assert len(returned_data[i]["upcoming_shifts"]) == num_days - i + 1
+            for delta, shift in enumerate(returned_data[i]["upcoming_shifts"], start=0):
+                assert shift["start"] == expected_start + timezone.timedelta(days=delta)
 
 
 @pytest.mark.django_db

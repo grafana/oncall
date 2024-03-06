@@ -65,6 +65,7 @@ class AlertGroupLogRecord(models.Model):
         TYPE_DELETED,
         TYPE_REGISTERED,  # set on creation before having an alert assigned, skip to avoid retries
         TYPE_ROUTE_ASSIGNED,  # set on creation before having an alert assigned, skip to avoid retries
+        TYPE_ACK_REMINDER_TRIGGERED,  # set on acknowledged reminder, no updates to the alert group log
     )
 
     TYPES_FOR_LICENCE_CALCULATION = (
@@ -158,7 +159,8 @@ class AlertGroupLogRecord(models.Model):
         ERROR_ESCALATION_NOTIFY_IN_SLACK,
         ERROR_ESCALATION_NOTIFY_IF_NUM_ALERTS_IN_WINDOW_STEP_IS_NOT_CONFIGURED,
         ERROR_ESCALATION_TRIGGER_CUSTOM_WEBHOOK_ERROR,
-    ) = range(18)
+        ERROR_ESCALATION_NOTIFY_TEAM_MEMBERS_STEP_IS_NOT_CONFIGURED,
+    ) = range(19)
 
     type = models.IntegerField(choices=TYPE_CHOICES)
 
@@ -520,6 +522,11 @@ class AlertGroupLogRecord(models.Model):
                 result += 'skipped escalation step "Notify Group" because it is not configured'
             elif (
                 self.escalation_error_code
+                == AlertGroupLogRecord.ERROR_ESCALATION_NOTIFY_TEAM_MEMBERS_STEP_IS_NOT_CONFIGURED
+            ):
+                result += 'skipped escalation step "Notify Team Members" because it is not configured'
+            elif (
+                self.escalation_error_code
                 == AlertGroupLogRecord.ERROR_ESCALATION_TRIGGER_CUSTOM_BUTTON_STEP_IS_NOT_CONFIGURED
             ):
                 result += 'skipped escalation step "Trigger Outgoing Webhook" because it is not configured'
@@ -592,6 +599,12 @@ class AlertGroupLogRecord(models.Model):
             else:
                 step_specific_info = json.loads(self.step_specific_info)
         return step_specific_info
+
+    def delete(self):
+        logger.debug(
+            f"alert_group_log_record for alert_group deleted" f"alert_group={self.alert_group.pk} log_id={self.pk}"
+        )
+        super().delete()
 
 
 @receiver(post_save, sender=AlertGroupLogRecord)

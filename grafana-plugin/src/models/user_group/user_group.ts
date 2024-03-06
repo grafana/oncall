@@ -1,8 +1,8 @@
 import { action, observable, makeObservable, runInAction } from 'mobx';
 
-import BaseStore from 'models/base_store';
-import { makeRequest } from 'network';
-import { RootStore } from 'state';
+import { BaseStore } from 'models/base_store';
+import { makeRequest } from 'network/network';
+import { RootStore } from 'state/rootStore';
 
 import { UserGroup } from './user_group.types';
 
@@ -21,10 +21,10 @@ export class UserGroupStore extends BaseStore {
     this.path = '/user_groups/';
   }
 
-  @action
-  async updateItems(query = '') {
+  @action.bound
+  async updateItems(query = '', id?: string) {
     const result = await makeRequest(`${this.path}`, {
-      params: { search: query },
+      params: { search: query, id },
     });
 
     runInAction(() => {
@@ -46,11 +46,11 @@ export class UserGroupStore extends BaseStore {
     });
   }
 
-  getSearchResult(query = '') {
+  getSearchResult = (query = '') => {
     if (!this.searchResult[query]) {
       return undefined;
     }
 
     return this.searchResult[query].map((userGroupId: UserGroup['id']) => this.items?.[userGroupId]);
-  }
+  };
 }
