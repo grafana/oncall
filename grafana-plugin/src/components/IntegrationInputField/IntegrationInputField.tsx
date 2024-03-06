@@ -14,6 +14,8 @@ interface IntegrationInputFieldProps {
   showCopy?: boolean;
   showExternal?: boolean;
   className?: string;
+  inputClassName?: string;
+  iconsClassName?: string;
 }
 
 const cx = cn.bind(styles);
@@ -25,6 +27,8 @@ export const IntegrationInputField: React.FC<IntegrationInputFieldProps> = ({
   showCopy = true,
   showExternal = true,
   className,
+  inputClassName = '',
+  iconsClassName = '',
 }) => {
   const [isInputMasked, setIsMasked] = useState(isMasked);
 
@@ -32,7 +36,7 @@ export const IntegrationInputField: React.FC<IntegrationInputFieldProps> = ({
     <div className={cx('root', { [className]: !!className })}>
       <div className={cx('input-container')}>{renderInputField()}</div>
 
-      <div className={cx('icons')}>
+      <div className={cx('icons', iconsClassName)}>
         <HorizontalGroup spacing={'xs'}>
           {showEye && <IconButton aria-label="Reveal" name={'eye'} size={'xs'} onClick={onInputReveal} />}
           {showCopy && <CopyToClipboardIcon text={value} iconButtonProps={{ size: 'xs' }} />}
@@ -43,7 +47,13 @@ export const IntegrationInputField: React.FC<IntegrationInputFieldProps> = ({
   );
 
   function renderInputField() {
-    return <Input className={cx('input')} value={isInputMasked ? value?.replace(/./g, '*') : value} disabled />;
+    return (
+      <Input
+        className={inputClassName}
+        value={isInputMasked ? value?.replace(/./g, '*') : value}
+        disabled
+      />
+    );
   }
 
   function onInputReveal() {

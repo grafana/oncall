@@ -20,6 +20,7 @@ import { Text } from 'components/Text/Text';
 import { RenderConditionally } from 'components/RenderConditionally/RenderConditionally';
 import { useStore } from 'state/useStore';
 import { observer } from 'mobx-react';
+import { IntegrationInputField } from 'components/IntegrationInputField/IntegrationInputField';
 
 interface ServiceNowConfigurationDrawerProps {
   onHide(): void;
@@ -55,6 +56,7 @@ export const ServiceNowConfigDrawer: React.FC<ServiceNowConfigurationDrawerProps
   const { alertReceiveChannelStore } = useStore();
   const [isAuthTestRunning, setIsAuthTestRunning] = useState(false);
   const [authTestResult, setAuthTestResult] = useState(undefined);
+  const serviceNowAPIToken = 'http://url.com';
 
   useEffect(() => {
     (async () => {
@@ -246,12 +248,40 @@ export const ServiceNowConfigDrawer: React.FC<ServiceNowConfigurationDrawerProps
                   <Text type="link">link to documentation</Text>
                 </a>
               </Text>
+
+              <div className={styles.tokenContainer}>
+                <IntegrationInputField
+                  inputClassName={styles.tokenInput}
+                  iconsClassName={styles.tokenIcons}
+                  value={serviceNowAPIToken}
+                  showExternal={false}
+                  isMasked
+                />
+                <Button variant="secondary" onClick={onTokenRegenerate}>
+                  Regenerate
+                </Button>
+              </div>
             </VerticalGroup>
+          </div>
+
+          <div className={styles.formButtons}>
+            <HorizontalGroup justify="flex-end">
+              <Button variant="secondary" onClick={onHide}>
+                Close
+              </Button>
+              <Button variant="primary" type="submit">
+                Update
+              </Button>
+            </HorizontalGroup>
           </div>
         </form>
       </Drawer>
     </>
   );
+
+  function onTokenRegenerate() {
+    // Call API and reset token
+  }
 
   function getAvailableStatusOptions() {
     return (alertReceiveChannelStore.serviceNowStatusList || []).map((status) => ({
@@ -283,6 +313,21 @@ export const ServiceNowConfigDrawer: React.FC<ServiceNowConfigurationDrawerProps
 
 const getStyles = (theme: GrafanaTheme2) => {
   return {
+    tokenContainer: css`
+      display: flex;
+      width: 100%;
+      gap: 8px;
+    `,
+
+    tokenInput: css`
+      height: 32px !important;
+      padding-top: 4px !important;
+    `,
+
+    tokenIcons: css`
+      top: 10px !important;
+    `,
+
     border: css`
       padding: 12px;
       margin-bottom: 24px;
@@ -292,6 +337,10 @@ const getStyles = (theme: GrafanaTheme2) => {
 
     loader: css`
       margin-bottom: 0;
+    `,
+
+    formButtons: css`
+      padding-bottom: 24px;
     `,
   };
 };
