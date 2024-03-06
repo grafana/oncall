@@ -44,7 +44,9 @@ For Open Source Grafana OnCall Slack installation guidance, refer to [Slack setu
 
 ### Configure timeout for acknowledged alerts
 
-You can configure reminders for acknowledged alerts in the Additional settings section of the Chat Ops tab. This section allows you to enable reminders to be sent through Slack at set intervals. You can also choose to have an alert group revert to unacknowledged after a designated period of time if the reminder is not confirmed. 
+You can configure reminders for acknowledged alerts in the Additional settings section of the Chat Ops tab.
+This section allows you to enable reminders to be sent through Slack at set intervals. You can also choose to have an
+alert group revert to unacknowledged after a designated period of time if the reminder is not confirmed.
 
 ## Why does OnCall Slack App require so many permissions?
 
