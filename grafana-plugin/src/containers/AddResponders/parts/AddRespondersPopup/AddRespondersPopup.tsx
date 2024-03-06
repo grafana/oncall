@@ -110,7 +110,6 @@ export const AddRespondersPopup = observer(
 
       const [onCallUserSearchResults, notOnCallUserSearchResults] = await Promise.all([_search(true), _search(false)]);
 
-      // TODO: remove casting when getting rid of custom types
       setOnCallUserSearchResults(onCallUserSearchResults as Array<ApiSchemas['UserIsCurrentlyOnCall']>);
       setNotOnCallUserSearchResults(notOnCallUserSearchResults as Array<ApiSchemas['UserIsCurrentlyOnCall']>);
     }, [searchTerm]);
