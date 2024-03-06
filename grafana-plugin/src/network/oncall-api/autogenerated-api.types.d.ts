@@ -73,42 +73,6 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
-  '/alert_receive_channels/{id}/connected_channels/': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** @description Internal API endpoints for alert receive channels (integrations). */
-    get: operations['alert_receive_channels_connected_channels_retrieve'];
-    put?: never;
-    /** @description Internal API endpoints for alert receive channels (integrations). */
-    post: operations['alert_receive_channels_connected_channels_create'];
-    /** @description Internal API endpoints for alert receive channels (integrations). */
-    delete: operations['alert_receive_channels_connected_channels_destroy'];
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/alert_receive_channels/{id}/connected_channels/{connected_channel_id}/': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    /** @description Internal API endpoints for alert receive channels (integrations). */
-    put: operations['alert_receive_channels_connected_channels_update'];
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
   '/alert_receive_channels/{id}/connected_contact_points/': {
     parameters: {
       query?: never;
@@ -1445,17 +1409,10 @@ export interface components {
       alert_group_labels?: components['schemas']['IntegrationAlertGroupLabels'];
       /** Format: date-time */
       readonly alertmanager_v2_migrated_at: string | null;
-      additional_settings?: {
-        [key: string]: unknown;
-      } | null;
     };
     AlertReceiveChannelConnectContactPoint: {
       datasource_uid: string;
       contact_point_name: string;
-    };
-    AlertReceiveChannelConnectedChannel: {
-      readonly alert_receive_channel: components['schemas']['FastAlertReceiveChannel'];
-      backsync: boolean;
     };
     AlertReceiveChannelConnectedContactPoints: {
       uid: string;
@@ -1465,10 +1422,6 @@ export interface components {
     AlertReceiveChannelConnectedContactPointsInner: {
       name: string;
       notification_connected: boolean;
-    };
-    AlertReceiveChannelConnection: {
-      readonly source_alert_receive_channels: components['schemas']['AlertReceiveChannelSourceChannel'][];
-      readonly connected_alert_receive_channels: components['schemas']['AlertReceiveChannelConnectedChannel'][];
     };
     AlertReceiveChannelContactPoints: {
       uid: string;
@@ -1497,10 +1450,6 @@ export interface components {
       featured: boolean;
       featured_tag_name: string | null;
     };
-    AlertReceiveChannelNewConnection: {
-      id: string;
-      backsync: boolean;
-    }[];
     AlertReceiveChannelPolymorphic:
       | components['schemas']['AlertReceiveChannel']
       | components['schemas']['FilterAlertReceiveChannel'];
@@ -1508,10 +1457,6 @@ export interface components {
       demo_alert_payload?: {
         [key: string]: unknown;
       } | null;
-    };
-    AlertReceiveChannelSourceChannel: {
-      readonly alert_receive_channel: components['schemas']['FastAlertReceiveChannel'];
-      backsync: boolean;
     };
     AlertReceiveChannelStartMaintenance: {
       mode: components['schemas']['ModeEnum'];
@@ -1556,9 +1501,6 @@ export interface components {
       alert_group_labels?: components['schemas']['IntegrationAlertGroupLabels'];
       /** Format: date-time */
       readonly alertmanager_v2_migrated_at: string | null;
-      additional_settings?: {
-        [key: string]: unknown;
-      } | null;
     };
     /** @enum {integer} */
     CloudConnectionStatusEnum: 0 | 1 | 2 | 3;
@@ -1866,9 +1808,6 @@ export interface components {
       alert_group_labels?: components['schemas']['IntegrationAlertGroupLabels'];
       /** Format: date-time */
       readonly alertmanager_v2_migrated_at?: string | null;
-      additional_settings?: {
-        [key: string]: unknown;
-      } | null;
     };
     PatchedUser: {
       readonly pk?: string;
@@ -1975,9 +1914,6 @@ export interface components {
      * @enum {integer}
      */
     TimeoutSecondsEnum: 60 | 120 | 180 | 300 | 600 | 900 | 1800 | 3600 | 43200 | 86400;
-    UpdateChannel: {
-      backsync: boolean;
-    };
     User: {
       readonly pk: string;
       readonly organization: components['schemas']['FastOrganization'];
@@ -2431,106 +2367,6 @@ export interface operations {
           [name: string]: unknown;
         };
         content?: never;
-      };
-    };
-  };
-  alert_receive_channels_connected_channels_retrieve: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        /** @description A string identifying this alert receive channel. */
-        id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['AlertReceiveChannelConnection'];
-        };
-      };
-    };
-  };
-  alert_receive_channels_connected_channels_create: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        /** @description A string identifying this alert receive channel. */
-        id: string;
-      };
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['AlertReceiveChannelNewConnection'];
-        'application/x-www-form-urlencoded': components['schemas']['AlertReceiveChannelNewConnection'];
-        'multipart/form-data': components['schemas']['AlertReceiveChannelNewConnection'];
-      };
-    };
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['AlertReceiveChannelConnection'];
-        };
-      };
-    };
-  };
-  alert_receive_channels_connected_channels_destroy: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        /** @description A string identifying this alert receive channel. */
-        id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description No response body */
-      204: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-    };
-  };
-  alert_receive_channels_connected_channels_update: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        connected_channel_id: string;
-        /** @description A string identifying this alert receive channel. */
-        id: string;
-      };
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['UpdateChannel'];
-        'application/x-www-form-urlencoded': components['schemas']['UpdateChannel'];
-        'multipart/form-data': components['schemas']['UpdateChannel'];
-      };
-    };
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['AlertReceiveChannelConnectedChannel'];
-        };
       };
     };
   };

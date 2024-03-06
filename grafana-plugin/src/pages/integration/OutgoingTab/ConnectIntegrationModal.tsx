@@ -14,14 +14,11 @@ import { useCommonStyles, useIsLoading } from 'utils/hooks';
 
 import ConnectedIntegrationsTable from './ConnectedIntegrationsTable';
 import { getStyles } from './OutgoingTab.styles';
-import { useCurrentIntegration } from './OutgoingTab.hooks';
 
 const DEBOUNCE_MS = 500;
 
 export const ConnectIntegrationModal = observer(({ onDismiss }: { onDismiss: () => void }) => {
-  const { alertReceiveChannelStore, alertReceiveChannelConnectedChannelsStore } = useStore();
-  const [integrationIdsWithBacksync, setIntegrationIdsWithBacksync] = useState<Record<string, boolean>>({});
-  const currentIntegration = useCurrentIntegration();
+  const { alertReceiveChannelStore } = useStore();
   const isLoading = useIsLoading(ActionKey.FETCH_INTEGRATIONS);
   const commonStyles = useCommonStyles();
   const [selectedIntegrations, setSelectedIntegrations] = useState<Array<ApiSchemas['AlertReceiveChannel']>>([]);
@@ -51,13 +48,7 @@ export const ConnectIntegrationModal = observer(({ onDismiss }: { onDismiss: () 
     }
   };
 
-  const onConnect = async (integrationsToConnect: typeof selectedIntegrations) => {
-    await alertReceiveChannelConnectedChannelsStore.connectChannels(
-      currentIntegration.id,
-      integrationsToConnect.map(({ id }) => ({ id, backsync: Boolean(integrationIdsWithBacksync[id]) }))
-    );
-    onDismiss();
-  };
+  const onConnect = () => {};
 
   const debouncedSearch = debounce(fetchItems, DEBOUNCE_MS);
 
@@ -87,9 +78,6 @@ export const ConnectIntegrationModal = observer(({ onDismiss }: { onDismiss: () 
       <ConnectedIntegrationsTable
         selectable
         onChange={onChange}
-        onBacksyncChange={(id, checked) => {
-          setIntegrationIdsWithBacksync({ ...integrationIdsWithBacksync, [id]: checked });
-        }}
         allowBacksync
         tableProps={{
           data: results,
@@ -110,11 +98,7 @@ export const ConnectIntegrationModal = observer(({ onDismiss }: { onDismiss: () 
           <Button variant="secondary" onClick={onDismiss}>
             Close
           </Button>
-          <Button
-            variant="primary"
-            onClick={() => onConnect(selectedIntegrations)}
-            disabled={!selectedIntegrations?.length}
-          >
+          <Button variant="primary" onClick={onConnect} disabled={!selectedIntegrations?.length}>
             Connect
           </Button>
         </HorizontalGroup>

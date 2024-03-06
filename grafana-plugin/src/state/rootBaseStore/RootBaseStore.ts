@@ -42,7 +42,6 @@ import {
   GRAFANA_LICENSE_OSS,
 } from 'utils/consts';
 import { FaroHelper } from 'utils/faro';
-import { AlertReceiveChannelConnectedChannelsStore } from 'models/alert_receive_channel_connected_channels/alert_receive_channel_connected_channels';
 
 // ------ Dashboard ------ //
 
@@ -91,7 +90,6 @@ export class RootBaseStore {
   directPagingStore = new DirectPagingStore(this);
   grafanaTeamStore = new GrafanaTeamStore(this);
   alertReceiveChannelStore = new AlertReceiveChannelStore(this);
-  alertReceiveChannelConnectedChannelsStore = new AlertReceiveChannelConnectedChannelsStore(this);
   alertReceiveChannelWebhooksStore = new AlertReceiveChannelWebhooksStore(this);
   outgoingWebhookStore = new OutgoingWebhookStore(this);
   alertReceiveChannelFiltersStore = new AlertReceiveChannelFiltersStore(this);

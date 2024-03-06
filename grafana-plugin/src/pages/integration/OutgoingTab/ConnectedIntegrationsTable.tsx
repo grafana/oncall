@@ -11,23 +11,17 @@ import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
 
 import { getStyles } from './OutgoingTab.styles';
-import Emoji from 'react-emoji-render';
-
-type Integration =
-  | ApiSchemas['AlertReceiveChannelConnectedChannel']['alert_receive_channel']
-  | ApiSchemas['AlertReceiveChannel'];
 
 interface ConnectedIntegrationsTableProps {
   allowDelete?: boolean;
   allowBacksync?: boolean;
-  onBacksyncChange?: (id: string, checked: boolean) => void;
   selectable?: boolean;
-  onChange?: (integration: Integration, checked: boolean) => void;
-  tableProps: GTableProps<Integration>;
+  onChange?: (integration: ApiSchemas['AlertReceiveChannel'], checked: boolean) => void;
+  tableProps: GTableProps;
 }
 
 const ConnectedIntegrationsTable: FC<ConnectedIntegrationsTableProps> = observer(
-  ({ selectable, allowDelete, onChange, onBacksyncChange, tableProps, allowBacksync }) => {
+  ({ selectable, allowDelete, onChange, tableProps, allowBacksync }) => {
     const { alertReceiveChannelStore } = useStore();
 
     const columns = [
@@ -35,7 +29,7 @@ const ConnectedIntegrationsTable: FC<ConnectedIntegrationsTableProps> = observer
         ? [
             {
               width: '5%',
-              render: (integration: Integration) => (
+              render: (integration: ApiSchemas['AlertReceiveChannel']) => (
                 <Checkbox onChange={(event) => onChange(integration, event.currentTarget.checked)} />
               ),
             },
@@ -44,12 +38,13 @@ const ConnectedIntegrationsTable: FC<ConnectedIntegrationsTableProps> = observer
       {
         width: '45%',
         title: <Text type="secondary">Integration name</Text>,
-        render: ({ verbal_name }: Integration) => <Emoji text={verbal_name} />,
+        dataIndex: 'verbal_name',
+        render: (name: string) => name,
       },
       {
         width: '55%',
         title: <Text type="secondary">Type</Text>,
-        render: (integration: Integration) => (
+        render: (integration: ApiSchemas['AlertReceiveChannel']) => (
           <IntegrationLogoWithTitle
             integration={AlertReceiveChannelHelper.getIntegrationSelectOption(alertReceiveChannelStore, integration)}
           />
@@ -66,11 +61,7 @@ const ConnectedIntegrationsTable: FC<ConnectedIntegrationsTableProps> = observer
                   </Tooltip>
                 </HorizontalGroup>
               ),
-              render: ({ alert_receive_channel }: ApiSchemas['AlertReceiveChannelConnectedChannel']) => (
-                <BacksyncSwitcher
-                  onChange={(checked: boolean) => onBacksyncChange(alert_receive_channel.id, checked)}
-                />
-              ),
+              render: BacksyncSwitcher,
             },
           ]
         : []),
@@ -83,12 +74,12 @@ const ConnectedIntegrationsTable: FC<ConnectedIntegrationsTableProps> = observer
   }
 );
 
-const BacksyncSwitcher = ({ onChange }: { onChange: (checked: boolean) => void }) => {
+const BacksyncSwitcher = () => {
   const styles = useStyles2(getStyles);
 
   return (
     <div className={styles.backsyncColumn}>
-      <Switch onChange={({ currentTarget }) => onChange(currentTarget.checked)} />
+      <Switch defaultChecked />
     </div>
   );
 };

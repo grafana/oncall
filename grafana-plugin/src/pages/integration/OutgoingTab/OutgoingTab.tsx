@@ -15,7 +15,6 @@ import { getStyles } from './OutgoingTab.styles';
 import { OutgoingTabDrawerKey } from './OutgoingTab.types';
 import { OutgoingWebhookDetailsDrawerTabs } from './OutgoingWebhookDetailsDrawerTabs';
 import { OutgoingWebhooksTable } from './OutgoingWebhooksTable';
-import { useCurrentIntegration } from './OutgoingTab.hooks';
 
 export const OutgoingTab = () => {
   const { openDrawer, closeDrawer, getIsDrawerOpened } = useDrawer<OutgoingTabDrawerKey>();
@@ -67,9 +66,10 @@ export const OutgoingTab = () => {
 const Connection = observer(() => {
   const styles = useStyles2(getStyles);
 
-  const integration = useCurrentIntegration();
-  // TODO: remove casting once backend narrows down the types
-  const url = integration?.additional_settings?.instance_url as string;
+  // TODO: bring back when backend ready
+  // const integration = useCurrentIntegration();
+  // const url = integration?.additional_settings?.instance_url;
+  const url = 'https://example.com';
 
   return (
     <div>
