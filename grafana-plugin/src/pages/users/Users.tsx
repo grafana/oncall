@@ -2,6 +2,7 @@ import React from 'react';
 
 import { Alert, Button, HorizontalGroup, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
+import { debounce } from 'lodash-es';
 import { observer } from 'mobx-react';
 import { LegacyNavHeading } from 'navbar/LegacyNavHeading';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
@@ -33,6 +34,7 @@ import { getUserRowClassNameFn } from './Users.helpers';
 import styles from './Users.module.css';
 
 const cx = cn.bind(styles);
+const DEBOUNCE_MS = 1000;
 
 interface UsersProps extends WithStoreProps, PageProps, RouteComponentProps<{ id: string }> {}
 
@@ -75,7 +77,7 @@ class Users extends React.Component<UsersProps, UsersState> {
     this.parseParams();
   }
 
-  updateUsers = async (invalidateFn?: () => boolean) => {
+  updateUsers = debounce(async (invalidateFn?: () => boolean) => {
     const { store } = this.props;
     const { usersFilters } = this.state;
     const { userStore, filtersStore } = store;
@@ -89,7 +91,7 @@ class Users extends React.Component<UsersProps, UsersState> {
     await userStore.fetchItems(usersFilters, page, invalidateFn);
 
     this.forceUpdate();
-  };
+  }, DEBOUNCE_MS);
 
   componentDidUpdate(prevProps: UsersProps) {
     if (prevProps.match.params.id !== this.props.match.params.id) {
