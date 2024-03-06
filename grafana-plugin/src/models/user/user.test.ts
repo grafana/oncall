@@ -13,8 +13,6 @@ afterEach(() => {
 });
 
 describe('UserStore.sendBackendConfirmationCode', () => {
-  const rootStore = new RootStore();
-
   const userPk = '5';
   const backend = 'dfkjfdjkfdkjfdaaa';
   const mockedQrCode = 'dfkjfdkjfdkjfdjk';

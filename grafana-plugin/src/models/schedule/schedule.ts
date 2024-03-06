@@ -8,6 +8,7 @@ import { BaseStore } from 'models/base_store';
 import { EscalationChain } from 'models/escalation_chain/escalation_chain.types';
 import { ActionKey } from 'models/loader/action-keys';
 import { makeRequest } from 'network/network';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 import { RootStore } from 'state/rootStore';
 import { SelectOption } from 'state/types';
 import { AutoLoadingState } from 'utils/decorators';
@@ -37,7 +38,6 @@ import {
   ScheduleScoreQualityResponse,
   ShiftSwap,
 } from './schedule.types';
-import { ApiSchemas } from 'network/oncall-api/api.types';
 
 export class ScheduleStore extends BaseStore {
   @observable

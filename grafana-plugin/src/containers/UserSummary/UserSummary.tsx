@@ -3,9 +3,8 @@ import { useEffect } from 'react';
 import { observer } from 'mobx-react';
 
 import { UserHelper } from 'models/user/user.helpers';
-
-import { useStore } from 'state/useStore';
 import { ApiSchemas } from 'network/oncall-api/api.types';
+import { useStore } from 'state/useStore';
 
 interface UserSummaryProps {
   id: ApiSchemas['User']['pk'];

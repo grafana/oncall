@@ -8,17 +8,16 @@ import { PluginLink } from 'components/PluginLink/PluginLink';
 import { Text } from 'components/Text/Text';
 import { WithPermissionControlDisplay } from 'containers/WithPermissionControl/WithPermissionControlDisplay';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
-
+import { ActionKey } from 'models/loader/action-keys';
+import { UserHelper } from 'models/user/user.helpers';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 import { AppFeature } from 'state/features';
 import { rootStore } from 'state/rootStore';
 import { useStore } from 'state/useStore';
 import { isUserActionAllowed, UserAction, UserActions } from 'utils/authorization/authorization';
+import { useIsLoading } from 'utils/hooks';
 
 import styles from './PhoneVerification.module.css';
-import { useIsLoading } from 'utils/hooks';
-import { ActionKey } from 'models/loader/action-keys';
-import { ApiSchemas } from 'network/oncall-api/api.types';
-import { UserHelper } from 'models/user/user.helpers';
 
 const cx = cn.bind(styles);
 

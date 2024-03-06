@@ -2,10 +2,11 @@ import React from 'react';
 
 import { pick } from 'lodash-es';
 
-import { onCallApi } from 'network/oncall-api/http-client';
-import { UserStore } from './user';
-import { throttlingError } from 'utils/utils';
 import { ApiSchemas } from 'network/oncall-api/api.types';
+import { onCallApi } from 'network/oncall-api/http-client';
+import { throttlingError } from 'utils/utils';
+
+import { UserStore } from './user';
 
 export class UserHelper {
   static getTimezone(user: Pick<ApiSchemas['User'], 'timezone'>) {

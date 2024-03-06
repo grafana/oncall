@@ -47,7 +47,7 @@ import { TimeUnitSelector } from 'containers/RotationForm/parts/TimeUnitSelector
 import { UserItem } from 'containers/RotationForm/parts/UserItem';
 import { getShiftName } from 'models/schedule/schedule.helpers';
 import { Schedule, Shift } from 'models/schedule/schedule.types';
-
+import { ApiSchemas } from 'network/oncall-api/api.types';
 import {
   getDateTime,
   getSelectedDays,
@@ -64,7 +64,6 @@ import { GRAFANA_HEADER_HEIGHT, GRAFANA_LEGACY_SIDEBAR_WIDTH } from 'utils/const
 import { useDebouncedCallback } from 'utils/hooks';
 
 import styles from './RotationForm.module.css';
-import { ApiSchemas } from 'network/oncall-api/api.types';
 
 const cx = cn.bind(styles);
 

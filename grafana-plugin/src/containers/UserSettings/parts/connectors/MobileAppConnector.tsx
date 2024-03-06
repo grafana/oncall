@@ -3,9 +3,8 @@ import React, { useCallback } from 'react';
 import { Button, InlineField } from '@grafana/ui';
 
 import { UserSettingsTab } from 'containers/UserSettings/UserSettings.types';
-
-import { useStore } from 'state/useStore';
 import { ApiSchemas } from 'network/oncall-api/api.types';
+import { useStore } from 'state/useStore';
 
 interface MobileAppConnectorProps {
   id: ApiSchemas['User']['pk'];

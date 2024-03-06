@@ -5,12 +5,11 @@ import CopyToClipboard from 'react-copy-to-clipboard';
 
 import { WithConfirm } from 'components/WithConfirm/WithConfirm';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
-
+import { UserHelper } from 'models/user/user.helpers';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
 import { UserActions } from 'utils/authorization/authorization';
 import { openNotification } from 'utils/utils';
-import { ApiSchemas } from 'network/oncall-api/api.types';
-import { UserHelper } from 'models/user/user.helpers';
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
 interface ICalConnectorProps {
@@ -19,10 +18,7 @@ interface ICalConnectorProps {
 
 export const ICalConnector = (props: ICalConnectorProps) => {
   const { id } = props;
-
   const store = useStore();
-  const { userStore } = store;
-
   const [showiCalLink, setShowiCalLink] = useState<string>(undefined);
   const [isiCalLinkExisting, setIsiCalLinkExisting] = useState<boolean>(false);
   const [iCalLoading, setiCalLoading] = useState<boolean>(true);

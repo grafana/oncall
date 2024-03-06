@@ -13,7 +13,7 @@ import { TimelineMarks } from 'containers/TimelineMarks/TimelineMarks';
 import { ActionKey } from 'models/loader/action-keys';
 import { getColorForSchedule, getPersonalShiftsFromStore } from 'models/schedule/schedule.helpers';
 import { Event } from 'models/schedule/schedule.types';
-
+import { ApiSchemas } from 'network/oncall-api/api.types';
 import { getStartOfWeekBasedOnCurrentDate } from 'pages/schedule/Schedule.helpers';
 import { useStore } from 'state/useStore';
 import { PLUGIN_ROOT } from 'utils/consts';
@@ -22,7 +22,6 @@ import { useIsLoading } from 'utils/hooks';
 import { DEFAULT_TRANSITION_TIMEOUT } from './Rotations.config';
 
 import styles from './Rotations.module.css';
-import { ApiSchemas } from 'network/oncall-api/api.types';
 
 const cx = cn.bind(styles);
 

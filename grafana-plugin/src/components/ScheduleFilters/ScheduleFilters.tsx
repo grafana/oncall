@@ -3,6 +3,8 @@ import React, { useCallback } from 'react';
 import { InlineSwitch } from '@grafana/ui';
 import cn from 'classnames/bind';
 
+import { ApiSchemas } from 'network/oncall-api/api.types';
+
 import styles from './ScheduleFilters.module.scss';
 import { ScheduleFiltersType } from './ScheduleFilters.types';
 

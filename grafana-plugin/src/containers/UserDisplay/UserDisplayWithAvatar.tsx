@@ -5,9 +5,8 @@ import { observer } from 'mobx-react';
 
 import { Avatar } from 'components/Avatar/Avatar';
 import { Text } from 'components/Text/Text';
-
-import { useStore } from 'state/useStore';
 import { ApiSchemas } from 'network/oncall-api/api.types';
+import { useStore } from 'state/useStore';
 
 interface UserDisplayProps {
   id: ApiSchemas['User']['pk'];

@@ -4,9 +4,8 @@ import { Button, HorizontalGroup, InlineField, Input } from '@grafana/ui';
 
 import { WithConfirm } from 'components/WithConfirm/WithConfirm';
 import { UserSettingsTab } from 'containers/UserSettings/UserSettings.types';
-
-import { useStore } from 'state/useStore';
 import { ApiSchemas } from 'network/oncall-api/api.types';
+import { useStore } from 'state/useStore';
 
 interface TelegramConnectorProps {
   id: ApiSchemas['User']['pk'];

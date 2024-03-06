@@ -9,13 +9,12 @@ import { Avatar } from 'components/Avatar/Avatar';
 import { GTable } from 'components/GTable/GTable';
 import { Text } from 'components/Text/Text';
 import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
-import { PaginatedUsersResponse } from 'models/user/user';
+import { UserHelper } from 'models/user/user.helpers';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
 import { useDebouncedCallback, useOnClickOutside } from 'utils/hooks';
 
 import styles from './AddRespondersPopup.module.scss';
-import { UserHelper } from 'models/user/user.helpers';
 
 type Props = {
   mode: 'create' | 'update';
@@ -49,11 +48,15 @@ export const AddRespondersPopup = observer(
 
     const isCreateMode = mode === 'create';
 
-    const [searchLoading, setSearchLoading] = useState<boolean>(true);
+    const [searchLoading, setSearchLoading] = useState(true);
     const [activeOption, setActiveOption] = useState<TabOptions>(isCreateMode ? TabOptions.Teams : TabOptions.Users);
     const [teamSearchResults, setTeamSearchResults] = useState<GrafanaTeam[]>([]);
-    const [onCallUserSearchResults, setOnCallUserSearchResults] = useState<Array<ApiSchemas['User']>>([]);
-    const [notOnCallUserSearchResults, setNotOnCallUserSearchResults] = useState<Array<ApiSchemas['User']>>([]);
+    const [onCallUserSearchResults, setOnCallUserSearchResults] = useState<Array<ApiSchemas['UserIsCurrentlyOnCall']>>(
+      []
+    );
+    const [notOnCallUserSearchResults, setNotOnCallUserSearchResults] = useState<
+      Array<ApiSchemas['UserIsCurrentlyOnCall']>
+    >([]);
     const [searchTerm, setSearchTerm] = useState('');
 
     const ref = useRef();
@@ -108,8 +111,8 @@ export const AddRespondersPopup = observer(
       const [onCallUserSearchResults, notOnCallUserSearchResults] = await Promise.all([_search(true), _search(false)]);
 
       // TODO: remove casting when getting rid of custom types
-      setOnCallUserSearchResults(onCallUserSearchResults as Array<ApiSchemas['User']>);
-      setNotOnCallUserSearchResults(notOnCallUserSearchResults as Array<ApiSchemas['User']>);
+      setOnCallUserSearchResults(onCallUserSearchResults as Array<ApiSchemas['UserIsCurrentlyOnCall']>);
+      setNotOnCallUserSearchResults(notOnCallUserSearchResults as Array<ApiSchemas['UserIsCurrentlyOnCall']>);
     }, [searchTerm]);
 
     const searchForTeams = useCallback(async () => {

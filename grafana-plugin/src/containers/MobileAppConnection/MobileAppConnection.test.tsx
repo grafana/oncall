@@ -4,11 +4,11 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 
+import { UserHelper } from 'models/user/user.helpers';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 import { rootStore } from 'state/rootStore';
 
 import { MobileAppConnection } from './MobileAppConnection';
-import { ApiSchemas } from 'network/oncall-api/api.types';
-import { UserHelper } from 'models/user/user.helpers';
 
 jest.mock('plugin/GrafanaPluginRootPage.helpers', () => ({
   isTopNavbar: () => false,

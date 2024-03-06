@@ -12,13 +12,12 @@ import { WorkingHours } from 'components/WorkingHours/WorkingHours';
 import { getShiftName, SHIFT_SWAP_COLOR } from 'models/schedule/schedule.helpers';
 import { Event, ShiftSwap } from 'models/schedule/schedule.types';
 import { getOffsetOfCurrentUser, getTzOffsetString } from 'models/timezone/timezone.helpers';
-
+import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
 
 import { getTitle } from './ScheduleSlot.helpers';
 
 import styles from './ScheduleSlot.module.css';
-import { ApiSchemas } from 'network/oncall-api/api.types';
 
 interface ScheduleSlotProps {
   event: Event;

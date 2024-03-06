@@ -5,10 +5,10 @@ import { observer } from 'mobx-react';
 
 import { Text } from 'components/Text/Text';
 import { MSTeamsInstructions } from 'containers/MSTeams/MSTeamsInstructions';
+import { UserHelper } from 'models/user/user.helpers';
 import { useStore } from 'state/useStore';
 
 import styles from 'containers/UserSettings/parts/tabs/MSTeamsInfo/MSTeamsInfo.module.css';
-import { UserHelper } from 'models/user/user.helpers';
 
 const cx = cn.bind(styles);
 

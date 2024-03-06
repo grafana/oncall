@@ -7,6 +7,7 @@ import { useMediaQuery } from 'react-responsive';
 
 import { Avatar } from 'components/Avatar/Avatar';
 import { Tabs, TabsContent } from 'containers/UserSettings/parts/UserSettingsParts';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
 import { BREAKPOINT_TABS } from 'utils/consts';
@@ -14,7 +15,6 @@ import { BREAKPOINT_TABS } from 'utils/consts';
 import { UserSettingsTab } from './UserSettings.types';
 
 import styles from './UserSettings.module.css';
-import { ApiSchemas } from 'network/oncall-api/api.types';
 
 const cx = cn.bind(styles);
 

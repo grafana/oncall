@@ -9,7 +9,8 @@ import { Block } from 'components/GBlock/Block';
 import { PluginLink } from 'components/PluginLink/PluginLink';
 import { Text } from 'components/Text/Text';
 import { WithPermissionControlDisplay } from 'containers/WithPermissionControl/WithPermissionControlDisplay';
-
+import { UserHelper } from 'models/user/user.helpers';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 import { AppFeature } from 'state/features';
 import { RootStore, rootStore as store } from 'state/rootStore';
 import { UserActions } from 'utils/authorization/authorization';
@@ -19,8 +20,6 @@ import styles from './MobileAppConnection.module.scss';
 import { DisconnectButton } from './parts/DisconnectButton/DisconnectButton';
 import { DownloadIcons } from './parts/DownloadIcons/DownloadIcons';
 import { QRCode } from './parts/QRCode/QRCode';
-import { UserHelper } from 'models/user/user.helpers';
-import { ApiSchemas } from 'network/oncall-api/api.types';
 
 const cx = cn.bind(styles);
 

@@ -2,7 +2,6 @@ import { Channel } from 'models/channel/channel';
 import { EscalationChain } from 'models/escalation_chain/escalation_chain.types';
 import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
 import { Schedule } from 'models/schedule/schedule.types';
-
 import { UserGroup } from 'models/user_group/user_group.types';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 

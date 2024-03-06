@@ -4,9 +4,8 @@ import { Tooltip } from '@grafana/ui';
 import { observer } from 'mobx-react';
 
 import { UserHelper } from 'models/user/user.helpers';
-
-import { useStore } from 'state/useStore';
 import { ApiSchemas } from 'network/oncall-api/api.types';
+import { useStore } from 'state/useStore';
 
 interface UserTooltipProps {
   id: ApiSchemas['User']['pk'];

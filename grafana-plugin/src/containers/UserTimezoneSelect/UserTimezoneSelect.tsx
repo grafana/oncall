@@ -8,10 +8,10 @@ import { sortBy } from 'lodash-es';
 import { observer } from 'mobx-react';
 
 import { allTimezones, getGMTTimezoneLabelBasedOnOffset, getTzOffsetString } from 'models/timezone/timezone.helpers';
+import { UserHelper } from 'models/user/user.helpers';
 import { useStore } from 'state/useStore';
 
 import styles from './UserTimezoneSelect.module.css';
-import { UserHelper } from 'models/user/user.helpers';
 
 const cx = cn.bind(styles);
 

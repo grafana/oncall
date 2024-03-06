@@ -10,7 +10,7 @@ import { Timeline } from 'components/Timeline/Timeline';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { Channel } from 'models/channel/channel';
 import { NotificationPolicyType, prepareNotificationPolicy } from 'models/notification_policy/notification_policy';
-
+import { ApiSchemas } from 'network/oncall-api/api.types';
 import { AppFeature } from 'state/features';
 import { RootStore } from 'state/rootStore';
 import { SelectOption } from 'state/types';

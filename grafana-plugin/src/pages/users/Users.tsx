@@ -19,6 +19,8 @@ import { TooltipBadge } from 'components/TooltipBadge/TooltipBadge';
 import { UsersFilters } from 'components/UsersFilters/UsersFilters';
 import { UserSettings } from 'containers/UserSettings/UserSettings';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
+import { UserHelper } from 'models/user/user.helpers';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 import { AppFeature } from 'state/features';
 import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
@@ -29,8 +31,6 @@ import { PAGE, PLUGIN_ROOT } from 'utils/consts';
 import { getUserRowClassNameFn } from './Users.helpers';
 
 import styles from './Users.module.css';
-import { UserHelper } from 'models/user/user.helpers';
-import { ApiSchemas } from 'network/oncall-api/api.types';
 
 const cx = cn.bind(styles);
 

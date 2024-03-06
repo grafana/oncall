@@ -13,7 +13,7 @@ import { WorkingHours } from 'components/WorkingHours/WorkingHours';
 import { IsOncallIcon } from 'icons/Icons';
 import { Schedule } from 'models/schedule/schedule.types';
 import { getCurrentDateInTimezone } from 'models/timezone/timezone.helpers';
-
+import { ApiSchemas } from 'network/oncall-api/api.types';
 import { getColorSchemeMappingForUsers } from 'pages/schedule/Schedule.helpers';
 import { useStore } from 'state/useStore';
 
@@ -21,7 +21,6 @@ import { ScheduleUserDetails } from './ScheduleUserDetails/ScheduleUserDetails';
 import { calculateTimePassedInDayPercentage } from './UsersTimezones.helpers';
 
 import styles from './UsersTimezones.module.css';
-import { ApiSchemas } from 'network/oncall-api/api.types';
 
 interface UsersTimezonesProps {
   userIds: Array<ApiSchemas['User']['pk']>;

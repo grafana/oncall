@@ -12,7 +12,7 @@ import { UserGroups } from 'components/UserGroups/UserGroups';
 import { WithConfirm } from 'components/WithConfirm/WithConfirm';
 import { getShiftName } from 'models/schedule/schedule.helpers';
 import { Schedule, Shift } from 'models/schedule/schedule.types';
-
+import { ApiSchemas } from 'network/oncall-api/api.types';
 import { getDateTime, getUTCString } from 'pages/schedule/Schedule.helpers';
 import { useStore } from 'state/useStore';
 import { getCoords, getVar, waitForElement } from 'utils/DOM';
@@ -23,7 +23,6 @@ import { DateTimePicker } from './parts/DateTimePicker';
 import { UserItem } from './parts/UserItem';
 
 import styles from './RotationForm.module.css';
-import { ApiSchemas } from 'network/oncall-api/api.types';
 
 interface RotationFormProps {
   onHide: () => void;

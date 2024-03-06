@@ -1,7 +1,7 @@
 import { SelectableValue } from '@grafana/data';
 import { ActionMeta } from '@grafana/ui';
 
-import { UserCurrentlyOnCall } from 'models/user/user.types';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 
 export enum NotificationPolicyValue {
   Default = 0,
@@ -9,7 +9,7 @@ export enum NotificationPolicyValue {
 }
 
 export type UserResponder = {
-  data: UserCurrentlyOnCall;
+  data: ApiSchemas['UserIsCurrentlyOnCall'];
   important: boolean;
 };
 export type UserResponders = UserResponder[];

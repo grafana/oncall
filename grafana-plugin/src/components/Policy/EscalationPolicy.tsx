@@ -23,7 +23,7 @@ import {
 } from 'models/escalation_policy/escalation_policy.types';
 import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
 import { Schedule } from 'models/schedule/schedule.types';
-
+import { UserHelper } from 'models/user/user.helpers';
 import { UserGroup } from 'models/user_group/user_group.types';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { SelectOption, WithStoreProps } from 'state/types';
@@ -182,7 +182,7 @@ class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
           items={userStore.items}
           fetchItemsFn={userStore.fetchItems}
           fetchItemFn={async (id) => await userStore.fetchItemById({ userPk: id, skipIfAlreadyPending: true })}
-          getSearchResult={userStore.getSearchResult}
+          getSearchResult={() => UserHelper.getSearchResult(userStore)}
         />
       </WithPermissionControlTooltip>
     );

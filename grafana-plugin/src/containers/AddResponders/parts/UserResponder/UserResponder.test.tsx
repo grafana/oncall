@@ -3,8 +3,9 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-import { UserResponder } from './UserResponder';
 import { ApiSchemas } from 'network/oncall-api/api.types';
+
+import { UserResponder } from './UserResponder';
 
 describe('UserResponder', () => {
   const user = {

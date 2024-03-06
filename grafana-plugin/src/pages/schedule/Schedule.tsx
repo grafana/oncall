@@ -23,6 +23,7 @@ import { UserTimezoneSelect } from 'containers/UserTimezoneSelect/UserTimezoneSe
 import { UsersTimezones } from 'containers/UsersTimezones/UsersTimezones';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { Event, Schedule, ScheduleType, Shift, ShiftSwap } from 'models/schedule/schedule.types';
+import { UserHelper } from 'models/user/user.helpers';
 import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import { isUserActionAllowed, UserActions } from 'utils/authorization/authorization';
@@ -31,7 +32,6 @@ import { PLUGIN_ROOT } from 'utils/consts';
 import { getStartOfWeekBasedOnCurrentDate } from './Schedule.helpers';
 
 import styles from './Schedule.module.css';
-import { UserHelper } from 'models/user/user.helpers';
 
 const cx = cn.bind(styles);
 

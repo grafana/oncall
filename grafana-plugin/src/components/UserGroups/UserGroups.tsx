@@ -7,7 +7,7 @@ import { SortableContainer, SortableElement, SortableHandle } from 'react-sortab
 
 import { Text } from 'components/Text/Text';
 import { RemoteSelect } from 'containers/RemoteSelect/RemoteSelect';
-
+import { ApiSchemas } from 'network/oncall-api/api.types';
 import { UserActions } from 'utils/authorization/authorization';
 
 import { fromPlainArray, toPlainArray } from './UserGroups.helpers';

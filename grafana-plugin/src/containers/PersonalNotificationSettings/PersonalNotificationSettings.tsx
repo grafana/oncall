@@ -11,6 +11,7 @@ import { Text } from 'components/Text/Text';
 import { Timeline } from 'components/Timeline/Timeline';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { NotificationPolicyType } from 'models/notification_policy/notification_policy';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
 import { UserActions } from 'utils/authorization/authorization';
@@ -19,7 +20,6 @@ import { getColor } from './PersonalNotificationSettings.helpers';
 import img from './img/default-step.png';
 
 import styles from './PersonalNotificationSettings.module.css';
-import { ApiSchemas } from 'network/oncall-api/api.types';
 
 const cx = cn.bind(styles);
 

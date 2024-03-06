@@ -3,7 +3,7 @@ import React, { FC } from 'react';
 import { Legend } from '@grafana/ui';
 
 import { UserSettingsTab } from 'containers/UserSettings/UserSettings.types';
-
+import { ApiSchemas } from 'network/oncall-api/api.types';
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
 
@@ -13,7 +13,6 @@ import { MobileAppConnector } from './MobileAppConnector';
 import { PhoneConnector } from './PhoneConnector';
 import { SlackConnector } from './SlackConnector';
 import { TelegramConnector } from './TelegramConnector';
-import { ApiSchemas } from 'network/oncall-api/api.types';
 
 interface ConnectorsProps {
   id: ApiSchemas['User']['pk'];
