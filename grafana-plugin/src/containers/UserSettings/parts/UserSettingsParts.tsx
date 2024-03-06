@@ -15,7 +15,7 @@ import { NotificationSettingsTab } from 'containers/UserSettings/parts/tabs/Noti
 import { PhoneVerification } from 'containers/UserSettings/parts/tabs/PhoneVerification/PhoneVerification';
 import { TelegramInfo } from 'containers/UserSettings/parts/tabs/TelegramInfo/TelegramInfo';
 import { UserInfoTab } from 'containers/UserSettings/parts/tabs/UserInfoTab/UserInfoTab';
-import { User } from 'models/user/user.types';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
 import { isUseProfileExtensionPointEnabled } from 'utils/utils';
@@ -118,7 +118,7 @@ export const Tabs = ({
 };
 
 interface TabsContentProps {
-  id: User['pk'];
+  id: ApiSchemas['User']['pk'];
   activeTab: UserSettingsTab;
   onTabChange: (tab: UserSettingsTab) => void;
   isDesktopOrLaptop: boolean;

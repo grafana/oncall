@@ -9,8 +9,8 @@ import { Tag } from 'components/Tag/Tag';
 import { Text } from 'components/Text/Text';
 import { TextEllipsisTooltip } from 'components/TextEllipsisTooltip/TextEllipsisTooltip';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
-import { Alert as AlertType, Alert, IncidentStatus } from 'models/alertgroup/alertgroup.types';
-import { User } from 'models/user/user.types';
+import { IncidentStatus } from 'models/alertgroup/alertgroup.types';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 import { SilenceButtonCascader } from 'pages/incidents/parts/SilenceButtonCascader';
 import { move } from 'state/helpers';
 import { getVar } from 'utils/DOM';
@@ -21,7 +21,7 @@ import styles from './Incident.module.scss';
 
 const cx = cn.bind(styles);
 
-export function getIncidentStatusTag(alert: Alert) {
+export function getIncidentStatusTag(alert: ApiSchemas['AlertGroup']) {
   switch (alert.status) {
     case IncidentStatus.Firing:
       return (
@@ -60,7 +60,7 @@ export function getIncidentStatusTag(alert: Alert) {
   }
 }
 
-export function renderRelatedUsers(incident: Alert, isFull = false) {
+export function renderRelatedUsers(incident: ApiSchemas['AlertGroup'], isFull = false) {
   const { related_users } = incident;
 
   let users = [...related_users];
@@ -69,7 +69,7 @@ export function renderRelatedUsers(incident: Alert, isFull = false) {
     return <Text type="secondary">No users involved</Text>;
   }
 
-  function renderUser(user: User) {
+  function renderUser(user: Partial<ApiSchemas['User']>) {
     let badge = undefined;
     if (incident.resolved_by_user && user.pk === incident.resolved_by_user.pk) {
       badge = <IconButton tooltipPlacement="top" tooltip="Resolved" name="check-circle" style={{ color: '#52c41a' }} />;
@@ -144,7 +144,11 @@ export function renderRelatedUsers(incident: Alert, isFull = false) {
   );
 }
 
-export function getActionButtons(incident: AlertType, callbacks: { [key: string]: any }, allSecondary = false) {
+export function getActionButtons(
+  incident: ApiSchemas['AlertGroup'],
+  callbacks: { [key: string]: any },
+  allSecondary = false
+) {
   const { onResolve, onUnresolve, onAcknowledge, onUnacknowledge, onSilence, onUnsilence } = callbacks;
 
   if (incident?.root_alert_group) {

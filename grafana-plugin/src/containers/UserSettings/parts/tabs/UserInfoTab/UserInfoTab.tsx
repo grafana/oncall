@@ -5,11 +5,11 @@ import { InlineField, Input, Legend } from '@grafana/ui';
 import { GrafanaTeamSelect } from 'containers/GrafanaTeamSelect/GrafanaTeamSelect';
 import { UserSettingsTab } from 'containers/UserSettings/UserSettings.types';
 import { Connectors } from 'containers/UserSettings/parts/connectors/Connectors';
-import { User } from 'models/user/user.types';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
 
 interface UserInfoTabProps {
-  id: User['pk'];
+  id: ApiSchemas['User']['pk'];
   onTabChange: (tab: UserSettingsTab) => void;
 }
 
