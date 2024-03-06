@@ -18,13 +18,14 @@ import { observer } from 'mobx-react';
 
 import { GTable } from 'components/GTable/GTable';
 import { IntegrationBlock } from 'components/Integrations/IntegrationBlock';
-import { Tag } from 'components/Tag/Tag';
+import { IntegrationTag } from 'components/Integrations/IntegrationTag';
 import { Text } from 'components/Text/Text';
 import { WithConfirm } from 'components/WithConfirm/WithConfirm';
-import { AlertReceiveChannel, ContactPoint } from 'models/alert_receive_channel/alert_receive_channel.types';
+import { AlertReceiveChannelHelper } from 'models/alert_receive_channel/alert_receive_channel.helpers';
+import { ContactPoint } from 'models/alert_receive_channel/alert_receive_channel.types';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 import styles from 'pages/integration/Integration.module.scss';
 import { useStore } from 'state/useStore';
-import { getVar } from 'utils/DOM';
 import { openErrorNotification, openNotification } from 'utils/utils';
 
 const cx = cn.bind(styles);
@@ -46,7 +47,7 @@ interface IntegrationContactPointState {
 }
 
 export const IntegrationContactPoint: React.FC<{
-  id: AlertReceiveChannel['id'];
+  id: ApiSchemas['AlertReceiveChannel']['id'];
 }> = observer(({ id }) => {
   const { alertReceiveChannelStore } = useStore();
   const contactPoints = alertReceiveChannelStore.connectedContactPoints[id];
@@ -84,7 +85,7 @@ export const IntegrationContactPoint: React.FC<{
 
   useEffect(() => {
     (async function () {
-      const response = await alertReceiveChannelStore.getGrafanaAlertingContactPoints();
+      const response = await AlertReceiveChannelHelper.getGrafanaAlertingContactPoints();
       setState({
         allContactPoints: response,
         dataSourceOptions: response.map((res) => ({ label: res.name, value: res.uid })),
@@ -143,11 +144,7 @@ export const IntegrationContactPoint: React.FC<{
           )}
 
           <HorizontalGroup spacing="md">
-            <Tag color={getVar('--tag-secondary-transparent')} border={getVar('--border-weak')} className={cx('tag')}>
-              <Text type="primary" size="small" className={cx('radius')}>
-                Contact point
-              </Text>
-            </Tag>
+            <IntegrationTag>Contact point</IntegrationTag>
 
             {contactPoints?.length ? (
               <HorizontalGroup>
@@ -281,12 +278,11 @@ export const IntegrationContactPoint: React.FC<{
             aria-label="Disconnect Contact Point"
             name="trash-alt"
             onClick={() => {
-              alertReceiveChannelStore
-                .disconnectContactPoint(id, item.dataSourceId, item.contactPoint)
+              AlertReceiveChannelHelper.disconnectContactPoint(id, item.dataSourceId, item.contactPoint)
                 .then(() => {
                   closeDrawer();
                   openNotification('Contact point has been removed');
-                  alertReceiveChannelStore.updateConnectedContactPoints(id);
+                  alertReceiveChannelStore.fetchConnectedContactPoints(id);
                 })
                 .catch(() => openErrorNotification('An error has occurred. Please try again.'));
             }}
@@ -338,13 +334,13 @@ export const IntegrationContactPoint: React.FC<{
     setState({ isLoading: true });
 
     (isExistingContactPoint
-      ? alertReceiveChannelStore.connectContactPoint(id, selectedAlertManager, selectedContactPoint)
-      : alertReceiveChannelStore.createContactPoint(id, selectedAlertManager, selectedContactPoint)
+      ? AlertReceiveChannelHelper.connectContactPoint(id, selectedAlertManager, selectedContactPoint)
+      : AlertReceiveChannelHelper.createContactPoint(id, selectedAlertManager, selectedContactPoint)
     )
       .then(() => {
         closeDrawer();
         openNotification('A new contact point has been connected to your integration');
-        alertReceiveChannelStore.updateConnectedContactPoints(id);
+        alertReceiveChannelStore.fetchConnectedContactPoints(id);
       })
       .catch((ex) => {
         const error = ex.response?.data?.detail ?? 'An error has occurred. Please try again.';

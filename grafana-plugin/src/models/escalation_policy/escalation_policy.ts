@@ -64,7 +64,7 @@ export class EscalationPolicyStore extends BaseStore {
     });
   }
 
-  @action
+  @action.bound
   async updateEscalationPolicies(escalationChainId: EscalationChain['id']) {
     const response = await makeRequest(this.path, {
       params: { escalation_chain: escalationChainId },
@@ -91,7 +91,7 @@ export class EscalationPolicyStore extends BaseStore {
     });
   }
 
-  @action
+  @action.bound
   createEscalationPolicy(escalationChainId: EscalationChain['id'], data: Partial<EscalationPolicy>) {
     return super.create({
       ...data,
@@ -99,7 +99,7 @@ export class EscalationPolicyStore extends BaseStore {
     });
   }
 
-  @action
+  @action.bound
   async saveEscalationPolicy(id: EscalationPolicy['id'], data: Partial<EscalationPolicy>) {
     this.items[id] = {
       ...this.items[id],
@@ -113,7 +113,7 @@ export class EscalationPolicyStore extends BaseStore {
     }
   }
 
-  @action
+  @action.bound
   async moveEscalationPolicyToPosition(oldIndex: any, newIndex: any, escalationChainId: EscalationChain['id']) {
     const escalationPolicyId = this.escalationChainToEscalationPolicy[escalationChainId][oldIndex];
 
@@ -130,7 +130,7 @@ export class EscalationPolicyStore extends BaseStore {
     this.updateEscalationPolicies(escalationChainId);
   }
 
-  @action
+  @action.bound
   async deleteEscalationPolicy(data: Partial<EscalationPolicy>) {
     const index = this.escalationChainToEscalationPolicy[data.escalation_chain].findIndex(
       (escalationPolicyId: EscalationPolicy['id']) => escalationPolicyId === data.id

@@ -8,7 +8,7 @@ import { logoCoors } from './IntegrationLogo.config';
 
 import styles from 'components/IntegrationLogo/IntegrationLogo.module.css';
 
-interface IntegrationLogoProps {
+export interface IntegrationLogoProps {
   integration: SelectOption;
   scale: number;
 }

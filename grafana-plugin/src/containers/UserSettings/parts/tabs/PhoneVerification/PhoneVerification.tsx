@@ -8,18 +8,21 @@ import { PluginLink } from 'components/PluginLink/PluginLink';
 import { Text } from 'components/Text/Text';
 import { WithPermissionControlDisplay } from 'containers/WithPermissionControl/WithPermissionControlDisplay';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
-import { User } from 'models/user/user.types';
+import { ActionKey } from 'models/loader/action-keys';
+import { UserHelper } from 'models/user/user.helpers';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 import { AppFeature } from 'state/features';
 import { rootStore } from 'state/rootStore';
 import { useStore } from 'state/useStore';
 import { isUserActionAllowed, UserAction, UserActions } from 'utils/authorization/authorization';
+import { useIsLoading } from 'utils/hooks';
 
 import styles from './PhoneVerification.module.css';
 
 const cx = cn.bind(styles);
 
 interface PhoneVerificationProps extends HTMLAttributes<HTMLElement> {
-  userPk?: User['pk'];
+  userPk?: ApiSchemas['User']['pk'];
 }
 
 interface PhoneVerificationState {
@@ -39,7 +42,7 @@ export const PhoneVerification = observer((props: PhoneVerificationProps) => {
   const store = useStore();
   const { userStore, organizationStore } = store;
 
-  const userPk = (propsUserPk || userStore.currentUserPk) as User['pk'];
+  const userPk = (propsUserPk || userStore.currentUserPk) as ApiSchemas['User']['pk'];
   const user = userStore.items[userPk];
   const isCurrentUser = userStore.currentUserPk === user.pk;
 
@@ -92,11 +95,11 @@ export const PhoneVerification = observer((props: PhoneVerificationProps) => {
   }, [userPk, userStore.sendTestSms]);
 
   const handleForgetNumberClick = useCallback(() => {
-    userStore.forgetPhone(userPk).then(async () => {
-      await userStore.loadUser(userPk);
+    UserHelper.forgetPhone(userPk).then(async () => {
+      await userStore.fetchItemById({ userPk });
       setState({ phone: '', showForgetScreen: false, isCodeSent: false, isPhoneCallInitiated: false });
     });
-  }, [userPk, userStore.forgetPhone, userStore.loadUser]);
+  }, [userPk, UserHelper.forgetPhone, userStore.fetchItemById]);
 
   const onSubmitCallback = useCallback(
     async (type) => {
@@ -105,8 +108,8 @@ export const PhoneVerification = observer((props: PhoneVerificationProps) => {
         codeVerification = isPhoneCallInitiated;
       }
       if (codeVerification) {
-        userStore.verifyPhone(userPk, code).then(() => {
-          userStore.loadUser(userPk);
+        UserHelper.verifyPhone(userPk, code).then(() => {
+          userStore.fetchItemById({ userPk });
         });
       } else {
         window.grecaptcha.ready(function () {
@@ -121,7 +124,7 @@ export const PhoneVerification = observer((props: PhoneVerificationProps) => {
 
               switch (type) {
                 case 'verification_call':
-                  userStore.fetchVerificationCall(userPk, token).then(() => {
+                  UserHelper.fetchVerificationCall(userPk, token).then(() => {
                     setState({ isPhoneCallInitiated: true });
                     if (codeInputRef.current) {
                       codeInputRef.current.focus();
@@ -129,7 +132,7 @@ export const PhoneVerification = observer((props: PhoneVerificationProps) => {
                   });
                   break;
                 case 'verification_sms':
-                  userStore.fetchVerificationCode(userPk, token).then(() => {
+                  UserHelper.fetchVerificationCode(userPk, token).then(() => {
                     setState({ isCodeSent: true });
                     if (codeInputRef.current) {
                       codeInputRef.current.focus();
@@ -147,17 +150,17 @@ export const PhoneVerification = observer((props: PhoneVerificationProps) => {
       phone,
       user.email,
       userPk,
-      userStore.verifyPhone,
+      UserHelper.verifyPhone,
       userStore.updateUser,
-      userStore.fetchVerificationCode,
+      UserHelper.fetchVerificationCode,
     ]
   );
 
   const onVerifyCallback = useCallback(async () => {
-    userStore.verifyPhone(userPk, code).then(() => {
-      userStore.loadUser(userPk);
+    UserHelper.verifyPhone(userPk, code).then(() => {
+      userStore.fetchItemById({ userPk });
     });
-  }, [code, userPk, userStore.verifyPhone, userStore.loadUser]);
+  }, [code, userPk, UserHelper.verifyPhone, userStore.fetchItemById]);
 
   const providerConfiguration = organizationStore.currentOrganization?.env_status.phone_provider;
   const isPhoneProviderConfigured = providerConfiguration?.configured;
@@ -266,7 +269,6 @@ export const PhoneVerification = observer((props: PhoneVerificationProps) => {
           isCodeSent={isCodeSent}
           isPhoneCallInitiated={isPhoneCallInitiated}
           isButtonDisabled={isButtonDisabled}
-          isTestCallInProgress={userStore.isTestCallInProgress}
           providerConfiguration={providerConfiguration}
           onSubmitCallback={onSubmitCallback}
           onVerifyCallback={onVerifyCallback}
@@ -310,7 +312,6 @@ interface PhoneVerificationButtonsGroupProps {
   isCodeSent: boolean;
   isPhoneCallInitiated: boolean;
   isButtonDisabled: boolean;
-  isTestCallInProgress: boolean;
   providerConfiguration: {
     configured: boolean;
     test_call: boolean;
@@ -324,108 +325,114 @@ interface PhoneVerificationButtonsGroupProps {
   handleSendTestSmsClick(): void;
   onShowForgetScreen(): void;
 
-  user: User;
+  user: ApiSchemas['User'];
 }
 
-function PhoneVerificationButtonsGroup({
-  action,
-  isCodeSent,
-  isPhoneCallInitiated,
-  isButtonDisabled,
-  isTestCallInProgress,
-  providerConfiguration,
-  onSubmitCallback,
-  onVerifyCallback,
-  handleMakeTestCallClick,
-  handleSendTestSmsClick,
-  onShowForgetScreen,
-  user,
-}: PhoneVerificationButtonsGroupProps) {
-  const showForgetNumber = !!user.verified_phone_number;
-  const showVerifyOrSendCodeButton = !user.verified_phone_number;
-  const verificationStarted = isCodeSent || isPhoneCallInitiated;
-  return (
-    <HorizontalGroup>
-      {showVerifyOrSendCodeButton && (
-        <HorizontalGroup>
-          {verificationStarted ? (
-            <>
-              <WithPermissionControlTooltip userAction={action}>
-                <Button variant="primary" onClick={onVerifyCallback}>
-                  Verify
-                </Button>
-              </WithPermissionControlTooltip>
-            </>
-          ) : (
-            <HorizontalGroup>
-              {providerConfiguration.verification_sms && (
+const PhoneVerificationButtonsGroup = observer(
+  ({
+    action,
+    isCodeSent,
+    isPhoneCallInitiated,
+    isButtonDisabled,
+    providerConfiguration,
+    onSubmitCallback,
+    onVerifyCallback,
+    handleMakeTestCallClick,
+    handleSendTestSmsClick,
+    onShowForgetScreen,
+    user,
+  }: PhoneVerificationButtonsGroupProps) => {
+    const isTestCallOrSmsInProgress = useIsLoading(ActionKey.TEST_CALL_OR_SMS);
+    const showForgetNumber = !!user.verified_phone_number;
+    const showVerifyOrSendCodeButton = !user.verified_phone_number;
+    const verificationStarted = isCodeSent || isPhoneCallInitiated;
+    return (
+      <HorizontalGroup>
+        {showVerifyOrSendCodeButton && (
+          <HorizontalGroup>
+            {verificationStarted ? (
+              <>
                 <WithPermissionControlTooltip userAction={action}>
-                  <Button
-                    variant="primary"
-                    onClick={() => onSubmitCallback('verification_sms')}
-                    disabled={isButtonDisabled}
-                  >
-                    Send Code
+                  <Button variant="primary" onClick={onVerifyCallback}>
+                    Verify
                   </Button>
                 </WithPermissionControlTooltip>
-              )}
-              {providerConfiguration.verification_call && (
-                <WithPermissionControlTooltip userAction={action}>
-                  <Button
-                    variant="primary"
-                    onClick={() => onSubmitCallback('verification_call')}
-                    disabled={isButtonDisabled}
-                  >
-                    Call to get the code
-                  </Button>
-                </WithPermissionControlTooltip>
-              )}
-            </HorizontalGroup>
-          )}
-        </HorizontalGroup>
-      )}
+              </>
+            ) : (
+              <HorizontalGroup>
+                {providerConfiguration.verification_sms && (
+                  <WithPermissionControlTooltip userAction={action}>
+                    <Button
+                      variant="primary"
+                      onClick={() => onSubmitCallback('verification_sms')}
+                      disabled={isButtonDisabled}
+                    >
+                      Send Code
+                    </Button>
+                  </WithPermissionControlTooltip>
+                )}
+                {providerConfiguration.verification_call && (
+                  <WithPermissionControlTooltip userAction={action}>
+                    <Button
+                      variant="primary"
+                      onClick={() => onSubmitCallback('verification_call')}
+                      disabled={isButtonDisabled}
+                    >
+                      Call to get the code
+                    </Button>
+                  </WithPermissionControlTooltip>
+                )}
+              </HorizontalGroup>
+            )}
+          </HorizontalGroup>
+        )}
 
-      {showForgetNumber && (
-        <WithPermissionControlTooltip userAction={action}>
-          <Button
-            disabled={(!user.verified_phone_number && !user.unverified_phone_number) || isTestCallInProgress}
-            onClick={onShowForgetScreen}
-            variant="destructive"
-          >
-            {'Forget Phone Number'}
-          </Button>
-        </WithPermissionControlTooltip>
-      )}
+        {showForgetNumber && (
+          <WithPermissionControlTooltip userAction={action}>
+            <Button
+              disabled={(!user.verified_phone_number && !user.unverified_phone_number) || isTestCallOrSmsInProgress}
+              onClick={onShowForgetScreen}
+              variant="destructive"
+            >
+              {'Forget Phone Number'}
+            </Button>
+          </WithPermissionControlTooltip>
+        )}
 
-      {user.verified_phone_number && (
-        <HorizontalGroup>
-          {providerConfiguration.test_sms && (
-            <WithPermissionControlTooltip userAction={action}>
-              <Button
-                disabled={!user?.verified_phone_number || !providerConfiguration.configured || isTestCallInProgress}
-                onClick={handleSendTestSmsClick}
-              >
-                Send test sms
-              </Button>
-            </WithPermissionControlTooltip>
-          )}
-          {providerConfiguration.test_call && (
-            <HorizontalGroup spacing="xs">
+        {user.verified_phone_number && (
+          <HorizontalGroup>
+            {providerConfiguration.test_sms && (
               <WithPermissionControlTooltip userAction={action}>
                 <Button
-                  disabled={!user?.verified_phone_number || !providerConfiguration.configured || isTestCallInProgress}
-                  onClick={handleMakeTestCallClick}
+                  disabled={
+                    !user?.verified_phone_number || !providerConfiguration.configured || isTestCallOrSmsInProgress
+                  }
+                  onClick={handleSendTestSmsClick}
                 >
-                  {isTestCallInProgress ? 'Making Test Call...' : 'Make Test Call'}
+                  Send test sms
                 </Button>
               </WithPermissionControlTooltip>
-              <Tooltip content={'Click "Make Test Call" to save a phone number and add it to DnD exceptions.'}>
-                <Icon name="info-circle" />
-              </Tooltip>
-            </HorizontalGroup>
-          )}
-        </HorizontalGroup>
-      )}
-    </HorizontalGroup>
-  );
-}
+            )}
+            {providerConfiguration.test_call && (
+              <HorizontalGroup spacing="xs">
+                <WithPermissionControlTooltip userAction={action}>
+                  <Button
+                    disabled={
+                      !user?.verified_phone_number || !providerConfiguration.configured || isTestCallOrSmsInProgress
+                    }
+                    onClick={handleMakeTestCallClick}
+                  >
+                    {isTestCallOrSmsInProgress ? 'Making Test Call...' : 'Make Test Call'}
+                  </Button>
+                </WithPermissionControlTooltip>
+                <Tooltip content={'Click "Make Test Call" to save a phone number and add it to DnD exceptions.'}>
+                  <Icon name="info-circle" />
+                </Tooltip>
+              </HorizontalGroup>
+            )}
+          </HorizontalGroup>
+        )}
+      </HorizontalGroup>
+    );
+  }
+);

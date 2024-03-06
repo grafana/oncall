@@ -30,7 +30,7 @@ export const EscalationChainForm: FC<EscalationChainFormProps> = (props) => {
   const { escalationChainId, onHide, onSubmit: onSubmitProp, mode } = props;
 
   const store = useStore();
-  const { escalationChainStore, userStore } = store;
+  const { escalationChainStore, userStore, grafanaTeamStore } = store;
 
   const user = userStore.currentUser;
 
@@ -92,8 +92,11 @@ export const EscalationChainForm: FC<EscalationChainFormProps> = (props) => {
     <Modal isOpen title={`${mode} Escalation Chain`} onDismiss={onHide}>
       <div className={cx('root')}>
         <Field label="Assign to team">
-          <GSelect
-            modelName="grafanaTeamStore"
+          <GSelect<GrafanaTeam>
+            items={grafanaTeamStore.items}
+            fetchItemsFn={grafanaTeamStore.updateItems}
+            fetchItemFn={grafanaTeamStore.fetchItemById}
+            getSearchResult={grafanaTeamStore.getSearchResult}
             displayField="name"
             valueField="id"
             showSearch

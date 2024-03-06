@@ -18,18 +18,18 @@ export class KeyValuePair<T = string | number> {
   }
 }
 
+export const formatBackendError = (payload: string | Record<string, unknown>) =>
+  typeof payload === 'string'
+    ? payload
+    : Object.keys(payload)
+        .map((key) => `${sentenceCase(key)}: ${payload[key]}`)
+        .join('\n');
+
 export function showApiError(error: any) {
   if (isNetworkError(error) && error.response && error.response.status >= 400 && error.response.status < 500) {
-    const payload = error.response.data;
-    const text =
-      typeof payload === 'string'
-        ? payload
-        : Object.keys(payload)
-            .map((key) => `${sentenceCase(key)}: ${payload[key]}`)
-            .join('\n');
+    const text = formatBackendError(error.response.data);
     openErrorNotification(text);
   }
-
   throw error;
 }
 
@@ -43,21 +43,25 @@ export function refreshPageError(error: AxiosError) {
   throw error;
 }
 
-export function throttlingError(error: AxiosError) {
-  if (isNetworkError(error) && error.response?.status === 429) {
-    const seconds = Number(error.response?.headers['retry-after']);
+export function throttlingError(response: Response) {
+  if (response.ok) {
+    return;
+  }
+  if (response?.status === 429) {
+    const seconds = Number(response?.headers['retry-after']);
     const minutes = Math.floor(seconds / 60);
     const text =
       'Too many requests, please try again in ' +
       (minutes > 0 ? `${Math.floor(seconds / 60)} minutes.` : `${seconds} seconds.`);
     openErrorNotification(text);
   } else {
-    if (error.response?.data === '') {
+    // TODO: check if it works ok
+    if (response?.statusText === '') {
       openErrorNotification(
         'Grafana OnCall is unable to verify your phone number due to incorrect number or verification service being unavailable.'
       );
     } else {
-      openErrorNotification(error.response?.data);
+      openErrorNotification(response?.statusText);
     }
   }
 }

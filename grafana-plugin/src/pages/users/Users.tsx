@@ -2,6 +2,7 @@ import React from 'react';
 
 import { Alert, Button, HorizontalGroup, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
+import { debounce } from 'lodash-es';
 import { observer } from 'mobx-react';
 import { LegacyNavHeading } from 'navbar/LegacyNavHeading';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
@@ -19,7 +20,8 @@ import { TooltipBadge } from 'components/TooltipBadge/TooltipBadge';
 import { UsersFilters } from 'components/UsersFilters/UsersFilters';
 import { UserSettings } from 'containers/UserSettings/UserSettings';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
-import { User as UserType } from 'models/user/user.types';
+import { UserHelper } from 'models/user/user.helpers';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 import { AppFeature } from 'state/features';
 import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
@@ -32,6 +34,7 @@ import { getUserRowClassNameFn } from './Users.helpers';
 import styles from './Users.module.css';
 
 const cx = cn.bind(styles);
+const DEBOUNCE_MS = 1000;
 
 interface UsersProps extends WithStoreProps, PageProps, RouteComponentProps<{ id: string }> {}
 
@@ -39,7 +42,7 @@ const REQUIRED_PERMISSION_TO_VIEW_USERS = UserActions.UserSettingsWrite;
 
 interface UsersState extends PageBaseState {
   isWrongTeam: boolean;
-  userPkToEdit?: UserType['pk'] | 'new';
+  userPkToEdit?: ApiSchemas['User']['pk'] | 'new';
   usersFilters?: {
     searchTerm: string;
   };
@@ -74,7 +77,7 @@ class Users extends React.Component<UsersProps, UsersState> {
     this.parseParams();
   }
 
-  updateUsers = async (invalidateFn?: () => boolean) => {
+  updateUsers = debounce(async (invalidateFn?: () => boolean) => {
     const { store } = this.props;
     const { usersFilters } = this.state;
     const { userStore, filtersStore } = store;
@@ -85,10 +88,10 @@ class Users extends React.Component<UsersProps, UsersState> {
     }
 
     LocationHelper.update({ p: page }, 'partial');
-    await userStore.updateItems(usersFilters, page, invalidateFn);
+    await userStore.fetchItems(usersFilters, page, invalidateFn);
 
     this.forceUpdate();
-  };
+  }, DEBOUNCE_MS);
 
   componentDidUpdate(prevProps: UsersProps) {
     if (prevProps.match.params.id !== this.props.match.params.id) {
@@ -107,9 +110,10 @@ class Users extends React.Component<UsersProps, UsersState> {
     } = this.props;
 
     if (id) {
-      await (id === 'me' ? store.userStore.loadCurrentUser() : store.userStore.loadUser(String(id), true)).catch(
-        (error) => this.setState({ errorData: { ...getWrongTeamResponseInfo(error) } })
-      );
+      await (id === 'me'
+        ? store.userStore.loadCurrentUser()
+        : store.userStore.fetchItemById({ userPk: String(id), skipErrorHandling: true })
+      ).catch((error) => this.setState({ errorData: { ...getWrongTeamResponseInfo(error) } }));
 
       const userPkToEdit = String(id === 'me' ? store.userStore.currentUserPk : id);
 
@@ -180,7 +184,7 @@ class Users extends React.Component<UsersProps, UsersState> {
 
     const page = filtersStore.currentTablePageNum[PAGE.Users];
 
-    const { count, results, page_size } = userStore.getSearchResult();
+    const { count, results, page_size } = UserHelper.getSearchResult(userStore);
     const columns = this.getTableColumns();
 
     const handleClear = () =>
@@ -238,7 +242,7 @@ class Users extends React.Component<UsersProps, UsersState> {
     );
   }
 
-  renderTitle = (user: UserType) => {
+  renderTitle = (user: ApiSchemas['User']) => {
     const {
       store: { userStore },
     } = this.props;
@@ -266,15 +270,15 @@ class Users extends React.Component<UsersProps, UsersState> {
     );
   };
 
-  renderNotificationsChain = (user: UserType) => {
+  renderNotificationsChain = (user: ApiSchemas['User']) => {
     return user.notification_chain_verbal.default;
   };
 
-  renderImportantNotificationsChain = (user: UserType) => {
+  renderImportantNotificationsChain = (user: ApiSchemas['User']) => {
     return user.notification_chain_verbal.important;
   };
 
-  renderContacts = (user: UserType) => {
+  renderContacts = (user: ApiSchemas['User']) => {
     const { store } = this.props;
     return (
       <div className={cx('contacts')}>
@@ -286,7 +290,7 @@ class Users extends React.Component<UsersProps, UsersState> {
     );
   };
 
-  renderButtons = (user: UserType) => {
+  renderButtons = (user: ApiSchemas['User']) => {
     const { store } = this.props;
     const { userStore } = store;
 
@@ -312,7 +316,7 @@ class Users extends React.Component<UsersProps, UsersState> {
     );
   };
 
-  renderStatus = (user: UserType) => {
+  renderStatus = (user: ApiSchemas['User']) => {
     const {
       store,
       store: { organizationStore, telegramChannelStore },

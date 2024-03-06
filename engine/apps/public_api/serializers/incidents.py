@@ -43,6 +43,7 @@ class IncidentSerializer(EagerLoadingMixin, serializers.ModelSerializer):
             "acknowledged_by",
             "title",
             "permalinks",
+            "silenced_at",
         ]
 
     def get_title(self, obj):

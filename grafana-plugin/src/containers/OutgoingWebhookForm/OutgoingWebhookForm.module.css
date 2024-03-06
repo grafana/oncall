@@ -10,9 +10,8 @@
   margin: 4px;
 }
 
-.tabs__content {
+.tabsWrapper {
   padding-top: 16px;
-  padding-bottom: 16px;
 }
 
 .form-row {
@@ -28,6 +27,11 @@
 /* TODO: figure out why this is not picked */
 .webhooks__drawerContent .cursor.monaco-mouse-cursor-text {
   display: none !important;
+}
+
+.sourceCodeRoot {
+  height: calc(100vh - 530px);
+  min-height: 200px;
 }
 
 .cards {

@@ -5,9 +5,9 @@ import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
 import { Text } from 'components/Text/Text';
-import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
-import { Alert } from 'models/alertgroup/alertgroup.types';
-import { OutgoingWebhook } from 'models/outgoing_webhook/outgoing_webhook.types';
+import { AlertReceiveChannelHelper } from 'models/alert_receive_channel/alert_receive_channel.helpers';
+import { AlertGroupHelper } from 'models/alertgroup/alertgroup.helpers';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 import { LabelTemplateOptions } from 'pages/integration/IntegrationCommon.config';
 import { useStore } from 'state/useStore';
 import { useDebouncedCallback } from 'utils/hooks';
@@ -23,10 +23,10 @@ interface TemplatePreviewProps {
   templateBody: string | null;
   templateType?: 'plain' | 'html' | 'image' | 'boolean';
   templateIsRoute?: boolean;
-  payload?: JSON;
-  alertReceiveChannelId: AlertReceiveChannel['id'];
-  alertGroupId?: Alert['pk'];
-  outgoingWebhookId?: OutgoingWebhook['id'];
+  payload?: { [key: string]: unknown };
+  alertReceiveChannelId: ApiSchemas['AlertReceiveChannel']['id'];
+  alertGroupId?: ApiSchemas['AlertGroup']['pk'];
+  outgoingWebhookId?: ApiSchemas['Webhook']['id'];
   templatePage: TEMPLATE_PAGE;
 }
 interface ConditionalResult {
@@ -58,14 +58,14 @@ export const TemplatePreview = observer((props: TemplatePreviewProps) => {
   const [conditionalResult, setConditionalResult] = useState<ConditionalResult>({});
 
   const store = useStore();
-  const { alertReceiveChannelStore, alertGroupStore, outgoingWebhookStore } = store;
+  const { outgoingWebhookStore } = store;
 
   const handleTemplateBodyChange = useDebouncedCallback(() => {
     (templatePage === TEMPLATE_PAGE.Webhooks
       ? outgoingWebhookStore.renderPreview(outgoingWebhookId, templateName, templateBody, payload)
       : alertGroupId
-      ? alertGroupStore.renderPreview(alertGroupId, templateName, templateBody)
-      : alertReceiveChannelStore.renderPreview(alertReceiveChannelId, templateName, templateBody, payload)
+      ? AlertGroupHelper.renderPreview(alertGroupId, templateName, templateBody)
+      : AlertReceiveChannelHelper.renderPreview(alertReceiveChannelId, templateName, templateBody, payload)
     )
       .then((data) => {
         setResult(data);

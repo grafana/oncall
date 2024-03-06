@@ -1,12 +1,11 @@
-import { locationService } from '@grafana/runtime';
 import { contextSrv } from 'grafana/app/core/core';
 import { action, computed, makeObservable, observable, runInAction } from 'mobx';
 import qs from 'query-string';
 import { OnCallAppPluginMeta } from 'types';
 
 import { AlertReceiveChannelStore } from 'models/alert_receive_channel/alert_receive_channel';
-import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { AlertReceiveChannelFiltersStore } from 'models/alert_receive_channel_filters/alert_receive_channel_filters';
+import { AlertReceiveChannelWebhooksStore } from 'models/alert_receive_channel_webhooks/alert_receive_channel_webhooks';
 import { AlertGroupStore } from 'models/alertgroup/alertgroup';
 import { ApiTokenStore } from 'models/api_token/api_token';
 import { CloudStore } from 'models/cloud/cloud';
@@ -31,6 +30,7 @@ import { TimezoneStore } from 'models/timezone/timezone';
 import { UserStore } from 'models/user/user';
 import { UserGroupStore } from 'models/user_group/user_group';
 import { makeRequest } from 'network/network';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 import { AppFeature } from 'state/features';
 import { PluginState } from 'state/plugin/plugin';
 import { retryFailingPromises } from 'utils/async';
@@ -40,7 +40,6 @@ import {
   getOnCallApiUrl,
   GRAFANA_LICENSE_CLOUD,
   GRAFANA_LICENSE_OSS,
-  PLUGIN_ROOT,
 } from 'utils/consts';
 import { FaroHelper } from 'utils/faro';
 
@@ -71,7 +70,7 @@ export class RootBaseStore {
   initialQuery = qs.parse(window.location.search);
 
   @observable
-  selectedAlertReceiveChannel?: AlertReceiveChannel['id'];
+  selectedAlertReceiveChannel?: ApiSchemas['AlertReceiveChannel']['id'];
 
   @observable
   features?: { [key: string]: boolean };
@@ -91,6 +90,7 @@ export class RootBaseStore {
   directPagingStore = new DirectPagingStore(this);
   grafanaTeamStore = new GrafanaTeamStore(this);
   alertReceiveChannelStore = new AlertReceiveChannelStore(this);
+  alertReceiveChannelWebhooksStore = new AlertReceiveChannelWebhooksStore(this);
   outgoingWebhookStore = new OutgoingWebhookStore(this);
   alertReceiveChannelFiltersStore = new AlertReceiveChannelFiltersStore(this);
   escalationChainStore = new EscalationChainStore(this);
@@ -141,7 +141,7 @@ export class RootBaseStore {
     Promise.all([
       this.userStore.updateNotificationPolicyOptions(),
       this.userStore.updateNotifyByOptions(),
-      this.alertReceiveChannelStore.updateAlertReceiveChannelOptions(),
+      this.alertReceiveChannelStore.fetchAlertReceiveChannelOptions(),
     ]);
   };
 
@@ -233,7 +233,6 @@ export class RootBaseStore {
            * therefore there is no need to trigger an additional/separate sync, nor poll a status
            */
           await PluginState.installPlugin();
-          locationService.push(PLUGIN_ROOT);
         } catch (e) {
           return this.setupPluginError(
             PluginState.getHumanReadableErrorFromOnCallError(e, this.onCallApiUrl, 'install')

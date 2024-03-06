@@ -118,11 +118,12 @@ def test_execute_webhook_integration_filter_not_matching(
     organization = make_organization()
     alert_receive_channel = make_alert_receive_channel(organization)
     alert_group = make_alert_group(alert_receive_channel)
+    other_alert_receive_channel = make_alert_receive_channel(organization)
     webhook = make_custom_webhook(
         organization=organization,
         trigger_type=Webhook.TRIGGER_ALERT_GROUP_CREATED,
-        integration_filter=["does-not-match"],
     )
+    webhook.filtered_integrations.add(other_alert_receive_channel)
 
     with patch("apps.webhooks.models.webhook.requests") as mock_requests:
         execute_webhook(webhook.pk, alert_group.pk, None, None)
@@ -146,10 +147,10 @@ def test_execute_webhook_integration_filter_matching(
     webhook = make_custom_webhook(
         organization=organization,
         trigger_type=Webhook.TRIGGER_ALERT_GROUP_CREATED,
-        integration_filter=["test-integration-1"],
         # Check we get past integration filter but exit early to keep test simple
         trigger_template="False",
     )
+    webhook.filtered_integrations.add(alert_receive_channel)
 
     with patch("apps.webhooks.models.webhook.requests") as mock_requests:
         execute_webhook(webhook.pk, alert_group.pk, None, None)

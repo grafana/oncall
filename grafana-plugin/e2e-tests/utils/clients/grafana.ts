@@ -1,7 +1,7 @@
 import { OrgRole } from '@grafana/data';
 import { expect, APIRequestContext } from '@playwright/test';
 
-import { BASE_URL } from '../constants';
+import { BASE_URL, GRAFANA_ADMIN_PASSWORD, GRAFANA_ADMIN_USERNAME } from '../constants';
 
 type UsersLookupResponse = {
   id: number;
@@ -11,6 +11,12 @@ type CreateUserResponse = {
   id: number;
 };
 
+type GetSettingsResponse = {
+  buildInfo: {
+    version: string;
+  };
+};
+
 class GrafanaApiException extends Error {
   constructor(message: string) {
     super(message);
@@ -18,7 +24,7 @@ class GrafanaApiException extends Error {
   }
 }
 
-export default class GrafanaAPIClient {
+class GrafanaAPIClient {
   userName: string;
   password: string;
 
@@ -113,4 +119,16 @@ export default class GrafanaAPIClient {
     });
     expect(res.ok()).toBeTruthy();
   };
+
+  // https://grafana.com/docs/grafana/latest/developers/http_api/other/#get-settings
+  getGrafanaVersion = async (request: APIRequestContext): Promise<string> => {
+    const res = await request.get(`${BASE_URL}/api/frontend/settings`);
+    expect(res.ok()).toBeTruthy();
+
+    const data: GetSettingsResponse = await res.json();
+    return data.buildInfo.version;
+  };
 }
+
+const grafanaAPIClient = new GrafanaAPIClient(GRAFANA_ADMIN_USERNAME, GRAFANA_ADMIN_PASSWORD);
+export default grafanaAPIClient;

@@ -6,6 +6,10 @@ import '@testing-library/jest-dom';
 
 import 'plugin/dayjs';
 
+import { TextEncoder, TextDecoder } from 'util';
+
+Object.assign(global, { TextDecoder, TextEncoder });
+
 // https://stackoverflow.com/a/66055672
 // https://jestjs.io/docs/manual-mocks#mocking-methods-which-are-not-implemented-in-jsdom
 Object.defineProperty(window, 'matchMedia', {

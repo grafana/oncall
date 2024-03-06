@@ -22,7 +22,7 @@ export class GrafanaTeamStore extends BaseStore {
     this.path = '/teams/';
   }
 
-  @action
+  @action.bound
   async updateTeam(id: GrafanaTeam['id'], data: Partial<GrafanaTeam>) {
     const result = await this.update(id, data);
 
@@ -61,7 +61,19 @@ export class GrafanaTeamStore extends BaseStore {
     });
   }
 
-  getSearchResult() {
-    return this.searchResult.map((teamId: GrafanaTeam['id']) => this.items[teamId]);
+  @action.bound
+  async fetchItemById(id: string) {
+    const team = await this.getById(id);
+
+    runInAction(() => {
+      this.items = {
+        ...this.items,
+        [id]: team,
+      };
+    });
   }
+
+  getSearchResult = () => {
+    return this.searchResult.map((teamId: GrafanaTeam['id']) => this.items[teamId]);
+  };
 }

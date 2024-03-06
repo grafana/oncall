@@ -20,10 +20,9 @@ import { Text } from 'components/Text/Text';
 import { TemplateResult } from 'containers/TemplateResult/TemplateResult';
 import { TemplatesAlertGroupsList, TEMPLATE_PAGE } from 'containers/TemplatesAlertGroupsList/TemplatesAlertGroupsList';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
-import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { AlertTemplatesDTO } from 'models/alert_templates/alert_templates';
-import { Alert } from 'models/alertgroup/alertgroup.types';
 import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 import { IntegrationTemplateOptions, LabelTemplateOptions } from 'pages/integration/IntegrationCommon.config';
 import { useStore } from 'state/useStore';
 import { LocationHelper } from 'utils/LocationHelper';
@@ -34,7 +33,7 @@ import styles from './IntegrationTemplate.module.scss';
 const cx = cn.bind(styles);
 
 interface IntegrationTemplateProps {
-  id: AlertReceiveChannel['id'];
+  id: ApiSchemas['AlertReceiveChannel']['id'];
   channelFilterId?: ChannelFilter['id'];
   template: TemplateForEdit;
   templateBody: string;
@@ -49,7 +48,7 @@ export const IntegrationTemplate = observer((props: IntegrationTemplateProps) =>
 
   const [isCheatSheetVisible, setIsCheatSheetVisible] = useState<boolean>(false);
   const [chatOpsPermalink, setChatOpsPermalink] = useState(undefined);
-  const [alertGroupPayload, setAlertGroupPayload] = useState<JSON>(undefined);
+  const [alertGroupPayload, setAlertGroupPayload] = useState<{ [key: string]: unknown }>(undefined);
   const [changedTemplateBody, setChangedTemplateBody] = useState<string>(templateBody);
   const [resultError, setResultError] = useState<string>(undefined);
   const [isRecentAlertGroupExisting, setIsRecentAlertGroupExisting] = useState<boolean>(false);
@@ -101,7 +100,7 @@ export const IntegrationTemplate = observer((props: IntegrationTemplateProps) =>
     }
   };
 
-  const onSelectAlertGroup = useCallback((alertGroup: Alert) => {
+  const onSelectAlertGroup = useCallback((alertGroup: ApiSchemas['AlertGroup']) => {
     if (template.additionalData?.chatOpsName) {
       setChatOpsPermalink({
         permalink: alertGroup?.permalinks[template.additionalData?.chatOpsName],

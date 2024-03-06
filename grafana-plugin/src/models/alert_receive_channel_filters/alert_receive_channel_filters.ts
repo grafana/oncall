@@ -20,15 +20,15 @@ export class AlertReceiveChannelFiltersStore extends BaseStore {
     this.path = '/alert_receive_channels/';
   }
 
-  getSearchResult() {
+  getSearchResult = () => {
     if (!this.searchResult) {
       return undefined;
     }
 
     return this.searchResult.map((value: SelectOption['value']) => this.items?.[value]);
-  }
+  };
 
-  @action
+  @action.bound
   async updateItems(query = '') {
     const results = await makeRequest(`${this.path}`, {
       params: { search: query, filters: true },

@@ -127,7 +127,8 @@ jobs:
         # makemigrations --check = Exit with a non-zero status if model changes are missing migrations
         # and don't actually write them.
         run: |
-          pip install -r requirements.txt -r requirements-dev.txt
+          pip install pip-tools
+          pip-sync requirements.txt requirements-dev.txt
           python manage.py makemigrations --check
           python manage.py lintmigrations
 
@@ -184,7 +185,8 @@ jobs:
         working-directory: engine
         run: |
           apt-get update && apt-get install -y netcat-traditional
-          pip install -r requirements.txt -r requirements-dev.txt
+          pip install pip-tools
+          pip-sync requirements.txt requirements-dev.txt
           ./wait_for_test_mysql_start.sh && pytest -x
 
   unit-test-backend-postgresql-rabbitmq:
@@ -233,7 +235,8 @@ jobs:
       - name: Unit Test Backend
         working-directory: engine
         run: |
-          pip install -r requirements.txt -r requirements-dev.txt
+          pip install pip-tools
+          pip-sync requirements.txt requirements-dev.txt
           pytest -x
 
   unit-test-backend-sqlite-redis:
@@ -272,7 +275,8 @@ jobs:
         working-directory: engine
         run: |
           apt-get update && apt-get install -y netcat-traditional
-          pip install -r requirements.txt -r requirements-dev.txt
+          pip install pip-tools
+          pip-sync requirements.txt requirements-dev.txt
           pytest -x
 
   unit-test-pd-migrator:
@@ -288,7 +292,8 @@ jobs:
       - name: Unit Test PD Migrator
         working-directory: tools/pagerduty-migrator
         run: |
-          pip install -r requirements.txt
+          pip install pip-tools
+          pip-sync requirements.txt
           pytest -x
 
   mypy:
@@ -306,17 +311,16 @@ jobs:
       - name: mypy Static Type Checking
         working-directory: engine
         run: |
-          pip install -r requirements.txt -r requirements-dev.txt
+          pip install pip-tools
+          pip-sync requirements.txt requirements-dev.txt
           mypy .
 
   end-to-end-tests:
     name: End to end tests
     uses: ./.github/workflows/e2e-tests.yml
     with:
-      # NOTE: don't run on > 10.0.3 until this issue is fixed. It appears that something was changed
-      # with the plugin-proxy that caused it to start throwing HTTP 502s from time to time
-      # https://raintank-corp.slack.com/archives/C01C4K8DETW/p1692279329797149
-      grafana-image-tag: 10.0.2
+      # TODO: fix issues with running e2e tests against Grafana v10.2.x and v10.3.x
+      grafana-image-tag: 10.1.7
+      # grafana-image-tag: 10.3.3
       run-expensive-tests: false
       browsers: "chromium"
-    secrets: inherit

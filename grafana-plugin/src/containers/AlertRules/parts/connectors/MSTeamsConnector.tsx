@@ -22,7 +22,7 @@ export const MSTeamsConnector = (props: MSTeamsConnectorProps) => {
   const { channelFilterId } = props;
 
   const store = useStore();
-  const { alertReceiveChannelStore } = store;
+  const { alertReceiveChannelStore, msteamsChannelStore } = store;
 
   const channelFilter = store.alertReceiveChannelStore.channelFilters[channelFilterId];
 
@@ -54,11 +54,14 @@ export const MSTeamsConnector = (props: MSTeamsConnectorProps) => {
         </div>
         Post to Microsoft Teams channel
         <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
-          <GSelect
+          <GSelect<MSTeamsChannel>
             showSearch
             allowClear
             className={cx('select', 'control')}
-            modelName="msteamsChannelStore"
+            items={msteamsChannelStore.items}
+            fetchItemsFn={msteamsChannelStore.updateItems}
+            fetchItemFn={msteamsChannelStore.updateById}
+            getSearchResult={msteamsChannelStore.getSearchResult}
             displayField="display_name"
             valueField="id"
             placeholder="Select Microsoft Teams Channel"

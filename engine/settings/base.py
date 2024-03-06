@@ -284,8 +284,8 @@ INSTALLED_APPS = [
 
 REST_FRAMEWORK = {
     "DEFAULT_PARSER_CLASSES": (
-        "engine.parsers.JSONParser",
-        "engine.parsers.FormParser",
+        "rest_framework.parsers.JSONParser",
+        "rest_framework.parsers.FormParser",
         "rest_framework.parsers.MultiPartParser",
     ),
     "DEFAULT_AUTHENTICATION_CLASSES": [],
@@ -344,14 +344,25 @@ MIDDLEWARE = [
     "apps.user_management.middlewares.OrganizationDeletedMiddleware",
 ]
 
+if OTEL_TRACING_ENABLED:
+    MIDDLEWARE.insert(0, "engine.middlewares.LogRequestHeadersMiddleware")
+
 LOG_REQUEST_ID_HEADER = "HTTP_X_CLOUD_TRACE_CONTEXT"
 
+
+log_fmt = "source=engine:app google_trace_id=%(request_id)s logger=%(name)s %(message)s"
+
+if OTEL_TRACING_ENABLED:
+    log_fmt = (
+        "source=engine:app trace_id=%(otelTraceID)s span_id=%("
+        "otelSpanID)s trace_sampled=%(otelTraceSampled)s google_trace_id=%(request_id)s logger=%(name)s %(message)s"
+    )
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
     "filters": {"request_id": {"()": "log_request_id.filters.RequestIDFilter"}},
     "formatters": {
-        "standard": {"format": "source=engine:app google_trace_id=%(request_id)s logger=%(name)s %(message)s"},
+        "standard": {"format": log_fmt},
         "insight_logger": {"format": "insight=true logger=%(name)s %(message)s"},
     },
     "handlers": {
@@ -530,6 +541,11 @@ CELERY_BEAT_SCHEDULE = {
     "start_sync_organizations": {
         "task": "apps.grafana_plugin.tasks.sync.start_sync_organizations",
         "schedule": crontab(minute="*/30"),
+        "args": (),
+    },
+    "start_cleanup_organizations": {
+        "task": "apps.grafana_plugin.tasks.sync.start_cleanup_organizations",
+        "schedule": crontab(hour="4, 16", minute=35),
         "args": (),
     },
     "start_cleanup_deleted_organizations": {
@@ -731,7 +747,6 @@ SELF_HOSTED_SETTINGS = {
 
 GRAFANA_INCIDENT_STATIC_API_KEY = os.environ.get("GRAFANA_INCIDENT_STATIC_API_KEY", None)
 
-DATA_UPLOAD_MAX_MEMORY_SIZE = getenv_integer("DATA_UPLOAD_MAX_MEMORY_SIZE", 1_048_576)  # 1mb by default
 JINJA_TEMPLATE_MAX_LENGTH = 50000
 JINJA_RESULT_TITLE_MAX_LENGTH = 500
 JINJA_RESULT_MAX_LENGTH = 50000
