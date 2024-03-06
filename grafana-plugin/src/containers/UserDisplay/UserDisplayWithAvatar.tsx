@@ -5,11 +5,11 @@ import { observer } from 'mobx-react';
 
 import { Avatar } from 'components/Avatar/Avatar';
 import { Text } from 'components/Text/Text';
-import { User } from 'models/user/user.types';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
 
 interface UserDisplayProps {
-  id: User['pk'];
+  id: ApiSchemas['User']['pk'];
 }
 
 export const UserDisplayWithAvatar = observer(({ id }: UserDisplayProps) => {
@@ -17,7 +17,7 @@ export const UserDisplayWithAvatar = observer(({ id }: UserDisplayProps) => {
 
   useEffect(() => {
     if (!userStore.items[id]) {
-      userStore.updateItem(id);
+      userStore.fetchItemById({ userPk: id, skipIfAlreadyPending: true });
     }
   }, [id]);
 
