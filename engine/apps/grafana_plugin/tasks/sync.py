@@ -20,6 +20,7 @@ logger.setLevel(logging.DEBUG)
 # to make sure that orgs are synced every 30 minutes, SYNC_PERIOD should be a little lower
 SYNC_PERIOD = timezone.timedelta(minutes=25)
 INACTIVE_PERIOD = timezone.timedelta(minutes=55)
+CLEANUP_PERIOD = timezone.timedelta(hours=12)
 
 
 @shared_dedicated_queue_retry_task(autoretry_for=(Exception,), retry_backoff=True, max_retries=0)
@@ -145,7 +146,7 @@ def sync_team_members_for_organization_async(organization_pk):
 @shared_dedicated_queue_retry_task(autoretry_for=(Exception,), max_retries=1)
 def cleanup_empty_deleted_integrations(organization_pk, dry_run=True):
     try:
-        organization = Organization.objects.get(pk=organization_pk)
+        organization = Organization.objects_with_deleted.get(pk=organization_pk)
     except Organization.DoesNotExist:
         logger.info(f"Organization {organization_pk} was not found")
         return
@@ -163,3 +164,13 @@ def cleanup_empty_deleted_integrations(organization_pk, dry_run=True):
         )
         if not dry_run:
             integration.hard_delete()
+
+
+@shared_dedicated_queue_retry_task(autoretry_for=(Exception,), max_retries=1)
+def start_cleanup_organizations():
+    organization_pks = Organization.objects.all().values_list("pk", flat=True)
+    logger.debug(f"Found {len(organization_pks)} organizations")
+    max_countdown = CLEANUP_PERIOD.seconds
+    for idx, organization_pk in enumerate(organization_pks):
+        countdown = idx % max_countdown  # Spread orgs evenly
+        cleanup_organization_async.apply_async((organization_pk,), countdown=countdown)

@@ -57,7 +57,7 @@ export interface CreateScheduleExportTokenResponse {
 }
 
 export interface Shift {
-  by_day: string[];
+  by_day?: string[] | null;
   week_start: string;
   frequency: number | null;
   id: string;
